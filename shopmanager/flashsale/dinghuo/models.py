@@ -1,21 +1,30 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-from flashsale.dinghuo import paramconfig as pcfg
 from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .models_user import MyUser, MyGroup
 from .models_stats import SupplyChainDataStats
 
-ORDER_PRODUCT_STATUS = (
-    (pcfg.SUBMITTING, u'提交中'),
-    (pcfg.APPROVAL, u'审核'),
-    (pcfg.ZUOFEI, u'作废'),
-    (pcfg.COMPLETED, u'验货完成'),
-    (pcfg.QUESTION, u'有问题'),
-    (pcfg.DEALED, u'已处理'),
-)
+
 
 
 class OrderList(models.Model):
+    
+    #订单状态
+    SUBMITTING = u'草稿'  #提交中
+    APPROVAL = u'审核'  #审核
+    ZUOFEI = u'作废'  #作废
+    COMPLETED = u'验货完成'  #验货完成
+    QUESTION = u'有问题'  #有问题
+    DEALED = u'已处理' #已处理
+    
+    ORDER_PRODUCT_STATUS = (
+        (SUBMITTING, u'提交中'),
+        (APPROVAL, u'审核'),
+        (ZUOFEI, u'作废'),
+        (COMPLETED, u'验货完成'),
+        (QUESTION, u'有问题'),
+        (DEALED, u'已处理'),
+    )
     
     id = BigIntegerAutoField(primary_key=True)
     buyer_name = models.CharField(default="",max_length=32, verbose_name=u'买手')
@@ -60,8 +69,8 @@ class OrderDetail(models.Model):
     arrival_quantity = models.IntegerField(default=0, verbose_name=u'正品数量')
     inferior_quantity = models.IntegerField(default=0, verbose_name=u'次品数量')
     non_arrival_quantity = models.IntegerField(default=0, verbose_name=u'未到数量')
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成日期')
-    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+    created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'生成日期')#index
+    updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')#index
 
 
     class Meta:
