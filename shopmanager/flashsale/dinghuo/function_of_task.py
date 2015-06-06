@@ -34,19 +34,21 @@ def get_daily_order_stats(prev_day):
 
     for product_outer_id, product_dict in order_dict.items():
         pro_bean = Product.objects.filter(outer_id=product_outer_id)
-        for outer_sku_id, product in product_dict.items():
-            temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                                 sale_time=pro_bean[0].sale_time)
-            if temp_new_data.count() > 0:
-                stats_new = temp_new_data[0]
-                stats_new.sale_num = product['num']
-                stats_new.trade_general_time = product['pay_time']
-                stats_new.save()
-            else:
-                stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                  sale_time=pro_bean[0].sale_time, sale_num=product['num'],
-                                                  trade_general_time=product['pay_time'])
-                stats_new.save()
+        if pro_bean.count() > 0 and pro_bean[0].sale_time:
+            for outer_sku_id, product in product_dict.items():
+                temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id,
+                                                                     outer_sku_id=outer_sku_id,
+                                                                     sale_time=pro_bean[0].sale_time)
+                if temp_new_data.count() > 0:
+                    stats_new = temp_new_data[0]
+                    stats_new.sale_num = product['num']
+                    stats_new.trade_general_time = product['pay_time']
+                    stats_new.save()
+                else:
+                    stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
+                                                      sale_time=pro_bean[0].sale_time, sale_num=product['num'],
+                                                      trade_general_time=product['pay_time'])
+                    stats_new.save()
 
 
 def get_daily_out_order_stats(prev_day):
@@ -75,19 +77,21 @@ def get_daily_out_order_stats(prev_day):
 
     for product_outer_id, product_dict in order_dict.items():
         pro_bean = Product.objects.filter(outer_id=product_outer_id)
-        for outer_sku_id, product in product_dict.items():
-            temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                                 sale_time=pro_bean[0].sale_time)
-            if temp_new_data.count() > 0:
-                stats_new = temp_new_data[0]
-                stats_new.goods_out_num = product['num']
-                stats_new.goods_out_time = product['pay_time']
-                stats_new.save()
-            else:
-                stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                  sale_time=pro_bean[0].sale_time, goods_out_num=product['num'],
-                                                  goods_out_time=product['pay_time'])
-                stats_new.save()
+        if pro_bean.count() > 0 and pro_bean[0].sale_time:
+            for outer_sku_id, product in product_dict.items():
+                temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id,
+                                                                     outer_sku_id=outer_sku_id,
+                                                                     sale_time=pro_bean[0].sale_time)
+                if temp_new_data.count() > 0:
+                    stats_new = temp_new_data[0]
+                    stats_new.goods_out_num = product['num']
+                    stats_new.goods_out_time = product['pay_time']
+                    stats_new.save()
+                else:
+                    stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
+                                                      sale_time=pro_bean[0].sale_time, goods_out_num=product['num'],
+                                                      goods_out_time=product['pay_time'])
+                    stats_new.save()
 
 
 def get_daily_ding_huo_stats(prev_day):
@@ -120,19 +124,21 @@ def get_daily_ding_huo_stats(prev_day):
 
     for product_outer_id, product_dict in ding_huo_dict.items():
         pro_bean = Product.objects.filter(outer_id=product_outer_id)
-        for outer_sku_id, product in product_dict.items():
-            temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                                 sale_time=pro_bean[0].sale_time)
-            if temp_new_data.count() > 0:
-                stats_new = temp_new_data[0]
-                stats_new.ding_huo_num = product['num']
-                stats_new.order_deal_time = product['order_deal_time']
-                stats_new.save()
-            else:
-                stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                  sale_time=pro_bean[0].sale_time, ding_huo_num=product['num'],
-                                                  order_deal_time=product['order_deal_time'])
-                stats_new.save()
+        if pro_bean.count() > 0 and pro_bean[0].sale_time:
+            for outer_sku_id, product in product_dict.items():
+                temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id,
+                                                                     outer_sku_id=outer_sku_id,
+                                                                     sale_time=pro_bean[0].sale_time)
+                if temp_new_data.count() > 0:
+                    stats_new = temp_new_data[0]
+                    stats_new.ding_huo_num = product['num']
+                    stats_new.order_deal_time = product['order_deal_time']
+                    stats_new.save()
+                else:
+                    stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
+                                                      sale_time=pro_bean[0].sale_time, ding_huo_num=product['num'],
+                                                      order_deal_time=product['order_deal_time'])
+                    stats_new.save()
 
 
 def get_daily_goods_arrival_stats(prev_day):
@@ -165,16 +171,18 @@ def get_daily_goods_arrival_stats(prev_day):
 
     for product_outer_id, product_dict in ding_huo_dict.items():
         pro_bean = Product.objects.filter(outer_id=product_outer_id)
-        for outer_sku_id, product in product_dict.items():
-            temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                                 sale_time=pro_bean[0].sale_time)
-            if temp_new_data.count() > 0:
-                stats_new = temp_new_data[0]
-                stats_new.arrival_num = product['num']
-                stats_new.goods_arrival_time = product['order_deal_time']
-                stats_new.save()
-            else:
-                stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
-                                                  sale_time=pro_bean[0].sale_time, arrival_num=product['num'],
-                                                  goods_arrival_time=product['order_deal_time'])
-                stats_new.save()
+        if pro_bean.count() > 0 and pro_bean[0].sale_time:
+            for outer_sku_id, product in product_dict.items():
+                temp_new_data = SupplyChainStatsOrder.objects.filter(product_id=product_outer_id,
+                                                                     outer_sku_id=outer_sku_id,
+                                                                     sale_time=pro_bean[0].sale_time)
+                if temp_new_data.count() > 0:
+                    stats_new = temp_new_data[0]
+                    stats_new.arrival_num = product['num']
+                    stats_new.goods_arrival_time = product['order_deal_time']
+                    stats_new.save()
+                else:
+                    stats_new = SupplyChainStatsOrder(product_id=product_outer_id, outer_sku_id=outer_sku_id,
+                                                      sale_time=pro_bean[0].sale_time, arrival_num=product['num'],
+                                                      goods_arrival_time=product['order_deal_time'])
+                    stats_new.save()
