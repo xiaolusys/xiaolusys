@@ -199,7 +199,7 @@ def minusordertail(req):
         OrderList.objects.filter(id=order_detail.orderlist_id).update(
             order_amount=F('order_amount') - order_detail.buy_unitprice)
         log_action(req.user.id, order_list, CHANGE,
-                   u'订货单{0}{1}{2}'.format((u'减一件'), order_detail.product_name, orderdetail.product_chicun))
+                   u'订货单{0}{1}{2}'.format((u'减一件'), order_detail.product_name, order_detail.product_chicun))
         log_action(req.user.id, order_detail, CHANGE, u'%s' % (u'减一'))
         if order_detail.buy_quantity == 1:
             order_detail.delete()
