@@ -66,6 +66,7 @@ def init_draft(request):
     else:
         return HttpResponseRedirect("/sale/dinghuo/dingdan/")
 
+
 @csrf_exempt
 def new_order(request):
     username = request.user
@@ -134,7 +135,7 @@ def del_draft(request):
 
 def add_purchase(request):
     user = request.user
-    ProductIDFrompage = "10802";
+    ProductIDFrompage = "10802"
     productRestult = Product.objects.filter(outer_id__icontains=ProductIDFrompage)
     productguige = ProductSku.objects.all()
     orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
@@ -169,7 +170,8 @@ def plusordertail(req):
     OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') + orderdetail.buy_unitprice)
     OrderList.objects.filter(id=orderdetail.orderlist_id).update(
         order_amount=F('order_amount') + orderdetail.buy_unitprice)
-    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'加一件'), orderdetail.product_name))
+    log_action(req.user.id, orderlist, CHANGE,
+               u'订货单{0}{1}{2}'.format((u'加一件'), orderdetail.product_name, orderdetail.product_chicun))
     log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'加一'))
     return HttpResponse("OK")
 
@@ -196,7 +198,8 @@ def minusordertail(req):
         OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') - order_detail.buy_unitprice)
         OrderList.objects.filter(id=order_detail.orderlist_id).update(
             order_amount=F('order_amount') - order_detail.buy_unitprice)
-        log_action(req.user.id, order_list, CHANGE, u'订货单{0}{1}'.format((u'减一件'), order_detail.product_name))
+        log_action(req.user.id, order_list, CHANGE,
+                   u'订货单{0}{1}{2}'.format((u'减一件'), order_detail.product_name, orderdetail.product_chicun))
         log_action(req.user.id, order_detail, CHANGE, u'%s' % (u'减一'))
         if order_detail.buy_quantity == 1:
             order_detail.delete()
@@ -217,7 +220,8 @@ def minusarrived(req):
         non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
     Product.objects.filter(id=orderdetail.product_id).update(collect_num=F('collect_num') - 1)
     ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') - 1)
-    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'入库减一件'), orderdetail.product_name))
+    log_action(req.user.id, orderlist, CHANGE,
+               u'订货单{0}{1}{2}'.format((u'入库减一件'), orderdetail.product_name, orderdetail.product_chicun))
     log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'入库减一'))
     return HttpResponse("OK")
 
@@ -420,14 +424,13 @@ def changearrivalquantity(request):
         order.save()
         result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
         log_action(request.user.id, orderlist, CHANGE,
-                   u'订货单{0}入库{1}件'.format(order.product_name, arrived_num))
+                   u'订货单{0}{1}入库{2}件'.format(order.product_name, order.product_chicun, arrived_num))
         return HttpResponse(result)
 
     return HttpResponse(result)
 
 
 class DailyDingHuoStatsView(View):
-
     def get(self, request):
         content = request.REQUEST
         daystr = content.get("day", None)
