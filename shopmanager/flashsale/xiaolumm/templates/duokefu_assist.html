@@ -1,0 +1,74 @@
+{% extends "weixin_base.html" %}
+
+{% block title %} 客户 {% endblock %}
+
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet' xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html"/>
+
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+
+
+    <script type="text/javascript">
+
+        function MCS_ClientNotify(EventData) {
+            EventData = strToJson(EventData);
+            switch (EventData['event']) {
+                case 'OnUserChange':
+                {
+                    OnUserChange(EventData);
+                    break;
+                }
+                case 'OnMapMsgClick':
+                {
+                    OnMapMsgClick(EventData);
+                    break;
+                }
+            }
+        }
+
+        function OnUserChange(EventData) {
+            var openid = EventData.useraccount;
+            var data = {'openid': openid};
+            var url = '/m/duokefu_customer/';
+            $("#customer_info").empty();
+            function callback(result) {
+                $("<p>openid:" + result[0].openid + "<br>" +
+                '昵称:' + result[0].nickname + '<br>' +
+                '性别:' + result[0].sex + '<br>' +
+                '手机:' + result[0].mobile + '<br>' +
+                '待验证手机:' + result[0].vmobile + '<br>' +
+                '是否验证:' + result[0].isvalid + '<br>' +
+                '邀请人数:' + result[0].referal_count + '<br>' +
+                '接管状态:' + result[0].charge_status + '<br>' +
+                '地址:' + result[0].province + '-' + result[0].city + '-' + result[0].address + '<br>' +
+                "</p>").appendTo("#customer_info");
+            }
+            $.ajax({url: url, data: data, type: "post", success: callback});
+        }
+
+        function strToJson(str) {
+            var json = (new Function("return " + str))();
+            return json;
+        }
+
+    </script>
+
+{% endblock %}
+
+
+
+{% block container %}
+
+    <div class="container">
+        <div id="customer_info">
+
+        </div>
+    </div>
+{% endblock %}
