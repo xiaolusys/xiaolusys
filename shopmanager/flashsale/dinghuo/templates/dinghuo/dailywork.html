@@ -94,7 +94,9 @@
                         {% for sku in product.prod_skus %}
                             <tr>
                                 {% if forloop.first %}
-                                    <td rowspan="{{ sku_len }}">{{ product.name }}<br>编码:{{ product.outer_id }} </td>
+                                    <td rowspan="{{ sku_len }}">{{ product.name }}<br>
+                                        <a href="/admin/items/product/?q={{ product.outer_id }}" target="_blank">编码:{{ product.outer_id }}</a>
+                                    </td>
                                     <td rowspan="{{ sku_len }}"><img src="{{ product.pic_path }}" width="100px"
                                                                      class="img-circle">
                                     </td>
