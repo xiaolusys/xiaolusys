@@ -2062,7 +2062,49 @@ def detail(request):
     
     
        # return render(request, 'trades/order_detail.html')
+def detail22(request):
+        today=datetime.datetime.utcnow()
+        #startcount=MergeTrade.objects.all().count()
+        #startcount=
+        print '开始'
+        #trade_info=MergeTrade.objects.raw('SELECT id,tid FROM shop_trades_mergetrade where id=75225 ')
+        trade_info=MergeTrade.objects.raw('SELECT id,count(*) as nuee  from shop_trades_mergetrade')
+        print trade_info[0].tid
+        #endcount=startcount-10
+       # print endcount
+        #trade_info=MergeTrade.objects.filter(id__gte=endcount)
+        #trade_info=MergeTrade.objects.all().order_by('-created')[0:100]
+        rec1=[]  
+        for item in trade_info:
+            info={}
+            try: 
+                a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            except:
+                a= []
+            #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            #print ' 物流信息',a
+            info['trans']=a  
+            info['trade']=item
+            info['detail']=[]
+            for order_info in item.merge_orders.all():
+                    sum={}
+                    sum['order']=order_info
+                    try:
+                      product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    except:
+                      product_info=[]
+                    #product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    sum['product']=product_info
+                    info['detail'].append(sum)
+            rec1.append(info)
+            #print rec1
+        return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
     
+    
+
+
+
+   
 def search_trade(request):
   today=datetime.datetime.utcnow()
   print '数字是',555 
@@ -2074,7 +2116,7 @@ def search_trade(request):
     if number=="":
         rec1=[]
     else:
-        trade_info=MergeTrade.objects.filter(Q(receiver_mobile=number) | Q(receiver_name=number) | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
+        trade_info=MergeTrade.objects.filter(Q(receiver_mobile=number)  | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
         for item in trade_info:
             info={}
             try: 

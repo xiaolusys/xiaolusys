@@ -35,7 +35,7 @@ def search_flashsale(request):
     if number=="":
         rec1=[]
     else:
-        trade_info=SaleTrade.objects.filter(Q(receiver_mobile=number) | Q(receiver_name=number) | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
+        trade_info=SaleTrade.objects.filter(Q(receiver_mobile=number)  | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
         for item in trade_info:
             info={}
             try: 
