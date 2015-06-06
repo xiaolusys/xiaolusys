@@ -44,8 +44,9 @@ logger =  logging.getLogger('django.request')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','reduce_num','cost'
-              ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
+    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num',
+              'remain_num','wait_post_num','reduce_num','cost','std_sale_price','agent_price',
+              'sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -294,6 +295,7 @@ class ProductAdmin(admin.ModelAdmin):
             valid_actions.add('active_syncstock_action')
             
         if user.has_perm('items.regular_product_order'):
+            valid_actions.add('cancle_orders_out_stock')
             valid_actions.add('cancel_syncstock_action')
             valid_actions.add('regular_saleorder_action')
             valid_actions.add('deliver_saleorder_action')
@@ -654,6 +656,9 @@ class ProductAdmin(admin.ModelAdmin):
         if unverify_qs.count() > 0:
             self.message_user(request,u"有%s个商品未核对，请核对后上架!"%unverify_qs.count())
         
+        for product in up_queryset:
+            log_action(request.user.id,product,CHANGE,u'上架商品')
+        
         self.message_user(request,u"已成功上架%s个商品,有%s个商品上架失败!"%(up_queryset.count(),down_queryset.count()))
         
         return HttpResponseRedirect(request.get_full_path())
@@ -675,6 +680,9 @@ class ProductAdmin(admin.ModelAdmin):
         down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
         
         self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))
+        
+        for product in down_queryset:
+            log_action(request.user.id,product,CHANGE,u'下架商品')
         
         return HttpResponseRedirect(request.get_full_path())
         

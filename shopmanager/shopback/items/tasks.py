@@ -163,7 +163,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                                 psku.properties_name = properties
                         psku.status = pcfg.NORMAL
                         psku.save()
-			                
+             
             except Exception, exc:
                 logger.error('update product sku error!', exc_info=True)
             finally:

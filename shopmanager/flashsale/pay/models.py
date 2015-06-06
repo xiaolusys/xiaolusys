@@ -13,6 +13,7 @@ from .models_user import Register,Customer
 from .models_addr import District,UserAddress
 from .models_custom import Productdetail
 from .models_refund import SaleRefund
+from .models_envelope import Envelop
 from .managers import SaleTradeManager
 
 from .options import uniqid

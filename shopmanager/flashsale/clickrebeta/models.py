@@ -8,6 +8,16 @@ import datetime
 
 class StatisticsShopping(models.Model):
     
+    WAIT_SEND = 0
+    FINISHED  = 1
+    REFUNDED  = 2
+    
+    SHOPPING_STATUS = (
+        (WAIT_SEND, u'已付款'),       
+        (FINISHED, u'已完成'),
+        (REFUNDED, u'已退款'),
+    )
+    
     linkid = models.IntegerField(default=0, verbose_name=u"链接ID")
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
     openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"OpenId")
@@ -16,6 +26,7 @@ class StatisticsShopping(models.Model):
     wxorderamount = models.IntegerField(default=0, verbose_name=u'微信订单价格')
     tichengcount = models.IntegerField(default=0, verbose_name=u'提成')
     shoptime = models.DateTimeField(default=datetime.datetime.now, db_index=True, verbose_name=u'提成时间')
+    status   = models.IntegerField(default=0, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
     
     class Meta:
         db_table = 'flashsale_tongji_shopping'
@@ -37,6 +48,10 @@ class StatisticsShopping(models.Model):
 
     ticheng_cash.allow_tags = True
     ticheng_cash.short_description = u"提成金额"
+    
+    @property
+    def status_name(self):
+        return self.get_status_display()
 
 
 class StatisticsShoppingByDay(models.Model):

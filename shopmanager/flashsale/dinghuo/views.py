@@ -63,6 +63,8 @@ def init_draft(request):
                                              chichu_id=pro_sku.id, product_chicun=pro_sku.name, created=current_time)
                         t_draft.save()
         return HttpResponseRedirect("/sale/dinghuo/dingdan/")
+    else:
+        return HttpResponseRedirect("/sale/dinghuo/dingdan/")
 
 
 @csrf_exempt
@@ -133,7 +135,7 @@ def del_draft(request):
 
 def add_purchase(request):
     user = request.user
-    ProductIDFrompage = "10802";
+    ProductIDFrompage = "10802"
     productRestult = Product.objects.filter(outer_id__icontains=ProductIDFrompage)
     productguige = ProductSku.objects.all()
     orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
@@ -168,7 +170,8 @@ def plusordertail(req):
     OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') + orderdetail.buy_unitprice)
     OrderList.objects.filter(id=orderdetail.orderlist_id).update(
         order_amount=F('order_amount') + orderdetail.buy_unitprice)
-    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'加一件'), orderdetail.product_name))
+    log_action(req.user.id, orderlist, CHANGE,
+               u'订货单{0}{1}{2}'.format((u'加一件'), orderdetail.product_name, orderdetail.product_chicun))
     log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'加一'))
     return HttpResponse("OK")
 
@@ -187,19 +190,23 @@ def minusquantity(req):
 def minusordertail(req):
     post = req.POST
     orderdetailid = post["orderdetailid"]
-    orderdetail = OrderDetail.objects.get(id=orderdetailid)
-    orderlist = OrderList.objects.get(id=orderdetail.orderlist_id)
-    OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') - 1)
-    OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') - orderdetail.buy_unitprice)
-    orderdetail = OrderDetail.objects.get(id=orderdetailid)
-    OrderList.objects.filter(id=orderdetail.orderlist_id).update(
-        order_amount=F('order_amount') - orderdetail.buy_unitprice)
-    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'减一件'), orderdetail.product_name))
-    log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'减一'))
-    if orderdetail.buy_quantity == 0:
-        orderdetail.delete()
-        return HttpResponse("deleted")
-    return HttpResponse("OK")
+    orderdetail = OrderDetail.objects.filter(id=orderdetailid)
+    if orderdetail.count() > 0:
+        order_detail = orderdetail[0]
+        order_list = OrderList.objects.get(id=order_detail.orderlist_id)
+        OrderDetail.objects.filter(id=orderdetailid).update(buy_quantity=F('buy_quantity') - 1)
+        OrderDetail.objects.filter(id=orderdetailid).update(total_price=F('total_price') - order_detail.buy_unitprice)
+        OrderList.objects.filter(id=order_detail.orderlist_id).update(
+            order_amount=F('order_amount') - order_detail.buy_unitprice)
+        log_action(req.user.id, order_list, CHANGE,
+                   u'订货单{0}{1}{2}'.format((u'减一件'), order_detail.product_name, order_detail.product_chicun))
+        log_action(req.user.id, order_detail, CHANGE, u'%s' % (u'减一'))
+        if order_detail.buy_quantity == 1:
+            order_detail.delete()
+            return HttpResponse("deleted")
+        return HttpResponse("OK")
+    else:
+        return HttpResponse("false")
 
 
 @csrf_exempt
@@ -209,9 +216,12 @@ def minusarrived(req):
     orderdetail = OrderDetail.objects.get(id=orderdetailid)
     orderlist = OrderList.objects.get(id=orderdetail.orderlist_id)
     OrderDetail.objects.filter(id=orderdetailid).update(arrival_quantity=F('arrival_quantity') - 1)
+    OrderDetail.objects.filter(id=orderdetailid).update(
+        non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
     Product.objects.filter(id=orderdetail.product_id).update(collect_num=F('collect_num') - 1)
     ProductSku.objects.filter(id=orderdetail.chichu_id).update(quantity=F('quantity') - 1)
-    log_action(req.user.id, orderlist, CHANGE, u'订货单{0}{1}'.format((u'入库减一件'), orderdetail.product_name))
+    log_action(req.user.id, orderlist, CHANGE,
+               u'订货单{0}{1}{2}'.format((u'入库减一件'), orderdetail.product_name, orderdetail.product_chicun))
     log_action(req.user.id, orderdetail, CHANGE, u'%s' % (u'入库减一'))
     return HttpResponse("OK")
 
@@ -396,89 +406,31 @@ def add_detail_to_ding_huo(req):
     return HttpResponse("False")
 
 
-from shopback.items.models import Product
-
-
-class ChangeDetailView(View):
-    def get(self, request, order_detail_id):
-        orderlist = OrderList.objects.get(id=order_detail_id)
-        orderdetail = OrderDetail.objects.filter(orderlist_id=order_detail_id)
-        flagofstatus = False
-        flagofquestion = False
-        orderlist_list = []
-        for order in orderdetail:
-            order_dict = model_to_dict(order)
-            order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
-            orderlist_list.append(order_dict)
-        if orderlist.status == "草稿":
-            flagofstatus = True
-        elif orderlist.status == u'有问题':
-            flagofquestion = True
-
-        return render_to_response("dinghuo/changedetail.html",
-                                  {"orderlist": orderlist, "flagofstatus": flagofstatus,
-                                   "flagofquestion": flagofquestion,
-                                   "orderdetails": orderlist_list},
-                                  context_instance=RequestContext(request))
-
-    def post(self, request, order_detail_id):
-        post = request.POST
-        orderlist = OrderList.objects.get(id=order_detail_id)
-        status = post.get("status", "").strip()
-        remarks = post.get("remarks", "").strip()
-        if len(status) > 0 and len(remarks) > 0:
-            orderlist.status = status
-            orderlist.note = orderlist.note + "-->" + request.user.username + ":" + remarks
-            orderlist.save()
-            log_action(request.user.id, orderlist, CHANGE, u'%s 订货单' % (u'添加备注'))
-        orderdetail = OrderDetail.objects.filter(orderlist_id=order_detail_id)
-        orderlist_list = []
-        for order in orderdetail:
-            order_dict = model_to_dict(order)
-            order_dict['pic_path'] = Product.objects.get(id=order.product_id).pic_path
-            orderlist_list.append(order_dict)
-        if orderlist.status == "草稿":
-            flagofstatus = True
-        else:
-            flagofstatus = False
-        return render_to_response("dinghuo/changedetail.html", {"orderlist": orderlist, "flagofstatus": flagofstatus,
-                                                                "orderdetails": orderlist_list},
-                                  context_instance=RequestContext(request))
-
-
 @csrf_exempt
 def changearrivalquantity(request):
     post = request.POST
     order_detail_id = post.get("orderdetailid", "").strip()
     arrived_num = post.get("arrived_num", "0").strip()
-    inferior_num = post.get("inferior_num", "0").strip()
-    result = "{flag:false,num:0,inferior_num:0}"
-    if len(arrived_num) > 0 and len(order_detail_id) > 0 and len(inferior_num) > 0:
+    result = "{flag:false,num:0}"
+    if len(arrived_num) > 0 and len(order_detail_id) > 0:
         arrived_num = int(arrived_num)
         order_detail_id = int(order_detail_id)
-        inferior_num = int(inferior_num)
         order = OrderDetail.objects.get(id=order_detail_id)
         orderlist = OrderList.objects.get(id=order.orderlist_id)
         order.arrival_quantity = order.arrival_quantity + arrived_num
-        order.inferior_quantity = order.inferior_quantity + inferior_num
         order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
-        Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num + inferior_num)
-        ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num + inferior_num)
+        Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
+        ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
         order.save()
-        result = "{flag:true,num:" + str(order.arrival_quantity) + ",inferior_num:" + str(order.inferior_quantity) + "}"
-        log_action(request.user.id, orderlist, CHANGE, u'订货单{0}入库{1}件'.format(order.product_name, arrived_num+inferior_num))
+        result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
+        log_action(request.user.id, orderlist, CHANGE,
+                   u'订货单{0}{1}入库{2}件'.format(order.product_name, order.product_chicun, arrived_num))
         return HttpResponse(result)
 
     return HttpResponse(result)
 
 
-class DailyStatsView(View):
-    def getUserName(self, uid):
-        try:
-            return User.objects.get(pk=uid).username
-        except:
-            return 'none'
-
+class DailyDingHuoStatsView(View):
     def get(self, request):
         content = request.REQUEST
         daystr = content.get("day", None)
@@ -559,7 +511,6 @@ class StatsByProductIdView(View):
 
 
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from shopback.trades.models import MergeOrder
 
 
 class DailyWorkView(View):
@@ -571,19 +522,6 @@ class DailyWorkView(View):
             return functions.parse_datetime(end_dt)
         return functions.parse_date(end_dt)
 
-    def getSourceOrders(self, start_dt=None, end_dt=None):
-        order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
-            .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
-            .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
-            .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-        order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
-        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
-            .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
-            .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
-
-        order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
-            .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
-        return order_qs
 
     def getSourceDinghuo(self, start_dt=None, end_dt=None):
         dinghuo_qs = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(created__gte=start_dt,
@@ -591,39 +529,19 @@ class DailyWorkView(View):
         return dinghuo_qs
 
     def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
-        allorderqs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
-        buy_quantity = 0
-        for dinghuobean in allorderqs:
-            buy_quantity += dinghuobean.buy_quantity
-        return buy_quantity
-
-    def getProductByDate(self, shelve_date, groupname):
-        groupmembers = []
-        if groupname == '0':
-            productqs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(
-                sale_time=shelve_date)
-        else:
-            alluser = MyUser.objects.filter(group__name=groupname)
-            for user in alluser:
-                groupmembers.append(user.user.username)
-            productqs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(sale_time=shelve_date,
-                                                                                            sale_charger__in=groupmembers)
-        return productqs
-
-    def getSourceOrderByouterid(self, p_outer_id, orderqs):
-        return orderqs.filter(outer_id__startswith=p_outer_id)
-
-    def get_sale_num_by_sku(self, sku_outer_id, orderqs):
-        sale_num = orderqs.filter(outer_sku_id=sku_outer_id).aggregate(total_sale_num=Sum('num')).get(
-            'total_sale_num') or 0
-        return sale_num
+        ding_huo_qs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
+        buy_quantity, effect_quantity = 0, 0
+        for ding_huo in ding_huo_qs:
+            buy_quantity += ding_huo.buy_quantity
+            effect_quantity += ding_huo.buy_quantity - ding_huo.inferior_quantity - ding_huo.non_arrival_quantity
+        return buy_quantity, effect_quantity
 
     def get(self, request):
         content = request.REQUEST
         today = datetime.date.today()
         shelve_fromstr = content.get("df", None)
-        shelve_tostr = content.get("dt", None)
-        query_timestr = content.get("showt", None)
+        shelve_to_str = content.get("dt", None)
+        query_time_str = content.get("showt", None)
         groupname = content.get("groupname", 0)
         dhstatus = content.get("dhstatus", '1')
         groupname = int(groupname)
@@ -636,33 +554,35 @@ class DailyWorkView(View):
                 target_date = today
 
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
-        time_to = self.parseEndDt(shelve_tostr)
+        time_to = self.parseEndDt(shelve_to_str)
         if time_to - shelve_from > datetime.timedelta(3):
             time_to = shelve_from + datetime.timedelta(3)
-        query_time = self.parseEndDt(query_timestr)
-        productdicts = self.getProductByDate(target_date, group_tuple[groupname])
-        orderqs = self.getSourceOrders(shelve_from, time_to)
-        dinghuoqs = self.getSourceDinghuo(shelve_from, query_time)
+        query_time = self.parseEndDt(query_time_str)
+
+        product_dicts = functions.get_product_by_date(target_date, group_tuple[groupname])
+        orderqs = functions.get_source_orders(shelve_from, time_to)
+        order_dict = functions.get_product_from_order(orderqs)
+        ding_huo_qs = self.getSourceDinghuo(shelve_from, query_time)
+
         trade_list = []
-        # max_sale_num = 0
-        # sell_well_pro = {}
         all_pro_sale = {}
-        for product_dict in productdicts:
+        for product_dict in product_dicts:
             product_dict['prod_skus'] = []
-            guiges = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
+            all_sku = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
                 product_id=product_dict['id'])
-            orderqsbyoouterid = self.getSourceOrderByouterid(product_dict['outer_id'], orderqs)
             temp_total_sale_num = 0
-            for sku_dict in guiges:
-                sale_num = self.get_sale_num_by_sku(sku_dict['outer_id'], orderqsbyoouterid)
+            for sku_dict in all_sku:
+                sale_num = functions.get_sale_num_by_sku(product_dict['outer_id'], sku_dict['outer_id'], order_dict)
                 temp_total_sale_num = temp_total_sale_num + sale_num
-                dinghuo_num = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'], dinghuoqs)
+                ding_huo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'],
+                                                                                   ding_huo_qs)
                 dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                    sale_num, dinghuo_num, sku_dict)
+                    sale_num, ding_huo_num, sku_dict)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                             flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                     sku_dict['sale_num'] = sale_num
-                    sku_dict['dinghuo_num'] = dinghuo_num
+                    sku_dict['dinghuo_num'] = ding_huo_num
+                    sku_dict['effect_quantity'] = effect_quantity
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
                         sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
                     sku_dict['dinghuo_status'] = dinghuostatusstr
@@ -672,26 +592,21 @@ class DailyWorkView(View):
                     product_dict['prod_skus'].append(sku_dict)
 
             product_dict['total_sale_num'] = temp_total_sale_num
-            keyofpro = product_dict['outer_id'][0:len(product_dict['outer_id']) - 1]
-            if all_pro_sale.has_key(keyofpro):
-                all_pro_sale[keyofpro]['total_sale_num'] = all_pro_sale[keyofpro][
-                                                               'total_sale_num'] + temp_total_sale_num
+            key_of_pro = product_dict['outer_id'][0:len(product_dict['outer_id']) - 1]
+            if key_of_pro in all_pro_sale:
+                all_pro_sale[key_of_pro]['total_sale_num'] += temp_total_sale_num
             else:
-                all_pro_sale[keyofpro] = {"total_sale_num": product_dict['total_sale_num'],
-                                          "pic_path": product_dict['pic_path']}
-                all_pro_sale[keyofpro]['name'] = product_dict['name'].split("-")[0]
-            # if temp_total_sale_num > max_sale_num:
-            # max_sale_num = temp_total_sale_num
-            # sell_well_pro = product_dict
-            # sell_well_pro["total_sale_num"] = max_sale_num
+                all_pro_sale[key_of_pro] = {"total_sale_num": product_dict['total_sale_num'],
+                                            "pic_path": product_dict['pic_path']}
+                all_pro_sale[key_of_pro]['name'] = product_dict['name'].split("-")[0]
             trade_list.append(product_dict)
         all_pro_sale_items = sorted(all_pro_sale.items(), key=lambda d: d[1]['total_sale_num'], reverse=True)
-        result_sale = []
+        the_best_sale_pro = []
         if all_pro_sale_items:
-            result_sale = all_pro_sale_items[0]
+            the_best_sale_pro = all_pro_sale_items[0]
         return render_to_response("dinghuo/dailywork.html",
                                   {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "all_pro_sale": result_sale},
+                                   "all_pro_sale": the_best_sale_pro},
                                   context_instance=RequestContext(request))
 

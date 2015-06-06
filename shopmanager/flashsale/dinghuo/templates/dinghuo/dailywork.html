@@ -83,7 +83,7 @@
             <th width="100px">图片</th>
             <th>尺寸</th>
             <th>销售数</th>
-            <th>已拍数量</th>
+            <th>已拍数量(有效数量)</th>
             <th>样品数量</th>
             <th width="150px">状态</th>
             </thead>
@@ -94,7 +94,9 @@
                         {% for sku in product.prod_skus %}
                             <tr>
                                 {% if forloop.first %}
-                                    <td rowspan="{{ sku_len }}">{{ product.name }}<br>编码:{{ product.outer_id }} </td>
+                                    <td rowspan="{{ sku_len }}">{{ product.name }}<br>
+                                        <a href="/admin/items/product/?q={{ product.outer_id }}" target="_blank">编码:{{ product.outer_id }}</a>
+                                    </td>
                                     <td rowspan="{{ sku_len }}"><img src="{{ product.pic_path }}" width="100px"
                                                                      class="img-circle">
                                     </td>
@@ -102,7 +104,8 @@
                                 <td>{{ sku.sku_name }}</td>
                                 <td><span id="sale_num_{{ sku.id }}">{{ sku.sale_num }}</span></td>
                                 <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
-                                       style="display: block;" id="ding_huo_num_{{ sku.id }}">{{ sku.dinghuo_num }}</a>
+
+                                       id="ding_huo_num_{{ sku.id }}">{{ sku.dinghuo_num }} </a>({{ sku.effect_quantity }})
                                 </td>
                                 <td>
                                     <div class="row">

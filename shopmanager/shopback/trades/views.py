@@ -139,7 +139,8 @@ class StatisticMergeOrderView(ModelView):
 
     def getSourceOrders(self,shop_id=None,is_sale=None,
                         sc_by='created',start_dt=None,
-                        end_dt=None,wait_send='0',p_outer_id=''):
+                        end_dt=None,wait_send='0',
+                        p_outer_id='',empty_code=False):
         
         order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
                             .exclude(merge_trade__type=pcfg.REISSUE_TYPE)\
@@ -165,7 +166,11 @@ class StatisticMergeOrderView(ModelView):
             order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
                 .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
                 .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,merge_trade__is_express_print=False)
-                
+        
+        if empty_code:
+            order_qs = order_qs.filter(outer_id='')
+            return order_qs
+            
         if is_sale :
             order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
                 .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
@@ -359,7 +364,15 @@ class StatisticMergeOrderView(ModelView):
                                          start_dt=start_dt,
                                          end_dt=end_dt,
                                          is_sale=is_sale)
-       
+        
+        empty_order_qs = self.getSourceOrders(shop_id=shop_id, 
+                                         sc_by=sc_by,
+                                         wait_send=wait_send, 
+                                         p_outer_id=p_outer_id, 
+                                         start_dt=start_dt,
+                                         end_dt=end_dt,
+                                         empty_code=True)
+        
         trade_qs  = self.getSourceTrades(order_qs)
        
         buyer_nums   = len(trade_qs)
@@ -367,12 +380,12 @@ class StatisticMergeOrderView(ModelView):
         total_post_fee = 0.00
        
         refund_fees      = self.getTotalRefundFee(order_qs)
-       
+        empty_order_count = empty_order_qs.count()
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
         total_num   = trade_list.pop()
         total_cost  = trade_list.pop()
         total_sales = trade_list.pop()
-       
+        
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         
@@ -386,6 +399,7 @@ class StatisticMergeOrderView(ModelView):
                 'wait_send':wait_send,
                 'shops':shopers ,
                 'trade_items':trade_list, 
+                'empty_order_count':empty_order_count,
                 'shop_id':shop_id and int(shop_id) or '',
                 'total_cost':total_cost and round(total_cost,2) or 0 ,
                 'total_sales':total_sales and round(total_sales,2) or 0,
@@ -1909,7 +1923,7 @@ class SaleMergeOrderListView(ModelView):
                                           'std_purchase_price':purchase_price}
             else:
                 prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
-                purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num    
+                purchase_price = float(prod_sku.cost) if prod_sku else payment / order_num    
                 trade_items[outer_id]={
                                        'product_id':prod and prod.id or None,
                                        'num':order_num,
@@ -2023,15 +2037,16 @@ class SaleMergeOrderListView(ModelView):
         refund_fees      = self.getTotalRefundFee(order_qs)
        
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
+        
         total_num   = trade_list.pop()
         total_cost  = trade_list.pop()
         total_sales = trade_list.pop()
-       
+        
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         
         shopers = User.objects.filter(status=User.NORMAL)
-        
+
         return {'df':format_datetime(start_dt),
                 'dt':format_datetime(end_dt),
                 'sc_by':sc_by,

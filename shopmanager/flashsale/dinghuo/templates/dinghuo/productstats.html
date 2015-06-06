@@ -11,10 +11,19 @@
 
 {% endblock %}
 {% block container %}
-    <div class="row">
+    <div class="row" style="margin-top: 50px">
         <table id="mytable" class="table table-bordered">
-        <thead><th>大货编号</th><th>大货状态</th><th>产品名称</th><th>产品尺寸</th><th>产品数量</th><th>到货数量</th><th>备注</th></thead>
-        <tbody>
+            <thead>
+            <th>大货编号</th>
+            <th>大货状态</th>
+            <th>产品名称</th>
+            <th>产品尺寸</th>
+            <th>产品数量</th>
+            <th>次品数量</th>
+            <th>到货数量</th>
+            <th>备注</th>
+            </thead>
+            <tbody>
             {% for orderdetail in orderdetails %}
                 <tr>
                     <td>{{ orderdetail.orderlist.id }}</td>
@@ -22,11 +31,12 @@
                     <td>{{ orderdetail.product_name }}</td>
                     <td>{{ orderdetail.product_chicun }}</td>
                     <td>{{ orderdetail.buy_quantity }}</td>
+                    <td>{{ orderdetail.inferior_quantity }}</td>
                     <td>{{ orderdetail.arrival_quantity }}</td>
                     <td>{{ orderdetail.orderlist.note }}</td>
                 </tr>
             {% endfor %}
-        </tbody>
+            </tbody>
         </table>
     </div>
 {% endblock %}
