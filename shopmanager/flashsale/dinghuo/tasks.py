@@ -28,28 +28,31 @@ def task_stats_daily_order_by_group(pre_day=1):
                      "total_order_goods_quantity": 0, "total_order_goods_amount": 0}}
         for pro_id, sale_detail in order_dict.items():
             pro_bean = Product.objects.get(outer_id=pro_id)
-            group_name = pro_bean.sale_group.name
-            total_sale_num, total_cost_amount, total_sale_amount = 0, 0, 0
-            for sku_outer_id, order_bean in sale_detail.items():
-                sku_qs = ProductSku.objects.filter(product__outer_id=pro_id, outer_id=sku_outer_id)
-                cost, agent_price = 0, 0
-                if sku_qs.count() > 0:
-                    cost = sku_qs[0].cost
-                    agent_price = sku_qs[0].agent_price
-                total_sale_num += order_bean['num']
-                total_cost_amount += total_sale_num * cost
-                total_sale_amount += total_sale_num * agent_price
+            group = pro_bean.sale_group
+            if group != u"None":
+                group_name = group.name
+                total_sale_num, total_cost_amount, total_sale_amount = 0, 0, 0
+                for sku_outer_id, order_bean in sale_detail.items():
+                    sku_qs = ProductSku.objects.filter(product__outer_id=pro_id, outer_id=sku_outer_id)
+                    cost, agent_price = 0, 0
+                    if sku_qs.count() > 0:
+                        cost = sku_qs[0].cost
+                        agent_price = sku_qs[0].agent_price
+                    total_sale_num += order_bean['num']
+                    total_cost_amount += total_sale_num * cost
+                    total_sale_amount += total_sale_num * agent_price
 
-            if group_name in data_stats_dict:
-                data_stats_dict[group_name]['total_sale_num'] += total_sale_num
-                data_stats_dict[group_name]['total_cost_amount'] += total_cost_amount
-                data_stats_dict[group_name]['total_sale_amount'] += total_sale_amount
+                if group_name in data_stats_dict:
+                    data_stats_dict[group_name]['total_sale_num'] += total_sale_num
+                    data_stats_dict[group_name]['total_cost_amount'] += total_cost_amount
+                    data_stats_dict[group_name]['total_sale_amount'] += total_sale_amount
 
         dinghuo_qs = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(created__gte=start_dt,
                                                                                  created__lte=end_dt)
         for product_of_ding in dinghuo_qs:
             pro_bean = Product.objects.get(id=product_of_ding.product_id)
-            if pro_bean and (pro_bean.sale_group.name in data_stats_dict):
+
+            if pro_bean and pro_bean.sale_group != u"None" and (pro_bean.sale_group.name in data_stats_dict):
                 data_stats_dict[pro_bean.sale_group.name]['total_order_goods_quantity'] += product_of_ding.buy_quantity
                 data_stats_dict[pro_bean.sale_group.name]['total_order_goods_amount'] += product_of_ding.total_price
 
