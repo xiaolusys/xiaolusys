@@ -257,6 +257,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="10", hour="2"),
         'args': ()
     },
+    u'定时统计妈妈每周点击转化':{
+        'task':'flashsale.clickcount.tasks.week_Count_week_Handdle',
+        'schedule': crontab(minute="10", hour="5", day_of_week='mon'),
+        'args': ()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

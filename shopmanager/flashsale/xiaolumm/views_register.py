@@ -39,7 +39,7 @@ class MamaRegisterView(APIView):
                                           request=request)
         
         if not valid_openid(openid) or not valid_openid(openid):
-            register_url = reverse('xiaolumm:mama_register')
+            register_url = reverse('mama_register')
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri={0}&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url.format(register_url))
             
