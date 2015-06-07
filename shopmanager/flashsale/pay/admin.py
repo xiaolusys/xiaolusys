@@ -215,7 +215,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields or [])
-        if not request.user.is_superuser:
+        if not request.user.has_perm('pay.sale_refund_manage'):
             readonly_fields.update(('refund_no','trade_id','order_id','payment','total_fee',
                                    'reason','desc','refund_id','charge','status'))
 

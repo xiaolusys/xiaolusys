@@ -158,7 +158,7 @@ class WeixinAcceptView(View):
     """ 微信接收消息接口 """
     
     def get_wx_service(self):
-       return WeixinUserService()
+        return WeixinUserService()
     
     def get(self, request):
         
@@ -199,7 +199,6 @@ class WeixinAcceptView(View):
 def chargeWXUser(request,pk):
     
     result = {}
-    charged = False
     employee = request.user
 
     supplier = get_object_or_404(WeiXinUser,pk=pk)

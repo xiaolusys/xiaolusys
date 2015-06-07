@@ -1,5 +1,4 @@
 #-*- coding:utf-8 -*-
-# Create your views here.
 
 import json
 from django.http import HttpResponse,Http404
@@ -253,10 +252,14 @@ class MamaStatsView(View):
                 
             else:
                 click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
-                click_num  = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).values('openid').distinct().count()
+                click_num  = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1), 
+                                                                datetime.datetime(2015,6,1,10,0,0))
+                                             ).values('openid').distinct().count()
                 click_pay  = click_num * click_price
                 
-                ten_click_num = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).values('openid').distinct().count()
+                ten_click_num = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1,10), 
+                                                                   datetime.datetime(2015,6,1,23,59,59))
+                                                ).values('openid').distinct().count()
                 ten_click_pay = ten_click_num * ten_click_price
                 
 

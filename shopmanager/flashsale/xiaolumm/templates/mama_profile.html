@@ -1,0 +1,54 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 小鹿妈妈-填写基本信息 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+
+<style type="text/css" >
+    tfoot input{
+    	width:50%;
+    }
+    .well-panel {
+    	
+    }
+</style>
+{% endblock %}
+
+
+{% block container %}
+<div class="well well-lg">
+<ul class="nav nav-tabs">
+  <li role="presentation" class="col-xs-4 active"><a href="#">填写资料</a></li>
+  <li role="presentation" class="col-xs-4"><a href="#">支付押金</a></li>
+  <li role="presentation" class="col-xs-4"><a href="#">加入小鹿</a></li>
+</ul>
+</div>
+
+<div class="well well-lg">
+<form class="form-horizontal">
+  <div class="form-group">
+	<div class="col-xs-8">
+	  <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+	</div>
+    <button type="submit" class="col-xs-4 btn btn-default">获取验证码</button>
+  </div>
+  <div class="form-group">
+  	<div class="col-xs-8">
+      <input type="text" class="form-control" id="exampleInputName2" placeholder="Jane Doe">
+    </div>
+    <button type="submit" class="btn btn-default">验证手机</button>
+  </div>
+  <div class="form-group">
+  	<div class="col-xs-12 ">
+    <div class="input-group ">
+      <input type="text" class="form-control" id="exampleInputAmount" placeholder="填写自己姓名">
+      <div class="input-group-addon">@小鹿美美</div>
+    </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-default">保存并继续</button>
+</form>
+</div>
+{% endblock %}
+

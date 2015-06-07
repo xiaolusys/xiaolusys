@@ -4,11 +4,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 
 from . import views
+from .views_register import MamaRegisterView
 
 
 urlpatterns = patterns('',
     url(r'^$',views.landing),
     url(r'^m/$',views.MamaStatsView.as_view()),
+    url(r'^register/$',MamaRegisterView.as_view(),name="mama_register"),
     url(r'^stats/$',staff_member_required(views.StatsView.as_view())),
     url(r'^cashout/$',views.CashoutView.as_view()),
     url(r'^cashoutlist/$',views.CashOutList.as_view()),

@@ -1,0 +1,43 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 小鹿妈妈-支付押金 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+
+<style type="text/css" >
+    tfoot input{
+    	width:50%;
+    }
+</style>
+{% endblock %}
+
+
+{% block container %}
+
+<ul class="nav nav-tabs">
+  <li role="presentation" ><a href="#">填写资料</a></li>
+  <li role="presentation" class="active"><a href="#">支付押金</a></li>
+  <li role="presentation"><a href="#">加入小鹿</a></li>
+</ul>
+
+<form>
+  <div class="form-group">
+    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+    <button type="submit" class="btn btn-default">获取验证码</button>
+  </div>
+  <div class="form-group">
+    <input type="text" class="form-control" id="exampleInputName2" placeholder="Jane Doe">
+    <button type="submit" class="btn btn-default">验证手机</button>
+  </div>
+  <div class="form-group">
+    <label class="sr-only" for="exampleInputAmount">使用昵称：</label>
+    <div class="input-group">
+      <input type="text" class="form-control" id="exampleInputAmount" placeholder="Amount">
+      <div class="input-group-addon">@小鹿美美</div>
+    </div>
+  </div>
+  
+  <button type="submit" class="btn btn-default">前往支付押金</button>
+</form>
+{% endblock %}
