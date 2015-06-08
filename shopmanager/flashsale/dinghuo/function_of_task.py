@@ -131,7 +131,6 @@ def get_daily_ding_huo_stats(prev_day):
                                                                      sale_time=target_day)
                 if temp_new_data.count() > 0:
                     stats_new = temp_new_data[0]
-                    print stats_new.ding_huo_num,"ffffff"
                     stats_new.ding_huo_num = product['num']
                     stats_new.order_deal_time = product['order_deal_time']
                     stats_new.save()

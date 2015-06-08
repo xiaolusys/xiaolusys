@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num
-from .views_data_stats import DailyStatsView
+from .views_data_stats import DailyStatsView, StatsProductView
 
 urlpatterns = [
 
@@ -38,4 +38,5 @@ urlpatterns = [
     url(r'^auto_new_order/(?P<order_list_id>\d+)/$', AutoNewOrder.as_view(), name="auto_new_order"),
     url(r'^change_inferior_num/$', change_inferior_num, name="change_inferior_num"),
     url(r'^daily_stats/(?P<prev_day>\d+)/$', staff_member_required(DailyStatsView.as_view()), name="daily_stats"),
+    url(r'^stats_product/$', staff_member_required(StatsProductView.as_view()), name="stats_product"),
 ]
