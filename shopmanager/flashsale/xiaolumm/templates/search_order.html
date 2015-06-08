@@ -29,29 +29,6 @@
         }
 
 
-        function MCS_ClientNotify(EventData) {
-            EventData = strToJson(EventData);
-            switch (EventData['event']) {
-                case 'OnUserChange':
-                {
-                    OnUserChange(EventData);
-                    break;
-                }
-                case 'OnMapMsgClick':
-                {
-                    OnMapMsgClick(EventData);
-                    break;
-                }
-            }
-        }
-
-
-        function strToJson(str) {
-            var json = (new Function("return " + str))();
-            return json;
-        }
-
-
         function search_Order_By_Mobile() {
             var mobile = $('#search_order').val();
             // 清空结点已经填写的内容
@@ -59,13 +36,16 @@
             function callback(result) {
                 $.each(result, function (d, v) {
                     $("<p data-toggle='modal'" +
-                            " data-target='.bs-example-modal-lg' onclick='order_detail(" + v.id + ")'>原单ID:" + v.tid + "</p>" +
-                            "<p>收货人:" + v.receiver_name + "<br>" +
-                            "订单状态:" + v.status + "<br>" +
-                            "系统状态:" + v.sys_status + "<br>" +
-                            "收获地址:" + v.address + "<br>" +
-                            "买家留言:" + v.buyer_message + "<br>" +
-                            "卖家备注:" + v.seller_memo + "<br>" +
+                            " data-target='.bs-example-modal-lg' onclick='order_detail(" + v.id + ")'>原&nbsp单&nbspID&nbsp： " + v.tid + "</p>" +
+                            "<p>收&nbsp&nbsp货&nbsp&nbsp人： " + v.receiver_name + "<br>" +
+                            "订单状态： " + v.status + "<br>" +
+                            "系统状态： " + v.sys_status + "<br>" +
+                            "发货日期： " + v.consign_time + "<br>" +
+                            "收获地址： " + v.address + "<br>" +
+                            "买家留言： " + v.buyer_message + "<br>" +
+                            "卖家备注： " + v.seller_memo + "<br>" +
+                            "物流公司： " + v.logistics_company + "<br>" +
+                            "物流编号： " + v.out_sid + "<br>" +
                             "<hr style='height:5px;border:none;border-top:5px ridge green;' />" +
                             "</p>"
                     ).appendTo("#search_result");
@@ -99,15 +79,15 @@
                     '<div class="col-xs-4"><img src="' + v.pic_path + '"  width="64" height="64"/></div><div class="col-xs-8">' +
                     v.title + "</div></div>" +
                     "<p>" +
-                    "价格:" + v.price + "  " +
-                    "数量:" + v.num + "<br>" +
-                    "总费用:" + v.total_fee + "  " +
-                    "实付款:" + v.payment + "<br>" +
-                    "规格:" + v.sku_properties_name + "<br>" +
-                    "订单状态:" + v.status + "<br>" +
-                    "系统状态:" + v.sys_status + "<br>" +
-                    "退款状态:" + v.refund_status + "<br>" +
-                    "付款时间:" + v.pay_time + "<br>" +
+                    "价&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp格： " + v.price + "&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp" +
+                    "数&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp量： " + v.num + "<br>" +
+                    "总&nbsp&nbsp费&nbsp&nbsp用： " + v.total_fee + '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' +
+                    "实&nbsp&nbsp付&nbsp&nbsp款： " + v.payment + "<br>" +
+                    "规&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp格： " + v.sku_properties_name + "<br>" +
+                    "订单状态： " + v.status + "<br>" +
+                    "系统状态： " + v.sys_status + "<br>" +
+                    "退款状态： " + v.refund_status + "<br>" +
+                    "付款时间： " + v.pay_time + "<br>" +
                     "<hr style='height:2px;border:none;border-top:2px ridge green;' />" +
                     "</p>").appendTo('#order_detail_container');
 

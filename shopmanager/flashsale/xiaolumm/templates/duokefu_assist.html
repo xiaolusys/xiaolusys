@@ -39,17 +39,18 @@
             var url = '/m/duokefu_customer/';
             $("#customer_info").empty();
             function callback(result) {
-                $("<p>openid:" + result[0].openid + "<br>" +
-                '昵称:' + result[0].nickname + '<br>' +
-                '性别:' + result[0].sex + '<br>' +
-                '手机:' + result[0].mobile + '<br>' +
-                '待验证手机:' + result[0].vmobile + '<br>' +
-                '是否验证:' + result[0].isvalid + '<br>' +
-                '邀请人数:' + result[0].referal_count + '<br>' +
-                '接管状态:' + result[0].charge_status + '<br>' +
-                '地址:' + result[0].province + '-' + result[0].city + '-' + result[0].address + '<br>' +
+                $("<p>openid:" + result[0].openid + "<br>" + '<br>' +
+                '昵&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp称： ' + result[0].nickname + '<br>' +
+                '性&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp别： ' + result[0].sex + '<br>' +
+                '手&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp机： ' + result[0].mobile + '<br>' + '<br>' +
+                '是否验证：   ' + result[0].isvalid + '<br>' +
+                '邀请人数：   ' + result[0].referal_count + '<br>' +
+                '接管状态：   ' + result[0].charge_status + '<br>' +
+                '地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址：   ' + result[0].province + '-' + result[0].city + '-' + result[0].address + '<br>' +
+                '待验证手机： ' + result[0].vmobile + '<br>' +
                 "</p>").appendTo("#customer_info");
             }
+
             $.ajax({url: url, data: data, type: "post", success: callback});
         }
 

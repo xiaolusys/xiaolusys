@@ -713,7 +713,6 @@ def kf_Customer(request):
             isvalid = u'已验证'
         else:
             isvalid = u'未验证'
-        print "isvalid is here :", isvalid
         charge_status = weixin_user.charge_status  # 接管状态  （布尔类型）
         # 该用户推荐的数量
         referal_count = WeiXinUser.objects.filter(referal_from_openid=openid).count()
@@ -735,7 +734,7 @@ def kf_Weixin_Order(request):
     data = []
     if request.method == 'POST':
         openid = request.POST.get('openid', 'oMt59uDSymShXs9JcCjLxcHdNnKA')
-        weixin_orders = WXOrder.objects.filter(buyer_openid=openid)  # 找到该用户的订单(默认显示)   注意这里可以有多个订单产生
+        weixin_orders = WXOrder.objects.filter(buyer_openid=openid).order_by('-order_create_time')  # 找到该用户的订单(默认显示)   注意这里可以有多个订单产生
         if weixin_orders.count() > 0:
             order_id = weixin_orders[0].order_id
             product_name = weixin_orders[0].product_name
@@ -778,9 +777,8 @@ def kf_Weixin_Order(request):
 def ke_Find_More_Weixin_Order(request):
     data = []
     openid = request.GET.get('openid')
-    print 'openid in the more order ', openid
     weixin_orders = WXOrder.objects.filter(buyer_openid=openid)
-    weixin_orders_cut = WXOrder.objects.filter(buyer_openid=openid)[1:]
+    weixin_orders_cut = WXOrder.objects.filter(buyer_openid=openid).order_by('-order_create_time')[1:]
 
     for weixin_order in weixin_orders_cut:
         if weixin_order.order_create_time is None:
@@ -790,7 +788,8 @@ def ke_Find_More_Weixin_Order(request):
         data_entry = {'order_id': weixin_order.order_id,'product_img': weixin_order.product_img, 'order_total_price': weixin_order.order_total_price/100.0,
                       'order_express_price': weixin_order.order_express_price/100.0,
                       'order_create_time': order_create_time,
-                      'order_status': weixin_order.order_status, 'receiver_name': weixin_order.receiver_name,
+                      'order_status': weixin_order.get_order_status_display(),
+                      'receiver_name': weixin_order.receiver_name,
                       'receiver_address': weixin_order.receiver_province + weixin_order.receiver_city + weixin_order.receiver_zone + weixin_order.receiver_address,
                       'receiver_mobile': weixin_order.receiver_mobile,
                       'product_name': weixin_order.product_name,
@@ -818,17 +817,35 @@ def kf_Search_Order_By_Mobile(request):
     data = []
     mobile = request.GET.get('mobile')
     # 试图 查找特卖订单 Pay 中的get 到了多个订单报错  所以找到最后一个
-    merge_trades = MergeTrade.objects.filter(receiver_mobile=mobile).order_by('-created')  #[:1]  # 最近一笔订单
+    today = datetime.datetime.today()
+    time_from = today
+    # 搜索一个月以内的订单
+    time_to = today - datetime.timedelta(days=30)
+    merge_trades = MergeTrade.objects.filter(receiver_mobile=mobile,
+                                             created__gte=time_from, created__lte=time_to
+                                             ).order_by('-created')
     for merge_trade in merge_trades:
+        if merge_trade.consign_time is None:
+            consign_time = u'未发货'
+        else:
+            consign_time = merge_trade.consign_time.strftime('%Y-%m-%d %H:%M')
+        if merge_trade.logistics_company is None:
+            logistics_company = u"未知"
+        else:
+            logistics_company = merge_trade.logistics_company.name  # 物流公司名称
+        out_sid = merge_trade.out_sid  # 物流编号
         data_entry = {'id': merge_trade.id,
                         'tid': merge_trade.tid,
-                      'status': merge_trade.get_status_display(),
-                      'sys_status': merge_trade.get_sys_status_display(),
-                      'receiver_name': merge_trade.receiver_name,
-                      'address': merge_trade.receiver_state + '-' + merge_trade.receiver_city +
-                                 '-' + merge_trade.receiver_district + '-'+merge_trade.receiver_address,
-                      'buyer_message': merge_trade.buyer_message,
-                      'seller_memo': merge_trade.seller_memo
+                        'status': merge_trade.get_status_display(),
+                        'sys_status': merge_trade.get_sys_status_display(),
+                        'receiver_name': merge_trade.receiver_name,
+                        'consign_time': consign_time,
+                        'address': merge_trade.receiver_state + '-' + merge_trade.receiver_city +
+                                     '-' + merge_trade.receiver_district + '-'+merge_trade.receiver_address,
+                        'buyer_message': merge_trade.buyer_message,
+                        'seller_memo': merge_trade.seller_memo,
+                        'logistics_company': logistics_company,
+                        'out_sid': out_sid
                       }
         data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
@@ -851,7 +868,6 @@ def kf_Search_Order_Detail(request):
                       'sys_status': merge_order.get_sys_status_display(),
                       'pay_time': merge_order.pay_time.strftime('%Y-%m-%d %H:%M'),
                       'refund_status': merge_order.get_refund_status_display()
-
                       }
         data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据

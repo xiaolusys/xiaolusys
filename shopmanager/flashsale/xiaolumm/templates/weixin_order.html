@@ -39,20 +39,20 @@
             var url = '/m/duokefu_weixin_order/';
             $("#duokefu_weixin_order_info").empty();
             function callback(result) {                             // 页面加载的时候显示
-                $("<p>订单ID:" + result[0].order_id + "<br>" +
-                '图片:<img src="' + result[0].product_img + '" width="64" height="64" /><br>' +
-                "商品名称:" + result[0].product_name + "<br>" +
-                '商品数量:' + result[0].product_count + '<br>' +
-                '商品总价:' + result[0].order_total_price + '<br>' +
-                '商品单价:' + result[0].product_price + '<br>' +
-                '快递费用:' + result[0].order_express_price + '<br>' +
-                '创建时间:' + result[0].order_create_time + '<br>' +
-                '订单状态:' + result[0].order_status + '<br>' +
-                '收件人:' + result[0].receiver_name + '<br>' +
-                '手机:' + result[0].mobile + '<br>' +
-                '快递单号:' + result[0].delivery_id + '<br>' +
-                '快递公司:' + result[0].delivery_company + '<br>' + "</p>" + "<p id='push_address'>" +
-                '地址:' + result[0].address +
+                $("<p>订&nbsp&nbsp单&nbsp&nbspID： " + result[0].order_id + "<br>" +
+                '图&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp片： <img src="' + result[0].product_img + '" width="64" height="64" /><br>' +
+                "商品名称： " + result[0].product_name + "<br>" +
+                '商品数量： ' + result[0].product_count + '<br>' +
+                '商品总价： ' + result[0].order_total_price + '<br>' +
+                '商品单价： ' + result[0].product_price + '<br>' +
+                '快递费用： ' + result[0].order_express_price + '<br>' +
+                '创建时间： ' + result[0].order_create_time + '<br>' +
+                '订单状态： ' + result[0].order_status + '<br>' +
+                '收&nbsp&nbsp件&nbsp&nbsp人： ' + result[0].receiver_name + '<br>' +
+                '手&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp机： ' + result[0].mobile + '<br>' +
+                '快递单号： ' + result[0].delivery_id + '<br>' +
+                '快递公司： ' + result[0].delivery_company + '<br>' + "</p>" + "<p id='push_address'>" +
+                '地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址： ' + result[0].address +
                 "</p>").appendTo("#duokefu_weixin_order_info");
             }
 
@@ -72,21 +72,22 @@
             function callback(result) {
                 $("#more_order").empty();
                 $.each(result, function (d, v) {
-                    $("<div class='col-lg-4'>" +
-                            "<p>订单ID:" + v.order_id + "<br>" +
-                            '图片:<img src="' + v.product_img + '" width="64" height="64" /><br>' +
-                            "商品名:" + v.product_name + "<br>" +
-                            "商品价格:" + v.product_price + "<br>" +
-                            "商品个数:" + v.product_count + "<br>" +
-                            "总费用:" + v.order_total_price + "<br>" +
-                            "快递费用:" + v.order_express_price + "<br>" +
-                            "下单时间:" + v.order_create_time + "<br>" +
-                            "订单状态:" + v.order_status + "<br>" +
-                            "收货人:" + v.receiver_name + "<br>" +
-                            "手机:" + v.receiver_mobile + "<br>" +
-                            "地址:" + v.receiver_address + "<br>" +
-                            "运单ID:" + v.delivery_id + "<br>" +
-                            "物流公司编码:" + v.delivery_company + "</p>" +
+                    $("<div>" +
+                            "<p>订&nbsp&nbsp单&nbsp&nbspID： " + v.order_id + "<br>" +
+                            '图&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp片： <img src="' + v.product_img + '" width="64" height="64" /><br>' +
+                            "商&nbsp&nbsp品&nbsp&nbsp名： " + v.product_name + "<br>" +
+                            "商品价格： " + v.product_price + "<br>" +
+                            "商品个数： " + v.product_count + "<br>" +
+                            "总&nbsp&nbsp费&nbsp&nbsp用： " + v.order_total_price + "<br>" +
+                            "快递费用： " + v.order_express_price + "<br>" +
+                            "下单时间： " + v.order_create_time + "<br>" +
+                            "订单状态： " + v.order_status + "<br>" +
+                            "收&nbsp&nbsp货&nbsp&nbsp人： " + v.receiver_name + "<br>" +
+                            "手&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp机： " + v.receiver_mobile + "<br>" +
+                            "地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址： " + v.receiver_address + "<br>" +
+                            "运&nbsp&nbsp单&nbsp&nbspID： " + v.delivery_id + "<br>" +
+                            "物流公司编码： " + v.delivery_company + "</p>" +
+                            "<hr style='height:2px;border:none;border-top:2px ridge green;' />" +
                             "</div>"
                     ).appendTo("#more_order");
                 });
@@ -106,7 +107,7 @@
         <div id="duokefu_weixin_order_info">
 
         </div>
-
+        <hr style='height:2px;border:none;border-top:2px ridge green;'/>
         <div id="more_order">
 
         </div>
@@ -135,8 +136,8 @@
         }
 
         function put_msg() {
-            var rad  = randomString(6);
-            var text =$('#push_address').html();
+            var rad = randomString(6);
+            var text = $('#push_address').html();
 
             var msg = '{"msg":{"head": {"random": "' + rad + '"},"body":[{"type":0, "content":{"text":"' + text + '"}}]}}';
             window.external.PutMsg(
@@ -144,7 +145,7 @@
             );
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
         });
     </script>
