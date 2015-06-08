@@ -7,6 +7,7 @@ from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder
 import time
+import datetime
 
 
 class orderdetailInline(admin.TabularInline):
@@ -105,10 +106,10 @@ class orderdetailAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'orderlist', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
-        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created','updated'
+        'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated'
     )
     list_filter = (('created', DateFieldListFilter),)
-    search_fields = ['id', 'orderlist__id','product_id']
+    search_fields = ['id', 'orderlist__id', 'product_id']
     date_hierarchy = 'created'
 
 
@@ -139,22 +140,17 @@ class SupplyChainDataStatsAdmin(admin.ModelAdmin):
                     'order_goods_quantity', 'order_goods_amount',
                     'stats_time', 'group',
                     'created', 'updated')
+    list_filter = ('group', 'created',)
 
 
 admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)
 
 
 class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
-    list_display = ('product_id', 'outer_sku_id', 'sale_time', 'sale_num', 'trade_general_to_time',
+    list_display = ('product_id', 'outer_sku_id', 'sale_time', 'sale_num', 'trade_general_time',
                     'ding_huo_num', 'order_deal_time',
                     'arrival_num', 'goods_arrival_time',
                     'goods_out_num', 'goods_out_time')
-
-    def trade_general_to_time(self, obj):
-        return time.strftime('%Y-%m-%d %H:%m:%S', time.localtime(obj.trade_general_time))
-
-    trade_general_to_time.allow_tags = True
-    trade_general_to_time.short_description = "平均下单时间"
 
 
 admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
