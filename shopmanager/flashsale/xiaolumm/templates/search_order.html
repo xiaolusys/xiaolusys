@@ -1,0 +1,154 @@
+{% extends "weixin_base.html" %}
+
+{% block title %} 订单搜索 {% endblock %}
+
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet' xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html"/>
+
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+
+
+    <script type="text/javascript">
+
+
+        window.onload = function () {
+            var oInput = document.getElementById("search_order");
+            oInput.focus(); //锁定输入到输入框
+            document.onkeydown = function (e) {
+                if (!e) {
+                    e = window.event;
+                }
+                if ((e.keyCode || e.which) == 13) {
+                    search_Order_By_Mobile();       //绑定回车 到函数
+                }
+            }
+        }
+
+
+        function MCS_ClientNotify(EventData) {
+            EventData = strToJson(EventData);
+            switch (EventData['event']) {
+                case 'OnUserChange':
+                {
+                    OnUserChange(EventData);
+                    break;
+                }
+                case 'OnMapMsgClick':
+                {
+                    OnMapMsgClick(EventData);
+                    break;
+                }
+            }
+        }
+
+
+        function strToJson(str) {
+            var json = (new Function("return " + str))();
+            return json;
+        }
+
+
+        function search_Order_By_Mobile() {
+            var mobile = $('#search_order').val();
+            // 清空结点已经填写的内容
+            $("#search_result").empty();
+            function callback(result) {
+                $.each(result, function (d, v) {
+                    $("<p data-toggle='modal'" +
+                            " data-target='.bs-example-modal-lg' onclick='order_detail(" + v.id + ")'>原单ID:" + v.tid + "</p>" +
+                            "<p>收货人:" + v.receiver_name + "<br>" +
+                            "订单状态:" + v.status + "<br>" +
+                            "系统状态:" + v.sys_status + "<br>" +
+                            "收获地址:" + v.address + "<br>" +
+                            "买家留言:" + v.buyer_message + "<br>" +
+                            "卖家备注:" + v.seller_memo + "<br>" +
+                            "<hr style='height:5px;border:none;border-top:5px ridge green;' />" +
+                            "</p>"
+                    ).appendTo("#search_result");
+                });
+            }
+
+            if (mobile == '') {
+                alert('请输入手机号码！');
+            }
+            else if (!(/^1[3458][0-9]{9}$/.test(mobile))) {
+                alert("不是完整的11位手机号或者正确的手机号前七位");
+                $('#search_order').focus();
+                $('#search_order').val('');
+            }
+            else {
+                url = '/m/duokefu_search_by_mobile/';
+                data = {'mobile': mobile};
+                $.ajax({url: url, data: data, success: callback});
+            }
+        }
+
+
+        function order_detail(id) {
+            //根据此id找订单明细内容 并且填充到  id=order_detail_container 的table中
+            url = '/m/duokefu_order_detail/';
+            data = {'id': id};
+            $('#order_detail_container').empty();
+            function callback(result) {
+                $.each(result, function (d, v) {
+                    $("<div class='row'>" +
+                    '<div class="col-xs-4"><img src="' + v.pic_path + '"  width="64" height="64"/></div><div class="col-xs-8">' +
+                    v.title + "</div></div>" +
+                    "<p>" +
+                    "价格:" + v.price + "  " +
+                    "数量:" + v.num + "<br>" +
+                    "总费用:" + v.total_fee + "  " +
+                    "实付款:" + v.payment + "<br>" +
+                    "规格:" + v.sku_properties_name + "<br>" +
+                    "订单状态:" + v.status + "<br>" +
+                    "系统状态:" + v.sys_status + "<br>" +
+                    "退款状态:" + v.refund_status + "<br>" +
+                    "付款时间:" + v.pay_time + "<br>" +
+                    "<hr style='height:2px;border:none;border-top:2px ridge green;' />" +
+                    "</p>").appendTo('#order_detail_container');
+
+                });
+            }
+
+            $.ajax({url: url, data: data, success: callback});
+        }
+    </script>
+{% endblock %}
+
+{% block container %}
+    <div class="container">
+        <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+             aria-hidden="true" style="margin-top: 25px">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div id="order_detail_container">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search Order By Mobile ." id="search_order">
+                    <span class="input-group-btn">
+                        <button class="btn btn-success" id="search_button" type="button"
+                                onclick="search_Order_By_Mobile()">美美一搜
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <br>
+
+            <div id="search_result">
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
