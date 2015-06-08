@@ -157,7 +157,7 @@ class CashOutAdmin(admin.ModelAdmin):
     form = forms.CashOutForm
     list_display = ('xlmm','get_value_display','status','approve_time','created','get_cashout_verify')
     list_filter  = ('status',('approve_time',DateFieldListFilter),('created',DateFieldListFilter))
-    search_fields = ['xlmm']
+    search_fields = ['=xlmm']
 
     def get_cashout_verify(self, obj):
         #return obj.xlmm  # 返回id号码
