@@ -147,10 +147,38 @@ admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)
 
 
 class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
-    list_display = ('product_id', 'outer_sku_id', 'sale_time', 'sale_num', 'trade_general_time',
-                    'ding_huo_num', 'order_deal_time',
-                    'arrival_num', 'goods_arrival_time',
+    list_display = ('product_id', 'outer_sku_id', 'sale_time', 'sale_num', 'trade_general_time_name',
+                    'ding_huo_num', 'order_deal_time_name',
+                    'arrival_num', 'goods_arrival_time_name',
                     'goods_out_num', 'goods_out_time')
+
+    def trade_general_time_name(self, obj):
+        temp_data = obj.trade_general_time
+        return time.strftime('%Y-%m-%d %H:%m', time.localtime(temp_data)) if temp_data > 0 else 0
+
+    trade_general_time_name.allow_tags = True
+    trade_general_time_name.short_description = "订单生成"
+
+    def order_deal_time_name(self, obj):
+        temp_data = obj.order_deal_time
+        return time.strftime('%Y-%m-%d %H:%m', time.localtime(temp_data)) if temp_data > 0 else 0
+
+    order_deal_time_name.allow_tags = True
+    order_deal_time_name.short_description = "订货时间"
+
+    def goods_arrival_time_name(self, obj):
+        temp_data = obj.goods_arrival_time
+        return time.strftime('%Y-%m-%d %H:%m', time.localtime(temp_data)) if temp_data > 0 else 0
+
+    goods_arrival_time_name.allow_tags = True
+    goods_arrival_time_name.short_description = "到货时间"
+
+    def goods_out_time_name(self, obj):
+        temp_data = obj.goods_out_time
+        return time.strftime('%Y-%m-%d %H:%m', time.localtime(temp_data)) if temp_data > 0 else 0
+
+    goods_out_time_name.allow_tags = True
+    goods_out_time_name.short_description = "出货时间"
 
 
 admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)

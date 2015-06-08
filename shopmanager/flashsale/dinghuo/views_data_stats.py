@@ -29,13 +29,16 @@ def format_time_from_dict(data_dict):
         goods_arrival_time = data["goods_arrival_time"]
         goods_out_time = data["goods_out_time"]
         if trade_general_time > 0:
-            data["trade_general_time"] = time.strftime('%Y-%m-%d %H点', time.localtime(trade_general_time))
-        if order_deal_time > 0:
-            data["order_deal_time"] = time.strftime('%Y-%m-%d %H点', time.localtime(order_deal_time))
-        if goods_arrival_time > 0:
-            data["goods_arrival_time"] = time.strftime('%Y-%m-%d %H点', time.localtime(goods_arrival_time))
-        if goods_out_time > 0:
-            data["goods_out_time"] = time.strftime('%Y-%m-%d %H点', time.localtime(goods_out_time))
+            data["trade_general_time"] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(trade_general_time))
+            data["order_deal_time"] = format_time(order_deal_time, trade_general_time)
+            data["goods_arrival_time"] = format_time(goods_arrival_time, trade_general_time)
+            data["goods_out_time"] = format_time(goods_out_time, trade_general_time)
+        else:
+            data["order_deal_time"] = ""
+
+            data["goods_arrival_time"] = ""
+
+            data["goods_out_time"] = ""
 
     return data_dict
 
