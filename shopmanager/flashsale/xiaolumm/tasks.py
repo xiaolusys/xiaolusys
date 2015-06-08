@@ -20,7 +20,7 @@ def task_Create_Click_Record(xlmmid,openid,click_time):
     tt = datetime.datetime(today.year,today.month,today.day,23,59,59)
     
     isvalid = False
-    clicks = Clicks.objects.filter(openid=openid,created__range=(tf,tt))
+    clicks = Clicks.objects.filter(openid=openid,click_time__range=(tf,tt))
     click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
     click_count   = len(click_linkids)
     xlmms = XiaoluMama.objects.filter(id=xlmmid)

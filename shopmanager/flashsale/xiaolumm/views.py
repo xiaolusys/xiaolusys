@@ -335,7 +335,7 @@ class StatsView(View):
                 click_num = click_counts[0].click_num
                 user_num = click_counts[0].user_num
             else:
-                click_list = Clicks.objects.filter(linkid=mama.pk, click_time__gt=time_from, click_time__lt=time_to)
+                click_list = Clicks.objects.filter(linkid=mama.pk, click_time__range=(time_from,time_to))
                 click_num  = click_list.count()
                 openid_list = click_list.values('openid').distinct()
                 user_num = openid_list.count()
