@@ -1212,10 +1212,9 @@ class TradeSearchView(ModelView):
         
         if q.isdigit():
             trades = MergeTrade.objects.filter(Q(id=q)|Q(tid=q)|
-                    Q(buyer_nick=q)|Q(receiver_name=q)|Q(receiver_mobile=q))
+                    Q(buyer_nick=q)|Q(receiver_mobile=q))
         else:
-            trades = MergeTrade.objects.filter(Q(buyer_nick=q)|
-                                    Q(receiver_name=q)|Q(receiver_phone=q))
+            trades = MergeTrade.objects.filter(Q(buyer_nick=q)|Q(receiver_phone=q))
         trade_list = []
         for trade in trades:
             trade_dict       = {}

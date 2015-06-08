@@ -12,7 +12,9 @@ from django.conf import settings
 
 from django.core.urlresolvers import reverse
 from flashsale.pay.options import get_user_unionid,valid_openid
-from models import Clicks, XiaoluMama
+from flashsale.xiaolumm.models import XiaoluMama
+from shopapp.weixin.models import WeiXinUser
+from .models import Clicks, XiaoluMama
 
 from rest_framework.views import APIView
 from rest_framework import authentication
@@ -42,12 +44,18 @@ class MamaRegisterView(APIView):
             register_url = reverse('mama_register')
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri={0}&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url.format(register_url))
-            
-        return Response({'pk':1})
+        
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=openid,unionid=unionid)
+        
+        xiaolumm,state = XiaoluMama.objects.get_or_create(openid=unionid)
+        
+        return Response({'wxuser':wx_user,'xiaolumm':xiaolumm})
         
     def post(self,request):
         content = request.REQUEST
         return render_to_response("stats.html", 
                                   {'pk':1},
                                   context_instance=RequestContext(request))
+        
+        
         
