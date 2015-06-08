@@ -143,7 +143,7 @@ class ClicksChangeList(ChangeList):
 class ClicksAdmin(admin.ModelAdmin):
     list_display = ('linkid','openid','isvalid','click_time')
     list_filter = ('isvalid',('click_time',DateFieldListFilter),)
-    search_fields = ['openid',]
+    search_fields = ['openid', 'linkid']
     
     def get_changelist(self, request, **kwargs):
 
