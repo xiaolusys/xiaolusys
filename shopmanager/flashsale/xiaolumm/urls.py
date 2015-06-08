@@ -4,13 +4,15 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 
 from . import views
-from .views_register import MamaRegisterView
+from .views_register import MamaRegisterView,MamaConfirmView
 
 
 urlpatterns = patterns('',
     url(r'^$',views.landing),
-    url(r'^m/$',views.MamaStatsView.as_view()),
-    url(r'^register/$',MamaRegisterView.as_view(),name="mama_register"),
+    url(r'^m/$',views.MamaStatsView.as_view(),name="mama_homepage"),
+    url(r'^register/(?P<mama_id>\d+)/$',MamaRegisterView.as_view(),name="mama_register"),
+    url(r'^register/confirm/$',MamaConfirmView.as_view(),name="mama_confirm"),
+    
     url(r'^stats/$',staff_member_required(views.StatsView.as_view())),
     url(r'^cashout/$',views.CashoutView.as_view()),
     url(r'^cashoutlist/$',views.CashOutList.as_view()),

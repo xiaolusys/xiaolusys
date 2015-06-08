@@ -395,16 +395,31 @@ class CarryLog(models.Model):
     
 from . import signals
 
-def push_pending_carry_to_cash(obj,*args,**kwargs):
+def push_Pending_Carry_To_Cash(obj,*args,**kwargs):
     
     from flashsale.xiaolumm.tasks import task_Push_Pending_Carry_Cash
     
     task_Push_Pending_Carry_Cash.s(xlmm_id=obj)()
     
-signals.signal_push_pending_carry_to_cash.connect(push_pending_carry_to_cash,sender=XiaoluMama)
+signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash,sender=XiaoluMama)
 
 
+from flashsale.pay.signals import signal_saletrade_pay_confirm
+from flashsale.pay.models import SaleTrade
 
+def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
+    
+    if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS 
+        and obj.is_Deposite_Order()):
+        order_buyer = obj.order_buyer 
+        xlmms = XiaoluMama.objects.filter(openid=order_buyer.unionid)
+        if xlmms.count() > 0 :
+            xlmm = xlmms[0]
+            xlmm.progress = XiaoluMama.PAY
+            xlmm.save()
+            
+    
+signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
 
     
     

@@ -210,9 +210,15 @@ class MergeTradeManager(models.Manager):
                                          trade.receiver_phone,
                                          state=trade.receiver_state,
                                          city=trade.receiver_city)
-        trades = queryset.exclude(id=trade.id)
         
-        return trades.count() > 0
+        order_count = queryset.count()
+        if order_count == 0:
+            return False
+        
+        if order_count == 1:
+            return queryset[0].id != trade.id
+  
+        return True
     
     def diffTradeAddress(self,trade,sub_trade):
         
