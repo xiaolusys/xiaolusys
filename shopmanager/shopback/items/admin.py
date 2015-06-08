@@ -109,7 +109,7 @@ class ProductAdmin(admin.ModelAdmin):
                    ChargerFilter,'sync_stock','is_split','is_match','is_assign'
                    ,'post_check',('created',DateFieldListFilter),'category')
 
-    search_fields = ['id','outer_id', 'name' , 'barcode','sale_charger','storage_charger']
+    search_fields = ['=id','^outer_id', 'name' , '=barcode','^sale_charger','^storage_charger']
     
     def outer_id_link(self, obj):
         
