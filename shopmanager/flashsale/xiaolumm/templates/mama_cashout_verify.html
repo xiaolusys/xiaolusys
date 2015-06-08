@@ -38,7 +38,12 @@
             data = id;
 
             var bt_verify = $('#'+index);
+            if (bt_verify.hasClass('loading')){
+            	return;
+            }
+            bt_verify.addClass('loading');
             function callback(result) {
+            	bt_verify.removeClass('loading');
                 if (result == "reject") {
                     alert('提现超过可用金额');
                 }

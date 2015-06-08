@@ -11,6 +11,51 @@ __author__ = 'linjie'
 
 logger = logging.getLogger('celery.handler')
 
+CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,1,10)
+CLICK_MAX_LIMIT_DATE  = datetime.date(2015,6,5)
+
+def task_patch_mamacash_61():
+    
+    time_end = datetime.datetime(2015,6,1,23,59,59)
+    carry_no = int(time_end.strftime('%y%m%d'))
+    
+    total_rebeta = 0
+    mm_clickcounts = ClickCount.objects.filter(date=time_end.date(),valid_num__gt=0)
+    for mm_cc in mm_clickcounts:
+        xlmms = XiaoluMama.objects.filter(id=mm_cc.linkid)
+        if xlmms.count() == 0:
+            continue
+        
+        xlmm = xlmms[0]
+                            
+        agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
+        if agency_levels.count() == 0:
+            continue
+        agency_level = agency_levels[0]
+        if agency_level.id != 2:
+            continue
+        
+        click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
+        ten_click_num = click_qs.values('openid').distinct().count()
+        ten_click_price = 30
+        
+        click_rebeta = ten_click_num * ten_click_price
+        if mm_cc.valid_num == 0 or click_rebeta <= 0:
+            continue
+        
+        c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
+                                                      order_num=carry_no,
+                                                      log_type=CarryLog.CLICK_REBETA)
+#         
+        c_log.value = c_log.value + click_rebeta
+        c_log.save()
+        
+        urows = xlmms.update(cash=F('cash') + click_rebeta)
+        total_rebeta += click_rebeta
+    
+    print 'debug total_rebeta:',total_rebeta
+
+
 @task()
 def task_Push_ClickCount_To_MamaCash(target_date):
     """ 计算每日妈妈点击数现金提成，并更新到妈妈钱包账户"""
@@ -30,14 +75,27 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         buyercount = StatisticsShopping.objects.filter(linkid=xlmm.id,
                             shoptime__range=(time_from, time_end)).values('openid').distinct().count()
                             
-        agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
-        if agency_levels.count() == 0:
-            continue
-        agency_level = agency_levels[0]
-        click_price  = agency_level.get_Click_Price(buyercount)
-        click_rebeta = mm_cc.valid_num * click_price 
+        click_price  = xlmm.get_Mama_Click_Price(buyercount)
+        click_num    = mm_cc.valid_num
+        
+        #设置最高有效最高点击上限
+        if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+            max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount)
+            click_num = min(max_click_count,click_num )
+        
+        click_rebeta = click_num  * click_price
+        
+#         ten_click_num   = 0
+#         ten_click_price = 0
+#         if CLICK_ACTIVE_START_TIME.date() == time_from.date():
+#             click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
+#             ten_click_num = click_qs.values('openid').distinct().count()
+#             ten_click_price = click_price + 30
+#         click_rebeta = (mm_cc.valid_num - ten_click_num) * click_price + ten_click_num * ten_click_price
+
         if mm_cc.valid_num == 0 or click_price <= 0:
             continue
+        
         
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                      order_num=carry_no,
@@ -66,6 +124,7 @@ def task_Record_User_Click(pre_day=1):
     xiaolumamas = XiaoluMama.objects.all()  # 所有小鹿妈妈们
     
     for xiaolumama in xiaolumamas:  #
+        
         clicks = Clicks.objects.filter(click_time__range=(time_from, time_to),
                                        linkid=xiaolumama.id)  # 根据代理的id过滤出点击表中属于该代理的点击
         

@@ -2,7 +2,7 @@
 __author__ = 'yann'
 
 from django.shortcuts import render_to_response
-from shopback.items.models import Product
+from shopback.items.models import Product, ProductSku
 from flashsale.dinghuo.models import OrderDetail, OrderList
 from django.forms.models import model_to_dict
 from django.template import RequestContext
@@ -81,14 +81,28 @@ def change_inferior_num(request):
     post = request.POST
     flag = post['flag']
     order_detail_id = post["order_detail_id"].strip()
+    order_detail = OrderDetail.objects.get(id=order_detail_id)
+    order_list = OrderList.objects.get(id=order_detail.orderlist_id)
     if flag == "0":
         OrderDetail.objects.filter(id=order_detail_id).update(inferior_quantity=F('inferior_quantity') - 1)
         OrderDetail.objects.filter(id=order_detail_id).update(
             non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
+        OrderDetail.objects.filter(id=order_detail_id).update(arrival_quantity=F('arrival_quantity') + 1)
+        Product.objects.filter(id=order_detail.product_id).update(collect_num=F('collect_num') + 1)
+        ProductSku.objects.filter(id=order_detail.chichu_id).update(quantity=F('quantity') + 1)
+        log_action(request.user.id, order_list, CHANGE,
+                   u'订货单{0}{1}{2}'.format((u'次品减一件'), order_detail.product_name, order_detail.product_chicun))
+        log_action(request.user.id, order_detail, CHANGE, u'%s' % (u'次品减一'))
         return HttpResponse("OK")
     elif flag == "1":
         OrderDetail.objects.filter(id=order_detail_id).update(inferior_quantity=F('inferior_quantity') + 1)
         OrderDetail.objects.filter(id=order_detail_id).update(
             non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
+        OrderDetail.objects.filter(id=order_detail_id).update(arrival_quantity=F('arrival_quantity') - 1)
+        Product.objects.filter(id=order_detail.product_id).update(collect_num=F('collect_num') - 1)
+        ProductSku.objects.filter(id=order_detail.chichu_id).update(quantity=F('quantity') - 1)
+        log_action(request.user.id, order_list, CHANGE,
+                   u'订货单{0}{1}{2}'.format((u'次品加一件'), order_detail.product_name, order_detail.product_chicun))
+        log_action(request.user.id, order_detail, CHANGE, u'%s' % (u'次品加一'))
         return HttpResponse("OK")
     return HttpResponse("false")

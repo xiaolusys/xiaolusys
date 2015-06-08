@@ -302,6 +302,68 @@ class SaleRefundAdmin(admin.ModelAdmin):
         
         return super(SaleRefundAdmin, self).response_change(request, obj, *args, **kwargs)
     
-
 admin.site.register(SaleRefund, SaleRefundAdmin)
+
+
+from django.db.models import Sum
+from django.shortcuts import redirect,render_to_response,RequestContext
+from .models_envelope import Envelop
+from .forms import EnvelopForm
+
+class EnvelopAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','receiver','get_amount_display','platform','subject',
+                    'send_time','created','status')
+    
+    list_filter = ('status','platform','subject','livemode',('created',DateFieldListFilter))
+    search_fields = ['receiver']
+    list_per_page = 50
+    form = EnvelopForm
+    
+    def send_envelop_action(self, request, queryset):
+        """ 发送红包动作 """
+        
+        wait_envelop_qs = queryset
+        
+        envelop_ids   = ','.join([str(e.id) for e in wait_envelop_qs])
+        envelop_count = wait_envelop_qs.count()
+        total_amount  = wait_envelop_qs.aggregate(total_amount=Sum('amount')).get('total_amount') or 0
+        
+        origin_url = request.get_full_path()
+       
+        return render_to_response('pay/confirm_envelop.html',
+                                  {'origin_url':origin_url,
+                                   'envelop_ids':envelop_ids,
+                                   'total_amount':total_amount / 100.0,
+                                   'envelop_count':envelop_count},
+                                   context_instance=RequestContext(request),
+                                   mimetype="text/html") 
+
+    send_envelop_action.short_description = u"发送微信红包"
+    
+    def cancel_envelop_action(self, request, queryset):
+        """ 取消红包动作 """
+        
+        wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND,Envelop.FAIL))
+        envelop_ids = [e.id for e in wait_envelop_qs]
+        
+        for envelop in wait_envelop_qs:
+            envelop.status = Envelop.CANCEL
+            envelop.save()
+            log_action(request.user.id,envelop,CHANGE,u'取消红包')
+        
+        envelop_qs = Envelop.objects.filter(id__in=envelop_ids,status=Envelop.CANCEL)
+        
+        self.message_user(request, u'已取消%s个红包!'%envelop_qs.count())
+        
+        origin_url = request.get_full_path()
+       
+        return redirect(origin_url)
+
+    cancel_envelop_action.short_description = u"取消发送红包"
+    
+    actions = ['send_envelop_action','cancel_envelop_action']
+
+admin.site.register(Envelop, EnvelopAdmin)
+
 

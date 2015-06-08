@@ -9,7 +9,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-     ('meixqhi', 'xiuqing.mei@huyi.so'),
+     ('zfz', 'zifei.zhong@xiaolu.so'),
 )
 
 MANAGERS = ADMINS
@@ -225,6 +225,7 @@ REST_FRAMEWORK = {
 
 if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+                          'middleware.middleware.QueryCountDebugMiddleware',
+                          ) + MIDDLEWARE_CLASSES
 
 

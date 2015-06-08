@@ -30,25 +30,44 @@ logger = logging.getLogger('django.request')
 import datetime, re
 
 
-WX_WAIT_PAY  = 1
-WX_WAIT_SEND = 2
-WX_WAIT_CONFIRM = 3
-WX_FINISHED  = 5
-WX_CLOSE     = 6
-WX_FEEDBACK  = 8
-    
-WXORDER_STATUS = {
-    WX_WAIT_PAY:u'待付款',
-    WX_WAIT_SEND:u'待发货',
-    WX_WAIT_CONFIRM:u'待确认收货',
-    WX_FINISHED:u'已完成',
-    WX_CLOSE:u'已关闭',
-    WX_FEEDBACK:u'维权中'}
-
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
 
 def landing(request):
     return render_to_response("mama_landing.html", context_instance=RequestContext(request))
+
+def get_xlmm_cash_iters(xlmm,cash_outable=False):
+    
+    cash = xlmm.cash / 100.0
+    pay_saletrade = []
+    sale_customers = Customer.objects.filter(unionid=xlmm.openid)
+    if sale_customers.count() > 0:
+        customer = sale_customers[0]
+        pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
+                                             channel=SaleTrade.WALLET,
+                                             status__in=SaleTrade.INGOOD_STATUS)
+    payment = 0
+    for pay in pay_saletrade:
+        sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
+        total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
+        payment = payment + pay.payment - total_refund
+
+    x_choice = 0
+    if cash_outable:
+        x_choice = 100.00
+    else:
+        x_choice = 130.00
+    mony_without_pay = cash + payment # 从未消费情况下的金额
+    leave_cash_out = mony_without_pay - x_choice   # 可提现金额
+
+    could_cash_out = cash
+    if leave_cash_out < cash:
+        could_cash_out = leave_cash_out
+
+    if could_cash_out < 0 :
+        could_cash_out = 0
+    
+    return (cash,payment,could_cash_out)
+
 
 class CashoutView(View):
     def get(self, request):
@@ -79,38 +98,12 @@ class CashoutView(View):
         shoppings = StatisticsShopping.objects.filter(shoptime__range=(day_from,day_to), linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
-        cash = xlmm.cash / 100.0
-        pay_saletrade = []
-        sale_customers = Customer.objects.filter(unionid=xlmm.openid)
-        if sale_customers.count() > 0:
-            customer = sale_customers[0]
-            pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
-                                                 channel=SaleTrade.WALLET,
-                                                 status__in=SaleTrade.INGOOD_STATUS)
-        payment = 0
-        for pay in pay_saletrade:
-            sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
-            total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
-            payment = payment + pay.payment - total_refund
-        
-        x_choice = 0 
-        if click_nums >= 150 or shoppings_count >= 6:
-            x_choice = 100.00
-        else:
-            x_choice = 130.00
-        mony_without_pay = cash + payment # 从未消费情况下的金额
-        leave_cash_out = mony_without_pay - x_choice   # 可提现金额
-        
-        could_cash_out = cash
-        if leave_cash_out < cash:
-            could_cash_out = leave_cash_out
-        
-        if could_cash_out < 0 :
-            could_cash_out = 0
+        cash_outable = click_nums >= 150 or shoppings_count >= 6
+            
+        cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
         
         data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
-                "referal_list":referal_list ,"could_cash_out":could_cash_out}
-        
+                "referal_list":referal_list ,"could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
         response.set_cookie("openid",openid)
@@ -161,7 +154,7 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 from flashsale.mmexam.models import Result
 
-CLICK_ACTIVE_DATE = datetime.date(2015,6,1)
+from flashsale.clickcount.tasks import CLICK_ACTIVE_START_TIME, CLICK_MAX_LIMIT_DATE  
 
 class MamaStatsView(View):
     def get(self, request):
@@ -199,7 +192,7 @@ class MamaStatsView(View):
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
         
-        active_start = CLICK_ACTIVE_DATE == time_from.date()
+        active_start = CLICK_ACTIVE_START_TIME.date() == time_from.date()
         
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
@@ -222,7 +215,6 @@ class MamaStatsView(View):
                 xlmm.save()
             
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
-            agencylevel = AgencyLevel.objects.get(pk=xlmm.agencylevel)
             
             order_num   = 0
             total_value = 0
@@ -233,41 +225,44 @@ class MamaStatsView(View):
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
-                carry = (order_stat[0].todayamountcount / 100.0) * agencylevel.get_Rebeta_Rate() 
+                carry = (order_stat[0].todayamountcount / 100.0) * xlmm.get_Mama_Order_Rebeta_Rate()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             
-            click_price  = 0
+            click_price  = xlmm.get_Mama_Click_Price(order_num) / 100
+            
             click_num    = 0 
-            click_pay    = 0
+            click_pay    = 0 
             ten_click_num   = 0 
-            ten_click_price = 0.5
-            ten_click_pay   = 0
+            ten_click_price = click_price + 0.3 
+            ten_click_pay   = 0 
             if not active_start:
                 if click_state.count() > 0:
-                    click_num = click_state[0].valid_num 
+                    click_num = click_state[0].valid_num
                 else:
                     click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
-                    click_list = Clicks.objects.filter(linkid=xlmm.pk, created__range=(time_from, time_to), isvalid=True)
+                    click_list = Clicks.objects.filter(linkid=xlmm.pk, click_time__range=(time_from, time_to), isvalid=True)
                     click_num  = click_list.values('openid').distinct().count()
-            
-                click_price = agencylevel.get_Click_Price(order_num) / 100
+                    
+                #设置最高有效最高点击上限
+                max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num)
+                if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+                    click_num = min(max_click_count,click_num)
+                    
                 click_pay   = click_price * click_num 
                 
             else:
-                click_price = agencylevel.get_Click_Price(order_num) / 100
                 click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
-                click_num  = click_qs.filter(created__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).count()
+                click_num  = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1), datetime.datetime(2015,6,1,10,0,0))).values('openid').distinct().count()
                 click_pay  = click_num * click_price
                 
-                ten_click_num = click_qs.filter(created__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).count()
+                ten_click_num = click_qs.filter(click_time__range=(datetime.datetime(2015,6,1,10), datetime.datetime(2015,6,1,23,59,59))).values('openid').distinct().count()
                 ten_click_pay = ten_click_num * ten_click_price
                 
-                click_pay   = click_price * click_num 
 
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
-                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,"exam_pass":exam_pass,
-                    "total_value":total_value, "carry":carry, "agencylevel":agencylevel,
+                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
+                    "exam_pass":exam_pass,"total_value":total_value, "carry":carry, 
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
                     "click_price":click_price, "click_pay":click_pay,'active_start':active_start,"ten_click_num":ten_click_num,
                     "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay,"referal_num":referal_num}
@@ -337,7 +332,7 @@ class StatsView(View):
                 click_num = click_counts[0].click_num
                 user_num = click_counts[0].user_num
             else:
-                click_list = Clicks.objects.filter(linkid=mama.pk, created__gt=time_from, created__lt=time_to)
+                click_list = Clicks.objects.filter(linkid=mama.pk, click_time__gt=time_from, click_time__lt=time_to)
                 click_num  = click_list.count()
                 openid_list = click_list.values('openid').distinct()
                 user_num = openid_list.count()
@@ -448,35 +443,9 @@ def cash_Out_Verify(request, id, xlmm):
     shoppings_count = shoppings.count()
 
     mobile = xiaolumama.mobile
-    cash = xiaolumama.cash / 100.0
-
-    pay_saletrade = []
-    sale_customers = Customer.objects.filter(unionid=xiaolumama.openid)
-    if sale_customers.count() > 0:
-        customer = sale_customers[0]
-        pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
-                                             channel=SaleTrade.WALLET,
-                                             status__in=SaleTrade.INGOOD_STATUS)
-    payment = 0
-    for pay in pay_saletrade:
-        sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
-        total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
-        payment = payment + pay.payment - total_refund
-
-    x_choice = 0
-    if click_nums >= 150 or shoppings_count >= 6:
-        x_choice = 100.00
-    else:
-        x_choice = 130.00
-    mony_without_pay = cash + payment # 从未消费情况下的金额
-    leave_cash_out = mony_without_pay - x_choice   # 可提现金额
-
-    could_cash_out = cash
-    if leave_cash_out < cash:
-        could_cash_out = leave_cash_out
-
-    if could_cash_out < 0 :
-        could_cash_out = 0
+    cash_outable = click_nums >= 150 or shoppings_count >= 6
+        
+    cash, payment, could_cash_out = get_xlmm_cash_iters(xiaolumama, cash_outable=cash_outable)
 
     data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
                   'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out}
@@ -484,15 +453,33 @@ def cash_Out_Verify(request, id, xlmm):
 
     return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))
 
+from django.db import transaction
 from django.db.models import F
+from django.conf import settings
+from flashsale.pay.models import Envelop
+from shopapp.weixin.models import WeixinUnionID
 
+@transaction.commit_on_success
 def cash_modify(request, data):
     cash_id = int(data)
     if cash_id:
         cashout = CashOut.objects.get(pk=cash_id)
         xiaolumama = XiaoluMama.objects.get(pk=cashout.xlmm)
-        if xiaolumama.cash >= cashout.value and cashout.status == 'pending':
+        cash_iters = get_xlmm_cash_iters(xiaolumama, cash_outable=True)
+        
+        if cash_iters[2] * 100 >= cashout.value and cashout.status == 'pending':
             today_dt = datetime.date.today()
+            
+            pre_cash = xiaolumama.cash
+            # 改变金额
+            urows = XiaoluMama.objects.filter(pk=cashout.xlmm,cash__gte=cashout.value).update(cash=F('cash')-cashout.value)
+            if urows == 0:
+                return HttpResponse('reject')
+            # 改变状态
+            cashout.status = 'approved'
+            cashout.approve_time = datetime.datetime.now()
+            cashout.save()
+            
             CarryLog.objects.get_or_create(xlmm=xiaolumama.id,
                                          order_num=cash_id,
                                          log_type=CarryLog.CASH_OUT,
@@ -500,14 +487,21 @@ def cash_modify(request, data):
                                          carry_date=today_dt,
                                          carry_type=CarryLog.CARRY_OUT,
                                          status=CarryLog.CONFIRMED)
-  
-            # 改变金额
-            xiaolumama.cash = F('cash') - cashout.value
-            # 改变状态
-            cashout.status = 'approved'
-            cashout.approve_time = datetime.datetime.now()
-            cashout.save()
-            xiaolumama.save()
+            
+            wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID,unionid=xiaolumama.openid)
+            
+            mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
+            Envelop.objects.get_or_create(referal_id=cashout.id,
+                                          amount=cashout.value,
+                                          recipient=wx_union.openid,
+                                          platform=Envelop.WXPUB,
+                                          subject=Envelop.CASHOUT,
+                                          status=Envelop.WAIT_SEND,
+                                          receiver=xiaolumama.id,
+                                          body=u'一份耕耘，一份收获，谢谢你的努力！',
+                                          description=mama_memo.format(str(xiaolumama.id),pre_cash))
+            
+            log_action(request.user.id,cashout,CHANGE,u'提现审核通过')
             return HttpResponse('ok')
         else:
             return HttpResponse('reject')# 拒绝操作数据库

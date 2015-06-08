@@ -277,6 +277,7 @@ class MergeTrade(models.Model):
     class Meta:
         db_table = 'shop_trades_mergetrade'
         unique_together = ("tid","user")
+        ordering = []
         verbose_name=u'订单'
         verbose_name_plural = u'订单列表'
         permissions = [

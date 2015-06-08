@@ -41,7 +41,11 @@ urlpatterns = (
     #############refund urls############
     url(r'^refund/$',sale_buyer_required(RefundApply.as_view()),name="refund_apply"),
     url(r'^refund/(?P<pk>[0-9]+)/$',sale_buyer_required(RefundConfirm.as_view()),name="refund_confirm"),
- 
+    
+    ################envelop urls##################
+    url(r'^envelop/confirm/$',sale_buyer_required(views.EnvelopConfirmSendView.as_view()),name="envelop_confirm"),
+    
+    
     #############profile urls############
     url(r'^profile/$',sale_buyer_required(views.UserProfile.as_view()),name="user_profile"),
     

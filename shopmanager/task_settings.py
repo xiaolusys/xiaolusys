@@ -183,12 +183,12 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时增量下载更新微信订单':{
         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
-        'schedule':crontab(minute="0",hour=",".join([str(i)  for i in range(0,23)])),
+        'schedule':crontab(minute="0",hour="*/2"),
         'args':(None,None)
     },
     u'定时增量更新微信维权订单':{
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
-        'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(0,23)])),
+        'schedule':crontab(minute="30",hour="*/2"),
         'args':(None,None)
     },      
     u'定时同步微信商品库存':{
@@ -227,6 +227,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="40",hour='5'),
         'args':(),
     },
+    u'定时更新确认妈妈订单佣金提成':{
+        'task':'flashsale.xiaolumm.tasks.task_Push_Pending_OrderRebeta_Cash',
+        'schedule':crontab(minute="0",hour="4"),#
+        'args':()
+    },
     u'定时统计每日特卖综合数据':{
         'task':'flashsale.daystats.tasks.task_Calc_Sales_Stat_By_Day',
         'schedule':crontab(minute="40",hour='2'),
@@ -242,9 +247,14 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="4", day_of_month='1'),#
         'args':()
     },
-    u'定时统计每组每天的数据':{
+    u'定时统计每组每天销售采购数据':{
         'task':'flashsale.dinghuo.tasks.task_stats_daily_order_by_group',
         'schedule': crontab(minute="0", hour="2"),
+        'args': ()
+    },
+    u'定时统计每天商品数据':{
+        'task':'flashsale.dinghuo.tasks.task_stats_daily_product',
+        'schedule': crontab(minute="10", hour="2"),
         'args': ()
     },
 #    'runs-every-10-minutes-update-seller-flag':{
