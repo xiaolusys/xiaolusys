@@ -111,12 +111,17 @@ class WeixinProductManager(models.Manager):
             sku_dict['name']  = sku.name
             outer_id = product.outer_id
             outer_sku_id = sku.outer_id
-            wsku_list_dict = WXProductSku.objects.filter(
+            wsku_dict_list = []
+            wsku_list = WXProductSku.objects.filter(
                                         outer_id=outer_id,
                                         outer_sku_id=outer_sku_id,
-                                        status=WXProductSku.UP_SHELF).values()
-            
-            sku_dict['wskus'] = wsku_list_dict
+                                        status=WXProductSku.UP_SHELF)
+            for wsku in wsku_list:
+                wsku_dict = model_to_dict(wsku)
+                wsku_dict['sku_image'] = wsku_dict['sku_img']
+                wsku_dict_list.append(wsku_dict)
+                
+            sku_dict['wskus'] = wsku_dict_list
                 
             product_dict['pskus'].append(sku_dict)
             
