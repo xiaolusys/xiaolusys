@@ -151,6 +151,7 @@ class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
                     'ding_huo_num', 'order_deal_time_name',
                     'arrival_num', 'goods_arrival_time_name',
                     'goods_out_num', 'goods_out_time_name')
+    search_fields = ['product_id']
 
     def trade_general_time_name(self, obj):
         temp_data = obj.trade_general_time
@@ -187,6 +188,7 @@ admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
 class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
     list_display = (
         'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time')
+    search_fields = ['product_id']
 
 
 admin.site.register(DailySupplyChainStatsOrder, DailySupplyChainStatsOrderAdmin)
