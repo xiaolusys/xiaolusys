@@ -21,6 +21,11 @@ class DailyStatsView(View):
 
 def format_time_from_dict(data_dict):
     for data in data_dict:
+        product_id = data['product_id']
+        pro_bean = Product.objects.filter(outer_id=product_id)
+        if pro_bean.count() > 0:
+            data['pic_path'] = pro_bean[0].pic_path
+            data['pro_name'] = pro_bean[0].name
         trade_general_time = data["trade_general_time"]
         order_deal_time = data["order_deal_time"]
         goods_arrival_time = data["goods_arrival_time"]
@@ -40,11 +45,16 @@ def format_time_from_dict(data_dict):
 
 
 def format_time(date1, date2):
-    time_of_long = date1 - date2 - 28800
+    time_of_long = date1 - date2
+    days = 0
+    tm_hours = 0
     if time_of_long > 0:
-        a = time.localtime(time_of_long)
-        result_time = "{0}天 {1} 小时".format(a.tm_mday - 1, a.tm_mday)
-        return result_time
+        days = time_of_long / 86400
+        tm_hours = time_of_long % 86400 / 3600
+    if days > 0:
+        return str(days) + "天" + str(tm_hours) + "小时"
+    elif tm_hours > 0:
+        return str(tm_hours) + "小时"
     else:
         return ""
 
