@@ -14,10 +14,10 @@
         <th>出货时间</th>
         </thead>
         <tbody>
-        {% for product_id,data in all_data.items %}
+        {% for data in all_data %}
         <tr>
-            <td>{{ product_id }}</td>
-            <td>{{ data.shelve_time }}</td>
+            <td>{{ data.product_id }}</td>
+            <td>{{ data.sale_time }}</td>
             <td>{{ data.trade_general_time }}</td>
             <td>{{ data.order_deal_time }}</td>
             <td>{{ data.goods_arrival_time }}</td>
