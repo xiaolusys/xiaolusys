@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder
+from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
 import datetime
 
@@ -150,7 +150,7 @@ class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
     list_display = ('product_id', 'outer_sku_id', 'sale_time', 'sale_num', 'trade_general_time_name',
                     'ding_huo_num', 'order_deal_time_name',
                     'arrival_num', 'goods_arrival_time_name',
-                    'goods_out_num', 'goods_out_time')
+                    'goods_out_num', 'goods_out_time_name')
 
     def trade_general_time_name(self, obj):
         temp_data = obj.trade_general_time
@@ -182,3 +182,11 @@ class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
+
+
+class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
+    list_display = (
+        'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time')
+
+
+admin.site.register(DailySupplyChainStatsOrder, DailySupplyChainStatsOrderAdmin)

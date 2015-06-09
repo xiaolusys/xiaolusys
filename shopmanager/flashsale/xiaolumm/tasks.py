@@ -307,6 +307,14 @@ def task_Calc_Agency_Contribu(pre_day=1):
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
     
     task_AgencySubsidy_MamaContribu(pre_date)
+    
+@task
+def task_Calc_Agency_Rebeta_Pending_And_Cash():
+    
+    #计算妈妈昨日代理贡献金额
+    task_Calc_Agency_Contribu(pre_day=1)
+    #计算妈妈昨日代理确认金额
+    task_Push_Pending_AgencyRebeta_Cash(day_ago=ORDER_REBETA_DAYS)
 
     
 
