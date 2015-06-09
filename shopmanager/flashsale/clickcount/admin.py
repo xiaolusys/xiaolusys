@@ -18,7 +18,7 @@ admin.site.register(ClickCount, ClickCountAdmin)
 class WeekCountAdmin(admin.ModelAdmin):
 
     list_display = ('linkid', 'weikefu', 'buyercount', 'user_num', 'valid_num', 'ordernumcount',
-                    'conversion_rate', 'week_code')
+                    'conversion_rate', 'week_code', 'write_time')
 
     list_display_links = ['linkid', 'week_code']
     list_filter = ('week_code',)

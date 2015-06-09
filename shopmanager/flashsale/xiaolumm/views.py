@@ -785,7 +785,8 @@ def ke_Find_More_Weixin_Order(request):
             order_create_time = ''
         else:
             order_create_time = weixin_order.order_create_time.strftime('%Y-%m-%d %H:%M')
-        data_entry = {'order_id': weixin_order.order_id,'product_img': weixin_order.product_img, 'order_total_price': weixin_order.order_total_price/100.0,
+        data_entry = {'order_id': weixin_order.order_id,'product_img': weixin_order.product_img,
+                      'order_total_price': weixin_order.order_total_price/100.0,
                       'order_express_price': weixin_order.order_express_price/100.0,
                       'order_create_time': order_create_time,
                       'order_status': weixin_order.get_order_status_display(),
@@ -874,8 +875,76 @@ def kf_Search_Order_Detail(request):
 
 
 def kf_Logistics(request):
-    # 默认显示weixin order的 物流信息
+    # 默认显示weixin order的 物流信息   看物流接口
     data = []
     data_entry = {}
     data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
+
+
+
+
+# 小鹿妈妈代理的点击前50 ，每天，上周，前四周
+
+from view_top50 import xlmm_Click_Top_By_Day, xlmm_Order_Top_By_Day, xlmm_Conversion_Top_By_Week,\
+    xlmm_Click_Top_By_Week, xlmm_Order_Top_By_Week, xlmm_Click_Top_By_Month, xlmm_Order_Top_By_Month,\
+    xlmm_Convers_Top_By_Month
+
+
+
+@csrf_exempt
+def xlmm_Click_Top(request):
+    # 过滤出昨天的点击前50名
+    data, date_dict = xlmm_Click_Top_By_Day(request)
+    return render_to_response("top_click_50.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Order_Top(request):
+    # 过滤出昨天的订单前50名
+    data, date_dict = xlmm_Order_Top_By_Day(request)
+    return render_to_response("top_order_50.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Conversion_Top(request):
+    data, date_dict = xlmm_Conversion_Top_By_Week(request)
+    return render_to_response("top_convers.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Click_Top_Week(request):
+    data, date_dict = xlmm_Click_Top_By_Week(request)
+    return render_to_response("top_click_50_week.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Order_Top_Week(request):
+    data, date_dict = xlmm_Order_Top_By_Week(request)
+    return render_to_response("top_order_50_week.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Click_Top_Month(request):
+    data, date_dict = xlmm_Click_Top_By_Month(request)
+    return render_to_response("top_click_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Order_Top_Month(request):
+    data, date_dict = xlmm_Order_Top_By_Month(request)
+    return render_to_response("top_order_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Convers_Top_Month(request):
+    data, date_dict = xlmm_Convers_Top_By_Month(request)
+    return render_to_response("top_convers_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))

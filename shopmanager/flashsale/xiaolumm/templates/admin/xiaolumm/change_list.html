@@ -24,6 +24,13 @@
             妈妈管理员数据统计
           </a>
         </li>
+
+
+          <li>
+          <a href="/m/top50/click/" class="historylink" target="_blank">
+            TOP-50
+          </a>
+        </li>
         <li>
           <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
             {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
