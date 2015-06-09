@@ -165,9 +165,18 @@ def pushTradeRefundTask(refund_id):
         raise pushTradeRefundTask.retry(exc=exc)
         
             
-            
-                       
-                        
+@task
+def push_SaleTrade_To_MergeTrade():
+    """ 更新特卖订单到订单列表 """
+    
+    saletrades = SaleTrade.objects.get(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+    for strade in saletrades:
+        mtrades = MergeTrade.objects.filter(tid=strade.tid,type=MergeTrade.SALE_TYPE)
+        if mtrades.count() > 0 and mtrades[0].modified >= strade.modified:
+            continue
+        saleservice = FlashSaleService(strade)
+        saleservice.payTrade()
+        
 
             
             

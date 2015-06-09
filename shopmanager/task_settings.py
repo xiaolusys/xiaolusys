@@ -190,7 +190,7 @@ SHOP_APP_SCHEDULE = {
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
         'schedule':crontab(minute="30",hour="*/2"),
         'args':(None,None)
-    },      
+    },
     u'定时同步微信商品库存':{
         'task':'shopapp.weixin.tasks.syncWXProductNumTask',
         'schedule':crontab(minute="10",hour='1,12'),
@@ -204,6 +204,11 @@ SHOP_APP_SCHEDULE = {
     u'定时同步京东商品库存':{
         'task':'shopapp.jingdong.tasks.syncAllJDUserWareNumTask',
         'schedule':crontab(minute="20",hour='*/6'),
+        'args':()
+    },
+    u'定时更新特卖订单订单列表':{
+        'task':'flashsale.pay.tasks.push_SaleTrade_To_MergeTrade',
+        'schedule':crontab(minute="0",hour="*/7"),
         'args':()
     },
     u'定时短信通知微信用户':{
