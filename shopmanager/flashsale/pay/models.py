@@ -187,8 +187,8 @@ class SaleTrade(models.Model):
     
     def is_Deposite_Order(self):
         
-        for order in self.normal_orders():
-            if order.outer_id == '':
+        for order in self.normal_orders:
+            if order.outer_id == AGENCY_DIPOSITE_CODE:
                 return True
         return False
             
