@@ -20,7 +20,6 @@ class DailyStatsView(View):
 
 
 def format_time_from_dict(data_dict):
-    print data_dict
     for data in data_dict:
         trade_general_time = data["trade_general_time"]
         order_deal_time = data["order_deal_time"]
