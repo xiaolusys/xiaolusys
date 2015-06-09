@@ -19,6 +19,7 @@ import functions
 
 
 def search_product(request):
+    """搜索商品"""
     response = HttpResponse()
     response['Content-Type'] = "text/javascript"
     product_id_from_page = request.GET.get("searchtext", "")
@@ -32,6 +33,7 @@ def search_product(request):
 
 @csrf_exempt
 def init_draft(request):
+    """初始化购物车"""
     user = request.user
     if request.method == "POST":
         post = request.POST
@@ -69,6 +71,7 @@ def init_draft(request):
 
 @csrf_exempt
 def new_order(request):
+    """从购物车生成订单"""
     username = request.user
     all_drafts = orderdraft.objects.all().filter(buyer_name=username)
     if request.method == 'POST':
@@ -133,16 +136,23 @@ def del_draft(request):
     return HttpResponse("")
 
 
-def add_purchase(request):
+def add_purchase(request, outer_id):
     user = request.user
-    ProductIDFrompage = "10802"
-    productRestult = Product.objects.filter(outer_id__icontains=ProductIDFrompage)
-    productguige = ProductSku.objects.all()
-    orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
+    order_dr_all = orderdraft.objects.all().filter(buyer_name=user)
+    product_res = []
+    queryset = Product.objects.filter(outer_id__icontains=outer_id)
+    for p in queryset:
+        product_dict = model_to_dict(p)
+        product_dict['prod_skus'] = []
+        guiges = ProductSku.objects.filter(product_id=p.id)
+        for guige in guiges:
+            sku_dict = model_to_dict(guige)
+            sku_dict['name'] = guige.name
+            product_dict['prod_skus'].append(sku_dict)
+        product_res.append(product_dict)
     return render_to_response("dinghuo/addpurchasedetail.html",
-                              {"productRestult": productRestult,
-                               "productguige": productguige,
-                               "drafts": orderDrAll},
+                              {"productRestult": product_res,
+                               "drafts": order_dr_all},
                               context_instance=RequestContext(request))
 
 

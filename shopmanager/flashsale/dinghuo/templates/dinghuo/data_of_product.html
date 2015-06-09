@@ -1,0 +1,30 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}所有商品统计{% endblock %}
+{% block head_script %}
+
+{% endblock %}
+{% block container %}
+    <table class="table table-bordered">
+        <thead>
+        <th>商品外部编码</th>
+        <th>商品上架时间</th>
+        <th>下单时间</th>
+        <th>订货时间</th>
+        <th>到货时间</th>
+        <th>出货时间</th>
+        </thead>
+        <tbody>
+        {% for data in all_data %}
+        <tr>
+            <td>{{ data.product_id }}</td>
+            <td>{{ data.sale_time }}</td>
+            <td>{{ data.trade_general_time }}</td>
+            <td>{{ data.order_deal_time }}</td>
+            <td>{{ data.goods_arrival_time }}</td>
+            <td>{{ data.goods_out_time }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
