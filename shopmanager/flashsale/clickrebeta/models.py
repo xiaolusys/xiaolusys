@@ -93,7 +93,9 @@ class StatisticsShoppingByDay(models.Model):
     
 
 from django.db.models import F
+from django.conf import settings
 from shopapp import signals
+from shopapp.weixin.models import get_Unionid
 
 def tongji(sender, obj, **kwargs):
     
@@ -106,7 +108,9 @@ def tongji(sender, obj, **kwargs):
     order_stat_from = ordertime - datetime.timedelta(days=1)
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
-    isinxiaolumm = XiaoluMama.objects.filter(openid=obj.buyer_openid,created__gt=ordertime)
+    
+    wx_unionid = get_Unionid(obj.buyer_openid,settings.WEIXIN_APPID)
+    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,created__gt=ordertime)
     
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]
