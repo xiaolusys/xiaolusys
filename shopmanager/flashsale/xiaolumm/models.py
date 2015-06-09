@@ -108,13 +108,19 @@ class XiaoluMama(models.Model):
         except:
             return '%s'%self.manager
 
-    def exam_passed(self):
+    def exam_Passed(self):
         
         from flashsale.mmexam.models import Result
         results = Result.objects.filter(daili_user=self.openid)
         if results.count() > 0  and results[0].is_Exam_Funished():
             return True
         return False
+    
+    def get_Mama_Agency_Rebeta_Rate(self):
+        """ 获取代理妈妈获取子级代理的提成点数 """
+        if self.agencyleve == 2:
+            return 0.05
+        return 0
         
     def get_Mama_Order_Rebeta_Rate(self):
         """ 获取小鹿妈妈订单提成点数 """

@@ -9,21 +9,36 @@
     tfoot input{
     	width:50%;
     }
-    .well-panel {
-    	
-    }
+    .wrapper{ padding:20px;text-aligin:center;}
+    .flow-steps{ position:relative; height:30px; list-style:none; font-size:14px; overflow:hidden;}
+	.flow-steps li{ float:left; margin-right:-28px;}
+	.flow-steps a{ display:block; float:left; width:170px; min-width:150px; height:30px; background:#d7d7d7; color:#333; line-height:30px; text-align:center; text-decoration:none;}
+	.flow-steps a:before{ content:""; display:block; float:left; width:0; height:0px; margin-top:-6px; border:21px solid transparent; border-left-color:#fff;}
+	.flow-steps a:after{ content:""; position:relative; display:block; float:right; width:0; height:0px; margin:0 -1px 0 10px; border:15px solid transparent; border-left-color:#d7d7d7;}
+	.flow-steps li:first-child a:before{ border:12px solid #d7d7d7;}
+	.flow-steps li:last-child a:after{ border:8px solid #d7d7d7; margin-right:0;}
+	.flow-steps .on a{ background:#ff6600; color:#fff;}
+	.flow-steps .on a:after{ border-left-color:#ff6600;}
+	.flow-steps li.on:first-child a:before{ border-color:#ff6600;}
+	.flow-steps li:hover a{ background:#ff6600; color:#fff;}
+	.flow-steps li:hover a:after{ border-left-color:#ff6600;}
+	.flow-steps li:first-child:hover a:before{ border-color:#ff6600;}
+	.flow-steps li:last-child:hover a:after{ border-color:#ff6600;}
 </style>
 {% endblock %}
 
 
 {% block container %}
-<div class="row">
-<ul class="nav nav-tabs">
-  <li role="presentation" class="col-xs-4 active"><a href="#">填写资料</a></li>
-  <li role="presentation" class="col-xs-4"><a href="#">支付押金</a></li>
-  <li role="presentation" class="col-xs-4"><a href="#">加入小鹿</a></li>
-</ul>
+
+<div class="wrapper">
+    <ul class="flow-steps">
+    	<li class="on"><a href="#">1.填写资料</a></li>
+        <li ><a href="#">2.支付押金</a></li>
+        <li ><a href="#">3.加入小鹿</a></li>
+    </ul>
+    <div class="arr"></div>
 </div>
+
 
 <div class="well well-lg">
 <form class="form-horizontal" action="" method="POST">
