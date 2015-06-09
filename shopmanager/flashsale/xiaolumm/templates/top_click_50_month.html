@@ -58,12 +58,13 @@
 
             <div>
                 <h4>点击（月）</h4>
+
                 <div class="row">
                     <div class="col-xs-4">
                         <a href="/m/top50/click/month/?month={{ date_dict.prev_month }}"><< 上个月</a>
                     </div>
                     <div class="col-xs-4">
-{#                        <p>{{ date_dict.target_week }}</p>#}
+                        {#                        <p>{{ date_dict.target_week }}</p>#}
                     </div>
                     <div class="col-xs-4">
                         {% if date_dict.next_month %}
@@ -74,13 +75,21 @@
                 <table class="table table-striped">
                     <thead>
                     <th>妈妈编号</th>
-                    <th>有效点击</th>
+                    <th>点击数量</th>
+                    <th>妈妈昵称</th>
+                    <th>订单数量</th>
+                    <th>购买人数</th>
+                    <th>转化率（百分比）</th>
                     </thead>
                     <tbody>
                     {% for top in data %}
                         <tr>
-                            <td>{{ top.xlmm }}</td>
-                            <td>{{ top.click_count }}</td>
+                            <td>{{ top.1 }}</td>
+                            <td>{{ top.0 }}</td>
+                            <td>{{ top.2 }}</td>
+                            <td>{{ top.4 }}</td>
+                            <td>{{ top.3 }}</td>
+                            <td>{{ top.5 }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

@@ -5,10 +5,10 @@ import datetime
 from .models import XiaoluMama
 from flashsale.clickcount.models import ClickCount, WeekCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from django.db import connection, transaction
 
 
 def xlmm_Click_Top_By_Day(request):
-    data = []
     today = datetime.date.today()
     prev_day = today - datetime.timedelta(days=1)
     content = request.REQUEST
@@ -27,19 +27,23 @@ def xlmm_Click_Top_By_Day(request):
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
 
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
-    click_counts = ClickCount.objects.filter(write_time__gt=time_from, write_time__lt=time_to).order_by('-valid_num')[:50]
-    for click_count in click_counts:
-        for xlmm in xlmms:
-            if click_count.linkid == xlmm.id:
-                data_entry = {'xlmm': xlmm.id, 'click_count': click_count.valid_num}
-                data.append(data_entry)
+    sql = "SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
+          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) FROM" \
+          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu FROM " \
+          "(SELECT linkid,SUM(valid_num) AS xlmm_total_valid_num  FROM flashsale_clickcount WHERE linkid IN " \
+          "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
+          "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
+          "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
+          " FROM flashsale_tongji_shopping_day GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid".format(time_from, time_to)
+
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
     date_dic = {"prev_day": prev_day, "target_day": target_date, "next_day": next_day}
-    return data, date_dic
+    return raw, date_dic
 
 
 def xlmm_Order_Top_By_Day(request):
-    data = []
     today = datetime.date.today()
     prev_day = today - datetime.timedelta(days=1)
     content = request.REQUEST
@@ -56,17 +60,19 @@ def xlmm_Order_Top_By_Day(request):
         next_day = target_date + datetime.timedelta(days=1)  # 下一天 则是目标日期加上一天
 
     time_from = datetime.date(target_date.year, target_date.month, target_date.day)
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
-    # 找出某天的订单前50
-    order_counts = StatisticsShoppingByDay.objects.filter(tongjidate=time_from).order_by(
-        '-ordernumcount')[:50]
-    for order_count in order_counts:
-        for xlmm in xlmms:
-            if xlmm.pk == order_count.linkid:
-                data_entry = {'xlmm': xlmm.id, 'ordernumcount': order_count.ordernumcount}
-                data.append(data_entry)
+    sql ="SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) FROM " \
+         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu " \
+         "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+                 "FROM flashsale_tongji_shopping_day WHERE tongjidate ='{0}' AND" \
+          " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2)" \
+          "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
+          " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
+                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE date = '{0}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ".format(time_from)
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
     date_dic = {"prev_day": prev_day, "target_day": target_date, "next_day": next_day}
-    return data, date_dic
+    return raw, date_dic
 
 
 def xlmm_Conversion_Top_By_Week(request):
@@ -106,7 +112,6 @@ import operator  # 导入排序模块
 def xlmm_Click_Top_By_Week(request):
     content = request.REQUEST
     daystr = content.get("week", None)
-    data = []
     if daystr:
         year, month, day = daystr.split('-')
         target_date = datetime.datetime(int(year), int(month), int(day))
@@ -118,19 +123,21 @@ def xlmm_Click_Top_By_Week(request):
     prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
+    sql = "SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
+          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) FROM" \
+          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu FROM " \
+          "(SELECT linkid,SUM(valid_num) AS xlmm_total_valid_num  FROM flashsale_clickcount WHERE linkid IN " \
+          "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
+          "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
+          "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
+          " FROM flashsale_tongji_shopping_day GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid".format(date_from, date_to)
 
-    for xlmm in xlmms:
-        click_counts = ClickCount.objects.filter(write_time__gt=date_from, write_time__lt=date_to, linkid=xlmm.id)
-        # 一个妈妈的一周总点击
-        xlmm_total_valid_num = click_counts.aggregate(xlmm_total_valid_num=Sum('valid_num')).get('xlmm_total_valid_num') or 0
-        data_entry = {'xlmm': xlmm.id, 'click_count': xlmm_total_valid_num}
-        data.append(data_entry)
-        sorted_data = sorted(data, key=operator.itemgetter('click_count'))  # 排序
-        data = sorted_data[:len(sorted_data) - 51:-1]  # 列表切片 并逆序
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
 
     date_dic = {"prev_week": prev_week, "next_week": next_week}
-    return data, date_dic
+    return raw, date_dic
 
 
 def get_week_from_date(date_time):
@@ -145,7 +152,6 @@ def get_week_from_date(date_time):
 def xlmm_Order_Top_By_Week(request):
     content = request.REQUEST
     daystr = content.get("week", None)
-    data = []
     if daystr:
         year, month, day = daystr.split('-')
         target_date = datetime.datetime(int(year), int(month), int(day))
@@ -156,26 +162,25 @@ def xlmm_Order_Top_By_Week(request):
     prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
-
-    for xlmm in xlmms:
-        order_counts = StatisticsShoppingByDay.objects.filter(tongjidate__gt=date_from, tongjidate__lt=date_to, linkid=xlmm.id)
-        # 一个妈妈的一周订单
-        xlmm_total_order_counts = order_counts.aggregate(xlmm_total_order_counts=Sum('ordernumcount')).get(
-            'xlmm_total_order_counts') or 0
-        data_entry = {'xlmm': xlmm.id, 'order_count': xlmm_total_order_counts}
-        data.append(data_entry)
-        sorted_data = sorted(data, key=operator.itemgetter('order_count'))  # 排序
-        data = sorted_data[:len(sorted_data) - 51:-1]  # 列表切片 并逆序
+    sql ="SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) FROM " \
+         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu " \
+         "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+                 "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
+          " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2)" \
+          "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
+          " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
+                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE write_time BETWEEN '2015-04-01' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ".format(date_from, date_to)
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
 
     date_dic = {"prev_week": prev_week, "next_week": next_week}
-    return data, date_dic
+    return raw, date_dic
 
 
 def xlmm_Click_Top_By_Month(request):
     content = request.REQUEST
     daystr = content.get("month", None)
-    data = []
     if daystr:
         year, month, day = daystr.split('-')
         target_date = datetime.datetime(int(year), int(month), int(day))
@@ -186,20 +191,21 @@ def xlmm_Click_Top_By_Month(request):
     prev_month = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_month = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
+    sql = "SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
+          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) FROM" \
+          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu FROM " \
+          "(SELECT linkid,SUM(valid_num) AS xlmm_total_valid_num  FROM flashsale_clickcount WHERE linkid IN " \
+          "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
+          "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
+          "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
+          " FROM flashsale_tongji_shopping_day GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid".format(date_from, date_to)
 
-    for xlmm in xlmms:
-        click_counts = ClickCount.objects.filter(write_time__gt=date_from, write_time__lt=date_to, linkid=xlmm.id)
-        # 一个妈妈的一周点击
-        xlmm_total_valid_num = click_counts.aggregate(xlmm_total_valid_num=Sum('valid_num')).get(
-            'xlmm_total_valid_num') or 0
-        data_entry = {'xlmm': xlmm.id, 'click_count': xlmm_total_valid_num}
-        data.append(data_entry)
-        sorted_data = sorted(data, key=operator.itemgetter('click_count'))  # 排序
-        data = sorted_data[:len(sorted_data) - 51:-1]  # 列表切片 并逆序
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
 
     date_dic = {"prev_month": prev_month, "next_month": next_month}
-    return data, date_dic
+    return raw, date_dic
 
 
 def get_month_from_date(date_time):
@@ -216,7 +222,6 @@ def get_month_from_date(date_time):
 def xlmm_Order_Top_By_Month(request):
     content = request.REQUEST
     daystr = content.get("month", None)
-    data = []
     if daystr:
         year, month, day = daystr.split('-')
         target_date = datetime.datetime(int(year), int(month), int(day))
@@ -226,19 +231,23 @@ def xlmm_Order_Top_By_Month(request):
         date_from, date_to = get_month_from_date(target_date)
     prev_month = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_month = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
 
-    for xlmm in xlmms:
-        order_counts = StatisticsShoppingByDay.objects.filter(tongjidate__gt=date_from, tongjidate__lt=date_to, linkid=xlmm.id)
-        xlmm_total_ordernumcount = order_counts.aggregate(xlmm_total_ordernumcount=Sum('ordernumcount')).get(
-            'xlmm_total_ordernumcount') or 0
-        data_entry = {'xlmm': xlmm.id, 'order_count': xlmm_total_ordernumcount}
-        data.append(data_entry)
-        sorted_data = sorted(data, key=operator.itemgetter('order_count'))  # 排序
-        data = sorted_data[:len(sorted_data) - 51:-1]  # 列表切片 并逆序
+    date_from = datetime.date(date_from.year, date_from.month, date_from.day)
+    date_to = datetime.date(date_to.year, date_to.month, date_to.day)
 
+    sql ="SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) FROM " \
+         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu " \
+         "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+                 "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
+          " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2)" \
+          "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
+          " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
+                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE write_time BETWEEN '2015-04-01' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ".format(date_from, date_to)
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
     date_dic = {"prev_month": prev_month, "next_month": next_month}
-    return data, date_dic
+    return raw, date_dic
 
 
 def xlmm_Convers_Top_By_Month(request):
@@ -257,7 +266,8 @@ def xlmm_Convers_Top_By_Month(request):
     next_month = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
     xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
     for xlmm in xlmms:
-        buyercounts = StatisticsShoppingByDay.objects.filter(tongjidate__gt=date_from, tongjidate__lt=date_to, linkid=xlmm.id)
+        buyercounts = StatisticsShoppingByDay.objects.filter(tongjidate__gt=date_from, tongjidate__lt=date_to,
+                                                             linkid=xlmm.id)
         xlmm_total_buyercount = buyercounts.aggregate(xlmm_total_buyercount=Sum('buyercount')).get(
             'xlmm_total_buyercount') or 0
         click_counts = ClickCount.objects.filter(write_time__gt=date_from, write_time__lt=date_to, linkid=xlmm.id)
