@@ -2,7 +2,7 @@ __author__ = 'yann'
 # -*- coding:utf-8 -*-
 from django.db import models
 from shopapp.weixin.models import WXOrder
-from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel
+from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel,CarryLog
 import datetime
 
 
@@ -83,6 +83,13 @@ class StatisticsShoppingByDay(models.Model):
 
     today_cash.allow_tags = True
     today_cash.short_description = u"提成总价"
+    
+    def carry_Confirm(self):
+        c_logs = CarryLog.objects.filter(xlmm=self.linkid,
+                                         log_type=CarryLog.ORDER_REBETA,
+                                         carry_date=self.tongjidate,
+                                         status=CarryLog.CONFIRMED)
+        return c_logs.count() > 0
     
 
 from django.db.models import F

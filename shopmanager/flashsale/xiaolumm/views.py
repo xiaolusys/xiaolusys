@@ -221,13 +221,14 @@ class MamaStatsView(View):
 
             order_list = StatisticsShopping.objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
+            carry_confirm = False
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
                 carry = (order_stat[0].todayamountcount / 100.0) * xlmm.get_Mama_Order_Rebeta_Rate()
+                carry_confirm = order_stat[0].carry_Confirm()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
-            
             click_price  = xlmm.get_Mama_Click_Price(order_num) / 100
             
             click_num    = 0 
@@ -262,10 +263,9 @@ class MamaStatsView(View):
                                                 ).values('openid').distinct().count()
                 ten_click_pay = ten_click_num * ten_click_price
                 
-
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
-                    "exam_pass":exam_pass,"total_value":total_value, "carry":carry, 
+                    "exam_pass":exam_pass,"total_value":total_value, "carry":carry, 'carry_confirm':carry_confirm,
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
                     "click_price":click_price, "click_pay":click_pay,'active_start':active_start,"ten_click_num":ten_click_num,
                     "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay,"referal_num":referal_num}
