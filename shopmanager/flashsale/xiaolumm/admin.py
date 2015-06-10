@@ -70,7 +70,6 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     charge_link.allow_tags = True
     charge_link.short_description = u"接管信息"
     
-    
     def exam_pass(self, obj):
 
         results = Result.objects.filter(daili_user=obj.openid)
