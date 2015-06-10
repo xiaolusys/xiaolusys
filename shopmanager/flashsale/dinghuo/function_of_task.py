@@ -148,7 +148,7 @@ def get_daily_goods_arrival_stats(prev_day):
     start_dt = datetime.datetime(target_day.year, target_day.month, target_day.day)
     end_dt = datetime.datetime(target_day.year, target_day.month, target_day.day, 23, 59, 59)
     order_details_dict = OrderDetail.objects.values("outer_id", "chichu_id", "buy_quantity", "updated"). \
-        exclude(orderlist__status=u'作废').filter(updated__gte=start_dt, updated__lte=end_dt)
+        exclude(orderlist__status=u'作废').filter(arrival_time__gte=start_dt, arrival_time__lte=end_dt)
 
     ding_huo_dict = {}
     for order_detail in order_details_dict:
