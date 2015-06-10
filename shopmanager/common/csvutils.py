@@ -43,9 +43,9 @@ class CSVUnicodeWriter:
         self.writer.writerow([s.encode(self.encoding,self.encode_mode) for s in row])
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
-        data = data.decode(self.encoding,self.encode_mode)
+        data = data.decode(self.encoding)
         # ... and reencode it into the target encoding
-        data = self.encoder.encode(data,self.encode_mode)
+        data = self.encoder.encode(data)
         # write to the target stream
         self.stream.write(data)
         # empty queue
