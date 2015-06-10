@@ -9,6 +9,20 @@
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+
+        p {
+            padding: 0px;
+            margin: 0px
+        }
+
+        .fixed_div {
+
+            margin-right: 0px;
+            bottom: 0px;
+
+            right: 20px;
+            position: absolute;
+        }
     </style>
 
 
@@ -30,7 +44,7 @@
                 }
             }
         }
-
+        //class="label label-info"
 
         function OnUserChange(EventData) {
             openid = EventData.useraccount;
@@ -39,21 +53,32 @@
             var url = '/m/duokefu_weixin_order/';
             $("#duokefu_weixin_order_info").empty();
             function callback(result) {                             // 页面加载的时候显示
-                $("<p>订&nbsp&nbsp单&nbsp&nbspID： " + result[0].order_id + "<br>" +
-                '图&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp片： <img src="' + result[0].product_img + '" width="64" height="64" /><br>' +
-                "商品名称： " + result[0].product_name + "<br>" +
-                '商品数量： ' + result[0].product_count + '<br>' +
-                '商品总价： ' + result[0].order_total_price + '<br>' +
-                '商品单价： ' + result[0].product_price + '<br>' +
-                '快递费用： ' + result[0].order_express_price + '<br>' +
-                '创建时间： ' + result[0].order_create_time + '<br>' +
-                '订单状态： ' + result[0].order_status + '<br>' +
-                '收&nbsp&nbsp件&nbsp&nbsp人： ' + result[0].receiver_name + '<br>' +
-                '手&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp机： ' + result[0].mobile + '<br>' +
-                '快递单号： ' + result[0].delivery_id + '<br>' +
-                '快递公司： ' + result[0].delivery_company + '<br>' + "</p>" + "<p id='push_address'>" +
-                '地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址： ' + result[0].address +
-                "</p>").appendTo("#duokefu_weixin_order_info");
+                $(
+                        '<div class="row">' +
+                        '<div class="col-xs-2"><span><img src="' + result[0].product_img + '" width="64" height="64" /></span></div>' +
+                        '<div class="col-xs-5"><span onclick="put_msg(this)">商品数量： ' + result[0].product_count + '</span>' + '<br>' +
+                        '<span onclick="put_msg(this)">商品总价： ' + result[0].order_total_price + '</span>' + '<br>' +
+                        '<span onclick="put_msg(this)">商品单价： ' + result[0].product_price + '</span></div>' +
+                        '<div class="col-xs-5"><span onclick="put_msg(this)">快递费用： ' + result[0].order_express_price + '</span>' + '<br>' +
+                        '<span onclick="put_msg(this)">订单状态： ' + result[0].order_status + '</span>' + '<br>' +
+                        '<span onclick="put_msg(this)">收  件  人： ' + result[0].receiver_name + '</span>' +
+                        '</div></div>' +
+
+                        "<div>" +
+                        "<div><span onclick='put_msg(this)'>商品名称： " + result[0].product_name + "</span></div>" +
+                        "<div><span onclick='put_msg(this)'>订 单 ID： " + result[0].order_id + "</span></div>" +
+                        "<div><span onclick='put_msg(this)'>地 址： " + result[0].address + "</span></div>" +
+                        "</div>" +
+
+                        '<div class="row">' +
+                        '<div class="col-xs-6">' +
+                        '<span onclick="put_msg(this)">手 机： ' + result[0].mobile + '</span></div>' +
+                        '<div class="col-xs-6">' +
+                        '<span onclick="put_msg(this)">下单时间： ' + result[0].order_create_time + '</span></div>' +
+                        '</div>' +
+                        '<div class="row"><div class="col-xs-6"><span onclick="put_msg(this)">快递单号： ' + result[0].delivery_id + '</span></div>' +
+                        '<div class="col-xs-6"><span onclick="put_msg(this)">快递公司： ' + result[0].delivery_company + '</span></div></div>'
+                ).appendTo("#duokefu_weixin_order_info");
             }
 
             $.ajax({url: url, data: data, type: "post", success: callback});
@@ -72,29 +97,42 @@
             function callback(result) {
                 $("#more_order").empty();
                 $.each(result, function (d, v) {
-                    $("<div>" +
-                            "<p>订&nbsp&nbsp单&nbsp&nbspID： " + v.order_id + "<br>" +
-                            '图&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp片： <img src="' + v.product_img + '" width="64" height="64" /><br>' +
-                            "商&nbsp&nbsp品&nbsp&nbsp名： " + v.product_name + "<br>" +
-                            "商品价格： " + v.product_price + "<br>" +
-                            "商品个数： " + v.product_count + "<br>" +
-                            "总&nbsp&nbsp费&nbsp&nbsp用： " + v.order_total_price + "<br>" +
-                            "快递费用： " + v.order_express_price + "<br>" +
-                            "下单时间： " + v.order_create_time + "<br>" +
-                            "订单状态： " + v.order_status + "<br>" +
-                            "收&nbsp&nbsp货&nbsp&nbsp人： " + v.receiver_name + "<br>" +
-                            "手&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp机： " + v.receiver_mobile + "<br>" +
-                            "地&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp址： " + v.receiver_address + "<br>" +
-                            "运&nbsp&nbsp单&nbsp&nbspID： " + v.delivery_id + "<br>" +
-                            "物流公司编码： " + v.delivery_company + "</p>" +
-                            "<hr style='height:2px;border:none;border-top:2px ridge green;' />" +
-                            "</div>"
+
+                    $(
+                            '<div class="row">' +
+                            '<div class="col-xs-2"><span><img src="' + v.product_img + '" width="64" height="64" /></span></div>' +
+                            '<div class="col-xs-5"><span onclick="put_msg(this)">商品数量： ' + v.product_count + '</span>' + '<br>' +
+                            '<span onclick="put_msg(this)">商品总价： ' + v.order_total_price + '</span>' + '<br>' +
+                            '<span onclick="put_msg(this)">商品单价： ' + v.product_price + '</span></div>' +
+                            '<div class="col-xs-5"><span onclick="put_msg(this)">快递费用： ' + v.order_express_price + '</span>' + '<br>' +
+                            '<span onclick="put_msg(this)">订单状态： ' + v.order_status + '</span>' + '<br>' +
+                            '<span onclick="put_msg(this)">收  件  人： ' + v.receiver_name + '</span>' +
+                            '</div></div>' +
+
+                            "<div>" +
+                            "<div><span onclick='put_msg(this)'>商品名称： " + v.product_name + "</span></div>" +
+                            "<div><span onclick='put_msg(this)'>订 单 ID： " + v.order_id + "</span></div>" +
+                            "<div><span onclick='put_msg(this)'>地 址： " + v.receiver_address + "</span></div>" +
+                            "</div>" +
+
+                            '<div class="row">' +
+                            '<div class="col-xs-6">' +
+                            '<span onclick="put_msg(this)">手 机： ' + v.receiver_mobile + '</span></div>' +
+                            '<div class="col-xs-6">' +
+                            '<span onclick="put_msg(this)">下单时间： ' + v.order_create_time + '</span></div>' +
+                            '</div>' +
+                            '<div class="row"><div class="col-xs-6"><span onclick="put_msg(this)">快递单号： ' + v.delivery_id + '</span></div>' +
+                            '<div class="col-xs-6"><span onclick="put_msg(this)">快递公司： ' + v.delivery_company + '</span></div></div>' +
+                            "<hr style='height:2px;border:none;border-top:2px ridge green;margin-top: 0px;' />"
                     ).appendTo("#more_order");
+
+
                 });
             }
 
             $.ajax({url: url, data: data, success: callback});
         }
+
 
     </script>
 
@@ -104,16 +142,22 @@
 {% block container %}
     <div class="container">
 
+
         <div id="duokefu_weixin_order_info">
 
         </div>
-        <hr style='height:2px;border:none;border-top:2px ridge green;'/>
+        <hr style='height:2px;border:none;border-top:2px ridge green;margin-top: 0px'/>
         <div id="more_order">
 
         </div>
-        <div>
-            <a onclick="more_weixin_order()">更多订单</a><br>
-            <button onclick='put_msg()'>地址</button>
+        <div class="fixed_div" >
+
+
+            <div class="input-group">
+                <input id="filterName" type="text" class="form-control" placeholder="填写内容来标红"
+                       aria-describedby="basic-addon2">
+                <a class="input-group-addon label-primary" id="basic-addon2 " onclick="more_weixin_order()">更多订单</a>
+            </div>
         </div>
 
     </div>
@@ -135,9 +179,9 @@
             return pwd;
         }
 
-        function put_msg() {
+        function put_msg(obj) {
             var rad = randomString(6);
-            var text = $('#push_address').html();
+            var text = $(obj).html();
 
             var msg = '{"msg":{"head": {"random": "' + rad + '"},"body":[{"type":0, "content":{"text":"' + text + '"}}]}}';
             window.external.PutMsg(
@@ -146,7 +190,21 @@
         }
 
         $(document).ready(function () {
-
+            $('#filterName').focus();
         });
+
+
+        $(function () {
+            $("#filterName").keyup(function () {
+                if ($("#filterName").val() != '') {
+                    $("span").css("background-color", "white").filter(":contains('" + ( $(this).val() ) + "')").css("background-color", "red");
+                }
+                else {
+                    $("span").css("background-color", "white");
+                }
+            })
+        });
+
     </script>
 {% endblock %}
+
