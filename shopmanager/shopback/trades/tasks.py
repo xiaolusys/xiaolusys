@@ -385,19 +385,19 @@ def task_Gen_Order_Report_File(date_from,date_to,file_dir=None):
     un_maps = get_User_Key_Name_Map()
     lc_maps = get_Logistic_Company_Key_Name_Map()
     
-    fields = ['tid','user_id','buyer_nick','payment','post_fee','pay_time','weight_time',
-              'receiver_state','receiver_city','out_sid','logistics_company_id','sys_status']
+    fields = ['tid','user_id','buyer_nick','payment','post_fee','pay_time','weight_time','receiver_mobile',
+              'receiver_phone','receiver_state','receiver_city','out_sid','logistics_company_id','sys_status']
     dump_fields   = ','.join(fields)
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
     date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
-    exec_sql = "select {0} from shop_trades_mergetrade where weight_time > '{1}' and weight_time < '{2}';".format(dump_fields,date_from_str,date_to_str)
+    exec_sql = "select {0} from shop_trades_mergetrade where pay_time > '{1}' and pay_time < '{2}';".format(dump_fields,date_from_str,date_to_str)
     
     try:
         cursor = connection.cursor()
         cursor.execute(exec_sql)
         cursor_set = cursor.fetchall()
         
-        field_name_list = [u'原始单号',u'店铺名称',u'会员名称',u'付款金额',u'实付邮费',u'付款日期',u'称重日期',u'省',u'市',u'运单号',u'快递名称',u'订单状态']
+        field_name_list = [u'原始单号',u'店铺名称',u'会员名称',u'付款金额',u'实付邮费',u'付款日期',u'称重日期',u'手机',u'电话',u'省',u'市',u'运单号',u'快递名称',u'订单状态']
         
         if not file_dir:
             file_dir = os.path.join(settings.DOWNLOAD_ROOT,ORDER_DIR)
@@ -433,7 +433,8 @@ def task_Gen_Logistic_Report_File(date_from,date_to,file_dir=None):
     dump_fields   = ','.join(fields)
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
     date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
-    exec_sql = "select {0} from shop_trades_mergetrade where weight_time > '{1}' and weight_time < '{2}';".format(dump_fields,date_from_str,date_to_str)
+    exec_sql = "select {0} from shop_trades_mergetrade where weight_time > '{1}' and weight_time < '{2}';"
+    exec_sql = exec_sql.format(dump_fields,date_from_str,date_to_str)
     
     try:
         cursor = connection.cursor()
@@ -461,8 +462,8 @@ def task_Gen_Logistic_Report_File(date_from,date_to,file_dir=None):
                 writer.writerow(row)
     finally:
         cursor.close()
-       
-       
+
+
 def previous_year_month(year,month):
     
     if month == 1:

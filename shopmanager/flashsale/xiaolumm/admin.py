@@ -23,7 +23,7 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     list_display = ('id','mobile','province','get_cash_display','get_pending_display','weikefu','agencylevel',
                     'charge_link','group_select','click_state','exam_pass','progress','created','status')
     list_filter = ('progress','agencylevel','manager','status','charge_status',('created',DateFieldListFilter),'user_group')
-    search_fields = ['=id','=mobile','=manager','=weikefu','=openid']
+    search_fields = ['=id','=mobile','=manager','weikefu','=openid']
     
     def get_changelist(self, request, **kwargs):
         """
