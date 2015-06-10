@@ -230,6 +230,14 @@ class MamaStatsView(View):
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             click_price  = xlmm.get_Mama_Click_Price(order_num) / 100
+            referal_mm = 0
+#             if xlmm.progress != XiaoluMama.PASS :
+#                 if xlmm.referal_from:
+#                     referal_mamas = XiaoluMama.objects.filter(mobile=xlmm.referal_from)
+#                     if referal_mamas.count() > 0:
+#                         referal_mm = referal_mamas[0].id
+#                 else:
+#                     referal_mm = 1
             
             click_num    = 0 
             click_pay    = 0 
@@ -263,7 +271,7 @@ class MamaStatsView(View):
                                                 ).values('openid').distinct().count()
                 ten_click_pay = ten_click_num * ten_click_price
                 
-            data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
+            data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,'referal_mmid':referal_mm,
                     "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
                     "exam_pass":exam_pass,"total_value":total_value, "carry":carry, 'carry_confirm':carry_confirm,
                     "target_date":target_date, "prev_day":prev_day, "next_day":next_day,

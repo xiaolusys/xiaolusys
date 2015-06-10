@@ -11,7 +11,7 @@ from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog,AgencyLevel
 __author__ = 'meixqhi'
 
 ORDER_REBETA_DAYS = 10
-AGENCY_SUBSIDY_DAYS = 12
+AGENCY_SUBSIDY_DAYS = 11
 
 @task()
 def task_Create_Click_Record(xlmmid,openid,click_time):
@@ -169,7 +169,7 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         cl.save()
         
 @task()
-def task_Push_Pending_AgencyRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
+def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=None):
     """ 计算代理贡献订单提成 """
     
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
@@ -307,6 +307,16 @@ def task_Calc_Agency_Contribu(pre_day=1):
     pre_date = datetime.date.today() - datetime.timedelta(days=pre_day)
     
     task_AgencySubsidy_MamaContribu(pre_date)
+
+    
+@task
+def task_Calc_Agency_Rebeta_Pending_And_Cash():
+    
+    #计算妈妈昨日代理贡献金额
+    task_Calc_Agency_Contribu(pre_day=1)
+    #计算妈妈昨日代理确认金额
+    task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS)
+
 
     
 

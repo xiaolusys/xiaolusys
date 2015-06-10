@@ -79,7 +79,7 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
         saleservice.payTrade()
             
     except Exception,exc:
-        raise pushTradeRefundTask.retry(exc=exc)
+        raise confirmTradeChargeTask.retry(exc=exc)
             
 
 
@@ -117,7 +117,7 @@ def notifyTradePayTask(notify):
         confirmTradeChargeTask(strade.id)
     
     except Exception,exc:
-        raise pushTradeRefundTask.retry(exc=exc)
+        raise notifyTradePayTask.retry(exc=exc)
 
 
 from shopback.base import log_action, ADDITION, CHANGE 
@@ -146,7 +146,7 @@ def notifyTradeRefundTask(notify):
         saleservice.payTrade()
     
     except Exception,exc:
-        raise pushTradeRefundTask.retry(exc=exc)
+        raise notifyTradeRefundTask.retry(exc=exc)
         
 
 @task(max_retries=3,default_retry_delay=30)
