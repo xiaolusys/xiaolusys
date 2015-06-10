@@ -72,18 +72,26 @@
                     </div>
                     <table class="table table-striped">
                         <thead>
-                        <th>妈妈编号</th>
-                        <th>订单数量</th>
-                        </thead>
-                        <tbody>
-                        {% for top in data %}
-                            <tr>
-                                <td>{{ top.xlmm }}</td>
-                                <td>{{ top.ordernumcount }}</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                        <tfoot></tfoot>
+                    <th>妈妈编号</th>
+                    <th>订单数量</th>
+                    <th>妈妈昵称</th>
+                    <th>点击数量</th>
+                    <th>购买人数</th>
+                    <th>转化率（百分比）</th>
+                    </thead>
+                    <tbody>
+                    {% for top in data %}
+                        <tr>
+                            <td>{{ top.0 }}</td>
+                            <td>{{ top.1 }}</td>
+                            <td>{{ top.2 }}</td>
+                            <td>{{ top.3 }}</td>
+                            <td>{{ top.4 }}</td>
+                            <td>{{ top.5 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot></tfoot>
                     </table>
                 </div>
             </div>

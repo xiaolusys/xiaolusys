@@ -12,6 +12,7 @@
         <table class="table table-bordered" id="data-table">
             <thead>
             <th>商品外部编码</th>
+            <th width="60px">图片</th>
             <th>商品上架时间</th>
             <th>下单时间</th>
             <th>订货时间</th>
@@ -22,6 +23,7 @@
             {% for data in all_data %}
                 <tr>
                     <td>{{ data.product_id }}</td>
+                    <td><img src="{{ data.pic_path }}" title="{{ data.pro_name }}" class="img-circle"  width="60px"></td>
                     <td>{{ data.sale_time }}</td>
                     <td>{{ data.trade_general_time }}</td>
                     <td>{{ data.order_deal_time }}</td>

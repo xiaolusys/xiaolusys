@@ -830,12 +830,12 @@ def kf_Search_Order_By_Mobile(request):
     mobile = request.GET.get('mobile')
     # 试图 查找特卖订单 Pay 中的get 到了多个订单报错  所以找到最后一个
     today = datetime.datetime.today()
-    time_from = today
+    time_to = today
     # 搜索一个月以内的订单
-    time_to = today - datetime.timedelta(days=30)
+    time_from = today - datetime.timedelta(days=30)
     merge_trades = MergeTrade.objects.filter(receiver_mobile=mobile,
-                                             created__gte=time_from, created__lte=time_to
-                                             ).order_by('-created')
+                                             created__gt=time_from, created__lt=time_to
+                                         ).order_by('-created')
     for merge_trade in merge_trades:
         if merge_trade.consign_time is None:
             consign_time = u'未发货'
