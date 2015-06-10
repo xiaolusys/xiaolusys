@@ -299,7 +299,7 @@ class CashOut(models.Model):
     
     get_value_display.allow_tags = True
     get_value_display.admin_order_field = 'value'
-    get_value_display.short_description = u"可用现金"
+    get_value_display.short_description = u"提现金额"
     
     @property
     def value_money(self):

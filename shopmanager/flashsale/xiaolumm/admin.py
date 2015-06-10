@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#coding=utf-8
 import re
 import datetime
 from django.contrib import admin
@@ -11,6 +11,9 @@ from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
 
 from . import forms 
 from flashsale.mmexam.models import Result
+from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from django.db.models import Sum
 
 class XiaoluMamaAdmin(admin.ModelAdmin):
     
@@ -155,7 +158,7 @@ admin.site.register(Clicks, ClicksAdmin)
 class CashOutAdmin(admin.ModelAdmin):
     
     form = forms.CashOutForm
-    list_display = ('xlmm','get_value_display','status','approve_time','created','get_cashout_verify')
+    list_display = ('xlmm','get_value_display','get_xlmm_history_cashin','get_xlmm_total_click','get_xlmm_total_order','status','approve_time','created','get_cashout_verify')
     list_filter  = ('status',('approve_time',DateFieldListFilter),('created',DateFieldListFilter))
     search_fields = ['=xlmm']
 
@@ -166,9 +169,39 @@ class CashOutAdmin(admin.ModelAdmin):
         elif obj.status == CashOut.APPROVED:
             return (u'<a style="display:block;"href="/admin/xiaolumm/envelop/?receiver=%s">查看红包</a>'%(obj.xlmm))
         return ''
-
+    
     get_cashout_verify.allow_tags = True
     get_cashout_verify.short_description = u"提现审核"
+
+    # 计算该小鹿妈妈的点击数量并显示
+    def get_xlmm_total_click(self,obj):
+        clickcounts = ClickCount.objects.filter(linkid=obj.xlmm)
+        sum_click = clickcounts.aggregate(total_click=Sum('valid_num')).get('total_click') or 0
+        return sum_click
+    
+    get_xlmm_total_click.allow_tags = True
+    get_xlmm_total_click.short_description = u"有效点击总数"
+
+    # 计算该小鹿妈妈的订单数量并显示
+    def get_xlmm_total_order(self,obj):
+        orders = StatisticsShoppingByDay.objects.filter(linkid=obj.xlmm)
+        sum_order = orders.aggregate(total_order=Sum('ordernumcount')).get('total_order') or 0
+        return sum_order
+    
+    get_xlmm_total_order.allow_tags = True
+    get_xlmm_total_order.short_description = u"订单总数"
+
+    # 计算该小鹿妈妈的历史金额
+    def get_xlmm_history_cashin(self,obj):
+        # CARRY_TYPE_CHOICES  CARRY_IN
+        carrylogs = CarryLog.objects.filter(xlmm=obj.xlmm,carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED)
+        sum_carry_in = carrylogs.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
+        sum_carry_in = sum_carry_in/100.0
+        return sum_carry_in
+    
+    get_xlmm_history_cashin.allow_tags = True
+    get_xlmm_history_cashin.short_description = u'历史总收入'
+
     
 admin.site.register(CashOut, CashOutAdmin) 
 
