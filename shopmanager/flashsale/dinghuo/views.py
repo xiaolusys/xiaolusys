@@ -422,6 +422,7 @@ def changearrivalquantity(request):
     order_detail_id = post.get("orderdetailid", "").strip()
     arrived_num = post.get("arrived_num", "0").strip()
     result = "{flag:false,num:0}"
+    arrival_time = datetime.datetime.now()
     if len(arrived_num) > 0 and len(order_detail_id) > 0:
         arrived_num = int(arrived_num)
         order_detail_id = int(order_detail_id)
@@ -431,6 +432,7 @@ def changearrivalquantity(request):
         order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
         Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
         ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
+        order.arrival_time = arrival_time
         order.save()
         result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
         log_action(request.user.id, orderlist, CHANGE,
