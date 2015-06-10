@@ -308,7 +308,6 @@ def task_Calc_Agency_Contribu(pre_day=1):
     
     task_AgencySubsidy_MamaContribu(pre_date)
 
-    
 @task
 def task_Calc_Agency_Rebeta_Pending_And_Cash():
     
