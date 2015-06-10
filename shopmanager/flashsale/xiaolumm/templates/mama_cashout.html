@@ -259,6 +259,7 @@
         var value = parseInt(inputValue.val());
 
         if (value < v_min || value > v_max){
+        	subtn.removeClass('loading');
         	$("#id-submit-message")[0].innerHTML = "单次提现金额最低20元，最高200元（微信红包）！";
         	return 
         }

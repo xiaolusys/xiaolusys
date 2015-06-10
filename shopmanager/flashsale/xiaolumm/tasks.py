@@ -280,9 +280,9 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
         sum_wxorderamount = 0  # 昨天订单总额
         for sub_xlmm in sub_xlmms:
             # 扣除记录
-            sub_shoppings = StatisticsShopping.objects.filter(linkid=sub_xlmm.id, 
+            sub_shoppings = StatisticsShopping.objects.filter(linkid=sub_xlmm.id,
                                                               shoptime__range=(time_from,time_to),
-                                                              status=StatisticsShopping.FINISHED)
+                                                              status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED))
             # 过滤出子代理昨天的订单
             sum_wxorderamount = sub_shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
             

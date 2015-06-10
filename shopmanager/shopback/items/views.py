@@ -334,16 +334,13 @@ class ProductView(ModelView):
     def get(self, request, id, *args, **kwargs):
         
         product = Product.objects.get(id=id)
-        
         return product.json
-
 
     def post(self, request, id, *args, **kwargs):
         
         try:
             product = Product.objects.get(id=id)
-        
-            content =  request.REQUEST
+            content = request.REQUEST
             
             fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost',
                       'std_purchase_price','std_sale_price','agent_price','staff_price','is_split',
