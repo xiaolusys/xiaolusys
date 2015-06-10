@@ -61,7 +61,7 @@ def get_daily_out_order_stats(prev_day):
 
     order_dict = {}
     for order in order_qs:
-        pay_time = time.mktime(order['weight_time'].timetuple()) or 0
+        pay_time = time.mktime(order['merge_trade__weight_time'].timetuple()) or 0
         sale_num = order["num"]
         if order["outer_id"] in order_dict:
             if order["outer_sku_id"] in order_dict[order["outer_id"]]:
