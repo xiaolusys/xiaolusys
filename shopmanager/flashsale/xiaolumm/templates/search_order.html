@@ -32,8 +32,9 @@
         function search_Order_By_Mobile() {
             var mobile = $('#search_order').val();
             // 清空结点已经填写的内容
-            $("#search_result").empty();
+
             function callback(result) {
+            $("#search_result").empty();
                 $.each(result, function (d, v) {
                     $("<p data-toggle='modal'" +
                             " data-target='.bs-example-modal-lg' onclick='order_detail(" + v.id + ")'>原&nbsp单&nbspID&nbsp： " + v.tid + "</p>" +
