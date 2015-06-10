@@ -243,7 +243,7 @@ SHOP_APP_SCHEDULE = {
         'args':(),
     },
     u'定时统计每日二级代理贡献佣金':{
-        'task':'flashsale.xiaolumm.tasks.task_Calc_Agency_Contribu',
+        'task':'flashsale.xiaolumm.tasks.task_Calc_Agency_Rebeta_Pending_And_Cash',
         'schedule':crontab(minute="40",hour='3'),
         'args':(),
     },
@@ -265,6 +265,10 @@ SHOP_APP_SCHEDULE = {
     u'定时统计妈妈每周点击转化':{
         'task':'flashsale.clickcount.tasks.week_Count_week_Handdle',
         'schedule': crontab(minute="10", hour="5", day_of_week='mon'),
+    },
+    u'定时统计所有商品数据':{
+        'task':'flashsale.dinghuo.tasks.task_stats_product',
+        'schedule': crontab(minute="30", hour="2"),
         'args': ()
     },
 #    'runs-every-10-minutes-update-seller-flag':{

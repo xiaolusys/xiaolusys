@@ -118,7 +118,7 @@ class WeixinProductManager(models.Manager):
                                         status=WXProductSku.UP_SHELF)
             for wsku in wsku_list:
                 wsku_dict = model_to_dict(wsku)
-                wsku_dict['sku_image'] = wsku_dict['sku_img']
+                wsku_dict['sku_image'] = wsku.sku_image
                 wsku_dict_list.append(wsku_dict)
                 
             sku_dict['wskus'] = wsku_dict_list

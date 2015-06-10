@@ -87,3 +87,12 @@ def task_stats_daily_product(pre_day=1):
         function_of_task.get_daily_out_order_stats(pre_day)
     except Exception, exc:
         raise task_stats_daily_order_by_group.retry(exc=exc)
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_stats_product():
+    try:
+        function_of_task.daily_data_stats()
+
+    except Exception, exc:
+        raise task_stats_daily_order_by_group.retry(exc=exc)

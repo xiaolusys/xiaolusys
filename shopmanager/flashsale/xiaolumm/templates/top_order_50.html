@@ -1,0 +1,107 @@
+{% extends "weixin_base.html" %}
+
+{% block title %} 订单Top50 {% endblock %}
+
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet' xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html"/>
+
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+
+    <script type="text/javascript">
+    </script>
+
+{% endblock %}
+
+{% block container %}
+
+    <div class="container">
+        <h3>TOP-50 </h3>
+        <ul class="nav nav-tabs">
+            <li role="presentation" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                    点击TOP50<span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="/m/top50/click/"> 按天</a></li>
+                    <li><a href="/m/top50/click/week/"> 按周</a></li>
+                    <li><a href="/m/top50/click/month/"> 按月</a></li>
+                </ul>
+            </li>
+            <li role="presentation" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                    订单TOP50<span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="/m/top50/order/"> 按天</a></li>
+                    <li><a href="/m/top50/order/week/"> 按周</a></li>
+                    <li><a href="/m/top50/order/month/"> 按月</a></li>
+                </ul>
+            </li>
+            <li role="presentation" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                    转化TOP50<span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="/m/top50/conversion/"> 按周</a></li>
+                    <li><a href="/m/top50/convers/month/"> 按月</a></li>
+                </ul>
+            </li>
+        </ul>
+        <div class="container">
+
+            <div>
+                <h4>订单（天）</h4>
+                <div class="row">
+                    <div class="col-xs-4">
+                        <a href="/m/top50/order/?day={{ date_dict.prev_day }}"><< 前一天</a>
+                    </div>
+                    <div class="col-xs-4">
+                        <p>{{ date_dict.target_day }}</p>
+                    </div>
+                    <div class="col-xs-4">
+                        {% if date_dict.next_day %}
+                            <a href="/m/top50/order/?day={{ date_dict.next_day }}">后一天 >></a>
+                        {% endif %}
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                    <th>妈妈编号</th>
+                    <th>订单数量</th>
+                    <th>妈妈昵称</th>
+                    <th>点击数量</th>
+                    <th>购买人数</th>
+                    <th>转化率（百分比）</th>
+                    </thead>
+                    <tbody>
+                    {% for top in data %}
+                        <tr>
+                            <td>{{ top.0 }}</td>
+                            <td>{{ top.1 }}</td>
+                            <td>{{ top.2 }}</td>
+                            <td>{{ top.3 }}</td>
+                            <td>{{ top.4 }}</td>
+                            <td>{{ top.5 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block tail_script %}
+    <script type="text/javascript">
+
+    </script>
+{% endblock %}

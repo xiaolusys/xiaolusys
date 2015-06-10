@@ -85,16 +85,14 @@ class CashoutView(View):
         referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
         
-        day_to   = datetime.datetime.now()
-        day_from = day_to - datetime.timedelta(days=30)
+#         day_to   = datetime.datetime.now()
+#         day_from = day_to - datetime.timedelta(days=30)
         # 点击数
-        click_nums = 0
-        clickcounts = ClickCount.objects.filter(date__range=(day_from,day_to),linkid=xlmm.id)
-        for clickcount in clickcounts:
-            click_nums = click_nums + clickcount.valid_num
+        clickcounts = ClickCount.objects.filter(linkid=xlmm.id)
+        click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
 
         # 订单数
-        shoppings = StatisticsShopping.objects.filter(shoptime__range=(day_from,day_to), linkid=xlmm.id)
+        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
         cash_outable = click_nums >= 150 or shoppings_count >= 6
@@ -428,29 +426,24 @@ def cash_Out_Verify(request, id, xlmm):
     '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
     '''
     data = []
-    # cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
-    today = datetime.datetime.today()
-    day_from = today-datetime.timedelta(days=30)
-    day_to = today
+#     cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
+#     today = datetime.datetime.today()
+#     day_from = today-datetime.timedelta(days=30)
+#     day_to = today
 
     cashout_status_is_pending = CashOut.objects.get(id=id)
 
-    
     # for cashout_status_is_pending in cashouts_status_is_pending:
-    id = id
     # xlmm = cashout_status_is_pending.xlmm
     value = cashout_status_is_pending.value/100.0
     status = cashout_status_is_pending.status
     xiaolumama = XiaoluMama.objects.get(pk=xlmm)
-
-    # 点击数
-    click_nums = 0
-    clickcounts = ClickCount.objects.filter(date__gt=day_from, date__lt=day_to, linkid=xlmm)
-    for clickcount in clickcounts:
-        click_nums = click_nums + clickcount.valid_num
+    
+    clickcounts = ClickCount.objects.filter(linkid=xlmm)
+    click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
 
     # 订单数
-    shoppings = StatisticsShopping.objects.filter(shoptime__gt=day_from, shoptime__lt=day_to, linkid=xlmm)
+    shoppings = StatisticsShopping.objects.filter(linkid=xlmm)
     shoppings_count = shoppings.count()
 
     mobile = xiaolumama.mobile
@@ -724,7 +717,6 @@ def kf_Customer(request):
             isvalid = u'已验证'
         else:
             isvalid = u'未验证'
-        print "isvalid is here :", isvalid
         charge_status = weixin_user.charge_status  # 接管状态  （布尔类型）
         # 该用户推荐的数量
         referal_count = WeiXinUser.objects.filter(referal_from_openid=openid).count()
@@ -746,7 +738,7 @@ def kf_Weixin_Order(request):
     data = []
     if request.method == 'POST':
         openid = request.POST.get('openid', 'oMt59uDSymShXs9JcCjLxcHdNnKA')
-        weixin_orders = WXOrder.objects.filter(buyer_openid=openid)  # 找到该用户的订单(默认显示)   注意这里可以有多个订单产生
+        weixin_orders = WXOrder.objects.filter(buyer_openid=openid).order_by('-order_create_time')  # 找到该用户的订单(默认显示)   注意这里可以有多个订单产生
         if weixin_orders.count() > 0:
             order_id = weixin_orders[0].order_id
             product_name = weixin_orders[0].product_name
@@ -754,7 +746,7 @@ def kf_Weixin_Order(request):
             product_price = weixin_orders[0].product_price/100.0
             order_express_price = weixin_orders[0].order_express_price
             product_count = weixin_orders[0].product_count
-            order_create_time = weixin_orders[0].order_create_time.strftime('%Y-%m-%d %H:%M')
+            order_create_time = weixin_orders[0].order_create_time.strftime('%y/%m/%d/%H:%M')
             order_status = weixin_orders[0].get_order_status_display()
             receiver_name = weixin_orders[0].receiver_name
             mobile = weixin_orders[0].receiver_mobile
@@ -789,19 +781,25 @@ def kf_Weixin_Order(request):
 def ke_Find_More_Weixin_Order(request):
     data = []
     openid = request.GET.get('openid')
-    print 'openid in the more order ', openid
     weixin_orders = WXOrder.objects.filter(buyer_openid=openid)
-    weixin_orders_cut = WXOrder.objects.filter(buyer_openid=openid)[1:]
+    today = datetime.datetime.today()
+    time_to = today
+    # 搜索一个月以内的订单
+    time_from = today - datetime.timedelta(days=30)
+    weixin_orders_cut = WXOrder.objects.filter(buyer_openid=openid, order_create_time__gt=time_from,
+                                               order_create_time__lt=time_to).order_by('-order_create_time')[1:]
 
     for weixin_order in weixin_orders_cut:
         if weixin_order.order_create_time is None:
             order_create_time = ''
         else:
-            order_create_time = weixin_order.order_create_time.strftime('%Y-%m-%d %H:%M')
-        data_entry = {'order_id': weixin_order.order_id,'product_img': weixin_order.product_img, 'order_total_price': weixin_order.order_total_price/100.0,
+            order_create_time = weixin_order.order_create_time.strftime('%y/%m/%d/%H:%M')
+        data_entry = {'order_id': weixin_order.order_id,'product_img': weixin_order.product_img,
+                      'order_total_price': weixin_order.order_total_price/100.0,
                       'order_express_price': weixin_order.order_express_price/100.0,
                       'order_create_time': order_create_time,
-                      'order_status': weixin_order.order_status, 'receiver_name': weixin_order.receiver_name,
+                      'order_status': weixin_order.get_order_status_display(),
+                      'receiver_name': weixin_order.receiver_name,
                       'receiver_address': weixin_order.receiver_province + weixin_order.receiver_city + weixin_order.receiver_zone + weixin_order.receiver_address,
                       'receiver_mobile': weixin_order.receiver_mobile,
                       'product_name': weixin_order.product_name,
@@ -829,17 +827,35 @@ def kf_Search_Order_By_Mobile(request):
     data = []
     mobile = request.GET.get('mobile')
     # 试图 查找特卖订单 Pay 中的get 到了多个订单报错  所以找到最后一个
-    merge_trades = MergeTrade.objects.filter(receiver_mobile=mobile).order_by('-created')  #[:1]  # 最近一笔订单
+    today = datetime.datetime.today()
+    time_to = today
+    # 搜索一个月以内的订单
+    time_from = today - datetime.timedelta(days=30)
+    merge_trades = MergeTrade.objects.filter(receiver_mobile=mobile,
+                                             created__gt=time_from, created__lt=time_to
+                                         ).order_by('-created')
     for merge_trade in merge_trades:
+        if merge_trade.consign_time is None:
+            consign_time = u'未发货'
+        else:
+            consign_time = merge_trade.consign_time.strftime('%y/%m/%d/%H:%M')
+        if merge_trade.logistics_company is None:
+            logistics_company = u"未知"
+        else:
+            logistics_company = merge_trade.logistics_company.name  # 物流公司名称
+        out_sid = merge_trade.out_sid  # 物流编号
         data_entry = {'id': merge_trade.id,
                         'tid': merge_trade.tid,
-                      'status': merge_trade.get_status_display(),
-                      'sys_status': merge_trade.get_sys_status_display(),
-                      'receiver_name': merge_trade.receiver_name,
-                      'address': merge_trade.receiver_state + '-' + merge_trade.receiver_city +
-                                 '-' + merge_trade.receiver_district + '-'+merge_trade.receiver_address,
-                      'buyer_message': merge_trade.buyer_message,
-                      'seller_memo': merge_trade.seller_memo
+                        'status': merge_trade.get_status_display(),
+                        'sys_status': merge_trade.get_sys_status_display(),
+                        'receiver_name': merge_trade.receiver_name,
+                        'consign_time': consign_time,
+                        'address': merge_trade.receiver_state + '-' + merge_trade.receiver_city +
+                                     '-' + merge_trade.receiver_district + '-'+merge_trade.receiver_address,
+                        'buyer_message': merge_trade.buyer_message,
+                        'seller_memo': merge_trade.seller_memo,
+                        'logistics_company': logistics_company,
+                        'out_sid': out_sid
                       }
         data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
@@ -862,15 +878,82 @@ def kf_Search_Order_Detail(request):
                       'sys_status': merge_order.get_sys_status_display(),
                       'pay_time': merge_order.pay_time.strftime('%Y-%m-%d %H:%M'),
                       'refund_status': merge_order.get_refund_status_display()
-
                       }
         data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
 
 
 def kf_Logistics(request):
-    # 默认显示weixin order的 物流信息
+    # 默认显示weixin order的 物流信息   看物流接口
     data = []
     data_entry = {}
     data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
+
+
+
+
+# 小鹿妈妈代理的点击前50 ，每天，上周，前四周
+
+from view_top50 import xlmm_Click_Top_By_Day, xlmm_Order_Top_By_Day, xlmm_Conversion_Top_By_Week,\
+    xlmm_Click_Top_By_Week, xlmm_Order_Top_By_Week, xlmm_Click_Top_By_Month, xlmm_Order_Top_By_Month,\
+    xlmm_Convers_Top_By_Month
+
+
+
+@csrf_exempt
+def xlmm_Click_Top(request):
+    # 过滤出昨天的点击前50名
+    data, date_dict = xlmm_Click_Top_By_Day(request)
+    return render_to_response("top_click_50.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Order_Top(request):
+    # 过滤出昨天的订单前50名
+    data, date_dict = xlmm_Order_Top_By_Day(request)
+    return render_to_response("top_order_50.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Conversion_Top(request):
+    data, date_dict = xlmm_Conversion_Top_By_Week(request)
+    return render_to_response("top_convers.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Click_Top_Week(request):
+    data, date_dict = xlmm_Click_Top_By_Week(request)
+    return render_to_response("top_click_50_week.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Order_Top_Week(request):
+    data, date_dict = xlmm_Order_Top_By_Week(request)
+    return render_to_response("top_order_50_week.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Click_Top_Month(request):
+    data, date_dict = xlmm_Click_Top_By_Month(request)
+    return render_to_response("top_click_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Order_Top_Month(request):
+    data, date_dict = xlmm_Order_Top_By_Month(request)
+    return render_to_response("top_order_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def xlmm_Convers_Top_Month(request):
+    data, date_dict = xlmm_Convers_Top_By_Month(request)
+    return render_to_response("top_convers_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))

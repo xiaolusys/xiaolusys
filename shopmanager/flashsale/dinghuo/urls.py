@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num
-from .views_data_stats import DailyStatsView
+from .views_data_stats import DailyStatsView, StatsProductView
 
 urlpatterns = [
 
@@ -14,9 +14,8 @@ urlpatterns = [
     url(r'^initdraft/$', views.init_draft, name='init_draft'),                   #初始化草稿箱
     url(r'^dingdan/$', views.new_order, name="new_order"),                     #订单页面填写完成后跳转
     url(r'^delcaogao/$', views.del_draft, name="delcaogao"),                   #删除所有草稿
-    url(r'^test/$', views.test, name="test"),                                  #测试用
-    url(r'^adddetail/$', views.add_purchase, name="adddetail"),                 #从商品界面做跳转 暂时没有用
-    url(r'^test/(?P<id>\d+)/(?P<name>\d+)/(?P<sex>\d+)/$', views.test, name="test"),#无作用
+    url(r'^data-chart/$', views.data_chart, name="data-chart"),
+    url(r'^adddetail/(?P<outer_id>\d+)$', views.add_purchase, name="adddetail"),
     url(r'^plusquantity/$', views.plus_quantity, name="plusquantity"),          #增加草稿里面的一个商品的数量
     url(r'^plusordertail/$', views.plusordertail, name="plusordertail"),          #增加订单详情里面的一个商品的数量
     url(r'^minusordertail/$', views.minusordertail, name="minusordertail"),          #减少订单详情里面的一个商品的数量
@@ -38,4 +37,5 @@ urlpatterns = [
     url(r'^auto_new_order/(?P<order_list_id>\d+)/$', AutoNewOrder.as_view(), name="auto_new_order"),
     url(r'^change_inferior_num/$', change_inferior_num, name="change_inferior_num"),
     url(r'^daily_stats/(?P<prev_day>\d+)/$', staff_member_required(DailyStatsView.as_view()), name="daily_stats"),
+    url(r'^stats_product/$', staff_member_required(StatsProductView.as_view()), name="stats_product"),
 ]
