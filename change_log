@@ -1,3 +1,6 @@
+########### 2015-6-10 #################
+alter table suplychain_flashsale_orderdetail add column arrival_time datetime not Null after non_arrival_quantity;
+
 ########### 2015-6-4 #################
 
 alter table flashsale_tongji_shopping add column status int(11) NOT NULL;
