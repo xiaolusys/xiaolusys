@@ -85,16 +85,14 @@ class CashoutView(View):
         referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
         
-        day_to   = datetime.datetime.now()
-        day_from = day_to - datetime.timedelta(days=30)
+#         day_to   = datetime.datetime.now()
+#         day_from = day_to - datetime.timedelta(days=30)
         # 点击数
-        click_nums = 0
-        clickcounts = ClickCount.objects.filter(date__range=(day_from,day_to),linkid=xlmm.id)
-        for clickcount in clickcounts:
-            click_nums = click_nums + clickcount.valid_num
+        clickcounts = ClickCount.objects.filter(linkid=xlmm.id)
+        click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
 
         # 订单数
-        shoppings = StatisticsShopping.objects.filter(shoptime__range=(day_from,day_to), linkid=xlmm.id)
+        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
         cash_outable = click_nums >= 150 or shoppings_count >= 6
@@ -428,29 +426,24 @@ def cash_Out_Verify(request, id, xlmm):
     '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
     '''
     data = []
-    # cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
-    today = datetime.datetime.today()
-    day_from = today-datetime.timedelta(days=30)
-    day_to = today
+#     cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
+#     today = datetime.datetime.today()
+#     day_from = today-datetime.timedelta(days=30)
+#     day_to = today
 
     cashout_status_is_pending = CashOut.objects.get(id=id)
 
-    
     # for cashout_status_is_pending in cashouts_status_is_pending:
-    id = id
     # xlmm = cashout_status_is_pending.xlmm
     value = cashout_status_is_pending.value/100.0
     status = cashout_status_is_pending.status
     xiaolumama = XiaoluMama.objects.get(pk=xlmm)
-
-    # 点击数
-    click_nums = 0
-    clickcounts = ClickCount.objects.filter(date__gt=day_from, date__lt=day_to, linkid=xlmm)
-    for clickcount in clickcounts:
-        click_nums = click_nums + clickcount.valid_num
+    
+    clickcounts = ClickCount.objects.filter(linkid=xlmm.id)
+    click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
 
     # 订单数
-    shoppings = StatisticsShopping.objects.filter(shoptime__gt=day_from, shoptime__lt=day_to, linkid=xlmm)
+    shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
     shoppings_count = shoppings.count()
 
     mobile = xiaolumama.mobile

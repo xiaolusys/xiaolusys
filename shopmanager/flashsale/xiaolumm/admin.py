@@ -17,10 +17,10 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     user_groups = []
     
     form = forms.XiaoluMamaForm
-    list_display = ('id','mobile','province','get_cash_display','get_pending_display',
-                    'weikefu','agencylevel','charge_link','group_select','click_state','exam_pass','created','status')
+    list_display = ('id','mobile','province','get_cash_display','get_pending_display','weikefu','agencylevel',
+                    'charge_link','group_select','click_state','exam_pass','progress','created','status')
     list_filter = ('progress','agencylevel','manager','status','charge_status',('created',DateFieldListFilter),'user_group')
-    search_fields = ['id','mobile','manager','weikefu','openid']
+    search_fields = ['=id','=mobile','=manager','=weikefu','=openid']
     
     def get_changelist(self, request, **kwargs):
         """
@@ -143,7 +143,7 @@ class ClicksChangeList(ChangeList):
 class ClicksAdmin(admin.ModelAdmin):
     list_display = ('linkid','openid','isvalid','click_time')
     list_filter = ('isvalid',('click_time',DateFieldListFilter),)
-    search_fields = ['openid', 'linkid']
+    search_fields = ['=openid', '=linkid']
     
     def get_changelist(self, request, **kwargs):
 
