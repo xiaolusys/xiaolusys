@@ -79,7 +79,7 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
         saleservice.payTrade()
             
     except Exception,exc:
-        raise pushTradeRefundTask.retry(exc=exc)
+        raise confirmTradeChargeTask.retry(exc=exc)
             
 
 
@@ -114,11 +114,10 @@ def notifyTradePayTask(notify):
         tcharge.save()
         
         strade = SaleTrade.objects.get(tid=order_no)
-        
         confirmTradeChargeTask(strade.id)
     
     except Exception,exc:
-        raise pushTradeRefundTask.retry(exc=exc)
+        raise notifyTradePayTask.retry(exc=exc)
 
 
 from shopback.base import log_action, ADDITION, CHANGE 
@@ -147,7 +146,7 @@ def notifyTradeRefundTask(notify):
         saleservice.payTrade()
     
     except Exception,exc:
-        raise pushTradeRefundTask.retry(exc=exc)
+        raise notifyTradeRefundTask.retry(exc=exc)
         
 
 @task(max_retries=3,default_retry_delay=30)
@@ -166,9 +165,18 @@ def pushTradeRefundTask(refund_id):
         raise pushTradeRefundTask.retry(exc=exc)
         
             
-            
-                       
-                        
+@task
+def push_SaleTrade_To_MergeTrade():
+    """ 更新特卖订单到订单列表 """
+    
+    saletrades = SaleTrade.objects.filter(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+    for strade in saletrades:
+        mtrades = MergeTrade.objects.filter(tid=strade.tid,type=MergeTrade.SALE_TYPE)
+        if mtrades.count() > 0 and mtrades[0].modified >= strade.modified:
+            continue
+        saleservice = FlashSaleService(strade)
+        saleservice.payTrade()
+        
 
             
             

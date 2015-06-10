@@ -131,6 +131,10 @@ class WXProductSku(models.Model):
                 sku_name += vid
                 
         return sku_name
+    
+    @property
+    def sku_image(self):
+        return self.sku_img.split('?')[0]
         
 
 from shopapp.signals import signal_wxorder_pay_confirm

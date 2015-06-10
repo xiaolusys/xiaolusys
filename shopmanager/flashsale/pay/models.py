@@ -16,11 +16,12 @@ from .models_refund import SaleRefund
 from .models_envelope import Envelop
 from .managers import SaleTradeManager
 
+from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
 import uuid
 
 FLASH_SELLER_ID = 'flashsale'
-
+AGENCY_DIPOSITE_CODE = 'RMB100'
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
@@ -174,12 +175,24 @@ class SaleTrade(models.Model):
             subc += order.title
         return subc
     
+    @property
+    def order_buyer(self):
+        return Customer.objects.get(id=self.buyer_id)
+    
     @classmethod
     def mapTradeStatus(cls,index):
         from shopback.trades.models import MergeTrade
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
     
+    def is_Deposite_Order(self):
+        
+        for order in self.normal_orders:
+            if order.outer_id == AGENCY_DIPOSITE_CODE:
+                return True
+        return False
+            
+            
     def charge_confirm(self,charge_time=None):
         
         self.status = self.WAIT_SELLER_SEND_GOODS
@@ -189,6 +202,8 @@ class SaleTrade(models.Model):
         for order in self.normal_orders:
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
+            
+        signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
 
 
 class SaleOrder(models.Model):

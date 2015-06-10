@@ -141,6 +141,7 @@ class SupplyChainDataStatsAdmin(admin.ModelAdmin):
                     'stats_time', 'group',
                     'created', 'updated')
     list_filter = ('group', 'created',)
+    ordering = ('-stats_time',)
 
 
 admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)

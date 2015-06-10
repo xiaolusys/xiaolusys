@@ -18,6 +18,16 @@ from urllib import urlopen
 from django.http import Http404
 from django.conf import settings
 
+import re
+OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+
+def valid_openid(openid):
+    if not openid:
+        return False
+    if not OPENID_RE.match(openid):
+        return False
+    return True 
+
 def get_user_unionid(code, 
                     appid='', 
                     secret='',

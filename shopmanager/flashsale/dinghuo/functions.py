@@ -112,12 +112,12 @@ def get_source_orders_consign(start_dt=None, end_dt=None):
         .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
         .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
         .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-    order_qs = order_qs.filter(consign_time__gte=start_dt, consign_time__lte=end_dt)
+    order_qs = order_qs.filter(merge_trade__weight_time__gte=start_dt, merge_trade__weight_time__lte=end_dt)
     order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
         .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
         .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
 
-    order_qs = order_qs.values("outer_id", "num", "outer_sku_id", "consign_time").extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
+    order_qs = order_qs.values("outer_id", "num", "outer_sku_id", "merge_trade__weight_time").extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
         .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
     return order_qs
 

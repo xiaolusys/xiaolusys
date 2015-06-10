@@ -61,7 +61,7 @@ def get_daily_out_order_stats(prev_day):
 
     order_dict = {}
     for order in order_qs:
-        pay_time = time.mktime(order['consign_time'].timetuple()) or 0
+        pay_time = time.mktime(order['merge_trade__weight_time'].timetuple()) or 0
         sale_num = order["num"]
         if order["outer_id"] in order_dict:
             if order["outer_sku_id"] in order_dict[order["outer_id"]]:
@@ -147,27 +147,29 @@ def get_daily_goods_arrival_stats(prev_day):
     target_day = today - datetime.timedelta(days=prev_day)
     start_dt = datetime.datetime(target_day.year, target_day.month, target_day.day)
     end_dt = datetime.datetime(target_day.year, target_day.month, target_day.day, 23, 59, 59)
-    order_details_dict = OrderDetail.objects.values("outer_id", "chichu_id", "buy_quantity", "updated"). \
-        exclude(orderlist__status=u'作废').filter(updated__gte=start_dt, updated__lte=end_dt)
+    order_details_dict = OrderDetail.objects.values("outer_id", "chichu_id", "arrival_quantity", "inferior_quantity",
+                                                    "updated").exclude(orderlist__status=u'作废').filter(
+        arrival_time__gte=start_dt, arrival_time__lte=end_dt)
 
     ding_huo_dict = {}
     for order_detail in order_details_dict:
         order_deal_time = time.mktime(order_detail['updated'].timetuple()) or 0
-        ding_huo_num = order_detail['buy_quantity']
+        ding_huo_num = order_detail['arrival_quantity'] + order_detail['inferior_quantity']
         sku = ProductSku.objects.get(id=order_detail["chichu_id"])
-        if order_detail["outer_id"] in ding_huo_dict:
-            if sku.outer_id in ding_huo_dict[order_detail["outer_id"]]:
-                old_num = ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["num"]
-                old_time = ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["order_deal_time"]
-                order_deal_time = (order_deal_time * ding_huo_num + old_time * old_num) / (old_num + ding_huo_num)
-                ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["num"] = old_num + ding_huo_num
-                ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["order_deal_time"] = order_deal_time
+        if ding_huo_num > 0:
+            if order_detail["outer_id"] in ding_huo_dict:
+                if sku.outer_id in ding_huo_dict[order_detail["outer_id"]]:
+                    old_num = ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["num"]
+                    old_time = ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["order_deal_time"]
+                    order_deal_time = (order_deal_time * ding_huo_num + old_time * old_num) / (old_num + ding_huo_num)
+                    ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["num"] = old_num + ding_huo_num
+                    ding_huo_dict[order_detail["outer_id"]][sku.outer_id]["order_deal_time"] = order_deal_time
+                else:
+                    ding_huo_dict[order_detail["outer_id"]][sku.outer_id] = {"num": ding_huo_num,
+                                                                             "order_deal_time": order_deal_time}
             else:
-                ding_huo_dict[order_detail["outer_id"]][sku.outer_id] = {"num": ding_huo_num,
-                                                                         "order_deal_time": order_deal_time}
-        else:
-            ding_huo_dict[order_detail["outer_id"]] = {
-                sku.outer_id: {"num": ding_huo_num, "order_deal_time": order_deal_time}}
+                ding_huo_dict[order_detail["outer_id"]] = {
+                    sku.outer_id: {"num": ding_huo_num, "order_deal_time": order_deal_time}}
 
     for product_outer_id, product_dict in ding_huo_dict.items():
         pro_bean = Product.objects.filter(outer_id=product_outer_id)

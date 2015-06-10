@@ -26,7 +26,7 @@ urlpatterns = patterns('',
     (r'^supplychain/',include('supplychain.urls')),
     (r'^games/',include('games.urls')),
     (r'^mm/',include('flashsale.pay.urls')),
-    (r'^m/',include('flashsale.xiaolumm.urls')),
+    (r'^m/',include('flashsale.xiaolumm.urls')),#,namespace="xiaolumm")),
     (r'^sale/',include('flashsale.urls')),
     url(r'^djcelery/',include('djcelery.urls'),name="task_state"),
     

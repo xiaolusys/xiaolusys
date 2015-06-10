@@ -101,7 +101,7 @@ class PINGPPChargeView(View):
             sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
             real_fee = int(sku.agent_price * int(form.get('num')) * 100)
             
-            assert payment == real_fee
+            assert payment > 0 and payment == real_fee
             
             response_charge = None
             if channel == SaleTrade.WALLET:

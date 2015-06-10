@@ -2,7 +2,7 @@ __author__ = 'yann'
 # -*- coding:utf-8 -*-
 from django.db import models
 from shopapp.weixin.models import WXOrder
-from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel
+from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel,CarryLog
 import datetime
 
 
@@ -84,9 +84,18 @@ class StatisticsShoppingByDay(models.Model):
     today_cash.allow_tags = True
     today_cash.short_description = u"提成总价"
     
+    def carry_Confirm(self):
+        c_logs = CarryLog.objects.filter(xlmm=self.linkid,
+                                         log_type=CarryLog.ORDER_REBETA,
+                                         carry_date=self.tongjidate,
+                                         status=CarryLog.CONFIRMED)
+        return c_logs.count() > 0
+    
 
 from django.db.models import F
+from django.conf import settings
 from shopapp import signals
+from shopapp.weixin.models import get_Unionid
 
 def tongji(sender, obj, **kwargs):
     
@@ -99,7 +108,9 @@ def tongji(sender, obj, **kwargs):
     order_stat_from = ordertime - datetime.timedelta(days=1)
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
-    isinxiaolumm = XiaoluMama.objects.filter(openid=obj.buyer_openid,created__gt=ordertime)
+    
+    wx_unionid = get_Unionid(obj.buyer_openid,settings.WEIXIN_APPID)
+    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,created__gt=ordertime)
     
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]

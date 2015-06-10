@@ -187,40 +187,60 @@ def task_Record_User_Click_Weekly(date_from, date_to, week_code):
 
 
 @task()
-def week_Count_week_Handdle(date):
+def week_Count_week_Handdle(pre_week_start_dt=None):
     """计算上一周的 开始时间 和 结束时间
     编码周= 'year + month + id'  id = 上一周是本年的 第 id 周
     """
-    today = date #datetime.datetime.today()
-    today_b = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)  # 今天的 开始时间
-    prev_day = today_b - datetime.timedelta(days=1)  # 昨天的开始
-    x_day = prev_day.strftime('%w')  # 获取昨天的星期数
-    # 判断昨天是不是这一周最后一天
-    if x_day == '6':
-    # 如果是则执行
-        if prev_day.strftime('%U') == '00':
-        # 判断昨天是不是一年中的第一周 00
-            date_from = datetime.datetime(today.year, today.month, 1, 0, 0, 0)
-            # 开始时间 是 这一年的第一天
-            date_to = datetime.datetime(prev_day.year,prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
-            # 结束时间就是昨天的结束时间（因为上面已经判断了昨天是不是周末）
-            week_code = str(today.year) + '00'
-            # week_code = year+ '00'
-            task_Record_User_Click_Weekly(date_from, date_to, week_code)
-            # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
-        else:
-        # 如果昨天不是这一年的第一周
-            date_from = prev_day - datetime.timedelta(days=6)
-            # 开始时间是 昨天的开始时间 - 6 个整天
-            date_to = datetime.datetime(prev_day.year, prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
-            week_code = str(today.year) + prev_day.strftime('%U')
-            # 结束时间是昨天的结束时间
-            task_Record_User_Click_Weekly(date_from, date_to, week_code)
-            # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
+    today = datetime.date.today() #datetime.datetime.today()
+    if not pre_week_start_dt:
+        weekday = int(today.strftime("%w"))
+        dura_days = weekday == 0 and (7 + 6) or (7 + weekday - 1)
+        pre_week_start_dt = today - datetime.timedelta(days=dura_days)
+            
+    pre_week_end_dt = pre_week_start_dt + datetime.timedelta(days=6)
+    
+    time_from = datetime.datetime(pre_week_start_dt.year,pre_week_start_dt.month,pre_week_start_dt.day,0,0,0)
+    time_to   = datetime.datetime(pre_week_end_dt.year,pre_week_end_dt.month,pre_week_end_dt.day,23,59,59)
+    
+    week_code = str(pre_week_start_dt.year) + pre_week_start_dt.strftime('%U')
+    
+    task_Record_User_Click_Weekly(time_from, time_to, week_code)
+    
+#     today_b = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)  # 今天的 开始时间
+#     prev_day = today_b - datetime.timedelta(days=1)  # 昨天的开始
+#     x_day = prev_day.strftime('%w')  # 获取昨天的星期数
+#     # 判断昨天是不是这一周最后一天
+#     if x_day == '6':
+#     # 如果是则执行
+#         if prev_day.strftime('%U') == '00':
+#         # 判断昨天是不是一年中的第一周 00
+#             date_from = datetime.datetime(today.year, today.month, 1, 0, 0, 0)
+#             # 开始时间 是 这一年的第一天
+#             date_to = datetime.datetime(prev_day.year,prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
+#             # 结束时间就是昨天的结束时间（因为上面已经判断了昨天是不是周末）
+#             week_code = str(today.year) + '00'
+#             # week_code = year+ '00'
+#             task_Record_User_Click_Weekly(date_from, date_to, week_code)
+#             # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
+#         else:
+#         # 如果昨天不是这一年的第一周
+#             date_from = prev_day - datetime.timedelta(days=6)
+#             # 开始时间是 昨天的开始时间 - 6 个整天
+#             date_to = datetime.datetime(prev_day.year, prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
+#             
+#             # 结束时间是昨天的结束时间
+#             task_Record_User_Click_Weekly(date_from, date_to, week_code)
+#             # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
 
 
-def every_day_run():  # 初始执行
+def push_history_week_data():  # 初始执行
+    
     today = datetime.datetime.today()
-    for i in xrange(1,int(today. strftime('%j'))):
-        date = today-datetime.timedelta(days=i)
-        week_Count_week_Handdle(date)
+    weekday = int(today.strftime("%w"))
+    dura_days = weekday == 0 and  6 or weekday - 1
+    week_start = today - datetime.timedelta(days=dura_days)
+    
+    for i in xrange(1,14):
+        week_date = week_start - datetime.timedelta(days=7*i)
+        print 'start date:',week_date
+        week_Count_week_Handdle(pre_week_start_dt = week_date)

@@ -2,7 +2,7 @@
 __author__ = 'yann'
 from django.views.generic import View
 from django.shortcuts import HttpResponse, render_to_response
-from flashsale.dinghuo.tasks import task_stats_product
+from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product
 from django.template import RequestContext
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 import time
@@ -13,7 +13,11 @@ class DailyStatsView(View):
     @staticmethod
     def get(request, prev_day):
         try:
-            task_stats_product.delay()
+            prev_day = int(prev_day)
+            if prev_day == 1000:
+                task_stats_product.delay()
+            else:
+                task_stats_daily_product.delay(prev_day)
         except:
             return HttpResponse("False")
         return HttpResponse(prev_day)
@@ -21,11 +25,11 @@ class DailyStatsView(View):
 
 def format_time_from_dict(data_dict):
     for data in data_dict:
-        product_id = data['product_id']
-        pro_bean = Product.objects.filter(outer_id=product_id)
-        if pro_bean.count() > 0:
-            data['pic_path'] = pro_bean[0].pic_path
-            data['pro_name'] = pro_bean[0].name
+        # product_id = data['product_id']
+        # pro_bean = Product.objects.filter(outer_id=product_id)
+        # if pro_bean.count() > 0:
+        #     data['pic_path'] = pro_bean[0].pic_path
+        #     data['pro_name'] = pro_bean[0].name
         trade_general_time = data["trade_general_time"]
         order_deal_time = data["order_deal_time"]
         goods_arrival_time = data["goods_arrival_time"]

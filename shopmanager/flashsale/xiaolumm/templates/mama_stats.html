@@ -15,11 +15,24 @@
 </style>
 {% endblock %}
 
-
 {% block container %}
+<div class="page-header">
+  <h3>数据统计 
+  	<small>
+	  	<div class="btn-group" role="group" style="float:right;margin-right:20px;">
+	    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+	      妈妈助手
+	      <span class="caret"></span>
+	    </button>
+	    <ul class="dropdown-menu" role="menu">
+	      <li><a href="#">分享专属链接</a></li>
+	      <li><a href="#">招聘代理链接</a></li>
+	    </ul>
+	  </div>
+  </small>
+  </h3>
+</div>
 
-
-<h3>数据统计</h3>
 
 <div class="row">
   <div class="col-xs-4">
@@ -38,7 +51,7 @@
 <div style="margin-top:20px">
   <ul class="list-group">
     <li class="list-group-item">手机号: {{ mobile }}</li>
-    <li class="list-group-item">小鹿妈妈: {{ xlmm.weikefu }}</li>
+    <li class="list-group-item">小鹿妈妈: {{ xlmm.weikefu }}&nbsp;{% if referal_mmid > 0 %}(<a href="/m/register/{{referal_mmid}}/">申请正式小鹿妈妈</a>){% endif %}</li>
     {% if xlmm.agencylevel > 1 %}
         <li class="list-group-item"><p style="color:orange">账户现金(含押金): ￥<span style="font-size:26px">{{ xlmm.cash_money }}</span><a href="/m/cashout/" class="btn btn-warning" style="float:right;">提现</a></p></li>
     {% endif %}
@@ -54,7 +67,7 @@
     <li class="list-group-item"><span style="color:orange">订单金额： ￥{{ total_value }}</span></li>
     {% if xlmm.agencylevel > 1 %}
     {% if carry > 0 %}
-    <li class="list-group-item"><span style="color:orange">订单补贴： ￥{{ carry }}（待确认）</span></li>
+    <li class="list-group-item"><span style="color:orange">订单补贴： ￥{{ carry }}{% if not carry_confirm %}（待确认）{% endif %}</span></li>
     {% else %}
     <li class="list-group-item"><span style="color:orange">订单补贴： {{ carry }}</span></li>
     {% endif %}

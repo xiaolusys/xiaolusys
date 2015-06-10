@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.trades.filters import DateFieldListFilter
+from .service import FlashSaleService
 from .models import (SaleTrade,
                      SaleOrder,
                      TradeCharge,
@@ -76,6 +77,23 @@ class SaleTradeAdmin(admin.ModelAdmin):
         if not request.user.is_superuser:
             return self.readonly_fields + ('tid',)
         return self.readonly_fields
+    
+    def push_mergeorder_action(self, request, queryset):
+        """ 更新订单到订单总表 """
+        
+        for strade in queryset:
+            saleservice = FlashSaleService(strade)
+            saleservice.payTrade()
+        
+        self.message_user(request, u'已更新%s个订单到订单总表!'%queryset.count())
+        
+        origin_url = request.get_full_path()
+       
+        return redirect(origin_url)
+
+    push_mergeorder_action.short_description = u"更新订单到订单总表"
+    
+    actions = ['push_mergeorder_action']
     
 admin.site.register(SaleTrade,SaleTradeAdmin)
 
@@ -215,7 +233,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields or [])
-        if not request.user.is_superuser:
+        if not request.user.has_perm('pay.sale_refund_manage'):
             readonly_fields.update(('refund_no','trade_id','order_id','payment','total_fee',
                                    'reason','desc','refund_id','charge','status'))
 

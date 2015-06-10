@@ -16,6 +16,7 @@ from django.db.models import F, Q, Sum
 from django.views.generic import View
 from django.contrib.auth.models import User
 import functions
+from flashsale.dinghuo.models_stats import SupplyChainDataStats
 
 
 def search_product(request):
@@ -156,8 +157,37 @@ def add_purchase(request, outer_id):
                               context_instance=RequestContext(request))
 
 
-def test(req):
-    return render_to_response("dinghuo/testJsonto.html")
+@csrf_exempt
+def data_chart(req):
+    content = req.REQUEST
+    today = datetime.date.today()
+    start_time_str = content.get("df", None)
+    end_time_str = content.get("dt", None)
+    if start_time_str:
+        year, month, day = start_time_str.split('-')
+        start_date = datetime.date(int(year), int(month), int(day))
+        if start_date > today:
+            start_date = today
+    else:
+        start_date = today - datetime.timedelta(days=7)
+    if end_time_str:
+        year, month, day = end_time_str.split('-')
+        end_date = datetime.date(int(year), int(month), int(day))
+        if end_date > today:
+            end_date = today
+    else:
+        end_date = today
+    a_data = SupplyChainDataStats.objects.filter(group=u'采购A', stats_time__range=(start_date, end_date)).order_by(
+        'stats_time')
+    b_data = SupplyChainDataStats.objects.filter(group=u'采购B', stats_time__range=(start_date, end_date)).order_by(
+        'stats_time')
+    c_data = SupplyChainDataStats.objects.filter(group=u'采购C', stats_time__range=(start_date, end_date)).order_by(
+        'stats_time')
+
+    return render_to_response("dinghuo/data_grape.html",
+                              {"a_data": a_data, "b_data": b_data, "c_data": c_data, "start_date": start_date,
+                               "end_date": end_date},
+                              context_instance=RequestContext(req))
 
 
 @csrf_exempt
@@ -422,6 +452,7 @@ def changearrivalquantity(request):
     order_detail_id = post.get("orderdetailid", "").strip()
     arrived_num = post.get("arrived_num", "0").strip()
     result = "{flag:false,num:0}"
+    arrival_time = datetime.datetime.now()
     if len(arrived_num) > 0 and len(order_detail_id) > 0:
         arrived_num = int(arrived_num)
         order_detail_id = int(order_detail_id)
@@ -431,6 +462,7 @@ def changearrivalquantity(request):
         order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
         Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
         ProductSku.objects.filter(id=order.chichu_id).update(quantity=F('quantity') + arrived_num)
+        order.arrival_time = arrival_time
         order.save()
         result = "{flag:true,num:" + str(order.arrival_quantity) + "}"
         log_action(request.user.id, orderlist, CHANGE,

@@ -13,6 +13,14 @@ from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
 
+def get_Unionid(openid, appid):
+    
+    try:
+        wxunion = WeixinUnionID.objects.get(openid=openid,app_key=appid)
+        return wxunion.unionid
+    except WeixinUnionID.DoesNotExist:
+        return None
+
 class AnonymousWeixinAccount():
     
     def isNone(self):

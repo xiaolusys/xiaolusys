@@ -27,18 +27,15 @@ class MergeTradeManager(models.Manager):
                           city='',
                           latest_paytime=None):
         
-        q = Q(receiver_name=receiver_name,buyer_nick=buyer_nick)
+        q = Q(buyer_nick=buyer_nick)
         if receiver_mobile :
             q = q|Q(receiver_mobile=receiver_mobile)
                 
         if receiver_phone:
             q = q|Q(receiver_phone=receiver_phone)
             
-        queryset = self.get_queryset().filter(q)\
-                .exclude(sys_status__in=(pcfg.EMPTY_STATUS,
-                                         pcfg.FINISHED_STATUS,
-                                         pcfg.INVALID_STATUS,
-                                         pcfg.ON_THE_FLY_STATUS))
+        queryset = self.get_queryset().filter(q)
+        
         if state and city:
             queryset = queryset.filter(receiver_state=state,receiver_city=city)
             
@@ -213,9 +210,15 @@ class MergeTradeManager(models.Manager):
                                          trade.receiver_phone,
                                          state=trade.receiver_state,
                                          city=trade.receiver_city)
-        trades = queryset.exclude(id=trade.id)
         
-        return trades.count() > 0
+        order_count = queryset.count()
+        if order_count == 0:
+            return False
+        
+        if order_count == 1:
+            return queryset[0].id != trade.id
+  
+        return True
     
     def diffTradeAddress(self,trade,sub_trade):
         

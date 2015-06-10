@@ -20,6 +20,17 @@ class XiaoluMama(models.Model):
         (INVALID,u'失效'),
     )
     
+    NONE    = 'none'
+    PROFILE = 'profile'
+    PAY     = 'pay'
+    PASS    = 'pass'
+    PROGRESS_CHOICES = (
+        (NONE,u'未申请'),
+        (PROFILE,u'填写资料'),
+        (PAY,u'支付押金'),
+        (PASS,u'申请成功'),
+    )
+    
     CHARGED  = 'charged'
     UNCHARGE = 'uncharge'
     FROZEN = 'frozen'
@@ -52,6 +63,10 @@ class XiaoluMama(models.Model):
     charge_status = models.CharField(max_length=16,blank=True,db_index=True,
                                        choices=CHARGE_STATUS_CHOICES,
                                        default=UNCHARGE,verbose_name=u'接管状态')
+    
+    progress = models.CharField(max_length=8,blank=True,db_index=True,
+                               choices=PROGRESS_CHOICES,
+                               default=NONE,verbose_name=u'申请进度')
     
     objects = XiaoluMamaManager()
     
@@ -92,7 +107,20 @@ class XiaoluMama(models.Model):
             return DjangoUser.objects.get(id=self.manager).username
         except:
             return '%s'%self.manager
+
+    def exam_Passed(self):
         
+        from flashsale.mmexam.models import Result
+        results = Result.objects.filter(daili_user=self.openid)
+        if results.count() > 0  and results[0].is_Exam_Funished():
+            return True
+        return False
+    
+    def get_Mama_Agency_Rebeta_Rate(self):
+        """ 获取代理妈妈获取子级代理的提成点数 """
+        if self.agencylevel == 2:
+            return 0.05
+        return 0
         
     def get_Mama_Order_Rebeta_Rate(self):
         """ 获取小鹿妈妈订单提成点数 """
@@ -373,16 +401,31 @@ class CarryLog(models.Model):
     
 from . import signals
 
-def push_pending_carry_to_cash(obj,*args,**kwargs):
+def push_Pending_Carry_To_Cash(obj,*args,**kwargs):
     
     from flashsale.xiaolumm.tasks import task_Push_Pending_Carry_Cash
     
     task_Push_Pending_Carry_Cash.s(xlmm_id=obj)()
     
-signals.signal_push_pending_carry_to_cash.connect(push_pending_carry_to_cash,sender=XiaoluMama)
+signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash,sender=XiaoluMama)
 
 
+from flashsale.pay.signals import signal_saletrade_pay_confirm
+from flashsale.pay.models import SaleTrade
 
+def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
+    
+    if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS 
+        and obj.is_Deposite_Order()):
+        order_buyer = obj.order_buyer 
+        xlmms = XiaoluMama.objects.filter(openid=order_buyer.unionid)
+        if xlmms.count() > 0 :
+            xlmm = xlmms[0]
+            xlmm.progress = XiaoluMama.PAY
+            xlmm.save()
+            
+    
+signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
 
     
     
