@@ -60,6 +60,7 @@ class OrderDetail(models.Model):
     arrival_quantity = models.IntegerField(default=0, verbose_name=u'正品数量')
     inferior_quantity = models.IntegerField(default=0, verbose_name=u'次品数量')
     non_arrival_quantity = models.IntegerField(default=0, verbose_name=u'未到数量')
+    arrival_time = models.DateTimeField(blank=True, verbose_name=u'到货时间')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
 
