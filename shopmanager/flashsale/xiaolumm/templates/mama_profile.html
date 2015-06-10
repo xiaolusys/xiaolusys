@@ -61,16 +61,14 @@
 	    <a href="#" id="id_verifycode_button" class="btn btn-default input-group-addon" onclick="verifycode();">验证手机号</a>
 	  </div>
 	  </div>
+	  {% else %}
+	  <div class="form-group">
+	     <div class="well"><p class="bg-danger"><lable>提示：</lable>您已绑定手机号，请直接点击<span class="text-success">进入下一步</span>！</p></div>
+	  </div>
 	  {% endif %}
 	  <div class="form-group">
-	    <div class="input-group ">
-	      <input type="text" class="form-control" name="nickname" placeholder="填写自己姓名">
-	      <div class="input-group-addon">@小鹿美美</div>
-	    </div>
-	  </div>
-	  <div class="form-group">
 	  	<div class="col-xs-12 ">
-		  <button type="submit" name="diposite" class="btn btn-warning">下一步</button>
+		  <button type="submit" name="diposite" class="btn btn-warning">进入下一步</button>
 		</div>
 	  </div>
 	</form>
