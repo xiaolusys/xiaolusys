@@ -179,7 +179,7 @@ class CarryLogAdmin(admin.ModelAdmin):
     list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type', 
                     'carry_type', 'status', 'carry_date', 'created')
     list_filter = ('log_type','carry_type','status',('carry_date',DateFieldListFilter))
-    search_fields = ['xlmm', 'buyer_nick']
+    search_fields = ['=xlmm', '=buyer_nick']
 
 admin.site.register(CarryLog, CarryLogAdmin)
 

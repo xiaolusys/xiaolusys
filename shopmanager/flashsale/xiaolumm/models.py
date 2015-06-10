@@ -118,7 +118,7 @@ class XiaoluMama(models.Model):
     
     def get_Mama_Agency_Rebeta_Rate(self):
         """ 获取代理妈妈获取子级代理的提成点数 """
-        if self.agencyleve == 2:
+        if self.agencylevel == 2:
             return 0.05
         return 0
         

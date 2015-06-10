@@ -9,21 +9,22 @@
     tfoot input{
     	width:50%;
     }
-    .wrapper{ padding:20px;text-aligin:center;}
-    .flow-steps{ position:relative; height:30px; list-style:none; font-size:14px; overflow:hidden;}
-	.flow-steps li{ float:left; margin-right:-50px;}
-	.flow-steps a{ display:block; float:left; width:170px; min-width:150px; height:30px; background:#d7d7d7; color:#333; line-height:30px; text-align:center; text-decoration:none;}
+    .wrapper{ text-aligin:center;height:50px;}
+    .flow-steps{ position:relative; padding:0px; list-style:none; font-size:14px; overflow:hidden;}
+	.flow-steps li{ float:left; padding:10px;}
+	.flow-steps a {padding:5px;width:100%;}
+	.flow-steps .on a{ background:#ff6600; color:#fff;}
+	.flow-steps .on a:after{ border-left-color:#ff6600;}
+	.flow-steps li.on:first-child a:before{ border-color:#ff6600;}
+	/*.flow-steps a{ display:block; float:left; width:170px; min-width:150px; height:30px; background:#d7d7d7; color:#333; line-height:30px; text-align:center; text-decoration:none;}
 	.flow-steps a:before{ content:""; display:block; float:left; width:0; height:0px; margin-top:-6px; border:21px solid transparent; border-left-color:#fff;}
 	.flow-steps a:after{ content:""; position:relative; display:block; float:right; width:0; height:0px; margin:0 -1px 0 10px; border:15px solid transparent; border-left-color:#d7d7d7;}
 	.flow-steps li:first-child a:before{ border:12px solid #d7d7d7;}
 	.flow-steps li:last-child a:after{ border:8px solid #d7d7d7; margin-right:0;}
-	.flow-steps .on a{ background:#ff6600; color:#fff;}
-	.flow-steps .on a:after{ border-left-color:#ff6600;}
-	.flow-steps li.on:first-child a:before{ border-color:#ff6600;}
 	.flow-steps li:hover a{ background:#ff6600; color:#fff;}
 	.flow-steps li:hover a:after{ border-left-color:#ff6600;}
 	.flow-steps li:first-child:hover a:before{ border-color:#ff6600;}
-	.flow-steps li:last-child:hover a:after{ border-color:#ff6600;}
+	.flow-steps li:last-child:hover a:after{ border-color:#ff6600;}*/
 </style>
 {% endblock %}
 
@@ -32,45 +33,50 @@
 
 <div class="wrapper">
     <ul class="flow-steps">
-    	<li class="on"><a href="#">1.填写资料</a></li>
-        <li ><a href="#">2.支付押金</a></li>
-        <li ><a href="#">3.加入小鹿</a></li>
+    	<li class="col-xs-4 on"><a href="#" class="btn ">填写资料 &gt;</a></li>
+        <li class="col-xs-4 "><a href="#" class="btn btn-default">支付押金 &gt;</a></li>
+        <li class="col-xs-4 "><a href="#" class="btn btn-default">加入小鹿 &gt;</a></li>
     </ul>
     <div class="arr"></div>
 </div>
 
-
-<div class="well well-lg">
-<form class="form-horizontal" action="" method="POST">
-	{% csrf_token %}
-  <input type="hidden" id="id_openid" name="openid" value="{{ wxuser.openid }}">
-  <input type="hidden" id="id_unionid" name="unionid" value="{{ wxuser.unionid }}">
-  {% if not wxuser.isvalid %}
-  <div class="form-group">
-	<div class="col-xs-8">
-	  <input type="text" id="id_mobile_input" class="form-control"  placeholder="请输入手机号">
-	</div>
-    <a href="#" id="id_requestcode_button" class="col-xs-4 btn btn-default" onclick="requestcode();">获取验证码</a>
+<div class="jumbotron" style="padding:5px;">
+  <h3>欢迎加入小鹿妈妈</h3>
+  <div class="container">
+    <form class="form-horizontal" action="" method="POST">
+		{% csrf_token %}
+	  <input type="hidden" id="id_openid" name="openid" value="{{ wxuser.openid }}">
+	  <input type="hidden" id="id_unionid" name="unionid" value="{{ wxuser.unionid }}">
+	  {% if not wxuser.isvalid %}
+	  <div class="form-group">
+	  <div class="input-group ">
+		<input type="text" id="id_mobile_input" class="form-control col-xs-8"  placeholder="请输入手机号">
+	    <a href="#" id="id_requestcode_button" class=" btn btn-default input-group-addon" onclick="requestcode();">获取验证码</a>
+	  </div>
+	  </div>
+	  <div class="form-group">
+	  <p><span style="color:red;display:none;" id="id_verify_msg"></span></p>
+	  <div class="input-group ">
+	    <input type="text" id="id_code_input" class="form-control col-xs-8" placeholder="请输入验证码">
+	    <a href="#" id="id_verifycode_button" class="btn btn-default input-group-addon" onclick="verifycode();">验证手机号</a>
+	  </div>
+	  </div>
+	  {% endif %}
+	  <div class="form-group">
+	    <div class="input-group ">
+	      <input type="text" class="form-control" name="nickname" placeholder="填写自己姓名">
+	      <div class="input-group-addon">@小鹿美美</div>
+	    </div>
+	  </div>
+	  <div class="form-group">
+	  	<div class="col-xs-12 ">
+		  <button type="submit" name="diposite" class="btn btn-warning">下一步</button>
+		</div>
+	  </div>
+	</form>
   </div>
-  <div class="form-group">
-  	<p><span style="color:red" id="id_verify_msg"></span></p>
-  	<div class="col-xs-8">
-      <input type="text" id="id_code_input" class="form-control" placeholder="请输入验证码">
-    </div>
-    <a href="#" id="id_verifycode_button" class="col-xs-4 btn btn-default" onclick="verifycode();">验证手机</a>
-  </div>
-  {% endif %}
-  <div class="form-group">
-  	<div class="col-xs-12 ">
-    <div class="input-group ">
-      <input type="text" class="form-control" name="nickname" placeholder="填写自己姓名">
-      <div class="input-group-addon">@小鹿美美</div>
-    </div>
-    </div>
-  </div>
-  <button type="submit" class="btn btn-default">保存并继续</button>
-</form>
 </div>
+
 {% endblock %}
 
 {% block tail_script %}    
