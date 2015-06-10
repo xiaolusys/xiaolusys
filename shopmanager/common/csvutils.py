@@ -29,22 +29,23 @@ class CSVUnicodeWriter:
     which is encoded in the given encoding.
     """
 
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+    def __init__(self, f, dialect=csv.excel, encoding="utf-8" , encode_mode='ignore', **kwds):
         # Redirect output to a queue
         self.queue = cStringIO.StringIO()
         self.writer = csv.writer(self.queue,delimiter=',',
                             quotechar='"', dialect=dialect, **kwds)
         self.stream = f
         self.encoding = encoding
+        self.encode_mode = encode_mode
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
-        self.writer.writerow([s.encode(self.encoding) for s in row])
+        self.writer.writerow([s.encode(self.encoding,self.encode_mode) for s in row])
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
-        data = data.decode(self.encoding)
+        data = data.decode(self.encoding,self.encode_mode)
         # ... and reencode it into the target encoding
-        data = self.encoder.encode(data)
+        data = self.encoder.encode(data,self.encode_mode)
         # write to the target stream
         self.stream.write(data)
         # empty queue
