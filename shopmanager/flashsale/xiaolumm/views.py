@@ -439,11 +439,11 @@ def cash_Out_Verify(request, id, xlmm):
     status = cashout_status_is_pending.status
     xiaolumama = XiaoluMama.objects.get(pk=xlmm)
     
-    clickcounts = ClickCount.objects.filter(linkid=xlmm.id)
+    clickcounts = ClickCount.objects.filter(linkid=xlmm)
     click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
 
     # 订单数
-    shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
+    shoppings = StatisticsShopping.objects.filter(linkid=xlmm)
     shoppings_count = shoppings.count()
 
     mobile = xiaolumama.mobile
