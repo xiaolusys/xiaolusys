@@ -25,11 +25,11 @@ class DailyStatsView(View):
 
 def format_time_from_dict(data_dict):
     for data in data_dict:
-        product_id = data['product_id']
-        pro_bean = Product.objects.filter(outer_id=product_id)
-        if pro_bean.count() > 0:
-            data['pic_path'] = pro_bean[0].pic_path
-            data['pro_name'] = pro_bean[0].name
+        # product_id = data['product_id']
+        # pro_bean = Product.objects.filter(outer_id=product_id)
+        # if pro_bean.count() > 0:
+        #     data['pic_path'] = pro_bean[0].pic_path
+        #     data['pro_name'] = pro_bean[0].name
         trade_general_time = data["trade_general_time"]
         order_deal_time = data["order_deal_time"]
         goods_arrival_time = data["goods_arrival_time"]
