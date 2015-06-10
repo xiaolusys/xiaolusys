@@ -40,7 +40,7 @@ class MamaRegisterView(APIView):
                                           secret=settings.WEIXIN_SECRET,
                                           request=request)
         if not valid_openid(openid) or not valid_openid(unionid):
-            params = {'appid':settings.WXPAY_APPID,
+            params = {'appid':settings.WEIXIN_APPID,
                       'redirect_uri':request.build_absolute_uri().split('#')[0],
                       'response_type':'code',
                       'scope':'snsapi_base',
