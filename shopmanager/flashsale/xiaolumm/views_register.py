@@ -93,12 +93,12 @@ class MamaRegisterView(APIView):
         if not wx_user.isValid() or not valid_openid(unionid) :#or not nickname
             return redirect('./')
         
-        parent_mobile = ''
-        if int(mama_id) > 0:
+        xlmm, state = XiaoluMama.objects.get_or_create(openid=unionid)
+        parent_mobile = xlmm.referal_from
+        if int(mama_id) > 0 and not parent_mobile:
             parent_xlmm = get_object_or_404(XiaoluMama,id=mama_id)
             parent_mobile = parent_xlmm.mobile
             
-        xlmm, state = XiaoluMama.objects.get_or_create(openid=unionid)
 #         xlmm.weikefu = nickname
         xlmm.progress = XiaoluMama.PROFILE
         xlmm.referal_from = parent_mobile

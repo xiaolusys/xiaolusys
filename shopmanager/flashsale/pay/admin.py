@@ -132,7 +132,6 @@ class CustomerAdmin(admin.ModelAdmin):
 admin.site.register(Customer,CustomerAdmin)
 
 
-
 class DistrictAdmin(admin.ModelAdmin):
     
     list_display = ('id','name','full_name','parent_id','grade','sort_order')
@@ -152,6 +151,7 @@ class UserAddressAdmin(admin.ModelAdmin):
     list_filter = ('default','status')
 
 admin.site.register(UserAddress, UserAddressAdmin)
+
 
 class SaleRefundChangeList(ChangeList):
     

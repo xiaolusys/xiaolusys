@@ -32,7 +32,7 @@
 </div>
 
 <div class="jumbotron" style="padding:5px;">
-  <h3>欢迎加入小鹿妈妈</h3>
+  <h2>欢迎加入小鹿妈妈</h2>
   <div class="container">
     <form class="form-horizontal" action="" method="POST">
 		{% csrf_token %}
@@ -54,7 +54,7 @@
 	  </div>
 	  {% else %}
 	  <div class="form-group">
-	     <div class="well"><p class="bg-danger"><lable>提示：</lable>您已绑定手机号，请直接点击<span class="text-success">进入下一步</span>！</p></div>
+	     <div class="alert alert-danger" role="alert"><lable>提示：</lable>您已绑定手机号，请直接点击<span class="text-success">进入下一步</span>！</div>
 	  </div>
 	  {% endif %}
 	  <div class="form-group">
