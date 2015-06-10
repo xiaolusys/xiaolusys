@@ -316,7 +316,6 @@ def task_Calc_Agency_Rebeta_Pending_And_Cash():
     #计算妈妈昨日代理确认金额
     task_Push_Pending_AgencyRebeta_Cash(day_ago=ORDER_REBETA_DAYS)
 
-    
 @task
 def task_Calc_Agency_Rebeta_Pending_And_Cash():
     
