@@ -36,9 +36,7 @@ class MergeHandler(BaseHandler):
                                             merge_trade.receiver_phone,
                                             latest_paytime=latest_paytime)
             
-            merge_queryset = merge_queryset.exclude(id=merge_trade.id)
-            
-            if merge_queryset.count() == 0:
+            if merge_queryset.count() == 1:
                 return 
             
             merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
