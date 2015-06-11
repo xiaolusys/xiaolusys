@@ -62,16 +62,22 @@ def exam(request,question_id):
                 question_id = int(question_id)+1
                 print '下一题',question_id
                 #print '答题数目为',number
-                number=int(number)+1 #这时候number+1
-                print '答题数目为',number
-                question2 = Question.objects.get(pk=question_id)
-                question = get_object_or_404(Question, pk=question_id)
-                return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':number})
+                if question_id == 33:
+                    number=int(number)+1 #这时候number+1
+                    print '答题数目为',number
+                    question2 = Question.objects.get(pk=question_id)
+                    question = get_object_or_404(Question, pk=question_id)
+                    return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':number})
+                else:
+                    user = request.COOKIES.get('unionid')
+                    result, state = Result.objects.get_or_create(daili_user=user)
+                    result.funish_Exam()
+                    return render(request, 'success_exam.html')
             except:
                 user=request.COOKIES.get('unionid')
                 print "openid",user
                 #Result.objects.create(daili_user="方",exam_state=1)  #这里对结果统一赋值
-                result,state = Result.objects.get_or_create(daili_user=user)
+                result, state = Result.objects.get_or_create(daili_user=user)
                 result.funish_Exam()
                 return render(request, 'success_exam.html')
              
@@ -83,7 +89,7 @@ def exam(request,question_id):
             #return render(request, 'mmexam_exam.html', {'question': question})
         #except():
         print "初始id",question_id
-        if int(question_id)==1:
+        if int(question_id) == 1:
             question = get_object_or_404(Question, pk=question_id)
 #         number=0
             print "选题类型",question.single_many

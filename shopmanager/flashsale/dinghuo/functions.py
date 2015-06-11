@@ -126,7 +126,7 @@ def get_product_by_date(shelve_date, group_name="0"):
     group_members = []
     if group_name == '0':
         product_qs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(
-            sale_time=shelve_date)
+            sale_time=shelve_date).exclude(status="delete")
     else:
         all_user = MyUser.objects.filter(group__name=group_name)
         for user in all_user:
