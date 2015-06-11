@@ -38,9 +38,9 @@ def task_stats_daily_order_by_group(pre_day=1):
                     if sku_qs.count() > 0:
                         cost = sku_qs[0].cost
                         agent_price = sku_qs[0].agent_price
-                    total_sale_num += order_bean['num']
-                    total_cost_amount += total_sale_num * cost
-                    total_sale_amount += total_sale_num * agent_price
+                        total_sale_num += order_bean['num']
+                        total_cost_amount += order_bean['num'] * cost
+                        total_sale_amount += order_bean['num'] * agent_price
 
                 if group_name in data_stats_dict:
                     data_stats_dict[group_name]['total_sale_num'] += total_sale_num
