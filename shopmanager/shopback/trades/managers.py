@@ -37,10 +37,13 @@ class MergeTradeManager(models.Manager):
                 q = q|Q(receiver_phone=receiver_phone)
             else:
                 q = Q(receiver_phone=receiver_phone)
-            
-        queryset = self.get_queryset()
-        if q:
-            queryset = queryset.filter(q)
+        
+        if not q:
+            return self.none()
+        
+        queryset = self.get_queryset().filter(q)
+        queryset = queryset.filter(sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
+        
         if state and city:
             queryset = queryset.filter(receiver_state=state,receiver_city=city)
         if latest_paytime:
