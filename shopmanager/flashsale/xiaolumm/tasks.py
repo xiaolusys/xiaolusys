@@ -64,7 +64,9 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
     
     from flashsale.mmexam.models import Result
     
-    c_logs = CarryLog.objects.filter(log_type__in=(CarryLog.CLICK_REBETA,CarryLog.THOUSAND_REBETA),
+    c_logs = CarryLog.objects.filter(log_type__in=(CarryLog.CLICK_REBETA,
+                                                   CarryLog.THOUSAND_REBETA,
+                                                   CarryLog.MAMA_RECRUIT),
 #                                      |Q(log_type=CarryLog.AGENCY_SUBSIDY,carry_date__lt=pre_date),
                                      status=CarryLog.PENDING)
     

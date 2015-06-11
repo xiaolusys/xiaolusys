@@ -63,7 +63,7 @@ class MamaRegisterView(APIView):
                 try:
                     referal_mama = XiaoluMama.objects.get(mobile=xiaolumm.referal_from)
                     username = User.objects.get(id=referal_mama.manager).username
-                except (XiaoluMama.DoesNotExist,XiaoluMama.DoesNotExist):
+                except (XiaoluMama.DoesNotExist,User.DoesNotExist):
                     username = ''
                     
                 kf_name = kfkeys.NAME_KEY_MAP.get(username,None)
