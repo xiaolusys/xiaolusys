@@ -26,19 +26,23 @@ class MergeTradeManager(models.Manager):
                           state='',
                           city='',
                           latest_paytime=None):
-        
-        q = Q(buyer_nick=buyer_nick)
+        q = None
         if receiver_mobile :
-            q = q|Q(receiver_mobile=receiver_mobile)
-                
+            if q:
+                q = q|Q(receiver_mobile=receiver_mobile)
+            else:
+                q = Q(receiver_mobile=receiver_mobile)   
         if receiver_phone:
-            q = q|Q(receiver_phone=receiver_phone)
+            if q:
+                q = q|Q(receiver_phone=receiver_phone)
+            else:
+                q = Q(receiver_phone=receiver_phone)
             
-        queryset = self.get_queryset().filter(q)
-        
+        queryset = self.get_queryset()
+        if q:
+            queryset = queryset.filter(q)
         if state and city:
             queryset = queryset.filter(receiver_state=state,receiver_city=city)
-            
         if latest_paytime:
             queryset = queryset.filter(pay_time__gte=latest_paytime)
             
