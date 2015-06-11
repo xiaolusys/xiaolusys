@@ -62,7 +62,7 @@ def exam(request,question_id):
                 question_id = int(question_id)+1
                 print '下一题',question_id
                 #print '答题数目为',number
-                if question_id == 33:
+                if question_id != 33:
                     number=int(number)+1 #这时候number+1
                     print '答题数目为',number
                     question2 = Question.objects.get(pk=question_id)
