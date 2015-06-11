@@ -49,7 +49,7 @@
     <td>{{ psku.wskus.0.sku_name }}</td>
     <td>
         {% for wsku in psku.wskus %}
-        <img title="[{{ wsku.product_id }}-{{ wsku.sku_id }}(售价:{{ wsku.sku_price }}) ]" 
+        <img alt="[{{ wsku.product_id }}-{{ wsku.sku_id }}(售价:{{ wsku.sku_price }}) ]" 
         src="{% if wsku.sku_image %}{{ wsku.sku_image }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}" height="30px" width="40px"/>
         {% endfor %}
     </td>
