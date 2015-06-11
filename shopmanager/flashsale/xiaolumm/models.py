@@ -326,7 +326,7 @@ class CarryLog(models.Model):
     DEPOSIT       = 'deposit'
     THOUSAND_REBETA = 'thousand'
     AGENCY_SUBSIDY  = 'subsidy'
-    MAMA_CONTRIBU   = 'contrib'
+    MAMA_RECRUIT   = 'recruit'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
@@ -337,7 +337,7 @@ class CarryLog(models.Model):
         (DEPOSIT,u'押金'),
         (THOUSAND_REBETA,u'千元提成'),
         (AGENCY_SUBSIDY,u'代理补贴'),
-        (MAMA_CONTRIBU,u'妈妈贡献')
+        (MAMA_RECRUIT,u'招募奖金')
     )
     
     CARRY_OUT = 'out'

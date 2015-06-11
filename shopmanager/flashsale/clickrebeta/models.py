@@ -110,7 +110,8 @@ def tongji(sender, obj, **kwargs):
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     
     wx_unionid = get_Unionid(obj.buyer_openid,settings.WEIXIN_APPID)
-    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,created__gt=ordertime)
+    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,agencylevel=2,
+                                             created__lte=ordertime)
     
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]
