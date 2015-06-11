@@ -62,17 +62,20 @@ def exam(request,question_id):
                 question_id = int(question_id)+1
                 print '下一题',question_id
                 #print '答题数目为',number
-                if question_id != 33:
-                    number=int(number)+1 #这时候number+1
-                    print '答题数目为',number
-                    question2 = Question.objects.get(pk=question_id)
-                    question = get_object_or_404(Question, pk=question_id)
-                    return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':number})
-                else:
+                if question_id == 61:
                     user = request.COOKIES.get('unionid')
                     result, state = Result.objects.get_or_create(daili_user=user)
                     result.funish_Exam()
                     return render(request, 'success_exam.html')
+                else:
+                    number = int(number)+1 #这时候number+1
+                    question_num = question_id - 33
+                    question2 = Question.objects.get(pk=question_id)
+                    question = get_object_or_404(Question, pk=question_id)
+                    print question_num,"eeeeeeeeeeeeeeee"
+                    return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':number,
+                                                                'question_num': question_num})
+
             except:
                 user=request.COOKIES.get('unionid')
                 print "openid",user
@@ -89,11 +92,11 @@ def exam(request,question_id):
             #return render(request, 'mmexam_exam.html', {'question': question})
         #except():
         print "初始id",question_id
-        if int(question_id) == 1:
+        if int(question_id) == 34:
             question = get_object_or_404(Question, pk=question_id)
 #         number=0
             print "选题类型",question.single_many
-            return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':0})
+            return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':0,'question_num': 1})
         else:
             return  render(request, 'index.html')   
     #question_id = int(question_id)+1

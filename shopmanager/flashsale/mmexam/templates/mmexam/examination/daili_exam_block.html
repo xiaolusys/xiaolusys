@@ -1,7 +1,7 @@
 
 {% load url from future %}
 <div class="panel-heading" style="color: orange; font-size:20px;  ">
-  第{{ question.id }}题：{{ question.question }}
+  第{{ question_num }}题：{{ question.question }}
 </div>
 
 {% csrf_token %}
