@@ -12,10 +12,11 @@
     <script type="text/javascript">
         $(function () {
             //make some charts
-            $('table').visualize({type: 'pie', pieMargin: 20, title: '每组的总分布'});
+            $('table').visualize({type: 'bar', pieMargin: 20,appendTitle: false,title: null,appendKey: false,parseDirection: 'x'});
+            $('table').visualize({type: 'pie', pieMargin: 20});
             {#				$('table').visualize({type: 'line'});#}
             {#				$('table').visualize({type: 'area'});#}
-            $('table').visualize();
+
         });
     </script>
 

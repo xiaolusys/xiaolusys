@@ -746,7 +746,7 @@ def kf_Weixin_Order(request):
             product_price = weixin_orders[0].product_price/100.0
             order_express_price = weixin_orders[0].order_express_price
             product_count = weixin_orders[0].product_count
-            order_create_time = weixin_orders[0].order_create_time.strftime('%Y-%m-%d %H:%M')
+            order_create_time = weixin_orders[0].order_create_time.strftime('%y/%m/%d/%H:%M')
             order_status = weixin_orders[0].get_order_status_display()
             receiver_name = weixin_orders[0].receiver_name
             mobile = weixin_orders[0].receiver_mobile
@@ -782,13 +782,18 @@ def ke_Find_More_Weixin_Order(request):
     data = []
     openid = request.GET.get('openid')
     weixin_orders = WXOrder.objects.filter(buyer_openid=openid)
-    weixin_orders_cut = WXOrder.objects.filter(buyer_openid=openid).order_by('-order_create_time')[1:]
+    today = datetime.datetime.today()
+    time_to = today
+    # 搜索一个月以内的订单
+    time_from = today - datetime.timedelta(days=30)
+    weixin_orders_cut = WXOrder.objects.filter(buyer_openid=openid, order_create_time__gt=time_from,
+                                               order_create_time__lt=time_to).order_by('-order_create_time')[1:]
 
     for weixin_order in weixin_orders_cut:
         if weixin_order.order_create_time is None:
             order_create_time = ''
         else:
-            order_create_time = weixin_order.order_create_time.strftime('%Y-%m-%d %H:%M')
+            order_create_time = weixin_order.order_create_time.strftime('%y/%m/%d/%H:%M')
         data_entry = {'order_id': weixin_order.order_id,'product_img': weixin_order.product_img,
                       'order_total_price': weixin_order.order_total_price/100.0,
                       'order_express_price': weixin_order.order_express_price/100.0,
@@ -833,7 +838,7 @@ def kf_Search_Order_By_Mobile(request):
         if merge_trade.consign_time is None:
             consign_time = u'未发货'
         else:
-            consign_time = merge_trade.consign_time.strftime('%Y-%m-%d %H:%M')
+            consign_time = merge_trade.consign_time.strftime('%y/%m/%d/%H:%M')
         if merge_trade.logistics_company is None:
             logistics_company = u"未知"
         else:
