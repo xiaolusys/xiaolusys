@@ -8,7 +8,21 @@
         margin-top:0px;
         margin-bottom:0px;
     }
+    .brand-danger{
+    	background-color:#d9534f;
+    	color:white;
+    }
 </style>
+{% endblock %}
+
+{% block preload_script %}
+<script type="text/javascript">
+function showImg( url ) {
+        var frameid = 'frameimg' + Math.random();
+        window.img = '<img id="img" src=\''+url+'?'+Math.random()+'\' height="40px" width="40px"/><script>window.onload = function() { parent.document.getElementById(\''+frameid+'\').height = document.getElementById(\'img\').height+\'px\'; }<'+'/script>';
+        document.write('<iframe id="'+frameid+'" src="javascript:parent.img;" frameBorder="0" scrolling="no" width="100%"></iframe>');
+}
+</script>
 {% endblock %}
 
 {% block container %}
@@ -49,12 +63,22 @@
     <td>{{ psku.wskus.0.sku_name }}</td>
     <td>
         {% for wsku in psku.wskus %}
-        <img alt="[{{ wsku.product_id }}-{{ wsku.sku_id }}(售价:{{ wsku.sku_price }}) ]" 
-        src="{% if wsku.sku_image %}{{ wsku.sku_image }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}" height="30px" width="40px"/>
+        <script type="text/javascript">showImg('{% if wsku.sku_image %}{{ wsku.sku_image }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}');</script>
         {% endfor %}
+		
     </td>
 </tr>
 {% endfor %}
+{% if product.uskus %}
+<tr class="brand-danger">
+	<td colspan="3">系统不存在的编码：</td>
+	<td colspan="6">
+    {% for sku in product.uskus %}
+    [{{ sku.sku_name }}--{{ sku.outer_sku_id }}.{{ sku.outer_id }}]&nbsp;||&nbsp;
+    {% endfor %}
+    </td>
+</tr>
+{% endif %}
 {% endfor %}
 </tbody>
 </table>
