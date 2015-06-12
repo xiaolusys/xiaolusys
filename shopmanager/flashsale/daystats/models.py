@@ -75,7 +75,7 @@ class DailyStat(models.Model):
     def daily_roi(self):
         if not self.total_visiter_num:
             return 0
-        return round(self.total_buyer_num / float(self.total_visiter_num),2)
+        return round(self.total_buyer_num / float(self.total_visiter_num),4)
 
     def get_daily_roi_display(self):
         return self.daily_roi
