@@ -18,7 +18,7 @@ class StatisticsShopping(models.Model):
         (REFUNDED, u'已退款'),
     )
     
-    linkid = models.IntegerField(default=0, verbose_name=u"链接ID")
+    linkid = models.IntegerField(default=0,verbose_name=u"链接ID")
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
     openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"OpenId")
     wxorderid = models.CharField(max_length=64, db_index=True, verbose_name=u'微信订单')
