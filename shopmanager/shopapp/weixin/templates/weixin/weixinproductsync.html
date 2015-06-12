@@ -60,7 +60,7 @@ function showImg( url ) {
     <td>{{ psku.remain_num }}</td>
     <td>{{ psku.remain_num|sub:psku.wait_post_num }}</td>
     <td>{{ psku.name }}</td>
-    <td>{{ psku.wskus.0.sku_name }}</td>
+    <td><label>{{ psku.wskus.0.sku_name }}</label></td>
     <td>
         {% for wsku in psku.wskus %}
         <script type="text/javascript">showImg('{% if wsku.sku_image %}{{ wsku.sku_image }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}');</script>
@@ -137,7 +137,7 @@ $(document).ready(function(){
 		
 		var callback = function(resp){
 			if (resp.code == 0){
-				var lcs = $('.table > tbody > tr >td >img:last-child');
+				var lcs = $('.table > tbody > tr >td >label:last-child');
 				$.each(lcs,function(index,dd){
 					$(dd).after('<img src="/static/admin/img/icon-yes.gif" />');
 				});
