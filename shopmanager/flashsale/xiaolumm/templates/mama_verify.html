@@ -67,8 +67,12 @@
                         weikefu_attr.attr("disabled", "disabled"); //输入框状态关闭
                         grou_attr.attr("disabled", "disabled");//选择框关闭
                     }
-                    else {
-                        alert("server error");
+                    else if (result == "multiple") {
+                        alert("手机号对应多位小鹿妈妈");
+                    }else if (result == "unfound") {
+                        alert("手机号未找到小鹿妈妈");
+                    }else{
+                    	alert("server error");
                     }
                 }
                 $.get(url, data, callback);

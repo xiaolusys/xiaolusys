@@ -52,10 +52,6 @@ class XiaoluMama(models.Model):
     pending = models.IntegerField(default=0,verbose_name=u"冻结佣金")
     
     hasale  = models.BooleanField(default=False,verbose_name=u"有购买")
-    order_count  = models.IntegerField(default=0,verbose_name=u"截止昨日总单数")
-    order_amount = models.IntegerField(default=0,verbose_name=u"截止昨日总单价")
-    click_count  = models.IntegerField(default=0,verbose_name=u"截止昨日有效点击数")
-    agency_count = models.IntegerField(default=0,verbose_name=u"截止昨日二级代理数")
     
     agencylevel = models.IntegerField(default=1,verbose_name=u"代理类别")
     user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")

@@ -96,13 +96,6 @@ class XiaoluMamaAdmin(MyAdmin):
     click_state.allow_tags = True
     click_state.short_description = u"妈妈统计"
     
-    def mama_state(self, obj):
-        dt = datetime.date.today()
-        return (u''%(dt,obj.id))
-        
-    click_state.allow_tags = True
-    click_state.short_description = u"截至昨日总单数/总单额/点击数/代理数"
-    
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
                        ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}

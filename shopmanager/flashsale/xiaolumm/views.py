@@ -707,6 +707,7 @@ def mama_Verify_Action(request):
     xlmm.charge_status = XiaoluMama.CHARGED
     xlmm.manager = request.user.id
     xlmm.weikefu = weikefu
+    xlmm.charge_time = datetime.datetime.now()
     xlmm.user_group_id = user_group
     xlmm.save()
     

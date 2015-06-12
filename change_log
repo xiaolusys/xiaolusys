@@ -1,4 +1,7 @@
 ########### 2015-6-12 #################
+alter table xiaolumm_xiaolumama add column hasale tinyint(1) NOT NULL;
+alter table xiaolumm_xiaolumama add column charge_time datetime;
+
 alter table flashsale_clickcount drop index date, add unique index linkid(linkid,date);
 alter table flashsale_weekcount_table drop index week_code ,add unique index linkid(`linkid`,`week_code`);
 ########### 2015-6-10 #################
