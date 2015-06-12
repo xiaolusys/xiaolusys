@@ -96,6 +96,7 @@ class WeixinProductManager(models.Manager):
         
         product_sku.sku_price   = round(float(sku_dict['price'])/100,2)
         product_sku.ori_price   = round(float(sku_dict['ori_price'])/100,2)
+        product_sku.status      = WXProductSku.UP_SHELF
         
         product_sku.save()
         
