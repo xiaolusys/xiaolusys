@@ -96,7 +96,7 @@ def exam(request,question_id):
             question = get_object_or_404(Question, pk=question_id)
 #         number=0
             print "选题类型",question.single_many
-            return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':0,'question_num': 1})
+            return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':1,'question_num': 1})
         else:
             return  render(request, 'index.html')   
     #question_id = int(question_id)+1
