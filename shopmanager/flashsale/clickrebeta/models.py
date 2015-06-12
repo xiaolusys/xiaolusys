@@ -142,7 +142,7 @@ def tongji(sender, obj, **kwargs):
         return
     
     mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
-        openid=obj.buyer_openid).order_by('-created')
+        openid=obj.buyer_openid).order_by('-click_time')
     if mm_clicks.count() > 0:
         mm_linkid   = mm_clicks[0].linkid
         mm_order_rebeta =  obj.order_total_price

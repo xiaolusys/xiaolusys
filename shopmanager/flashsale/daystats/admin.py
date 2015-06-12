@@ -28,7 +28,8 @@ class DailyStatAdmin(admin.ModelAdmin):
                     'get_total_payment_display', 'total_order_num', 'total_new_order_num', 'total_buyer_num', 'get_new_customer_num_display',
                     'get_seven_new_buyer_num','get_daily_rpi_display','get_price_per_customer_display', 'get_daily_roi_display')
     list_filter = (('day_date',DateFieldListFilter),)
-    search_fields = ['day_date']
+    date_hierarchy = 'day_date'
+    search_fields = ['=day_date']
     ordering = ('-day_date',)
 
 

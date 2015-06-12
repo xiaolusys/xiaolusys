@@ -11,7 +11,7 @@ class ClickCountAdmin(admin.ModelAdmin):
     list_display_links = ['linkid', 'username']
     list_filter = ('date', 'username')
     
-    search_fields = ['mobile']
+    search_fields = ['=linkid','=mobile']
     
 admin.site.register(ClickCount, ClickCountAdmin)
 
@@ -22,5 +22,7 @@ class WeekCountAdmin(admin.ModelAdmin):
 
     list_display_links = ['linkid', 'week_code']
     list_filter = ('week_code',)
+    
+    search_fields = ['=linkid','=week_code']
 
 admin.site.register(WeekCount, WeekCountAdmin)
