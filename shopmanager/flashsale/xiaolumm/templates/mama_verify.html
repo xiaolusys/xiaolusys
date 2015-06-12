@@ -30,26 +30,28 @@
     <script type="text/javascript">
         function shenhe(id) { //通过
             var i = id.toString();
-            index = "bt_verify_" + id;
-            url = '/m/mama_verify_action/';
+            var index = "bt_verify_" + id;
+            var url = '/m/mama_verify_action/';
 
-            tuijianren_id = "tuijianren_" + id;
-            weikefu_id = "weikefu_" + id;
-            group_select = "group_select_"+id;
+            var tuijianren_id = "tuijianren_" + id;
+            var weikefu_id = "weikefu_" + id;
+            var group_select = "group_select_"+id;
 
             var tuijianren = document.getElementById(tuijianren_id).value; //获取推荐人字段 手机号码
             var weikefu = document.getElementById(weikefu_id).value; //获取微客服字段
             var group = document.getElementById(group_select).value;// 获取群组字段
-            console.log(group);
-
+			
             var user_show = document.getElementById('user_show').innerHTML;
             if (user_show === "") {
                 alert('管理员掉线，请重新登录系统后操作，谢谢！');
-            }
-            else {
+            }else {
+            	var bt_verify = $('#' + index);
+            	if (bt_verify.hasClass('loadding')){
+            		return 
+            	}
+            	bt_verify.addClass('loadding');
                 data = {"id": id, 'tuijianren': tuijianren, 'weikefu': weikefu,'group':group};
-
-                var bt_verify = $('#' + index);
+                
                 tui = 'tuijianren_' + id;
                 var tuijianren_attr = $('#' + tui);
                 wei = 'weikefu_' + id;
@@ -72,7 +74,6 @@
                 $.get(url, data, callback);
             }
         }
-
 
     </script>
 

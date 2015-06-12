@@ -109,7 +109,7 @@ class ProductAdmin(admin.ModelAdmin):
                    ChargerFilter,'sync_stock','is_split','is_match','is_assign'
                    ,'post_check',('created',DateFieldListFilter),'category')
 
-    search_fields = ['=id','^outer_id', 'name' , '=barcode','^sale_charger','^storage_charger']
+    search_fields = ['=id','^outer_id', 'name' , '=barcode','=sale_charger','=storage_charger']
     
     def outer_id_link(self, obj):
         
@@ -395,34 +395,18 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_items_stock.short_description = u"同步淘宝线上库存"
     
-    
     #作废商品
     def invalid_product_action(self,request,queryset):
          
-        for p in queryset:
-            cnt = 0
-            success = False
-            invalid_outerid = p.outer_id 
-            while cnt < 10:
-                invalid_outerid += '_del'
-                products = Product.objects.filter(outer_id=invalid_outerid)
-                if products.count() == 0:
-                    success = True
-                    break
-                cnt += 1
-                
-            if not success:
-                continue
-            
-            p.outer_id = invalid_outerid
-            p.status = pcfg.DELETE
-            p.save()
-            
-            log_action(request.user.id,p,CHANGE,u'商品作废')
+        if queryset.count() >= 25:
+            self.message_user(request,u"*********作废的商品数不能超过24个************")
+            return HttpResponseRedirect(request.get_full_path())
         
-        self.message_user(request,u"已成功作废%s个商品!"%queryset.filter(status=pcfg.DELETE).count())
+        product_ids = ','.join([p.outer_id for p in queryset])
+        origin_url = request.get_full_path()
         
-        return HttpResponseRedirect(request.get_full_path())
+        return render_to_response('items/product_delete.html',{'product_ids':product_ids,'products':queryset,'origin_url':origin_url},
+                                  context_instance=RequestContext(request),mimetype="text/html")
         
     invalid_product_action.short_description = u"作废库存商品（批量 ）"
     

@@ -66,6 +66,7 @@ class StatisticsShoppingAdmin(admin.ModelAdmin):
     list_display = ('linkid', 'linkname', 'openid','wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime','status')
     
     list_filter = ('status',('shoptime',DateFieldListFilter),)
+
     date_hierarchy = 'shoptime'
     search_fields = ['=openid','=wxorderid']
     

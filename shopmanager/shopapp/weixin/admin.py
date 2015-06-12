@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea
+
+from shopback.base.admin import MyAdmin
 from shopback.base.options import DateFieldListFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopapp.weixin.models import (WeiXinAccount,
@@ -142,7 +144,7 @@ class UserGroupAdmin(admin.ModelAdmin):
 
 admin.site.register(UserGroup, UserGroupAdmin) 
 
-class WeiXinUserAdmin(admin.ModelAdmin):
+class WeiXinUserAdmin(MyAdmin):
     
     user_groups = []
     list_per_page = 25
@@ -278,7 +280,7 @@ class WXProductSkuAdmin(admin.ModelAdmin):
 admin.site.register(WXProductSku, WXProductSkuAdmin) 
 
 
-class WXOrderAdmin(admin.ModelAdmin):
+class WXOrderAdmin(MyAdmin):
     
     list_display = ('order_id','buyer_nick','order_total_price','order_create_time',
                     'delivery_id','delivery_company','order_status')
@@ -426,7 +428,7 @@ class SampleOrderChangeList(ChangeList):
         
         return super(SampleOrderChangeList,self).get_query_set(request)
 
-class SampleOrderAdmin(admin.ModelAdmin):
+class SampleOrderAdmin(MyAdmin):
 
     
     list_display = ('product_name','sku_code','user_openid','problem_score','vipcode','created','status')
@@ -487,7 +489,7 @@ class VipCodeChangeList(ChangeList):
         return super(VipCodeChangeList,self).get_query_set(request)
     
     
-class VipCodeAdmin(admin.ModelAdmin):
+class VipCodeAdmin(MyAdmin):
 
     list_display = ('owner_openid','code','expiry','code_type',
                     'code_rule', 'max_usage', 'usage_count','created')

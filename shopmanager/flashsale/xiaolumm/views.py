@@ -205,14 +205,16 @@ class MamaStatsView(View):
         data   = {}
         try:
             referal_num = XiaoluMama.objects.filter(referal_from=mobile).count()
-            xlmm,status = XiaoluMama.objects.get_or_create(openid=unionid)
+            xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
-                xlmm.weikefu = wx_user.nickname
+                xlmm.weikefu = xlmm.weikefu or wx_user.nickname
                 xlmm.save()
             
-            mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
+            if xlmm.status == XiaoluMama.FROZEN:
+                return render_to_response("mama_404.html")
             
+            mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
             order_num   = 0
             total_value = 0
             carry       = 0
@@ -655,7 +657,7 @@ def mama_Verify(request):
 @csrf_exempt
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
-    tuijianren = request.GET.get('tuijianren')
+    referal_mobile = request.GET.get('tuijianren','').strip()
     weikefu = request.GET.get('weikefu')
     user_group =int(request.GET.get('group'))
 
@@ -665,10 +667,19 @@ def mama_Verify_Action(request):
     sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
                                  sale_trade__buyer_id=customer.id,
                                  sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
-
+    
     if sale_orders.count() == 0:
-        return None
-
+        return HttpResponse('reject')
+    
+    referal_mama = None
+    if referal_mobile:
+        try:
+            referal_mama = XiaoluMama.objects.get(mobile=referal_mobile)
+        except XiaoluMama.DoesNotExist:
+            return HttpResponse('unfound')
+        except XiaoluMama.MultipleObjectsReturned:
+            return HttpResponse('multiple')
+    
     order = sale_orders[0]
     order.status = SaleOrder.TRADE_FINISHED # 改写订单明细状态
     order.save()
@@ -676,23 +687,38 @@ def mama_Verify_Action(request):
     trade = order.sale_trade
     trade.status = SaleTrade.TRADE_FINISHED  # 改写 订单状态
     trade.save()
-
+    
+    diposit_cash = 13000
+    recruit_rebeta = 5000
     # 修改小鹿妈妈的记录
-    CarryLog.objects.get_or_create(xlmm=xlmm.id,
-                                     log_type=CarryLog.DEPOSIT,
-                                     value=13000,
-                                     buyer_nick= weikefu,
-                                     carry_type=CarryLog.CARRY_IN,
-                                     status=CarryLog.CONFIRMED)
-
-    xlmm.cash = xlmm.cash + 13000 # 分单位
-    xlmm.referal_from = tuijianren
+    log_tp = CarryLog.objects.get_or_create(xlmm=xlmm.id,
+                                   order_num=trade.id,
+                                   log_type=CarryLog.DEPOSIT,
+                                   value=diposit_cash,
+                                   buyer_nick= weikefu,
+                                   carry_type=CarryLog.CARRY_IN,
+                                   status=CarryLog.CONFIRMED)
+    if not log_tp[1]:
+        return HttpResponse('reject')
+    
+    xlmm.cash = F('cash') + diposit_cash # 分单位
+    xlmm.referal_from = referal_mobile
     xlmm.agencylevel = 2
     xlmm.charge_status = XiaoluMama.CHARGED
     xlmm.manager = request.user.id
     xlmm.weikefu = weikefu
     xlmm.user_group_id = user_group
     xlmm.save()
+    
+    if referal_mama:
+        CarryLog.objects.get_or_create(xlmm=referal_mama.id,
+                                       order_num=xlmm.id,
+                                        log_type=CarryLog.MAMA_RECRUIT,
+                                        value=recruit_rebeta,
+                                        buyer_nick=referal_mama.weikefu,
+                                        carry_type=CarryLog.CARRY_IN,
+                                        status=CarryLog.PENDING)
+        
     return HttpResponse('ok')
 
 
@@ -891,14 +917,10 @@ def kf_Logistics(request):
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
 
 
-
-
 # 小鹿妈妈代理的点击前50 ，每天，上周，前四周
-
 from view_top50 import xlmm_Click_Top_By_Day, xlmm_Order_Top_By_Day, xlmm_Conversion_Top_By_Week,\
     xlmm_Click_Top_By_Week, xlmm_Order_Top_By_Week, xlmm_Click_Top_By_Month, xlmm_Order_Top_By_Month,\
     xlmm_Convers_Top_By_Month
-
 
 
 @csrf_exempt

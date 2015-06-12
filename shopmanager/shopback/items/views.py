@@ -1167,4 +1167,8 @@ class ProductScanView(ModelView):
                 'scan_num':prod.scan_num,
                 'location':product.get_districts_code(),
                 'barcode':prod.barcode}
-        
+
+
+
+
+

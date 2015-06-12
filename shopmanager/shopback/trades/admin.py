@@ -34,6 +34,7 @@ from shopback.trades.filters import (DateFieldListFilter,
                                      BitFieldListFilter,
                                      TradeStatusFilter)
 from shopback.trades.service import TradeService
+from shopback.base.admin import MyAdmin
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.trades import permissions as perms
 from common.utils import (gen_cvs_tuple,
@@ -120,7 +121,7 @@ class MergeTradeChangeList(ChangeList):
         return super(MergeTradeChangeList,self).get_query_set(request)
 
 
-class MergeTradeAdmin(admin.ModelAdmin):
+class MergeTradeAdmin(MyAdmin):
     list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
                     'payment','pay_time','consign_time','status','sys_status',
                     'reason_code','is_picking_print','is_express_print'#
