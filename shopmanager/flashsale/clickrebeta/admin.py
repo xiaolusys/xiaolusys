@@ -64,7 +64,7 @@ class StatisticsShoppingAdmin(admin.ModelAdmin):
     form = StatisticsShoppingForm
     list_display = ('linkid', 'linkname', 'openid','wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime','status')
     list_filter = ('status',('shoptime',DateFieldListFilter),)
-    search_fields = ['openid','wxorderid']
+    search_fields = ['=openid','=wxorderid']
     
     def get_changelist(self, request, **kwargs):
 
@@ -98,7 +98,7 @@ class StatisticsShoppingByDayAdmin(admin.ModelAdmin):
     form = StatisticsShoppingByDayAdminForm
     list_display = ('linkid', 'linkname','buyercount', 'ordernumcount', 'order_cash', 'today_cash', 'tongjidate')
     list_filter = (('tongjidate',DateFieldListFilter),)
-    search_fields = ['linkid']
+    search_fields = ['=linkid']
 
 
 admin.site.register(StatisticsShoppingByDay, StatisticsShoppingByDayAdmin)
