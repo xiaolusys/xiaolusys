@@ -622,8 +622,8 @@ class ProductAdmin(admin.ModelAdmin):
     #商品库存
     def weixin_product_action(self,request,queryset):
         
-        if queryset.count() > 10:
-            self.message_user(request,u"*********选择更新的商品数不能超过10个************")
+        if queryset.count() > 25:
+            self.message_user(request,u"*********选择更新的商品数不能超过25个************")
             return HttpResponseRedirect(request.get_full_path())
          
         product_ids = ','.join([str(p.id) for p in queryset])
