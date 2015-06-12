@@ -65,7 +65,6 @@ function showImg( url ) {
         {% for wsku in psku.wskus %}
         <script type="text/javascript">showImg('{% if wsku.sku_image %}{{ wsku.sku_image }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}');</script>
         {% endfor %}
-		
     </td>
 </tr>
 {% endfor %}

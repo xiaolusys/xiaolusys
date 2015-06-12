@@ -1,0 +1,48 @@
+{% extends "weixin_base.html" %}
+
+{% block title %}库存商品-作废确认{% endblock %}
+
+{% block style %}
+
+{% endblock %}
+
+
+{% block preload_script %}
+
+
+{% endblock %}
+
+
+{% block container %}
+<div class="container-fluid">
+<div class="page-header">
+  <h1>确认作废以下商品 <small><a href="{{ origin_url }}" class="btn btn-success">返回上一页</a></small></h1>
+</div>
+
+
+<div class="jumbotron">
+  <form action="{% url invalid_product %}" method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="product_ids" value="{{ product_ids }}" />
+  <input type="hidden" name="origin_url" value="{{ origin_url }}" />
+  <h1>商品列表：</h1>
+ 	<table class="table table-striped">
+ 	{% for p in products %}
+ 	<tr><td>{{ p.outer_id }}</td><td>{{ p.name }}</td></tr>
+ 	{% endfor %}
+	</table>
+	<div class="input-group">
+	  <span class="input-group-btn">
+	    <button type="submit" type="button" class="btn btn-lg btn-primary " role="button">确认作废</button>
+	  </span>
+	</div><!-- /input-group --> 
+  </form>
+</div>
+
+</div>
+{% endblock %}
+
+
+
+{% block delayed_script %}
+{% endblock %}

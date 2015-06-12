@@ -6,6 +6,7 @@ from django.db.models import Q
 from flashsale.xiaolumm.models import UserGroup
 from django.contrib.admin.views.main import ChangeList
 
+from shopback.base.admin import MyAdmin
 from shopback.base.options import DateFieldListFilter
 from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
 
@@ -15,14 +16,14 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 from django.db.models import Sum
 
-class XiaoluMamaAdmin(admin.ModelAdmin):
+class XiaoluMamaAdmin(MyAdmin):
     
     user_groups = []
     
     form = forms.XiaoluMamaForm
-    list_display = ('id','mobile','province','get_cash_display','get_pending_display','weikefu','agencylevel',
-                    'charge_link','group_select','click_state','exam_pass','progress','created','status')
-    list_filter = ('progress','agencylevel','manager','status','charge_status',('created',DateFieldListFilter),'user_group')
+    list_display = ('id','mobile','get_cash_display','get_pending_display','weikefu','agencylevel',
+                    'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status')
+    list_filter = ('progress','agencylevel','manager','status','charge_status','hasale',('created',DateFieldListFilter),'user_group')
     search_fields = ['=id','=mobile','=manager','weikefu','=openid']
     
     def get_changelist(self, request, **kwargs):
@@ -95,6 +96,13 @@ class XiaoluMamaAdmin(admin.ModelAdmin):
     click_state.allow_tags = True
     click_state.short_description = u"妈妈统计"
     
+    def mama_state(self, obj):
+        dt = datetime.date.today()
+        return (u''%(dt,obj.id))
+        
+    click_state.allow_tags = True
+    click_state.short_description = u"截至昨日总单数/总单额/点击数/代理数"
+    
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
                        ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
@@ -142,7 +150,7 @@ class ClicksChangeList(ChangeList):
         return super(ClicksChangeList,self).get_query_set(request)
 
 
-class ClicksAdmin(admin.ModelAdmin):
+class ClicksAdmin(MyAdmin):
     list_display = ('linkid','openid','isvalid','click_time')
     list_filter = ('isvalid',('click_time',DateFieldListFilter),)
     search_fields = ['=openid', '=linkid']
@@ -205,7 +213,7 @@ class CashOutAdmin(admin.ModelAdmin):
 admin.site.register(CashOut, CashOutAdmin) 
 
 
-class CarryLogAdmin(admin.ModelAdmin):
+class CarryLogAdmin(MyAdmin):
     
     form = forms.CarryLogForm
     list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type', 

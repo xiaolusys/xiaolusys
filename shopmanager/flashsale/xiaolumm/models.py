@@ -14,10 +14,10 @@ MM_CLICK_PER_ORDER_PLUS_COUNT = 30
 class XiaoluMama(models.Model):
     
     EFFECT = 'effect'
-    INVALID = 'invalid'
+    FROZEN = 'forzen'
     STATUS_CHOICES = (
-        (EFFECT,u'有效'),
-        (INVALID,u'失效'),
+        (EFFECT,u'正常中'),
+        (FROZEN,u'已冻结')
     )
     
     NONE    = 'none'
@@ -33,11 +33,9 @@ class XiaoluMama(models.Model):
     
     CHARGED  = 'charged'
     UNCHARGE = 'uncharge'
-    FROZEN = 'frozen'
     CHARGE_STATUS_CHOICES = (
         (UNCHARGE,u'待接管'),
         (CHARGED,u'已接管'),
-        (FROZEN,u'已冻结'),
         )
 
     mobile = models.CharField(max_length=11,db_index=True,blank=False,verbose_name=u"手机")
@@ -53,10 +51,17 @@ class XiaoluMama(models.Model):
     cash    = models.IntegerField(default=0,verbose_name=u"可用现金")
     pending = models.IntegerField(default=0,verbose_name=u"冻结佣金")
     
+    hasale  = models.BooleanField(default=False,verbose_name=u"有购买")
+    order_count  = models.IntegerField(default=0,verbose_name=u"截止昨日总单数")
+    order_amount = models.IntegerField(default=0,verbose_name=u"截止昨日总单价")
+    click_count  = models.IntegerField(default=0,verbose_name=u"截止昨日有效点击数")
+    agency_count = models.IntegerField(default=0,verbose_name=u"截止昨日二级代理数")
+    
     agencylevel = models.IntegerField(default=1,verbose_name=u"代理类别")
     user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")
     
-    created = models.DateTimeField(auto_now_add=True,db_index=True,verbose_name=u'创建时间')
+    charge_time = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name=u'接管时间')
+    created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
                                default=EFFECT,verbose_name=u'状态')
     

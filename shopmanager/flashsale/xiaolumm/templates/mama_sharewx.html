@@ -10,50 +10,13 @@
 
 {% block container %}
 
-<div class="wrapper">
-    <ul class="flow-steps">
-    	<li class="col-xs-4 on"><a href="#" class="btn ">填写资料 &gt;</a></li>
-        <li class="col-xs-4 "><a href="#" class="btn btn-default">支付押金 &gt;</a></li>
-        <li class="col-xs-4 "><a href="#" class="btn btn-default">加入小鹿 &gt;</a></li>
-    </ul>
-    <div class="arr"></div>
-</div>
 
-<div class="jumbotron" style="padding:5px;">
-  <h3>欢迎加入小鹿妈妈</h3>
-  <div class="container">
-    <form class="form-horizontal" action="" method="POST">
-		{% csrf_token %}
-	  <input type="hidden" id="id_openid" name="openid" value="{{ wxuser.openid }}">
-	  <input type="hidden" id="id_unionid" name="unionid" value="{{ wxuser.unionid }}">
-	  {% if not wxuser.isvalid %}
-	  <div class="form-group">
-	  <div class="input-group ">
-		<input type="text" id="id_mobile_input" class="form-control col-xs-8"  placeholder="请输入手机号">
-	    <a href="#" id="id_requestcode_button" class=" btn btn-default input-group-addon" onclick="requestcode();">获取验证码</a>
-	  </div>
-	  </div>
-	  <div class="form-group">
-	  <p><span style="color:red;display:none;" id="id_verify_msg"></span></p>
-	  <div class="input-group ">
-	    <input type="text" id="id_code_input" class="form-control col-xs-8" placeholder="请输入验证码">
-	    <a href="#" id="id_verifycode_button" class="btn btn-default input-group-addon" onclick="verifycode();">验证手机号</a>
-	  </div>
-	  </div>
-	  {% endif %}
-	  <div class="form-group">
-	    <div class="input-group ">
-	      <input type="text" class="form-control" name="nickname" placeholder="填写自己姓名">
-	      <div class="input-group-addon">@小鹿美美</div>
-	    </div>
-	  </div>
-	  <div class="form-group">
-	  	<div class="col-xs-12 ">
-		  <button type="submit" name="diposite" class="btn btn-warning">下一步</button>
-		</div>
-	  </div>
-	</form>
-  </div>
+<div class="jumbotron">
+  <h1>发布朋友圈特卖消息</h1>、
+  <p><label>您的专属链接:</label>http://xiaolu.so/m/{{  }}/</p>
+  <a href="#" class="thumbnail">
+	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLse1hz66vnCFjibCUicgU5NV2lvkCF2WTkrxQxHuSPlDsmWhibfvV9JHvAfHBGeOMXQxnL48LhqhCjmw/0?wx_fmt=png" alt="发布朋友圈特卖消息">
+  </a>
 </div>
 
 {% endblock %}

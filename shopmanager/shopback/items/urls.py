@@ -37,7 +37,7 @@ from shopback.items.renderers import (ProductListHtmlRenderer,
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
-
+from shopback.items.views_rest import MamaConfirmView
 
 urlpatterns = patterns('shopback.items.views',
 
@@ -45,6 +45,7 @@ urlpatterns = patterns('shopback.items.views',
     url('update/item/$','update_user_item',name='update_item'),
     url('update/stock/$','update_product_stock',name='update_stock'),
     url('district/query/$','deposite_district_query',name='query_district'),
+    url('invalid/$',MamaConfirmView.as_view(),name='invalid_product'),
     url('product/district/delete/$','delete_product_district',name='delete_district'),
     (r'^split/$',TemplateView.as_view(template_name="items/split_product_template.html")),
     (r'^product/(?P<id>[0-9]+)/$',ProductView.as_view(

@@ -1,5 +1,5 @@
 
-KEY_LIST = [1,2,3,4,5,6,7,8,9,10,11,12,13]
+KEY_LIST = [1,2,3,4,5,6,7,8,9,10,11,12]
 
 KEY_MAP = [  
          'qianxun01',
@@ -7,7 +7,7 @@ KEY_MAP = [
             'qiqi03',
          'chengzi04',
           'xiaoyi05',
-           'xibao06',
+#            'xibao06',
         'tongtong07',
 #           'yunyun08',
         'huanhuan09',

@@ -108,6 +108,7 @@ class MamaRegisterView(APIView):
                                   {'wxuser':wx_user,'xlmm':xlmm},
                                   context_instance=RequestContext(request))
         
+        
 class MamaConfirmView(APIView):
     
 #     authentication_classes = (authentication.TokenAuthentication,)
