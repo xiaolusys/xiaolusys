@@ -674,7 +674,7 @@ def mama_Verify_Action(request):
     referal_mama = None
     if referal_mobile:
         try:
-            referal_mama = XiaoluMama.objects.get(mobile=referal_mobile)
+            referal_mama = XiaoluMama.objects.normal_queryset.get(mobile=referal_mobile)
         except XiaoluMama.DoesNotExist:
             return HttpResponse('unfound')
         except XiaoluMama.MultipleObjectsReturned:

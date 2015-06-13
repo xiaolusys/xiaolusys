@@ -35,3 +35,12 @@ class XiaoluMamaManager(models.Manager):
         
         xlmm.charge_status = self.model.UNCHARGE
         xlmm.save()
+    
+    @property
+    def normal_queryset(self):
+        
+        queryset = self.get_queryset()
+        return queryset.filter(status=self.model.EFFECT)
+    
+    
+    
