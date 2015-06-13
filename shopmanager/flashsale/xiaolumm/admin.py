@@ -6,7 +6,7 @@ from django.db.models import Q
 from flashsale.xiaolumm.models import UserGroup
 from django.contrib.admin.views.main import ChangeList
 
-from shopback.base.options import DateFieldListFilter
+from shopback.base.options import DateFieldListFilter,SimpleListFilter
 from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
 
 from . import forms 
@@ -14,6 +14,9 @@ from flashsale.mmexam.models import Result
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 from django.db.models import Sum
+from django.contrib.auth.models import User
+from .filters import UserNameFilter
+
 
 class XiaoluMamaAdmin(admin.ModelAdmin):
     
@@ -157,8 +160,8 @@ admin.site.register(Clicks, ClicksAdmin)
 class CashOutAdmin(admin.ModelAdmin):
     
     form = forms.CashOutForm
-    list_display = ('xlmm','get_value_display','get_xlmm_history_cashin','get_xlmm_total_click','get_xlmm_total_order','status','approve_time','created','get_cashout_verify')
-    list_filter  = ('status',('approve_time',DateFieldListFilter),('created',DateFieldListFilter))
+    list_display = ('xlmm','get_value_display','get_xlmm_history_cashin','get_xlmm_total_click','get_xlmm_total_order','status','approve_time','created','get_cashout_verify','get_cash_out_xlmm_manager')
+    list_filter  = ('status',('approve_time',DateFieldListFilter),('created',DateFieldListFilter), UserNameFilter)
     search_fields = ['=xlmm']
 
     def get_cashout_verify(self, obj):
@@ -200,6 +203,17 @@ class CashOutAdmin(admin.ModelAdmin):
     
     get_xlmm_history_cashin.allow_tags = True
     get_xlmm_history_cashin.short_description = u'历史总收入'
+    
+    # 添加妈妈所属管理员字段
+    #----------------------------------------------------------------------
+    def  get_cash_out_xlmm_manager(self,obj):
+        """获取小鹿妈妈的管理员，显示到提现记录列表中"""
+        xlmm = XiaoluMama.objects.get(id=obj.xlmm)
+        username = User.objects.get(id=xlmm.manager)
+        return username
+    
+    get_cash_out_xlmm_manager.allow_tags = True
+    get_cash_out_xlmm_manager.short_description = u'所属管理员'
 
     
 admin.site.register(CashOut, CashOutAdmin) 
