@@ -52,26 +52,26 @@ class DailyDingHuoView(View):
                     "and (left(outer_id,1)='9' or left(outer_id,1)='8' or left(outer_id,1)='1') " \
                     "group by outer_id,outer_sku_id".format(shelve_from, time_to)
         if groupname == 0:
-            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.properties_alias,B.memo,B.id as sku_id from " \
+            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.properties_alias,B.memo,B.quantity,B.id as sku_id from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser))) as A " \
-                          "left join (select id,product_id,memo,outer_id,properties_alias from shop_items_productsku) as B " \
+                          "left join (select id,product_id,memo,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id".format(target_date)
         else:
-            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.properties_alias,B.memo,B.id as sku_id from " \
+            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id,B.quantity as outer_sku_id,B.properties_alias,B.memo,B.id as sku_id from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id={1}))) as A " \
-                          "left join (select id,product_id,memo,outer_id,properties_alias from shop_items_productsku) as B " \
+                          "left join (select id,product_id,memo,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id".format(target_date, groupname)
         ding_huo_sql = "select outer_id,chichu_id,buy_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
                        "from suplychain_flashsale_orderdetail " \
-                       "where orderlist_id not in(select id from suplychain_flashsale_orderlist where status='作废')"
-        print ding_huo_sql
-        sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias,order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.memo,product.sku_id " \
+                       "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status in ('草稿','审核'))"
+        sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
+              "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.memo,product.sku_id,product.quantity,product.id " \
               "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id and product.outer_sku_id=order_info.outer_sku_id left join (" + ding_huo_sql + ") as ding_huo_info on product.outer_id=ding_huo_info.outer_id and product.sku_id=ding_huo_info.chichu_id"
         cursor = connection.cursor()
         cursor.execute(sql)
@@ -82,15 +82,15 @@ class DailyDingHuoView(View):
             ding_huo_num = int(product[6] or 0)
             sku_dict = {"memo": product[8]}
             ding_huo_status, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                sale_num, ding_huo_num, sku_dict)
-            temp_dict = {"sku_id": product[2], "product_name": product[1], "pic_path": product[3],
-                         "sale_num": sale_num or 0, "sku_name": product[4], "ding_huo_num": ding_huo_num,
-                         "effect_num": product[7] or 0, "ding_huo_status": ding_huo_status,
-                         "sku_memo": sku_dict['memo'], "flag_of_memo": flag_of_memo,
+                sale_num, ding_huo_num, sku_dict, int(product[10] or 0))
+            temp_dict = {"product_id": product[11], "sku_id": product[2], "product_name": product[1],
+                         "pic_path": product[3], "sale_num": sale_num or 0, "sku_name": product[4],
+                         "ding_huo_num": ding_huo_num, "effect_num": product[7] or 0,
+                         "ding_huo_status": ding_huo_status, "sku_memo": sku_dict['memo'], "flag_of_memo": flag_of_memo,
                          "flag_of_more": flag_of_more, "flag_of_less": flag_of_less,
-                         "sku_id": product[9]}
+                         "sku_id": product[9],"ku_cun_num":int(product[10] or 0)}
             if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
-                                        flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
+                        flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                 if product[0] not in trade_dict:
                     trade_dict[product[0]] = [temp_dict]
 
