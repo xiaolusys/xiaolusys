@@ -60,13 +60,14 @@ class DailyDingHuoView(View):
                           "left join (select id,product_id,memo,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id".format(target_date)
         else:
-            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id,B.quantity as outer_sku_id,B.properties_alias,B.memo,B.id as sku_id from " \
+            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.memo,B.id as sku_id from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id={1}))) as A " \
                           "left join (select id,product_id,memo,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id".format(target_date, groupname)
+        print product_sql
         ding_huo_sql = "select outer_id,chichu_id,buy_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
                        "from suplychain_flashsale_orderdetail " \
                        "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status in ('草稿','审核'))"
