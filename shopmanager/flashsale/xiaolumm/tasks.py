@@ -183,7 +183,7 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
     
     if xlmm_id:
         c_logs = c_logs.filter(xlmm=xlmm_id)
-        
+    
     for cl in c_logs:
         
         xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
@@ -218,11 +218,10 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         if urows > 0:
             cl.status = CarryLog.CONFIRMED
         cl.save()        
-            
+
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 
 from flashsale.clickrebeta.models import StatisticsShopping
-
 @task()
 def task_ThousandRebeta(date_from,date_to):
 
