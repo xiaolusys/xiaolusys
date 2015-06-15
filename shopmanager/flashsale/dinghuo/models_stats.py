@@ -28,6 +28,7 @@ class SupplyChainStatsOrder(models.Model):
     product_id = models.CharField(max_length=32, verbose_name=u'商品id')
     outer_sku_id = models.CharField(max_length=32, verbose_name=u'规格外部id')
     sale_time = models.DateField(verbose_name=u'统计时间')
+    shelve_time = models.DateField(verbose_name=u'上架时间')
     ding_huo_num = models.IntegerField(default=0, verbose_name=u'订货数量')
     sale_num = models.IntegerField(default=0, verbose_name=u'销售数量')
     arrival_num = models.IntegerField(default=0, verbose_name=u'到货数量')
@@ -61,7 +62,7 @@ class DailySupplyChainStatsOrder(models.Model):
 
     class Meta:
         db_table = 'supply_chain_stats_daily'
-        unique_together = ('product_id', )
+        unique_together = ('product_id', 'sale_time')
         verbose_name = u'供应链数据统计表'
         verbose_name_plural = u'供应链数据统计表'
 
