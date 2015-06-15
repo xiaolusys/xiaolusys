@@ -33,3 +33,4 @@ class UserNameFilter(SimpleListFilter):
             cash_ids = [cs.id for cs in cash_rawqs]
             #return CashOut.objects.filter(id__in=cash_ids)
             return queryset.filter(id__in=cash_ids)
+        

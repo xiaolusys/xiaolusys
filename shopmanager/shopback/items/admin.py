@@ -271,8 +271,7 @@ class ProductAdmin(admin.ModelAdmin):
         if not perms.has_change_product_skunum_permission(request.user):
             return self.readonly_fields + ('collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
-
-
+    
     def get_actions(self, request):
         
         user = request.user
@@ -356,6 +355,7 @@ class ProductAdmin(admin.ModelAdmin):
         if ordering:
             qs = qs.order_by(*ordering)
         return qs
+    
     
     #更新用户线上商品入库
     def sync_items_stock(self,request,queryset):

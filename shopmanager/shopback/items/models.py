@@ -14,7 +14,7 @@ from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save,post_save
 from shopback.users.models import User
 from .managers import ProductManager
 from auth import apis
@@ -336,7 +336,20 @@ class Product(models.Model):
             ds.append(len(v)>1 and '%s-[%s]'%(k,','.join(list(v))) or '%s-%s'%(k,v.pop()))
         
         return ','.join(ds)
+
+
+def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     
+    products = Product.objects.filter(id=instance.id)
+    if products.count() > 0:
+        product = products[0]
+        #如果上架时间修改，则重置is_verify
+        if product.sale_time != instance.sale_time:
+            instance.is_verify = False
+        
+    
+pre_save.connect(change_obj_state_by_pre_save, sender=Product)
+
     
 class ProductSku(models.Model):
     
@@ -591,6 +604,7 @@ class ProductSku(models.Model):
             ds.append('%s-[%s]'%(k,','.join(v)))
         
         return ','.join(ds)
+    
     
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
