@@ -35,6 +35,8 @@ urlpatterns = patterns('',
     url(r'^duokefu_weixin_order/$',views_duokefu.kf_Weixin_Order,name="weixin_Order"),
     url(r'^duokefu_order_detail/$',views_duokefu.kf_Search_Order_Detail,name="kf_Search_Order_Detail"),
     url(r'^duokefu_find_more/$',views_duokefu.ke_Find_More_Weixin_Order,name="ke_Find_More_Weixin_Order"),
+    url(r'^duokefu_logistics/$',views_duokefu.kf_Logistics,name="kf_Logistics"),
+    
 
 
     url(r'^top50/click/$', views.xlmm_Click_Top, name="xlmm_Click_Top"),

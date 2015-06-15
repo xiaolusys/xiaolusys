@@ -196,7 +196,12 @@ def kf_Search_Order_Detail(request):
 
 def kf_Logistics(request):
     # 默认显示weixin order的 物流信息   看物流接口
-    data = []
+    data = []   
     data_entry = {}
     data.append(data_entry)
+    #logistics=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+    print 'duokefu_logistics is here', logistics
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
+
+
+#  根据运单号来查找订单

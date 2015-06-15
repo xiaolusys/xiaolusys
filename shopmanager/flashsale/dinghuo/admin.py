@@ -149,7 +149,7 @@ admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)
 
 
 class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
-    list_display = ('product_id', 'outer_sku_id', 'sale_time', 'sale_num', 'trade_general_time_name',
+    list_display = ('product_id', 'outer_sku_id', 'sale_time', 'shelve_time', 'sale_num', 'trade_general_time_name',
                     'ding_huo_num', 'order_deal_time_name',
                     'arrival_num', 'goods_arrival_time_name',
                     'goods_out_num', 'goods_out_time_name')
