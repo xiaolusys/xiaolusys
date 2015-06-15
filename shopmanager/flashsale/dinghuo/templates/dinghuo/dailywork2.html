@@ -1,0 +1,221 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}大货统计{% endblock %}
+{% block head_script %}
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <style type="text/css">
+        .floatButton {
+            margin-right: 0px;
+            top: 50px;
+            left: 20px;
+            position: absolute;
+        }
+
+        .floatview {
+            margin-right: 0px;
+            bottom: 50px;
+            right: 20px;
+            position: absolute;
+        }
+    </style>
+{% endblock %}
+{% block container %}
+    <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/daily_work/">
+        <div class="row form-group" style="margin-top: 40px">
+            <div class="col-xs-2">
+                <label class="control-label" for="df">上架日期:</label>
+                <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
+                       value="{{ shelve_from }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="dt">订单结束时间:</label>
+                <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ time_to }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="showt">查看订货日期:</label>
+                <input type="text" id="show_datepicker" name="showt" class="form-control datepicker"
+                       value="{{ searchDinghuo }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="groupname">查看分组:</label>
+                <select class="form-control " name="groupname" id="groupname_id">
+                    <option value="0" {% ifequal groupname 0 %} selected="selected" {% endifequal %}>所有</option>
+                    <option class="btn-info" {% ifequal groupname 1 %} selected="selected" {% endifequal %} value="1">
+                        采购A
+                    </option>
+                    <option class="btn-warning" {% ifequal groupname 2 %} selected="selected" {% endifequal %}value="2">
+                        采购B
+                    </option>
+                    <option class="btn-success" {% ifequal groupname 3 %} selected="selected" {% endifequal %}value="3">
+                        采购C
+                    </option>
+                </select>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="dhstatus">大货状态:</label>
+                <select class="form-control" name="dhstatus" id="dhstatus_id">
+                    <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
+                    <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
+                            value="1">显示异常(缺货,订多)
+                    </option>
+                    <option class="btn-danger" {% ifequal dhstatus '2' %} selected="selected" {% endifequal %}
+                            value="2">只显示缺货
+                    </option>
+                    <option class="btn-danger" {% ifequal dhstatus '3' %} selected="selected" {% endifequal %}
+                            value="3">只显示订多
+                    </option>
+
+                </select>
+            </div>
+            <div class="col-xs-1">
+                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+        </div>
+    </form>
+    <div class="row" style="margin-top: 20px">
+        <table class="table table-bordered" id="resultTable">
+            <thead style="background-color:#01B5A2;">
+            <th width="250px">商品信息</th>
+            <th width="100px">图片</th>
+            <th>尺寸</th>
+            <th>销售数</th>
+            <th>已拍数量(有效数量)</th>
+            <th>样品数量</th>
+            <th width="150px">状态</th>
+            </thead>
+            <tbody>
+
+            {% for product_id,product in  target_product.items %}
+
+                {% with product|length as sku_len %}
+                    {% if sku_len > 0 %}
+                        {% for sku in product %}
+                            <tr>
+                                {% if forloop.first %}
+                                    <td rowspan="{{ sku_len }}">{{ sku.product_name }}<br>
+                                        <a href="/sale/dinghuo/adddetail/{{ product_id }}"
+                                           target="_blank">编码:{{ product_id }}</a>
+                                    </td>
+                                    <td  rowspan="{{ sku_len }}"><img src="{{ sku.pic_path }}" width="100px"
+                                             class="img-circle">
+                                    </td>
+                                {% endif %}
+                                <td>{{ sku.sku_name }}</td>
+                                <td><span id="sale_num_{{ sku.id }}">{{ sku.sale_num }}</span></td>
+                                <td><a href="/sale/dinghuo/statsbypid/{{ product_id }}" target="_blank"
+
+                                       id="ding_huo_num_{{ sku.id }}">{{ sku.ding_huo_num }} </a>({{ sku.effect_quantity }})
+                                </td>
+                                <td>
+                                    <div class="row">
+                                        <div class="col-xs-8"><span id="memo_id_{{ sku.id }}">{{ sku.memo }}</span>
+                                        </div>
+                                        <div class="col-xs-4">
+                                            {% if sku.flag_of_less or sku.flag_of_more or sku.flag_of_memo %}
+                                                <a onclick="changememo({{ sku.id }},1)">
+                                                    <span class="glyphicon glyphicon-plus"></span></a><br>
+                                                <a onclick="changememo({{ sku.id }},0)">
+                                                    <span class="glyphicon glyphicon-minus"></span>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="dinghuo_status" id="dinghuostatus_{{ sku.id }}"
+                                            {% if sku.flag_of_less %} style="color: red;font-size: 20px"
+                                            {% elif sku.flag_of_more %}
+                                          style="color: blue;font-size: 20px"{% endif %}>{{ sku.dinghuo_status }}</span>
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="floatButton" style="z-index: 9999;">
+        {% if all_pro_sale %}
+            销售最多<br>
+            <img src="{{ all_pro_sale.1.pic_path }}" width="80px" class="img-circle"><span
+                class="badge badge-important">{{ all_pro_sale.1.total_sale_num }}</span><br>
+            {{ all_pro_sale.1.name }}<br>
+            {{ all_pro_sale.0 }}
+        {% endif %}
+    </div>
+    <div class="btn-group-vertical floatview">
+        <button type="button" class="btn btn-default" id="goTop" title="去顶部"><span
+                class="glyphicon glyphicon-arrow-up"></span></button>
+        <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
+                class="glyphicon glyphicon-arrow-down"></span></button>
+    </div>
+{% endblock %}
+
+{% block tail_script %}
+    <script type="text/javascript">
+        $(function () {
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+            $("#t_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            $("#show_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            $('#goTop').click(function () {
+                $('html,body').animate({scrollTop: '0px'}, 800);
+            });
+            $('#goBottom').click(function () {
+                var height = document.body.scrollHeight;
+                $('html,body').animate({scrollTop: height}, 800);
+            });
+            $(window).scroll(function () {
+                var w_height = $(window).height();//浏览器高度
+                var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度
+                $(".floatButton").css("position", "fixed");
+                $(".floatview").css("position", "fixed");
+            });
+        });
+        function changememo(sku_id, flag) {
+            var url = "/sale/dinghuo/changememo/";
+            var indexstatus = "dinghuostatus_" + sku_id;
+            var index_of_memo = "memo_id_" + sku_id;
+            var index_of_ding_huo = "ding_huo_num_" + sku_id;
+            var index_of_sale = "sale_num_" + sku_id;
+            var str_of_memo = $("#" + index_of_memo);
+            var dinghuostatus = $("#" + indexstatus);
+            var ding_huo_num = $("#" + index_of_ding_huo);
+            var sale_num = $("#" + index_of_sale);
+            var data = {
+                "sku_id": sku_id,
+                "flag": flag,
+                "ding_huo_num": ding_huo_num.html(),
+                "sale_num": sale_num.html()
+            };
+            var callback = function (res) {
+                var res_json = eval("(" + res + ")");
+                if (res_json.flag == "1") {
+                    str_of_memo.html(res_json.memo);
+                    dinghuostatus.html(res_json.result_str).css()
+                } else if (res_json.flag == "0") {
+                    str_of_memo.html(res_json.memo);
+                }
+            };
+            $.ajax({url: url, data: data, type: "post", success: callback});
+
+        }
+    </script>
+
+{% endblock %}

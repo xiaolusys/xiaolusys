@@ -132,7 +132,7 @@ def get_product_by_date(shelve_date, group_name="0"):
         for user in all_user:
             group_members.append(user.user.username)
         product_qs = Product.objects.values('id', 'name', 'outer_id', 'pic_path').filter(sale_time=shelve_date,
-                                                                                         sale_charger__in=group_members)
+                                                                                         sale_charger__in=group_members).exclude(status="delete")
     return product_qs
 
 
