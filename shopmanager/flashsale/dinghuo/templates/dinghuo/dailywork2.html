@@ -105,20 +105,20 @@
                                     </td>
                                 {% endif %}
                                 <td>{{ sku.sku_name }}</td>
-                                <td><span id="sale_num_{{ sku.id }}">{{ sku.sale_num }}</span></td>
+                                <td><span id="sale_num_{{ sku.sku_id }}">{{ sku.sale_num }}</span></td>
                                 <td><a href="/sale/dinghuo/statsbypid/{{ product_id }}" target="_blank"
 
-                                       id="ding_huo_num_{{ sku.id }}">{{ sku.ding_huo_num }} </a>({{ sku.effect_quantity }})
+                                       id="ding_huo_num_{{ sku.sku_id }}">{{ sku.ding_huo_num }} </a>({{ sku.effect_num }})
                                 </td>
                                 <td>
                                     <div class="row">
-                                        <div class="col-xs-8"><span id="memo_id_{{ sku.id }}">{{ sku.memo }}</span>
+                                        <div class="col-xs-8"><span id="memo_id_{{ sku.sku_id }}">{{ sku.sku_memo }}</span>
                                         </div>
                                         <div class="col-xs-4">
                                             {% if sku.flag_of_less or sku.flag_of_more or sku.flag_of_memo %}
-                                                <a onclick="changememo({{ sku.id }},1)">
+                                                <a onclick="changememo({{ sku.sku_id }},1)">
                                                     <span class="glyphicon glyphicon-plus"></span></a><br>
-                                                <a onclick="changememo({{ sku.id }},0)">
+                                                <a onclick="changememo({{ sku.sku_id }},0)">
                                                     <span class="glyphicon glyphicon-minus"></span>
                                                 </a>
                                             {% endif %}
@@ -128,10 +128,10 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="dinghuo_status" id="dinghuostatus_{{ sku.id }}"
+                                    <span class="dinghuo_status" id="dinghuostatus_{{ sku.sku_id }}"
                                             {% if sku.flag_of_less %} style="color: red;font-size: 20px"
                                             {% elif sku.flag_of_more %}
-                                          style="color: blue;font-size: 20px"{% endif %}>{{ sku.dinghuo_status }}</span>
+                                          style="color: blue;font-size: 20px"{% endif %}>{{ sku.ding_huo_status }}</span>
                                 </td>
                             </tr>
 
