@@ -6,6 +6,7 @@ from .models import XiaoluMama
 from flashsale.clickcount.models import ClickCount, WeekCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 from django.db import connection, transaction
+from django.contrib.auth.models import User
 
 
 def xlmm_Click_Top_By_Day(request):
@@ -27,14 +28,17 @@ def xlmm_Click_Top_By_Day(request):
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
 
-    sql = "SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
-          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) FROM" \
-          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu FROM " \
+    # manager        username
+
+    sql = "SELECT C.xlmm_total_valid_num,C.linkid,C.weikefu,C.xlmm_total_buyercount,C.xlmm_total_ordernumcount,C.baifenbi,D.username FROM (SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
+          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) AS baifenbi, AA.manager FROM" \
+          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu,B.manager FROM " \
           "(SELECT linkid,SUM(valid_num) AS xlmm_total_valid_num  FROM flashsale_clickcount WHERE linkid IN " \
           "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
           "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
           "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
-          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid".format(time_from, time_to)
+          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(time_from, time_to)
+
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -60,14 +64,17 @@ def xlmm_Order_Top_By_Day(request):
         next_day = target_date + datetime.timedelta(days=1)  # 下一天 则是目标日期加上一天
 
     time_from = datetime.date(target_date.year, target_date.month, target_date.day)
-    sql ="SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) FROM " \
-         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu " \
+
+
+    sql ="SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
+         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
          "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
                  "FROM flashsale_tongji_shopping_day WHERE tongjidate ='{0}' AND" \
           " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2)" \
           "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
           " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
-                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE date = '{0}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ".format(time_from)
+                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE date = '{0}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(time_from)
+
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
@@ -123,14 +130,16 @@ def xlmm_Click_Top_By_Week(request):
     prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-    sql = "SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
-          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) FROM" \
-          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu FROM " \
+
+    sql = "SELECT C.xlmm_total_valid_num,C.linkid,C.weikefu,C.xlmm_total_buyercount,C.xlmm_total_ordernumcount,C.baifenbi,D.username FROM (SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
+          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) AS baifenbi, AA.manager FROM" \
+          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu,B.manager FROM " \
           "(SELECT linkid,SUM(valid_num) AS xlmm_total_valid_num  FROM flashsale_clickcount WHERE linkid IN " \
           "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
           "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
           "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
-          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}' GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid".format(date_from, date_to)
+          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from, date_to)
+
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -162,14 +171,17 @@ def xlmm_Order_Top_By_Week(request):
     prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-    sql ="SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) FROM " \
-         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu " \
+
+    sql ="SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
+         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
          "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
                  "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
           " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2)" \
           "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
           " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
-                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ".format(date_from, date_to)
+                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE  write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from,date_to)
+
+
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
@@ -191,14 +203,16 @@ def xlmm_Click_Top_By_Month(request):
     prev_month = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_month = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
 
-    sql = "SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
-          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) FROM" \
-          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu FROM " \
+    sql = "SELECT C.xlmm_total_valid_num,C.linkid,C.weikefu,C.xlmm_total_buyercount,C.xlmm_total_ordernumcount,C.baifenbi,D.username FROM (SELECT AA.xlmm_total_valid_num,AA.linkid,AA.weikefu,BB.xlmm_total_buyercount,BB.xlmm_total_ordernumcount," \
+          "(IF(AA.xlmm_total_valid_num=0,0,100*(BB.xlmm_total_buyercount/AA.xlmm_total_valid_num))) AS baifenbi, AA.manager FROM" \
+          "(SELECT A.linkid, A.xlmm_total_valid_num, B.weikefu,B.manager FROM " \
           "(SELECT linkid,SUM(valid_num) AS xlmm_total_valid_num  FROM flashsale_clickcount WHERE linkid IN " \
           "(SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2) AND  write_time  BETWEEN '{0}' AND '{1}' GROUP BY linkid ORDER BY xlmm_total_valid_num DESC LIMIT 50) AS A " \
           "LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA " \
           "LEFT JOIN (SELECT linkid,sum(ordernumcount) AS xlmm_total_ordernumcount,sum(buyercount) AS xlmm_total_buyercount" \
-          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}' GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid".format(date_from, date_to)
+          " FROM flashsale_tongji_shopping_day WHERE  tongjidate  BETWEEN '{0}' AND '{1}'   GROUP BY linkid ) AS BB ON AA.linkid = BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from, date_to)
+
+
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -235,14 +249,17 @@ def xlmm_Order_Top_By_Month(request):
     date_from = datetime.date(date_from.year, date_from.month, date_from.day)
     date_to = datetime.date(date_to.year, date_to.month, date_to.day)
 
-    sql ="SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) FROM " \
-         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu " \
+
+    sql ="SELECT C.linkid,C.xlmm_total_ordernumcount,C.weikefu,C.xlmm_total_valid_num,C.xlmm_total_buyercount,C.baifenbi,D.username FROM (SELECT AA.linkid,AA.xlmm_total_ordernumcount,AA.weikefu,BB.xlmm_total_valid_num,AA.xlmm_total_buyercount ,(IF(BB.xlmm_total_valid_num=0,0,100*(AA.xlmm_total_buyercount/BB.xlmm_total_valid_num))) AS baifenbi ,AA.manager FROM " \
+         "(SELECT A.linkid ,A.xlmm_total_ordernumcount,A.xlmm_total_buyercount,B.weikefu,B.manager " \
          "FROM "+"(SELECT linkid, SUM(buyercount) AS xlmm_total_buyercount,SUM(ordernumcount) AS xlmm_total_ordernumcount " \
                  "FROM flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND '{1}' AND" \
           " linkid IN (SELECT id FROM xiaolumm_xiaolumama WHERE agencylevel=2)" \
           "GROUP BY linkid ORDER BY xlmm_total_ordernumcount" \
           " DESC LIMIT 50) AS A LEFT JOIN xiaolumm_xiaolumama AS B ON A.linkid = B.id) AS AA LEFT JOIN " \
-                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ".format(date_from, date_to)
+                 "(SELECT sum(valid_num) AS xlmm_total_valid_num,linkid FROM flashsale_clickcount WHERE  write_time BETWEEN '{0}' AND '{1}' GROUP BY linkid) as BB ON AA.linkid=BB.linkid ) AS C LEFT JOIN (SELECT id,username FROM auth_user) AS D ON C.manager=D.id".format(date_from,date_to)
+
+
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
