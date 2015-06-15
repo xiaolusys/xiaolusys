@@ -265,16 +265,19 @@ class MamaStatsView(View):
                                                                 datetime.datetime(2015,6,15,10,0,0))
                                              ).values('openid').distinct().count()
                 
-                #设置最高有效最高点击上限
-                max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num)
-                if time_from.date() >= CLICK_MAX_LIMIT_DATE:
-                    click_num = min(max_click_count,click_num)
                 
-                click_pay  = click_num * click_price
                 
                 ten_click_num = click_qs.filter(click_time__range=(datetime.datetime(2015,6,15,10), 
                                                                    datetime.datetime(2015,6,15,23,59,59))
                                                 ).values('openid').distinct().count()
+                                                
+                #设置最高有效最高点击上限
+                max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num)
+                if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+                    click_num = min(max_click_count,click_num)
+                    ten_click_num = min(max_click_count,ten_click_num)
+                
+                click_pay  = click_num * click_price                              
                 ten_click_pay = ten_click_num * ten_click_price
                 
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,'referal_mmid':referal_mm,

@@ -16,7 +16,7 @@ CLICK_MAX_LIMIT_DATE  = datetime.date(2015,6,5)
 
 def task_patch_mamacash_61():
     
-    time_end = datetime.datetime(2015,6,1,23,59,59)
+    time_end = datetime.datetime(2015,6,15,23,59,59)
     carry_no = int(time_end.strftime('%y%m%d'))
     
     total_rebeta = 0
@@ -79,23 +79,24 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         click_num    = mm_cc.valid_num
         
         #设置最高有效最高点击上限
+        max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount)
         if time_from.date() >= CLICK_MAX_LIMIT_DATE:
-            max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount)
-            click_num = min(max_click_count,click_num )
+            click_num = min(max_click_count,click_num)
         
-        click_rebeta = click_num  * click_price
+#         click_rebeta = click_num  * click_price
         
-#         ten_click_num   = 0
-#         ten_click_price = 0
-#         if CLICK_ACTIVE_START_TIME.date() == time_from.date():
-#             click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
-#             ten_click_num = click_qs.values('openid').distinct().count()
-#             ten_click_price = click_price + 30
-#         click_rebeta = (mm_cc.valid_num - ten_click_num) * click_price + ten_click_num * ten_click_price
+        ten_click_num   = 0
+        ten_click_price = 0
+        if CLICK_ACTIVE_START_TIME.date() == time_from.date():
+            click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
+            ten_click_num = click_qs.values('openid').distinct().count()
+            ten_click_num = min(ten_click_num,max_click_count)
+            ten_click_price = 30
+            
+        click_rebeta = click_num * click_price + ten_click_num * ten_click_price
 
         if mm_cc.valid_num == 0 or click_price <= 0:
             continue
-        
         
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                      order_num=carry_no,
