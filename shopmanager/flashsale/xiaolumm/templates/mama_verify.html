@@ -60,6 +60,7 @@
                 var grou_attr = $('#'+group);
 
                 function callback(result) {
+                	bt_verify.addClass('loadding');
                     if (result == "ok") {
                         bt_verify.text('已通过接管');
                         bt_verify.attr("disabled", "disabled"); // button 状态关闭

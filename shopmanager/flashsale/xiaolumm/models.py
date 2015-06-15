@@ -353,7 +353,7 @@ class CarryLog(models.Model):
     )
     
     xlmm       = models.BigIntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
-    order_num  = models.BigIntegerField(default=0,db_index=True,verbose_name=u"订单编号")
+    order_num  = models.BigIntegerField(default=0,db_index=True,verbose_name=u"记录标识")
     buyer_nick = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
     value      = models.IntegerField(default=0,verbose_name=u"金额")
     

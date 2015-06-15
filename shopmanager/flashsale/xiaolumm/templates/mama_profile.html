@@ -58,9 +58,7 @@
 	  </div>
 	  {% endif %}
 	  <div class="form-group">
-	  	<div class="col-xs-12 ">
-		  <button type="submit" name="diposite" class="btn btn-warning">进入下一步</button>
-		</div>
+		 <button  type="submit" name="diposite" class="btn btn-lg btn-warning">进入下一步</button>
 	  </div>
 	</form>
   </div>
@@ -167,6 +165,7 @@
           $("#id_verifycode_group").css("display","none");
           $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
           $("#id_mobile_input").attr("disabled","disabled");
+          $("#id_verifycode_button").attr("disabled","disabled");
           $("#id_requestcode_button").attr("status", "2");
         };
         var openid = $("#id_openid").val();

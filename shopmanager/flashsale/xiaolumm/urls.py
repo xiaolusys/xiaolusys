@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import patterns, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required  
-
+from django.views.generic import TemplateView
 
 from . import views
 from .views_register import MamaRegisterView,MamaConfirmView
@@ -12,6 +12,8 @@ urlpatterns = patterns('',
     url(r'^m/$',views.MamaStatsView.as_view(),name="mama_homepage"),
     url(r'^register/(?P<mama_id>\d+)/$',MamaRegisterView.as_view(),name="mama_register"),
     url(r'^register/confirm/$',MamaConfirmView.as_view(),name="mama_confirm"),
+    url(r'^help/sharewx/$', TemplateView.as_view(template_name="mama_sharewx.html"), name='mama_sharewx'),
+    url(r'^help/recruit/$', TemplateView.as_view(template_name="mama_recruit.html"), name='mama_recruit'),
     
     url(r'^stats/$',staff_member_required(views.StatsView.as_view())),
     url(r'^cashout/$',views.CashoutView.as_view()),
