@@ -277,9 +277,9 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)  # 生成带时间的格式  开始时间
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)  # 停止时间
 
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
+    xlmms = XiaoluMama.objects.normal_queryset.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
-        sub_xlmms = XiaoluMama.objects.filter(agencylevel=2,referal_from=xlmm.mobile)  # 找到的本代理的子代理
+        sub_xlmms = XiaoluMama.objects.normal_queryset.filter(agencylevel=2,referal_from=xlmm.mobile)  # 找到的本代理的子代理
         sum_wxorderamount = 0  # 昨天订单总额
         for sub_xlmm in sub_xlmms:
             # 扣除记录

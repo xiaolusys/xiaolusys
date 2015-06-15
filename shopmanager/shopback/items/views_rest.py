@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-class MamaConfirmView(APIView):
+class ProductInvalidConfirmView(APIView):
     
 #     authentication_classes = (authentication.TokenAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)

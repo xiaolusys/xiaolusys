@@ -11,7 +11,7 @@ __author__ = 'linjie'
 
 logger = logging.getLogger('celery.handler')
 
-CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,1,10)
+CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,15,10)
 CLICK_MAX_LIMIT_DATE  = datetime.date(2015,6,5)
 
 def task_patch_mamacash_61():

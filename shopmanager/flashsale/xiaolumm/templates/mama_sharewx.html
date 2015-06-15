@@ -4,19 +4,40 @@
 
 {% block head_script %}
 <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
-
+<style type="text/css">
+	label{
+		font-size:14px;
+	}
+</style>
 {% endblock %}
 
 
 {% block container %}
 
+<div class="page-header">
+  <h3>发布朋友圈特卖消息 </h3>
+</div>
 
-<div class="jumbotron">
-  <h1>发布朋友圈特卖消息</h1>、
-  <p><label>您的专属链接:</label>http://xiaolu.so/m/{{  }}/</p>
-  <a href="#" class="thumbnail">
-	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLse1hz66vnCFjibCUicgU5NV2lvkCF2WTkrxQxHuSPlDsmWhibfvV9JHvAfHBGeOMXQxnL48LhqhCjmw/0?wx_fmt=png" alt="发布朋友圈特卖消息">
-  </a>
+<div class="panel panel-warning">
+  <div class="panel-heading">
+    <h3 class="panel-title">一、复制个人专属链接</h3>
+  </div>
+  <div class="panel-body">
+    <a href="#" class="thumbnail">
+		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvRGwicTUpYcZZYdibqsmJJwYNKj2xeDWDTeibUHVU9LoFxurKgn5jTtIJf1zyN9olN3LvMSHMVxXLNA/0?wx_fmt=png" alt="发布朋友圈特卖消息">
+  	</a>
+  </div>
+</div>
+
+<div class="panel panel-warning">
+  <div class="panel-heading">
+    <h3 class="panel-title">二、发布小鹿特卖消息</h3>
+  </div>
+  <div class="panel-body">
+    <a href="#" class="thumbnail">
+		<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLse1hz66vnCFjibCUicgU5NV2lvkCF2WTkrxQxHuSPlDsmWhibfvV9JHvAfHBGeOMXQxnL48LhqhCjmw/0?wx_fmt=png" alt="发布朋友圈特卖消息">
+  	</a>
+  </div>
 </div>
 
 {% endblock %}
