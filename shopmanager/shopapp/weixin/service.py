@@ -163,9 +163,9 @@ class WeixinUserService():
         self._wx_api._wx_account.activeAccount()
     
     
-    def genValidCode(self):
+    def genValidCode(self,force_update=False):
         
-        if self._wx_user.validcode:
+        if not force_update and self._wx_user.validcode:
             return self._wx_user.validcode
         
         return str(random.randint(100000, 999999))
@@ -197,7 +197,8 @@ class WeixinUserService():
         if not wx_user.is_valid_count_safe():
             raise MessageException(u'[撇嘴]您的手机验证次数达到上限，请联系客服帮您处理！')
         
-        valid_code = self.genValidCode()
+        mobile_change = wx_user.vmobile != mobile
+        valid_code = self.genValidCode(force_update=mobile_change)
         self.sendValidCode(mobile, valid_code)        
         
         wx_user.vmobile = mobile
