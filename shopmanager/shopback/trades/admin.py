@@ -1004,7 +1004,7 @@ class MergeOrderChangeList(ChangeList):
         return super(MergeOrderChangeList,self).get_query_set(request)
 
     
-class MergeOrderAdmin(admin.ModelAdmin):
+class MergeOrderAdmin(MyAdmin):
     list_display = ('id','oid','merge_trade_link','outer_id','outer_sku_id','sku_properties_name','price','num',
                     'payment','gift_type','pay_time','refund_status','trade_status_link','sys_status')
     list_display_links = ('oid','id')
@@ -1015,7 +1015,7 @@ class MergeOrderAdmin(admin.ModelAdmin):
     list_per_page = 50
     
     list_filter = ('sys_status','out_stock','is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
-    search_fields = ['id','oid','outer_id','outer_sku_id']
+    search_fields = ['=id','=oid','=outer_id']
     
     #--------设置页面布局----------------
     fieldsets =(('订单明细基本信息:', {
