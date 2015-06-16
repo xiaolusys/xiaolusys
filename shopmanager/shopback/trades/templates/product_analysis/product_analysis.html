@@ -40,21 +40,18 @@
         <table class="table table-condensed" id="mytable">
             <thead>
             <th>Out_Id</th>
+            <th>名称</th>
             <th>销售数量</th>
-            <th>销售金额</th>
-            <th>退货百分比</th>
-            <th>订货数量</th>
-            <th>次 品 率</th>
+            <th>供应商</th>
+
             </thead>
             <tbody>
             {% for i in data %}
                 <tr>
-                    <td>{{ i.outer_id }}</td>
-                    <td>{{ i.market_count }}</td>
-                    <td>{{ i.total_payment }}</td>
-                    <td>{{ i.refund_rate }}</td>
-                    <td>{{ i.buy_quantity }}</td>
-                    <td>{{ i.inferior_rate }}</td>
+                    <td>{{ i.0 }}</td>
+                    <td>{{ i.1 }}</td>
+                    <td>{{ i.2 }}</td>
+                    <td>{{ i.3 }}</td>
                 </tr>
             {% endfor %}
             </tbody>
