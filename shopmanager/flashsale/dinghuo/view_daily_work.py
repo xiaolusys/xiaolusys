@@ -102,7 +102,6 @@ class DailyDingHuoView(View):
 
                 else:
                     trade_dict[product[0]].append(temp_dict)
-        init_stock.send(sender='init_stock',product_id='421')
         return render_to_response("dinghuo/dailywork2.html",
                                   {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus},
