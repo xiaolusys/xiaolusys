@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.views.generic import View
 from django.db import connection
 import functions
-
+from flashsale.dinghuo.models import init_stock
 
 class DailyDingHuoView(View):
     def parseEndDt(self, end_dt):
@@ -54,27 +54,28 @@ class DailyDingHuoView(View):
                     "and (left(outer_id,1)='9' or left(outer_id,1)='8' or left(outer_id,1)='1') " \
                     "group by outer_id,outer_sku_id".format(shelve_from, time_to)
         if groupname == 0:
-            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.properties_alias,B.memo,B.quantity,B.id as sku_id from " \
+            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.properties_alias,B.memo,B.quantity,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser))) as A " \
                           "left join (select id,product_id,memo,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
-                          "on A.id=B.product_id".format(target_date)
+                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku_id".format(target_date)
         else:
-            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.memo,B.id as sku_id from " \
+            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.memo,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id={1}))) as A " \
                           "left join (select id,product_id,memo,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
-                          "on A.id=B.product_id".format(target_date, groupname)
+                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku_id".format(target_date, groupname)
+        print product_sql
         ding_huo_sql = "select outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
                        "from suplychain_flashsale_orderdetail " \
                        "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status not in ('作废')) and created BETWEEN '{0}' AND '{1}'".format(
                                                                                                             shelve_from, query_time)
         sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
-              "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.memo,product.sku_id,product.quantity,product.id,ding_huo_info.arrival_quantity " \
+              "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.memo,product.sku_id,product.exist_stock_num,product.id,ding_huo_info.arrival_quantity " \
               "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id and product.outer_sku_id=order_info.outer_sku_id left join (" + ding_huo_sql + ") as ding_huo_info on product.outer_id=ding_huo_info.outer_id and product.sku_id=ding_huo_info.chichu_id"
         cursor = connection.cursor()
         cursor.execute(sql)
@@ -101,7 +102,6 @@ class DailyDingHuoView(View):
 
                 else:
                     trade_dict[product[0]].append(temp_dict)
-
         return render_to_response("dinghuo/dailywork2.html",
                                   {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus},
