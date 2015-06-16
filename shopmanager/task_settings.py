@@ -232,11 +232,6 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="40",hour='5'),
         'args':(),
     },
-    u'定时更新确认妈妈订单佣金提成':{
-        'task':'flashsale.xiaolumm.tasks.task_Push_Pending_OrderRebeta_Cash',
-        'schedule':crontab(minute="0",hour="4"),#
-        'args':()
-    },
     u'定时统计每日特卖综合数据':{
         'task':'flashsale.daystats.tasks.task_Calc_Sales_Stat_By_Day',
         'schedule':crontab(minute="40",hour='2'),
