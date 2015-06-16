@@ -1,14 +1,12 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
-from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft
+from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail
 from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
-import datetime
-
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
@@ -57,7 +55,7 @@ class ordelistAdmin(admin.ModelAdmin):
     supply_chain.short_description = "供应商"
 
     def shenhe(self, obj):
-        symbol_link = obj.status
+        symbol_link = obj.get_status_display()
         return symbol_link
 
     shenhe.allow_tags = True
@@ -194,3 +192,10 @@ class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DailySupplyChainStatsOrder, DailySupplyChainStatsOrderAdmin)
+
+
+class ProductSkuDetailAdmin(admin.ModelAdmin):
+    list_display = (
+        'product_sku', 'exist_stock_num', 'created')
+
+admin.site.register(ProductSkuDetail, ProductSkuDetailAdmin)

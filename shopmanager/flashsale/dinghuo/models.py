@@ -3,8 +3,7 @@ from django.db import models
 from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .models_user import MyUser, MyGroup
 from .models_stats import SupplyChainDataStats
-
-
+from shopback.items.models import ProductSku, Product
 
 
 class OrderList(models.Model):
@@ -15,14 +14,18 @@ class OrderList(models.Model):
     ZUOFEI = u'作废'  #作废
     COMPLETED = u'验货完成'  #验货完成
     QUESTION = u'有问题'  #有问题
+    CIPIN = u'5'  #有次品
+    QUESTION_OF_QUANTITY = u'6'  #到货有问题
     DEALED = u'已处理' #已处理
     
     ORDER_PRODUCT_STATUS = (
-        (SUBMITTING, u'提交中'),
+        (SUBMITTING, u'草稿'),
         (APPROVAL, u'审核'),
         (ZUOFEI, u'作废'),
+        (QUESTION, u'有次品又缺货'),
+        (CIPIN, u'有次品'),
+        (QUESTION_OF_QUANTITY, u'到货数量问题'),
         (COMPLETED, u'验货完成'),
-        (QUESTION, u'有问题'),
         (DEALED, u'已处理'),
     )
     
@@ -101,3 +104,34 @@ class orderdraft(models.Model):
 
     def __unicode__(self):
         return self.product_name
+
+
+class ProductSkuDetail(models.Model):
+
+    product_sku = models.OneToOneField(ProductSku, primary_key=True, related_name='details', verbose_name=u'库存商品规格')
+    exist_stock_num = models.IntegerField(default=0, verbose_name=u'上架前库存')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成日期')
+    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+
+    class Meta:
+        db_table = 'flash_sale_product_sku_detail'
+        verbose_name = u'特卖商品库存'
+        verbose_name_plural = u'特卖商品库存列表'
+
+    def __unicode__(self):
+        return '<%s,%s,%s>'%(self.product_sku.id, self.product_sku.properties_name, self.product_sku.outer_id)
+
+
+import django.dispatch
+init_stock = django.dispatch.Signal(providing_args=["product_id"])
+
+
+def init_stock_func(sender,product_id='',*args,**kwargs):
+    pro_result = Product.objects.filter(id=product_id)
+    for pro_bean in pro_result:
+        sku_qs = pro_bean.prod_skus.all()
+        for sku_bean in sku_qs:
+            pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku_id=sku_bean.id)
+            pro_sku_bean[0].exist_stock_num = sku_bean.quantity
+            pro_sku_bean[0].save()
+init_stock.connect(init_stock_func, sender='init_stock')
