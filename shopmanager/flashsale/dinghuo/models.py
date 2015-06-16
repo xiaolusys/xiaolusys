@@ -108,7 +108,7 @@ class orderdraft(models.Model):
 
 class ProductSkuDetail(models.Model):
 
-    product_sku = models.OneToOneField(ProductSku, primary_key=True, related_name='details', verbose_name=u'库存商品规格')
+    product_sku = models.BigIntegerField(unique=True, verbose_name=u'库存商品规格')
     exist_stock_num = models.IntegerField(default=0, verbose_name=u'上架前库存')
     sample_num = models.IntegerField(default=0, verbose_name=u'样品数量')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成日期')
@@ -120,7 +120,7 @@ class ProductSkuDetail(models.Model):
         verbose_name_plural = u'特卖商品库存列表'
 
     def __unicode__(self):
-        return '<%s,%s,%s>'%(self.product_sku.id, self.product_sku.properties_name, self.product_sku.outer_id)
+        return u'<%s>'%(self.product_sku)
 
 from shopback import signals 
 
@@ -129,8 +129,11 @@ def init_stock_func(sender,product_list,*args,**kwargs):
     for pro_bean in product_list:
         sku_qs = pro_bean.prod_skus.all()
         for sku_bean in sku_qs:
-            pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku_id=sku_bean.id)
+            pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku=sku_bean.id)
             pro_sku_bean[0].exist_stock_num = sku_bean.quantity
+            pro_sku_bean[0].sample_num = 0
+            sku_bean.memo=""
+            sku_bean.save()
             pro_sku_bean[0].save()
             
 signals.signal_product_upshelf.connect(init_stock_func, sender=Product)

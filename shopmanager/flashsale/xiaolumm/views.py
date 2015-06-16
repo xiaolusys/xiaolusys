@@ -644,12 +644,11 @@ def mama_Verify(request):
     # 审核妈妈成为代理的功能
     data = []
     xlmms = XiaoluMama.objects.filter(manager=0)  # 找出没有被接管的妈妈
-
-
+    
     default_code = ['BLACK','NORMAL']
     default_code.append(request.user.username)
     user_groups = UserGroup.objects.filter(code__in=default_code)
-
+    
     for xlmm in xlmms:
         trade = get_Deposit_Trade(xlmm.openid)
         if trade:
