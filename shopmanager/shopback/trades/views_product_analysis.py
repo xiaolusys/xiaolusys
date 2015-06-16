@@ -11,6 +11,7 @@ from flashsale.clickrebeta.models import StatisticsShopping
 from django.db.models import connection
 from flashsale.xiaolumm.models import XiaoluMama
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 
 def get_Month_By_Date(date_time):
@@ -75,6 +76,24 @@ def xlmm_Product_Analysis(request):
                               context_instance=RequestContext(request))
 
 
+def get_source_orders(start_dt=None, end_dt=None):
+    """获取某个时间段里面的原始订单的信息"""
+    order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
+        .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
+        .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
+        .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+    order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
+    order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
+        .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
+        .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
+
+    order_qs = order_qs.values("outer_id", "num", "outer_sku_id", "pay_time").extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
+        .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
+    return order_qs
+
+
+
+
 @csrf_exempt
 def product_Analysis(request):
     content = request.REQUEST
@@ -93,37 +112,40 @@ def product_Analysis(request):
     date_to = datetime.date(date_to.year, date_to.month, date_to.day)
     date_dic = {"prev_month": prev_month, "next_month": next_month}
 
-    data = []
-    zone_orders = MergeOrder.objects.filter(created__gt=date_from, created__lt=date_to)  # 总订单
+    # 统计每月销售top50 及供应商
+    sql = "SELECT " \
+                "merge_detail.outer_id, " \
+                "merge_detail.title, " \
+                "merge_detail.sum_num, " \
+                "dinghuo_list.supplier_name " \
+            "FROM " \
+                "(SELECT " \
+                    "merge_order.outer_id, " \
+                        "merge_order.title, " \
+                        "merge_order.sum_num, " \
+                        "dinghuo_detail.orderlist_id " \
+                "FROM " \
+                    "(SELECT " \
+                    "outer_id, title, SUM(num) AS sum_num " \
+                "FROM " \
+                    "shop_trades_mergeorder " \
+                "WHERE " \
+                    "refund_status = 'NO_REFUND' " \
+                        "AND status = 'TRADE_FINISHED' " \
+                        "AND sys_status = 'IN_EFFECT' " \
+                        "AND pay_time BETWEEN '{0}' AND '{1}' " \
+                "GROUP BY outer_id " \
+                "ORDER BY sum_num DESC " \
+                "LIMIT 50) AS merge_order " \
+                "LEFT JOIN (SELECT " \
+                    "orderlist_id, outer_id " \
+                "FROM " \
+                    "suplychain_flashsale_orderdetail) AS dinghuo_detail ON dinghuo_detail.outer_id = merge_order.outer_id) AS merge_detail " \
+                    "LEFT JOIN  " \
+                "suplychain_flashsale_orderlist AS dinghuo_list ON merge_detail.orderlist_id = dinghuo_list.id".format(date_from, date_to)
 
-    outer_id_values = zone_orders.values('outer_id').distinct()
-    for i in outer_id_values:
-        dinghuo_order_details = OrderDetail.objects.filter(outer_id=i['outer_id'], created__gt=date_from,
-                                                           created__lt=date_to)
-        inferior_quantity = dinghuo_order_details.aggregate(inferior_quantity=Sum('inferior_quantity')).get(
-            'inferior_quantity') or 0  # 次品数量
-        buy_quantity = dinghuo_order_details.aggregate(buy_quantity=Sum('buy_quantity')).get(
-            'buy_quantity') or 0  # 订货数量
-        if buy_quantity is 0 or inferior_quantity is None:
-            inferior_rate = 0.0
-        else:
-            inferior_rate = round((100 * float(inferior_quantity) / buy_quantity), 4)  # 次品百分比
-
-        orders = zone_orders.filter(outer_id=i['outer_id'], status=pcfg.TRADE_FINISHED, sys_status=pcfg.IN_EFFECT)
-        refund_orders = orders.filter(refund_status=pcfg.REFUND_SUCCESS)
-        if orders.count() > 0:
-            outer_id = orders[0].outer_id
-            refund_orders_count = refund_orders.count()  # 退货订单
-            market_count = orders.count()  # 同款商品的销售数量
-            total_payment = orders.aggregate(total_payment=Sum('payment')).get('total_payment') or 0
-            if (market_count + refund_orders_count) is 0 or None:
-                refund_rate = 0.0
-            else:
-                refund_rate = round((100 * float(refund_orders_count) / (market_count + refund_orders_count)),
-                                    4)  # 退货百分比
-            data_entry = {'outer_id': outer_id, 'market_count': market_count, 'total_payment': total_payment,
-                          'refund_rate': refund_rate, 'inferior_rate': inferior_rate, 'buy_quantity': buy_quantity}
-            data.append(data_entry)
-
-    return render_to_response('product_analysis/product_analysis.html', {'data': data, 'date_dic': date_dic},
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
+    return render_to_response('product_analysis/product_analysis.html', {'data': raw, 'date_dic': date_dic},
                               context_instance=RequestContext(request))
