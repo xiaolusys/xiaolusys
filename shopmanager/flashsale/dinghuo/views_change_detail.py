@@ -29,7 +29,7 @@ class ChangeDetailView(View):
             order_list_list.append(order_dict)
         if order_list.status == "草稿":
             flag_of_status = True
-        elif order_list.status == u'有问题':
+        elif order_list.status == u'有问题' or order_list.status == u'5' or order_list.status == u'6':
             flag_of_question = True
 
         return render_to_response("dinghuo/changedetail.html",

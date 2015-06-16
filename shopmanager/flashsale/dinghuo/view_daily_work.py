@@ -38,6 +38,8 @@ class DailyDingHuoView(View):
         time_to = self.parseEndDt(shelve_to_str)
         if time_to - shelve_from > datetime.timedelta(3):
             time_to = shelve_from + datetime.timedelta(3)
+        elif time_to - shelve_from < datetime.timedelta(0):
+            time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
 
         order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
@@ -67,10 +69,10 @@ class DailyDingHuoView(View):
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id={1}))) as A " \
                           "left join (select id,product_id,memo,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id".format(target_date, groupname)
-        print product_sql
         ding_huo_sql = "select outer_id,chichu_id,buy_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
                        "from suplychain_flashsale_orderdetail " \
-                       "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status in ('草稿','审核'))"
+                       "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status in ('草稿','审核')) and created BETWEEN '{0}' AND '{1}'".format(
+                                                                                                            shelve_from, query_time)
         sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
               "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.memo,product.sku_id,product.quantity,product.id " \
               "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id and product.outer_sku_id=order_info.outer_sku_id left join (" + ding_huo_sql + ") as ding_huo_info on product.outer_id=ding_huo_info.outer_id and product.sku_id=ding_huo_info.chichu_id"
@@ -89,7 +91,7 @@ class DailyDingHuoView(View):
                          "ding_huo_num": ding_huo_num, "effect_num": product[7] or 0,
                          "ding_huo_status": ding_huo_status, "sku_memo": sku_dict['memo'], "flag_of_memo": flag_of_memo,
                          "flag_of_more": flag_of_more, "flag_of_less": flag_of_less,
-                         "sku_id": product[9],"ku_cun_num":int(product[10] or 0)}
+                         "sku_id": product[9], "ku_cun_num": int(product[10] or 0)}
             if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                         flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                 if product[0] not in trade_dict:

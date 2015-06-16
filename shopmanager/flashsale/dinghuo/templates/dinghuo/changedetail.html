@@ -204,7 +204,7 @@
         <div class="col-lg-6">
             <span class="label label-info" style="font-size: 20px">当前状态：</span>
             <label id="order_status" class="label label-success"
-                   style="font-size: large">{{ orderlist.status }}</label>
+                   style="font-size: large">{{ orderlist.get_status_display }}</label>
         </div>
         <div class="col-lg-2"></div>
         <div class="col-lg-2">
@@ -313,7 +313,9 @@
                 </div>
                 <div class="col-lg-2"><select name="status" class="form-control">
                     <option value="验货完成">验货完成</option>
-                    <option value="有问题">有问题</option>
+                    <option value="有问题">有次品又缺货</option>
+                    <option value="5">只有次品</option>
+                    <option value="6">到货数量问题</option>
                 </select></div>
                 <div class="col-lg-4"><input type="submit" class="btn btn-danger" value="保存"></div>
             </form>

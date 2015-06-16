@@ -57,7 +57,7 @@ class ordelistAdmin(admin.ModelAdmin):
     supply_chain.short_description = "供应商"
 
     def shenhe(self, obj):
-        symbol_link = obj.status
+        symbol_link = obj.get_status_display()
         return symbol_link
 
     shenhe.allow_tags = True
