@@ -3,7 +3,7 @@ from django.db import models
 from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from .models_user import MyUser, MyGroup
 from .models_stats import SupplyChainDataStats
-from shopback.items.models import ProductSku
+from shopback.items.models import ProductSku, Product
 
 
 class OrderList(models.Model):
@@ -123,13 +123,15 @@ class ProductSkuDetail(models.Model):
 
 
 import django.dispatch
-init_stock = django.dispatch.Signal(providing_args=["sku_id"])
+init_stock = django.dispatch.Signal(providing_args=["product_id"])
 
 
-def init_stock_func(sender,sku_id='',*args,**kwargs):
-    sku_bean = ProductSku.objects.filter(id=sku_id)
-    if sku_bean.count() > 0 and sku_bean[0].quantity:
-        pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku_id=sku_id)
-        pro_sku_bean[0].exist_stock_num = sku_bean[0].quantity
-        pro_sku_bean[0].save()
+def init_stock_func(sender,product_id='',*args,**kwargs):
+    pro_result = Product.objects.filter(id=product_id)
+    for pro_bean in pro_result:
+        sku_qs = pro_bean.prod_skus.all()
+        for sku_bean in sku_qs:
+            pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku_id=sku_bean.id)
+            pro_sku_bean[0].exist_stock_num = sku_bean.quantity
+            pro_sku_bean[0].save()
 init_stock.connect(init_stock_func, sender='init_stock')
