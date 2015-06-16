@@ -15,14 +15,18 @@ class OrderList(models.Model):
     ZUOFEI = u'作废'  #作废
     COMPLETED = u'验货完成'  #验货完成
     QUESTION = u'有问题'  #有问题
+    CIPIN = u'5'  #有次品
+    QUESTION_OF_QUANTITY = u'6'  #到货有问题
     DEALED = u'已处理' #已处理
     
     ORDER_PRODUCT_STATUS = (
-        (SUBMITTING, u'提交中'),
+        (SUBMITTING, u'草稿'),
         (APPROVAL, u'审核'),
         (ZUOFEI, u'作废'),
+        (QUESTION, u'有次品又缺货'),
+        (CIPIN, u'有次品'),
+        (QUESTION_OF_QUANTITY, u'到货数量问题'),
         (COMPLETED, u'验货完成'),
-        (QUESTION, u'有问题'),
         (DEALED, u'已处理'),
     )
     
