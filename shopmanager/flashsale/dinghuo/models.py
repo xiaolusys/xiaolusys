@@ -110,6 +110,7 @@ class ProductSkuDetail(models.Model):
 
     product_sku = models.OneToOneField(ProductSku, primary_key=True, related_name='details', verbose_name=u'库存商品规格')
     exist_stock_num = models.IntegerField(default=0, verbose_name=u'上架前库存')
+    sample_num = models.IntegerField(default=0, verbose_name=u'样品数量')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
 
