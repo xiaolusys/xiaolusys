@@ -6,7 +6,6 @@ from django.template import RequestContext
 from django.views.generic import View
 from django.db import connection
 import functions
-from flashsale.dinghuo.models import init_stock
 
 class DailyDingHuoView(View):
     def parseEndDt(self, end_dt):

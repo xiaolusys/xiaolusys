@@ -372,9 +372,9 @@ class ProductSku(models.Model):
     warn_num     = models.IntegerField(default=0,verbose_name='警戒数')    #警戒库位
     remain_num   = models.IntegerField(default=0,verbose_name='预留数')    #预留库存
     wait_post_num = models.IntegerField(default=0,verbose_name='待发数')    #待发数
-    sale_num      = models.IntegerField(default=0,verbose_name=u'日出库数')    #日出库
+    sale_num      = models.IntegerField(default=0,verbose_name=u'日出库数') #日出库
     reduce_num    = models.IntegerField(default=0,verbose_name='预减数')    #下次入库减掉这部分库存
-    lock_num      = models.IntegerField(default=0,verbose_name='锁定数')
+    lock_num      = models.IntegerField(default=0,verbose_name='锁定数')    #特卖平台待付款数量
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')

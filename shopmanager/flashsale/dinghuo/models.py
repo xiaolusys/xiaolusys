@@ -121,17 +121,16 @@ class ProductSkuDetail(models.Model):
     def __unicode__(self):
         return '<%s,%s,%s>'%(self.product_sku.id, self.product_sku.properties_name, self.product_sku.outer_id)
 
+from shopback import signals 
 
-import django.dispatch
-init_stock = django.dispatch.Signal(providing_args=["product_id"])
-
-
-def init_stock_func(sender,product_id='',*args,**kwargs):
-    pro_result = Product.objects.filter(id=product_id)
-    for pro_bean in pro_result:
+def init_stock_func(sender,product_list,*args,**kwargs):
+    
+    for pro_bean in product_list:
         sku_qs = pro_bean.prod_skus.all()
         for sku_bean in sku_qs:
             pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku_id=sku_bean.id)
             pro_sku_bean[0].exist_stock_num = sku_bean.quantity
             pro_sku_bean[0].save()
-init_stock.connect(init_stock_func, sender='init_stock')
+            
+signals.signal_product_upshelf.connect(init_stock_func, sender=Product)
+
