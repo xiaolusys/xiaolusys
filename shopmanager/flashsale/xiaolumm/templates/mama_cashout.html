@@ -8,10 +8,14 @@
 <style type="text/css" title="currentStyle">
 	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
 	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
-</style>  
+</style>
 <style type="text/css" >
     tfoot input{
     	width:50%;
+    }
+    .col-xs-4 {
+    	padding-left:0px;
+    	padding-right:0px;
     }
     #id-carry-list .table{
     	font-size:12px;
@@ -19,19 +23,17 @@
 </style>
 {% endblock %}
 
-
 {% block container %}
 
 <ul class="nav nav-tabs" style="margin-top:10px">
-  <li id="id-carry" role="presentation" class="active"><a href="#">补贴</a></li>
-  <li id="id-cashout" role="presentation"><a href="#">提现</a></li>
-  <li id="id-referal" role="presentation"><a href="#">推荐</a></li>
+  <li id="id-carry" role="presentation" class="col-xs-4 active"><a href="#" class="btn">收支</a></li>
+  <li id="id-cashout" role="presentation" class="col-xs-4"><a href="#" class="btn">提现</a></li>
+  <li id="id-referal" role="presentation" class="col-xs-4"><a href="#" class="btn">推荐</a></li>
 </ul>
 
 <div id="id-carry-list" style="margin-top:20px">
-  <div></div>
   <div style="margin-top:20px">
-  <h5>我的补贴记录：</h5>
+  <h5>我的收支记录：</h5>
     <table class="table table-bordered" style="margin-top:10px">
       <thead>
 		<tr><th class="col-xs-3">时间</th><th class="col-xs-3">金额</th><th class="col-xs-3">类型</th><th class="col-xs-3">状态</th></tr>
@@ -50,7 +52,6 @@
       <a href="#" id="id-carry-next" url="null">下一页 >></a>
     </div>
   </div>
-
 </div>
 
 <div id="id-cashout-list" style="margin-top:10px; display:none">

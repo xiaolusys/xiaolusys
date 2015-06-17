@@ -99,7 +99,7 @@ def pullWXProductTask():
         .update(status=WXProduct.DOWN_SHELF)
     
 @task
-def pullWaitPostWXOrderTask(begintime,endtime):
+def pullWaitPostWXOrderTask(begintime,endtime,full_update=False):
     
     update_status=[#WXOrder.WX_WAIT_PAY,
                    WXOrder.WX_WAIT_SEND,
@@ -109,21 +109,22 @@ def pullWaitPostWXOrderTask(begintime,endtime):
     _wx_api = WeiXinAPI()
     
     if not begintime and _wx_api._wx_account.order_updated:
-        begintime = int(time.mktime(_wx_api._wx_account.order_updated.timetuple()))
+        begintime = int(time.mktime((_wx_api._wx_account.order_updated - datetime.timedelta(seconds=6*60*60)).timetuple()))
     
     dt        = datetime.datetime.now()
     endtime   = endtime and endtime or int(time.mktime(dt.timetuple()))
+    
+    if full_update:
+        begintime = None
+        endtime   = None
     
     for status in update_status:
         orders = _wx_api.getOrderByFilter(status,begintime,endtime)
         
         for order_dict in orders:
-            
-            order = WxShopService.createTradeByDict(_wx_api._wx_account.account_id,
-                                                    order_dict)
-            
+            order = WxShopService.createTradeByDict(_wx_api._wx_account.account_id, order_dict)
             WxShopService.createMergeTrade(order)
-        
+    
     _wx_api._wx_account.changeOrderUpdated(dt)
         
 @task
