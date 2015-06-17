@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     url(r'^help/recruit/$', TemplateView.as_view(template_name="mama_recruit.html"), name='mama_recruit'),
     
     url(r'^stats/$',staff_member_required(views.StatsView.as_view())),
+    url(r'^income/$',staff_member_required(views.MamaIncomeDetailView.as_view())),
     url(r'^cashout/$',views.CashoutView.as_view()),
     url(r'^cashoutlist/$',views.CashOutList.as_view()),
     url(r'^carrylist/$',views.CarryLogList.as_view()),

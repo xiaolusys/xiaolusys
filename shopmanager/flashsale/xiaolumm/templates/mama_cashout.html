@@ -4,15 +4,8 @@
 
 {% block head_script %}
 <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
-
-<style type="text/css" title="currentStyle">
-	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
-	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
-</style>
+<link href='{{ STATIC_URL }}css/mama_profile.css' rel='stylesheet' />	
 <style type="text/css" >
-    tfoot input{
-    	width:50%;
-    }
     .col-xs-4 {
     	padding-left:0px;
     	padding-right:0px;
@@ -20,101 +13,121 @@
     #id-carry-list .table{
     	font-size:12px;
     }
+    .pager{
+    	margin: 0px 0px; 
+    }
 </style>
 {% endblock %}
 
 {% block container %}
-
-<ul class="nav nav-tabs" style="margin-top:10px">
-  <li id="id-carry" role="presentation" class="col-xs-4 active"><a href="#" class="btn">收支</a></li>
-  <li id="id-cashout" role="presentation" class="col-xs-4"><a href="#" class="btn">提现</a></li>
-  <li id="id-referal" role="presentation" class="col-xs-4"><a href="#" class="btn">推荐</a></li>
-</ul>
-
-<div id="id-carry-list" style="margin-top:20px">
-  <div style="margin-top:20px">
-  <h5>我的收支记录：</h5>
-    <table class="table table-bordered" style="margin-top:10px">
-      <thead>
-		<tr><th class="col-xs-3">时间</th><th class="col-xs-3">金额</th><th class="col-xs-3">类型</th><th class="col-xs-3">状态</th></tr>
-      </thead>
-      <tbody id="id-carry-tbody">
-      </tbody>
-    </table>
-  </div>
-  <div class="row">
-    <div class="col-xs-4">
-      <a href="#" id="id-carry-prev" url="null"><< 上一页</a>
-    </div>
-    <div class="col-xs-4">
-    </div>
-    <div class="col-xs-4">
-      <a href="#" id="id-carry-next" url="null">下一页 >></a>
-    </div>
-  </div>
+<div class="row">
+<div class="page-header col-xs-9">
+  <h3>妈妈数据列表</h3>
+</div>
+<div class="col-xs-3" >
+	  <a href="/m/m/" class="home glyphicon glyphicon-home " target="_self"></a>
+</div>
 </div>
 
-<div id="id-cashout-list" style="margin-top:10px; display:none">
-  <form id="cashout-form" action="/m/cashout/" method="POST">
-  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
-  <p style="color:#428bca">提现将由小鹿美美公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
-  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
-    <p>&nbsp;提现需20元以上,请输入提现金额：</p>
-    <div class="input-group" style="margin-top:5px">
-      <span class="input-group-addon">￥</span>
-      <input id="id-cashout-input" type="number" name="v" max="{% if could_cash_out > 200%}200{% else %}{{ could_cash_out }}{% endif %}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>
-      {% csrf_token %}
-      <span class="input-group-btn">
-	<button type="submit" class="btn btn-warning" type="button">确认提交</button>
-      </span>
-    </div>
-    <p id="id-submit-message" style="color:red"></p>
-  </div>
-  </form>
-  <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
-    <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>18516655836</b> 审核提现申请，提现将以发放微信微红包方式完成。</li>
-  </ul>
-
-  <div style="margin-top:20px">
-    <h5>最近提现记录：</h5>
-    <table class="table table-bordered" style="margin-top:10px">
-      <thead>
-		<tr><th class="col-xs-4">金额</th><th class="col-xs-4">时间</th><th class="col-xs-4">状态</th></tr>
-      </thead>
-      <tbody id="id-cashout-tbody">
-      </tbody>
-    </table>
-  </div>
-  <div class="row">
-    <div class="col-xs-4">
-      <a href="#" id="id-cashout-prev" url="null"><< 上一页</a>
-    </div>
-    <div class="col-xs-4">
-    </div>
-    <div class="col-xs-4">
-      <a href="#" id="id-cashout-next" url="null">下一页 >></a>
-    </div>
-  </div>
-
+<div role="tabpanel">
+	<ul class="nav nav-tabs" style="margin-top:10px">
+	  <li role="presentation" class="col-xs-4 active"><a href="#id-cashout-list" aria-controls="id-cashout-list" role="tab" data-toggle="tab" class="btn">提现</a></li>
+	  <li role="presentation" class="col-xs-4 "><a href="#id-carry-list" aria-controls="id-cashout-list" role="tab" data-toggle="tab" class="btn">收支</a></li>
+	  <li role="presentation" class="col-xs-4"><a href="#id-referal-list" aria-controls="id-referal-list" role="tab" data-toggle="tab" class="btn">推荐</a></li>
+	</ul>
+  	<div class="tab-content" >
+	<div id="id-cashout-list" role="tabpanel" class="tab-pane active">
+	  <form id="cashout-form" action="/m/cashout/" method="POST">
+	  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
+	  <p style="color:#428bca">提现将由小鹿美美公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
+	  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
+	    <p>&nbsp;提现需20元以上,请输入提现金额：</p>
+	    <div class="input-group" style="margin-top:5px">
+	      <span class="input-group-addon">￥</span>
+	      <input id="id-cashout-input" type="number" name="v" max="{% if could_cash_out > 200%}200{% else %}{{ could_cash_out }}{% endif %}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>
+	      {% csrf_token %}
+	      <span class="input-group-btn">
+		<button type="submit" class="btn btn-warning" type="button">确认提交</button>
+	      </span>
+	    </div>
+	    <p id="id-submit-message" style="color:red"></p>
+	  </div>
+	  </form>
+	  <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
+	    <li class="list-group-item">提现申请已提交！<br/>请微信加微客服 <b>18516655836</b> 审核提现申请，提现将以发放微信微红包方式完成。</li>
+	  </ul>
+	
+	  <div style="margin-top:20px">
+	    <h5>最近提现记录：</h5>
+	    <table class="table table-bordered" >
+	      <thead>
+			<tr><th class="col-xs-4">金额</th><th class="col-xs-4">时间</th><th class="col-xs-4">状态</th></tr>
+	      </thead>
+	      <tbody id="id-cashout-tbody">
+	      </tbody>
+	    </table>
+	  </div>
+	  <div class="row">
+		<nav>
+		  <ul class="pager">
+		    <div class="col-xs-4">
+		    <li class="previous"><a id="id-cashout-prev" href="#" url="null"><span aria-hidden="true">&larr;</span>上一页</a></li>
+		    </div>
+		    <div class="col-xs-4">
+			</div>
+			<div class="col-xs-4">
+		    <li class="next"><a id="id-cashout-next" href="#" url="null">下一页 <span aria-hidden="true">&rarr;</span></a></li>
+		    </div>
+		  </ul>
+		</nav>
+	 </div>
+	</div>
+	
+	<div id="id-carry-list" role="tabpanel" class="tab-pane">
+	  <div style="margin-top:20px">
+	  <h5>我的收支记录：</h5>
+	    <table class="table table-bordered" style="margin-top:10px">
+	      <thead>
+			<tr><th class="col-xs-3">时间</th><th class="col-xs-3">金额</th><th class="col-xs-3">类型</th><th class="col-xs-3">状态</th></tr>
+	      </thead>
+	      <tbody id="id-carry-tbody">
+	      </tbody>
+	    </table>
+	  </div>
+	  <div class="row">
+		<nav>
+		  <ul class="pager">
+		    <div class="col-xs-4">
+		    <li class="previous"><a id="id-carry-prev" href="#" url="null"><span aria-hidden="true">&larr;</span>上一页</a></li>
+		    </div>
+		    <div class="col-xs-4">
+			</div>
+			<div class="col-xs-4">
+		    <li class="next"><a id="id-carry-next" href="#" url="null">下一页 <span aria-hidden="true">&rarr;</span></a></li>
+		    </div>
+		  </ul>
+		</nav>
+	 </div>
+	</div>
+	
+	
+	<div id="id-referal-list" role="tabpanel" class="tab-pane">
+	  <div style="margin-top:20px">
+	  <h5>我推荐的代理：</h5>
+	    <table class="table table-bordered" style="margin-top:10px">
+	      <thead>
+		<th>序号</th><th>昵称</th><th>时间</th>
+	      </thead>
+	      <tbody id="id-referal-tbody">
+		{% for referal in referal_list %}
+		<tr><td>{{ forloop.counter }}</td><td>{{ referal.weikefu }}</td><td>{{ referal.created }}</td></tr>
+		{% endfor %}
+	      </tbody>
+	    </table>
+	  </div>
+	</div>
+  	</div>
 </div>
-
-<div id="id-referal-list" style="margin-top:20px;display:none">
-  <div style="margin-top:20px">
-  <h5>我推荐的代理：</h5>
-    <table class="table table-bordered" style="margin-top:10px">
-      <thead>
-	<th>序号</th><th>昵称</th><th>时间</th>
-      </thead>
-      <tbody id="id-referal-tbody">
-	{% for referal in referal_list %}
-	<tr><td>{{ forloop.counter }}</td><td>{{ referal.weikefu }}</td><td>{{ referal.created }}</td></tr>
-	{% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
 {% endblock %}
 
 
@@ -214,36 +227,6 @@
     };
     $.ajax({url:url, success:callback});
   }
-
-  $("#id-cashout").click(function (e) {
-    $("#id-carry").removeClass("active");
-    $("#id-referal").removeClass("active");
-    $("#id-cashout").addClass("active");
-
-    $("#id-carry-list").css("display","none");
-    $("#id-referal-list").css("display","none");
-    $("#id-cashout-list").css("display","block");
-  });
-
-  $("#id-carry").click(function (e) {
-    $("#id-cashout").removeClass("active");
-    $("#id-referal").removeClass("active");
-    $("#id-carry").addClass("active");
-
-    $("#id-cashout-list").css("display","none");
-    $("#id-referal-list").css("display","none");
-    $("#id-carry-list").css("display","block");
-  });
-
-  $("#id-referal").click(function (e) {
-    $("#id-cashout").removeClass("active");
-    $("#id-carry").removeClass("active");
-    $("#id-referal").addClass("active");
-
-    $("#id-cashout-list").css("display","none");
-    $("#id-carry-list").css("display","none");
-    $("#id-referal-list").css("display","block");
-  });
 
   $('#cashout-form').on('submit', function(e) {
         e.preventDefault(); // <-- important

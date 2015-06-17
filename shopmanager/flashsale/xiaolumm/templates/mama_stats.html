@@ -4,11 +4,33 @@
 
 {% block head_script %}
 <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
-<style type="text/css" title="currentStyle">
-	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
-	@import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
-</style>  
+
 <style type="text/css" >
+	.panel-body{
+		color:orange;
+	}
+	.panel-body a{
+		text-decoration: none;
+		color:orange;
+	}
+	.cashout {
+		font-size:40px;
+	}
+	.pending div{
+		border-top:1px solid #e7e7e7;
+	}
+	.history {
+		border-top:1px solid #e7e7e7;;
+	}
+	.history span{
+		font-size:16px;
+	}
+	.history div{
+		border-right:1px solid #e7e7e7;
+		font-size:14px;
+		padding-left:5px;
+		padding-right:5px;
+	}
     tfoot input{
     	width:50%;
     }
@@ -17,7 +39,7 @@
 
 {% block container %}
 <div class="page-header">
-  <h3>数据统计 
+  <h3>妈妈数据 
   	<small>
 	  	<div class="btn-group" role="group" style="float:right;margin-right:20px;">
 	    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -33,59 +55,39 @@
   </h3>
 </div>
 
-
-<div class="row">
-  <div class="col-xs-4">
-    <a href="/m/m/?day={{ prev_day }}"><< 前一天</a>
+<div class="main-page" style="margin-top:20px">
+  <div class="panel panel-default" >
+	  <div class="panel-body">
+	  <a href="/m/cashout/" class="cashout" >
+	  	<div class="row">
+		  <div class="col-xs-9">
+		  <h4>账户现金(含押金):</h4> 
+		  <p>￥<span>{{ xlmm.cash_money }}</span> </p>
+		  </div>
+		  <div class="col-xs-3 glyphicon glyphicon-chevron-right" style="margin-top:20px;"></div>
+		</div>
+		<div class="row pending">
+		  <div class="col-xs-9">
+		  <h5>待确认金额:￥<span class="text-danger">{{ pending_value }}</span></h5> 
+		  </div>
+		</div>
+	  </a>
+	  <div class="history row">
+	  	<div class="col-xs-6">昨日收入：<span class="text-danger">￥{{ yest_income }}</span></div><div class="col-xs-6">昨日支出：<span class="text-danger">￥-{{ yest_pay }}</span></div>
+	  </div>
   </div>
-  <div class="col-xs-4">
-    <p>{{ target_date }}</p>
-  </div>
-  <div class="col-xs-4">
-    {% if next_day %}
-    <a href="/m/m/?day={{ next_day }}">后一天 >></a>
-    {% endif %}
-  </div>
-</div>
-
-<div style="margin-top:20px">
+ </div>
+  
   <ul class="list-group">
-    <li class="list-group-item">手机号: {{ mobile }}</li>
     <li class="list-group-item">小鹿妈妈: {{ xlmm.weikefu }}&nbsp;{% if referal_mmid > 0 %}(<a href="/m/register/{{referal_mmid}}/">申请正式小鹿妈妈</a>){% endif %}</li>
-    {% if xlmm.agencylevel > 1 %}
-        <li class="list-group-item"><p style="color:orange">账户现金(含押金): ￥<span style="font-size:26px">{{ xlmm.cash_money }}</span><a href="/m/cashout/" class="btn btn-warning" style="float:right;">提现</a></p></li>
-    {% endif %}
+    <li class="list-group-item">手机号: {{ mobile }}</li>
     <li class="list-group-item"><lable>专属链接：</label> <b>http://xiaolu.so/m/{{ pk }}/</b></li>
-    <li class="list-group-item">推荐人数： {{ referal_num }}（<a href="/m/cashout/">详情</a>）</li>
-    <li class="list-group-item">点击人数： {{ click_num }}</li>
-    <li class="list-group-item"><span style="color:orange">点击补贴： {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>
-    {% if not exam_pass %}（<a href="/sale/exam/">考试通过后生效</a>）{% endif %}</li>
-    {% if active_start %}
-    <li class="list-group-item"><span style="color:green">端午点击专贴： {{ ten_click_num }} * {{ ten_click_price }} = ￥{{ ten_click_pay }}</span></li>
-    {% endif %}
-    <li class="list-group-item"><span style="color:orange">订单人数： {{ order_num }}</span></li>
-    <li class="list-group-item"><span style="color:orange">订单金额： ￥{{ total_value }}</span></li>
-    {% if xlmm.agencylevel > 1 %}
-    {% if carry > 0 %}
-    <li class="list-group-item"><span style="color:orange">订单补贴： ￥{{ carry }}{% if not carry_confirm %}（待确认）{% endif %}</span></li>
-    {% else %}
-    <li class="list-group-item"><span style="color:orange">订单补贴： {{ carry }}</span></li>
-    {% endif %}
-    {% endif %}
+    <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">收入支出流水</div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
+    <li class="list-group-item"><a href="/m/income/"><div class="row nav-item"><div class="col-xs-10">收益列表 (点击<span class="badge label-warning">{{ click_num }}</span>-订单<span class="badge label-warning">{{ order_num }}</span>)</div><div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
+    <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">推荐妈妈列表 (推荐数<span class="badge label-warning">{{ referal_num }}</span>)</div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
   </ul>
-
-  <h3>订单详情</h3>
-  <table id="state_table" class="table table-bordered">
-    <thead>
-      <th>昵称</th><th>金额</th><th>时间</th><th>状态</th>
-    </thead>
-    <tbody>
-      {% for order in order_list %}
-      <tr><td>{{ order.wxordernick }}</td><td>{{ order.order_cash }}</td>
-      <td>{{ order.shoptime|date:"H:i" }}</td><td><span class="{% if order.status == 2 %}label label-danger{% endif %}">{{ order.status_name }}</span></td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  
+  
 
 </div>
 
