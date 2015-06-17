@@ -134,12 +134,8 @@
         </table>
     </div>
     <div class="floatButton" style="z-index: 9999;">
-        {% if all_pro_sale %}
-            销售最多<br>
-            <img src="{{ all_pro_sale.1.pic_path }}" width="80px" class="img-circle"><span
-                class="badge badge-important">{{ all_pro_sale.1.total_sale_num }}</span><br>
-            {{ all_pro_sale.1.name }}<br>
-            {{ all_pro_sale.0 }}
+        {% if total_more_num %}
+            <span style="font-size: 20px">共多了{{ total_more_num }}件</span>
         {% endif %}
     </div>
     <div class="btn-group-vertical floatview">
