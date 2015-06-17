@@ -78,7 +78,7 @@ def new_order(request):
     if request.method == 'POST':
         post = request.POST
         type_of_order = post['type_of_order']
-        print type_of_order,"eeeeeeeeee"
+        print type_of_order, "eeeeeeeeee"
         costofems = post['costofems']
         if costofems == "":
             costofems = 0
@@ -498,9 +498,12 @@ class StatsByProductIdView(View):
             return 'none'
 
     def get(self, request, product_id):
-        orderdetails = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(product_id=product_id)
+        pro_bean = Product.objects.filter(id=product_id)
+        if pro_bean.count() > 0:
+            order_details = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(product_id=product_id).filter(
+                orderlist__created__gte=pro_bean[0].sale_time)
         return render_to_response("dinghuo/productstats.html",
-                                  {"orderdetails": orderdetails},
+                                  {"orderdetails": order_details},
                                   context_instance=RequestContext(request))
 
 
