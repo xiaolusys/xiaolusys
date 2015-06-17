@@ -89,37 +89,30 @@ def product_Analysis(request):
     date_to = datetime.date(date_to.year, date_to.month, date_to.day)
     date_dic = {"prev_month": prev_month, "next_month": next_month}
 
-    # 统计每月销售top50 及供应商
+    # 统计每月销售top50 以及次品数量
     sql = "SELECT " \
-          "merge_detail.outer_id, " \
-          "merge_detail.title, " \
-          "merge_detail.sum_num, " \
-          "dinghuo_list.supplier_name " \
-          "FROM " \
-          "(SELECT " \
-          "merge_order.outer_id, " \
-          "merge_order.title, " \
-          "merge_order.sum_num, " \
-          "dinghuo_detail.orderlist_id " \
-          "FROM " \
-          "(SELECT " \
-          "outer_id, title, SUM(num) AS sum_num " \
-          "FROM " \
-          "shop_trades_mergeorder " \
-          "WHERE " \
-          "refund_status = 'NO_REFUND' " \
-          "AND status = 'TRADE_FINISHED' " \
-          "AND sys_status = 'IN_EFFECT' " \
-          "AND pay_time BETWEEN '{0}' AND '{1}' " \
-          "GROUP BY outer_id " \
-          "ORDER BY sum_num DESC " \
-          "LIMIT 50) AS merge_order " \
-          "LEFT JOIN (SELECT " \
-          "orderlist_id, outer_id " \
-          "FROM " \
-          "suplychain_flashsale_orderdetail) AS dinghuo_detail ON dinghuo_detail.outer_id = merge_order.outer_id) AS merge_detail " \
-          "LEFT JOIN  " \
-          "suplychain_flashsale_orderlist AS dinghuo_list ON merge_detail.orderlist_id = dinghuo_list.id".format(
+                "C.product_id, C.sum_num, C.name, detail.inferior_quantity " \
+            "FROM" \
+                "(SELECT " \
+                    "A.product_id, A.sum_num, B.name " \
+                "FROM" \
+                    "(SELECT " \
+                    "product_id, SUM(sale_num) AS sum_num  " \
+                "FROM " \
+                    "supply_chain_stats_order WHERE created BETWEEN '{0}' AND '{1}' " \
+                "GROUP BY product_id " \
+                "ORDER BY sum_num DESC " \
+                "LIMIT 50) AS A " \
+                "LEFT JOIN (SELECT " \
+                    "outer_id, name " \
+                "FROM " \
+                    "shop_items_product) AS B ON A.product_id = B.outer_id) AS C " \
+                    "LEFT JOIN" \
+                "(SELECT " \
+                    " outer_id, inferior_quantity " \
+                "FROM " \
+                    "suplychain_flashsale_orderdetail WHERE created BETWEEN '{0}' AND '{1}' " \
+                "GROUP BY outer_id) AS detail ON detail.outer_id = C.product_id".format(
         date_from, date_to)
 
     cursor = connection.cursor()

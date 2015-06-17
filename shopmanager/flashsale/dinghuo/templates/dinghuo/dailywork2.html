@@ -71,6 +71,11 @@
 
                 </select>
             </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="groupname">输入搜索:</label>
+                <input type="text" class="form-control" value="{{ search_text }}" name="search_text"/>
+            </div>
+
             <div class="col-xs-1">
                 <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
@@ -129,12 +134,8 @@
         </table>
     </div>
     <div class="floatButton" style="z-index: 9999;">
-        {% if all_pro_sale %}
-            销售最多<br>
-            <img src="{{ all_pro_sale.1.pic_path }}" width="80px" class="img-circle"><span
-                class="badge badge-important">{{ all_pro_sale.1.total_sale_num }}</span><br>
-            {{ all_pro_sale.1.name }}<br>
-            {{ all_pro_sale.0 }}
+        {% if total_more_num %}
+            <span style="font-size: 20px">共多了{{ total_more_num }}件</span>
         {% endif %}
     </div>
     <div class="btn-group-vertical floatview">
