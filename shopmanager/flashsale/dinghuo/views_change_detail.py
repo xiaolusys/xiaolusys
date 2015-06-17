@@ -22,6 +22,7 @@ class ChangeDetailView(View):
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         flag_of_status = False
         flag_of_question = False
+        flag_of_sample = False
         order_list_list = []
         for order in order_details:
             order_dict = model_to_dict(order)
@@ -31,10 +32,11 @@ class ChangeDetailView(View):
             flag_of_status = True
         elif order_list.status == u'有问题' or order_list.status == u'5' or order_list.status == u'6':
             flag_of_question = True
-
+        if order_list.status == u'7':
+            flag_of_sample = True
         return render_to_response("dinghuo/changedetail.html",
                                   {"orderlist": order_list, "flagofstatus": flag_of_status,
-                                   "flagofquestion": flag_of_question,
+                                   "flagofquestion": flag_of_question, "flag_of_sample": flag_of_sample,
                                    "orderdetails": order_list_list},
                                   context_instance=RequestContext(request))
 
@@ -61,8 +63,11 @@ class ChangeDetailView(View):
             flag_of_status = True
         else:
             flag_of_status = False
+        if order_list.status == u'7':
+            flag_of_sample = True
         return render_to_response("dinghuo/changedetail.html", {"orderlist": order_list, "flagofstatus": flag_of_status,
-                                                                "orderdetails": order_list_list},
+                                                                "orderdetails": order_list_list,
+                                                                "flag_of_sample": flag_of_sample, },
                                   context_instance=RequestContext(request))
 
 
