@@ -31,7 +31,6 @@ urlpatterns = [
     url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
     url(r'^statsbypid/(?P<product_id>\d+)/$', staff_member_required(StatsByProductIdView.as_view()), name="statsbypid"),  #根据商品id统计大货
     url(r'^dailywork/', staff_member_required(DailyWorkView.as_view()), name="dailywork"),  #大货任务
-    url(r'^changememo/$', views.change_memo, name="changeMemo"),
     url(r'^setusertogroup/$', views.setusertogroup, name="setusertogroup"),
     url(r'^adddetailtodinghuo/$', views.add_detail_to_ding_huo, name="add_detail_to_ding_huo"),
     url(r'^changeorderlist/$', views.modify_order_list, name="modify_order_list"),

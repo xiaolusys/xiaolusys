@@ -77,6 +77,8 @@ def new_order(request):
     all_drafts = orderdraft.objects.all().filter(buyer_name=username)
     if request.method == 'POST':
         post = request.POST
+        type_of_order = post['type_of_order']
+        print type_of_order,"eeeeeeeeee"
         costofems = post['costofems']
         if costofems == "":
             costofems = 0
@@ -103,6 +105,8 @@ def new_order(request):
         if len(remarks.strip()) > 0:
             orderlist.note = "-->" + request.user.username + " : " + remarks
         orderlist.status = pcfg.SUBMITTING
+        if type_of_order == '2':
+            orderlist.status = '7'
         orderlist.order_amount = amount
         orderlist.save()
 
@@ -311,58 +315,6 @@ def changestatus(req):
 
 
 @csrf_exempt
-def change_memo(req):
-    post = req.POST
-    sku_id = post["sku_id"]
-    flag = post["flag"]
-    sale_num = post.get("sale_num", 0)
-    ding_huo_num = post.get("ding_huo_num", 0)
-    pro_sku = ProductSku.objects.get(id=sku_id)
-    memo = pro_sku.memo
-    flag_of_state, sample_num = functions.get_num_by_memo(memo)
-    if flag_of_state:
-        if flag == '1':
-            sample_num += 1
-            pro_sku.memo = u"样品补全:" + str(sample_num)
-            pro_sku.save()
-            log_action(req.user.id, pro_sku, CHANGE, u' 增加样品一个')
-            result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
-                                                                                                 int(ding_huo_num),
-                                                                                                 model_to_dict(pro_sku))
-            # rep_json = {"flag":"2","memo":"'+pro_sku.memo+'"}
-            # return HttpResponse(json.dumps(rep_json),content_type="application/json")
-            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
-        elif flag == '0':
-            sample_num -= 1
-            if sample_num == 0:
-                pro_sku.memo = ""
-                pro_sku.save()
-                log_action(req.user.id, pro_sku, CHANGE, u'删除备注')
-                result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
-                                                                                                     int(ding_huo_num),
-                                                                                                     model_to_dict(
-                                                                                                         pro_sku))
-                return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
-            pro_sku.memo = u"样品补全:" + str(sample_num)
-            pro_sku.save()
-            log_action(req.user.id, pro_sku, CHANGE, u' 减少样品一个')
-            result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
-                                                                                                 int(ding_huo_num),
-                                                                                                 model_to_dict(pro_sku))
-            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
-    else:
-        if flag == '1':
-            pro_sku.memo = u'样品补全:1'
-            pro_sku.save()
-            log_action(req.user.id, pro_sku, CHANGE, u'增加样品一个')
-            result_str, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(int(sale_num),
-                                                                                                 int(ding_huo_num),
-                                                                                                 model_to_dict(pro_sku))
-            return HttpResponse('{"flag":"1","memo":"' + pro_sku.memo + '","result_str":"' + result_str + '"}')
-        return HttpResponse('{"flag":"0","memo":"' + pro_sku.memo + '"}')
-
-
-@csrf_exempt
 def setusertogroup(req):
     post = req.POST
     groupid = post.get("groupid", 0)
@@ -494,7 +446,7 @@ class DailyDingHuoStatsView(View):
         if target_date < today:
             next_day = target_date + datetime.timedelta(days=1)
 
-        orderlists = OrderList.objects.exclude(status=u'作废').filter(created=target_date)
+        orderlists = OrderList.objects.exclude(status=u'作废').exclude(status=u'7').filter(created=target_date)
         orderlists_list = []
         for orderlist in orderlists:
             orderlist_dict = model_to_dict(orderlist)
@@ -618,8 +570,8 @@ class DailyWorkView(View):
                 temp_total_sale_num = temp_total_sale_num + sale_num
                 ding_huo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'],
                                                                                    ding_huo_qs)
-                dinghuostatusstr, flag_of_memo, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                    sale_num, ding_huo_num, sku_dict)
+                dinghuostatusstr, flag_of_more, flag_of_less = functions.get_ding_huo_status(
+                    sale_num, ding_huo_num, 0)
                 if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                             flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                     sku_dict['sale_num'] = sale_num
@@ -628,7 +580,6 @@ class DailyWorkView(View):
                     sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
                         sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
                     sku_dict['dinghuo_status'] = dinghuostatusstr
-                    sku_dict['flag_of_memo'] = flag_of_memo
                     sku_dict['flag_of_more'] = flag_of_more
                     sku_dict['flag_of_less'] = flag_of_less
                     product_dict['prod_skus'].append(sku_dict)

@@ -125,7 +125,7 @@
                         <tr>
                             <td>
                                 <div class="input-group">
-                                    <span class="input-group-addon">收&nbsp;&nbsp;货&nbsp;&nbsp;人</span>
+                                    <span class="input-group-addon">负&nbsp;&nbsp;责&nbsp;&nbsp;人</span>
                                     <input id="id_consigneeName" name="consigneeName" type="text"
                                            class="form-control required" placeholder="必填"
                                            placeholder="" aria-describedby="sizing-addon2">
@@ -185,7 +185,11 @@
                             </td>
                             <td style="text-align:center;padding-top:20px;">
                                 <div class="input-group">
-                                    <button id="submit_form" type="submit" value="保存" class="btn btn-default">保存
+                                    <select class="form-control" style="width: 200px; display: inline" name="type_of_order">
+                                        <option value="1" select="selected">正常订货</option>
+                                        <option value="2">样品寄仓库</option>
+                                    </select>
+                                    <button id="submit_form" type="submit" value="保存" class="btn btn-warning" style="margin-left: 100px">保存
                                     </button>
                                 </div>
                             </td>
