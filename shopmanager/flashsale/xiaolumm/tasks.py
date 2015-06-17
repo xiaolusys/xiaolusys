@@ -43,7 +43,8 @@ def task_Pull_Pending_Carry(day_ago=7):
     
     c_logs = CarryLog.objects.filter(carry_date__range=(date_from,date_to),
                                      log_type__in=(CarryLog.ORDER_REBETA,),#CarryLog.CLICK_REBETA
-                                     status=CarryLog.CONFIRMED)
+                                     status=CarryLog.CONFIRMED,
+                                     carry_type=CarryLog.CARRY_IN)
 
     for cl in c_logs:
         #重新计算pre_date之前订单金额，取消退款订单提成
@@ -136,7 +137,8 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     c_logs = CarryLog.objects.filter(log_type=CarryLog.CLICK_REBETA, 
                                      carry_date__lt=pre_date,
-                                     status=CarryLog.PENDING)
+                                     status=CarryLog.PENDING,
+                                     carry_type=CarryLog.CARRY_IN)
     
     if xlmm_id:
         c_logs = c_logs.filter(xlmm=xlmm_id)
@@ -162,15 +164,12 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         click_rebeta = calc_Xlmm_ClickRebeta(xlmm,time_from,time_to)
         
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        if cl.carry_type != CarryLog.CARRY_IN:
-            continue
-        
-#         carry_value  = cl.value
+        carry_value  = cl.value
         cl.value     = click_rebeta
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-#         urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
-#         if urows > 0:
-#             cl.status = CarryLog.PENDING
+        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        if urows > 0:
+            cl.status = CarryLog.CONFIRMED
         cl.save()
         
 
@@ -181,7 +180,8 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
     
     c_logs = CarryLog.objects.filter(log_type=CarryLog.ORDER_REBETA, 
                                      carry_date__lte=pre_date,
-                                     status=CarryLog.PENDING)\
+                                     status=CarryLog.PENDING,
+                                     carry_type=CarryLog.CARRY_IN)\
     
     if xlmm_id:
         c_logs = c_logs.filter(xlmm=xlmm_id)

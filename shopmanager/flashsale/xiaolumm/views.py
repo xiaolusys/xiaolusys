@@ -175,6 +175,92 @@ class MamaStatsView(View):
             return render_to_response("remind.html",{"openid":openid}, 
                                       context_instance=RequestContext(request))
         
+        target_date = datetime.date.today()
+        yesterday   = target_date - datetime.timedelta(days=1)
+        time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+        
+        mobile = wx_user.mobile
+        data   = {}
+        try:
+            referal_num = XiaoluMama.objects.filter(referal_from=mobile).count()
+            xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
+            if xlmm.mobile  != mobile:
+                xlmm.mobile  = mobile
+                xlmm.weikefu = xlmm.weikefu or wx_user.nickname
+                xlmm.save()
+            
+            if xlmm.status == XiaoluMama.FROZEN:
+                return render_to_response("mama_404.html")
+            
+            mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
+            
+            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id)
+            pending_value = mm_clogs.filter(status=CarryLog.PENDING).aggregate(total_value=Sum('value')).get('total_value') or 0 
+            yest_income = mm_clogs.filter(carry_type=CarryLog.CARRY_IN,carry_date=yesterday).aggregate(total_value=Sum('value')).get('total_value') or 0
+            yest_pay    = mm_clogs.filter(carry_type=CarryLog.CARRY_OUT,carry_date=yesterday).aggregate(total_value=Sum('value')).get('total_value') or 0
+            
+            pending_value = pending_value / 100.0
+            yest_income   = yest_income / 100.0
+            yest_pay      = yest_pay / 100.0
+            
+            order_num   = 0
+            order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
+            if order_stat.count() > 0:
+                order_num   = order_stat[0].buyercount
+
+            click_list = Clicks.objects.filter(linkid=xlmm.pk, click_time__range=(time_from, time_to), isvalid=True)
+            click_num  = click_list.values('openid').distinct().count()
+                    
+            #设置最高有效最高点击上限
+            max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num)
+            if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+                click_num = min(max_click_count,click_num)
+                
+            referal_mm = 0
+#             if xlmm.progress != XiaoluMama.PASS :
+#                 if xlmm.referal_from:
+#                     referal_mamas = XiaoluMama.objects.filter(mobile=xlmm.referal_from)
+#                     if referal_mamas.count() > 0:
+#                         referal_mm = referal_mamas[0].id
+#                 else:
+#                     referal_mm = 1
+                
+            data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
+                    'referal_mmid':referal_mm,"order_num":order_num,  "pk":xlmm.pk,
+                    'pending_value':pending_value,"referal_num":referal_num,
+                    'yest_income':yest_income,'yest_pay':yest_pay}
+            
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+        
+        response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+        response.set_cookie("sunionid",unionid)
+        response.set_cookie("sopenid",openid)
+        return response
+    
+class MamaIncomeDetailView(View):
+    def get(self, request):
+        
+        content = request.REQUEST
+        code = content.get('code',None)
+        
+        openid,unionid = get_user_unionid(code,
+                                          appid=settings.WEIXIN_APPID,
+                                          secret=settings.WEIXIN_SECRET,
+                                          request=request)
+        
+        if not valid_openid(openid):
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
+        
+        service = WeixinUserService(openid,unionId=unionid)
+        wx_user = service._wx_user
+        
+        if not wx_user.isValid():
+            return render_to_response("remind.html",{"openid":openid}, 
+                                      context_instance=RequestContext(request))
+        
         daystr = content.get("day", None)
         today  = datetime.date.today()
         year,month,day = today.year,today.month,today.day
@@ -200,21 +286,13 @@ class MamaStatsView(View):
         result = Result.objects.filter(daili_user=unionid)
         if result.count() > 0:
             exam_pass = result[0].is_Exam_Funished()
-        
-        mobile = wx_user.mobile
+            
         data   = {}
         try:
-            referal_num = XiaoluMama.objects.filter(referal_from=mobile).count()
             xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
-            if xlmm.mobile  != mobile:
-                xlmm.mobile  = mobile
-                xlmm.weikefu = xlmm.weikefu or wx_user.nickname
-                xlmm.save()
-            
             if xlmm.status == XiaoluMama.FROZEN:
                 return render_to_response("mama_404.html")
             
-            mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
             order_num   = 0
             total_value = 0
             carry       = 0
@@ -230,14 +308,6 @@ class MamaStatsView(View):
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             click_price  = xlmm.get_Mama_Click_Price(order_num) / 100
-            referal_mm = 0
-#             if xlmm.progress != XiaoluMama.PASS :
-#                 if xlmm.referal_from:
-#                     referal_mamas = XiaoluMama.objects.filter(mobile=xlmm.referal_from)
-#                     if referal_mamas.count() > 0:
-#                         referal_mm = referal_mamas[0].id
-#                 else:
-#                     referal_mm = 1
             
             click_num    = 0 
             click_pay    = 0 
@@ -278,17 +348,19 @@ class MamaStatsView(View):
                 click_pay  = click_num * click_price                              
                 ten_click_pay = ten_click_num * ten_click_price
                 
-            data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,'referal_mmid':referal_mm,
-                    "order_num":order_num, "order_list":order_list, "pk":xlmm.pk,
-                    "exam_pass":exam_pass,"total_value":total_value, "carry":carry, 'carry_confirm':carry_confirm,
-                    "target_date":target_date, "prev_day":prev_day, "next_day":next_day,
-                    "click_price":click_price, "click_pay":click_pay,'active_start':active_start,"ten_click_num":ten_click_num,
-                    "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay,"referal_num":referal_num}
+            data = { "xlmm":xlmm,"pk":xlmm.pk,
+                    "order_num":order_num, "order_list":order_list, 
+                    "exam_pass":exam_pass,"total_value":total_value,
+                    "carry":carry, 'carry_confirm':carry_confirm,
+                    "target_date":target_date,"prev_day":prev_day, "next_day":next_day,
+                    'active_start':active_start,"click_num":click_num,
+                    "click_price":click_price, "click_pay":click_pay,"ten_click_num":ten_click_num,
+                    "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay}
             
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
         
-        response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
+        response = render_to_response("mama_income.html", data, context_instance=RequestContext(request))
         response.set_cookie("sunionid",unionid)
         response.set_cookie("sopenid",openid)
         return response
