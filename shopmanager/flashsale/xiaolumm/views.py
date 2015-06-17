@@ -219,7 +219,7 @@ class MamaStatsView(View):
             total_value = 0
             carry       = 0
 
-            order_list = StatisticsShopping.objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
+            order_list = StatisticsShopping.normal_objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             carry_confirm = False
             if order_stat.count() > 0:
@@ -264,9 +264,7 @@ class MamaStatsView(View):
                 click_num  = click_qs.filter(click_time__range=(datetime.datetime(2015,6,15), 
                                                                 datetime.datetime(2015,6,15,10,0,0))
                                              ).values('openid').distinct().count()
-                
-                
-                
+
                 ten_click_num = click_qs.filter(click_time__range=(datetime.datetime(2015,6,15,10), 
                                                                    datetime.datetime(2015,6,15,23,59,59))
                                                 ).values('openid').distinct().count()

@@ -135,8 +135,8 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
     
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     c_logs = CarryLog.objects.filter(log_type=CarryLog.CLICK_REBETA, 
-                                     carry_date__lte=pre_date,
-                                     status=CarryLog.PENDING)\
+                                     carry_date__lt=pre_date,
+                                     status=CarryLog.PENDING)
     
     if xlmm_id:
         c_logs = c_logs.filter(xlmm=xlmm_id)
@@ -180,7 +180,7 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     
     c_logs = CarryLog.objects.filter(log_type=CarryLog.ORDER_REBETA, 
-                                     carry_date__lt=pre_date,
+                                     carry_date__lte=pre_date,
                                      status=CarryLog.PENDING)\
     
     if xlmm_id:

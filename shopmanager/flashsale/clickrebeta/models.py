@@ -5,6 +5,16 @@ from shopapp.weixin.models import WXOrder
 from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel,CarryLog
 import datetime
 
+class NormalShopingManager(models.Manager):
+
+    def get_queryset(self):
+        
+        super_tm = super(NormalShopingManager,self)
+        #adapt to higer version django(>1.4)
+        if hasattr(super_tm,'get_query_set'):
+            return super_tm.get_query_set().filter(status__in=self.model.NORMAL_STATUS)
+        
+        return super_tm.get_queryset().filter(status__in=self.model.NORMAL_STATUS)
 
 class StatisticsShopping(models.Model):
     
@@ -18,6 +28,8 @@ class StatisticsShopping(models.Model):
         (REFUNDED, u'已退款'),
     )
     
+    NORMAL_STATUS = [WAIT_SEND,FINISHED]
+    
     linkid = models.IntegerField(default=0,verbose_name=u"链接ID")
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
     openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"OpenId")
@@ -27,6 +39,9 @@ class StatisticsShopping(models.Model):
     tichengcount = models.IntegerField(default=0, verbose_name=u'提成')
     shoptime = models.DateTimeField(default=datetime.datetime.now, db_index=True, verbose_name=u'提成时间')
     status   = models.IntegerField(default=0, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
+    
+    objects = models.Manager()
+    normal_objects = NormalShopingManager()
     
     class Meta:
         db_table = 'flashsale_tongji_shopping'
