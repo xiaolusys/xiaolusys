@@ -25,7 +25,6 @@ def get_Month_By_Date(date_time):
     return date_from, date_to
 
 
-
 @csrf_exempt
 def xlmm_Product_Analysis(request):
     content = request.REQUEST
@@ -44,54 +43,33 @@ def xlmm_Product_Analysis(request):
     date_to = datetime.date(date_to.year, date_to.month, date_to.day)
     date_dic = {"prev_month": prev_month, "next_month": next_month}
 
-    sql = "select success_order.linkid, success_order.linkname,success_order.mm_sum_payment ,success_order.mm_sum_num, " \
-          "refund.mm_sum_payment, refund.mm_sum_num ,success_order.username, " \
-          "ROUND( (IF(success_order.mm_sum_payment=0,0,100*(refund.mm_sum_payment/success_order.mm_sum_payment))) ,2)AS refun_pay_rate," \
-          "ROUND( (IF(success_order.mm_sum_num=0,0,100*(refund.mm_sum_num /success_order.mm_sum_num))) ,2) AS refun_rate  from " \
-          "(select wx_xx_mo.linkid, wx_xx_mo.linkname,wx_xx_mo.mm_sum_payment, wx_xx_mo.mm_sum_num,auth_user.username from " \
-          "(select wx_mo.linkname  , wx_mo.linkid,  sum(wx_mo.sum_payment) as mm_sum_payment,  sum(wx_mo.sum_num) as mm_sum_num ,xx.manager from " \
-          "(select mo.sum_payment, mo.sum_num, mo.oid,wx.wxorderid,wx.linkname,wx.linkid from " \
-          "(SELECT sum(payment) as sum_payment,sum(num) as sum_num,oid FROM " \
-          "shop_trades_mergeorder  WHERE  status='TRADE_FINISHED' and pay_time BETWEEN '{0}' AND '{1}' group by oid ) AS mo " \
-          "LEFT JOIN (SELECT wxorderid,linkname,linkid FROM flashsale_tongji_shopping WHERE shoptime BETWEEN '{0}' AND '{1}' ) " \
-          "AS wx ON mo.oid=wx.wxorderid) as wx_mo left join " \
-          "(select id ,manager from xiaolumm_xiaolumama) as xx on wx_mo.linkid=xx.id group by wx_mo.linkid) as wx_xx_mo " \
-          "left join (select id,username from auth_user) as auth_user on wx_xx_mo.manager=auth_user.id ) as success_order " \
-          "left join " \
-          "(  select wx_xx_mo.linkid,wx_xx_mo.mm_sum_payment, wx_xx_mo.mm_sum_num  from " \
-          "(select wx_mo.linkname  , wx_mo.linkid,  sum(wx_mo.sum_payment) as mm_sum_payment,  sum(wx_mo.sum_num) as mm_sum_num ,xx.manager from " \
-          "(select mo.sum_payment, mo.sum_num, mo.oid,wx.wxorderid,wx.linkname,wx.linkid from " \
-          "(SELECT sum(payment) as sum_payment,sum(num) as sum_num,oid FROM " \
-          "shop_trades_mergeorder  WHERE refund_status='SUCCESS' and pay_time BETWEEN '{0}' AND '{1}' group by oid ) AS mo " \
-          "LEFT JOIN (SELECT wxorderid,linkname,linkid FROM flashsale_tongji_shopping WHERE shoptime BETWEEN '{0}' AND '{1}' ) " \
-          "AS wx ON mo.oid=wx.wxorderid) as wx_mo left join " \
-          "(select id ,manager from xiaolumm_xiaolumama) as xx on wx_mo.linkid=xx.id group by wx_mo.linkid) as wx_xx_mo " \
-          "left join (select id,username from auth_user) as auth_user on wx_xx_mo.manager=auth_user.id) as refund on success_order.linkid=refund.linkid".format(
-        date_from, date_to)
+    sql = "SELECT " \
+            "shopping.linkid, " \
+            "shopping.linkname, " \
+            "shopping.refund_num, " \
+            "detail.sum_ordernumcount, " \
+            "detail.sum_orderamountcount " \
+        "FROM " \
+            "(SELECT  " \
+                "linkid, sum(if(status=2,1,0)) AS refund_num, linkname " \
+            "FROM " \
+                "flashsale_tongji_shopping WHERE shoptime BETWEEN '{0}'  AND '{1}' " \
+            "GROUP BY linkid) AS shopping " \
+                "LEFT JOIN " \
+            "(SELECT  " \
+                "linkid, " \
+                    "SUM(ordernumcount) AS sum_ordernumcount, " \
+                    "ROUND ((SUM(orderamountcount)/100),2) AS sum_orderamountcount " \
+            "FROM " \
+                "flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}'  AND '{1}'" \
+            "GROUP BY linkid) AS detail ON shopping.linkid = detail.linkid ".format(date_from, date_to)
+    print 'sql is here :', sql
 
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
     return render_to_response('product_analysis/xlmm_pro_analysis.html', {'raw': raw, 'date_dic': date_dic},
                               context_instance=RequestContext(request))
-
-
-def get_source_orders(start_dt=None, end_dt=None):
-    """获取某个时间段里面的原始订单的信息"""
-    order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT) \
-        .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
-        .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
-        .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
-    order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
-    order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS) \
-        .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS)) \
-        .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
-
-    order_qs = order_qs.values("outer_id", "num", "outer_sku_id", "pay_time").extra(where=["CHAR_LENGTH(outer_id)>=9"]) \
-        .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
-    return order_qs
-
-
 
 
 @csrf_exempt
@@ -114,35 +92,36 @@ def product_Analysis(request):
 
     # 统计每月销售top50 及供应商
     sql = "SELECT " \
-                "merge_detail.outer_id, " \
-                "merge_detail.title, " \
-                "merge_detail.sum_num, " \
-                "dinghuo_list.supplier_name " \
-            "FROM " \
-                "(SELECT " \
-                    "merge_order.outer_id, " \
-                        "merge_order.title, " \
-                        "merge_order.sum_num, " \
-                        "dinghuo_detail.orderlist_id " \
-                "FROM " \
-                    "(SELECT " \
-                    "outer_id, title, SUM(num) AS sum_num " \
-                "FROM " \
-                    "shop_trades_mergeorder " \
-                "WHERE " \
-                    "refund_status = 'NO_REFUND' " \
-                        "AND status = 'TRADE_FINISHED' " \
-                        "AND sys_status = 'IN_EFFECT' " \
-                        "AND pay_time BETWEEN '{0}' AND '{1}' " \
-                "GROUP BY outer_id " \
-                "ORDER BY sum_num DESC " \
-                "LIMIT 50) AS merge_order " \
-                "LEFT JOIN (SELECT " \
-                    "orderlist_id, outer_id " \
-                "FROM " \
-                    "suplychain_flashsale_orderdetail) AS dinghuo_detail ON dinghuo_detail.outer_id = merge_order.outer_id) AS merge_detail " \
-                    "LEFT JOIN  " \
-                "suplychain_flashsale_orderlist AS dinghuo_list ON merge_detail.orderlist_id = dinghuo_list.id".format(date_from, date_to)
+          "merge_detail.outer_id, " \
+          "merge_detail.title, " \
+          "merge_detail.sum_num, " \
+          "dinghuo_list.supplier_name " \
+          "FROM " \
+          "(SELECT " \
+          "merge_order.outer_id, " \
+          "merge_order.title, " \
+          "merge_order.sum_num, " \
+          "dinghuo_detail.orderlist_id " \
+          "FROM " \
+          "(SELECT " \
+          "outer_id, title, SUM(num) AS sum_num " \
+          "FROM " \
+          "shop_trades_mergeorder " \
+          "WHERE " \
+          "refund_status = 'NO_REFUND' " \
+          "AND status = 'TRADE_FINISHED' " \
+          "AND sys_status = 'IN_EFFECT' " \
+          "AND pay_time BETWEEN '{0}' AND '{1}' " \
+          "GROUP BY outer_id " \
+          "ORDER BY sum_num DESC " \
+          "LIMIT 50) AS merge_order " \
+          "LEFT JOIN (SELECT " \
+          "orderlist_id, outer_id " \
+          "FROM " \
+          "suplychain_flashsale_orderdetail) AS dinghuo_detail ON dinghuo_detail.outer_id = merge_order.outer_id) AS merge_detail " \
+          "LEFT JOIN  " \
+          "suplychain_flashsale_orderlist AS dinghuo_list ON merge_detail.orderlist_id = dinghuo_list.id".format(
+        date_from, date_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
