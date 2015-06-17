@@ -44,26 +44,25 @@ def xlmm_Product_Analysis(request):
     date_dic = {"prev_month": prev_month, "next_month": next_month}
 
     sql = "SELECT " \
-            "shopping.linkid, " \
-            "shopping.linkname, " \
-            "shopping.refund_num, " \
-            "detail.sum_ordernumcount, " \
-            "detail.sum_orderamountcount " \
-        "FROM " \
-            "(SELECT  " \
-                "linkid, sum(if(status=2,1,0)) AS refund_num, linkname " \
-            "FROM " \
-                "flashsale_tongji_shopping WHERE shoptime BETWEEN '{0}'  AND '{1}' " \
-            "GROUP BY linkid) AS shopping " \
-                "LEFT JOIN " \
-            "(SELECT  " \
-                "linkid, " \
-                    "SUM(ordernumcount) AS sum_ordernumcount, " \
-                    "ROUND ((SUM(orderamountcount)/100),2) AS sum_orderamountcount " \
-            "FROM " \
-                "flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}'  AND '{1}'" \
-            "GROUP BY linkid) AS detail ON shopping.linkid = detail.linkid ".format(date_from, date_to)
-    print 'sql is here :', sql
+          "shopping.linkid, " \
+          "shopping.linkname, " \
+          "shopping.refund_num, " \
+          "detail.sum_ordernumcount, " \
+          "detail.sum_orderamountcount " \
+          "FROM " \
+          "(SELECT  " \
+          "linkid, sum(if(status=2,1,0)) AS refund_num, linkname " \
+          "FROM " \
+          "flashsale_tongji_shopping WHERE shoptime BETWEEN '{0}'  AND '{1}' " \
+          "GROUP BY linkid) AS shopping " \
+          "LEFT JOIN " \
+          "(SELECT  " \
+          "linkid, " \
+          "SUM(ordernumcount) AS sum_ordernumcount, " \
+          "ROUND ((SUM(orderamountcount)/100),2) AS sum_orderamountcount " \
+          "FROM " \
+          "flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}'  AND '{1}'" \
+          "GROUP BY linkid) AS detail ON shopping.linkid = detail.linkid ".format(date_from, date_to)
 
     cursor = connection.cursor()
     cursor.execute(sql)
