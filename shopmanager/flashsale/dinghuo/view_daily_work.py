@@ -68,13 +68,17 @@ class DailyDingHuoView(View):
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id={1}))) as A " \
                           "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(target_date, groupname)
-        print product_sql
-        ding_huo_sql = "select outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
-                       "from suplychain_flashsale_orderdetail " \
-                       "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status not in ('作废')) and created BETWEEN '{0}' AND '{1}'".format(
-                                                                                                            shelve_from, query_time)
+        # ding_huo_sql = "select outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
+        #                "from suplychain_flashsale_orderdetail " \
+        #                "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status not in ('作废')) and created BETWEEN '{0}' AND '{1}'".format(
+        #                                                                                                     shelve_from, query_time)
+        ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status!='7',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity,sum(B.arrival_quantity) as arrival_quantity,B.effect_quantity,A.status" \
+                       " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created BETWEEN '{0}' AND '{1}') as A " \
+                       "left join (select orderlist_id,outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
+                       "from suplychain_flashsale_orderdetail) as B on A.id=B.orderlist_id group by outer_id,chichu_id".format(shelve_from, query_time)
         sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
-              "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.sku_id,product.exist_stock_num,product.id,ding_huo_info.arrival_quantity " \
+              "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.sku_id,product.exist_stock_num," \
+              "product.id,ding_huo_info.arrival_quantity,ding_huo_info.sample_quantity " \
               "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id and product.outer_sku_id=order_info.outer_sku_id left join (" + ding_huo_sql + ") as ding_huo_info on product.outer_id=ding_huo_info.outer_id and product.sku_id=ding_huo_info.chichu_id"
         cursor = connection.cursor()
         cursor.execute(sql)
@@ -84,12 +88,13 @@ class DailyDingHuoView(View):
             sale_num = int(product[5] or 0)
             ding_huo_num = int(product[6] or 0)
             arrival_num = int(product[11] or 0)
+            sample_num = int(product[12] or 0)
             ding_huo_status, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                sale_num, ding_huo_num, int(product[9] or 0))
+                sale_num, ding_huo_num, int(product[9] or 0), sample_num)
             temp_dict = {"product_id": product[10], "sku_id": product[2], "product_name": product[1],
                          "pic_path": product[3], "sale_num": sale_num or 0, "sku_name": product[4],
                          "ding_huo_num": ding_huo_num, "effect_num": product[7] or 0,
-                         "ding_huo_status": ding_huo_status,
+                         "ding_huo_status": ding_huo_status, "sample_num":sample_num,
                          "flag_of_more": flag_of_more, "flag_of_less": flag_of_less,
                          "sku_id": product[8], "ku_cun_num": int(product[9] or 0),
                          "arrival_num": arrival_num}

@@ -63,11 +63,12 @@ class ChangeDetailView(View):
             flag_of_status = True
         else:
             flag_of_status = False
+        flag_of_sample = False
         if order_list.status == u'7':
             flag_of_sample = True
         return render_to_response("dinghuo/changedetail.html", {"orderlist": order_list, "flagofstatus": flag_of_status,
                                                                 "orderdetails": order_list_list,
-                                                                "flag_of_sample": flag_of_sample, },
+                                                                "flag_of_sample": flag_of_sample },
                                   context_instance=RequestContext(request))
 
 

@@ -57,17 +57,17 @@ def get_num_by_memo(memo):
     return flag_of_state, sample_num
 
 
-def get_ding_huo_status(num, ding_huo_num, ku_cun_num=0):
+def get_ding_huo_status(num, ding_huo_num, ku_cun_num=0, sample_num=0):
     """根据销售数量，订货数量，库存数量得到订货的状态"""
     flag_of_more = False
     flag_of_less = False
     result_str = ""
-    if ding_huo_num + ku_cun_num > num:
+    if ding_huo_num + ku_cun_num + sample_num > num:
         flag_of_more = True
-        result_str = '多' + str(ding_huo_num + ku_cun_num - num) + '件'
-    if ding_huo_num + ku_cun_num < num:
+        result_str = '多' + str(ding_huo_num + ku_cun_num + sample_num - num) + '件'
+    if ding_huo_num + ku_cun_num + sample_num < num:
         flag_of_less = True
-        result_str = '缺少' + str(num - ding_huo_num - ku_cun_num) + '件'
+        result_str = '缺少' + str(num - ding_huo_num - ku_cun_num - sample_num) + '件'
 
     return result_str, flag_of_more, flag_of_less
 
