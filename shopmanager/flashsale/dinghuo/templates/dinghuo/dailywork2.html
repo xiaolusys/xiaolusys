@@ -84,8 +84,7 @@
             <th>尺寸</th>
             <th>销售数</th>
             <th>已拍数量</th>
-            <th>库存数</th>
-            <th>样品数量</th>
+            <th>上架前库存数</th>
             <th width="150px">状态</th>
             </thead>
             <tbody>
@@ -101,8 +100,8 @@
                                         <a href="/sale/dinghuo/adddetail/{{ product_id }}"
                                            target="_blank">编码:{{ product_id }}</a>
                                     </td>
-                                    <td  rowspan="{{ sku_len }}"><img src="{{ sku.pic_path }}" width="100px"
-                                             class="img-circle">
+                                    <td rowspan="{{ sku_len }}"><img src="{{ sku.pic_path }}" width="100px"
+                                                                     class="img-circle">
                                     </td>
                                 {% endif %}
                                 <td>{{ sku.sku_name }}</td>
@@ -111,22 +110,7 @@
 
                                        id="ding_huo_num_{{ sku.sku_id }}">{{ sku.ding_huo_num }} </a>
                                 </td>
-                            <td>{{ sku.ku_cun_num }}</td>
-                                <td>
-                                    <div class="row">
-                                        <div class="col-xs-8"><span id="memo_id_{{ sku.sku_id }}">{{ sku.sku_memo }}</span>
-                                        </div>
-                                        <div class="col-xs-4">
-                                            {% if sku.flag_of_less or sku.flag_of_more or sku.flag_of_memo %}
-                                                <a onclick="changememo({{ sku.sku_id }},1)">
-                                                    <span class="glyphicon glyphicon-plus"></span></a><br>
-                                                <a onclick="changememo({{ sku.sku_id }},0)">
-                                                    <span class="glyphicon glyphicon-minus"></span>
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </td>
+                                <td>{{ sku.ku_cun_num }}</td>
                                 <td>
                                     <span class="dinghuo_status" id="dinghuostatus_{{ sku.sku_id }}"
                                             {% if sku.flag_of_less %} style="color: red;font-size: 20px"
@@ -188,34 +172,6 @@
                 $(".floatview").css("position", "fixed");
             });
         });
-        function changememo(sku_id, flag) {
-            var url = "/sale/dinghuo/changememo/";
-            var indexstatus = "dinghuostatus_" + sku_id;
-            var index_of_memo = "memo_id_" + sku_id;
-            var index_of_ding_huo = "ding_huo_num_" + sku_id;
-            var index_of_sale = "sale_num_" + sku_id;
-            var str_of_memo = $("#" + index_of_memo);
-            var dinghuostatus = $("#" + indexstatus);
-            var ding_huo_num = $("#" + index_of_ding_huo);
-            var sale_num = $("#" + index_of_sale);
-            var data = {
-                "sku_id": sku_id,
-                "flag": flag,
-                "ding_huo_num": ding_huo_num.html(),
-                "sale_num": sale_num.html()
-            };
-            var callback = function (res) {
-                var res_json = eval("(" + res + ")");
-                if (res_json.flag == "1") {
-                    str_of_memo.html(res_json.memo);
-                    dinghuostatus.html(res_json.result_str).css()
-                } else if (res_json.flag == "0") {
-                    str_of_memo.html(res_json.memo);
-                }
-            };
-            $.ajax({url: url, data: data, type: "post", success: callback});
-
-        }
     </script>
 
 {% endblock %}

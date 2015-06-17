@@ -351,12 +351,12 @@
                     <td><img src="{{ order.pic_path }}" width="60px" height="60px" class="img-circle"></td>
                     <td>{{ order.product_chicun }}</td>
                     <td align="center">
-                        {% if flagofstatus or flagofquestion %}
+                        {% if flagofstatus or flagofquestion or flag_of_sample %}
                             <a onclick="plusQuantity({{ order.id }})">
                                 <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
                         {% endif %}
                         <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
-                        {% if flagofstatus or flagofquestion %}
+                        {% if flagofstatus or flagofquestion or flag_of_sample%}
                             <a onclick="minusQuantity({{ order.id }})">
                                 <span class="glyphicon glyphicon-minus"></span>
                             </a>
@@ -407,7 +407,7 @@
         </table>
     </div>
     <br>
-    {% if flagofstatus or flagofquestion %}
+
         <div class="row" id="searchfield">
             <legend>
                 <h2 class="head-title">搜索物品
@@ -433,7 +433,7 @@
                 </thead>
             </table>
         </div>
-    {% endif %}
+
 {% endblock %}
 {% block tail_script %}
     <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
