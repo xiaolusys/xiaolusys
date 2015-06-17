@@ -41,15 +41,12 @@
             <thead>
             <th>妈妈编号</th>
             <th>妈妈昵称</th>
-            <th>销售金额</th>
+            <th>退款数量</th>
             <th>销售数量</th>
-            <th>退货金额</th>
-            <th>退货数量</th>
-            <th>退款比(%)</th>
-            <th>退货比(%)</th>
-            <th>管理员</th>
+            <th>销售金额</th>
             </thead>
             <tbody>
+
             {% for i in raw %}
                 <tr>
                     <td>{{ i.0 }}</td>
@@ -57,10 +54,6 @@
                     <td>{{ i.2 }}</td>
                     <td>{{ i.3 }}</td>
                     <td>{{ i.4 }}</td>
-                    <td>{{ i.5 }}</td>
-                    <td>{{ i.7 }}</td>
-                    <td>{{ i.8 }}</td>
-                    <td>{{ i.6 }}</td>
                 </tr>
             {% endfor %}
             </tbody>
