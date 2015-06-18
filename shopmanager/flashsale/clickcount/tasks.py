@@ -91,6 +91,7 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
     click_rebeta = click_num * click_price + ten_click_num * ten_click_price
     return click_rebeta
 
+
 @task()
 def task_Push_ClickCount_To_MamaCash(target_date):
     """ 计算每日妈妈点击数现金提成，并更新到妈妈钱包账户"""
@@ -123,9 +124,7 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         c_log.status = CarryLog.PENDING
         c_log.save()
         
-        urows = XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
-        if urows == 0:
-            raise Exception(u'小鹿妈妈订单提成返现更新异常:%s,%s'%(xlmm.id,urows))
+        XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
 
 
 @task(max_retry=3, default_retry_delay=5)

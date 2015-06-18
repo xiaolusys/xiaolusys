@@ -16,7 +16,12 @@ AGENCY_SUBSIDY_DAYS = 11
 
 @task()
 def task_Create_Click_Record(xlmmid,openid,click_time):
-    
+    """
+    异步保存妈妈分享点击记录
+    xlmm_id:小鹿妈妈id，
+    openid:妈妈微信openid,
+    click_time:点击时间
+    """
     xlmmid = int(xlmmid)
     
     today = datetime.datetime.now()
@@ -34,36 +39,13 @@ def task_Create_Click_Record(xlmmid,openid,click_time):
         
     Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
     
-    
-@task()
-def task_Pull_Pending_Carry(day_ago=7):
-    
-    date_to  = datetime.datetime.now().date()
-    date_from    = date_to - datetime.timedelta(days=day_ago)
-    
-    c_logs = CarryLog.objects.filter(carry_date__range=(date_from,date_to),
-                                     log_type__in=(CarryLog.ORDER_REBETA,),#CarryLog.CLICK_REBETA
-                                     status=CarryLog.CONFIRMED,
-                                     carry_type=CarryLog.CARRY_IN)
-
-    for cl in c_logs:
-        #重新计算pre_date之前订单金额，取消退款订单提成
-        
-        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
-        
-        if cl.carry_date == datetime.datetime(2015,5,15).date():
-            urows = xlmms.update(cash=F('cash') - cl.value)
-        else:
-            urows = xlmms.update(pending=F('pending') - cl.value)
-        
-        if urows > 0:
-            cl.status = CarryLog.PENDING
-            cl.save()
 
 @task()
 def task_Push_Pending_Carry_Cash(xlmm_id=None):
-    
+    """
+    将待确认金额重新计算并加入妈妈现金账户
+    xlmm_id:小鹿妈妈id
+    """
     from flashsale.mmexam.models import Result
     
     #结算订单那提成
@@ -77,6 +59,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
                                                    #CarryLog.MAMA_RECRUIT
                                                    ),
 #                                      |Q(log_type=CarryLog.AGENCY_SUBSIDY,carry_date__lt=pre_date),
+                                     carry_type=CarryLog.CARRY_IN,
                                      status=CarryLog.PENDING)
     
     if xlmm_id:
@@ -97,20 +80,21 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         #重新计算pre_date之前订单金额，取消退款订单提成
         
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        if cl.carry_type != CarryLog.CARRY_IN:
-            continue
+        cl.status = CarryLog.CONFIRMED
+        cl.save()
         
         urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
-        if urows > 0:
-            cl.status = CarryLog.CONFIRMED
-            cl.save()
-            
+        
             
 from shopback.trades.models import MergeTrade
 
 @task()
 def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
-    
+    """
+    更新每天妈妈订单状态及提成
+    xlmm_id:小鹿妈妈id，
+    target_date：计算日期
+    """
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
     
@@ -132,7 +116,11 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
 
 @task()
 def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
-    
+    """
+    计算待确认点击提成并计入妈妈现金帐号
+    xlmm_id:小鹿妈妈id，
+    day_ago：计算时间 = 当前时间 - 前几天
+    """
     from flashsale.clickcount.tasks import calc_Xlmm_ClickRebeta
     
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
@@ -166,16 +154,20 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         carry_value  = cl.value
         cl.value     = click_rebeta
+        cl.status    = CarryLog.CONFIRMED
+        cl.save()
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
         urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
-        if urows > 0:
-            cl.status = CarryLog.CONFIRMED
-        cl.save()
+        
         
 
 @task()
 def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
-    
+    """
+    计算待确认订单提成并计入妈妈现金帐号
+    xlmm_id:小鹿妈妈id，
+    day_ago：计算时间 = 当前时间 - 前几天
+    """
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     
     c_logs = CarryLog.objects.filter(log_type=CarryLog.ORDER_REBETA, 
@@ -214,16 +206,19 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         carry_value = cl.value
         rebeta_rate  = xlmm.get_Mama_Order_Rebeta_Rate()
         cl.value     = calc_fee * rebeta_rate
+        cl.status = CarryLog.CONFIRMED
+        cl.save()
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
         urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
-        if urows > 0:
-            cl.status = CarryLog.CONFIRMED
-        cl.save()
+        
         
 @task()
 def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=None):
-    """ 计算代理贡献订单提成 """
-    
+    """
+    计算代理贡献订单提成
+    xlmm_id:小鹿妈妈id，
+    day_ago：计算时间 = 当前时间 - 前几天
+    """
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     
     c_logs = CarryLog.objects.filter(log_type=CarryLog.AGENCY_SUBSIDY,
@@ -262,18 +257,23 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         carry_value = cl.value
         agency_rebeta_rate  = xlmm.get_Mama_Agency_Rebeta_Rate()
         cl.value     = calc_fee * agency_rebeta_rate
+        cl.status = CarryLog.CONFIRMED
+        cl.save() 
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
         urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
-        if urows > 0:
-            cl.status = CarryLog.CONFIRMED
-        cl.save()        
+        
+               
 
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 
 from flashsale.clickrebeta.models import StatisticsShopping
 @task()
 def task_ThousandRebeta(date_from,date_to):
-
+    """
+    计算千元提成
+    date_from: 开始日期，
+    date_to：结束日期
+    """
     xlmms = XiaoluMama.objects.filter(agencylevel=2,charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
         # 千元补贴
@@ -304,7 +304,10 @@ import calendar
 
 @task
 def task_Calc_Month_ThousRebeta(pre_month=1):
-    
+    """
+    按月计算千元代理提成
+    pre_month:计算过去第几个月
+    """
     today = datetime.datetime.now()
     year,month = today.year,today.month
     for m in range(pre_month):
@@ -321,7 +324,9 @@ def task_Calc_Month_ThousRebeta(pre_month=1):
 
 @task()
 def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
-    
+    """
+    计算每日代理提成
+    """
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)  # 生成带时间的格式  开始时间
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)  # 停止时间
 
