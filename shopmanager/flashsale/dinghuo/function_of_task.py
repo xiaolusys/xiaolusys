@@ -241,16 +241,55 @@ def daily_data_stats():
     for pro_id, temp_data in all_data_dict.items():
         for shelve_time, data in temp_data.items():
             product = DailySupplyChainStatsOrder.objects.filter(product_id=pro_id, sale_time=shelve_time)
+            pro_bean = ProductSku.objects.filter(product__outer_id=pro_id)
+            cost = 0
+            sale_price = 0
+            if pro_bean.count() > 0:
+                cost = pro_bean[0].cost * data['sale_num']
+                sale_price = pro_bean[0].agent_price * data['sale_num']
             if product.count() > 0:
-                product[0].trade_general_time = data['trade_general_time']
-                product[0].order_deal_time = data['order_deal_time']
-                product[0].goods_arrival_time = data['goods_arrival_time']
-                product[0].goods_out_time = data['goods_out_time']
-                product[0].save()
+                daily_order = product[0]
+                daily_order.return_num = get_return_num_by_product_id(pro_id)
+                daily_order.inferior_num = get_inferior_num_by_product_id(pro_id)
+                daily_order.sale_num = data['sale_num']
+                daily_order.ding_huo_num = data['ding_huo_num']
+                daily_order.cost_of_product = cost
+                daily_order.sale_cost_of_product = sale_price
+                daily_order.trade_general_time = data['trade_general_time']
+                daily_order.order_deal_time = data['order_deal_time']
+                daily_order.goods_arrival_time = data['goods_arrival_time']
+                daily_order.goods_out_time = data['goods_out_time']
+                daily_order.save()
             else:
-                temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time,
+                temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time, sale_num=data['sale_num'],
+                                                  ding_huo_num=data['ding_huo_num'],
+                                                  cost_of_product=cost, sale_cost_of_product=sale_price,
+                                                  return_num=get_return_num_by_product_id(pro_id),
+                                                  inferior_num=get_inferior_num_by_product_id(pro_id),
                                                   trade_general_time=data['trade_general_time'],
                                                   order_deal_time=data['order_deal_time'],
                                                   goods_arrival_time=data['goods_arrival_time'],
                                                   goods_out_time=data['goods_out_time'])
                 temp.save()
+
+
+from django.db import connection
+
+
+def get_return_num_by_product_id(outer_id):
+    sql = "select sum(num) as return_num from " \
+          "shop_trades_mergeorder where status in ('TRADE_CLOSED','TRADE_REFUNDED','TRADE_REFUNDING') and " \
+          "sys_status  not in('INVALID','ON_THE_FLY') and outer_id = '{0}' group by outer_id".format(outer_id)
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
+    return raw[0][0] if len(raw) else 0
+
+
+def get_inferior_num_by_product_id(outer_id):
+    sql = "select sum(inferior_quantity) as inferior_num from " \
+          "suplychain_flashsale_orderdetail where outer_id='{0}' group by outer_id".format(outer_id)
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
+    return raw[0][0] if len(raw) else 0
