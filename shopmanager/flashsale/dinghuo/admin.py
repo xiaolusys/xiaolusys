@@ -8,6 +8,7 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
 
+
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
     fields = ('product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice',
@@ -187,7 +188,8 @@ admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
 
 class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
     list_display = (
-        'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time')
+        'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time',
+        'ding_huo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num', 'inferior_num')
     search_fields = ['product_id']
 
 
@@ -197,5 +199,6 @@ admin.site.register(DailySupplyChainStatsOrder, DailySupplyChainStatsOrderAdmin)
 class ProductSkuDetailAdmin(admin.ModelAdmin):
     list_display = (
         'product_sku', 'exist_stock_num', 'created')
+
 
 admin.site.register(ProductSkuDetail, ProductSkuDetailAdmin)

@@ -339,7 +339,7 @@ def modify_order_list(req):
     express_no = post['express_no']
     note = post.get('note', "")
     if len(note) > 0:
-        note = "->" + datetime.datetime.now().strftime('%m-%d %H:%M') + req.user.username + ":" + note
+        note = "\n" +"-->" + datetime.datetime.now().strftime('%m月%d %H:%M') + req.user.username + ":" + note
     order_amount = post['order_amount']
     try:
         orderlist = OrderList.objects.get(id=order_list_id)

@@ -78,7 +78,6 @@ class DailyDingHuoView(View):
                        "left join (select orderlist_id,outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
                        "from suplychain_flashsale_orderdetail) as B on A.id=B.orderlist_id group by outer_id,chichu_id".format(
             shelve_from, query_time)
-        print ding_huo_sql
         sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
               "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.sku_id,product.exist_stock_num," \
               "product.id,ding_huo_info.arrival_quantity,ding_huo_info.sample_quantity " \
@@ -113,6 +112,7 @@ class DailyDingHuoView(View):
                     trade_dict[product[0]] = [temp_dict]
                 else:
                     trade_dict[product[0]].append(temp_dict)
+
         return render_to_response("dinghuo/dailywork2.html",
                                   {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,

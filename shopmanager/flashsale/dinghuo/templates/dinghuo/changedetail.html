@@ -238,24 +238,25 @@
             </div>
         </div>
     </div>
-    <div class="row">
+    <div class="row" >
         <div class="col-lg-4">
-            <div class="alert alert-success" role="alert">
-                <strong>备注:</strong>{{ orderlist.note }}
-            </div>
+                <div class="alert alert-success" role="alert">
+                    <strong>快递单号:</strong>{{ orderlist.express_no }}
+                </div>
+
+                <div class="alert alert-success" role="alert">
+                    <strong>金额:</strong> {{ orderlist.order_amount }}
+                </div>
+
         </div>
 
-        <div class="col-lg-4">
-            <div class="alert alert-success" role="alert">
-                <strong>快递单号:</strong>{{ orderlist.express_no }}
-            </div>
+        <div class="col-lg-8">
+                <textarea style="background-color:#B4EEB4" id="id_note" rows="6" cols="40" name="note" readonly="readonly" class="form-control" >{{ orderlist.note|safe }}
+                </textarea>
         </div>
-        <div class="col-lg-4">
-            <div class="alert alert-success" role="alert">
-                <strong>金额:</strong>{{ orderlist.order_amount }}
-            </div>
-        </div>
+
     </div>
+
     <input class="btn btn-info" type="button" onclick="showlayer({{ orderlist.id }})" value="点我修改订单">
     {% if flagofstatus %}
         <div class="row" style="text-align: right">
@@ -356,7 +357,7 @@
                                 <span class="glyphicon glyphicon-plus"></span></a>&nbsp;
                         {% endif %}
                         <span id="quantity_{{ order.id }}">{{ order.buy_quantity }}</span>
-                        {% if flagofstatus or flagofquestion or flag_of_sample%}
+                        {% if flagofstatus or flagofquestion or flag_of_sample %}
                             <a onclick="minusQuantity({{ order.id }})">
                                 <span class="glyphicon glyphicon-minus"></span>
                             </a>
@@ -408,31 +409,31 @@
     </div>
     <br>
 
-        <div class="row" id="searchfield">
-            <legend>
-                <h2 class="head-title">搜索物品
-                </h2>
-            </legend>
+    <div class="row" id="searchfield">
+        <legend>
+            <h2 class="head-title">搜索物品
+            </h2>
+        </legend>
+    </div>
+    <div class="row">
+        <div class="input-group col-xs-4">
+            <input type="text" class="form-control" id="searchtext"/>
+            <label id="searchbutton" type="button" class="input-group-addon" for="searchtext">搜索</label>
         </div>
-        <div class="row">
-            <div class="input-group col-xs-4">
-                <input type="text" class="form-control" id="searchtext"/>
-                <label id="searchbutton" type="button" class="input-group-addon" for="searchtext">搜索</label>
-            </div>
-        </div>
-        <div class="row">
-            <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
-                <thead>
-                <th width="100px">商品编码</th>
-                <th width="100px">商品名称</th>
-                <th width="80px">图片</th>
-                <th width="100px">规格</th>
-                <th width="100px">买入单价</th>
-                <th width="100px">数量</th>
-                <th width="80px">操作</th>
-                </thead>
-            </table>
-        </div>
+    </div>
+    <div class="row">
+        <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
+            <thead>
+            <th width="100px">商品编码</th>
+            <th width="100px">商品名称</th>
+            <th width="80px">图片</th>
+            <th width="100px">规格</th>
+            <th width="100px">买入单价</th>
+            <th width="100px">数量</th>
+            <th width="80px">操作</th>
+            </thead>
+        </table>
+    </div>
 
 {% endblock %}
 {% block tail_script %}
