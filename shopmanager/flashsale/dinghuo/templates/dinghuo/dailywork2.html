@@ -88,7 +88,8 @@
             <th width="100px">图片</th>
             <th>尺寸</th>
             <th>销售数</th>
-            <th>已拍数量</th>
+            <th>已拍(未到)数量</th>
+            <th>已到数量</th>
             <th>样品数量</th>
             <th>上架前库存数</th>
             <th width="150px">状态</th>
@@ -116,6 +117,7 @@
 
                                        id="ding_huo_num_{{ sku.sku_id }}">{{ sku.ding_huo_num }} </a>
                                 </td>
+                                <td>{{ sku.arrival_num }}</td>
                                 <td>{{ sku.sample_num }}</td>
                                 <td>{{ sku.ku_cun_num }}</td>
                                 <td>

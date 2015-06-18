@@ -13,6 +13,7 @@ import functions
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import F
 from django.http import HttpResponse
+import datetime
 
 
 class ChangeDetailView(View):
@@ -48,7 +49,7 @@ class ChangeDetailView(View):
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
             order_list.status = status
-            order_list.note = order_list.note + "-->" + request.user.username + ":" + remarks
+            order_list.note = order_list.note + "-->" + datetime.datetime.now().strftime('%m月%d %H:%M') + request.user.username + ":" + remarks
             order_list.save()
             log_action(request.user.id, order_list, CHANGE, u'%s 订货单' % (u'添加备注'))
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
