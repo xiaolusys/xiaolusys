@@ -65,13 +65,13 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
         if mama_ccs.count() == 0:
             return 0
         
-        mama_cc = mama_ccs[0]
+        xlmm_cc = mama_ccs[0]
         
     buyercount = StatisticsShopping.normal_objects.filter(linkid=xlmm.id,
                             shoptime__range=(time_from, time_to)).values('openid').distinct().count()
                         
     click_price  = xlmm.get_Mama_Click_Price(buyercount)
-    click_num    = mama_cc.valid_num
+    click_num    = xlmm_cc.valid_num
     
     #设置最高有效最高点击上限
     max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount)
@@ -80,7 +80,7 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
     ten_click_num   = 0
     ten_click_price = 0
     if CLICK_ACTIVE_START_TIME.date() == time_from.date():
-        click_qs = Clicks.objects.filter(linkid=mama_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_to),isvalid=True)
+        click_qs = Clicks.objects.filter(linkid=xlmm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_to),isvalid=True)
         ten_click_num = click_qs.values('openid').distinct().count()
         ten_click_price = click_price + 30
         

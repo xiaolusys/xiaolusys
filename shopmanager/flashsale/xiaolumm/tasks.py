@@ -65,11 +65,12 @@ def task_Pull_Pending_Carry(day_ago=7):
 def task_Push_Pending_Carry_Cash(xlmm_id=None):
     
     from flashsale.mmexam.models import Result
-    #结算点击补贴
-    task_Push_Pending_ClickRebeta_Cash(xlmm_id=None)
+    
     #结算订单那提成
     task_Push_Pending_OrderRebeta_Cash(xlmm_id=None)
     
+    #结算点击补贴
+    task_Push_Pending_ClickRebeta_Cash(xlmm_id=None)
     
     c_logs = CarryLog.objects.filter(log_type__in=(#CarryLog.CLICK_REBETA,
                                                    CarryLog.THOUSAND_REBETA,
@@ -144,7 +145,6 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         c_logs = c_logs.filter(xlmm=xlmm_id)
         
     for cl in c_logs:
-        
         xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
         if xlmms.count() == 0:
             continue
