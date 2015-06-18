@@ -41,7 +41,7 @@
 	  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
 	  <p style="color:#428bca">提现将由小鹿美美公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
 	  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
-	    <p>&nbsp;提现需20元以上,请输入提现金额：</p>
+	    <p>&nbsp;提现需20～200元以内,请输入提现金额：</p>
 	    <div class="input-group" style="margin-top:5px">
 	      <span class="input-group-addon">￥</span>
 	      <input id="id-cashout-input" type="number" name="v" max="{% if could_cash_out > 200%}200{% else %}{{ could_cash_out }}{% endif %}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>

@@ -46,7 +46,7 @@ def task_patch_mamacash_61():
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                       order_num=carry_no,
                                                       log_type=CarryLog.CLICK_REBETA)
-#         
+#
         c_log.value = c_log.value + click_rebeta
         c_log.save()
         

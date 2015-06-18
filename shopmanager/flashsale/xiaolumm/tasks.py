@@ -83,7 +83,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         cl.status = CarryLog.CONFIRMED
         cl.save()
         
-        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
+        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
         
             
 from shopback.trades.models import MergeTrade
@@ -157,7 +157,7 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         cl.status    = CarryLog.CONFIRMED
         cl.save()
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
         
         
 
@@ -202,14 +202,13 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         calc_fee = shopings.aggregate(total_amount=Sum('wxorderamount')).get('total_amount') or 0
         
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        
         carry_value = cl.value
         rebeta_rate  = xlmm.get_Mama_Order_Rebeta_Rate()
         cl.value     = calc_fee * rebeta_rate
         cl.status = CarryLog.CONFIRMED
         cl.save()
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
         
         
 @task()
@@ -260,9 +259,8 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         cl.status = CarryLog.CONFIRMED
         cl.save() 
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        urows = xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
         
-               
 
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
 
