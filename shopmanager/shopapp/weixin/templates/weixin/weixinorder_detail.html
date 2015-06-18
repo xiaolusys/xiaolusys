@@ -1,24 +1,27 @@
+
 {% extends "weixin/weixin_base.html" %}
 
 {% block title %} 订单信息 {% endblock %}
-
 {% block container %}
 <div class="container-fluid">
-
+      {% for detail in info   reversed %}
   <div class="panel panel-default" >
     <div class="panel-heading" style="color:orange">
       <span>我的订单</span> 
     </div>
+    
+
+    
     <div class="panel-body">
       <div class="row">
 	<div class="col-xs-4">
-	  <p style="color:#3071a9">{{ tradedata.platform }}</p>
+	  <p style="color:#3071a9">{{detail.tradedata.platform }}</p>
 	</div>
 	<div class="col-xs-8">
-	  <p style="color:#3071a9">时间: {{ tradedata.paytime }}</p>
+	  <p style="color:#3071a9">时间: {{detail.tradedata.paytime }}</p>
 	</div>
       </div>
-      {% for data in tradedata.orders %}
+      {% for data in detail.tradedata.orders %}
       <div class="row">
 	<div class="col-xs-4">
 	  <a href="#" class="thumbnail"><img src="{{ data.0 }}" alt="..."></a>
@@ -34,10 +37,10 @@
 
       <div class="row">
 	<div class="col-xs-6">
-	  <p style="color:#3071a9">商品数: {{ tradedata.ordernum }}</p>
+	  <p style="color:#3071a9">商品数: {{ detail.tradedata.ordernum }}</p>
 	</div>
 	<div class="col-xs-6">
-	  <p style="color:#3071a9">实付: ￥{{ tradedata.payment }}</p>
+	  <p style="color:#3071a9">实付: ￥{{ detail.tradedata.payment }}</p>
 	</div>
       </div>
 
@@ -74,6 +77,10 @@
   -->
   
   
+  
+      
+
+  
   <div class="panel panel-default">
     <div class="panel-heading" style="color:orange">
       <span>物流信息</span>
@@ -81,22 +88,74 @@
     <div class="panel-body">
       <div class="row">
 	<div class="col-xs-12">
-	  <p>收货人: {{ tradedata.receiver_name }} ({{ tradedata.receiver_mobile }})</p>
-	  <p style="color:orange">{{ tradedata.address }}</p>
+	  <p>收货人: {{detail.tradedata.receiver_name }} ({{ detail.tradedata.receiver_mobile }})</p>
+	  <p style="color:orange">{{detail.tradedata.address }}</p>
 	</div>
       </div>
-      {% for trace in traces %}
+      {% for trace in detail.traces %}
       {% if forloop.counter <= 2 %}
-			       <p>{{ trace.0 }}: {{ trace.1 }}</p>
+			       <p>{{ trace.0 }}: {{ trace.1 }}
 			       {% else %}
-      <p>{{ trace.0 }}:</p>
+      <p>{{ trace.0 }}: <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#{{detail.tradedata.tradeid}}">
+  物流明细
+</button></p>
       {% for t in trace.1 %}
-      <p>{{ t.0 }}: {{ t.1 }}</p>
+  
       {% endfor %}
       {% endif %}
       {% endfor %}
     </div>
+
+ 
+ <div>
+
+
+<div class="modal fade" id="{{detail.tradedata.tradeid}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel"   style="color:blue ">物流明细</h4>
+      </div>
+      <div class="modal-body">
+        {% for trace in detail.traces %}
+      {% if forloop.counter <= 2 %}
+			       <p>{{ trace.0 }}: {{ trace.1 }}</p>
+			       {% else %}
+      <p>{{ trace.0 }}:</p>
+      {% for t in trace.1   reversed %}
+       {% if  forloop.last   %}
+                <p  style="color:red"   >{{ t.0 }}: {{ t.1 }}</p>
+                    {% else %}
+      <p>{{ t.0 }}: {{ t.1 }}</p>
+    {% endif %}
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+			
+		</table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <!--<button type="button" class="btn btn-primary">Save changes</button>-->
+      </div>
+      
+      </div>
+   </div>
+   </div>
+   
+   </div>
+
+
+
+
+
   </div>
+
+  {% endfor %}
+
+
+
 
   <div class="panel panel-default" style="margin-top:5px">
     <div class="panel-body">
@@ -110,13 +169,6 @@
     </div>
   </div>
   
-  <button 
-            type="button"
-            id="fat-btn"
-            class="btn btn-warning btn-lg btn-block"
-            onclick="location='/weixin/wxorder_detail/'">
-          点击更多订单
-        </button>
   <div class="footer">
     <p>© Uni Littles 2015</p>
   </div>

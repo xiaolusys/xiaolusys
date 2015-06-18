@@ -107,5 +107,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^rights/$','rights',name='weixin_feedback'),
     url(r'^napay/$','napay',name='weixin_napay'),
     url(r'^wxpay/$','wxpay',name='weixin_wxpay'),
+    
+    url(r'^wxorder_detail/$','weixinorder_detail',name='weixinorder_detail'),
 
 )
