@@ -227,6 +227,7 @@ class CarryLogAdmin(MyAdmin):
                     'carry_type', 'status', 'carry_date', 'created')
     list_filter = ('log_type','carry_type','status',('carry_date',DateFieldListFilter))
     search_fields = ['=xlmm', '=buyer_nick']
+    date_hierarchy = 'carry_date'
 
 admin.site.register(CarryLog, CarryLogAdmin)
 

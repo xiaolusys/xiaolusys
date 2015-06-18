@@ -753,6 +753,8 @@ def mama_Verify_Action(request):
     if referal_mobile:
         try:
             referal_mama = XiaoluMama.objects.normal_queryset.get(mobile=referal_mobile)
+            if referal_mama.referal_from == xlmm.mobile or referal_mobile == xlmm.mobile:
+                return HttpResponse('cross')
         except XiaoluMama.DoesNotExist:
             return HttpResponse('unfound')
         except XiaoluMama.MultipleObjectsReturned:

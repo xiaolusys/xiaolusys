@@ -67,10 +67,10 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
     from flashsale.mmexam.models import Result
     
     #结算订单那提成
-    task_Push_Pending_OrderRebeta_Cash(xlmm_id=None)
+    task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None)
     
     #结算点击补贴
-    task_Push_Pending_ClickRebeta_Cash(xlmm_id=None)
+    task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None)
     
     c_logs = CarryLog.objects.filter(log_type__in=(#CarryLog.CLICK_REBETA,
                                                    CarryLog.THOUSAND_REBETA,
@@ -137,7 +137,7 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
     
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     c_logs = CarryLog.objects.filter(log_type=CarryLog.CLICK_REBETA, 
-                                     carry_date__lt=pre_date,
+                                     carry_date__lte=pre_date,
                                      status=CarryLog.PENDING,
                                      carry_type=CarryLog.CARRY_IN)
     
@@ -181,11 +181,11 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
     c_logs = CarryLog.objects.filter(log_type=CarryLog.ORDER_REBETA, 
                                      carry_date__lte=pre_date,
                                      status=CarryLog.PENDING,
-                                     carry_type=CarryLog.CARRY_IN)\
-    
+                                     carry_type=CarryLog.CARRY_IN)
+
     if xlmm_id:
         c_logs = c_logs.filter(xlmm=xlmm_id)
-        
+    
     for cl in c_logs:
         
         xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
@@ -210,8 +210,6 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         calc_fee = shopings.aggregate(total_amount=Sum('wxorderamount')).get('total_amount') or 0
         
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        if cl.carry_type != CarryLog.CARRY_IN:
-            continue
         
         carry_value = cl.value
         rebeta_rate  = xlmm.get_Mama_Order_Rebeta_Rate()
@@ -229,7 +227,7 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     
     c_logs = CarryLog.objects.filter(log_type=CarryLog.AGENCY_SUBSIDY,
-                                     carry_date__lt=pre_date,
+                                     carry_date__lte=pre_date,
                                      status=CarryLog.PENDING)
     
     if xlmm_id:
