@@ -1628,6 +1628,7 @@ class TestCodeView(View):
                                       context_instance=RequestContext(request))
         return response
     
+
 #fang 2015-06-18  de
 def  weixinorder_detail(request):
     
@@ -1699,7 +1700,8 @@ def  weixinorder_detail(request):
             data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
         
         # only for order paid after 2014-9-15
-            if trade.pay_time < datetime.datetime(2014,9,15):
+
+            if not trade.pay_time or trade.pay_time < datetime.datetime(2014,9,15):
                 has_specific_product = False
             
             from shopback.logistics import getLogisticTrace
@@ -1773,16 +1775,6 @@ def  weixinorder_detail(request):
         return response
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-       #response = render_to_response('weixin/weixinorder_detail.html', 
-                                   #   context_instance=RequestContext(request))
-      # return response
+
     
         
