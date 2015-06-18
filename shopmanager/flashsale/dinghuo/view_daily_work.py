@@ -99,7 +99,7 @@ class DailyDingHuoView(View):
             if flag_of_more:
                 total_more_num += (sample_num + int(product[9] or 0) + ding_huo_num + arrival_num - sale_num)
             if flag_of_less:
-                total_less_num += (sale_num - sample_num - int(product[9] or 0) + arrival_num - ding_huo_num)
+                total_less_num += (sale_num - sample_num - int(product[9] or 0) - arrival_num - ding_huo_num)
             temp_dict = {"product_id": product[10], "sku_id": product[2], "product_name": product[1],
                          "pic_path": product[3], "sale_num": sale_num or 0, "sku_name": product[4],
                          "ding_huo_num": ding_huo_num, "effect_num": product[7] or 0,
@@ -116,5 +116,6 @@ class DailyDingHuoView(View):
         return render_to_response("dinghuo/dailywork2.html",
                                   {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "search_text": search_text, "total_more_num": total_more_num},
+                                   "search_text": search_text, "total_more_num": total_more_num,
+                                   "total_less_num": total_less_num},
                                   context_instance=RequestContext(request))
