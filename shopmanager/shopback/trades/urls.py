@@ -193,4 +193,6 @@ urlpatterns = patterns('shopback.trades.views',
     # 小鹿妈妈的订单情况
     url(r'^xlmm_product_analysis/$', views_product_analysis.xlmm_Product_Analysis, name="xlmm_Product_Analysis"),
 
+    url(r'^product_analysis_top100/$', views_product_analysis.product_Top100_By_Week, name="xlmm_Product_Analysis"),
+
 )
