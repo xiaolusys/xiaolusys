@@ -29,7 +29,8 @@ logger = logging.getLogger('django.request')
 import datetime, re
 
 
-SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
+#SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=4&showwxpaytitle=1#wechat_redirect"
+SHOPURL = "http://weixin.huyi.so/mm/plist/"
 
 def landing(request):
     return render_to_response("mama_landing.html", context_instance=RequestContext(request))
@@ -459,7 +460,7 @@ def logclicks(request, linkid):
         return redirect(redirect_url)
 
     click_time = datetime.datetime.now()
-    tasks.task_Create_Click_Record.s(linkid, openid, click_time)()
+    tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
 
     return redirect(SHOPURL)
 

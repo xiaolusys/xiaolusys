@@ -6,7 +6,8 @@ from django.conf import settings
 from celery.task import task
 
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog,AgencyLevel
+from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog
+from shopapp.weixin.models import WeixinUnionID
 
 __author__ = 'meixqhi'
 
@@ -15,7 +16,7 @@ ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 
 @task()
-def task_Create_Click_Record(xlmmid,openid,click_time):
+def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
     """
     异步保存妈妈分享点击记录
     xlmm_id:小鹿妈妈id,
@@ -38,6 +39,8 @@ def task_Create_Click_Record(xlmmid,openid,click_time):
         isvalid = True
         
     Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
+    
+    WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
     
 
 @task()
