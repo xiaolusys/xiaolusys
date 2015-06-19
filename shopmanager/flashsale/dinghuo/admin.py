@@ -7,7 +7,7 @@ from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
-
+from .filters import GroupNameFilter
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
@@ -28,7 +28,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
         'supply_chain', 'updated'
     )
-    list_filter = (('created', DateFieldListFilter), 'status', 'buyer_name')
+    list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
     search_fields = ['id']
     date_hierarchy = 'created'
 
