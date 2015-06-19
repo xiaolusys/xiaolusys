@@ -87,9 +87,7 @@ class FlashSaleService(LocalService):
         
         update_address = False
         if not merge_trade.receiver_name and trade.receiver_name:
-            
             update_address  = True
-
             address_fields = ['receiver_name','receiver_state',
                              'receiver_city','receiver_address',
                              'receiver_district','receiver_mobile',

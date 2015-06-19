@@ -54,7 +54,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
                     'classes': ('expand',),
                     'fields': (('tid','buyer_nick','channel','status')
                                ,('trade_type','total_fee','payment','post_fee')
-                               ,('pay_time','consign_time','charge')
+                               ,('pay_time','consign_time','charge','openid')
                                ,('buyer_message','seller_memo')
                                )
                 }),

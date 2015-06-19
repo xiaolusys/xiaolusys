@@ -261,7 +261,6 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         
         calc_fee = shopings.aggregate(total_amount=Sum('wxorderamount')).get('total_amount') or 0
         
-        
         clog = CarryLog.objects.get(id=cl.id)
         if clog.status != CarryLog.PENDING:
             continue
