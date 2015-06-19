@@ -56,7 +56,9 @@ class XiaoluMama(models.Model):
     agencylevel = models.IntegerField(default=1,verbose_name=u"代理类别")
     user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")
     
-    charge_time = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name=u'接管时间')
+    charge_time = models.DateTimeField(default=datetime.datetime.now,
+                                       db_index=True,blank=True,null=True,verbose_name=u'接管时间')
+    
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
     status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
                                default=EFFECT,verbose_name=u'状态')
