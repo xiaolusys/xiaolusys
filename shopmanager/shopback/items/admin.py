@@ -30,7 +30,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
 from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
-from shopback.items.filters import ChargerFilter,DateScheduleFilter
+from shopback.items.filters import ChargerFilter,DateScheduleFilter, GroupNameFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from flashsale.pay import Productdetail
 import logging 
@@ -107,7 +107,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     list_filter = ('shelf_status','is_verify','status',('sale_time',DateScheduleFilter),
                    ChargerFilter,'sync_stock','is_split','is_match','is_assign'
-                   ,'post_check',('created',DateFieldListFilter),'category')
+                   ,'post_check',('created',DateFieldListFilter),'category',GroupNameFilter)
 
     search_fields = ['=id','^outer_id', 'name' , '=barcode','=sale_charger','=storage_charger']
     

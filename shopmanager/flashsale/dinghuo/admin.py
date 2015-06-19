@@ -7,6 +7,7 @@ from shopback.base.options import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
+from .filters import GroupNameFilter
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
@@ -27,7 +28,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
         'supply_chain', 'updated'
     )
-    list_filter = (('created', DateFieldListFilter), 'status', 'buyer_name')
+    list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
     search_fields = ['id']
     date_hierarchy = 'created'
 
@@ -187,7 +188,8 @@ admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
 
 class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
     list_display = (
-        'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time')
+        'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time',
+        'ding_huo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num', 'inferior_num')
     search_fields = ['product_id']
 
 
@@ -197,5 +199,6 @@ admin.site.register(DailySupplyChainStatsOrder, DailySupplyChainStatsOrderAdmin)
 class ProductSkuDetailAdmin(admin.ModelAdmin):
     list_display = (
         'product_sku', 'exist_stock_num', 'created')
+
 
 admin.site.register(ProductSkuDetail, ProductSkuDetailAdmin)

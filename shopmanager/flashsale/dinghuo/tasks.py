@@ -7,6 +7,7 @@ from flashsale.dinghuo.models import OrderDetail
 import functions
 import datetime
 import function_of_task
+import urllib2
 
 
 @task(max_retry=3, default_retry_delay=5)
@@ -52,8 +53,10 @@ def task_stats_daily_order_by_group(pre_day=1):
         for product_of_ding in dinghuo_qs:
             pro_bean = Product.objects.filter(id=product_of_ding.product_id)
 
-            if pro_bean.count() > 0 and pro_bean[0].sale_group != u"None" and (pro_bean[0].sale_group.name in data_stats_dict):
-                data_stats_dict[pro_bean[0].sale_group.name]['total_order_goods_quantity'] += product_of_ding.buy_quantity
+            if pro_bean.count() > 0 and pro_bean[0].sale_group != u"None" and (
+                pro_bean[0].sale_group.name in data_stats_dict):
+                data_stats_dict[pro_bean[0].sale_group.name][
+                    'total_order_goods_quantity'] += product_of_ding.buy_quantity
                 data_stats_dict[pro_bean[0].sale_group.name]['total_order_goods_amount'] += product_of_ding.total_price
 
         for group_name, data_of_group in data_stats_dict.items():
@@ -96,3 +99,15 @@ def task_stats_product():
 
     except Exception, exc:
         raise task_stats_daily_order_by_group.retry(exc=exc)
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_send_daily_message():
+    try:
+        corp_id = "wx1657da9bb74c42d3"
+        corp_secret = "UuTTtiSINnX5X2fVEbGNXO82wHRa8mae5nhAJ1K4foLMwtGUXSRYRtgyDWPegJci"
+        access_token = functions.get_token_in_time(corp_id, corp_secret)
+        result_str = functions.get_result_daily()
+        functions.send_txt_msg(access_token, result_str)
+    except Exception, exc:
+        raise task_send_daily_message.retry(exc=exc)

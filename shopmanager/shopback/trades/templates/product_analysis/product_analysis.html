@@ -42,15 +42,14 @@
             <th>Out_Id</th>
             <th>名称</th>
             <th>销售数量</th>
-            <th>供应商</th>
-
+            <th>次品数量</th>
             </thead>
             <tbody>
             {% for i in data %}
                 <tr>
                     <td>{{ i.0 }}</td>
-                    <td>{{ i.1 }}</td>
                     <td>{{ i.2 }}</td>
+                    <td>{{ i.1 }}</td>
                     <td>{{ i.3 }}</td>
                 </tr>
             {% endfor %}
@@ -67,7 +66,7 @@
         $('#mytable').dataTable({
             //"bJQueryUI": true,
             "bAutoWidth": false, //自适应宽度
-            "aaSorting": [[1, "asc"]],
+            "aaSorting": [[2, "desc"]],
             "iDisplayLength": 50,
             "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
             //"bInfo":true,

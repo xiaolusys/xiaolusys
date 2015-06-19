@@ -345,7 +345,7 @@ class OrderInfoView(View):
             
             order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
-        
+        print  "   订单是", latest_trades
         trade = latest_trades[0]
         
         data = {}
@@ -1700,6 +1700,7 @@ def  weixinorder_detail(request):
             data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
         
         # only for order paid after 2014-9-15
+
             if not trade.pay_time or trade.pay_time < datetime.datetime(2014,9,15):
                 has_specific_product = False
             
@@ -1774,17 +1775,6 @@ def  weixinorder_detail(request):
         return response
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-       #response = render_to_response('weixin/weixinorder_detail.html', 
-                                   #   context_instance=RequestContext(request))
-      # return response
 
     
         
