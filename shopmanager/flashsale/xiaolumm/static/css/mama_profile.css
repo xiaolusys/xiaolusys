@@ -1,0 +1,13 @@
+.page-header {
+	margin: 10px 0 10px;
+}
+.home{
+	margin-top:30px;
+	font-size:36px;
+}
+.pager li>a, .pager li>span{
+	padding: 0px 5px;
+}
+tfoot input{
+	width:50%;
+}

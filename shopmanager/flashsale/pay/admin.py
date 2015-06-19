@@ -265,16 +265,23 @@ class SaleRefundAdmin(admin.ModelAdmin):
                     if strade.channel == SaleTrade.WALLET :
                         payment = int(obj.refund_fee * 100)
                         xlmm_queryset = XiaoluMama.objects.filter(openid=customer.unionid)
-                        urows = xlmm_queryset.update(cash=models.F('cash')+payment)
-                        
-                        if urows > 0:
-                            xlmm = xlmm_queryset[0]
-                            CarryLog.objects.create(xlmm=xlmm.id,
-                                        order_num=strade.id,
-                                        buyer_nick=strade.buyer_nick,
-                                        value=payment,
-                                        log_type=CarryLog.REFUND_RETURN,
-                                        carry_type=CarryLog.CARRY_IN)
+                        if xlmm_queryset.count() == 0:
+                            raise Exception(u'妈妈unoind:%s'%customer.unionid) 
+                        xlmm = xlmm_queryset[0]
+                        clogs = CarryLog.objects.filter(xlmm=xlmm.id,
+                                                       order_num=strade.id,
+                                                       log_type=CarryLog.REFUND_RETURN)
+                        if clogs.count() > 0:
+                            raise Exception(u'订单已经退款！！！')
+                            
+                        CarryLog.objects.create(xlmm=xlmm.id,
+                                    order_num=strade.id,
+                                    buyer_nick=strade.buyer_nick,
+                                    value=payment,
+                                    log_type=CarryLog.REFUND_RETURN,
+                                    carry_type=CarryLog.CARRY_IN,
+                                    status=CarryLog.CONFIRMED)
+                        xlmm_queryset.update(cash=models.F('cash')+payment)
                         obj.status = SaleRefund.REFUND_SUCCESS
                         obj.save()
                         

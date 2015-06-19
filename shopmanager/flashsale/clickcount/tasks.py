@@ -46,7 +46,7 @@ def task_patch_mamacash_61():
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                       order_num=carry_no,
                                                       log_type=CarryLog.CLICK_REBETA)
-#         
+#
         c_log.value = c_log.value + click_rebeta
         c_log.save()
         
@@ -65,31 +65,32 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
         if mama_ccs.count() == 0:
             return 0
         
-        mama_cc = mama_ccs[0]
+        xlmm_cc = mama_ccs[0]
         
-    buyercount = StatisticsShopping.objects.filter(linkid=xlmm.id,
+    buyercount = StatisticsShopping.normal_objects.filter(linkid=xlmm.id,
                             shoptime__range=(time_from, time_to)).values('openid').distinct().count()
                         
     click_price  = xlmm.get_Mama_Click_Price(buyercount)
-    click_num    = mama_cc.valid_num
+    click_num    = xlmm_cc.valid_num
     
     #设置最高有效最高点击上限
     max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount)
-    if time_from.date() >= CLICK_MAX_LIMIT_DATE:
-        click_num = min(max_click_count,click_num)
-    
 #         click_rebeta = click_num  * click_price
     
     ten_click_num   = 0
     ten_click_price = 0
     if CLICK_ACTIVE_START_TIME.date() == time_from.date():
-        click_qs = Clicks.objects.filter(linkid=mama_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_to),isvalid=True)
+        click_qs = Clicks.objects.filter(linkid=xlmm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_to),isvalid=True)
         ten_click_num = click_qs.values('openid').distinct().count()
+        ten_click_price = click_price + 30
+        
+    if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+        click_num = min(max_click_count,click_num - ten_click_num)
         ten_click_num = min(ten_click_num,max_click_count)
-        ten_click_price = 30
         
     click_rebeta = click_num * click_price + ten_click_num * ten_click_price
     return click_rebeta
+
 
 @task()
 def task_Push_ClickCount_To_MamaCash(target_date):
@@ -123,9 +124,7 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         c_log.status = CarryLog.PENDING
         c_log.save()
         
-        urows = XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
-        if urows == 0:
-            raise Exception(u'小鹿妈妈订单提成返现更新异常:%s,%s'%(xlmm.id,urows))
+        XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
 
 
 @task(max_retry=3, default_retry_delay=5)

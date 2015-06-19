@@ -7,6 +7,7 @@ from django.views.generic import View
 from django.db import connection
 import functions
 
+
 class DailyDingHuoView(View):
     def parseEndDt(self, end_dt):
         if not end_dt:
@@ -25,7 +26,7 @@ class DailyDingHuoView(View):
         groupname = content.get("groupname", 0)
         dhstatus = content.get("dhstatus", '1')
         groupname = int(groupname)
-
+        search_text = content.get("search_text", '').strip()
         target_date = today
         if shelve_fromstr:
             year, month, day = shelve_fromstr.split('-')
@@ -40,7 +41,6 @@ class DailyDingHuoView(View):
         elif time_to - shelve_from < datetime.timedelta(0):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
-
         order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
                     "shop_trades_mergeorder where sys_status='IN_EFFECT' " \
                     "and merge_trade_id in (select id from shop_trades_mergetrade where type not in ('reissue','exchange') " \
@@ -53,29 +53,31 @@ class DailyDingHuoView(View):
                     "and (left(outer_id,1)='9' or left(outer_id,1)='8' or left(outer_id,1)='1') " \
                     "group by outer_id,outer_sku_id".format(shelve_from, time_to)
         if groupname == 0:
-            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.properties_alias,B.quantity,B.id as sku_id,C.exist_stock_num from " \
+            group_sql = ""
+        else:
+            group_sql = " where group_id = " + str(groupname)
+        if len(search_text) > 0:
+            search_text = str(search_text)
+            product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
-                          "shop_items_product where  sale_time='{0}' " \
-                          "and status!='delete' " \
-                          "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser))) as A " \
+                          "shop_items_product where outer_id LIKE '%%{0}%%' OR name like '%%{0}%%' ) as A " \
                           "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
-                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(target_date)
+                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(search_text)
         else:
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
-                          "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id={1}))) as A " \
+                          "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser {1}))) as A " \
                           "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
-                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(target_date, groupname)
-        # ding_huo_sql = "select outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
-        #                "from suplychain_flashsale_orderdetail " \
-        #                "where orderlist_id  in(select id from suplychain_flashsale_orderlist where status not in ('作废')) and created BETWEEN '{0}' AND '{1}'".format(
-        #                                                                                                     shelve_from, query_time)
-        ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status!='7',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity,sum(B.arrival_quantity) as arrival_quantity,B.effect_quantity,A.status" \
+                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+                target_date, group_sql)
+        ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' OR A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
+                       "sum(if(status='5' OR  status='6' OR status='有问题' OR status='验货完成' OR status='已处理',B.arrival_quantity,0)) as arrival_quantity,B.effect_quantity,A.status" \
                        " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created BETWEEN '{0}' AND '{1}') as A " \
                        "left join (select orderlist_id,outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
-                       "from suplychain_flashsale_orderdetail) as B on A.id=B.orderlist_id group by outer_id,chichu_id".format(shelve_from, query_time)
+                       "from suplychain_flashsale_orderdetail) as B on A.id=B.orderlist_id group by outer_id,chichu_id".format(
+            shelve_from, query_time)
         sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
               "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.sku_id,product.exist_stock_num," \
               "product.id,ding_huo_info.arrival_quantity,ding_huo_info.sample_quantity " \
@@ -84,17 +86,23 @@ class DailyDingHuoView(View):
         cursor.execute(sql)
         raw = cursor.fetchall()
         trade_dict = {}
+        total_more_num = 0
+        total_less_num = 0
         for product in raw:
             sale_num = int(product[5] or 0)
             ding_huo_num = int(product[6] or 0)
             arrival_num = int(product[11] or 0)
             sample_num = int(product[12] or 0)
             ding_huo_status, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                sale_num, ding_huo_num, int(product[9] or 0), sample_num)
+                sale_num, ding_huo_num, int(product[9] or 0), sample_num, arrival_num)
+            if flag_of_more:
+                total_more_num += (sample_num + int(product[9] or 0) + ding_huo_num + arrival_num - sale_num)
+            if flag_of_less:
+                total_less_num += (sale_num - sample_num - int(product[9] or 0) - arrival_num - ding_huo_num)
             temp_dict = {"product_id": product[10], "sku_id": product[2], "product_name": product[1],
                          "pic_path": product[3], "sale_num": sale_num or 0, "sku_name": product[4],
                          "ding_huo_num": ding_huo_num, "effect_num": product[7] or 0,
-                         "ding_huo_status": ding_huo_status, "sample_num":sample_num,
+                         "ding_huo_status": ding_huo_status, "sample_num": sample_num,
                          "flag_of_more": flag_of_more, "flag_of_less": flag_of_less,
                          "sku_id": product[8], "ku_cun_num": int(product[9] or 0),
                          "arrival_num": arrival_num}
@@ -104,7 +112,10 @@ class DailyDingHuoView(View):
                     trade_dict[product[0]] = [temp_dict]
                 else:
                     trade_dict[product[0]].append(temp_dict)
+
         return render_to_response("dinghuo/dailywork2.html",
                                   {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus},
+                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
+                                   "search_text": search_text, "total_more_num": total_more_num,
+                                   "total_less_num": total_less_num},
                                   context_instance=RequestContext(request))

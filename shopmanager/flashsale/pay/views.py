@@ -385,8 +385,10 @@ class OrderBuyReview(APIView):
         xiaolumm  = None
         if xiaolumms.count() > 0:
             xiaolumm = xiaolumms[0]
-            if xiaolumm.cash > 0 and xiaolumm.cash >= payment * 100:
+            if (xiaolumm.cash > 0 and xiaolumm.cash >= payment * 100 
+                and not product.outer_id.startswith('RMB')):
                 wallet_payable = True
+            
         
         data = {'product':product_dict,
                 'sku':sku_dict,

@@ -78,7 +78,7 @@ def new_order(request):
     if request.method == 'POST':
         post = request.POST
         type_of_order = post['type_of_order']
-        print type_of_order,"eeeeeeeeee"
+        print type_of_order, "eeeeeeeeee"
         costofems = post['costofems']
         if costofems == "":
             costofems = 0
@@ -339,7 +339,7 @@ def modify_order_list(req):
     express_no = post['express_no']
     note = post.get('note', "")
     if len(note) > 0:
-        note = "->" + req.user.username + ":" + note
+        note = "\n" +"-->" + datetime.datetime.now().strftime('%m月%d %H:%M') + req.user.username + ":" + note
     order_amount = post['order_amount']
     try:
         orderlist = OrderList.objects.get(id=order_list_id)
@@ -498,9 +498,12 @@ class StatsByProductIdView(View):
             return 'none'
 
     def get(self, request, product_id):
-        orderdetails = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(product_id=product_id)
+        pro_bean = Product.objects.filter(id=product_id)
+        if pro_bean.count() > 0:
+            order_details = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(product_id=product_id).filter(
+                orderlist__created__gte=pro_bean[0].sale_time)
         return render_to_response("dinghuo/productstats.html",
-                                  {"orderdetails": orderdetails},
+                                  {"orderdetails": order_details},
                                   context_instance=RequestContext(request))
 
 

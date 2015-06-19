@@ -21,13 +21,13 @@
             <th>产品数量</th>
             <th>次品数量</th>
             <th>到货数量</th>
-            <th>备注</th>
+            <th width="100px">备注</th>
             </thead>
             <tbody>
             {% for orderdetail in orderdetails %}
                 <tr>
                     <td>{{ orderdetail.orderlist.id }}</td>
-                    <td>{{ orderdetail.orderlist.status }}</td>
+                    <td>{{ orderdetail.orderlist.get_status_display }}</td>
                     <td>{{ orderdetail.product_name }}</td>
                     <td>{{ orderdetail.product_chicun }}</td>
                     <td>{{ orderdetail.buy_quantity }}</td>
