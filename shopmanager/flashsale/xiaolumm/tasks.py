@@ -19,7 +19,7 @@ AGENCY_SUBSIDY_DAYS = 11
 def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
     """
     异步保存妈妈分享点击记录
-    xlmm_id:小鹿妈妈id，
+    xlmm_id:小鹿妈妈id,
     openid:妈妈微信openid,
     click_time:点击时间
     """
