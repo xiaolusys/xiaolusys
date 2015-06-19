@@ -191,7 +191,10 @@ class SaleTrade(models.Model):
             if order.outer_id == AGENCY_DIPOSITE_CODE:
                 return True
         return False
-            
+    
+    def confirm_payment(self):
+        
+        signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
             
     def charge_confirm(self,charge_time=None):
         
@@ -202,8 +205,8 @@ class SaleTrade(models.Model):
         for order in self.normal_orders:
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
-            
-        signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
+        
+        self.confirm_payment()
 
 
 class SaleOrder(models.Model):

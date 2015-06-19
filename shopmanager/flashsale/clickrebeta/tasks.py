@@ -4,6 +4,7 @@ from django.db.models import F
 from celery.task import task
 
 from shopapp.weixin.models import WXOrder
+from flashsale.pay.models import SaleTrade
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 from flashsale.xiaolumm.models import CarryLog,XiaoluMama,AgencyLevel,Clicks
 
@@ -111,6 +112,8 @@ def task_Tongji_User_Order(pre_day=1):
         time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
 
         wxorders = WXOrder.objects.filter(order_create_time__range=(time_from,time_to))
+        saletrades   = SaleTrade.objects.filter(pay_time__range=(time_from,time_to))
+        
         stat_shoppings = StatisticsShopping.objects.filter(shoptime__range=(time_from,time_to))
         stat_shoppings.delete()
         
@@ -119,6 +122,9 @@ def task_Tongji_User_Order(pre_day=1):
         
         for wxorder in wxorders:
             wxorder.confirm_payment()
+            
+        for strade in saletrades:
+            strade.confirm_payment()
         
         #update xlmm Cash
         task_Push_Rebeta_To_MamaCash(pre_date)
