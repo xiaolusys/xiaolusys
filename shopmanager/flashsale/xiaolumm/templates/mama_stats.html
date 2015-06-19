@@ -18,6 +18,11 @@
 	}
 	.pending div{
 		border-top:1px solid #e7e7e7;
+		padding:0px 5px;
+	}
+	.pending h6{
+		margin-top:5px;
+		margin-bottom:5px;
 	}
 	.history {
 		border-top:1px solid #e7e7e7;;
@@ -38,6 +43,7 @@
 {% endblock %}
 
 {% block container %}
+<div ></div>
 <div class="page-header">
   <h3>妈妈数据 
   	<small>
@@ -48,13 +54,12 @@
 	    </button>
 	    <ul class="dropdown-menu" role="menu">
 	      <li><a href="/m/help/sharewx/">发布特卖消息</a></li>
-	      <li><a href="#">招募小鹿妈妈</a></li>
+	      <!--<li><a href="#">招募小鹿妈妈</a></li>-->
 	    </ul>
 	  </div>
   </small>
   </h3>
 </div>
-
 <div class="main-page" style="margin-top:20px">
   <div class="panel panel-default" >
 	  <div class="panel-body">
@@ -68,7 +73,10 @@
 		</div>
 		<div class="row pending">
 		  <div class="col-xs-9">
-		  <h5>待确认金额:￥<span class="text-danger">{{ pending_value }}</span></h5> 
+		  <h6>待确认金额:<span class="text-danger">￥{{ pending_value }}</span></h6>
+		  </div>
+		  <div class="col-xs-11">
+		  <h6>已确认总收入:<span class="text-danger">￥{{ total_income }}</span>&nbsp;总支出:<span class="text-danger">￥{{ total_pay }}</span></h6>
 		  </div>
 		</div>
 	  </a>
@@ -82,9 +90,9 @@
     <li class="list-group-item">小鹿妈妈: {{ xlmm.weikefu }}&nbsp;{% if referal_mmid > 0 %}(<a href="/m/register/{{referal_mmid}}/">申请正式小鹿妈妈</a>){% endif %}</li>
     <li class="list-group-item">手机号: {{ mobile }}</li>
     <li class="list-group-item"><lable>专属链接：</label> <b>http://xiaolu.so/m/{{ pk }}/</b></li>
-    <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">收入支出流水</div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
-    <li class="list-group-item"><a href="/m/income/"><div class="row nav-item"><div class="col-xs-10">收益列表 (点击<span class="badge label-warning">{{ click_num }}</span>-订单<span class="badge label-warning">{{ order_num }}</span>)</div><div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
-    <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">推荐妈妈列表 (推荐数<span class="badge label-warning">{{ referal_num }}</span>)</div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
+    <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">收入支出流水 </div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
+    <li class="list-group-item"><a href="/m/income/"><div class="row nav-item"><div class="col-xs-10">收益列表 (今日点击<span class="badge label-warning">{{ click_num }}</span>-订单<span class="badge label-warning">{{ order_num }}</span>)</div><div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
+    <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">推荐妈妈列表 (总推荐数<span class="badge label-warning">{{ referal_num }}</span>)</div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
   </ul>
   
   
