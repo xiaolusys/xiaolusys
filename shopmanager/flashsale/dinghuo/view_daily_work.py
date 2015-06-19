@@ -112,7 +112,7 @@ class DailyDingHuoView(View):
                     trade_dict[product[0]] = [temp_dict]
                 else:
                     trade_dict[product[0]].append(temp_dict)
-
+        trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
         return render_to_response("dinghuo/dailywork2.html",
                                   {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,

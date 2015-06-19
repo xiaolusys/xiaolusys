@@ -96,16 +96,15 @@
             </thead>
             <tbody>
 
-            {% for product_id,product in  target_product.items %}
-
-                {% with product|length as sku_len %}
+            {% for product in  target_product %}
+                {% with product.1|length as sku_len %}
                     {% if sku_len > 0 %}
-                        {% for sku in product %}
+                        {% for sku in product.1 %}
                             <tr>
                                 {% if forloop.first %}
                                     <td rowspan="{{ sku_len }}">{{ sku.product_name }}<br>
-                                        <a href="/sale/dinghuo/adddetail/{{ product_id }}"
-                                           target="_blank">编码:{{ product_id }}</a>
+                                        <a href="/sale/dinghuo/adddetail/{{ product.0 }}"
+                                           target="_blank">编码:{{ product.0 }}</a>
                                     </td>
                                     <td rowspan="{{ sku_len }}"><img src="{{ sku.pic_path }}" width="100px"
                                                                      class="img-circle">
