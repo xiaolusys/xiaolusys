@@ -453,7 +453,7 @@ def logclicks(request, linkid):
         return redirect(redirect_url)
 
     click_time = datetime.datetime.now()
-    tasks.task_Create_Click_Record.s(linkid, openid, click_time)()
+    tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
 
     return redirect(SHOPURL)
 
