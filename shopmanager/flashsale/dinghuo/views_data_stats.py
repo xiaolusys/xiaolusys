@@ -17,10 +17,11 @@ class DailyStatsView(View):
             prev_day = int(prev_day)
             if prev_day == 1000:
                 task_stats_product.delay()
-            elif prev_day > 1000:
-                task_stats_daily_order_by_group.delay(prev_day - 1000)
             elif prev_day == 10000:
                 task_send_daily_message.delay()
+            elif prev_day > 1000:
+                task_stats_daily_order_by_group.delay(prev_day - 1000)
+
             else:
                 task_stats_daily_product.delay(prev_day)
         except:
