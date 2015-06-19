@@ -120,3 +120,59 @@ def product_Analysis(request):
     raw = cursor.fetchall()
     return render_to_response('product_analysis/product_analysis.html', {'data': raw, 'date_dic': date_dic},
                               context_instance=RequestContext(request))
+
+
+# 统计特卖商品销售前100（按周），按编码去掉最后一位来聚合
+# 每日商品销售信息统计表：shopback/items/models.py #ProductDaySale
+# from  shopback.items.models import ProductDaySale
+
+
+def get_week_from_date(date_time):
+    days = date_time.isoweekday()
+    day_from = date_time - datetime.timedelta(days=days - 1)
+    day_to = day_from + datetime.timedelta(days=6)
+    date_from = datetime.datetime(day_from.year, day_from.month, day_from.day, 0, 0, 0)  # 上一周的开始时间
+    date_to = datetime.datetime(day_to.year, day_to.month, day_to.day, 23, 59, 59)  # 上一周的结束时间
+    return date_from, date_to
+
+def product_Top100_By_Week(request):
+    content = request.REQUEST
+    daystr = content.get("week", None)
+    if daystr:
+        year, month, day = daystr.split('-')
+        target_date = datetime.datetime(int(year), int(month), int(day))
+        date_from, date_to = get_week_from_date(target_date)
+    else:
+        target_date = datetime.datetime.now()
+        date_from, date_to = get_week_from_date(target_date)
+    prev_week = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
+    next_week = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
+
+
+    sql = "SELECT " \
+                " sale.product_id, product.name, " \
+                "SUM(sale.confirm_num) AS sale_num, " \
+                "SUM(sale.confirm_payment) AS sale_payment, " \
+                "LEFT(product.outer_id, 9) AS pid " \
+            "FROM " \
+                "((SELECT " \
+                    " product_id, confirm_num, confirm_payment " \
+                "FROM " \
+                    "shop_items_daysale WHERE  day_date BETWEEN '{0}' AND '{1}') AS sale " \
+                "LEFT JOIN (SELECT " \
+                    "id, outer_id, name " \
+                "FROM " \
+                    "shop_items_product) AS product ON sale.product_id = product.id) " \
+            "WHERE " \
+                "LENGTH(product.outer_id) >= 9 " \
+            "GROUP BY pid " \
+            "ORDER BY sale_num DESC " \
+            " LIMIT 100 ".format(date_from, date_to)
+
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
+
+    date_dic = {"prev_week": prev_week, "next_week": next_week}
+    return render_to_response('product_analysis/product_analysis_top100.html', {'data': raw, 'date_dic': date_dic},
+                              context_instance=RequestContext(request))
