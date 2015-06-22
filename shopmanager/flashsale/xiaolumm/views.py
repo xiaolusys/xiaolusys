@@ -513,6 +513,7 @@ from django.views.decorators.csrf import csrf_exempt
 def cash_Out_Verify(request, id, xlmm):
     '''提现审核方法'''
     '''buyer_id 手机 可用现金  体现金额  小鹿钱包消费额
+    提现审核界面加上总收入总支出两项数据
     '''
     data = []
 #     cashouts_status_is_pending = CashOut.objects.filter(status='pending').order_by('-created')
@@ -540,8 +541,23 @@ def cash_Out_Verify(request, id, xlmm):
         
     cash, payment, could_cash_out = get_xlmm_cash_iters(xiaolumama, cash_outable=cash_outable)
 
-    data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,'payment':payment,
-                  'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out}
+    # 提现审核界面加上总收入总支出两项数据
+    carrylogs_in = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
+    sum_carry_in = carrylogs_in.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
+    sum_carry_in = sum_carry_in/100.0
+
+    # 总支出
+    carrylogs_out = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
+    sum_carry_out = carrylogs_out.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
+    sum_carry_out = sum_carry_out/100.0
+
+    # 差值
+    carry_in_minus_out = sum_carry_in - sum_carry_out
+
+
+    data_entry = {'id':id,'xlmm':xlmm,'value':value,'status':status,'mobile':mobile,'cash':cash,
+                  'shoppings_count':shoppings_count,'click_nums':click_nums,'could_cash_out':could_cash_out,
+                  'sum_carry_in':sum_carry_in, 'sum_carry_out':sum_carry_out,'carry_in_minus_out':carry_in_minus_out}
     data.append(data_entry)
 
     return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))
