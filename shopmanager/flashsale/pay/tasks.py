@@ -214,10 +214,19 @@ def task_Pull_Red_Envelope(pre_day=7):
     
     page_size = 100
     has_next = True
+    starting_after = None
     while has_next:
-        
-        resp = pingpp.RedEnvelope.all(limit=page_size,created={'gte':pre_date,'lte':today})  
+        if starting_after:
+            resp = pingpp.RedEnvelope.all(limit=page_size,
+                                          created={'gte':pre_date,'lte':today},
+                                          starting_after=starting_after)  
+        else:
+            resp = pingpp.RedEnvelope.all(limit=page_size,
+                                          created={'gte':pre_date,'lte':today})  
         has_next = resp['has_more']
+        if not has_next:
+            break
+        
         for e in resp['data']:
             env = Envelop.objects.get(id=e['order_no'])
             env.envelop_id = e['id']
@@ -225,6 +234,8 @@ def task_Pull_Red_Envelope(pre_day=7):
             if env.status in (Envelop.WAIT_SEND,Envelop.CANCEL) :
                 env.status = Envelop.FAIL
             env.save()
+        else:
+            starting_after = e['id']
             
             
   
