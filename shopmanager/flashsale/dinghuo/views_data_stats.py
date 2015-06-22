@@ -3,7 +3,7 @@ __author__ = 'yann'
 from django.views.generic import View
 from django.shortcuts import HttpResponse, render_to_response
 from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product, task_stats_daily_order_by_group, \
-    task_send_daily_message
+    task_send_daily_message, task_write_supply_name
 from django.template import RequestContext
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 import time
@@ -19,6 +19,8 @@ class DailyStatsView(View):
                 task_stats_product.delay()
             elif prev_day == 10000:
                 task_send_daily_message.delay()
+            elif prev_day == 10001:
+                task_write_supply_name.delay()
             elif prev_day > 1000:
                 task_stats_daily_order_by_group.delay(prev_day - 1000)
 

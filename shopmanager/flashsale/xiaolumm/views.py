@@ -29,7 +29,8 @@ logger = logging.getLogger('django.request')
 import datetime, re
 
 
-SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
+#SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=4&showwxpaytitle=1#wechat_redirect"
+SHOPURL = "http://weixin.huyi.so/mm/plist/"
 
 def landing(request):
     return render_to_response("mama_landing.html", context_instance=RequestContext(request))
@@ -197,10 +198,16 @@ class MamaStatsView(View):
             
             mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id)
             pending_value = mm_clogs.filter(status=CarryLog.PENDING).aggregate(total_value=Sum('value')).get('total_value') or 0 
+            
+            total_income = mm_clogs.filter(carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED).aggregate(total_value=Sum('value')).get('total_value') or 0
+            total_pay    = mm_clogs.filter(carry_type=CarryLog.CARRY_OUT,status=CarryLog.CONFIRMED).aggregate(total_value=Sum('value')).get('total_value') or 0
+            
             yest_income = mm_clogs.filter(carry_type=CarryLog.CARRY_IN,carry_date=yesterday).aggregate(total_value=Sum('value')).get('total_value') or 0
             yest_pay    = mm_clogs.filter(carry_type=CarryLog.CARRY_OUT,carry_date=yesterday).aggregate(total_value=Sum('value')).get('total_value') or 0
             
             pending_value = pending_value / 100.0
+            total_income  = total_income / 100.0
+            total_pay     = total_pay / 100.0
             yest_income   = yest_income / 100.0
             yest_pay      = yest_pay / 100.0
             
@@ -229,6 +236,7 @@ class MamaStatsView(View):
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     'referal_mmid':referal_mm,"order_num":order_num,  "pk":xlmm.pk,
                     'pending_value':pending_value,"referal_num":referal_num,
+                    'total_income':total_income,'total_pay':total_pay,
                     'yest_income':yest_income,'yest_pay':yest_pay}
             
         except Exception,exc:
@@ -452,7 +460,7 @@ def logclicks(request, linkid):
         return redirect(redirect_url)
 
     click_time = datetime.datetime.now()
-    tasks.task_Create_Click_Record.s(linkid, openid, click_time)()
+    tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
 
     return redirect(SHOPURL)
 

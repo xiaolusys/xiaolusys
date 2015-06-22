@@ -6,7 +6,8 @@ from django.conf import settings
 from celery.task import task
 
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog,AgencyLevel
+from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog
+from shopapp.weixin.models import WeixinUnionID
 
 __author__ = 'meixqhi'
 
@@ -15,10 +16,10 @@ ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 
 @task()
-def task_Create_Click_Record(xlmmid,openid,click_time):
+def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
     """
     异步保存妈妈分享点击记录
-    xlmm_id:小鹿妈妈id，
+    xlmm_id:小鹿妈妈id,
     openid:妈妈微信openid,
     click_time:点击时间
     """
@@ -38,6 +39,8 @@ def task_Create_Click_Record(xlmmid,openid,click_time):
         isvalid = True
         
     Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
+    
+    WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
     
 
 @task()
@@ -151,13 +154,16 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         
         click_rebeta = calc_Xlmm_ClickRebeta(xlmm,time_from,time_to)
         
+        clog = CarryLog.objects.get(id=cl.id)
+        if clog.status != CarryLog.PENDING:
+            continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         carry_value  = cl.value
-        cl.value     = click_rebeta
-        cl.status    = CarryLog.CONFIRMED
-        cl.save()
+        clog.value   = click_rebeta
+        clog.status  = CarryLog.CONFIRMED
+        clog.save()
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        xlmms.update(cash=F('cash') + clog.value, pending=F('pending') - carry_value)
         
         
 
@@ -204,9 +210,14 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         carry_value = cl.value
         rebeta_rate  = xlmm.get_Mama_Order_Rebeta_Rate()
-        cl.value     = calc_fee * rebeta_rate
-        cl.status = CarryLog.CONFIRMED
-        cl.save()
+        
+        clog = CarryLog.objects.get(id=cl.id)
+        if clog.status != CarryLog.PENDING:
+            continue
+        
+        clog.value     = calc_fee * rebeta_rate
+        clog.status = CarryLog.CONFIRMED
+        clog.save()
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
         xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
         
@@ -222,7 +233,8 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
     
     c_logs = CarryLog.objects.filter(log_type=CarryLog.AGENCY_SUBSIDY,
                                      carry_date__lte=pre_date,
-                                     status=CarryLog.PENDING)
+                                     status=CarryLog.PENDING,
+                                     carry_type=CarryLog.CARRY_IN)
     
     if xlmm_id:
         c_logs = c_logs.filter(xlmm=xlmm_id)
@@ -249,17 +261,17 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         
         calc_fee = shopings.aggregate(total_amount=Sum('wxorderamount')).get('total_amount') or 0
         
-        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        if cl.carry_type != CarryLog.CARRY_IN:
+        clog = CarryLog.objects.get(id=cl.id)
+        if clog.status != CarryLog.PENDING:
             continue
-        
-        carry_value = cl.value
+        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
+        carry_value = clog.value
         agency_rebeta_rate  = xlmm.get_Mama_Agency_Rebeta_Rate()
-        cl.value     = calc_fee * agency_rebeta_rate
-        cl.status = CarryLog.CONFIRMED
-        cl.save() 
+        clog.value     = calc_fee * agency_rebeta_rate
+        clog.status = CarryLog.CONFIRMED
+        clog.save() 
 #         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        xlmms.update(cash=F('cash') + clog.value, pending=F('pending') - carry_value)
         
 
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成

@@ -3,11 +3,12 @@ __author__ = 'yann'
 from celery.task import task
 from shopback.items.models import Product, ProductSku
 from flashsale.dinghuo.models_stats import SupplyChainDataStats
-from flashsale.dinghuo.models import OrderDetail
+from flashsale.dinghuo.models import OrderDetail, OrderList
 import functions
 import datetime
 import function_of_task
 import urllib2
+import re
 
 
 @task(max_retry=3, default_retry_delay=5)
@@ -111,3 +112,41 @@ def task_send_daily_message():
         functions.send_txt_msg(access_token, result_str)
     except Exception, exc:
         raise task_send_daily_message.retry(exc=exc)
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_write_supply_name():
+    try:
+        all_data = OrderList.objects.exclude(status=u'作废').exclude(status=u'7')
+        for data in all_data:
+            if len(data.supplier_name) > 0:
+                data.supplier_shop = get_supply_name(data.supplier_name)
+                data.save()
+    except Exception, exc:
+        raise task_write_supply_name.retry(exc=exc)
+
+
+def get_supply_name(name):
+    if len(name) > 0:
+        url_str = str(name)
+    else:
+        return ""
+    try:
+        content = urllib2.urlopen(url_str).read()
+        reg = r'<a href=".*">首页</a>'
+
+        content = str(content.decode('gb2312', 'ignore'))
+        re_ = re.compile(reg)
+        result = re.findall(re_, content)
+        if result:
+            return result[0].split("//")[1].split(".")[0]
+        else:
+            reg = r'<a data-spm="d21" href=".*" target="_blank">进入店铺</a>'
+            re_ = re.compile(reg)
+            result = re.findall(re_, content)
+            if result:
+                return result[0].split("//")[1].split(".")[0]
+            else:
+                return ""
+    except Exception, ex:
+        return ""

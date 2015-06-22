@@ -1,3 +1,6 @@
+########### 2015-6-22 #################
+alter table suplychain_flashsale_orderlist add column supplier_shop varchar(32) NOT NULL after supplier_name;
+
 ########### 2015-6-15 #################
 alter table django_admin_log change object_id object_id varchar(64) NOT NULL;
 ALTER TABLE django_admin_log ADD INDEX IDX_OB_CO_AC_US (OBJECT_ID,CONTENT_TYPE_ID,ACTION_TIME,USER_ID);
