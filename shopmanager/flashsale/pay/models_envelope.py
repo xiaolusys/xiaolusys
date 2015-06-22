@@ -85,13 +85,11 @@ class Envelop(models.Model):
                         recipient=self.recipient,
                         description=self.description
                     )
-            
         except Exception,exc:
             self.status = Envelop.FAIL
             self.save()
             raise exc
         else:
-            
             is_paid = redenvelope['paid']
             self.envelop_id = redenvelope['id']
             self.livemode   = redenvelope['livemode']
