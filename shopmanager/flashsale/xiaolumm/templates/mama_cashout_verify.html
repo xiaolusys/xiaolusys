@@ -33,23 +33,23 @@
     <script type="text/javascript">
         function shenhe(id) { //通过
             var i = id.toString();
-            index = "bt_verify_"+id;
+            index = "bt_verify_" + id;
             url = '/m/cashmodify/' + i + '/';
             data = id;
 
-            var bt_verify = $('#'+index);
-            if (bt_verify.hasClass('loading')){
-            	return;
+            var bt_verify = $('#' + index);
+            if (bt_verify.hasClass('loading')) {
+                return;
             }
             bt_verify.addClass('loading');
             function callback(result) {
-            	bt_verify.removeClass('loading');
+                bt_verify.removeClass('loading');
                 if (result == "reject") {
                     alert('提现超过可用金额');
                 }
                 else if (result == "ok") {
                     bt_verify.text('已审核');
-                    bt_verify.attr("disabled","disabled");
+                    bt_verify.attr("disabled", "disabled");
                 }
                 else {
                     alert("server error");
@@ -64,14 +64,14 @@
         function jujue(id) { // 拒绝
             var i = id.toString();
             url = '/m/cashreject/' + i + '/';
-            index ="bt_jujue_"+id;
-            var bt_jujue = $("#"+index);
+            index = "bt_jujue_" + id;
+            var bt_jujue = $("#" + index);
             data = id;
             function callback(result) {
                 if (result == "ok") {
                     console.log(id);
                     bt_jujue.text("已拒绝");
-                    bt_jujue.attr("disabled","disabled");
+                    bt_jujue.attr("disabled", "disabled");
 
                 }
             }
@@ -90,7 +90,7 @@
     <div class="page-header container row">
         <h3><span class="label label-primary">提现审核</span>
 
-            </h3>
+        </h3>
     </div>
 
     <div class="panel panel-primary">
@@ -105,12 +105,14 @@
                     <th>妈妈编号</th>
                     <th>手机号</th>
                     <th>可用现金</th>
-		    <th>可提现金额</th>
+                    <th>可提现金额</th>
                     <th>提现金额</th>
-                    <th>小鹿钱包消费额</th>
+
                     <th>点击数</th>
                     <th>订单数</th>
-                   
+                    <th>总收入</th>
+                    <th>总支出</th>
+                    <th>差值</th>
                     <th>操作</th>
                 </tr>
                 </thead>
@@ -121,16 +123,24 @@
                         <td>{{ item.xlmm }}</td>
                         <td>{{ item.mobile }}</td>
                         <td>{{ item.cash }}</td>
-						<td>{{ item.could_cash_out }}</td>
+                        <td>{{ item.could_cash_out }}</td>
                         <td>{{ item.value }}</td>
-                        <td>{{ item.payment }}</td>
+
                         <td>{{ item.click_nums }}</td>
                         <td>{{ item.shoppings_count }}</td>
-                        
+
+                        <td>{{ item.sum_carry_in }}</td>
+                        <td>{{ item.sum_carry_out }}</td>
+                    <td>{{ item.carry_in_minus_out }}</td>
                         <td>
                             <div class="btn-group" role="group" aria-label="...">
-                                <button type="button"  id="bt_verify_{{ item.id }}" {% if item.could_cash_out == 0 %} style="display:none"{% endif %} class="btn btn-primary" onclick="shenhe({{ item.id }})" >通过</button>
-                                <button type="button"  id="bt_jujue_{{ item.id }}" class="btn btn-warning" onclick="jujue({{ item.id }})">拒绝</button>
+                                <button type="button" id="bt_verify_{{ item.id }}" {% if item.could_cash_out == 0 %}
+                                        style="display:none"{% endif %} class="btn btn-primary"
+                                        onclick="shenhe({{ item.id }})">通过
+                                </button>
+                                <button type="button" id="bt_jujue_{{ item.id }}" class="btn btn-warning"
+                                        onclick="jujue({{ item.id }})">拒绝
+                                </button>
                             </div>
                         </td>
                     </tr>

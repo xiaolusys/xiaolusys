@@ -13,6 +13,10 @@
             <thead>
             <th>商品外部编码</th>
             <th>商品上架时间</th>
+            <th>销售数量</th>
+            <th>订货数量</th>
+            <th>次品数量</th>
+            <th>退货数量</th>
             <th>下单时间</th>
             <th>订货时间</th>
             <th>到货时间</th>
@@ -23,6 +27,10 @@
                 <tr>
                     <td>{{ data.product_id }}</td>
                     <td>{{ data.sale_time }}</td>
+                    <td>{{ data.sale_num }}</td>
+                    <td>{{ data.ding_huo_num }}</td>
+                    <td>{{ data.inferior_num }}</td>
+                    <td>{{ data.return_num }}</td>
                     <td>{{ data.trade_general_time }}</td>
                     <td>{{ data.order_deal_time }}</td>
                     <td>{{ data.goods_arrival_time }}</td>

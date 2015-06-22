@@ -196,7 +196,8 @@ def product_Collect_Topp100(request):
                 "(SELECT " \
                      "id, name, collect_num " \
                 "FROM " \
-                    "shop_items_product " \
+                    "shop_items_product where length(outer_id)>=9  and ( left(outer_id,1)=9 or " \
+                                        " left(outer_id,1)=8 or left(outer_id,1)=1)  and status!='delete' " \
                 "ORDER BY collect_num DESC " \
                " LIMIT 100) AS product " \
                     "LEFT JOIN " \

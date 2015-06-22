@@ -12,34 +12,43 @@
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
     </style>
+    <style type="text/css">
+        .sku {
+            width: 320px
+        }
+
+        .name {
+            width: 320px
+        }
+    </style>
 
 {% endblock %}
 
 {% block container %}
-
-
+    <div class="container page-header">
+        <h3>产品库存
+            <small>(top100)</small>
+        </h3>
+    </div>
     <div class="container">
-        <div>
-            <h3>产品库存(top100)</h3>
-        </div>
         <table class="table table-condensed table-hover" id="mytable">
             <thead>
             <th>产品ID</th>
             <th>名称</th>
             <th>库存数量</th>
-            <th>规格/数量</th>
+            <th>规格 / 数量</th>
             </thead>
 
             <tbody>
             {% for product_id,value in data.items %}
                 <tr>
                     <td>{{ product_id }}</td>
-                    <td>{{ value.0.product_name }}</td>
+                    <td class="name">{{ value.0.product_name }}</td>
                     <td>{{ value.0.collect_num }}</td>
-                    <td>
+                    <td class="sku">
                         {% for i in value %}
-                            <p>{{ i.properties_alias }} /
-                                {{ i.quantity }}</p>
+                            <span>{{ i.properties_alias }} /
+                                {{ i.quantity }}</span><br>
                         {% endfor %}
                     </td>
                 </tr>
