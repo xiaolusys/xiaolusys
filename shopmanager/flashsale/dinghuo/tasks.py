@@ -131,19 +131,22 @@ def get_supply_name(name):
         url_str = str(name)
     else:
         return "找不到供应商"
-    content = urllib2.urlopen(url_str).read()
-    reg = r'<a href=".*">首页</a>'
+    try:
+        content = urllib2.urlopen(url_str).read()
+        reg = r'<a href=".*">首页</a>'
 
-    content = str(content.decode('gb2312', 'ignore'))
-    re_ = re.compile(reg)
-    result = re.findall(re_, content)
-    if result:
-        return result[0].split("//")[1].split(".")[0]
-    else:
-        reg = r'<a data-spm="d21" href=".*" target="_blank">进入店铺</a>'
+        content = str(content.decode('gb2312', 'ignore'))
         re_ = re.compile(reg)
         result = re.findall(re_, content)
         if result:
             return result[0].split("//")[1].split(".")[0]
         else:
-            return name
+            reg = r'<a data-spm="d21" href=".*" target="_blank">进入店铺</a>'
+            re_ = re.compile(reg)
+            result = re.findall(re_, content)
+            if result:
+                return result[0].split("//")[1].split(".")[0]
+            else:
+                return "找不到供应商"
+    except Exception, ex:
+        return "找不到供应商"
