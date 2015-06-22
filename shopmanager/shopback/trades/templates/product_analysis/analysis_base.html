@@ -16,8 +16,8 @@
     {% endblock %}
 </head>
 <body>
-<div style="margin-bottom: 70px">
-    <nav class="navbar navbar-default navbar-fixed-top">
+<div style="margin-bottom: 20px">
+    <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
         <div class="container">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="/trades/product_analysis/">产品分析 <span class="sr-only">(current)</span></a>
@@ -46,14 +46,12 @@
 <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
 <script type="text/javascript">
     $('#mytable').dataTable({
-        //"bJQueryUI": true,
+
         "bAutoWidth": false, //自适应宽度
         "aaSorting": [[2, "desc"]],
-        "iDisplayLength": 50,
+        "iDisplayLength": 20,
         "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
-        //"bInfo":true,
-        //"sPaginationType": "full_numbers",
-        //"sDom": '<"H"Tfr>t<"F"ip>',
+
         "oLanguage": {
             "sLengthMenu": "_MENU_ 条",
             "sZeroRecords": "抱歉， 没有找到",
