@@ -215,7 +215,7 @@ from flashsale.pay.signals import signal_saletrade_pay_confirm
 def tongji_saleorder(sender, obj, **kwargs):
     """ 统计特卖订单提成 """
     #如果订单试用钱包付款，或是押金订单则不处理
-    if obj.channel == SaleTrade.WALLET or obj.is_Deposite_Order():
+    if obj.is_Deposite_Order():
         return 
     
     today = datetime.date.today()
@@ -239,7 +239,16 @@ def tongji_saleorder(sender, obj, **kwargs):
     xd_openid  = wx_unionid
     if xd_unoins.count() > 0:
         xd_openid = xd_unoins[0].openid
-        
+    #如果钱包付款，则不算提成
+    if obj.channel == SaleTrade.WALLET:
+        StatisticsShopping(linkid=0, 
+                           openid=xd_openid, 
+                           wxorderid=order_id,
+                           wxorderamount=mm_order_rebeta,
+                           shoptime=ordertime, 
+                           tichengcount=mm_order_rebeta).save()
+        return
+    
     isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,agencylevel=2,
                                              charge_time__lte=ordertime)
     

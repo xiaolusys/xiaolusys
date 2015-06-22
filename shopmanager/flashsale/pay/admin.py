@@ -341,7 +341,7 @@ class EnvelopAdmin(admin.ModelAdmin):
                     'send_time','created','status')
     
     list_filter = ('status','platform','subject','livemode',('created',DateFieldListFilter))
-    search_fields = ['receiver']
+    search_fields = ['=receiver','=envelop_id']
     list_per_page = 50
     form = EnvelopForm
     

@@ -40,7 +40,7 @@ class FlashSaleHandler(BaseHandler):
         for outer_id,outer_sku_id in tuple_ids:
             wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
                                                   outer_sku_id=outer_sku_id,
-                                                  status=WXProductSku.UP_SHELF)
+                                                  status=WXProductSku.UP_SHELF).order_by('-modified')
             if wx_skus.count() == 0 :
                 continue
             
