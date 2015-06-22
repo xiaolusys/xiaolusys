@@ -56,7 +56,7 @@ class ordelistAdmin(admin.ModelAdmin):
     supply_chain.short_description = "供应商"
 
     def note_name(self, obj):
-        return u'<textarea style="background-color:#B4EEB4" id="id_note" rows="3" cols="40" name="note" readonly="readonly" class="form-control" >{0}</textarea>'.format(obj.note)
+        return u'<textarea style="background-color:#B4EEB4" onscroll="this.rows++"  id="id_note" cols="40" name="note"  class="form-control" >{0}</textarea>'.format(obj.note)
 
     note_name.allow_tags = True
     note_name.short_description = "备注"
