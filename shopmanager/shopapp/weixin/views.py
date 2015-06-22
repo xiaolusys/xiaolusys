@@ -1544,13 +1544,21 @@ class WeixinProductView(ModelView):
         product_ids = content.get('product_ids','').split(',')
         products = Product.objects.filter(id__in=product_ids)
         wx_api = WeiXinAPI()
+        pull_set  = set([])
         
         for product in products:
-
-            wx_skus = WXProductSku.objects.filter(outer_id=product.outer_id)
-            wx_pids = set([sku.product_id for sku in wx_skus])
-            for wx_pid in wx_pids:
-                WXProduct.objects.getOrCreate(wx_pid,force_update=True)
+            wx_skus = WXProductSku.objects.filter(outer_id=product.outer_id).order_by('-modified')
+            if wx_skus.count() == 0:
+                continue
+             
+            wx_pid = wx_skus[0].product_id
+            if wx_pid not in pull_set:
+                try:
+                    WXProduct.objects.getOrCreate(wx_pid,force_update=True)
+                except Exception,exc:
+                    logger.error(exc.message,exc_info=True)
+                    continue
+                pull_set.add(wx_pid) 
             
             for sku in product.pskus:
                 outer_id = product.outer_id

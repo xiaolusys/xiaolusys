@@ -10,6 +10,58 @@ from common.utils import update_model_fields, replace_utf8mb4
 from .models import WeiXinUser,WXOrder,WXProduct,WXProductSku,WXLogistic,WeixinUnionID
 from .service import WxShopService
 from .weixin_apis import WeiXinAPI,WeiXinRequestException
+from shopback.items.models import Product,ItemNumTaskLog
+
+import logging
+logger =  logging.getLogger('celery.handler')
+
+def update_weixin_productstock():
+    products = Product.objects.filter(shelf_status=1,sale_time=datetime.date.today()-datetime.timedelta(days=1))
+    wx_api = WeiXinAPI()
+
+    cnt = 0
+    for product in products[18:]:
+        cnt += 1
+
+        wx_skus = WXProductSku.objects.filter(outer_id=product.outer_id).order_by('-modified')
+        if wx_skus.count() > 0:
+            try:
+                wx_pid = wx_skus[0].product_id
+                WXProduct.objects.getOrCreate(wx_pid,force_update=True)
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+                continue
+        for sku in product.pskus:
+            outer_id = product.outer_id
+            outer_sku_id = sku.outer_id
+            sync_num = sku.remain_num - sku.wait_post_num
+            if sync_num < 0 :
+                continue
+            try:
+                wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
+                                            outer_sku_id=outer_sku_id)
+                for wx_sku in wx_skus:
+                    
+                    vector_num =  sync_num - wx_sku.sku_num 
+                    if vector_num == 0:continue
+                    if vector_num > 0:
+                        wx_api.addMerchantStock(wx_sku.product_id,
+                                                vector_num,
+                                                sku_info=wx_sku.sku_id)
+                    else:
+                        wx_api.reduceMerchantStock(wx_sku.product_id,
+                                                   abs(vector_num),
+                                                   sku_info=wx_sku.sku_id)
+        
+                    ItemNumTaskLog.objects.get_or_create(user_id=7,
+                                                         outer_id=outer_id,
+                                                         sku_outer_id='wx%s'%outer_sku_id,
+                                                         num=sync_num,
+                                                         end_at=datetime.datetime.now())
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+
+
 
 @task(max_retry=3,default_retry_delay=60)
 def task_Update_Weixin_Userinfo(openId,unionId=None):
