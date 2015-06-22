@@ -36,8 +36,8 @@ class DailyDingHuoView(View):
 
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_to_str)
-        if time_to - shelve_from > datetime.timedelta(3):
-            time_to = shelve_from + datetime.timedelta(3)
+        if time_to - shelve_from > datetime.timedelta(5):
+            time_to = shelve_from + datetime.timedelta(5)
         elif time_to - shelve_from < datetime.timedelta(0):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
