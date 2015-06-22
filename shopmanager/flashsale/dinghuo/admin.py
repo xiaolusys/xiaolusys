@@ -25,7 +25,7 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note',
+        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note_name',
         'supply_chain', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
@@ -50,10 +50,16 @@ class ordelistAdmin(admin.ModelAdmin):
     quantity.short_description = "购买商品数量"
 
     def supply_chain(self, obj):
-        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name, obj.supplier_name)
+        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name, obj.supplier_shop)
 
     supply_chain.allow_tags = True
     supply_chain.short_description = "供应商"
+
+    def note_name(self, obj):
+        return u'<textarea style="background-color:#B4EEB4" id="id_note" rows="3" cols="40" name="note" readonly="readonly" class="form-control" >{0}</textarea>'.format(obj.note)
+
+    note_name.allow_tags = True
+    note_name.short_description = "备注"
 
     def shenhe(self, obj):
         symbol_link = obj.get_status_display()
