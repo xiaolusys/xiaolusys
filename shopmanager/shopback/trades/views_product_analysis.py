@@ -12,6 +12,7 @@ from django.db.models import connection
 from flashsale.xiaolumm.models import XiaoluMama
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
+from shopback.items.models import Product, ProductSku
 
 
 def get_Month_By_Date(date_time):
@@ -175,4 +176,46 @@ def product_Top100_By_Week(request):
 
     date_dic = {"prev_week": prev_week, "next_week": next_week}
     return render_to_response('product_analysis/product_analysis_top100.html', {'data': raw, 'date_dic': date_dic},
+                              context_instance=RequestContext(request))
+
+# 统计特卖商品剩余库存最多的前100个
+# 关联表:shopback/items/models.py #Product,ProductSku
+
+# Product: collect_num, name
+
+def product_Collect_Topp100(request):
+
+
+    sql = "SELECT  " \
+                "product.id, " \
+                "product.name, " \
+                "product.collect_num, " \
+                "sku.properties_alias, " \
+                "sku.quantity " \
+            "FROM " \
+                "(SELECT " \
+                     "id, name, collect_num " \
+                "FROM " \
+                    "shop_items_product " \
+                "ORDER BY collect_num DESC " \
+               " LIMIT 100) AS product " \
+                    "LEFT JOIN " \
+                "(SELECT " \
+                   " product_id, quantity, properties_alias " \
+                "FROM " \
+                   " shop_items_productsku) AS sku ON product.id = sku.product_id"
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
+
+
+    pro = {}
+    for i in raw:
+        product_id = i[0]
+        if product_id not in pro:
+            pro[i[0]] = [{"product_name": i[1], 'collect_num': i[2], 'properties_alias': i[3], 'quantity': i[4]}]
+        else:
+            pro[i[0]].append({"product_name": i[1], 'collect_num': i[2], 'properties_alias': i[3], 'quantity': i[4]})
+
+    return render_to_response('product_analysis/product_analysis_collect_top100.html', {'data': pro},
                               context_instance=RequestContext(request))

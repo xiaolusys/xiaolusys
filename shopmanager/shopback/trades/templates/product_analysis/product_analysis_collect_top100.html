@@ -16,39 +16,32 @@
 {% endblock %}
 
 {% block container %}
+
+
     <div class="container">
-        <h3>产品销售(周top100)</h3>
-    </div>
-    <div>
-        <div class="col-xs-4">
-            <a href="/trades/product_analysis_top100/?week={{ date_dic.prev_week }}"><< 上个周</a>
+        <div>
+            <h3>产品库存(top100)</h3>
         </div>
-        <div class="col-xs-4">
-        </div>
-        <div class="col-xs-4">
-            {% if date_dic.next_week %}
-                <a href="/trades/product_analysis_top100/?week={{ date_dic.next_week }}">下个周 >></a>
-            {% endif %}
-        </div>
-    </div>
-    <div class="container">
-        <table class="table table-condensed" id="mytable">
+        <table class="table table-condensed table-hover" id="mytable">
             <thead>
             <th>产品ID</th>
             <th>名称</th>
-            <th>销售数量</th>
-            <th>销售额</th>
-            <th>out_id(9)</th>
+            <th>库存数量</th>
+            <th>规格/数量</th>
             </thead>
 
             <tbody>
-            {% for i in data %}
+            {% for product_id,value in data.items %}
                 <tr>
-                    <td>{{ i.0 }}</td>
-                    <td>{{ i.1 }}</td>
-                    <td>{{ i.2 }}</td>
-                    <td>{{ i.3 }}</td>
-                    <td>{{ i.4 }}</td>
+                    <td>{{ product_id }}</td>
+                    <td>{{ value.0.product_name }}</td>
+                    <td>{{ value.0.collect_num }}</td>
+                    <td>
+                        {% for i in value %}
+                            <p>{{ i.properties_alias }} /
+                                {{ i.quantity }}</p>
+                        {% endfor %}
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
