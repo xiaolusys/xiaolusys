@@ -50,7 +50,7 @@ class ordelistAdmin(admin.ModelAdmin):
     quantity.short_description = "购买商品数量"
 
     def supply_chain(self, obj):
-        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name, obj.supplier_shop)
+        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name, obj.supplier_shop or obj.supplier_name)
 
     supply_chain.allow_tags = True
     supply_chain.short_description = "供应商"

@@ -130,7 +130,7 @@ def get_supply_name(name):
     if len(name) > 0:
         url_str = str(name)
     else:
-        return "找不到供应商"
+        return ""
     try:
         content = urllib2.urlopen(url_str).read()
         reg = r'<a href=".*">首页</a>'
@@ -147,6 +147,6 @@ def get_supply_name(name):
             if result:
                 return result[0].split("//")[1].split(".")[0]
             else:
-                return "找不到供应商"
+                return ""
     except Exception, ex:
-        return "找不到供应商"
+        return ""
