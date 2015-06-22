@@ -58,10 +58,8 @@ def format_time(date1, date2):
     if time_of_long > 0:
         days = time_of_long / 86400
         tm_hours = time_of_long % 86400 / 3600
-    if days > 0:
+    if days > 0 or tm_hours > 0:
         return str(days) + "天" + str(tm_hours) + "小时"
-    elif tm_hours > 0:
-        return str(tm_hours) + "小时"
     else:
         return ""
 
@@ -71,7 +69,8 @@ class StatsProductView(View):
     def get(request):
         all_data = DailySupplyChainStatsOrder.objects.values("product_id", "sale_time", "trade_general_time",
                                                              "order_deal_time", "goods_arrival_time",
-                                                             "goods_out_time").all()
+                                                             "goods_out_time", "sale_num", "ding_huo_num", "return_num",
+                                                             "inferior_num")
         all_data_dict = format_time_from_dict(all_data)
         return render_to_response("dinghuo/data_of_product.html", {"all_data": all_data_dict},
                                   context_instance=RequestContext(request))
