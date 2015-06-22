@@ -271,6 +271,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="00", hour="23"),
         'args': ()
     },
+    u'定时每日更新红包数据':{
+        'task':'flashsale.pay.tasks.task_Pull_Red_Envelope',
+        'schedule': crontab(minute="10", hour="23"),
+        'args': ()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

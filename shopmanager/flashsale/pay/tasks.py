@@ -177,7 +177,54 @@ def push_SaleTrade_To_MergeTrade():
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
         
+import pingpp
+from flashsale.pay.models import Envelop
 
+@task
+def task_Pull_Red_Envelope(pre_day=7):
+    """更新红包 
+    {
+      "status": "SENDING", 
+      "body": "\u4e00\u4efd\u8015\u8018\uff0c\u4e00\u4efd\u6536\u83b7\uff0c\u8c22\u8c22\u4f60\u7684\u52aa\u529b\uff01", 
+      "object": "red_envelope", 
+      "description": "\u5c0f\u9e7f\u5988\u5988\u7f16\u53f7:2540,\u63d0\u73b0\u524d:12160", 
+      "order_no": "4348", 
+      "extra": {
+        "nick_name": "\u4e0a\u6d77\u5df1\u7f8e\u7f51\u7edc\u79d1\u6280", 
+        "send_name": "\u5c0f\u9e7f\u7f8e\u7f8e"
+      }, 
+      "app": "app_LOOajDn9u9WDjfHa", 
+      "livemode": true, 
+      "paid": true, 
+      "created": 1434975877, 
+      "transaction_no": "100000000020150622316876646289", 
+      "currency": "cny", 
+      "amount": 5000, 
+      "received": null, 
+      "recipient": "our5huB4NHz2D7XTkdWTcurQXsYc", 
+      "id": "red_9ujLmDSqPG8Ov5ab1C9WXLuH", 
+      "channel": "wx_pub", 
+      "subject": "\u94b1\u5305\u63d0\u73b0"
+    }
+    """
+    today = datetime.datetime.now()
+    pre_date = today - datetime.timedelta(days=pre_day)
+    
+    pingpp.api_key = settings.PINGPP_APPKEY
+    
+    page_size = 100
+    has_next = True
+    while has_next:
+        
+        resp = pingpp.RedEnvelope.all(limit=page_size,created={'gte':pre_date,'lte':today})  
+        has_next = resp['has_more']
+        for e in resp['data']:
+            env = Envelop.objects.get(id=e['order_no'])
+            env.envelop_id = e['id']
+            env.livemode   = e['livemode']
+            if env.status in (Envelop.WAIT_SEND,Envelop.CANCEL) :
+                env.status = Envelop.FAIL
+            env.save()
             
             
   

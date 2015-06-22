@@ -37,13 +37,10 @@ urlpatterns = patterns('',
     url(r'^duokefu_order_detail/$',views_duokefu.kf_Search_Order_Detail,name="kf_Search_Order_Detail"),
     url(r'^duokefu_find_more/$',views_duokefu.ke_Find_More_Weixin_Order,name="ke_Find_More_Weixin_Order"),
     url(r'^duokefu_logistics/$',views_duokefu.kf_Logistics,name="kf_Logistics"),
-    
-
 
     url(r'^top50/click/$', views.xlmm_Click_Top, name="xlmm_Click_Top"),
     url(r'^top50/order/$',views.xlmm_Order_Top,name="xlmm_Order_Top"),
     url(r'^top50/conversion/$',views.xlmm_Conversion_Top, name="xlmm_Conversion_Top"),
-
 
     url(r'^top50/click/week/$', views.xlmm_Click_Top_Week, name="xlmm_Click_Top_Week"),
     url(r'^top50/order/week/$', views.xlmm_Order_Top_Week, name="xlmm_Order_Top_Week"),
@@ -51,6 +48,5 @@ urlpatterns = patterns('',
     url(r'^top50/click/month/$', views.xlmm_Click_Top_Month, name="xlmm_Click_Top_Month"),
     url(r'^top50/order/month/$', views.xlmm_Order_Top_Month, name="xlmm_Order_Top_Month"),
     url(r'^top50/convers/month/$', views.xlmm_Convers_Top_Month, name="xlmm_Convers_Top_Month"),
-
 
 )
