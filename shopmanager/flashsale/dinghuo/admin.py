@@ -64,7 +64,7 @@ class ordelistAdmin(admin.ModelAdmin):
     supply_chain.short_description = "供应商"
 
     def note_name(self, obj):
-        return u'<pre style="width:300px;white-space: pre-wrap;">{0}</pre>'.format(
+        return u'<pre style="width:300px;white-space: pre-wrap;word-break:break-all;">{0}</pre>'.format(
             obj.note)
 
     note_name.allow_tags = True
