@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
 from shopback.base.options import DateFieldListFilter
-from .models import DailyStat
+from .models import DailyStat, PopularizeCost
 from django import forms
 
 
@@ -34,3 +34,16 @@ class DailyStatAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DailyStat, DailyStatAdmin)
+
+
+class PopularizeCostAdmin(admin.ModelAdmin):
+    list_display = ('date',
+                    'carrylog_order', 'carrylog_click', 'carrylog_thousand', 'carrylog_agency', 'carrylog_recruit',
+                    'carrylog_order_buy','carrylog_cash_out','carrylog_deposit','carrylog_refund_return',
+                    'total_carry_in',
+                    'total_carry_out')
+    # list_filter = (DateFieldListFilter,)
+    search_fields = ['=date']
+    ordering = ('-date',)
+
+admin.site.register(PopularizeCost, PopularizeCostAdmin)
