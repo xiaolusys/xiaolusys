@@ -156,7 +156,8 @@ class Refund(models.Model):
         
         from shopback.trades.models import MergeTrade,MergeOrder
         #更新订单明细退款状态
-        if self.oid:
+        self_oid = self.oid
+        if not self_oid:
             self_oid = self.tid
             
         mos = MergeOrder.objects.filter(oid=self_oid,merge_trade__user=self.user)
