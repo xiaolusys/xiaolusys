@@ -98,7 +98,7 @@ class DailyStat(models.Model):
 
 
 class PopularizeCost(models.Model):
-    date = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'业务日期')
+    date = models.DateField(default=datetime.date.today, db_index=True, unique=True, verbose_name=u'业务日期')
     carrylog_order = models.FloatField(default=0.0, db_index=True, verbose_name=u"订单返利")
     carrylog_click = models.FloatField(default=0.0, db_index=True, verbose_name=u"点击补贴")
     carrylog_thousand = models.FloatField(default=0.0, db_index=True, verbose_name=u"千元提成")
