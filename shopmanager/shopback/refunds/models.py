@@ -156,20 +156,24 @@ class Refund(models.Model):
         
         from shopback.trades.models import MergeTrade,MergeOrder
         #更新订单明细退款状态
-        mos = MergeOrder.objects.get(oid=self.oid,merge_trade__user=self.user)
+        if self.oid:
+            self_oid = self.tid
+            
+        mos = MergeOrder.objects.filter(oid=self_oid,merge_trade__user=self.user)
         if mos.count() == 0:
-            raise Exception('unexpect order no:%s-%s'%(self.tid,self.oid))
+            raise Exception('unexpect order no:%s-%s'%(self.tid,self_oid))
         
         mos.update(refund_status=pcfg.REFUND_SUCCESS)
         #判断订单是否所有商品都已退款
         for o in mos:
-            merge_qs = MergeTrade.objects.get(tid=self.tid,user=self.user,
-                                              sys_status=pcfg.FINISHED_STATUS)
-            for t in merge_qs:
-                order_qs = t.normal_orders.filter(refund_status__in=(pcfg.NO_REFUND,pcfg.REFUND_CLOSED))
-                if order_qs.count() == 0:
-                    t.status = pcfg.TRADE_CLOSED
-                    t.save() 
+            t = o.merge_trade
+            if t.user != self.user:
+                continue
+            order_qs = t.normal_orders.filter(refund_status__in=(pcfg.NO_REFUND,pcfg.REFUND_CLOSED))
+            if order_qs.count() == 0:
+                t.status = pcfg.TRADE_CLOSED
+                t.save()
+
         
        
 #如果创建的退货单有退款编号，就要删除系统没有退款编号的交易 
