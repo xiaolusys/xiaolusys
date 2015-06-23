@@ -19,8 +19,7 @@ class orderdetailInline(admin.TabularInline):
 
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + (
-        'product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice',
-        'arrival_quantity')
+        'product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'arrival_quantity')
 
 
 class ordelistAdmin(admin.ModelAdmin):
