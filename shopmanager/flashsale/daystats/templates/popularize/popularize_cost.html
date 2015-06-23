@@ -1,0 +1,245 @@
+{% extends "popularize/popularize_base.html" %}
+{% block title %}推广支出{% endblock %}
+
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet' xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html"/>
+
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+
+{% endblock %}
+
+{% block container %}
+    <div class="container page-header">
+        <h3>推广费用统计
+            <small>(月)</small>
+        </h3>
+    </div>
+    <div>
+        <div class="col-xs-4">
+            <a href="/sale/daystats/popu_cost/?month={{ date_dic.prev_month }}"><< 上个月</a>
+        </div>
+        <div class="col-xs-4">
+        </div>
+        <div class="col-xs-4">
+            {% if date_dic.next_month %}
+                <a href="/sale/daystats/popu_cost/?month={{ date_dic.next_month }}">下个月 >></a>
+            {% endif %}
+        </div>
+    </div>
+
+    {#    # 推广成本分类统计，包含（订单返利，代理补贴，点击补贴，…）#}
+
+
+    <div class="container">
+        <table class="table table-condensed" id="mytable">
+            <thead>
+            <th>业务日期</th>
+            <th>订单返利</th>
+            <th>点击补贴</th>
+
+            <th>千元提成</th>
+            <th>代理补贴</th>
+            <th>招募奖金</th>
+
+            <th>消费支出</th>
+            <th>钱包提现</th>
+            <th>妈妈押金</th>
+
+            <th>退款返现</th>
+            <th>推广费用</th>
+            <th>妈妈支出</th>
+
+
+            </thead>
+            <tbody>
+            {% for popularize in popularizes %}
+                <tr>
+                    <td>{{ popularize.date }}</td>
+                    <td>{{ popularize.carrylog_order }}</td>
+                    <td>{{ popularize.carrylog_click }}</td>
+
+                    <td>{{ popularize.carrylog_thousand }}</td>
+                    <td>{{ popularize.carrylog_agency }}</td>
+                    <td>{{ popularize.carrylog_recruit }}</td>
+
+
+                    <td>{{ popularize.carrylog_order_buy }}</td>
+                    <td>{{ popularize.carrylog_cash_out }}</td>
+                    <td>{{ popularize.carrylog_deposit }}</td>
+
+                    <td>{{ popularize.carrylog_refund_return }}</td>
+                    <td>{{ popularize.total_carry_in }}</td>
+                    <td>{{ popularize.total_carry_out }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="1"></td>
+                <td><input id="total_carrylog_order" type="text" value="0.0" readonly/></td>
+                <td><input id="total_carrylog_click" type="text" value="0.0" readonly/></td>
+
+                <td><input id="total_carrylog_thousand" type="text" value="0.0" readonly/></td>
+                <td><input id="total_carrylog_agency" type="text" value="0.0" readonly/></td>
+                <td><input id="total_carrylog_recruit" type="text" value="0.0" readonly/></td>
+
+                <td><input id="total_carrylog_order_buy" type="text" value="0.0" readonly/></td>
+                <td><input id="total_carrylog_cash_out" type="text" value="0.0" readonly/></td>
+                <td><input id="total_carrylog_deposit" type="text" value="0.0" readonly/></td>
+
+                <td><input id="total_carrylog_refund_return" type="text" value="0.0" readonly/></td>
+                <td><input id="total_total_carry_in" type="text" value="0.0" readonly/></td>
+                <td><input id="total_total_carry_out" type="text" value="0.0" readonly/></td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+{% endblock %}
+
+{% block tail_script %}
+    <script>
+        var Calc_stats_data = function () {
+            var total_carrylog_order = 0;
+            var carrylog_order = 0;
+
+            var total_carrylog_click = 0;
+            var carrylog_click = 0;
+
+            var total_carrylog_agency = 0;
+            var carrylog_agency = 0;
+
+            var total_carrylog_thousand = 0;
+            var carrylog_thousand = 0;
+
+            var total_carrylog_recruit = 0;
+            var carrylog_recruit = 0;
+
+            var total_carrylog_order_buy = 0;
+            var carrylog_order_buy = 0;
+
+            var total_carrylog_cash_out = 0;
+            var carrylog_cash_out = 0;
+
+            var total_carrylog_deposit = 0;
+            var carrylog_deposit = 0;
+
+            var total_carrylog_refund_return = 0;
+            var carrylog_refund_return = 0;
+
+            var total_total_carry_in = 0;
+            var total_carry_in = 0;
+
+            var total_total_carry_out = 0;
+            var total_carry_out = 0;
+
+
+
+
+            var rows = $("#mytable > tbody > tr");
+            for (var i = 0; i < rows.length; i++) {
+                row = rows[i];
+                if (row.cells.length < 11) {
+                    continue;
+                }
+
+                carrylog_order = row.cells[1].innerHTML;
+                carrylog_click = row.cells[2].innerHTML;
+                carrylog_agency = row.cells[4].innerHTML;
+                carrylog_thousand = row.cells[3].innerHTML;
+                carrylog_recruit = row.cells[5].innerHTML;
+
+                carrylog_order_buy= row.cells[6].innerHTML;
+                carrylog_cash_out= row.cells[7].innerHTML;
+                carrylog_deposit= row.cells[8].innerHTML;
+
+                carrylog_refund_return= row.cells[9].innerHTML;
+                total_carry_in= row.cells[10].innerHTML;
+                total_carry_out= row.cells[11].innerHTML;
+
+                if (parseFloat(carrylog_order)) {
+                    total_carrylog_order += parseFloat(carrylog_order);
+                }
+
+                if (parseFloat(carrylog_click)) {
+                    total_carrylog_click += parseFloat(carrylog_click);
+                }
+
+                if (parseFloat(carrylog_agency)) {
+                    total_carrylog_agency += parseFloat(carrylog_agency);
+                }
+
+                if (parseFloat(carrylog_thousand)) {
+                    total_carrylog_thousand += parseFloat(carrylog_thousand);
+                }
+
+                if (parseFloat(carrylog_recruit)) {
+                    total_carrylog_recruit += parseFloat(carrylog_recruit);
+                }
+
+                if (parseFloat(carrylog_order_buy)) {
+                    total_carrylog_order_buy += parseFloat(carrylog_order_buy);
+                }
+                if (parseFloat(carrylog_cash_out)) {
+                    total_carrylog_cash_out += parseFloat(carrylog_cash_out);
+                }
+                if (parseFloat(carrylog_deposit)) {
+                    total_carrylog_deposit += parseFloat(carrylog_deposit);
+                }
+                if (parseFloat(carrylog_refund_return)) {
+                    total_carrylog_refund_return += parseFloat(carrylog_refund_return);
+                }
+                if (parseFloat(total_carry_in)) {
+                    total_total_carry_in += parseFloat(total_carry_in);
+                }
+                if (parseFloat(total_carry_out)) {
+                    total_total_carry_out += parseFloat(total_carry_out);
+                }
+
+            }
+            $('#total_carrylog_order').val(total_carrylog_order.toString());
+            $('#total_carrylog_click').val(total_carrylog_click.toString());
+            $('#total_carrylog_agency').val(total_carrylog_agency.toString());
+            $('#total_carrylog_thousand').val(total_carrylog_thousand.toString());
+            $('#total_carrylog_recruit').val(total_carrylog_recruit.toString());
+
+            $('#total_carrylog_order_buy').val(total_carrylog_order_buy.toString());
+            $('#total_carrylog_cash_out').val(total_carrylog_cash_out.toString());
+            $('#total_carrylog_deposit').val(total_carrylog_deposit.toString());
+
+            $('#total_carrylog_refund_return').val(total_carrylog_refund_return.toString());
+            $('#total_total_carry_in').val(total_total_carry_in.toString());
+            $('#total_total_carry_out').val(total_total_carry_out.toString());
+
+        }
+
+        $("select[name='#state_table_length']").change(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+        //搜索时，重新计算
+        $("#state_table_filter input").keyup(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+        //分页时，重新计算
+        $("#state_table_paginate a").click(function (e) {
+            e.preventDefault();
+            Calc_stats_data();
+        });
+
+        $(function () {
+            console.log('abc');
+            Calc_stats_data();
+        });
+    </script>
+{% endblock %}
+
