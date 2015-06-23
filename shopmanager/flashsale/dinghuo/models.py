@@ -49,6 +49,7 @@ class OrderList(models.Model):
         db_table = 'suplychain_flashsale_orderlist'
         verbose_name = u'订货表'
         verbose_name_plural = u'订货表'
+        permissions = [("change_order_list_inline", u"修改后台订货信息"),]
 
     def costofems_cash(self):
         return self.costofems / 100.0

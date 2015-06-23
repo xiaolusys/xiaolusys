@@ -8,7 +8,7 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
 from .filters import GroupNameFilter
-from shopback.items import permissions as perms
+from flashsale.dinghuo import permissions as perms
 
 
 class orderdetailInline(admin.TabularInline):
@@ -18,8 +18,11 @@ class orderdetailInline(admin.TabularInline):
     extra = 3
 
     def get_readonly_fields(self, request, obj=None):
-        return self.readonly_fields + (
-        'product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'arrival_quantity')
+        if not perms.has_change_order_list_inline_permission(request.user):
+            return self.readonly_fields + (
+                'product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity',
+                'arrival_quantity')
+        return self.readonly_fields
 
 
 class ordelistAdmin(admin.ModelAdmin):
@@ -91,6 +94,10 @@ class ordelistAdmin(admin.ModelAdmin):
     orderlist_ID.allow_tags = True
     orderlist_ID.short_description = "订单编号"
 
+    def get_readonly_fields(self, request, obj=None):
+        if not perms.has_change_order_list_inline_permission(request.user):
+            return self.readonly_fields + ('status',)
+        return self.readonly_fields
 
     # 测试action
     def test_order_action(self, request, queryset):
@@ -107,7 +114,7 @@ class ordelistAdmin(admin.ModelAdmin):
     test_order_action.short_description = u"审核（批量 ）"
 
     actions = ['test_order_action']
-    
+
 
 class orderdetailAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
