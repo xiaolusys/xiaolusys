@@ -20,3 +20,43 @@ class Productdetail(models.Model):
     
     def __unicode__(self):
         return '<%s,%s>'%(self.product.outer_id,self.product.name)
+    
+    
+# class ModelProduct(models.Model):
+#     
+#     
+# 
+#     class Meta:
+#         db_table = 'flashsale_modelproduct'
+#         verbose_name=u'特卖商品/款式'
+#         verbose_name_plural = u'特卖商品/款式列表'
+#     
+#     def __unicode__(self):
+#         return '<%s,%s>'%(self.product.outer_id,self.product.name)
+    
+    
+class GoodShelf(models.Model):
+    
+    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报标题')
+    
+    poster_wem_pic   = models.CharField(max_length=256, blank=True, verbose_name=u'女装海报')
+    poster_chd_pic   = models.CharField(max_length=256, blank=True, verbose_name=u'童装海报')
+    
+    poster_wem_page  = models.CharField(max_length=256, blank=True, verbose_name=u'女装专栏')
+    poster_chd_page  = models.CharField(max_length=256, blank=True, verbose_name=u'童装专栏')
+    
+    is_active    = models.BooleanField(default=True,verbose_name=u'上线')
+    active_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'上线日期')
+    
+    created      = models.DateTimeField(null=True,auto_now_add=True,db_index=True,blank=True,verbose_name=u'生成日期')
+    modified     = models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
+    
+    class Meta:
+        db_table = 'flashsale_goodshelf'
+        verbose_name=u'特卖商品/海报'
+        verbose_name_plural = u'特卖商品/海报列表'
+    
+    def __unicode__(self):
+        return u'<海报：%s>'%(self.id)
+    
+    

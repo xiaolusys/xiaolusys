@@ -30,7 +30,7 @@ class StatisticsShoppingForm(forms.ModelForm):
 
 import re
 from django.db.models import Q
-from shopapp.weixin.models import WXOrder
+from shopback.trades.models import MergeTrade
 
 class StatisticsShoppingChangeList(ChangeList):
     
@@ -48,10 +48,10 @@ class StatisticsShoppingChangeList(ChangeList):
                     qs = new_qs
             
             if re.compile('^[\d]{11}$').match(search_q):
-                openids = WXOrder.objects.filter(receiver_mobile=search_q).values('buyer_openid').distinct()
-                openids = [o['buyer_openid'] for o in openids]
+                trade_ids = MergeTrade.objects.filter(receiver_mobile=search_q).values('tid').distinct()
+                tids      = set([o['tid'] for o in trade_ids])
            
-                qs = qs.filter(openid__in=openids)
+                qs = qs.filter(wxorderid__in=tids)
                 return qs
     
             qs = qs.filter(Q(openid=search_q)|Q(wxorderid=search_q))
