@@ -330,6 +330,7 @@ class CarryLog(models.Model):
     THOUSAND_REBETA = 'thousand'
     AGENCY_SUBSIDY  = 'subsidy'
     MAMA_RECRUIT   = 'recruit'
+    ORDER_RED_PAC = 'ordred'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
@@ -340,7 +341,8 @@ class CarryLog(models.Model):
         (DEPOSIT,u'押金'),
         (THOUSAND_REBETA,u'千元提成'),
         (AGENCY_SUBSIDY,u'代理补贴'),
-        (MAMA_RECRUIT,u'招募奖金')
+        (MAMA_RECRUIT,u'招募奖金'),
+        (ORDER_RED_PAC,u'订单红包')
     )
     
     CARRY_OUT = 'out'
@@ -431,4 +433,29 @@ def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
 
     
-    
+# 首单红包，10单红包
+
+class OrderRedPacket(models.Model):
+    xlmm = models.IntegerField(blank=False, db_index=True, verbose_name=u"妈妈编号")
+    first_red = models.BooleanField(default=False, verbose_name=u"首单红包")
+    ten_order_red = models.BooleanField(default=False, verbose_name=u"十单红包")
+
+    class Meta:
+        db_table = 'xiaolumm_order_red_packet'
+        verbose_name = u'妈妈（首/十）单红包表'
+        verbose_name_plural = u'妈妈（首/十）单红包列表'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
