@@ -271,6 +271,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="00", hour="23"),
         'args': ()
     },
+    u'定时统计每天订货的供应商':{
+        'task':'flashsale.dinghuo.tasks.task_write_supply_name',
+        'schedule': crontab(minute="10", hour="23"),
+        'args': ()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
