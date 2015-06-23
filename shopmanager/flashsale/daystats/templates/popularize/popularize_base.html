@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    {% block meta %} {% endblock %}
+    <title>{% block title %}{% endblock %}</title>
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+    {% block head_script %}
+    {% endblock %}
+</head>
+<body>
+
+<div class="container">
+    {% block container %}
+
+
+    {% endblock %}
+</div>
+
+{% block test %}
+
+{% endblock %}
+
+{% block tail_script %}
+{% endblock %}
+<script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
+<script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+    $('#mytable').dataTable({
+
+        "bAutoWidth": false, //自适应宽度
+        "aaSorting": [[5, "desc"]],
+        "iDisplayLength": 50,
+        "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+
+        "oLanguage": {
+            "sLengthMenu": "_MENU_ 条",
+            "sZeroRecords": "抱歉， 没有找到",
+            "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+            "sInfoEmpty": "没有数据",
+            "sSearch": "搜索",
+            "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "前一页",
+                "sNext": "后一页",
+                "sLast": "尾页"
+            },
+            "sZeroRecords": "没有检索到数据",
+            "sProcessing": "<img src='/static/img/loading.gif' />"
+        }
+    });
+</script>
+</body>
+</html>

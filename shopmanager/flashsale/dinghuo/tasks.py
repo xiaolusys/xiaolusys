@@ -117,7 +117,8 @@ def task_send_daily_message():
 @task(max_retry=3, default_retry_delay=5)
 def task_write_supply_name():
     try:
-        all_data = OrderList.objects.exclude(status=u'作废').exclude(status=u'7')
+        today = datetime.date.today()
+        all_data = OrderList.objects.exclude(status=u'作废').exclude(status=u'7').filter(created=today)
         for data in all_data:
             if len(data.supplier_name) > 0:
                 data.supplier_shop = get_supply_name(data.supplier_name)
@@ -134,7 +135,6 @@ def get_supply_name(name):
     try:
         content = urllib2.urlopen(url_str).read()
         reg = r'<a href=".*">首页</a>'
-
         content = str(content.decode('gb2312', 'ignore'))
         re_ = re.compile(reg)
         result = re.findall(re_, content)

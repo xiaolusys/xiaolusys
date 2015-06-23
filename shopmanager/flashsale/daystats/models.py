@@ -94,8 +94,27 @@ class DailyStat(models.Model):
 
     get_daily_rpi_display.allow_tags = True
     get_daily_rpi_display.short_description = u"回头客比例"
-    
-    
-    
-    
-    
+
+
+
+class PopularizeCost(models.Model):
+    date = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'业务日期')
+    carrylog_order = models.FloatField(default=0.0, db_index=True, verbose_name=u"订单返利")
+    carrylog_click = models.FloatField(default=0.0, db_index=True, verbose_name=u"点击补贴")
+    carrylog_thousand = models.FloatField(default=0.0, db_index=True, verbose_name=u"千元提成")
+    carrylog_agency = models.FloatField(default=0.0, db_index=True, verbose_name=u"代理补贴")
+    carrylog_recruit = models.FloatField(default=0.0, db_index=True, verbose_name=u"招募奖金")
+
+    carrylog_order_buy = models.FloatField(default=0.0, db_index=True, verbose_name=u"消费支出")
+    carrylog_cash_out = models.FloatField(default=0.0, db_index=True, verbose_name=u"钱包提现")
+    carrylog_deposit = models.FloatField(default=0.0, db_index=True, verbose_name=u"押金")
+    carrylog_refund_return = models.FloatField(default=0.0, db_index=True, verbose_name=u"退款返现")
+
+    total_carry_in = models.FloatField(default=0.0, db_index=True, verbose_name=u"推广费用")
+    total_carry_out = models.FloatField(default=0.0, db_index=True, verbose_name=u"妈妈支出")
+
+    class Meta:
+        db_table = 'flashsale_daily_popularize_cost'
+        app_label = 'xiaolumm'
+        verbose_name = u'每日推广支出'
+        verbose_name_plural = u'每日推广支出列表'
