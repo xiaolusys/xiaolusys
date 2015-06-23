@@ -240,7 +240,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     if xd_unoins.count() > 0:
         xd_openid = xd_unoins[0].openid
     #如果钱包付款，则不算提成
-    if obj.channel == SaleTrade.WALLET:
+    if obj.channel == SaleTrade.WALLET or obj.pay_time < datetime.datetime(2015,6,19):
         StatisticsShopping(linkid=0, 
                            openid=xd_openid, 
                            wxorderid=order_id,

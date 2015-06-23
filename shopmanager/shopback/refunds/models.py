@@ -171,14 +171,6 @@ class Refund(models.Model):
                     t.status = pcfg.TRADE_CLOSED
                     t.save() 
         
-        
-        
-        
-        
-            
-        
-        
-    
        
 #如果创建的退货单有退款编号，就要删除系统没有退款编号的交易 
 def save_refund_and_remove_unrefunded(sender,instance,*args,**kwargs):
