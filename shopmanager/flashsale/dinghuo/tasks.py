@@ -134,7 +134,6 @@ def get_supply_name(name):
     try:
         content = urllib2.urlopen(url_str).read()
         reg = r'<a href=".*">首页</a>'
-
         content = str(content.decode('gb2312', 'ignore'))
         re_ = re.compile(reg)
         result = re.findall(re_, content)

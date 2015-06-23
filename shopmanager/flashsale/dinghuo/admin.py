@@ -8,12 +8,19 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
 from .filters import GroupNameFilter
+from shopback.items import permissions as perms
+
 
 class orderdetailInline(admin.TabularInline):
     model = OrderDetail
     fields = ('product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice',
               'total_price', 'arrival_quantity')
     extra = 3
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + (
+        'product_id', 'chichu_id', 'product_name', 'outer_id', 'product_chicun', 'buy_quantity', 'buy_unitprice',
+        'arrival_quantity')
 
 
 class ordelistAdmin(admin.ModelAdmin):
@@ -50,13 +57,15 @@ class ordelistAdmin(admin.ModelAdmin):
     quantity.short_description = "购买商品数量"
 
     def supply_chain(self, obj):
-        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name, obj.supplier_shop or obj.supplier_name)
+        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name,
+                                                               obj.supplier_shop or obj.supplier_name)
 
     supply_chain.allow_tags = True
     supply_chain.short_description = "供应商"
 
     def note_name(self, obj):
-        return u'<textarea id="id_note" style="background-color:#B4EEB4;" onscroll="this.rows++"   cols="40" name="note"  class="form-control" readonly="readonly">{0}</textarea>'.format(obj.note)
+        return u'<textarea id="id_note" style="background-color:#B4EEB4;" onscroll="this.rows++"   cols="40" name="note"  class="form-control" readonly="readonly">{0}</textarea>'.format(
+            obj.note)
 
     note_name.allow_tags = True
     note_name.short_description = "备注"
@@ -82,6 +91,7 @@ class ordelistAdmin(admin.ModelAdmin):
 
     orderlist_ID.allow_tags = True
     orderlist_ID.short_description = "订单编号"
+
 
 
     # 测试action
