@@ -64,7 +64,7 @@ class ordelistAdmin(admin.ModelAdmin):
     supply_chain.short_description = "供应商"
 
     def note_name(self, obj):
-        return u'<textarea id="id_note" style="background-color:#B4EEB4;" onscroll="this.rows++"   cols="40" name="note"  class="form-control" readonly="readonly">{0}</textarea>'.format(
+        return u'<pre style="width:300px;white-space: pre-wrap;">{0}</pre>'.format(
             obj.note)
 
     note_name.allow_tags = True
@@ -93,7 +93,6 @@ class ordelistAdmin(admin.ModelAdmin):
     orderlist_ID.short_description = "订单编号"
 
 
-
     # 测试action
     def test_order_action(self, request, queryset):
         for p in queryset:
@@ -109,7 +108,7 @@ class ordelistAdmin(admin.ModelAdmin):
     test_order_action.short_description = u"审核（批量 ）"
 
     actions = ['test_order_action']
-
+    
 
 class orderdetailAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
