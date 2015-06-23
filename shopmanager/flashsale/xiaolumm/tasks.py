@@ -109,7 +109,7 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
             continue
         
         trade = trades[0]
-        if trade.sys_status == MergeTrade.INVALID_STATUS:
+        if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
             order.status = StatisticsShopping.REFUNDED
         elif trade.sys_status == MergeTrade.FINISHED_STATUS:
             order.status = StatisticsShopping.FINISHED
