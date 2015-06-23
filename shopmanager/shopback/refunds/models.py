@@ -159,21 +159,26 @@ class Refund(models.Model):
         self_oid = self.oid
         if not self_oid:
             self_oid = self.tid
+            if self.tid.startswith('FD'):
+                self_oid = 'FO%s'%self.tid[2:]
             
-        mos = MergeOrder.objects.filter(oid=self_oid,merge_trade__user=self.user)
+        mos = MergeOrder.objects.filter(oid=self_oid)
         if mos.count() == 0:
             raise Exception('unexpect order no:%s-%s'%(self.tid,self_oid))
         
         mos.update(refund_status=pcfg.REFUND_SUCCESS)
+        
         #判断订单是否所有商品都已退款
         for o in mos:
             t = o.merge_trade
             if t.user != self.user:
-                continue
+                self.user = t.user
+
             order_qs = t.normal_orders.filter(refund_status__in=(pcfg.NO_REFUND,pcfg.REFUND_CLOSED))
             if order_qs.count() == 0:
                 t.status = pcfg.TRADE_CLOSED
-                t.save()
+                
+            t.save()
 
         
        
