@@ -11,14 +11,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import ModelView
 from shopback.trades.models import MergeTrade,MergeOrder
-from shopback.items.models import ProductSku,Item
+from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import RefundProduct,Refund,REFUND_STATUS,CS_STATUS_CHOICES
 from common.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
 
-
+import logging
+logger = logging.getLogger('django.request')
 __author__ = 'meixqhi'
 
 
@@ -99,7 +100,7 @@ class RefundManagerView(ModelView):
         except MergeTrade.DoesNotExist:
             return u'订单未找到'
         
-        refund_orders = Refund.objects.filter(tid=tid)
+        refund_orders    = Refund.objects.filter(tid=tid)
         refund_products  = RefundProduct.objects.filter(trade_id=tid)
         
         op_str  = render_to_string('refunds/refund_order_product.html', 
@@ -286,7 +287,12 @@ def create_refund_exchange_trade(request,seller_id,tid):
         merge_order.save()
     
     refunds.update(is_reissue=True)
-    rfprods.update(is_finish=True)    
+    rfprods.update(is_finish=True)  
+    for refund in refunds:
+        try:
+            refund.confirm_refund()
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
     
     log_action(request.user.id,merge_trade,ADDITION,u'创建退换货单')
     
