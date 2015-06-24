@@ -95,14 +95,28 @@ def format_time(date1, date2):
 class StatsProductView(View):
     @staticmethod
     def get(request):
-        # all_data = DailySupplyChainStatsOrder.objects.values("product_id", "sale_time", "trade_general_time",
-        #                                                      "order_deal_time", "goods_arrival_time",
-        #                                                      "goods_out_time", "sale_num", "ding_huo_num", "return_num",
-        #                                                      "inferior_num")
         sql = 'select * from (select * from supply_chain_stats_daily) as supplydata left join (select detail.outer_id,list.supplier_shop from (select outer_id,orderlist_id from suplychain_flashsale_orderdetail where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废" or status="7")) as detail left join (select id,supplier_shop from suplychain_flashsale_orderlist) as list on detail.orderlist_id=list.id where list.supplier_shop!="" group by outer_id) as supply on supplydata.product_id=supply.outer_id'
         cursor = connection.cursor()
         cursor.execute(sql)
         raw = cursor.fetchall()
         all_data_list = format_time_from_tuple(raw)
         return render_to_response("dinghuo/data_of_product.html", {"all_data": all_data_list},
+                                  context_instance=RequestContext(request))
+
+
+class StatsSupplierView(View):
+    @staticmethod
+    def get(request):
+        sql = 'select supply.supplier_shop,sum(supplydata.ding_huo_num) as ding_huo_num,' \
+              'sum(supplydata.sale_num) as sale_num,sum(supplydata.sale_cost_of_product) as sale_amount,' \
+              'sum(inferior_num) as inferior_num,sum(return_num) as return_num ' \
+              'from (select * from supply_chain_stats_daily) as supplydata left join ' \
+              '(select detail.outer_id,list.supplier_shop from (select outer_id,orderlist_id from suplychain_flashsale_orderdetail where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废" or status="7")) as detail left join ' \
+              '(select id,supplier_shop from suplychain_flashsale_orderlist) as list ' \
+              'on detail.orderlist_id=list.id where list.supplier_shop!="" group by outer_id) as supply ' \
+              'on supplydata.product_id=supply.outer_id group by supply.supplier_shop'
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        raw = cursor.fetchall()
+        return render_to_response("dinghuo/data_of_supplier.html", {"all_data": raw},
                                   context_instance=RequestContext(request))
