@@ -43,15 +43,15 @@ def task_patch_mamacash_61():
         if mm_cc.valid_num == 0 or click_rebeta <= 0:
             continue
         
-        c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
-                                                      order_num=carry_no,
-                                                      log_type=CarryLog.CLICK_REBETA)
-#
-        c_log.value = c_log.value + click_rebeta
-        c_log.save()
-        
-        urows = xlmms.update(cash=F('cash') + click_rebeta)
-        total_rebeta += click_rebeta
+#         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
+#                                                       order_num=carry_no,
+#                                                       log_type=CarryLog.CLICK_REBETA)
+# #
+#         c_log.value = c_log.value + click_rebeta
+#         c_log.save()
+#         
+#         urows = xlmms.update(cash=F('cash') + click_rebeta)
+#         total_rebeta += click_rebeta
     
     print 'debug total_rebeta:',total_rebeta
 
