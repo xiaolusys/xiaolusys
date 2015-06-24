@@ -9,7 +9,7 @@ from django.contrib.admin.views.main import ChangeList
 from shopback.base.admin import MyAdmin
 from shopback.base.options import DateFieldListFilter,SimpleListFilter
 
-from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
+from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog,OrderRedPacket
 from . import forms 
 from flashsale.mmexam.models import Result
 from flashsale.clickcount.models import ClickCount
@@ -232,3 +232,8 @@ class CarryLogAdmin(MyAdmin):
 admin.site.register(CarryLog, CarryLogAdmin)
 
 
+class OrderRedPacketAdmin(admin.ModelAdmin):
+    list_display = ('xlmm', 'first_red', 'ten_order_red')
+    search_fields = ['=xlmm']
+
+admin.site.register(OrderRedPacket, OrderRedPacketAdmin)
