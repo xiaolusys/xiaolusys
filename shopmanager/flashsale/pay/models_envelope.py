@@ -22,7 +22,8 @@ class Envelop(models.Model):
                       (CANCEL,u'已取消'),)
     
     CASHOUT = 'cashout'
-    SUBJECT_CHOICES = ((CASHOUT,u'钱包提现'),)
+    ORDER_RED_PAC = 'ordred'
+    SUBJECT_CHOICES = ((CASHOUT,u'钱包提现'),(ORDER_RED_PAC,u'订单红包'))
     
     envelop_id   = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'红包ID')
     

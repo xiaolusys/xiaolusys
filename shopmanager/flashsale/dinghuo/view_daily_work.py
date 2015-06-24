@@ -36,8 +36,8 @@ class DailyDingHuoView(View):
 
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_to_str)
-        if time_to - shelve_from > datetime.timedelta(5):
-            time_to = shelve_from + datetime.timedelta(5)
+        if time_to - shelve_from > datetime.timedelta(10):
+            time_to = shelve_from + datetime.timedelta(10)
         elif time_to - shelve_from < datetime.timedelta(0):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
@@ -48,8 +48,8 @@ class DailyDingHuoView(View):
                     "and sys_status not in('INVALID','ON_THE_FLY') " \
                     "and id not in (select id from shop_trades_mergetrade where sys_status='FINISHED' and is_express_print=False))" \
                     "and gift_type !=4 " \
-                    "and (pay_time BETWEEN '{0}' and '{1}') " \
-                    "and CHAR_LENGTH(outer_id)>=9 " \
+                    "and (pay_time between '{0}' and '{1}') " \
+                    "and char_length(outer_id)>=9 " \
                     "and (left(outer_id,1)='9' or left(outer_id,1)='8' or left(outer_id,1)='1') " \
                     "group by outer_id,outer_sku_id".format(shelve_from, time_to)
         if groupname == 0:
@@ -60,7 +60,7 @@ class DailyDingHuoView(View):
             search_text = str(search_text)
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
-                          "shop_items_product where outer_id LIKE '%%{0}%%' OR name like '%%{0}%%' ) as A " \
+                          "shop_items_product where outer_id like '%%{0}%%' or name like '%%{0}%%' ) as A " \
                           "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(search_text)
         else:
@@ -72,9 +72,9 @@ class DailyDingHuoView(View):
                           "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
                 target_date, group_sql)
-        ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' OR A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
-                       "sum(if(status='5' OR  status='6' OR status='有问题' OR status='验货完成' OR status='已处理',B.arrival_quantity,0)) as arrival_quantity,B.effect_quantity,A.status" \
-                       " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created BETWEEN '{0}' AND '{1}') as A " \
+        ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' or A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
+                       "sum(if(status='5' or status='6' or status='有问题' or status='验货完成' or status='已处理',B.arrival_quantity,0)) as arrival_quantity,B.effect_quantity,A.status" \
+                       " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created between '{0}' and '{1}') as A " \
                        "left join (select orderlist_id,outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
                        "from suplychain_flashsale_orderdetail) as B on A.id=B.orderlist_id group by outer_id,chichu_id".format(
             shelve_from, query_time)

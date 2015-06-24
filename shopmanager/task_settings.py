@@ -281,6 +281,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="20", hour="23"),
         'args': ()
     },
+    u'定时统计每天推广支出情况':{
+        'task':'flashsale.daystats.tasks.task_PopularizeCost_By_Day',
+        'schedule': crontab(minute="30", hour="1"),
+        'args': ()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
