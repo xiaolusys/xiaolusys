@@ -24,6 +24,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 LOGISTIC_DIR = 'logistic'
 ORDER_DIR    = 'order'
+REPORT_DIR   = 'report'
 FINANCE_DIR  = 'finance'
 
 
@@ -473,14 +474,15 @@ def origin_price_payment(trade_id):
     merge_orders = MergeOrder.objects.filter(merge_trade=trade_id)
     for order in merge_orders.filter(is_merge=False,
                                            gift_type=pcfg.REAL_ORDER_GIT_TYPE)\
-        .values('outer_id','outer_sku_id','payment'):
+        .values('outer_id','outer_sku_id','payment','num'):
         order_origin = 0
         try:
             product = Product.objects.get(outer_id=order['outer_id'])
+            psku    = None
             if order['outer_sku_id']:
                 psku = ProductSku.objects.get(outer_id=order['outer_sku_id'],
                                               product=product)
-            order_origin = psku and psku.cost * order.num or product.cost * order.num
+            order_origin = psku and psku.cost * order['num'] or product.cost * order['num']
         except (Product.DoesNotExist,ProductSku.DoesNotExist):
             pass
         origin_price += order_origin
@@ -496,15 +498,15 @@ def is_order_refund(status,sys_status):
         
 
 @task()
-def task_Gen_XiaoluSale_Report(date_from,date_to,file_dir='report'):
+def task_Gen_XiaoluSale_Report(date_from,date_to,file_dir=''):
     
     un_maps = get_User_Key_Name_Map()
     
-    fields = ['id','tid','seller_nick','receiver_mobile','buyer_nick','pay_time','payment','status','sys_status']
+    fields = ['id','tid','user_id','receiver_mobile','buyer_nick','pay_time','payment','status','sys_status']
     dump_fields   = ','.join(fields)
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
     date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
-    exec_sql = "select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}';".format(dump_fields,date_from_str,date_to_str)
+    exec_sql = "select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}' and type in ('wx','sale');".format(dump_fields,date_from_str,date_to_str)
     
     try:
         cursor = connection.cursor()
@@ -514,7 +516,7 @@ def task_Gen_XiaoluSale_Report(date_from,date_to,file_dir='report'):
         field_name_list = [u'订单编号',u'原单编号',u'店铺名称',u'手机号',u'买家ID',u'付款日期',u'货品价格',u'订单金额',u'是否退款']
         
         if not file_dir:
-            file_dir = os.path.join(settings.DOWNLOAD_ROOT,ORDER_DIR)
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT,REPORT_DIR)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
         
@@ -531,7 +533,7 @@ def task_Gen_XiaoluSale_Report(date_from,date_to,file_dir='report'):
                 row.append(t[1])
                 row.append(un_maps.get(str(t[2]),u'未找到'))
                 row.append(t[3])
-                row.append(replace_utf8mb4(row[4]))
+                row.append(replace_utf8mb4(t[4]))
                 row.append(t[5])
                 
                 price_tp = origin_price_payment(t[0])
@@ -539,7 +541,7 @@ def task_Gen_XiaoluSale_Report(date_from,date_to,file_dir='report'):
                 row.append(price_tp[0])
                 row.append(price_tp[1])
                 row.append(order_refund and u'是' or u'否')
-                writer.writerow(row)
+                writer.writerow(['%s'%r for r in row])
     finally:
         cursor.close()
 

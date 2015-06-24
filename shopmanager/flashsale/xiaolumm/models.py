@@ -317,7 +317,7 @@ class CarryLog(models.Model):
 
     STATUS_CHOICES = (
         (PENDING,u'待确认'),
-        (CONFIRMED,u'确定'),
+        (CONFIRMED,u'已确定'),
         (CANCELED,u'已取消'),
     )
     

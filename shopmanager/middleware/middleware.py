@@ -45,6 +45,12 @@ class QueryCountDebugMiddleware(object):
                 total_time += float(query_time)
                 
             for query in connection.queries:
+                query_time = query.get('time')
+                if query_time is None:
+                    query_time = query.get('duration', 0) / 1000
+                
+                if float(query_time) < 0.5:continue
+                
                 logger.debug('query: %s' % (query))
                 
             logger.debug('%s queries run, total %s seconds' % (len(connection.queries), total_time))

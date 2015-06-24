@@ -25,14 +25,14 @@ class StatisticsShopping(models.Model):
     SHOPPING_STATUS = (
         (WAIT_SEND, u'已付款'),       
         (FINISHED, u'已完成'),
-        (REFUNDED, u'已退款'),
+        (REFUNDED, u'已取消'),
     )
     
     NORMAL_STATUS = [WAIT_SEND,FINISHED]
     
     linkid = models.IntegerField(default=0,verbose_name=u"链接ID")
     linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
-    openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"OpenId")
+    openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"优尼OpenId")
     wxorderid = models.CharField(max_length=64, db_index=True, verbose_name=u'微信订单')
     wxordernick = models.CharField(max_length=32, verbose_name=u'购买昵称')
     wxorderamount = models.IntegerField(default=0, verbose_name=u'微信订单价格')

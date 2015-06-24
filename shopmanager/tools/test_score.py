@@ -1,3 +1,4 @@
+import datetime
 from shopapp.weixin.models import VipCode,SampleOrder,Refund
 from shopback.trades.models import MergeTrade
 from shopapp.signals import (weixin_referal_signal,
