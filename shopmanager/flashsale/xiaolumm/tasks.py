@@ -89,11 +89,10 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
 
 def init_Data_Red_Packet():
     # 判断 xlmm 是否有过 首单 或者 十单  如果是的将 OrderRedPacket 状态修改过来
-    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, agencylevel=2, hasale=True)
-    iter = xlmms.iterator()  # 迭代放在 循环的外面
-    while 1:
+    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, agencylevel=2)
+    
+    for xlmm in xlmms:
         try:
-            xlmm = iter.next().id   #    获取linkid
             # 找订单
             shoppings = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
             if shoppings.count() >= 10:
@@ -101,12 +100,17 @@ def init_Data_Red_Packet():
                 red_packet.first_red = True  # 默认发放过首单红包
                 red_packet.ten_order_red = True  # 默认发放过十单红包
                 red_packet.save()
+                xlmm.hasale = True
             if shoppings.count() >= 1:
                 red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
                 red_packet.first_red = True     # 默认发放过首单红包
                 red_packet.save()
-        except Exception:
-            break
+                xlmm.hasale = True
+                
+            xlmm.save()
+        except Exception,exc:
+            print 'exc:%s,%s'%(exc.message,xlmm.id)
+            
 
 from flashsale.pay.models_envelope import Envelop
 from django.db import transaction
