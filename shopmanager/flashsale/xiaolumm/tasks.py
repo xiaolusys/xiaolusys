@@ -84,10 +84,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         #重新计算pre_date之前订单金额，取消退款订单提成
         
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        cl.status = CarryLog.CONFIRMED
-        cl.save()
-        
-        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
+        xlmm.push_carrylog_to_cash(cl)
         
 
 def init_Data_Red_Packet():
@@ -250,12 +247,10 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         if clog.status != CarryLog.PENDING:
             continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        carry_value  = cl.value
         clog.value   = click_rebeta
-        clog.status  = CarryLog.CONFIRMED
         clog.save()
-#         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + clog.value, pending=F('pending') - carry_value)
+        
+        xlmm.push_carrylog_to_cash(clog)
         
         
 
@@ -308,10 +303,9 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
             continue
         
         clog.value     = calc_fee * rebeta_rate
-        clog.status = CarryLog.CONFIRMED
         clog.save()
-#         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        
+        xlmm.push_carrylog_to_cash(cl)
         
         
 @task()
@@ -357,13 +351,11 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         if clog.status != CarryLog.PENDING:
             continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        carry_value = clog.value
         agency_rebeta_rate  = xlmm.get_Mama_Agency_Rebeta_Rate()
         clog.value     = calc_fee * agency_rebeta_rate
-        clog.status = CarryLog.CONFIRMED
         clog.save() 
-#         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + clog.value, pending=F('pending') - carry_value)
+        
+        xlmm.push_carrylog_to_cash(clog)
         
 
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
