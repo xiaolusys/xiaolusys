@@ -28,7 +28,7 @@ class orderdetailInline(admin.TabularInline):
 class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ('supplier_name', 'express_company', 'express_no'
+        'fields': ('supplier_name', 'supplier_shop', 'express_company', 'express_no'
                    , 'receiver', 'status', 'order_amount', 'note')
     }),)
     inlines = [orderdetailInline]
@@ -96,7 +96,7 @@ class ordelistAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not perms.has_change_order_list_inline_permission(request.user):
-            return self.readonly_fields + ('status',)
+            return self.readonly_fields + ('status', 'supplier_shop',)
         return self.readonly_fields
 
     # 测试action
