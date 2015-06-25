@@ -118,10 +118,10 @@
                     arrival_num.html(num_of_arrival - 1);
                 }
                 else if (res == "false") {
-                    alert("加入失败")
+                    alert("失败");
                 }
             };
-            if ((flag == "0" && num == "0") || num_of_arrival == "0") {
+            if ((flag == "0" && num == "0") || (flag == "1" && num_of_arrival == "0")) {
                 alert("次品已经为零，或者库存为零");
             } else {
                 $.ajax({url: url, data: data, type: "post", success: callback});
