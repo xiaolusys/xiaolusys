@@ -9,6 +9,8 @@ from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 import time
 from shopback.items.models import Product
 from django.db import connection
+import datetime
+from calendar import monthrange
 
 
 class DailyStatsView(View):
@@ -107,16 +109,35 @@ class StatsProductView(View):
 class StatsSupplierView(View):
     @staticmethod
     def get(request):
+        content = request.REQUEST
+        today = datetime.date.today()
+        start_time_str = content.get("df", None)
+        end_time_str = content.get("dt", None)
+        if start_time_str:
+            year, month, day = start_time_str.split('-')
+            start_date = datetime.date(int(year), int(month), int(day))
+            if start_date > today:
+                start_date = today
+        else:
+            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        if end_time_str:
+            year, month, day = end_time_str.split('-')
+            end_date = datetime.date(int(year), int(month), int(day))
+            if end_date > today:
+                end_date = today
+        else:
+            end_date = today
         sql = 'select supply.supplier_shop,sum(supplydata.ding_huo_num) as ding_huo_num,' \
               'sum(supplydata.sale_num) as sale_num,sum(supplydata.sale_cost_of_product) as sale_amount,' \
               'sum(inferior_num) as inferior_num,sum(return_num) as return_num ' \
-              'from (select * from supply_chain_stats_daily) as supplydata left join ' \
+              'from (select * from supply_chain_stats_daily where sale_time >="{0}" and sale_time<="{1}") as supplydata left join ' \
               '(select detail.outer_id,list.supplier_shop from (select outer_id,orderlist_id from suplychain_flashsale_orderdetail where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废" or status="7")) as detail left join ' \
               '(select id,supplier_shop from suplychain_flashsale_orderlist) as list ' \
               'on detail.orderlist_id=list.id where list.supplier_shop!="" group by outer_id) as supply ' \
-              'on supplydata.product_id=supply.outer_id group by supply.supplier_shop'
+              'on supplydata.product_id=supply.outer_id where supply.supplier_shop!="" group by supply.supplier_shop'.format(start_date, end_date)
         cursor = connection.cursor()
         cursor.execute(sql)
         raw = cursor.fetchall()
-        return render_to_response("dinghuo/data_of_supplier.html", {"all_data": raw},
+        return render_to_response("dinghuo/data_of_supplier.html", {"all_data": raw, "start_date": start_date,
+                                                                    "end_date": end_date},
                                   context_instance=RequestContext(request))
