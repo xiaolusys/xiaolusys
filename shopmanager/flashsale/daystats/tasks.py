@@ -108,7 +108,7 @@ def carrylogs_By_Date(date):
     total_carry_out = total_carry_out / 100.0
     # carry_in
     total_carrys_in = CarryLog.objects.filter(carry_type=CarryLog.CARRY_IN, carry_date=date).exclude(
-        log_type=CarryLog.DEPOSIT).exclude(log_type=CarryLog.REFUND_RETURN)  # 推广费用(不包含押金，不包含退款返现)
+        log_type=CarryLog.DEPOSIT).exclude(log_type=CarryLog.REFUND_RETURN).exclude(status=CarryLog.CANCELED) # 推广费用(不包含押金，不包含退款返现)
     total_carry_in = total_carrys_in.aggregate(total_in=Sum('value')).get(
         'total_in') or 0
     total_carry_in = total_carry_in / 100.0
