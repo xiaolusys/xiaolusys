@@ -134,19 +134,17 @@ def get_supply_name(name):
         return ""
     try:
         content = urllib2.urlopen(url_str).read()
-        reg = r'<a href=".*">首页</a>'
+        reg1 = r'<a href=".*">首页</a>'
+        reg2 = r'<a data-spm="d21" href=".*" target="_blank">进入店铺</a>'
+        reg3 = r'<a class="enter-shop" href=".*" data-spm="d4918105"><i></i><span>进店逛逛</span></a>'
         content = str(content.decode('gb2312', 'ignore'))
-        re_ = re.compile(reg)
-        result = re.findall(re_, content)
+        re1 = re.compile(reg1)
+        re2 = re.compile(reg2)
+        re3 = re.compile(reg3)
+        result = re.findall(re1, content) or re.findall(re2, content) or re.findall(re3, content)
         if result:
             return result[0].split("//")[1].split(".")[0]
         else:
-            reg = r'<a data-spm="d21" href=".*" target="_blank">进入店铺</a>'
-            re_ = re.compile(reg)
-            result = re.findall(re_, content)
-            if result:
-                return result[0].split("//")[1].split(".")[0]
-            else:
-                return ""
+            return ""
     except Exception, ex:
         return ""
