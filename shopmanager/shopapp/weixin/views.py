@@ -1565,7 +1565,7 @@ class WeixinProductView(ModelView):
                 outer_sku_id = sku.outer_id
                 sync_num = sku.remain_num - sku.wait_post_num
                 if sync_num < 0 :
-                    continue
+                    sync_num = 0
                 try:
                     wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
                                                 outer_sku_id=outer_sku_id)
