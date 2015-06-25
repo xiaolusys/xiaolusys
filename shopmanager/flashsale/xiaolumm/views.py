@@ -196,7 +196,7 @@ class MamaStatsView(View):
             
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
             
-            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id)
+            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(log_type__in=(CarryLog.ORDER_RED_PAC,CarryLog.MAMA_RECRUIT))
             pending_value = mm_clogs.filter(status=CarryLog.PENDING).aggregate(total_value=Sum('value')).get('total_value') or 0 
             
             total_income = mm_clogs.filter(carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED).aggregate(total_value=Sum('value')).get('total_value') or 0
@@ -211,6 +211,7 @@ class MamaStatsView(View):
             yest_income   = yest_income / 100.0
             yest_pay      = yest_pay / 100.0
             
+            abnormal_cash =  xlmm.cash_money - (total_income - total_pay)#异常金额
             order_num   = 0
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             if order_stat.count() > 0:
@@ -236,7 +237,7 @@ class MamaStatsView(View):
             data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
                     'referal_mmid':referal_mm,"order_num":order_num,  "pk":xlmm.pk,
                     'pending_value':pending_value,"referal_num":referal_num,
-                    'total_income':total_income,'total_pay':total_pay,
+                    'total_income':total_income,'total_pay':total_pay,'abnormal_cash':abnormal_cash,
                     'yest_income':yest_income,'yest_pay':yest_pay}
             
         except Exception,exc:
