@@ -228,7 +228,6 @@ class RefundView(ModelView):
             if k=='can_reuse':
                 v = v=="true" and True or False
             hasattr(rf,k) and setattr(rf,k,v)
-        
         rf.save()
         
         log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')

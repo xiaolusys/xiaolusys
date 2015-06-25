@@ -161,6 +161,23 @@ def pushTradeRefundTask(refund_id):
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
         
+        from shopback.refunds.models import Refund
+        
+        seller = getOrCreateSaleSeller()
+        refund,state  = Refund.objects.get_or_create(tid=sale_refund.trade_id,
+                                                     oid=sale_refund.order_id)
+        
+        refund.user = seller
+        refund.payment = sale_refund.payment
+        
+        if sale_refund.has_good_return:
+            refund.status = Refund.REFUND_WAIT_RETURN_GOODS
+            refund.has_good_return = sale_refund.has_good_return
+        else:
+            refund.status = Refund.REFUND_WAIT_SELLER_AGREE
+        
+        refund.save()
+        
     except Exception,exc:
         raise pushTradeRefundTask.retry(exc=exc)
         
