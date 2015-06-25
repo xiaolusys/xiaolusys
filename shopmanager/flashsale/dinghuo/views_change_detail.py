@@ -91,6 +91,8 @@ def change_inferior_num(request):
     order_detail = OrderDetail.objects.get(id=order_detail_id)
     order_list = OrderList.objects.get(id=order_detail.orderlist_id)
     if flag == "0":
+        if order_detail.inferior_quantity == 0:
+            return HttpResponse("false")
         OrderDetail.objects.filter(id=order_detail_id).update(inferior_quantity=F('inferior_quantity') - 1)
         OrderDetail.objects.filter(id=order_detail_id).update(
             non_arrival_quantity=F('buy_quantity') - F('arrival_quantity') - F('inferior_quantity'))
