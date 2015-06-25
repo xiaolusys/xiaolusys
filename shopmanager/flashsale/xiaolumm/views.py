@@ -140,7 +140,7 @@ class CashOutList(generics.ListAPIView):
     
 
 class CarryLogList(generics.ListAPIView):
-    queryset = CarryLog.objects.all().order_by('-carry_date') #.exclude(log_type=CarryLog.MAMA_RECRUIT)
+    queryset = CarryLog.objects.exclude(log_type__in=(CarryLog.MAMA_RECRUIT,CarryLog.ORDER_RED_PAC)).order_by('-carry_date') #
     serializer_class = CarryLogSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
