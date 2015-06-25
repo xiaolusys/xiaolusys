@@ -103,8 +103,8 @@ def carrylogs_By_Date(date):
     carrylog_deposit = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.DEPOSIT)               # 押金
 
     total_carrys_out = CarryLog.objects.filter(carry_type=CarryLog.CARRY_OUT, carry_date=date).exclude(status=CarryLog.CANCELED)  # 妈妈支出
-    total_carry_out = total_carrys_out.aggregate(total_in=Sum('value')).get(
-        'total_in') or 0
+    total_carry_out = total_carrys_out.aggregate(total_out=Sum('value')).get(
+        'total_out') or 0
     total_carry_out = total_carry_out / 100.0
     # carry_in
     total_carrys_in = CarryLog.objects.filter(carry_type=CarryLog.CARRY_IN, carry_date=date).exclude(
