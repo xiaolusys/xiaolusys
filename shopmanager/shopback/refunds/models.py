@@ -57,13 +57,13 @@ class Refund(models.Model):
     REFUND_WAIT_SELLER_AGREE = pcfg.REFUND_WAIT_SELLER_AGREE
     REFUND_WAIT_RETURN_GOODS = pcfg.REFUND_WAIT_RETURN_GOODS
     REFUND_CONFIRM_GOODS = pcfg.REFUND_CONFIRM_GOODS
-    REFUND_REFUSE_BUYER = pcfg.REFUND_REFUSE_BUYER
+    REFUND_REFUSE_BUYER  = pcfg.REFUND_REFUSE_BUYER
     REFUND_CLOSED = pcfg.REFUND_CLOSED
     REFUND_SUCCESS = pcfg.REFUND_SUCCESS
     
     id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
     refund_id    = models.CharField(max_length=32,
-                                    default=lambda:'RF%d'%int(time.time()*10**2),
+                                    default=lambda:'RF%d'%int(time.time()*10**4),
                                     verbose_name='退款单ID')
     tid          = models.CharField(max_length=32,blank=True,verbose_name='交易ID')
 
@@ -159,8 +159,11 @@ class Refund(models.Model):
         self_oid = self.oid
         if not self_oid:
             self_oid = self.tid
-            if self.tid.startswith('FD'):
-                self_oid = 'FO%s'%self.tid[2:]
+            mos = MergeOrder.objects.filter(oid=self.oid,merge_trade__tid=self.tid)
+            if mos.count() == 0:
+                moos = MergeOrder.objects.filter(merge_trade__tid=self.tid)
+                if moos.count() == 1:
+                    self_oid = moos[0].oid
             
         mos = MergeOrder.objects.filter(oid=self_oid)
         if mos.count() == 0:
