@@ -84,6 +84,10 @@ class WeixinPubBackend(RemoteUserBackend):
         
         try:
             profile = Customer.objects.get(unionid=unionid)
+            #如果openid有误，则重新更新openid
+            if profile.openid != openid:
+                task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
+                
             if profile.user:
                 if not profile.user.is_active:
                     profile.user.is_active = True
