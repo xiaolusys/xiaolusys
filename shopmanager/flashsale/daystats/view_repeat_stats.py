@@ -62,18 +62,23 @@ class StatsRepeatView(View):
                 old_user_data = cursor.fetchall()
 
                 new_user = get_new_user(user_data, old_user_data)
-                result_data_dict = {"month": target_month, "new_user": len(new_user)}
+                new_user_quantity = len(new_user)
+                result_data_dict = {"month": target_month, "new_user": new_user_quantity}
                 user_data_list = []
                 for i in month_range:
+                    temp_dict = {}
                     if target_month >= i:
-                        user_data_list.append(0)
+                        user_data_list.append("None")
                     else:
                         stats_date_begin = datetime.datetime(start_date.year, i, 1)
                         stats_date_end = datetime.datetime(start_date.year, i + 1, 1)
                         count_month = StatisticsShopping.objects.exclude(status="2").filter(
                             shoptime__range=(stats_date_begin, stats_date_end)).filter(openid__in=new_user).values(
                             'openid').distinct().count()
-                        user_data_list.append(count_month)
+
+                        temp_dict = {"num": count_month, "rec_num": float(
+                            '%0.2f' % (count_month * 100 / new_user_quantity if new_user_quantity else 0))}
+                        user_data_list.append(temp_dict)
                 result_data_dict["user_data"] = user_data_list
                 result_data_list.append(result_data_dict)
         finally:

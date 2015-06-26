@@ -38,7 +38,11 @@
                 <tr>
                     <td>{{ data.month }}月({{ data.new_user }})</td>
                     {% for user_data_item in data.user_data %}
-                        <td>{{ user_data_item }}</td>
+                        {% ifequal "None" user_data_item %}
+                            <td>-</td>
+                        {% else %}
+                            <td>({{ user_data_item.num }}){{ user_data_item.rec_num }}</td>
+                        {% endifequal %}
                     {% endfor %}
                 </tr>
             {% endfor %}
@@ -60,7 +64,7 @@
         $('#data-table').dataTable({
             //"bJQueryUI": true,
             "bAutoWidth": false, //自适应宽度
-            "aaSorting": [[1, "desc"]],
+            "aaSorting": [[0, "asc"]],
             "iDisplayLength": 30,
             "aLengthMenu": [[30, 50, 100, -1], [30, 50, 100, "All"]],
             //"bInfo":true,

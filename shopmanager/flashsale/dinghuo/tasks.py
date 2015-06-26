@@ -117,7 +117,7 @@ def task_send_daily_message():
 @task(max_retry=3, default_retry_delay=5)
 def task_write_supply_name():
     try:
-        all_data = OrderList.objects.exclude(status=u'作废').exclude(status=u'7').filter(supplier_shop="")
+        all_data = OrderList.objects.exclude(status=u'作废').filter(supplier_shop="")
         for data in all_data:
             if len(data.supplier_name) > 0:
                 data.supplier_shop = get_supply_name(data.supplier_name)
