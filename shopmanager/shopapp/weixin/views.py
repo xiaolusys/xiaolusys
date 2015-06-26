@@ -1589,8 +1589,8 @@ class WeixinProductView(ModelView):
                                                                  sku_outer_id='wx%s'%outer_sku_id,
                                                                  num=sync_num,
                                                                  end_at=datetime.datetime.now())
-                        except WeiXinRequestException:
-                            pass
+                        except WeiXinRequestException,exc:
+                            messages.add_message(request, messages.ERROR, u'编码(微信商品ID:%s)[%s.%s]'%(wx_sku.product_id,outer_sku_id,outer_id))
                             
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)
