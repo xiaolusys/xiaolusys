@@ -178,26 +178,26 @@ class CashOutAdmin(admin.ModelAdmin):
 
     # 计算该小鹿妈妈的点击数量并显示
     def get_xlmm_total_click(self,obj):
-        clickcounts = ClickCount.objects.filter(linkid=obj.xlmm)
+        clickcounts = ClickCount.objects.filter(linkid=obj.xlmm, date__lt=obj.created)
         sum_click = clickcounts.aggregate(total_click=Sum('valid_num')).get('total_click') or 0
         return sum_click
     
     get_xlmm_total_click.allow_tags = True
     get_xlmm_total_click.short_description = u"有效点击总数"
 
-    # 计算该小鹿妈妈的订单数量并显示
+    # 计算该小鹿妈妈的订单数量并显示  tongjidate
     def get_xlmm_total_order(self,obj):
-        orders = StatisticsShoppingByDay.objects.filter(linkid=obj.xlmm)
+        orders = StatisticsShoppingByDay.objects.filter(linkid=obj.xlmm, tongjidate__lt=obj.created)
         sum_order = orders.aggregate(total_order=Sum('ordernumcount')).get('total_order') or 0
         return sum_order
     
     get_xlmm_total_order.allow_tags = True
     get_xlmm_total_order.short_description = u"订单总数"
 
-    # 计算该小鹿妈妈的历史金额
+    # 计算该小鹿妈妈的历史金额  这里修改 属于 提现记录创建的时刻以前的历史收入  CashOut created   CarryLog created
     def get_xlmm_history_cashin(self,obj):
         # CARRY_TYPE_CHOICES  CARRY_IN
-        carrylogs = CarryLog.objects.filter(xlmm=obj.xlmm,carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED)
+        carrylogs = CarryLog.objects.filter(xlmm=obj.xlmm,carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED, created__lt= obj.created)
         sum_carry_in = carrylogs.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
         sum_carry_in = sum_carry_in/100.0
         return sum_carry_in
