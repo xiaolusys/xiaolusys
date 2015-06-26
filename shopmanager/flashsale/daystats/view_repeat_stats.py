@@ -49,14 +49,14 @@ class StatsRepeatView(View):
                 month_date_end = datetime.datetime(start_date.year, target_month + 1, 1)
 
                 """找出目标月的所有购买用户"""
-                user_sql = 'select openid from flashsale_tongji_shopping where shoptime>="{0}" and shoptime<="{1}" and status!="2" and openid!="" group by openid'.format(
+                user_sql = 'select openid from flashsale_tongji_shopping where shoptime>="{0}" and shoptime<="{1}" and openid!="" group by openid'.format(
                     month_date_begin, month_date_end)
                 cursor = connection.cursor()
                 cursor.execute(user_sql)
                 user_data = cursor.fetchall()
 
                 """找出目标月之前的所有用户"""
-                old_user_sql = 'select openid from flashsale_tongji_shopping where shoptime<="{0}" and status!="2"  group by openid'.format(
+                old_user_sql = 'select openid from flashsale_tongji_shopping where shoptime<="{0}" group by openid'.format(
                     month_date_begin)
                 cursor.execute(old_user_sql)
                 old_user_data = cursor.fetchall()
@@ -72,7 +72,7 @@ class StatsRepeatView(View):
                     else:
                         stats_date_begin = datetime.datetime(start_date.year, i, 1)
                         stats_date_end = datetime.datetime(start_date.year, i + 1, 1)
-                        count_month = StatisticsShopping.objects.exclude(status="2").filter(
+                        count_month = StatisticsShopping.objects.filter(
                             shoptime__range=(stats_date_begin, stats_date_end)).filter(openid__in=new_user).values(
                             'openid').distinct().count()
 
