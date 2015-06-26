@@ -131,7 +131,7 @@ class StatsSupplierView(View):
               'sum(supplydata.sale_num) as sale_num,sum(supplydata.sale_cost_of_product) as sale_amount,' \
               'sum(inferior_num) as inferior_num,sum(return_num) as return_num ' \
               'from (select * from supply_chain_stats_daily where sale_time >="{0}" and sale_time<="{1}") as supplydata left join ' \
-              '(select detail.outer_id,list.supplier_shop from (select outer_id,orderlist_id from suplychain_flashsale_orderdetail where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废" or status="7")) as detail left join ' \
+              '(select detail.outer_id,list.supplier_shop from (select outer_id,orderlist_id from suplychain_flashsale_orderdetail where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废")) as detail left join ' \
               '(select id,supplier_shop from suplychain_flashsale_orderlist) as list ' \
               'on detail.orderlist_id=list.id where list.supplier_shop!="" group by outer_id) as supply ' \
               'on supplydata.product_id=supply.outer_id where supply.supplier_shop!="" group by supply.supplier_shop'.format(start_date, end_date)
