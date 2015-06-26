@@ -33,7 +33,7 @@ from .models import (WeiXinUser,
                      WeixinClickScoreRecord,
                      WeixinScoreBuy)
 
-from .weixin_apis import WeiXinAPI
+from .weixin_apis import WeiXinAPI,WeiXinRequestException
 from shopapp.weixin_score.models import SampleFrozenScore
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
@@ -1567,26 +1567,31 @@ class WeixinProductView(ModelView):
                 if sync_num < 0 :
                     sync_num = 0
                 try:
-                    wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
-                                                outer_sku_id=outer_sku_id)
+                    wx_skus = WXProductSku.objects.filter(
+                                                outer_id=outer_id,
+                                                outer_sku_id=outer_sku_id
+                                                ).order_by('-modified')
                     for wx_sku in wx_skus:
-                        
-                        vector_num =  sync_num - wx_sku.sku_num 
-                        if vector_num == 0:continue
-                        if vector_num > 0:
-                            wx_api.addMerchantStock(wx_sku.product_id,
-                                                    vector_num,
-                                                    sku_info=wx_sku.sku_id)
-                        else:
-                            wx_api.reduceMerchantStock(wx_sku.product_id,
-                                                       abs(vector_num),
-                                                       sku_info=wx_sku.sku_id)
-            
-                        ItemNumTaskLog.objects.get_or_create(user_id=request.user.id,
-                                                             outer_id=outer_id,
-                                                             sku_outer_id='wx%s'%outer_sku_id,
-                                                             num=sync_num,
-                                                             end_at=datetime.datetime.now())
+                        try:
+                            vector_num =  sync_num - wx_sku.sku_num 
+                            if vector_num == 0:continue
+                            if vector_num > 0:
+                                wx_api.addMerchantStock(wx_sku.product_id,
+                                                        vector_num,
+                                                        sku_info=wx_sku.sku_id)
+                            else:
+                                wx_api.reduceMerchantStock(wx_sku.product_id,
+                                                           abs(vector_num),
+                                                           sku_info=wx_sku.sku_id)
+                
+                            ItemNumTaskLog.objects.get_or_create(user_id=request.user.id,
+                                                                 outer_id=outer_id,
+                                                                 sku_outer_id='wx%s'%outer_sku_id,
+                                                                 num=sync_num,
+                                                                 end_at=datetime.datetime.now())
+                        except WeiXinRequestException:
+                            pass
+                            
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)
                     
