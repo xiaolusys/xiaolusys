@@ -31,7 +31,7 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
         profile.nick   = wxuser.nickname
         profile.mobile = wxuser.mobile
-        profile.openid = profile.openid or openid or ''
+        profile.openid = openid or profile.openid 
         profile.save()
             
     except Exception,exc:
@@ -140,8 +140,11 @@ def notifyTradeRefundTask(notify):
             return 
         
         srefund.refund_Confirm()
-        strade = MergeTrade.objects.get(id=srefund.trade_id)
-    
+        
+        strade = SaleTrade.objects.get(id=srefund.trade_id)
+        if strade.is_Deposite_Order():
+            return
+        
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
     
