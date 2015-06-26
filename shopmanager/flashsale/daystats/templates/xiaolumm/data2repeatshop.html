@@ -1,5 +1,5 @@
-{% extends "dinghuo/dinghuo_base.html" %}
-{% block title %}所有商品统计{% endblock %}
+{% extends "xiaolumm/daystats_base.html" %}
+{% block title %}重复购买统计{% endblock %}
 {% block head_script %}
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
@@ -9,7 +9,7 @@
 
 {% endblock %}
 {% block container %}
-    <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/stats_supplier/">
+    <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/stats_repeat/">
         <div class="row" style="margin-top: 40px">
             <div class="col-xs-4">
                 <label class="control-label" for="df">开始日期:</label>
@@ -28,22 +28,18 @@
     <div class="row" style="margin-top: 40px">
         <table class="table table-bordered" id="data-table">
             <thead>
-            <th>供应商</th>
-            <th>销售数量</th>
-            <th>销售额</th>
-            <th>订货数量</th>
-            <th>次品数量</th>
-            <th>退款数量</th>
+            <th>新增(用户数)复购率(%)</th>
+            {% for month in month_range %}
+                <th>{{ month }}月份</th>
+            {% endfor %}
             </thead>
             <tbody>
             {% for data in all_data %}
                 <tr>
-                    <td>{{ data.0 }}</td>
-                    <td>{{ data.2 }}</td>
-                    <td>{{ data.3 }}</td>
-                    <td>{{ data.1 }}</td>
-                    <td>{{ data.4 }}</td>
-                    <td>{{ data.5 }}</td>
+                    <td>{{ data.month }}月({{ data.new_user }})</td>
+                    {% for user_data_item in data.user_data %}
+                        <td>{{ user_data_item }}</td>
+                    {% endfor %}
                 </tr>
             {% endfor %}
             </tbody>
@@ -91,13 +87,11 @@
 
     <script type="text/javascript">
         $(function () {
-            console.log("eeeeeee");
             $("#f_datepicker").datepicker({
                 dateFormat: "yy-mm-dd"
             });
 
             $("#t_datepicker").datepicker({
-                timeFormat: "HH:mm:ss",
                 dateFormat: "yy-mm-dd"
             });
         });
