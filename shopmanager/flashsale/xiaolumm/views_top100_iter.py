@@ -54,31 +54,25 @@ def Top100_Click(request):
     date_dic = {"prev_month": prev_month, "next_month": next_month}
 
     sql = "SELECT " \
-          "click.id,click.sumclick,click.weikefu,shop.ordernum " \
+          " click.linkid,click.clicknum,click.weikefu,shop.ordernum " \
           "FROM " \
-          "(SELECT " \
-          "  xlmm.id, clickcount.sumclick, xlmm.weikefu " \
-          "FROM " \
-          " (SELECT " \
-          " linkid, SUM(valid_num) AS sumclick " \
-          " FROM " \
-          "  flashsale_clickcount WHERE date BETWEEN '{0}' AND  '{1}' " \
-          "GROUP BY linkid " \
-          "ORDER BY sumclick DESC " \
-          "LIMIT 100) AS clickcount " \
-          " LEFT JOIN (SELECT " \
-          "    id, weikefu " \
-          "FROM " \
-          "   xiaolumm_xiaolumama " \
-          "WHERE " \
-          "  agencylevel = 2 " \
-          "   AND charge_status = 'charged') AS xlmm ON clickcount.linkid = xlmm.id) AS click " \
-          " LEFT JOIN " \
-          "(SELECT " \
-          "  linkid, SUM(ordernumcount) AS ordernum " \
-          "FROM " \
-          " flashsale_tongji_shopping_day WHERE tongjidate BETWEEN '{0}' AND  '{1}' " \
-          "GROUP BY linkid) AS shop ON click.id = shop.linkid".format(date_from, date_to)  # 注意时间段  要加上
+          "   (SELECT  " \
+          "    linkid, SUM(valid_num) AS clicknum, weikefu " \
+          "   FROM " \
+          "     flashsale_clickcount " \
+          " WHERE " \
+          "      date BETWEEN '{0}' AND '{1}' " \
+          "  GROUP BY linkid " \
+          " ORDER BY clicknum DESC " \
+          "    LIMIT 100) AS click " \
+          "   LEFT JOIN " \
+          "  (SELECT  " \
+          "      linkid, SUM(ordernumcount) AS ordernum " \
+          "   FROM " \
+          "       flashsale_tongji_shopping_day " \
+          "  WHERE " \
+          "      tongjidate BETWEEN '{0}' AND '{1}' " \
+          "   GROUP BY linkid) AS shop ON click.linkid = shop.linkid".format(date_from, date_to)  # 注意时间段  要加上
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -132,34 +126,31 @@ def Top100_Order(request):
     prev_month = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
     next_month = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
     date_dic = {"prev_month": prev_month, "next_month": next_month}
-    print (date_from, '--', date_to)
 
     sql = "SELECT " \
-          "    xlmmshop.id,xlmmshop.ordernum ,xlmmshop.weikefu,clicks_tab.clicks " \
+          "xlmmshop.linkid, " \
+          "xlmmshop.ordernum, " \
+          "xlmmshop.linkname, " \
+          "clicks_tab.clicks " \
           "FROM " \
-          "(SELECT " \
-          "   xlmm.id, shop.ordernum, xlmm.weikefu " \
-          "FROM " \
-          "(SELECT " \
-          " linkid, SUM(ordernumcount) AS ordernum " \
-          " FROM " \
-          "    flashsale_tongji_shopping_day  WHERE tongjidate BETWEEN '{0}' AND  '{1}'  " \
-          " GROUP BY linkid " \
-          " ORDER BY ordernum DESC " \
-          " LIMIT 100) AS shop " \
-          " LEFT JOIN (SELECT " \
-          "    id, weikefu " \
-          " FROM " \
-          "     xiaolumm_xiaolumama " \
+          "(SELECT  " \
+          "    linkid, SUM(ordernumcount) AS ordernum, linkname " \
+          "  FROM " \
+          "     flashsale_tongji_shopping_day " \
           " WHERE " \
-          "     agencylevel = 2 " \
-          "       AND charge_status = 'charged') AS xlmm ON shop.linkid = xlmm.id) AS xlmmshop " \
-          "   LEFT JOIN " \
-          " (SELECT " \
+          "      tongjidate BETWEEN '{0}' AND '{1}' " \
+          "  GROUP BY linkid " \
+          " ORDER BY ordernum DESC " \
+          "  LIMIT 100) AS xlmmshop " \
+          "      LEFT JOIN " \
+          " (SELECT  " \
           "     linkid, SUM(valid_num) AS clicks " \
           " FROM " \
-          "  flashsale_clickcount WHERE date BETWEEN '{0}' AND  '{1}'  group by linkid) AS clicks_tab ON xlmmshop.id = clicks_tab.linkid".format(date_from,
-                                                                                                            date_to)  # 注意时间段  要加上
+          "     flashsale_clickcount " \
+          " WHERE " \
+          "    date BETWEEN '{0}' AND '{1}' " \
+          " GROUP BY linkid) AS clicks_tab ON xlmmshop.linkid = clicks_tab.linkid".format(date_from,
+                                                                                          date_to)  # 注意时间段  要加上
 
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -175,12 +166,14 @@ def Top100_Order(request):
     next_month_from, next_month_to, next_next_month_from, next_next_month_to = get_next_month(next_date)
 
     for j in id:  # 对每一个id 求 下个月的点击
-        shops = StatisticsShoppingByDay.objects.filter(linkid=j, tongjidate__gt=next_month_from, tongjidate__lt=next_month_to)
+        shops = StatisticsShoppingByDay.objects.filter(linkid=j, tongjidate__gt=next_month_from,
+                                                       tongjidate__lt=next_month_to)
         sum_order = shops.aggregate(total_ordernumcount=Sum('ordernumcount')).get('total_ordernumcount') or 0
         sum_order_list_next.append(sum_order)
     sum_order_list_next_next = []
     for j in id:  # 对每一个id 求 下 下 个月的点击
-        shops = StatisticsShoppingByDay.objects.filter(linkid=j, tongjidate__gt=next_next_month_from, tongjidate__lt=next_next_month_to)
+        shops = StatisticsShoppingByDay.objects.filter(linkid=j, tongjidate__gt=next_next_month_from,
+                                                       tongjidate__lt=next_next_month_to)
         sum_order = shops.aggregate(total_ordernumcount=Sum('ordernumcount')).get('total_ordernumcount') or 0
         sum_order_list_next_next.append(sum_order)
 
