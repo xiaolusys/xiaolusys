@@ -10,11 +10,12 @@ from django.views.decorators.csrf import csrf_exempt
 from flashsale.mmexam.models import Question,Choice,Result
 from django.shortcuts import get_object_or_404, render
 from flashsale.pay.options import get_user_unionid
-
+import datetime
 
 def index(request):
     
     #这里得到openid
+   # print "这里是首页"
     content = request.REQUEST
     code = content.get('code',None)
     user_openid,user_unionid = get_user_unionid(code,
@@ -27,10 +28,13 @@ def index(request):
         return redirect(redirect_url)
     #    if not user_openid  or user_openid.upper() == 'NONE':
             #render(request, 'invalid_user.html')#无效用户
-
+   
+    dt = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=36000), "%a, %d-%b-%Y %H:%M:%S GMT")
     response=render(request, 'index.html')
     #response.set_cookie("openid", "多选测试")
-    response.set_cookie("unionid", user_unionid)
+    
+   # print "这里是 zuixin"
+    response.set_cookie("unionid", user_unionid, expires=dt)
     return response
 
 def exam(request,question_id):
@@ -98,7 +102,8 @@ def exam(request,question_id):
             print "选题类型",question.single_many
             return render(request, 'mmexam_exam.html', {'question': question,'result':"",'number':1,'question_num': 1})
         else:
-            return  render(request, 'index.html')   
+           # return  render(request, 'index.html')   
+           return redirect("/sale/exam/")
     #question_id = int(question_id)+1
     #question = get_object_or_404(Question, pk=question_id)
     #print "问题是",question.id,question.question
