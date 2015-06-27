@@ -74,3 +74,23 @@ class DailySupplyChainStatsOrder(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.product_id)
+
+
+class RecordGroupPoint(models.Model):
+    group_id = models.CharField(max_length=32, verbose_name=u'组')
+    group_name = models.CharField(max_length=32, verbose_name=u'组名')
+    point_type = models.CharField(max_length=32, verbose_name=u'加分类型')
+    point_content = models.CharField(max_length=32, verbose_name=u'加分内容')
+    get_point = models.IntegerField(default=0, verbose_name=u'分数')
+    record_time = models.DateField(auto_now_add=True, verbose_name=u'奖励时间')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+
+    class Meta:
+        db_table = 'record_group_point_detail'
+        unique_together = ('point_type', 'point_content')
+        verbose_name = u'积分表'
+        verbose_name_plural = u'积分表'
+
+    def __unicode__(self):
+        return '<%s>' % (self.point_content)
