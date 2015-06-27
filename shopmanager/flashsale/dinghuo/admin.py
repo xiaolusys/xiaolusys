@@ -132,6 +132,12 @@ class orderdetailAdmin(admin.ModelAdmin):
     search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id']
     date_hierarchy = 'created'
 
+    def queryset(self, request):
+        qs = super(orderdetailAdmin, self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.exclude(orderlist__status='作废')
 
 admin.site.register(OrderList, ordelistAdmin)
 admin.site.register(OrderDetail, orderdetailAdmin)
