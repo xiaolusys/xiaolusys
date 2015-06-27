@@ -191,6 +191,7 @@ def task_daily_stat_ding_huo():
 
 def get_reach_standard_by_item(ding_huo):
     all_detail = ding_huo.order_list.all()
+    arrival_time = False
     for item in all_detail:
         if item.buy_quantity > item.arrival_quantity:
             return False
