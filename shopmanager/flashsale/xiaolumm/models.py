@@ -549,7 +549,7 @@ class MamaDayStats(models.Model):
         if self.lweek_clicks < 50:
             return 20
         
-        roi = max(self.lweek_roi(),self.tweek_roi())
+        roi = max(self.lweek_roi,self.tweek_roi)
         if roi < 0.005:
             return 5
         if roi < 0.01:
