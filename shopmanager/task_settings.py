@@ -286,6 +286,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="30", hour="8"),
         'args': ()
     },
+    u'统计妈妈两周转化及点击基本价格':{
+        'task':'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
+        'schedule': crontab(minute="30", hour="7"),
+        'args': ()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

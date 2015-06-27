@@ -10,6 +10,9 @@ from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog, OrderRedPacket
 from shopapp.weixin.models_base import WeixinUnionID as Base_WeixinUniID
 from shopapp.weixin.models import WeixinUnionID
 
+import logging
+logger = logging.getLogger('celery.handler')
+
 __author__ = 'meixqhi'
 
 CLICK_REBETA_DAYS = 3
@@ -116,8 +119,9 @@ from django.db import transaction
 
 @transaction.commit_on_success
 def order_Red_Packet(xlmm, target_date):
+    
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
-    WXPAY_APPID    = "wx3f91056a2928ad2d"
+    WXPAY_APPID       = settings.WXPAY_APPID      #"wx3f91056a2928ad2d"
     mama = XiaoluMama.objects.get(id=xlmm)
     mama_openid = mama.openid
     base_weixinuniID = Base_WeixinUniID.objects.filter(app_key=WXPAY_APPID, unionid=mama_openid)
@@ -205,8 +209,12 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
             order.status = StatisticsShopping.FINISHED
 
         order.save()
-    order_Red_Packet(xlmm, target_date)
     
+    try:
+        order_Red_Packet(xlmm, target_date)
+    except Exception,exc:
+        logger.error(exc.message or 'Order Red Packet Error',exc_info=True)
+        
 
 @task()
 def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
