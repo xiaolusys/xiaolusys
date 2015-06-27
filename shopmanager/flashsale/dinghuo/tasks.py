@@ -164,14 +164,15 @@ def task_daily_stat_group_point():
             content = "D" + str(item.id)
             record_point = RecordGroupPoint.objects.get_or_create(point_type=u'1', point_content=content)
             my_user = MyUser.objects.filter(user__username=item.buyer_name)
-            record_point[0].group_id = my_user[0].group.id
-            record_point[0].group_name = my_user[0].group.name
-            if item.reach_standard:
-                record_point[0].get_point = 1
-            else:
-                record_point[0].get_point = 0
-            record_point[0].record_time = item.created
-            record_point[0].save()
+            if my_user.count() > 0:
+                record_point[0].group_id = my_user[0].group.id
+                record_point[0].group_name = my_user[0].group.name
+                if item.reach_standard:
+                    record_point[0].get_point = 1
+                else:
+                    record_point[0].get_point = 0
+                record_point[0].record_time = item.created
+                record_point[0].save()
 
     except Exception, exc:
         raise task_daily_stat_group_point.retry(exc=exc)
