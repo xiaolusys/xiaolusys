@@ -229,3 +229,10 @@ class ProductSkuDetailAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProductSkuDetail, ProductSkuDetailAdmin)
+from flashsale.dinghuo.models_stats import RecordGroupPoint
+
+
+class RecordGroupPointAdmin(admin.ModelAdmin):
+    list_display = (
+        'group_name', 'point_type', 'point_content', 'get_point', 'record_time')
+admin.site.register(RecordGroupPoint, RecordGroupPointAdmin)

@@ -150,3 +150,62 @@ def get_supply_name(name):
             return ""
     except Exception, ex:
         return ""
+
+
+from flashsale.dinghuo.models_stats import RecordGroupPoint
+from flashsale.dinghuo.models_user import MyUser, MyGroup
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_daily_stat_group_point():
+    try:
+        all_ding_huo = OrderList.objects.exclude(status=u'作废').exclude(status=u'7')
+        for item in all_ding_huo:
+            content = "D" + str(item.id)
+            record_point = RecordGroupPoint.objects.get_or_create(point_type=u'1', point_content=content)
+            my_user = MyUser.objects.filter(user__username=item.buyer_name)
+            record_point[0].group_id = my_user[0].group.id
+            record_point[0].group_name = my_user[0].group.name
+            if item.reach_standard:
+                record_point[0].get_point = 1
+            else:
+                record_point[0].get_point = 0
+            record_point[0].record_time = item.created
+            record_point[0].save()
+
+    except Exception, exc:
+        raise task_daily_stat_group_point.retry(exc=exc)
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_daily_stat_ding_huo():
+    try:
+        all_ding_huo = OrderList.objects.exclude(status=u'作废').exclude(status=u'7')
+        for item in all_ding_huo:
+            reach_st = get_reach_standard_by_item(item)
+            item.reach_standard = reach_st
+            item.save()
+    except Exception, exc:
+        raise task_daily_stat_group_point.retry(exc=exc)
+
+
+def get_reach_standard_by_item(ding_huo):
+    all_detail = ding_huo.order_list.all()
+    for item in all_detail:
+        if item.buy_quantity > item.arrival_quantity:
+            return False
+        else:
+            arrival_time = item.arrival_time
+    if arrival_time:
+        arrival_date = datetime.date(arrival_time.year, arrival_time.month, arrival_time.day)
+        ding_between = (arrival_date - ding_huo.created).days
+        if ding_huo.p_district == '1' and ding_between <= 2:
+            return True
+        elif ding_huo.p_district == '2' and ding_between <= 3:
+            return True
+        elif ding_huo.p_district == '3' and ding_between <= 4:
+            return True
+        else:
+            return False
+    else:
+        return False
