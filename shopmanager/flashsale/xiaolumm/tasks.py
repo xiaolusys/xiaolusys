@@ -92,15 +92,15 @@ def init_Data_Red_Packet():
     for xlmm in xlmms:
         try:
             # 找订单
-            shoppings = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
+            shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
             if shoppings.count() >= 10:
-                red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
+                red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm.id)
                 red_packet.first_red = True  # 默认发放过首单红包
                 red_packet.ten_order_red = True  # 默认发放过十单红包
                 red_packet.save()
                 xlmm.hasale = True
             if shoppings.count() >= 1:
-                red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
+                red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm.id)
                 red_packet.first_red = True     # 默认发放过首单红包
                 red_packet.save()
                 xlmm.hasale = True
