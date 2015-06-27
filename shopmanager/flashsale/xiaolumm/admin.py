@@ -255,7 +255,7 @@ admin.site.register(CarryLog, CarryLogAdmin)
 
 
 class OrderRedPacketAdmin(admin.ModelAdmin):
-    list_display = ('xlmm', 'first_red', 'ten_order_red')
+    list_display = ('xlmm', 'first_red', 'ten_order_red', 'created', 'modify_time')
     search_fields = ['=xlmm']
 
 admin.site.register(OrderRedPacket, OrderRedPacketAdmin)

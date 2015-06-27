@@ -177,7 +177,12 @@ def kf_Search_Order_Detail(request):
     merge_trade = request.GET.get('id')
     merge_orders = MergeOrder.objects.filter(merge_trade=merge_trade)
     data = []
+
     for merge_order in merge_orders:
+        if merge_order.pay_time:
+            pay_time = merge_order.pay_time.strftime('%Y-%m-%d %H:%M')
+        else:
+            pay_time = ''
         data_entry = {'title': merge_order.title,
                       'price': merge_order.price,
                       'sku_properties_name': merge_order.sku_properties_name,
@@ -187,21 +192,9 @@ def kf_Search_Order_Detail(request):
                       'pic_path': merge_order.pic_path,
                       'status': merge_order.get_status_display(),
                       'sys_status': merge_order.get_sys_status_display(),
-                      'pay_time': merge_order.pay_time.strftime('%Y-%m-%d %H:%M'),
+                      'pay_time': pay_time,
                       'refund_status': merge_order.get_refund_status_display()
                       }
         data.append(data_entry)
     return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
 
-
-def kf_Logistics(request):
-    # 默认显示weixin order的 物流信息   看物流接口
-    data = []   
-    data_entry = {}
-    data.append(data_entry)
-    #logistics=  getLogisticTrace(item.out_sid,item.logistics_company.code)
-    print 'duokefu_logistics is here', logistics
-    return HttpResponse(json.dumps(data), content_type='application/json')  # 返回 JSON 数据
-
-
-#  根据运单号来查找订单

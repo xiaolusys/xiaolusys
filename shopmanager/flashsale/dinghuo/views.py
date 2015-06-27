@@ -78,7 +78,7 @@ def new_order(request):
     if request.method == 'POST':
         post = request.POST
         type_of_order = post['type_of_order']
-        print type_of_order, "eeeeeeeeee"
+        p_district = post['p_district']
         costofems = post['costofems']
         if costofems == "":
             costofems = 0
@@ -100,6 +100,7 @@ def new_order(request):
         orderlist.express_company = express_company
         orderlist.express_no = express_no
         orderlist.supplier_name = supplierId
+        orderlist.p_district = p_district
         orderlist.created = businessDate
         orderlist.updated = businessDate
         if len(remarks.strip()) > 0:
