@@ -43,6 +43,7 @@ def xlmm_Click_Top_By_Day(request):
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
+    cursor.close()
     date_dic = {"prev_day": prev_day, "target_day": target_date, "next_day": next_day}
     return raw, date_dic
 
