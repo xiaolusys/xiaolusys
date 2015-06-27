@@ -436,9 +436,11 @@ signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrad
 # 首单红包，10单红包
 
 class OrderRedPacket(models.Model):
-    xlmm = models.IntegerField(blank=False, db_index=True, verbose_name=u"妈妈编号")
+    xlmm = models.IntegerField(unique=True, blank=False, db_index=True, verbose_name=u"妈妈编号")
     first_red = models.BooleanField(default=False, verbose_name=u"首单红包")
     ten_order_red = models.BooleanField(default=False, verbose_name=u"十单红包")
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
+    modify_time = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
 
     class Meta:
         db_table = 'xiaolumm_order_red_packet'
