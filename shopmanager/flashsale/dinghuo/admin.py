@@ -29,13 +29,13 @@ class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
         'fields': ('supplier_name', 'supplier_shop', 'express_company', 'express_no'
-                   , 'receiver', 'status', 'order_amount', 'note')
+                   , 'receiver', 'status', 'order_amount', 'note', 'p_district')
     }),)
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe', 'changedetail', 'note_name',
-        'supply_chain', 'updated'
+        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe',
+        'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
     search_fields = ['id']
@@ -132,6 +132,12 @@ class orderdetailAdmin(admin.ModelAdmin):
     search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id']
     date_hierarchy = 'created'
 
+    def queryset(self, request):
+        qs = super(orderdetailAdmin, self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.exclude(orderlist__status='作废')
 
 admin.site.register(OrderList, ordelistAdmin)
 admin.site.register(OrderDetail, orderdetailAdmin)

@@ -1,4 +1,7 @@
-########### 2015-6-23 #################
+########### 2015-6-27 #################
+alter table suplychain_flashsale_orderlist add column p_district varchar(32) default "1" NOT NULL after status;
+alter table suplychain_flashsale_orderlist add column reach_standard tinyint(1) default 0 NOT NULL after p_district;
+
 alter table xiaolumm_order_red_packet add column created datetime NOT NULL;
 alter table xiaolumm_order_red_packet add column modified datetime NOT NULL;
 
