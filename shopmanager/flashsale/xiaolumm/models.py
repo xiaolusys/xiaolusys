@@ -440,7 +440,7 @@ class OrderRedPacket(models.Model):
     first_red = models.BooleanField(default=False, verbose_name=u"首单红包")
     ten_order_red = models.BooleanField(default=False, verbose_name=u"十单红包")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
-    modify_time = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
 
     class Meta:
         db_table = 'xiaolumm_order_red_packet'
