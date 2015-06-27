@@ -30,8 +30,8 @@ class DailyStat(models.Model):
     class Meta:
         db_table = 'flashsale_dailystat'
         app_label = 'xiaolumm'
-        verbose_name = u'每日统计'
-        verbose_name_plural = u'每日统计列表'
+        verbose_name = u'特卖/每日统计'
+        verbose_name_plural = u'特卖/每日统计列表'
     
     @property
     def total_payment_cash(self):

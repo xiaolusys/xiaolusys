@@ -470,5 +470,55 @@ def task_Calc_Agency_Rebeta_Pending_And_Cash():
     task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS)
 
 
-    
+from flashsale.xiaolumm.models import MamaDayStats
+from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShoppingByDay
 
+def calc_mama_roi(xlmm,dfrom,dto):
+    
+    xlmm_id = xlmm.id
+
+    xlmm_ccs =  ClickCount.objects.filter(date__range=(dfrom,dto),linkid=xlmm_id)
+    valid_num = xlmm_ccs.aggregate(total_validnum=Sum('valid_num')).get('total_validnum') or 0
+    
+    xlmm_ssd  = StatisticsShoppingByDay.objects.filter(tongjidate__range=(dfrom,dto),linkid=xlmm_id)
+    buyer_num = xlmm_ssd.aggregate(total_buyernum=Sum('buyercount')).get('total_buyernum') or 0
+    payment   = xlmm_ssd.aggregate(total_amount=Sum('orderamountcount')).get('total_amount') or 0
+    
+    return valid_num, buyer_num, payment 
+
+### 代理提成表 的task任务   计算 每个妈妈的代理提成，上交的给推荐人的提成
+@task()
+def task_Calc_Mama_Lasttwoweek_Stats(pre_day=1):      # 每天 写入记录
+    """
+    计算每日妈妈过去两周点击转化
+    """
+    
+    target_date = datetime.date.today() - datetime.timedelta(days=pre_day)
+    
+    lweek_from = target_date - datetime.timedelta(days=7)   # 生成带时间的格式  开始时间
+    tweek_from   = target_date - datetime.timedelta(days=14)  # 停止时间
+
+    xlmms = XiaoluMama.objects.filter(agencylevel=2) 
+    for xlmm in xlmms:
+        
+        lweek_ds = calc_mama_roi(xlmm,lweek_from,target_date)
+        tweek_ds = calc_mama_roi(xlmm,tweek_from,target_date)
+        
+        mm_stats, state = MamaDayStats.objects.get_or_create(
+                                xlmm=xlmm.id,day_date=target_date)
+        
+        mm_stats.lweek_clicks = lweek_ds[0]
+        mm_stats.lweek_buyers = lweek_ds[1]
+        mm_stats.lweek_payment = lweek_ds[2]
+        
+        mm_stats.tweek_clicks = tweek_ds[0]
+        mm_stats.tweek_buyers = tweek_ds[1]
+        mm_stats.tweek_payment = tweek_ds[2]
+        
+        mm_stats.base_click_price = mm_stats.calc_click_price()
+        mm_stats.save()
+        
+        
+        
+        
