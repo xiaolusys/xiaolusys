@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView
 from .view_daily_work import DailyDingHuoView
+from .point_every_day import RecordPointView
 
 urlpatterns = [
 
@@ -40,4 +41,5 @@ urlpatterns = [
     url(r'^daily_work/$', staff_member_required(DailyDingHuoView.as_view()), name="dailywork2"),
     url(r'^stats_product/$', staff_member_required(StatsProductView.as_view()), name="stats_product"),
     url(r'^stats_supplier/$', staff_member_required(StatsSupplierView.as_view()), name="stats_supplier"),
+    url(r'^point_every_day/$', staff_member_required(RecordPointView.as_view()), name="point_every_day"),
 ]
