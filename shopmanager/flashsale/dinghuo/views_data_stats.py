@@ -113,6 +113,8 @@ class StatsSupplierView(View):
         today = datetime.date.today()
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
+        group_name = content.get("groupname", 0)
+        group_name = int(group_name)
         if start_time_str:
             year, month, day = start_time_str.split('-')
             start_date = datetime.date(int(year), int(month), int(day))
@@ -127,17 +129,29 @@ class StatsSupplierView(View):
                 end_date = today
         else:
             end_date = today
+        if group_name == 0:
+            group_sql = ""
+        else:
+            group_sql = " where group_id = " + str(group_name)
         sql = 'select supply.supplier_shop,sum(supplydata.ding_huo_num) as ding_huo_num,' \
               'sum(supplydata.sale_num) as sale_num,sum(supplydata.sale_cost_of_product) as sale_amount,' \
-              'sum(inferior_num) as inferior_num,sum(return_num) as return_num ' \
+              'sum(inferior_num) as inferior_num,sum(return_num) as return_num,supply.group_name ' \
               'from (select * from supply_chain_stats_daily where sale_time >="{0}" and sale_time<="{1}") as supplydata left join ' \
-              '(select detail.outer_id,list.supplier_shop from (select outer_id,orderlist_id from suplychain_flashsale_orderdetail where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废")) as detail left join ' \
-              '(select id,supplier_shop from suplychain_flashsale_orderlist) as list ' \
+              '(select detail.outer_id,list.supplier_shop,list.group_name from ' \
+              '(select outer_id,orderlist_id from suplychain_flashsale_orderdetail ' \
+              'where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废")) as detail left join ' \
+              '(select A.id,A.supplier_shop,my_group.name as group_name from ' \
+              '(select temp_list.id,temp_list.supplier_shop,my_user.group_id from ' \
+              '(select temp_list.id,temp_list.supplier_shop,admin_user.id as user_id from suplychain_flashsale_orderlist as temp_list ' \
+              'left join auth_user as admin_user on temp_list.buyer_name=admin_user.username) as temp_list ' \
+              'left join suplychain_flashsale_myuser as my_user on temp_list.user_id=my_user.user_id  {2}) as A ' \
+              'left join suplychain_flashsale_mygroup as my_group on A.group_id=my_group.id) as list ' \
               'on detail.orderlist_id=list.id where list.supplier_shop!="" group by outer_id) as supply ' \
-              'on supplydata.product_id=supply.outer_id where supply.supplier_shop!="" group by supply.supplier_shop'.format(start_date, end_date)
+              'on supplydata.product_id=supply.outer_id where supply.supplier_shop!="" group by supply.supplier_shop'.format(
+            start_date, end_date, group_sql)
         cursor = connection.cursor()
         cursor.execute(sql)
         raw = cursor.fetchall()
         return render_to_response("dinghuo/data_of_supplier.html", {"all_data": raw, "start_date": start_date,
-                                                                    "end_date": end_date},
+                                                                    "end_date": end_date, "group_name": group_name},
                                   context_instance=RequestContext(request))

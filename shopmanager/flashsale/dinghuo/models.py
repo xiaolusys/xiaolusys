@@ -46,7 +46,7 @@ class OrderList(models.Model):
     supplier_shop = models.CharField(default="", blank=True, max_length=32, verbose_name=u'供应商店铺名')
     express_company = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递公司')
     express_no = models.CharField(default="",blank=True, max_length=32, verbose_name=u'快递单号')
-    receiver = models.CharField(default="", max_length=32, verbose_name=u'仓库负责人')
+    receiver = models.CharField(default="", max_length=32, verbose_name=u'负责人')
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
     p_district = models.CharField(max_length=32,default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT)

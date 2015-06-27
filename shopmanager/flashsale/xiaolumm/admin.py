@@ -269,6 +269,7 @@ class MamaDayStatsAdmin(admin.ModelAdmin):
     list_display = ('xlmm', 'day_date', 'get_base_click_price_display','get_lweek_roi_display',
                     'get_tweek_roi_display','lweek_clicks', 'lweek_buyers', 'get_lweek_payment_display',
                     'tweek_clicks' ,'tweek_buyers' ,'get_tweek_payment_display')
+
     search_fields = ['=xlmm']
     date_hierarchy = 'day_date'
     form = MamaDayStatsForm
