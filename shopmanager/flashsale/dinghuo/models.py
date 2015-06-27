@@ -49,7 +49,7 @@ class OrderList(models.Model):
     receiver = models.CharField(default="", max_length=32, verbose_name=u'仓库负责人')
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
-    p_district = models.CharField(max_length=32, verbose_name=u'地区', choices=ORDER_DISTRICT)
+    p_district = models.CharField(max_length=32,default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT)
     reach_standard = models.BooleanField(default=False, verbose_name=u"达标")
     created = models.DateField(auto_now_add=True, verbose_name=u'订货日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')

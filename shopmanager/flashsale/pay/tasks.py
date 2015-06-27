@@ -31,7 +31,7 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
         profile.nick   = wxuser.nickname
         profile.mobile = wxuser.mobile
-        profile.openid = profile.openid or openid or ''
+        profile.openid = openid or profile.openid 
         profile.save()
             
     except Exception,exc:
@@ -140,8 +140,11 @@ def notifyTradeRefundTask(notify):
             return 
         
         srefund.refund_Confirm()
-        strade = MergeTrade.objects.get(id=srefund.trade_id)
-    
+        
+        strade = SaleTrade.objects.get(id=srefund.trade_id)
+        if strade.is_Deposite_Order():
+            return
+        
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
     
@@ -160,6 +163,23 @@ def pushTradeRefundTask(refund_id):
         
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
+        
+        from shopback.refunds.models import Refund
+        
+        seller = getOrCreateSaleSeller()
+        refund,state  = Refund.objects.get_or_create(tid=sale_refund.trade_id,
+                                                     oid=sale_refund.order_id)
+        
+        refund.user = seller
+        refund.payment = sale_refund.payment
+        
+        if sale_refund.has_good_return:
+            refund.status = Refund.REFUND_WAIT_RETURN_GOODS
+            refund.has_good_return = sale_refund.has_good_return
+        else:
+            refund.status = Refund.REFUND_WAIT_SELLER_AGREE
+        
+        refund.save()
         
     except Exception,exc:
         raise pushTradeRefundTask.retry(exc=exc)

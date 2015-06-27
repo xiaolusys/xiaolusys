@@ -39,7 +39,7 @@ class RefundAdmin(admin.ModelAdmin):
         models.TextField: {'widget': Textarea(attrs={'rows':6, 'cols':35})},
     }
     
-    list_filter   = ('seller_nick','has_good_return','good_status','is_reissue','order_status','status',)
+    list_filter   = ('user','has_good_return','good_status','is_reissue','order_status','status',)
     search_fields = ['refund_id','tid','oid','sid','buyer_nick']
     
     #标记为已处理

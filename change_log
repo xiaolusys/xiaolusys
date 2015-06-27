@@ -2,6 +2,9 @@
 alter table suplychain_flashsale_orderlist add column p_district varchar(32) default "1" NOT NULL after status;
 alter table suplychain_flashsale_orderlist add column reach_standard tinyint(1) default 0 NOT NULL after p_district;
 
+alter table xiaolumm_order_red_packet add column created datetime NOT NULL;
+alter table xiaolumm_order_red_packet add column modified datetime NOT NULL;
+
 ########### 2015-6-22 #################
 alter table suplychain_flashsale_orderlist add column supplier_shop varchar(32) NOT NULL after supplier_name;
 
@@ -25,7 +28,7 @@ CREATE INDEX `xiaolumm_xiaolumama_4ad8f7e` ON `xiaolumm_xiaolumama` (`progress`)
 ########### 2015-6-5 #################
 ALTER TABLE django_admin_log ADD INDEX IDX_USER_ID_CONTENT_TYPE_ID (USER_ID,CONTENT_TYPE_ID);
 CREATE INDEX `shop_trades_mergetrade_6bac1c39` ON `shop_trades_mergetrade` (`receiver_phone`);
- CREATE INDEX `shop_trades_mergetrade_4508aeb0` ON `shop_trades_mergetrade` (`weight_time`);
+CREATE INDEX `shop_trades_mergetrade_4508aeb0` ON `shop_trades_mergetrade` (`weight_time`);
 
 ########### 2015-6-4 #################
 

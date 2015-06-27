@@ -110,7 +110,7 @@ class XiaoluMama(models.Model):
             return DjangoUser.objects.get(id=self.manager).username
         except:
             return '%s'%self.manager
-
+    
     def exam_Passed(self):
         
         from flashsale.mmexam.models import Result
@@ -149,6 +149,24 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         return agency_level.get_Max_Valid_Clickcount(ordernum)
     
+    def push_carrylog_to_cash(self,clog):
+        
+        try:
+            clog = CarryLog.objects.get(id=clog.id,status=CarryLog.PENDING)
+        except CarryLog.DoesNotExist:
+            raise Exception(u'妈妈收支记录重复确认:%s'%clog.id)
+
+        clog.status = CarryLog.CONFIRMED
+        clog.save()
+        
+        if clog.carry_type == CarryLog.CARRY_IN:
+            self.cash = models.F('cash') + clog.value
+            self.pending = models.F('pending') - clog.value
+        else:
+            self.cash = models.F('cash') - clog.value
+        self.save()
+        
+        
 # from .clickprice import CLICK_TIME_PRICE
 
 class AgencyLevel(models.Model):
@@ -317,7 +335,7 @@ class CarryLog(models.Model):
 
     STATUS_CHOICES = (
         (PENDING,u'待确认'),
-        (CONFIRMED,u'确定'),
+        (CONFIRMED,u'已确定'),
         (CANCELED,u'已取消'),
     )
     

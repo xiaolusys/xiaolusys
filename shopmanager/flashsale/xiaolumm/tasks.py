@@ -51,12 +51,10 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
     xlmm_id:小鹿妈妈id
     """
     from flashsale.mmexam.models import Result
-    
     #结算订单那提成
-    task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None)
-    
+    task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=xlmm_id)
     #结算点击补贴
-    task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None)
+    task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=xlmm_id)
     
     c_logs = CarryLog.objects.filter(log_type__in=(#CarryLog.CLICK_REBETA,
                                                    CarryLog.THOUSAND_REBETA,
@@ -84,19 +82,15 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         #重新计算pre_date之前订单金额，取消退款订单提成
         
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        cl.status = CarryLog.CONFIRMED
-        cl.save()
-        
-        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - cl.value)
+        xlmm.push_carrylog_to_cash(cl)
         
 
 def init_Data_Red_Packet():
     # 判断 xlmm 是否有过 首单 或者 十单  如果是的将 OrderRedPacket 状态修改过来
-    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, agencylevel=2, hasale=True)
-    iter = xlmms.iterator()  # 迭代放在 循环的外面
-    while 1:
+    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED, agencylevel=2)
+    
+    for xlmm in xlmms:
         try:
-            xlmm = iter.next().id   #    获取linkid
             # 找订单
             shoppings = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
             if shoppings.count() >= 10:
@@ -104,12 +98,17 @@ def init_Data_Red_Packet():
                 red_packet.first_red = True  # 默认发放过首单红包
                 red_packet.ten_order_red = True  # 默认发放过十单红包
                 red_packet.save()
+                xlmm.hasale = True
             if shoppings.count() >= 1:
                 red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
                 red_packet.first_red = True     # 默认发放过首单红包
                 red_packet.save()
-        except Exception:
-            break
+                xlmm.hasale = True
+                
+            xlmm.save()
+        except Exception,exc:
+            print 'exc:%s,%s'%(exc.message,xlmm.id)
+            
 
 from flashsale.pay.models_envelope import Envelop
 from django.db import transaction
@@ -250,12 +249,10 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
         if clog.status != CarryLog.PENDING:
             continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        carry_value  = cl.value
         clog.value   = click_rebeta
-        clog.status  = CarryLog.CONFIRMED
         clog.save()
-#         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + clog.value, pending=F('pending') - carry_value)
+        
+        xlmm.push_carrylog_to_cash(clog)
         
         
 
@@ -308,10 +305,9 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
             continue
         
         clog.value     = calc_fee * rebeta_rate
-        clog.status = CarryLog.CONFIRMED
         clog.save()
-#         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + cl.value, pending=F('pending') - carry_value)
+        
+        xlmm.push_carrylog_to_cash(cl)
         
         
 @task()
@@ -357,13 +353,11 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         if clog.status != CarryLog.PENDING:
             continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        carry_value = clog.value
         agency_rebeta_rate  = xlmm.get_Mama_Agency_Rebeta_Rate()
         clog.value     = calc_fee * agency_rebeta_rate
-        clog.status = CarryLog.CONFIRMED
         clog.save() 
-#         urows = xlmms.update(pending=F('pending') - carry_value + cl.value)
-        xlmms.update(cash=F('cash') + clog.value, pending=F('pending') - carry_value)
+        
+        xlmm.push_carrylog_to_cash(clog)
         
 
 ### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成

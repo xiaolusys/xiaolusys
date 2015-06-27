@@ -283,7 +283,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时统计每天推广支出情况':{
         'task':'flashsale.daystats.tasks.task_PopularizeCost_By_Day',
-        'schedule': crontab(minute="30", hour="1"),
+        'schedule': crontab(minute="30", hour="8"),
         'args': ()
     },
 #    'runs-every-10-minutes-update-seller-flag':{

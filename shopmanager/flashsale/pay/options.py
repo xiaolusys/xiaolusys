@@ -58,11 +58,8 @@ def get_user_unionid(code,
     r = json.loads(r)
     
     if r.has_key("errcode"):
-        if not request:
-            return ('','')
-        cookies = request.COOKIES
-        return (cookies.get('sopenid'),cookies.get('sunionid'))
-    
+        return ('','')
+
     return (r.get('openid'),r.get('unionid'))
 
 from django.contrib.auth.models import User as DjangoUser

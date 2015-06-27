@@ -57,13 +57,13 @@ class Refund(models.Model):
     REFUND_WAIT_SELLER_AGREE = pcfg.REFUND_WAIT_SELLER_AGREE
     REFUND_WAIT_RETURN_GOODS = pcfg.REFUND_WAIT_RETURN_GOODS
     REFUND_CONFIRM_GOODS = pcfg.REFUND_CONFIRM_GOODS
-    REFUND_REFUSE_BUYER = pcfg.REFUND_REFUSE_BUYER
+    REFUND_REFUSE_BUYER  = pcfg.REFUND_REFUSE_BUYER
     REFUND_CLOSED = pcfg.REFUND_CLOSED
     REFUND_SUCCESS = pcfg.REFUND_SUCCESS
     
     id           = BigIntegerAutoField(primary_key=True,verbose_name='ID')
     refund_id    = models.CharField(max_length=32,
-                                    default=lambda:'RF%d'%int(time.time()*10**2),
+                                    default=lambda:'RF%d'%int(time.time()*10**4),
                                     verbose_name='退款单ID')
     tid          = models.CharField(max_length=32,blank=True,verbose_name='交易ID')
 
@@ -156,29 +156,34 @@ class Refund(models.Model):
         
         from shopback.trades.models import MergeTrade,MergeOrder
         #更新订单明细退款状态
-        mos = MergeOrder.objects.get(oid=self.oid,merge_trade__user=self.user)
+        self_oid = self.oid
+        if not self_oid:
+            self_oid = self.tid
+            mos = MergeOrder.objects.filter(oid=self.oid,merge_trade__tid=self.tid)
+            if mos.count() == 0:
+                moos = MergeOrder.objects.filter(merge_trade__tid=self.tid)
+                if moos.count() == 1:
+                    self_oid = moos[0].oid
+            
+        mos = MergeOrder.objects.filter(oid=self_oid)
         if mos.count() == 0:
-            raise Exception('unexpect order no:%s-%s'%(self.tid,self.oid))
+            raise Exception('unexpect order no:%s-%s'%(self.tid,self_oid))
         
         mos.update(refund_status=pcfg.REFUND_SUCCESS)
+        
         #判断订单是否所有商品都已退款
         for o in mos:
-            merge_qs = MergeTrade.objects.get(tid=self.tid,user=self.user,
-                                              sys_status=pcfg.FINISHED_STATUS)
-            for t in merge_qs:
-                order_qs = t.normal_orders.filter(refund_status__in=(pcfg.NO_REFUND,pcfg.REFUND_CLOSED))
-                if order_qs.count() == 0:
-                    t.status = pcfg.TRADE_CLOSED
-                    t.save() 
+            t = o.merge_trade
+            if t.user != self.user:
+                self.user = t.user
+
+            order_qs = t.normal_orders.filter(refund_status__in=(pcfg.NO_REFUND,pcfg.REFUND_CLOSED))
+            if order_qs.count() == 0:
+                t.status = pcfg.TRADE_CLOSED
+                
+            t.save()
+
         
-        
-        
-        
-        
-            
-        
-        
-    
        
 #如果创建的退货单有退款编号，就要删除系统没有退款编号的交易 
 def save_refund_and_remove_unrefunded(sender,instance,*args,**kwargs):
