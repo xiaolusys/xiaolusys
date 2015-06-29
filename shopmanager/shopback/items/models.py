@@ -143,6 +143,10 @@ class Product(models.Model):
         return self.prod_skus.filter(status=pcfg.NORMAL)
     
     @property
+    def normal_skus(self):
+        return self.eskus
+    
+    @property
     def pskus(self):
         return self.prod_skus.filter(status__in=(pcfg.NORMAL,pcfg.REMAIN))
     
