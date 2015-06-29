@@ -150,13 +150,13 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         base_price = 20
         
-        if not day_date or day_date < datetime.date(2015,6,30):
+        if not day_date or day_date < datetime.date(2015,6,31):
             return base_price + agency_level.get_Click_Price(ordernum)
         
-#         pre_date = day_date - datetime.timedelta(days=1)
-#         mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_state=pre_date)
-#         if mm_stats.count() > 0:
-#             base_price = mm_stats[0].base_click_price
+        pre_date = day_date - datetime.timedelta(days=1)
+        mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
+        if mm_stats.count() > 0:
+            base_price = mm_stats.base_click_price
         
         return base_price + agency_level.get_Click_Price(ordernum)
     
@@ -556,14 +556,13 @@ class MamaDayStats(models.Model):
         
         if self.lweek_clicks < 50:
             return 20
-        
-        roi = max(self.lweek_roi,self.tweek_roi)
-        if roi < 0.005:
+        #如果两周连续转化率低于1%
+        if self.lweek_roi < 0.01 and self.tweek_roi < 0.01:
             return 5
-        if roi < 0.01:
+        
+        #如果一周转化率低于1%
+        if self.lweek_roi < 0.01:
             return 10
-        if roi < 0.02:
-            return 15
         
         return 20
 

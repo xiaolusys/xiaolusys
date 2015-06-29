@@ -50,7 +50,6 @@ def task_Push_Rebeta_To_MamaCash(target_date):
 @task(max_retry=3, default_retry_delay=5)
 def task_Tongji_User_Order(pre_day=1):
     try:
-
         pre_date  = datetime.date.today() - datetime.timedelta(days=pre_day)
         time_from = datetime.datetime(pre_date.year, pre_date.month, pre_date.day)
         time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)
