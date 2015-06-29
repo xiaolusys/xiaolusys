@@ -316,7 +316,7 @@ class MamaIncomeDetailView(View):
                 carry_confirm = order_stat[0].carry_Confirm()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
-            click_price  = xlmm.get_Mama_Click_Price(order_num) / 100
+            click_price  = xlmm.get_Mama_Click_Price_By_Day(order_num, day_date=target_date) / 100.0
             
             click_num    = 0 
             click_pay    = 0 
