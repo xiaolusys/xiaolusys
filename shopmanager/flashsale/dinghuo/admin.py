@@ -237,4 +237,11 @@ class RecordGroupPointAdmin(admin.ModelAdmin):
         'group_name', 'point_type', 'point_content', 'get_point', 'record_time')
     search_fields = ['point_content']
     list_filter = ['group_name', ('record_time', DateFieldListFilter), 'point_type']
+
+    def queryset(self, request):
+        qs = super(RecordGroupPointAdmin, self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.exclude(get_point='0')
 admin.site.register(RecordGroupPoint, RecordGroupPointAdmin)
