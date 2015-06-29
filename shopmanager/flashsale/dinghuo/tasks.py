@@ -241,7 +241,7 @@ def get_sale_amount_by_product(product):
                 "and gift_type !=4 " \
                 "and (pay_time between '{0}' and '{1}') " \
                 "and char_length(outer_id)>=9 " \
-                "and outer_id=420 " \
+                "and outer_id={2} " \
                 "group by outer_id".format(shelve_from, time_to, pro_outer_id)
     print order_sql
     try:
