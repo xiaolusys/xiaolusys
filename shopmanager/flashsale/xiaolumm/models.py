@@ -150,7 +150,7 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         base_price = 20
         
-        if not day_date or day_date < datetime.datetime(2015,6,29):
+        if not day_date or day_date < datetime.date(2015,6,30):
             return base_price + agency_level.get_Click_Price(ordernum)
         
 #         pre_date = day_date - datetime.timedelta(days=1)
