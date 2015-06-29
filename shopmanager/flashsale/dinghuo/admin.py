@@ -3,7 +3,7 @@ from django.contrib import admin
 from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail
 from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
-from shopback.base.options import DateFieldListFilter
+from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
@@ -235,4 +235,6 @@ from flashsale.dinghuo.models_stats import RecordGroupPoint
 class RecordGroupPointAdmin(admin.ModelAdmin):
     list_display = (
         'group_name', 'point_type', 'point_content', 'get_point', 'record_time')
+    search_fields = ['point_content']
+    list_filter = ['group_name', ('record_time', DateFieldListFilter), 'point_type']
 admin.site.register(RecordGroupPoint, RecordGroupPointAdmin)

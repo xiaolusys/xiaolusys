@@ -77,9 +77,15 @@ class DailySupplyChainStatsOrder(models.Model):
 
 
 class RecordGroupPoint(models.Model):
+    ARRIVAL_POINT = '1'
+    SALE_POINT = '2'
+    POINT_TYPE_CHOICE = (
+        (ARRIVAL_POINT, u'到货'),
+        (SALE_POINT, u'销售'),
+    )
     group_id = models.CharField(max_length=32, verbose_name=u'组')
     group_name = models.CharField(max_length=32, verbose_name=u'组名')
-    point_type = models.CharField(max_length=32, verbose_name=u'加分类型')
+    point_type = models.CharField(max_length=32, verbose_name=u'加分类型', choices=POINT_TYPE_CHOICE)
     point_content = models.CharField(max_length=32, verbose_name=u'加分内容')
     get_point = models.IntegerField(default=0, verbose_name=u'分数')
     record_time = models.DateField(auto_now_add=True, verbose_name=u'奖励时间')
