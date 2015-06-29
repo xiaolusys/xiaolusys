@@ -251,7 +251,7 @@ def get_sale_amount_by_product(product):
     finally:
         cursor.close()
     if len(raw) > 0:
-        sale_num = raw[2]
+        sale_num = raw[0][2]
         sale_amount = sale_num * agent_price
         gain_amount = sale_num * (agent_price - cost)
         if sale_num > 5000:
@@ -268,9 +268,12 @@ def get_sale_amount_by_product(product):
 
 
 def save_point_by_time(time_from, time_to, user_a, user_b, user_c):
-    all_product_a = Product.objects.filter(sale_time__range=(time_from, time_to)).filter(sale_charger__in=user_a)
-    all_product_b = Product.objects.filter(sale_time__range=(time_from, time_to)).filter(sale_charger__in=user_b)
-    all_product_c = Product.objects.filter(sale_time__range=(time_from, time_to)).filter(sale_charger__in=user_c)
+    all_product_a = Product.objects.filter(sale_time__range=(time_from, time_to)).filter(
+        sale_charger__in=user_a).filter(status='normal')
+    all_product_b = Product.objects.filter(sale_time__range=(time_from, time_to)).filter(
+        sale_charger__in=user_b).filter(status='normal')
+    all_product_c = Product.objects.filter(sale_time__range=(time_from, time_to)).filter(
+        sale_charger__in=user_c).filter(status='normal')
     total_sale = {"A-sale": 0, "B-sale": 0, "C-sale": 0, "A-gain": 0, "B-gain": 0, "C-gain": 0}
     for product in all_product_a:
         product_dict = get_sale_amount_by_product(product)
@@ -326,7 +329,7 @@ def save_point_by_time(time_from, time_to, user_a, user_b, user_c):
     else:
         return ""
 
-    content = "X"+time_from.strftime("%Y")+time_from.strftime("%W")
+    content = "X" + time_from.strftime("%Y") + time_from.strftime("%W")
     record_point = RecordGroupPoint.objects.get_or_create(point_type=u'2', point_content=content)
     record_point[0].group_id = group_id
     record_point[0].group_name = group_name
@@ -344,7 +347,7 @@ def save_point_by_time(time_from, time_to, user_a, user_b, user_c):
         group_name = "采购C"
     else:
         return ""
-    content = "M"+time_from.strftime("%Y")+time_from.strftime("%W")
+    content = "M" + time_from.strftime("%Y") + time_from.strftime("%W")
     record_point = RecordGroupPoint.objects.get_or_create(point_type=u'2', point_content=content)
     record_point[0].group_id = group_id
     record_point[0].group_name = group_name
