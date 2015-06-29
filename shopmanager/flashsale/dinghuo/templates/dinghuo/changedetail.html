@@ -238,20 +238,21 @@
             </div>
         </div>
     </div>
-    <div class="row" >
+    <div class="row">
         <div class="col-lg-4">
-                <div class="alert alert-success" role="alert">
-                    <strong>快递单号:</strong>{{ orderlist.express_no }}
-                </div>
+            <div class="alert alert-success" role="alert">
+                <strong>快递单号:</strong>{{ orderlist.express_no }}
+            </div>
 
-                <div class="alert alert-success" role="alert">
-                    <strong>金额:</strong> {{ orderlist.order_amount }}
-                </div>
+            <div class="alert alert-success" role="alert">
+                <strong>金额:</strong> {{ orderlist.order_amount }}
+            </div>
 
         </div>
 
         <div class="col-lg-8">
-                <textarea style="background-color:#B4EEB4" id="id_note" rows="6" cols="40" name="note" readonly="readonly" class="form-control" >{{ orderlist.note|safe }}
+                <textarea style="background-color:#B4EEB4" id="id_note" rows="6" cols="40" name="note"
+                          readonly="readonly" class="form-control">{{ orderlist.note|safe }}
                 </textarea>
         </div>
 
@@ -402,7 +403,9 @@
                 <td width="100px"><input id="total_quantity_num" type="text" value="0" readonly/></td>
                 <td></td>
                 <td width="100px"><input id="total_amount_num" type="text" value="0" readonly/></td>
-                <td colspan="4"></td>
+                <td width="100px"><input id="total_arrival_num" type="text" value="0" readonly/></td>
+                <td width="100px"><input id="total_inferior_num" type="text" value="0" readonly/></td>
+                <td colspan="2"></td>
             </tr>
             </tfoot>
         </table>
@@ -469,10 +472,13 @@
         var Calc_stats_data = function () {
             var total_quantity_num = 0;
             var total_amount_num = 0;
-
+            var total_arrival_num = 0;
+            var total_inferior_num = 0;
 
             var quantity_num = 0;
             var amount_num = 0;
+            var arrival_num = 0;
+            var inferior_num = 0;
 
 
             var rows = $("#orderdetailtable > tbody > tr");
@@ -484,6 +490,8 @@
 
                 quantity_num = row.cells[4].innerText;
                 amount_num = row.cells[6].innerText;
+                arrival_num = row.cells[7].innerText;
+                inferior_num = row.cells[8].innerText;
 
 
                 if (parseInt(quantity_num)) {
@@ -493,12 +501,17 @@
                 if (parseFloat(amount_num)) {
                     total_amount_num += parseFloat(amount_num);
                 }
-
+                if (parseInt(arrival_num)) {
+                    total_arrival_num += parseInt(arrival_num);
+                }
+                if (parseInt(inferior_num)) {
+                    total_inferior_num += parseInt(inferior_num);
+                }
             }
-
             $('#total_quantity_num').val(total_quantity_num.toString());
             $('#total_amount_num').val(total_amount_num.toFixed(2).toString());
-
+            $('#total_arrival_num').val(total_arrival_num.toString());
+            $('#total_inferior_num').val(total_inferior_num.toString());
         }
         $(function () {
             Calc_stats_data();
