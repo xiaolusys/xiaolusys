@@ -137,19 +137,24 @@ class XiaoluMama(models.Model):
     def get_Mama_Click_Price(self,ordernum):
         """ 获取今日小鹿妈妈点击价格 """
         
-        return self.get_Mama_Click_Price_By_Day(ordernum,pre_day=0)
+        cur_date = datetime.date.today() 
+        
+        return self.get_Mama_Click_Price_By_Day(ordernum,day_date=cur_date)
     
-    def get_Mama_Click_Price_By_Day(self, ordernum, pre_day=0):
+    def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
         """ 按日期获取小鹿妈妈点击价格 """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
         
-        pre_day += 1
         agency_level = agency_levels[0]
         base_price = 20
-#         yesterday = datetime.date.today() - datetime.timedelta(days=pre_day)
-#         mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_state=yesterday)
+        
+        if not day_date or day_date < datetime.datetime(2015,6,29):
+            return base_price + agency_level.get_Click_Price(ordernum)
+        
+#         pre_date = day_date - datetime.timedelta(days=1)
+#         mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_state=pre_date)
 #         if mm_stats.count() > 0:
 #             base_price = mm_stats[0].base_click_price
         
@@ -506,18 +511,21 @@ class MamaDayStats(models.Model):
         return self.base_click_price / 100.0
     
     get_base_click_price_display.allow_tags = True
+    get_base_click_price_display.admin_order_field = 'base_click_price'
     get_base_click_price_display.short_description = u"基础点击价格"
     
     def get_lweek_payment_display(self):
         return self.lweek_payment / 100.0
     
     get_lweek_payment_display.allow_tags = True
+    get_lweek_payment_display.admin_order_field = 'lweek_payment'
     get_lweek_payment_display.short_description = u"周购买金额"
     
     def get_tweek_payment_display(self):
         return self.tweek_payment / 100.0
     
     get_tweek_payment_display.allow_tags = True
+    get_tweek_payment_display.admin_order_field = 'tweek_payment'
     get_tweek_payment_display.short_description = u"两周购买金额"
     
     @property
