@@ -243,20 +243,20 @@ def get_sale_amount_by_product(product):
                 "and char_length(outer_id)>=9 " \
                 "and outer_id={2} " \
                 "group by outer_id".format(shelve_from, time_to, pro_outer_id)
-    print order_sql
     try:
         cursor = connection.cursor()
         cursor.execute(order_sql)
         raw = cursor.fetchall()
     finally:
         cursor.close()
+    print raw
     if len(raw) > 0:
         sale_num = raw[0][2]
         sale_amount = sale_num * agent_price
         gain_amount = sale_num * (agent_price - cost)
-        if sale_num > 5000:
+        if sale_amount > 5000:
             point = 3
-        elif sale_num > 2000:
+        elif sale_amount > 2000:
             point = 1
         else:
             point = 0
@@ -280,7 +280,7 @@ def save_point_by_time(time_from, time_to, user_a, user_b, user_c):
         total_sale["A-sale"] += product_dict["sale_amount"]
         total_sale["A-gain"] += product_dict["gain_amount"]
         point = product_dict["point"]
-        content = product_dict["pro_id"] + "-" + time_from.strftime("%Y%m%d")
+        content = product_dict["pro_id"] + "-" + product.sale_time.strftime("%Y%m%d")
         record_point = RecordGroupPoint.objects.get_or_create(point_type=u'2', point_content=content)
         my_user = MyUser.objects.filter(user__username=product.sale_charger)
         if my_user.count() > 0:
@@ -294,7 +294,7 @@ def save_point_by_time(time_from, time_to, user_a, user_b, user_c):
         total_sale["B-sale"] += product_dict["sale_amount"]
         total_sale["B-gain"] += product_dict["gain_amount"]
         point = product_dict["point"]
-        content = product_dict["pro_id"] + "-" + time_from.strftime("%Y%m%d")
+        content = product_dict["pro_id"] + "-" + product.sale_time.strftime("%Y%m%d")
         record_point = RecordGroupPoint.objects.get_or_create(point_type=u'2', point_content=content)
         my_user = MyUser.objects.filter(user__username=product.sale_charger)
         if my_user.count() > 0:
@@ -308,7 +308,7 @@ def save_point_by_time(time_from, time_to, user_a, user_b, user_c):
         total_sale["C-sale"] += product_dict["sale_amount"]
         total_sale["C-gain"] += product_dict["gain_amount"]
         point = product_dict["point"]
-        content = product_dict["pro_id"] + "-" + time_from.strftime("%Y%m%d")
+        content = product_dict["pro_id"] + "-" + product.sale_time.strftime("%Y%m%d")
         record_point = RecordGroupPoint.objects.get_or_create(point_type=u'2', point_content=content)
         my_user = MyUser.objects.filter(user__username=product.sale_charger)
         if my_user.count() > 0:
