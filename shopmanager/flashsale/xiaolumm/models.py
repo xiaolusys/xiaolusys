@@ -7,6 +7,8 @@ from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
+ROI_CLICK_START = datetime.date(2015,7,1)
+
 MM_CLICK_DAY_LIMIT = 1
 MM_CLICK_DAY_BASE_COUNT  = 50
 MM_CLICK_PER_ORDER_PLUS_COUNT = 30
@@ -150,7 +152,7 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         base_price = 20
         
-        if not day_date or day_date < datetime.date(2015,6,31):
+        if not day_date or day_date < ROI_CLICK_START:
             return base_price + agency_level.get_Click_Price(ordernum)
         
         pre_date = day_date - datetime.timedelta(days=1)
