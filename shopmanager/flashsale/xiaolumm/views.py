@@ -730,7 +730,6 @@ def get_Deposit_Trade(openid, mobile):
                                                sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
 
         if sale_orders.count() > 0:
-            print 'openid:', openid
             return True  # 返回订单
 
         # 按照手机号码来匹配代理缴费情况
