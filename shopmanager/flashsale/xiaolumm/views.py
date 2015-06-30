@@ -96,11 +96,15 @@ class CashoutView(View):
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
+        kefu_mobile = '18516655836'
+        if not xlmm.charge_time or xlmm.charge_time > datetime.datetime(2015,6,30,15):
+            kefu_mobile = '18516316989'
+        
         cash_outable = click_nums >= 150 or shoppings_count >= 6
             
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
         
-        data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
+        data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 'kefu_mobile':kefu_mobile,
                 "referal_list":referal_list ,"could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
