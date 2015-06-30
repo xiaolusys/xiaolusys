@@ -194,11 +194,15 @@ def task_daily_stat_group_point():
 @task(max_retry=3, default_retry_delay=5)
 def task_daily_stat_ding_huo():
     try:
-        all_ding_huo = OrderList.objects.exclude(status=u'作废').exclude(status=u'7')
+        today = datetime.date.today()
+        time_from = today - datetime.timedelta(days=14)
+        all_ding_huo = OrderList.objects.exclude(status=u'作废').exclude(status=u'7').filter(
+            created__range=(time_from, today))
         for item in all_ding_huo:
             reach_st = get_reach_standard_by_item(item)
-            item.reach_standard = reach_st
-            item.save()
+            if item.reach_standard != reach_st:
+                item.reach_standard = reach_st
+                item.save()
     except Exception, exc:
         raise task_daily_stat_group_point.retry(exc=exc)
 
