@@ -9,6 +9,6 @@ router.register(r'saletrades', views.SaleTradeViewSet)
 
 urlpatterns = patterns('',
 
-    url(r'^', include(router.urls)),
+    url(r'^', include(router.urls),{'format':'api'}),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 )
