@@ -83,7 +83,7 @@ class CashoutView(View):
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
-        referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile,status=XiaoluMama.FROZEN)
+        referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile,status=XiaoluMama.EFFECT)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
         
 #         day_to   = datetime.datetime.now()
@@ -189,7 +189,7 @@ class MamaStatsView(View):
         mobile = wx_user.mobile
         data   = {}
         try:
-            referal_num = XiaoluMama.objects.filter(referal_from=mobile,status=XiaoluMama.FROZEN).count()
+            referal_num = XiaoluMama.objects.filter(referal_from=mobile,status=XiaoluMama.EFFECT).count()
             xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
