@@ -152,6 +152,7 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         base_price = 20
         
+
         if not day_date or day_date < ROI_CLICK_START:
             return base_price + agency_level.get_Click_Price(ordernum)
         

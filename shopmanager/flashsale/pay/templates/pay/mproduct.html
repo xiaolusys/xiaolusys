@@ -400,6 +400,7 @@ function hideLoader()
         
         var params = {"pid":$('#id_product').val(),
                       "sid":size,
+                      "format":"html",
                       "num":amount}
                       //"csrfmiddlewaretoken":csrf_token};
         window.location.href = '/mm/orderbuy/?'+$.param(params);

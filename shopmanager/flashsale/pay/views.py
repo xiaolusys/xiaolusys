@@ -298,7 +298,10 @@ class ProductList(generics.ListCreateAPIView):
         
         page = self.paginate_queryset(fliter_qs)
         if page is not None:
-            serializer = self.get_pagination_serializer(page)
+            if hasattr(self,'get_paginated_response'):
+                serializer = self.get_paginated_response(page)
+            else:
+                serializer = self.get_pagination_serializer(page)
         else:
             serializer = self.get_serializer(fliter_qs, many=True)
 
