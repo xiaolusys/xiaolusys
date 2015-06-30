@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework import permissions
 
 from shopback.items.models import Product
 from flashsale.pay.models import SaleTrade
@@ -12,6 +13,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
 class SaleTradeViewSet(viewsets.ModelViewSet):
@@ -20,3 +22,4 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     queryset = SaleTrade.objects.all()
     serializer_class = SaleTradeSerializer# Create your views here.
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)

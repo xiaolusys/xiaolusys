@@ -44,7 +44,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
     list_display_links = ('id','tid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter   = ('status','channel',('created',DateFieldListFilter))
+    list_filter   = ('status','channel',('pay_time',DateFieldListFilter),('created',DateFieldListFilter))
     search_fields = ['tid','id','receiver_mobile']
     
     inlines = [SaleOrderInline]
