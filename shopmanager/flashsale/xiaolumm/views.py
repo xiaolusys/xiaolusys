@@ -724,17 +724,34 @@ def stats_summary(request):
 from flashsale.pay.models_user import Customer
 from flashsale.pay.models import SaleTrade,SaleOrder
 
-def get_Deposit_Trade(openid):
+def get_Deposit_Trade(openid, mobile):
     try:
         customer = Customer.objects.get(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
 
-        sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                     sale_trade__buyer_id=customer.id,
-                                     sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+        sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, refund_status=SaleRefund.NO_REFUND,
+                                               status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                               sale_trade__buyer_id=customer.id,
+                                               sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
 
-        if sale_orders.count() == 0:
-            return None
-        return sale_orders[0].sale_trade  # 返回订单
+        if sale_orders.count() > 0:
+            return True  # 返回订单
+
+        # 按照手机号码来匹配代理缴费情况
+
+        sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=100,
+                                               status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+        if sale_trades.count() == 0:    # 没有交易记录返回空
+            return False
+        else:
+            # 有TRDE记录， 则查看订单
+            for trade in sale_trades:  # 寻找RMB100的Order
+                orders = SaleOrder.objects.filter(sale_trade=trade.id, outer_id='RMB100', payment=100,
+                                                  refund_status=SaleRefund.NO_REFUND,
+                                                  status=SaleOrder.WAIT_SELLER_SEND_GOODS)
+                if orders.count() == 0:
+                    return False
+                else:
+                    return True
     except:
         return None
 
@@ -750,7 +767,7 @@ def mama_Verify(request):
     user_groups = UserGroup.objects.filter(code__in=default_code)
     
     for xlmm in xlmms:
-        trade = get_Deposit_Trade(xlmm.openid)
+        trade = get_Deposit_Trade(xlmm.openid, xlmm.mobile)
         if trade:
             id = xlmm.id
             mobile = xlmm.mobile

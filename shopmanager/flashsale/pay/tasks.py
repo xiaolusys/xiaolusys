@@ -167,10 +167,12 @@ def pushTradeRefundTask(refund_id):
         from shopback.refunds.models import Refund
         
         seller = getOrCreateSaleSeller()
-        refund,state  = Refund.objects.get_or_create(tid=sale_refund.trade_id,
-                                                     oid=sale_refund.order_id)
+        sorder = SaleOrder.objects.get(id=sale_refund.order_id)
+        refund,state  = Refund.objects.get_or_create(tid=strade.tid,
+                                                     oid=sorder.oid)
         
         refund.user = seller
+        refund.title = sorder.title
         refund.payment = sale_refund.payment
         
         if sale_refund.has_good_return:
