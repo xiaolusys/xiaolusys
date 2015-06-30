@@ -114,6 +114,7 @@ class StatsSupplierView(View):
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
         group_name = content.get("groupname", 0)
+        group_name = int(group_name)
         if start_time_str:
             year, month, day = start_time_str.split('-')
             start_date = datetime.date(int(year), int(month), int(day))

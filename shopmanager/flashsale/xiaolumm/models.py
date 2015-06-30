@@ -7,9 +7,12 @@ from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
+ROI_CLICK_START = datetime.date(2015,7,1)
+
 MM_CLICK_DAY_LIMIT = 1
 MM_CLICK_DAY_BASE_COUNT  = 50
 MM_CLICK_PER_ORDER_PLUS_COUNT = 30
+
 
 class XiaoluMama(models.Model):
     
@@ -134,12 +137,32 @@ class XiaoluMama(models.Model):
         return agency_level.get_Rebeta_Rate()
     
     def get_Mama_Click_Price(self,ordernum):
-        """ 获取小鹿妈妈点击价格 """
+        """ 获取今日小鹿妈妈点击价格 """
+        
+        cur_date = datetime.date.today() 
+        
+        return self.get_Mama_Click_Price_By_Day(ordernum,day_date=cur_date)
+    
+    def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
+        """ 按日期获取小鹿妈妈点击价格 """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
+        
         agency_level = agency_levels[0]
-        return agency_level.get_Click_Price(ordernum)
+        base_price = 20
+        
+
+        if not day_date or day_date < ROI_CLICK_START:
+            return base_price + agency_level.get_Click_Price(ordernum)
+        
+        pre_date = day_date - datetime.timedelta(days=1)
+        mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
+        if mm_stats.count() > 0:
+            base_price = mm_stats.base_click_price
+        
+        return base_price + agency_level.get_Click_Price(ordernum)
+    
         
     def get_Mama_Max_Valid_Clickcount(self,ordernum):
         """ 获取小鹿妈妈最大有效点击数 """
@@ -148,6 +171,7 @@ class XiaoluMama(models.Model):
             return 0
         agency_level = agency_levels[0]
         return agency_level.get_Max_Valid_Clickcount(ordernum)
+    
     
     def push_carrylog_to_cash(self,clog):
         
@@ -209,13 +233,13 @@ class AgencyLevel(models.Model):
         return self.get_extra_rate_display()
     
     def get_Click_Price(self,order_num):
-        
+        """ 点击据订单价格提成 """
         if self.id < 2:
             return 0
         
-        click_price = 0.2
+        click_price = 0
         if order_num > 2:
-            click_price = 0.5
+            click_price = 0.3
         else:
             click_price += order_num * 0.1
         
@@ -447,14 +471,13 @@ def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
             xlmm.progress = XiaoluMama.PAY
             xlmm.save()
             
-    
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
 
-    
 # 首单红包，10单红包
 
 class OrderRedPacket(models.Model):
-    xlmm = models.IntegerField(unique=True, blank=False, db_index=True, verbose_name=u"妈妈编号")
+    
+    xlmm = models.IntegerField(unique=True, blank=False, verbose_name=u"妈妈编号")
     first_red = models.BooleanField(default=False, verbose_name=u"首单红包")
     ten_order_red = models.BooleanField(default=False, verbose_name=u"十单红包")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
@@ -462,12 +485,89 @@ class OrderRedPacket(models.Model):
 
     class Meta:
         db_table = 'xiaolumm_order_red_packet'
-        verbose_name = u'妈妈（首/十）单红包表'
-        verbose_name_plural = u'妈妈（首/十）单红包列表'
+        verbose_name = u'妈妈订单红包表'
+        verbose_name_plural = u'妈妈订单红包列表'
 
 
+class MamaDayStats(models.Model):
+    
+    xlmm        = models.IntegerField(default=0, verbose_name=u'妈妈编号')
+    day_date    = models.DateField(verbose_name=u'统计日期')
+    base_click_price  = models.IntegerField(default=0,verbose_name=u'基础点击价格')
+    
+    lweek_clicks = models.IntegerField(default=0,verbose_name=u'周有效点击')
+    lweek_buyers = models.IntegerField(default=0,verbose_name=u'周购买用户')
+    lweek_payment = models.IntegerField(default=0,verbose_name=u'周购买金额')
+    
+    tweek_clicks = models.IntegerField(default=0,verbose_name=u'两周有效点击')
+    tweek_buyers = models.IntegerField(default=0,verbose_name=u'两周购买用户')
+    tweek_payment = models.IntegerField(default=0,verbose_name=u'两周购买金额')
+    
+    class Meta:
+        db_table = 'xiaolumm_dailystat'
+        unique_together = ('xlmm', 'day_date') 
+        app_label = 'xiaolumm'
+        verbose_name = u'妈妈/每日统计'
+        verbose_name_plural = u'妈妈/每日统计列表'
+    
+    def get_base_click_price_display(self):
+        return self.base_click_price / 100.0
+    
+    get_base_click_price_display.allow_tags = True
+    get_base_click_price_display.admin_order_field = 'base_click_price'
+    get_base_click_price_display.short_description = u"基础点击价格"
+    
+    def get_lweek_payment_display(self):
+        return self.lweek_payment / 100.0
+    
+    get_lweek_payment_display.allow_tags = True
+    get_lweek_payment_display.admin_order_field = 'lweek_payment'
+    get_lweek_payment_display.short_description = u"周购买金额"
+    
+    def get_tweek_payment_display(self):
+        return self.tweek_payment / 100.0
+    
+    get_tweek_payment_display.allow_tags = True
+    get_tweek_payment_display.admin_order_field = 'tweek_payment'
+    get_tweek_payment_display.short_description = u"两周购买金额"
+    
+    @property
+    def lweek_roi(self):
+        if self.lweek_clicks == 0:
+            return 0
+        return float('%.4f'%(self.lweek_buyers / (self.lweek_clicks * 1.0)))
+        
+    def get_lweek_roi_display(self):
+        return self.lweek_roi
 
+    get_lweek_roi_display.allow_tags = True
+    get_lweek_roi_display.short_description = u"周转化率"
+    
+    @property
+    def tweek_roi(self):
+        if self.tweek_clicks == 0:
+            return 0
+        return float('%.4f'%(self.tweek_buyers / (self.tweek_clicks * 1.0)))
+        
+    def get_tweek_roi_display(self):
+        return self.tweek_roi
 
+    get_tweek_roi_display.allow_tags = True
+    get_tweek_roi_display.short_description = u"两周转化率"
+    
+    def calc_click_price(self):
+        
+        if self.lweek_clicks < 50:
+            return 20
+        #如果两周连续转化率低于1%
+        if self.lweek_roi < 0.01 and self.tweek_roi < 0.01:
+            return 5
+        
+        #如果一周转化率低于1%
+        if self.lweek_roi < 0.01:
+            return 10
+        
+        return 20
 
 
 

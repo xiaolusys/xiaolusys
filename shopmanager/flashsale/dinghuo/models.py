@@ -74,7 +74,7 @@ class OrderDetail(models.Model):
     
     id = BigIntegerAutoField(primary_key=True)
     
-    orderlist = BigIntegerForeignKey(OrderList, verbose_name=u'订单编号')
+    orderlist = BigIntegerForeignKey(OrderList, related_name='order_list', verbose_name=u'订单编号')
     product_id = models.CharField(max_length=32, verbose_name=u'商品id')
     outer_id = models.CharField(max_length=32, verbose_name=u'产品外部编码')
     product_name = models.CharField(max_length=128, verbose_name=u'产品名称')

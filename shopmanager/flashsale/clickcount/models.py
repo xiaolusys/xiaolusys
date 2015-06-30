@@ -22,13 +22,14 @@ class ClickCount(models.Model):
         app_label = 'xiaolumm'
         verbose_name = u'点击统计表'
         verbose_name_plural = u'点击统计表列表'
-        ordering=['-date','-user_num','-click_num']
+        ordering=['-date']
 
     def __unicode__(self):
         return self.weikefu
 
 
 class WeekCount(models.Model):
+    
     linkid = models.IntegerField(db_index=True,verbose_name=u'链接ID')
     weikefu = models.CharField(max_length=32, blank=True, db_index=True, verbose_name=u'微客服')
     user_num = models.IntegerField(default=0, verbose_name=u'点击人数')
@@ -45,7 +46,7 @@ class WeekCount(models.Model):
         app_label = 'xiaolumm'
         verbose_name = u"代理转化率周统计"
         verbose_name_plural = u"代理转化率周统计列表"
-        ordering = ['write_time', '-ordernumcount', '-valid_num']
+        ordering = ['write_time']
         
     def __unicode__(self):
         return self.weikefu

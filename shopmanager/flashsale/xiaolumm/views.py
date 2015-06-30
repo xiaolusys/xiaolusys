@@ -140,7 +140,8 @@ class CashOutList(generics.ListAPIView):
     
 
 class CarryLogList(generics.ListAPIView):
-    queryset = CarryLog.objects.exclude(log_type__in=(CarryLog.MAMA_RECRUIT,CarryLog.ORDER_RED_PAC)).order_by('-carry_date') #
+    queryset = CarryLog.objects.exclude(
+                    log_type__in=(CarryLog.MAMA_RECRUIT,CarryLog.ORDER_RED_PAC)).order_by('-carry_date') #
     serializer_class = CarryLogSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
@@ -196,7 +197,7 @@ class MamaStatsView(View):
             
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
             
-            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(log_type__in=(CarryLog.ORDER_RED_PAC,CarryLog.MAMA_RECRUIT))
+            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(log_type=CarryLog.ORDER_RED_PAC)
             pending_value = mm_clogs.filter(status=CarryLog.PENDING).aggregate(total_value=Sum('value')).get('total_value') or 0 
             
             total_income = mm_clogs.filter(carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED).aggregate(total_value=Sum('value')).get('total_value') or 0
@@ -316,7 +317,7 @@ class MamaIncomeDetailView(View):
                 carry_confirm = order_stat[0].carry_Confirm()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
-            click_price  = xlmm.get_Mama_Click_Price(order_num) / 100
+            click_price  = xlmm.get_Mama_Click_Price_By_Day(order_num, day_date=target_date) / 100.0
             
             click_num    = 0 
             click_pay    = 0 

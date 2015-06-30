@@ -213,8 +213,8 @@ REST_FRAMEWORK = {
     #'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
     'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.TemplateHTMLRenderer',
-        'rest_framework.renderers.YAMLRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'PAGINATE_BY': 10,                 # Default to 10
