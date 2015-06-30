@@ -730,14 +730,14 @@ def get_Deposit_Trade(openid, mobile):
 
         if sale_orders.count() > 0:
             print 'openid:', openid
-            return sale_orders[0].sale_trade  # 返回订单
+            return True  # 返回订单
 
         # 按照手机号码来匹配代理缴费情况
 
         sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=100,
                                                status=SaleTrade.WAIT_SELLER_SEND_GOODS)
         if sale_trades.count() == 0:    # 没有交易记录返回空
-            return None
+            return False
         else:
             # 有TRDE记录， 则查看订单
             for trade in sale_trades:  # 寻找RMB100的Order
@@ -745,9 +745,9 @@ def get_Deposit_Trade(openid, mobile):
                                                   refund_status=SaleRefund.NO_REFUND,
                                                   status=SaleOrder.WAIT_SELLER_SEND_GOODS)
                 if orders.count() == 0:
-                    return None
+                    return False
                 else:
-                    return orders[0].sale_trade
+                    return True
     except:
         return None
 
