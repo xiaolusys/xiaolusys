@@ -83,7 +83,7 @@ class CashoutView(View):
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
-        referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile)
+        referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile,status=XiaoluMama.FROZEN)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
         
 #         day_to   = datetime.datetime.now()
@@ -97,7 +97,7 @@ class CashoutView(View):
         shoppings_count = shoppings.count()
         
         kefu_mobile = '18516655836'
-        if not xlmm.charge_time or xlmm.charge_time > datetime.datetime(2015,6,30,15):
+        if cashout_objs.count() == 0 or cashout_objs[0].created > datetime.datetime(2015,6,30,15):
             kefu_mobile = '18516316989'
         
         cash_outable = click_nums >= 150 or shoppings_count >= 6
@@ -189,7 +189,7 @@ class MamaStatsView(View):
         mobile = wx_user.mobile
         data   = {}
         try:
-            referal_num = XiaoluMama.objects.filter(referal_from=mobile).count()
+            referal_num = XiaoluMama.objects.filter(referal_from=mobile,status=XiaoluMama.FROZEN).count()
             xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
