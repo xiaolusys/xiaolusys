@@ -7,6 +7,7 @@
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
+
     <style type="text/css">
         .floatButton {
             margin-right: 0px;
@@ -21,7 +22,94 @@
             right: 20px;
             position: absolute;
         }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 10000000;
+            background: white;
+            color: #74b936;
+            text-align: center
+        }
+
+        #loading .loading-container {
+            position: absolute;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 30%;
+            bottom: 0
+        }
+
+        #loading b {
+            color: white;
+            background: #74b936;
+            font-weight: normal;
+            padding: 5px 5px;
+            margin: 10px;
+            font-size: 50px
+        }
+
+        #loading h1, #loading h2, #loading h3, #loading h4 {
+            font-family: "Helvetica Neue", Arial, "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
+            text-align: center
+        }
+
+        #loading .reverse {
+            color: white !important;
+            background: #74b936 !important;
+            padding: 4px;
+            border-radius: 4px
+        }
+
+        #loading #loading-app-name {
+            text-align: center;
+            font-size: 54px;
+            margin-top: 0;
+            margin-bottom: .8em
+        }
+
+        #loading #loading-slogan {
+            font-weight: normal
+        }
+
+        #loading #loading-text {
+            margin: 80px auto;
+            text-align: center;
+            margin-bottom: 40px
+        }
+
+        #loading #loading-view-doc {
+            font-size: 16px;
+            margin: 10px auto
+        }
+
+        #loading #loading-view-doc a {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #74b936
+        }
+
+        #loading #loading-view-doc a:link, #loading #loading-view-doc a:hover, #loading #loading-view-doc a:active, #loading #loading-view-doc a:visited {
+            color: #74b936;
+            text-decoration: none
+        }
     </style>
+    <script>
+
+{#        function y() {#}
+{#            var e = $("#loading");#}
+{#            e.remove();#}
+{#        }#}
+        function showy(){
+            var e = $("#loading");
+            e.show()
+        }
+
+    </script>
 {% endblock %}
 {% block container %}
     <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/daily_work/">
@@ -77,7 +165,7 @@
             </div>
 
             <div class="col-xs-1">
-                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+                <input type="submit" value="查询" onclick="showy()" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
         </div>
     </form>
@@ -148,6 +236,17 @@
         <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
                 class="glyphicon glyphicon-arrow-down"></span></button>
     </div>
+    <div id="loading" style="display: none;">
+        <div class='loading-container'>
+            <h1 id='loading-app-name'>小鹿美美</h1>
+
+            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进步查询系统</span></h3>
+
+            <p id='loading-text'>加载中...</p>
+
+            <p id='loading-view-doc'><a href="/admin/" target='_blank'>首页</a></p>
+        </div>
+    </div>
 {% endblock %}
 
 {% block tail_script %}
@@ -179,6 +278,7 @@
                 $(".floatview").css("position", "fixed");
             });
         });
+
     </script>
 
 {% endblock %}
