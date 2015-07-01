@@ -11,8 +11,8 @@ def get_lack_num_by_product(product, sku):
     ding_num = get_ding_num(product, sku)
     already_reach = get_already_num(product, sku)
     exist_stock_num = get_sample_num(sku)
-    print sale_num, ding_num, already_reach,exist_stock_num
-    return sale_num - ding_num - already_reach - exist_stock_num
+    result_num = sale_num - ding_num - already_reach - exist_stock_num
+    return result_num if result_num > 0 else 0
 
 
 def get_sale_num(product, sku):
