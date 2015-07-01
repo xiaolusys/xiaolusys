@@ -31,8 +31,6 @@ def get_sale_num(product, sku):
 
 
 def get_ding_num(product, sku):
-    print OrderDetail.objects.filter(orderlist__status__in=(u'草稿', u'审核', u'7')).filter(
-        created__gte=product.sale_time).filter(product_id=product.id, chichu_id=sku.id)[1].orderlist
     return OrderDetail.objects.filter(orderlist__status__in=(u'草稿', u'审核', u'7')).filter(
         created__gte=product.sale_time).filter(product_id=product.id, chichu_id=sku.id).aggregate(
         total_num=Sum('buy_quantity')).get('total_num') or 0
