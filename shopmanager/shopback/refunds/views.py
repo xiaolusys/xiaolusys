@@ -112,7 +112,8 @@ class RefundManagerView(ModelView):
         return {'template_string':op_str,'trade_id':tid,}
         #return { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL}
     
-    
+
+from unrelate_product_handler import update_Unrelate_Prods_Product
 ############################### 退货商品订单 #################################       
 class RefundProductView(ModelView):
     """ docstring for class RefundProductView """
@@ -153,6 +154,9 @@ class RefundProductView(ModelView):
         rf.property = prod_sku.properties_alias or prod_sku.properties_name if prod_sku else ''
         
         rf.save()
+        # 创建一条退货款单记录
+        print (u'添加退款商品')
+        update_Unrelate_Prods_Product(pro=rf, req=request, trade_id=rf.trade_id)
         
         return rf
     

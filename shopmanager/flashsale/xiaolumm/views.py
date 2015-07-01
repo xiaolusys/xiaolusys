@@ -736,15 +736,15 @@ def get_Deposit_Trade(openid, mobile):
                                                sale_trade__buyer_id=customer.id,
                                                sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
 
-        if sale_orders.count() > 0:
-            return True  # 返回订单
+        if sale_orders.exists():
+            return sale_orders  # 返回订单
 
         # 按照手机号码来匹配代理缴费情况
 
         sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=100,
                                                status=SaleTrade.WAIT_SELLER_SEND_GOODS)
         if sale_trades.count() == 0:    # 没有交易记录返回空
-            return False
+            return None
         else:
             # 有TRDE记录， 则查看订单
             for trade in sale_trades:  # 寻找RMB100的Order
@@ -752,36 +752,40 @@ def get_Deposit_Trade(openid, mobile):
                                                   refund_status=SaleRefund.NO_REFUND,
                                                   status=SaleOrder.WAIT_SELLER_SEND_GOODS)
                 if orders.count() == 0:
-                    return False
+                    return None
                 else:
-                    return True
+                    return orders
     except:
         return None
 
 
 @csrf_exempt
-def mama_Verify(request):
+def mama_Verify(request, id):
     # 审核妈妈成为代理的功能
     data = []
-    xlmms = XiaoluMama.objects.filter(manager=0)  # 找出没有被接管的妈妈
+    print u'妈妈id:', id
+    xlmm = XiaoluMama.objects.get(id=id)  # 找出没有被接管的妈妈
     
     default_code = ['BLACK','NORMAL']
     default_code.append(request.user.username)
     user_groups = UserGroup.objects.filter(code__in=default_code)
     
-    for xlmm in xlmms:
-        trade = get_Deposit_Trade(xlmm.openid, xlmm.mobile)
-        if trade:
-            id = xlmm.id
-            mobile = xlmm.mobile
-            weikefu = xlmm.weikefu
-            referal_from = xlmm.referal_from
-            data_entry = {"id": id, "mobile": mobile, "sum_trade": "YES","weikefu":weikefu,'referal_from':referal_from,'cat_list':user_groups}
-            data.append(data_entry)
+
+    trade = get_Deposit_Trade(xlmm.openid, xlmm.mobile)     # 如果RMB100是True
+    if trade is None:   # 如果没有购买RMB100  返回空
+        data = []
+    else:
+        id = xlmm.id
+        mobile = xlmm.mobile
+        weikefu = xlmm.weikefu
+        referal_from = xlmm.referal_from
+        data_entry = {"id": id, "mobile": mobile, "sum_trade": "YES","weikefu":weikefu,'referal_from':referal_from,'cat_list':user_groups}
+        data.append(data_entry)
     user = request.user.username
     return render_to_response("mama_verify.html", {'data': data,'user':user}, context_instance=RequestContext(request))
 
 
+@transaction.commit_on_success
 @csrf_exempt
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
@@ -790,13 +794,14 @@ def mama_Verify_Action(request):
     user_group =int(request.GET.get('group'))
 
     xlmm = XiaoluMama.objects.get(id=mama_id)
-
-    customer = Customer.objects.get(unionid=xlmm.openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
-    sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                 sale_trade__buyer_id=customer.id,
-                                 sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
-    
-    if sale_orders.count() == 0:
+    openid = xlmm.openid
+    mobile = xlmm.mobile
+    # customer = Customer.objects.get(unionid=xlmm.openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
+    # sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+    #                              sale_trade__buyer_id=customer.id,
+    #                              sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+    sale_orders = get_Deposit_Trade(openid, mobile)  #
+    if sale_orders is None:
         return HttpResponse('reject')
     
     referal_mama = None
@@ -813,10 +818,12 @@ def mama_Verify_Action(request):
     order = sale_orders[0]
     order.status = SaleOrder.TRADE_FINISHED # 改写订单明细状态
     order.save()
+    log_action(request.user.id, order, CHANGE, u'妈妈审核过程中修改订单明细状态为 交易成功')
 
     trade = order.sale_trade
     trade.status = SaleTrade.TRADE_FINISHED  # 改写 订单状态
     trade.save()
+    log_action(request.user.id, trade, CHANGE, u'妈妈审核过程中修改订单交易状态为 交易成功')
     
     diposit_cash = 13000
     recruit_rebeta = 5000
@@ -830,7 +837,8 @@ def mama_Verify_Action(request):
                                    status=CarryLog.CONFIRMED)
     if not log_tp[1]:
         return HttpResponse('reject')
-    
+    else:
+        log_action(request.user.id, log_tp[0], ADDITION, u'妈妈审核过程中创建妈妈首个收支记录')
     xlmm.cash = F('cash') + diposit_cash # 分单位
     xlmm.referal_from = referal_mobile
     xlmm.agencylevel = 2
@@ -840,15 +848,17 @@ def mama_Verify_Action(request):
     xlmm.charge_time = datetime.datetime.now()
     xlmm.user_group_id = user_group
     xlmm.save()
+    log_action(request.user.id, xlmm, CHANGE, u'妈妈审核过程中修改该妈妈的信息以及可用现金')
     
-    if referal_mama:
-        CarryLog.objects.get_or_create(xlmm=referal_mama.id,
+    if referal_mama:  # 给推荐人添加招募奖金的收支记录，状态为pending
+        carry, state = CarryLog.objects.get_or_create(xlmm=referal_mama.id,
                                        order_num=xlmm.id,
                                         log_type=CarryLog.MAMA_RECRUIT,
                                         value=recruit_rebeta,
                                         buyer_nick=referal_mama.weikefu,
                                         carry_type=CarryLog.CARRY_IN,
                                         status=CarryLog.PENDING)
+        log_action(request.user.id, carry, ADDITION, u'妈妈审核过程中 添加妈妈推荐人的收支记录（招募奖金）')
         
     return HttpResponse('ok')
 
