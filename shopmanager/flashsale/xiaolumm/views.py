@@ -58,14 +58,12 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
         x_choice = 130.00
     mony_without_pay = cash + payment # 从未消费情况下的金额
     leave_cash_out = mony_without_pay - x_choice   # 可提现金额
-
     could_cash_out = cash
     if leave_cash_out < cash:
         could_cash_out = leave_cash_out
 
     if could_cash_out < 0 :
         could_cash_out = 0
-    
     return (cash,payment,could_cash_out)
 
 
@@ -126,11 +124,14 @@ class CashoutView(View):
         status = {"code":0, "status":"ok"}
         if m:
             value = int(m.group()) * 100
-            try:
-                xlmm = XiaoluMama.objects.get(openid=unionid)
-                CashOut.objects.create(xlmm=xlmm.pk,value=value)
-            except:
-                status = {"code":1, "status":"error"}
+            if 2000 >= value or value >= 20000:
+                status = {"code":3, "status": "input error"}
+            else:
+                try:
+                    xlmm = XiaoluMama.objects.get(openid=unionid)
+                    CashOut.objects.create(xlmm=xlmm.pk,value=value)
+                except:
+                    status = {"code":1, "status":"error"}
         else:
             status = {"code":2, "status": "input error"}
             
