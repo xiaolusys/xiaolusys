@@ -100,15 +100,14 @@
     </style>
     <script>
 
-{#        function y() {#}
-{#            var e = $("#loading");#}
-{#            e.remove();#}
-{#        }#}
-        function showy(){
+        {#        function y() {#}
+        {#            var e = $("#loading");#}
+        {#            e.remove();#}
+        {#        }#}
+        function showy() {
             var e = $("#loading");
             e.show()
         }
-
     </script>
 {% endblock %}
 {% block container %}
@@ -165,7 +164,7 @@
             </div>
 
             <div class="col-xs-1">
-                <input type="submit" value="查询" onclick="showy()" class="btn btn-primary" style="margin-top:27px;"/>
+                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
         </div>
     </form>
