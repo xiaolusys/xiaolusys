@@ -1,181 +1,193 @@
 {% extends "dinghuo/dinghuo_base.html" %}
 {% block title %}积分明细{% endblock %}
 {% block head_script %}
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
-    <style type="text/css">
-        .floatButton {
-            margin-right: 0px;
-            top: 50px;
-            left: 20px;
-            position: absolute;
+    <script type="text/javascript">
+        function ajax_data(group_id, type) {
+            $("#point-detail thead").eq(0).nextAll().remove();
+            var week_begin = $("#week_begin").html();
+            var week_to = $("#week_to").html();
+            $.post("/sale/dinghuo/point_every_day/", {
+                        group_id: group_id, point_type: type,
+                        "week_begin": week_begin, "week_to": week_to
+                    },
+                    function (result) {
+                        var tb = $('#point-detail');
+                        var result_data = eval(result);
+                        $.each(result_data, function (index, dd) {
+                            var data = dd.fields
+                            console.log(dd.fields.group_name);
+                            tb.append("<tr><td>" + data.group_name + "</td><td>" + data.point_type + "</td><td>" + data.point_content + "</td><td>"+data.get_point+"</td><td>"+data.record_time+"</td></tr>");
+                        });
+
+                    });
         }
-        .floatview {
-            margin-right: 0px;
-            bottom: 50px;
-            right: 20px;
-            position: absolute;
+    </script>
+    <style type="text/css">
+        span {
+            font-size: 15px
         }
     </style>
 {% endblock %}
 {% block container %}
-    <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/daily_work/">
+    <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/point_every_day/">
         <div class="row form-group" style="margin-top: 40px">
             <div class="col-xs-2">
-                <label class="control-label" for="df">上架日期:</label>
+                <label class="control-label" for="df">日期:</label>
                 <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
-                       value="{{ shelve_from }}"/>
+                       value="{{ target_date }}"/>
             </div>
-            <div class="col-xs-2">
-                <label class="control-label" for="dt">订单结束时间:</label>
-                <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ time_to }}"/>
-            </div>
-            <div class="col-xs-2">
-                <label class="control-label" for="showt">查看订货日期:</label>
-                <input type="text" id="show_datepicker" name="showt" class="form-control datepicker"
-                       value="{{ searchDinghuo }}"/>
-            </div>
-            <div class="col-xs-2">
-                <label class="control-label" for="groupname">查看分组:</label>
-                <select class="form-control " name="groupname" id="groupname_id">
-                    <option value="0" {% ifequal groupname 0 %} selected="selected" {% endifequal %}>所有</option>
-                    <option class="btn-info" {% ifequal groupname 1 %} selected="selected" {% endifequal %} value="1">
-                        采购A
-                    </option>
-                    <option class="btn-warning" {% ifequal groupname 2 %} selected="selected" {% endifequal %}value="2">
-                        采购B
-                    </option>
-                    <option class="btn-success" {% ifequal groupname 3 %} selected="selected" {% endifequal %}value="3">
-                        采购C
-                    </option>
-                </select>
-            </div>
-            <div class="col-xs-2">
-                <label class="control-label" for="dhstatus">大货状态:</label>
-                <select class="form-control" name="dhstatus" id="dhstatus_id">
-                    <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
-                    <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
-                            value="1">显示异常(缺货,订多)
-                    </option>
-                    <option class="btn-danger" {% ifequal dhstatus '2' %} selected="selected" {% endifequal %}
-                            value="2">只显示缺货
-                    </option>
-                    <option class="btn-danger" {% ifequal dhstatus '3' %} selected="selected" {% endifequal %}
-                            value="3">只显示订多
-                    </option>
-
-                </select>
-            </div>
-            <div class="col-xs-2">
-                <label class="control-label" for="groupname">输入搜索:</label>
-                <input type="text" class="form-control" value="{{ search_text }}" name="search_text"/>
-            </div>
-
             <div class="col-xs-1">
                 <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+            <div class="col-xs-3">
+                <span id="week_begin" style="display: none">{{ week_begin }}</span>
+            </div>
+            <div class="col-xs-3">
+                <span id="week_to" style="display: none">{{ week_to }}</span>
             </div>
         </div>
     </form>
     <div class="row" style="margin-top: 20px">
         <table class="table table-bordered" id="resultTable">
             <thead style="background-color:#01B5A2;">
-            <th width="250px">商品信息</th>
-            <th width="100px">图片</th>
-            <th>尺寸</th>
-            <th width="150px">状态</th>
-            <th>销售数</th>
-            <th>已拍(未到)数量</th>
-            <th>已到数量</th>
-            <th>样品数量</th>
-            <th>上架前库存数</th>
+            <th>组名</th>
+            <th>到货得分</th>
+            <th>销售得分</th>
             </thead>
             <tbody>
-
-            {% for product in  target_product %}
-                {% with product.1|length as sku_len %}
-                    {% if sku_len > 0 %}
-                        {% for sku in product.1 %}
-                            <tr>
-                                {% if forloop.first %}
-                                    <td rowspan="{{ sku_len }}">{{ sku.product_name }}<br>
-                                        <a href="/sale/dinghuo/adddetail/{{ product.0 }}"
-                                           target="_blank">编码:{{ product.0 }}</a>
-                                    </td>
-                                    <td rowspan="{{ sku_len }}"><img src="{{ sku.pic_path }}" width="100px"
-                                                                     class="img-circle">
-                                    </td>
-                                {% endif %}
-                                <td>{{ sku.sku_name }}</td>
-                                <td>
-                                    <span class="dinghuo_status" id="dinghuostatus_{{ sku.sku_id }}"
-                                            {% if sku.flag_of_less %} style="color: red;font-size: 20px"
-                                            {% elif sku.flag_of_more %}
-                                          style="color: blue;font-size: 20px"{% endif %}>{{ sku.ding_huo_status }}</span>
-                                </td>
-                                <td><span id="sale_num_{{ sku.sku_id }}">{{ sku.sale_num }}</span></td>
-                                <td><a href="/sale/dinghuo/statsbypid/{{ sku.product_id }}" target="_blank"
-
-                                       id="ding_huo_num_{{ sku.sku_id }}">{{ sku.ding_huo_num }} </a>
-                                </td>
-                                <td>{{ sku.arrival_num }}</td>
-                                <td>{{ sku.sample_num }}</td>
-                                <td>{{ sku.ku_cun_num }}</td>
-                            </tr>
-
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+            <tr>
+                <td>采购A</td>
+                <td>{{ a_ding_huo_point }}</td>
+                <td>{{ a_sale_point }}</td>
+            </tr>
+            <tr>
+                <td>采购B</td>
+                <td>{{ b_ding_huo_point }}</td>
+                <td>{{ b_sale_point }}</td>
+            </tr>
+            <tr>
+                <td>采购C</td>
+                <td>{{ c_ding_huo_point }}</td>
+                <td>{{ c_sale_point }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="span8">
+            <ul class="nav nav-tabs">
+                <li class="dropdown" style="width: 200px">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">采购A<b
+                            class="caret bottom-up"></b></a>
+                    <ul class="dropdown-menu bottom-up pull-right">
+                        <li onclick="ajax_data(1,0)"><span>所有</span></li>
+                        <li class="divider"></li>
+                        <li onclick="ajax_data(1,1)"><span>到货</span></li>
+                        <li class="divider"></li>
+                        <li onclick="ajax_data(1,2)"><span>销售</span></li>
+                    </ul>
+                </li>
+                <li class="dropdown" style="width: 200px">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">采购B<b
+                            class="caret bottom-up"></b></a>
+                    <ul class="dropdown-menu bottom-up pull-right">
+                        <li onclick="ajax_data(2,0)"><span>所有</span></li>
+                        <li class="divider"></li>
+                        <li onclick="ajax_data(2,1)"><span>到货</span></li>
+                        <li class="divider"></li>
+                        <li onclick="ajax_data(2,2)"><span>销售</span></li>
+                    </ul>
+                </li>
+                <li class="dropdown" style="width: 200px">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">采购C<b
+                            class="caret bottom-up"></b></a>
+                    <ul class="dropdown-menu bottom-up pull-right">
+                        <li><span onclick="ajax_data(3,0)">所有</span></li>
+                        <li class="divider"></li>
+                        <li><span onclick="ajax_data(3,1)">到货</span></li>
+                        <li class="divider"></li>
+                        <li><span onclick="ajax_data(3,2)">销售</span></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 20px">
+        <table class="table table-bordered" id="point-detail">
+            <thead>
+            <th>组</th>
+            <th>类型</th>
+            <th>加分内容</th>
+            <th>得分</th>
+            <th>奖励时间</th>
+            </thead>
+            <tbody>
+            {% for point in all_point %}
+                <tr>
+                    <td>{{ point.group_name }}</td>
+                    <td>{{ point.point_type }}</td>
+                    <td>{{ point.point_content }}</td>
+                    <td>{{ point.get_point }}</td>
+                    <td>{{ point.record_time }}</td>
+                </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
-    <div class="floatButton" style="z-index: 9999;">
-        {% if total_more_num %}
-            <span style="font-size: 20px">共多了{{ total_more_num }}件</span><br>
-        {% endif %}
-        {% if total_less_num %}
-            <span style="font-size: 20px">少了{{ total_less_num }}件</span>
-        {% endif %}
-    </div>
-    <div class="btn-group-vertical floatview">
-        <button type="button" class="btn btn-default" id="goTop" title="去顶部"><span
-                class="glyphicon glyphicon-arrow-up"></span></button>
-        <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
-                class="glyphicon glyphicon-arrow-down"></span></button>
-    </div>
 {% endblock %}
 
 {% block tail_script %}
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}jquery-visualize-plugin/visualize.jQuery.css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery-visualize-plugin/visualize.jQuery.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $('#point-detail').dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": false, //自适应宽度
+            "aaSorting": [[3, "desc"]],
+            "iDisplayLength": 30,
+            "aLengthMenu": [[30, 50, 100, -1], [30, 50, 100, "All"]],
+            //"bInfo":true,
+            //"sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
+        });
+    </script>
     <script type="text/javascript">
         $(function () {
             $("#f_datepicker").datepicker({
                 dateFormat: "yy-mm-dd"
-            });
-
-            $("#t_datepicker").datetimepicker({
-                timeFormat: "HH:mm:ss",
-                dateFormat: "yy-mm-dd"
-            });
-            $("#show_datepicker").datetimepicker({
-                timeFormat: "HH:mm:ss",
-                dateFormat: "yy-mm-dd"
-            });
-            $('#goTop').click(function () {
-                $('html,body').animate({scrollTop: '0px'}, 800);
-            });
-            $('#goBottom').click(function () {
-                var height = document.body.scrollHeight;
-                $('html,body').animate({scrollTop: height}, 800);
-            });
-            $(window).scroll(function () {
-                var w_height = $(window).height();//浏览器高度
-                var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度
-                $(".floatButton").css("position", "fixed");
-                $(".floatview").css("position", "fixed");
             });
         });
     </script>
