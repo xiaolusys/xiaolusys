@@ -17,6 +17,7 @@ from django.views.generic import View
 from django.contrib.auth.models import User
 import functions
 from flashsale.dinghuo.models_stats import SupplyChainDataStats
+import functions2view
 
 
 def search_product(request):
@@ -154,6 +155,7 @@ def add_purchase(request, outer_id):
         for guige in guiges:
             sku_dict = model_to_dict(guige)
             sku_dict['name'] = guige.name
+            sku_dict['wait_post_num'] = functions2view.get_lack_num_by_product(p, guige)
             product_dict['prod_skus'].append(sku_dict)
         product_res.append(product_dict)
     return render_to_response("dinghuo/addpurchasedetail.html",
