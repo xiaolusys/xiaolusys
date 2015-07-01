@@ -98,14 +98,18 @@
             text-decoration: none
         }
     </style>
-{#    <script>#}
-{##}
+    <script>
+
 {#        function y() {#}
 {#            var e = $("#loading");#}
 {#            e.remove();#}
 {#        }#}
-{#        setTimeout(y, 2000);#}
-{#    </script>#}
+        function showy(){
+            var e = $("#loading");
+            e.show()
+        }
+
+    </script>
 {% endblock %}
 {% block container %}
     <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/daily_work/">
@@ -161,7 +165,7 @@
             </div>
 
             <div class="col-xs-1">
-                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+                <input type="submit" value="查询" onclick="showy()" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
         </div>
     </form>
@@ -232,17 +236,17 @@
         <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
                 class="glyphicon glyphicon-arrow-down"></span></button>
     </div>
-{#    <div id="loading">#}
-{#        <div class='loading-container'>#}
-{#            <h1 id='loading-app-name'>小鹿美美</h1>#}
-{##}
-{#            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进步查询系统</span></h3>#}
-{##}
-{#            <p id='loading-text'>加载中...</p>#}
-{##}
-{#            <p id='loading-view-doc'><a href="/admin/" target='_blank'>首页</a></p>#}
-{#        </div>#}
-{#    </div>#}
+    <div id="loading" style="display: none;">
+        <div class='loading-container'>
+            <h1 id='loading-app-name'>小鹿美美</h1>
+
+            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进步查询系统</span></h3>
+
+            <p id='loading-text'>加载中...</p>
+
+            <p id='loading-view-doc'><a href="/admin/" target='_blank'>首页</a></p>
+        </div>
+    </div>
 {% endblock %}
 
 {% block tail_script %}
