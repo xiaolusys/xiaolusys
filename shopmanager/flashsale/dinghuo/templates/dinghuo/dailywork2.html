@@ -97,59 +97,15 @@
             color: #74b936;
             text-decoration: none
         }
-
-        .slim-scroll ::-webkit-scrollbar {
-            height: 10px;
-            width: 7px;
-            background: transparent
-        }
-
-        .slim-scroll ::-webkit-scrollbar:hover {
-            background: rgba(128, 128, 128, 0.1)
-        }
-
-        .slim-scroll ::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.3);
-            -webkit-border-radius: 6px
-        }
-
-        .slim-scroll ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.6)
-        }
-
-        .slim-scroll ::-webkit-scrollbar-corner {
-            background: #000
-        }
-
-        .slim-scroll .ace_dark .ace_scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            -webkit-border-radius: 6px
-        }
-
-        .slim-scroll .ace_dark .ace_scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.6)
-        }
-
-        .slim-scroll .ace_scroller {
-            right: 4px !important
-        }
-
-        .slim-scroll .ace_scrollbar-v {
-            right: 4px !important
-        }
-
-        .slim-scroll #preview {
-            right: 2px
-        }
     </style>
-    <script>
-
-        function y() {
-            var e = $("#loading");
-            e.remove();
-        }
-        setTimeout(y, 2000);
-    </script>
+{#    <script>#}
+{##}
+{#        function y() {#}
+{#            var e = $("#loading");#}
+{#            e.remove();#}
+{#        }#}
+{#        setTimeout(y, 2000);#}
+{#    </script>#}
 {% endblock %}
 {% block container %}
     <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/daily_work/">
@@ -276,17 +232,17 @@
         <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
                 class="glyphicon glyphicon-arrow-down"></span></button>
     </div>
-    <div id="loading">
-        <div class='loading-container'>
-            <h1 id='loading-app-name'>小鹿美美</h1>
-
-            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进步查询系统</span></h3>
-
-            <p id='loading-text'>加载中...</p>
-
-            <p id='loading-view-doc'><a href="/admin/" target='_blank'>首页</a></p>
-        </div>
-    </div>
+{#    <div id="loading">#}
+{#        <div class='loading-container'>#}
+{#            <h1 id='loading-app-name'>小鹿美美</h1>#}
+{##}
+{#            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进步查询系统</span></h3>#}
+{##}
+{#            <p id='loading-text'>加载中...</p>#}
+{##}
+{#            <p id='loading-view-doc'><a href="/admin/" target='_blank'>首页</a></p>#}
+{#        </div>#}
+{#    </div>#}
 {% endblock %}
 
 {% block tail_script %}
