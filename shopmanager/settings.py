@@ -167,9 +167,10 @@ INSTALLED_APPS = (
     'flashsale.clickrebeta',
     'flashsale.mmexam',
     'flashsale.daystats',
-
+    'flashsale.restpro',
+    
     'mathfilters',
-
+    
     #'test.celery',
     #'shopapp.notify',
 )
