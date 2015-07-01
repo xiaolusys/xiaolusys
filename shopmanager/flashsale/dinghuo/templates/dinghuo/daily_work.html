@@ -71,13 +71,73 @@
             type: "GET", //静态页用get方法，否则服务器会抛出405错误
             success: function (data) {
                 var e = $("#loading");
-                e.fadeOut();
+                e.remove();
                 $("#main").html(data);
 
             }
         });
 
     </script>
+    <style>
+        @keyframes move {
+            from {
+                transform: translate(0, 50%);
+            }
+            to {
+                transform: translate(0, 850%);
+            }
+        }
+
+        figure {
+            margin: 0 auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            background: #1c1c1c;
+        }
+
+        section {
+            width: 10%;
+            height: 100%;
+            position: absolute;
+            left: 45%;
+        }
+
+        section:nth-child(2) {
+            transform: rotate(22.5deg);
+        }
+
+        section:nth-child(3) {
+            transform: rotate(45deg);
+        }
+
+        section:nth-child(4) {
+            transform: rotate(67.5deg);
+        }
+
+        figure div {
+            height: 10%;
+            border-radius: 50%;
+            background: dodgerblue;
+            animation: move 1s ease-in-out infinite alternate;
+        }
+
+        figure:nth-child(1) > section:nth-child(1) > div {
+            animation-delay: -0.1875s;
+        }
+
+        figure:nth-child(1) > section:nth-child(2) > div {
+            animation-delay: -0.15s;
+        }
+
+        figure:nth-child(1) > section:nth-child(3) > div {
+            animation-delay: -0.9375s;
+        }
+
+
+    </style>
+    <script src="{{ STATIC_URL }}js/prefixfree.min.js"></script>
 {% endblock %}
 {% block container %}
     <div id="loading">
@@ -86,9 +146,34 @@
 
             <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进步查询系统</span></h3>
 
-            <p id='loading-text'>加载中...</p>
+            <p id='loading-text'></p>
 
-            <p id='loading-view-doc'><a href="/admin/" target='_blank'>首页</a></p>
+            <div id='loading-text'>
+                <figure>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                </figure>
+            </div>
+
         </div>
     </div>
     <div id="main"></div>
