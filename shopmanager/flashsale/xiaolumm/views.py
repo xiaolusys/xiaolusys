@@ -83,8 +83,9 @@ class CashoutView(View):
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
-        referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile)
-        cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
+
+        referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile,status=XiaoluMama.EFFECT)
+        cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk)
         
 #         day_to   = datetime.datetime.now()
 #         day_from = day_to - datetime.timedelta(days=30)
@@ -96,11 +97,16 @@ class CashoutView(View):
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
+        kefu_mobile = '18516655836'
+        if cashout_objs.count() == 0 or cashout_objs[0].created > datetime.datetime(2015,6,30,15):
+            kefu_mobile = '18516316989'
+        
         cash_outable = click_nums >= 150 or shoppings_count >= 6
             
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
+        pending_cashouts = cashout_objs.filter(status=CashOut.PENDING)
         
-        data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 
+        data = {"xlmm":xlmm, "cashout": pending_cashouts.count(), 'kefu_mobile':kefu_mobile,
                 "referal_list":referal_list ,"could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
@@ -141,7 +147,7 @@ class CashOutList(generics.ListAPIView):
 
 class CarryLogList(generics.ListAPIView):
     queryset = CarryLog.objects.exclude(
-                    log_type__in=(CarryLog.MAMA_RECRUIT,CarryLog.ORDER_RED_PAC)).order_by('-carry_date') #
+                    log_type__in=(CarryLog.ORDER_RED_PAC)).order_by('-carry_date') #
     serializer_class = CarryLogSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
@@ -185,7 +191,7 @@ class MamaStatsView(View):
         mobile = wx_user.mobile
         data   = {}
         try:
-            referal_num = XiaoluMama.objects.filter(referal_from=mobile).count()
+            referal_num = XiaoluMama.objects.filter(referal_from=mobile,status=XiaoluMama.FROZEN).count()
             xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
@@ -720,17 +726,34 @@ def stats_summary(request):
 from flashsale.pay.models_user import Customer
 from flashsale.pay.models import SaleTrade,SaleOrder
 
-def get_Deposit_Trade(openid):
+def get_Deposit_Trade(openid, mobile):
     try:
         customer = Customer.objects.get(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
 
-        sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                     sale_trade__buyer_id=customer.id,
-                                     sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+        sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, refund_status=SaleRefund.NO_REFUND,
+                                               status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                               sale_trade__buyer_id=customer.id,
+                                               sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
 
-        if sale_orders.count() == 0:
-            return None
-        return sale_orders[0].sale_trade  # 返回订单
+        if sale_orders.count() > 0:
+            return True  # 返回订单
+
+        # 按照手机号码来匹配代理缴费情况
+
+        sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=100,
+                                               status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+        if sale_trades.count() == 0:    # 没有交易记录返回空
+            return False
+        else:
+            # 有TRDE记录， 则查看订单
+            for trade in sale_trades:  # 寻找RMB100的Order
+                orders = SaleOrder.objects.filter(sale_trade=trade.id, outer_id='RMB100', payment=100,
+                                                  refund_status=SaleRefund.NO_REFUND,
+                                                  status=SaleOrder.WAIT_SELLER_SEND_GOODS)
+                if orders.count() == 0:
+                    return False
+                else:
+                    return True
     except:
         return None
 
@@ -746,7 +769,7 @@ def mama_Verify(request):
     user_groups = UserGroup.objects.filter(code__in=default_code)
     
     for xlmm in xlmms:
-        trade = get_Deposit_Trade(xlmm.openid)
+        trade = get_Deposit_Trade(xlmm.openid, xlmm.mobile)
         if trade:
             id = xlmm.id
             mobile = xlmm.mobile

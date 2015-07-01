@@ -50,7 +50,7 @@ class WeixinUnionIDAdmin(admin.ModelAdmin):
     list_display_links = ('openid',)
     
     list_filter = ('app_key',)
-    search_fields = ['openid','unionid']
+    search_fields = ['=openid','=unionid']
 
 admin.site.register(WeixinUnionID, WeixinUnionIDAdmin)  
 
@@ -152,7 +152,7 @@ class WeiXinUserAdmin(MyAdmin):
                     ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
     
     list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
-    search_fields = ['openid','mobile']
+    search_fields = ['=openid','=mobile']
     
     def charge_link(self, obj):
 
@@ -286,7 +286,7 @@ class WXOrderAdmin(MyAdmin):
                     'delivery_id','delivery_company','order_status')
     
     list_filter = ('order_status',)
-    search_fields = ['order_id','trans_id','buyer_nick','buyer_openid']
+    search_fields = ['=order_id','=trans_id','=buyer_nick','=buyer_openid']
     
      #--------设置页面布局----------------
     fieldsets =((u'订单信息:', {
