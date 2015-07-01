@@ -85,5 +85,4 @@ class AsyncExpressPrintView(ModelView):
         return {"task_id":print_async_task,"async_print_id":task_model.pk}
     
     post = get
-    
-    
+

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head lang="en">
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>打印测试页面</title>
+</head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style type='text/css'>
+@media print {
+	@font-face {
+		font-family: simsun;
+		src: url(/home/timi06/timi/fonts/simsun.ttf);
+		font-style: italic;
+	}
+    @font-face {
+		font-family: simsunbd;
+		src: url(/home/timi06/timi/fonts/simsunbd.ttf);
+        font-weight: bold;
+		font-style: italic;
+	}
+	@font-face {
+		font-family: msyh;
+		src: url(/home/timi06/timi/fonts/msyh.ttf);
+		font-style: italic;
+	}
+	@font-face {
+		font-family: msyhbd;
+		src: url(/home/timi06/timi/fonts/msyhbd.ttf);
+		font-weight: bold;
+		font-style: italic;
+	}
+}
+@page {
+	font-family: simsun;
+	-pdf-frame-border: 0;
+
+    -pdf-level: 0;
+    -pdf-open: false;	border:0;
+
+    @frame content_frame{
+        left:0pt;width: 100mm;
+        top:0pt;height: 190mm;
+    }
+}
+{# body这个font-family才起作用 #}
+body {
+
+	margin: 0px;
+	padding: 0px;
+	text-align: left;
+	font-family: simsun;
+}
+table{
+    -pdf-keep-with-next: reue;
+
+}
+
+td{
+    border: solid#000000 1px ;
+    vert-align: middle;
+}
+
+</style>
+<body>
+<div style="width: 100mm">
+<table>
+    <tr>
+        <td colspan="100" id="test" style="font-size: 10pt;font-family: simsunbd;" >
+            <img src="http://testpartner.zto.cn/%E4%B8%AD%E9%80%9A%E9%80%9F%E9%80%92%E5%90%88%E4%BD%9C%E5%B9%B3%E5%8F%B0%E6%8A%80%E6%9C%AF%E6%8E%A5%E5%8F%A3%E8%A7%84%E8%8C%83_files/a107.jpg" >&nbsp;&nbsp;&nbsp;
+            标准快件&nbsp;&nbsp;&nbsp;上海市场部
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7"  id="test1" align="center" style="font-size: 9pt;">运</br>单</br>号</td>
+        <td colspan="68" id="td3" >
+             <img src="data:image/jpeg;base64,{{ imgbase64 }}"/>
+        </td>
+        <td colspan="25" style="font-size: 13pt;" align="center" >条形码</td>
+    </tr>
+    <tr>
+        <td colspan="7"  id="test" align="center" style="font-size: 9pt;">寄</br>件</br>信</br>息</td>
+        <td colspan="93" id="td6" style="font-size: 9pt;">
+            寄件人:小鹿美美&nbsp;&nbsp;手机/电话:201-69783707</br>
+            地址:上海市，松江区，佘山镇，吉业路245号</br>
+            中通快递
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7"  id="td5" align="center"  style="font-size: 9pt;">收</br>件</br>信</br>息</td>
+        <td colspan="93" id="td6" style="font-size: 10pt;font-family: simsunbd">
+            收件人:{{ mt.receiver_name }}&nbsp;&nbsp;手机/电话:{{ mt.receiver_mobile }} </br>
+            地址:{{ mt.receiver_state }},{{ mt.receiver_city }},{{ mt.receiver_district }}&nbsp;</br>{{ mt.receiver_address }}
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7"   align="center" style="font-size: 9pt;">记</br>号</br>笔</td>
+        <td colspan="93"  style="font-size: 35pt;font-family:simsunbd;" align="center">
+            {{ ls.marke }}
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7"  style="font-size: 9pt;"align="center">其</br>他</td>
+        <td colspan="93" id="td6" >
+            <span style="font-size: 14pt;font-family: simsunbd;">{{ mt.out_sid }}(运单号)</span>&nbsp;<span style="font-size: 11pt">日期:{{ date_time }}</span>
+        </td>
+    </tr>
+</table>
+<table>
+    <tr>
+        <td colspan="28" >
+            <img src="http://testpartner.zto.cn/%E4%B8%AD%E9%80%9A%E9%80%9F%E9%80%92%E5%90%88%E4%BD%9C%E5%B9%B3%E5%8F%B0%E6%8A%80%E6%9C%AF%E6%8E%A5%E5%8F%A3%E8%A7%84%E8%8C%83_files/a107.jpg" width="100">&nbsp;&nbsp;&nbsp;&nbsp;
+            </br><span style="font-size: 10pt;font-family: simsunbd;">&nbsp;上海市场部</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </td>
+        <td colspan="65" >
+            <img src="data:image/jpeg;base64,{{ imgbase64 }}"/>
+       </td>
+        <td colspan="7" align="center" style="font-size: 10pt;">
+            运</br>单</br>号
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7" align="center" style="font-size: 8pt;">
+            寄</br>件</br>信</br>息
+        </td>
+        <td colspan="93" style="font-size: 9pt;">
+            寄件人:小鹿美美&nbsp;&nbsp;手机/电话:201-69783707</br>
+            地址:上海市，松江区，佘山镇，吉业路245号</br>
+            中通快递
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7" align="center" style="font-size: 9pt;">
+            收</br>件</br>信</br>息
+        </td>
+        <td colspan="93" style="font-size: 10pt;font-family: simsunbd">
+            收件人:{{ mt.receiver_name }}&nbsp;&nbsp;手机/电话:{{ mt.receiver_mobile }} </br>
+            地址:{{ mt.receiver_state }},{{ mt.receiver_city }},{{ mt.receiver_district }}&nbsp;</br>{{ mt.receiver_address }}
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7" align="center" style="font-size: 8pt;">
+            商</br>家</br>自</br>定</br>义
+        </td>
+        <td colspan="93" style="font-size: 13pt">
+            &nbsp;时尚靓妈，炫酷潮童，一切尽在，小鹿美美
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7" align="center" style="font-size: 9pt;">
+            其</br>他
+        </td>
+        <td colspan="93">
+            <span style="font-size: 14pt;font-family: simsunbd;">{{ mt.out_sid }}(运单号)</span>&nbsp;<span style="font-size: 11pt">日期:{{ date_time }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7" align="center" style="font-size: 10pt;">
+            备</br>注
+        </td>
+        <td colspan="55" style="font-size: 9pt;font-family: simsunbd;">
+            快件送达收件地址,经收件人或收(寄)件人允许代收人
+            签字,视为送达,您的签字代表已验收此包裹,并已确认商
+            品信息无误,包装完好,没有划痕、破碎等表面质量问题
+        </td>
+        <td colspan="38" style="font-family:simsunbd ">
+            &nbsp;签收人/签收时间：</br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;日
+        </td>
+    </tr>
+</table>
+</div>
+</body>
+</html>

@@ -17,5 +17,6 @@ urlpatterns = patterns('',
     (r'^intercept/',include('shopapp.intercept.urls')),
     (r'^second_time_sort/',include('shopapp.second_time_sort.urls')),
     (r'^sample/',include('shopapp.sampleproduct.urls')),
+    (r'^zhongtong/',include('shopapp.zhongtong.urls')),
 )
 

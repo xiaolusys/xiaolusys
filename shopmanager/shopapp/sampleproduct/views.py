@@ -72,7 +72,7 @@ class SampleScanView(APIView):
         p_sku = self.get_Sample_By_Barcode(tiaoma)
         if not p_sku:
             return Response({'code':1,'err':u'未找到商品'})
-        
+
         # 保存到临时表
         ls,state = ScanLinShi.objects.get_or_create(pid=p_sku.product.id,sku_id=p_sku.id,scan_type=scan_type)
         if state:
@@ -222,5 +222,5 @@ def scan_save(request):
     ls = ScanLinShi.objects.all()
     ls.delete()
 
-    return HttpResponseRedirect("../scan/")
+    return HttpResponseRedirect("../scan_new/")
 
