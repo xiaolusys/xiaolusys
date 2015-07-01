@@ -83,9 +83,10 @@ class CashoutView(View):
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
+
         referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile,status=XiaoluMama.EFFECT)
-        cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk,status=CashOut.PENDING)
-        
+        cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk)
+
 #         day_to   = datetime.datetime.now()
 #         day_from = day_to - datetime.timedelta(days=30)
         # 点击数
@@ -103,8 +104,9 @@ class CashoutView(View):
         cash_outable = click_nums >= 150 or shoppings_count >= 6
             
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
+        pending_cashouts = cashout_objs.filter(status=CashOut.PENDING)
         
-        data = {"xlmm":xlmm, "cashout": cashout_objs.count(), 'kefu_mobile':kefu_mobile,
+        data = {"xlmm":xlmm, "cashout": pending_cashouts.count(), 'kefu_mobile':kefu_mobile,
                 "referal_list":referal_list ,"could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
