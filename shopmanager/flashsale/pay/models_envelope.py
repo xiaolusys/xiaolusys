@@ -25,6 +25,23 @@ class Envelop(models.Model):
     ORDER_RED_PAC = 'ordred'
     SUBJECT_CHOICES = ((CASHOUT,u'钱包提现'),(ORDER_RED_PAC,u'订单红包'))
     
+    UNSEND      = ''
+    SENDING     = 'sending'
+    SENT        = 'sent'
+    SEND_FAILED      = 'failed'
+    RECEIVED    = 'received'
+    REFUND      = 'refund'
+
+    SEND_STATUS_CHOICES = (
+                  (UNSEND,u'待发放'),
+                  (SENDING,u'发放中'),
+                  (SENT,u'已发放待领取'),
+                  (SEND_FAILED,u'发放失败'),
+                  (RECEIVED,u'已领取'),
+                  (REFUND,u'已退款'),)
+    
+    VALID_SEND_STATUS = (SENDING,SENT,RECEIVED)
+    
     envelop_id   = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'红包ID')
     
     amount       = models.IntegerField(default=0,verbose_name=u'红包金额')
@@ -41,6 +58,9 @@ class Envelop(models.Model):
     
     status       = models.CharField(max_length=8,db_index=True,default=WAIT_SEND,
                                     choices=STATUS_CHOICES,verbose_name=u'状态')
+    
+    send_status       = models.CharField(max_length=8,db_index=True,default=UNSEND,
+                                    choices=SEND_STATUS_CHOICES,verbose_name=u'发送状态')
     
     referal_id   = models.CharField(max_length=32,blank=True,db_index=True,verbose_name=u'引用ID')
     send_time    = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name=u'发送时间')
@@ -91,17 +111,16 @@ class Envelop(models.Model):
             self.save()
             raise exc
         else:
-            is_paid = redenvelope['paid']
+            status = redenvelope['status']
             self.envelop_id = redenvelope['id']
             self.livemode   = redenvelope['livemode']
-            if is_paid:
-                self.send_time  = datetime.datetime.now()
+            self.send_status  = status
+            if status in self.VALID_SEND_STATUS :
+                self.send_time  = self.send_time or datetime.datetime.now()
                 self.status     = Envelop.CONFIRM_SEND 
-                self.save()
-            else:
-                self.status     = Envelop.FAIL
-                self.save()
-                raise Exception(u'红包付款失败！')
+            elif status == self.SEND_FAILED and self.status in (Envelop.WAIT_SEND,Envelop.FAIL):
+                self.status = Envelop.FAIL
+            self.save()
     
     
     
