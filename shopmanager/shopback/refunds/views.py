@@ -121,7 +121,7 @@ class RefundProductView(ModelView):
     def get(self, request, *args, **kwargs):
         
         return {}
-    
+
     def post(self, request, *args, **kwargs):
         
         content    = request.REQUEST
@@ -154,10 +154,7 @@ class RefundProductView(ModelView):
         rf.property = prod_sku.properties_alias or prod_sku.properties_name if prod_sku else ''
         
         rf.save()
-        # 创建一条退货款单记录
-        print (u'添加退款商品')
-        update_Unrelate_Prods_Product(pro=rf, req=request, trade_id=rf.trade_id)
-        
+
         return rf
     
 ############################### 退货单 #################################       
@@ -217,7 +214,7 @@ class RefundView(ModelView):
             
             prod_dict['title']     = prod_sku.product.name if prod_sku else prod.name
             prod_dict['property']  = (prod_sku.properties_alias or prod_sku.properties_name) if prod_sku else ''
-            
+
             prod_list.append(prod_dict)
             
         return prod_list
@@ -233,9 +230,12 @@ class RefundView(ModelView):
                 v = v=="true" and True or False
             hasattr(rf,k) and setattr(rf,k,v)
         rf.save()
-        
+            # 创建一条退货款单记录
+        print (u'添加退款商品')
+        update_Unrelate_Prods_Product(pro=rf, req=request, trade_id=rf.trade_id)
+
         log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')
-        
+
         return rf  
  
 
@@ -298,7 +298,7 @@ def create_refund_exchange_trade(request,seller_id,tid):
             logger.error(exc.message,exc_info=True)
     
     log_action(request.user.id,merge_trade,ADDITION,u'创建退换货单')
-    
+
     return HttpResponseRedirect('/admin/trades/mergetrade/?type__exact=exchange'
                                 '&sys_status=WAIT_AUDIT&q=%s'%str(merge_trade.id))  
    

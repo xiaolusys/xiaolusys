@@ -729,15 +729,15 @@ from flashsale.pay.models import SaleTrade,SaleOrder
 
 def get_Deposit_Trade(openid, mobile):
     try:
-        customer = Customer.objects.get(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
-
-        sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, refund_status=SaleRefund.NO_REFUND,
+        customer = Customer.objects.filter(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
+        if customer.exists():
+            sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, refund_status=SaleRefund.NO_REFUND,
                                                status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                               sale_trade__buyer_id=customer.id,
+                                               sale_trade__buyer_id=customer[0].id,
                                                sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
 
-        if sale_orders.exists():
-            return sale_orders  # 返回订单
+            if sale_orders.exists():
+                return sale_orders  # 返回订单
 
         # 按照手机号码来匹配代理缴费情况
 
@@ -763,7 +763,6 @@ def get_Deposit_Trade(openid, mobile):
 def mama_Verify(request, id):
     # 审核妈妈成为代理的功能
     data = []
-    print u'妈妈id:', id
     xlmm = XiaoluMama.objects.get(id=id)  # 找出没有被接管的妈妈
     
     default_code = ['BLACK','NORMAL']
@@ -785,8 +784,8 @@ def mama_Verify(request, id):
     return render_to_response("mama_verify.html", {'data': data,'user':user}, context_instance=RequestContext(request))
 
 
-@transaction.commit_on_success
 @csrf_exempt
+@transaction.commit_on_success
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
     referal_mobile = request.GET.get('tuijianren','').strip()
@@ -796,11 +795,8 @@ def mama_Verify_Action(request):
     xlmm = XiaoluMama.objects.get(id=mama_id)
     openid = xlmm.openid
     mobile = xlmm.mobile
-    # customer = Customer.objects.get(unionid=xlmm.openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
-    # sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-    #                              sale_trade__buyer_id=customer.id,
-    #                              sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
-    sale_orders = get_Deposit_Trade(openid, mobile)  #
+
+    sale_orders = get_Deposit_Trade(openid, mobile)  # 调用函数 传入参数（妈妈的openid，mobile）
     if sale_orders is None:
         return HttpResponse('reject')
     

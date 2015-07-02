@@ -19,11 +19,10 @@ def update_Unrelate_Prods_Product(pro, req, trade_id=''):
         # 根据原单 trade_id 找 MergeTrade
         merge_trade = MergeTrade.objects.filter(tid=trade_id)
         # 根据merge_trade 找 MergeOrder
-        merge_order = MergeOrder.objects.filter(merge_trade_id=merge_trade[0].id, outer_id=pro.outer_id)
+        merge_order = MergeOrder.objects.filter(merge_trade_id=merge_trade[0].id, outer_id=pro.outer_id, outer_sku_id=pro.outer_sku_id)
         # 确认 MergeOrder 的存在后 创建 退货款单
         try:
             if merge_order.count() > 0:
-                print(u'创建 退货款单创建')
                 # 根据 MergeOrder 的情况创建 退货款单
                 refund = Refund()
                 refund.tid = merge_order[0].merge_trade.tid                     # 交易ID
@@ -51,9 +50,9 @@ def update_Unrelate_Prods_Product(pro, req, trade_id=''):
                 refund.status = pcfg.NO_REFUND                                  # 没有退款
                 refund.save()                                                   # 保存数据
 
-                merge_trade[0].status = pcfg.TRADE_CLOSED                       # 修改MergeTrade status 为关闭
-                merge_trade[0].save()                                           # 保存
+                # merge_trade[0].status = pcfg.TRADE_CLOSED                       # 修改MergeTrade status 为关闭
+                # merge_trade[0].save()                                           # 保存
                 action_desc = u"创建交易ID为：{0} 商品标题为：{1}的 Refund ".format(trade_id,merge_order[0].title)
-                log_action(req.user.id, refund, ADDITION, action_desc)                  # 创建操作日志 119 是林杰
+                log_action(req.user.id, refund, ADDITION, action_desc)                  # 创建操作日志
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
