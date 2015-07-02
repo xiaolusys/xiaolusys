@@ -350,7 +350,7 @@
                 <tr id="orderdetail_{{ forloop.counter }}">
                     <td><a href="/admin/items/product/?q={{ order.outer_id|slice:":9" }}" target="_blank">{{ order.outer_id }}</a></td>
                     <td>{{ order.product_name }}</td>
-                    <td><img src="{{ order.pic_path }}" width="60px" height="60px" class="img-circle"></td>
+                    <td><img src="{{ order.pic_path }}" title="{{ order.product_name }}" width="60px" height="60px" class="img-circle"></td>
                     <td>{{ order.product_chicun }}</td>
                     <td align="center">
                         {% if flagofstatus or flagofquestion or flag_of_sample %}

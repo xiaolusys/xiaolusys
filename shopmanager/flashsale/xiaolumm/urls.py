@@ -27,7 +27,7 @@ urlpatterns = patterns('',
     url(r'^cashmodify/(?P<data>\w+)/$',staff_member_required(views.cash_modify)), #
     url(r'^cashreject/(?P<data>\w+)/$',staff_member_required(views.cash_reject)), #
     url(r'^stats_summary/$',staff_member_required(views.stats_summary),name="stats_summary"),
-    url(r'^mama_verify/$',staff_member_required(views.mama_Verify),name="mama_verify"),
+    url(r'^mama_verify/(?P<id>\d+)/$',staff_member_required(views.mama_Verify),name="mama_verify"),
     url(r'^mama_verify_action/$',staff_member_required(views.mama_Verify_Action),name="mama_verify_action"),
 
     url(r'^duokefu_customer/$',views_duokefu.kf_Customer,name="kf_Customer"),
