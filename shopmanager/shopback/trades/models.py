@@ -556,7 +556,7 @@ def recalc_trade_fee(sender,trade_id,*args,**kwargs):
                                              'payment',
                                              'discount_fee',
                                              'adjust_fee'])
-    
+
 
 recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 
