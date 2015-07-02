@@ -97,7 +97,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
-                   ,'sync_stock','is_match','is_split','is_verify','sale_time',
+                   ,'sync_stock','is_match','is_split','sale_time_select','sale_time',
                    'purchase_select','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
@@ -210,6 +210,16 @@ class ProductAdmin(admin.ModelAdmin):
     purchase_select.allow_tags = True
     purchase_select.short_description = u"所属采购组"
 
+    # 选择上架时间
+    def sale_time_select(self, obj):
+        sale_time = obj.sale_time
+        s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" value="{1}"/>'.format(obj.id,sale_time)
+        return s
+    sale_time_select.allow_tags = True
+    sale_time_select.short_description = u"上架时间"
+
+
+
     def charger_select(self, obj):
 
         categorys = self.storage_chargers
@@ -263,8 +273,8 @@ class ProductAdmin(admin.ModelAdmin):
     }
     
     class Media:
-        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
-        js = ("js/admin/adminpopup.js","js/item_change_list.js")
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css", "jquery/jquery-ui-1.10.1.css","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")}
+        js = ("js/admin/adminpopup.js","js/item_change_list.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js","jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js")
     
     def get_readonly_fields(self, request, obj=None):
         

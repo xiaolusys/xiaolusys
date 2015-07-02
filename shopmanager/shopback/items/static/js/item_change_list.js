@@ -60,3 +60,26 @@ $(".purchase_charger_select").live("change",function(e){
     var data = {"groupid":groupid,"uid":uid};
     $.ajax({"url":url,"data":data,"success":callback,"type":"POST"});
 });
+
+$(function () {
+
+    $(".select_saletime").datepicker({
+        dateFormat: "yy-mm-dd"
+    }).change(function (e) {
+        var item_id = this.id;
+        var sale_time = this.value;
+        var target = e.target;
+        var url = "/items/select_sale_time/";
+        var callback = function (res) {
+
+            if (res == "OK") {
+                $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+            }
+        };
+
+        var data = {"item_id": item_id, "sale_time": sale_time};
+
+        $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
+
+    });
+});
