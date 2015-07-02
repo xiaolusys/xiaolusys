@@ -124,7 +124,7 @@ class CashoutView(View):
         status = {"code":0, "status":"ok"}
         if m:
             value = int(m.group()) * 100
-            if 2000 >= value or value >= 20000:
+            if 2000 > value or value > 20000:
                 status = {"code":3, "status": "input error"}
             else:
                 try:
