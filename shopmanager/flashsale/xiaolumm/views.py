@@ -763,7 +763,7 @@ def get_Deposit_Trade(openid, mobile):
 def mama_Verify(request, id):
     # 审核妈妈成为代理的功能
     data = []
-    xlmm = XiaoluMama.objects.get(id=id)  # 找出没有被接管的妈妈
+    xlmm = XiaoluMama.objects.get(id=id)  # 找出对应ID的代理
     
     default_code = ['BLACK','NORMAL']
     default_code.append(request.user.username)

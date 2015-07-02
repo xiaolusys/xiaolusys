@@ -27,7 +27,7 @@ def update_Unrelate_Prods_Product(pro, req, trade_id=''):
                 refund = Refund()
                 refund.tid = merge_order[0].merge_trade.tid                     # 交易ID
                 refund.title = merge_order[0].title                             # 标题
-                refund.num_iid = merge_order[0].num_iid                         # 商品ID=商品编码
+                refund.num_iid = merge_order[0].num_iid or 0                         # 商品ID=商品编码
                 refund.user = merge_order[0].merge_trade.user                   # 店铺
                 # refund.seller_id =                                            # 卖家ID
                 refund.buyer_nick = merge_order[0].buyer_nick                   # 买家昵称
