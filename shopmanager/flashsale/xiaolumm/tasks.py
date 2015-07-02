@@ -381,7 +381,9 @@ def task_ThousandRebeta(date_from,date_to):
     xlmms = XiaoluMama.objects.filter(agencylevel=2,charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
         # 千元补贴
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, shoptime__range=(date_from,date_to))
+        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, 
+                                                      shoptime__range=(date_from,date_to),
+                                                      status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED))
 #         # 过去一个月的成交额
         sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
 

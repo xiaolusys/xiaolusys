@@ -27,7 +27,7 @@ class XiaoluMamaAdmin(MyAdmin):
     list_display = ('id','mobile','get_cash_display','get_pending_display','weikefu','agencylevel',
                     'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status')
     list_filter = ('progress','agencylevel','manager','status','charge_status','hasale',('charge_time',DateFieldListFilter),'user_group')
-    search_fields = ['=id','=mobile','=manager','weikefu','=openid']
+    search_fields = ['=id','=mobile','=manager','weikefu','=openid','=referal_from']
     
     def get_changelist(self, request, **kwargs):
         """
