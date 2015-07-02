@@ -97,7 +97,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
-                   ,'sync_stock','is_match','is_split','sale_time_select','sale_time',
+                   ,'sync_stock','is_match','is_split','sale_time_select',
                    'purchase_select','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
@@ -213,7 +213,7 @@ class ProductAdmin(admin.ModelAdmin):
     # 选择上架时间
     def sale_time_select(self, obj):
         sale_time = obj.sale_time
-        s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" value="{1}"/>'.format(obj.id,sale_time)
+        s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id,sale_time)
         return s
     sale_time_select.allow_tags = True
     sale_time_select.short_description = u"上架时间"
