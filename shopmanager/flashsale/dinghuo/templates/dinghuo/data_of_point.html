@@ -26,7 +26,7 @@
                         $.each(result_data, function (index, dd) {
                             var data = dd.fields
                             console.log(dd.fields.group_name);
-                            tb.append("<tr><td>" + data.group_name + "</td><td>" + data.point_type + "</td><td>" + data.point_content + "</td><td>"+data.get_point+"</td><td>"+data.record_time+"</td></tr>");
+                            tb.append("<tr><td>" + data.group_name + "</td><td>" + data.point_type + "</td><td>" + data.point_content + "</td><td>" + data.get_point + "</td><td>" + data.record_time + "</td></tr>");
                         });
 
                     });
@@ -61,23 +61,31 @@
         <table class="table table-bordered" id="resultTable">
             <thead style="background-color:#01B5A2;">
             <th>组名</th>
-            <th>到货得分</th>
+            <th>订货总数</th>
+            <th>达标到货单数</th>
+            <th>到货百分比(%)</th>
             <th>销售得分</th>
             </thead>
             <tbody>
             <tr>
                 <td>采购A</td>
+                <td>{{ a_all_point }}</td>
                 <td>{{ a_ding_huo_point }}</td>
+                <td>{{ a_percentage }}</td>
                 <td>{{ a_sale_point }}</td>
             </tr>
             <tr>
                 <td>采购B</td>
+                <td>{{ b_all_point }}</td>
                 <td>{{ b_ding_huo_point }}</td>
+                <td>{{ b_percentage }}</td>
                 <td>{{ b_sale_point }}</td>
             </tr>
             <tr>
                 <td>采购C</td>
+                <td>{{ c_all_point }}</td>
                 <td>{{ c_ding_huo_point }}</td>
+                <td>{{ c_percentage }}</td>
                 <td>{{ c_sale_point }}</td>
             </tr>
             </tbody>
@@ -114,7 +122,7 @@
                     <ul class="dropdown-menu bottom-up pull-right">
                         <li onclick="ajax_data(3,0)"><span>所有</span></li>
                         <li class="divider"></li>
-                        <li onclick="ajax_data(3,1)"><span >到货</span></li>
+                        <li onclick="ajax_data(3,1)"><span>到货</span></li>
                         <li class="divider"></li>
                         <li onclick="ajax_data(3,2)"><span>销售</span></li>
                     </ul>
