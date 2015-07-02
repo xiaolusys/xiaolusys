@@ -25,7 +25,7 @@ class XiaoluMamaAdmin(MyAdmin):
     
     form = forms.XiaoluMamaForm
     list_display = ('id','mobile','get_cash_display','get_pending_display','weikefu','agencylevel',
-                    'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status')
+                    'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status','referal_from','mama_Verify')
     list_filter = ('progress','agencylevel','manager','status','charge_status','hasale',('charge_time',DateFieldListFilter),'user_group')
     search_fields = ['=id','=mobile','=manager','weikefu','=openid','=referal_from']
     
@@ -66,16 +66,16 @@ class XiaoluMamaAdmin(MyAdmin):
     def charge_link(self, obj):
 
         if obj.charge_status == XiaoluMama.CHARGED:
-            return u'[ %s ]' % obj.manager_name
+            return u'%s' % obj.manager_name
         
         if obj.charge_status == XiaoluMama.FROZEN:
             return obj.get_charge_status_display()
-
-        return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
-                + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
-        
+        return (u'未接管')
+        # return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
+        #         + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
+        #
     charge_link.allow_tags = True
-    charge_link.short_description = u"接管信息"
+    charge_link.short_description = u"管理员"
     
     def exam_pass(self, obj):
 
@@ -98,6 +98,15 @@ class XiaoluMamaAdmin(MyAdmin):
         
     click_state.allow_tags = True
     click_state.short_description = u"妈妈统计"
+
+
+    def mama_Verify(self, obj):
+        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE:   # 该代理没有管理员 并且没有被接管
+            return (u'<a style="display:block;"href="/m/mama_verify/%d/">代理审核</a>'%(obj.id))
+        else:
+            return (u'已经审核')
+    mama_Verify.allow_tags = True
+    mama_Verify.short_description = u"妈妈审核"
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"

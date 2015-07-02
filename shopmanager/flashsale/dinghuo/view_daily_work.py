@@ -117,3 +117,10 @@ class DailyDingHuoView(View):
                                    "search_text": search_text, "total_more_num": total_more_num,
                                    "total_less_num": total_less_num},
                                   context_instance=RequestContext(request))
+
+
+class DailyDingHuoView2(View):
+
+    @staticmethod
+    def get(request):
+        return render_to_response("dinghuo/daily_work.html", context_instance=RequestContext(request))

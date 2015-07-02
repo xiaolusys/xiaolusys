@@ -59,19 +59,13 @@
                 <ul class="object-tools">
                     {% block object-tools-items %}
                         <li>
-                            <a href="/sale/dinghuo/daily/" class="addlink" target="_blank">
+                            <a href="/sale/dinghuo/daily/"  target="_blank">
                                 小鹿美美每日大货统计
                             </a>
                         </li>
                         <li>
-                            <a href="/sale/dinghuo/daily_work/" class="addlink" target="_blank">
+                            <a href="/sale/dinghuo/begin_ding_huo/" target="_blank">
                                 大货完成进度查看
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}"
-                               class="addlink">
-                                {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
                             </a>
                         </li>
                     {% endblock %}
