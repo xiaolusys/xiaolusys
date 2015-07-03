@@ -38,6 +38,8 @@ from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from django.contrib.auth.models import User as DjangoUser
 from django.forms.models import model_to_dict
+from flashsale.dinghuo import functions2view
+
 
 logger =  logging.getLogger('django.request')
 
@@ -493,6 +495,7 @@ class ProductAdmin(admin.ModelAdmin):
             for guige in guiges:
                 sku_dict = model_to_dict(guige)
                 sku_dict['name'] = guige.name
+                sku_dict['wait_post_num'] = functions2view.get_lack_num_by_product(p, guige)
                 product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
         return render_to_response("dinghuo/addpurchasedetail.html",
