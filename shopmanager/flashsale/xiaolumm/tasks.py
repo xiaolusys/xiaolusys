@@ -115,12 +115,16 @@ def init_Data_Red_Packet():
 
 from django.db import transaction
 from shopback.trades.models import MergeTrade
-from shopback.base import log_action,User, ADDITION, CHANGE
-import logging
+
+
+RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)        # 订单红包开放时间
 
 
 @transaction.commit_on_success
 def order_Red_Packet(xlmm, target_date):
+    now = datetime.datetime.now()
+    if now < RED_PACK_START_TIME:
+        return ''  # 开始时间之前 不执行订单红包
     # 2015-07-04 上午  要求修改为pending状态
     # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
