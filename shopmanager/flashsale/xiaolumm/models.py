@@ -7,7 +7,7 @@ from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
-ROI_CLICK_START = datetime.date(2015,7,10)
+ROI_CLICK_START = datetime.date(2015,7,6)
 
 MM_CLICK_DAY_LIMIT = 1
 MM_CLICK_DAY_BASE_COUNT  = 50
@@ -559,12 +559,19 @@ class MamaDayStats(models.Model):
         
         if self.lweek_clicks < 50:
             return 20
-        #如果两周连续转化率低于1%
-        if self.lweek_roi < 0.01 and self.tweek_roi < 0.01:
-            return 5
         
-        #如果一周转化率低于1%
-        if self.lweek_roi < 0.01:
+        xlmm = XiaoluMama.objects.get(id=self.xlmm)
+        if not xlmm.charge_time:
+            return 0
+        #如果代理接管时间少于一周，点击价格为0.2元
+        delta_days = (datetime.datetime.now() - xlmm.charge_time).days
+        if delta_days < 5:
+            return 20
+        #如果两周连续转化率为0
+        if delta_days > 7 and self.tweek_roi == 0:
+            return 1
+        #如果一周转化率为0
+        if self.lweek_roi == 0:
             return 10
         
         return 20

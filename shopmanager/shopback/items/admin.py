@@ -834,7 +834,7 @@ class ItemNumTaskLogAdmin(admin.ModelAdmin):
     date_hierarchy = 'end_at'
 
     list_filter = ('user_id',('end_at',DateFieldListFilter))
-    search_fields = ['id','outer_id','sku_outer_id']
+    search_fields = ['=id','=outer_id','=sku_outer_id']
     
 
 admin.site.register(ItemNumTaskLog, ItemNumTaskLogAdmin)

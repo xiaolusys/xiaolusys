@@ -192,7 +192,8 @@ class CategoryFilter(SimpleListFilter):
         for cate in cate_qs:
             cate_list.append((str(cate.cid), str(cate)))
             if cat_id and int(cat_id) == cate.cid or (cat_parent_id and int(cat_parent_id) == cate.cid):
-                sub_cates = ProductCategory.objects.filter(parent_cid=cate.cid,status=ProductCategory.NORMAL)
+                sub_cates = ProductCategory.objects.filter(parent_cid=cate.cid, is_parent=False, 
+                                                           status=ProductCategory.NORMAL)
                 for sub_cate in sub_cates:
                     cate_list.append((str(sub_cate.cid), str(sub_cate)))
 
