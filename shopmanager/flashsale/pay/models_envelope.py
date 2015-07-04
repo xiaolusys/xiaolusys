@@ -124,21 +124,8 @@ class Envelop(models.Model):
             self.save()
             raise exc
         else:
-<<<<<<< HEAD
-            status = redenvelope['status']
-            self.envelop_id = redenvelope['id']
-            self.livemode   = redenvelope['livemode']
-            self.send_status  = status
-            if status in self.VALID_SEND_STATUS :
-                self.send_time  = self.send_time or datetime.datetime.now()
-                self.status     = Envelop.CONFIRM_SEND 
-            elif status == self.SEND_FAILED and self.status in (Envelop.WAIT_SEND,Envelop.FAIL):
-                self.status = Envelop.FAIL
-            self.save()
-=======
             self.handle_envelop(redenvelope)
 
->>>>>>> meron-branch
     
     
     
