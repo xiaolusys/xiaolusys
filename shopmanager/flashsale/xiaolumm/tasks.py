@@ -113,77 +113,61 @@ def init_Data_Red_Packet():
             print 'exc:%s,%s'%(exc.message,xlmm.id)
             
 
-from flashsale.pay.models_envelope import Envelop
 from django.db import transaction
+from shopback.trades.models import MergeTrade
+from shopback.base import log_action,User, ADDITION, CHANGE
+import logging
 
 
 @transaction.commit_on_success
 def order_Red_Packet(xlmm, target_date):
-    
+    # 2015-07-04 上午  要求修改为pending状态
+    # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
-    WXPAY_APPID       = settings.WXPAY_APPID      #"wx3f91056a2928ad2d"
     mama = XiaoluMama.objects.get(id=xlmm)
-    mama_openid = mama.openid
-    base_weixinuniID = Base_WeixinUniID.objects.filter(app_key=WXPAY_APPID, unionid=mama_openid)
     if red_packet.first_red is False:
     # 判断 xlmm 在 OrderRedPacket 中的首单状态  是False 则执行下面的语句
-        # 计算 xlmm 的订单总数 如果是 1 （第一单）发放 红包
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
+        # 计算 xlmm 的订单总数 如果是 1 （第一单） 生成CarryLog记录
+        shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
         if shoppings.count() >= 1:
-            # 写CarryLog记录，一条IN（生成红包，一条 OUT（发出红包）
+            # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED,
+                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
                                            carry_date=target_date)
             order_red_carry_log.save()  # 保存
-            order_red_carry_log = CarryLog(xlmm=xlmm, value=880, buyer_nick=mama.weikefu,
-                                           log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED,
-                                           carry_date=target_date)
-            order_red_carry_log.save()  # 保存
-            # 写Envelop记录 SUBJECT_CHOICES（红包主题为：ORDER_RED_PAC（订单红包））
-            if base_weixinuniID.exists():
-                openid = base_weixinuniID[0].openid  # 这里要根据 APPKEY 和 UNIONID=xlmm.openid 找到 小鹿美美的 openid 来发红包
-                xlmm = str(xlmm)  # 转化 字符串
-                body = u"Hi，首单交易成功，希望您再接再厉，向10单红包挑战吧。小鹿美美和您一起努力！"
-                envelop = Envelop(amount=880, platform=Envelop.WXPUB, livemode=True, recipient=openid,
-                                receiver=xlmm, subject=Envelop.ORDER_RED_PAC, body=body)
-                envelop.save()  # envelop 记录保存
-            # 修改 订单红包记录 OrderRedPacket 修改 首单  状态
             red_packet.first_red = True  # 已经发放首单红包
             red_packet.save()   # 保存红包状态
     if red_packet.ten_order_red is False:
     #  判断 xlmm 在 OrderRedPacket 中的十单状态 是False 则执行下面语句
-        # 计算 xlmm 的订单总数 如果是 10  发放红包
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
+        # 计算 xlmm 的订单总数 如果是 10  生成CarryLog记录
+        shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
         if shoppings.count() >= 10:
-            # 写CarryLog记录，一条IN（生成红包，一条 OUT（发出红包）
+            # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=1880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED,
+                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
                                            carry_date=target_date)
             order_red_carry_log.save()  # 保存
-            order_red_carry_log = CarryLog(xlmm=xlmm, value=1880, buyer_nick=mama.weikefu,
-                                           log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED,
-                                           carry_date=target_date)
-            order_red_carry_log.save()  # 保存
-            # 写Envelop记录 SUBJECT_CHOICES（红包主题为：ORDER_RED_PAC（订单红包））
-            if base_weixinuniID.exists():
-                openid = base_weixinuniID[0].openid  # 这里要根据 APPKEY 和 UNIONID=xlmm.openid 找到 小鹿美美的 openid 来发红包
-                xlmm = str(xlmm)  # 转化 字符串
-                body = u"Hi，10 单交易成功，希望您再接再厉。小鹿美美和您一起努力！"
-                envelop = Envelop(amount=1880, platform=Envelop.WXPUB, livemode=True, recipient=openid,
-                                receiver=xlmm, subject=Envelop.ORDER_RED_PAC, body=body)
-                envelop.save()  # envelop 记录保存
-            # 修改 订单红包记录 OrderRedPacket 修改 十单  状态
+            red_packet.first_red = True  # 已经发放首单红包
             red_packet.ten_order_red = True  # 已经发放10单红包
             red_packet.save()   # 保存红包状态
 
+    # 寻找该妈妈以前的首单/十单红包记录
+    red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
+    shopping_finishs = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)  # 已经完成订单
 
+    if shopping_finishs.count() >= 10:
+        for red_pac_carry_log in red_pac_carry_logs:
+            if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
+                red_pac_carry_log.status = CarryLog.CONFIRMED   # 两笔都确定
+                red_pac_carry_log.save()  # 保存
+    if shopping_finishs.count() >= 1:
+        for red_pac_carry_log in red_pac_carry_logs:
+            if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
+                red_pac_carry_log.status = CarryLog.CONFIRMED   # 确定首单
+                red_pac_carry_log.save()  # 保存
 
-
-from shopback.trades.models import MergeTrade
 
 @task()
 def task_Update_Xlmm_Order_By_Day(xlmm,target_date):

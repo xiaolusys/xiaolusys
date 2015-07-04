@@ -38,6 +38,8 @@ from shopback.base.renderers  import BaseJsonRenderer
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
 from shopback.items.views_rest import ProductInvalidConfirmView
+from .select_sale_time import change_Sale_Time
+
 
 urlpatterns = patterns('shopback.items.views',
 
@@ -143,5 +145,6 @@ urlpatterns = patterns('shopback.items.views',
         template_name="items/product_sku_diff.html"), 
         name='test_diff'),
     #(r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
+    url(r'^select_sale_time/$', change_Sale_Time, name='select_sale_time'),
 )
 

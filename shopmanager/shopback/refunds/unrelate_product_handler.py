@@ -27,7 +27,7 @@ def update_Unrelate_Prods_Product(pro, req, trade_id=''):
                 refund = Refund()
                 refund.tid = merge_order[0].merge_trade.tid                     # 交易ID
                 refund.title = merge_order[0].title                             # 标题
-                refund.num_iid = merge_order[0].num_iid                         # 商品ID=商品编码
+                refund.num_iid = merge_order[0].num_iid or 0                         # 商品ID=商品编码
                 refund.user = merge_order[0].merge_trade.user                   # 店铺
                 # refund.seller_id =                                            # 卖家ID
                 refund.buyer_nick = merge_order[0].buyer_nick                   # 买家昵称
@@ -44,10 +44,11 @@ def update_Unrelate_Prods_Product(pro, req, trade_id=''):
                 refund.sid = pro.out_sid                                        # 仓库收到退回产品的快递单号
                 # refund.reason =                                               # 退货原因
                 # refund.desc =                                                 # 描述
+                refund.has_good_return = True                                   # 是否退货（是）
                 refund.good_status = GOOD_STATUS_CHOICES[2][0]                  # 退货商品的状态（买家已经退货）
                 # refund.order_status = Refund.                                 # 退货商品的订单状态
                 refund.cs_status = 2                                            # 需要客服介入
-                refund.status = pcfg.NO_REFUND                                  # 没有退款
+                refund.status = pcfg.REFUND_CONFIRM_GOODS                       # 买家已经退货
                 refund.save()                                                   # 保存数据
 
                 # merge_trade[0].status = pcfg.TRADE_CLOSED                       # 修改MergeTrade status 为关闭
