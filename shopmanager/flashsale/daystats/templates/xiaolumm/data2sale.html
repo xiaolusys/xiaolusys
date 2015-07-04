@@ -10,13 +10,15 @@
             <th></th>
             <th>销售额</th>
             <th>成交单数</th>
+            <th>包裹数</th>
             </thead>
             <tbody>
             {% for data in result_list %}
                 <tr>
-                    <th>{{ data.month }}月份</th>
+                    <td>{{ data.month }}月份</td>
                     <td>{{ data.total_sale_amount }}</td>
                     <td>{{ data.total_order_num }}</td>
+                    <td>{{ data.total_package_num }}</td>
 
 
                 </tr>
