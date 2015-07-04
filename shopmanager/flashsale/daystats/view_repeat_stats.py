@@ -39,7 +39,7 @@ class StatsRepeatView(View):
         """找出选择的开始月份和结束月份"""
         start_month = start_date.month
         end_month = end_date.month
-
+        month_march = "2015-03-01"
         stats_month_range = range(start_month, end_month)
         month_range = range(start_month + 1, end_month + 1)
         result_data_list = []
@@ -56,9 +56,10 @@ class StatsRepeatView(View):
                 user_data = cursor.fetchall()
 
                 """找出目标月之前的所有用户"""
-                old_user_sql = 'select openid from flashsale_tongji_shopping where shoptime<="{0}" group by openid'.format(
-                    month_date_begin)
+                old_user_sql = 'select openid from flashsale_tongji_shopping where shoptime<="{0}" and shoptime>="{1}" group by openid'.format(
+                    month_date_begin, month_march)
                 cursor.execute(old_user_sql)
+                print(old_user_sql)
                 old_user_data = cursor.fetchall()
 
                 new_user = get_new_user(user_data, old_user_data)
