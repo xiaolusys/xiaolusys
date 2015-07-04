@@ -49,6 +49,30 @@
             </tbody>
         </table>
     </div>
+    <div class="row" style="margin-top: 40px">
+        <table class="table table-bordered" id="data-table">
+            <thead>
+            <th>所有(用户数)复购率(%)</th>
+            {% for month in month_range %}
+                <th>{{ month }}月份</th>
+            {% endfor %}
+            </thead>
+            <tbody>
+            {% for data in all_result_data_list %}
+                <tr>
+                    <td>{{ data.month }}月({{ data.all_user_num }})</td>
+                    {% for user_data_item in data.user_data %}
+                        {% ifequal "None" user_data_item %}
+                            <td>-</td>
+                        {% else %}
+                            <td>({{ user_data_item.num }}){{ user_data_item.rec_num }}</td>
+                        {% endifequal %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}
 {% block tail_script %}
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
