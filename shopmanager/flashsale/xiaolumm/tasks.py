@@ -159,11 +159,12 @@ def order_Red_Packet(xlmm, target_date):
 
     if shopping_finishs.count() >= 10:
         for red_pac_carry_log in red_pac_carry_logs:
-            red_pac_carry_log.status = CarryLog.CONFIRMED   # 两笔都确定
-            red_pac_carry_log.save()  # 保存
+            if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
+                red_pac_carry_log.status = CarryLog.CONFIRMED   # 两笔都确定
+                red_pac_carry_log.save()  # 保存
     if shopping_finishs.count() >= 1:
         for red_pac_carry_log in red_pac_carry_logs:
-            if red_pac_carry_log.value == 880:
+            if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
                 red_pac_carry_log.status = CarryLog.CONFIRMED   # 确定首单
                 red_pac_carry_log.save()  # 保存
 
