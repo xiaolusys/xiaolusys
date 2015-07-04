@@ -8,6 +8,7 @@ from django.db import connection
 import datetime
 from calendar import monthrange
 from flashsale.clickrebeta.models import StatisticsShopping
+from django.db.models import Sum
 
 
 def get_new_user(user_data, old_user):
@@ -83,28 +84,54 @@ class StatsRepeatView(View):
                         user_data_list.append(temp_dict)
                 result_data_dict["user_data"] = user_data_list
                 result_data_list.append(result_data_dict)
-
-                all_user_data_list = []
-                all_result_data_dict = {"month": target_month, "all_user_num": all_user_num}
-                print user_data
-                for i in month_range:
-                    if target_month >= i:
-                        all_user_data_list.append("None")
-                    else:
-                        all_user_data = [val[0] for val in user_data]
-                        stats_date_begin = datetime.datetime(start_date.year, i, 1)
-                        stats_date_end = datetime.datetime(start_date.year, i + 1, 1)
-                        count_month = StatisticsShopping.objects.filter(
-                            shoptime__range=(stats_date_begin, stats_date_end)).filter(openid__in=all_user_data).values(
-                            'openid').distinct().count()
-                        temp_dict = {"num": count_month, "rec_num": float(
-                            '%0.2f' % (count_month * 100 / all_user_num if all_user_num else 0))}
-                        all_user_data_list.append(temp_dict)
-                all_result_data_dict["user_data"] = all_user_data_list
-                all_result_data_list.append(all_result_data_dict)
         finally:
             cursor.close()
         return render_to_response("xiaolumm/data2repeatshop.html",
-                                  {"all_data": result_data_list, "all_result_data_list": all_result_data_list,
-                                   "start_date": start_date, "end_date": end_date, "month_range": month_range},
+                                  {"all_data": result_data_list, "start_date": start_date, "end_date": end_date,
+                                   "month_range": month_range},
+                                  context_instance=RequestContext(request))
+
+
+from flashsale.daystats.models import DailyStat
+
+
+class StatsSaleView(View):
+    @staticmethod
+    def get(request):
+        content = request.REQUEST
+        today = datetime.date.today()
+        start_time_str = content.get("df", None)
+        end_time_str = content.get("dt", None)
+        if start_time_str:
+            year, month, day = start_time_str.split('-')
+            start_date = datetime.date(int(year), int(month), int(day))
+            if start_date > today:
+                start_date = today
+        else:
+            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        if end_time_str:
+            year, month, day = end_time_str.split('-')
+            end_date = datetime.date(int(year), int(month), int(day))
+        else:
+            end_date = today
+        """找出选择的开始月份和结束月份"""
+        start_month = start_date.month
+        end_month = end_date.month
+
+        month_range = range(start_month, end_month + 1)
+        result_list = []
+        for month in month_range:
+            month_start_date = datetime.date(start_date.year, month, 1)
+            month_end_date = datetime.date(end_date.year, month + 1, 1)
+            total_sale_amount = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                         day_date__lt=month_end_date).aggregate(
+                total_sale_amount=Sum('total_payment')).get('total_sale_amount') or 0
+            total_order_num = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                       day_date__lt=month_end_date).aggregate(
+                total_sale_order=Sum('total_order_num')).get('total_sale_order') or 0
+            result_list.append(
+                {"month": month, "total_sale_amount": total_sale_amount / 100, "total_order_num": total_order_num})
+        return render_to_response("xiaolumm/data2sale.html",
+                                  {"month_range": month_range, "result_list": result_list, "start_date": start_date,
+                                   "end_date": end_date},
                                   context_instance=RequestContext(request))

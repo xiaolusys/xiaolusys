@@ -1,12 +1,19 @@
 {% extends "xiaolumm/daystats_base.html" %}
 {% block title %}重复购买统计{% endblock %}
 {% block head_script %}
-    <style type="text/css" title="currentStyle">
-        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
-        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
-    </style>
-
-
+    <script>
+        $(function () {
+            var my_data = {"df": $("#f_datepicker").val(), "dt": $("#t_datepicker").val()}
+            $.ajax({
+                url: "/sale/daystats/stats_sale/", //这里是静态页的地址
+                method: "GET", //静态页用get方法，否则服务器会抛出405错误
+                data: my_data,
+                success: function (res) {
+                    $("#all_data").html(res);
+                }
+            });
+        });
+    </script>
 {% endblock %}
 {% block container %}
     <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/stats_repeat/">
@@ -49,29 +56,8 @@
             </tbody>
         </table>
     </div>
-    <div class="row" style="margin-top: 40px">
-        <table class="table table-bordered" id="data-table">
-            <thead>
-            <th>所有(用户数)复购率(%)</th>
-            {% for month in month_range %}
-                <th>{{ month }}月份</th>
-            {% endfor %}
-            </thead>
-            <tbody>
-            {% for data in all_result_data_list %}
-                <tr>
-                    <td>{{ data.month }}月({{ data.all_user_num }})</td>
-                    {% for user_data_item in data.user_data %}
-                        {% ifequal "None" user_data_item %}
-                            <td>-</td>
-                        {% else %}
-                            <td>({{ user_data_item.num }}){{ user_data_item.rec_num }}</td>
-                        {% endifequal %}
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="row" >
+        <div id="all_data"></div>
     </div>
 {% endblock %}
 {% block tail_script %}
@@ -83,35 +69,6 @@
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
-    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
-    <script type="text/javascript">
-        $('#data-table').dataTable({
-            //"bJQueryUI": true,
-            "bAutoWidth": false, //自适应宽度
-            "aaSorting": [[0, "asc"]],
-            "iDisplayLength": 30,
-            "aLengthMenu": [[30, 50, 100, -1], [30, 50, 100, "All"]],
-            //"bInfo":true,
-            //"sPaginationType": "full_numbers",
-            //"sDom": '<"H"Tfr>t<"F"ip>',
-            "oLanguage": {
-                "sLengthMenu": "每页 _MENU_ 条",
-                "sZeroRecords": "抱歉， 没有找到",
-                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
-                "sInfoEmpty": "没有数据",
-                "sSearch": "搜索",
-                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
-                "oPaginate": {
-                    "sFirst": "首页",
-                    "sPrevious": "前一页",
-                    "sNext": "后一页",
-                    "sLast": "尾页"
-                },
-                "sZeroRecords": "没有检索到数据",
-                "sProcessing": "<img src='/static/img/loading.gif' />"
-            }
-        });
-    </script>
 
     <script type="text/javascript">
         $(function () {
