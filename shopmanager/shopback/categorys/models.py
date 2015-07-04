@@ -11,13 +11,16 @@ CAT_STATUS = (
 ) 
 
 class Category(models.Model):
-
+    
+    NORMAL = pcfg.NORMAL
+    DELETE = pcfg.DELETE
+    
     cid        = models.IntegerField(primary_key=True)
     parent_cid = models.IntegerField(null=True,db_index=True)
 
     name       = models.CharField(max_length=32)
     is_parent  = models.BooleanField(default=True)
-    status     = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL)
+    status     = models.CharField(max_length=7,choices=CAT_STATUS,default=NORMAL)
     sort_order = models.IntegerField(null=True)
 
     class Meta:
@@ -47,6 +50,9 @@ class Category(models.Model):
     
 class ProductCategory(models.Model):
     
+    NORMAL = pcfg.NORMAL
+    DELETE = pcfg.DELETE
+    
     cid     = models.AutoField(primary_key=True,verbose_name=u'类目ID')
     parent_cid = models.IntegerField(null=False,verbose_name=u'父类目ID')
     name    = models.CharField(max_length=32,blank=True,verbose_name=u'类目名')
@@ -67,7 +73,7 @@ class ProductCategory(models.Model):
         try:
             p_cat = self.__class__.objects.get(cid=self.parent_cid)
         except:
-            p_cat = u'【不存在】'
+            p_cat = u'--'
         return '%s / %s'%(p_cat,self.name)
         
     

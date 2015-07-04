@@ -91,11 +91,11 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="30",hour='3'),
          'args':()
      },
-    u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
-         'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
-         'schedule':crontab(minute="0",hour='2'),
-         'args':(1,None,None,)
-     },
+#     u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
+#          'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
+#          'schedule':crontab(minute="0",hour='2'),
+#          'args':(1,None,None,)
+#      },
     u'定时更新设置提醒的订单入问题单':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
          'schedule':crontab(minute="0",hour='0,12,17'),
@@ -121,7 +121,6 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="4", day_of_month='10'),#
         'args':()
     },
-
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
 #        'schedule':crontab(minute="0",hour="2"), #
