@@ -45,5 +45,7 @@ class PopularizeCostAdmin(admin.ModelAdmin):
     # list_filter = (DateFieldListFilter,)
     search_fields = ['=date']
     ordering = ('-date',)
+    
+    
 
 admin.site.register(PopularizeCost, PopularizeCostAdmin)
