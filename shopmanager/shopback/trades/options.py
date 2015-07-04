@@ -60,6 +60,7 @@ def _createAndCalcOrderFee(trade,sub_trade):
                                               'post_fee'])
         
 @process_lock
+@transaction.commit_on_success
 def mergeMaker(trade,sub_trade):
     
     if not isinstance(trade,MergeTrade):
@@ -143,7 +144,7 @@ def mergeMaker(trade,sub_trade):
         
     return True
     
-    
+@transaction.commit_on_success    
 def mergeRemover(trade):
     
     from shopapp.memorule import ruleMatchPayment

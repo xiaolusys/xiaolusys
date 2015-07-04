@@ -1,3 +1,4 @@
+from __future__ import division
 # coding=utf-8
 __author__ = 'yann'
 from django.views.generic import View
@@ -7,6 +8,7 @@ from django.db import connection
 import datetime
 from calendar import monthrange
 from flashsale.clickrebeta.models import StatisticsShopping
+from django.db.models import Sum
 
 
 def get_new_user(user_data, old_user):
@@ -39,10 +41,11 @@ class StatsRepeatView(View):
         """找出选择的开始月份和结束月份"""
         start_month = start_date.month
         end_month = end_date.month
-
+        month_march = "2015-03-01"
         stats_month_range = range(start_month, end_month)
         month_range = range(start_month + 1, end_month + 1)
         result_data_list = []
+        all_result_data_list = []
         try:
             for target_month in stats_month_range:
                 month_date_begin = datetime.datetime(start_date.year, target_month, 1)
@@ -54,10 +57,11 @@ class StatsRepeatView(View):
                 cursor = connection.cursor()
                 cursor.execute(user_sql)
                 user_data = cursor.fetchall()
+                all_user_num = len(user_data)
 
                 """找出目标月之前的所有用户"""
-                old_user_sql = 'select openid from flashsale_tongji_shopping where shoptime<="{0}" group by openid'.format(
-                    month_date_begin)
+                old_user_sql = 'select openid from flashsale_tongji_shopping where shoptime<="{0}" and shoptime>="{1}" group by openid'.format(
+                    month_date_begin, month_march)
                 cursor.execute(old_user_sql)
                 old_user_data = cursor.fetchall()
 
@@ -66,7 +70,6 @@ class StatsRepeatView(View):
                 result_data_dict = {"month": target_month, "new_user": new_user_quantity}
                 user_data_list = []
                 for i in month_range:
-                    temp_dict = {}
                     if target_month >= i:
                         user_data_list.append("None")
                     else:
@@ -84,6 +87,55 @@ class StatsRepeatView(View):
         finally:
             cursor.close()
         return render_to_response("xiaolumm/data2repeatshop.html",
-                                  {"all_data": result_data_list, "start_date": start_date,
-                                   "end_date": end_date, "month_range": month_range},
+                                  {"all_data": result_data_list, "start_date": start_date, "end_date": end_date,
+                                   "month_range": month_range},
+                                  context_instance=RequestContext(request))
+
+
+from flashsale.daystats.models import DailyStat
+from shopback.trades.models import MergeTrade
+
+
+class StatsSaleView(View):
+    @staticmethod
+    def get(request):
+        content = request.REQUEST
+        today = datetime.date.today()
+        start_time_str = content.get("df", None)
+        end_time_str = content.get("dt", None)
+        if start_time_str:
+            year, month, day = start_time_str.split('-')
+            start_date = datetime.date(int(year), int(month), int(day))
+            if start_date > today:
+                start_date = today
+        else:
+            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        if end_time_str:
+            year, month, day = end_time_str.split('-')
+            end_date = datetime.date(int(year), int(month), int(day))
+        else:
+            end_date = today
+        """找出选择的开始月份和结束月份"""
+        start_month = start_date.month
+        end_month = end_date.month
+
+        month_range = range(start_month, end_month + 1)
+        result_list = []
+        for month in month_range:
+            month_start_date = datetime.date(start_date.year, month, 1)
+            month_end_date = datetime.date(end_date.year, month + 1, 1)
+            total_sale_amount = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                         day_date__lt=month_end_date).aggregate(
+                total_sale_amount=Sum('total_payment')).get('total_sale_amount') or 0
+            total_order_num = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                       day_date__lt=month_end_date).aggregate(
+                total_sale_order=Sum('total_order_num')).get('total_sale_order') or 0
+            total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).exclude(weight_time=None).filter(
+                sys_status=u'FINISHED').filter(pay_time__gte=month_start_date, pay_time__lt=month_end_date).count()
+            result_list.append(
+                {"month": month, "total_sale_amount": total_sale_amount / 100, "total_order_num": total_order_num,
+                 "total_package_num": total_package_num})
+        return render_to_response("xiaolumm/data2sale.html",
+                                  {"month_range": month_range, "result_list": result_list, "start_date": start_date,
+                                   "end_date": end_date},
                                   context_instance=RequestContext(request))

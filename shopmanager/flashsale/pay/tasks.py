@@ -245,19 +245,16 @@ def task_Pull_Red_Envelope(pre_day=7):
         else:
             resp = pingpp.RedEnvelope.all(limit=page_size,
                                           created={'gte':pre_date,'lte':today})  
+        
+        for e in resp['data']:
+            envelop = Envelop.objects.get(id=e['order_no'])
+            envelop.handle_envelop(e)
+        else:
+            starting_after = e['id']
+        
         has_next = resp['has_more']
         if not has_next:
             break
-        
-        for e in resp['data']:
-            env = Envelop.objects.get(id=e['order_no'])
-            env.envelop_id = e['id']
-            env.livemode   = e['livemode']
-            if env.status in (Envelop.WAIT_SEND,Envelop.CANCEL) :
-                env.status = Envelop.FAIL
-            env.save()
-        else:
-            starting_after = e['id']
             
             
   

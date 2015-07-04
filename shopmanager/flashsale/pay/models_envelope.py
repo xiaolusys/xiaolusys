@@ -88,6 +88,19 @@ class Envelop(models.Model):
     get_amount_display.short_description = u"红包金额"
     
     
+    def handle_envelop(self,envelopd):
+        status = envelopd['status']
+        self.envelop_id = envelopd['id']
+        self.livemode   = envelopd['livemode']
+        self.send_status  = status
+        if status in self.VALID_SEND_STATUS :
+            self.send_time  = self.send_time or datetime.datetime.now()
+            self.status     = Envelop.CONFIRM_SEND 
+            
+        elif status == self.SEND_FAILED and self.status in (Envelop.WAIT_SEND,Envelop.FAIL):
+            self.status = Envelop.FAIL
+        self.save()
+        
     def send_envelop(self):
         pingpp.api_key = settings.PINGPP_APPKEY
         try:
@@ -111,6 +124,7 @@ class Envelop(models.Model):
             self.save()
             raise exc
         else:
+<<<<<<< HEAD
             status = redenvelope['status']
             self.envelop_id = redenvelope['id']
             self.livemode   = redenvelope['livemode']
@@ -121,6 +135,10 @@ class Envelop(models.Model):
             elif status == self.SEND_FAILED and self.status in (Envelop.WAIT_SEND,Envelop.FAIL):
                 self.status = Envelop.FAIL
             self.save()
+=======
+            self.handle_envelop(redenvelope)
+
+>>>>>>> meron-branch
     
     
     

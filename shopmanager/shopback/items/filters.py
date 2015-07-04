@@ -169,3 +169,47 @@ class GroupNameFilter(SimpleListFilter):
             user_list = MyUser.objects.filter(group_id__in=group_id)
             my_users = [my_user.user.username for my_user in user_list]
             return queryset.filter(sale_charger__in=my_users)
+        
+
+from shopback.categorys.models import ProductCategory
+       
+class CategoryFilter(SimpleListFilter):
+    """ """
+    title = u'商品类别'
+    parameter_name = 'category'
+
+    def lookups(self, request, model_admin):
+        
+        cat_id = request.GET.get(self.parameter_name,'')
+        cat_parent_id = None
+        try:
+            cat_parent_id = ProductCategory.objects.get(cid=cat_id).parent_cid
+        except:
+            pass
+        
+        cate_list = []
+        cate_qs   = ProductCategory.objects.filter(is_parent=True,status=ProductCategory.NORMAL)
+        for cate in cate_qs:
+            cate_list.append((str(cate.cid), str(cate)))
+            if cat_id and int(cat_id) == cate.cid or (cat_parent_id and int(cat_parent_id) == cate.cid):
+                sub_cates = ProductCategory.objects.filter(parent_cid=cate.cid,status=ProductCategory.NORMAL)
+                for sub_cate in sub_cates:
+                    cate_list.append((str(sub_cate.cid), str(sub_cate)))
+
+        return tuple(cate_list)
+
+    def queryset(self, request, queryset):
+        
+        cat_id = self.value()
+        if not cat_id:
+            return queryset
+        else:
+            categorys = ProductCategory.objects.filter(parent_cid=cat_id)
+            cate_ids  = [cate.cid for cate in categorys]
+            if len(cate_ids) == 0:
+                return queryset.filter(category=cat_id)
+            else:
+                cate_ids.append(int(cat_id))
+                return queryset.filter(category__in=cate_ids)
+        
+        
