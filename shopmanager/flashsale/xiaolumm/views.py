@@ -326,6 +326,11 @@ class MamaIncomeDetailView(View):
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             click_price  = xlmm.get_Mama_Click_Price_By_Day(order_num, day_date=target_date) / 100.0
             
+            futrue_date = datetime.date.today() + datetime.timedelta(days=1)
+            futrue_click_price = 0
+            if target_date == datetime.date.today():
+                futrue_click_price = xlmm.get_Mama_Click_Price_By_Day(0, day_date=futrue_date) / 100.0
+            
             click_num    = 0 
             click_pay    = 0 
             ten_click_num   = 0 
@@ -370,7 +375,7 @@ class MamaIncomeDetailView(View):
                     "exam_pass":exam_pass,"total_value":total_value,
                     "carry":carry, 'carry_confirm':carry_confirm,
                     "target_date":target_date,"prev_day":prev_day, "next_day":next_day,
-                    'active_start':active_start,"click_num":click_num,
+                    'active_start':active_start,"click_num":click_num,"futrue_click_price":futrue_click_price,
                     "click_price":click_price, "click_pay":click_pay,"ten_click_num":ten_click_num,
                     "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay}
             

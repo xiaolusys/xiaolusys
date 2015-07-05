@@ -287,7 +287,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'统计妈妈两周转化及点击基本价格':{
         'task':'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
-        'schedule': crontab(minute="30", hour="7"),
+        'schedule': crontab(minute="30", hour="6"),
         'args': ()
     },
     u'定时统计订货达标情况':{

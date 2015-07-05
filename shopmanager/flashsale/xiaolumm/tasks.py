@@ -487,15 +487,15 @@ def calc_mama_roi(xlmm,dfrom,dto):
 
 ### 代理提成表 的task任务   计算 每个妈妈的代理提成，上交的给推荐人的提成
 @task()
-def task_Calc_Mama_Lasttwoweek_Stats(pre_day=1):      # 每天 写入记录
+def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):      # 每天 写入记录
     """
     计算每日妈妈过去两周点击转化
     """
     
     target_date = datetime.date.today() - datetime.timedelta(days=pre_day)
     
-    lweek_from = target_date - datetime.timedelta(days=7)   # 生成带时间的格式  开始时间
-    tweek_from   = target_date - datetime.timedelta(days=14)  # 停止时间
+    lweek_from  = target_date - datetime.timedelta(days=7)   # 生成带时间的格式  开始时间
+    tweek_from  = target_date - datetime.timedelta(days=14)  # 停止时间
 
     xlmms = XiaoluMama.objects.filter(agencylevel=2) 
     for xlmm in xlmms:
