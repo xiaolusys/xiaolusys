@@ -41,7 +41,7 @@
 <li class="list-group-item"><lable>妈妈编号：</label> <b>{{ pk }}</b></li>
 <li class="list-group-item"><span style="color:orange">点击人数： {{ click_num }}</span></li>
 {% if futrue_click_price > 0 and futrue_click_price < 0.2 %}
-<li class="list-group-item"><span style="color:#A30000;">系统检测出您有刷点击嫌疑，明日点击价格将会下调，请尽快改善！</span></li>
+<li class="list-group-item"><span style="color:#A30000;">系统检测出您有刷点击嫌疑，明日点击补贴将有可能下调，请尽快改善哦！</span></li>
 {% endif %}
 <li class="list-group-item"><span style="color:orange">点击补贴： {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>
 {% if not exam_pass %}（<a href="/sale/exam/">考试通过后生效</a>）{% endif %}</li>
