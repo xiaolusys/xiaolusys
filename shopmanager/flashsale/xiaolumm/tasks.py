@@ -87,6 +87,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         xlmm.push_carrylog_to_cash(cl)
         
+RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)        # 订单红包开放时间
 
 def init_Data_Red_Packet():
     # 判断 xlmm 是否有过 首单 或者 十单  如果是的将 OrderRedPacket 状态修改过来
@@ -95,7 +96,7 @@ def init_Data_Red_Packet():
     for xlmm in xlmms:
         try:
             # 找订单
-            shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
+            shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, shoptime__lt=RED_PACK_START_TIME)
             if shoppings.count() >= 10:
                 red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm.id)
                 red_packet.first_red = True  # 默认发放过首单红包
@@ -115,9 +116,6 @@ def init_Data_Red_Packet():
 
 from django.db import transaction
 from shopback.trades.models import MergeTrade
-
-
-RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)        # 订单红包开放时间
 
 
 @transaction.commit_on_success
