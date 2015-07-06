@@ -164,7 +164,6 @@ class StatsSalePeopleView(View):
         """找出选择的开始月份和结束月份"""
         start_month = start_date.month
         end_month = end_date.month
-        month_march = "2015-03-01"
         month_range = range(start_month, end_month + 1)
         result_list = []
         for month in month_range:
@@ -175,14 +174,12 @@ class StatsSalePeopleView(View):
                                                              shoptime__lt=month_end_date).values(
                 "openid").distinct()
             all_purchase_num = all_purchase.count()
-            histroy_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_march,
-                                                                 shoptime__lt=month_start_date).values(
+            history_purchase = StatisticsShopping.objects.filter(shoptime__lt=month_start_date).values(
                 "openid").distinct()
-
-            history_purchase_detail = set([val['openid'] for val in histroy_purchase])
+            history_purchase_detail = set([val['openid'] for val in history_purchase])
             all_purchase_detail = set([val['openid'] for val in all_purchase])
             repeat_user = all_purchase_detail & history_purchase_detail
-            all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged').values("openid").distinct()
+            all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel=2).values("openid").distinct()
             all_xlmm_detail = set([val['openid'] for val in all_xlmm])
             repeat_xlmm = repeat_user & all_xlmm_detail
             result_list.append(
