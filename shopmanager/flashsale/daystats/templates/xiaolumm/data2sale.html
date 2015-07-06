@@ -9,7 +9,8 @@
             <thead>
             <th></th>
             <th>销售额</th>
-            <th>成交单数</th>
+            <th>总成交单数</th>
+            <th>成交(当天内同一人购买算一单)单数</th>
             <th>包裹数</th>
             </thead>
             <tbody>
@@ -18,6 +19,7 @@
                     <td>{{ data.month }}月份</td>
                     <td>{{ data.total_sale_amount }}</td>
                     <td>{{ data.total_order_num }}</td>
+                    <td>{{ data.total_sale_num }}</td>
                     <td>{{ data.total_package_num }}</td>
 
 
