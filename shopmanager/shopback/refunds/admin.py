@@ -73,7 +73,7 @@ admin.site.register(Refund,RefundAdmin)
   
   
 class RefundProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id','outer_sku_id','buyer_nick','buyer_mobile','buyer_phone','trade_id'
+    list_display = ('id','outer_id', 'title', 'outer_sku_id','buyer_nick','buyer_mobile','buyer_phone','trade_id'
                     ,'out_sid','company','can_reuse','is_finish','created','modified','memo')
     list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
