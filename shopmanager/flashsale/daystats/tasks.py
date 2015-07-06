@@ -168,8 +168,8 @@ def task_PopularizeCost_By_Day(pre_day=1):
         twelve_date_popu_cost.total_carry_out           = data[10]
         twelve_date_popu_cost.carrylog_red_packet       = data[11]
         twelve_date_popu_cost.save()
-    except:
-        pass
+    except PopularizeCost.DoesNotExist:
+        logger.warning('First time running no popularizecost data to search ')
 
 
 
