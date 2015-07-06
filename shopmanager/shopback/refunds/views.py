@@ -231,10 +231,8 @@ class RefundView(ModelView):
             hasattr(rf,k) and setattr(rf,k,v)
         rf.save()
         # 创建一条退货款单记录
-        #print ('tttttttttttttttttttt')
         log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')
-        #print ('hhhhhhhhhhhhhhhhhhhhh')
-        #update_Unrelate_Prods_Product(pro=rf, req=request, trade_id=rf.trade_id)        # 关联退货
+        update_Unrelate_Prods_Product(pro=rf, req=request, trade_id=rf.trade_id)        # 关联退货
 
         return rf  
  
