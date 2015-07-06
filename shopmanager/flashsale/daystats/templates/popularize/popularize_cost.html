@@ -52,10 +52,12 @@
             <th>钱包提现</th>
             <th>妈妈押金</th>
 
+
             <th>退款返现</th>
             <th>推广费用</th>
             <th>妈妈支出</th>
 
+            <th>订单红包</th>
 
             </thead>
             <tbody>
@@ -74,9 +76,12 @@
                     <td>{{ popularize.carrylog_cash_out }}</td>
                     <td>{{ popularize.carrylog_deposit }}</td>
 
+
                     <td>{{ popularize.carrylog_refund_return }}</td>
                     <td>{{ popularize.total_carry_in }}</td>
                     <td>{{ popularize.total_carry_out }}</td>
+
+                    <td>{{ popularize.carrylog_red_packet }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -97,6 +102,8 @@
                 <td><input id="total_carrylog_refund_return" type="text" value="0.0" readonly/></td>
                 <td><input id="total_total_carry_in" type="text" value="0.0" readonly/></td>
                 <td><input id="total_total_carry_out" type="text" value="0.0" readonly/></td>
+
+                <td><input id="total_total_red_packet" type="text" value="0.0" readonly/></td>
             </tr>
             </tfoot>
         </table>
@@ -139,13 +146,16 @@
             var total_total_carry_out = 0;
             var total_carry_out = 0;
 
+            var total_total_red_packet = 0;
+            var total_carry_red_pack = 0;
+
 
 
 
             var rows = $("#mytable > tbody > tr");
             for (var i = 0; i < rows.length; i++) {
                 row = rows[i];
-                if (row.cells.length < 11) {
+                if (row.cells.length < 12) {
                     continue;
                 }
 
@@ -162,6 +172,8 @@
                 carrylog_refund_return= row.cells[9].innerHTML;
                 total_carry_in= row.cells[10].innerHTML;
                 total_carry_out= row.cells[11].innerHTML;
+
+                total_carry_red_pack= row.cells[12].innerHTML;
 
                 if (parseFloat(carrylog_order)) {
                     total_carrylog_order += parseFloat(carrylog_order);
@@ -201,6 +213,9 @@
                 if (parseFloat(total_carry_out)) {
                     total_total_carry_out += parseFloat(total_carry_out);
                 }
+                if (parseFloat(total_carry_red_pack)) {
+                    total_total_red_packet += parseFloat(total_carry_red_pack);
+                }
 
             }
             $('#total_carrylog_order').val(total_carrylog_order.toString());
@@ -216,6 +231,8 @@
             $('#total_carrylog_refund_return').val(total_carrylog_refund_return.toString());
             $('#total_total_carry_in').val(total_total_carry_in.toString());
             $('#total_total_carry_out').val(total_total_carry_out.toString());
+
+            $('#total_total_red_packet').val(total_total_red_packet.toString());
 
         }
 

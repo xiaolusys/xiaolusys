@@ -109,6 +109,8 @@ class PopularizeCost(models.Model):
     carrylog_cash_out = models.FloatField(default=0.0, db_index=True, verbose_name=u"钱包提现")
     carrylog_deposit = models.FloatField(default=0.0, db_index=True, verbose_name=u"押金")
     carrylog_refund_return = models.FloatField(default=0.0, db_index=True, verbose_name=u"退款返现")
+    carrylog_red_packet = models.FloatField(default=0.0, db_index=True, verbose_name=u"订单红包")
+
 
     total_carry_in = models.FloatField(default=0.0, db_index=True, verbose_name=u"推广费用")
     total_carry_out = models.FloatField(default=0.0, db_index=True, verbose_name=u"妈妈支出")
