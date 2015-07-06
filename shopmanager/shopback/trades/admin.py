@@ -153,7 +153,7 @@ class MergeTradeAdmin(MyAdmin):
         symbol_link = obj.buyer_nick
 
         if  obj.can_change_order:
-            symbol_link = '<a href="javascript:void(0);" onclick=" openwin(%d)">%s</a> ' %(obj.id,obj.buyer_nick)
+            symbol_link = '<a href="javascript:void(0);" onclick=" showlayer(%d)">%s</a> ' %(obj.id,obj.buyer_nick)
         return symbol_link
     buyer_nick_link.allow_tags = True
     buyer_nick_link.short_description = "买家昵称" 
@@ -170,7 +170,7 @@ class MergeTradeAdmin(MyAdmin):
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
         js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js",
-              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js")
+              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js","layer-v1.9.2/layer/layer.js")
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
