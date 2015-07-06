@@ -1,4 +1,8 @@
-########### 2015-7-4 #################
+########### 2015-7-6 #################
+alter table flashsale_daily_popularize_cost add column carrylog_red_packet double NOT NULL;
+create index total_carry_out on flashsale_daily_popularize_cost(total_carry_out)
+
+	########### 2015-7-4 #################
 alter table shop_items_itemnumtasklog add index SH_IT_IT_INDEX(outer_id,sku_outer_id);
 ALTER TABLE shop_weixin_unionid ADD INDEX IDX_UNIONID_APP_KEY (UNIONID,APP_KEY);
 
