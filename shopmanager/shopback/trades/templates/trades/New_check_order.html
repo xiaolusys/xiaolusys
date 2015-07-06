@@ -1,5 +1,32 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <title>订单审核/重审页面</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap2.3.2.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/admin/checkorder.css" rel="stylesheet"  type="text/css" />
+    <script src="{{ STATIC_URL }}script/trades/trade_new.js"  type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}script/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <style type="text/css">
+    
+    </style>
+  </head>
 {% load trade_tags %} 
-{% with trade=object.trade logistics=object.logistics shippings=object.shippings %}
+{% with trade=object.trade     logistics=object.logistics %}
+  <body>
+  {% if  trade.sys_status == "WAIT_AUDIT" %}
+
+<span class="label label-success"><h2>订单审核详情</h2></span>
+
+{% else          %}
+<span class="label label-success"><h2>订单重审页面</h2></span>>
+
+{%endif%}
+  
+
+
+
 
 <div class="body1" style="margin-left: auto; margin-right: auto; width: 100%;">
 <div class="row-through">
@@ -7,12 +34,13 @@
 <input type="hidden" id="id_trade_type" name="trade_type" value="{{ trade.type }}">
 <input type="hidden" id="id_trade_status" name="trade_status" value="{{ trade.sys_status }}">
 <div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">订单号: </label>{{ trade.tid }}</div>
-<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">买家: </label>{{ trade.buyer_nick }}</div>
+<div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">买家: </label>{{trade.buyer_nick }}</div>
 <div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">店铺: </label>{{ trade.seller_nick }}</div><br>
 <div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">付款时间: </label>{{ trade.pay_time }}</div>
 <div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">实付款: </label>{{ trade.payment }}</div>
 <div style="margin: 0px; display: inline-block; width: 30%"><label class="simple-label">邮费: </label>{{ trade.post_fee }}</div>
 </div>
+
 <div class="row-through">
 <div class="alert-message buyer"><strong>买家留言: </strong>{{ trade.buyer_message }}</div>
 <div class="alert-message seller"><strong>卖家留言: </strong>{{ trade.seller_memo }}</div>
@@ -20,8 +48,10 @@
 </div>
 <div style="padding: 9px 15px">
 <label class="simple-label">物流方式:</label>   
+
 <select id="id_shipping_type" class="selection" style="width:100px;">
-	{% for k,v in shippings.items %}
+
+	{% for k,v in trade.shippings.items %}
 	<option value='{{ k }}' {% if k == trade.shipping_type %}selected{% endif %} >{{ v }}</option>
 	{% endfor %}
 </select> 
@@ -58,8 +88,8 @@
 </div>
 </div>
 </div>
-<a id="collapseOne" class="goog-zippy-header goog-zippy-expanded" aria-expanded="true" style="padding: 0px 15px">修改地址››</a></div>
-<div id="addrContent" class="accordion-inner1">
+<a   href="javascript:void(0)"   id="collapseOne"   style="padding: 0px 15px"     onclick="show()" >修改地址››</a></div>
+<div id="addrContent" class="accordion-inner1"       style="display: none"   >
 <form id="id-addr-form" class="form-inline">
 <div>
     <label class="simple-label">收货人信息: </label> 
@@ -67,7 +97,7 @@
 	<input type="text" id="id_receiver_mobile" class="input-small1" value="{{ trade.receiver_mobile }}" placeholder="手机" name="receiver_mobile"> 
 	<input type="text" id="id_receiver_phone" class="input-small1" value="{{ trade.receiver_phone }}" placeholder="固话" name="receiver_phone">
 	<input type="text" id="id_receiver_zip" class="input-small1" value="{{ trade.receiver_zip }}" placeholder="邮编" name="receiver_zip">  
-	<input type="button" id="addr-from-submit" class="btn btn-small" style="float: right" value="确定修改">
+	<input type="button" id="addr-from-submit" class="btn btn-warning"   style="float: right" value="确定修改"   onclick="changeAddress()"   >
 </div>
 <div style="margin-top: 5px">
 	<label class="simple-label">新地址:</label> 
@@ -94,8 +124,8 @@
 </div>
 <div class="accordion-group1">
 <div class="accordion-heading1" style="margin: 5px 0px">
-<a id="collapseTwo" class="goog-zippy-header goog-zippy-expanded" style="padding: 0px 15px">商品列表››</a></div>
-<div id="orderContent" class="accordion-inner1">
+<a id="collapseTwo" class="goog-zippy-header goog-zippy-expanded" style="padding: 0px 15px"    onclick="show2()"   >商品列表››</a></div>
+<div id="orderContent" class="accordion-inner1"     style="display: none"  >
 <div>
 <table id="id_trade_order" class="table table-bordered">
 	<thead>
@@ -112,11 +142,14 @@
 		</tr>
 	</thead>
 	<tbody>
+	
 		{% for order in trade.used_orders %}
+		
 		<tr>
 			<td>{{ order.id }}</td>
 			<td>{{ order.outer_id }}</td>
 			<td>{{ order|prod_name }}</td>
+		
 			<td>
 				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku" >
 					<option value="">---------</option>
@@ -125,7 +158,7 @@
 					{% endfor %}
 				</select> 
 			</td>
-			<td><input id="id-change-order-num-{{ forloop.counter }}" class="order_num" type="text" value="{{ order.num }}" size="8" /></td>
+			<td    ><input   id="id-change-order-num-{{ forloop.counter }}" class="order_num" type="text" value="{{ order.num }}" size="8"  /></td>
 			<td>{{ order.price }}</td>
 			<td>{% if order.out_stock %}
 				<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
@@ -135,9 +168,8 @@
 			</td>
 			<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
 				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}退货{% elif order.gift_type == 5 %}换货{% else %}其他{% endif %}</td>
-			<td><button class="change-order btn-mini" idx="{{ forloop.counter }}" 
-				oid="{{ order.id }}" >修改</button>
-			    <button class="delete-order btn-mini" oid="{{ order.id }}">删除</button>
+			<td><button class="change-order btn-warning" idx="{{ forloop.counter }}"  oid="{{ order.id }}"   onclick="changeOrder(this)"     >修改</button>
+			    <button class="delete-order btn-danger" oid="{{ order.id }}"       onclick="deleteOrder(this)">删除</button>
 			</td>
 		</tr>
 		{% endfor %}
@@ -153,9 +185,9 @@
 </div>
 <div class="well form-search">
 	<input type="text" id="id-search-q" class="input-medium search-query" >
-	<button id="id-search-prod" class="btn">商品搜索</button>
+	<button id="id-search-prod" class="btn"   onclick="searchProd()">商品搜索</button>
 	<div style="height: 10px"></div>
-	<table id="id-search-table" class="table table-bordered" style="display:none;">
+	<table id="id-search-table" class="table table-bordered"     style="display:none;">
 		<thead>
 			<tr>
 				<td>编号</td>
@@ -173,4 +205,103 @@
 </div>
 </div>
 </div>
+
+<div id="add">
+{% if  trade.sys_status == "WAIT_AUDIT" %}
+
+<button type="button" class="btn btn-primary"  id="CHECK"  key='CHECK'
+   data-toggle="button"    onclick="ordercheck(this)  "> 审核订单
+</button>
+
+{% else          %}
+<button type="button" class="btn btn-primary"  id="CHECK"  key='REVIEW'
+   data-toggle="button"   onclick=" ordercheck(this)  "  >重审订单
+</button>
+
+{%endif%}
+</div>
+
+
+</div>
+	<script type="text/javascript">
+	
+		var change_logistic = function(evt){
+			var trade_id      = $('#id_review_trade').val();
+			var logistic_code = $('#id_logistics').val();
+			var out_sid       = $('#id_express_no').val();
+			if (logistic_code.indexOf('QR', logistic_code.length - 'QR'.length) == -1
+				&&(logistic_code == '' || out_sid == '')){
+				alert('物流单号不能为空');
+			}else{
+				$.post('/trades/logistic/',
+					{'trade_id':trade_id,'logistic_code':logistic_code,'out_sid':out_sid,'format':'json'},
+					function(data){
+						if (data.code == 0){
+							$('#id_logistic_name').html(data.response_content.logistic_company_name);
+							$('#id_out_sid').html(data.response_content.out_sid);
+						}else{
+							alert('快递单号修改失败:'+data.response_error);
+						}
+					},
+					'json');
+			}
+		};
+		
+		var review_order  = function(evt){
+			var trade_id      = $('#id_review_trade').val();
+			var post_url      = '/trades/review/'+trade_id+'/';
+			$.post(post_url,
+				{'format':'json'},
+				function(data){
+					if(data.code == 0){
+						$('#id-trade-problems').html('');
+						$('#id-review-order-btn').hide();
+					}else{
+						alert('订单复核失败:'+data.response_error);
+					}
+				},
+				'json');
+		};
+		
+		var check_outstock  = function(evt){
+			var target      = evt.target;
+			var oid         = target.getAttribute('oid');
+			var out_stock  = target.checked;
+			var post_url    = '/trades/order/outstock/'+oid+'/';
+			$.post(post_url,
+				{'format':'json','out_stock': out_stock?1:0},
+				function(data){
+					if(data.code == 0 ){
+						if (data.response_content.out_stock){
+							alert('缺货状态设置成功');
+						}else{
+							alert('缺货状态取消成功');
+						}
+					}else{
+						alert('订单修改失败:'+data.response_error);
+					}
+				},
+				'json');
+		};
+		
+		$('#id-chg-express-no-btn').click(change_logistic);
+		$('#id-review-order-btn').click(review_order);
+		$('.order_stock_status').click(check_outstock);
+		
+		$('#id_logistics').change(function(e){
+			var company_code  = $(this,"option:selected").val();
+			
+			if (company_code.indexOf('QR', 
+				company_code.length - 'QR'.length) == -1){
+				$('#id_express_no').prop('disabled', false);
+			}else{
+				$('#id_express_no').prop('disabled', true);
+			}
+		});
+</script>
+	<script>
+          
+</script>
+</body>
 {% endwith %}
+</html>
