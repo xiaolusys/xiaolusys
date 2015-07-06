@@ -9,6 +9,7 @@ import datetime
 from calendar import monthrange
 from flashsale.clickrebeta.models import StatisticsShopping
 from django.db.models import Sum
+from flashsale.xiaolumm.models import XiaoluMama
 
 
 def get_new_user(user_data, old_user):
@@ -136,6 +137,59 @@ class StatsSaleView(View):
                 {"month": month, "total_sale_amount": total_sale_amount / 100, "total_order_num": total_order_num,
                  "total_package_num": total_package_num})
         return render_to_response("xiaolumm/data2sale.html",
+                                  {"month_range": month_range, "result_list": result_list, "start_date": start_date,
+                                   "end_date": end_date},
+                                  context_instance=RequestContext(request))
+
+
+class StatsSalePeopleView(View):
+    @staticmethod
+    def get(request):
+        content = request.REQUEST
+        today = datetime.date.today()
+        start_time_str = content.get("df", None)
+        end_time_str = content.get("dt", None)
+        if start_time_str:
+            year, month, day = start_time_str.split('-')
+            start_date = datetime.date(int(year), int(month), int(day))
+            if start_date > today:
+                start_date = today
+        else:
+            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        if end_time_str:
+            year, month, day = end_time_str.split('-')
+            end_date = datetime.date(int(year), int(month), int(day))
+        else:
+            end_date = today
+        """找出选择的开始月份和结束月份"""
+        start_month = start_date.month
+        end_month = end_date.month
+        month_march = "2015-03-01"
+        month_range = range(start_month, end_month + 1)
+        result_list = []
+        for month in month_range:
+            month_start_date = datetime.date(start_date.year, month, 1)
+            month_end_date = datetime.date(end_date.year, month + 1, 1)
+
+            all_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
+                                                             shoptime__lt=month_end_date).values(
+                "openid").distinct()
+            all_purchase_num = all_purchase.count()
+            histroy_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_march,
+                                                                 shoptime__lt=month_start_date).values(
+                "openid").distinct()
+
+            history_purchase_detail = set([val['openid'] for val in histroy_purchase])
+            all_purchase_detail = set([val['openid'] for val in all_purchase])
+            repeat_user = all_purchase_detail & history_purchase_detail
+            all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged').values("openid").distinct()
+            all_xlmm_detail = set([val['openid'] for val in all_xlmm])
+            repeat_xlmm = repeat_user & all_xlmm_detail
+            result_list.append(
+                {"month": month, "all_purchase_num": all_purchase_num, "repeat_user_num": len(repeat_user),
+                 "repeat_xlmm_num": len(repeat_xlmm)}
+            )
+        return render_to_response("xiaolumm/data2salepeople.html",
                                   {"month_range": month_range, "result_list": result_list, "start_date": start_date,
                                    "end_date": end_date},
                                   context_instance=RequestContext(request))

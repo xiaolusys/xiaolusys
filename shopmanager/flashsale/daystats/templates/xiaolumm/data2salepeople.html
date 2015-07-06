@@ -1,0 +1,29 @@
+{% extends "xiaolumm/daystats_base.html" %}
+{% block title %}用户统计{% endblock %}
+{% block head_script %}
+{% endblock %}
+{% block container %}
+    <div class="row" style="margin-top: 20px"><h2>用户统计</h2></div>
+    <div class="row">
+        <table class="table table-bordered" id="data-table">
+            <thead>
+            <th></th>
+            <th>总购买人数</th>
+            <th>重复购买</th>
+            <th>重复购买的妈妈</th>
+            </thead>
+            <tbody>
+            {% for data in result_list %}
+                <tr>
+                    <td>{{ data.month }}月份</td>
+                    <td>{{ data.all_purchase_num }}</td>
+                    <td>{{ data.repeat_user_num }}</td>
+                    <td>{{ data.repeat_xlmm_num }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block tail_script %}
+{% endblock %}

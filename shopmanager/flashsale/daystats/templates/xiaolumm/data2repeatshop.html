@@ -12,6 +12,14 @@
                     $("#all_data").html(res);
                 }
             });
+            $.ajax({
+                url: "/sale/daystats/stats_people/", //这里是静态页的地址
+                method: "GET", //静态页用get方法，否则服务器会抛出405错误
+                data: my_data,
+                success: function (res) {
+                    $("#all_data2").html(res);
+                }
+            });
         });
     </script>
 {% endblock %}
@@ -58,6 +66,9 @@
     </div>
     <div class="row" >
         <div id="all_data"></div>
+    </div>
+        <div class="row" >
+        <div id="all_data2"></div>
     </div>
 {% endblock %}
 {% block tail_script %}
