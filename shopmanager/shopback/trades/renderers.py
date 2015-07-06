@@ -8,7 +8,7 @@ class CheckOrderRenderer(TemplateRenderer):
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/check_order_template.html'
+    template = 'trades/New_check_order.html'
     
     
 class ReviewOrderRenderer(TemplateRenderer):

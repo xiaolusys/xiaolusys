@@ -417,8 +417,8 @@ from shopback.trades.service import TradeService
 class CheckOrderView(ModelView):
     """ docstring for class CheckOrderView """
     
-    def get(self, request, id, *args, **kwargs):
-        
+    def get(self, request, id, *args):
+        print "进入get"
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
@@ -428,7 +428,6 @@ class CheckOrderView(ModelView):
         logistics = LogisticsCompany.objects.filter(status=True)
         order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         trade_dict = model_to_dict(trade)
-        
         trade_dict.update({'id':trade.id,
                            'seller_nick':trade.user.nick,
                            'used_orders':trade.inuse_orders,
@@ -440,14 +439,13 @@ class CheckOrderView(ModelView):
                            'is_product_defect':(trade.has_rule_match and 
                                                 trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
                            'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
+                            'shippings':dict(SHIPPING_TYPE_CHOICE)
                            })
- 
-        return {'trade':trade_dict,
-                'logistics':logistics,
-                'shippings':dict(SHIPPING_TYPE_CHOICE)}
+        return {'trade':trade_dict,  'logistics':logistics  }
+                #'shippings33':dict(SHIPPING_TYPE_CHOICE)  } 
         
     def post(self, request, id, *args, **kwargs):
-        
+        print "进入post"
         user_id = request.user.id
         try:
             trade = MergeTrade.objects.get(id=id)
@@ -586,7 +584,8 @@ class OrderPlusView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        q  = request.GET.get('q')
+        q  = request.GET.get('q').strip()
+        print "搜索条件",q
         if not q:
             return '没有输入查询关键字'.decode('utf8')
         
@@ -600,16 +599,24 @@ class OrderPlusView(ModelView):
         
         prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,
                       [(sku.outer_id,sku.name,sku.quantity) for sku in prod.pskus]) for prod in product_set]
+        print prod_list
         return prod_list
         
     def post(self, request, *args, **kwargs):
-        
+        CONTENT    = request.REQUEST
+        print "post搜索条件",CONTENT.get('trade_id')
         user_id  = request.user.id
-        trade_id = request.POST.get('trade_id')
-        outer_id = request.POST.get('outer_id')
-        outer_sku_id = request.POST.get('outer_sku_id')
-        num      = int(request.POST.get('num',1))    
-        type     = request.POST.get('type',pcfg.CS_PERMI_GIT_TYPE) 
+      #  trade_id = request.POST.get('trade_id')
+        trade_id = CONTENT.get('trade_id')
+        #outer_id = request.POST.get('outer_id')
+        outer_id=CONTENT.get('outer_id')
+       # outer_sku_id = request.POST.get('outer_sku_id')
+        outer_sku_id=CONTENT.get('outer_sku_id')
+       # num      = int(request.POST.get('num',1))   
+        num=int(CONTENT.get('num',1))  
+       # type     = request.POST.get('type',pcfg.CS_PERMI_GIT_TYPE) 
+        type=CONTENT.get('type',pcfg.CS_PERMI_GIT_TYPE) 
+       # print "你好"
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
@@ -628,16 +635,21 @@ class OrderPlusView(ModelView):
         if not merge_trade.can_change_order:
             return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"})
                                 ,mimetype="application/json")
-        
+       
         is_reverse_order = False
         if merge_trade.can_reverse_order:
             merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
             is_reverse_order = True    
-        
-        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
+        #print "你好299888882"
+        try:
+             merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
                                                status=pcfg.WAIT_BUYER_CONFIRM_GOODS,
                                                is_reverse=is_reverse_order)
-        
+             print "正确"
+        except:
+            print  "有错"
+            
+        #print "33333332992"
         #组合拆分
         ruleMatchSplit(merge_trade)
         
@@ -647,14 +659,32 @@ class OrderPlusView(ModelView):
         
         log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
         
+        print merge_order
         return merge_order
     
            
 def change_trade_addr(request):
     
     user_id  = request.user.id
+    #print "用户",user_id
     CONTENT    = request.REQUEST
+    #print "参数是",CONTENT.get('receiver_name')
     trade_id   = CONTENT.get('trade_id')
+    receiver_name=CONTENT.get('receiver_name')
+    receiver_phone=CONTENT.get('receiver_phone')
+    receiver_mobile=CONTENT.get('receiver_mobile')
+    receiver_state=CONTENT.get('receiver_state')
+    receiver_city=CONTENT.get('receiver_city')
+    receiver_district=CONTENT.get('receiver_district')
+    receiver_address=CONTENT.get('receiver_address')
+    receiver_zip=CONTENT.get('receiver_zip')
+    #tb_user_id=CONTENT.get('tb_user_id')
+    
+    
+    
+    
+    
+    print "订单id", receiver_name
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
@@ -672,7 +702,7 @@ def change_trade_addr(request):
                                      pcfg.WAIT_CHECK_BARCODE_STATUS,
                                      pcfg.WAIT_SCAN_WEIGHT_STATUS):
             apis.taobao_trade_shippingaddress_update(
-                tid=trade.tid,
+                #tid=trade.tid,
                 receiver_name=trade.receiver_name,
                 receiver_phone=trade.receiver_phone,
                 receiver_mobile=trade.receiver_mobile,
@@ -681,7 +711,7 @@ def change_trade_addr(request):
                 receiver_district=trade.receiver_district,
                 receiver_address=trade.receiver_address,
                 receiver_zip=trade.receiver_zip,
-                tb_user_id=trade.user.visitor_id
+                #tb_user_id=trade.user.visitor_id
             )
     except Exception,exc:
         logger.debug(u'订单地址更新失败：%s'%exc.message)
