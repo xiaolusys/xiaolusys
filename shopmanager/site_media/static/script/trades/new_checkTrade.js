@@ -12,7 +12,8 @@ function openwin(symbol_link){
 
 var obj = new Object();
           obj.name="51js";
- window.showModalDialog("/trades/check_order/"+symbol_link,obj,"dialogWidth=800;dialogHeight=700px;dialogLeft:450;status=no; center:yes ;location:no ");
+ //window.showModalDialog("/trades/check_order/"+symbol_link,obj,"dialogWidth=800px;dialogHeight=700px;dialogLeft:450px;status=no; center:yes ;location:no ");
+window.open("/trades/check_order/"+symbol_link,obj,"width=800px,height=700px,left:450px,status=no, center:yes ,location:no ");
 }
 
 
