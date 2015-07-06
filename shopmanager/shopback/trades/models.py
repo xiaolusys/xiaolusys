@@ -665,8 +665,10 @@ class MergeOrder(models.Model):
         
         merge_trade = MergeTrade.objects.get(id=trade_id)
         product = Product.objects.get(outer_id=outer_id)
+        #print "到了这里788888", product
         sku_properties_name = ''
         productsku = None
+        
         if outer_sku_id:
             try:
                 productsku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
@@ -674,6 +676,7 @@ class MergeOrder(models.Model):
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
                 merge_trade.append_reason_code(pcfg.OUTER_ID_NOT_MAP_CODE)
+        #print "到了这里788888", gift_type
         merge_order = MergeOrder.objects.create(
             merge_trade = merge_trade,
             outer_id = outer_id,
@@ -689,12 +692,15 @@ class MergeOrder(models.Model):
             created = created or datetime.datetime.now(),
             pay_time = pay_time or datetime.datetime.now(),
             consign_time = merge_trade.consign_time,
-            gift_type = gift_type,
+            #fang  2015-7-2
+            gift_type = pcfg.CS_PERMI_GIT_TYPE ,#  现在全部默认赠送
+            #
             is_reverse_order = is_reverse,
             out_stock = (productsku.is_out_stock if productsku else product.is_out_stock),
             status = status,
             sys_status = pcfg.IN_EFFECT,
         )
+        #print "成功6666555555", merge_order
         post_save.send(sender=cls, instance=merge_order) #通知消息更新主订单
         return merge_order
 
