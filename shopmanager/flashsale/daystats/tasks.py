@@ -101,6 +101,7 @@ def carrylogs_By_Date(date):
     carrylog_refund_return = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.REFUND_RETURN)   # 退款返现
     carrylog_cash_out = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.CASH_OUT)             # 提现
     carrylog_deposit = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.DEPOSIT)               # 押金
+    carrylog_red_packet = carrylog_Handler_By_Log_Type(date=date, log_type=CarryLog.ORDER_RED_PAC)      # 订单红包
 
     total_carrys_out = CarryLog.objects.filter(carry_type=CarryLog.CARRY_OUT, carry_date=date).exclude(status=CarryLog.CANCELED)  # 妈妈支出
     total_carry_out = total_carrys_out.aggregate(total_out=Sum('value')).get(
@@ -116,7 +117,7 @@ def carrylogs_By_Date(date):
 
     data = [carrylog_order, carrylog_click, carrylog_thousand, carrylog_agency, carrylog_recruit,
                     carrylog_order_buy, carrylog_refund_return, carrylog_cash_out, carrylog_deposit,
-                            total_carry_in, total_carry_out]
+                            total_carry_in, total_carry_out, carrylog_red_packet]
     return data
 
 
@@ -142,6 +143,7 @@ def task_PopularizeCost_By_Day(pre_day=1):
     popu_cost.total_carry_in        = data[9]
 
     popu_cost.total_carry_out       = data[10]
+    popu_cost.carrylog_red_packet   = data[11]
     popu_cost.save()
 
     twelve_date = datetime.date.today() - datetime.timedelta(days=12)
@@ -164,6 +166,7 @@ def task_PopularizeCost_By_Day(pre_day=1):
         twelve_date_popu_cost.total_carry_in            = data[9]
 
         twelve_date_popu_cost.total_carry_out           = data[10]
+        twelve_date_popu_cost.carrylog_red_packet       = data[11]
         twelve_date_popu_cost.save()
     except:
         pass
