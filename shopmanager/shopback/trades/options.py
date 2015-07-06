@@ -102,7 +102,7 @@ def mergeMaker(trade,sub_trade):
         strades = MergeBuyerTrade.objects.filter(main_tid=sub_trade.id)
         
         for strade in strades:
-            MergeBuyerTrade.objects.filter(sub_tid=strade.id).update(main_tid=trade.id)
+            MergeBuyerTrade.objects.filter(sub_tid=strade.sub_tid).update(main_tid=trade.id)
         
         MergeOrder.objects.filter(merge_trade=sub_trade.id,is_merge=True).delete()
     
