@@ -17,5 +17,18 @@ window.open("/trades/check_order/"+symbol_link,obj,"width=800px,height=700px,lef
 }
 
 
+function showlayer(symbol_link) {
+    url = '/trades/check_order/' +symbol_link;
+    layer.open({
+        type: 2,
+        title: "订单审核页面",
+        shadeClose: true,
+        shade: 0.8,
+        
+        area: ['1000px', '600px'],
+        content: url
+    });
+}
+
 
 
