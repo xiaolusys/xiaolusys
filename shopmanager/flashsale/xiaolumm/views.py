@@ -147,8 +147,7 @@ class CashOutList(generics.ListAPIView):
     
 
 class CarryLogList(generics.ListAPIView):
-    queryset = CarryLog.objects.exclude(
-                    log_type__in=(CarryLog.ORDER_RED_PAC)).order_by('-carry_date') #
+    queryset = CarryLog.objects.order_by('-carry_date') #
     serializer_class = CarryLogSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
@@ -204,7 +203,7 @@ class MamaStatsView(View):
             
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
             
-            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(log_type=CarryLog.ORDER_RED_PAC)
+            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id)#.exclude(log_type=CarryLog.ORDER_RED_PAC)
             pending_value = mm_clogs.filter(status=CarryLog.PENDING).aggregate(total_value=Sum('value')).get('total_value') or 0 
             
             total_income = mm_clogs.filter(carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED).aggregate(total_value=Sum('value')).get('total_value') or 0
