@@ -465,7 +465,11 @@ $.post('/trades/checkorder/'+trade_id+'/?format=json', {
            try {
                if (res.code == 0){
                 alert("审核成功");
-               window.close();
+              // window.close();
+                var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+                    parent.layer.close(index); //执行关闭
+
+
                 }
               else{
                 alert("审核失败:"+res.response_error);
