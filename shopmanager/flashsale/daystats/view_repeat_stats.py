@@ -131,11 +131,24 @@ class StatsSaleView(View):
             total_order_num = DailyStat.objects.filter(day_date__gte=month_start_date,
                                                        day_date__lt=month_end_date).aggregate(
                 total_sale_order=Sum('total_order_num')).get('total_sale_order') or 0
+            shoping_stats = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
+                                                              shoptime__lt=month_end_date)
+            total_sale_num = 0
+            sm = {}
+            for shop_stat in shoping_stats:
+                tm = '%s-%s-%s' % (shop_stat.shoptime.year, shop_stat.shoptime.month, shop_stat.shoptime.day)
+                if tm in sm:
+                    sm[tm].add(shop_stat.openid)
+                else:
+                    sm[tm] = set([shop_stat.openid])
+            for s, m in sm.iteritems():
+                total_sale_num += len(m)
+
             total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).exclude(weight_time=None).filter(
                 sys_status=u'FINISHED').filter(pay_time__gte=month_start_date, pay_time__lt=month_end_date).count()
             result_list.append(
                 {"month": month, "total_sale_amount": total_sale_amount / 100, "total_order_num": total_order_num,
-                 "total_package_num": total_package_num})
+                 "total_package_num": total_package_num, "total_sale_num": total_sale_num})
         return render_to_response("xiaolumm/data2sale.html",
                                   {"month_range": month_range, "result_list": result_list, "start_date": start_date,
                                    "end_date": end_date},
