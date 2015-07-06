@@ -20,7 +20,7 @@ from flashsale.xiaolumm import xlmm_kefukeys as kfkeys
 from rest_framework.views import APIView
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.renderers import JSONRenderer
+from rest_framework import renderers 
 from rest_framework.response import Response
 
 import logging
@@ -30,6 +30,7 @@ class MamaRegisterView(APIView):
     
 #     authentication_classes = (authentication.TokenAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,renderers.TemplateHTMLRenderer)
     template_name = "mama_profile.html"
         
     def get(self, request, mama_id):
@@ -113,6 +114,7 @@ class MamaConfirmView(APIView):
     
 #     authentication_classes = (authentication.TokenAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,renderers.TemplateHTMLRenderer)
     template_name = "mama_profile.html"
         
     def post(self,request):

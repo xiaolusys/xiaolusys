@@ -331,6 +331,7 @@ class OrderBuyReview(APIView):
 
 #     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/morder.html"
     
     def post(self, request, format=None):
@@ -414,6 +415,7 @@ class OrderBuyReview(APIView):
 class UserProfile(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/mprofile.html"
     
     def get(self, request, format=None):
@@ -428,6 +430,7 @@ class UserProfile(APIView):
 class SaleOrderList(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/morderlist.html"
     
     def get(self, request, format=None):
@@ -458,6 +461,7 @@ class SaleOrderList(APIView):
 class SaleOrderDetail(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/morderdetail.html"
     
     def get(self, request,pk, format=None):
@@ -484,6 +488,7 @@ from shopback.logistics import getLogisticTrace
 class SaleTradeLogistic(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/mlogistic.html"
     
     def get(self, request,pk, format=None):
@@ -511,6 +516,8 @@ from .models_envelope import Envelop
 from shopback.base import log_action, ADDITION, CHANGE
       
 class EnvelopConfirmSendView(View):
+    
+    renderer_classes = (JSONRenderer,)
     
     def post(self, request, *args, **kwargs):
         
