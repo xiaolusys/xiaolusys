@@ -162,27 +162,17 @@ def order_Red_Packet(xlmm, target_date):
     if shopping_finishs.count() >= 10:
         for red_pac_carry_log in red_pac_carry_logs:
             if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
-                red_pac_carry_log.status = CarryLog.CONFIRMED   # 两笔都确定
-                red_pac_carry_log.save()  # 保存
+                mama.push_carrylog_to_cash(red_pac_carry_log)
+                
     if shopping_finishs.count() >= 1:
         for red_pac_carry_log in red_pac_carry_logs:
             if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
-                red_pac_carry_log.status = CarryLog.CONFIRMED   # 确定首单
-                red_pac_carry_log.save()  # 保存
+                mama.push_carrylog_to_cash(red_pac_carry_log)
 
 
-@task()
-def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
-    """
-    更新每天妈妈订单状态及提成
-    xlmm_id:小鹿妈妈id，
-    target_date：计算日期
-    """
-    time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
-    time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
-    
-    shoping_orders = StatisticsShopping.objects.filter(linkid=xlmm,shoptime__range=(time_from,time_to))
-    for order in shoping_orders:
+def update_Xlmm_Shopping_OrderStatus(order_list):
+    """ 更新小鹿妈妈交易订单状态 """
+    for order in order_list:
         trades = MergeTrade.objects.filter(tid=order.wxorderid,
                                         type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
         if trades.count() == 0:
@@ -195,6 +185,20 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
             order.status = StatisticsShopping.FINISHED
 
         order.save()
+
+@task()
+def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
+    """
+    更新每天妈妈订单状态及提成
+    xlmm_id:小鹿妈妈id，
+    target_date：计算日期
+    """
+    time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+    time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+    
+    shoping_orders = StatisticsShopping.objects.filter(linkid=xlmm,shoptime__range=(time_from,time_to))
+    #更新小鹿妈妈交易订单状态
+    update_Xlmm_Shopping_OrderStatus(shoping_orders)
     
     try:
         order_Red_Packet(xlmm, target_date)
@@ -514,7 +518,6 @@ def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):      # 每天 写入记录
         
         mm_stats.base_click_price = mm_stats.calc_click_price()
         mm_stats.save()
-        
         
         
         
