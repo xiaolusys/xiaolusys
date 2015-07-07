@@ -13,7 +13,7 @@ from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
 
-from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup
+from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 
 from serializers import CashOutSerializer,CarryLogSerializer
@@ -117,14 +117,26 @@ class CashoutView(View):
         unionid = request.COOKIES.get('unionid')
         if not valid_openid(unionid):
             raise Http404
-        
+        could_cash_out = 0
+        xlmm = XiaoluMama.objects.filter(openid=unionid)
+        if xlmm.count() > 0:
+            # 点击数
+            clickcounts = ClickCount.objects.filter(linkid=xlmm[0].id)
+            click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
+            # 订单数
+            shoppings = StatisticsShopping.objects.filter(linkid=xlmm[0].id)
+            shoppings_count = shoppings.count()
+            cash_outable = click_nums >= 150 or shoppings_count >= 6
+            cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm[0], cash_outable=cash_outable)
         v = content.get("v")
         m = re.match(r'^\d+$', v)
 
         status = {"code":0, "status":"ok"}
         if m:
             value = int(m.group()) * 100
-            if 2000 > value or value > 20000:
+            could_cash_out_int = int(could_cash_out)*100
+
+            if value < 2000 or value > 20000 or value > could_cash_out_int:
                 status = {"code":3, "status": "input error"}
             else:
                 try:
@@ -312,14 +324,20 @@ class MamaIncomeDetailView(View):
             order_num   = 0
             total_value = 0
             carry       = 0
-
+            rebeta_swift  = False
+            
             order_list = StatisticsShopping.normal_objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             carry_confirm = False
+            order_rebeta_rate = xlmm.get_Mama_Order_Rebeta_Rate()
+            if today >= ORDER_RATEUP_START:
+                order_rebeta_rate = order_rebeta_rate * 2
+                rebeta_swift = True
+            print 'debug swift:',rebeta_swift,order_rebeta_rate
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
-                carry = (order_stat[0].todayamountcount / 100.0) * xlmm.get_Mama_Order_Rebeta_Rate()
+                carry = (order_stat[0].todayamountcount / 100.0) * order_rebeta_rate
                 carry_confirm = order_stat[0].carry_Confirm()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
@@ -369,7 +387,7 @@ class MamaIncomeDetailView(View):
                 click_pay  = click_num * click_price                              
                 ten_click_pay = ten_click_num * ten_click_price
                 
-            data = { "xlmm":xlmm,"pk":xlmm.pk,
+            data = { "xlmm":xlmm,"pk":xlmm.pk,'rebeta_swift':rebeta_swift,
                     "order_num":order_num, "order_list":order_list, 
                     "exam_pass":exam_pass,"total_value":total_value,
                     "carry":carry, 'carry_confirm':carry_confirm,

@@ -45,7 +45,7 @@
 	    <div class="input-group" style="margin-top:5px">
 	      <span class="input-group-addon">￥</span>
 	      <input id="id-cashout-input" type="number" name="v" max="{% if could_cash_out > 200%}200{% else %}{{ could_cash_out }}{% endif %}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>
-        
+
 	      {% csrf_token %}
 	      <span class="input-group-btn">
 		<button type="submit" class="btn btn-warning" type="button">确认提交</button>
@@ -261,7 +261,7 @@
 	        $("#id-submit-message")[0].innerHTML = "输入金额错误！请输入整数金额。";
 	      }
             if (res["code"] == 3) {
-	        $("#id-submit-message")[0].innerHTML = "请输入金额20到200范围内(含20，200)！";
+	        $("#id-submit-message")[0].innerHTML = "请输入金额20到200范围内(含20，200)并且不大于可提现金额！";
 	      }
 	    };
 	    

@@ -43,7 +43,11 @@
 {% if futrue_click_price > 0 and futrue_click_price < 0.2 %}
 <li class="list-group-item"><span style="color:#A30000;">系统检测出您有刷点击嫌疑，明日点击补贴将有可能下调，请尽快改善哦！</span></li>
 {% endif %}
+{% if rebeta_swift %}
+<li class="list-group-item"><span style="color:#A30000;">点击补贴现已取消，订单补贴翻倍，赶快试试吧。</span></li>
+{% else %}
 <li class="list-group-item"><span style="color:orange">点击补贴： {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>
+{% endif %}
 {% if not exam_pass %}（<a href="/sale/exam/">考试通过后生效</a>）{% endif %}</li>
 {% if active_start %}
 <li class="list-group-item"><span style="color:green">端午点击专贴： {{ ten_click_num }} * {{ ten_click_price }} = ￥{{ ten_click_pay }}</span></li>
@@ -55,9 +59,9 @@
 <li class="list-group-item"><span style="color:orange">订单补贴： ￥{{ carry }}{% if not carry_confirm %}（待确认）{% endif %}</span></li>
 {% else %}
 <li class="list-group-item"><span style="color:orange">订单补贴： {{ carry }}</span></li>
-    {% endif %}
-    {% endif %}
-  </ul>
+{% endif %}
+{% endif %}
+</ul>
 
   <h3>订单详情</h3>
   <table id="state_table" class="table table-bordered">
