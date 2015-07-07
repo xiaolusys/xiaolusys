@@ -195,9 +195,10 @@ class StatsSalePeopleView(View):
             all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel=2).values("openid").distinct()
             all_xlmm_detail = set([val['openid'] for val in all_xlmm])
             repeat_xlmm = repeat_user & all_xlmm_detail
+            xlmm_num = history_purchase_detail & all_xlmm_detail
             result_list.append(
                 {"month": month, "all_purchase_num": all_purchase_num, "repeat_user_num": len(repeat_user),
-                 "repeat_xlmm_num": len(repeat_xlmm)}
+                 "repeat_xlmm_num": len(repeat_xlmm), "xlmm_num": len(xlmm_num)}
             )
         return render_to_response("xiaolumm/data2salepeople.html",
                                   {"month_range": month_range, "result_list": result_list, "start_date": start_date,
