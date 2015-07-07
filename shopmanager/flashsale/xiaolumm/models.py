@@ -7,7 +7,8 @@ from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
-ROI_CLICK_START = datetime.date(2016,8,1)
+ROI_CLICK_START = datetime.date(2015,7,8)
+ORDER_RATEUP_START = datetime.date(2015,7,8)
 
 MM_CLICK_DAY_LIMIT = 1
 MM_CLICK_DAY_BASE_COUNT  = 50
@@ -133,6 +134,7 @@ class XiaoluMama(models.Model):
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
+        
         agency_level = agency_levels[0]
         return agency_level.get_Rebeta_Rate()
     
@@ -155,12 +157,14 @@ class XiaoluMama(models.Model):
         if not day_date or day_date < ROI_CLICK_START:
             return base_price + agency_level.get_Click_Price(ordernum)
         
-        pre_date = day_date - datetime.timedelta(days=1)
-        mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
-        if mm_stats.count() > 0:
-            base_price = mm_stats[0].base_click_price
+        return 0
         
-        return base_price + agency_level.get_Click_Price(ordernum)
+#         pre_date = day_date - datetime.timedelta(days=1)
+#         mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
+#         if mm_stats.count() > 0:
+#             base_price = mm_stats[0].base_click_price
+#         
+#         return base_price + agency_level.get_Click_Price(ordernum)
     
         
     def get_Mama_Max_Valid_Clickcount(self,ordernum):
@@ -275,6 +279,11 @@ class AgencyLevel(models.Model):
         
     
     def get_Rebeta_Rate(self,*args,**kwargs):
+        
+        today = datetime.date.today()
+        if today > ORDER_RATEUP_START:
+            return (self.basic_rate / 100.0) * 2
+        
         return self.basic_rate / 100.0
     
 

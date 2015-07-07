@@ -13,7 +13,7 @@ from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
 
-from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup
+from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 
 from serializers import CashOutSerializer,CarryLogSerializer
@@ -324,14 +324,20 @@ class MamaIncomeDetailView(View):
             order_num   = 0
             total_value = 0
             carry       = 0
-
+            rebeta_swift  = False
+            
             order_list = StatisticsShopping.normal_objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             carry_confirm = False
+            order_rebeta_rate = xlmm.get_Mama_Order_Rebeta_Rate()
+            if today >= ORDER_RATEUP_START:
+                order_rebeta_rate = order_rebeta_rate * 2
+                rebeta_swift = True
+            print 'debug swift:',rebeta_swift,order_rebeta_rate
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
-                carry = (order_stat[0].todayamountcount / 100.0) * xlmm.get_Mama_Order_Rebeta_Rate()
+                carry = (order_stat[0].todayamountcount / 100.0) * order_rebeta_rate
                 carry_confirm = order_stat[0].carry_Confirm()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
@@ -381,7 +387,7 @@ class MamaIncomeDetailView(View):
                 click_pay  = click_num * click_price                              
                 ten_click_pay = ten_click_num * ten_click_price
                 
-            data = { "xlmm":xlmm,"pk":xlmm.pk,
+            data = { "xlmm":xlmm,"pk":xlmm.pk,'rebeta_swift':rebeta_swift,
                     "order_num":order_num, "order_list":order_list, 
                     "exam_pass":exam_pass,"total_value":total_value,
                     "carry":carry, 'carry_confirm':carry_confirm,
