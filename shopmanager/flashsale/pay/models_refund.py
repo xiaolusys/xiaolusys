@@ -61,6 +61,8 @@ class SaleRefund(models.Model):
     trade_id     = models.IntegerField(verbose_name='交易ID')
     order_id     = models.IntegerField(verbose_name='订单ID')
     
+    buyer_id    = models.BigIntegerField(db_index=True,default=0,verbose_name=u"客户ID")
+    
     refund_id   = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++退款编号')
     charge      = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++支付编号')
     
@@ -132,5 +134,14 @@ class SaleRefund(models.Model):
     
 
 
+def buyeridPatch():
     
+    from flashsale.pay.models import SaleTrade
+    
+    sfs = SaleRefund.objects.all()
+    for sf in sfs:
+        st = SaleTrade.objects.get(id=sf.trade_id)
+        sf.buyer_id = st.buyer_id
+        sf.save()
+        
     

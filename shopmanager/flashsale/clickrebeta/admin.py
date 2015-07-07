@@ -68,7 +68,7 @@ class StatisticsShoppingAdmin(admin.ModelAdmin):
     list_filter = ('status',('shoptime',DateFieldListFilter),)
 
     date_hierarchy = 'shoptime'
-    search_fields = ['=openid','=wxorderid']
+    search_fields = ['=linkid','=openid','=wxorderid']
     
     def get_changelist(self, request, **kwargs):
 
