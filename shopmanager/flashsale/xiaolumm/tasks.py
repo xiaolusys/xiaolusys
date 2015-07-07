@@ -87,7 +87,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         xlmm.push_carrylog_to_cash(cl)
         
-RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)        # 订单红包开放时间
+RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)       # 订单红包开放时间
 
 def init_Data_Red_Packet():
     # 判断 xlmm 是否有过 首单 或者 十单  如果是的将 OrderRedPacket 状态修改过来
@@ -121,7 +121,7 @@ from shopback.trades.models import MergeTrade
 @transaction.commit_on_success
 def order_Red_Packet(xlmm, target_date):
     
-    if target_date < RED_PACK_START_TIME:
+    if target_date < RED_PACK_START_TIME.date():
         return   # 开始时间之前 不执行订单红包
     # 2015-07-04 上午  要求修改为pending状态
     # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
