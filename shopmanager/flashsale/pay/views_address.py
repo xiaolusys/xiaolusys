@@ -90,7 +90,7 @@ class UserAddressDetail(APIView):
     template_name = "pay/address_block.html"
     #permission_classes = (permissions.IsAuthenticated,)
      
-    def get(self, request):
+    def get(self, request, format=None):
         
         pk = request.GET.get('pk')
         user_id = request.user.id
@@ -105,7 +105,7 @@ class UserAddressDetail(APIView):
             
             form_action = reverse('address_list')    
 
-        if format.lower() != 'json':
+        if format and format.lower() != 'json':
             uaddr_dict.update({'form_action':form_action})
             
         prov_list =  District.objects.filter(grade=District.FIRST_STAGE)
@@ -114,7 +114,7 @@ class UserAddressDetail(APIView):
         return Response(uaddr_dict)
  
  
-    def post(self, request):
+    def post(self, request, format=None):
          
         user_id = request.user.id
         content = request.POST
