@@ -12,7 +12,6 @@ def get_lack_num_by_product(product, sku):
     already_reach = get_already_num(product, sku)
     exist_stock_num = get_sample_num(sku)
     result_num = sale_num - ding_num - already_reach - exist_stock_num
-    print sale_num ,ding_num ,already_reach , exist_stock_num
     return result_num if result_num > 0 else 0
 
 
@@ -46,3 +45,16 @@ def get_already_num(product, sku):
 def get_sample_num(sku):
     return ProductSkuDetail.objects.filter(product_sku=sku.id).aggregate(
         total_num=Sum('exist_stock_num')).get('total_num') or 0
+
+
+def get_status_by_trade(merge_order):
+    all_detail = OrderDetail.objects.filter(created__gte=merge_order.pay_time).exclude(orderlist__status=u'作废').exclude(
+        orderlist__status=u'7')
+    if all_detail.count() == 0:
+        return "0"
+    else:
+        status = all_detail[0].orderlist.status
+        if status == u'草稿' or status == u'审核':
+            return "0"
+        elif status == u'验货完成' or status == u'5' or status == u'6' or status == u'有问题':
+            return "1"
