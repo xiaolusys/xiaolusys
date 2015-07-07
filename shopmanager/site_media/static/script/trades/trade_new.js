@@ -83,7 +83,8 @@ $.post('/trades/order/update/'+order_id+'/',{'outer_sku_id':outer_sku_id,'order_
         try {
         	
                if (res.code == 0){
-                 info.setAttribute("class","btn-default");
+                 info.setAttribute("class"," btn btn-default");
+                   // info.style.display="none";
             	 var order = res.response_content;
             	var cell  = target.parentElement.parentElement;
             	cell.cells[0].innerHTML = order.id;
@@ -469,9 +470,12 @@ $.post('/trades/checkorder/'+trade_id+'/?format=json', {
                if (res.code == 0){
                 alert("审核成功");
               // window.close();
+                parent.location.reload();
                 var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
                     parent.layer.close(index); //执行关闭
-
+                  // window.location.reload();
+ //self.opener.location.reload();
+             //alert("刷新");
 
                 }
               else{

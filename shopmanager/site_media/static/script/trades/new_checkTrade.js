@@ -26,10 +26,10 @@ function showlayer(symbol_link) {
         shade: 0.8,
         area: ['1000px', '700px'],
         content: url,
-        end:function(){
-           window.location.reload();
+       // end:function(){
+          // window.location.reload();
 
-}
+//}
     });
 }
 
