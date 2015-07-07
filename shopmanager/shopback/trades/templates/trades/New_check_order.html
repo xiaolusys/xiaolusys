@@ -17,11 +17,10 @@
   <body>
   {% if  trade.sys_status == "WAIT_AUDIT" %}
 
-<span class="label label-success"><h2>订单审核详情</h2></span>
+<h4  style="background-color:green" >订单审核详情</h4>
 
 {% else          %}
-<span class="label label-success"><h2>订单重审页面</h2></span>>
-
+<h4  style="background-color:green" >订单重审页面</h4>
 {%endif%}
   
 
@@ -183,7 +182,7 @@
 	</tfoot>
 </table>
 </div>
-<div class="well form-search">
+<div >
 	<input type="text" id="id-search-q" class="input-medium search-query" >
 	<button id="id-search-prod" class="btn"   onclick="searchProd()">商品搜索</button>
 	<div style="height: 10px"></div>

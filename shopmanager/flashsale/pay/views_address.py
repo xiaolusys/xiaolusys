@@ -93,7 +93,6 @@ class UserAddressDetail(APIView):
     def get(self, request):
         
         pk = request.GET.get('pk')
-        format = request.GET.get('format','json')
         user_id = request.user.id
         if pk:
             uaddr = get_object_or_404(UserAddress,pk=pk,cus_uid=user_id)

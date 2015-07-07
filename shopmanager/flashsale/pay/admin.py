@@ -187,11 +187,12 @@ from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 
 class SaleRefundAdmin(admin.ModelAdmin):
     
-    list_display = ('refund_no','order_no','title','refund_fee','has_good_return','has_good_change','created','status')
+    list_display = ('refund_no','order_no','order_channel','title','refund_fee','has_good_return','has_good_change','created','status')
     
     list_filter = ('status','good_status','has_good_return','has_good_change')
     
     search_fields = ['trade_id','order_id','refund_id','mobile']
+    list_per_page = 20
     
     def order_no(self, obj):
         strade = SaleTrade.objects.get(id=obj.trade_id)
@@ -200,12 +201,18 @@ class SaleRefundAdmin(admin.ModelAdmin):
     order_no.allow_tags = True
     order_no.short_description = "交易编号" 
     
+    def order_channel(self, obj):
+        strade = SaleTrade.objects.get(id=obj.trade_id)
+        return strade.get_channel_display()
+    
+    order_channel.allow_tags = True
+    order_channel.short_description = "支付方式" 
     
     #-------------- 页面布局 --------------
     fieldsets =(('基本信息:', {
                     'classes': ('expand',),
                     'fields': (('refund_no','trade_id','order_id')
-                               ,('title','sku_name',)
+                               ,('buyer_id','title','sku_name',)
                                ,('payment','total_fee',)
                                ,('company_name','sid')
                                ,('reason','desc')
@@ -338,7 +345,7 @@ from .forms import EnvelopForm
 class EnvelopAdmin(admin.ModelAdmin):
     
     list_display = ('id','receiver','get_amount_display','platform','subject',
-                    'send_time','created','status')
+                    'send_time','created','send_status','status')
     
     list_filter = ('status','send_status','platform','subject','livemode',('created',DateFieldListFilter))
     search_fields = ['=receiver','=envelop_id']
