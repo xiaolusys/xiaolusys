@@ -252,6 +252,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
+from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
@@ -299,13 +300,19 @@ class ProductList(generics.ListCreateAPIView):
         page = self.paginate_queryset(fliter_qs)
         if page is not None:
             if hasattr(self,'get_paginated_response'):
-                serializer = self.get_paginated_response(page)
+                page_response = self.get_serializer(page, many=True)
+                serializer = OrderedDict([
+                                ('count', self.paginator.page.paginator.count),
+                                ('next', self.paginator.get_next_link()),
+                                ('previous', self.paginator.get_previous_link()),
+                                ('results', page_response.data)
+                            ])
             else:
-                serializer = self.get_pagination_serializer(page)
+                serializer = self.get_pagination_serializer(page).data
         else:
-            serializer = self.get_serializer(fliter_qs, many=True)
+            serializer = self.get_serializer(fliter_qs, many=True).data
 
-        return Response({'products':serializer.data, 'category':category, 
+        return Response({'products':serializer, 'category':category, 
                          'history':history, 'time_line':time_line})
     
     

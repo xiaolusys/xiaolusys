@@ -333,7 +333,7 @@ class MamaIncomeDetailView(View):
             if today >= ORDER_RATEUP_START:
                 order_rebeta_rate = order_rebeta_rate * 2
                 rebeta_swift = True
-            print 'debug swift:',rebeta_swift,order_rebeta_rate
+
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
