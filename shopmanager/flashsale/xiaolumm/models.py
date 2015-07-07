@@ -174,6 +174,9 @@ class XiaoluMama(models.Model):
     
     def push_carrylog_to_cash(self,clog):
         
+        if self.id != clog.xlmm:
+            raise Exception(u'现金日志与妈妈编号不匹配') 
+        
         try:
             clog = CarryLog.objects.get(id=clog.id,status=CarryLog.PENDING)
         except CarryLog.DoesNotExist:

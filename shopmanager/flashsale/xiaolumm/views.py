@@ -99,7 +99,7 @@ class CashoutView(View):
         if cashout_objs.count() == 0 or cashout_objs[0].created > datetime.datetime(2015,6,30,15):
             kefu_mobile = '18516316989'
         
-        cash_outable = click_nums >= 150 or shoppings_count >= 6
+        cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
             
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
         pending_cashouts = cashout_objs.filter(status=CashOut.PENDING)
@@ -562,7 +562,7 @@ def cash_Out_Verify(request, id, xlmm):
     shoppings_count = shoppings.count()
 
     mobile = xiaolumama.mobile
-    cash_outable = click_nums >= 150 or shoppings_count >= 6
+    cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
         
     cash, payment, could_cash_out = get_xlmm_cash_iters(xiaolumama, cash_outable=cash_outable)
 
