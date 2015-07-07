@@ -117,14 +117,26 @@ class CashoutView(View):
         unionid = request.COOKIES.get('unionid')
         if not valid_openid(unionid):
             raise Http404
-        
+        could_cash_out = 0
+        xlmm = XiaoluMama.objects.filter(openid=unionid)
+        if xlmm.count() > 0:
+            # 点击数
+            clickcounts = ClickCount.objects.filter(linkid=xlmm[0].id)
+            click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
+            # 订单数
+            shoppings = StatisticsShopping.objects.filter(linkid=xlmm[0].id)
+            shoppings_count = shoppings.count()
+            cash_outable = click_nums >= 150 or shoppings_count >= 6
+            cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm[0], cash_outable=cash_outable)
         v = content.get("v")
         m = re.match(r'^\d+$', v)
 
         status = {"code":0, "status":"ok"}
         if m:
             value = int(m.group()) * 100
-            if 2000 > value or value > 20000:
+            could_cash_out_int = int(could_cash_out)*100
+
+            if value < 2000 or value > 20000 or value > could_cash_out_int:
                 status = {"code":3, "status": "input error"}
             else:
                 try:
