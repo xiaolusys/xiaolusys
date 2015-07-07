@@ -495,7 +495,7 @@ class ProductAdmin(admin.ModelAdmin):
         for p in queryset:
             product_dict = model_to_dict(p)
             product_dict['prod_skus'] = []
-            guiges = ProductSku.objects.filter(product_id=p.id)
+            guiges = ProductSku.objects.filter(product_id=p.id).exclude(status=u'delete')
             for guige in guiges:
                 sku_dict = model_to_dict(guige)
                 sku_dict['name'] = guige.name

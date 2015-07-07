@@ -24,7 +24,7 @@ function showlayer(symbol_link) {
         title: "订单审核页面",
         shadeClose: true,
         shade: 0.8,
-        area: ['1000px', '600px'],
+        area: ['1000px', '700px'],
         content: url,
         end:function(){
            window.location.reload();

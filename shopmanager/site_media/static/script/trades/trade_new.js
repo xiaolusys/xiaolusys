@@ -66,7 +66,9 @@
 
 //修改订单信息
 function changeOrder(info){
-
+        //alert("999"+info.getAttribute('class'));
+      // info.setAttribute("class","btn-default");
+        //info.changeClass();
 	var target  = info;
 	var idx     = target.getAttribute('idx');
 	var order_id     = target.getAttribute('oid');
@@ -81,6 +83,7 @@ $.post('/trades/order/update/'+order_id+'/',{'outer_sku_id':outer_sku_id,'order_
         try {
         	
                if (res.code == 0){
+                 info.setAttribute("class","btn-default");
             	 var order = res.response_content;
             	var cell  = target.parentElement.parentElement;
             	cell.cells[0].innerHTML = order.id;
@@ -89,7 +92,7 @@ $.post('/trades/order/update/'+order_id+'/',{'outer_sku_id':outer_sku_id,'order_
             	cell.cells[3].innerHTML = order.sku_properties_name;
             	cell.cells[4].innerHTML = '<input class="order_num" type="text" value="'+order.num+'" size="8" disabled="disabled" />';
             	cell.cells[5].innerHTML = order.price;
-updateTotalNum()
+                updateTotalNum()
             	if (order.out_stock){
             		cell.cells[6].innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
             	}else{
