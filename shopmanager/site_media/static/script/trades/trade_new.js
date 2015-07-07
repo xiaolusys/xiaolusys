@@ -470,7 +470,7 @@ $.post('/trades/checkorder/'+trade_id+'/?format=json', {
                if (res.code == 0){
                 alert("审核成功");
               // window.close();
-                parent.location.reload();
+               // parent.location.reload();
                 var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
                     parent.layer.close(index); //执行关闭
                   // window.location.reload();
