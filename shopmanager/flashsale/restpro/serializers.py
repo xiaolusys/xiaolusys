@@ -43,5 +43,38 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
                    'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 'logistics_company',
                    'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_mobile', 'receiver_phone')
         
+ 
+from flashsale.pay.models import SaleRefund,District,UserAddress
+       
+
+class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
+    
+    good_status = serializers.ChoiceField(choices=SaleRefund.GOOD_STATUS_CHOICES)
+    status      = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
+    
+    class Meta:
+        model = SaleRefund
+        fields = ( 'id', 'refund_no', 'trade_id', 'order_id', 'buyer_id', 'item_id', 'title',
+                   'sku_id', 'sku_name', 'refund_num','buyer_nick', 'mobile', 'phone',
+                    'total_fee', 'payment', 'created', 'company_name', 'sid', 'reason',
+                   'desc','feedback','has_good_return','has_good_change', 'good_status', 'status')
         
         
+class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
+    
+    status      = serializers.ChoiceField(choices=UserAddress.STATUS_CHOICES)
+    
+    class Meta:
+        model = UserAddress
+        fields = ( 'id', 'cus_uid', 'receiver_name', 'receiver_state', 'receiver_city', 
+                   'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
+                    'receiver_phone', 'default', 'status', 'created')
+        
+
+class DistrictSerializer(serializers.HyperlinkedModelSerializer):
+    
+    class Meta:
+        model = District
+        fields = ( 'id', 'parent_id', 'name', 'grade', 'sort_order')
+        
+                        

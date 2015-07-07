@@ -27,7 +27,7 @@ function showlayer(symbol_link) {
         area: ['1000px', '700px'],
         content: url,
         end:function(){
-           window.location.reload();
+        window.location.reload();
 
 }
     });
