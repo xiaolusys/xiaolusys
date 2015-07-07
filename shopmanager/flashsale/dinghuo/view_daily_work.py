@@ -59,7 +59,7 @@ class DailyDingHuoView(View):
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where outer_id like '%%{0}%%' or name like '%%{0}%%' ) as A " \
-                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
+                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(search_text)
         else:
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
@@ -67,7 +67,7 @@ class DailyDingHuoView(View):
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser {1}))) as A " \
-                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
+                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
                 target_date, group_sql)
         ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' or A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
