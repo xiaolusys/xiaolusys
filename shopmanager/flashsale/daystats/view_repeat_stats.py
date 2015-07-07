@@ -10,6 +10,8 @@ from calendar import monthrange
 from flashsale.clickrebeta.models import StatisticsShopping
 from django.db.models import Sum
 from flashsale.xiaolumm.models import XiaoluMama
+from django.conf import settings
+from shopapp.weixin.models import get_Unionid
 
 
 def get_new_user(user_data, old_user):
@@ -190,12 +192,19 @@ class StatsSalePeopleView(View):
             history_purchase = StatisticsShopping.objects.filter(shoptime__lt=month_start_date).values(
                 "openid").distinct()
             history_purchase_detail = set([val['openid'] for val in history_purchase])
+
             all_purchase_detail = set([val['openid'] for val in all_purchase])
+            all_purchase_detail_unionid = set(
+                [get_Unionid(val['openid'], settings.WEIXIN_APPID) for val in all_purchase])
+
             repeat_user = all_purchase_detail & history_purchase_detail
+            repeat_user_unionid = set([get_Unionid(val, settings.WEIXIN_APPID) for val in repeat_user])
+
             all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel=2).values("openid").distinct()
             all_xlmm_detail = set([val['openid'] for val in all_xlmm])
-            repeat_xlmm = repeat_user & all_xlmm_detail
-            xlmm_num = history_purchase_detail & all_xlmm_detail
+
+            repeat_xlmm = repeat_user_unionid & all_xlmm_detail
+            xlmm_num = all_purchase_detail_unionid & all_xlmm_detail
             result_list.append(
                 {"month": month, "all_purchase_num": all_purchase_num, "repeat_user_num": len(repeat_user),
                  "repeat_xlmm_num": len(repeat_xlmm), "xlmm_num": len(xlmm_num)}
