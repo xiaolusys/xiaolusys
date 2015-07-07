@@ -103,7 +103,7 @@ def init_Data_Red_Packet():
                 red_packet.ten_order_red = True  # 默认发放过十单红包
                 red_packet.save()
                 xlmm.hasale = True
-            if shoppings.count() >= 1:
+            elif shoppings.count() >= 1:
                 red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm.id)
                 red_packet.first_red = True     # 默认发放过首单红包
                 red_packet.save()
@@ -120,9 +120,9 @@ from shopback.trades.models import MergeTrade
 
 @transaction.commit_on_success
 def order_Red_Packet(xlmm, target_date):
-    now = datetime.datetime.now()
-    if now < RED_PACK_START_TIME:
-        return ''  # 开始时间之前 不执行订单红包
+    
+    if target_date < RED_PACK_START_TIME:
+        return   # 开始时间之前 不执行订单红包
     # 2015-07-04 上午  要求修改为pending状态
     # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
@@ -132,11 +132,12 @@ def order_Red_Packet(xlmm, target_date):
         # 计算 xlmm 的订单总数 如果是 1 （第一单） 生成CarryLog记录
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
         if shoppings.count() >= 1:
+            carry_date = shoppings[0].shoptime.date()
             # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
                                            carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
-                                           carry_date=target_date)
+                                           carry_date=carry_date)
             order_red_carry_log.save()  # 保存
             red_packet.first_red = True  # 已经发放首单红包
             red_packet.save()   # 保存红包状态
@@ -145,11 +146,12 @@ def order_Red_Packet(xlmm, target_date):
         # 计算 xlmm 的订单总数 如果是 10  生成CarryLog记录
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
         if shoppings.count() >= 10:
+            carry_date = shoppings[0].shoptime.date()
             # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=1880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
                                            carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
-                                           carry_date=target_date)
+                                           carry_date=carry_date)
             order_red_carry_log.save()  # 保存
             red_packet.first_red = True  # 已经发放首单红包
             red_packet.ten_order_red = True  # 已经发放10单红包
