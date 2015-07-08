@@ -330,7 +330,7 @@ class MamaIncomeDetailView(View):
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             carry_confirm = False
             order_rebeta_rate = xlmm.get_Mama_Order_Rebeta_Rate()
-            if today >= ORDER_RATEUP_START:
+            if target_date >= ORDER_RATEUP_START:
                 order_rebeta_rate = order_rebeta_rate * 2
                 rebeta_swift = True
 
