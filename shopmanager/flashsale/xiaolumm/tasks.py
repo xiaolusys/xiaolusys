@@ -119,7 +119,8 @@ from shopback.trades.models import MergeTrade
 
 
 @transaction.commit_on_success
-def order_Red_Packet(xlmm, target_date):
+def order_Red_Packet_Pending_Carry(xlmm, target_date):
+    
     today = datetime.date.today()
     if today < RED_PACK_START_TIME.date():
         return   # 开始时间之前 不执行订单红包
@@ -156,6 +157,9 @@ def order_Red_Packet(xlmm, target_date):
             red_packet.ten_order_red = True  # 已经发放10单红包
             red_packet.save()   # 保存红包状态
 
+@transaction.commit_on_success
+def order_Red_Packet(xlmm):
+    mama = XiaoluMama.objects.get(id=xlmm)
     # 寻找该妈妈以前的首单/十单红包记录
     red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
     shopping_finishs = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)  # 已经完成订单
@@ -203,7 +207,7 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
     update_Xlmm_Shopping_OrderStatus(shoping_orders)
     
     try:
-        order_Red_Packet(xlmm, target_date)
+        order_Red_Packet(xlmm)
     except Exception,exc:
         logger.error(exc.message or 'Order Red Packet Error',exc_info=True)
         
