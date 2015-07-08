@@ -47,8 +47,9 @@
 <li class="list-group-item"><span style="color:#A30000;">点击补贴现已取消，订单补贴翻倍，赶快试试吧。</span></li>
 {% else %}
 <li class="list-group-item"><span style="color:orange">点击补贴： {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>
-{% endif %}
 {% if not exam_pass %}（<a href="/sale/exam/">考试通过后生效</a>）{% endif %}</li>
+{% endif %}
+
 {% if active_start %}
 <li class="list-group-item"><span style="color:green">端午点击专贴： {{ ten_click_num }} * {{ ten_click_price }} = ￥{{ ten_click_pay }}</span></li>
 {% endif %}
