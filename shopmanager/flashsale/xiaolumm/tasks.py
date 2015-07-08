@@ -120,12 +120,12 @@ from shopback.trades.models import MergeTrade
 
 @transaction.commit_on_success
 def order_Red_Packet(xlmm, target_date):
-    
-    if target_date < RED_PACK_START_TIME.date():
+    today = datetime.date.today()
+    if today < RED_PACK_START_TIME.date():
         return   # 开始时间之前 不执行订单红包
     # 2015-07-04 上午  要求修改为pending状态
     # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
-    today = datetime.date.today()
+   
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     mama = XiaoluMama.objects.get(id=xlmm)
     if red_packet.first_red is False:
@@ -159,13 +159,14 @@ def order_Red_Packet(xlmm, target_date):
     # 寻找该妈妈以前的首单/十单红包记录
     red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
     shopping_finishs = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)  # 已经完成订单
-
-    if shopping_finishs.count() >= 10:
+    
+    shopping_count = shopping_finishs.count()
+    if shopping_count >= 10:
         for red_pac_carry_log in red_pac_carry_logs:
             if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
                 mama.push_carrylog_to_cash(red_pac_carry_log)
                 
-    if shopping_finishs.count() >= 1:
+    if shopping_count >= 1 and shopping_count < 10:
         for red_pac_carry_log in red_pac_carry_logs:
             if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
                 mama.push_carrylog_to_cash(red_pac_carry_log)
