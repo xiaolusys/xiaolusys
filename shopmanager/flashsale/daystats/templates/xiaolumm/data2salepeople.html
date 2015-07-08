@@ -1,11 +1,38 @@
 {% extends "xiaolumm/daystats_base.html" %}
 {% block title %}用户统计{% endblock %}
 {% block head_script %}
+    <script>
+        function get_data() {
+            console.log("get_data");
+            var task_id = $("#task_id").val();
+            $.ajax({
+                url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
+                method: "GET", //静态页用get方法，否则服务器会抛出405错误
+                success: function (res) {
+                    console.log(res.task.status);
+                    if (res.task.status == "SUCCESS") {
+                        var tb = $('#data-table-people');
+                        var result_data = eval(res.task.result);
+                        $("#data-table-people thead").eq(0).nextAll().remove();
+                        $.each(result_data, function (index, dd) {
+
+                            tb.append("<tr><td>" + dd.month + "月份</td><td>" + dd.all_purchase_num + "</td><td>" + dd.xlmm_num + "</td><td>" + dd.repeat_user_num + "</td><td>" + dd.repeat_xlmm_num + "</td></tr>");
+                        });
+
+                    }else{
+                        setTimeout(get_data(), 4000);
+                    }
+                }
+            });
+        }
+        setTimeout(get_data(), 4000);
+    </script>
 {% endblock %}
 {% block container %}
     <div class="row" style="margin-top: 20px"><h2>用户统计</h2></div>
+    <input id="task_id" style="display: none" value="{{ task_id }}">
     <div class="row">
-        <table class="table table-bordered" id="data-table">
+        <table class="table table-bordered" id="data-table-people">
             <thead>
             <th></th>
             <th>总购买人数</th>
