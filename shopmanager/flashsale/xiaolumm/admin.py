@@ -24,10 +24,12 @@ class XiaoluMamaAdmin(MyAdmin):
     user_groups = []
     
     form = forms.XiaoluMamaForm
-    list_display = ('id','mobile','get_cash_display','get_pending_display','weikefu','agencylevel',
+    list_display = ('id','mobile','get_cash_display','total_inout_item','weikefu','agencylevel',
                     'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status','referal_from','mama_Verify')
     list_filter = ('progress','agencylevel','manager','status','charge_status','hasale',('charge_time',DateFieldListFilter),'user_group')
     search_fields = ['=id','=mobile','=manager','weikefu','=openid','=referal_from']
+    list_per_page = 25
+    
     
     def get_changelist(self, request, **kwargs):
         """
@@ -62,6 +64,21 @@ class XiaoluMamaAdmin(MyAdmin):
     
     group_select.allow_tags = True
     group_select.short_description = u"所属群组"
+    
+    def total_inout_item(self, obj):
+        
+        mm_clogs = CarryLog.objects.filter(xlmm=obj.id)#.exclude(log_type=CarryLog.ORDER_RED_PAC)
+        
+        income_qs =  mm_clogs.filter(carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED)
+        total_income = income_qs.aggregate(total_value=Sum('value')).get('total_value') or 0
+        
+        outcome_qs = mm_clogs.filter(carry_type=CarryLog.CARRY_OUT,status=CarryLog.CONFIRMED)
+        total_pay    = outcome_qs.aggregate(total_value=Sum('value')).get('total_value') or 0
+    
+        return (u'<div><p>总收入：%s</p><p>总支出：%s</p></div>'%(total_income / 100.0, total_pay / 100.0))
+    
+    total_inout_item.allow_tags = True
+    total_inout_item.short_description = u"总收入/支出"
     
     def charge_link(self, obj):
 

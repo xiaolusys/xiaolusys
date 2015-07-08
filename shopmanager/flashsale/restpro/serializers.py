@@ -1,5 +1,5 @@
 from shopback.items.models import Product,ProductSku,ProductCategory
-from flashsale.pay.models import SaleTrade,LogisticsCompany,Productdetail
+from flashsale.pay.models import SaleTrade,LogisticsCompany,Productdetail,ShoppingCart
 from rest_framework import serializers
 
 class ProductCategorySerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = Product
-        fields = ('pk', 'id', 'name', 'outer_id', 'category', 'pic_path','remain_num', 
+        fields = ('id', 'name', 'outer_id', 'category', 'pic_path','remain_num', 
                   'std_sale_price', 'agent_price', 'sale_time', 'memo', 'normal_skus')
 
 
@@ -29,6 +29,16 @@ class LogisticsCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsCompany
         fields = ('id', 'code', 'name')
+
+
+class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
+    
+    status      = serializers.ChoiceField(choices=ShoppingCart.STATUS_CHOICE)
+    
+    class Meta:
+        model = ShoppingCart
+        fields = ( 'id', 'buyer_id', 'buyer_nick', 'item_id', 'title', 'price', 'sku_id',
+                   'num', 'total_fee', 'sku_name', 'pic_path', 'created', 'status')
         
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
@@ -39,7 +49,7 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = SaleTrade
-        fields = ('id', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment', 'post_fee', 'total_fee',
+        fields = ( 'id', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment', 'post_fee', 'total_fee',
                    'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 'logistics_company',
                    'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_mobile', 'receiver_phone')
         

@@ -81,7 +81,6 @@ class PINGPPChargeView(View):
         logger.debug('PINGPP CHARGE REQ: %s'%form)
         err_msg = ''
         try:
-            
             channel = form.get('channel')
             user = request.user
             customer = Customer.getCustomerByUser(user)

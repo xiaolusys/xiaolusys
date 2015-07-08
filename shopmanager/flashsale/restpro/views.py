@@ -1,11 +1,13 @@
+import datetime
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets
+from rest_framework.decorators import detail_route, list_route
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
-from rest_framework import versioning
+from rest_framework import status
 
 from shopback.items.models import Product
 from flashsale.pay.models import SaleTrade,Customer
@@ -34,7 +36,36 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-
+    
+    @list_route(methods=['get'])
+    def previous(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        queryset = queryset.filter(sale_time__lt=datetime.date.today())
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+ 
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    @list_route(methods=['get'])
+    def advance(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        queryset = queryset.filter(sale_time__gt=datetime.date.today())
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+ 
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
@@ -45,12 +76,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
+    def get_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-         
-        queryset = queryset.filter(buyer_id=customer.id)
+        return self.queryset.filter(buyer_id=customer.id)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset(request))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -59,8 +90,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-from flashsale.pay.models import SaleRefund,District,UserAddress
+    
+
+from flashsale.pay.models import SaleRefund,District,UserAddress,ShoppingCart
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
@@ -72,12 +111,12 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
+    def get_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-         
-        queryset = queryset.filter(buyer_id=customer.id)
+        return self.queryset.filter(buyer_id=customer.id)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset(request))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -97,12 +136,12 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
+    def get_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-         
-        queryset = queryset.filter(cus_uid=customer.id)
+        return self.queryset.filter(cus_uid=customer.id)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset(request))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -133,5 +172,29 @@ class DistrictViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
 
+
+class ShoppingCartViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = ShoppingCart.objects.all()
+    serializer_class = serializers.ShoppingCartSerializer# Create your views here.
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
+    def get_queryset(self,request):
+        customer = get_object_or_404(Customer,user=request.user)
+        return self.queryset.filter(buyer_id=customer.id)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset(request))
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)  
     
