@@ -252,7 +252,7 @@ from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
 
@@ -337,7 +337,7 @@ class OrderBuyReview(APIView):
 
 #     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer)
     template_name = "pay/morder.html"
     
     def post(self, request, format=None):
@@ -345,10 +345,10 @@ class OrderBuyReview(APIView):
         content = request.REQUEST
         user    = request.user
         
-        pid     = content.get('pid','')
-        sid     = content.get('sid','')
+        pid     = content.get('pid',None)
+        sid     = content.get('sid',None)
         num     = int(content.get('num','1'))
-        addrid  = content.get(ADDRESS_PARAM_KEY_NAME,'')
+        addrid  = content.get(ADDRESS_PARAM_KEY_NAME,None)
         
         product = get_object_or_404(Product,pk=pid)
         sku     = get_object_or_404(ProductSku,pk=sid)
