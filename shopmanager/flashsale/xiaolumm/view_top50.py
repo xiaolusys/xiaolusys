@@ -309,8 +309,8 @@ def xlmm_TOP50_Manager_Month(request):
     content = request.REQUEST
     daystr = content.get("month", None)
     manager = request.user.id
-    print 'manager ', manager
-
+    if manager is None:
+        manager = 0
     if daystr:
         year, month, day = daystr.split('-')
         target_date = datetime.datetime(int(year), int(month), int(day))
@@ -327,8 +327,7 @@ def xlmm_TOP50_Manager_Month(request):
                 " linkid, " \
                 " linkname, " \
                 " SUM(buyercount) AS xlmm_total_buyercount, " \
-                " SUM(ordernumcount) AS xlmm_total_ordernumcount, " \
-                " DATE_FORMAT(tongjidate, '%%Y-%%m') AS topmonth " \
+                " SUM(ordernumcount) AS xlmm_total_ordernumcount " \
             " FROM " \
                 " flashsale_tongji_shopping_day " \
             " WHERE " \
@@ -342,10 +341,9 @@ def xlmm_TOP50_Manager_Month(request):
             " GROUP BY linkid  " \
             " ORDER BY xlmm_total_ordernumcount DESC " \
             " LIMIT 50".format(date_from, date_to, manager)
-
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
     cursor.close()
-    date_dic = {"prev_month": prev_month, "next_month": next_month}
+    date_dic = {"prev_month": prev_month, "month": date_from.strftime("%Y-%m"), "next_month": next_month}
     return raw, date_dic

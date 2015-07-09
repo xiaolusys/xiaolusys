@@ -34,7 +34,7 @@
                         <a href="/m/top50/order_manager/month/?month={{ date_dict.prev_month }}"><< 上个月</a>
                     </div>
                     <div class="col-xs-4">
-                        {#                        <p>{{ date_dict.target_day }}</p>#}
+                                                <p>{{ date_dict.month }}</p>
                     </div>
                     <div class="col-xs-4">
                         {% if date_dict.next_month %}
@@ -57,7 +57,7 @@
                             <td>{{ top.1 }}</td>
                             <td>{{ top.2 }}</td>
                             <td>{{ top.3 }}</td>
-                            <td>{{ top.4 }}</td>
+                            <td>{{ date_dict.month }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
