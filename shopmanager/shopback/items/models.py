@@ -9,12 +9,14 @@ import json
 import datetime
 from django.db import models
 from django.db.models import Sum,Avg,F
+from django.db.models.signals import pre_save,post_save
+from django.core.urlresolvers import reverse
+
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
-from django.db.models.signals import pre_save,post_save
 from shopback.users.models import User
 from .managers import ProductManager
 from auth import apis
@@ -124,9 +126,12 @@ class Product(models.Model):
                        ("export_product_info", u"导出库存商品信息"),
                        ("invalid_product_info", u"作废库存商品信息")]
         
-    
     def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id,self.name)
+        return '%s'%self.id
+        #return '<%s,%s>'%(self.outer_id,self.name)
+    
+    def get_absolute_url(self):
+        return reverse('api_v1:product-detail',args=[self.id])
     
     def clean(self):
         for field in self._meta.fields:
