@@ -129,7 +129,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
    
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     mama = XiaoluMama.objects.get(id=xlmm)
-    if red_packet.first_red is False:
+    if red_packet.first_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
     # 判断 xlmm 在 OrderRedPacket 中的首单状态  是False 则执行下面的语句
         # 计算 xlmm 的订单总数 如果是 1 （第一单） 生成CarryLog记录
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
@@ -142,7 +142,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
             order_red_carry_log.save()  # 保存
             red_packet.first_red = True  # 已经发放首单红包
             red_packet.save()   # 保存红包状态
-    if red_packet.ten_order_red is False:
+    if red_packet.ten_order_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
     #  判断 xlmm 在 OrderRedPacket 中的十单状态 是False 则执行下面语句
         # 计算 xlmm 的订单总数 如果是 10  生成CarryLog记录
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
