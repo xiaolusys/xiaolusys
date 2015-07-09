@@ -156,7 +156,7 @@
             $('#searchbutton').click(function () {
                 var searchtext = $("#searchtext").val();
                 $("#searchtable thead").eq(0).nextAll().remove();
-                $.get("/sale/dinghuo/searchproduct", {searchtext: searchtext},
+                $.get("/sale/dinghuo/searchproduct/", {searchtext: searchtext},
                         function (result) {
                             var tb = $('#searchtable');
                             var count = 0;

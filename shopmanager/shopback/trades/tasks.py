@@ -222,8 +222,8 @@ def deliveryTradeCallBack(*args,**kwargs):
 def uploadTradeLogisticsTask(trade_id,operator_id):
     
     try:
-        delivery_trade = MergeTradeDelivery.objects.get(trade_id=trade_id)
         merge_trade = MergeTrade.objects.get(id=trade_id)
+        delivery_trade = MergeTradeDelivery.objects.get(trade_id=trade_id)
         
         if not delivery_trade.is_sub and merge_trade.sys_status != pcfg.FINISHED_STATUS:
             delivery_trade.message = u'订单未称重'
