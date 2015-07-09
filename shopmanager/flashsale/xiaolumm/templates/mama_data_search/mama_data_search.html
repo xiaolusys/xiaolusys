@@ -1,0 +1,293 @@
+{% extends "mama_data_search/mama_base.html" %}
+
+{% block title %} 妈妈数据查询 {% endblock %}
+
+{% block head_script %}
+
+    <link href='{{ STATIC_URL }}css/mama_profile.css' rel='stylesheet'/>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+
+    <style type="text/css">
+        th {
+            width: 50px;
+        }
+
+        td {
+            width: 50px;
+        }
+    </style>
+{% endblock %}
+
+{% block container %}
+
+
+
+
+    <div class="row" style="margin-top: 50px">
+        <form action="/m/mama_show_all/" method="post">
+            <div class="input-group ">
+                <span class="input-group-addon" id="mm_search">妈妈搜索</span>
+                <input type="text" name="xlmm"
+                       class="form-control  mama_base_data_search" placeholder="ID/mobile"
+                       aria-describedby="basic-addon3">
+
+                <span class="input-group-addon" id="date_from">开始时间</span>
+                <input type="text" name="left_date" id="left_date_pic"
+                       class="form-control select_saletime  datepicker" placeholder="业务时间"
+                       aria-describedby="basic-addon1">
+
+                <span class="input-group-addon" id="date_to">结束时间</span>
+                <input type="text" name="right_date" id="right_date_pic"
+                       class="form-control select_saletime  datepicker" placeholder="业务时间"
+                       aria-describedby="basic-addon2">
+            <span class="input-group-btn">
+                <button class="btn btn-default" id="go_search" type="submit">Go!</button>
+            </span>
+            </div>
+
+        </form>
+
+        {############################################## 代理基本 #########################################################}
+        <div class="panel panel-default " style="margin-top: 1px">
+            <div class="panel-heading">基本信息</div>
+            <table class="table table-condensed table-hover" style="margin-top: 20px">
+                <thead>
+                <th>专属ID</th>
+                <th>手机号</th>
+                <th>可用现金</th>
+
+                <th>代理类别</th>
+                <th>昵称</th>
+                <th>管理员</th>
+
+                <th>推荐人</th>
+                <th>接管时间</th>
+
+                <th>接管状态</th>
+                </thead>
+                <tbody>
+                {% for xlmm in xlmms %}
+                    <tr>
+                        <td>{{ xlmm.id }}</td>
+                        <td>{{ xlmm.mobile }}</td>
+                        <td>{{ xlmm.cash }}</td>
+
+                        <td>{{ xlmm.agencylevel }}</td>
+                        <td>{{ xlmm.weikefu }}</td>
+                        <td>{{ xlmm.manager }}</td>
+
+                        <td>{{ xlmm.referal_from }}</td>
+                        <td>{{ xlmm.charge_time }}</td>
+                        <td>{{ xlmm.get_charge_status_display }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                </tfoot>
+            </table>
+        </div>
+        <hr style="height:1px;border:none;border-top:1px ridge green;"/>
+        <div style="margin-bottom: 10px">
+            <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#mam_carry_sum_all"
+               aria-expanded="false"
+               aria-controls="mam_carry_sum_all">
+                汇总
+            </a>
+        </div>
+        <div class="container collapse row" id="mam_carry_sum_all">
+            <div class="panel panel-default col-xs-6">
+                <div>
+                    <span class="label label-success">总收入:</span><a>{{ carry_log_all_sum.0 }}</a>
+                    <span class="label label-success">总支出:</span><a>{{ carry_log_all_sum.1 }}</a>
+                </div>
+                <br>
+                <div>
+                    <span class="label label-success">订单返利:</span><a>{{ sum_detail_confirm.0 }}</a>
+                    <span class="label label-success">消费支出:</span><a>{{ sum_detail_confirm.1 }}</a>
+                    <span class="label label-success">退款返现:</span><a>{{ sum_detail_confirm.2 }}</a>
+                    <span class="label label-success">点击兑现:</span><a>{{ sum_detail_confirm.3 }}</a>
+                    <span class="label label-success">钱包提现:</span><a>{{ sum_detail_confirm.4 }}</a>
+                </div>
+                <br>
+                <div>
+                    <span class="label label-success">押金:</span><a>{{ sum_detail_confirm.5 }}</a>
+                    <span class="label label-success">千元提成:</span><a>{{ sum_detail_confirm.6 }}</a>
+                    <span class="label label-success">代理补贴:</span><a>{{ sum_detail_confirm.7 }}</a>
+                    <span class="label label-success">招募奖金:</span><a>{{ sum_detail_confirm.8 }}</a>
+                    <span class="label label-success">订单红包:</span><a>{{ sum_detail_confirm.9 }}</a>
+                </div>
+            </div>
+            <div class="panel panel-default col-xs-6">
+                <div>
+                    <span class="label label-warning">总收入:</span><a>{{ carry_log_all_sum.2 }}</a>
+                    <span class="label label-warning">总支出:</span><a>{{ carry_log_all_sum.3 }}</a>
+                </div>
+                <br>
+                <div>
+                    <span class="label label-warning">订单返利:</span><a>{{ sum_detail_pending.0 }}</a>
+                    <span class="label label-warning">点击兑现:</span><a>{{ sum_detail_pending.1 }}</a>
+                    <span class="label label-warning">千元提成:</span><a>{{ sum_detail_pending.2 }}</a></div>
+                <br>
+                <div>
+                    <span class="label label-warning">代理补贴:</span><a>{{ sum_detail_pending.3 }}</a>
+                    <span class="label label-warning">招募奖金:</span><a>{{ sum_detail_pending.4 }}</a>
+                    <span class="label label-warning">订单红包:</span><a>{{ sum_detail_pending.5 }}</a>
+                </div>
+
+            </div>
+        </div>
+        <hr style="height:1px;border:none;border-top:1px ridge green;"/>
+
+
+        <div style="margin-bottom: 10px">
+            <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#mam_carry_in"
+               aria-expanded="false"
+               aria-controls="mam_carry_in">
+                明细
+            </a>
+
+        </div>
+        <div class="container collapse row" id="mam_carry_in">
+            <div class="panel panel-default ">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                    <th>金额</th>
+                    <th>类型</th>
+                    <th>状态</th>
+                    <th>收支</th>
+                    <th>业务日期</th>
+                    </thead>
+                    <tbody>
+                    {% for log in allcarrylogs %}
+                        <tr>
+                            <td>{{ log.get_value_display }}</td>
+                            <td>{{ log.get_log_type_display }}</td>
+                            <td>{{ log.get_status_display }}</td>
+                            <td>{{ log.get_carry_type_display }}</td>
+                            <td>{{ log.carry_date }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+
+        <hr style="height:1px;border:none;border-top:1px ridge green;"/>
+        {################################################# 代理点击 ######################################################}
+        <div style="margin-bottom: 10px">
+            <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#click_order"
+               aria-expanded="false"
+               aria-controls="collapseExample">
+                点击/订单
+            </a>
+        </div>
+        <div class="container collapse  row" id="click_order">
+            <div class="panel panel-default col-xs-6">
+                <table class="table table-hover table-condensed">
+                    <thead>
+
+                    <th>人数</th>
+                    <th>有效点击</th>
+                    <th>日期</th>
+
+                    </thead>
+                    <tbody>
+                    {% for click in clickcounts %}
+                        <tr>
+                            <td>{{ click.user_num }}</td>
+                            <td>{{ click.valid_num }}</td>
+                            <td>{{ click.date }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {################################################# 代理订单 ######################################################}
+            <div class="panel panel-default col-xs-6">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                    <th>购买人数</th>
+                    <th>订单总数</th>
+                    <th>订单总价</th>
+                    <th>提成总数</th>
+                    <th>统计的日期</th>
+
+                    </thead>
+                    <tbody>
+                    {% for order in order_counts %}
+                        <tr>
+                            <td>{{ order.buyercount }}</td>
+                            <td>{{ order.ordernumcount }}</td>
+                            <td>{{ order.orderamountcount }}</td>
+                            <td>{{ order.todayamountcount }}</td>
+                            <td>{{ order.tongjidate }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr style="height:1px;border:none;border-top:1px ridge green;"/>
+
+        <div><a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#rel_mama"
+                aria-expanded="true"
+                aria-controls="collapseExample">
+            他推荐的代理
+        </a>
+
+            <div class=" collapse panel panel-default " style="margin-top: 1px" id="rel_mama">
+                <table class="table table-condensed table-hover" style="margin-top: 20px">
+                    <thead>
+                    <th>专属ID</th>
+                    <th>手机号</th>
+                    <th>可用现金</th>
+
+                    <th>昵称</th>
+                    <th>管理员</th>
+                    <th>接管时间</th>
+
+                    </thead>
+                    <tbody>
+                    {% for xlmm in referals %}
+                        <tr>
+                            <td>{{ xlmm.id }}</td>
+                            <td>{{ xlmm.mobile }}</td>
+                            <td>{{ xlmm.cash }}</td>
+
+                            <td>{{ xlmm.weikefu }}</td>
+                            <td>{{ xlmm.manager }}</td>
+                            <td>{{ xlmm.charge_time }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <hr style="height:1px;border:none;border-top:1px ridge green;"/>
+    </div>
+
+
+
+{% endblock %}
+
+{% block tail_script %}
+    <script>
+        $(function () {
+            $("#left_date_pic").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+            $("#right_date_pic").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+        });
+    </script>
+{% endblock %}
