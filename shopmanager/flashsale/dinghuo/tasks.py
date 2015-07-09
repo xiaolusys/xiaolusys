@@ -253,7 +253,6 @@ def get_sale_amount_by_product(product):
         raw = cursor.fetchall()
     finally:
         cursor.close()
-    print raw
     if len(raw) > 0:
         sale_num = raw[0][2]
         sale_amount = sale_num * agent_price
