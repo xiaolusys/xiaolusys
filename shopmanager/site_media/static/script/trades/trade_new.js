@@ -50,7 +50,8 @@
         try {
         	
                if (res.code == 0){
-            	 alert("地址修改成功！");
+            	 //alert("地址修改成功！");
+                window.location.reload();
                 }else{
                   alert("地址修改失败:"+res.response_error);
                 }

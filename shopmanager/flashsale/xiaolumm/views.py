@@ -95,8 +95,9 @@ class CashoutView(View):
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
+        app_cashouts = cashout_objs.filter(status__in=(CashOut.APPROVED,CashOut.COMPLETED)).order_by('created')
         kefu_mobile = '18516655836'
-        if cashout_objs.count() == 0 or cashout_objs[0].created > datetime.datetime(2015,6,30,15):
+        if app_cashouts.count() == 0 or app_cashouts[0].created > datetime.datetime(2015,6,30,15):
             kefu_mobile = '18516316989'
         
         cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6

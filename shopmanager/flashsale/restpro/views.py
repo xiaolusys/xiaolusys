@@ -76,12 +76,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    def get_queryset(self,request):
+    def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
     
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset(request))
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -111,12 +111,12 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    def get_queryset(self,request):
+    def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
     
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset(request))
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -136,12 +136,12 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    def get_queryset(self,request):
+    def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(cus_uid=customer.id)
     
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset(request))
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -183,12 +183,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    def get_queryset(self,request):
+    def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
         
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset(request))
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
 
         page = self.paginate_queryset(queryset)
         if page is not None:
