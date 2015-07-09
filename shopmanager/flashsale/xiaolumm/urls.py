@@ -48,9 +48,12 @@ urlpatterns = patterns('',
     url(r'^top50/click/month/$', views.xlmm_Click_Top_Month, name="xlmm_Click_Top_Month"),
     url(r'^top50/order/month/$', views.xlmm_Order_Top_Month, name="xlmm_Order_Top_Month"),
     url(r'^top50/convers/month/$', views.xlmm_Convers_Top_Month, name="xlmm_Convers_Top_Month"),
+    #xlmm_TOP50_By_Manager_Month
+    url(r'^top50/order_manager/month/', views.xlmm_TOP50_By_Manager_Month, name="xlmm_TOP50_By_Manager_Month"),
 
     # ITER TOP100
     url(r'^top100/click/month/$', views_top100_iter.Top100_Click, name="Top100_Click"),
     url(r'^top100/order/month/$', views_top100_iter.Top100_Order, name="Top100_Click"),
+
 
 )
