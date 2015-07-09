@@ -118,8 +118,25 @@ class XiaoluMamaAdmin(MyAdmin):
 
 
     def mama_Verify(self, obj):
-        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE:   # 该代理没有管理员 并且没有被接管
-            return (u'<a style="display:block;"href="/m/mama_verify/%d/">代理审核</a>'%(obj.id))
+        from .views import get_Deposit_Trade
+        trade = get_Deposit_Trade(obj.openid, obj.mobile)
+        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE and trade is not None:   # 该代理没有管理员 并且没有被接管
+            return (u'<button type="button" id="daili_{0}" class="btn btn-warning btn-xs" data-toggle="modal" data-target=".bs-example-modal-sm_mama_verify{0}">代理审核</button> '
+                    u'<div id="mymodal_{0}" class="modal fade bs-example-modal-sm_mama_verify{0}" tabindex="-1" role="dialog" aria-labelledby="motaikuang{0}">'
+                    u'<div class="modal-dialog modal-sm">'
+                    u'<div class="modal-content" >'
+
+                    u'<div class="input-group">'
+                    u'<input type="text" id="weikefu_{0}" class="form-control" placeholder="昵称" aria-describedby="basic-addon3">'
+                    u'<input type="text" id="tuijianren_{0}" class="form-control" placeholder="推荐人手机" aria-describedby="basic-addon2">'
+                    u'<span class="input-group-addon" id="bt_verify_{0}" onclick="mama_verify({0})">确定审核</span>'
+                    u'</div>'
+
+                    u'</div>'
+                    u'</div>'
+                    u'</div>'.format(obj.id))
+        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE and trade is None:
+            return (u'没有交押金')
         else:
             return (u'已经审核')
     mama_Verify.allow_tags = True
@@ -127,8 +144,8 @@ class XiaoluMamaAdmin(MyAdmin):
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
-                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
-        js = ("js/admin/adminpopup.js","js/xlmm_change_list.js")
+                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css","bootstrap/css/bootstrap3.2.0.min.css")}
+        js = ("js/admin/adminpopup.js","js/xlmm_change_list.js","bootstrap/js/bootstrap-3.2.0.min.js","js/mama_vrify.js")
     
     
 admin.site.register(XiaoluMama, XiaoluMamaAdmin) 
