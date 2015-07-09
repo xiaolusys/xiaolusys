@@ -95,8 +95,9 @@ class CashoutView(View):
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
+        app_cashouts = cashout_objs.filter(status__in=(CashOut.APPROVED,CashOut.COMPLETED)).order_by('created')
         kefu_mobile = '18516655836'
-        if cashout_objs.count() == 0 or cashout_objs[0].created > datetime.datetime(2015,6,30,15):
+        if app_cashouts.count() == 0 or app_cashouts[0].created > datetime.datetime(2015,6,30,15):
             kefu_mobile = '18516316989'
         
         cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
@@ -884,14 +885,14 @@ def mama_Verify_Action(request):
 # 小鹿妈妈代理的点击前50 ，每天，上周，前四周
 from view_top50 import xlmm_Click_Top_By_Day, xlmm_Order_Top_By_Day, xlmm_Conversion_Top_By_Week,\
     xlmm_Click_Top_By_Week, xlmm_Order_Top_By_Week, xlmm_Click_Top_By_Month, xlmm_Order_Top_By_Month,\
-    xlmm_Convers_Top_By_Month
+    xlmm_Convers_Top_By_Month,xlmm_TOP50_Manager_Month
 
 
 @csrf_exempt
 def xlmm_Click_Top(request):
     # 过滤出昨天的点击前50名
     data, date_dict = xlmm_Click_Top_By_Day(request)
-    return render_to_response("top_click_50.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_click_50.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
@@ -899,49 +900,55 @@ def xlmm_Click_Top(request):
 def xlmm_Order_Top(request):
     # 过滤出昨天的订单前50名
     data, date_dict = xlmm_Order_Top_By_Day(request)
-    return render_to_response("top_order_50.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_order_50.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Conversion_Top(request):
     data, date_dict = xlmm_Conversion_Top_By_Week(request)
-    return render_to_response("top_convers.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_convers.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Click_Top_Week(request):
     data, date_dict = xlmm_Click_Top_By_Week(request)
-    return render_to_response("top_click_50_week.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_click_50_week.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Order_Top_Week(request):
     data, date_dict = xlmm_Order_Top_By_Week(request)
-    return render_to_response("top_order_50_week.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_order_50_week.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Click_Top_Month(request):
     data, date_dict = xlmm_Click_Top_By_Month(request)
-    return render_to_response("top_click_50_month.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_click_50_month.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Order_Top_Month(request):
     data, date_dict = xlmm_Order_Top_By_Month(request)
-    return render_to_response("top_order_50_month.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_order_50_month.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Convers_Top_Month(request):
     data, date_dict = xlmm_Convers_Top_By_Month(request)
-    return render_to_response("top_convers_50_month.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_convers_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+@csrf_exempt
+def xlmm_TOP50_By_Manager_Month(request):
+    data, date_dict = xlmm_TOP50_Manager_Month(request)
+    return render_to_response("top_50/top50_by_manager.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 

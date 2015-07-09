@@ -1,4 +1,4 @@
-{% extends "weixin_base.html" %}
+{% extends "top_50/weixin_base.html" %}
 
 {% block title %} 转化率Top50 {% endblock %}
 
@@ -22,38 +22,6 @@
 {% block container %}
 
     <div class="container">
-        <h3>TOP-50 </h3>
-        <ul class="nav nav-tabs">
-            <li role="presentation" class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    点击TOP50<span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="/m/top50/click/"> 按天</a></li>
-                    <li><a href="/m/top50/click/week/"> 按周</a></li>
-                    <li><a href="/m/top50/click/month/"> 按月</a></li>
-                </ul>
-            </li>
-            <li role="presentation" class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    订单TOP50<span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="/m/top50/order/"> 按天</a></li>
-                    <li><a href="/m/top50/order/week/"> 按周</a></li>
-                    <li><a href="/m/top50/order/month/"> 按月</a></li>
-                </ul>
-            </li>
-            <li role="presentation" class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                    转化TOP50<span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="/m/top50/conversion/"> 按周</a></li>
-                    <li><a href="/m/top50/convers/month/"> 按月</a></li>
-                </ul>
-            </li>
-        </ul>
         <div class="container">
 
 
