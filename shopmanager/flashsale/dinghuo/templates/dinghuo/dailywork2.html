@@ -2,11 +2,13 @@
 {% block title %}大货统计{% endblock %}
 {% block head_script %}
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <link rel="stylesheet" href="http://www.bootcss.com/p/grumblejs/css/grumble.min.css">
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
+{#    <script src="http://www.bootcss.com/p/grumblejs/js/jquery.grumble.min.js"></script>#}
 
     <style type="text/css">
         .floatButton {
@@ -124,6 +126,18 @@
             var e = $("#loading");
             e.show()
         }
+{#        $(function () {#}
+{#            $('#test_gru').grumble(#}
+{#                    {#}
+{#                        text: '订货情况',#}
+{#                        angle: 165,#}
+{#                        distance: 60,#}
+{#                        type: 'alt-',#}
+{#                        hideAfter: 3000#}
+{#                    }#}
+{#            );#}
+{#        });#}
+
     </script>
 {% endblock %}
 {% block container %}
@@ -239,12 +253,14 @@
         </table>
     </div>
     <div class="floatButton" style="z-index: 9999;">
+
         {% if total_more_num %}
             <span style="font-size: 20px">共多了{{ total_more_num }}件</span><br>
         {% endif %}
         {% if total_less_num %}
             <span style="font-size: 20px">少了{{ total_less_num }}件</span>
         {% endif %}
+        <span id="test_gru"></span>
     </div>
     <div class="btn-group-vertical floatview">
         <button type="button" class="btn btn-default" id="goTop" title="去顶部"><span
@@ -293,6 +309,8 @@
                 $(".floatButton").css("position", "fixed");
                 $(".floatview").css("position", "fixed");
             });
+
+
         });
 
     </script>

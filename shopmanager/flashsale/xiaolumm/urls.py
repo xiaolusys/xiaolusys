@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required  
 from django.views.generic import TemplateView
 
-from . import views ,views_duokefu,views_top100_iter
+from . import views ,views_duokefu,views_top100_iter,mama_data_search
 from .views_register import MamaRegisterView,MamaConfirmView
 
 
@@ -48,9 +48,14 @@ urlpatterns = patterns('',
     url(r'^top50/click/month/$', views.xlmm_Click_Top_Month, name="xlmm_Click_Top_Month"),
     url(r'^top50/order/month/$', views.xlmm_Order_Top_Month, name="xlmm_Order_Top_Month"),
     url(r'^top50/convers/month/$', views.xlmm_Convers_Top_Month, name="xlmm_Convers_Top_Month"),
+    #xlmm_TOP50_By_Manager_Month
+    url(r'^top50/order_manager/month/', staff_member_required(views.xlmm_TOP50_By_Manager_Month), name="xlmm_TOP50_By_Manager_Month"),
 
     # ITER TOP100
     url(r'^top100/click/month/$', views_top100_iter.Top100_Click, name="Top100_Click"),
     url(r'^top100/order/month/$', views_top100_iter.Top100_Order, name="Top100_Click"),
+
+    # mama data search
+    url(r'^mama_show_all/$', staff_member_required(mama_data_search.all_Show), name="MamaAll"),
 
 )
