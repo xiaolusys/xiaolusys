@@ -331,7 +331,6 @@ class MamaIncomeDetailView(View):
             carry_confirm = False
             order_rebeta_rate = xlmm.get_Mama_Order_Rebeta_Rate()
             if target_date >= ORDER_RATEUP_START:
-                order_rebeta_rate = order_rebeta_rate * 2
                 rebeta_swift = True
 
             if order_stat.count() > 0:
