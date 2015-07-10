@@ -123,8 +123,8 @@ class ordelistAdmin(admin.ModelAdmin):
 
     class Media:
         css = {
-        "all": ("css/admin_css.css","http://www.yyyweb.com/demo/lightbox/css/lightbox.css")}
-        js = ("js/admin_js.js", "http://www.yyyweb.com/demo/lightbox/js/lightbox.js")
+        "all": ("css/admin_css.css","http://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
+        js = ("js/admin_js.js", "http://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
 
 
 class orderdetailAdmin(admin.ModelAdmin):
