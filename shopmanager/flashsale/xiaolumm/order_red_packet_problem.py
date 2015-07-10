@@ -35,7 +35,7 @@ def order_Red_Packet():
                                                carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
                                                carry_date=today)
                 order_red_carry_log.save()
-                mam_dic = {'first': id}
+                mam_dic = {'first': mama.id}
                 mama_id_list_first.append(mam_dic)  # 添加到列表 运行的时候查看下 有多少妈妈有订单红包问题
 
         # 如果大于等于十单
@@ -67,7 +67,7 @@ def order_Red_Packet():
                                                            carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
                                                            carry_date=today)
                             order_red_carry_log.save()
-                            mama_id_list_ten.append({'ten': id})
+                            mama_id_list_ten.append({'ten': mama.id})
     print mama_id_list_first, mama_id_list_ten
 
 
