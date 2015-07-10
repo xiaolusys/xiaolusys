@@ -137,7 +137,7 @@ class MergeTradeAdmin(MyAdmin):
     
     def trade_id_link(self, obj):
        
-        link_content = '''<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d"    onmousemove="myshow()"     onmouseout="myhide()"    data-toggle="tooltip" data-placement="right" 
+        link_content = '''<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d"      data-toggle="tooltip" data-placement="right" 
         title="  
         买家昵称:%s                                                                
         买家留言：%s                                                    

@@ -107,6 +107,15 @@ class StatisticsShoppingByDay(models.Model):
         return c_logs.count() > 0
     
 
+from django.db.models.signals import post_save
+
+def check_or_create_order_redenvelop(sender,instance, **kwargs):
+    
+    from flashsale.xiaolumm.tasks import order_Red_Packet_Pending_Carry
+    # 首单十单红包创建 2015-07-08 添加
+    order_Red_Packet_Pending_Carry(instance.linkid, datetime.date.today())
+
+post_save.connect(check_or_create_order_redenvelop, sender=StatisticsShoppingByDay)
 
 
 from django.db.models import F
@@ -117,6 +126,7 @@ from shopapp.weixin.models import get_Unionid
 
 def tongji_wxorder(sender, obj, **kwargs):
     """ 统计微信小店订单订单提成信息 """
+
     today = datetime.date.today()
     target_time = obj.order_create_time.date()
     if target_time > today:
@@ -157,6 +167,7 @@ def tongji_wxorder(sender, obj, **kwargs):
         if buyercount != daytongji.buyercount:
             StatisticsShoppingByDay.objects.filter(linkid=xiaolumm.id, 
                                                tongjidate=target_time).update(buyercount=buyercount)
+
         return
     
     mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
@@ -192,17 +203,13 @@ def tongji_wxorder(sender, obj, **kwargs):
                 StatisticsShoppingByDay.objects.filter(linkid=xiaolu_mm.id, 
                                                    tongjidate=target_time).update(buyercount=buyercount)
                                                    
-            from flashsale.xiaolumm.tasks import order_Red_Packet_Pending_Carry
-            # 首单十单红包创建 2015-07-08 添加
-            order_Red_Packet_Pending_Carry(xiaolu_mm.id, target_time)
-            
         else:
             StatisticsShopping(linkid=0, openid=obj.buyer_openid, 
                                wxorderid=str(obj.order_id),
                                wxorderamount=obj.order_total_price,
                                shoptime=obj.order_create_time, 
                                tichengcount=obj.order_total_price).save()
- 
+
     else:
         tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=str(obj.order_id))
         tongjiorder.openid = obj.buyer_openid
@@ -222,6 +229,7 @@ from flashsale.pay.signals import signal_saletrade_pay_confirm
 def tongji_saleorder(sender, obj, **kwargs):
     """ 统计特卖订单提成 """
     #如果订单试用钱包付款，或是押金订单则不处理
+
     if obj.is_Deposite_Order():
         return 
     
@@ -278,12 +286,13 @@ def tongji_saleorder(sender, obj, **kwargs):
         daytongji.orderamountcount = F('orderamountcount') + mm_order_rebeta
         daytongji.todayamountcount = F('todayamountcount') + mm_order_rebeta
         daytongji.save()
-        
+
         buyercount = StatisticsShopping.objects.filter(linkid=xiaolumm.id,
                             shoptime__range=(time_from, time_dayend)).values('openid').distinct().count()
         if buyercount != daytongji.buyercount:
             StatisticsShoppingByDay.objects.filter(linkid=xiaolumm.id, 
                                                tongjidate=target_time).update(buyercount=buyercount)
+
         return
     
     mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
@@ -317,9 +326,7 @@ def tongji_saleorder(sender, obj, **kwargs):
                 StatisticsShoppingByDay.objects.filter(linkid=xiaolu_mm.id, 
                                                    tongjidate=target_time).update(buyercount=buyercount)
                                                    
-            from flashsale.xiaolumm.tasks import order_Red_Packet_Pending_Carry
-            # 首单十单红包创建 2015-07-08 添加
-            order_Red_Packet_Pending_Carry(xiaolu_mm.id, target_time)
+
         else:
             StatisticsShopping(linkid=0, 
                                openid=xd_openid, 

@@ -34,7 +34,7 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'created', 'shenhe',
+        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'display_pic', 'created', 'shenhe',
         'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
@@ -60,10 +60,16 @@ class ordelistAdmin(admin.ModelAdmin):
 
     def supply_chain(self, obj):
         return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name,
-                                                                obj.supplier_shop or (obj.supplier_name and '商品链接' ))
+                                                               obj.supplier_shop or (obj.supplier_name and '商品链接' ))
 
     supply_chain.allow_tags = True
     supply_chain.short_description = "供应商"
+
+    def display_pic(self, obj):
+        return u'<a onclick="show_pic({0})">查看图片</a>'.format(obj.id)
+
+    display_pic.allow_tags = True
+    display_pic.short_description = "显示图片"
 
     def note_name(self, obj):
         return u'<pre style="width:300px;white-space: pre-wrap;word-break:break-all;">{0}</pre>'.format(
@@ -115,6 +121,11 @@ class ordelistAdmin(admin.ModelAdmin):
 
     actions = ['test_order_action']
 
+    class Media:
+        css = {
+        "all": ("css/admin_css.css","http://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
+        js = ("js/admin_js.js", "http://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
+
 
 class orderdetailAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
@@ -138,6 +149,7 @@ class orderdetailAdmin(admin.ModelAdmin):
             return qs
         else:
             return qs.exclude(orderlist__status='作废')
+
 
 admin.site.register(OrderList, ordelistAdmin)
 admin.site.register(OrderDetail, orderdetailAdmin)
@@ -244,4 +256,6 @@ class RecordGroupPointAdmin(admin.ModelAdmin):
             return qs
         else:
             return qs.exclude(get_point='0')
+
+
 admin.site.register(RecordGroupPoint, RecordGroupPointAdmin)
