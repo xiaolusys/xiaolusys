@@ -136,16 +136,22 @@ class MergeTradeAdmin(MyAdmin):
     list_per_page = 50
     
     def trade_id_link(self, obj):
-        link_content = '<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d">备注</a>'%(obj.id,obj.id,obj.id)
+       
+        link_content = '''<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d"    onmousemove="myshow()"     onmouseout="myhide()"    data-toggle="tooltip" data-placement="right" 
+        title="  
+        买家昵称:%s                                                                
+        买家留言：%s                                                    
+        卖家留言：%s                                                             
+        系统备注：%s          ">备注</a>'''  %(obj.id,obj.id,obj.id,obj.buyer_nick,obj. buyer_message,obj.seller_memo,obj.sys_memo)
         if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
-            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d">延一周</a>'%obj.id
+            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d"    >延一周</a>'%obj.id
         return link_content
                
     trade_id_link.allow_tags = True
     trade_id_link.short_description = "ID"
     
     def popup_tid_link(self, obj):
-        return u'<a href="%d/" onclick="return showTradePopup(this);">%s</a>' %(obj.id,obj.tid and str(obj.tid) or '--' )
+        return u'<a href="%d/" onclick="return showTradePopup(this);"    >%s</a>' %(obj.id,obj.tid and str(obj.tid) or '--' )
     popup_tid_link.allow_tags = True
     popup_tid_link.short_description = "原单ID" 
     
@@ -170,7 +176,7 @@ class MergeTradeAdmin(MyAdmin):
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
         js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js",
-              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js","layer-v1.9.2/layer/layer.js")
+              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js","layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js")
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
