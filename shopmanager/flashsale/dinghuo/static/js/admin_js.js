@@ -3,7 +3,7 @@
  */
 function show_pic(id) {
     var gallery = $('.popup-gallery');
-    var gallery_img = $('.popup-gallery img');
+    var gallery_img = $('.popup-gallery a');
     gallery_img.remove()
     $.get('/sale/dinghuo/show_pic/' + id, function (result_data) {
         var obj = result_data.split(",");
