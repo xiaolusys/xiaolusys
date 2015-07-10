@@ -52,7 +52,7 @@ def order_Red_Packet():
                                                    carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
                                                    carry_date=today)
                     order_red_carry_log.save()
-                    mama_id_list_ten.append({'ten': id})
+                    mama_id_list_ten.append({'ten': mama.id})
             else:
                 for carry in carry_logs:
                     if carry.value != 1880:  # 有首单红包没有十单红包 # 并且CarryLog 中没有该代理的订单红包记录的
