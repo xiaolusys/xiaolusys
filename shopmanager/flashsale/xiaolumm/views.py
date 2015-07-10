@@ -782,44 +782,20 @@ def get_Deposit_Trade(openid, mobile):
 
 
 @csrf_exempt
-def mama_Verify(request, id):
-    # 审核妈妈成为代理的功能
-    data = []
-    xlmm = XiaoluMama.objects.get(id=id)  # 找出对应ID的代理
-    
-    default_code = ['BLACK','NORMAL']
-    default_code.append(request.user.username)
-    user_groups = UserGroup.objects.filter(code__in=default_code)
-    
-
-    trade = get_Deposit_Trade(xlmm.openid, xlmm.mobile)     # 如果RMB100是True
-    if trade is None:   # 如果没有购买RMB100  返回空
-        data = []
-    else:
-        id = xlmm.id
-        mobile = xlmm.mobile
-        weikefu = xlmm.weikefu
-        referal_from = xlmm.referal_from
-        data_entry = {"id": id, "mobile": mobile, "sum_trade": "YES","weikefu":weikefu,'referal_from':referal_from,'cat_list':user_groups}
-        data.append(data_entry)
-    user = request.user.username
-    return render_to_response("mama_verify.html", {'data': data,'user':user}, context_instance=RequestContext(request))
-
-
-@csrf_exempt
 @transaction.commit_on_success
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
     referal_mobile = request.GET.get('tuijianren','').strip()
     weikefu = request.GET.get('weikefu')
-    user_group =int(request.GET.get('group'))
 
     xlmm = XiaoluMama.objects.get(id=mama_id)
     openid = xlmm.openid
     mobile = xlmm.mobile
-
+    if xlmm.manager != 0:
+        return HttpResponse('already')
     sale_orders = get_Deposit_Trade(openid, mobile)  # 调用函数 传入参数（妈妈的openid，mobile）
     if sale_orders is None:
+        print "sale_orders", sale_orders
         return HttpResponse('reject')
     
     referal_mama = None
@@ -853,7 +829,7 @@ def mama_Verify_Action(request):
                                    buyer_nick= weikefu,
                                    carry_type=CarryLog.CARRY_IN,
                                    status=CarryLog.CONFIRMED)
-    if not log_tp[1]:
+    if not log_tp[1]:  # 如果存在押金记录则返回拒绝
         return HttpResponse('reject')
     else:
         log_action(request.user.id, log_tp[0], ADDITION, u'妈妈审核过程中创建妈妈首个收支记录')
@@ -863,8 +839,8 @@ def mama_Verify_Action(request):
     xlmm.charge_status = XiaoluMama.CHARGED
     xlmm.manager = request.user.id
     xlmm.weikefu = weikefu
+    xlmm.progress = XiaoluMama.PASS
     xlmm.charge_time = datetime.datetime.now()
-    xlmm.user_group_id = user_group
     xlmm.save()
     log_action(request.user.id, xlmm, CHANGE, u'妈妈审核过程中修改该妈妈的信息以及可用现金')
     
