@@ -129,11 +129,11 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
    
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     mama = XiaoluMama.objects.get(id=xlmm)
+    # 据要求2015-07-11 修改为 按照人数来发放红包
+    buyercount = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED).values('openid').distinct().count()
     if red_packet.first_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
     # 判断 xlmm 在 OrderRedPacket 中的首单状态  是False 则执行下面的语句
-        # 计算 xlmm 的订单总数 如果是 1 （第一单） 生成CarryLog记录
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
-        if shoppings.count() >= 1:
+        if buyercount >= 1:
             # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
@@ -144,9 +144,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
             red_packet.save()   # 保存红包状态
     if red_packet.ten_order_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
     #  判断 xlmm 在 OrderRedPacket 中的十单状态 是False 则执行下面语句
-        # 计算 xlmm 的订单总数 如果是 10  生成CarryLog记录
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
-        if shoppings.count() >= 10:
+        if buyercount >= 10:
             # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=1880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
