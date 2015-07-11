@@ -1,0 +1,29 @@
+*{
+  margin: 0;
+  padding: 0;
+  border:0;
+}
+body,div,p,ul,li,a,span,img{
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+}
+body{
+  font-size:28px;
+  color:#3c3c3c;
+  line-height: 1.5;
+  background: #eef0f3;
+}
+li{
+  list-style: none;
+}
+a{
+  text-decoration: none;
+}
+input,textarea{
+  font-size:28px;
+  color: #3c3c3c;
+  outline: none;
+}
+input,textarea,a{
+  -webkit-tap-highlight-color:rgba(0,0,0,0);  
+}

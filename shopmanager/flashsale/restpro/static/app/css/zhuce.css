@@ -1,0 +1,120 @@
+html,body{
+  height:100%;
+}
+.container{
+  width: 640px;
+  margin:0 auto;
+  height: 100%;
+  background-color: #eef0f3;
+  position: relative;
+}
+.header{
+  height: 88px;
+  border-bottom: 1px solid #bec0c2;
+  background-color: #fbfbfa;
+  position: relative;
+}
+.header a.back{
+  display: block;
+  width: 18px;
+  height: 31px;
+  background-image:url(../images/icon-fanhui.png);
+  position: absolute;
+  left:24px;
+  top:30px; 
+}
+.header h1{
+  height: 88px;
+  line-height: 88px;
+  text-align: center;
+  font-size: 34px;
+  color: #3c3c3c;
+}
+.ipt-panel{
+  border-top:1px solid #bec0c2;
+  border-bottom:1px solid #bec0c2;
+  height: 178px;
+  margin-top: 100px;
+  background-color: #fff;
+  position:relative;
+}
+.ipt-panel.pass-panel{
+  margin-top: 130px;
+}
+.ipt-panel-inner{
+  width:600px;
+  margin: 0 auto;
+}
+.ipt-wrap{
+  height: 89px;
+  position: relative;
+}
+.ipt-wrap label{
+  position: absolute;
+  font-size: 28px;
+  color:#3c3c3c;
+  top:25px;
+  left:28px;
+}
+.ipt-wrap .text1{
+  height:88px;
+  position: absolute;
+  left:200px;
+  color: #3c3c3c;
+  font-size: 28px;
+}
+.ipt-wrap .authcode{
+  width:280px;
+  height:88px;
+  position: absolute;
+  left:24px;
+  color: #3c3c3c;
+  font-size: 28px;
+}
+.ipt-wrap .close{
+  position: absolute;
+  top:24px;
+  right: 24px;
+  width: 43px;
+  height: 43px;
+  background-image:url(../images/icon-guanbi.png); 
+}
+.ipt-wrap .btn-getcode{
+  width:200px;
+  height: 56px;
+  line-height: 56px;
+  border:1px solid #7d7d7d;
+  border-radius: 10px;
+  position: absolute;
+  top:15px;
+  right: 20px;
+  text-align: center;
+  color: #7d7d7d;
+}
+.ipt-wrap .btn-getcode:active{
+  background-color:#7d7d7d;
+  color: #fff;
+}
+.ipt-wrap.ipt-top{
+  height:88px;
+  border-bottom:1px solid #bec0c2;
+}
+.ipt-panel .error-tips{
+  color: #e66351;
+  position: absolute;
+  top:-50px;
+  left:48px;
+}
+.btn-reg{
+  position: absolute;
+  font-size: 34px;
+  left:20px;
+  bottom:20px;
+  width: 600px;
+  height: 80px;
+  line-height: 80px;
+  background-color:#fcb916;
+  border-radius: 10px;
+  color: #fff;
+  text-align: center;
+}

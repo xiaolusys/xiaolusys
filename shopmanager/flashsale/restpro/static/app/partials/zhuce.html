@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" ng-app>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>小鹿美美</title>
+<link rel="stylesheet" href="../css/common.css">
+<link rel="stylesheet" href="../css/zhuce.css">
+<script src="http://cdn.bootcss.com/angular.js/1.0.1/angular.min.js"></script>
+<script src="../js/controllers.js"></script>
+<script src="../js/filters.js"></script>
+<script src="../js/services.js"></script>
+</head>
+<body ng-controller="RegisterCtrl">
+<div class="container" ng->
+  <div class="header">
+    <a class="back" href="#"></a>
+    <h1>注册</h1>
+  </div>
+
+  <div class="ipt-panel">
+    <div class="ipt-panel-inner">
+      <div class="ipt-wrap ipt-top">
+        <label>手机号码</label>
+        <input class="text1" type="tel" placeholder="请输入手机号码">
+        <div class="close"></div>
+      </div>
+      <div class="ipt-wrap">
+        <input class="authcode" type="tel" placeholder="请输入验证码">
+        <div class="btn-getcode">获取验证码</div>
+      </div>
+    </div>
+    <div class="error-tips">此手机号码已注册，您可尝试修改密码~</div>
+  </div>
+
+  <div class="ipt-panel pass-panel">
+    <div class="ipt-panel-inner">
+      <div class="ipt-wrap ipt-top">
+        <label>设置密码</label>
+        <input class="text1" type="password" placeholder="6 - 16位数字、字母组合">
+        <div class="close"></div>
+      </div>
+      <div class="ipt-wrap">
+        <label>确认密码</label>
+        <input class="text1" type="password" placeholder="请确认密码">
+      </div>
+    </div>
+    <div class="error-tips">两次密码输入不一致，请重新输入~</div>
+  </div>
+  <div class="btn-reg">注&nbsp;&nbsp;册</div>
+</div>
+<script src="http://cdn.bootcss.com/restangular/1.0.1/restangular.min.js"></script>
+</body>
+</html>

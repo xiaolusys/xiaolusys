@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>小鹿美美</title>
+<script>
+var phoneWidth =  parseInt(window.screen.width);
+var phoneScale = phoneWidth/640;
+var ua = navigator.userAgent;
+if (/Android (\d+\.\d+)/.test(ua)){
+	var version = parseFloat(RegExp.$1);
+	// andriod 2.3
+	if(version>2.3){
+		document.write('<meta name="viewport" content="width=640, minimum-scale = '+phoneScale+', maximum-scale = '+phoneScale+', target-densitydpi=device-dpi">');
+	// andriod 2.3以上
+	}else{
+		document.write('<meta name="viewport" content="width=640, target-densitydpi=device-dpi">');
+	}
+	// 其他系统
+} else {
+	document.write('<meta name="viewport" content="width=640, user-scalable=no, target-densitydpi=device-dpi">');
+}
+</script>
+<link rel="stylesheet" href="css/common.css">
+<style>
+html,body{
+  height:100%;
+}
+.container{
+  width: 640px;
+  margin:0 auto;
+  height: 100%;
+  background-color: #eef0f3;
+}
+.logo-wrap{
+	padding-top:135px;
+}
+.logo{
+	width:328px;
+	height:382px;
+	background-image:url(images/logo.png);
+	margin:0 auto;
+}
+.btn-xiaolu,
+.btn-weixin{
+  display: block;
+  bottom:20px;
+  width: 600px;
+  height: 80px;
+  line-height: 80px;
+ 	border-radius: 10px;
+  color: #fff;
+  text-align: center;
+   
+  /* -webkit-user-modify:read-write-plaintext-only; */
+}
+.btn-xiaolu{
+	margin:150px auto 32px auto;
+	background-color:#fcb916;
+}
+.btn-weixin{
+	margin:0 auto;
+	background-color:#00c900;
+}
+</style>
+</head>
+<body>
+<div class="container">
+	<div class="logo-wrap">
+  	<div class="logo"></div>
+  </div>
+  <a href="#" class="btn-xiaolu">小鹿美美账号登陆</a>
+  <a href="#" class="btn-weixin">微信一键登陆</a>
+</div> 
+</body>
+</html>

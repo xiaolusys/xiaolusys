@@ -5,15 +5,18 @@ from django.http import HttpResponse
 
 from rest_framework import routers
 from . import views
+from . import views_user
 from flashsale.pay.views import OrderBuyReview
 
 router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'product', views.ProductViewSet)
-router.register(r'shopping-cart', views.ShoppingCartViewSet)
-router.register(r'trade', views.SaleTradeViewSet)
-router.register(r'refund', views.SaleRefundViewSet)
+router.register(r'register', views_user.RegisterViewSet)
+router.register(r'users', views_user.CustomerViewSet)
+router.register(r'products', views.ProductViewSet)
+router.register(r'carts', views.ShoppingCartViewSet)
+router.register(r'trades', views.SaleTradeViewSet)
+router.register(r'refunds', views.SaleRefundViewSet)
 router.register(r'address', views.UserAddressViewSet)
-router.register(r'district', views.DistrictViewSet)
+router.register(r'districts', views.DistrictViewSet)
 
 router_urls = router.urls
 

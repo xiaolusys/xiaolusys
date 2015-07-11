@@ -1,7 +1,36 @@
 from shopback.items.models import Product,ProductSku,ProductCategory
-from flashsale.pay.models import SaleTrade,LogisticsCompany,Productdetail,ShoppingCart
+from flashsale.pay.models import (
+    SaleTrade,
+    LogisticsCompany,
+    Productdetail,
+    ShoppingCart,
+    Customer,
+    Register
+    )
 from rest_framework import serializers
 
+
+class RegisterSerializer(serializers.HyperlinkedModelSerializer):
+    
+    
+    class Meta:
+        model = Register
+        fields = ('id',)
+        
+
+class CustomerSerializer(serializers.HyperlinkedModelSerializer):
+    
+    url = serializers.HyperlinkedIdentityField(view_name='v1:customer-detail')
+    user_id = serializers.CharField(source='user.id', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = Customer
+        fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone', 
+                  'status', 'created', 'modified')
+
+
+#####################################################################################
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCategory
@@ -25,6 +54,9 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
                   'std_sale_price', 'agent_price', 'sale_time', 'memo', 'normal_skus')
 
 
+
+#####################################################################################
+
 class LogisticsCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsCompany
@@ -33,6 +65,7 @@ class LogisticsCompanySerializer(serializers.ModelSerializer):
 
 class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
     
+    url     = serializers.HyperlinkedIdentityField(view_name='v1:shoppingcart-detail')
     status      = serializers.ChoiceField(choices=ShoppingCart.STATUS_CHOICE)
     
     class Meta:
@@ -71,7 +104,9 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
                     'total_fee', 'payment', 'created', 'company_name', 'sid', 'reason',
                    'desc','feedback','has_good_return','has_good_change', 'good_status', 'status')
         
-        
+
+#####################################################################################
+     
 class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
     
     url = serializers.HyperlinkedIdentityField(view_name='v1:useraddress-detail')

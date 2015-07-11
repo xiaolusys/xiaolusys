@@ -21,3 +21,11 @@ class IsOwnerOnly(permissions.BasePermission):
             return False
         
         return customer.user == request.user
+    
+class IsAdminSuperUser(permissions.BasePermission):
+    """
+    Allows access only to admin users.
+    """
+
+    def has_permission(self, request, view):
+        return request.user and request.user.is_superuser

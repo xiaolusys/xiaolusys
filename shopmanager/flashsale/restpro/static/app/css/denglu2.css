@@ -1,0 +1,125 @@
+html,body{
+  height:100%;
+}
+.container{
+  width: 640px;
+  margin:0 auto;
+  height: 100%;
+  background-color: #eef0f3;
+}
+.header{
+  height: 88px;
+  border-bottom: 1px solid #bec0c2;
+  background-color: #fbfbfa;
+  position: relative;
+}
+.header a.back{
+  display: block;
+  width: 18px;
+  height: 31px;
+  background-image:url(images/icon-fanhui.png);
+  position: absolute;
+  left:24px;
+  top:30px; 
+}
+.header h1{
+  height: 88px;
+  line-height: 88px;
+  text-align: center;
+  font-size: 34px;
+}
+.ipt-panel{
+  border-top:1px solid #bec0c2;
+  border-bottom:1px solid #bec0c2;
+  height: 178px;
+  margin-top: 100px;
+  background-color: #fff;
+  position:relative;
+}
+.ipt-panel.pass-panel{
+  margin-top: 130px;
+}
+.ipt-panel-inner{
+  width:600px;
+  margin: 0 auto;
+}
+.ipt-wrap{
+  height: 89px;
+  position: relative;
+}
+.ipt-wrap label{
+  position: absolute;
+  font-size: 28px;
+  top:25px;
+  left:28px;
+}
+.ipt-wrap .text{
+  width: 365px;
+  height:88px;
+  position: absolute;
+  left:140px;
+}
+.ipt-wrap.ipt-top{
+  height:88px;
+  border-bottom:1px solid #bec0c2;
+}
+.ipt-wrap .close{
+  position: absolute;
+  top:24px;
+  right: 24px;
+  width: 43px;
+  height: 43px;
+  background-image:url(images/icon-guanbi.png); 
+}
+.ipt-panel .error-tips{
+  color: #e66351;
+  position: absolute;
+  top:-50px;
+  left:48px;
+}
+.btn-login{
+  margin: 64px auto 20px auto;
+  font-size: 34px;
+  width: 600px;
+  height: 80px;
+  line-height: 80px;
+  background-color:#fcb916;
+  border-radius: 10px;
+  color: #fff;
+  text-align: center;
+}
+.forget{
+  text-align: right;
+  width:600px;
+  margin: 0 auto;
+}
+.forget a{
+  color: #62cfc9;
+}
+.nothave{
+  height: 60px;
+  margin-top: 130px;
+  position: relative;
+}
+.nothave label{
+  position: absolute;
+  left: 134px;
+  top: 9px;
+}
+.nothave a{
+  display: block;
+  position: absolute;
+  top:0;
+  left: 346px;
+  width: 160px;
+  height: 58px;
+  line-height: 60px;
+  text-align: center;
+  color: #62cfc9;
+  border: 1px solid #62cfc9;
+  border-radius: 10px;
+}
+.nothave a:active{
+  color: #fff;
+  background-color: #62cfc9;
+}
