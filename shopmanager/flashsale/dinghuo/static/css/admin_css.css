@@ -15,44 +15,13 @@
     border-radius: 6px
 }
 
-article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary {
-    display: block
-}
-
-audio, canvas, video {
-    display: inline-block
-}
-
-audio:not([controls]) {
-    display: none;
-    height: 0
-}
-
 [hidden] {
     display: none
-}
-
-html {
-    background: #fff;
-    color: #000;
-    font-family: sans-serif;
-    -ms-text-size-adjust: 100%;
-    -webkit-text-size-adjust: 100%
 }
 
 body {
     margin: 0
 }
-
-a:focus {
-    outline: thin dotted
-}
-
-a:active, a:hover {
-    outline: 0
-}
-
-
 
 abbr[title] {
     border-bottom: 1px dotted
@@ -181,16 +150,6 @@ textarea {
     vertical-align: top
 }
 
-table {
-    border-collapse: collapse;
-    border-spacing: 0
-}
-
-html {
-    font: 100%/1.5 "Karla", "lucida grande", sans-serif, sans-serif;
-    font-weight: 400
-}
-
 @media (min-width: 40rem) {
     html {
         font-size: 106%
@@ -202,14 +161,6 @@ html {
         font-size: 112%
     }
 }
-
-
-
-
-
-
-
-
 
 h2 {
     color: #e67e39;
@@ -261,8 +212,6 @@ ul, ol {
     margin: 0 0 1.25em 0
 }
 
-
-
 dt {
     font-weight: bold
 }
@@ -283,23 +232,29 @@ em {
     font-style: normal
 }
 
-a {
+a:link {
+    text-decoration: none;
+}
+
+a:visited {
+    text-decoration: none;
     color: #4ae;
-    text-decoration: none
 }
 
 a:hover {
+    outline: 0;
+    color: #FF00FF;
     text-decoration: underline
 }
 
-::-moz-selection, ::selection {
-    background: #e67e39;
-    color: #fff
+a:active {
+    outline: 0;
+    color: #FF00FF;
+    text-decoration: underline
 }
 
-.sub-point {
-    display: block;
-    font-size: 0.75rem
+a {
+    color: #4ae;
 }
 
 *, *:before, *:after {
@@ -492,7 +447,6 @@ pre code {
         float: right
     }
 }
-
 
 .button {
     display: block;
