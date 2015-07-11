@@ -22,17 +22,39 @@ class Productdetail(models.Model):
         return '<%s,%s>'%(self.product.outer_id,self.product.name)
     
     
-# class ModelProduct(models.Model):
-#     
-#     
-# 
-#     class Meta:
-#         db_table = 'flashsale_modelproduct'
-#         verbose_name=u'特卖商品/款式'
-#         verbose_name_plural = u'特卖商品/款式列表'
-#     
-#     def __unicode__(self):
-#         return '<%s,%s>'%(self.product.outer_id,self.product.name)
+class ModelProduct(models.Model):
+    
+    NORMAL = 0
+    DELETE = 1
+    
+    STATUS_CHOICES = ((NORMAL,u'正常'),
+                      (DELETE,u'作废'))
+    
+    name       = models.CharField(max_length=64,db_index=True,verbose_name=u'款式名称')
+    
+    head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
+    
+    content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
+    
+    buy_limit    = models.BooleanField(default=False,verbose_name=u'是否限购')
+    per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
+    
+    sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
+    
+    created      = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    modified     = models.DateTimeField(auto_now=True,verbose_name=u'修改时间')
+    
+    status       = models.CharField(max_length=16,db_index=True,
+                                    choices=STATUS_CHOICES,
+                                    default=NORMAL,verbose_name=u'状态')
+    
+    class Meta:
+        db_table = 'flashsale_modelproduct'
+        verbose_name=u'特卖商品/款式'
+        verbose_name_plural = u'特卖商品/款式列表'
+     
+    def __unicode__(self):
+        return '<%s,%s>'%(self.id,self.name)
     
     
 class GoodShelf(models.Model):

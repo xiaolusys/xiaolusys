@@ -9,7 +9,7 @@ from flashsale.pay.views import OrderBuyReview
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'product', views.ProductViewSet)
-router.register(r'cart', views.ShoppingCartViewSet)
+router.register(r'shopping-cart', views.ShoppingCartViewSet)
 router.register(r'trade', views.SaleTradeViewSet)
 router.register(r'refund', views.SaleRefundViewSet)
 router.register(r'address', views.UserAddressViewSet)

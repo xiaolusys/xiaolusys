@@ -65,6 +65,8 @@ class Product(models.Model):
                                     blank=True,verbose_name=u'外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
     
+    model_id     = models.BigIntegerField(db_index=True,verbose_name='商品款式ID')
+    
     barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,
                                      related_name='products',verbose_name=u'内部分类')
@@ -89,7 +91,7 @@ class Product(models.Model):
                                         auto_now_add=True,verbose_name=u'创建时间')
     modified     = models.DateTimeField(null=True,blank=True,
                                         auto_now=True,verbose_name=u'修改时间')
-    sale_time    = models.DateField(null=True,blank=True,verbose_name=u'上架日期')
+    sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
     
     is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')

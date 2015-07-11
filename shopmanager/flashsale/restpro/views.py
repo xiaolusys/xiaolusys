@@ -19,6 +19,10 @@ from . import serializers
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
+    
+    - {prefix}/previous[.format]: allow users to get last sale list;
+    
+    - {prefix}/advance[.format]: allow users to get future sale list;
     """
     queryset = Product.objects.filter(status=Product.NORMAL,shelf_status=Product.UP_SHELF)
     serializer_class = serializers.ProductSerializer
@@ -65,7 +69,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    
+
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
@@ -91,6 +95,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    @list_route(methods=['post'])
+    def pingpp_create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)

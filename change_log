@@ -1,8 +1,9 @@
+########### 2015-7-10 #################
+alter table shop_items_product add column model_id bigint NOT NULL DEFAULT 0;
 ########### 2015-7-6 #################
 alter table flashsale_daily_popularize_cost add column carrylog_red_packet double NOT NULL;
 
-
-	########### 2015-7-4 #################
+########### 2015-7-4 #################
 alter table shop_items_itemnumtasklog add index SH_IT_IT_INDEX(outer_id,sku_outer_id);
 ALTER TABLE shop_weixin_unionid ADD INDEX IDX_UNIONID_APP_KEY (UNIONID,APP_KEY);
 
