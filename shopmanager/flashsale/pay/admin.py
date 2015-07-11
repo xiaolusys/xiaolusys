@@ -399,3 +399,18 @@ class EnvelopAdmin(admin.ModelAdmin):
 admin.site.register(Envelop, EnvelopAdmin)
 
 
+from flashsale.pay.models_custom import GoodShelf
+
+class GoodShelfAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','title','wem_posters','chd_posters','is_active',
+                    'active_time','created')
+    
+    list_filter = ('is_active',('active_time',DateFieldListFilter),('created',DateFieldListFilter))
+    search_fields = ['title']
+    list_per_page = 50
+   
+
+admin.site.register(GoodShelf, GoodShelfAdmin)
+
+
