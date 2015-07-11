@@ -144,7 +144,7 @@ class XiaoluMamaAdmin(MyAdmin):
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
-                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css","bootstrap/css/bootstrap3.2.0.min.css")}
+                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css","bootstrap/css/bootstrap3.2.0.min.css","css/mama_profile.css")}
         js = ("js/admin/adminpopup.js","js/xlmm_change_list.js","bootstrap/js/bootstrap-3.2.0.min.js","js/mama_vrify.js")
     
     
