@@ -160,15 +160,14 @@ def order_Red_Packet(xlmm):
     mama = XiaoluMama.objects.get(id=xlmm)
     # 寻找该妈妈以前的首单/十单红包记录
     red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
-    shopping_finishs = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)  # 已经完成订单
-    
-    shopping_count = shopping_finishs.count()
-    if shopping_count >= 10:
+    buyercount = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED).values('openid').distinct().count() # 已经完成订单 人数
+
+    if buyercount >= 10:
         for red_pac_carry_log in red_pac_carry_logs:
             if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
                 mama.push_carrylog_to_cash(red_pac_carry_log)
                 
-    if shopping_count >= 1 and shopping_count < 10:
+    if buyercount >= 1 and buyercount < 10:
         for red_pac_carry_log in red_pac_carry_logs:
             if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
                 mama.push_carrylog_to_cash(red_pac_carry_log)

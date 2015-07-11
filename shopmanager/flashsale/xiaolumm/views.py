@@ -661,6 +661,7 @@ def cash_reject(request, data):
 
 from django.db.models import Avg,Count,Sum
 
+
 @csrf_exempt
 def stats_summary(request):
     #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
@@ -668,78 +669,58 @@ def stats_summary(request):
     content = request.REQUEST
     daystr = content.get("day", None)
     today = datetime.date.today()
-    year,month,day = today.year,today.month,today.day
-
     target_date = today
     if daystr:
-        year,month,day = daystr.split('-')
-        target_date = datetime.date(int(year),int(month),int(day))
+        year, month, day = daystr.split('-')
+        target_date = datetime.date(int(year), int(month), int(day))
         if target_date >= today:
             target_date = today
-
-    time = datetime.datetime(target_date.year, target_date.month, target_date.day)
-
+    date_time = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+    date = date_time.date()
     prev_day = target_date - datetime.timedelta(days=1)
     next_day = None
     if target_date < today:
         next_day = target_date + datetime.timedelta(days=1)
 
-    xiaolumamas = XiaoluMama.objects.exclude(manager=0).values('manager').distinct()
+    xiaolumamas = XiaoluMama.objects.exclude(charge_status=XiaoluMama.UNCHARGE, agencylevel=1, manager=0).values('manager').distinct()
 
     for xlmm_manager in xiaolumamas:
         xiaolumama_manager2 = xlmm_manager['manager']
-        sum_click_num = 0
-        sum_click_valid = 0
-        sum_user_num = 0
-        active_num = 0
-        clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2, date=time)
-        mamas_l2 = XiaoluMama.objects.filter(agencylevel=2,manager=xiaolumama_manager2) # 代理类别为2的妈妈
-        xlmm_num = mamas_l2.count() # 这个管理员下面的妈妈数量
-        
-        for clickcount in clickcounts:
-            sum_click_valid  = sum_click_valid + clickcount.valid_num
-            sum_click_num = sum_click_num + clickcount.click_num
-            sum_user_num = sum_user_num + clickcount.user_num
+        clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2, date=date,
+                                                agencylevel=2)  # 当天的该管理员的所有代理的点击
+        xlmms = XiaoluMama.objects.filter(agencylevel=2, manager=xiaolumama_manager2,
+                                          charge_status=XiaoluMama.CHARGED,
+                                          charge_time__lt=date_time)  # 该管理员在对应日期之前接管的代理
+        xlmm_num = xlmms.count()  # 这个管理员下面的妈妈数量
 
-            if clickcount.user_num > 4 and clickcount.agencylevel > 1:
-                active_num = active_num + 1
-                
-        if xlmm_num == 0:
-            activity = 0
-        else:
-            activity = round(float(active_num)/xlmm_num,3)
-        # '管理员',xiaolumama_manager2
-        # '点击数量 ' ,sum_click_num
-        # '点击人数',sum_user_num
-        xiaolumms = XiaoluMama.objects.filter(manager=xiaolumama_manager2)
-        sum_buyercount = 0
-        sum_ordernumcount = 0
-        for xiaolumm in xiaolumms:
-            shoppings = StatisticsShoppingByDay.objects.filter(linkid=xiaolumm.id, tongjidate=time)
-            for shopping in shoppings:
-                sum_buyercount = sum_buyercount + shopping.buyercount
-                sum_ordernumcount = sum_ordernumcount + shopping.ordernumcount
-        # '购买人数',sum_buyercount,'订单数量',sum_ordernumcount
+        sum_valied_num = clickcounts.aggregate(total_valied_num=Sum('valid_num')).get('total_valied_num') or 0  # 总有效点击
+        sum_click_num = clickcounts.aggregate(total_click_num=Sum('click_num')).get('total_click_num') or 0  # 总点击
+        sum_user_num = clickcounts.aggregate(total_user_num=Sum('user_num')).get('total_user_num') or 0  # 总点击人数
+
+        active_num = clickcounts.filter(user_num__gt=4).count()  # 点击人数大于4即纳入活跃代理
+        activity_func = lambda acti, total: 0 if total == 0 else round(float(acti) / total, 3)  # 活跃度 点击人数大于4的妈妈个数／总的妈妈个数
+        activity = activity_func(active_num, xlmm_num)
+
+        xlmm_lit = [val.id for val in xlmms]   # 代理id列表
+
+        shoppings = StatisticsShoppingByDay.objects.filter(linkid__in=xlmm_lit, tongjidate=date)     #
+        sum_buyercount = shoppings.aggregate(total_shoppings=Sum('buyercount')).get('total_shoppings') or 0  # 购买人数
+        sum_ordernumcount = shoppings.aggregate(total_ordernumcount=Sum('ordernumcount')).get(
+            'total_ordernumcount') or 0  # 订单数量
         try:
             username = User.objects.get(id=xiaolumama_manager2).username
         except:
             username = 'error.manager'
+        conve_func = lambda buys, useers: 0 if useers == 0 else round(float(buys) / useers, 3)
+        conversion_rate = conve_func(sum_buyercount, sum_user_num)  # 转化率等于 购买人数 除以 点击数
 
-        if sum_user_num == 0 :
-            conversion_rate = 0
-
-        else:
-            conversion_rate = float(sum_buyercount)/sum_user_num # 转化率等于 购买人数 除以 点击数
-
-            conversion_rate =  round(float(conversion_rate), 3)
-        data_entry = {"username": username,"sum_ordernumcount":sum_ordernumcount,
-                      "sum_buyercount":sum_buyercount,
-                      "uv_summary":sum_user_num,"pv_summary":sum_click_num,"conversion_rate":conversion_rate,
-                      "xlmm_num":xlmm_num,"activity":activity,'sum_click_valid':sum_click_valid}
+        data_entry = {"username": username, "sum_ordernumcount": sum_ordernumcount, "sum_buyercount": sum_buyercount,
+                      "uv_summary": sum_user_num, "pv_summary": sum_click_num, "conversion_rate": conversion_rate,
+                      "xlmm_num": xlmm_num, "activity": activity, 'sum_click_valid': sum_valied_num}
         data.append(data_entry)
 
-    return render_to_response("stats_summary.html", {"data": data,"prev_day":prev_day,
-                              "target_date":target_date, "next_day":next_day}, 
+    return render_to_response("stats_summary.html", {"data": data, "prev_day": prev_day,
+                                                     "target_date": target_date, "next_day": next_day},
                               context_instance=RequestContext(request))
 
 
