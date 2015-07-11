@@ -122,8 +122,8 @@ class ordelistAdmin(admin.ModelAdmin):
     actions = ['test_order_action']
 
     class Media:
-        css = {"all": ("css/admin_css.css", "http://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
-        js = ("js/admin_js.js", "http://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
+        css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
+        js = ("js/admin_js.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
 
 
 class orderdetailAdmin(admin.ModelAdmin):
