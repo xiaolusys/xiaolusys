@@ -285,7 +285,7 @@ class ProductAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         
         if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + ('collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
+            return self.readonly_fields + ('model_id','collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
     
     def get_actions(self, request):
