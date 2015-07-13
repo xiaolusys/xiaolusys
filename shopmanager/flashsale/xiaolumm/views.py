@@ -38,19 +38,17 @@ def landing(request):
 def get_xlmm_cash_iters(xlmm,cash_outable=False):
     
     cash = xlmm.cash / 100.0
-    pay_saletrade = []
-    sale_customers = Customer.objects.filter(unionid=xlmm.openid)
-    if sale_customers.count() > 0:
-        customer = sale_customers[0]
-        pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
-                                             channel=SaleTrade.WALLET,
-                                             status__in=SaleTrade.INGOOD_STATUS)
-    payment = 0
-    for pay in pay_saletrade:
-        sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
-        total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
-        payment = payment + pay.payment - total_refund
+    clog_outs = CarryLog.objects.filter(log_type=CarryLog.ORDER_BUY,
+                                        carry_type=CarryLog.CARRY_OUT,
+                                        status=CarryLog.CONFIRMED)
+    consume_value = (clog_outs.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
 
+    clog_refunds = CarryLog.objects.filter(log_type=CarryLog.REFUND_RETURN,
+                                        carry_type=CarryLog.CARRY_IN,
+                                        status=CarryLog.CONFIRMED)
+    refund_value = (clog_refunds.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
+
+    payment = consume_value - refund_value
     x_choice = 0
     if cash_outable:
         x_choice = 100.00
@@ -662,28 +660,10 @@ def cash_reject(request, data):
 from django.db.models import Avg,Count,Sum
 
 
-@csrf_exempt
-def stats_summary(request):
-    #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
+def manage_Summar(date_time):
     data = []
-    content = request.REQUEST
-    daystr = content.get("day", None)
-    today = datetime.date.today()
-    target_date = today
-    if daystr:
-        year, month, day = daystr.split('-')
-        target_date = datetime.date(int(year), int(month), int(day))
-        if target_date >= today:
-            target_date = today
-    date_time = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
-    date = date_time.date()
-    prev_day = target_date - datetime.timedelta(days=1)
-    next_day = None
-    if target_date < today:
-        next_day = target_date + datetime.timedelta(days=1)
-
     xiaolumamas = XiaoluMama.objects.exclude(charge_status=XiaoluMama.UNCHARGE, agencylevel=1, manager=0).values('manager').distinct()
-
+    date = date_time.date()
     for xlmm_manager in xiaolumamas:
         xiaolumama_manager2 = xlmm_manager['manager']
         clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2, date=date,
@@ -718,7 +698,28 @@ def stats_summary(request):
                       "uv_summary": sum_user_num, "pv_summary": sum_click_num, "conversion_rate": conversion_rate,
                       "xlmm_num": xlmm_num, "activity": activity, 'sum_click_valid': sum_valied_num}
         data.append(data_entry)
+    return data
 
+
+@csrf_exempt
+def stats_summary(request):
+    #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
+    content = request.REQUEST
+    daystr = content.get("day", None)
+    today = datetime.date.today()
+    target_date = today
+    if daystr:
+        year, month, day = daystr.split('-')
+        target_date = datetime.date(int(year), int(month), int(day))
+        if target_date >= today:
+            target_date = today
+    date_time = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+    date = date_time.date()
+    prev_day = target_date - datetime.timedelta(days=1)
+    next_day = None
+    if target_date < today:
+        next_day = target_date + datetime.timedelta(days=1)
+    data = manage_Summar(date_time)
     return render_to_response("stats_summary.html", {"data": data, "prev_day": prev_day,
                                                      "target_date": target_date, "next_day": next_day},
                               context_instance=RequestContext(request))

@@ -300,6 +300,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="45", hour="23"),
         'args': ()
     },
+    u'定时生成管理员代理状况汇总csv文件':{
+        'task':'flashsale.xiaolumm.tasks_manager_summary.task_make_Manager_Summary_Cvs',
+        'schedule': crontab(minute="10", hour="7"),
+        'args': ()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
