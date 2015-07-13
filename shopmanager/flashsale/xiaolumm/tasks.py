@@ -117,6 +117,26 @@ def init_Data_Red_Packet():
 from django.db import transaction
 from shopback.trades.models import MergeTrade
 
+def shoptime_To_DateStr(shoptime):
+    return shoptime.strftime("%Y-%m-%d")
+
+def buyer_Num(xlmm, finish=False):
+    if finish is False:
+        shops = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
+    else:
+        shops = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
+    t_dict = {}
+    for p in shops:
+        shop_time = shoptime_To_DateStr(p.shoptime)
+        if shop_time in t_dict:
+            t_dict[shop_time].append(p.openid)
+        else:
+            t_dict[shop_time] = [p.openid]
+    buyercount = 0
+    for k, v in t_dict.items():
+        buyercount += len(set(v))
+    return buyercount
+
 
 @transaction.commit_on_success
 def order_Red_Packet_Pending_Carry(xlmm, target_date):
@@ -130,7 +150,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     mama = XiaoluMama.objects.get(id=xlmm)
     # 据要求2015-07-11 修改为 按照人数来发放红包
-    buyercount = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED).values('openid').distinct().count()
+    buyercount = buyer_Num(xlmm, finish=False)
     if red_packet.first_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
     # 判断 xlmm 在 OrderRedPacket 中的首单状态  是False 则执行下面的语句
         if buyercount >= 1:
@@ -158,19 +178,19 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
 @transaction.commit_on_success
 def order_Red_Packet(xlmm):
     mama = XiaoluMama.objects.get(id=xlmm)
-    # 寻找该妈妈以前的首单/十单红包记录
-    red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
-    buyercount = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED).values('openid').distinct().count() # 已经完成订单 人数
+    if mama.agencylevel == 2:
+        # 寻找该妈妈以前的首单/十单红包记录
+        red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
+        buyercount = buyer_Num(xlmm, finish=True)
+        if buyercount >= 10:
+            for red_pac_carry_log in red_pac_carry_logs:
+                if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
+                    mama.push_carrylog_to_cash(red_pac_carry_log)
 
-    if buyercount >= 10:
-        for red_pac_carry_log in red_pac_carry_logs:
-            if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
-                mama.push_carrylog_to_cash(red_pac_carry_log)
-                
-    if buyercount >= 1 and buyercount < 10:
-        for red_pac_carry_log in red_pac_carry_logs:
-            if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
-                mama.push_carrylog_to_cash(red_pac_carry_log)
+        if buyercount >= 1 and buyercount < 10:
+            for red_pac_carry_log in red_pac_carry_logs:
+                if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
+                    mama.push_carrylog_to_cash(red_pac_carry_log)
 
 
 def update_Xlmm_Shopping_OrderStatus(order_list):
