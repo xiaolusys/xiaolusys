@@ -38,12 +38,14 @@ def landing(request):
 def get_xlmm_cash_iters(xlmm,cash_outable=False):
     
     cash = xlmm.cash / 100.0
-    clog_outs = CarryLog.objects.filter(log_type=CarryLog.ORDER_BUY,
+    clog_outs = CarryLog.objects.filter(xlmm = xlmm.id,
+                                        log_type=CarryLog.ORDER_BUY,
                                         carry_type=CarryLog.CARRY_OUT,
                                         status=CarryLog.CONFIRMED)
     consume_value = (clog_outs.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
 
-    clog_refunds = CarryLog.objects.filter(log_type=CarryLog.REFUND_RETURN,
+    clog_refunds = CarryLog.objects.filter(xlmm = xlmm.id,
+                                        log_type=CarryLog.REFUND_RETURN,
                                         carry_type=CarryLog.CARRY_IN,
                                         status=CarryLog.CONFIRMED)
     refund_value = (clog_refunds.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
