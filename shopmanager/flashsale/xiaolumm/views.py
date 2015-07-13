@@ -38,19 +38,17 @@ def landing(request):
 def get_xlmm_cash_iters(xlmm,cash_outable=False):
     
     cash = xlmm.cash / 100.0
-    pay_saletrade = []
-    sale_customers = Customer.objects.filter(unionid=xlmm.openid)
-    if sale_customers.count() > 0:
-        customer = sale_customers[0]
-        pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
-                                             channel=SaleTrade.WALLET,
-                                             status__in=SaleTrade.INGOOD_STATUS)
-    payment = 0
-    for pay in pay_saletrade:
-        sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
-        total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
-        payment = payment + pay.payment - total_refund
+    clog_outs = CarryLog.objects.filter(log_type=CarryLog.ORDER_BUY,
+                                        carry_type=CarryLog.CARRY_OUT,
+                                        status=CarryLog.CONFIRMED)
+    consume_value = (clog_outs.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
 
+    clog_refunds = CarryLog.objects.filter(log_type=CarryLog.REFUND_RETURN,
+                                        carry_type=CarryLog.CARRY_IN,
+                                        status=CarryLog.CONFIRMED)
+    refund_value = (clog_refunds.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
+
+    payment = consume_value - refund_value
     x_choice = 0
     if cash_outable:
         x_choice = 100.00
