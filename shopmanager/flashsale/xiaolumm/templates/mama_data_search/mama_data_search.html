@@ -96,11 +96,13 @@
             <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#mam_carry_sum_all"
                aria-expanded="false"
                aria-controls="mam_carry_sum_all">
-                汇总
+                钱包收支汇总
             </a>
         </div>
         <div class="container collapse row" id="mam_carry_sum_all">
+
             <div class="panel panel-default col-xs-6">
+                <div class="panel-heading">已经确定的收支明细</div>
                 <div>
                     <span class="label label-success">总收入:</span><a>{{ carry_log_all_sum.0 }}</a>
                     <span class="label label-success">总支出:</span><a>{{ carry_log_all_sum.1 }}</a>
@@ -125,6 +127,7 @@
                 </div>
             </div>
             <div class="panel panel-default col-xs-6">
+                <div class="panel-heading">待确定的收支明细</div>
                 <div>
                     <span class="label label-warning">总收入:</span><a>{{ carry_log_all_sum.2 }}</a>
                     <span class="label label-warning">总支出:</span><a>{{ carry_log_all_sum.3 }}</a>
@@ -152,7 +155,7 @@
             <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#mam_carry_in"
                aria-expanded="false"
                aria-controls="mam_carry_in">
-                明细
+                收支明细
             </a>
 
         </div>
