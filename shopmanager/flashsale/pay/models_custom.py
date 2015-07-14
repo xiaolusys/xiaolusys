@@ -24,8 +24,8 @@ class Productdetail(models.Model):
     
 class ModelProduct(models.Model):
     
-    NORMAL = 0
-    DELETE = 1
+    NORMAL = '0'
+    DELETE = '1'
     
     STATUS_CHOICES = ((NORMAL,u'正常'),
                       (DELETE,u'作废'))
@@ -50,6 +50,7 @@ class ModelProduct(models.Model):
     
     class Meta:
         db_table = 'flashsale_modelproduct'
+        unique_together = ("id", "name")
         verbose_name=u'特卖商品/款式'
         verbose_name_plural = u'特卖商品/款式列表'
      
