@@ -5,7 +5,7 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User as DjangoUser
 from shopback.refunds.models import Refund,RefundProduct
-from shopback.items.models import Product
+from shopback.items.models import Product, ProductSku
 
 __author__ = 'meixqhi'
 
@@ -99,9 +99,10 @@ class RefundProductAdmin(admin.ModelAdmin):
 
     def show_Product_Price(self, obj):
         outer_id = obj.outer_id
-        pro = Product.objects.filter(outer_id=outer_id)
-        if pro.exists():
-            return pro[0].agent_price
+        outer_sku_id = obj.outer_sku_id
+        skus = ProductSku.objects.filter(product__outer_id=outer_id, outer_id=outer_sku_id)
+        if skus.exists():
+            return skus[0].agent_price
         else:
             return None
     show_Product_Price.allow_tags = True
