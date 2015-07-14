@@ -29,24 +29,24 @@
 
 
     <div class="row" style="margin-top: 50px">
-        <form action="/m/mama_show_all/" method="post">
+        <form method="get" id="my_form">
             <div class="input-group ">
-                <span class="input-group-addon" id="mm_search">妈妈搜索</span>
-                <input type="text" name="xlmm"
-                       class="form-control  mama_base_data_search" placeholder="ID/mobile"
+                <span class="input-group-addon" id="mm_search">代理编号</span>
+                <input type="text" name="xlmm" id="xlmm_num"
+                       class="form-control  mama_base_data_search" placeholder="妈妈编号" value="{{ xlmm }}"
                        aria-describedby="basic-addon3">
 
                 <span class="input-group-addon" id="date_from">开始时间</span>
-                <input type="text" name="left_date" id="left_date_pic"
-                       class="form-control select_saletime  datepicker" placeholder="业务时间"
+                <input type="text" name="date_from" id="left_date_pic"
+                       class="form-control select_saletime  datepicker" placeholder="{{ charge_time }}" value="{{ charge_time }}"
                        aria-describedby="basic-addon1">
 
                 <span class="input-group-addon" id="date_to">结束时间</span>
-                <input type="text" name="right_date" id="right_date_pic"
-                       class="form-control select_saletime  datepicker" placeholder="业务时间"
+                <input type="text" name="date_to" id="right_date_pic"
+                       class="form-control select_saletime  datepicker" placeholder="{{ today }}" value="{{ today }}"
                        aria-describedby="basic-addon2">
             <span class="input-group-btn">
-                <button class="btn btn-default" id="go_search" type="submit">Go!</button>
+                <button class="btn btn-default" id="go_search" type="submit" >Go!</button>
             </span>
             </div>
 
@@ -75,7 +75,7 @@
                     <tr>
                         <td>{{ xlmm.id }}</td>
                         <td>{{ xlmm.mobile }}</td>
-                        <td>{{ xlmm.cash }}</td>
+                        <td>{{ xlmm.get_cash_display }}</td>
 
                         <td>{{ xlmm.agencylevel }}</td>
                         <td>{{ xlmm.weikefu }}</td>
@@ -106,6 +106,7 @@
                     <span class="label label-success">总支出:</span><a>{{ carry_log_all_sum.1 }}</a>
                 </div>
                 <br>
+
                 <div>
                     <span class="label label-success">订单返利:</span><a>{{ sum_detail_confirm.0 }}</a>
                     <span class="label label-success">消费支出:</span><a>{{ sum_detail_confirm.1 }}</a>
@@ -114,6 +115,7 @@
                     <span class="label label-success">钱包提现:</span><a>{{ sum_detail_confirm.4 }}</a>
                 </div>
                 <br>
+
                 <div>
                     <span class="label label-success">押金:</span><a>{{ sum_detail_confirm.5 }}</a>
                     <span class="label label-success">千元提成:</span><a>{{ sum_detail_confirm.6 }}</a>
@@ -128,11 +130,13 @@
                     <span class="label label-warning">总支出:</span><a>{{ carry_log_all_sum.3 }}</a>
                 </div>
                 <br>
+
                 <div>
                     <span class="label label-warning">订单返利:</span><a>{{ sum_detail_pending.0 }}</a>
                     <span class="label label-warning">点击兑现:</span><a>{{ sum_detail_pending.1 }}</a>
                     <span class="label label-warning">千元提成:</span><a>{{ sum_detail_pending.2 }}</a></div>
                 <br>
+
                 <div>
                     <span class="label label-warning">代理补贴:</span><a>{{ sum_detail_pending.3 }}</a>
                     <span class="label label-warning">招募奖金:</span><a>{{ sum_detail_pending.4 }}</a>
@@ -222,11 +226,12 @@
                     </thead>
                     <tbody>
                     {% for order in order_counts %}
+
                         <tr>
                             <td>{{ order.buyercount }}</td>
                             <td>{{ order.ordernumcount }}</td>
-                            <td>{{ order.orderamountcount }}</td>
-                            <td>{{ order.todayamountcount }}</td>
+                            <td>{{ order.order_cash }}</td>
+                            <td>{{ order.today_cash }}</td>
                             <td>{{ order.tongjidate }}</td>
                         </tr>
                     {% endfor %}
@@ -259,7 +264,7 @@
                         <tr>
                             <td>{{ xlmm.id }}</td>
                             <td>{{ xlmm.mobile }}</td>
-                            <td>{{ xlmm.cash }}</td>
+                            <td>{{ xlmm.get_cash_display }}</td>
 
                             <td>{{ xlmm.weikefu }}</td>
                             <td>{{ xlmm.manager }}</td>
@@ -289,5 +294,29 @@
                 dateFormat: "yy-mm-dd"
             });
         });
+        {#        function action_info() {#}
+        {#            var base = "/m/mama_show_all/";#}
+        {#            var xlmm = $('#xlmm_num').val();#}
+        {#            var date_from = $('#left_date_pic').val();#}
+        {#            var date_to = $('#right_date_pic').val();#}
+        {#            var url = base + '?xlmm=' + xlmm + '&date_from=' + date_from + '&date_to=' + date_to;#}
+        {#            console.log(url);#}
+        {#            return url;#}
+        {#        }#}
+
+{#        function open_url() {#}
+{#            var base = "/m/mama_show_all/";#}
+{#            var xlmm = $('#xlmm_num').val();#}
+{#            var date_from = $('#left_date_pic').val();#}
+{#            var date_to = $('#right_date_pic').val();#}
+{#            var url = base + '?xlmm=' + xlmm + '&date_from=' + date_from + '&date_to=' + date_to;#}
+{#            location.replace(url);#}
+{#            //window.open(url);#}
+{##}
+{##}
+{##}
+{#            console.log(url);#}
+{##}
+{#        }#}
     </script>
 {% endblock %}
