@@ -5,6 +5,7 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User as DjangoUser
 from shopback.refunds.models import Refund,RefundProduct
+from shopback.items.models import Product
 
 __author__ = 'meixqhi'
 
@@ -73,7 +74,7 @@ admin.site.register(Refund,RefundAdmin)
   
   
 class RefundProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id', 'title', 'outer_sku_id','buyer_nick','buyer_mobile','buyer_phone','trade_id'
+    list_display = ('id','outer_id', 'title', 'outer_sku_id','show_Product_Price','buyer_nick','buyer_mobile','buyer_phone','trade_id'
                     ,'out_sid','company','can_reuse','is_finish','created','modified','memo')
     list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -95,6 +96,17 @@ class RefundProductAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(http_referer)
     
     tag_as_finished.short_description = u"标记为已处理"
+
+    def show_Product_Price(self, obj):
+        outer_id = obj.outer_id
+        pro = Product.objects.filter(outer_id=outer_id)
+        if pro.exists():
+            return pro[0].agent_price
+        else:
+            return None
+    show_Product_Price.allow_tags = True
+    show_Product_Price.short_description = u"出售价格"
+
     
     actions = ['tag_as_finished',]
 
