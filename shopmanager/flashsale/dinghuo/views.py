@@ -43,7 +43,7 @@ def init_draft(request):
         for i in range(1, product_counter + 1):
             product_id_index = "product_id_" + str(i)
             product_id = post[product_id_index]
-            all_sku = ProductSku.objects.filter(product_id=product_id)
+            all_sku = ProductSku.objects.filter(product_id=product_id, status="normal")
             for pro_sku in all_sku:
                 sku_quantity_index = product_id + "_tb_quantity_" + str(pro_sku.id)
                 sku_quantity = post[sku_quantity_index]
