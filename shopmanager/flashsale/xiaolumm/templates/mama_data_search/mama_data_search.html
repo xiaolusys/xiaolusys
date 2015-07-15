@@ -38,7 +38,8 @@
 
                 <span class="input-group-addon" id="date_from">开始时间</span>
                 <input type="text" name="date_from" id="left_date_pic"
-                       class="form-control select_saletime  datepicker" placeholder="{{ charge_time }}" value="{{ charge_time }}"
+                       class="form-control select_saletime  datepicker" placeholder="{{ charge_time }}"
+                       value="{{ charge_time }}"
                        aria-describedby="basic-addon1">
 
                 <span class="input-group-addon" id="date_to">结束时间</span>
@@ -46,7 +47,7 @@
                        class="form-control select_saletime  datepicker" placeholder="{{ today }}" value="{{ today }}"
                        aria-describedby="basic-addon2">
             <span class="input-group-btn">
-                <button class="btn btn-default" id="go_search" type="submit" >Go!</button>
+                <button class="btn btn-default" id="go_search" type="submit">Go!</button>
             </span>
             </div>
 
@@ -96,19 +97,17 @@
             <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#mam_carry_sum_all"
                aria-expanded="false"
                aria-controls="mam_carry_sum_all">
-                钱包收支汇总
+                钱包收支汇总：
             </a>
+            <span class="label label-success">确定总收入:</span>{{ carry_log_all_sum.0 }}&nbsp;&nbsp;&nbsp;
+            <span class="label label-success">确定总支出:</span>{{ carry_log_all_sum.1 }}&nbsp;&nbsp;&nbsp;
+            <span class="label label-warning">待确定总收入:</span>{{ carry_log_all_sum.2 }}&nbsp;&nbsp;&nbsp;
+            <span class="label label-warning">待确定总支出:</span>{{ carry_log_all_sum.3 }}&nbsp;&nbsp;&nbsp;
         </div>
         <div class="container collapse row" id="mam_carry_sum_all">
 
             <div class="panel panel-default col-xs-6">
-                <div class="panel-heading">已经确定的收支明细</div>
-                <div>
-                    <span class="label label-success">总收入:</span><a>{{ carry_log_all_sum.0 }}</a>
-                    <span class="label label-success">总支出:</span><a>{{ carry_log_all_sum.1 }}</a>
-                </div>
-                <br>
-
+                <div class="panel-heading">已经确定的收支</div>
                 <div>
                     <span class="label label-success">订单返利:</span><a>{{ sum_detail_confirm.0 }}</a>
                     <span class="label label-success">消费支出:</span><a>{{ sum_detail_confirm.1 }}</a>
@@ -127,13 +126,7 @@
                 </div>
             </div>
             <div class="panel panel-default col-xs-6">
-                <div class="panel-heading">待确定的收支明细</div>
-                <div>
-                    <span class="label label-warning">总收入:</span><a>{{ carry_log_all_sum.2 }}</a>
-                    <span class="label label-warning">总支出:</span><a>{{ carry_log_all_sum.3 }}</a>
-                </div>
-                <br>
-
+                <div class="panel-heading">待确定的收支</div>
                 <div>
                     <span class="label label-warning">订单返利:</span><a>{{ sum_detail_pending.0 }}</a>
                     <span class="label label-warning">点击兑现:</span><a>{{ sum_detail_pending.1 }}</a>
@@ -191,7 +184,8 @@
             <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#click_order"
                aria-expanded="false"
                aria-controls="collapseExample">
-                点击/订单
+
+                点击:&nbsp;&nbsp;<span class="badge">{{ total_clicks }} 个</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;订单:&nbsp;&nbsp;<span class="badge">{{  total_orders }}个</span>
             </a>
         </div>
         <div class="container collapse  row" id="click_order">
@@ -247,7 +241,7 @@
         <div><a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#rel_mama"
                 aria-expanded="true"
                 aria-controls="collapseExample">
-            他推荐的代理
+            他推荐的代理:&nbsp;&nbsp;<span class="badge">{{ refs_num }} 个</span>
         </a>
 
             <div class=" collapse panel panel-default " style="margin-top: 1px" id="rel_mama">
@@ -307,19 +301,19 @@
         {#            return url;#}
         {#        }#}
 
-{#        function open_url() {#}
-{#            var base = "/m/mama_show_all/";#}
-{#            var xlmm = $('#xlmm_num').val();#}
-{#            var date_from = $('#left_date_pic').val();#}
-{#            var date_to = $('#right_date_pic').val();#}
-{#            var url = base + '?xlmm=' + xlmm + '&date_from=' + date_from + '&date_to=' + date_to;#}
-{#            location.replace(url);#}
-{#            //window.open(url);#}
-{##}
-{##}
-{##}
-{#            console.log(url);#}
-{##}
-{#        }#}
+        {#        function open_url() {#}
+        {#            var base = "/m/mama_show_all/";#}
+        {#            var xlmm = $('#xlmm_num').val();#}
+        {#            var date_from = $('#left_date_pic').val();#}
+        {#            var date_to = $('#right_date_pic').val();#}
+        {#            var url = base + '?xlmm=' + xlmm + '&date_from=' + date_from + '&date_to=' + date_to;#}
+        {#            location.replace(url);#}
+        {#            //window.open(url);#}
+        {##}
+        {##}
+        {##}
+        {#            console.log(url);#}
+        {##}
+        {#        }#}
     </script>
 {% endblock %}

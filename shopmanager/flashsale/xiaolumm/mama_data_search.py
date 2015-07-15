@@ -117,12 +117,15 @@ def all_Show(request):
     if right and xlmm:
         carry_log_all_sum, sum_detail_confirm, sum_detail_pending = carry_Log_By_date(left_date, right_date, xlmm)
         clickcounts = click_Count(xlmm, left_date, right_date)  # 点击状况
+        total_clicks = clickcounts.count()  # 点击总数
         order_counts = order_Count(xlmm, left_date, right_date)  # 订单状况
+        total_orders = order_counts.count()  # 订单总数
         xlmms = XiaoluMama.objects.filter(id=xlmm)
 
         allcarrylogs = CarryLog.objects.filter(xlmm=xlmm, carry_date__gte=left, carry_date__lte=right)
         if xlmms.exists():
             referals = referal_From(xlmms[0].mobile)  # 推荐代理状况
+            refs_num = referals.count()
 
         return render_to_response("mama_data_search/mama_data_search.html",
                                   {"xlmms": xlmms, "clickcounts": clickcounts, "carry_log_all_sum": carry_log_all_sum,
@@ -130,7 +133,7 @@ def all_Show(request):
                                    "xlmm": xlmm, "charge_time": charge_time.strftime("%Y-%m-%d"),
                                    "today": today.strftime("%Y-%m-%d")
                                       , "sum_detail_pending": sum_detail_pending,
-                                   "sum_detail_confirm": sum_detail_confirm},
+                                   "sum_detail_confirm": sum_detail_confirm, 'total_clicks':total_clicks,'total_orders':total_orders,'refs_num':refs_num},
                                   context_instance=RequestContext(request))
     if xlmm:
         xlmms = XiaoluMama.objects.filter(id=xlmm)
