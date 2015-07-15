@@ -97,6 +97,7 @@ class SaleTrade(models.Model):
     
     payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
     post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
+    discount_fee  =   models.FloatField(default=0.0,verbose_name=u'优惠折扣')
     total_fee  =   models.FloatField(default=0.0,verbose_name=u'总费用')
     
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name=u'买家留言')
