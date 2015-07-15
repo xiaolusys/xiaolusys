@@ -2238,7 +2238,7 @@ def beizhu(request):
         else:
            print "sss","最后"
            merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-           merge_trade.sys_memo   = c
+           merge_trade.sys_memo   = merge_trade.sys_memo+c
            merge_trade.save()
            MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
             .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
