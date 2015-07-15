@@ -408,7 +408,7 @@ from flashsale.pay.models_custom import ModelProduct
 
 class ModelProductAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'head_imgs', 'content_imgs', 'buy_limit', 'per_limit', 'sale_time', 'status')
+    list_display = ('id', 'name', 'buy_limit', 'per_limit', 'sale_time', 'status')
 
     list_filter = ('name', 'sale_time', 'status',
                    ('created',DateFieldListFilter))
@@ -420,4 +420,19 @@ class ModelProductAdmin(admin.ModelAdmin):
     list_per_page = 50
 
 admin.site.register(ModelProduct, ModelProductAdmin)
+
+from flashsale.pay.models_custom import GoodShelf
+
+class GoodShelfAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','title','wem_posters','chd_posters','is_active',
+                    'active_time','created')
+    
+    list_filter = ('is_active',('active_time',DateFieldListFilter),('created',DateFieldListFilter))
+    search_fields = ['title']
+    list_per_page = 50
+   
+
+admin.site.register(GoodShelf, GoodShelfAdmin)
+
 

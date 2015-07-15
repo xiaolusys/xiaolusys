@@ -24,8 +24,8 @@ class Productdetail(models.Model):
     
 class ModelProduct(models.Model):
     
-    NORMAL = 0
-    DELETE = 1
+    NORMAL = '0'
+    DELETE = '1'
     
     STATUS_CHOICES = ((NORMAL,u'正常'),
                       (DELETE,u'作废'))
@@ -50,22 +50,21 @@ class ModelProduct(models.Model):
     
     class Meta:
         db_table = 'flashsale_modelproduct'
+        unique_together = ("id", "name")
         verbose_name=u'特卖商品/款式'
         verbose_name_plural = u'特卖商品/款式列表'
      
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.name)
     
-    
+from shopback.base.models import JSONCharMyField
+   
 class GoodShelf(models.Model):
     
     title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报标题')
     
-    poster_wem_pic   = models.CharField(max_length=256, blank=True, verbose_name=u'女装海报')
-    poster_chd_pic   = models.CharField(max_length=256, blank=True, verbose_name=u'童装海报')
-    
-    poster_wem_page  = models.CharField(max_length=256, blank=True, verbose_name=u'女装专栏')
-    poster_chd_page  = models.CharField(max_length=256, blank=True, verbose_name=u'童装专栏')
+    wem_posters   = JSONCharMyField(max_length=10240, blank=True, verbose_name=u'女装海报[(商品链接,图片链接)]')
+    chd_posters   = JSONCharMyField(max_length=10240, blank=True, verbose_name=u'童装海报[(商品链接,图片链接)]')
     
     is_active    = models.BooleanField(default=True,verbose_name=u'上线')
     active_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'上线日期')
