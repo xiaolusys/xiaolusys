@@ -9,6 +9,7 @@ from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView
 from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView
 from .point_every_day import RecordPointView
+from .views_sale_status import EntranceView, SaleHotView, TopStockView
 
 urlpatterns = [
 
@@ -44,4 +45,7 @@ urlpatterns = [
     url(r'^point_every_day/$', csrf_exempt(staff_member_required(RecordPointView.as_view())), name="point_every_day"),
     url(r'^begin_ding_huo/$', staff_member_required(DailyDingHuoView2.as_view()), name="test"),
     url(r'^show_pic/(?P<order_list_id>\d+)$', staff_member_required(ShowPicView.as_view()), name="showpic"),
+    url(r'^sale_status/$', staff_member_required(EntranceView.as_view()), name="sale_status"),
+    url(r'^sale_hot/$', staff_member_required(SaleHotView.as_view()), name="sale_status"),
+    url(r'^top_stock/$', staff_member_required(TopStockView.as_view()), name="top_stock"),
 ]

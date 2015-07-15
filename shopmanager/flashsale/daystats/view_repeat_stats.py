@@ -166,7 +166,6 @@ class StatsSalePeopleView(View):
         end_time_str = content.get("dt", None)
         print start_time_str,end_time_str
         send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)
-        print send_tasks
         return render_to_response("xiaolumm/data2salepeople.html",
                                   {"task_id": send_tasks},
                                   context_instance=RequestContext(request))

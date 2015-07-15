@@ -112,6 +112,14 @@
                 var tr = $("#result_tr_" + product_id);
                 tr.remove();
             }
+            function all_choose(){
+                var search_table = $("#searchtable tbody tr");
+                for(var i=0;i<search_table.length;i++){
+                    var tr_id = search_table[i].id.split('_')[1];
+                    console.log(tr_id)
+                    add_to_merge(tr_id);
+                }
+            }
             $(document).ready(function () {
                 $(document).keydown(function (e) {
                     if (e.keyCode == 13) {
@@ -212,7 +220,7 @@
                         <th width="20%">商品名称</th>
                         <th width="20%">图片</th>
                         <th width="20%">上架时间</th>
-                        <th width="20%">选中</th>
+                        <th width="20%"><button class="btn btn-info" onclick="all_choose()">全选</button></th>
                         </thead>
                     </table>
                 </div>
