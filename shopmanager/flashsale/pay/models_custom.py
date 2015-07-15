@@ -66,8 +66,10 @@ class GoodShelf(models.Model):
     
     title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报标题')
     
-    wem_posters   = JSONCharMyField(max_length=10240, blank=True, verbose_name=u'女装海报[(商品链接,图片链接)]')
-    chd_posters   = JSONCharMyField(max_length=10240, blank=True, verbose_name=u'童装海报[(商品链接,图片链接)]')
+    wem_posters   = JSONCharMyField(max_length=10240, blank=True, default='[\n\t{\n\t"item_link":"",\n\t"pic_link":""\n\t}\n]', 
+                                    verbose_name=u'女装海报[{"item_link":商品链接,"pic_link"图片链接}]')
+    chd_posters   = JSONCharMyField(max_length=10240, blank=True, default='[\n\t{\n\t"item_link":"",\n\t"pic_link":""\n\t}\n]',
+                                    verbose_name=u'童装海报[{"item_link":商品链接,"pic_link"图片链接}]')
     
     is_active    = models.BooleanField(default=True,verbose_name=u'上线')
     active_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'上线日期')
