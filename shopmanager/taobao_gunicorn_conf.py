@@ -1,4 +1,4 @@
-q#pidfile='/var/www/deploy/taobao/gunicorn.pid'
+#pidfile='/var/www/deploy/taobao/gunicorn.pid'
 #daemon=True
 import multiprocessing
 
