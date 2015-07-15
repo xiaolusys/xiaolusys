@@ -26,7 +26,8 @@
             <tbody>
             {% for orderdetail in orderdetails %}
                 <tr>
-                    <td>{{ orderdetail.orderlist.id }}</td>
+                    <td><a href="/sale/dinghuo/changedetail/{{ orderdetail.orderlist.id }}"
+                           target="_blank">{{ orderdetail.orderlist.id }}</a></td>
                     <td>{{ orderdetail.orderlist.get_status_display }}</td>
                     <td>{{ orderdetail.product_name }}</td>
                     <td>{{ orderdetail.product_chicun }}</td>
