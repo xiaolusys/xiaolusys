@@ -168,20 +168,6 @@ class Product(models.Model):
         return 0
     
     @property
-    def discount_price(self):
-        """ 优惠折扣 """
-        try:
-            discount = int(self.details.mama_discount)
-            if discount > 100:
-                discount = 100
-            
-            if discount < 0:
-                discount = 0  
-            return float('%.2f'%((100 - discount) / 100.0 * float(self.agent_price)))
-        except:
-            return 0
-        
-    @property
     def sale_out(self):
         sale_out = True
         for sku in self.pskus:
@@ -464,6 +450,22 @@ class ProductSku(models.Model):
     @property
     def sale_out(self):
         return self.free_num <= 0
+    
+    def calc_discount_fee(self,xlmm=None):
+        """ 优惠折扣 """
+        if not xlmm or xlmm.agencylevel != 2:
+            return 0
+        
+        try:
+            discount = int(self.product.details.mama_discount)
+            if discount > 100:
+                discount = 100
+            
+            if discount < 0:
+                discount = 0  
+            return float('%.2f'%((100 - discount) / 100.0 * float(self.agent_price)))
+        except:
+            return 0
     
     @property
     def is_out_stock(self):
