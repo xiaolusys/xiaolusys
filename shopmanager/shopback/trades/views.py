@@ -2190,3 +2190,61 @@ def search_trade(request):
   
     return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
 
+
+
+
+def manybeizhu(request):
+        
+        return render(request, 'trades/manybeizhu.html')
+    
+    
+    
+def  view_beizhu(request):  
+    user_id  = request.user.id
+    content  = request.REQUEST
+
+   # trade_id = content.get('trade_id','')
+    sys_memo = content.get('sys_memo','')
+    try:
+        merge_trade = MergeTrade.objects.get(id=trade_id)
+    except:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'订单未找到'}),mimetype="application/json")
+    else:
+        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+        merge_trade.sys_memo   = sys_memo
+        merge_trade.save()
+        MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
+            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
+        log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%sys_memo)
+        return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+
+
+def beizhu(request):
+    user_id  = request.user.id
+    print "开始"
+    a = request.GET['a'].strip()
+    c=request.GET['b']
+    am=a.split()
+    print "a是",a
+    print "个数是",len(am)
+    for i  in range(0,len(am),1):
+        print "第",am[i]
+        try:
+           merge_trade = MergeTrade.objects.get(tid=am[i])
+           print "sss",merge_trade
+        except:
+           return HttpResponse(json.dumps({'code':1,'tid':am[i],'num':i+1,'response_error':u'订单未找到'}),mimetype="application/json")
+           print "sss","订单没有找到"
+        else:
+           print "sss","最后"
+           merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+           merge_trade.sys_memo   = merge_trade.sys_memo+c
+           merge_trade.save()
+           MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
+            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
+           log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%c)
+           print "sss","最后444444"
+    return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),content_type="application/json")
+    
+    
+

@@ -29,7 +29,7 @@ class ProductNotOnSale(Exception):
 
 class PINGPPChargeView(View):
     
-    def createSaleTrade(self,customer,form,charge=None):
+    def createSaleTrade(self,customer,form,charge=None,**kwargs):
         
         product = Product.objects.get(pk=form.get('item_id'))
         sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
@@ -54,6 +54,7 @@ class PINGPPChargeView(View):
                                  payment=float(form.get('payment')),
                                  total_fee=total_fee,
                                  post_fee=form.get('post_fee'),
+                                 discount_fee=form.get('discount_fee'),
                                  charge=charge and charge['id'] or '',
                                  status=SaleTrade.WAIT_BUYER_PAY,
                                  openid=customer.openid
@@ -97,10 +98,16 @@ class PINGPPChargeView(View):
                  product.status != Product.NORMAL):
                 raise ProductNotOnSale(u'商品已被挤下架啦！')
             
-            sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
-            real_fee = int(sku.agent_price * int(form.get('num')) * 100)
+            try:
+                xlmm = XiaoluMama.objects.get(openid=customer.unionid)
+            except XiaoluMama.DoesNotExist:
+                xlmm = None
             
-            assert payment > 0 and payment == real_fee
+            sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
+            discount_fee = sku.calc_discount_fee(xlmm=xlmm)
+            real_fee = int(sku.agent_price * int(form.get('num')) * 100) - discount_fee * 100
+            
+            assert payment > 0 and payment == real_fee ,u'订单金额有误'
             
             response_charge = None
             if channel == SaleTrade.WALLET:
@@ -358,13 +365,14 @@ class OrderBuyReview(APIView):
         if not Product.objects.isQuantityLockable(sku,num):
             return render_to_response('pay/mproductexpired.html',{'produt_id':pid}
                                       ,context_instance=RequestContext(request))
-            
+        
         product_dict = model_to_dict(product)
         sku_dict     = model_to_dict(sku)
  
         post_fee = 0
-        real_fee = num * sku.agent_price
-        payment  = num * sku.agent_price + post_fee
+        real_fee = float(num * sku.agent_price)
+        discount_fee = 0
+        payment  = real_fee + post_fee 
         
         customers = Customer.objects.filter(user=user)
         if customers.count() == 0:
@@ -395,16 +403,19 @@ class OrderBuyReview(APIView):
         xiaolumm  = None
         if xiaolumms.count() > 0:
             xiaolumm = xiaolumms[0]
+            #从新计算订单优惠金额 及 需付金额
+            discount_fee = sku.calc_discount_fee(xlmm=xiaolumm)
+            payment = payment - discount_fee
             if (xiaolumm.cash > 0 and xiaolumm.cash >= payment * 100 
                 and not product.outer_id.startswith('RMB')):
                 wallet_payable = True
-            
         
         data = {'product':product_dict,
                 'sku':sku_dict,
                 'num':num,
                 'uuid':uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
                 'real_fee':real_fee,
+                'discount_fee':discount_fee,
                 'post_fee':post_fee,
                 'payment':payment,
                 'address':address,

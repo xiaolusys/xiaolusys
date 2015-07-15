@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <title>
+      一键备注，客服专用
+    </title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+    </title>
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />
+    <style type="text/css" title="currentStyle">
+      @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css"; 
+      @import "{{ STATIC_URL}}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <style type="text/css" >
+      
+    </style>
+  </head>
+  
+  <body>
+    <div class="container" style="margin-top:20px" >
+
+
+<h1><span class="label label-success">一键备注页面</span></h1>
+<div class="row"  style="margin-top:50px;">
+  
+    
+    <div class="col-lg-10" >
+     <form  class="form-horizontal"    role="form"    action=""  method="get"  >
+
+
+   
+   <div class="form-group">
+      <label for="firstname" class="col-sm-2 control-label">订单号</label>
+      <div class="col-sm-10">
+        
+             <textarea class="form-control" rows="10"    id="a" ></textarea>
+              </div>
+            <label for="firstname" class="col-sm-2 control-label">备注</label>
+            
+             <textarea class="form-control" rows="3"    id="b" ></textarea>
+              </div>
+            <button type="button" class="btn btn-warning"  id="sum"  >点击备注
+            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+            
+            </button>
+      
+   </div>
+
+  
+<script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js">
+</script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js">
+</script>
+<script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript">
+</script>
+
+ <script type="text/javascript">
+	 
+	 $(document).ready(function(){
+
+
+	  $("#sum666").click(function(){
+        var a = $("#a").val();
+        var b = $("#b").val();
+        //alert("eee");
+        //console.log("ss","你好")
+        //console.log("Hello World")
+        $.get("/trades/beizhu/",{'a':a,'b':b}, function(ret){
+             $('#result').html(""+ret.success)
+             console.info(ret)
+ 
+            if (ret.success==false){
+            alert("成功22");
+}
+             console.info(ret.success)
+        })
+      });	    
+	    
+
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+function   save33() {
+	alert("保存");
+       var sys_memo = $("#condition").val();
+        alert(sys_memo);
+        if (sys_memo==''||sys_memo=='undifine'){ return };
+     
+	   // var params  = {'sys_memo':sys_memo,'trade_id':this.tag_tid};
+	//  goog.net.XhrIo.send('/trades/beizhu/',callback,'POST',content); 
+	    $.post('/trades/beizhu/', {
+					'format':'json',
+					'logistic_code': sys_memo,
+				
+},function(res){
+              var that  = this;
+         var xhr = e.target;
+	        try {
+	        	var res = xhr.getResponseJson();
+	        	if (res.code == 0){
+					that.hide();
+	        	}else{
+	        		alert('订单备注失败！');
+	        	}
+	        } catch (err) {
+	            console.log('Error: (ajax callback) - ', err);
+	        } 
+		},
+		  'json');
+	    
+}
+
+
+  $("#sum").click(function(){
+        var a = $("#a").val();
+        var b = $("#b").val();
+        //console.log("ss","你好")
+        //console.log("Hello World")
+        $.get("/trades/beizhu/",{'a':a,'b':b}, function(ret){
+			//alert(ret);
+			try {
+	        	//var res = ret.getResponseJson();
+	        	if (ret.code == 0){
+					alert("一键备注成功");
+	        	}else{
+	        		alert( "第"+ret.num+" 行"+ret.tid+'订单备注失败！');
+	        	}
+	        } catch (err) {
+	            console.log('Error: (ajax callback) - ', err);
+	        }
+			
+			
+             //$('#result').html(""+ret.success)
+             //console.info(ret)
+ 
+           // if (ret.success==false){
+            //alert("成功22");
+   }
+             //console.info(ret.success)
+        ,'json')
+      });	    
+	    
+	    
+	    
+	 });	
+
+ 
+    
+	</script>
+
+   
+  </html>
+

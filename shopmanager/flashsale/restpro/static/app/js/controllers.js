@@ -24,6 +24,6 @@ function RegisterCtrl($scope, $routeParams, Register) {
   $scope.phones = Register.query();
 }
 
-PhoneDetailCtrl.$inject = ['$scope', '$routeParams'];
+PhoneDetailCtrl.$inject = ['$scope', '$routeParams', 'XLMMServices'];
 
 
