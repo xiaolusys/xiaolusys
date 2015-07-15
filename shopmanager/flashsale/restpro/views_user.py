@@ -33,6 +33,7 @@ class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.Gen
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        print 'debug',serializer
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     

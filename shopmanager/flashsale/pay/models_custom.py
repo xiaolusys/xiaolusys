@@ -7,12 +7,14 @@ class Productdetail(models.Model):
     product  = models.OneToOneField(Product, primary_key=True,related_name='details',verbose_name=u'库存商品')
     
     head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
-
+    
     content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
+    
+    mama_discount  = models.IntegerField(blank=True,default=100,verbose_name=u'妈妈折扣')
     
     buy_limit    = models.BooleanField(default=False,verbose_name=u'是否限购')
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
-
+    
     class Meta:
         db_table = 'flashsale_productdetail'
         verbose_name=u'特卖商品/详情'
@@ -20,6 +22,7 @@ class Productdetail(models.Model):
     
     def __unicode__(self):
         return '<%s,%s>'%(self.product.outer_id,self.product.name)
+    
     
     
 class ModelProduct(models.Model):

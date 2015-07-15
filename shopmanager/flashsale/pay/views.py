@@ -98,9 +98,9 @@ class PINGPPChargeView(View):
                 raise ProductNotOnSale(u'商品已被挤下架啦！')
             
             sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
-            real_fee = int(sku.agent_price * int(form.get('num')) * 100)
+            real_fee = int(sku.agent_price * int(form.get('num')) * 100) - int(sku.discount_fee * 100)
             
-            assert payment > 0 and payment == real_fee
+            assert payment > 0 and payment == real_fee ,u'订单金额有误'
             
             response_charge = None
             if channel == SaleTrade.WALLET:
@@ -363,9 +363,10 @@ class OrderBuyReview(APIView):
         sku_dict     = model_to_dict(sku)
  
         post_fee = 0
-        real_fee = num * sku.agent_price
-        payment  = num * sku.agent_price + post_fee
-        
+        real_fee = float(num * sku.agent_price)
+        discount_fee = sku.discount_fee
+        payment  = real_fee + post_fee - discount_fee
+
         customers = Customer.objects.filter(user=user)
         if customers.count() == 0:
             return HttpResponseForbidden('NOT EXIST')
@@ -405,6 +406,7 @@ class OrderBuyReview(APIView):
                 'num':num,
                 'uuid':uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
                 'real_fee':real_fee,
+                'discount_fee':discount_fee,
                 'post_fee':post_fee,
                 'payment':payment,
                 'address':address,

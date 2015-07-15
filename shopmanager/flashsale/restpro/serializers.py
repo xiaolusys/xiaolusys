@@ -15,7 +15,7 @@ class RegisterSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = Register
-        fields = ('id',)
+        fields = ('id','vmobile')
         
 
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
