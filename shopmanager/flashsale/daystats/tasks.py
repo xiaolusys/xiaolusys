@@ -276,7 +276,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
                     orderlist__supplier_shop='').distinct()
                 supplier_list = [s['orderlist__supplier_shop'] for s in suppliers]
                 p_dict = {"p_outer": p_outer, "p_name": product_item.name,
-                          "pic_path": product_item.pic_path, "p_sales": p_sales, "suppliers": supplier_list}
+                          "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "", "p_sales": p_sales, "suppliers": supplier_list}
                 result_list.append(p_dict)
         return result_list
 
