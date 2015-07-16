@@ -11,7 +11,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
 from .models_user import Register,Customer
 from .models_addr import District,UserAddress
-from .models_custom import Productdetail
+from .models_custom import Productdetail,GoodShelf,ModelProduct
 from .models_refund import SaleRefund
 from .models_envelope import Envelop
 from .managers import SaleTradeManager

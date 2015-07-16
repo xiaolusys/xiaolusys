@@ -2,9 +2,11 @@
 <html lang="en" ng-app="XLZCAPP">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<meta id="viewport" name="viewport" content="">
 <title>小鹿美美</title>
 <link rel="stylesheet" href="../css/common.css">
 <link rel="stylesheet" href="../css/zhuce.css">
+<script src="../script/common.js"></script>
 </head>
 <body ng-controller="RegisterCtrl">
 <div class="container" ng->
@@ -52,7 +54,7 @@
 
 <script type="text/javascript">
 
-angular.module('XLZCAPP',['ZCService'])
+angular.module('XLZCAPP',['MYMD'])
 	.controller('RegisterCtrl', ['$scope', '$timeout', 'Register',
       function($scope, $timeout, Register) {
         $scope.events = null;
@@ -67,7 +69,7 @@ angular.module('XLZCAPP',['ZCService'])
 			console.log('resp'+respVerify);
 		}
 				
-       	console.log('INIT:'+$scope.mobile);
+       	console.log('INIT:'+$scope.vmobile);
     }]);
 	
 
@@ -89,7 +91,10 @@ angular.module('ZCService',[])
 	        }
 	    }
 	}])
+	
+angular.module('MYNG',[])
 
+angular.module('MYMD',['ZCService','MYNG' ])
 
 </script>
 </body>

@@ -5,7 +5,8 @@ from flashsale.pay.models import (
     Productdetail,
     ShoppingCart,
     Customer,
-    Register
+    Register,
+    GoodShelf
     )
 from rest_framework import serializers
 
@@ -53,7 +54,25 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 
                   'std_sale_price', 'agent_price', 'sale_time', 'memo', 'normal_skus')
 
+import json
 
+class JSONParseField(serializers.Field):
+    def to_representation(self, obj):
+        return obj
+    
+    def to_internal_value(self, data):
+        return data
+
+
+class PosterSerializer(serializers.HyperlinkedModelSerializer):
+    
+    url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
+    wem_posters = JSONParseField()
+    chd_posters = JSONParseField()
+    
+    class Meta:
+        model = GoodShelf
+        fields = ('id','url','wem_posters','chd_posters','active_time')
 
 #####################################################################################
 

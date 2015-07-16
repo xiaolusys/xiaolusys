@@ -6,12 +6,16 @@ from django.http import HttpResponse
 from rest_framework import routers
 from . import views
 from . import views_user
+from . import views_product 
 from flashsale.pay.views import OrderBuyReview
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'register', views_user.RegisterViewSet)
 router.register(r'users', views_user.CustomerViewSet)
-router.register(r'products', views.ProductViewSet)
+
+router.register(r'posters', views_product.PosterViewSet)
+router.register(r'products', views_product.ProductViewSet)
+
 router.register(r'carts', views.ShoppingCartViewSet)
 router.register(r'trades', views.SaleTradeViewSet)
 router.register(r'refunds', views.SaleRefundViewSet)

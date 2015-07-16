@@ -1,0 +1,56 @@
+<html lang="en" ng-app="restNG" >
+<head>
+<title ng-bind-template="Google Phone Gallery: {{query}}">Google Phone Gallery!</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <script src="http://cdn.bootcss.com/angular.js/1.2.28/angular.min.js"></script>
+  <script src="http://cdn.bootcss.com/lodash.js/2.1.0/lodash.compat.min.js"></script>
+  <script src="http://cdn.bootcss.com/restangular/1.2.2/restangular.min.js"></script>
+<script type="text/javascript">
+
+  var myphone = angular.module('restNG',['restangular']);
+  
+  myphone.constant('params', {'baseapiurl':'http://192.168.1.6:8000/rest/v1/'});
+  myphone.config(function(RestangularProvider,params) {
+  		RestangularProvider.setBaseUrl(params.baseapiurl);
+  	});
+  	
+  myphone.controller("PhoneListCtrl",[ '$scope', 'params', function($scope,params) {
+  	 console.log('debug ctrl params:',params);
+	  $scope.phones = [
+	    {"name": "Nexus S",
+	     "snippet": "Fast just got faster with Nexus S."},
+	    {"name": "Motorola XOOM™ with Wi-Fi",
+	     "snippet": "The Next, Next Generation tablet."},
+	    {"name": "MOTOROLA XOOM™",
+	     "snippet": "The Next, Next Generation tablet."}
+	  ];
+	  $scope.hello = "Hello, World!";
+	}]);
+</script>
+</head> 
+<body >
+  <div class="container-fluid" ng-controller="PhoneListCtrl">
+  <div class="row-fluid">
+  	<div class="span2">
+    Search: <input ng-model="query">
+    </div>
+	Sort by:
+	<select ng-model="orderProp">
+	  <option value="name">Alphabetical</option>
+	  <option value="age">Newest</option>
+	</select>
+	
+	
+	<ul class="phones">
+	  <li ng-repeat="phone in phones | filter:query | orderBy:orderProp">
+	    {{phone.name}}
+	    <p>{{phone.snippet}}</p>
+	  </li>
+	</ul>
+
+       </div>
+  </div>
+  
+</div>
+</body>
+</html>
