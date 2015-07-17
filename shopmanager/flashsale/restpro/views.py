@@ -15,7 +15,7 @@ from flashsale.pay.models import SaleTrade,Customer
 from . import permissions as perms
 from . import serializers 
 
-from flashsale.pay.models import SaleRefund,District,UserAddress,ShoppingCart
+from flashsale.pay.models import SaleRefund,District,UserAddress
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
@@ -89,30 +89,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)    
 
 
-class ShoppingCartViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-    queryset = ShoppingCart.objects.all()
-    serializer_class = serializers.ShoppingCartSerializer# Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
-    
-    def get_owner_queryset(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(buyer_id=customer.id)
-        
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)  
+ 
     
     
     
