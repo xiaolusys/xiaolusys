@@ -1,38 +1,62 @@
 {% extends "xiaolumm/daystats_base.html" %}
-{% block title %}用户统计{% endblock %}
+{% block title %}库存统计{% endblock %}
 {% block head_script %}
-    <script>
-        function get_data() {
-            console.log("get_data");
-            var task_id = $("#task_id").val();
-            $.ajax({
-                url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
-                method: "GET", //静态页用get方法，否则服务器会抛出405错误
-                {#                beforeSend: function () {#}
-                {#                    $("#mytable").html("<img src=/static/img/loading.gif /><font color=red>正在加載數據...</font>");#}
-                {#                },#}
-                success: function (res) {
-                    console.log(res.task.status);
-                    if (res.task.status == "SUCCESS") {
-                        console.log(res.task.result);
-                        var tb = $('#data-table-stock');
-                        var result_data = eval(res.task.result);
-                        $("#data-table-people thead").eq(0).nextAll().remove();
-                        $.each(result_data, function (index, dd) {
-                            console.log(dd[0]);
-                            tb.append("<tr><td>" + dd[0] + "</td><td>" + dd[1].name + "</td><td>" + dd[1].collect_num + "</td></tr>");
-                        });
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    {#    <script>#}
+    {#        function get_data() {#}
+    {#            console.log("get_data");#}
+    {#            var task_id = $("#task_id").val();#}
+    {#            $.ajax({#}
+    {#                url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址#}
+    {#                method: "GET", //静态页用get方法，否则服务器会抛出405错误#}
+    {#                beforeSend: function () {#}
+    {#                    $("#mytable").html("<img src=/static/img/loading.gif /><font color=red>正在加載數據...</font>");#}
+    {#                },#}
+    {#                success: function (res) {#}
+    {#                    console.log(res.task.status);#}
+    {#                    if (res.task.status == "SUCCESS") {#}
+    {#                        console.log(res.task.result);#}
+    {#                        var tb = $('#data-table-stock');#}
+    {#                        var result_data = eval(res.task.result);#}
+    {#                        $("#data-table-people thead").eq(0).nextAll().remove();#}
+    {#                        $.each(result_data, function (index, dd) {#}
+    {#                            console.log(dd[0]);#}
+    {#                            tb.append("<tr><td>" + dd[0] + "</td><td>" + dd[1].name + "</td><td>" + dd[1].collect_num + "</td></tr>");#}
+    {#                        });#}
+    {##}
+    {#                    } else {#}
+    {#                        setTimeout(get_data, 4000);#}
+    {#                    }#}
+    {#                }#}
+    {#            });#}
+    {#        }#}
+    {#        setTimeout(get_data, 4000);#}
+    {#    </script>#}
 
-                    } else {
-                        setTimeout(get_data, 4000);
-                    }
-                }
-            });
-        }
-        setTimeout(get_data, 4000);
-    </script>
 {% endblock %}
 {% block container %}
+    <div class="row" style="margin-top: 40px">
+        <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/top_stock/">
+
+            <div class="col-xs-4">
+                <label class="control-label" for="df">开始日期:</label>
+                <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
+                       value="{{ start_date }}"/>
+            </div>
+            <div class="col-xs-4">
+                <label class="control-label" for="dt">结束日期:</label>
+                <input type="text" id="t_datepicker" name="dt" class="form-control datepicker"
+                       value="{{ end_date }}"/>
+            </div>
+            <div class="col-xs-1">
+                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+
+        </form>
+    </div>
     <div class="row" style="margin-top: 20px">
         <input id="task_id" style="display: none" value="{{ task_id }}">
 
@@ -44,14 +68,71 @@
                 <thead>
                 <th width="20%">商品编码</th>
                 <th width="20%">商品名称</th>
+                <th width="20%">上架时间</th>
                 <th width="20%">库存数</th>
                 </thead>
                 <tbody>
-
+                {% for pro in sale_list %}
+                    <tr>
+                        <td><a href="/admin/items/product/?q={{ pro.0 }}" target="_blank">{{ pro.0 }}</a></td>
+                        <td>{{ pro.1.name }}</td>
+                        <td>{{ pro.1.sale_time }}</td>
+                        <td>{{ pro.1.collect_num }}</td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 {% endblock %}
 {% block tail_script %}
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}jquery-visualize-plugin/visualize.jQuery.css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery-visualize-plugin/visualize.jQuery.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+            $("#t_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+        });
+    </script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $('#data-table-stock').dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": false, //自适应宽度
+            "aaSorting": [[3, "desc"]],
+            "iDisplayLength": 100,
+            "aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+            //"bInfo":true,
+            //"sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
+        });
+    </script>
 {% endblock %}
