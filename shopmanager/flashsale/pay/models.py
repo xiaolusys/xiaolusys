@@ -21,7 +21,7 @@ from .options import uniqid
 import uuid
 
 FLASH_SELLER_ID = 'flashsale'
-AGENCY_DIPOSITE_CODE = 'RMB100'
+AGENCY_DIPOSITE_CODE = 'RMB'
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
@@ -189,7 +189,7 @@ class SaleTrade(models.Model):
     def is_Deposite_Order(self):
         
         for order in self.sale_orders.all():
-            if order.outer_id == AGENCY_DIPOSITE_CODE:
+            if order.outer_id.startswith(AGENCY_DIPOSITE_CODE):
                 return True
         return False
     

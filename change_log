@@ -1,3 +1,5 @@
+########### 2015-7-16 #################
+alter table flashsale_productdetail add column is_recommend tinyint NOT NULL;
 ########### 2015-7-14 #################
 alter table flashsale_productdetail add column mama_discount int(11) NOT NULL default 100;
 alter table flashsale_trade add column discount_fee  double precision NOT NULL;

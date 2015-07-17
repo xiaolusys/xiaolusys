@@ -55,9 +55,6 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
     
     
-    
-    
-   
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -111,3 +108,46 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
  
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    
+    def get_female_qs(self,queryset):
+        
+        return queryset.filter(outer_id__startswith='8')
+    
+    def get_child_qs(self,queryset):
+        
+        return queryset.filter(outer_id__startswith='9')
+    
+    @list_route(methods=['get'])
+    def promote_today(self, request, *args, **kwargs):
+        
+        target_date = datetime.date.today()
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        
+        female_qs = self.get_female_qs(queryset)
+        men_qs  = self.get_child_qs(queryset)
+        
+        response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
+                         'child_list':self.get_serializer(men_qs, many=True).data}
+        
+        return Response(response_date)
+    
+    @list_route(methods=['get'])
+    def promote_previous(self, request, *args, **kwargs):
+        
+        target_date = datetime.date.today() - datetime.timedelta(days=1)        
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        
+        female_qs = self.get_female_qs(queryset)
+        men_qs  = self.get_child_qs(queryset)
+        
+        response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
+                         'child_list':self.get_serializer(men_qs, many=True).data}
+        
+        return Response(response_date)
+    
+    
+    
+    

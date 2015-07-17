@@ -287,13 +287,14 @@ class ProductList(generics.ListCreateAPIView):
         content    = request.REQUEST
         time_line  = content.get('time_line','0')
         history    = content.get('history','')
-        category   = content.get('category','')
+        category   = content.get('category__in','')
         if not time_line.isdigit() or int(time_line) < 0:
             time_line = 0
         
         time_line = int(time_line)
         
         filter_qs = self.filter_queryset(self.get_queryset())
+        print 'debug filter:',filter_qs.query
         filter_qs = filter_qs.filter(status=Product.NORMAL,
                                    shelf_status=Product.UP_SHELF)
         today = datetime.date.today()
