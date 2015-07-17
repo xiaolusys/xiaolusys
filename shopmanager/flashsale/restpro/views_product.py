@@ -125,8 +125,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
         
-        female_qs = self.get_female_qs(queryset)
-        men_qs  = self.get_child_qs(queryset)
+        female_qs = self.get_female_qs(queryset)[0:4]
+        men_qs  = self.get_child_qs(queryset)[0:4]
         
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
                          'child_list':self.get_serializer(men_qs, many=True).data}
@@ -140,8 +140,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
         
-        female_qs = self.get_female_qs(queryset)
-        men_qs  = self.get_child_qs(queryset)
+        female_qs = self.get_female_qs(queryset)[0:4]
+        men_qs  = self.get_child_qs(queryset)[0:4]
         
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
                          'child_list':self.get_serializer(men_qs, many=True).data}

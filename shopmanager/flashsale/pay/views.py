@@ -287,7 +287,7 @@ class ProductList(generics.ListCreateAPIView):
         content    = request.REQUEST
         time_line  = content.get('time_line','0')
         history    = content.get('history','')
-        category   = content.get('category__in','')
+        category   = content.get('category','')
         if not time_line.isdigit() or int(time_line) < 0:
             time_line = 0
         

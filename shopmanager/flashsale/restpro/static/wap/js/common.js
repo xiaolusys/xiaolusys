@@ -19,3 +19,10 @@
     document.body.addEventListener('touchstart', function (){});
   }
 })();
+
+//全局配置
+var GLConfig = {
+	baseApiUrl:'/rest/v1/',
+	today_suffix:'today',
+    previous_suffix:'previous'
+};

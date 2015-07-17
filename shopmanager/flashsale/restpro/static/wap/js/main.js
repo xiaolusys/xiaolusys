@@ -1,32 +1,28 @@
-var GLConfig = {
-	baseApiUrl:'/rest/v1/',
-	today_suffix:'today',
-	previous_suffix:'previous'
-};
 
 function Set_posters(suffix){
 	//获取海报
 	var posterUrl = GLConfig.baseApiUrl + 'posters/'+ suffix +'.json';
 	
 	var posterCallBack = function(data){
-		console.log('debug: poster xhr,',data.wem_posters);
-		//设置女装海报链接及图片
-		$.each(data.wem_posters,
-			function(index,poster){
-			console.log('debug: poster each,',poster,index);
-				$('.poster .nvzhuang').attr('href',poster.item_link);
-				$('.poster .nvzhuang img').attr('src',poster.pic_link);
-			}
-		);
-		
-		//设置童装海报链接及图片
-		$.each(data.chd_posters,
-			function(index,poster){
-				$('.poster .chaotong').attr('href',poster.item_link);
-				$('.poster .chaotong img').attr('src',poster.pic_link);
-			}
-		);
-		
+		if (data.wem_posters != 'undifine' && data.wem_posters != null){
+			//设置女装海报链接及图片
+			$.each(data.wem_posters,
+				function(index,poster){
+				console.log('debug: poster each,',poster,index);
+					$('.poster .nvzhuang').attr('href',poster.item_link);
+					$('.poster .nvzhuang img').attr('src',poster.pic_link);
+				}
+			);
+		}
+		if (data.chd_posters != 'undifine' && data.chd_posters != null){
+			//设置童装海报链接及图片
+			$.each(data.chd_posters,
+				function(index,poster){
+					$('.poster .chaotong').attr('href',poster.item_link);
+					$('.poster .chaotong img').attr('src',poster.pic_link);
+				}
+			);
+		}
 	};
 	// 请求海报数据
 	$.ajax({ 
@@ -56,7 +52,7 @@ function Set_promotes_product(suffix){
 	
 	var promoteCallBack = function(data){
 		console.log('debug type:',typeof(data.female_list));
-		if (typeof(data.female_list) != 'undifine' && typeof(data.female_list) != null){
+		if (data.female_list != 'undifine' && data.female_list != null){
 			
 			$('.glist .nvzhuang').empty();
 			//设置女装推荐链接及图片
@@ -68,7 +64,7 @@ function Set_promotes_product(suffix){
 			);
 		}
 		
-		if (typeof(data.child_list) != 'undifine' && typeof(data.child_list) != null){
+		if (data.child_list != 'undifine' && data.child_list != null){
 			
 			$('.glist .chaotong').empty();
 			//设置童装推荐链接及图片
