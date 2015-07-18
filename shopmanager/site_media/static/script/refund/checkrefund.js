@@ -70,6 +70,7 @@ checkrefund.Dialog.prototype.handleEvent= function (e) {
         for(var i=0;i<select_reason.length;i++){
             //console.log(select_reason[i].value);
             if (select_reason[i].value==''){
+                $(select_reason[i]).css('border-color','red');
                 return false;
             }
         }
