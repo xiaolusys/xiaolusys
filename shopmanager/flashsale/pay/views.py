@@ -105,7 +105,7 @@ class PINGPPChargeView(View):
             
             sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
             discount_fee = sku.calc_discount_fee(xlmm=xlmm)
-            real_fee = int(sku.agent_price * int(form.get('num')) * 100) - discount_fee * 100
+            real_fee = int(sku.agent_price * int(form.get('num')) * 100 - discount_fee * 100)
             
             assert payment > 0 and payment == real_fee ,u'订单金额有误'
             
@@ -282,6 +282,18 @@ class ProductList(generics.ListCreateAPIView):
         'category',
     )
     
+    def myfilter_queryset(self,queryset,history,time_line):
+        if history == 'none':
+            return queryset
+        
+        today = datetime.date.today()
+        if history:
+            filter_date = today - datetime.timedelta(days=time_line)
+            return queryset.filter(sale_time__gte=filter_date,sale_time__lt=today)
+        
+        return queryset.filter(sale_time=today)
+        
+        
     def list(self, request, *args, **kwargs):
         
         content    = request.REQUEST
@@ -290,18 +302,17 @@ class ProductList(generics.ListCreateAPIView):
         category   = content.get('category','')
         if not time_line.isdigit() or int(time_line) < 0:
             time_line = 0
-        
+
+        if category != '11' and history == 'none':
+            history = ''
+            
         time_line = int(time_line)
         
         filter_qs = self.filter_queryset(self.get_queryset())
         filter_qs = filter_qs.filter(status=Product.NORMAL,
                                    shelf_status=Product.UP_SHELF)
-        today = datetime.date.today()
-        if history:
-            filter_date = today - datetime.timedelta(days=time_line)
-            fliter_qs = filter_qs.filter(sale_time__gte=filter_date,sale_time__lt=today)
-        else:
-            fliter_qs = filter_qs.filter(sale_time=today)
+        
+        fliter_qs = self.myfilter_queryset(filter_qs, history, time_line)
         
         page = self.paginate_queryset(fliter_qs)
         if page is not None:

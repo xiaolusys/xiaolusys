@@ -1,3 +1,4 @@
+#-*- coding:utf8 -*-
 import datetime
 from django.shortcuts import get_object_or_404
 
@@ -14,49 +15,7 @@ from flashsale.pay.models import SaleTrade,Customer
 from . import permissions as perms
 from . import serializers 
 
-
-class SaleTradeViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-    queryset = SaleTrade.objects.all()
-    serializer_class = serializers.SaleTradeSerializer# Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
-    
-    def get_owner_queryset(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(buyer_id=customer.id)
-    
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-    
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-    
-    @list_route(methods=['post'])
-    def pingpp_create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    
-
-from flashsale.pay.models import SaleRefund,District,UserAddress,ShoppingCart
+from flashsale.pay.models import SaleRefund,District,UserAddress
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
@@ -130,30 +89,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)    
 
 
-class ShoppingCartViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-    queryset = ShoppingCart.objects.all()
-    serializer_class = serializers.ShoppingCartSerializer# Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
-    
-    def get_owner_queryset(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(buyer_id=customer.id)
-        
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)  
+ 
     
     
     

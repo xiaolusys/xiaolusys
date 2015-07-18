@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html>
 <head>
 <meta charset="utf-8">
 <title>小鹿美美</title>
@@ -13,20 +13,19 @@
   <a class="home"></a>
 </div>
 <nav>
-  <a href="javascript:void(0)" class="active">今日上新</a>
-  <a href="zuoritemai.html">昨日特卖</a>
+  <a href="index.html" >今日上新</a>
+  <a href="javascript:void(0)" class="active">昨日特卖</a>
   <a href="">潮童专区</a>
   <a href="">时尚女装</a>
 </nav>
 <div class="fixed-nav" id="js-fixed-nav">
-  <a href="javascript:void(0)" class="active">今日上新</a>
-  <a href="zuoritemai.html">昨日特卖</a>
+  <a href="index.html">今日上新</a>
+  <a href="javascript:void(0)" class="active">昨日特卖</a>
   <a href="">潮童专区</a>
   <a href="">时尚女装</a>
 </div>
-<div class="poster new" >
-  <dl>
-    <dt>每日10:00 新品上线</dt>
+<div class="poster new">
+  <dl style="padding-top:20px;">
     <dd>
       <a class="nvzhuang" href="#">
         <img src="images/nvzhuang.png">
@@ -43,14 +42,14 @@
     </dd>
   </dl>
 </div>
-<div class="glist ">
+<div class="glist">
   <div class="header">
     <div class="text"><i></i>潮童专区</div>
     <div class="shengyu"><i></i>剩余2天1小时</div>
   </div>
   <ul class="chaotong">
     <li>
-      <a href="#">
+      <a  href="#">
         <img src="images/goods-thumb.png">
         <p class="gname">男童超薄透气款套装</p>
         <p class="gprice">
@@ -103,7 +102,7 @@
 <div class="scroll-top" id="js-scroll-top"></div>
 <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
 <script src="js/main.js"></script>
-<script type="text/javascript">
+<script>
 (function($){
   //返回顶部
   $('#js-scroll-top').on('touchend',function(e){
@@ -126,12 +125,12 @@
       $('#js-fixed-nav').show();
     }
   }, false);
-
-  //获取今日海报
-  Set_posters(GLConfig.today_suffix);
-  //获取今日推荐商品
-  Set_promotes_product(GLConfig.today_suffix);
-
+  
+  //获取昨日海报
+  Set_posters(GLConfig.previous_suffix);
+  //获取昨日推荐商品
+  Set_promotes_product(GLConfig.previous_suffix);
+  
 })(jQuery);
 </script>
 </body>

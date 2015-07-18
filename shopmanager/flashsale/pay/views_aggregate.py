@@ -21,7 +21,7 @@ class AggregateProductView(View):
 
         m.name = post["product_name"]
         m.sale_time = post["df"]
-        print buy_limit,"eeeeeeeeee"
+        print buy_limit, "eeeeeeeeee"
         if buy_limit == "on":
             m.buy_limit = True
             m.per_limit = int(post.get("per_limit", 0))
@@ -54,7 +54,7 @@ class ModelProductView(View):
     def get(request):
         content = request.GET
         search_model = content.get('search_model', '0')
-        all_model_product = ModelProduct.objects.all()
+        all_model_product = ModelProduct.objects.exclude(status=u'1')
         if len(search_model) == 0:
             search_model = 0
         model_change = ModelProduct.objects.filter(id=search_model)
@@ -64,7 +64,8 @@ class ModelProductView(View):
             target_model = model_change[0]
             all_product = Product.objects.filter(model_id=model_change[0].id)
         return render_to_response("pay/aggregate_product2already.html",
-                                  {"target_model": target_model, "all_product": all_product,"all_model_product":all_model_product},
+                                  {"target_model": target_model, "all_product": all_product,
+                                   "all_model_product": all_model_product},
                                   context_instance=RequestContext(request))
 
     @staticmethod
@@ -96,7 +97,8 @@ class ModelProductView(View):
                 m.content_imgs = content_imgs_str
                 m.save()
         all_product = Product.objects.filter(model_id=m.id)
-        return render_to_response("pay/aggregate_product2already.html", {"target_model": m, "all_product": all_product,"all_model_product":all_model_product},
+        return render_to_response("pay/aggregate_product2already.html", {"target_model": m, "all_product": all_product,
+                                                                         "all_model_product": all_model_product},
                                   context_instance=RequestContext(request))
 
 

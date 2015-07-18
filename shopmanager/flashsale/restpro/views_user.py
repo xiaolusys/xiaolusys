@@ -76,6 +76,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    def perform_destroy(self,instance):
+        instance.status = Customer.DELETE
+        instance.save()
+    
     
     
     

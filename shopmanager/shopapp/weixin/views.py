@@ -1590,7 +1590,8 @@ class WeixinProductView(ModelView):
                                                                  num=sync_num,
                                                                  end_at=datetime.datetime.now())
                         except WeiXinRequestException,exc:
-                            messages.add_message(request, messages.ERROR, u'编码(微信商品ID:%s)[%s.%s]'%(wx_sku.product_id,outer_sku_id,outer_id))
+                            messages.add_message(request, messages.ERROR, 
+                                                 u'微信商品库存更新错误：%s(ID:%s)[%s.%s]'%(exc.message,wx_sku.product_id,outer_sku_id,outer_id))
                             
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)

@@ -276,7 +276,8 @@ def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
                     orderlist__supplier_shop='').distinct()
                 supplier_list = [s['orderlist__supplier_shop'] for s in suppliers]
                 p_dict = {"p_outer": p_outer, "p_name": product_item.name,
-                          "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "", "p_sales": p_sales, "suppliers": supplier_list}
+                          "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
+                          "p_sales": p_sales, "suppliers": supplier_list}
                 result_list.append(p_dict)
         return result_list
 
@@ -285,13 +286,28 @@ def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
 
 
 @task(max_retry=3, default_retry_delay=5)
-def task_calc_stock_top(limit=100):
+def task_calc_stock_top(start_time_str, end_time_str, limit=100):
     try:
+        today = datetime.date.today()
+        if start_time_str:
+            year, month, day = start_time_str.split('-')
+            start_date = datetime.date(int(year), int(month), int(day))
+
+        else:
+            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        if end_time_str:
+            year, month, day = end_time_str.split('-')
+            end_date = datetime.date(int(year), int(month), int(day))
+        else:
+            end_date = today
+        """找出选择的开始月份和结束月份"""
+
         outer_idset = set([])
         sale_top = {}
         product_qs = Product.objects.filter(status=Product.NORMAL, collect_num__gt=0).extra(
             where=["CHAR_LENGTH(outer_id)>=9"]) \
-            .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
+            .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8")).filter(
+            sale_time__range=(start_date, end_date))
 
         for product in product_qs:
             outer_id = product.outer_id
