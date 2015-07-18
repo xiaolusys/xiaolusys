@@ -75,7 +75,7 @@ admin.site.register(Refund,RefundAdmin)
   
 class RefundProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id', 'title', 'outer_sku_id','show_Product_Price','buyer_nick','buyer_mobile','buyer_phone','trade_id'
-                    ,'out_sid','company','can_reuse','is_finish','created','modified','memo')
+                    ,'out_sid','company','can_reuse','is_finish','created','modified','memo','select_Reason')
     list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -108,6 +108,29 @@ class RefundProductAdmin(admin.ModelAdmin):
     show_Product_Price.allow_tags = True
     show_Product_Price.short_description = u"出售价格"
 
+    def select_Reason(self, obj):
+        reason_id = obj.reason
+        reason = obj.get_reason_display()   # 显示当前的退货原因
+        select = u'<select class="select_reason" cid="{0}" id="reason_select_{0} " style="width:100px" >'\
+                    u"<option value='{2}'>{1}</option>"\
+                    u"<option value='0'>其他</option>"\
+                    u"<option value='1'>错拍</option>"\
+                    u"<option value='2'>缺货</option>"\
+                    u"<option value='3'>开线/脱色/脱毛/有色差/有虫洞</option>"\
+                    u"<option value='4'>发错货/漏发</option>"\
+                    u"<option value='5'>没有发货</option>"\
+                    u"<option value='6'>未收到货</option>"\
+                    u"<option value='7'>与描述不符</option>"\
+                    u"<option value='8'>退运费</option>"\
+                    u"<option value='9'>发票问题</option>"\
+                    u"<option value='10'>七天无理由退换货</option>"\
+                u'</select>'.format(obj.id, reason, reason_id)
+
+        return select
+    class Media:
+        js = ("js/select_refubd_pro_reason.js",)
+    select_Reason.allow_tags = True
+    select_Reason.short_description = u"退货原因"
     
     actions = ['tag_as_finished',]
 
