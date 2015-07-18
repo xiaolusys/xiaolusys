@@ -50,7 +50,19 @@ CS_STATUS_CHOICES = (
     (5,'客服主管复审失败'),
     (6,'客服处理完成'),
 )
-
+REFUND_REASON = (
+    (0, u'其他'),
+    (1, u'错拍'),
+    (2, u'缺货'),
+    (3, u'开线/脱色/脱毛/有色差/有虫洞'),
+    (4, u'发错货/漏发'),
+    (5, u'没有发货'),
+    (6, u'未收到货'),
+    (7, u'与描述不符'),
+    (8, u'退运费'),
+    (9, u'发票问题'),
+    (10, u'七天无理由退换货')
+)
 class Refund(models.Model):
     
     NO_REFUND = pcfg.NO_REFUND
@@ -215,7 +227,7 @@ class RefundProduct(models.Model):
     
     can_reuse    = models.BooleanField(default=False,verbose_name='二次销售')
     is_finish    = models.BooleanField(default=False,verbose_name='处理完成')
-    
+    reason = models.IntegerField(choices=REFUND_REASON, default=0, verbose_name='退货原因')
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     

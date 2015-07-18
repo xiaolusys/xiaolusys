@@ -444,6 +444,12 @@ class ProductSku(models.Model):
         return 0
     
     @property
+    def real_remainnum(self):
+        if self.remain_num >= self.wait_post_num:
+            return self.remain_num - self.wait_post_num
+        return 0
+    
+    @property
     def free_num(self):
         return self.remain_num - self.wait_post_num - self.lock_num
     

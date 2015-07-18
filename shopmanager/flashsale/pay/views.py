@@ -92,6 +92,7 @@ class PINGPPChargeView(View):
             if not UUID_RE.match(order_no):
                 raise Exception(u'参数错误!')
             
+            buy_num =  int(form.get('num'))
             payment = int(float(form.get('payment')) * 100)
             product = Product.objects.get(pk=form.get('item_id'))
             if (product.shelf_status != Product.UP_SHELF or
@@ -104,9 +105,15 @@ class PINGPPChargeView(View):
                 xlmm = None
             
             sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
+
             discount_fee = sku.calc_discount_fee(xlmm=xlmm)
-            real_fee = int(sku.agent_price * int(form.get('num')) * 100) - int(discount_fee * 100)
+            real_fee = int(sku.agent_price * buy_num * 100) - int(discount_fee * 100)
             
+            assert buy_num > 0 and sku.real_remainnum > buy_num ,u'商品已抢光'
+            
+            discount_fee = sku.calc_discount_fee(xlmm=xlmm)
+            real_fee = int(sku.agent_price * buy_num * 100) - int(discount_fee * 100)
+
             assert payment > 0 and payment == real_fee ,u'订单金额有误'
             
             response_charge = None
