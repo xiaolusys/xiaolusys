@@ -7,7 +7,7 @@ from django.db.models import Q,F
 from django.template import Context, Template
 from shopback.items.models import Product,ProductSku
 from shopback.trades.models import MergeTrade
-from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity,SMS_NOTIFY_POST,SMS_NOTIFY_BIRTH
+from shopapp.smsmgr.models import SMSPlatform,SMSRecord,SMSActivity,SMS_NOTIFY_POST,SMS_NOTIFY_BIRTH, SMS_NOTIFY_VERIFY_CODE
 from shopapp.smsmgr.service import SMS_CODE_MANAGER_TUPLE
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields,single_instance_task
@@ -163,5 +163,62 @@ def getupMorningLockTask():
     
     manager.batch_send(**params)
     
-    
-    
+from flashsale.pay.models_user import Register
+@task
+def task_register_code(mobile):
+    """ 短信验证码 """
+    #选择默认短信平台商，如果没有，任务退出
+    try:
+        platform = SMSPlatform.objects.get(is_default=True)
+    except:
+        return
+    try:
+        register_v = Register.objects.get(vmobile=mobile)
+
+        content = register_v.verify_code
+        if not content:
+            return
+        params = {}
+        params['content'] = content
+        params['userid'] = platform.user_id
+        params['account'] = platform.account
+        params['password'] = platform.password
+        params['mobile'] = mobile
+        params['taskName'] = "小鹿美美验证码"
+        params['mobilenumber'] = 1
+        params['countnumber'] = 1
+        params['telephonenumber'] = 0
+
+        params['action'] = 'send'
+        params['checkcontent'] = '0'
+
+        sms_manager = dict(SMS_CODE_MANAGER_TUPLE).get(platform.code, None)
+        if not sms_manager:
+            raise Exception('未找到短信服务商接口实现')
+
+        manager = sms_manager()
+        success = False
+
+        #创建一条短信发送记录
+        sms_record = manager.create_record(params['mobile'], params['taskName'], SMS_NOTIFY_VERIFY_CODE, params['content'])
+        #发送短信接口
+        try:
+            success, task_id, succnums, response = manager.batch_send(**params)
+        except Exception,exc:
+            sms_record.status = pcfg.SMS_ERROR
+            sms_record.memo = exc.message
+            logger.error(exc.message,exc_info=True)
+        else:
+            sms_record.task_id = task_id
+            sms_record.succnums = succnums
+            sms_record.retmsg = response
+            sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
+        sms_record.save()
+        print "success",success
+        if success:
+            SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums')+int(succnums))
+            register_v.verify_count += 1
+            register_v.submit_count = 0
+            register_v.save()
+    except Exception,exc:
+        logger.error(exc.message or 'empty error',exc_info=True)

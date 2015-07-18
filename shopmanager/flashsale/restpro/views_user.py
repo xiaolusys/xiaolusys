@@ -1,7 +1,8 @@
 #-*- coding:utf-8 -*-
 import datetime
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import  User
+from django.contrib.auth.forms import UserCreationForm
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -15,7 +16,7 @@ from flashsale.pay.models import Register,Customer
 
 from . import permissions as perms
 from . import serializers 
-
+from shopapp.smsmgr.tasks import task_register_code
 
 class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.GenericViewSet):
     """
@@ -28,14 +29,21 @@ class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.Gen
     permission_classes = ()
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
 
-    
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        print 'debug',serializer
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        mobile = request.data['vmobile']
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=60)
+        print mobile,"eeeeee"
+        if mobile == "": #进行正则判断，待写
+            return Response("false")
+        reg = Register.objects.filter(vmobile=mobile, mobile_pass=True)
+        if reg.count() > 0:
+            return Response("0") #已经注册过
+        new_reg = Register(vmobile=mobile)
+        new_reg.verify_code = new_reg.genValidCode()
+        new_reg.save()
+        # task_register_code.s(request.data['vmobile'])()
+        return Response("OK")
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -47,7 +55,31 @@ class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.Gen
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
+    @list_route(methods=['post'])
+    def check_code_user(self, request):
+        post = request.POST
+        mobile = post['username']
+
+        reg = Register.objects.filter(vmobile=mobile)
+        if reg.count() == 0:
+            return Response("无验证码")
+        verify_code = reg[0].verify_code
+        print type(verify_code),verify_code,type(post.get('valid_code', 0)),post.get('valid_code', 0)
+        if verify_code != post.get('valid_code', 0):
+            return Response("验证码不对")
+        form = UserCreationForm(post)
+
+        if form.is_valid():
+            new_user = form.save()
+            print new_user.is_active,"is_active"
+            a = Customer()
+            a.user = new_user
+            a.mobile = mobile
+            a.save()
+            return HttpResponseRedirect("/mm/plist")
+        else:
+            return Response("error")
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """
