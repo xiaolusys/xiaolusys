@@ -1917,13 +1917,16 @@ class SaleMergeOrderListView(ModelView):
     
     def getTradeSortedItems(self,order_qs,is_sale=False):
         
+        order_dict_list =  order_qs.values('outer_id','outer_sku_id','payment','title','sku_properties_name','num','num_iid','sku_id')
         trade_items  = {}
-        for order in order_qs:
+        for order in order_dict_list:
             
-            outer_id = order.outer_id.strip() or str(order.num_iid)
-            outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
-            payment   = float(order.payment or 0)
-            order_num = order.num  or 0
+            outer_id = order['outer_id'] or str(order['num_iid'])
+            outer_sku_id = order['outer_sku_id'] or str(order['sku_id'])
+            payment   = float(order['payment'] or 0)
+            order_num = order['num']  or 0
+            order_title = order['title']
+            order_sku_name = order['sku_properties_name']
             prod,prod_sku     = self.getProductAndSku(outer_id,outer_sku_id)
 
             if trade_items.has_key(outer_id):
@@ -1938,7 +1941,7 @@ class SaleMergeOrderListView(ModelView):
                     trade_items[outer_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order_num 
                     trade_items[outer_id]['sales'] += payment
                 else:
-                    prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
+                    prod_sku_name  = prod_sku.name if prod_sku else order_sku_name
                     purchase_price = float(prod_sku.cost) if prod_sku else 0
                     #累加商品成本跟销售额
                     trade_items[outer_id]['cost']  += purchase_price*order_num 
@@ -1951,12 +1954,12 @@ class SaleMergeOrderListView(ModelView):
                                           'sales':payment,
                                           'std_purchase_price':purchase_price}
             else:
-                prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
+                prod_sku_name  = prod_sku.name if prod_sku else order_sku_name
                 purchase_price = float(prod_sku.cost) if prod_sku else payment / order_num    
                 trade_items[outer_id]={
                                        'product_id':prod and prod.id or None,
                                        'num':order_num,
-                                       'title': prod.name if prod else order.title,
+                                       'title': prod.name if prod else order_title,
                                        'cost':purchase_price*order_num ,
                                        'pic_path':prod and prod.PIC_PATH or '',
                                        'sales':payment,
@@ -1993,11 +1996,12 @@ class SaleMergeOrderListView(ModelView):
     
     def getTotalRefundFee(self,order_qs):
         
-        effect_oids = self.getEffectOrdersId(order_qs)
+        return 0
+#         effect_oids = self.getEffectOrdersId(order_qs)
         
-        return Refund.objects.filter(oid__in=effect_oids,status__in=(
-                    pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
-                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+#         return Refund.objects.filter(oid__in=effect_oids,status__in=(
+#                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
+#                     .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
         
     def responseCSVFile(self,request,order_items):
         

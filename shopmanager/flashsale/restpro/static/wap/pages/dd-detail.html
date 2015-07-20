@@ -7,7 +7,7 @@
 <meta name="viewport" id="viewport">
 <script src="../js/common.js"></script>
 <link rel="stylesheet" href="../css/common.css">
-<link rel="stylesheet" href="../css/dingdan.css">
+<link rel="stylesheet" href="../css/tmdd.css">
 </head>
 <body>
 <div class="header">
@@ -16,30 +16,12 @@
 </div>
 
 <!-- 订单信息 start -->
-<div class="panel">
+<div class="panel basic">
   <div class="panel-top">
-    <ul class="u1">
-      <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa">未支付订单</span></li>
-      <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">1503459273</span></li>
-      <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">2015-05-15</span></li>
-      <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0">¥75.00</span></li>
-    </ul>
-    <a href="#" class="btn-quxiao">取消订单</a>
+   
   </div>
   <div class="panel-bottom">
-    <div class="goods clear">
-      <div class="fl goods-img">
-        <img src="../images/yifu.png">
-      </div> 
-      <div class="fr goods-info">
-        <p>男童超薄透气款套装</p>
-        <p>
-          <span class="size">尺码：S</span> 
-          <span class="count">数量：1</span>
-        </p>
-        <p class="price">单价：<span class="gprice">¥68.00</span></p>
-      </div> 
-    </div>
+
   </div>
 </div>
 <!-- 订单信息 end -->
@@ -50,20 +32,7 @@
     <h2>收货信息</h2>
   </div>
   <div class="panel-bottom">
-    <div class="info">
-      <p class="clear">
-        <span class="label">收货人：</span>
-        <span class="value">美美</span>
-      </p>
-      <p class="clear">
-        <span class="label">手机号码：</span>
-        <span class="value">136 9374 8523</span>
-      </p>
-      <p class="clear">
-        <span class="label">收货地址：</span>
-        <span class="value">上海市 - 杨浦区 - 国定东路200号 - 1号楼 - 1108室</span>
-      </p>  
-    </div>
+   
   </div>
 </div>
 <!-- 收货信息 end -->
@@ -74,29 +43,46 @@
     <h2>费用详情</h2>
   </div>
   <div class="panel-bottom">
-    <div class="info">
-      <p class="clear">
-        <span class="label">商品总金额：</span>
-        <span class="value">¥ 68.00</span>
-      </p>
-      <p class="clear">
-        <span class="label">运费：</span>
-        <span class="value">¥ 10.00</span>
-      </p>
-      <p class="clear">
-        <span class="label">优惠金额：</span>
-        <span class="value">¥ -3.00</span>
-      </p> 
-      <p class="clear">
-        <span class="label">应付金额：</span>
-        <span class="value total">¥ 75.00</span>
-      </p>  
-    </div>
+  
   </div>
 </div>
 <!-- 费用详情 end -->
 <div class="btn-wrap">
 	<a class="btn-buy">购&nbsp;&nbsp;买</a>
 </div>
+<script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+<script src="../js/tmdd.js"></script>
+<script type="text/javascript">
+(function($){
+  //返回顶部
+  $('#js-scroll-top').on('touchend',function(e){
+    e.preventDefault();
+    $('body').animate({scrollTop:0},400);  
+  });
+
+  var startY;
+
+  document.addEventListener('touchstart',function (ev) {
+    startY = ev.touches[0].pageY;
+  }, false);
+
+  document.addEventListener('touchend',function (ev){
+    var endY = ev.changedTouches[0].pageY;
+    var dir = startY - endY;
+    if(dir>0){
+      $('#js-fixed-nav').hide();
+    }else{
+      $('#js-fixed-nav').show();
+    }
+  }, false);
+  
+  var urlParams = parseUrlParams(window.location.href);
+  var urlConf = {'trade_id':urlParams['id']};
+  var order_url = GLConfig.get_trade_details_url.template(urlConf);
+
+  //获取待支付订单列表
+  Set_order_detail(order_url);
+})(jQuery);
+</script>
 </body>
 </html>

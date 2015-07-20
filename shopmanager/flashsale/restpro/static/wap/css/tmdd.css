@@ -55,6 +55,11 @@
 .list .caaaaaa{
   color:#aaaaaa;
 }
+
+.orderno {
+  font-size:20px;
+}
+
 .list .cf353a0{
   color:#f353a0;
 }
@@ -104,9 +109,17 @@
   width: 160px;
   text-align: center;
 }
+.goods-img img{
+  width:137px;
+  height:124px;
+}
 .goods-info{
   width: 400px;
   padding-top: 4px;
+}
+.goods-info p{
+  overflow: hidden;
+  white-space: nowrap;
 }
 .size,.count{ 
   font-size: 22px;
