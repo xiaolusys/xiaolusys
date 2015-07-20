@@ -7,87 +7,18 @@
 <meta id="viewport" name="viewport" />
 <script src="../js/common.js"></script>
 <link rel="stylesheet" href="../css/common.css">
-<link rel="stylesheet" href="../css/dingdan.css">
+<link rel="stylesheet" href="../css/tmdd.css">
 </head>
 <body>
 <div class="header">
   <a class="back" href="gerenzhongxin.html"></a>
   <h1>待支付订单</h1>
 </div>
-<ul class="list">
-  <li>
-    <div class="top clear">
-      <div class="xiadan">下单时间：2015-05-15</div>
-      <div class="shengyu">剩余时间：15:40</div>
-    </div>
-    <a href="daizhifu-dd-detail.html" class="info clear">
-      <div class="left"><img src="../images/yifu.png" /></div>
-      <div class="right">
-        <p>订单编号：<span class="caaaaaa">1503459273</span></p>
-        <p>订单状态：<span class="caaaaaa">未支付订单</span></p>
-        <p>订单金额：<span class="cf353a0">¥68.00</span></p>
-      </div>
-    </a>
-  </li>
-  <li>
-    <div class="top clear">
-      <div class="xiadan">下单时间：2015-05-15</div>
-      <div class="shengyu">剩余时间：15:40</div>
-    </div>
-    <a href="daizhifu-dd-detail.html" class="info clear">
-      <div class="left"><img src="../images/yifu.png" /></div>
-      <div class="right">
-        <p>订单编号：<span class="caaaaaa">1503459273</span></p>
-        <p>订单状态：<span class="caaaaaa">未支付订单</span></p>
-        <p>订单金额：<span class="cf353a0">¥68.00</span></p>
-      </div>
-    </a>
-  </li>
-  <li>
-    <div class="top clear">
-      <div class="xiadan">下单时间：2015-05-15</div>
-      <div class="shengyu">剩余时间：15:40</div>
-    </div>
-    <a href="daizhifu-dd-detail.html" class="info clear">
-      <div class="left"><img src="../images/yifu.png" /></div>
-      <div class="right">
-        <p>订单编号：<span class="caaaaaa">1503459273</span></p>
-        <p>订单状态：<span class="caaaaaa">未支付订单</span></p>
-        <p>订单金额：<span class="cf353a0">¥68.00</span></p>
-      </div>
-    </a>
-  </li>
-  <li>
-    <div class="top clear">
-      <div class="xiadan">下单时间：2015-05-15</div>
-      <div class="shengyu">剩余时间：15:40</div>
-    </div>
-    <a href="daizhifu-dd-detail.html" class="info clear">
-      <div class="left"><img src="../images/yifu.png" /></div>
-      <div class="right">
-        <p>订单编号：<span class="caaaaaa">1503459273</span></p>
-        <p>订单状态：<span class="caaaaaa">未支付订单</span></p>
-        <p>订单金额：<span class="cf353a0">¥68.00</span></p>
-      </div>
-    </a>
-  </li>
-  <li>
-    <div class="top clear">
-      <div class="xiadan">下单时间：2015-05-15</div>
-      <div class="shengyu">剩余时间：15:40</div>
-    </div>
-    <a href="daizhifu-dd-detail.html" class="info clear">
-      <div class="left"><img src="../images/yifu.png" /></div>
-      <div class="right">
-        <p>订单编号：<span class="caaaaaa">1503459273</span></p>
-        <p>订单状态：<span class="caaaaaa">未支付订单</span></p>
-        <p>订单金额：<span class="cf353a0">¥68.00</span></p>
-      </div>
-    </a>
-  </li>
+<ul class="list order_ul">
+  <!-- 此处添加订单列表 -->
 </ul>
 <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
-
+<script src="../js/tmdd.js"></script>
 <script type="text/javascript">
 (function($){
   //返回顶部
@@ -111,8 +42,8 @@
       $('#js-fixed-nav').show();
     }
   }, false);
-
-
+  //获取待支付订单列表
+  Set_orders(GLConfig.get_trade_waitpay_url);
 })(jQuery);
 </script>
 </body>

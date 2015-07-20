@@ -1,6 +1,8 @@
 from shopback.items.models import Product,ProductSku,ProductCategory
 from flashsale.pay.models import (
     SaleTrade,
+    SaleOrder,
+    SaleRefund,
     LogisticsCompany,
     Productdetail,
     ShoppingCart,
@@ -91,19 +93,38 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
         model = ShoppingCart
         fields = ( 'id', 'url','buyer_id', 'buyer_nick', 'item_id', 'title', 'price', 'sku_id',
                    'num', 'total_fee', 'sku_name', 'pic_path', 'created', 'status')
+
+
+class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
+    
+#     url        = serializers.HyperlinkedIdentityField(view_name='v1:saleorder-detail')
+    status     = serializers.ChoiceField(choices=SaleOrder.ORDER_STATUS)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    refund_status  = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
+    refund_status_display = serializers.CharField(source='get_refund_status_display', read_only=True)
+    
+    class Meta:
+        model = SaleOrder
+        fields = ( 'id', 'oid', 'item_id', 'title', 'sku_id' , 'num', 'outer_id', 
+                   'total_fee' , 'payment', 'sku_name', 'pic_path', 'status' ,'status_display',
+                   'refund_status', 'refund_status_display')
         
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     
     url = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
-    channel = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
+    orders = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-saleorder')
+    channel    = serializers.ChoiceField(choices=SaleTrade.CHANNEL_CHOICES)
     trade_type = serializers.ChoiceField(choices=SaleTrade.TRADE_TYPE_CHOICES)
     logistics_company = LogisticsCompanySerializer(read_only=True)
+    status     = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    order_pic = serializers.CharField(read_only=True)
     
     class Meta:
         model = SaleTrade
-        fields = ( 'id', 'url', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment', 'post_fee', 'total_fee',
-                   'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 'logistics_company',
+        fields = ( 'id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment', 'post_fee', 'total_fee', 'discount_fee', 'status',
+                   'status_display','order_pic','buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 'logistics_company',
                    'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_mobile', 'receiver_phone')
         
  

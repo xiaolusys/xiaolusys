@@ -1,7 +1,7 @@
 
 function Set_posters(suffix){
 	//获取海报
-	var posterUrl = GLConfig.baseApiUrl + 'posters/'+ suffix +'.json';
+	var posterUrl = GLConfig.baseApiUrl + '/posters/'+ suffix +'.json';
 	
 	var posterCallBack = function(data){
 		if (data.wem_posters != 'undifine' && data.wem_posters != null){
@@ -35,23 +35,29 @@ function Set_posters(suffix){
 }
 
 function Create_item_dom(p_obj){
-	var ht = '<li>'
-      + '<a href="pages/details.html?item_id='+ p_obj.id +'">'
-      + '<img src="'+ p_obj.pic_path +'">'
-      + '<p class="gname">'+ p_obj.name +'</p>'
-      + '<p class="gprice">'
-      + '<span class="nprice"><em>¥</em>'+ p_obj.agent_price +'</span>'
-      + '<s class="oprice"><em>¥</em> '+ p_obj.std_sale_price +'</s>'
-      + '</p></a></li>';
-    return ht;
+	//创建商品DOM
+	function Item_dom(){
+	/* 
+	<li>
+      <a href="pages/details.html?item_id={{ id }}">
+        <img src="{{ pic_path }}">
+        <p class="gname">{{ name }}</p>
+        <p class="gprice">
+          <span class="nprice"><em>¥</em> {{ agent_pric }} </span>
+          <s class="oprice"><em>¥</em> {{ std_sale_price }}</s>
+        </p>
+      </a>
+    </li>	 */
+	};
+    return hereDoc(Item_dom).template(p_obj);
 }
 
 function Set_promotes_product(suffix){
 	//获取今日推荐商品
-	var promoteUrl = GLConfig.baseApiUrl + 'products/promote_'+ suffix +'.json';
+	var promoteUrl = GLConfig.baseApiUrl + '/products/promote_'+ suffix +'.json';
 	
 	var promoteCallBack = function(data){
-		console.log('debug type:',typeof(data.female_list));
+
 		if (data.female_list != 'undifine' && data.female_list != null){
 			
 			$('.glist .nvzhuang').empty();

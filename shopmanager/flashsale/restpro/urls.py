@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
-from django.http import HttpResponse
+from rest_framework.urlpatterns import format_suffix_patterns
 
 from rest_framework import routers
 from . import views
@@ -26,12 +26,25 @@ router.register(r'districts', views.DistrictViewSet)
 
 router_urls = router.urls
 
-router_urls += patterns('',
-         url(r'^order/buy/', OrderBuyReview.as_view(), name="order_buy")
-    )
+router_urls += format_suffix_patterns([
+        url(r'^trades/(?P<pk>[0-9]+)/orders$',
+            views_trade.SaleOrderViewSet.as_view({'get': 'list'}),
+            name='saletrade-saleorder'),
+        url(r'^trades/(?P<pk>[0-9]+)/orders/details$',
+            views_trade.SaleOrderViewSet.as_view({'get': 'details'}),
+            name='saleorder-details'),
+        url(r'^trades/(?P<tid>[0-9]+)/orders/(?P<pk>[0-9]+)$',
+            views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
+            name='saleorder-detail'),
+        url(r'^order/buy/', 
+            OrderBuyReview.as_view(), 
+            name="order_buy")
+    ])
 
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^v1/', include(router_urls,namespace='v1')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 )
+
+
