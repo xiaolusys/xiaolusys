@@ -132,7 +132,20 @@
 						<td>退货快递:</td><td><input type="text" id="id_return_company_name" class="simple-text" /></td>
 						<td>快递单号:</td><td><input type="text" id="id_return_out_sid" class="simple-text" /></td>
 						<td>备注:</td><td><textarea id="id-return-memo" class="simple-text" rows="2" cols="40"></textarea></td>
-						<td></td><td><button id="id_clear_btn" class="btn btn-small btn-success">重填</button><td>
+						<td>退货原因
+                            <select class="select_reason" cid="{{ prod.id }}" id="reason_select" style="width: 100px">
+                                <option value='0'>其他</option>
+                                <option value='1'>错拍</option>
+                                <option value='2'>缺货</option>
+                                <option value='3'>开线/脱色/脱毛/有色差/有虫洞</option>
+                                <option value='4'>发错货/漏发</option>
+                                <option value='5'>没有发货</option>
+                                <option value='6'>未收到货</option>
+                                <option value='7'>与描述不符</option>
+                                <option value='8'>退运费</option>
+                                <option value='9'>发票问题</option>
+                                <option value='10'>七天无理由退换货</option>
+                            </select></td><td><button id="id_clear_btn" class="btn btn-small btn-success">重填</button><td>
 					</tr>
 				</table>
 			</div>
@@ -230,7 +243,7 @@
 		<thead>
 			<tr>
 			<th>交易ID</th><th>买家昵称</th><th>手机</th><th>固话</th><th>物流公司</th><th>物流单号</th>
-			<th>商品名</th><th>规格</th><th>数量</th><th>二次销售</th><th>操作</th>
+			<th>商品名</th><th>规格</th><th>数量</th><th>二次销售</th><th>退货原因</th><th>操作</th>
 			</tr>
 		</thead>
 		<tbody></tbody>
