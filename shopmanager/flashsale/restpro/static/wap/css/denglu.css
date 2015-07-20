@@ -1,0 +1,28 @@
+.logo-wrap{
+  padding-top:135px;
+}
+.logo{
+  width:328px;
+  height:382px;
+  background-image:url(../images/logo.png);
+  margin:0 auto;
+}
+.btn-xiaolu,
+.btn-weixin{
+  display: block;
+  bottom:20px;
+  width: 600px;
+  height: 80px;
+  line-height: 80px;
+  border-radius: 10px;
+  color: #fff;
+  text-align: center;
+}
+.btn-xiaolu{
+  margin:150px auto 32px auto;
+  background-color:#fcb916;
+}
+.btn-weixin{
+  margin:0 auto;
+  background-color:#00c900;
+}
