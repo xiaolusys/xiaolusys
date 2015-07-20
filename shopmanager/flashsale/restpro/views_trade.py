@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import datetime
+from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets
@@ -10,7 +11,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 
-from flashsale.pay.models import SaleTrade,Customer,ShoppingCart
+from flashsale.pay.models import SaleTrade,SaleOrder,Customer,ShoppingCart
 
 from . import permissions as perms
 from . import serializers 
@@ -42,6 +43,62 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response(serializer.data) 
     
 
+class SaleOrderViewSet(viewsets.ModelViewSet):
+    """
+    ###特卖订单明细REST API接口：
+    - {path}/details[.formt]:获取订单及商品明细；
+    """
+    queryset = SaleOrder.objects.all()
+    serializer_class = serializers.SaleOrderSerializer# Create your views here.
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer)
+    
+    def get_queryset(self,request,pk=None):
+        """
+        获取订单明细QS
+        """
+        assert self.queryset is not None, (
+            "'%s' should either include a `queryset` attribute, "
+            "or override the `get_queryset()` method."
+            % self.__class__.__name__
+        )
+ 
+        queryset = self.queryset.filter(sale_trade=pk)
+        if isinstance(queryset, QuerySet):
+            # Ensure queryset is re-evaluated on each request.
+            queryset = queryset.all()
+        return queryset
+    
+    def list(self, request, pk, *args, **kwargs):
+        """ 
+        获取用户订单列表 
+        """
+        queryset = self.filter_queryset(self.get_queryset(request,pk))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    @list_route(methods=['get'])
+    def details(self, request, pk, *args, **kwargs):
+        """ 获取用户订单及订单明细列表 """
+        customer = get_object_or_404(Customer,user=request.user)
+        strade   = get_object_or_404(SaleTrade,id=pk,buyer_id=customer.id)
+        strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
+        
+        queryset = self.filter_queryset(self.get_queryset(request,pk))
+        serializer = self.get_serializer(queryset, many=True)
+        
+        strade_dict['orders'] = serializer.data
+        
+        return Response(strade_dict)
+    
+
+
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单REST API接口：
@@ -70,7 +127,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     @list_route(methods=['get'])
-    def wait_pay(self, request, *args, **kwargs):
+    def waitpay(self, request, *args, **kwargs):
         """ 获取用户待支付订单列表 """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = queryset.filter(status=SaleTrade.WAIT_BUYER_PAY)
@@ -83,7 +140,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     @list_route(methods=['get'])
-    def wait_send(self, request, *args, **kwargs):
+    def waitsend(self, request, *args, **kwargs):
         """ 获取用户待发货订单列表 """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = queryset.filter(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
