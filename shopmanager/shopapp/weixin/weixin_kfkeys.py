@@ -199,7 +199,6 @@ KFMAP ={
      "meihualu52":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDxzibZl6rTHQ3zkgZ9T3wqZCKw5jsW7y5ZEkyiaXZrMpM5Uy26XhwCjEw/0",
        "huahua14":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDOpVVhtGJFRicoD8xoCD1gaLKNrfHKetMKKlGP4V72l5D8fSL4C9A85Q/0",
        "guoguo25":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDXxb88TE1OdiarBjL8ibQ2nibm2bPMibAZBOW8XR89OhX4bHudmzyhB6uHQ/0",
-       "doudou59":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDkbsuiarp7rw7LI1nP0gQ6vXr5DG3BnX0kDV73wegfqSuJARH7pPrN3g/0",
         
          "tutu23":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDib2dREvSOEFWDrzTugicIibsClHfOsk2yyhfdzarwicTHCJyh7BS6cEDUA/0",
        "shanhu54":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mID8SIpZicPK2z7HKE9ayrJ3ibB6PDnt0F4DwBYN87v9Kubn1iaxwEzPGFyw/0",
