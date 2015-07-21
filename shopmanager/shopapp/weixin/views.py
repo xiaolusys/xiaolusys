@@ -1074,7 +1074,8 @@ class ResultView(View):
         url_key = KFKEYS[idx]
         kefu_url = IMG_URL_PREFIX + KFMAP[url_key]
 
-        sample_kefu_url = IMG_URL_PREFIX + [KFMAP['xiangxiang0'],KFMAP['sisi40']][sidx]
+        #sample_kefu_url = IMG_URL_PREFIX + [KFMAP['xiangxiang0'],KFMAP['sisi40']][sidx]
+        sample_kefu_url = ''
 
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
