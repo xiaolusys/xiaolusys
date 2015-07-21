@@ -813,7 +813,7 @@ class FreeSampleView(View):
         else:
             delta = START_TIME - now
 
-        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uOr8DItI6FvJqmu7j69unZM':
+        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU':
             started = True
 
         days = delta.days
