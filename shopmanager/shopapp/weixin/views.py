@@ -120,8 +120,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,4,13,10)
-END_TIME = datetime.datetime(2015,4,20,10)
+START_TIME = datetime.datetime(2015,7,21,10)
+END_TIME = datetime.datetime(2015,7,28,10)
 
 
 def get_user_openid(request, code, 
@@ -795,7 +795,7 @@ class FreeSampleView(View):
         today_orders = SampleOrder.objects.filter(created__gt=today_time)
         
         order_exist = False
-        start_time1 = datetime.datetime(2015,4,12)
+        start_time1 = datetime.datetime(2015,7,21)
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time1)
         
         if order.count() > 0:
@@ -813,9 +813,9 @@ class FreeSampleView(View):
         else:
             delta = START_TIME - now
 
-        #if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uOr8DItI6FvJqmu7j69unZM':
-        #    started = True
-        started = False
+        if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uOr8DItI6FvJqmu7j69unZM':
+            started = True
+
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
