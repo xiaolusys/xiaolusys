@@ -1,7 +1,7 @@
 
 URLMAP = [7, 11, 12, 13, 14, 17, 18, 20,
          21, 22, 23, 25, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39,
-         42, 43, 45, 46, 48, 51, 52, 53, 54, 55, 56, 58, 59, 60,
+         40,42, 43, 45, 46, 48, 51, 52, 53, 54, 55, 56, 58, 59, 60,
          61, 62, 63, 64, 65, 66, 67, 68, 70, 71, 72, 73, 74, 75, 77, 78, 79, 80,
          81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
 
@@ -107,6 +107,7 @@ KFKEYS = [
         "nana97",
     "miaomiao98",
     "qiaoqiao99",
+       "sisi100",
     ]
 
 IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
@@ -229,13 +230,12 @@ KFMAP ={
       "yuanyuan76":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2qhtRnKNGeL07WI3YC8zxHrYMLQ3iaXDdQGs4bkfkS2GVWzteUPkbjbg/0/0",
         
           "dudu24":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z385UZJW8qvDlLeD2ZrMuWmKnkvhbUYxtXEyjSZdWNibialFvBOz4OzwRXg/0",
-         "ziyun40":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2CHog0UWTicjLickzBPMjVVUchEgBgOBuibmC9c3WiatXUSmBy63sIT6GzQ/0",
          "xinyu41":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF22Y6rP78D034rRCjtX8LAPHFd4C626tLTx2TQOufVgsaxB5k9MdmXCg/0",
          
         "xiaoxi44":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF26WCSTrRznuOHVZ94UcEnUHrk8yt57J1ZUESavpbqibB3ptzkJLQR0rQ/0",
          "luoxi47":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2Fv895SchfZvvZnvDmkvDoeCvxYC38Y0pNdRLs5h2wib0hichzYrTX9cg/0",
         "jiajia49":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2rHSiatXvJa9QRLO7uyGeCwYyFH7UcrJZicQrs93sbeQjBVEpatTSmApw/0",
-         "jimei50":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2ibibShOzAPHTg8MC8JhgOuemXnGsmrXZgDs4I6T2icwy7UIMicL6N7HBPw/0",
+         
         
         #################################jiangcheng#################################
         "yingtao8":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1Z19diacyaa7qUWjiccebLib3Up3uCJU6MDHRQRgV5TyicXaoNtLRROicLfw/0",
