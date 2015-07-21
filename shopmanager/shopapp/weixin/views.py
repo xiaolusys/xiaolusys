@@ -936,6 +936,7 @@ class SampleConfirmView(View):
             redirect_url = '/weixin/freesamples/'
         return redirect(redirect_url)
 
+from flashsale.xiaolumm.models import XiaoluMama
         
 class SampleAdsView(View):
     def get(self, request, *args, **kwargs):
@@ -951,7 +952,10 @@ class SampleAdsView(View):
         sample_orders = SampleOrder.objects.filter(user_openid=openid,created__gte=start_time1)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            if users.count() > 0 and users[0].charge_status == WeiXinUser.UNCHARGE:
+            xlmms = XiaoluMama.objects.filter(openid=openid)
+            if (users.count() > 0 
+                and users[0].charge_status == WeiXinUser.UNCHARGE 
+                and (xlmms.count() == 0 or not xlmms[0].charge_time)):
                 hongbao_pass = True
 
         idx = 0
