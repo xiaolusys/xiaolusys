@@ -33,16 +33,28 @@ class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.Gen
         mobile = request.data['vmobile']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=60)
-        print mobile,"eeeeee"
         if mobile == "": #进行正则判断，待写
             return Response("false")
-        reg = Register.objects.filter(vmobile=mobile, mobile_pass=True)
+        reg = Register.objects.filter(vmobile=mobile)
         if reg.count() > 0:
-            return Response("0") #已经注册过
+            temp_reg = reg[0]
+            reg_pass = reg.filter(mobile_pass=True)
+            if reg_pass.count() > 0:
+                return Response("0") #已经注册过
+            if temp_reg.modified > last_send_time:
+                return Response("1")#60s内已经发送过
+            else:
+                temp_reg.verify_code = temp_reg.genValidCode()
+                temp_reg.verify_count += 1
+                temp_reg.save()
+                task_register_code.s(request.data['vmobile'])()
+                return Response("OK")
+
         new_reg = Register(vmobile=mobile)
         new_reg.verify_code = new_reg.genValidCode()
+        new_reg.verify_count = 1
         new_reg.save()
-        # task_register_code.s(request.data['vmobile'])()
+        task_register_code.s(request.data['vmobile'])()
         return Response("OK")
     
     def list(self, request, *args, **kwargs):
@@ -62,21 +74,24 @@ class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.Gen
         mobile = post['username']
 
         reg = Register.objects.filter(vmobile=mobile)
+        reg_pass = reg.filter(mobile_pass=True)
         if reg.count() == 0:
             return Response("无验证码")
-        verify_code = reg[0].verify_code
-        print type(verify_code),verify_code,type(post.get('valid_code', 0)),post.get('valid_code', 0)
+        elif reg_pass.count() > 0:
+            return Response("0")#已经注册过
+        reg_temp = reg[0]
+        verify_code = reg_temp.verify_code
         if verify_code != post.get('valid_code', 0):
             return Response("验证码不对")
         form = UserCreationForm(post)
-
         if form.is_valid():
             new_user = form.save()
-            print new_user.is_active,"is_active"
             a = Customer()
             a.user = new_user
             a.mobile = mobile
             a.save()
+            reg_temp.mobile_pass = True
+            reg_temp.save()
             return HttpResponseRedirect("/mm/plist")
         else:
             return Response("error")
