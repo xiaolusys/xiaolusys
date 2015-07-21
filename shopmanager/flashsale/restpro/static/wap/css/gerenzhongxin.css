@@ -1,0 +1,164 @@
+.container {
+    padding-bottom: 90px;
+    background-color: #fff;
+}
+
+.header a.home {
+    display: block;
+    width: 88px;
+    height: 88px;
+    position: absolute;
+    right: 0px;
+    background: url(../images/icon-shouye.png) no-repeat center center;
+}
+
+.userinfo {
+    width: 640px;
+    margin: 0 auto;
+    height: 325px;
+    background-image: url(../images/info-bg.png);
+    color: #fff;
+    position: relative;
+}
+
+.userinfo .nickname {
+    position: absolute;
+    left: 53px;
+    top: 93px;
+}
+
+.userinfo .score {
+    position: absolute;
+    left: 53px;
+    top: 140px;
+}
+
+.userinfo a {
+    display: block;
+    height: 90px;
+    position: absolute;
+    bottom: 0;
+    text-align: center;
+    color: #fff;
+    font-size: 24px;
+    background-position: center 16px;
+    background-repeat: no-repeat;
+}
+
+.userinfo .daizhifu {
+    width: 213px;
+    left: 0;
+    background-image: url(../images/icon-daizhifu.png);
+    line-height: 136px;
+}
+
+.userinfo .daishouhuo {
+    width: 214px;
+    left: 214px;
+    background-image: url(../images/icon-daishouhuo.png);
+    line-height: 140px;
+}
+
+.userinfo .quanbudingdan {
+    width: 211px;
+    left: 429px;
+    background-image: url(../images/icon-quanbudingdan.png);
+    line-height: 140px;
+}
+
+.userinfo-list {
+    width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding-left: 40px;
+}
+
+.userinfo-list li {
+    border-bottom: 1px solid #e5e5e5;
+    height: 88px;
+    position: relative;
+}
+
+.userinfo-list .icon-jiantouyou {
+    position: absolute;
+    top: 0;
+    right: 40px;
+    height: 88px;
+    display: block;
+    width: 12px;
+    background-color: #ccc;
+    background: url(../images/icon-jiantouyou.png) no-repeat center center;
+}
+
+.userinfo-list .icon {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 88px;
+}
+
+.userinfo-list .icon-youhuiquan {
+    background: url(../images/icon-youhuiquan.png) no-repeat center center;
+}
+
+.userinfo-list .icon-wodejifen {
+    background: url(../images/icon-wodejifen.png) no-repeat center center;
+}
+
+.userinfo-list .icon-dizhiguanli {
+    background: url(../images/icon-dizhiguanli.png) no-repeat center center;
+}
+
+.userinfo-list .icon-tuihuanhuo {
+    background: url(../images/icon-tuihuanhuo.png) no-repeat center center;
+}
+
+.userinfo-list .icon-mimaxiugai {
+    background: url(../images/icon-mimaxiugai.png) no-repeat center center;
+}
+
+.userinfo-list .icon-tousujianyi {
+    background: url(../images/icon-tousujianyi.png) no-repeat center center;
+}
+
+.userinfo-list .icon-qiehuanzhanghao {
+    background: url(../images/icon-qiehuanzhanghao.png) no-repeat center center;
+}
+
+.userinfo-list a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    line-height: 88px;
+    color: #868484;
+    text-indent: 70px;
+}
+
+.userinfo-list .call {
+    padding-left: 60px;
+    color: #bcbbbb;
+}
+
+.btn-wrap {
+    background-color: #fff;
+    width: 640px;
+    margin: 0 auto;
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+
+.btn-logout {
+    display: block;
+    margin: 0 auto;
+
+    width: 400px;
+    height: 80px;
+    line-height: 80px;
+    text-align: center;
+    background-color: #e66351;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 34px;
+}
