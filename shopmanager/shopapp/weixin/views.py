@@ -814,9 +814,7 @@ class FreeSampleView(View):
             delta = START_TIME - now
         
         if (user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' 
-            or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'
-            or user_openid == 'oMt59uKdYPSEvzJnbL_xMXhOaIek'
-            or user_openid == 'oMt59uMkMJgtGi6OT-OiDwy_m6M4'):
+            or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'):
             started = True
             
         days = delta.days
@@ -959,7 +957,7 @@ class SampleAdsView(View):
             xlmms = XiaoluMama.objects.filter(openid=wx_user.unionid)
             if (users.count() > 0 
                 and users[0].charge_status == WeiXinUser.UNCHARGE 
-                and (xlmms.count() == 0 or not xlmms[0].charge_time)):
+                and (xlmms.count() == 0 or xlmms[0].charge_status != XiaoluMama.CHARGED)):
                 hongbao_pass = True
 
         idx = 0
@@ -1058,7 +1056,7 @@ class ResultView(View):
             
             xlmms = XiaoluMama.objects.filter(openid=wx_user.unionid)
             hongbao_pass = (wx_user.charge_status == WeiXinUser.UNCHARGE 
-                            and (xlmms.count() == 0 or not xlmms[0].charge_time))
+                            and (xlmms.count() == 0 or xlmms[0].charge_status != XiaoluMama.CHARGED))
             user_charged = wx_user.charge_status == WeiXinUser.CHARGED
             
         vip_code = None
