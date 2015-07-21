@@ -17,17 +17,17 @@
     <img src="{{ kefu_url }}" alt="">
     {% endif %}
     {% endif %}
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hTonpuJVkKSluKSGoib8ibrfOibhmZdCPuxkv3kLYB3wwUu2JEWEBTN4e6Ug/0?wx_fmt=gif"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToQfEkCD59X1sdI5evokryWyUYjUL147pyws8u3lhIGbTDq0B2tywic1w/0?wx_fmt=gif"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hTo2KGDiaLNRnKpCMQMTiatB0VwZgO3yLbcmdAYAn32rgAoQEETREX1VnqQ/0?wx_fmt=gif"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToACpIesicXTeyvGwNKnLicMRdpmydgvxrI6ZBibhgTnNmxiasiaYrFcCOkpQ/0?wx_fmt=jpeg"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToFQfUdFdBVZFLJIZrbb2SIYNpw2WYJ4CLKH25Lw3CiaYSvMgPxGzAOzQ/0?wx_fmt=jpeg"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToTlzTs1RY3rt9REQt7g7AGESXYQ5LleXyHJwicCJw4QcCzkDnvDH6h2Q/0?wx_fmt=jpeg"/>
     
     {% if not identical %}
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToqF1Bm654771XAxEPADonrH43VAJBcIoyOlkyjLGAmubwptFicDNG8mg/0?wx_fmt=jpeg"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToHJXO9X3Yd6OGQ9CBzsviamRw6BicUnUzGfgcDrRdHGqOnsEgiasibu5QAQ/0?wx_fmt=jpeg"/>
     <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" type="button" class="btn btn-danger" style="margin-top:16px">快点去抢 >></a>
     <p style="margin-top:16px">好友的VIP邀请码: {{ vipcode }}</p>
     {% else %}
     <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect">
-    	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToqF1Bm654771XAxEPADonrH43VAJBcIoyOlkyjLGAmubwptFicDNG8mg/0?wx_fmt=jpeg"/>
+    	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToHJXO9X3Yd6OGQ9CBzsviamRw6BicUnUzGfgcDrRdHGqOnsEgiasibu5QAQ/0?wx_fmt=jpeg"/>
     </a>
     {% endif %}
   </div>
@@ -50,11 +50,11 @@
 
   global_timer =  window.setInterval(slideup, 3500);
 
-var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2vdMlmfjfkMpOXnnWenNicqokRfQBUrNRO2VUJw6YLPGTvJyCV4HNVIw/0";
+var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToDkp2WRptGyTSeU4qIm3om4OaxtkaJb3tMRl9bsjTGXL3rzL1kGib5WA/0?wx_fmt=jpeg";
 
 var lineLink = "http://weixin.huyi.so/wx/sampleads/{{ pk }}/";
-var descContent = "其实，每个宝宝夏天都需要凉快玩耍！不过，。。。";
-var shareTitle = "你家娃，夏天能否凉快玩耍？（无娃禁入）";
+var descContent = "暑假来了，跟宝宝计划一场说走就走的旅行"
+var shareTitle = "城里人必备带娃神器——GET";
 var user_openid = "{{ wx_user.openid }}";
 
   wx.config({
