@@ -30,6 +30,7 @@ class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.Gen
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
 
     def create(self, request, *args, **kwargs):
+        """发送验证码时候新建register对象"""
         mobile = request.data['vmobile']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=60)
@@ -70,6 +71,7 @@ class RegisterViewSet(mixins.CreateModelMixin,mixins.ListModelMixin,viewsets.Gen
 
     @list_route(methods=['post'])
     def check_code_user(self, request):
+        """验证码判断、验证码过时功能（未写）、新建用户"""
         post = request.POST
         mobile = post['username']
 
