@@ -776,7 +776,7 @@ class FreeSampleView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        fcode = content.get('f', '')
+        fcode = content.get('f', '866988')
         
         user_openid = get_user_openid(request, code)
         if not valid_openid(user_openid):
