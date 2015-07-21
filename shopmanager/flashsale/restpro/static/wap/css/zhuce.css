@@ -94,6 +94,7 @@ body {
     top: -42px;
     left: 48px;
     font-size: 24px;
+    display: none;
 }
 
 .btn-reg {
