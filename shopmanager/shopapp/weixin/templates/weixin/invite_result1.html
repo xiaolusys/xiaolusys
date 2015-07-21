@@ -1,6 +1,6 @@
 {% extends "weixin/weixin_base.html" %}
 {% load mathfilters %}
-{% block title %}审核通知 3000条卡通凉席免费送！{% endblock %}
+{% block title %}审核通知 2000组吸汗巾免费送！{% endblock %}
 
 {% block container %}
 
@@ -27,14 +27,9 @@
       <p style="color:red;font-size:18px;">亲，您已经领过红包了，小鹿美美精选特卖，每天都会不同！</p>
       {% endif %}
       {% endif %}
-      <p style="color:red;"><font style="font-size:20px;color:red;">3000</font>份卡通凉席免费试用活动已经圆满结束，所有试用通过名单都已公布，恭喜中奖妈妈们！ </p>
-      <p>第一批 共735名 ，邀请码 9 次 ，点击 11 次以上  <a href="/weixin/finallist/1/1/1504/">中奖名单&gt;&gt;</a></p>
-      <p>第二批 共725名 ，邀请码 9 次 ，点击 11 次以上  <a href="/weixin/finallist/2/1/1504/">中奖名单&gt;&gt;</a></p>
-      <p>第三批 共454名 ，邀请码 10 次 ，点击 12 次以上 <a href="/weixin/finallist/3/1/1504/">中奖名单&gt;&gt;</a></p>
-      <p>第四批 共423名 ，邀请码 10 次 ，点击 12 次以上 <a href="/weixin/finallist/4/1/1504/">中奖名单&gt;&gt;</a></p>
-      <p>第五批 共394名 ，邀请码 8 次 ，点击 8 次以上 <a href="/weixin/finallist/5/1/1504/">中奖名单&gt;&gt;</a></p>
-      <p>第六批 共319名 ，邀请码 8 次 ，点击 1 次以上 <a href="/weixin/finallist/6/1/1504/">中奖名单&gt;&gt;</a></p>
-
+      <p style="color:red;"><font style="font-size:20px;color:red;">2000</font>份卡通吸汗巾免费试用正在进行中，赶快邀请好友来参加吧！ </p>
+      <!-- <p>第一批 共735名 ，邀请码 9 次 ，点击 11 次以上  <a href="/weixin/finallist/1/1/1504/">中奖名单&gt;&gt;</a></p> -->
+	   
     </div>
   </div>
 
@@ -63,7 +58,7 @@
       {% else %}
       <p style="color:red;">亲，恭喜您的试用申请通过了！</p>
       <p>您的综合得分: <font style="color:red">{{ vip_code.usage_count  }} *10</font> + <font style="color:orange">{{ link_click.clicker_num }}</font> = {{ vip_code.usage_count|mul:10|add:link_click.clicker_num }}</p>
-      <p style="color:#029fd6">请扫描二维码添加客服微信(长按图片识别二维码)咨询凉席领取流程:</p>
+      <p style="color:#029fd6">请扫描二维码添加客服微信(长按图片识别二维码)咨询吸汗巾领取流程:</p>
       <div class="row">
 	<div class="col-xs-12">
 	  <div class="thumbnail" style="padding:3px" id="id_i1">
@@ -94,6 +89,7 @@
     <div class="panel-body">
       <p>亲们，若您的申请已审核通过，请仔细阅读审核页面的说明，务必在活动结束后<font style="color:red">5个工作日内</font>按照指示操作领取试用产品！不要忘记错过啦！</p>
       <p>为了保证活动的公正性和真实性，我们保留历史中奖名单供查询。</p>
+      <p><a href="/weixin/finallist/1/1/1504/">15年4月中奖名单 >></a></p>
       <p><a href="/weixin/finallist/1/1/1503/">15年3月中奖名单 >></a></p>
       <p><a href="/weixin/finallist/1/1/1501/">15年1月中奖名单 >></a></p>
       <p><a href="/weixin/finallist/1/1/1410/">14年10月中奖名单 >></a></p>

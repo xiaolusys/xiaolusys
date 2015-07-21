@@ -812,10 +812,10 @@ class FreeSampleView(View):
             delta = END_TIME - now
         else:
             delta = START_TIME - now
-
+        
         if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU':
             started = True
-
+            
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
@@ -952,7 +952,8 @@ class SampleAdsView(View):
         sample_orders = SampleOrder.objects.filter(user_openid=openid,created__gte=start_time1)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            xlmms = XiaoluMama.objects.filter(openid=openid)
+            wx_user = WeiXinUser.objects.get(openid=openid)
+            xlmms = XiaoluMama.objects.filter(openid=wx_user.unionid)
             if (users.count() > 0 
                 and users[0].charge_status == WeiXinUser.UNCHARGE 
                 and (xlmms.count() == 0 or not xlmms[0].charge_time)):
@@ -1046,12 +1047,15 @@ class ResultView(View):
         hongbao_pass = False
         sample_order = None 
         user_charged = False
-        start_time   = datetime.datetime(2015,3,9)
+        start_time   = datetime.datetime(2015,7,21)
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=start_time).order_by('-created')#,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass  = (sample_order.status > 80 and sample_order.status < 100)
-            hongbao_pass = wx_user.charge_status == WeiXinUser.UNCHARGE
+            sample_pass  = (sample_order.status > 90 and sample_order.status < 100)
+            
+            xlmms = XiaoluMama.objects.filter(openid=wx_user.unionid)
+            hongbao_pass = (wx_user.charge_status == WeiXinUser.UNCHARGE 
+                            and (xlmms.count() == 0 or not xlmms[0].charge_time))
             user_charged = wx_user.charge_status == WeiXinUser.CHARGED
             
         vip_code = None
@@ -1122,30 +1126,10 @@ class FinalListView(View):
         
         order_list = SampleOrder.objects.none()
         
-        if month == 1504 and batch == 1 :
+        if month == 1504 :
             start_time = datetime.datetime(2015,4,13)
             end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=81,created__gt=start_time)
-        elif month == 1504 and batch == 2 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=82,created__gt=start_time)
-        elif month == 1504 and batch == 3 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=83,created__gt=start_time)
-        elif month == 1504 and batch == 4 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=84,created__gt=start_time)
-        elif month == 1504 and batch == 5 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=85,created__gt=start_time)
-        elif month == 1504 and batch == 6 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=86,created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=80,status__lt=90,created__gt=start_time)
         elif month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,31)
