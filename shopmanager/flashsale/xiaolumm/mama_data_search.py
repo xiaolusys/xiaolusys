@@ -11,7 +11,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
 import datetime
 from flashsale.clickcount.models import ClickCount
-from flashsale.clickrebeta.models import StatisticsShoppingByDay
+from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 
 
 def referal_From(mobile):
@@ -29,7 +29,8 @@ def click_Count(xlmm, left, right):
 def order_Count(xlmm, left, right):
     # 找订单
     right = right + datetime.timedelta(days=1)
-    order_counts = StatisticsShoppingByDay.objects.filter(linkid=xlmm, tongjidate__gte=left, tongjidate__lte=right)
+    order_counts = StatisticsShopping.objects.filter(linkid=xlmm, shoptime__gte=left, shoptime__lte=right).exclude(
+        status=StatisticsShopping.REFUNDED)
     return order_counts
 
 
@@ -117,9 +118,9 @@ def all_Show(request):
     if right and xlmm:
         carry_log_all_sum, sum_detail_confirm, sum_detail_pending = carry_Log_By_date(left_date, right_date, xlmm)
         clickcounts = click_Count(xlmm, left_date, right_date)  # 点击状况
-        total_clicks = clickcounts.count()  # 点击总数
+        total_clicks = clickcounts.aggregate(clis=Sum('valid_num')).get('clis') or 0  # 点击总数
         order_counts = order_Count(xlmm, left_date, right_date)  # 订单状况
-        total_orders = order_counts.count()  # 订单总数
+        total_orders = order_counts.count()# 订单总数(不包含取消的)
         xlmms = XiaoluMama.objects.filter(id=xlmm)
 
         allcarrylogs = CarryLog.objects.filter(xlmm=xlmm, carry_date__gte=left, carry_date__lte=right)
