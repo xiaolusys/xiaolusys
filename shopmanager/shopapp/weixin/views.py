@@ -1079,8 +1079,7 @@ class ResultView(View):
         url_key = KFKEYS[idx]
         kefu_url = IMG_URL_PREFIX + KFMAP[url_key]
 
-        #sample_kefu_url = IMG_URL_PREFIX + [KFMAP['xiangxiang0'],KFMAP['sisi40']][sidx]
-        sample_kefu_url = ''
+        sample_kefu_url = IMG_URL_PREFIX + KFMAP['tangbao'] #[KFMAP['xiangxiang0'],KFMAP['sisi40']][sidx]
 
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
@@ -1127,7 +1126,11 @@ class FinalListView(View):
         
         order_list = SampleOrder.objects.none()
         
-        if month == 1504 :
+        if month == 1507 and batch == 1:
+            start_time = datetime.datetime(2015,7,21)
+            end_time = datetime.datetime(2015,7,29)
+            order_list = SampleOrder.objects.filter(status=91,created__gt=start_time)
+        elif month == 1504 :
             start_time = datetime.datetime(2015,4,13)
             end_time = datetime.datetime(2015,4,21)
             order_list = SampleOrder.objects.filter(status__gt=80,status__lt=90,created__gt=start_time)

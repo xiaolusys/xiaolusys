@@ -112,6 +112,7 @@ KFKEYS = [
 
 IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
 KFMAP ={
+         "tangbao":"yMhOQPTKhLuMow8pbD4oicRpBrwEK8hTo5UG9wQHhm93H6F3e1U9zUv2usKiasuib5M8935XmPIyVBE7plrXiaZGNQ/0",
         #################################dapeng#################################
      "xiangxiang0":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDLNd2zhrLj6qLwdibP9Qap4hKmnIqPqFuuvgq9LeK86TkmwwapZxZFfA/0", #
          "sisi100":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDU9D5m3QKyWKQ5zOUIia1QqzLsDTgbYEuoia5IicIfvfZbZibdSIQiaOb47A/0",#
