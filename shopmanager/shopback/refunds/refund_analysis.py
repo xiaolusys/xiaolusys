@@ -9,7 +9,8 @@ from django.shortcuts import redirect, render_to_response
 from django.views.generic import View
 from django.template import RequestContext
 import operator
-
+from shopback.trades.models import MergeTrade
+from shopback import paramconfig as pcfg
 """
     # (0, u'其他'),
     # (1, u'错拍'),
@@ -60,7 +61,11 @@ def refund_Analysis(request):
     ref_su_am = refunds_success.aggregate(total_su_am=Sum('refund_fee')).get('total_su_am') or 0
 
     refund_pros = RefundProduct.objects.filter(created__gte=date_time_from, created__lte=date_time_to)
-
+    # 发货总数量
+    merge_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to).exclude(status=pcfg.INVALID_STATUS).count()  # 排除作废订单
+    # 计算退货率 退货单数量／发货总数量
+    refund_rate_func = lambda ref_co, merge_counts: 0 if merge_counts == 0 else round(float(ref_co) / merge_counts, 3)
+    refund_rate = refund_rate_func(ref_co, merge_counts)
     top_re = refund_pros.values('outer_id', 'title').annotate(t_num=Sum('num'))
     if len(top_re) > 50:
         top_re = sorted(top_re, key=operator.itemgetter('t_num'))   # 排序
@@ -84,6 +89,8 @@ def refund_Analysis(request):
     return render_to_response("refunds/refund_analysis.html",
                               {"refund_pros": refund_pros, "ref_co": ref_co, "ref_am": ref_am,
                                "ref_su_co": ref_su_co, 'ref_su_am': ref_su_am,
+
+                               "merge_counts": merge_counts, "refund_rate": refund_rate,
 
                                "reason_count_total": reason_count_total,
                                "reason_count": reason_count,
