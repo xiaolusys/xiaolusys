@@ -177,6 +177,8 @@ def pushTradeRefundTask(refund_id):
         refund.user = seller
         refund.title = sorder.title
         refund.payment = sale_refund.payment
+        refund.buyer_nick = strade.buyer_nick or strade.receiver_name
+        refund.mobile     = strade.receiver_mobile
         
         if sale_refund.has_good_return:
             refund.status = Refund.REFUND_WAIT_RETURN_GOODS
