@@ -62,7 +62,7 @@ def refund_Analysis(request):
 
     refund_pros = RefundProduct.objects.filter(created__gte=date_time_from, created__lte=date_time_to)
     # 发货总数量
-    merge_counts = MergeTrade.objects.all().exclude(status=pcfg.INVALID_STATUS).count()  # 排除作废订单
+    merge_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to).exclude(status=pcfg.INVALID_STATUS).count()  # 排除作废订单
     # 计算退货率 退货单数量／发货总数量
     refund_rate_func = lambda ref_co, merge_counts: 0 if merge_counts == 0 else round(float(ref_co) / merge_counts, 3)
     refund_rate = refund_rate_func(ref_co, merge_counts)
