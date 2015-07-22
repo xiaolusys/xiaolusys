@@ -93,6 +93,9 @@
         <span class="label label-primary">退款金额：{{ ref_am }}</span>
         <span class="label label-primary">成功退款单数：{{ ref_su_co }}</span>
         <span class="label label-primary">成功退款金额：{{ ref_su_am }}</span>
+
+        <span class="label label-primary">订单总数(不含作废)：{{ merge_counts }}</span>
+        <span class="label label-primary">退款率(以时间)：{{ refund_rate }}</span>
     </div>
     <hr style="height:5px;border:none;border-top:1px ridge green;"/>
     {#    {{ reason_count_total }} 所有原因的条数（该时间段的） #}
