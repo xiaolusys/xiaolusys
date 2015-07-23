@@ -10,7 +10,7 @@ class Productdetail(models.Model):
     
     content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
     
-    mama_discount  = models.IntegerField(blank=True,default=100,verbose_name=u'妈妈折扣')
+    mama_discount  = models.IntegerField(default=100,verbose_name=u'妈妈折扣')
     
     is_recommend = models.BooleanField(db_index=True,verbose_name=u'专区推荐')
     

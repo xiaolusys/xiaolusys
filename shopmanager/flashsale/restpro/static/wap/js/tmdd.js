@@ -1,4 +1,7 @@
-
+/**
+ *@author: imeron
+ *@date: 2015-07-22 
+ */
 function Create_order_dom(obj){
 	function Order_dom(){
 	/*
@@ -17,7 +20,6 @@ function Create_order_dom(obj){
     </a>
     </li>
     */};
-  
   return hereDoc(Order_dom).template(obj)
 }
 
@@ -89,15 +91,15 @@ function Create_detail_shouhuo_dom(obj){
     <div class="info">
       <p class="clear">
         <span class="label">收货人：</span>
-        <span class="value">{{ obj.receiver_name }}</span>
+        <span class="value">{{ receiver_name }}</span>
       </p>
       <p class="clear">
         <span class="label">手机号码：</span>
-        <span class="value">{{ obj.receiver_mobile }}</span>
+        <span class="value">{{ receiver_mobile }}</span>
       </p>
       <p class="clear">
         <span class="label">收货地址：</span>
-        <span class="value">{{ obj.receiver_state }} - {{ obj.receiver_city }} - {{ obj.receiver_district }} - {{ receiver_address }}</span>
+        <span class="value">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }} - {{ receiver_address }}</span>
       </p>  
     </div>
 	*/};

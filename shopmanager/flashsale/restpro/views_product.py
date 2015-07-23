@@ -148,6 +148,35 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(response_date)
     
+    @list_route(methods=['get'])
+    def childlist(self, request, *args, **kwargs):
+        target_date = datetime.date.today()
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        
+        female_qs = self.get_child_qs(queryset)
+        page = self.paginate_queryset(female_qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        
+        return Response(serializer.data)
     
-    
+    @list_route(methods=['get'])
+    def ladylist(self, request, *args, **kwargs):
+        target_date = datetime.date.today()
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        
+        female_qs = self.get_female_qs(queryset)
+        page = self.paginate_queryset(female_qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        
+        return Response(serializer.data)
     

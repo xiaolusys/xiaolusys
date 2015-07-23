@@ -1,4 +1,7 @@
-
+/**
+ *@author: imeron
+ *@date: 2015-07-22 
+ */
 //字符串模板
 String.prototype.template = function(data) {
 	var str = this;
@@ -75,6 +78,8 @@ var GLConfig = {
 	baseApiUrl:'/rest/v1', //API接口调用前缀
 	today_suffix:'today',  //获取首页今日商品信息，URL标识
     previous_suffix:'previous', //获取首页昨日商品信息，URL标识
+    get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
+    get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
     get_trade_all_url:'/trades.json', //获取用户所有订单
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
     get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单

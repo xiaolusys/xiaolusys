@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>小鹿美美</title>
+<meta charset="UTF-8">
+<meta id="viewport" name="viewport" />
+<script src="js/common.js"></script>
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/chaotong.css">
+</head>
+<body>
+<div class="top">
+  <a href="index.html" class="home"></a>
+  <a href="" class="user"></a>
+  <h1>时尚女装</h1>
+</div>
+
+<div class="paixu">
+  <a href="">推荐排序</a>
+  <a href="">价格排序↑</a>
+</div>
+
+<div class="shengyu">剩余2天1小时18分</div>
+
+<ul class="glist">
+  
+</ul>
+
+<a class="cart" href="gouwuche.html"><span class="total">2</span></a>
+<div class="scroll-top" id="js-scroll-top"></div>
+<script src="http://cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+(function($){
+  //返回顶部
+  $('#js-scroll-top').on('touchend',function(e){
+    e.preventDefault();
+    $('body').animate({scrollTop:0},400);  
+  });
+  //设置女装商品列表
+  Set_category_product(GLConfig.get_ladylist_url);
+})(jQuery);  
+</script>  
+</body>
+</html>

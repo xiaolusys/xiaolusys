@@ -1,4 +1,7 @@
-
+/**
+ *@author: imeron
+ *@date: 2015-07-22 
+ */
 function Set_posters(suffix){
 	//获取海报
 	var posterUrl = GLConfig.baseApiUrl + '/posters/'+ suffix +'.json';
@@ -35,6 +38,10 @@ function Set_posters(suffix){
 }
 
 function Create_item_dom(p_obj){
+	p_obj.saleout_dom = '';
+	if (p_obj.saleout){
+		p_obj.saleout_dom = '<div class="mask"></div><div class="text">抢光了</div>';
+	}
 	//创建商品DOM
 	function Item_dom(){
 	/* 
@@ -43,9 +50,9 @@ function Create_item_dom(p_obj){
         <img src="{{ pic_path }}">
         <p class="gname">{{ name }}</p>
         <p class="gprice">
-          <span class="nprice"><em>¥</em> {{ agent_pric }} </span>
-          <s class="oprice"><em>¥</em> {{ std_sale_price }}</s>
-        </p>
+          <span class="nprice"><em>¥</em> {{ agent_price }} </span>
+          <span class="oprice"><em>¥</em> {{ std_sale_price }}</span>
+        </p>{{ saleout_dom }}
       </a>
     </li>	 */
 	};
@@ -92,4 +99,31 @@ function Set_promotes_product(suffix){
 	}); 
 	
 }
+
+function Set_category_product(suffix){
+	//获取潮流童装商品
+	var promoteUrl = GLConfig.baseApiUrl + suffix;
+	
+	var promoteCallBack = function(data){
+		if (data.results != 'undifine' && data.results != null){
+			//设置女装推荐链接及图片
+			$.each(data.results,
+				function(index,p_obj){
+					var item_dom = Create_item_dom(p_obj);
+					$('.glist').append(item_dom);
+				}
+			);
+		}
+	};
+	// 请求推荐数据
+	$.ajax({ 
+		type:'get', 
+		url:promoteUrl, 
+		data:{}, 
+		dataType:'json', 
+		success:promoteCallBack 
+	}); 
+	
+}
+
 

@@ -41,10 +41,10 @@
 	  <p style="color:orange">&nbsp;您的可提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
 	  <p style="color:#428bca">提现将由小鹿美美公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
 	  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
-	    <p>&nbsp;提现需20～200元以内,请输入提现金额：</p>
+	    <p>&nbsp;提现需100～200元以内,请输入提现金额：</p>
 	    <div class="input-group" style="margin-top:5px">
 	      <span class="input-group-addon">￥</span>
-	      <input id="id-cashout-input" type="number" name="v" max="{% if could_cash_out > 200%}200{% else %}{{ could_cash_out }}{% endif %}" min="20" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out <= 20 %} readonly="readonly"  {% endif %}/>
+	      <input id="id-cashout-input" type="number" name="v" max="{% if could_cash_out > 200%}200{% else %}{{ could_cash_out }}{% endif %}" min="100" value="{{ could_cash_out }}" class="form-control" {% if could_cash_out < 100 %} readonly="readonly"  {% endif %}/>
 
 	      {% csrf_token %}
 	      <span class="input-group-btn">
@@ -245,7 +245,7 @@
 
         if (value < v_min || value > v_max){
         	subtn.removeClass('loading');
-        	$("#id-submit-message")[0].innerHTML = "单次提现金额最低20元，最高200元（微信红包）！";
+        	$("#id-submit-message")[0].innerHTML = "单次提现金额最低100元，最高200元（微信红包）！";
         	return 
         }
         var callback = function (res) {
@@ -261,7 +261,7 @@
 	        $("#id-submit-message")[0].innerHTML = "输入金额错误！请输入整数金额。";
 	      }
             if (res["code"] == 3) {
-	        $("#id-submit-message")[0].innerHTML = "请输入金额20到200范围内(含20，200)并且不大于可提现金额！";
+	        $("#id-submit-message")[0].innerHTML = "请输入金额100到200范围内(含100，200)并且不大于可提现金额！";
 	      }
 	    };
 	    
