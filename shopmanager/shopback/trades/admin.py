@@ -13,6 +13,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.contrib.admin.views.main import ORDER_VAR
 from bitfield import BitField
 from bitfield.forms import BitFieldCheckboxSelectMultiple
 from django.conf import settings
@@ -33,6 +34,7 @@ from shopback.trades.filters import (DateFieldListFilter,
                                      BitFieldListFilter,
                                      TradeStatusFilter)
 from shopback.trades.service import TradeService
+from shopback.base.admin import MyAdmin
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.trades import permissions as perms
 from common.utils import (gen_cvs_tuple,
@@ -73,20 +75,31 @@ class MergeOrderInline(admin.TabularInline):
 
 class MergeTradeChangeList(ChangeList):
     
+    def get_ordering(self, request, queryset):
+        ordering = super(MergeTradeChangeList,self).get_ordering(request, queryset)
+        ordering.remove('-pk')
+        return ordering
+        
+    
     def get_query_set(self,request):
         
+        qs = self.root_query_set
         #如果查询条件中含有邀请码
         search_q = request.GET.get('q','').strip()
+        if search_q:
+            (self.filter_specs, self.has_filters, remaining_lookup_params,
+             use_distinct) = self.get_filters(request)
+        
+            # Set ordering.
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
+        
         if PHONE_RE.match(search_q):
-            trades = MergeTrade.objects.filter(models.Q(id=search_q)
-                                               |models.Q(receiver_phone=search_q)
-                                               |models.Q(receiver_mobile=search_q))
+            trades = qs.filter(models.Q(id=search_q)|models.Q(receiver_mobile=search_q))#|models.Q(receiver_phone=search_q)
             return trades
         
         if search_q.isdigit():
-            trades = MergeTrade.objects.filter(models.Q(id=search_q)
-                                               |models.Q(tid=search_q)
-                                               |models.Q(out_sid=search_q))
+            trades = qs.filter(models.Q(id=search_q)|models.Q(tid=search_q)|models.Q(out_sid=search_q))
             return trades
         
         if re.compile('^wx[\d]{20,28}$').match(search_q):
@@ -99,18 +112,16 @@ class MergeTradeChangeList(ChangeList):
                     TradeService.createTrade(shops[0].uid, tid, MergeTrade.WX_TYPE)
             except:
                 pass
-            return MergeTrade.objects.filter(tid=tid)
+            return qs.filter(tid=tid)
             
         if search_q:
-            trades = MergeTrade.objects.filter(models.Q(buyer_nick=search_q)
-                                               |models.Q(tid=search_q)
-                                               |models.Q(out_sid=search_q))
+            trades = qs.filter(models.Q(buyer_nick=search_q)|models.Q(tid=search_q)|models.Q(out_sid=search_q))
             return trades
         
         return super(MergeTradeChangeList,self).get_query_set(request)
 
 
-class MergeTradeAdmin(admin.ModelAdmin):
+class MergeTradeAdmin(MyAdmin):
     list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
                     'payment','pay_time','consign_time','status','sys_status',
                     'reason_code','is_picking_print','is_express_print'#
@@ -118,17 +129,16 @@ class MergeTradeAdmin(admin.ModelAdmin):
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
-    
     change_list_template  = "admin/trades/change_list.html"
     change_form_template  = "admin/trades/change_trade_form.html"
     
-    ordering = ['-sys_status',]
+    ordering    = ['-sys_status']
     list_per_page = 50
     
     def trade_id_link(self, obj):
         link_content = '<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d">备注</a>'%(obj.id,obj.id,obj.id)
         if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
-            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d">延一天</a>'%obj.id
+            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d">延一周</a>'%obj.id
         return link_content
                
     trade_id_link.allow_tags = True
@@ -889,25 +899,25 @@ class MergeTradeAdmin(admin.ModelAdmin):
             index = 0
             for order in trade.print_orders:  
                 pcsv.append(('%s'%p for p in [ (rindex ,'')[index],
-                                                                            order.oid,
-                                                                            trade.tid,
-                                                                            trade.receiver_name,
-                                                                            order.outer_id,
-                                                                            order.title,
-                                                                            order.outer_sku_id,
-                                                                            order.sku_properties_name,
-                                                                            order.num,
-                                                                            trade.buyer_message,
-                                                                            '%s%s'%(trade.seller_memo,trade.sys_memo),
-                                                                            trade.pay_time,
-                                                                            trade.receiver_name,
-                                                                            trade.receiver_phone,
-                                                                            trade.receiver_mobile,
-                                                                            trade.receiver_state,
-                                                                            trade.receiver_city,
-                                                                            trade.receiver_district,
-                                                                            trade.receiver_address,
-                                                                            trade.get_shipping_type_display()]))
+                            order.oid,
+                            trade.tid,
+                            trade.receiver_name,
+                            order.outer_id,
+                            order.title,
+                            order.outer_sku_id,
+                            order.sku_properties_name,
+                            order.num,
+                            trade.buyer_message,
+                            '%s%s'%(trade.seller_memo,trade.sys_memo),
+                            trade.pay_time,
+                            trade.receiver_name,
+                            trade.receiver_phone,
+                            trade.receiver_mobile,
+                            trade.receiver_state,
+                            trade.receiver_city,
+                            trade.receiver_district,
+                            trade.receiver_address,
+                            trade.get_shipping_type_display()]))
                 index = 1
             rindex += 1
             
@@ -962,13 +972,6 @@ class MergeOrderChangeList(ChangeList):
                 if new_qs is not None:
                     qs = new_qs
 
-            try:
-                qs = qs.filter(**remaining_lookup_params)
-            except (SuspiciousOperation, ImproperlyConfigured):
-                raise
-            except Exception, e:
-                raise IncorrectLookupParameters(e)
-
             qs = qs.filter(outer_id=outer_id,outer_sku_id=outer_sku_id)
             
             ordering = self.get_ordering(request, qs)
@@ -985,10 +988,15 @@ class MergeOrderChangeList(ChangeList):
                 
             if search_q.isdigit():
                 mtids.append(int(search_q))
-
-            return MergeOrder.objects.filter(models.Q(oid=search_q)
+                
+            qs = MergeOrder.objects.filter(models.Q(oid=search_q)
                                              |models.Q(merge_trade__in=mtids)
                                              |models.Q(outer_id=search_q))
+                
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
+                
+            return qs
         
         if search_q:
             return MergeOrder.objects.none()
@@ -996,7 +1004,7 @@ class MergeOrderChangeList(ChangeList):
         return super(MergeOrderChangeList,self).get_query_set(request)
 
     
-class MergeOrderAdmin(admin.ModelAdmin):
+class MergeOrderAdmin(MyAdmin):
     list_display = ('id','oid','merge_trade_link','outer_id','outer_sku_id','sku_properties_name','price','num',
                     'payment','gift_type','pay_time','refund_status','trade_status_link','sys_status')
     list_display_links = ('oid','id')
@@ -1007,7 +1015,7 @@ class MergeOrderAdmin(admin.ModelAdmin):
     list_per_page = 50
     
     list_filter = ('sys_status','out_stock','is_rule_match','is_merge','gift_type',('pay_time',DateFieldListFilter))
-    search_fields = ['id','oid','outer_id','outer_sku_id']
+    search_fields = ['=id','=oid','=outer_id']
     
     #--------设置页面布局----------------
     fieldsets =(('订单明细基本信息:', {

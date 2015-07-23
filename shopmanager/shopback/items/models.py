@@ -14,11 +14,12 @@ from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save,post_save
 from shopback.users.models import User
 from .managers import ProductManager
 from auth import apis
 from common.utils import update_model_fields
+from flashsale.dinghuo.models_user import MyUser
 import logging
 
 logger  = logging.getLogger('django.request')
@@ -48,6 +49,11 @@ class Product(models.Model):
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
+    
+    UP_SHELF = 1
+    DOWN_SHELF = 0
+    SHELF_CHOICES = ((UP_SHELF,u'已上架'),
+                     (DOWN_SHELF,u'未上架'))
     
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
@@ -101,13 +107,23 @@ class Product(models.Model):
     sale_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属采购员')
     storage_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属仓管员')
     
+    is_verify    = models.BooleanField(default=False,verbose_name=u'是否校对')
+    shelf_status = models.IntegerField(choices=SHELF_CHOICES,default=DOWN_SHELF,verbose_name=u'上架状态')
+    
     objects = ProductManager()
     
     class Meta:
         db_table = 'shop_items_product'
         verbose_name = u'库存商品'
         verbose_name_plural = u'库存商品列表'
-        permissions = [("change_product_skunum", u"修改库存信息"),]
+        permissions = [("change_product_skunum", u"修改库存信息"),
+                       ("change_product_shelf",  u"特卖商品上架/下架"),
+                       ("sync_product_stock", u"商品库存同步/取消"),
+                       ("regular_product_order", u"商品订单定时/释放"),
+                       ("create_product_purchase", u"创建商品订货单"),
+                       ("export_product_info", u"导出库存商品信息"),
+                       ("invalid_product_info", u"作废库存商品信息")]
+        
     
     def __unicode__(self):
         return '<%s,%s>'%(self.outer_id,self.name)
@@ -116,10 +132,19 @@ class Product(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
-    
+
+    @property
+    def sale_group(self):
+        myuser = MyUser.objects.filter(user__username=self.sale_charger)
+        return myuser[0].group if myuser.count() > 0 else "None"
+
     @property
     def eskus(self):
         return self.prod_skus.filter(status=pcfg.NORMAL)
+    
+    @property
+    def normal_skus(self):
+        return self.eskus
     
     @property
     def pskus(self):
@@ -315,7 +340,20 @@ class Product(models.Model):
             ds.append(len(v)>1 and '%s-[%s]'%(k,','.join(list(v))) or '%s-%s'%(k,v.pop()))
         
         return ','.join(ds)
+
+
+def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     
+    products = Product.objects.filter(id=instance.id)
+    if products.count() > 0:
+        product = products[0]
+        #如果上架时间修改，则重置is_verify
+        if product.sale_time != instance.sale_time:
+            instance.is_verify = False
+        
+    
+pre_save.connect(change_obj_state_by_pre_save, sender=Product)
+
     
 class ProductSku(models.Model):
     
@@ -338,9 +376,9 @@ class ProductSku(models.Model):
     warn_num     = models.IntegerField(default=0,verbose_name='警戒数')    #警戒库位
     remain_num   = models.IntegerField(default=0,verbose_name='预留数')    #预留库存
     wait_post_num = models.IntegerField(default=0,verbose_name='待发数')    #待发数
-    sale_num      = models.IntegerField(default=0,verbose_name=u'日出库数')    #日出库
+    sale_num      = models.IntegerField(default=0,verbose_name=u'日出库数') #日出库
     reduce_num    = models.IntegerField(default=0,verbose_name='预减数')    #下次入库减掉这部分库存
-    lock_num      = models.IntegerField(default=0,verbose_name='锁定数')
+    lock_num      = models.IntegerField(default=0,verbose_name='锁定数')    #特卖平台待付款数量
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
@@ -570,6 +608,7 @@ class ProductSku(models.Model):
             ds.append('%s-[%s]'%(k,','.join(v)))
         
         return ','.join(ds)
+    
     
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """

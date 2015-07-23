@@ -168,6 +168,8 @@ INSTALLED_APPS = (
     'flashsale.clickcount',
     'flashsale.clickrebeta',
     'flashsale.mmexam',
+    'flashsale.daystats',
+    'flashsale.restpro',
 
     'mathfilters',
 
@@ -193,8 +195,11 @@ LOGOUT_URL = '/accounts/logout/'
 TAOBAO_PAGE_SIZE = 100              #the page_size of  per request
 NO_PIC_PATH = 'img/nopic.jpg'
 
-
-from prod_settings import *
+try:
+    from prod_settings import *
+except ImportError:
+    if not DEBUG:
+        raise Exception("PROD SETTINGS IS REQUIRED!")
 
 try:
     from local_settings import *
@@ -211,8 +216,8 @@ REST_FRAMEWORK = {
     #'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
     'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.TemplateHTMLRenderer',
-        'rest_framework.renderers.YAMLRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'PAGINATE_BY': 10,                 # Default to 10
@@ -223,6 +228,5 @@ REST_FRAMEWORK = {
 
 if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
-
-
+                        'middleware.middleware.QueryCountDebugMiddleware',
+                          ) + MIDDLEWARE_CLASSES

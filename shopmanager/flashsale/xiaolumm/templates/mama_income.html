@@ -1,0 +1,73 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 小鹿妈妈-订单收益列表 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+<link href='{{ STATIC_URL }}css/mama_profile.css' rel='stylesheet' />	
+
+{% endblock %}
+
+{% block container %}
+
+<div class="row">
+<div class="page-header col-xs-9">
+  <h3>订单收益列表</h3>
+</div>
+<div class="col-xs-3" >
+	  <a href="/m/m/" class="home glyphicon glyphicon-home " target="_self"></a>
+</div>
+</div>
+
+<div class="row">
+<nav>
+  <ul class="pager">
+    <div class="col-xs-4">
+    <li class="previous"><a href="/m/income/?day={{ prev_day }}"><span aria-hidden="true">&larr;</span>前一天</a></li>
+    </div>
+    <div class="col-xs-4">
+	    <label>{{ target_date }}</label>
+	</div>
+	<div class="col-xs-4">
+    {% if next_day %}
+    <li class="next"><a href="/m/income/?day={{ next_day }}">后一天 <span aria-hidden="true">&rarr;</span></a></li>
+    {% endif %}
+    </div>
+  </ul>
+</nav>
+</div>
+  
+<ul class="list-group">
+<li class="list-group-item"><lable>妈妈编号：</label> <b>{{ pk }}</b></li>
+<li class="list-group-item"><span style="color:orange">点击人数： {{ click_num }}</span></li>
+<li class="list-group-item"><span style="color:orange">点击补贴： {{ click_num }} * {{ click_price }} = ￥{{ click_pay }}</span>
+{% if not exam_pass %}（<a href="/sale/exam/">考试通过后生效</a>）{% endif %}</li>
+{% if active_start %}
+<li class="list-group-item"><span style="color:green">端午点击专贴： {{ ten_click_num }} * {{ ten_click_price }} = ￥{{ ten_click_pay }}</span></li>
+{% endif %}
+<li class="list-group-item"><span style="color:orange">订单人数： {{ order_num }}</span></li>
+<li class="list-group-item"><span style="color:orange">订单金额： ￥{{ total_value }}</span></li>
+{% if xlmm.agencylevel > 1 %}
+{% if carry > 0 %}
+<li class="list-group-item"><span style="color:orange">订单补贴： ￥{{ carry }}{% if not carry_confirm %}（待确认）{% endif %}</span></li>
+{% else %}
+<li class="list-group-item"><span style="color:orange">订单补贴： {{ carry }}</span></li>
+    {% endif %}
+    {% endif %}
+  </ul>
+
+  <h3>订单详情</h3>
+  <table id="state_table" class="table table-bordered">
+<thead>
+  <th>昵称</th><th>金额</th><th>时间</th><th>状态</th>
+</thead>
+<tbody>
+  {% for order in order_list %}
+  <tr><td>{{ order.wxordernick }}</td><td>{{ order.order_cash }}</td>
+  <td>{{ order.shoptime|date:"H:i" }}</td><td><span class="{% if order.status == 2 %}label label-danger{% endif %}">{{ order.status_name }}</span></td></tr>
+  {% endfor %}
+</tbody>
+</table>
+</div>
+
+{% endblock %}

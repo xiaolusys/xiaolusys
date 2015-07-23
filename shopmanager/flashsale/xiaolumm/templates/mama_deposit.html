@@ -1,0 +1,41 @@
+{% extends "mama_base.html" %}
+
+{% block title %} 小鹿妈妈-支付押金 {% endblock %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />	
+
+<style type="text/css" >
+    tfoot input{
+    	width:50%;
+    }
+    .wrapper{ text-aligin:center;height:50px;}
+    .flow-steps{ position:relative; padding:0px; list-style:none; font-size:14px; overflow:hidden;}
+	.flow-steps li{ float:left; padding:10px;}
+	.flow-steps a {padding:5px;width:100%;}
+	.flow-steps .on a{ background:#ff6600; color:#fff;}
+	.flow-steps .on a:after{ border-left-color:#ff6600;}
+	.flow-steps li.on:first-child a:before{ border-color:#ff6600;}
+</style>
+{% endblock %}
+
+
+{% block container %}
+
+<div class="wrapper">
+    <ul class="flow-steps">
+    	<li class="col-xs-4 "><a href="#" class="btn btn-default">填写资料 &gt;</a></li>
+        <li class="col-xs-4 on"><a href="#" class="btn ">支付押金 &gt;</a></li>
+        <li class="col-xs-4 "><a href="#" class="btn btn-default">加入小鹿 &gt;</a></li>
+    </ul>
+    <div class="arr"></div>
+</div>
+
+<div class="jumbotron">
+  <h1>妈妈押金链接</h1>
+  <p>请根据押金链接拍下付款，才能进入下一步...</p>
+  <p><a class="btn btn-primary btn-lg" href="http://weixin.huyi.so/mm/p/2731/" role="button">前往支付100元押金</a></p>
+  <p><a class="btn btn-success btn-lg" href="http://weixin.huyi.so/m/" role="button">试用一下小鹿妈妈</a></p>
+</div>
+
+{% endblock %}

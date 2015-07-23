@@ -2,6 +2,16 @@
 from django.db import models
 from shopback import paramconfig as pcfg
 
+SYS_TRADE_STATUS = (
+    (pcfg.WAIT_AUDIT_STATUS,u'问题单'),
+    (pcfg.WAIT_PREPARE_SEND_STATUS,u'待发货准备'),
+    (pcfg.WAIT_CHECK_BARCODE_STATUS,u'待扫描验货'),
+    (pcfg.WAIT_SCAN_WEIGHT_STATUS,u'待扫描称重'),
+    (pcfg.FINISHED_STATUS,u'已完成'),
+    (pcfg.INVALID_STATUS,u'已作废'),
+    (pcfg.ON_THE_FLY_STATUS,u'飞行模式'),
+    (pcfg.REGULAR_REMAIN_STATUS,u'定时提醒'),
+)
 TAOBAO_TRADE_STATUS = (
     (pcfg.TRADE_NO_CREATE_PAY,u'订单创建'),
     (pcfg.WAIT_BUYER_PAY,u'待付款'),
@@ -29,7 +39,7 @@ TRADE_TYPE = (
 
 
 #订单列表
-class OrderList(models.Model):
+class ZTOOrderList(models.Model):
 
     YES = 0
     NO = 1
@@ -37,6 +47,7 @@ class OrderList(models.Model):
     STATUS_CHOICES = ((YES, U'已打印'),
                       (NO, U'未打印'),)
 
+    SYS_TRADE_STATUS = SYS_TRADE_STATUS
     TAOBAO_TRADE_STATUS = TAOBAO_TRADE_STATUS
     TRADE_TYPE        = TRADE_TYPE
 
@@ -66,11 +77,14 @@ class OrderList(models.Model):
                                          blank=True,verbose_name=u'电话')
     order_status      = models.CharField(max_length=32,choices=TAOBAO_TRADE_STATUS,
                                          blank=True,verbose_name=u'订单状态')
+    sys_status     =  models.CharField(max_length=32,db_index=True,
+                                       choices=SYS_TRADE_STATUS,blank=True,
+                                       default='',verbose_name=u'系统状态')
     status            = models.IntegerField(choices=STATUS_CHOICES, default=NO, verbose_name=u'打印状态')
     remarke           = models.CharField(max_length=20,blank=True,verbose_name=u'备注')
 
     class Meta:
-        db_table = 'orderlist'
+        db_table = 'ztoorderlist'
         verbose_name = u'订单列表'
         verbose_name_plural = u'中通订单列表'
 
@@ -102,7 +116,7 @@ class PrintRecord(models.Model):
                                           blank=True,verbose_name=u'电话')
 
     class Meta:
-        db_table = 'printrecord'
+        db_table = 'ztoprintrecord'
         verbose_name = u'打印记录'
         verbose_name_plural = u'打印记录表'
 

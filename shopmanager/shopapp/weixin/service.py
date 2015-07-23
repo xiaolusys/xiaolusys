@@ -122,6 +122,7 @@ def formatParam2XML(params):
     return x[len(initStr):]
 
 
+
 class WeixinUserService():
     
     _wx_api = None
@@ -146,25 +147,9 @@ class WeixinUserService():
             
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId) 
         if state or force_update or not wx_user.unionid:
-            try:     
-                userinfo = self. _wx_api.getUserInfo(openId)
-                pre_subscribe_time = wx_user.subscribe_time
-                pre_mobile = wx_user.mobile
-                pre_nickname = wx_user.nickname
-                for k, v in userinfo.iteritems():
-                    hasattr(wx_user, k) and setattr(wx_user, k, v or getattr(wx_user, k))
-                
-                wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
-                wx_user.unionid  = wx_user.unionid or unionId 
-                wx_user.mobile   = pre_mobile
-                subscribe_time   = userinfo.get('subscribe_time', None)
-                if subscribe_time:
-                    wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
-                        .fromtimestamp(int(subscribe_time))
-                        
-                wx_user.save()
-            except Exception, exc:
-                logger.warn(u'获取微信用户信息错误:%s' % exc.message, exc_info=True)
+            from .tasks import task_Update_Weixin_Userinfo
+            
+            task_Update_Weixin_Userinfo.s(openId,unionId=unionId)()
                 
         return wx_user
     
@@ -178,9 +163,9 @@ class WeixinUserService():
         self._wx_api._wx_account.activeAccount()
     
     
-    def genValidCode(self):
+    def genValidCode(self,force_update=False):
         
-        if self._wx_user.validcode:
+        if not force_update and self._wx_user.validcode:
             return self._wx_user.validcode
         
         return str(random.randint(100000, 999999))
@@ -212,7 +197,8 @@ class WeixinUserService():
         if not wx_user.is_valid_count_safe():
             raise MessageException(u'[撇嘴]您的手机验证次数达到上限，请联系客服帮您处理！')
         
-        valid_code = self.genValidCode()
+        mobile_change = wx_user.vmobile != mobile
+        valid_code = self.genValidCode(force_update=mobile_change)
         self.sendValidCode(mobile, valid_code)        
         
         wx_user.vmobile = mobile
@@ -264,11 +250,13 @@ class WeixinUserService():
         if message == '0' and self._wx_user.isValid():
             return self.genTextRespJson(u'您已成功绑定手机：\n[q] 取消绑定 \n*取消绑定后部分功能失效')
         
-        for resp in WeiXinAutoResponse.objects.FullMatch:
+        fullmatch_responses = WeiXinAutoResponse.objects.FullMatch.filter(message=message)
+        for resp in fullmatch_responses:
             if message == resp.message.strip():
                 return resp.autoParams()
-            
-        for resp in WeiXinAutoResponse.objects.FuzzyMatch:
+        
+        fuzzymatch_responses = WeiXinAutoResponse.objects.FuzzyMatch.filter(message__icontains=message)
+        for resp in fuzzymatch_responses:
             if message.rfind(resp.message.strip()) > -1:
                 return resp.autoParams()
         
@@ -522,7 +510,7 @@ class WeixinUserService():
             
         return ret_params
     
-from .models import MIAOSHA_SELLER_ID
+from .models import WXProductSku,MIAOSHA_SELLER_ID
 
 class WxShopService(LocalService):
     
@@ -591,25 +579,19 @@ class WxShopService(LocalService):
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
         
         if state:
+
             wx_product = WXProduct.objects.getOrCreate(order.product_id)
-            sku_list = wx_product.sku_list
-            
-            product_code = ''
-            if len(sku_list) == 1 and not sku_list[0]['sku_id']:
-                product_code = sku_list[0]['product_code']
-            else:
-                for sku in sku_list:
-                    if sku['sku_id'] == order.product_sku:
-                        product_code = sku['product_code']
-                        break
-            
-            outer_id, outer_sku_id = Product.objects.trancecode(product_code, '',
-                                                               sku_code_prior=True)
+             
+            wx_skus = WXProductSku.objects.filter(sku_id=order.product_sku,product=wx_product)
+            outer_id, outer_sku_id  = '', ''
+            if wx_skus.count() > 0:
+                outer_id  = wx_skus[0].outer_id
+                outer_sku_id = wx_skus[0].outer_sku_id
               
             merge_order.payment = order.order_total_price / 100.0
             merge_order.created = order.order_create_time
             merge_order.pay_time = order.order_create_time
-            merge_order.num = order.product_count
+            merge_order.num   = order.product_count
             merge_order.title = order.product_name
             merge_order.pic_path = order.product_img
             merge_order.outer_id = outer_id

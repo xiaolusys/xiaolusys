@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 from django import forms
 
-from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog
+from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog,MamaDayStats
 
 class XiaoluMamaForm( forms.ModelForm ):
     
@@ -69,9 +69,36 @@ class CarryLogForm( forms.ModelForm ):
     value    = forms.FloatField(label=u'现金',min_value=0)
     
     class Meta:
-        model = CashOut
+        model = CarryLog
     
     def  clean_value(self):
         value = self.cleaned_data['value']
         return int(value * 100)     
 
+class MamaDayStatsForm( forms.ModelForm ):
+    
+    def __init__(self, *args, **kwargs):
+        super(MamaDayStatsForm, self).__init__(*args, **kwargs)
+        self.initial['base_click_price']    = self.instance.get_base_click_price_display()
+        self.initial['lweek_payment']    = self.instance.get_lweek_payment_display()
+        self.initial['tweek_payment']    = self.instance.get_tweek_payment_display()
+        
+    base_click_price = forms.FloatField(label=u'基础点击价格',min_value=0)
+    lweek_payment    = forms.FloatField(label=u'周购买金额',min_value=0)
+    tweek_payment    = forms.FloatField(label=u'两周购买金额',min_value=0)
+    
+    class Meta:
+        model = MamaDayStats
+    
+    def  clean_base_click_price(self):
+        value = self.cleaned_data['base_click_price']
+        return int(value * 100)   
+    
+    def  clean_lweek_payment(self):
+        value = self.cleaned_data['lweek_payment']
+        return int(value * 100) 
+    
+    def  clean_tweek_payment(self):
+        value = self.cleaned_data['tweek_payment']
+        return int(value * 100)  
+    

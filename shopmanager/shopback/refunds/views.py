@@ -11,14 +11,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from djangorestframework.views import ModelView
 from shopback.trades.models import MergeTrade,MergeOrder
-from shopback.items.models import ProductSku,Item
+from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import RefundProduct,Refund,REFUND_STATUS,CS_STATUS_CHOICES
 from common.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
 
-
+import logging
+logger = logging.getLogger('django.request')
 __author__ = 'meixqhi'
 
 
@@ -96,9 +97,10 @@ class RefundManagerView(ModelView):
         
         try:
             merge_trade = MergeTrade.objects.get(tid=tid,user=seller_id)
-        except:
+        except MergeTrade.DoesNotExist:
             return u'订单未找到'
-        refund_orders = Refund.objects.filter(tid=tid)
+        
+        refund_orders    = Refund.objects.filter(tid=tid)
         refund_products  = RefundProduct.objects.filter(trade_id=tid)
         
         op_str  = render_to_string('refunds/refund_order_product.html', 
@@ -226,7 +228,6 @@ class RefundView(ModelView):
             if k=='can_reuse':
                 v = v=="true" and True or False
             hasattr(rf,k) and setattr(rf,k,v)
-        
         rf.save()
         
         log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')
@@ -240,12 +241,12 @@ def create_refund_exchange_trade(request,seller_id,tid):
     
     try:
         origin_trade = MergeTrade.objects.get(tid=tid.strip(),user=seller_id)
-    except:
+    except MergeTrade.DoesNotExist:
         return HttpResponseNotFound('<h1>订单未找到 404<h1>')
     
     refunds  = Refund.objects.filter(tid=tid)
     rfprods  = RefundProduct.objects.filter(trade_id=tid.strip())
-    if rfprods.count() < 0:
+    if rfprods.count() == 0:
         return HttpResponseNotFound('<h1>未找到退货商品 404<h1>')
     
     dt = datetime.datetime.now()
@@ -285,7 +286,12 @@ def create_refund_exchange_trade(request,seller_id,tid):
         merge_order.save()
     
     refunds.update(is_reissue=True)
-    rfprods.update(is_finish=True)    
+    rfprods.update(is_finish=True)  
+    for refund in refunds:
+        try:
+            refund.confirm_refund()
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
     
     log_action(request.user.id,merge_trade,ADDITION,u'创建退换货单')
     

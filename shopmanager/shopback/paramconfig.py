@@ -130,8 +130,7 @@ WAIT_WEIGHT_STATUS = [WAIT_AUDIT_STATUS,
 #淘宝卖家已发货后对应系统内部状态
 HAS_DELIVERY_STATUS = [WAIT_CHECK_BARCODE_STATUS,
                        WAIT_SCAN_WEIGHT_STATUS,
-                       FINISHED_STATUS,
-                       INVALID_STATUS]
+                       FINISHED_STATUS]
 
 CANCEL_YUNDASID_STATUS = (INVALID_STATUS,
                           REGULAR_REMAIN_STATUS,

@@ -382,7 +382,7 @@ class PrintAsyncTask(Task):
         return picking_data_list
     
     def genHtmlPDF(self,file_path,html_text):
-        
+
         import xhtml2pdf.pisa as pisa
         import cStringIO as StringIO
         

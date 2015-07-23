@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+from django.shortcuts import render_to_response,render
 import re
 import json
 import time
@@ -13,7 +14,7 @@ from django.db.models import Q,Sum
 
 from djangorestframework.views import ModelView
 from djangorestframework.response import ErrorResponse
-
+from shopback.logistics import getLogisticTrace
 from shopback.trades.models import (
         MergeTrade,
         MergeOrder,
@@ -138,7 +139,8 @@ class StatisticMergeOrderView(ModelView):
 
     def getSourceOrders(self,shop_id=None,is_sale=None,
                         sc_by='created',start_dt=None,
-                        end_dt=None,wait_send='0',p_outer_id=''):
+                        end_dt=None,wait_send='0',
+                        p_outer_id='',empty_code=False):
         
         order_qs  = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
                             .exclude(merge_trade__type=pcfg.REISSUE_TYPE)\
@@ -164,7 +166,11 @@ class StatisticMergeOrderView(ModelView):
             order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
                 .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS,pcfg.ON_THE_FLY_STATUS))\
                 .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS,merge_trade__is_express_print=False)
-                
+        
+        if empty_code:
+            order_qs = order_qs.filter(outer_id='')
+            return order_qs
+            
         if is_sale :
             order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
                 .filter(Q(outer_id__startswith="9")|Q(outer_id__startswith="1")|Q(outer_id__startswith="8"))
@@ -358,7 +364,15 @@ class StatisticMergeOrderView(ModelView):
                                          start_dt=start_dt,
                                          end_dt=end_dt,
                                          is_sale=is_sale)
-       
+        
+        empty_order_qs = self.getSourceOrders(shop_id=shop_id, 
+                                         sc_by=sc_by,
+                                         wait_send=wait_send, 
+                                         p_outer_id=p_outer_id, 
+                                         start_dt=start_dt,
+                                         end_dt=end_dt,
+                                         empty_code=True)
+        
         trade_qs  = self.getSourceTrades(order_qs)
        
         buyer_nums   = len(trade_qs)
@@ -366,12 +380,12 @@ class StatisticMergeOrderView(ModelView):
         total_post_fee = 0.00
        
         refund_fees      = self.getTotalRefundFee(order_qs)
-       
+        empty_order_count = empty_order_qs.count()
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
         total_num   = trade_list.pop()
         total_cost  = trade_list.pop()
         total_sales = trade_list.pop()
-       
+        
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         
@@ -385,6 +399,7 @@ class StatisticMergeOrderView(ModelView):
                 'wait_send':wait_send,
                 'shops':shopers ,
                 'trade_items':trade_list, 
+                'empty_order_count':empty_order_count,
                 'shop_id':shop_id and int(shop_id) or '',
                 'total_cost':total_cost and round(total_cost,2) or 0 ,
                 'total_sales':total_sales and round(total_sales,2) or 0,
@@ -722,7 +737,7 @@ def change_trade_order(request,id):
     order.sku_properties_name = prod_sku.name
     order.is_rule_match = False
     order.out_stock     = False
-    order.is_reverse_order = False
+    order.is_reverse_order    = False
     if merge_trade.can_reverse_order:
         merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
         order.is_reverse_order = True
@@ -730,12 +745,11 @@ def change_trade_order(request,id):
         order.out_stock = not Product.objects.isProductOutingStockEnough(
                                                          order.outer_id, 
                                                          order.outer_sku_id,
-                                                         order.num)
-
+                                                         order_num)
+        
     order.num           = order_num
     order.save()
     merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
-    order = MergeOrder.objects.get(id=order.id)
     
     if old_sku_id != order.outer_sku_id:
         Product.objects.reduceWaitPostNumByCode(
@@ -1161,7 +1175,7 @@ def regular_trade(request,id):
     except:
         return HttpResponse(json.dumps({'code':1,'response_error':u'订单不在问题单'}),mimetype="application/json")
     else:
-        dt = datetime.datetime.now()+datetime.timedelta(1,0,0)
+        dt = datetime.datetime.now()+datetime.timedelta(7,0,0)
         merge_trade.sys_status   = pcfg.REGULAR_REMAIN_STATUS
         merge_trade.remind_time  = dt
         merge_trade.save()
@@ -1198,10 +1212,9 @@ class TradeSearchView(ModelView):
         
         if q.isdigit():
             trades = MergeTrade.objects.filter(Q(id=q)|Q(tid=q)|
-                    Q(buyer_nick=q)|Q(receiver_name=q)|Q(receiver_mobile=q))
+                    Q(buyer_nick=q)|Q(receiver_mobile=q))
         else:
-            trades = MergeTrade.objects.filter(Q(buyer_nick=q)|
-                                    Q(receiver_name=q)|Q(receiver_phone=q))
+            trades = MergeTrade.objects.filter(Q(buyer_nick=q)|Q(receiver_phone=q))
         trade_list = []
         for trade in trades:
             trade_dict       = {}
@@ -1484,7 +1497,7 @@ def calFenxiaoInterval(fdt,tdt):
                                         pay_time__lte=tdt,
                                         type=pcfg.FENXIAO_TYPE,
                                         sys_status=pcfg.FINISHED_STATUS)
-    #buyer_nick 
+    #buyer_nick elf,
     for f in fenxiao:
         
         buyer_nick=f.buyer_nick
@@ -1902,14 +1915,14 @@ class SaleMergeOrderListView(ModelView):
                     trade_items[outer_id]['sales'] += payment
                     
                     skus[outer_sku_id] = {
-                                          'sku_name':prod_sku_name,
+                                          'sku_name':prod_sku_name,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
                                           'num':order_num,
                                           'cost':purchase_price*order_num,
                                           'sales':payment,
                                           'std_purchase_price':purchase_price}
             else:
                 prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
-                purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num    
+                purchase_price = float(prod_sku.cost) if prod_sku else payment / order_num    
                 trade_items[outer_id]={
                                        'product_id':prod and prod.id or None,
                                        'num':order_num,
@@ -2023,15 +2036,16 @@ class SaleMergeOrderListView(ModelView):
         refund_fees      = self.getTotalRefundFee(order_qs)
        
         trade_list   = self.getTradeSortedItems(order_qs,is_sale=is_sale)
+        
         total_num   = trade_list.pop()
         total_cost  = trade_list.pop()
         total_sales = trade_list.pop()
-       
+        
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         
         shopers = User.objects.filter(status=User.NORMAL)
-        
+
         return {'df':format_datetime(start_dt),
                 'dt':format_datetime(end_dt),
                 'sc_by':sc_by,
@@ -2050,3 +2064,99 @@ class SaleMergeOrderListView(ModelView):
                 'post_fees':total_post_fee }
         
     post = get
+    
+    
+    
+    
+#fangkaineng 2015-6-2 diingdanxiangxi 
+
+def detail(request):
+        
+        return render(request, 'trades/order_detail.html')
+    
+    
+       # return render(request, 'trades/order_detail.html')
+def detail22(request):
+        today=datetime.datetime.utcnow()
+        #startcount=MergeTrade.objects.all().count()
+        #startcount=
+        print '开始'
+        #trade_info=MergeTrade.objects.raw('SELECT id,tid FROM shop_trades_mergetrade where id=75225 ')
+        trade_info=MergeTrade.objects.raw('SELECT id,count(*) as nuee  from shop_trades_mergetrade')
+        print trade_info[0].tid
+        #endcount=startcount-10
+       # print endcount
+        #trade_info=MergeTrade.objects.filter(id__gte=endcount)
+        #trade_info=MergeTrade.objects.all().order_by('-created')[0:100]
+        rec1=[]  
+        for item in trade_info:
+            info={}
+            try: 
+                a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            except:
+                a= []
+            #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            #print ' 物流信息',a
+            info['trans']=a  
+            info['trade']=item
+            info['detail']=[]
+            for order_info in item.merge_orders.all():
+                    sum={}
+                    sum['order']=order_info
+                    try:
+                      product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    except:
+                      product_info=[]
+                    #product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    sum['product']=product_info
+                    info['detail'].append(sum)
+            rec1.append(info)
+            #print rec1
+        return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+    
+    
+
+
+
+   
+def search_trade(request):
+  today=datetime.datetime.utcnow()
+  print '数字是',555 
+  if request.method == "POST":
+    rec1=[]  
+    number1=request.POST.get('condition')
+    number=number1.strip()
+    print '数字是',number
+    if number=="":
+        rec1=[]
+    else:
+        trade_info=MergeTrade.objects.filter(Q(receiver_mobile=number)  | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
+        for item in trade_info:
+            info={}
+            try: 
+                a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            except:
+                a= []
+            #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+            print '全部信息是',a
+            info['trans']=a  
+            info['trade']=item
+            info['detail']=[]
+            for order_info in item.merge_orders.all():
+                    sum={}
+                    sum['order']=order_info
+                    try:
+                      product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    except:
+                      product_info=[]
+                    #product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                    sum['product']=product_info
+                    info['detail'].append(sum)
+            rec1.append(info)
+            print rec1
+    return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+  else:
+    rec1=[] 
+  
+    return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+

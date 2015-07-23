@@ -36,7 +36,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 
 import logging
 
-DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9]+)-(?P<dno>[a-zA-Z0-9]+)?$'
+DISTRICT_REGEX = '^(?P<pno>[a-zA-Z0-9=]+)-(?P<dno>[a-zA-Z0-9]+)?$'
 ASSRIGN_PARAMS_REGEX = '^(?P<num_iid>[0-9]+)-(?P<sku_id>[0-9]+)?$'
 logger = logging.getLogger('django.request')
 
@@ -334,16 +334,13 @@ class ProductView(ModelView):
     def get(self, request, id, *args, **kwargs):
         
         product = Product.objects.get(id=id)
-        
         return product.json
-
 
     def post(self, request, id, *args, **kwargs):
         
         try:
             product = Product.objects.get(id=id)
-        
-            content =  request.REQUEST
+            content = request.REQUEST
             
             fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost',
                       'std_purchase_price','std_sale_price','agent_price','staff_price','is_split',
@@ -614,9 +611,9 @@ def deposite_district_query(request):
         ret = {'code':1,'error_response':u'查询内容不能为空'}
         return HttpResponse(json.dumps(ret),mimetype="application/json")
 
-    districts = DepositeDistrict.objects.filter(parent_no__icontains=q)
+    districts = DepositeDistrict.objects.filter(parent_no__istartswith=q)
 
-    ret = [{'id':str(d),'label':str(d),'value':str(d)} for d in districts]
+    ret = [{'id':str(d),'value':str(d)} for d in districts]
     
     return HttpResponse(json.dumps(ret),mimetype="application/json")
     
@@ -886,10 +883,10 @@ class StatProductSaleView(ModelView):
                 skus = sale_items[product_id]['skus']
                 if skus.has_key(sku_id):
                     skus[sku_id]['sale_num']        += sale.sale_num
-                    skus[sku_id]['sale_payment'] += sale.sale_payment
+                    skus[sku_id]['sale_payment']    += sale.sale_payment
                     skus[sku_id]['sale_refund']     += sale.sale_refund
-                    skus[sku_id]['confirm_num']   += sale.confirm_num
-                    skus[sku_id]['confirm_payment']   += sale.confirm_payment
+                    skus[sku_id]['confirm_num']     += sale.confirm_num
+                    skus[sku_id]['confirm_payment'] += sale.confirm_payment
                 else:
                     skus[sku_id] = {
                                   'sale_num':sale.sale_num,
@@ -898,7 +895,14 @@ class StatProductSaleView(ModelView):
                                   'confirm_num':sale.confirm_num,
                                   'confirm_payment':sale.confirm_payment}
             else:
+                product = Product.objects.get(id=product_id)
+                pic_path = product.pic_path
+                if pic_path.startswith('http://img02.taobaocdn'):
+                    pic_path = pic_path.rstrip('_80x80.jpg')+'.jpg_80x80.jpg'
                 sale_items[product_id]={
+                                       'pic_path':pic_path,
+                                       'title':product.title,
+                                       'sale_num':sale.sale_num,
                                        'sale_num':sale.sale_num,
                                        'sale_payment':sale.sale_payment,
                                        'sale_refund':sale.sale_refund ,
@@ -986,7 +990,6 @@ class StatProductSaleView(ModelView):
         sale_items   = {}
         for product in product_list:
             product_id = product.id
-            p_collect_num = 0
             
             if product.collect_num <= 0:
                 continue
@@ -1029,8 +1032,13 @@ class StatProductSaleView(ModelView):
                 sale_items[product_id]['stock_cost']  += sku.quantity * sku.cost
                 
             if product_id not in productid_set and not sale_items.has_key(product_id):
-                
-                sale_items[product_id]={
+                product = Product.objects.get(id=product_id)
+                pic_path = product.pic_path
+                if pic_path.startswith('http://img02.taobaocdn'):
+                    pic_path = pic_path.rstrip('_80x80.jpg')+'.jpg_80x80.jpg'
+                    
+                sale_items[product_id]={'pic_path':pic_path,
+                                       'title':product.title,
                                        'sale_num':0,
                                        'sale_payment':0,
                                        'sale_refund':0 ,
@@ -1159,4 +1167,8 @@ class ProductScanView(ModelView):
                 'scan_num':prod.scan_num,
                 'location':product.get_districts_code(),
                 'barcode':prod.barcode}
-        
+
+
+
+
+

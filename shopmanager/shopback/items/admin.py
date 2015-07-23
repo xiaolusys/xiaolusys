@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import json
+import urllib
 import datetime,time
 import cStringIO as StringIO
 from django.contrib import admin
@@ -29,11 +30,13 @@ from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
 from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
-from shopback.items.filters import ChargerFilter,DateScheduleFilter
+from shopback.items.filters import ChargerFilter,DateScheduleFilter, GroupNameFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from flashsale.pay import Productdetail
 import logging 
 from flashsale.dinghuo.models import orderdraft
+from flashsale.dinghuo.models_user import MyUser, MyGroup
+from django.contrib.auth.models import User as DjangoUser
 from django.forms.models import model_to_dict
 
 logger =  logging.getLogger('django.request')
@@ -41,8 +44,9 @@ logger =  logging.getLogger('django.request')
 class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
-    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num','remain_num','wait_post_num','reduce_num','cost'
-              ,'std_sale_price','agent_price','sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
+    fields = ('outer_id','properties_name','properties_alias','quantity','warn_num',
+              'remain_num','wait_post_num','reduce_num','cost','std_sale_price','agent_price',
+              'sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -77,13 +81,13 @@ class ItemAdmin(admin.ModelAdmin):
     date_hierarchy = 'last_num_updated'
     #ordering = ['created_at']
 
-    list_filter = ('user','has_showcase','sync_stock','approve_status','category')
+    list_filter = ('user','has_showcase','sync_stock','approve_status')
     search_fields = ['num_iid', 'outer_id', 'title']
 
 
 admin.site.register(Item, ItemAdmin)
 
-
+from flashsale.dinghuo.models import OrderDetail
 class ProductAdmin(admin.ModelAdmin):
     
     category_list = []
@@ -92,13 +96,20 @@ class ProductAdmin(admin.ModelAdmin):
     form = ProductModelForm
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
-                    'warn_num','remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
-                   ,'sync_stock','is_match','is_split','sale_time','sale_charger','charger_select','district_link','status')
+                    'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
+                   ,'sync_stock','is_match','is_split','is_verify','sale_time',
+                   'purchase_select','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
     date_hierarchy = 'sale_time'
 #     ordering = ['created','']
+
+    list_filter = ('shelf_status','is_verify','status',('sale_time',DateScheduleFilter),
+                   ChargerFilter,'sync_stock','is_split','is_match','is_assign'
+                   ,'post_check',('created',DateFieldListFilter),'category',GroupNameFilter)
+
+    search_fields = ['=id','^outer_id', 'name' , '=barcode','=sale_charger','=storage_charger']
     
     def outer_id_link(self, obj):
         
@@ -129,10 +140,21 @@ class ProductAdmin(admin.ModelAdmin):
     pic_link.short_description = u"商品图片"
     
     def district_link(self, obj):
-        return u'<a href="/items/product/district/%d/" target="_blank" style="display: block;">查看 &gt;&gt;</a>' \
-            %(obj.id, )
+        corresponding_list = []
+        orderdetails = OrderDetail.objects.filter(product_id=obj.id).values("orderlist_id").distinct()
+        for orderdetail in orderdetails:
+            corresponding_list.append(str(orderdetail['orderlist_id']))
+        a = ','.join(corresponding_list)
+        if len(a) > 0:
+            return u'<a href="/items/product/district/{0}/"' \
+                   u' target="_blank" style="display: block;">货位 &gt;&gt;</a>' \
+                   u'<br><a href="/sale/dinghuo/statsbypid/{1}" target="_blank" style="display: block;">订货单&gt;&gt;</a>'.format(
+                obj.id, obj.id)
+        else:
+            return u'<a href="/items/product/district/{0}/" target="_blank" style="display: block;">货位 &gt;&gt;</a>'.format(
+                obj.id)
     district_link.allow_tags = True
-    district_link.short_description = u"货位" 
+    district_link.short_description = u"附加信息>>"
     
     def wait_receive_num(self, obj):
         wrNum = getProductWaitReceiveNum(obj.id)
@@ -164,8 +186,30 @@ class ProductAdmin(admin.ModelAdmin):
 
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
-    
-    
+
+
+    def purchase_select(self, obj):
+        sale_charger = obj.sale_charger
+        systemuesr = DjangoUser.objects.filter(username=sale_charger)
+        if systemuesr.count() <= 0:
+            return "找不到采购员"
+        groups = MyGroup.objects.all()
+        myuser = MyUser.objects.filter(user_id=systemuesr[0].id)
+        if len(sale_charger) > 0 and groups.count() > 0:
+            group_list = ["<select class='purchase_charger_select' cid='%s'>"%systemuesr[0].id]
+            group_list.append("<option value=''>---------------</option>")
+            for group in groups:
+                if myuser.count() > 0 and myuser[0].group_id == group.id:
+                    group_list.append("<option value='%s' selected>%s</option>" % (group.id, group.name))
+                    continue
+                group_list.append("<option value='%s'>%s</option>" % (group.id, group.name))
+            group_list.append("</select>")
+            return "%s"%sale_charger+"".join(group_list)
+
+
+    purchase_select.allow_tags = True
+    purchase_select.short_description = u"所属采购组"
+
     def charger_select(self, obj):
 
         categorys = self.storage_chargers
@@ -193,20 +237,15 @@ class ProductAdmin(admin.ModelAdmin):
     
     inlines = [ProductdetailInline,ProductSkuInline]
     
-    list_filter = (ChargerFilter,'status',('sale_time',DateScheduleFilter)
-                   ,'sync_stock','is_split','is_match','is_assign'
-                   ,'post_check',('created',DateFieldListFilter),'category')
-
-    search_fields = ['id','outer_id', 'name' , 'barcode','sale_charger','storage_charger']
-    
     #--------设置页面布局----------------
     fieldsets =(('商品基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('outer_id','category','status')
+                    'fields': (('outer_id','category')
                                ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
                                ,('std_purchase_price','staff_price','sale_time')
-                               ,('cost','std_sale_price','agent_price'))
+                               ,('cost','std_sale_price','agent_price')
+                               ,('status','shelf_status'))
                 }),
                 ('商品系统设置:', {
                     'classes': ('collapse',),
@@ -232,6 +271,54 @@ class ProductAdmin(admin.ModelAdmin):
         if not perms.has_change_product_skunum_permission(request.user):
             return self.readonly_fields + ('collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
+    
+    def get_actions(self, request):
+        
+        user = request.user
+        actions = super(ProductAdmin, self).get_actions(request)
+        
+        if user.is_superuser:
+            return actions
+        
+        valid_actions = set([])
+        
+        if user.has_perm('items.change_product_shelf'):
+            valid_actions.add('weixin_product_action')
+            valid_actions.add('upshelf_product_action')
+            valid_actions.add('downshelf_product_action')
+            
+        if user.has_perm('items.sync_product_stock'):
+            valid_actions.add('sync_items_stock')
+            valid_actions.add('sync_purchase_items_stock')
+            valid_actions.add('cancel_syncstock_action')
+            valid_actions.add('active_syncstock_action')
+            
+        if user.has_perm('items.regular_product_order'):
+            valid_actions.add('cancle_orders_out_stock')
+            valid_actions.add('cancel_syncstock_action')
+            valid_actions.add('regular_saleorder_action')
+            valid_actions.add('deliver_saleorder_action')
+            
+        if user.has_perm('items.export_product_info'):
+            valid_actions.add('export_prodsku_info_action')
+            
+        if user.has_perm('items.create_product_purchase'):
+            valid_actions.add('create_saleproduct_order')
+            
+        if user.has_perm('items.invalid_product_info'):
+            valid_actions.add('invalid_product_action')
+        
+        unauth_actions = []
+        for action in actions.viewkeys():
+            action_ss = str(action)
+            if action_ss not in valid_actions:
+                unauth_actions.append(action_ss)
+                
+        for action in unauth_actions:
+            del actions[action]
+                
+        return actions
+    
     
     def response_add(self, request, obj, post_url_continue='../%s/'):
         
@@ -268,6 +355,7 @@ class ProductAdmin(admin.ModelAdmin):
         if ordering:
             qs = qs.order_by(*ordering)
         return qs
+    
     
     #更新用户线上商品入库
     def sync_items_stock(self,request,queryset):
@@ -307,34 +395,18 @@ class ProductAdmin(admin.ModelAdmin):
     
     sync_items_stock.short_description = u"同步淘宝线上库存"
     
-    
     #作废商品
     def invalid_product_action(self,request,queryset):
          
-        for p in queryset:
-            cnt = 0
-            success = False
-            invalid_outerid = p.outer_id 
-            while cnt < 10:
-                invalid_outerid += '_del'
-                products = Product.objects.filter(outer_id=invalid_outerid)
-                if products.count() == 0:
-                    success = True
-                    break
-                cnt += 1
-                
-            if not success:
-                continue
-            
-            p.outer_id = invalid_outerid
-            p.status = pcfg.DELETE
-            p.save()
-            
-            log_action(request.user.id,p,CHANGE,u'商品作废')
+        if queryset.count() >= 25:
+            self.message_user(request,u"*********作废的商品数不能超过24个************")
+            return HttpResponseRedirect(request.get_full_path())
         
-        self.message_user(request,u"已成功作废%s个商品!"%queryset.filter(status=pcfg.DELETE).count())
+        product_ids = ','.join([p.outer_id for p in queryset])
+        origin_url = request.get_full_path()
         
-        return HttpResponseRedirect(request.get_full_path())
+        return render_to_response('items/product_delete.html',{'product_ids':product_ids,'products':queryset,'origin_url':origin_url},
+                                  context_instance=RequestContext(request),mimetype="text/html")
         
     invalid_product_action.short_description = u"作废库存商品（批量 ）"
     
@@ -398,9 +470,9 @@ class ProductAdmin(admin.ModelAdmin):
         
     cancle_orders_out_stock.short_description = u"取消订单商品缺货"
 
-
-    #批量添加订单
-    def add_orders(self,request,queryset):
+    #创建订货单
+    def create_saleproduct_order(self,request,queryset):
+        
         user=request.user
         orderDrAll = orderdraft.objects.all().filter(buyer_name=user)
         productres = []
@@ -410,17 +482,15 @@ class ProductAdmin(admin.ModelAdmin):
             guiges = ProductSku.objects.filter(product_id=p.id)
             for guige in guiges:
                 sku_dict = model_to_dict(guige)
-                product_dict['prod_skus'] = sku_dict
+                sku_dict['name'] = guige.name
+                product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
-
-        productguige = ProductSku.objects.all()
         return render_to_response("dinghuo/addpurchasedetail.html",
-                                  {"productRestult": queryset,
-                                   "productguige": productguige,
+                                  {"productRestult": productres,
                                    "drafts": orderDrAll},
                                   context_instance=RequestContext(request))
 
-    add_orders.short_description = u"批量添加订单"
+    create_saleproduct_order.short_description = u"创建特卖商品订货单"
     
     #取消商品库存同步（批量）
     def active_syncstock_action(self,request,queryset):
@@ -478,31 +548,55 @@ class ProductAdmin(admin.ModelAdmin):
     def deliver_saleorder_action(self,request,queryset):
          
         outer_ids = [p.outer_id for p in queryset]
-        mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
-                                    merge_trade__sys_status=pcfg.REGULAR_REMAIN_STATUS)
+        mos = (MergeOrder.objects.filter(outer_id__in=outer_ids,
+                merge_trade__sys_status=pcfg.REGULAR_REMAIN_STATUS)
+               .order_by('merge_trade__prod_num','merge_trade__has_merge'))
         
+        num_maps = {}
         merge_trades = set([o.merge_trade for o in mos])
         for t in merge_trades:
             
-            for order in t.normal_orders:
-#                 out_stock = not Product.objects.isProductOutingStockEnough(
-#                                      order.outer_id, 
-#                                      order.outer_sku_id,
-#                                      order.num)
-                order.out_stock = False
-                order.save()
+            trade_out_stock = False
+            full_out_stock  = True
+            tnum_maps = {}
+            try:
+                for order in t.normal_orders:
+                    
+                    bar_code = order.outer_id + order.outer_sku_id
+                    tnum_maps[bar_code] = tnum_maps.get(bar_code,0) + order.num
+                    plus_num = num_maps.get(bar_code,0) + tnum_maps[bar_code]
+                    
+                    out_stock = not Product.objects.isProductOutingStockEnough(
+                                         order.outer_id, 
+                                         order.outer_sku_id,
+                                         plus_num)
+                    order.out_stock = out_stock
+                    order.save()
+                    
+                    trade_out_stock |= out_stock
+                    full_out_stock  &= out_stock
+            except Product.ProductCodeDefect,exc:
+                self.message_user(request, '%s'%exc)
+                continue
             
             t = MergeTrade.objects.get(id=t.id)
+            if trade_out_stock:
+                t.append_reason_code(pcfg.OUT_GOOD_CODE)
             
             if t.reason_code:
-                t.sys_status = pcfg.WAIT_AUDIT_STATUS
-                
-#                 t.normal_orders.filter(outer_id__in=outer_ids,
-#                                        sys_status=pcfg.IN_EFFECT).update(out_stock=True)
+                if full_out_stock:
+                    t.sys_status = pcfg.REGULAR_REMAIN_STATUS
+                else:
+                    t.sys_status = pcfg.WAIT_AUDIT_STATUS
+                    for code,num in tnum_maps.iteritems():
+                        num_maps[code]  = num_maps.get(code,0) + num
             else:
                 t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
             t.save()
-
+            
+            if t.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS):
+                log_action(request.user.id,t,CHANGE,u'取消定时提醒')
+            
         self.message_user(request,u"已成功取消%s个订单定时提醒!"%len(merge_trades))
         
         return HttpResponseRedirect(request.get_full_path())
@@ -512,16 +606,71 @@ class ProductAdmin(admin.ModelAdmin):
     #商品库存
     def weixin_product_action(self,request,queryset):
         
-        if queryset.count() > 10:
-            self.message_user(request,u"*********选择更新的商品数不能超过10个************")
+        if queryset.count() > 25:
+            self.message_user(request,u"*********选择更新的商品数不能超过25个************")
             return HttpResponseRedirect(request.get_full_path())
          
         product_ids = ','.join([str(p.id) for p in queryset])
         
-        return HttpResponseRedirect(reverse('weixin_product_modify')
-                                    +'?format=html&product_ids=%s'%product_ids)
+        absolute_uri = request.build_absolute_uri()
+        params = {'format':'html','product_ids':product_ids,'next':absolute_uri}
+        url_params = urllib.urlencode(params)
+        
+        return HttpResponseRedirect(reverse('weixin_product_modify')+'?'+url_params)
         
     weixin_product_action.short_description = u"更新微信商品库存信息"
+    
+    #库存商品上架（批量）
+    def upshelf_product_action(self,request,queryset):
+        
+        verify_qs = queryset.filter(is_verify=True)
+        unverify_qs = queryset.filter(is_verify=False)
+        
+        outer_ids = [p.outer_id for p in verify_qs]
+        from shopapp.weixin.models import WXProduct
+        from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
+        try:
+            task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
+        except Exception,exc:
+            self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
+            
+        up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        
+        if unverify_qs.count() > 0:
+            self.message_user(request,u"有%s个商品未核对，请核对后上架!"%unverify_qs.count())
+        
+        for product in up_queryset:
+            log_action(request.user.id,product,CHANGE,u'上架商品')
+        
+        self.message_user(request,u"已成功上架%s个商品,有%s个商品上架失败!"%(up_queryset.count(),down_queryset.count()))
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    upshelf_product_action.short_description = u"上架微信商品 (批量)"
+    
+    #库存商品上架（批量）
+    def downshelf_product_action(self,request,queryset):
+         
+        outer_ids = [p.outer_id for p in queryset]
+        from shopapp.weixin.models import WXProduct
+        from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
+        try:
+            task_Mod_Merchant_Product_Status(outer_ids,WXProduct.DOWN_ACTION)
+        except Exception,exc:
+            self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
+            
+        up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        
+        self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))
+        
+        for product in down_queryset:
+            log_action(request.user.id,product,CHANGE,u'下架商品')
+        
+        return HttpResponseRedirect(request.get_full_path())
+        
+    downshelf_product_action.short_description = u"下架微信商品 (批量)"
     
     #导出商品规格信息
     def export_prodsku_info_action(self,request,queryset):
@@ -560,13 +709,15 @@ class ProductAdmin(admin.ModelAdmin):
                'invalid_product_action',
                'sync_purchase_items_stock',
                'weixin_product_action',
+               'upshelf_product_action',
+               'downshelf_product_action',
                'cancle_orders_out_stock',
                'active_syncstock_action',
                'cancel_syncstock_action',
                'regular_saleorder_action',
                'deliver_saleorder_action',
                'export_prodsku_info_action',
-               'add_orders']
+               'create_saleproduct_order']
 
 admin.site.register(Product, ProductAdmin)
 

@@ -259,17 +259,18 @@ class User(models.Model):
 def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
     
-    logger.debug('debug add_taobao_user receiver:%s'%sender)
-    profile = user.get_profile()
-    profile.populate_user_info(top_session,top_parameters)
-    
-    profile.verify_fenxiao_user()
-    #对用户的主动通知进行授权
-    #profile.authorize_increment_notify()
-    #初始化系统数据
-    from shopback.users.tasks import initSystemDataFromAuthTask
-    
-    initSystemDataFromAuthTask.delay(profile.visitor_id)
+    profiles = User.objects.filter(type__in=(User.SHOP_TYPE_B,User.SHOP_TYPE_C),user=user)
+    for profile in profiles:
+        profile = user.get_profile()
+        profile.populate_user_info(top_session,top_parameters)
+        
+        profile.verify_fenxiao_user()
+        #对用户的主动通知进行授权
+        #profile.authorize_increment_notify()
+        #初始化系统数据
+        from shopback.users.tasks import initSystemDataFromAuthTask
+        
+        initSystemDataFromAuthTask.s(profile.visitor_id)()
     
     
 user_logged_in.connect(add_taobao_user,

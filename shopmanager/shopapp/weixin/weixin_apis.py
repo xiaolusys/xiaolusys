@@ -54,12 +54,13 @@ class WeiXinAPI(object):
     
     #微信小店接口
     _merchant_get_uri   = "/merchant/get"
-    _merchant_getbystatus_uri   = "/merchant/getbystatus"
-    _merchant_stock_add_uri   = "/merchant/stock/add"
-    _merchant_stock_reduce_uri   = "/merchant/stock/reduce"
+    _merchant_getbystatus_uri     = "/merchant/getbystatus"
+    _merchant_stock_add_uri       = "/merchant/stock/add"
+    _merchant_stock_reduce_uri    = "/merchant/stock/reduce"
     _merchant_order_getbyid_uri   = "/merchant/order/getbyid"
     _merchant_order_getbyfilter_uri   = "/merchant/order/getbyfilter"
     _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
+    _merchant_modproductstatus_uri    = "/merchant/modproductstatus"
     
     _merchant_category_getsku_uri   = "/merchant/category/getsku"
     
@@ -223,6 +224,14 @@ class WeiXinAPI(object):
                                   method='POST')
         return response['products_info']
     
+    def modMerchantProductStatus(self,product_id,status):
+        
+        params = json.dumps({'product_id':product_id,'status':status},
+                            ensure_ascii=False)
+        response = self.handleRequest(self._merchant_modproductstatus_uri, 
+                                  str(params),
+                                  method='POST')
+        return response
         
     def addMerchantStock(self,product_id,quantity,sku_info=''):
         

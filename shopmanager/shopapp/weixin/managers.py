@@ -96,6 +96,7 @@ class WeixinProductManager(models.Manager):
         
         product_sku.sku_price   = round(float(sku_dict['price'])/100,2)
         product_sku.ori_price   = round(float(sku_dict['ori_price'])/100,2)
+        product_sku.status      = WXProductSku.UP_SHELF
         
         product_sku.save()
         
@@ -105,19 +106,36 @@ class WeixinProductManager(models.Manager):
         product_dict = model_to_dict(product)
         product_dict['pskus'] = []
         
+        outer_id = product.outer_id
         for sku in product.pskus.order_by('outer_id'):
             
             sku_dict = model_to_dict(sku)
-            outer_id = product.outer_id
+            sku_dict['name']  = sku.name
             outer_sku_id = sku.outer_id
-            wsku_list_dict = WXProductSku.objects.filter(
+            wsku_dict_list = []
+            wsku_list = WXProductSku.objects.filter(
                                         outer_id=outer_id,
                                         outer_sku_id=outer_sku_id,
-                                        status=WXProductSku.UP_SHELF).values()
-                                        
-            sku_dict['wskus'] = wsku_list_dict
+                                        status=WXProductSku.UP_SHELF).order_by('-modified')
+            for wsku in wsku_list:
+                wsku_dict = model_to_dict(wsku)
+                wsku_dict['sku_image'] = wsku.sku_image
+                wsku_dict_list.append(wsku_dict)
+                
+            sku_dict['wskus'] = wsku_dict_list
                 
             product_dict['pskus'].append(sku_dict)
+        
+        msku_ids = set([s['outer_id'] for s in product_dict['pskus']])
+        product_dict['uskus'] = []
+        wsku_list = WXProductSku.objects.filter(outer_id=outer_id,
+                                    status=WXProductSku.UP_SHELF).order_by('-modified')
+        for wsku in wsku_list:
+            if wsku.outer_sku_id in msku_ids:
+                continue
+            wsku_dict = model_to_dict(wsku)
+            wsku_dict['sku_image'] = wsku.sku_image
+            product_dict['uskus'].append(wsku_dict)
             
         return product_dict
     

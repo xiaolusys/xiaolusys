@@ -71,7 +71,6 @@ class RefundHandler(BaseHandler):
         elif merge_type == pcfg.SUB_MERGE_TYPE:
             main_tid = MergeBuyerTrade.objects.get(
                                     sub_tid=merge_trade.id).main_tid
-
             remove_succes = MergeTrade.objects.mergeRemover(main_tid)
             if remove_succes:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
@@ -92,14 +91,14 @@ class RefundHandler(BaseHandler):
             MergeTrade.objects.isTradeRefunding(merge_trade)):
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
         
-        if merge_trade.status == pcfg.WAIT_SELLER_SEND_GOODS:
+        if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS:
             self.atWAIT_SELLER_SEND_GOODS(merge_trade)
-            
-        elif merge_trade.status == pcfg.WAIT_BUYER_CONFIRM_GOODS:
-            self.atWAIT_BUYER_CONFIRM_GOODS(merge_trade)
-            
-        elif merge_trade.status == pcfg.TRADE_CLOSED:
+        
+        elif merge_trade.sys_status == pcfg.INVALID_STATUS:
             self.atTRADE_CLOSED(merge_trade)
+            
+        elif merge_trade.sys_status in pcfg.HAS_DELIVERY_STATUS:
+            self.atWAIT_BUYER_CONFIRM_GOODS(merge_trade)
             
         update_model_fields(merge_trade,update_fields=['has_refund'])
         

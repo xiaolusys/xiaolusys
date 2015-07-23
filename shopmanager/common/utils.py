@@ -58,8 +58,6 @@ def format_year_month(dt):
 def format_time(dt):
     return dt.strftime("%H:%M")
 
-def unquote(text):
-    return re.sub(r'%5Cu([0-9a-fA-F]{4})',unicode_unquoter,text)
 
 def pinghost(hostid):
     try:

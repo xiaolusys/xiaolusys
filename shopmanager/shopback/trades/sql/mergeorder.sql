@@ -1,2 +1,1 @@
-alter table shop_trades_mergeorder add index(outer_id,outer_sku_id);
-
+ALTER TABLE shop_trades_mergeorder ADD INDEX IDX_OU_OU_ME (OUTER_ID,OUTER_SKU_ID,MERGE_TRADE_ID)

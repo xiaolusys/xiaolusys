@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.trades.filters import DateFieldListFilter
+from .service import FlashSaleService
 from .models import (SaleTrade,
                      SaleOrder,
                      TradeCharge,
@@ -39,11 +40,11 @@ class SaleOrderInline(admin.TabularInline):
     
 
 class SaleTradeAdmin(admin.ModelAdmin):
-    list_display = ('id','tid','buyer_nick','channel','payment','pay_time','created','status')
+    list_display = ('id','tid','buyer_nick','channel','payment','pay_time','created','status','buyer_id')
     list_display_links = ('id','tid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter   = ('status','channel',('created',DateFieldListFilter))
+    list_filter   = ('status','channel',('pay_time',DateFieldListFilter),('created',DateFieldListFilter))
     search_fields = ['tid','id','receiver_mobile']
     
     inlines = [SaleOrderInline]
@@ -53,7 +54,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
                     'classes': ('expand',),
                     'fields': (('tid','buyer_nick','channel','status')
                                ,('trade_type','total_fee','payment','post_fee')
-                               ,('pay_time','consign_time','charge')
+                               ,('pay_time','consign_time','charge','openid')
                                ,('buyer_message','seller_memo')
                                )
                 }),
@@ -77,6 +78,23 @@ class SaleTradeAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('tid',)
         return self.readonly_fields
     
+    def push_mergeorder_action(self, request, queryset):
+        """ 更新订单到订单总表 """
+        
+        for strade in queryset:
+            saleservice = FlashSaleService(strade)
+            saleservice.payTrade()
+        
+        self.message_user(request, u'已更新%s个订单到订单总表!'%queryset.count())
+        
+        origin_url = request.get_full_path()
+       
+        return redirect(origin_url)
+
+    push_mergeorder_action.short_description = u"更新订单到订单总表"
+    
+    actions = ['push_mergeorder_action']
+    
 admin.site.register(SaleTrade,SaleTradeAdmin)
 
 
@@ -92,6 +110,7 @@ admin.site.register(TradeCharge,TradeChargeAdmin)
 
 
 class RegisterAdmin(admin.ModelAdmin):
+    
     list_display = ('id','cus_uid','vmobile','vemail','created')
     list_display_links = ('id','cus_uid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
@@ -104,14 +123,13 @@ admin.site.register(Register,RegisterAdmin)
 
 class CustomerAdmin(admin.ModelAdmin):
     
-    list_display = ('id','nick','mobile','phone','created','modified')
+    list_display = ('id','nick','mobile','phone','created','modified','unionid')
     list_display_links = ('id','nick',)
     
     search_fields = ['id','mobile','openid','unionid']
     
     
 admin.site.register(Customer,CustomerAdmin)
-
 
 
 class DistrictAdmin(admin.ModelAdmin):
@@ -133,6 +151,7 @@ class UserAddressAdmin(admin.ModelAdmin):
     list_filter = ('default','status')
 
 admin.site.register(UserAddress, UserAddressAdmin)
+
 
 class SaleRefundChangeList(ChangeList):
     
@@ -214,7 +233,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields or [])
-        if not request.user.is_superuser:
+        if not request.user.has_perm('pay.sale_refund_manage'):
             readonly_fields.update(('refund_no','trade_id','order_id','payment','total_fee',
                                    'reason','desc','refund_id','charge','status'))
 
@@ -246,18 +265,27 @@ class SaleRefundAdmin(admin.ModelAdmin):
                     if strade.channel == SaleTrade.WALLET :
                         payment = int(obj.refund_fee * 100)
                         xlmm_queryset = XiaoluMama.objects.filter(openid=customer.unionid)
-                        urows = xlmm_queryset.update(cash=models.F('cash')+payment)
-                        
-                        if urows > 0:
-                            xlmm = xlmm_queryset[0]
-                            CarryLog.objects.create(xlmm=xlmm.id,
-                                        order_num=strade.id,
-                                        buyer_nick=strade.buyer_nick,
-                                        value=payment,
-                                        log_type=CarryLog.REFUND_RETURN,
-                                        carry_type=CarryLog.CARRY_IN)
+                        if xlmm_queryset.count() == 0:
+                            raise Exception(u'妈妈unoind:%s'%customer.unionid) 
+                        xlmm = xlmm_queryset[0]
+                        clogs = CarryLog.objects.filter(xlmm=xlmm.id,
+                                                       order_num=strade.id,
+                                                       log_type=CarryLog.REFUND_RETURN)
+                        if clogs.count() > 0:
+                            raise Exception(u'订单已经退款！！！')
+                            
+                        CarryLog.objects.create(xlmm=xlmm.id,
+                                    order_num=strade.id,
+                                    buyer_nick=strade.buyer_nick,
+                                    value=payment,
+                                    log_type=CarryLog.REFUND_RETURN,
+                                    carry_type=CarryLog.CARRY_IN,
+                                    status=CarryLog.CONFIRMED)
+                        xlmm_queryset.update(cash=models.F('cash')+payment)
                         obj.status = SaleRefund.REFUND_SUCCESS
                         obj.save()
+                        
+                        obj.refund_Confirm()
                         
                     elif obj.refund_fee > 0 and obj.charge:
                         import pingpp
@@ -299,6 +327,68 @@ class SaleRefundAdmin(admin.ModelAdmin):
         
         return super(SaleRefundAdmin, self).response_change(request, obj, *args, **kwargs)
     
-
 admin.site.register(SaleRefund, SaleRefundAdmin)
+
+
+from django.db.models import Sum
+from django.shortcuts import redirect,render_to_response,RequestContext
+from .models_envelope import Envelop
+from .forms import EnvelopForm
+
+class EnvelopAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','receiver','get_amount_display','platform','subject',
+                    'send_time','created','status')
+    
+    list_filter = ('status','platform','subject','livemode',('created',DateFieldListFilter))
+    search_fields = ['=receiver','=envelop_id']
+    list_per_page = 50
+    form = EnvelopForm
+    
+    def send_envelop_action(self, request, queryset):
+        """ 发送红包动作 """
+        
+        wait_envelop_qs = queryset
+        
+        envelop_ids   = ','.join([str(e.id) for e in wait_envelop_qs])
+        envelop_count = wait_envelop_qs.count()
+        total_amount  = wait_envelop_qs.aggregate(total_amount=Sum('amount')).get('total_amount') or 0
+        
+        origin_url = request.get_full_path()
+       
+        return render_to_response('pay/confirm_envelop.html',
+                                  {'origin_url':origin_url,
+                                   'envelop_ids':envelop_ids,
+                                   'total_amount':total_amount / 100.0,
+                                   'envelop_count':envelop_count},
+                                   context_instance=RequestContext(request),
+                                   mimetype="text/html") 
+
+    send_envelop_action.short_description = u"发送微信红包"
+    
+    def cancel_envelop_action(self, request, queryset):
+        """ 取消红包动作 """
+        
+        wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND,Envelop.FAIL))
+        envelop_ids = [e.id for e in wait_envelop_qs]
+        
+        for envelop in wait_envelop_qs:
+            envelop.status = Envelop.CANCEL
+            envelop.save()
+            log_action(request.user.id,envelop,CHANGE,u'取消红包')
+        
+        envelop_qs = Envelop.objects.filter(id__in=envelop_ids,status=Envelop.CANCEL)
+        
+        self.message_user(request, u'已取消%s个红包!'%envelop_qs.count())
+        
+        origin_url = request.get_full_path()
+       
+        return redirect(origin_url)
+
+    cancel_envelop_action.short_description = u"取消发送红包"
+    
+    actions = ['send_envelop_action','cancel_envelop_action']
+
+admin.site.register(Envelop, EnvelopAdmin)
+
 

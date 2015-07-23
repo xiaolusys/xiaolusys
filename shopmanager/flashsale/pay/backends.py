@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 
 from .models import Customer
 from .options import get_user_unionid
+from .tasks import task_Update_Sale_Customer
 from shopapp.weixin.views import valid_openid
 from shopapp.weixin.models import WeiXinUser
 
@@ -29,6 +30,9 @@ class FlashSaleBackend(RemoteUserBackend):
         
         username = request.POST.get('username')
         password = request.POST.get('password')
+        if not username or not password:
+            messages.add_message(request, messages.ERROR, u'请输入用户名及密码')
+            return AnonymousUser()
         
         try:
             customer = Customer.objects.get(models.Q(email=username)|models.Q(mobile=username))
@@ -39,6 +43,9 @@ class FlashSaleBackend(RemoteUserBackend):
                 return AnonymousUser()
         except Customer.DoesNotExist:
             messages.add_message(request, messages.ERROR, u'用户名或密码错误')
+            return AnonymousUser()
+        except Customer.MultipleObjectsReturned:
+            messages.add_message(request, messages.ERROR, u'帐号异常，请联系管理员')
             return AnonymousUser()
             
         try:
@@ -70,13 +77,17 @@ class WeixinPubBackend(RemoteUserBackend):
             return None
         
         code = request.GET.get('code')
-        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,secret=settings.WXPAY_SECRET)
+        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,secret=settings.WXPAY_SECRET,request=request)
         
         if not valid_openid(openid) or not valid_openid(unionid):
             return AnonymousUser()
         
         try:
-            profile = Customer.objects.get(openid=openid,unionid=unionid)
+            profile = Customer.objects.get(unionid=unionid)
+            #如果openid有误，则重新更新openid
+            if profile.openid != openid:
+                task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
+                
             if profile.user:
                 if not profile.user.is_active:
                     profile.user.is_active = True
@@ -92,15 +103,9 @@ class WeixinPubBackend(RemoteUserBackend):
                 return AnonymousUser()
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
-            profile,state = Customer.objects.get_or_create(openid=openid,unionid=unionid,user=user)
+            profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             
-        try:
-            wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
-            profile.nick   = wxuser.nickname
-            profile.mobile = wxuser.mobile
-            profile.save()
-        except:
-            pass 
+        task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
         
         return user
     

@@ -104,12 +104,31 @@ class SaleRefund(models.Model):
         unique_together = ("trade_id","order_id")
         verbose_name=u'特卖/退款单'
         verbose_name_plural = u'特卖/退款单列表'
+        permissions = [("sale_refund_manage", u"特卖订单退款管理"),]
         
     def __unicode__(self):
         return '<%s>'%(self.id)
     
     def refund_desc(self):
         return u'退款不退货(oid:%s),%s'%(self.order_id,self.reason)
+    
+    def refund_Confirm(self):
+        
+        self.status = SaleRefund.REFUND_SUCCESS
+        self.save()
+        
+        from flashsale.pay.models import SaleOrder,SaleTrade
+        
+        sorder = SaleOrder.objects.get(id=self.order_id)
+        sorder.refund_status = SaleRefund.REFUND_SUCCESS
+        if sorder.sale_trade.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
+            sorder.status = SaleTrade.TRADE_CLOSED
+        sorder.save()
+        
+        strade = sorder.sale_trade
+        if strade.normal_orders.count() == 0:
+            strade.status = SaleTrade.TRADE_CLOSED
+            strade.save()
     
 
 

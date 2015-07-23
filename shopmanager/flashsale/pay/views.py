@@ -22,6 +22,11 @@ logger = logging.getLogger('django.request')
 import re
 UUID_RE = re.compile('^[a-zA-Z0-9-]{21,36}$')
 
+
+class ProductNotOnSale(Exception):
+    pass
+
+
 class PINGPPChargeView(View):
     
     def createSaleTrade(self,customer,form,charge=None):
@@ -85,9 +90,19 @@ class PINGPPChargeView(View):
             
             order_no = form.get('uuid')
             if not UUID_RE.match(order_no):
-                raise Exception('参数错误!')
+                raise Exception(u'参数错误!')
             
             payment = int(float(form.get('payment')) * 100)
+            product = Product.objects.get(pk=form.get('item_id'))
+            if (product.shelf_status != Product.UP_SHELF or
+                 product.status != Product.NORMAL):
+                raise ProductNotOnSale(u'商品已被挤下架啦！')
+            
+            sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
+            real_fee = int(sku.agent_price * int(form.get('num')) * 100)
+            
+            assert payment > 0 and payment == real_fee
+            
             response_charge = None
             if channel == SaleTrade.WALLET:
                 
@@ -151,6 +166,8 @@ class PINGPPChargeView(View):
                 logger.debug('CHARGE RESP: %s'%response_charge)
         except IntegrityError:
             err_msg = u'订单已提交'
+        except ProductNotOnSale,exc:
+            err_msg = exc.message
         except XiaoluMama.MultipleObjectsReturned,exc:
             logger.error(exc.message,exc_info=True)
             err_msg = u'OPENID异常请联系管理'
@@ -269,21 +286,24 @@ class ProductList(generics.ListCreateAPIView):
         
         time_line = int(time_line)
         
-        filter_date = datetime.datetime.now()
+        filter_qs = self.filter_queryset(self.get_queryset())
+        filter_qs = filter_qs.filter(status=Product.NORMAL,
+                                   shelf_status=Product.UP_SHELF)
+        today = datetime.date.today()
         if history:
-            filter_date = filter_date - datetime.timedelta(days=time_line)
+            filter_date = today - datetime.timedelta(days=time_line)
+            fliter_qs = filter_qs.filter(sale_time__gte=filter_date,sale_time__lt=today)
         else:
-            filter_date = filter_date + datetime.timedelta(days=time_line)
+            fliter_qs = filter_qs.filter(sale_time=today)
         
-        instance = self.filter_queryset(self.get_queryset())
-
-        instance = instance.filter(sale_time=filter_date.date(),status=Product.NORMAL)
-        
-        page = self.paginate_queryset(instance)
+        page = self.paginate_queryset(fliter_qs)
         if page is not None:
-            serializer = self.get_pagination_serializer(page)
+            if hasattr(self,'get_paginated_response'):
+                serializer = self.get_paginated_response(page)
+            else:
+                serializer = self.get_pagination_serializer(page)
         else:
-            serializer = self.get_serializer(instance, many=True)
+            serializer = self.get_serializer(fliter_qs, many=True)
 
         return Response({'products':serializer.data, 'category':category, 
                          'history':history, 'time_line':time_line})
@@ -356,19 +376,22 @@ class OrderBuyReview(APIView):
         alipay_from = True
         wallet_payable = False
         unionid    = customer.unionid.strip()
-        user_agent = request.META.get('HTTP_USER_AGENT')
         if unionid != '': 
             weixin_from = True
         
-        if user_agent and user_agent.find('MicroMessenger') > 0:
-            alipay_from = False
+#         user_agent = request.META.get('HTTP_USER_AGENT')
+#         if (user_agent and user_agent.find('MicroMessenger') > 0 
+#             and customer.unionid != 'o29cQs4zgDoYxmSO3pH-x4A7O8Sk'):
+#             alipay_from = False
         
         xiaolumms = XiaoluMama.objects.filter(openid=unionid)
         xiaolumm  = None
         if xiaolumms.count() > 0:
             xiaolumm = xiaolumms[0]
-            if xiaolumm.cash > 0 and xiaolumm.cash >= payment:
+            if (xiaolumm.cash > 0 and xiaolumm.cash >= payment * 100 
+                and not product.outer_id.startswith('RMB')):
                 wallet_payable = True
+            
         
         data = {'product':product_dict,
                 'sku':sku_dict,
@@ -478,11 +501,45 @@ class SaleTradeLogistic(APIView):
             logistic_trace = getLogisticTrace(strade.out_sid,
                                               strade.logistics_company.code)
         
-        print 'logistic trade:',logistic_trace
         
         return Response({'logistic_trace':logistic_trace})
     
-
-        
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.db.models import Sum
+from .models_envelope import Envelop
+from shopback.base import log_action, ADDITION, CHANGE
+      
+class EnvelopConfirmSendView(View):
     
+    def post(self, request, *args, **kwargs):
+        
+        content = request.POST
+        origin_url  = content.get('origin_url')
+        envelop_ids = content.get('envelop_ids','').split(',')
+        secret  = content.get('secret')
+        
+        admin_email = settings.ADMINS[0][1]
+        if secret.strip() != admin_email:
+            messages.add_message(request, messages.ERROR, u'请输入正确的红包发送暗号！')
+            return redirect(origin_url)
+        
+        envelop_qs = Envelop.objects.filter(id__in=envelop_ids,status__in=(Envelop.WAIT_SEND,Envelop.FAIL))
+        
+        try:
+            for envelop in envelop_qs:
+                envelop.send_envelop()
+                log_action(request.user.id,envelop,CHANGE,u'发送红包')
+        except Exception,exc:
+            messages.add_message(request, messages.ERROR, u'红包发送异常:%s'%(exc.message))
+            
+        envelop_goodqs = Envelop.objects.filter(id__in=envelop_ids,status=Envelop.CONFIRM_SEND)
+        envelop_count = envelop_goodqs.count()
+        total_amount  = envelop_goodqs.aggregate(total_amount=Sum('amount')).get('total_amount') or 0
+    
+        messages.add_message(request, messages.INFO, u'已成功发送 %s 个红包，总金额：%s！'%(envelop_count,total_amount / 100.0))
+            
+        return redirect(origin_url)
+    
+#     get = post   
     

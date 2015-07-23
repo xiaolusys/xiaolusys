@@ -13,6 +13,14 @@ from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
 
+def get_Unionid(openid, appid):
+    
+    try:
+        wxunion = WeixinUnionID.objects.get(openid=openid,app_key=appid)
+        return wxunion.unionid
+    except WeixinUnionID.DoesNotExist:
+        return None
+
 class AnonymousWeixinAccount():
     
     def isNone(self):
@@ -696,7 +704,7 @@ class TradeScoreRelevance(models.Model):
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"微信ID")
     trade_id    = models.CharField(max_length=64,unique=True,verbose_name=u'交易ID')
     
-    mobile      = models.CharField(max_length=36,blank=True,verbose_name=u'手机')
+    mobile      = models.CharField(max_length=36,db_index=True,blank=True,verbose_name=u'手机')
     #订单成交金额 以分未单位
     payment     = models.IntegerField(default=0,verbose_name=u'付款金额') 
     
@@ -806,7 +814,6 @@ class WeixinClickScoreRecord(models.Model):
         
 
         
-
 from shopapp.signals import (confirm_trade_signal,
                              weixin_referal_signal,
                              weixin_refund_signal,

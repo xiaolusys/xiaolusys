@@ -114,13 +114,13 @@ PRIORITY_TYPE = (
 )
 
 GIFT_TYPE = (
-    (pcfg.REAL_ORDER_GIT_TYPE  ,u'实付'),
+    (pcfg.REAL_ORDER_GIT_TYPE,u'实付'),
     (pcfg.CS_PERMI_GIT_TYPE,u'赠送'),
     (pcfg.OVER_PAYMENT_GIT_TYPE,u'满就送'),
     (pcfg.COMBOSE_SPLIT_GIT_TYPE,u'拆分'),
     (pcfg.RETURN_GOODS_GIT_TYPE,u'退货'),
     (pcfg.CHANGE_GOODS_GIT_TYPE,u'换货'),
-     (pcfg.ITEM_GIFT_TYPE,u'买就送'),
+    (pcfg.ITEM_GIFT_TYPE,u'买就送'),
 )
 
 class MergeTrade(models.Model):
@@ -137,6 +137,24 @@ class MergeTrade(models.Model):
     DIRECT_TYPE = pcfg.DIRECT_TYPE
     REISSUE_TYPE =pcfg.REISSUE_TYPE
     EXCHANGE_TYPE = pcfg.EXCHANGE_TYPE
+    
+    EMPTY_STATUS = pcfg.EMPTY_STATUS
+    WAIT_AUDIT_STATUS = pcfg.WAIT_AUDIT_STATUS
+    WAIT_PREPARE_SEND_STATUS = pcfg.WAIT_PREPARE_SEND_STATUS
+    WAIT_CHECK_BARCODE_STATUS = pcfg.WAIT_CHECK_BARCODE_STATUS
+    WAIT_SCAN_WEIGHT_STATUS = pcfg.WAIT_SCAN_WEIGHT_STATUS
+    FINISHED_STATUS = pcfg.FINISHED_STATUS
+    INVALID_STATUS = pcfg.INVALID_STATUS
+    ON_THE_FLY_STATUS = pcfg.ON_THE_FLY_STATUS
+    REGULAR_REMAIN_STATUS = pcfg.REGULAR_REMAIN_STATUS
+    
+    TRADE_NO_CREATE_PAY = pcfg.TRADE_NO_CREATE_PAY
+    WAIT_SELLER_SEND_GOODS = pcfg.WAIT_SELLER_SEND_GOODS
+    WAIT_BUYER_CONFIRM_GOODS = pcfg.WAIT_BUYER_CONFIRM_GOODS
+    TRADE_BUYER_SIGNED = pcfg.TRADE_BUYER_SIGNED
+    TRADE_FINISHED = pcfg.TRADE_FINISHED
+    TRADE_CLOSED = pcfg.TRADE_CLOSED
+    TRADE_CLOSED_BY_TAOBAO = pcfg.TRADE_CLOSED_BY_TAOBAO
     
     SYS_TRADE_STATUS = SYS_TRADE_STATUS
     TAOBAO_TRADE_STATUS = TAOBAO_TRADE_STATUS
@@ -267,6 +285,7 @@ class MergeTrade(models.Model):
     class Meta:
         db_table = 'shop_trades_mergetrade'
         unique_together = ("tid","user")
+        ordering = []
         verbose_name=u'订单'
         verbose_name_plural = u'订单列表'
         permissions = [

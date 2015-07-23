@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea
+
+from shopback.base.admin import MyAdmin
 from shopback.base.options import DateFieldListFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopapp.weixin.models import (WeiXinAccount,
@@ -48,7 +50,7 @@ class WeixinUnionIDAdmin(admin.ModelAdmin):
     list_display_links = ('openid',)
     
     list_filter = ('app_key',)
-    search_fields = ['openid','unionid']
+    search_fields = ['=openid','=unionid']
 
 admin.site.register(WeixinUnionID, WeixinUnionIDAdmin)  
 
@@ -142,7 +144,7 @@ class UserGroupAdmin(admin.ModelAdmin):
 
 admin.site.register(UserGroup, UserGroupAdmin) 
 
-class WeiXinUserAdmin(admin.ModelAdmin):
+class WeiXinUserAdmin(MyAdmin):
     
     user_groups = []
     list_per_page = 25
@@ -150,7 +152,7 @@ class WeiXinUserAdmin(admin.ModelAdmin):
                     ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
     
     list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
-    search_fields = ['openid','mobile']
+    search_fields = ['=openid','=mobile']
     
     def charge_link(self, obj):
 
@@ -239,9 +241,9 @@ admin.site.register(WeiXinAutoResponse, WeiXinAutoResponseAdmin)
 
 class WXProductAdmin(admin.ModelAdmin):
     
-    list_display = ('product_id','product_name','sync_stock','status')
+    list_display = ('product_id','product_name','sync_stock','modified','status')
     
-     #--------设置页面布局----------------
+    #--------设置页面布局----------------
     fieldsets =((u'商品信息:', {
                     'classes': ('expand',),
                     'fields': (('product_id','product_name','product_img')
@@ -254,7 +256,7 @@ class WXProductAdmin(admin.ModelAdmin):
                 }),
                 )
     
-    list_filter = ('status',)
+    list_filter = ('status',('modified',DateFieldListFilter))
     search_fields = ['product_id','product_name']
     
 admin.site.register(WXProduct, WXProductAdmin) 
@@ -262,9 +264,9 @@ admin.site.register(WXProduct, WXProductAdmin)
 class WXProductSkuAdmin(admin.ModelAdmin):
     
     list_display = ('sku_id','product','outer_id','outer_sku_id',
-                    'sku_name','pic_link','sku_price','ori_price','status')
+                    'sku_name','pic_link','sku_price','ori_price','modified','status')
     
-    list_filter = ('status',)
+    list_filter = ('status',('modified',DateFieldListFilter))
     search_fields = ['sku_id','product__product_id','outer_id','outer_sku_id']
     
     def pic_link(self, obj):
@@ -278,13 +280,13 @@ class WXProductSkuAdmin(admin.ModelAdmin):
 admin.site.register(WXProductSku, WXProductSkuAdmin) 
 
 
-class WXOrderAdmin(admin.ModelAdmin):
+class WXOrderAdmin(MyAdmin):
     
     list_display = ('order_id','buyer_nick','order_total_price','order_create_time',
                     'delivery_id','delivery_company','order_status')
     
     list_filter = ('order_status',)
-    search_fields = ['order_id','trans_id','buyer_nick','buyer_openid']
+    search_fields = ['=order_id','=trans_id','=buyer_nick','=buyer_openid']
     
      #--------设置页面布局----------------
     fieldsets =((u'订单信息:', {
@@ -426,7 +428,7 @@ class SampleOrderChangeList(ChangeList):
         
         return super(SampleOrderChangeList,self).get_query_set(request)
 
-class SampleOrderAdmin(admin.ModelAdmin):
+class SampleOrderAdmin(MyAdmin):
 
     
     list_display = ('product_name','sku_code','user_openid','problem_score','vipcode','created','status')
@@ -487,7 +489,7 @@ class VipCodeChangeList(ChangeList):
         return super(VipCodeChangeList,self).get_query_set(request)
     
     
-class VipCodeAdmin(admin.ModelAdmin):
+class VipCodeAdmin(MyAdmin):
 
     list_display = ('owner_openid','code','expiry','code_type',
                     'code_rule', 'max_usage', 'usage_count','created')

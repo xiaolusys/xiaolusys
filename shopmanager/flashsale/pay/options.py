@@ -18,22 +18,39 @@ from urllib import urlopen
 from django.http import Http404
 from django.conf import settings
 
+import re
+OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+
+def valid_openid(openid):
+    if not openid:
+        return False
+    if not OPENID_RE.match(openid):
+        return False
+    return True 
+
 def get_user_unionid(code, 
                     appid='', 
                     secret='',
                     request=None):
-
-    if settings.DEBUG:
-        return ('oMt59uE55lLOV2KS6vYZ_d0dOl5c','o29cQs9QlfWpL0v0ZV_b2nyTOM-4')
+    
+    
+    debug_m   = settings.DEBUG
+    content   = {}
+    if not debug_m and request: 
+        content = request.REQUEST 
+        debug_m = content.get('debug')
+        
+    if debug_m:
+        openid  = content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c')
+        unionid = content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4')
+        return (openid, unionid)
     
     if not code and not request:
         return ('','')
     
     if not code and request:
-        content = request.REQUEST  
         cookies = request.COOKIES 
-        return (content.get('sopenid','') or cookies.get('sopenid'),
-                content.get('sunionid','') or cookies.get('sunionid'))
+        return (cookies.get('sopenid'), cookies.get('sunionid'))
     
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)
@@ -41,11 +58,8 @@ def get_user_unionid(code,
     r = json.loads(r)
     
     if r.has_key("errcode"):
-        if not request:
-            return ('','')
-        cookies = request.COOKIES
-        return (cookies.get('sopenid'),cookies.get('sunionid'))
-    
+        return ('','')
+
     return (r.get('openid'),r.get('unionid'))
 
 from django.contrib.auth.models import User as DjangoUser

@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN""http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>打印测试页面</title>
+</head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style type='text/css'>
+@media print {
+	@font-face {
+		font-family: simsun;
+		src: url(/home/timi06/timi/fonts/simsun.ttf);
+		font-style: italic;
+	}
+    @font-face {
+		font-family: simsunbd;
+		src: url(/home/timi06/timi/fonts/simsunbd.ttf);
+        font-weight: bold;
+		font-style: italic;
+	}
+	@font-face {
+		font-family: msyh;
+		src: url(/home/timi06/timi/fonts/msyh.ttf);
+		font-style: italic;
+	}
+	@font-face {
+		font-family: msyhbd;
+		src: url(/home/timi06/timi/fonts/msyhbd.ttf);
+		font-weight: bold;
+		font-style: italic;
+	}
+}
+
+@page {
+	font-family: simsun;
+	-pdf-frame-border: 0;
+    -pdf-level: 0;
+    -pdf-open: false;	border:0;
+
+    size: 100mm 203mm;
+}
+
+{# body这个font-family才起作用 #}
+body {
+	margin: 0px;
+	padding: 0px;
+	text-align: left;
+	font-family: simsun;
+}
+
+td {
+    border: solid#000000 1px ;
+}
+
+</style>
+<body >
+{% for k,d in result_dict.items %}
+    <table bgcolor="white">
+        <tr>
+            <td colspan="100" style="font-size: 10pt;">
+                <span style="font-size: 9pt;font-family: simsunbd ;">始发网点：上海</span> </br>
+                寄件人：小鹿美美 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日期：{{ d.date_time }} </br>
+                电话：210-******** </br>
+                公司：上海己美网络科技有限公司 </br>
+                地址：上海市，松江区，佘山镇，吉业路245号 </br>
+                <span style="font-size: 9pt;font-family: simsunbd ;">送达地址：</span></br>
+                收件人：{{ s }} </br>
+                电话：{{ jd }} </br>
+                公司：{{ jg }} </br>
+                <span style="font-size: 8pt;">地址：{{ d.mt.receiver_address }} </span></br>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="0" class="td1" style="font-size: 10pt;background-color: #000000">
+                </br>
+                </br>
+                </br>
+                </br>
+            </td>
+            <td colspan="22" style=" font-size: 8pt;">
+                <img src="data:image/jpeg;base64,{{ d.imgbase }}"/>
+            </td>
+            <td colspan="77" style=" font-size: 35pt; font-family: simsunbd ;text-align: center">
+                 {{ d.ls.marke }}
+            </td>
+        </tr>
+        <tr class="test">
+            <td colspan="7" style=" font-size: 10pt; text-align: center" >
+                条</br>
+                形</br>
+                码
+            </td>
+            <td colspan="93" style="" >
+                <img src="data:image/jpeg;base64,{{ d.imgbase64 }}"/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="100" style=" font-size: 10pt;font-family: simsunbd;">
+                &nbsp;运单号：{{ d.mt.out_sid }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="100" style=" font-size: 10pt;font-family: simsunbd">
+                &nbsp;收件人/代签人：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;签收时间：&nbsp;&nbsp;年&nbsp;&nbsp;月&nbsp;&nbsp;日
+            </td>
+        </tr>
+        <tr>
+            <td colspan="7" style=" font-size: 9pt;text-align: center">
+                服</br>
+                务</br>
+                描</br>
+                述
+            </td>
+            <td colspan="93" style=" font-size: 9pt">
+                订单号：{{ d.mt.cus_oid }} </br>
+                订单物品：
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td colspan="7" style=" font-size: 9pt;text-align: center">
+                快</br>
+                递</br>
+                单</br>
+                号
+            </td>
+            <td colspan="70" >
+                <img src="data:image/jpeg;base64,{{ d.imgbase64 }}"/>
+            </td>
+            <td colspan="23" style="vertical-align: bottom"  >
+                <img src="data:image/jpg;base64,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" alt="">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="100" style=" font-size: 9pt">
+                <span style="font-size: 10pt;" >发送地址：上海</br>
+                寄件人：小鹿美美 &nbsp;&nbsp;&nbsp;&nbsp;日期：{{ time }} </br>
+                电话：210-******** </br>
+                公司：上海己美网络科技有限公司 </br>
+                地址：上海市，松江区，佘山镇，吉业路245号 </span></br>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="100" style="font-size: 9pt">
+                <span style="font-family: simsunbd ;">送达地址：</br>
+                收件人：{{ s }} </br>
+                电话：{{ jd }} </br>
+                公司：{{ jg }} </br>
+                地址：{{ jd }} </span></br>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="100" style=" font-size: 10pt">
+                官方网址：http://www.yundaex.com 客服热线： 400-821-6789
+                </br>
+            </td>
+        </tr>
+    </table>
+    </div>
+{% endfor %}
+</body>
+</html>

@@ -1,35 +1,70 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-from flashsale.dinghuo import paramconfig as pcfg
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
-
-ORDER_PRODUCT_STATUS = (
-    (pcfg.SUBMITTING, u'提交中'),
-    (pcfg.APPROVAL, u'审核'),
-    (pcfg.ZUOFEI, u'作废'),
-    (pcfg.COMPLETED, u'验货通过'),
-)
+from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
+from .models_user import MyUser, MyGroup
+from .models_stats import SupplyChainDataStats
+from shopback.items.models import ProductSku, Product
 
 
 class OrderList(models.Model):
     
+    #订单状态
+    SUBMITTING = u'草稿'  #提交中
+    APPROVAL = u'审核'  #审核
+    ZUOFEI = u'作废'  #作废
+    COMPLETED = u'验货完成'  #验货完成
+    QUESTION = u'有问题'  #有问题
+    CIPIN = u'5'  # 有次品
+    QUESTION_OF_QUANTITY = u'6'  # 到货有问题
+    DEALED = u'已处理' #已处理
+    SAMPLE = u'7'  # 样品
+    NEAR = u'1'         #江浙沪皖
+    SHANGDONG = u'2'    #山东
+    GUANGDONG = u'3'    #广东
+
+    ORDER_PRODUCT_STATUS = (
+        (SUBMITTING, u'草稿'),
+        (APPROVAL, u'审核'),
+        (ZUOFEI, u'作废'),
+        (QUESTION, u'有次品又缺货'),
+        (CIPIN, u'有次品'),
+        (QUESTION_OF_QUANTITY, u'到货数量问题'),
+        (COMPLETED, u'验货完成'),
+        (DEALED, u'已处理'),
+        (SAMPLE, u'样品'),
+    )
+    ORDER_DISTRICT = (
+        (NEAR, u'江浙沪皖'),
+        (SHANGDONG, u'山东'),
+        (GUANGDONG, u'广东福建'),
+    )
+    
     id = BigIntegerAutoField(primary_key=True)
     buyer_name = models.CharField(default="",max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
-    supplier_name = models.CharField(default="",blank=True, max_length=128, verbose_name=u'供应商')
+    supplier_name = models.CharField(default="", blank=True, max_length=128, verbose_name=u'商品链接')
+    supplier_shop = models.CharField(default="", blank=True, max_length=32, verbose_name=u'供应商店铺名')
     express_company = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递公司')
     express_no = models.CharField(default="",blank=True, max_length=32, verbose_name=u'快递单号')
-    receiver = models.CharField(default="", max_length=32, verbose_name=u'仓库负责人')
+    receiver = models.CharField(default="", max_length=32, verbose_name=u'负责人')
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
+    p_district = models.CharField(max_length=32,default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT)
+    reach_standard = models.BooleanField(default=False, verbose_name=u"达标")
     created = models.DateField(auto_now_add=True, verbose_name=u'订货日期')
-    updated = models.DateField(auto_now_add=True, verbose_name=u'更新日期')
-    note = models.TextField(default="",blank=True, verbose_name=u'备注信息')
+    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+    note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
         verbose_name = u'订货表'
         verbose_name_plural = u'订货表'
+        permissions = [("change_order_list_inline", u"修改后台订货信息"),]
+
+    def costofems_cash(self):
+        return self.costofems / 100.0
+    costofems_cash.allow_tags = True
+    costofems_cash.short_description = u"快递费用"
 
     def __unicode__(self):
         return '<%s,%s,%s>' % (str(self.id or ''), self.id, self.buyer_name)
@@ -39,7 +74,7 @@ class OrderDetail(models.Model):
     
     id = BigIntegerAutoField(primary_key=True)
     
-    orderlist = BigIntegerForeignKey(OrderList, verbose_name=u'订单编号')
+    orderlist = BigIntegerForeignKey(OrderList, related_name='order_list', verbose_name=u'订单编号')
     product_id = models.CharField(max_length=32, verbose_name=u'商品id')
     outer_id = models.CharField(max_length=32, verbose_name=u'产品外部编码')
     product_name = models.CharField(max_length=128, verbose_name=u'产品名称')
@@ -48,10 +83,13 @@ class OrderDetail(models.Model):
     buy_quantity = models.IntegerField(default=0, verbose_name=u'产品数量')
     buy_unitprice = models.FloatField(default=0, verbose_name=u'买入价格')
     total_price = models.FloatField(default=0, verbose_name=u'单项总价')
-    arrival_quantity = models.IntegerField(default=0, verbose_name=u'到货数量')
-    created = models.DateField(auto_now_add=True, verbose_name=u'生成日期')
-    updated = models.DateField(auto_now_add=True, verbose_name=u'更新日期')
+    arrival_quantity = models.IntegerField(default=0, verbose_name=u'正品数量')
+    inferior_quantity = models.IntegerField(default=0, verbose_name=u'次品数量')
+    non_arrival_quantity = models.IntegerField(default=0, verbose_name=u'未到数量')
 
+    created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'生成日期')#index
+    updated = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'更新日期')#index
+    arrival_time = models.DateTimeField(blank=True, verbose_name=u'到货时间')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderdetail'
@@ -80,3 +118,37 @@ class orderdraft(models.Model):
 
     def __unicode__(self):
         return self.product_name
+
+
+class ProductSkuDetail(models.Model):
+
+    product_sku = models.BigIntegerField(unique=True, verbose_name=u'库存商品规格')
+    exist_stock_num = models.IntegerField(default=0, verbose_name=u'上架前库存')
+    sample_num = models.IntegerField(default=0, verbose_name=u'样品数量')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成日期')
+    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+
+    class Meta:
+        db_table = 'flash_sale_product_sku_detail'
+        verbose_name = u'特卖商品库存'
+        verbose_name_plural = u'特卖商品库存列表'
+
+    def __unicode__(self):
+        return u'<%s>'%(self.product_sku)
+
+from shopback import signals 
+
+def init_stock_func(sender,product_list,*args,**kwargs):
+    
+    for pro_bean in product_list:
+        sku_qs = pro_bean.prod_skus.all()
+        for sku_bean in sku_qs:
+            pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku=sku_bean.id)
+            pro_sku_bean[0].exist_stock_num = sku_bean.quantity
+            pro_sku_bean[0].sample_num = 0
+            sku_bean.memo=""
+            sku_bean.save()
+            pro_sku_bean[0].save()
+            
+signals.signal_product_upshelf.connect(init_stock_func, sender=Product)
+

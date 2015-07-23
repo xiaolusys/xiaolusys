@@ -33,7 +33,7 @@ from .models import (WeiXinUser,
                      WeixinClickScoreRecord,
                      WeixinScoreBuy)
 
-from .weixin_apis import WeiXinAPI
+from .weixin_apis import WeiXinAPI,WeiXinRequestException
 from shopapp.weixin_score.models import SampleFrozenScore
 from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
@@ -158,7 +158,7 @@ class WeixinAcceptView(View):
     """ 微信接收消息接口 """
     
     def get_wx_service(self):
-       return WeixinUserService()
+        return WeixinUserService()
     
     def get(self, request):
         
@@ -199,7 +199,6 @@ class WeixinAcceptView(View):
 def chargeWXUser(request,pk):
     
     result = {}
-    charged = False
     employee = request.user
 
     supplier = get_object_or_404(WeiXinUser,pk=pk)
@@ -346,7 +345,7 @@ class OrderInfoView(View):
             
             order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
-        
+        print  "   订单是", latest_trades
         trade = latest_trades[0]
         
         data = {}
@@ -1521,6 +1520,7 @@ class WeixinProductView(ModelView):
         
         content = request.REQUEST
         product_ids = content.get('product_ids','').split(',')
+        next    = content.get('next')
         
         wx_pids = self.getLinkProductIds(content)
         
@@ -1534,7 +1534,8 @@ class WeixinProductView(ModelView):
             product_list.append(WXProduct.objects.fetchSkuMatchInfo(p))
                     
         return {'product_list':product_list,
-                'product_ids':','.join([str(p.id) for p in queryset])}
+                'product_ids':','.join([str(p.id) for p in queryset]),
+                'next':next}
 
         
     def post(self, request,*args, **kwargs):
@@ -1543,48 +1544,82 @@ class WeixinProductView(ModelView):
         product_ids = content.get('product_ids','').split(',')
         products = Product.objects.filter(id__in=product_ids)
         wx_api = WeiXinAPI()
+        pull_set  = set([])
         
         for product in products:
-
-            wx_skus = WXProductSku.objects.filter(outer_id=product.outer_id)
-            wx_pids = set([sku.product_id for sku in wx_skus])
-            for wx_pid in wx_pids:
-                WXProduct.objects.getOrCreate(wx_pid,force_update=True)
+            wx_skus = WXProductSku.objects.filter(outer_id=product.outer_id).order_by('-modified')
+            if wx_skus.count() == 0:
+                continue
+             
+            wx_pid = wx_skus[0].product_id
+            if wx_pid not in pull_set:
+                try:
+                    WXProduct.objects.getOrCreate(wx_pid,force_update=True)
+                except Exception,exc:
+                    logger.error(exc.message,exc_info=True)
+                    continue
+                pull_set.add(wx_pid) 
             
             for sku in product.pskus:
                 outer_id = product.outer_id
                 outer_sku_id = sku.outer_id
                 sync_num = sku.remain_num - sku.wait_post_num
                 if sync_num < 0 :
-                    continue
+                    sync_num = 0
                 try:
-                    wx_skus = WXProductSku.objects.filter(outer_id=outer_id,
-                                                outer_sku_id=outer_sku_id)
+                    wx_skus = WXProductSku.objects.filter(
+                                                outer_id=outer_id,
+                                                outer_sku_id=outer_sku_id
+                                                ).order_by('-modified')
                     for wx_sku in wx_skus:
-                        
-                        vector_num =  sync_num - wx_sku.sku_num 
-                        if vector_num == 0:continue
-                        if vector_num > 0:
-                            wx_api.addMerchantStock(wx_sku.product_id,
-                                                    vector_num,
-                                                    sku_info=wx_sku.sku_id)
-                        else:
-                            wx_api.reduceMerchantStock(wx_sku.product_id,
-                                                       abs(vector_num),
-                                                       sku_info=wx_sku.sku_id)
-            
-                        ItemNumTaskLog.objects.get_or_create(user_id=request.user.id,
-                                                             outer_id=outer_id,
-                                                             sku_outer_id='wx%s'%outer_sku_id,
-                                                             num=sync_num,
-                                                             end_at=datetime.datetime.now())
+                        try:
+                            vector_num =  sync_num - wx_sku.sku_num 
+                            if vector_num == 0:continue
+                            if vector_num > 0:
+                                wx_api.addMerchantStock(wx_sku.product_id,
+                                                        vector_num,
+                                                        sku_info=wx_sku.sku_id)
+                            else:
+                                wx_api.reduceMerchantStock(wx_sku.product_id,
+                                                           abs(vector_num),
+                                                           sku_info=wx_sku.sku_id)
+                
+                            ItemNumTaskLog.objects.get_or_create(user_id=request.user.id,
+                                                                 outer_id=outer_id,
+                                                                 sku_outer_id='wx%s'%outer_sku_id,
+                                                                 num=sync_num,
+                                                                 end_at=datetime.datetime.now())
+                        except WeiXinRequestException,exc:
+                            messages.add_message(request, messages.ERROR, u'编码(微信商品ID:%s)[%s.%s]'%(wx_sku.product_id,outer_sku_id,outer_id))
+                            
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)
                     
         messages.add_message(request, messages.INFO, 
                              u'已成功更新%s个商品(%s)微信平台库存'%(products.count(),
                                                             [p.outer_id for p in products]))
-        return HttpResponseRedirect(reverse("admin:items_product_changelist")+'?id__in='+','.join(product_ids))
+        
+        next = content.get('next')
+        if not next:
+            next  = reverse("admin:items_product_changelist")+'?id__in='+','.join(product_ids)
+        
+        return HttpResponseRedirect(next)
+    
+
+class WeixinProductVerifyView(ModelView):
+    """ 微信特卖商品校验 """
+
+    def post(self, request, *args, **kwargs):
+        
+        content = request.REQUEST
+        product_ids = content.get('product_ids','').split(',')
+
+        queryset = Product.objects.filter(id__in=product_ids)
+        update_rows = queryset.update(is_verify=True)
+                    
+        return {'code':0,'response':{'update_rows':update_rows}}
+
+        
 
 class TestView(View):
     def get(self, request):
@@ -1606,5 +1641,153 @@ class TestCodeView(View):
                                       context_instance=RequestContext(request))
         return response
     
+
+#fang 2015-06-18  de
+def  weixinorder_detail(request):
+    
+        content = request.REQUEST
+        code = content.get('code',None)
+        user_openid = get_user_openid(request, code)
+        
+        if not valid_openid(user_openid):
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/orderinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            return redirect(redirect_url)
+        
+        wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
+        
+        title = u'订单查询'
+        if wx_user.isValid() == False:
+            response = render_to_response('weixin/remind.html', 
+                                          {"title":title, "openid":user_openid}, 
+                                          context_instance=RequestContext(request))
+            response.set_cookie("openid",user_openid)
+            return response
+            
+        status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
+        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile)#\
+              #  .filter(status__in=status).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])\
+              #  .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)\
+               # .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
+        
+        if latest_trades.count() == 0:
+            wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time')
+            if wx_trades.count() == 0:
+                response = render_to_response('weixin/noorderinfo.html',
+                                      context_instance=RequestContext(request))
+                response.set_cookie("openid",user_openid)
+                return response
+            
+            order_id = wx_trades[0].order_id
+            latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
+        #print  "   订单是", latest_trades
+       # trade = latest_trades[0]
+        trade22 = latest_trades
+        rec1=[]
+        for  trade in trade22:
+            data = {}
+            data["tradeid"] = trade.id
+            data["platform"] = trade.user
+            data["paytime"] = trade.pay_time
+            has_specific_product = False
+            specific_order_finished = False
+            orders = []
+            info={}
+            for order in trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
+                s = order.getImgSimpleNameAndPrice()
+                if order.outer_id in ['10206','10501','10102','0112BK3'] :
+                    if trade.status == pcfg.TRADE_FINISHED:
+                        specific_order_finished = True
+                    has_specific_product = True
+                orders.append(s)
+            data["orders"]   = orders
+            data["ordernum"] = trade.order_num
+            data["payment"]  = trade.payment
+            data["post_fee"] = trade.post_fee
+            data["status"]   = trade.status
+            data["type"]     = trade.type
+            data["receiver_name"]   = trade.receiver_name
+            receiver_mobile = trade.receiver_mobile 
+            if len(receiver_mobile) >10:
+                receiver_mobile = '%s****%s'%(receiver_mobile[0:3],receiver_mobile[7:])
+            data["receiver_mobile"] = receiver_mobile 
+            data["address"] = ','.join([trade.receiver_state, trade.receiver_city, trade.receiver_district, trade.receiver_address])
+        
+        # only for order paid after 2014-9-15
+
+            if not trade.pay_time or trade.pay_time < datetime.datetime(2014,9,15):
+                has_specific_product = False
+            
+            from shopback.logistics import getLogisticTrace
+            shipping_traces = []
+            try:
+                shipping_traces = getLogisticTrace(trade.out_sid, trade.logistics_company.code.split('_')[0])
+            except:
+                shipping_traces = [("Sorry, 暂时无法查询到快递信息", "请尝试其他途径查询")]
+
+            score = 0
+            user_scores = WeixinUserScore.objects.filter(user_openid=user_openid)
+            if user_scores.count() > 0:
+                score = user_scores[0].user_score
+
+            score_passed = False
+        #if has_specific_product:
+        #    refund_records = Refund.objects.filter(trade_id=trade.id,
+        #                                           user_openid=user_openid,
+        #                                           refund_type=2)
+        #    if score >= 10 and refund_records.count() < 1:
+        #        score_passed = True
+        
+            refund = None
+            refund_list = Refund.objects.filter(trade_id=trade.id)
+            if refund_list.count() > 0:
+               refund = refund_list[0]
+        
+            passed = False
+            start_time = datetime.datetime(2015,3,9)
+            sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=70,status__lt=90)
+            refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
+            if specific_order_finished and sample_orders.count() > 0 :
+                if refund_records.filter(refund_status__in=(0,1)).count() == 0:
+                    passed = True
+
+            score_refund = False
+            if (data["payment"] >= 100 and score >= 10 
+                and trade.status ==  pcfg.TRADE_FINISHED
+                and trade.pay_time > datetime.datetime(2014,9,15)
+                and trade.weight_time
+                and (datetime.datetime.now() - trade.weight_time).days < 15):
+                score_refund = True
+            
+            post_fee_refund = False
+            if (data["post_fee"] > 0 and score >= 10 
+                and data["type"] == pcfg.WX_TYPE 
+                and data["status"] == pcfg.TRADE_FINISHED):
+                post_fee_refund = True
+            info['tradedata']=data
+            info['traces']=shipping_traces
+            info['score_passed']=score_passed
+            info['specific_order_finished']=specific_order_finished
+            info['refund']=refund
+            info['passed']=passed
+            info['user_openid']=user_openid
+            info['score_refund']=score_refund
+            info['post_fee_refund']=post_fee_refund
+            rec1.append(info)
+       # print "这是",rec1
+        #response = render_to_response('weixin/weixinorder_detail.html', 
+                                     # {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
+                                      # "specific_order_finished":specific_order_finished,"refund": refund, 
+                                     #  "passed":passed, "openid":user_openid, "score_refund":score_refund,
+                                       #"post_fee_refund":post_fee_refund},
+                                     # context_instance=RequestContext(request))
+        response = render_to_response('weixin/weixinorder_detail.html', 
+                                     {'info':rec1},
+                                      context_instance=RequestContext(request))                          
+                                     
+        response.set_cookie("openid",user_openid)
+        return response
+    
+    
+
     
         

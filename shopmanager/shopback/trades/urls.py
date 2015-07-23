@@ -1,3 +1,4 @@
+#coding=utf-8
 from django.conf.urls.defaults import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
@@ -28,8 +29,10 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       countFenxiaoAcount,
                                       showFenxiaoDetail,
                                       PackageScanCheckView,
-                                      PackageScanWeightView)
-
+                                      PackageScanWeightView,
+                                      
+                                      )
+from shopback.trades.views import detail,search_trade
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import (CheckOrderRenderer,
                                        ReviewOrderRenderer,
@@ -48,6 +51,10 @@ from shopback.trades.resources import (BaseResource,
                                        StatisticMergeOrderResource)
 from shopback.base.permissions import IsAuthenticated
 from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
+
+
+from shopback.trades import views_product_analysis
+
 
 urlpatterns = patterns('shopback.trades.views',
     
@@ -157,7 +164,7 @@ urlpatterns = patterns('shopback.trades.views',
         renderers=(BaseJsonRenderer,TradeLogisticRender),
         authentication=(UserLoggedInAuthentication,),
         permissions=(IsAuthenticated,)
-    )),               
+    )),
     
     (r'fenxiao/count/$',csrf_exempt(countFenxiaoAcount)),
 
@@ -176,4 +183,18 @@ urlpatterns = patterns('shopback.trades.views',
 #        authentication=(UserLoggedInAuthentication,),
 #        permissions=(IsAuthenticated,)
     ))), 
+    (r'^detail/$',csrf_exempt(login_required_ajax(detail))),
+    (r'^search_trade/$',csrf_exempt(login_required_ajax(search_trade))),
+
+
+    # linjie add in here
+    # 产品的销售件数，金额，退货率，次品率
+    url(r'^product_analysis/$', views_product_analysis.product_Analysis, name="product_Analysis"),
+    # 小鹿妈妈的订单情况
+    url(r'^xlmm_product_analysis/$', views_product_analysis.xlmm_Product_Analysis, name="xlmm_Product_Analysis"),
+
+    url(r'^product_analysis_top100/$', views_product_analysis.product_Top100_By_Week, name="xlmm_Product_Analysis"),
+    url(r'^product_analysis_collect_top100/$', views_product_analysis.product_Collect_Topp100, name="product_Collect_Topp100"),
+
+
 )

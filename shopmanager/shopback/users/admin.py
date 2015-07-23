@@ -75,19 +75,17 @@ class UserAdmin(admin.ModelAdmin):
             try:
                 if user.type in (User.SHOP_TYPE_B,User.SHOP_TYPE_C):
                     #更新等待发货商城订单
-                    saveUserDuringOrdersTask.delay(user.visitor_id,
-                                                   status=pcfg.WAIT_SELLER_SEND_GOODS)
-                
+                    saveUserDuringOrdersTask.s(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)()
+                    
                     #更新待发货分销订单
-                    saveUserPurchaseOrderTask.delay(user.visitor_id,
-                                                    status=pcfg.WAIT_SELLER_SEND_GOODS)
+                    saveUserPurchaseOrderTask.s(user.visitor_id,status=pcfg.WAIT_SELLER_SEND_GOODS)()
                 elif user.type == User.SHOP_TYPE_JD:
                     
-                    pullJDOrderByVenderIdTask.delay(user.visitor_id)
+                    pullJDOrderByVenderIdTask.s(user.visitor_id)()
                     
                 elif user.type == User.SHOP_TYPE_WX:
                     
-                    pullWaitPostWXOrderTask.delay(None,None)
+                    pullWaitPostWXOrderTask.s(None,None,full_update=True)()
                     
             except Exception,exc:
                 pull_dict['success']=False
@@ -170,7 +168,7 @@ class UserAdmin(admin.ModelAdmin):
             ret_params = {'success':True}
         return render_to_response('users/sync_online_prodnum_template.html',ret_params,
                                   context_instance=RequestContext(request),mimetype="text/html")     
-        
+    
     sync_online_prodnum_to_offline.short_description = "线上库存覆盖系统库存".decode('utf8')
     
     #异步下载近三个月订单

@@ -44,6 +44,23 @@ def createbar_code128(code):
     bs.close()
     return imgbase64
 
-if __name__ == "__main__":
+#生成二维码
+import qrcode
 
-    print createbar_code128(1)
+def two_dimension_code(code):
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(code)
+    qr.make(fit=True)
+
+    bs = StringIO()
+    imgo = qr.make_image()
+    imgo.save(bs,'jpeg')
+    bss = bs.getvalue()
+    imgbase = base64.b64encode(bss)
+    bs.close()
+    return imgbase

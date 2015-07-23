@@ -12,4 +12,5 @@ recalc_fee_signal  = Signal(providing_args=["trade_id"])
 
 confirm_trade_signal = Signal(providing_args=["trade_id"])
 
+signal_product_upshelf = Signal(providing_args=["product_list"])
 

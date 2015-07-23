@@ -25,7 +25,7 @@
 <body>
 
   <!-- 头图 -->
-  <div id="header"><img src="{{ STATIC_URL }}images/title.png"/></div>
+  <div id="header"><img src="{{ STATIC_URL }}images/title.jpg"/></div>
 
   <!-- 导航 -->
   <div id="tab_nav">
@@ -52,12 +52,12 @@
   {% endfor %}
   </div>
   
-  <div id="no_more" next="{% if products.next %}{{ products.next }}&format=json{% endif %}">努力加载中...</div>
+  <div id="no_more" next="{% if products.next %}{{ products.next }}&format=json{% endif %}">商品已经下架了</div>
 
   <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
 	  <ul class="nav nav-pills nav-justified">
-		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}&{% endif %}history=yes&time_line=0" class="col-xs-4 " target="_self">历史特卖</a></li>
+		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}&{% endif %}history=yes&time_line=2" class="col-xs-4 " target="_self">历史特卖</a></li>
 		  <li role="presentation" ><a href="{% url sale_home %}?{% if category %}category={{ category }}{% endif %}" class="col-xs-4 " target="_self">今日上新</a></li>
 		  <li role="presentation" ><a href="{% url user_profile %}" class="col-xs-4 " target="_self">个人中心</a></li>
 	  </ul>

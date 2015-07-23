@@ -12,7 +12,7 @@ BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
-CELERYD_CONCURRENCY = 8 # 16 processes in parallel
+CELERYD_CONCURRENCY = 16 # 16 processes in parallel
 
 from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
@@ -45,6 +45,18 @@ CELERY_ROUTES = {
             'queue': 'trade_notify',
             'routing_key': 'trade.push_refund',
         },
+        'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
+            'queue': 'default',
+            'routing_key': 'tasks.push_xlmm_pending_cash',
+        },
+        'flashsale.pay.tasks.task_Update_Sale_Customer': {
+            'queue': 'default',
+            'routing_key': 'tasks.update_sale_customer',
+        },
+        'shopapp.weixin.tasks.task_Update_Weixin_UserInfo': {
+            'queue': 'default',
+            'routing_key': 'tasks.update_weixin_userinfo',
+        }, 
 }
 
 
@@ -104,12 +116,12 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/7"),#
         'args':()
     },
-    
-#     u'定时将将客户信息更新到会员列表':{     #更新客户信息
-#          'task':'shopback.trades.tasks.pushBuyerToCustomerTask',
-#          'schedule':crontab(minute="0",hour='2',day_of_week='sun'),
-#          'args':(21,)
-#      },
+    u'定时生成每月物流信息报表':{     #更新库存
+        'task':'shopback.trades.tasks.task_Gen_Logistic_Report_File_By_Month',
+        'schedule':crontab(minute="0",hour="4", day_of_month='10'),#
+        'args':()
+    },
+
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
 #        'schedule':crontab(minute="0",hour="2"), #
@@ -171,14 +183,14 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时增量下载更新微信订单':{
         'task':'shopapp.weixin.tasks.pullWaitPostWXOrderTask',
-        'schedule':crontab(minute="0",hour=",".join([str(i)  for i in range(8,23)])),
+        'schedule':crontab(minute="0",hour="*/2"),
         'args':(None,None)
     },
     u'定时增量更新微信维权订单':{
         'task':'shopapp.weixin.tasks.pullFeedBackWXOrderTask',
-        'schedule':crontab(minute="*/30",hour=','.join([str(i) for i in range(9,23)])),
+        'schedule':crontab(minute="30",hour="*/2"),
         'args':(None,None)
-    },      
+    },
     u'定时同步微信商品库存':{
         'task':'shopapp.weixin.tasks.syncWXProductNumTask',
         'schedule':crontab(minute="10",hour='1,12'),
@@ -194,6 +206,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="20",hour='*/6'),
         'args':()
     },
+    u'定时更新特卖订单订单列表':{
+        'task':'flashsale.pay.tasks.push_SaleTrade_To_MergeTrade',
+        'schedule':crontab(minute="0",hour="*/7"),
+        'args':()
+    },
     u'定时短信通知微信用户':{
         'task':'shopapp.weixin_sales.tasks.NotifyParentAwardTask',
         'schedule':crontab(minute="*/5",),
@@ -201,7 +218,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时统计昨日小鹿妈妈点击':{
         'task':'flashsale.clickcount.tasks.task_Record_User_Click',
-        'schedule':crontab(minute="30",hour='5'),
+        'schedule':crontab(minute="30",hour='4'),
         'args':(),
 #         'kwargs':{'pre_day':1}
     },
@@ -211,9 +228,78 @@ SHOP_APP_SCHEDULE = {
         'args':()
     },
     u'定时更新代理妈妈佣金提成':{
-        'task':'flashsale.clickrebeta.tasks.task_Push_Pending_Carry_Cash',
+        'task':'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash',
+        'schedule':crontab(minute="40",hour='5'),
+        'args':(),
+    },
+    u'定时统计每日特卖综合数据':{
+        'task':'flashsale.daystats.tasks.task_Calc_Sales_Stat_By_Day',
+        'schedule':crontab(minute="40",hour='2'),
+        'args':(),
+    },
+    u'定时统计每日二级代理贡献佣金':{
+        'task':'flashsale.xiaolumm.tasks.task_Calc_Agency_Rebeta_Pending_And_Cash',
         'schedule':crontab(minute="40",hour='3'),
         'args':(),
+    },
+    u'定时统计每月妈妈千元提成佣金':{     
+        'task':'flashsale.xiaolumm.tasks.task_Calc_Month_ThousRebeta',
+        'schedule':crontab(minute="0",hour="4", day_of_month='1'),#
+        'args':()
+    },
+    u'定时统计每组每天销售采购数据':{
+        'task':'flashsale.dinghuo.tasks.task_stats_daily_order_by_group',
+        'schedule': crontab(minute="0", hour="2"),
+        'args': ()
+    },
+    u'定时统计每天商品数据':{
+        'task':'flashsale.dinghuo.tasks.task_stats_daily_product',
+        'schedule': crontab(minute="10", hour="2"),
+        'args': ()
+    },
+    u'定时统计妈妈每周点击转化':{
+        'task':'flashsale.clickcount.tasks.week_Count_week_Handdle',
+        'schedule': crontab(minute="10", hour="5", day_of_week='mon'),
+    },
+    u'定时统计所有商品数据':{
+        'task':'flashsale.dinghuo.tasks.task_stats_product',
+        'schedule': crontab(minute="30", hour="2"),
+        'args': ()
+    },
+    u'定时发送每日订货数据':{
+        'task':'flashsale.dinghuo.tasks.task_send_daily_message',
+        'schedule': crontab(minute="00", hour="23"),
+        'args': ()
+    },
+    u'定时每日更新红包数据':{
+        'task':'flashsale.pay.tasks.task_Pull_Red_Envelope',
+        'schedule': crontab(minute="10", hour="23"),
+        'args': ()
+    },
+    u'定时统计每天订货的供应商':{
+        'task':'flashsale.dinghuo.tasks.task_write_supply_name',
+        'schedule': crontab(minute="20", hour="23"),
+        'args': ()
+    },
+    u'定时统计每天推广支出情况':{
+        'task':'flashsale.daystats.tasks.task_PopularizeCost_By_Day',
+        'schedule': crontab(minute="30", hour="8"),
+        'args': ()
+    },
+    u'统计妈妈两周转化及点击基本价格':{
+        'task':'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
+        'schedule': crontab(minute="30", hour="7"),
+        'args': ()
+    },
+    u'定时统计订货达标情况':{
+        'task':'flashsale.dinghuo.tasks.task_daily_stat_ding_huo',
+        'schedule': crontab(minute="40", hour="23"),
+        'args': ()
+    },
+    u'定时统计每组得分':{
+        'task':'flashsale.dinghuo.tasks.task_daily_stat_group_point',
+        'schedule': crontab(minute="45", hour="23"),
+        'args': ()
     },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',

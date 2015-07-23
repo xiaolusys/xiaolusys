@@ -1,0 +1,90 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}统计页{% endblock %}
+{% block head_script %}
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}jquery-visualize-plugin/visualize.jQuery.css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery-visualize-plugin/visualize.jQuery.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <script type="text/javascript">
+        $(function () {
+            //make some charts
+            $('table').visualize({type: 'bar', pieMargin: 20,appendTitle: false,title: null,appendKey: false,parseDirection: 'x'});
+            $('table').visualize({type: 'pie', pieMargin: 20});
+            {#				$('table').visualize({type: 'line'});#}
+            {#				$('table').visualize({type: 'area'});#}
+
+        });
+    </script>
+
+{% endblock %}
+{% block container %}
+    <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/data-chart/">
+        <div class="row" style="margin-top: 40px">
+            <div class="col-xs-4">
+                <label class="control-label" for="df">开始日期:</label>
+                <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
+                       value="{{ start_date }}"/>
+            </div>
+            <div class="col-xs-4">
+                <label class="control-label" for="dt">结束日期:</label>
+                <input type="text" id="t_datepicker" name="dt" class="form-control datepicker" value="{{ end_date }}"/>
+            </div>
+            <div class="col-xs-1">
+                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+        </div>
+    </form>
+    <table class="table" style="display:none;width: 1140px">
+        <caption>买手组销售情况</caption>
+        <thead>
+        <tr>
+            <td></td>
+            {% for data in a_data %}
+                <th>{{ data.stats_time }}</th>
+            {% endfor %}
+
+
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <th>采购A</th>
+            {% for data in a_data %}
+                <td>{{ data.turnover }}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th>采购B</th>
+            {% for data in b_data %}
+                <td>{{ data.turnover }}</td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th>采购C</th>
+            {% for data in c_data %}
+                <td>{{ data.turnover }}</td>
+            {% endfor %}
+        </tr>
+
+        </tbody>
+    </table>
+{% endblock %}
+{% block tail_script %}
+    <script type="text/javascript">
+        $(function () {
+            console.log("eeeeeee");
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+            $("#t_datepicker").datepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+        });
+    </script>
+{% endblock %}

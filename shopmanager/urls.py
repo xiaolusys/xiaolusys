@@ -38,6 +38,7 @@ urlpatterns = patterns('',
     (r'^download/(?P<path>.*)$',staff_member_required(serve),
             {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
     
+    url(r'^rest/', include('flashsale.restpro.urls')),
     #(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
     

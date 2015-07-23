@@ -163,7 +163,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                                 psku.properties_name = properties
                         psku.status = pcfg.NORMAL
                         psku.save()
-			                
+             
             except Exception, exc:
                 logger.error('update product sku error!', exc_info=True)
             finally:
@@ -356,8 +356,8 @@ def updateUserItemSkuFenxiaoProductTask(user_id):
     updateUserItemsTask(user_id)
     updateUserProductSkuTask(user_id)
     saveUserFenxiaoProductTask(user_id)
-    
-    
+
+
 @task()
 def gradCalcProductSaleTask():
     """  计算商品销售 """
@@ -375,6 +375,7 @@ def gradCalcProductSaleTask():
     else:
         subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=1),
                                            update_warn_num = True)
+
 
 ###########################################################  商品库存管理  ########################################################
 
