@@ -32,7 +32,7 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       PackageScanWeightView,
                                       
                                       )
-from shopback.trades.views import detail,search_trade
+from shopback.trades.views import detail,search_trade,manybeizhu, beizhu
 from shopback.base.renderers  import BaseJsonRenderer
 from shopback.trades.renderers import (CheckOrderRenderer,
                                        ReviewOrderRenderer,
@@ -54,7 +54,7 @@ from shopback.base.authentication import UserLoggedInAuthentication,login_requir
 
 
 from shopback.trades import views_product_analysis
-
+from shopback.trades import views_new_check_order
 
 urlpatterns = patterns('shopback.trades.views',
     
@@ -184,9 +184,16 @@ urlpatterns = patterns('shopback.trades.views',
 #        permissions=(IsAuthenticated,)
     ))), 
     (r'^detail/$',csrf_exempt(login_required_ajax(detail))),
+    (r'^manybeizhu/$',csrf_exempt(login_required_ajax(manybeizhu))),
+   # (r'^beizhu/$',csrf_exempt(login_required_ajax(view_beizhu))),
     (r'^search_trade/$',csrf_exempt(login_required_ajax(search_trade))),
-
-
+   #url (r'^check_order/(?P<trade_id>\d+)$',views_new_check_order.check_order,name="check_order"),
+    url (r'^check_order/(?P<id>\d+)$',csrf_exempt(CheckOrderView.as_view(
+        resource=TradeResource,
+        renderers=(BaseJsonRenderer,CheckOrderRenderer),
+        authentication=(UserLoggedInAuthentication,),
+        permissions=(IsAuthenticated,)
+    ))),
     # linjie add in here
     # 产品的销售件数，金额，退货率，次品率
     url(r'^product_analysis/$', views_product_analysis.product_Analysis, name="product_Analysis"),
@@ -195,6 +202,6 @@ urlpatterns = patterns('shopback.trades.views',
 
     url(r'^product_analysis_top100/$', views_product_analysis.product_Top100_By_Week, name="xlmm_Product_Analysis"),
     url(r'^product_analysis_collect_top100/$', views_product_analysis.product_Collect_Topp100, name="product_Collect_Topp100"),
-
-
+   
+    url(r'^beizhu/$', beizhu, name='beizhu'),
 )

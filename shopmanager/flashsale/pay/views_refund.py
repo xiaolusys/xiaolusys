@@ -69,6 +69,7 @@ class RefundApply(APIView):
                   'desc':content.get('desc'),
                   'trade_id':sale_trade.id,
                   'order_id':sale_order.id,
+                  'buyer_id':sale_trade.buyer_id,
                   'buyer_nick':sale_trade.buyer_nick,
                   'item_id':sale_order.item_id,
                   'title':sale_order.title,

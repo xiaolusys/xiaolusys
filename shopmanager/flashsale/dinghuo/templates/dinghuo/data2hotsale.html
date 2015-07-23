@@ -1,0 +1,58 @@
+{% extends "xiaolumm/daystats_base.html" %}
+{% block title %}用户统计{% endblock %}
+{% block head_script %}
+    <script>
+        function get_data() {
+            console.log("get_data");
+            var task_id = $("#task_id").val();
+            $.ajax({
+                url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
+                method: "GET", //静态页用get方法，否则服务器会抛出405错误
+                {#                beforeSend: function () {#}
+                {#                    $("#mytable").html("<img src=/static/img/loading.gif /><font color=red>正在加載數據...</font>");#}
+                {#                },#}
+                success: function (res) {
+                    console.log(res.task.status);
+                    if (res.task.status == "SUCCESS") {
+                        console.log(res.task.result);
+                        var tb = $('#data-table-product');
+                        var result_data = eval(res.task.result);
+                        $("#data-table-people thead").eq(0).nextAll().remove();
+                        $.each(result_data, function (index, dd) {
+                            tb.append("<tr><td>" + dd.p_outer + "</td><td>" + dd.p_name + "</td><td>" + dd.sale_time + "</td><td>" + dd.p_sales + "</td><td>" + dd.suppliers + "</td></tr>");
+                        });
+
+                    } else {
+                        setTimeout(get_data, 4000);
+                    }
+                }
+            });
+        }
+        setTimeout(get_data, 4000);
+    </script>
+{% endblock %}
+{% block container %}
+    <div class="row" style="margin-top: 20px">
+        <input id="task_id" style="display: none" value="{{ task_id }}">
+
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">用户统计</h3>
+            </div>
+            <table class="table table-bordered" id="data-table-product">
+                <thead>
+                <th width="20%">商品编码</th>
+                <th width="20%">商品名称</th>
+                <th width="20%">上架时间</th>
+                <th width="20%">销售数</th>
+                <th width="20%">供应商</th>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+{% block tail_script %}
+{% endblock %}

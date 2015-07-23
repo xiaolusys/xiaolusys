@@ -303,3 +303,47 @@ def xlmm_Convers_Top_By_Month(request):
 
     date_dic = {"prev_month": prev_month, "next_month": next_month}
     return data, date_dic
+
+
+def xlmm_TOP50_Manager_Month(request):
+    content = request.REQUEST
+    daystr = content.get("month", None)
+    manager = request.user.id
+    if manager is None:
+        manager = 0
+    if daystr:
+        year, month, day = daystr.split('-')
+        target_date = datetime.datetime(int(year), int(month), int(day))
+        date_from, date_to = get_month_from_date(target_date)
+    else:
+        target_date = datetime.datetime.now()
+        date_from, date_to = get_month_from_date(target_date)
+    prev_month = datetime.date(date_from.year, date_from.month, date_from.day) - datetime.timedelta(days=1)
+    next_month = datetime.date(date_to.year, date_to.month, date_to.day) + datetime.timedelta(days=1)
+
+    date_from = datetime.date(date_from.year, date_from.month, date_from.day)
+    date_to = datetime.date(date_to.year, date_to.month, date_to.day)
+    sql = "SELECT " \
+                " linkid, " \
+                " linkname, " \
+                " SUM(buyercount) AS xlmm_total_buyercount, " \
+                " SUM(ordernumcount) AS xlmm_total_ordernumcount " \
+            " FROM " \
+                " flashsale_tongji_shopping_day " \
+            " WHERE " \
+                " tongjidate BETWEEN '{0}' AND '{1}' " \
+                    " AND linkid IN (SELECT " \
+                       "  id " \
+                   "  FROM " \
+                     "    xiaolumm_xiaolumama " \
+                    " WHERE " \
+                    "     agencylevel = 2 AND manager = {2}) " \
+            " GROUP BY linkid  " \
+            " ORDER BY xlmm_total_ordernumcount DESC " \
+            " LIMIT 50".format(date_from, date_to, manager)
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    raw = cursor.fetchall()
+    cursor.close()
+    date_dic = {"prev_month": prev_month, "month": date_from.strftime("%Y-%m"), "next_month": next_month}
+    return raw, date_dic

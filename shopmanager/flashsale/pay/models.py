@@ -11,7 +11,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
 from .models_user import Register,Customer
 from .models_addr import District,UserAddress
-from .models_custom import Productdetail
+from .models_custom import Productdetail,GoodShelf,ModelProduct
 from .models_refund import SaleRefund
 from .models_envelope import Envelop
 from .managers import SaleTradeManager
@@ -21,7 +21,7 @@ from .options import uniqid
 import uuid
 
 FLASH_SELLER_ID = 'flashsale'
-AGENCY_DIPOSITE_CODE = 'RMB100'
+AGENCY_DIPOSITE_CODE = 'RMB'
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
@@ -97,6 +97,7 @@ class SaleTrade(models.Model):
     
     payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
     post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
+    discount_fee  =   models.FloatField(default=0.0,verbose_name=u'优惠折扣')
     total_fee  =   models.FloatField(default=0.0,verbose_name=u'总费用')
     
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name=u'买家留言')
@@ -188,7 +189,7 @@ class SaleTrade(models.Model):
     def is_Deposite_Order(self):
         
         for order in self.sale_orders.all():
-            if order.outer_id == AGENCY_DIPOSITE_CODE:
+            if order.outer_id.startswith(AGENCY_DIPOSITE_CODE):
                 return True
         return False
     
@@ -331,4 +332,45 @@ class TradeCharge(models.Model):
     def __unicode__(self):
         return '<%s>'%(self.id)
     
+
+class ShoppingCart(models.Model):
+    """ 购物车 """
     
+    NORMAL = 0
+    CANCEL = 1
+    
+    STATUS_CHOICE = ((NORMAL,u'正常'),
+                     (CANCEL,u'关闭'))
+    
+    id    = BigIntegerAutoField(primary_key=True)
+    buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
+    buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
+    
+    item_id  = models.CharField(max_length=64,blank=True,verbose_name=u'商品ID')
+    title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
+    price  = models.FloatField(default=0.0,verbose_name=u'单价')
+
+    sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'属性编码')
+    num = models.IntegerField(null=True,default=0,verbose_name=u'商品数量')
+    
+    total_fee    = models.FloatField(default=0.0,verbose_name=u'总费用')
+
+    sku_name = models.CharField(max_length=256,blank=True, verbose_name=u'规格名称')
+    
+    pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
+    
+    created       =  models.DateTimeField(null=True,auto_now_add=True,db_index=True,blank=True,verbose_name=u'创建日期')
+    modified      =  models.DateTimeField(null=True,auto_now=True,db_index=True,blank=True,verbose_name=u'修改日期')
+    
+    status = models.IntegerField(choices=STATUS_CHOICE,default=NORMAL,
+                              db_index=True,blank=True,verbose_name=u'订单状态') 
+    
+    class Meta:
+        db_table = 'flashsale_shoppingcart'
+        verbose_name=u'特卖/购物车'
+        verbose_name_plural = u'特卖/购物车'
+        
+    def __unicode__(self):
+        return '%s'%(self.id)
+    
+      

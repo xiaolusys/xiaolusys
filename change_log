@@ -1,3 +1,19 @@
+########### 2015-7-18 #################
+ALTER TABLE shop_refunds_product ADD reason INT(11) DEFAULT 0;
+########### 2015-7-16 #################
+alter table flashsale_productdetail add column is_recommend tinyint NOT NULL;
+########### 2015-7-14 #################
+alter table flashsale_productdetail add column mama_discount int(11) NOT NULL default 100;
+alter table flashsale_trade add column discount_fee  double precision NOT NULL;
+########### 2015-7-10 #################
+alter table shop_items_product add column model_id bigint NOT NULL DEFAULT 0;
+########### 2015-7-6 #################
+alter table flashsale_daily_popularize_cost add column carrylog_red_packet double NOT NULL;
+
+########### 2015-7-4 #################
+alter table shop_items_itemnumtasklog add index SH_IT_IT_INDEX(outer_id,sku_outer_id);
+ALTER TABLE shop_weixin_unionid ADD INDEX IDX_UNIONID_APP_KEY (UNIONID,APP_KEY);
+
 ########### 2015-6-27 #################
 alter table suplychain_flashsale_orderlist add column p_district varchar(32) default "1" NOT NULL after status;
 alter table suplychain_flashsale_orderlist add column reach_standard tinyint(1) default 0 NOT NULL after p_district;

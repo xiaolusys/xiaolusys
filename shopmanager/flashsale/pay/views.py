@@ -29,7 +29,7 @@ class ProductNotOnSale(Exception):
 
 class PINGPPChargeView(View):
     
-    def createSaleTrade(self,customer,form,charge=None):
+    def createSaleTrade(self,customer,form,charge=None,**kwargs):
         
         product = Product.objects.get(pk=form.get('item_id'))
         sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
@@ -54,6 +54,7 @@ class PINGPPChargeView(View):
                                  payment=float(form.get('payment')),
                                  total_fee=total_fee,
                                  post_fee=form.get('post_fee'),
+                                 discount_fee=form.get('discount_fee'),
                                  charge=charge and charge['id'] or '',
                                  status=SaleTrade.WAIT_BUYER_PAY,
                                  openid=customer.openid
@@ -81,7 +82,6 @@ class PINGPPChargeView(View):
         logger.debug('PINGPP CHARGE REQ: %s'%form)
         err_msg = ''
         try:
-            
             channel = form.get('channel')
             user = request.user
             customer = Customer.getCustomerByUser(user)
@@ -92,16 +92,29 @@ class PINGPPChargeView(View):
             if not UUID_RE.match(order_no):
                 raise Exception(u'参数错误!')
             
+            buy_num =  int(form.get('num'))
             payment = int(float(form.get('payment')) * 100)
             product = Product.objects.get(pk=form.get('item_id'))
             if (product.shelf_status != Product.UP_SHELF or
                  product.status != Product.NORMAL):
                 raise ProductNotOnSale(u'商品已被挤下架啦！')
             
-            sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
-            real_fee = int(sku.agent_price * int(form.get('num')) * 100)
+            try:
+                xlmm = XiaoluMama.objects.get(openid=customer.unionid)
+            except XiaoluMama.DoesNotExist:
+                xlmm = None
             
-            assert payment > 0 and payment == real_fee
+            sku = ProductSku.objects.get(pk=form.get('sku_id'),product=product)
+
+            discount_fee = sku.calc_discount_fee(xlmm=xlmm)
+            real_fee = int(sku.agent_price * buy_num * 100) - int(discount_fee * 100)
+            
+            assert buy_num > 0 and sku.real_remainnum > buy_num ,u'商品已抢光'
+            
+            discount_fee = sku.calc_discount_fee(xlmm=xlmm)
+            real_fee = int(sku.agent_price * buy_num * 100) - int(discount_fee * 100)
+
+            assert payment > 0 and payment == real_fee ,u'订单金额有误'
             
             response_charge = None
             if channel == SaleTrade.WALLET:
@@ -252,7 +265,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
 
@@ -275,6 +289,18 @@ class ProductList(generics.ListCreateAPIView):
         'category',
     )
     
+    def myfilter_queryset(self,queryset,history,time_line):
+        if history == 'none':
+            return queryset
+        
+        today = datetime.date.today()
+        if history:
+            filter_date = today - datetime.timedelta(days=time_line)
+            return queryset.filter(sale_time__gte=filter_date,sale_time__lt=today)
+        
+        return queryset.filter(sale_time=today)
+        
+        
     def list(self, request, *args, **kwargs):
         
         content    = request.REQUEST
@@ -283,29 +309,34 @@ class ProductList(generics.ListCreateAPIView):
         category   = content.get('category','')
         if not time_line.isdigit() or int(time_line) < 0:
             time_line = 0
-        
+
+        if category != '11' and history == 'none':
+            history = ''
+            
         time_line = int(time_line)
         
         filter_qs = self.filter_queryset(self.get_queryset())
         filter_qs = filter_qs.filter(status=Product.NORMAL,
                                    shelf_status=Product.UP_SHELF)
-        today = datetime.date.today()
-        if history:
-            filter_date = today - datetime.timedelta(days=time_line)
-            fliter_qs = filter_qs.filter(sale_time__gte=filter_date,sale_time__lt=today)
-        else:
-            fliter_qs = filter_qs.filter(sale_time=today)
+        
+        fliter_qs = self.myfilter_queryset(filter_qs, history, time_line)
         
         page = self.paginate_queryset(fliter_qs)
         if page is not None:
             if hasattr(self,'get_paginated_response'):
-                serializer = self.get_paginated_response(page)
+                page_response = self.get_serializer(page, many=True)
+                serializer = OrderedDict([
+                                ('count', self.paginator.page.paginator.count),
+                                ('next', self.paginator.get_next_link()),
+                                ('previous', self.paginator.get_previous_link()),
+                                ('results', page_response.data)
+                            ])
             else:
-                serializer = self.get_pagination_serializer(page)
+                serializer = self.get_pagination_serializer(page).data
         else:
-            serializer = self.get_serializer(fliter_qs, many=True)
+            serializer = self.get_serializer(fliter_qs, many=True).data
 
-        return Response({'products':serializer.data, 'category':category, 
+        return Response({'products':serializer, 'category':category, 
                          'history':history, 'time_line':time_line})
     
     
@@ -331,6 +362,7 @@ class OrderBuyReview(APIView):
 
 #     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer)
     template_name = "pay/morder.html"
     
     def post(self, request, format=None):
@@ -338,10 +370,10 @@ class OrderBuyReview(APIView):
         content = request.REQUEST
         user    = request.user
         
-        pid     = content.get('pid','')
-        sid     = content.get('sid','')
+        pid     = content.get('pid',None)
+        sid     = content.get('sid',None)
         num     = int(content.get('num','1'))
-        addrid  = content.get(ADDRESS_PARAM_KEY_NAME,'')
+        addrid  = content.get(ADDRESS_PARAM_KEY_NAME,None)
         
         product = get_object_or_404(Product,pk=pid)
         sku     = get_object_or_404(ProductSku,pk=sid)
@@ -351,13 +383,14 @@ class OrderBuyReview(APIView):
         if not Product.objects.isQuantityLockable(sku,num):
             return render_to_response('pay/mproductexpired.html',{'produt_id':pid}
                                       ,context_instance=RequestContext(request))
-            
+        
         product_dict = model_to_dict(product)
         sku_dict     = model_to_dict(sku)
  
         post_fee = 0
-        real_fee = num * sku.agent_price
-        payment  = num * sku.agent_price + post_fee
+        real_fee = float(num * sku.agent_price)
+        discount_fee = 0
+        payment  = real_fee + post_fee 
         
         customers = Customer.objects.filter(user=user)
         if customers.count() == 0:
@@ -388,16 +421,19 @@ class OrderBuyReview(APIView):
         xiaolumm  = None
         if xiaolumms.count() > 0:
             xiaolumm = xiaolumms[0]
+            #从新计算订单优惠金额 及 需付金额
+            discount_fee = sku.calc_discount_fee(xlmm=xiaolumm)
+            payment = payment - discount_fee
             if (xiaolumm.cash > 0 and xiaolumm.cash >= payment * 100 
                 and not product.outer_id.startswith('RMB')):
                 wallet_payable = True
-            
         
         data = {'product':product_dict,
                 'sku':sku_dict,
                 'num':num,
                 'uuid':uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
                 'real_fee':real_fee,
+                'discount_fee':discount_fee,
                 'post_fee':post_fee,
                 'payment':payment,
                 'address':address,
@@ -414,6 +450,7 @@ class OrderBuyReview(APIView):
 class UserProfile(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/mprofile.html"
     
     def get(self, request, format=None):
@@ -428,6 +465,7 @@ class UserProfile(APIView):
 class SaleOrderList(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/morderlist.html"
     
     def get(self, request, format=None):
@@ -458,6 +496,7 @@ class SaleOrderList(APIView):
 class SaleOrderDetail(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/morderdetail.html"
     
     def get(self, request,pk, format=None):
@@ -484,6 +523,7 @@ from shopback.logistics import getLogisticTrace
 class SaleTradeLogistic(APIView):
     
     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
     template_name = "pay/mlogistic.html"
     
     def get(self, request,pk, format=None):
@@ -511,6 +551,8 @@ from .models_envelope import Envelop
 from shopback.base import log_action, ADDITION, CHANGE
       
 class EnvelopConfirmSendView(View):
+    
+    renderer_classes = (JSONRenderer,)
     
     def post(self, request, *args, **kwargs):
         

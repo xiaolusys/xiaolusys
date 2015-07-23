@@ -97,7 +97,8 @@ var addFirmOrderRow  = function(tableID,order){
 	var company_cell  = createDTText(order.company);
 	var title_cell    = createDTText(order.title);
 	var property_cell = createDTText(order.property);
-	
+	var reason_cell = createDTText(order.reason);
+
 	var num_cell   = goog.dom.createElement('td');
 	num_cell.innerHTML = '<input id="id-confirm-num-'+index.toString()+'" type="text" style="width:20px;" value="1" />';
 	
@@ -117,6 +118,7 @@ var addFirmOrderRow  = function(tableID,order){
 	row.appendChild(property_cell);
 	row.appendChild(num_cell);
 	row.appendChild(reuse_cell);
+    row.appendChild(reason_cell);
 	row.appendChild(confirm_btn_cell);
 }
 
@@ -137,7 +139,11 @@ var addRefundOrderRow  = function(tableID,order){
 	var title_cell    = createDTText(order.title);
 	var property_cell = createDTText(order.property);
 	var num_cell   = createDTText(order.num+'');
-	
+        console.log(order.num);
+        console.log(order.num);
+    console.log(order.reason);
+    var reason_cell =  createDTText(order.reason!=''?order.reason:'-');
+
 	var reuse_cell   = goog.dom.createElement('td');
 	if (order.can_reuse){
 		reuse_cell.innerHTML = '<img src="/static/admin/img/icon-yes.gif" alt="True">';
@@ -159,6 +165,7 @@ var addRefundOrderRow  = function(tableID,order){
 	row.appendChild(property_cell);
 	row.appendChild(num_cell);
 	row.appendChild(reuse_cell);
+    //row.appendChild(reason_cell);
 	row.appendChild(delete_btn_cell);
 }
 
@@ -214,6 +221,7 @@ refund.OrderConfirmDialog = function(manager){
 	this.outer_id   = null;
 	this.outer_sku_id  = null;
 	this.order = null;
+    this.reason = null;
 
 }
 
@@ -254,6 +262,7 @@ refund.OrderConfirmDialog.prototype.confirmRefundOrder = function(e){
 		var xhr = e.target;
         try {
         	var res = xhr.getResponseJson();
+            console.log(res);
         	if (res.code==0){
         		var order_dict = res.response_content;
         		addRefundOrderRow('id-refund-table',order_dict);
@@ -375,12 +384,14 @@ refund.Manager.prototype.addRefundOrder = function (e) {
 	var buyer_phone  = goog.dom.getElement('id_receiver_phone').value;
 	var company   = goog.dom.getElement('id_return_company_name').value;
 	var out_sid   = goog.dom.getElement('id_return_out_sid').value;
+    var reason   = goog.dom.getElement('reason_select').value;
+    console.log(reason);
 
 	var order_dict   = {
 		'trade_id':tid,'outer_id':outer_id,'outer_sku_id':outer_sku_id,
 		'title':title,'property':property,
 		'memo':memo,'buyer_nick':buyer_nick,'buyer_mobile':buyer_mobile,
-		'buyer_phone':buyer_phone,'out_sid':out_sid,'company':company
+		'buyer_phone':buyer_phone,'out_sid':out_sid,'company':company,'reason':reason
 		};
 
 	this.orderconfirm_dialog.showdialog(order_dict);
@@ -483,6 +494,7 @@ refund.Manager.prototype.clearPanel = function(e){
 	goog.dom.getElement('id_buyer_nick').value='';
 	goog.dom.getElement('id_return_company_name').value='';
 	goog.dom.getElement('id_return_out_sid').value='';
+    goog.dom.getElement('reason_select').value='';
 }
 
 

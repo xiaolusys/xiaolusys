@@ -24,10 +24,12 @@ class XiaoluMamaAdmin(MyAdmin):
     user_groups = []
     
     form = forms.XiaoluMamaForm
-    list_display = ('id','mobile','get_cash_display','get_pending_display','weikefu','agencylevel',
-                    'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status')
+    list_display = ('id','mobile','get_cash_display','total_inout_item','weikefu','agencylevel',
+                    'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status','referal_from','mama_Verify')
     list_filter = ('progress','agencylevel','manager','status','charge_status','hasale',('charge_time',DateFieldListFilter),'user_group')
-    search_fields = ['=id','=mobile','=manager','weikefu','=openid']
+    search_fields = ['=id','=mobile','=manager','weikefu','=openid','=referal_from']
+    list_per_page = 25
+    
     
     def get_changelist(self, request, **kwargs):
         """
@@ -63,19 +65,34 @@ class XiaoluMamaAdmin(MyAdmin):
     group_select.allow_tags = True
     group_select.short_description = u"所属群组"
     
+    def total_inout_item(self, obj):
+        
+        mm_clogs = CarryLog.objects.filter(xlmm=obj.id)#.exclude(log_type=CarryLog.ORDER_RED_PAC)
+        
+        income_qs =  mm_clogs.filter(carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED)
+        total_income = income_qs.aggregate(total_value=Sum('value')).get('total_value') or 0
+        
+        outcome_qs = mm_clogs.filter(carry_type=CarryLog.CARRY_OUT,status=CarryLog.CONFIRMED)
+        total_pay    = outcome_qs.aggregate(total_value=Sum('value')).get('total_value') or 0
+    
+        return (u'<div><p>总收入：%s</p><p>总支出：%s</p></div>'%(total_income / 100.0, total_pay / 100.0))
+    
+    total_inout_item.allow_tags = True
+    total_inout_item.short_description = u"总收入/支出"
+    
     def charge_link(self, obj):
 
         if obj.charge_status == XiaoluMama.CHARGED:
-            return u'[ %s ]' % obj.manager_name
+            return u'%s' % obj.manager_name
         
         if obj.charge_status == XiaoluMama.FROZEN:
             return obj.get_charge_status_display()
-
-        return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
-                + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
-        
+        return (u'未接管')
+        # return ('<a href="javascript:void(0);" class="btn btn-primary btn-charge" '
+        #         + 'style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
+        #
     charge_link.allow_tags = True
-    charge_link.short_description = u"接管信息"
+    charge_link.short_description = u"管理员"
     
     def exam_pass(self, obj):
 
@@ -98,11 +115,37 @@ class XiaoluMamaAdmin(MyAdmin):
         
     click_state.allow_tags = True
     click_state.short_description = u"妈妈统计"
+
+
+    def mama_Verify(self, obj):
+        from .views import get_Deposit_Trade
+        trade = get_Deposit_Trade(obj.openid, obj.mobile)
+        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE and trade is not None:   # 该代理没有管理员 并且没有被接管
+            return (u'<button type="button" id="daili_{0}" class="btn btn-warning btn-xs" data-toggle="modal" data-target=".bs-example-modal-sm_mama_verify{0}">代理审核</button> '
+                    u'<div id="mymodal_{0}" class="modal fade bs-example-modal-sm_mama_verify{0}" tabindex="-1" role="dialog" aria-labelledby="motaikuang{0}">'
+                    u'<div class="modal-dialog modal-sm">'
+                    u'<div class="modal-content" >'
+
+                    u'<div class="input-group">'
+                    u'<input type="text" id="weikefu_{0}" class="form-control" placeholder="昵称" aria-describedby="basic-addon3">'
+                    u'<input type="text" id="tuijianren_{0}" class="form-control" placeholder="推荐人手机" aria-describedby="basic-addon2">'
+                    u'<span class="input-group-addon" id="bt_verify_{0}" onclick="mama_verify({0})">确定审核</span>'
+                    u'</div>'
+
+                    u'</div>'
+                    u'</div>'
+                    u'</div>'.format(obj.id))
+        if obj.manager == 0 and obj.charge_status == XiaoluMama.UNCHARGE and trade is None:
+            return (u'没有交押金')
+        else:
+            return (u'已经审核')
+    mama_Verify.allow_tags = True
+    mama_Verify.short_description = u"妈妈审核"
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"
-                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
-        js = ("js/admin/adminpopup.js","js/xlmm_change_list.js")
+                       ,"css/admin/common.css", "jquery/jquery-ui-1.10.1.css","bootstrap/css/bootstrap3.2.0.min.css","css/mama_profile.css")}
+        js = ("js/admin/adminpopup.js","js/xlmm_change_list.js","bootstrap/js/bootstrap-3.2.0.min.js","js/mama_vrify.js")
     
     
 admin.site.register(XiaoluMama, XiaoluMamaAdmin) 

@@ -13,7 +13,7 @@ from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
 
-from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup
+from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 
 from serializers import CashOutSerializer,CarryLogSerializer
@@ -38,19 +38,19 @@ def landing(request):
 def get_xlmm_cash_iters(xlmm,cash_outable=False):
     
     cash = xlmm.cash / 100.0
-    pay_saletrade = []
-    sale_customers = Customer.objects.filter(unionid=xlmm.openid)
-    if sale_customers.count() > 0:
-        customer = sale_customers[0]
-        pay_saletrade = SaleTrade.objects.filter(buyer_id=customer.id,
-                                             channel=SaleTrade.WALLET,
-                                             status__in=SaleTrade.INGOOD_STATUS)
-    payment = 0
-    for pay in pay_saletrade:
-        sale_orders = pay.sale_orders.filter(refund_status__gt=SaleRefund.REFUND_REFUSE_BUYER)
-        total_refund = sale_orders.aggregate(total_refund=Sum('refund_fee')).get('total_refund') or 0
-        payment = payment + pay.payment - total_refund
+    clog_outs = CarryLog.objects.filter(xlmm = xlmm.id,
+                                        log_type=CarryLog.ORDER_BUY,
+                                        carry_type=CarryLog.CARRY_OUT,
+                                        status=CarryLog.CONFIRMED)
+    consume_value = (clog_outs.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
 
+    clog_refunds = CarryLog.objects.filter(xlmm = xlmm.id,
+                                        log_type=CarryLog.REFUND_RETURN,
+                                        carry_type=CarryLog.CARRY_IN,
+                                        status=CarryLog.CONFIRMED)
+    refund_value = (clog_refunds.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
+
+    payment = consume_value - refund_value
     x_choice = 0
     if cash_outable:
         x_choice = 100.00
@@ -58,14 +58,12 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
         x_choice = 130.00
     mony_without_pay = cash + payment # 从未消费情况下的金额
     leave_cash_out = mony_without_pay - x_choice   # 可提现金额
-
     could_cash_out = cash
     if leave_cash_out < cash:
         could_cash_out = leave_cash_out
 
     if could_cash_out < 0 :
         could_cash_out = 0
-    
     return (cash,payment,could_cash_out)
 
 
@@ -86,7 +84,7 @@ class CashoutView(View):
 
         referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile,status=XiaoluMama.EFFECT)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk)
-        
+
 #         day_to   = datetime.datetime.now()
 #         day_from = day_to - datetime.timedelta(days=30)
         # 点击数
@@ -97,11 +95,12 @@ class CashoutView(View):
         shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id)
         shoppings_count = shoppings.count()
         
+        app_cashouts = cashout_objs.filter(status__in=(CashOut.APPROVED,CashOut.COMPLETED)).order_by('created')
         kefu_mobile = '18516655836'
-        if cashout_objs.count() == 0 or cashout_objs[0].created > datetime.datetime(2015,6,30,15):
+        if app_cashouts.count() == 0 or app_cashouts[0].created > datetime.datetime(2015,6,30,15):
             kefu_mobile = '18516316989'
         
-        cash_outable = click_nums >= 150 or shoppings_count >= 6
+        cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
             
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
         pending_cashouts = cashout_objs.filter(status=CashOut.PENDING)
@@ -119,18 +118,33 @@ class CashoutView(View):
         unionid = request.COOKIES.get('unionid')
         if not valid_openid(unionid):
             raise Http404
-        
+        could_cash_out = 0
+        xlmm = XiaoluMama.objects.filter(openid=unionid)
+        if xlmm.count() > 0:
+            # 点击数
+            clickcounts = ClickCount.objects.filter(linkid=xlmm[0].id)
+            click_nums  = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
+            # 订单数
+            shoppings = StatisticsShopping.objects.filter(linkid=xlmm[0].id)
+            shoppings_count = shoppings.count()
+            cash_outable = click_nums >= 150 or shoppings_count >= 6
+            cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm[0], cash_outable=cash_outable)
         v = content.get("v")
         m = re.match(r'^\d+$', v)
 
         status = {"code":0, "status":"ok"}
         if m:
             value = int(m.group()) * 100
-            try:
-                xlmm = XiaoluMama.objects.get(openid=unionid)
-                CashOut.objects.create(xlmm=xlmm.pk,value=value)
-            except:
-                status = {"code":1, "status":"error"}
+            could_cash_out_int = int(could_cash_out)*100
+
+            if value < 2000 or value > 20000 or value > could_cash_out_int:
+                status = {"code":3, "status": "input error"}
+            else:
+                try:
+                    xlmm = XiaoluMama.objects.get(openid=unionid)
+                    CashOut.objects.create(xlmm=xlmm.pk,value=value)
+                except:
+                    status = {"code":1, "status":"error"}
         else:
             status = {"code":2, "status": "input error"}
             
@@ -146,8 +160,7 @@ class CashOutList(generics.ListAPIView):
     
 
 class CarryLogList(generics.ListAPIView):
-    queryset = CarryLog.objects.exclude(
-                    log_type__in=(CarryLog.ORDER_RED_PAC)).order_by('-carry_date') #
+    queryset = CarryLog.objects.order_by('-carry_date') #
     serializer_class = CarryLogSerializer
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
@@ -191,7 +204,7 @@ class MamaStatsView(View):
         mobile = wx_user.mobile
         data   = {}
         try:
-            referal_num = XiaoluMama.objects.filter(referal_from=mobile,status=XiaoluMama.FROZEN).count()
+            referal_num = XiaoluMama.objects.filter(referal_from=mobile,status=XiaoluMama.EFFECT).count()
             xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
@@ -203,7 +216,7 @@ class MamaStatsView(View):
             
             mobile_revised = "%s****%s" % (mobile[:3], mobile[-4:])
             
-            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(log_type=CarryLog.ORDER_RED_PAC)
+            mm_clogs = CarryLog.objects.filter(xlmm=xlmm.id)#.exclude(log_type=CarryLog.ORDER_RED_PAC)
             pending_value = mm_clogs.filter(status=CarryLog.PENDING).aggregate(total_value=Sum('value')).get('total_value') or 0 
             
             total_income = mm_clogs.filter(carry_type=CarryLog.CARRY_IN,status=CarryLog.CONFIRMED).aggregate(total_value=Sum('value')).get('total_value') or 0
@@ -312,18 +325,28 @@ class MamaIncomeDetailView(View):
             order_num   = 0
             total_value = 0
             carry       = 0
-
+            rebeta_swift  = False
+            
             order_list = StatisticsShopping.normal_objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             carry_confirm = False
+            order_rebeta_rate = xlmm.get_Mama_Order_Rebeta_Rate()
+            if target_date >= ORDER_RATEUP_START:
+                rebeta_swift = True
+
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
-                carry = (order_stat[0].todayamountcount / 100.0) * xlmm.get_Mama_Order_Rebeta_Rate()
+                carry = (order_stat[0].todayamountcount / 100.0) * order_rebeta_rate
                 carry_confirm = order_stat[0].carry_Confirm()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             click_price  = xlmm.get_Mama_Click_Price_By_Day(order_num, day_date=target_date) / 100.0
+            
+            futrue_date = datetime.date.today() + datetime.timedelta(days=1)
+            futrue_click_price = 0
+            if target_date == datetime.date.today():
+                futrue_click_price = xlmm.get_Mama_Click_Price_By_Day(0, day_date=futrue_date) / 100.0
             
             click_num    = 0 
             click_pay    = 0 
@@ -364,12 +387,12 @@ class MamaIncomeDetailView(View):
                 click_pay  = click_num * click_price                              
                 ten_click_pay = ten_click_num * ten_click_price
                 
-            data = { "xlmm":xlmm,"pk":xlmm.pk,
+            data = { "xlmm":xlmm,"pk":xlmm.pk,'rebeta_swift':rebeta_swift,
                     "order_num":order_num, "order_list":order_list, 
                     "exam_pass":exam_pass,"total_value":total_value,
                     "carry":carry, 'carry_confirm':carry_confirm,
                     "target_date":target_date,"prev_day":prev_day, "next_day":next_day,
-                    'active_start':active_start,"click_num":click_num,
+                    'active_start':active_start,"click_num":click_num,"futrue_click_price":futrue_click_price,
                     "click_price":click_price, "click_pay":click_pay,"ten_click_num":ten_click_num,
                     "ten_click_price":ten_click_price, "ten_click_pay":ten_click_pay}
             
@@ -545,7 +568,7 @@ def cash_Out_Verify(request, id, xlmm):
     shoppings_count = shoppings.count()
 
     mobile = xiaolumama.mobile
-    cash_outable = click_nums >= 150 or shoppings_count >= 6
+    cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
         
     cash, payment, could_cash_out = get_xlmm_cash_iters(xiaolumama, cash_outable=cash_outable)
 
@@ -638,85 +661,69 @@ def cash_reject(request, data):
 
 from django.db.models import Avg,Count,Sum
 
-@csrf_exempt
-def stats_summary(request):
-    #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
+
+def manage_Summar(date_time):
     data = []
-    content = request.REQUEST
-    daystr = content.get("day", None)
-    today = datetime.date.today()
-    year,month,day = today.year,today.month,today.day
-
-    target_date = today
-    if daystr:
-        year,month,day = daystr.split('-')
-        target_date = datetime.date(int(year),int(month),int(day))
-        if target_date >= today:
-            target_date = today
-
-    time = datetime.datetime(target_date.year, target_date.month, target_date.day)
-
-    prev_day = target_date - datetime.timedelta(days=1)
-    next_day = None
-    if target_date < today:
-        next_day = target_date + datetime.timedelta(days=1)
-
-    xiaolumamas = XiaoluMama.objects.exclude(manager=0).values('manager').distinct()
-
+    xiaolumamas = XiaoluMama.objects.exclude(charge_status=XiaoluMama.UNCHARGE, agencylevel=1, manager=0).values('manager').distinct()
+    date = date_time.date()
     for xlmm_manager in xiaolumamas:
         xiaolumama_manager2 = xlmm_manager['manager']
-        sum_click_num = 0
-        sum_click_valid = 0
-        sum_user_num = 0
-        active_num = 0
-        clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2, date=time)
-        mamas_l2 = XiaoluMama.objects.filter(agencylevel=2,manager=xiaolumama_manager2) # 代理类别为2的妈妈
-        xlmm_num = mamas_l2.count() # 这个管理员下面的妈妈数量
-        
-        for clickcount in clickcounts:
-            sum_click_valid  = sum_click_valid + clickcount.valid_num
-            sum_click_num = sum_click_num + clickcount.click_num
-            sum_user_num = sum_user_num + clickcount.user_num
+        clickcounts = ClickCount.objects.filter(username=xiaolumama_manager2, date=date,
+                                                agencylevel=2)  # 当天的该管理员的所有代理的点击
+        xlmms = XiaoluMama.objects.filter(agencylevel=2, manager=xiaolumama_manager2,
+                                          charge_status=XiaoluMama.CHARGED,
+                                          charge_time__lt=date_time)  # 该管理员在对应日期之前接管的代理
+        xlmm_num = xlmms.count()  # 这个管理员下面的妈妈数量
 
-            if clickcount.user_num > 4 and clickcount.agencylevel > 1:
-                active_num = active_num + 1
-                
-        if xlmm_num == 0:
-            activity = 0
-        else:
-            activity = round(float(active_num)/xlmm_num,3)
-        # '管理员',xiaolumama_manager2
-        # '点击数量 ' ,sum_click_num
-        # '点击人数',sum_user_num
-        xiaolumms = XiaoluMama.objects.filter(manager=xiaolumama_manager2)
-        sum_buyercount = 0
-        sum_ordernumcount = 0
-        for xiaolumm in xiaolumms:
-            shoppings = StatisticsShoppingByDay.objects.filter(linkid=xiaolumm.id, tongjidate=time)
-            for shopping in shoppings:
-                sum_buyercount = sum_buyercount + shopping.buyercount
-                sum_ordernumcount = sum_ordernumcount + shopping.ordernumcount
-        # '购买人数',sum_buyercount,'订单数量',sum_ordernumcount
+        sum_valied_num = clickcounts.aggregate(total_valied_num=Sum('valid_num')).get('total_valied_num') or 0  # 总有效点击
+        sum_click_num = clickcounts.aggregate(total_click_num=Sum('click_num')).get('total_click_num') or 0  # 总点击
+        sum_user_num = clickcounts.aggregate(total_user_num=Sum('user_num')).get('total_user_num') or 0  # 总点击人数
+
+        active_num = clickcounts.filter(user_num__gt=4).count()  # 点击人数大于4即纳入活跃代理
+        activity_func = lambda acti, total: 0 if total == 0 else round(float(acti) / total, 3)  # 活跃度 点击人数大于4的妈妈个数／总的妈妈个数
+        activity = activity_func(active_num, xlmm_num)
+
+        xlmm_lit = [val.id for val in xlmms]   # 代理id列表
+
+        shoppings = StatisticsShoppingByDay.objects.filter(linkid__in=xlmm_lit, tongjidate=date)     #
+        sum_buyercount = shoppings.aggregate(total_shoppings=Sum('buyercount')).get('total_shoppings') or 0  # 购买人数
+        sum_ordernumcount = shoppings.aggregate(total_ordernumcount=Sum('ordernumcount')).get(
+            'total_ordernumcount') or 0  # 订单数量
         try:
             username = User.objects.get(id=xiaolumama_manager2).username
         except:
             username = 'error.manager'
+        conve_func = lambda buys, useers: 0 if useers == 0 else round(float(buys) / useers, 3)
+        conversion_rate = conve_func(sum_buyercount, sum_user_num)  # 转化率等于 购买人数 除以 点击数
 
-        if sum_user_num == 0 :
-            conversion_rate = 0
-
-        else:
-            conversion_rate = float(sum_buyercount)/sum_user_num # 转化率等于 购买人数 除以 点击数
-
-            conversion_rate =  round(float(conversion_rate), 3)
-        data_entry = {"username": username,"sum_ordernumcount":sum_ordernumcount,
-                      "sum_buyercount":sum_buyercount,
-                      "uv_summary":sum_user_num,"pv_summary":sum_click_num,"conversion_rate":conversion_rate,
-                      "xlmm_num":xlmm_num,"activity":activity,'sum_click_valid':sum_click_valid}
+        data_entry = {"username": username, "sum_ordernumcount": sum_ordernumcount, "sum_buyercount": sum_buyercount,
+                      "uv_summary": sum_user_num, "pv_summary": sum_click_num, "conversion_rate": conversion_rate,
+                      "xlmm_num": xlmm_num, "activity": activity, 'sum_click_valid': sum_valied_num}
         data.append(data_entry)
+    return data
 
-    return render_to_response("stats_summary.html", {"data": data,"prev_day":prev_day,
-                              "target_date":target_date, "next_day":next_day}, 
+
+@csrf_exempt
+def stats_summary(request):
+    #  根据日期查看每个管理人员 所管理的所有代理的点击情况和转化情况
+    content = request.REQUEST
+    daystr = content.get("day", None)
+    today = datetime.date.today()
+    target_date = today
+    if daystr:
+        year, month, day = daystr.split('-')
+        target_date = datetime.date(int(year), int(month), int(day))
+        if target_date >= today:
+            target_date = today
+    date_time = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+    date = date_time.date()
+    prev_day = target_date - datetime.timedelta(days=1)
+    next_day = None
+    if target_date < today:
+        next_day = target_date + datetime.timedelta(days=1)
+    data = manage_Summar(date_time)
+    return render_to_response("stats_summary.html", {"data": data, "prev_day": prev_day,
+                                                     "target_date": target_date, "next_day": next_day},
                               context_instance=RequestContext(request))
 
 
@@ -728,22 +735,22 @@ from flashsale.pay.models import SaleTrade,SaleOrder
 
 def get_Deposit_Trade(openid, mobile):
     try:
-        customer = Customer.objects.get(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
-
-        sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, refund_status=SaleRefund.NO_REFUND,
+        customer = Customer.objects.filter(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
+        if customer.exists():
+            sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, refund_status=SaleRefund.NO_REFUND,
                                                status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                               sale_trade__buyer_id=customer.id,
+                                               sale_trade__buyer_id=customer[0].id,
                                                sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
 
-        if sale_orders.count() > 0:
-            return True  # 返回订单
+            if sale_orders.exists():
+                return sale_orders  # 返回订单
 
         # 按照手机号码来匹配代理缴费情况
 
         sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=100,
                                                status=SaleTrade.WAIT_SELLER_SEND_GOODS)
         if sale_trades.count() == 0:    # 没有交易记录返回空
-            return False
+            return None
         else:
             # 有TRDE记录， 则查看订单
             for trade in sale_trades:  # 寻找RMB100的Order
@@ -751,51 +758,28 @@ def get_Deposit_Trade(openid, mobile):
                                                   refund_status=SaleRefund.NO_REFUND,
                                                   status=SaleOrder.WAIT_SELLER_SEND_GOODS)
                 if orders.count() == 0:
-                    return False
+                    return None
                 else:
-                    return True
+                    return orders
     except:
         return None
 
 
 @csrf_exempt
-def mama_Verify(request):
-    # 审核妈妈成为代理的功能
-    data = []
-    xlmms = XiaoluMama.objects.filter(manager=0)  # 找出没有被接管的妈妈
-    
-    default_code = ['BLACK','NORMAL']
-    default_code.append(request.user.username)
-    user_groups = UserGroup.objects.filter(code__in=default_code)
-    
-    for xlmm in xlmms:
-        trade = get_Deposit_Trade(xlmm.openid, xlmm.mobile)
-        if trade:
-            id = xlmm.id
-            mobile = xlmm.mobile
-            weikefu = xlmm.weikefu
-            referal_from = xlmm.referal_from
-            data_entry = {"id": id, "mobile": mobile, "sum_trade": "YES","weikefu":weikefu,'referal_from':referal_from,'cat_list':user_groups}
-            data.append(data_entry)
-    user = request.user.username
-    return render_to_response("mama_verify.html", {'data': data,'user':user}, context_instance=RequestContext(request))
-
-
-@csrf_exempt
+@transaction.commit_on_success
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
     referal_mobile = request.GET.get('tuijianren','').strip()
     weikefu = request.GET.get('weikefu')
-    user_group =int(request.GET.get('group'))
 
     xlmm = XiaoluMama.objects.get(id=mama_id)
-
-    customer = Customer.objects.get(unionid=xlmm.openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
-    sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, status=SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                 sale_trade__buyer_id=customer.id,
-                                 sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
-    
-    if sale_orders.count() == 0:
+    openid = xlmm.openid
+    mobile = xlmm.mobile
+    if xlmm.manager != 0:
+        return HttpResponse('already')
+    sale_orders = get_Deposit_Trade(openid, mobile)  # 调用函数 传入参数（妈妈的openid，mobile）
+    if sale_orders is None:
+        print "sale_orders", sale_orders
         return HttpResponse('reject')
     
     referal_mama = None
@@ -812,10 +796,12 @@ def mama_Verify_Action(request):
     order = sale_orders[0]
     order.status = SaleOrder.TRADE_FINISHED # 改写订单明细状态
     order.save()
+    log_action(request.user.id, order, CHANGE, u'妈妈审核过程中修改订单明细状态为 交易成功')
 
     trade = order.sale_trade
     trade.status = SaleTrade.TRADE_FINISHED  # 改写 订单状态
     trade.save()
+    log_action(request.user.id, trade, CHANGE, u'妈妈审核过程中修改订单交易状态为 交易成功')
     
     diposit_cash = 13000
     recruit_rebeta = 5000
@@ -827,27 +813,30 @@ def mama_Verify_Action(request):
                                    buyer_nick= weikefu,
                                    carry_type=CarryLog.CARRY_IN,
                                    status=CarryLog.CONFIRMED)
-    if not log_tp[1]:
+    if not log_tp[1]:  # 如果存在押金记录则返回拒绝
         return HttpResponse('reject')
-    
+    else:
+        log_action(request.user.id, log_tp[0], ADDITION, u'妈妈审核过程中创建妈妈首个收支记录')
     xlmm.cash = F('cash') + diposit_cash # 分单位
     xlmm.referal_from = referal_mobile
     xlmm.agencylevel = 2
     xlmm.charge_status = XiaoluMama.CHARGED
     xlmm.manager = request.user.id
     xlmm.weikefu = weikefu
+    xlmm.progress = XiaoluMama.PASS
     xlmm.charge_time = datetime.datetime.now()
-    xlmm.user_group_id = user_group
     xlmm.save()
+    log_action(request.user.id, xlmm, CHANGE, u'妈妈审核过程中修改该妈妈的信息以及可用现金')
     
-    if referal_mama:
-        CarryLog.objects.get_or_create(xlmm=referal_mama.id,
+    if referal_mama:  # 给推荐人添加招募奖金的收支记录，状态为pending
+        carry, state = CarryLog.objects.get_or_create(xlmm=referal_mama.id,
                                        order_num=xlmm.id,
                                         log_type=CarryLog.MAMA_RECRUIT,
                                         value=recruit_rebeta,
                                         buyer_nick=referal_mama.weikefu,
                                         carry_type=CarryLog.CARRY_IN,
                                         status=CarryLog.PENDING)
+        log_action(request.user.id, carry, ADDITION, u'妈妈审核过程中 添加妈妈推荐人的收支记录（招募奖金）')
         
     return HttpResponse('ok')
 
@@ -856,14 +845,14 @@ def mama_Verify_Action(request):
 # 小鹿妈妈代理的点击前50 ，每天，上周，前四周
 from view_top50 import xlmm_Click_Top_By_Day, xlmm_Order_Top_By_Day, xlmm_Conversion_Top_By_Week,\
     xlmm_Click_Top_By_Week, xlmm_Order_Top_By_Week, xlmm_Click_Top_By_Month, xlmm_Order_Top_By_Month,\
-    xlmm_Convers_Top_By_Month
+    xlmm_Convers_Top_By_Month,xlmm_TOP50_Manager_Month
 
 
 @csrf_exempt
 def xlmm_Click_Top(request):
     # 过滤出昨天的点击前50名
     data, date_dict = xlmm_Click_Top_By_Day(request)
-    return render_to_response("top_click_50.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_click_50.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
@@ -871,49 +860,55 @@ def xlmm_Click_Top(request):
 def xlmm_Order_Top(request):
     # 过滤出昨天的订单前50名
     data, date_dict = xlmm_Order_Top_By_Day(request)
-    return render_to_response("top_order_50.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_order_50.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Conversion_Top(request):
     data, date_dict = xlmm_Conversion_Top_By_Week(request)
-    return render_to_response("top_convers.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_convers.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Click_Top_Week(request):
     data, date_dict = xlmm_Click_Top_By_Week(request)
-    return render_to_response("top_click_50_week.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_click_50_week.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Order_Top_Week(request):
     data, date_dict = xlmm_Order_Top_By_Week(request)
-    return render_to_response("top_order_50_week.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_order_50_week.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Click_Top_Month(request):
     data, date_dict = xlmm_Click_Top_By_Month(request)
-    return render_to_response("top_click_50_month.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_click_50_month.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Order_Top_Month(request):
     data, date_dict = xlmm_Order_Top_By_Month(request)
-    return render_to_response("top_order_50_month.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_order_50_month.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 
 @csrf_exempt
 def xlmm_Convers_Top_Month(request):
     data, date_dict = xlmm_Convers_Top_By_Month(request)
-    return render_to_response("top_convers_50_month.html", {'data': data, 'date_dict': date_dict},
+    return render_to_response("top_50/top_convers_50_month.html", {'data': data, 'date_dict': date_dict},
+                              context_instance=RequestContext(request))
+
+@csrf_exempt
+def xlmm_TOP50_By_Manager_Month(request):
+    data, date_dict = xlmm_TOP50_Manager_Month(request)
+    return render_to_response("top_50/top50_by_manager.html", {'data': data, 'date_dict': date_dict},
                               context_instance=RequestContext(request))
 
 

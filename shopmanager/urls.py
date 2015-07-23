@@ -34,7 +34,7 @@ urlpatterns = patterns('',
     url(r'^home/$',home,name='home_page'),
     (r'^$',home),
     (r'^top_monitor\.html$',csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),
-
+    
     (r'^download/(?P<path>.*)$',staff_member_required(serve),
             {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
     

@@ -1,6 +1,6 @@
 # coding:utf-8
 __author__ = 'yann'
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, HttpResponse
 import datetime
 from django.template import RequestContext
 from django.views.generic import View
@@ -59,15 +59,16 @@ class DailyDingHuoView(View):
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where outer_id like '%%{0}%%' or name like '%%{0}%%' ) as A " \
-                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
-                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(search_text)
+                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
+                          "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+                search_text)
         else:
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
                           "and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser {1}))) as A " \
-                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku) as B " \
+                          "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
                 target_date, group_sql)
         ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' or A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
@@ -117,3 +118,33 @@ class DailyDingHuoView(View):
                                    "search_text": search_text, "total_more_num": total_more_num,
                                    "total_less_num": total_less_num},
                                   context_instance=RequestContext(request))
+
+
+class DailyDingHuoView2(View):
+    @staticmethod
+    def get(request):
+        return render_to_response("dinghuo/daily_work.html", context_instance=RequestContext(request))
+
+
+from flashsale.dinghuo.models import OrderDetail
+from shopback.items.models import Product
+from django.core import serializers
+
+
+class ShowPicView(View):
+    def get_src_by_product(self, pro_id):
+        a = Product.objects.filter(id=pro_id)
+        if a.count() > 0:
+            return a[0].pic_path
+        else:
+            return "ttt"
+
+    def get(self, request, order_list_id):
+        all_order = OrderDetail.objects.filter(orderlist__id=order_list_id)
+        all_order_data = []
+        temp_dict = {}
+        for pro_id in all_order:
+            if pro_id.product_id not in temp_dict:
+                temp_dict[pro_id.product_id] = "in"
+                all_order_data.append(self.get_src_by_product(pro_id.product_id))
+        return HttpResponse(",".join(all_order_data))

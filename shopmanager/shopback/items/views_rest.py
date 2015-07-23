@@ -3,6 +3,7 @@
 from django.shortcuts import redirect
 from django.contrib import messages
 from rest_framework.views import APIView
+from rest_framework import renderers
 
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items.models import Product
@@ -15,6 +16,7 @@ class ProductInvalidConfirmView(APIView):
     
 #     authentication_classes = (authentication.TokenAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer,renderers.TemplateHTMLRenderer)
     template_name = "items/product_delete.html"
         
     def post(self,request):

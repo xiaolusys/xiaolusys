@@ -68,12 +68,7 @@
             }
 
             if (mobile == '') {
-                alert('请输入手机号码！');
-            }
-            else if (!(/^1[3458][0-9]{9}$/.test(mobile))) {
-                alert("不是完整的11位手机号或者正确的手机号前七位");
-                $('#search_order').focus();
-                $('#search_order').val('');
+                alert('请输入手机号码或者原单ID！');
             }
             else {
                 url = '/m/duokefu_search_by_mobile/';

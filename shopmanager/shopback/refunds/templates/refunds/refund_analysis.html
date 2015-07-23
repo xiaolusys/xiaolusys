@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+
+    </style>
+    <script>
+        $(function () {
+            $("#left_date_pic").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+            $("#right_date_pic").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+        });
+    </script>
+
+
+    <title>退款统计</title>
+</head>
+<body>
+<div class="container" style="margin-top: 50px">
+    <div>
+        <form action="" method="get" role="form">
+
+            <div class="input-group">
+
+                <input type="text" class="form-control" name="sear_pro" placeholder="产品编码/产品名称"
+                       value="{{ sear_pro }}">
+
+                <span class="input-group-addon" id="date_from">开始时间</span>
+                <input type="text" name="date_from" id="left_date_pic"
+                       class="form-control select_saletime  datepicker" placeholder="{{ sev_day }}"
+                       value="{{ sev_day }}"
+                       aria-describedby="basic-addon1">
+
+                <span class="input-group-addon" id="date_to">结束时间</span>
+                <input type="text" name="date_to" id="right_date_pic"
+                       class="form-control select_saletime  datepicker" placeholder="{{ today }}"
+                       value="{{ today }}"
+                       aria-describedby="basic-addon2">
+
+
+
+             <span class="input-group-btn ">
+                <div class="form-control">
+                    <select id="reason_select" name="reason">
+                        <option value='' selected="selected">---------------</option>
+                        <option value='0' {% ifequal reason 0 %} selected="selected" {% endifequal %}>其他</option>
+                        <option value='1' {% ifequal reason 1 %} selected="selected" {% endifequal %}>错拍</option>
+                        <option value='2' {% ifequal reason 2 %} selected="selected" {% endifequal %}>缺货</option>
+                        <option value='3' {% ifequal reason 3 %} selected="selected" {% endifequal %}>
+                            开线/脱色/脱毛/有色差/有虫洞
+                        </option>
+                        <option value='4' {% ifequal reason 4 %} selected="selected" {% endifequal %}>发错货/漏发</option>
+                        <option value='5' {% ifequal reason 5 %} selected="selected" {% endifequal %}>没有发货</option>
+                        <option value='6' {% ifequal reason 6 %} selected="selected" {% endifequal %}>未收到货</option>
+                        <option value='7' {% ifequal reason 7 %} selected="selected" {% endifequal %}>与描述不符</option>
+                        <option value='8' {% ifequal reason 8 %} selected="selected" {% endifequal %}>退运费</option>
+                        <option value='9' {% ifequal reason 9 %} selected="selected" {% endifequal %}>发票问题</option>
+                        <option value='10' {% ifequal reason 10 %} selected="selected" {% endifequal %}>七天无理由退换货
+                        </option>
+                    </select>
+                </div>
+             </span>
+            <span class="input-group-btn ">
+                    <button class="btn btn-default" type="submit">Go!</button>
+                </span>
+            </div>
+        </form>
+    </div>
+    <hr style="height:5px;border:none;border-top:1px ridge green;"/>
+    <h4>退款情况汇总</h4>
+
+    <div style="margin-top: 10px">
+        <span class="label label-primary">退款总单数：{{ ref_co }}</span>
+        <span class="label label-primary">退款金额：{{ ref_am }}</span>
+        <span class="label label-primary">成功退款单数：{{ ref_su_co }}</span>
+        <span class="label label-primary">成功退款金额：{{ ref_su_am }}</span>
+
+        <span class="label label-primary">订单总数(不含作废)：{{ merge_counts }}</span>
+        <span class="label label-primary">退款率(以时间)：{{ refund_rate }}</span>
+    </div>
+    <hr style="height:5px;border:none;border-top:1px ridge green;"/>
+    {#    {{ reason_count_total }} 所有原因的条数（该时间段的） #}
+    <h4>根据原因汇总：</h4>
+    {% for i in reason_count_total %}
+        <span class="label label-primary">{% ifequal i.reason 0 %}其他:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 1 %}错拍:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 2 %}缺货:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 3 %}开线/脱色/脱毛/有色差/有虫洞:
+            {{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 4 %}发错货/漏发:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 5 %}没有发货:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 6 %}未收到货:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 7 %}与描述不符:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 8 %}退运费:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 9 %}发票问题:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 10 %}七天无理由退换货:{{ i.t_count }}{% endifequal %}</span>
+    {% endfor %}
+    <hr style="height:5px;border:none;border-top:1px ridge green;"/>
+
+    {#    {{ reason_count }}  条件过滤后的原因条数 #}
+    <h4>条件过滤汇总（原因）:</h4>
+    {% for i in reason_count %}
+        <span class="label label-primary">{% ifequal i.reason 0 %}其他:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 1 %}错拍:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 2 %}缺货:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 3 %}开线/脱色/脱毛/有色差/有虫洞:
+            {{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 4 %}发错货/漏发:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 5 %}没有发货:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 6 %}未收到货:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 7 %}与描述不符:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 8 %}退运费:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 9 %}发票问题:{{ i.t_count }}{% endifequal %}</span>
+        <span class="label label-primary">{% ifequal i.reason 10 %}七天无理由退换货:{{ i.t_count }}{% endifequal %}</span>
+    {% endfor %}
+    <hr style="height:5px;border:none;border-top:1px ridge green;"/>
+
+
+    <div class="panel panel-default" style="margin-top: 20px">
+        <div class="panel-heading">退货产品详情 <span class="badge">{{ pros_co }}</span></div>
+        <div class="panel-body">
+            <table class="table table-hover table-condensed" id="mytable">
+                <thead>
+                <th>买家昵称</th>
+                <th>手机</th>
+                <th>原单ID</th>
+                <th>商品编码</th>
+                <th>商品名称</th>
+
+                <th>物流名称</th>
+                <th>数量</th>
+                <th>二次销售</th>
+                <th>创建时间</th>
+                <th>备注</th>
+                <th>退货原因</th>
+                </thead>
+                <tbody>
+                {% for pro in refund_pros %}
+                    <tr>
+                        <td>{{ pro.buyer_nick }}</td>
+                        <td>{{ pro.buyer_mobile }}</td>
+                        <td>{{ pro.trade_id }}</td>
+                        <td>{{ pro.outer_id }}</td>
+                        <td>{{ pro.title }}</td>
+
+                        <td>{{ pro.company }}</td>
+                        <td>{{ pro.num }}</td>
+                        <td>{{ pro.can_reuse }}</td>
+                        <td>{{ pro.created }}</td>
+                        <td>{{ pro.memo }}</td>
+                        <td>{{ pro.get_reason_display }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot></tfoot>
+            </table>
+        </div>
+    </div>
+    <hr style="height:5px;border:none;border-top:1px ridge green;"/>
+    <div class="panel panel-default" style="margin-top: 20px">
+        <div class="panel-heading">退货最多50款产品</div>
+        <div class="panel-body">
+            <table class="table table-condensed">
+                <thead>
+                <th>名称</th>
+                <th>外部编码</th>
+                <th>数量</th>
+
+                </thead>
+                <tbody>
+                {% for i in top_re %}
+                    <tr>
+                        <td>{{ i.title }}</td>
+                        <td>{{ i.outer_id }}</td>
+                        <td>{{ i.t_num }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+    $('#mytable').dataTable({
+        //"bJQueryUI": true,
+        "bAutoWidth": false, //自适应宽度
+        "aaSorting": [[1, "asc"]],
+        "iDisplayLength": 20,
+        "aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+        //"sPaginationType": "full_numbers",
+        //"sDom": '<"H"Tfr>t<"F"ip>',
+        "oLanguage": {
+            "sLengthMenu": "每页 _MENU_ 条",
+            "sZeroRecords": "抱歉， 没有找到",
+            "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+            "sInfoEmpty": "没有数据",
+            "sSearch": "搜索",
+            "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "前一页",
+                "sNext": "后一页",
+                "sLast": "尾页"
+            },
+            "sZeroRecords": "没有检索到数据",
+            "sProcessing": "<img src='/static/img/loading.gif' />"
+        }
+    });
+</script>
+</body>
+</html>

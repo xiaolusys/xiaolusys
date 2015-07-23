@@ -171,7 +171,7 @@ def pullWaitPostWXOrderTask(begintime,endtime,full_update=False):
         endtime   = None
     
     for status in update_status:
-        orders = _wx_api.getOrderByFilter(status,begintime,endtime)
+        orders = _wx_api.getOrderByFilter(status=status,begintime=begintime,endtime=endtime)
         
         for order_dict in orders:
             order = WxShopService.createTradeByDict(_wx_api._wx_account.account_id, order_dict)

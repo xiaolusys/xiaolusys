@@ -87,6 +87,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         xlmm.push_carrylog_to_cash(cl)
         
+RED_PACK_START_TIME = datetime.datetime(2015, 7, 6, 0, 0)       # 订单红包开放时间
 
 def init_Data_Red_Packet():
     # 判断 xlmm 是否有过 首单 或者 十单  如果是的将 OrderRedPacket 状态修改过来
@@ -95,14 +96,14 @@ def init_Data_Red_Packet():
     for xlmm in xlmms:
         try:
             # 找订单
-            shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
+            shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, shoptime__lt=RED_PACK_START_TIME)
             if shoppings.count() >= 10:
                 red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm.id)
                 red_packet.first_red = True  # 默认发放过首单红包
                 red_packet.ten_order_red = True  # 默认发放过十单红包
                 red_packet.save()
                 xlmm.hasale = True
-            if shoppings.count() >= 1:
+            elif shoppings.count() >= 1:
                 red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm.id)
                 red_packet.first_red = True     # 默认发放过首单红包
                 red_packet.save()
@@ -113,90 +114,88 @@ def init_Data_Red_Packet():
             print 'exc:%s,%s'%(exc.message,xlmm.id)
             
 
-from flashsale.pay.models_envelope import Envelop
 from django.db import transaction
+from shopback.trades.models import MergeTrade
+
+def shoptime_To_DateStr(shoptime):
+    return shoptime.strftime("%Y-%m-%d")
+
+def buyer_Num(xlmm, finish=False):
+    if finish is False:
+        shops = StatisticsShopping.objects.filter(linkid=xlmm).exclude(status=StatisticsShopping.REFUNDED)
+    else:
+        shops = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
+    t_dict = {}
+    for p in shops:
+        shop_time = shoptime_To_DateStr(p.shoptime)
+        if shop_time in t_dict:
+            t_dict[shop_time].append(p.openid)
+        else:
+            t_dict[shop_time] = [p.openid]
+    buyercount = 0
+    for k, v in t_dict.items():
+        buyercount += len(set(v))
+    return buyercount
 
 
 @transaction.commit_on_success
-def order_Red_Packet(xlmm, target_date):
+def order_Red_Packet_Pending_Carry(xlmm, target_date):
     
+    today = datetime.date.today()
+    if today < RED_PACK_START_TIME.date():
+        return   # 开始时间之前 不执行订单红包
+    # 2015-07-04 上午  要求修改为pending状态
+    # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
+   
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
-    WXPAY_APPID       = settings.WXPAY_APPID      #"wx3f91056a2928ad2d"
     mama = XiaoluMama.objects.get(id=xlmm)
-    mama_openid = mama.openid
-    base_weixinuniID = Base_WeixinUniID.objects.filter(app_key=WXPAY_APPID, unionid=mama_openid)
-    if red_packet.first_red is False:
+    # 据要求2015-07-11 修改为 按照人数来发放红包
+    buyercount = buyer_Num(xlmm, finish=False)
+    if red_packet.first_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
     # 判断 xlmm 在 OrderRedPacket 中的首单状态  是False 则执行下面的语句
-        # 计算 xlmm 的订单总数 如果是 1 （第一单）发放 红包
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
-        if shoppings.count() >= 1:
-            # 写CarryLog记录，一条IN（生成红包，一条 OUT（发出红包）
+        if buyercount >= 1:
+            # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED,
-                                           carry_date=target_date)
+                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
+                                           carry_date=today)
             order_red_carry_log.save()  # 保存
-            order_red_carry_log = CarryLog(xlmm=xlmm, value=880, buyer_nick=mama.weikefu,
-                                           log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED,
-                                           carry_date=target_date)
-            order_red_carry_log.save()  # 保存
-            # 写Envelop记录 SUBJECT_CHOICES（红包主题为：ORDER_RED_PAC（订单红包））
-            if base_weixinuniID.exists():
-                openid = base_weixinuniID[0].openid  # 这里要根据 APPKEY 和 UNIONID=xlmm.openid 找到 小鹿美美的 openid 来发红包
-                xlmm = str(xlmm)  # 转化 字符串
-                body = u"Hi，首单交易成功，希望您再接再厉，向10单红包挑战吧。小鹿美美和您一起努力！"
-                envelop = Envelop(amount=880, platform=Envelop.WXPUB, livemode=True, recipient=openid,
-                                receiver=xlmm, subject=Envelop.ORDER_RED_PAC, body=body)
-                envelop.save()  # envelop 记录保存
-            # 修改 订单红包记录 OrderRedPacket 修改 首单  状态
             red_packet.first_red = True  # 已经发放首单红包
             red_packet.save()   # 保存红包状态
-    if red_packet.ten_order_red is False:
+    if red_packet.ten_order_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
     #  判断 xlmm 在 OrderRedPacket 中的十单状态 是False 则执行下面语句
-        # 计算 xlmm 的订单总数 如果是 10  发放红包
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm, status=StatisticsShopping.FINISHED)
-        if shoppings.count() >= 10:
-            # 写CarryLog记录，一条IN（生成红包，一条 OUT（发出红包）
+        if buyercount >= 10:
+            # 写CarryLog记录，一条IN（生成红包）
             order_red_carry_log = CarryLog(xlmm=xlmm, value=1880, buyer_nick=mama.weikefu,
                                            log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED,
-                                           carry_date=target_date)
+                                           carry_type=CarryLog.CARRY_IN, status=CarryLog.PENDING,
+                                           carry_date=today)
             order_red_carry_log.save()  # 保存
-            order_red_carry_log = CarryLog(xlmm=xlmm, value=1880, buyer_nick=mama.weikefu,
-                                           log_type=CarryLog.ORDER_RED_PAC,
-                                           carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED,
-                                           carry_date=target_date)
-            order_red_carry_log.save()  # 保存
-            # 写Envelop记录 SUBJECT_CHOICES（红包主题为：ORDER_RED_PAC（订单红包））
-            if base_weixinuniID.exists():
-                openid = base_weixinuniID[0].openid  # 这里要根据 APPKEY 和 UNIONID=xlmm.openid 找到 小鹿美美的 openid 来发红包
-                xlmm = str(xlmm)  # 转化 字符串
-                body = u"Hi，10 单交易成功，希望您再接再厉。小鹿美美和您一起努力！"
-                envelop = Envelop(amount=1880, platform=Envelop.WXPUB, livemode=True, recipient=openid,
-                                receiver=xlmm, subject=Envelop.ORDER_RED_PAC, body=body)
-                envelop.save()  # envelop 记录保存
-            # 修改 订单红包记录 OrderRedPacket 修改 十单  状态
+            red_packet.first_red = True  # 已经发放首单红包
             red_packet.ten_order_red = True  # 已经发放10单红包
             red_packet.save()   # 保存红包状态
 
+@transaction.commit_on_success
+def order_Red_Packet(xlmm):
+    mama = XiaoluMama.objects.get(id=xlmm)
+    if mama.agencylevel == 2:
+        # 寻找该妈妈以前的首单/十单红包记录
+        red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
+        buyercount = buyer_Num(xlmm, finish=True)
+        if buyercount >= 10:
+            for red_pac_carry_log in red_pac_carry_logs:
+                if red_pac_carry_log.status == CarryLog.PENDING:    # 如果是PENDING则修改
+                    mama.push_carrylog_to_cash(red_pac_carry_log)
+
+        if buyercount >= 1 and buyercount < 10:
+            for red_pac_carry_log in red_pac_carry_logs:
+                if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
+                    mama.push_carrylog_to_cash(red_pac_carry_log)
 
 
-
-from shopback.trades.models import MergeTrade
-
-@task()
-def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
-    """
-    更新每天妈妈订单状态及提成
-    xlmm_id:小鹿妈妈id，
-    target_date：计算日期
-    """
-    time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
-    time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
-    
-    shoping_orders = StatisticsShopping.objects.filter(linkid=xlmm,shoptime__range=(time_from,time_to))
-    for order in shoping_orders:
+def update_Xlmm_Shopping_OrderStatus(order_list):
+    """ 更新小鹿妈妈交易订单状态 """
+    for order in order_list:
         trades = MergeTrade.objects.filter(tid=order.wxorderid,
                                         type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
         if trades.count() == 0:
@@ -209,9 +208,23 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
             order.status = StatisticsShopping.FINISHED
 
         order.save()
+
+@task()
+def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
+    """
+    更新每天妈妈订单状态及提成
+    xlmm_id:小鹿妈妈id，
+    target_date：计算日期
+    """
+    time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+    time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
+    
+    shoping_orders = StatisticsShopping.objects.filter(linkid=xlmm,shoptime__range=(time_from,time_to))
+    #更新小鹿妈妈交易订单状态
+    update_Xlmm_Shopping_OrderStatus(shoping_orders)
     
     try:
-        order_Red_Packet(xlmm, target_date)
+        order_Red_Packet(xlmm)
     except Exception,exc:
         logger.error(exc.message or 'Order Red Packet Error',exc_info=True)
         
@@ -378,20 +391,22 @@ def task_ThousandRebeta(date_from,date_to):
     date_from: 开始日期，
     date_to：结束日期
     """
+    carry_no = date_from.strftime('%y%m%d')
     xlmms = XiaoluMama.objects.filter(agencylevel=2,charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
         # 千元补贴
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, shoptime__range=(date_from,date_to))
+        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, 
+                                                      shoptime__range=(date_from,date_to),
+                                                      status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED))
 #         # 过去一个月的成交额
         sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
 
         if sum_wxorderamount > 100000: # 分单位
             # 写一条carry_log记录
-            carry_log = CarryLog()
-            carry_log.xlmm = xlmm.id
+            carry_log, state = CarryLog.objects.get_or_create(xlmm=xlmm.id,order_num=carry_no,
+                                                              log_type=CarryLog.THOUSAND_REBETA)
             carry_log.buyer_nick = xlmm.mobile
             carry_log.carry_type = CarryLog.CARRY_IN
-            carry_log.log_type   = CarryLog.THOUSAND_REBETA
             carry_log.value      = sum_wxorderamount * 0.05   # 上个月的千元提成
             carry_log.buyer_nick = xlmm.mobile
             carry_log.status     = CarryLog.PENDING
@@ -433,7 +448,7 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
     """
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)  # 生成带时间的格式  开始时间
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)  # 停止时间
-
+    
     xlmms = XiaoluMama.objects.normal_queryset.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
         sub_xlmms = XiaoluMama.objects.normal_queryset.filter(agencylevel=2,referal_from=xlmm.mobile)  # 找到的本代理的子代理
@@ -450,14 +465,15 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
             if commission == 0:  # 如果订单总额是0则不做记录
                 continue
             
-            carry_log_f  = CarryLog()
-            carry_log_f.xlmm       = xlmm.id  # 锁定本代理
-            carry_log_f.order_num  = sub_xlmm.id      # 这里写的是子代理的ID
+            carry_log_f,state  = CarryLog.objects.get_or_create(xlmm=xlmm.id,order_num=sub_xlmm.id,
+                                                          carry_date = target_date,
+                                                          log_type=CarryLog.AGENCY_SUBSIDY)
+#             carry_log_f.xlmm       = xlmm.id  # 锁定本代理
+#             carry_log_f.order_num  = sub_xlmm.id      # 这里写的是子代理的ID
             carry_log_f.buyer_nick = xlmm.mobile
             carry_log_f.carry_type = CarryLog.CARRY_IN
-            carry_log_f.log_type   = CarryLog.AGENCY_SUBSIDY  # 子代理给的补贴类型
             carry_log_f.value      = commission  # 上个月给本代理的分成
-            carry_log_f.carry_date = target_date
+#             carry_log_f.carry_date = target_date
             carry_log_f.status     = CarryLog.PENDING
             carry_log_f.save()
 
@@ -497,15 +513,15 @@ def calc_mama_roi(xlmm,dfrom,dto):
 
 ### 代理提成表 的task任务   计算 每个妈妈的代理提成，上交的给推荐人的提成
 @task()
-def task_Calc_Mama_Lasttwoweek_Stats(pre_day=1):      # 每天 写入记录
+def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):      # 每天 写入记录
     """
     计算每日妈妈过去两周点击转化
     """
     
     target_date = datetime.date.today() - datetime.timedelta(days=pre_day)
     
-    lweek_from = target_date - datetime.timedelta(days=7)   # 生成带时间的格式  开始时间
-    tweek_from   = target_date - datetime.timedelta(days=14)  # 停止时间
+    lweek_from  = target_date - datetime.timedelta(days=7)   # 生成带时间的格式  开始时间
+    tweek_from  = target_date - datetime.timedelta(days=14)  # 停止时间
 
     xlmms = XiaoluMama.objects.filter(agencylevel=2) 
     for xlmm in xlmms:
@@ -526,7 +542,6 @@ def task_Calc_Mama_Lasttwoweek_Stats(pre_day=1):      # 每天 写入记录
         
         mm_stats.base_click_price = mm_stats.calc_click_price()
         mm_stats.save()
-        
         
         
         

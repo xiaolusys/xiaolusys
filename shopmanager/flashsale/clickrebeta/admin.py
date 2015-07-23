@@ -53,8 +53,11 @@ class StatisticsShoppingChangeList(ChangeList):
            
                 qs = qs.filter(wxorderid__in=tids)
                 return qs
-    
-            qs = qs.filter(Q(openid=search_q)|Q(wxorderid=search_q))
+            
+            if re.compile('^[\d]{1,10}$').match(search_q):
+                qs = qs.filter(Q(linkid=search_q)|Q(wxorderid=search_q))
+            else:
+                qs = qs.filter(Q(openid=search_q)|Q(wxorderid=search_q))
             return qs
         
         return super(StatisticsShoppingChangeList,self).get_query_set(request)
@@ -68,7 +71,7 @@ class StatisticsShoppingAdmin(admin.ModelAdmin):
     list_filter = ('status',('shoptime',DateFieldListFilter),)
 
     date_hierarchy = 'shoptime'
-    search_fields = ['=openid','=wxorderid']
+    search_fields = ['=linkid','=openid','=wxorderid']
     
     def get_changelist(self, request, **kwargs):
 

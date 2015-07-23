@@ -10,6 +10,7 @@ from .views_address import AddressList,UserAddressDetail,DistrictList
 from .views_refund import RefundApply,RefundConfirm
 from .views_product import productsku_quantity_view
 from .views_order import order_flashsale,time_rank,sale_state,refund_state,refunding_state,preorder_flashsale,nextorder_flashsale,search_flashsale
+from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView
 urlpatterns = (
     url(r'^charge/$', csrf_exempt(views.PINGPPChargeView.as_view())),
     url(r'^callback/$', csrf_exempt(views.PINGPPCallbackView.as_view())),
@@ -19,7 +20,7 @@ urlpatterns = (
     url(r'^wxwarn/$', csrf_exempt(views.WXPayWarnView.as_view())),
     
     url(r'^plist/$', 
-         cache_page(views.ProductList.as_view(),1.5*60*60),
+        cache_page(views.ProductList.as_view(),15*60),
 #         views.ProductList.as_view(),
         name="sale_home"),
     url(r'^p/(?P<pk>[0-9]+)/$', views.ProductDetail.as_view(),name="product_detail"),
@@ -62,4 +63,7 @@ urlpatterns = (
     url(r'^preorder_flashsale/$', preorder_flashsale,name="preorder_flashsale"),  
     url(r'^nextorder_flashsale/$', nextorder_flashsale,name="nextorder_flashsale"),
     url(r'^search_flashsale/$', search_flashsale,name="search_flashsale"),    
+    url(r'^aggregeta_product/$', csrf_exempt(AggregateProductView.as_view()), name="aggregate_product"),
+    url(r'^add_aggregeta/$', csrf_exempt(ModelProductView.as_view()), name="add_aggregate"),
+    url(r'^checkmodelexist/$', csrf_exempt(CheckModelExistView.as_view()), name="check_model_exist"),
 )

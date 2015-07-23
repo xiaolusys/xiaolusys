@@ -91,11 +91,11 @@ SYNC_MODEL_SCHEDULE = {
          'schedule':crontab(minute="30",hour='3'),
          'args':()
      },
-    u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
-         'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
-         'schedule':crontab(minute="0",hour='2'),
-         'args':(1,None,None,)
-     },
+#     u'定时淘宝退款订单下载任务':{     #更新昨日退货退款单
+#          'task':'shopback.refunds.tasks.updateAllUserRefundOrderTask',
+#          'schedule':crontab(minute="0",hour='2'),
+#          'args':(1,None,None,)
+#      },
     u'定时更新设置提醒的订单入问题单':{     #更新定时提醒订单
          'task':'shopback.trades.tasks.regularRemainOrderTask',
          'schedule':crontab(minute="0",hour='0,12,17'),
@@ -121,7 +121,6 @@ SYNC_MODEL_SCHEDULE = {
         'schedule':crontab(minute="0",hour="4", day_of_month='10'),#
         'args':()
     },
-
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
 #        'schedule':crontab(minute="0",hour="2"), #
@@ -288,7 +287,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'统计妈妈两周转化及点击基本价格':{
         'task':'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
-        'schedule': crontab(minute="30", hour="7"),
+        'schedule': crontab(minute="30", hour="6"),
         'args': ()
     },
     u'定时统计订货达标情况':{
@@ -299,6 +298,11 @@ SHOP_APP_SCHEDULE = {
     u'定时统计每组得分':{
         'task':'flashsale.dinghuo.tasks.task_daily_stat_group_point',
         'schedule': crontab(minute="45", hour="23"),
+        'args': ()
+    },
+    u'定时生成管理员代理状况汇总csv文件':{
+        'task':'flashsale.xiaolumm.tasks_manager_summary.task_make_Manager_Summary_Cvs',
+        'schedule': crontab(minute="10", hour="7"),
         'args': ()
     },
 #    'runs-every-10-minutes-update-seller-flag':{

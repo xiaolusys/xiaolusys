@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    {% block meta %} {% endblock %}
+    <title>{% block title %}新的款式{% endblock %}</title>
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <!-- js -->
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+    <!--datepicker -->
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    {% block head_script %}
+        <script>
+            $(function () {
+                $('#searchbutton').click(function () {
+                    var searchtext = $("#searchtext").val();
+                    if (searchtext.length > 0) {
+                        $("#searchtable thead").eq(0).nextAll().remove();
+                        $.get("/sale/dinghuo/searchproduct/", {searchtext: searchtext},
+                                function (result) {
+                                    var tb = $('#searchtable');
+                                    var count = 0;
+                                    $.each(result, function (index, dd) {
+                                        var guiges = dd.prod_skus;
+                                        tb.append('<tr id=\"tr_' + dd.id + '\"><td><label id=\"tb_id_' + dd.id + '\">' + dd.outer_id + '</label></td>' +
+                                        '<td><label id=\"tb_name_' + dd.id + '\">' + dd.name + '</label></td>' +
+                                        '<td><img id=\"tb_img_' + dd.id + '\" width="80px" src = "' + dd.pic_path + '" class="img-circle"/></td>' +
+                                        '<td><span id=\"tb_sale_time_' + dd.id +'">'+dd.sale_time+'</span></td>' +
+                                        '<td><input type="button" class="btn btn-default" value="选择" onclick="add_to_merge(' + dd.id + ')"></td></tr>');
+                                    });
+                                    var scroll_offset = $("#searchfield").offset();
+                                    $('html,body').animate({scrollTop: scroll_offset.top}, 800);
+                                }, 'json');
+                    }
+                })
+
+                $('#product_name_id').blur(function () {
+                    var product_name = $("#product_name_id").val().trim();
+                    var product_name_input = $("#product_name_id");
+                    if (product_name != "") {
+                        $.get("/mm/checkmodelexist/", {"product_name": product_name},
+                                function (result) {
+                                    console.log(result);
+                                    var ret = eval("(" + result + ")");
+                                    console.log(ret.result);
+                                    if (ret.result) {
+                                        product_name_input.focus();
+                                        $('#error_tip').show(1000).html('该款式已经存在').addClass("error");
+                                    } else {
+                                        $('#error_tip').removeClass("error");
+                                        $('#error_tip').show(1000).html('可以使用');
+                                        $('#error_tip').hide(1500);
+                                    }
+                                });
+                    } else {
+                        product_name_input.focus();
+                        $('#error_tip').show(1000).html('款式名称不能为空').addClass("error");
+
+                    }
+                });
+                $("#buy_limit_id").change(function () {
+                    if (this.checked) {
+                        $("#per_limit_id").fadeIn(500);
+                    } else {
+                        $("#per_limit_id").fadeOut(500);
+                    }
+                });
+            });
+            function my_submit() {
+                var product_name_id = $("#product_name_id");
+                var result_tb = $('#result_table tbody');
+                var isExist = $("#error_tip").hasClass("error");
+                var shelve_time = $("#f_datepicker").val().trim();
+                var per_limit_num = $("#per_limit_id").val().trim();
+                console.log(per_limit_num.length);
+                var checked_limit = ($("#buy_limit_id").prop("checked") && per_limit_num.length > 0 && !isNaN(per_limit_num)) || !$("#buy_limit_id").prop("checked")
+                if ($.trim(product_name_id.val()).length > 0 && result_tb.length > 0 && !isExist && shelve_time.length > 0 && checked_limit) {
+                    $("#my_form").submit();
+                } else {
+                    alert("未填写完整or填写有误");
+                }
+            }
+
+            function add_to_merge(product_id) {
+                var search_tb = $('#' + 'tr_' + product_id);
+                var outer_id = $("#" + 'tb_id_' + product_id).html();
+                var name = $("#" + 'tb_name_' + product_id).html();
+                var sale_time = $("#" + 'tb_sale_time_' + product_id).html();
+                var img_src = $("#" + 'tb_img_' + product_id).attr("src");
+                var result_tb = $('#result_table');
+
+                result_tb.append('<tr id="result_tr_' + product_id + '"><td><input name="product_id" style="display: None" value="' + product_id + '">' + outer_id + '</td>' +
+                '<td>' + name + '</td>' +
+                '<td><img class="img-circle" width="80px" src="' + img_src + '"></td>' +
+                '<td><span>'+sale_time+'</span></td>' +
+                '<td><input type="button" class="btn btn-default" value="去除" onclick="remove_from_result(' + product_id + ')"></td>' +
+                '</tr>');
+                search_tb.remove();
+            }
+            function remove_from_result(product_id) {
+                var tr = $("#result_tr_" + product_id);
+                tr.remove();
+            }
+            function all_choose(){
+                var search_table = $("#searchtable tbody tr");
+                for(var i=0;i<search_table.length;i++){
+                    var tr_id = search_table[i].id.split('_')[1];
+                    console.log(tr_id)
+                    add_to_merge(tr_id);
+                }
+            }
+            $(document).ready(function () {
+                $(document).keydown(function (e) {
+                    if (e.keyCode == 13) {
+
+                    }
+                });
+            });
+        </script>
+        <style type="text/css">
+            #error_tip {
+                margin-right: 0px;
+                top: 200px;
+                left: 20px;
+                position: absolute;
+            }</style>
+    {% endblock %}
+</head>
+<body>
+<div class="container" style="margin-top: 50px">
+    {% block container %}
+        <div class="row">
+            <ul class="nav nav-pills nav-justified">
+                <li role="presentation" class="active"><a href="/mm/aggregeta_product/">新建款式</a></li>
+                <li role="presentation"><a href="/mm/add_aggregeta/">已有款式</a></li>
+            </ul>
+        </div>
+
+        <form action="/mm/aggregeta_product/" method="post" id="my_form">
+            <div class="row" style="margin-top: 20px">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">基本信息填写</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row form-group">
+                            <div class="col-xs-6">
+                                <label class="control-label" for="product_name">款式名称:</label>
+                                <input type="text" class="form-control" id="product_name_id" name="product_name">
+                            </div>
+
+
+                            <div class="col-xs-6">
+                                <label class="control-label" for="df">上架日期:</label>
+                                <input type="text" id="f_datepicker" readonly name="df"
+                                       class="form-control datepicker"/>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <span style="font-size: 20px">是否限购:</span>
+                                <input type="checkbox" id="buy_limit_id" name="buy_limit">
+                                <input type="number" id="per_limit_id" style="display: none" name="per_limit"
+                                       class="form-control"
+                                       placeholder="限购数量">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-danger">
+                    <div class="panel-heading">
+                        <h3 class="panel-title" style="display: inline">马上聚合的商品</h3>
+                        <input type="button" class="btn btn-danger" style="float: right" onclick="my_submit()" value="生成新款">
+                    </div>
+
+
+                        <table id="result_table" border="1" class="table table-striped table-bordered table-hover">
+                            <thead>
+                            <th width="20%">商品编码</th>
+                            <th width="20%">商品名称</th>
+                            <th width="20%">图片</th>
+                            <th width="20%">上架时间</th>
+                            <th width="20%">操作</th>
+                            </thead>
+                        </table>
+
+
+                </div>
+            </div>
+        </form>
+
+        <div class="panel panel-info row" id="searchfield">
+            <div class="panel-heading">
+                <h3 class="panel-title">搜索物品</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-xs-4 input-group">
+                        <input type="text" class="form-control" id="searchtext"/>
+                        <label id="searchbutton" type="button" class="input-group-addon" for="searchtext">搜索</label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <th width="20%">商品编码</th>
+                        <th width="20%">商品名称</th>
+                        <th width="20%">图片</th>
+                        <th width="20%">上架时间</th>
+                        <th width="20%"><button class="btn btn-info" onclick="all_choose()">全选</button></th>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <span id="error_tip" class="col-xs-3" style="font-size: 20px;color: red"
+              hidden="hidden"></span>
+    {% endblock %}
+</div>
+
+
+{% block tail_script %}
+    <script type="text/javascript">
+        $(function () {
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+        })
+    </script>
+{% endblock %}
+
+</body>
+</html>

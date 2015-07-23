@@ -68,6 +68,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 #    category = SaleCategorySerializer()
     details   = DetailInfoField()
     prod_skus = ProductSkuField()
+    
     class Meta:
         model = Product
         fields = ('id','name','category','pic_path','collect_num','std_sale_price',

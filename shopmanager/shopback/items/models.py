@@ -9,12 +9,14 @@ import json
 import datetime
 from django.db import models
 from django.db.models import Sum,Avg,F
+from django.db.models.signals import pre_save,post_save
+from django.core.urlresolvers import reverse
+
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
-from django.db.models.signals import pre_save,post_save
 from shopback.users.models import User
 from .managers import ProductManager
 from auth import apis
@@ -63,6 +65,8 @@ class Product(models.Model):
                                     blank=True,verbose_name=u'外部编码')
     name         = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
     
+    model_id     = models.BigIntegerField(db_index=True,default=0,verbose_name='商品款式ID')
+    
     barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
     category     = models.ForeignKey(ProductCategory,null=True,blank=True,
                                      related_name='products',verbose_name=u'内部分类')
@@ -87,7 +91,7 @@ class Product(models.Model):
                                         auto_now_add=True,verbose_name=u'创建时间')
     modified     = models.DateTimeField(null=True,blank=True,
                                         auto_now=True,verbose_name=u'修改时间')
-    sale_time    = models.DateField(null=True,blank=True,verbose_name=u'上架日期')
+    sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
     
     is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
@@ -124,9 +128,12 @@ class Product(models.Model):
                        ("export_product_info", u"导出库存商品信息"),
                        ("invalid_product_info", u"作废库存商品信息")]
         
-    
     def __unicode__(self):
-        return '<%s,%s>'%(self.outer_id,self.name)
+        return '%s'%self.id
+        #return '<%s,%s>'%(self.outer_id,self.name)
+    
+    def get_absolute_url(self):
+        return reverse('api_v1:product-detail',args=[self.id])
     
     def clean(self):
         for field in self._meta.fields:
@@ -437,12 +444,34 @@ class ProductSku(models.Model):
         return 0
     
     @property
+    def real_remainnum(self):
+        if self.remain_num >= self.wait_post_num:
+            return self.remain_num - self.wait_post_num
+        return 0
+    
+    @property
     def free_num(self):
         return self.remain_num - self.wait_post_num - self.lock_num
     
     @property
     def sale_out(self):
         return self.free_num <= 0
+    
+    def calc_discount_fee(self,xlmm=None):
+        """ 优惠折扣 """
+        if not xlmm or xlmm.agencylevel != 2:
+            return 0
+        
+        try:
+            discount = int(self.product.details.mama_discount)
+            if discount > 100:
+                discount = 100
+            
+            if discount < 0:
+                discount = 0  
+            return float('%.2f'%((100 - discount) / 100.0 * float(self.agent_price)))
+        except:
+            return 0
     
     @property
     def is_out_stock(self):

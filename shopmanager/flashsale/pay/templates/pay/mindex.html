@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
   <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
-  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.3.min.js"></script>
-  <script src="http://ajax.aspnetcdn.com/ajax/jquery.mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <script src="http://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  <script src="http://cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.min.js"></script>
   
   <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
   <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
@@ -33,7 +33,7 @@
       <a id="for_all" target="_self" href="{% url sale_home %}" class="col-xs-3 {% if not category %}active{% endif %}">首页</a>
       <a id="for_boy" target="_self" href="{% url sale_home %}?category=5{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '5' %}active{% endif %}">童装</a>
       <a id="for_wom" target="_self" href="{% url sale_home %}?category=8{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '8' %}active{% endif %}">女装</a>
-      <a id="for_fam" target="_self" href="{% url sale_home %}?category=9{% if history %}&history={{ history }}{% endif %}{% if time_line %}&time_line={{ time_line }}{% endif %}" class="col-xs-3 {% if category == '9' %}active{% endif %}">亲子装</a>
+      <a id="for_fam" target="_self" href="{% url sale_home %}?category=11&history=none" class="col-xs-3 {% if category == '11' %}active{% endif %}">X秒杀</a>
     </div>
   </div>
 
@@ -52,7 +52,7 @@
   {% endfor %}
   </div>
   
-  <div id="no_more" next="{% if products.next %}{{ products.next }}&format=json{% endif %}">商品已经下架了</div>
+  <div id="no_more" next="{% if products.next %}{{ products.next }}&format=json{% endif %}">小鹿特卖每天10点上新</div>
 
   <nav id="main-nav" class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">

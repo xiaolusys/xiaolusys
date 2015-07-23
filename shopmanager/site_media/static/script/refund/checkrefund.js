@@ -66,11 +66,20 @@ checkrefund.Dialog.prototype.hide = function(data) {
 checkrefund.Dialog.prototype.handleEvent= function (e) {
 	
     if (e.key == 'OK') {
-		var url = '/refunds/exchange/'+this.seller_id+'/'+this.tid+'/';
-		var row_idx = this.refundManager.check_row_idx;
-		this.refundTable.deleteRow(row_idx);
-		this.hide();
-		window.open(url);  
+        //var select_reason = document.getElementsByClassName('select_reason');
+        //for(var i=0;i<select_reason.length;i++){
+        //    //console.log(select_reason[i].value);
+        //    if (select_reason[i].value==''){
+        //        $(select_reason[i]).css('border-color','red');
+        //        return false;
+        //    }
+        //}
+        var url = '/refunds/exchange/'+this.seller_id+'/'+this.tid+'/';
+        var row_idx = this.refundManager.check_row_idx;
+        this.refundTable.deleteRow(row_idx);
+        this.hide();
+        window.open(url);
+
     }
     return false;
 }

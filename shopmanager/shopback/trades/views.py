@@ -417,8 +417,8 @@ from shopback.trades.service import TradeService
 class CheckOrderView(ModelView):
     """ docstring for class CheckOrderView """
     
-    def get(self, request, id, *args, **kwargs):
-        
+    def get(self, request, id, *args):
+        print "进入get"
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
@@ -428,7 +428,6 @@ class CheckOrderView(ModelView):
         logistics = LogisticsCompany.objects.filter(status=True)
         order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         trade_dict = model_to_dict(trade)
-        
         trade_dict.update({'id':trade.id,
                            'seller_nick':trade.user.nick,
                            'used_orders':trade.inuse_orders,
@@ -440,14 +439,13 @@ class CheckOrderView(ModelView):
                            'is_product_defect':(trade.has_rule_match and 
                                                 trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
                            'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
+                            'shippings':dict(SHIPPING_TYPE_CHOICE)
                            })
- 
-        return {'trade':trade_dict,
-                'logistics':logistics,
-                'shippings':dict(SHIPPING_TYPE_CHOICE)}
+        return {'trade':trade_dict,  'logistics':logistics  }
+                #'shippings33':dict(SHIPPING_TYPE_CHOICE)  } 
         
     def post(self, request, id, *args, **kwargs):
-        
+        print "进入post"
         user_id = request.user.id
         try:
             trade = MergeTrade.objects.get(id=id)
@@ -586,7 +584,8 @@ class OrderPlusView(ModelView):
     
     def get(self, request, *args, **kwargs):
         
-        q  = request.GET.get('q')
+        q  = request.GET.get('q').strip()
+        print "搜索条件",q
         if not q:
             return '没有输入查询关键字'.decode('utf8')
         
@@ -600,16 +599,24 @@ class OrderPlusView(ModelView):
         
         prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,
                       [(sku.outer_id,sku.name,sku.quantity) for sku in prod.pskus]) for prod in product_set]
+        print prod_list
         return prod_list
         
     def post(self, request, *args, **kwargs):
-        
+        CONTENT    = request.REQUEST
+        print "post搜索条件",CONTENT.get('trade_id')
         user_id  = request.user.id
-        trade_id = request.POST.get('trade_id')
-        outer_id = request.POST.get('outer_id')
-        outer_sku_id = request.POST.get('outer_sku_id')
-        num      = int(request.POST.get('num',1))    
-        type     = request.POST.get('type',pcfg.CS_PERMI_GIT_TYPE) 
+      #  trade_id = request.POST.get('trade_id')
+        trade_id = CONTENT.get('trade_id')
+        #outer_id = request.POST.get('outer_id')
+        outer_id=CONTENT.get('outer_id')
+       # outer_sku_id = request.POST.get('outer_sku_id')
+        outer_sku_id=CONTENT.get('outer_sku_id')
+       # num      = int(request.POST.get('num',1))   
+        num=int(CONTENT.get('num',1))  
+       # type     = request.POST.get('type',pcfg.CS_PERMI_GIT_TYPE) 
+        type=CONTENT.get('type',pcfg.CS_PERMI_GIT_TYPE) 
+       # print "你好"
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
@@ -628,16 +635,21 @@ class OrderPlusView(ModelView):
         if not merge_trade.can_change_order:
             return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"})
                                 ,mimetype="application/json")
-        
+       
         is_reverse_order = False
         if merge_trade.can_reverse_order:
             merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
             is_reverse_order = True    
-        
-        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
+        #print "你好299888882"
+        try:
+             merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
                                                status=pcfg.WAIT_BUYER_CONFIRM_GOODS,
                                                is_reverse=is_reverse_order)
-        
+             print "正确"
+        except:
+            print  "有错"
+            
+        #print "33333332992"
         #组合拆分
         ruleMatchSplit(merge_trade)
         
@@ -647,14 +659,32 @@ class OrderPlusView(ModelView):
         
         log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
         
+        print merge_order
         return merge_order
     
            
 def change_trade_addr(request):
     
     user_id  = request.user.id
+    #print "用户",user_id
     CONTENT    = request.REQUEST
+    #print "参数是",CONTENT.get('receiver_name')
     trade_id   = CONTENT.get('trade_id')
+    receiver_name=CONTENT.get('receiver_name')
+    receiver_phone=CONTENT.get('receiver_phone')
+    receiver_mobile=CONTENT.get('receiver_mobile')
+    receiver_state=CONTENT.get('receiver_state')
+    receiver_city=CONTENT.get('receiver_city')
+    receiver_district=CONTENT.get('receiver_district')
+    receiver_address=CONTENT.get('receiver_address')
+    receiver_zip=CONTENT.get('receiver_zip')
+    #tb_user_id=CONTENT.get('tb_user_id')
+    
+    
+    
+    
+    
+    print "订单id", receiver_name
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
@@ -672,7 +702,7 @@ def change_trade_addr(request):
                                      pcfg.WAIT_CHECK_BARCODE_STATUS,
                                      pcfg.WAIT_SCAN_WEIGHT_STATUS):
             apis.taobao_trade_shippingaddress_update(
-                tid=trade.tid,
+                #tid=trade.tid,
                 receiver_name=trade.receiver_name,
                 receiver_phone=trade.receiver_phone,
                 receiver_mobile=trade.receiver_mobile,
@@ -681,7 +711,7 @@ def change_trade_addr(request):
                 receiver_district=trade.receiver_district,
                 receiver_address=trade.receiver_address,
                 receiver_zip=trade.receiver_zip,
-                tb_user_id=trade.user.visitor_id
+                #tb_user_id=trade.user.visitor_id
             )
     except Exception,exc:
         logger.debug(u'订单地址更新失败：%s'%exc.message)
@@ -1887,13 +1917,16 @@ class SaleMergeOrderListView(ModelView):
     
     def getTradeSortedItems(self,order_qs,is_sale=False):
         
+        order_dict_list =  order_qs.values('outer_id','outer_sku_id','payment','title','sku_properties_name','num','num_iid','sku_id')
         trade_items  = {}
-        for order in order_qs:
+        for order in order_dict_list:
             
-            outer_id = order.outer_id.strip() or str(order.num_iid)
-            outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
-            payment   = float(order.payment or 0)
-            order_num = order.num  or 0
+            outer_id = order['outer_id'] or str(order['num_iid'])
+            outer_sku_id = order['outer_sku_id'] or str(order['sku_id'])
+            payment   = float(order['payment'] or 0)
+            order_num = order['num']  or 0
+            order_title = order['title']
+            order_sku_name = order['sku_properties_name']
             prod,prod_sku     = self.getProductAndSku(outer_id,outer_sku_id)
 
             if trade_items.has_key(outer_id):
@@ -1908,7 +1941,7 @@ class SaleMergeOrderListView(ModelView):
                     trade_items[outer_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order_num 
                     trade_items[outer_id]['sales'] += payment
                 else:
-                    prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
+                    prod_sku_name  = prod_sku.name if prod_sku else order_sku_name
                     purchase_price = float(prod_sku.cost) if prod_sku else 0
                     #累加商品成本跟销售额
                     trade_items[outer_id]['cost']  += purchase_price*order_num 
@@ -1921,12 +1954,12 @@ class SaleMergeOrderListView(ModelView):
                                           'sales':payment,
                                           'std_purchase_price':purchase_price}
             else:
-                prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
+                prod_sku_name  = prod_sku.name if prod_sku else order_sku_name
                 purchase_price = float(prod_sku.cost) if prod_sku else payment / order_num    
                 trade_items[outer_id]={
                                        'product_id':prod and prod.id or None,
                                        'num':order_num,
-                                       'title': prod.name if prod else order.title,
+                                       'title': prod.name if prod else order_title,
                                        'cost':purchase_price*order_num ,
                                        'pic_path':prod and prod.PIC_PATH or '',
                                        'sales':payment,
@@ -1963,11 +1996,12 @@ class SaleMergeOrderListView(ModelView):
     
     def getTotalRefundFee(self,order_qs):
         
-        effect_oids = self.getEffectOrdersId(order_qs)
+        return 0
+#         effect_oids = self.getEffectOrdersId(order_qs)
         
-        return Refund.objects.filter(oid__in=effect_oids,status__in=(
-                    pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
-                    .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+#         return Refund.objects.filter(oid__in=effect_oids,status__in=(
+#                     pcfg.REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_CONFIRM_GOODS,pcfg.REFUND_SUCCESS))\
+#                     .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
         
     def responseCSVFile(self,request,order_items):
         
@@ -2159,4 +2193,62 @@ def search_trade(request):
     rec1=[] 
   
     return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+
+
+
+
+def manybeizhu(request):
+        
+        return render(request, 'trades/manybeizhu.html')
+    
+    
+    
+def  view_beizhu(request):  
+    user_id  = request.user.id
+    content  = request.REQUEST
+
+   # trade_id = content.get('trade_id','')
+    sys_memo = content.get('sys_memo','')
+    try:
+        merge_trade = MergeTrade.objects.get(id=trade_id)
+    except:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'订单未找到'}),mimetype="application/json")
+    else:
+        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+        merge_trade.sys_memo   = sys_memo
+        merge_trade.save()
+        MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
+            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
+        log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%sys_memo)
+        return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+
+
+def beizhu(request):
+    user_id  = request.user.id
+    print "开始"
+    a = request.GET['a'].strip()
+    c=request.GET['b']
+    am=a.split()
+    print "a是",a
+    print "个数是",len(am)
+    for i  in range(0,len(am),1):
+        print "第",am[i]
+        try:
+           merge_trade = MergeTrade.objects.get(tid=am[i])
+           print "sss",merge_trade
+        except:
+           return HttpResponse(json.dumps({'code':1,'tid':am[i],'num':i+1,'response_error':u'订单未找到'}),mimetype="application/json")
+           print "sss","订单没有找到"
+        else:
+           print "sss","最后"
+           merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+           merge_trade.sys_memo   = merge_trade.sys_memo+c
+           merge_trade.save()
+           MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
+            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
+           log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%c)
+           print "sss","最后444444"
+    return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),content_type="application/json")
+    
+    
 

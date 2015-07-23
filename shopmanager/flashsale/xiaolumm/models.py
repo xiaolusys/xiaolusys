@@ -7,7 +7,8 @@ from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 
-ROI_CLICK_START = datetime.date(2015,7,10)
+ROI_CLICK_START = datetime.date(2015,7,8)
+ORDER_RATEUP_START = datetime.date(2015,7,8)
 
 MM_CLICK_DAY_LIMIT = 1
 MM_CLICK_DAY_BASE_COUNT  = 50
@@ -133,6 +134,7 @@ class XiaoluMama(models.Model):
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
+        
         agency_level = agency_levels[0]
         return agency_level.get_Rebeta_Rate()
     
@@ -152,16 +154,17 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         base_price = 20
         
-
         if not day_date or day_date < ROI_CLICK_START:
             return base_price + agency_level.get_Click_Price(ordernum)
         
-        pre_date = day_date - datetime.timedelta(days=1)
-        mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
-        if mm_stats.count() > 0:
-            base_price = mm_stats[0].base_click_price
+        return 0
         
-        return base_price + agency_level.get_Click_Price(ordernum)
+#         pre_date = day_date - datetime.timedelta(days=1)
+#         mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
+#         if mm_stats.count() > 0:
+#             base_price = mm_stats[0].base_click_price
+#         
+#         return base_price + agency_level.get_Click_Price(ordernum)
     
         
     def get_Mama_Max_Valid_Clickcount(self,ordernum):
@@ -174,6 +177,9 @@ class XiaoluMama(models.Model):
     
     
     def push_carrylog_to_cash(self,clog):
+        
+        if self.id != clog.xlmm:
+            raise Exception(u'现金日志与妈妈编号不匹配') 
         
         try:
             clog = CarryLog.objects.get(id=clog.id,status=CarryLog.PENDING)
@@ -273,6 +279,11 @@ class AgencyLevel(models.Model):
         
     
     def get_Rebeta_Rate(self,*args,**kwargs):
+        
+        today = datetime.date.today()
+        if today > ORDER_RATEUP_START:
+            return (self.basic_rate / 100.0) * 2
+        
         return self.basic_rate / 100.0
     
 
@@ -559,12 +570,19 @@ class MamaDayStats(models.Model):
         
         if self.lweek_clicks < 50:
             return 20
-        #如果两周连续转化率低于1%
-        if self.lweek_roi < 0.01 and self.tweek_roi < 0.01:
-            return 5
         
-        #如果一周转化率低于1%
-        if self.lweek_roi < 0.01:
+        xlmm = XiaoluMama.objects.get(id=self.xlmm)
+        if not xlmm.charge_time:
+            return 0
+        #如果代理接管时间少于一周，点击价格为0.2元
+        delta_days = (datetime.datetime.now() - xlmm.charge_time).days
+        if delta_days < 5:
+            return 20
+        #如果两周连续转化率为0
+        if delta_days > 7 and self.tweek_clicks > 99 and self.tweek_roi == 0:
+            return 1
+        #如果一周转化率为0
+        if self.lweek_roi == 0:
             return 10
         
         return 20

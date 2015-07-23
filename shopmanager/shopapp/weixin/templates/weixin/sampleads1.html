@@ -2,7 +2,7 @@
 
 
 {% block title %} 
-你家娃，夏天能否凉快玩耍？(专治好奇心严重妈妈)
+城里人必备带娃神器——GET
 {% endblock %}
 
 {% block container %}
@@ -10,26 +10,24 @@
 <div class="container-fluid">
   <div class="thumbnail" style="text-align:center">
     {% if identical %}
-    <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuM9eeeqiaLwa0UASeJick6cLLfgmGuwVtXVeEJNXVvgPP8QOzrjQ4O0kkiaiciar0nJoYTkwhIeK2x9Hg/0"/>
+    <img id="id_donebox" src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDowqWddyy8CoVxD9Wx5sics1Pqz7juS80WUT9Ml23aPUNjWHiaCV1iaSSw/0?wx_fmt=jpeg"/>
     <p style="margin-top:16px">您的VIP邀请码: {{ vipcode }}</p>
     {% if hongbao_pass %}
-    <p style="color:red">亲，申请免费试用凉席还可以领微信红包哦！请扫二维码加客服微信领取！（长按二维码添加;或保存图片，微信扫一扫，选择相册）</p>
+    <p style="color:red">亲，申请免费试用吸汗巾还可以领微信红包哦！请扫二维码加客服微信领取！（长按二维码添加;或保存图片，微信扫一扫，选择相册）</p>
     <img src="{{ kefu_url }}" alt="">
     {% endif %}
     {% endif %}
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuqmflHoCKZY6lBicl5eeKEg2bJHmxBHHNUH3ROOqZBxm7cXt49DOaNfN2nPCxm6Bov6otiaoC3GWnA/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuqmflHoCKZY6lBicl5eeKEgbL7EH5U0KCuhJ3joNics0tlhSuIcibHuic0NrkAwXW1Cj3vBHE5nULRYg/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuqmflHoCKZY6lBicl5eeKEgcsMNHzr17r4ywEbCibolThhDeYZ6tlL5IHRWiaupHnxeicAS6jZPDNmFA/0"/>
-    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuqmflHoCKZY6lBicl5eeKEgqdgVjOZcEtRcziaibdaxVUuRKmx4cPgxKFJ0hibibQIqxDWzy8jTHibf2ibA/0"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToACpIesicXTeyvGwNKnLicMRdpmydgvxrI6ZBibhgTnNmxiasiaYrFcCOkpQ/0?wx_fmt=jpeg"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToFQfUdFdBVZFLJIZrbb2SIYNpw2WYJ4CLKH25Lw3CiaYSvMgPxGzAOzQ/0?wx_fmt=jpeg"/>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToTlzTs1RY3rt9REQt7g7AGESXYQ5LleXyHJwicCJw4QcCzkDnvDH6h2Q/0?wx_fmt=jpeg"/>
+    
     {% if not identical %}
-    <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect">
-    	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuqmflHoCKZY6lBicl5eeKEglmpJfte30YibJbRwVGsKa8JT3Zvr329aPbHfw9jKj2mv6m0WyXL7V7g/0"/>
-    </a>
+    <img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToHJXO9X3Yd6OGQ9CBzsviamRw6BicUnUzGfgcDrRdHGqOnsEgiasibu5QAQ/0?wx_fmt=jpeg"/>
     <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" type="button" class="btn btn-danger" style="margin-top:16px">快点去抢 >></a>
     <p style="margin-top:16px">好友的VIP邀请码: {{ vipcode }}</p>
     {% else %}
     <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect">
-    	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuqmflHoCKZY6lBicl5eeKEglmpJfte30YibJbRwVGsKa8JT3Zvr329aPbHfw9jKj2mv6m0WyXL7V7g/0"/>
+    	<img src="https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToHJXO9X3Yd6OGQ9CBzsviamRw6BicUnUzGfgcDrRdHGqOnsEgiasibu5QAQ/0?wx_fmt=jpeg"/>
     </a>
     {% endif %}
   </div>
@@ -52,11 +50,11 @@
 
   global_timer =  window.setInterval(slideup, 3500);
 
-var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2vdMlmfjfkMpOXnnWenNicqokRfQBUrNRO2VUJw6YLPGTvJyCV4HNVIw/0";
+var imgUrl = "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLuMow8pbD4oicRpBrwEK8hToDkp2WRptGyTSeU4qIm3om4OaxtkaJb3tMRl9bsjTGXL3rzL1kGib5WA/0?wx_fmt=jpeg";
 
 var lineLink = "http://weixin.huyi.so/wx/sampleads/{{ pk }}/";
-var descContent = "其实，每个宝宝夏天都需要凉快玩耍！不过，。。。";
-var shareTitle = "你家娃，夏天能否凉快玩耍？（无娃禁入）";
+var descContent = "暑假来了，跟宝宝计划一场说走就走的旅行"
+var shareTitle = "城里人必备带娃神器——GET";
 var user_openid = "{{ wx_user.openid }}";
 
   wx.config({

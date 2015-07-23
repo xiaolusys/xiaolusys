@@ -120,8 +120,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,4,13,10)
-END_TIME = datetime.datetime(2015,4,20,10)
+START_TIME = datetime.datetime(2015,7,21,12)
+END_TIME = datetime.datetime(2015,7,28,10)
 
 
 def get_user_openid(request, code, 
@@ -776,7 +776,7 @@ class FreeSampleView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code')
-        fcode = content.get('f', '')
+        fcode = content.get('f', '866988')
         
         user_openid = get_user_openid(request, code)
         if not valid_openid(user_openid):
@@ -795,7 +795,7 @@ class FreeSampleView(View):
         today_orders = SampleOrder.objects.filter(created__gt=today_time)
         
         order_exist = False
-        start_time1 = datetime.datetime(2015,4,12)
+        start_time1 = datetime.datetime(2015,7,21)
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time1)
         
         if order.count() > 0:
@@ -812,10 +812,11 @@ class FreeSampleView(View):
             delta = END_TIME - now
         else:
             delta = START_TIME - now
-
-        #if user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' or user_openid == 'oMt59uOr8DItI6FvJqmu7j69unZM':
-        #    started = True
-        started = False
+        
+        if (user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' 
+            or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'):
+            started = True
+            
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
@@ -936,6 +937,7 @@ class SampleConfirmView(View):
             redirect_url = '/weixin/freesamples/'
         return redirect(redirect_url)
 
+from flashsale.xiaolumm.models import XiaoluMama
         
 class SampleAdsView(View):
     def get(self, request, *args, **kwargs):
@@ -951,7 +953,11 @@ class SampleAdsView(View):
         sample_orders = SampleOrder.objects.filter(user_openid=openid,created__gte=start_time1)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            if users.count() > 0 and users[0].charge_status == WeiXinUser.UNCHARGE:
+            wx_user = WeiXinUser.objects.get(openid=openid)
+            xlmms = XiaoluMama.objects.filter(openid=wx_user.unionid)
+            if (users.count() > 0 
+                and users[0].charge_status == WeiXinUser.UNCHARGE 
+                and (xlmms.count() == 0 or xlmms[0].charge_status != XiaoluMama.CHARGED)):
                 hongbao_pass = True
 
         idx = 0
@@ -1042,12 +1048,15 @@ class ResultView(View):
         hongbao_pass = False
         sample_order = None 
         user_charged = False
-        start_time   = datetime.datetime(2015,3,9)
+        start_time   = datetime.datetime(2015,7,21)
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=start_time).order_by('-created')#,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass  = (sample_order.status > 80 and sample_order.status < 100)
-            hongbao_pass = wx_user.charge_status == WeiXinUser.UNCHARGE
+            sample_pass  = (sample_order.status > 90 and sample_order.status < 100)
+            
+            xlmms = XiaoluMama.objects.filter(openid=wx_user.unionid)
+            hongbao_pass = (wx_user.charge_status == WeiXinUser.UNCHARGE 
+                            and (xlmms.count() == 0 or xlmms[0].charge_status != XiaoluMama.CHARGED))
             user_charged = wx_user.charge_status == WeiXinUser.CHARGED
             
         vip_code = None
@@ -1070,7 +1079,7 @@ class ResultView(View):
         url_key = KFKEYS[idx]
         kefu_url = IMG_URL_PREFIX + KFMAP[url_key]
 
-        sample_kefu_url = IMG_URL_PREFIX + [KFMAP['xiangxiang0'],KFMAP['sisi40']][sidx]
+        sample_kefu_url = IMG_URL_PREFIX + KFMAP['tangbao'] #[KFMAP['xiangxiang0'],KFMAP['sisi40']][sidx]
 
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
@@ -1117,30 +1126,18 @@ class FinalListView(View):
         
         order_list = SampleOrder.objects.none()
         
-        if month == 1504 and batch == 1 :
+        if month == 1507 and batch == 1:
+            start_time = datetime.datetime(2015,7,21)
+            end_time = datetime.datetime(2015,7,29)
+            order_list = SampleOrder.objects.filter(status=91,created__gt=start_time)
+        if month == 1507 and batch == 2:
+            start_time = datetime.datetime(2015,7,21)
+            end_time = datetime.datetime(2015,7,29)
+            order_list = SampleOrder.objects.filter(status=92,created__gt=start_time)
+        elif month == 1504 :
             start_time = datetime.datetime(2015,4,13)
             end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=81,created__gt=start_time)
-        elif month == 1504 and batch == 2 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=82,created__gt=start_time)
-        elif month == 1504 and batch == 3 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=83,created__gt=start_time)
-        elif month == 1504 and batch == 4 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=84,created__gt=start_time)
-        elif month == 1504 and batch == 5 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=85,created__gt=start_time)
-        elif month == 1504 and batch == 6 :
-            start_time = datetime.datetime(2015,4,13)
-            end_time = datetime.datetime(2015,4,21)
-            order_list = SampleOrder.objects.filter(status=86,created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=80,status__lt=90,created__gt=start_time)
         elif month == 1503 :
             start_time = datetime.datetime(2015,3,9)
             end_time = datetime.datetime(2015,3,31)
@@ -1590,7 +1587,8 @@ class WeixinProductView(ModelView):
                                                                  num=sync_num,
                                                                  end_at=datetime.datetime.now())
                         except WeiXinRequestException,exc:
-                            messages.add_message(request, messages.ERROR, u'编码(微信商品ID:%s)[%s.%s]'%(wx_sku.product_id,outer_sku_id,outer_id))
+                            messages.add_message(request, messages.ERROR, 
+                                                 u'微信商品库存更新错误：%s(ID:%s)[%s.%s]'%(exc.message,wx_sku.product_id,outer_sku_id,outer_id))
                             
                 except Exception,exc:
                     logger.error(exc.message,exc_info=True)

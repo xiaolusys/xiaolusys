@@ -150,6 +150,7 @@
 <div class="price_sure">
     <div class="wrapper">商品金额总计<div class="price sum">￥<span>{{ real_fee }}</span></div></div>
     <div class="wrapper">快递费<div class="price post">￥<span>{{ post_fee }}</span></div></div>
+    {% if discount_fee %}<div class="wrapper">妈妈折扣<div class="price discount">￥<span>-{{ discount_fee }}</span></div></div>{% endif %}
     <div class="line"></div>
     <div class="wrapper">订单总额<div class="price all">￥<span>{{ payment }}</span></div></div>
 </div>
@@ -160,6 +161,7 @@
 <input type="hidden" name="num" value="{{ num }}" />
 <input type="hidden" name="uuid" value="{{ uuid }}" />
 <input type="hidden" name="post_fee" value="{{ post_fee }}" />
+<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
 <input type="hidden" id="payment" name="payment" value="{{ payment }}" />
 <input type="hidden" name="receiver_name" value="{{ address.receiver_name }}" />
 <input type="hidden" name="receiver_state" value="{{ address.receiver_state }}" />

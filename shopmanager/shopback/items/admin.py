@@ -28,9 +28,10 @@ from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
+from shopback.base.admin import MyAdmin
 from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
-from shopback.items.filters import ChargerFilter,DateScheduleFilter, GroupNameFilter
+from shopback.items.filters import ChargerFilter,DateScheduleFilter, GroupNameFilter,CategoryFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from flashsale.pay import Productdetail
 import logging 
@@ -38,6 +39,8 @@ from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from django.contrib.auth.models import User as DjangoUser
 from django.forms.models import model_to_dict
+from flashsale.dinghuo import functions2view
+
 
 logger =  logging.getLogger('django.request')
 
@@ -64,7 +67,7 @@ class ProductdetailInline(admin.StackedInline):
     model = Productdetail
     
     fields = (('head_imgs','content_imgs')
-              ,('buy_limit','per_limit'))
+              ,('is_recommend','mama_discount','buy_limit','per_limit'))
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'50'})},
@@ -97,7 +100,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
-                   ,'sync_stock','is_match','is_split','is_verify','sale_time',
+                   ,'sync_stock','is_match','is_split','sale_time_select',
                    'purchase_select','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
@@ -107,7 +110,10 @@ class ProductAdmin(admin.ModelAdmin):
 
     list_filter = ('shelf_status','is_verify','status',('sale_time',DateScheduleFilter),
                    ChargerFilter,'sync_stock','is_split','is_match','is_assign'
-                   ,'post_check',('created',DateFieldListFilter),'category',GroupNameFilter)
+                   ,'post_check',
+                   ('created',DateFieldListFilter),
+                   CategoryFilter,
+                   GroupNameFilter)
 
     search_fields = ['=id','^outer_id', 'name' , '=barcode','=sale_charger','=storage_charger']
     
@@ -210,6 +216,16 @@ class ProductAdmin(admin.ModelAdmin):
     purchase_select.allow_tags = True
     purchase_select.short_description = u"所属采购组"
 
+    # 选择上架时间
+    def sale_time_select(self, obj):
+        sale_time = obj.sale_time
+        s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id,sale_time)
+        return s
+    sale_time_select.allow_tags = True
+    sale_time_select.short_description = u"上架时间"
+
+
+
     def charger_select(self, obj):
 
         categorys = self.storage_chargers
@@ -245,7 +261,7 @@ class ProductAdmin(admin.ModelAdmin):
                                ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
                                ,('std_purchase_price','staff_price','sale_time')
                                ,('cost','std_sale_price','agent_price')
-                               ,('status','shelf_status'))
+                               ,('status','shelf_status','model_id'))
                 }),
                 ('商品系统设置:', {
                     'classes': ('collapse',),
@@ -263,13 +279,13 @@ class ProductAdmin(admin.ModelAdmin):
     }
     
     class Media:
-        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
-        js = ("js/admin/adminpopup.js","js/item_change_list.js")
+        css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/common.css", "jquery/jquery-ui-1.10.1.css","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")}
+        js = ("js/admin/adminpopup.js","js/item_change_list.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js","jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js")
     
     def get_readonly_fields(self, request, obj=None):
         
         if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + ('collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
+            return self.readonly_fields + ('model_id','collect_num','warn_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
     
     def get_actions(self, request):
@@ -479,10 +495,11 @@ class ProductAdmin(admin.ModelAdmin):
         for p in queryset:
             product_dict = model_to_dict(p)
             product_dict['prod_skus'] = []
-            guiges = ProductSku.objects.filter(product_id=p.id)
+            guiges = ProductSku.objects.filter(product_id=p.id).exclude(status=u'delete')
             for guige in guiges:
                 sku_dict = model_to_dict(guige)
                 sku_dict['name'] = guige.name
+                sku_dict['wait_post_num'] = functions2view.get_lack_num_by_product(p, guige)
                 product_dict['prod_skus'].append(sku_dict)
             productres.append(product_dict)
         return render_to_response("dinghuo/addpurchasedetail.html",
@@ -810,15 +827,15 @@ class ProductLocationAdmin(admin.ModelAdmin):
 admin.site.register(ProductLocation, ProductLocationAdmin)
 
 
-class ItemNumTaskLogAdmin(admin.ModelAdmin):
+class ItemNumTaskLogAdmin(MyAdmin):
     list_display = ('id','user_id','outer_id', 'sku_outer_id', 'num', 'start_at', 'end_at')
     list_display_links = ('outer_id', 'sku_outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    date_hierarchy = 'end_at'
+#     date_hierarchy = 'end_at'
 
     list_filter = ('user_id',('end_at',DateFieldListFilter))
-    search_fields = ['id','outer_id','sku_outer_id']
+    search_fields = ['=id','=outer_id','=sku_outer_id']
     
 
 admin.site.register(ItemNumTaskLog, ItemNumTaskLogAdmin)

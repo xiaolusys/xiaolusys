@@ -53,16 +53,19 @@ def task_Push_SaleTrade_Finished(pre_days=10):
         
         mtrade = mtrades[0]
         
-        if mtrade.sys_status in (MergeTrade.INVALID_STATUS,
-                                 MergeTrade.EMPTY_STATUS,):
+        if (mtrade.status == MergeTrade.TRADE_CLOSED or 
+            mtrade.sys_status in (MergeTrade.INVALID_STATUS,MergeTrade.EMPTY_STATUS)):
+            
             strade.status =  SaleTrade.TRADE_CLOSED
             strade.save()
         
         elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS and 
               (not mtrade.weight_time or mtrade.weight_time < day_date)):
+            
             sale_refunds = SaleRefund.objects.filter(trade_id=mtrade.id,status__gt=SaleRefund.REFUND_CLOSED)
             if sale_refunds.count() > 0:
                 continue
+            
             strade.status =  SaleTrade.TRADE_FINISHED
             strade.save()
 
@@ -174,6 +177,8 @@ def pushTradeRefundTask(refund_id):
         refund.user = seller
         refund.title = sorder.title
         refund.payment = sale_refund.payment
+        refund.buyer_nick = strade.buyer_nick or strade.receiver_name
+        refund.mobile     = strade.receiver_mobile
         
         if sale_refund.has_good_return:
             refund.status = Refund.REFUND_WAIT_RETURN_GOODS
@@ -245,19 +250,16 @@ def task_Pull_Red_Envelope(pre_day=7):
         else:
             resp = pingpp.RedEnvelope.all(limit=page_size,
                                           created={'gte':pre_date,'lte':today})  
+        
+        for e in resp['data']:
+            envelop = Envelop.objects.get(id=e['order_no'])
+            envelop.handle_envelop(e)
+        else:
+            starting_after = e['id']
+        
         has_next = resp['has_more']
         if not has_next:
             break
-        
-        for e in resp['data']:
-            env = Envelop.objects.get(id=e['order_no'])
-            env.envelop_id = e['id']
-            env.livemode   = e['livemode']
-            if env.status in (Envelop.WAIT_SEND,Envelop.CANCEL) :
-                env.status = Envelop.FAIL
-            env.save()
-        else:
-            starting_after = e['id']
             
             
   

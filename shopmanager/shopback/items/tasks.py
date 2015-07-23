@@ -161,7 +161,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
                                 properties += (prop_dict[sku['num_iid']].get(prop, '') 
                                                or sku_prop_dict.get(prop,'')) 
                                 psku.properties_name = properties
-                        psku.status = pcfg.NORMAL
+#                         psku.status = pcfg.NORMAL
                         psku.save()
              
             except Exception, exc:
