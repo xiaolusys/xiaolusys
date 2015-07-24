@@ -147,6 +147,8 @@ body{
   color: #5f5f5e;
   text-indent: 10px;
   line-height: 2;
+  overflow:hidden;
+  white-space:nowrap;
 }
 .glist .gprice{
   height: 40px;
