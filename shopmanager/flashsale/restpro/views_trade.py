@@ -19,15 +19,15 @@ from . import serializers
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    ###特卖购物车REST API接口：
     """
     queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer# Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
-    def get_owner_queryset(self,request):
+    def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
         

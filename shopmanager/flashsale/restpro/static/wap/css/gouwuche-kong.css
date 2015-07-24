@@ -1,0 +1,41 @@
+body {
+    background-color: #fff;
+}
+
+.logo-wrap {
+    padding-top: 120px;
+}
+
+.logo {
+    width: 328px;
+    height: 382px;
+    background-image: url(../images/logo.png);
+    margin: 0 auto;
+}
+
+.tips {
+    width: 640px;
+    margin: 40px auto 0;
+    font-size: 26px;
+    line-height: 2;
+    text-align: center;
+    color: #242424;
+}
+
+.back-index {
+    display: block;
+    margin: 80px auto 0;
+    width: 394px;
+    height: 82px;
+    line-height: 82px;
+    border: 3px solid #fcb916;
+    border-radius: 10px;
+    color: #fcb916;
+    text-align: center;
+    font-size: 30px;
+}
+
+.back-index:active {
+    background-color: #fcb916;
+    color: #fff;
+}

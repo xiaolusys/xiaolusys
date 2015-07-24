@@ -47,7 +47,7 @@ function parseUrlParams(myUrl){
 }
 
 //定义多行字符串函数实现
-function hereDoc(f) {　
+function hereDoc(f) {
     return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
 }
 
@@ -84,6 +84,7 @@ var GLConfig = {
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
     get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
     get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
+    get_cart_url:'/carts/{{trade_id}}/orders/details.json', //获取订单明细
 };
 
 
