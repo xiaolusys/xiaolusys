@@ -15,7 +15,7 @@ from flashsale.pay.models import SaleTrade,SaleOrder,Customer,ShoppingCart
 
 from . import permissions as perms
 from . import serializers 
-
+from django.db.models import F
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
@@ -43,11 +43,28 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        data = request.data
+        product_id = request.POST.get("item_id", None)
+        buyer_id = request.POST.get("buyer_id", None)
+        sku_id = request.POST.get("sku_id", None)
+        num = request.POST.get("num", 0)
+        if product_id and buyer_id and sku_id:
+            shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id)
+            if shop_cart.count() > 0:
+                shop_cart_temp = shop_cart[0]
+                shop_cart_temp.num += int(num) if num else 0
+                shop_cart_temp.save()
+                return Response("Added")
+
+            new_shop_cart = ShoppingCart()
+            for k, v in data.iteritems():
+                if v:
+                    hasattr(new_shop_cart, k) and setattr(new_shop_cart, k, v)
+            new_shop_cart.save()
+
+            return Response("Created")
+        else:
+            return Response("error")
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -57,10 +74,26 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
+    @detail_route(methods=['post', 'delete'])
+    def delete_carts(self, request, pk=None):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(data="OK", status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['post'])
+    def plus_product_carts(self, request, pk=None):
+        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
+        return Response(update_status)
+
+    @detail_route(methods=['post'])
+    def minus_product_carts(self, request, pk=None):
+        temp_shop = ShoppingCart.objects.filter(id=pk)
+        if temp_shop.count() == 0:
+            return Response("error")
+        if temp_shop[0].num == 1:
+            return Response("can not minus")
+        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
+        return Response(update_status)
 
 
 class SaleOrderViewSet(viewsets.ModelViewSet):
