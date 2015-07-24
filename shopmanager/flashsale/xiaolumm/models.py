@@ -138,6 +138,57 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         return agency_level.get_Rebeta_Rate()
     
+	def get_Mama_Order_Product_Rate(self,product)
+		"""
+			如果特卖商品detail设置代理了返利，
+			则返回设置值，否则返回小鹿妈妈统一设置值
+		"""
+		try
+			pdetail = product.details
+		except:
+			return self.get_Mama_Order_Rebeta_Rate()
+		else:
+			rate = pdetail.mama_rebeta_rate()
+			if rate is None:
+				return self.get_Mama_Order_Rebeta_Rate()
+
+			return rate
+
+
+	def get_Mama_Order_Rebeta(self,order):
+		#如果订单来自小鹿特卖平台
+		if hasattr(order,'outer_id'):
+			product_qs = Product.objects.filter(outer_id=order.outer_id)
+		#如果订单来自微信小店
+		elif hasattr(order,'product_sku'):
+			wxsku =  WXProductSku.objects.get(sku_id=order.product_sku,
+											  product=order.product_id)
+			product_qs = Product.objects.filter(outer_id=wxsku.outer_id) 
+		else:
+			product_qs = Product.objects.none
+	
+		product_ins = product_qs.count() > 0 and product_qs[0] or None
+		rebeta_rate = xlmm.get_Mama_Order_Product_Rate(product_ins)
+	
+		order_price = 0
+		if hasattr(order,'product_price'):
+			order_price = order.product_price
+		elif hasattr(order,'payment')
+			order_price = int(order.payment * 100)
+		
+		return rebeta_rate * order_price
+
+		
+	def get_Mama_Trade_Rebeta(self,trade):
+		""" 获取妈妈交易返利提成 """
+		if hasattr(trade,'normal_orders'):
+			rebeta = 0
+			for order in trade.normal_orders:
+				rebeta += self.get_Mama_Order_Rebeta(order)
+			return rebeta
+		
+		return 	self.get_Mama_Order_Rebeta(trade)
+
     def get_Mama_Click_Price(self,ordernum):
         """ 获取今日小鹿妈妈点击价格 """
         

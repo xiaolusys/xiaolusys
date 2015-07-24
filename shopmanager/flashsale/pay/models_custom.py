@@ -4,6 +4,18 @@ from shopback.items.models import Product
 
 class Productdetail(models.Model):
     
+	OUT_PERCENT = 0 #未设置代理返利比例
+	ZERO_PERCENT = -1
+	TEN_PERCENT = 10
+	TWENTY_PERCENT = 20
+	THIRTY_PERCENT = 30
+
+	REBETA_CHOICES = ((OUT_PERCENT,u'未设置返利'),
+					 (ZERO_PERCENT,u'该商品不返利'),
+					 (TEN_PERCENT,u'返利百分之10'),
+					 (TWENTY_PERCENT,u'返利百分之20'),
+					 (THIRTY_PERCENT,u'返利百分之30'),)
+
     product  = models.OneToOneField(Product, primary_key=True,related_name='details',verbose_name=u'库存商品')
     
     head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
@@ -17,6 +29,9 @@ class Productdetail(models.Model):
     buy_limit    = models.BooleanField(default=False,verbose_name=u'是否限购')
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
     
+	mama_rebeta  = models.IntegerField(default=OUT_PERCENT, choices=REBETA_CHOICES, 
+					db_index=True, verbose_name=u'代理返利')
+
     class Meta:
         db_table = 'flashsale_productdetail'
         verbose_name=u'特卖商品/详情'
@@ -25,6 +40,14 @@ class Productdetail(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(self.product.outer_id,self.product.name)
     
+	def mama_rebeta_rate(self):
+		if self.mama_rebeta == self.ZERO_PERCENT:
+			return 0.0
+		if self.mama_rebeta == self.OUT_PERCENT:
+	 		return None
+		rate = self.rebeta_point / 100.0
+		assert rate >= 0 and rate <=1
+        return rate 
     
     
 class ModelProduct(models.Model):
