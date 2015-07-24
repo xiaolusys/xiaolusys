@@ -38,9 +38,14 @@
 
 .cart-list .gname {
     color: #5f5f5e;
+    font-size: 15px;
     position: absolute;
     left: 238px;
     top: 24px;
+    width: 300px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .cart-list .gprice {
