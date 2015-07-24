@@ -19,7 +19,11 @@ from . import serializers
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+    特卖海报API：
+    
+    - {prefix}/today[.format]: 获取今日特卖海报;
+    
+    - {prefix}/previous[.format]: 获取昨日特卖海报;
     """
     queryset = GoodShelf.objects.filter(is_active=True)
     serializer_class = serializers.PosterSerializer
@@ -58,11 +62,20 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+    特卖商品API：
     
-    - {prefix}/previous[.format]: allow users to get last sale list;
+    - {prefix}/promote_today[.format]: 获取今日推荐商品列表;
     
-    - {prefix}/advance[.format]: allow users to get future sale list;
+    - {prefix}/promote_previous[.format]: 获取昨日推荐商品列表;
+    
+    - {prefix}/childlist[.format]: 获取童装专区商品列表;
+    
+    - {prefix}/ladylist[.format]: 获取女装专区商品列表;
+    
+    - {prefix}/previous[.format]: 获取昨日特卖商品列表;
+    
+    - {prefix}/advance[.format]: 获取明日特卖商品列表;
+    
     """
     queryset = Product.objects.filter(status=Product.NORMAL,shelf_status=Product.UP_SHELF)
     serializer_class = serializers.ProductSerializer
@@ -179,4 +192,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         
         return Response(serializer.data)
+    
+    
     
