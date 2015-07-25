@@ -26,9 +26,9 @@ function create_shop_carts_dom(obj) {
          <div class="item" id="item_{{id}}">
          <div class="gpic"><img src="{{ pic_path}}"></div>
          <div class="gname">{{ title }}</div>
-         <div class="gprice">¥ <span class="item_price">{{ price}}</span></div>
+         <div class="gprice">¥ <span class="item_price" id="itemprice_{{id}}">{{ price}}</span></div>
          <div class="gsize">尺码：{{sku_name}}</div>
-         <div class="goprice"><s>¥168</s></div>
+         <div class="goprice"><s>¥{{std_sale_price}}</s></div>
          <div class="btn-del" id="shop_cart_{{id}}" cid="{{id}}" onclick="del_shop({{id}})"></div>
          <div class="gcount">
          <div class="btn reduce" onclick="minus_shop({{id}})"></div>
@@ -46,7 +46,17 @@ function create_shop_carts_dom(obj) {
 function hereDoc(f) {
     return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
 }
-
+function update_total_price() {
+    var prices = $(".item_price");
+    var total_price = 0;
+    $.each(prices, function (index, price) {
+            price_id = prices.eq(index).attr("id");
+            item_id = price_id.split("_")[1];
+            total_price += parseInt(prices.eq(index).html()) * parseInt($("#num_"+item_id).val());
+        }
+    );
+    $("#total_price").html(total_price);
+}
 function get_shop_carts(suffix) {
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + suffix;
@@ -54,10 +64,10 @@ function get_shop_carts(suffix) {
     //请求成功回调函数
     var requestCallBack = function (data) {
         var total_price = 0;
-        if (data.count != 'undefined' && data.count != null) {
-            $.each(data.results,
+        if (data) {
+            $.each(data,
                 function (index, product) {
-                    total_price += product.total_fee;
+                    total_price += product.price * product.num;
                     var cart_dom = create_shop_carts_dom(product);
                     $('.cart-list').append(cart_dom);
                 }
@@ -78,18 +88,12 @@ function get_shop_carts(suffix) {
 function del_shop(id) {
     var suffix = "/carts/" + id + "/delete_carts";
     var requestUrl = GLConfig.baseApiUrl + suffix;
-    console.log(csrftoken);
     var item_id = $("#item_" + id);
     var requestCallBack = function (data) {
         item_id.remove();
-        var prices = $(".item_price");
         //重新计算总价格
         var total_price = 0;
-        $.each(prices, function (index, product) {
-                total_price += parseFloat(prices.eq(index).html());
-            }
-        );
-        $("#total_price").html(total_price);
+        update_total_price();
     };
     // 发送请求
     $.ajax({
@@ -108,8 +112,8 @@ function plus_shop(id) {
         console.log(res);
         if (res == "1") {
             num_id.val(parseInt(num_id.val()) + parseInt(res));
+            update_total_price();
         }
-
     };
     // 发送请求
     $.ajax({
@@ -127,6 +131,7 @@ function minus_shop(id) {
         console.log(res);
         if (res == "1") {
             num_id.val(parseInt(num_id.val()) - parseInt(res));
+            update_total_price();
         }
 
     };
