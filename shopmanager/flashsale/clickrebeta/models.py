@@ -182,7 +182,7 @@ def tongji_wxorder(sender, obj, **kwargs):
         if xiaolu_mmset.count() > 0:
             xiaolu_mm = xiaolu_mmset[0]
             #计算小鹿妈妈订单返利
-            mm_order_rebeta     =  xiaolumm.get_Mama_Trade_Rebeta(obj) 
+            mm_order_rebeta     =  xiaolu_mm.get_Mama_Trade_Rebeta(obj) 
             tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                    wxorderid=str(obj.order_id))
             tongjiorder.linkname = xiaolu_mm.weikefu
@@ -310,7 +310,7 @@ def tongji_saleorder(sender, obj, **kwargs):
         if xiaolu_mmset.count() > 0:
             xiaolu_mm = xiaolu_mmset[0]
             #计算小鹿妈妈订单返利
-            mm_order_rebeta     =  xiaolumm.get_Mama_Trade_Rebeta(obj)
+            mm_order_rebeta     =  xiaolu_mm.get_Mama_Trade_Rebeta(obj)
             tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                    wxorderid=order_id)
             tongjiorder.linkname    = xiaolu_mm.weikefu
