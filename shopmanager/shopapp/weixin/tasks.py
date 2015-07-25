@@ -62,7 +62,6 @@ def update_weixin_productstock():
                 logger.error(exc.message,exc_info=True)
 
 
-
 @task(max_retry=3,default_retry_delay=60)
 def task_Update_Weixin_Userinfo(openId,unionId=None):
     

@@ -137,7 +137,7 @@ def tongji_wxorder(sender, obj, **kwargs):
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     mm_order_amount = obj.order_total_price
-	mm_order_rebeta = 0
+    mm_order_rebeta = 0
     wx_unionid = get_Unionid(obj.buyer_openid,settings.WEIXIN_APPID)
     isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,agencylevel=2,
                                              charge_time__lte=ordertime)
@@ -244,7 +244,7 @@ def tongji_saleorder(sender, obj, **kwargs):
 
     buyer_openid = obj.openid
     mm_order_amount   = int(obj.payment * 100)
-	mm_order_rebeta	  = 0
+    mm_order_rebeta	  = 0
     order_id     = obj.tid
     ordertime    = obj.pay_time
     order_stat_from = ordertime - datetime.timedelta(days=1)
@@ -274,8 +274,8 @@ def tongji_saleorder(sender, obj, **kwargs):
     
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]
-		#计算小鹿妈妈订单返利
-		mm_order_rebeta     =  xiaolumm.get_Mama_Trade_Rebeta(obj)
+        #计算小鹿妈妈订单返利
+        mm_order_rebeta     =  xiaolumm.get_Mama_Trade_Rebeta(obj)
         tongjiorder,state   = StatisticsShopping.objects.get_or_create(linkid=xiaolumm.id,
                                                                wxorderid=order_id)
         tongjiorder.linkname      = xiaolumm.weikefu
@@ -309,8 +309,8 @@ def tongji_saleorder(sender, obj, **kwargs):
         xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
         if xiaolu_mmset.count() > 0:
             xiaolu_mm = xiaolu_mmset[0]
-			#计算小鹿妈妈订单返利
-			mm_order_rebeta     =  xiaolumm.get_Mama_Trade_Rebeta(obj)
+            #计算小鹿妈妈订单返利
+            mm_order_rebeta     =  xiaolumm.get_Mama_Trade_Rebeta(obj)
             tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                    wxorderid=order_id)
             tongjiorder.linkname    = xiaolu_mm.weikefu

@@ -27,8 +27,7 @@ def task_Push_Rebeta_To_MamaCash(target_date):
             continue
         
         xlmm = xlmms[0]
-        rebeta_rate = xlmm.get_Mama_Order_Rebeta_Rate()
-        order_rebeta = mm_stat.todayamountcount * rebeta_rate
+        order_rebeta = mm_stat.todayamountcount 
         if order_rebeta <= 0:
             continue
         

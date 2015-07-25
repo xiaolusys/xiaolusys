@@ -67,7 +67,7 @@ class ProductdetailInline(admin.StackedInline):
     model = Productdetail
     
     fields = (('head_imgs','content_imgs')
-              ,('is_recommend','mama_discount','buy_limit','per_limit'))
+              ,('is_recommend','mama_discount','buy_limit','per_limit','mama_rebeta'))
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'50'})},

@@ -330,14 +330,13 @@ class MamaIncomeDetailView(View):
             order_list = StatisticsShopping.normal_objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             carry_confirm = False
-            order_rebeta_rate = xlmm.get_Mama_Order_Rebeta_Rate()
             if target_date >= ORDER_RATEUP_START:
                 rebeta_swift = True
 
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
-                carry = (order_stat[0].todayamountcount / 100.0) * order_rebeta_rate
+                carry = order_stat[0].todayamountcount / 100.0
                 carry_confirm = order_stat[0].carry_Confirm()
             
             click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
