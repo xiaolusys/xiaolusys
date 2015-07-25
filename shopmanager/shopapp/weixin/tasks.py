@@ -67,7 +67,7 @@ def update_weixin_productstock():
 def task_Update_Weixin_Userinfo(openId,unionId=None):
     
     try:  
-        _wx_api = WeiXinAPI()
+        _wx_api  = WeiXinAPI()
         userinfo =  _wx_api.getUserInfo(openId)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=openId) 
