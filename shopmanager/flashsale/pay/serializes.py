@@ -126,10 +126,35 @@ class UserAddressSerializer(serializers.ModelSerializer):
         model = UserAddress
         fields = ('id','cus_uid','receiver_name','receiver_state','receiver_city','receiver_district',
                   'receiver_address','receiver_zip','receiver_mobile','receiver_phone','default')
-        
-        
 
 
+# 用户积分Serializer
+from models_coupon import IntegralLog, Integral, CouponPool, Coupon
 
 
-    
+class UserIntegralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Integral
+        fields = ('id', 'integral_user', 'integral_value')
+
+
+class UserIntegralLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IntegralLog
+        fields = \
+            ('id', 'integral_user', 'mobile', 'order', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
+
+
+class UserCouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = (
+            'id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id',  'created','modified')
+
+
+class UserCouponPoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CouponPool
+        fields = (
+            'id', 'coupon_no', 'deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
+

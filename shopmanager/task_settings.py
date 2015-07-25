@@ -302,9 +302,20 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时生成管理员代理状况汇总csv文件':{
         'task':'flashsale.xiaolumm.tasks_manager_summary.task_make_Manager_Summary_Cvs',
-        'schedule': crontab(minute="10", hour="7"),
+        'schedule': crontab(minute="45", hour="6"),
         'args': ()
     },
+    u'定时更新用户积分':{
+        'task':'flashsale.pay.tasks_coupon.task_Calculate_Users_Integral',
+        'schedule': crontab(minute="30", hour="0"),
+        'args': ()
+    },
+    u'定时更新用户优惠券状态':{
+        'task':'flashsale.pay.tasks_coupon.task_Update_CouponPoll_Status',
+        'schedule': crontab(minute="30", hour="4"),
+        'args': ()
+    },
+
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
