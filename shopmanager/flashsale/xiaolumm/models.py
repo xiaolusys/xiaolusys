@@ -183,7 +183,6 @@ class XiaoluMama(models.Model):
 
     def get_Mama_Trade_Rebeta(self,trade):
         """ 获取妈妈交易返利提成 """
-        print 'debug normal:',hasattr(trade,'normal_orders')
         if hasattr(trade,'normal_orders'):
             rebeta = 0
             for order in trade.normal_orders:
