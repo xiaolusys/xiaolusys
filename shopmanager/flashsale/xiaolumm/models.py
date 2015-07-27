@@ -179,7 +179,7 @@ class XiaoluMama(models.Model):
         rebeta_rate = self.get_Mama_Order_Product_Rate(product_ins)
         
         order_price = 0
-        if hasattr(order,'product_price'):
+        if hasattr(order,'order_total_price'):
             order_price = order.product_price
         elif hasattr(order,'payment'):
             order_price = int(order.payment * 100)
