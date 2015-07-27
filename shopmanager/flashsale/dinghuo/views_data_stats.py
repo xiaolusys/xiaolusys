@@ -162,7 +162,8 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from flashsale.dinghuo.models import OrderList, OrderDetail
 from django.db.models import Sum
-
+from django.core import serializers
+from django.forms.models import model_to_dict
 
 class StatsDinghuoView(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
@@ -193,5 +194,14 @@ class StatsDinghuoView(APIView):
         total_amount = OrderList.objects.filter(created__gte=start_date, created__lte=end_date).exclude(
             status=u'作废').exclude(
             status=u'7').exclude(status=u'草稿').aggregate(total_amount=Sum('order_amount')).get('total_amount') or 0
-        data = {"start_date": start_date, "end_date": end_date, "total_amount": total_amount, "total_num": total_num}
+
+        all_list = OrderList.objects.filter(created__gte=start_date, created__lte=end_date).exclude(
+            status=u'作废').exclude(
+            status=u'7').exclude(status=u'草稿')
+        all_list_serializer = serializers.serialize("json", all_list)
+        all_list_data = []
+        for item in all_list:
+            all_list_data.append(model_to_dict(item))
+        data = {"start_date": start_date, "end_date": end_date, "total_amount": total_amount, "total_num": total_num,
+                "all_list": all_list_data}
         return Response(data)
