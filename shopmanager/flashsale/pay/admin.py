@@ -56,7 +56,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
         'fields': (('tid', 'buyer_nick', 'channel', 'status')
                    , ('trade_type', 'total_fee', 'payment', 'post_fee')
                    , ('pay_time', 'consign_time', 'charge', 'openid')
-                   , ('buyer_message', 'seller_memo')
+                   , ('buyer_message', 'seller_memo','buyer_id')
                    )
     }),
                  (u'收货人及物流信息:', {
@@ -435,4 +435,47 @@ class GoodShelfAdmin(admin.ModelAdmin):
 
 admin.site.register(GoodShelf, GoodShelfAdmin)
 
+
+from models_coupon import CouponPool, Coupon, Integral, IntegralLog
+
+
+class CouponPoolAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'coupon_no', 'deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
+    list_filter = ('deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
+    search_fields = ['id', 'coupon_no']
+    list_per_page = 50
+
+admin.site.register(CouponPool, CouponPoolAdmin)
+
+
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified')
+    list_filter = ('created',)
+    search_fields = ['coupon_user', 'mobile', 'trade_id']
+    list_per_page = 50
+
+
+admin.site.register(Coupon, CouponAdmin)
+
+
+class IntegralAdmin(admin.ModelAdmin):
+    list_display = ('id', 'integral_user', 'integral_value', 'created', 'modified')
+    list_filter = ('created',)
+    search_fields = ['integral_user', ]
+    list_per_page = 50
+
+
+admin.site.register(Integral, IntegralAdmin)
+
+
+class IntegralLogAdmin(admin.ModelAdmin):
+    list_display = (
+        'integral_user', 'order_id', 'mobile', 'log_value', 'log_status', 'log_type', 'in_out', 'created', 'modified')
+    list_filter = ('integral_user', 'mobile',)
+    search_fields = ['integral_user', 'mobile', ]
+    list_per_page = 50
+
+
+admin.site.register(IntegralLog, IntegralLogAdmin)
 

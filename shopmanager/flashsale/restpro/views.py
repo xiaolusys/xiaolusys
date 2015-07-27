@@ -89,7 +89,90 @@ class DistrictViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)    
 
 
- 
-    
-    
-    
+from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
+
+
+class UserIntegralViewSet(viewsets.ModelViewSet):
+    queryset = Integral.objects.all()
+    serializer_class = serializers.UserIntegralSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def get_owner_queryset(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        return self.queryset.filter(integral_user=customer.id)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class UserIntegralLogViewSet(viewsets.ModelViewSet):
+    queryset = IntegralLog.objects.all()
+    serializer_class = serializers.UserIntegralLogSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def get_owner_queryset(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        return self.queryset.filter(integral_user=customer.id)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class UserCouponPoolViewSet(viewsets.ModelViewSet):
+    queryset = CouponPool.objects.all()
+    serializer_class = serializers.UserCouponPoolSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+import json
+from django.http import HttpResponse
+
+
+class UserCouponViewSet(viewsets.ModelViewSet):
+    queryset = Coupon.objects.all()
+    serializer_class = serializers.UserCouponSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def get_owner_queryset(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        return self.queryset.filter(coupon_user=customer.id)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        data = []
+        for query in queryset:
+            coupon_no = query.coupon_no
+            coupol = CouponPool.objects.get(coupon_no=coupon_no)
+            coupon_user = query.coupon_user
+            coupon_type = coupol.coupon_type
+            coupon_value = coupol.coupon_value
+            coupon_status = coupol.coupon_status
+            created = coupol.created.strftime("%Y-%m-%d")
+            deadline = coupol.deadline.strftime("%Y-%m-%d %H:%M")
+            data_entry = {"coupon_user": coupon_user, "coupon_no": coupon_no, "coupon_type": coupon_type,
+                          "coupon_value": coupon_value, "coupon_status": coupon_status,
+                          "deadline": deadline,"created":created
+                          }
+            data.append(data_entry)
+        return HttpResponse(json.dumps(data), content_type='application/json')

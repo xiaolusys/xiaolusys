@@ -16,10 +16,15 @@ from flashsale.pay.models import SaleTrade,SaleOrder,Customer,ShoppingCart
 from . import permissions as perms
 from . import serializers 
 from django.db.models import F
-
+from django.forms.models import model_to_dict
+from shopback.items.models import Product
+from django.core import serializers as my_ser
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     ###特卖购物车REST API接口：
+    delete_carts
+    plus_product_carts
+    minus_product_carts
     """
     queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer# Create your views here.
@@ -33,14 +38,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        data = []
+        for a in queryset:
+            temp_dict = model_to_dict(a)
+            pro = Product.objects.get(id=a.item_id)
+            temp_dict["std_sale_price"] = pro.std_sale_price if pro else 0
+            data.append(temp_dict)
+        return Response(data, content_type='application/json')
 
     def create(self, request, *args, **kwargs):
         data = request.data

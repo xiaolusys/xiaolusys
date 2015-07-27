@@ -541,5 +541,6 @@ def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):      # 每天 写入记录
         mm_stats.base_click_price = mm_stats.calc_click_price()
         mm_stats.save()
         
-        
-        
+
+from .tasks_manager_summary import task_make_Manager_Summary_Cvs
+# 引入任务文件
