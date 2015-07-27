@@ -194,4 +194,29 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
     
     
+    @detail_route(methods=['get'])
+    def details(self, request, *args, **kwargs):
+        """ 商品明细，包含详细规格信息 """
+        instance = self.get_object()
+        
+        product_dict = self.get_serializer(instance).data
+        
+        #设置商品规格信息
+        normal_skusdict = serializers.ProductSkuSerializer(instance.normal_skus,many=True)
+        product_dict['normal_skus'] = normal_skusdict.data
+        
+        #设置商品特卖详情
+        try:
+            pdetail = instance.details
+            pdetail_dict = serializers.ProductdetailSerializer(pdetail).data
+        except:
+            pdetail_dict  = {}
+            
+        product_dict['details'] = pdetail_dict
+            
+        return Response(product_dict)
+    
+    
+    
+    
     
