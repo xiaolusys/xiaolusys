@@ -6,18 +6,18 @@ function Create_product_topslide_dom(obj_list){
 	//创建商品题头图Slide
 	var slides = [];
 	$.each(obj_list,function(index,obj){
-		slides.append('<div class="swiper-slide"><img src="'+ obj +'"></div>');
-	};
+		slides[slides.length] = '<img src="'+ obj +'">';
+	});
 	return slides.join('');
 }
 
 function Create_product_detailsku_dom(obj){
 	//设置规格列表
-	var sku_list = []
-	$each(obj.normal_skus,function(index,sku){
-		sku_list.append('<li class="active" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku))
-	})
-	obj.sku_list = sku_list;
+	var sku_list = [];
+	$.each(obj.normal_skus,function(index,sku){
+		sku_list[sku_list.length] = '<li class="active" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
+	});
+	obj.sku_list = sku_list.join('');
 	//创建商品详情及规格信息
 	function Content_dom(){
 	/*
@@ -71,14 +71,14 @@ function Create_product_bottomslide_dom(obj_list){
 	//创建内容图Slide
 	var slides = [];
 	$.each(obj_list,function(index,obj){
-		slides.append('<img src="'+ obj +'">');
-	};
+		slides[slides.length] = '<img src="'+ obj +'">';
+	});
 	return slides.join('');
 }
 
 function Set_product_detail(suffix){
 	//请求URL
-	var requestUrl = GLConfig.baseApiUrl + suffix ;
+	var requestUrl = GLConfig.baseApiUrl + suffix;
 	//请求成功回调函数
 	var requestCallBack = function(data){
 		if (data.id == 'undifine' && data.id == null){
@@ -91,12 +91,18 @@ function Set_product_detail(suffix){
 		//设置商品题头图列表
 		var top_dom = Create_product_topslide_dom(product_model.head_imgs);
 		$('.goods-slide .swiper-wrapper').html(top_dom);
+		//设置swiper滑动图片
+		var swiper = new Swiper('.swiper-container', {
+		  pagination: '.swiper-pagination',
+		  paginationClickable: true
+		});
+		
 		//设置订单商品明细
 		var detail_dom = Create_product_detailsku_dom(data);
 		$('.goods-content').html(detail_dom);
 		//设置商品内容图列表
 		var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
-		$('.goods-img div').append(bottom_dom);
+		$('.goods-img div').html(bottom_dom);
 	};
 	// 发送请求
 	$.ajax({ 

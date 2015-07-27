@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num
-from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView
+from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
 from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView
@@ -48,4 +48,5 @@ urlpatterns = [
     url(r'^sale_status/$', staff_member_required(EntranceView.as_view()), name="sale_status"),
     url(r'^sale_hot/$', staff_member_required(SaleHotView.as_view()), name="sale_status"),          #热销的商品
     url(r'^top_stock/$', staff_member_required(TopStockView.as_view()), name="top_stock"),          #库存最多的
+    url(r'^daystats_ding_huo/$', StatsDinghuoView.as_view(), name="stat+ding_huo"),      #每日订货统计
 ]

@@ -69,7 +69,7 @@ class ModelProductSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ModelProduct
-        fields = ( 'name','head_imgs', 'content_imgs', 'mama_discount', 'is_recommend', 'buy_limit','per_limit')
+        fields = ( 'name','head_imgs', 'content_imgs', 'buy_limit','per_limit')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     
