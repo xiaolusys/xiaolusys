@@ -34,7 +34,6 @@ class CusUidField(serializers.Field):
         return obj.cus_uid
 
     def to_internal_value(self, data):
-        print 'internal value',data
         return data
     
 

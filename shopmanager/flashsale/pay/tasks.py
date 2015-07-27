@@ -262,4 +262,4 @@ def task_Pull_Red_Envelope(pre_day=7):
             break
             
             
-from tasks_coupon import task_Calculate_Users_Integral, task_Update_CouponPoll_Status
+from tasks_coupon import task_Update_CouponPoll_Status

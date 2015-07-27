@@ -91,7 +91,6 @@ class DistrictViewSet(viewsets.ModelViewSet):
 
 from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
 
-
 class UserIntegralViewSet(viewsets.ModelViewSet):
     queryset = Integral.objects.all()
     serializer_class = serializers.UserIntegralSerializer
@@ -175,4 +174,6 @@ class UserCouponViewSet(viewsets.ModelViewSet):
                           "deadline": deadline,"created":created
                           }
             data.append(data_entry)
+
         return HttpResponse(json.dumps(data), content_type='application/json')
+    
