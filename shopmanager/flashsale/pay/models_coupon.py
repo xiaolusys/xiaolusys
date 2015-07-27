@@ -19,9 +19,8 @@ class Integral(models.Model):
 
     class Meta:
         db_table = "sale_user_integral"
-        verbose_name = u"特卖积分"
-        verbose_name_plural = u"特卖积分列表"
-        app_label = 'coupon'
+        verbose_name = u"特卖用户/积分"
+        verbose_name_plural = u"特卖用户/积分列表"
 
     def __unicode__(self):
         return '<%s>' % (self.id)
@@ -57,9 +56,8 @@ class IntegralLog(models.Model):
     class Meta:
         unique_together = ('integral_user', 'order_id')
         db_table = "sale_user_integral_log"
-        verbose_name = u"特卖积分记录表"
-        verbose_name_plural = u"特卖积分记录列表"
-        app_label = 'coupon'
+        verbose_name = u"特卖用户/积分记录表"
+        verbose_name_plural = u"特卖用户/积分记录列表"
 
     def __unicode__(self):
         return '<%s>' % (self.id)
@@ -79,9 +77,8 @@ class Coupon(models.Model):
     class Meta:
         unique_together = ('coupon_user', 'coupon_no')
         db_table = "sale_user_coupon_table"
-        verbose_name = u"特卖用户优惠券"
-        verbose_name_plural = u"特卖用户优惠券列表"
-        app_label = 'coupon'
+        verbose_name = u"特卖用户/优惠券"
+        verbose_name_plural = u"特卖用户/优惠券列表"
 
     def __unicode__(self):
         return '<%s>' % (self.id)
@@ -113,9 +110,8 @@ class CouponPool(models.Model):
 
     class Meta:
         db_table = "sale_user_coupon_pool"
-        verbose_name = u"特卖用户优惠券发放"
-        verbose_name_plural = u"特卖用户-优惠券发放列表"
-        app_label = 'coupon'
+        verbose_name = u"特卖用户/优惠券/发放"
+        verbose_name_plural = u"特卖用户/优惠券/发放列表"
 
     def __unicode__(self):
         return '<%s>' % (self.coupon_no)

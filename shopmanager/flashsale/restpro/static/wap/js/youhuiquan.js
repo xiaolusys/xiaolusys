@@ -7,6 +7,7 @@
 var url = "/rest/v1/user/mycoupon/";
 $.get(url, function (res) {
     console.log(res);
+	if(res.length>0){
     $.each(res, function (i, val) {
         var coupon_no = val.coupon_no;
         var coupon_status = val.coupon_status;
@@ -47,6 +48,9 @@ $.get(url, function (res) {
             $(".shixiao_list").append(content4);
 
         }
-    });
+    });}
+	else{
+		location.href = '/static/wap/pages/youhuiquan-kong.html';
+	}
 
 });

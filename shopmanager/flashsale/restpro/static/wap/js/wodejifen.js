@@ -5,6 +5,7 @@ console.log('hello world!');
 
 var url = "/rest/v1/user/integrallog/";
 $.get(url, function (res) {
+	if(res.count>0){
     console.log(res);
     $.each(res.results, function (i, val) {
         var order = val.order;
@@ -22,6 +23,10 @@ $.get(url, function (res) {
             '<p>订单金额：<span class="cf353a0">¥' + value + '</span></p>' +
             '<p>订单积分：<span class="cf353a0">' + value + '</span></p></div></div></li>';
         $(".jifen-list").append(li);
-    });
+    });}
+	else{
+		//jump to integral is null page
+		location.href = '/static/wap/pages/wodejifen-kong.html';
+	}
 });
 
