@@ -5,6 +5,7 @@ from flashsale.pay.models import (
     SaleRefund,
     LogisticsCompany,
     Productdetail,
+    ModelProduct,
     ShoppingCart,
     Customer,
     Register,
@@ -44,17 +45,43 @@ class ProductSkuSerializer(serializers.ModelSerializer):
         model = ProductSku
         fields = ('id', 'outer_id', 'name', 'remain_num', 'std_sale_price', 'agent_price')
 
+class JsonListField(serializers.Field):
+    
+    def to_representation(self, obj):
+        return [s.strip() for s in obj.split('\n') if s.startswith(('http://','https://'))]
+        
+    def to_internal_value(self, data):
+        return data
+
+class ProductdetailSerializer(serializers.ModelSerializer):
+    
+    head_imgs = JsonListField()
+    content_imgs = JsonListField()
+    
+    class Meta:
+        model = Productdetail
+        fields = ( 'head_imgs', 'content_imgs', 'mama_discount', 'is_recommend', 'buy_limit','per_limit','mama_rebeta')
+
+class ModelProductSerializer(serializers.ModelSerializer):
+    
+    head_imgs = JsonListField()
+    content_imgs = JsonListField()
+    
+    class Meta:
+        model = ModelProduct
+        fields = ( 'name','head_imgs', 'content_imgs', 'buy_limit','per_limit')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
     category = ProductCategorySerializer(read_only=True)
-    normal_skus = ProductSkuSerializer(many=True, read_only=True)
+#     normal_skus = ProductSkuSerializer(many=True, read_only=True)
+    product_model = ModelProductSerializer()
     
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 
-                  'std_sale_price', 'agent_price', 'sale_time', 'memo', 'normal_skus')
+                  'std_sale_price', 'agent_price', 'sale_time', 'memo', 'product_model')
 
 import json
 
@@ -168,4 +195,35 @@ class DistrictSerializer(serializers.HyperlinkedModelSerializer):
         model = District
         fields = ( 'id' , 'url', 'parent_id', 'name', 'grade', 'sort_order')
         
-                        
+
+from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
+
+
+class UserIntegralSerializer(serializers.HyperlinkedModelSerializer):
+    # url = serializers.HyperlinkedIdentityField(view_name='v1:user-intergral')
+
+    class Meta:
+        model = Integral
+        fields = ('id', 'integral_user', 'integral_value')
+
+class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
+    # url = serializers.HyperlinkedIdentityField(view_name='v1:user-IntegralLog')
+
+    class Meta:
+        model = IntegralLog
+        fields = \
+            ('id', 'integral_user', 'mobile', 'order', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
+
+
+class UserCouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified')
+
+
+class UserCouponPoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CouponPool
+        fields = (
+            'id', 'deadline', 'coupon_value', 'coupon_type')
+

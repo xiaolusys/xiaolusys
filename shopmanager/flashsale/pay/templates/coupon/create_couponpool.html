@@ -1,0 +1,191 @@
+{% extends "coupon/base.html" %}
+
+{% block title %}生成优惠券{% endblock %}
+
+{% block head_script %}
+
+    <link href='{{ STATIC_URL }}css/mama_profile.css' rel='stylesheet'/>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <style>
+
+
+    </style>
+{% endblock %}
+
+{% block container %}
+    <div>
+        <div style="margin-top: 70px">
+            <form action="" method="post">
+                <div class="input-group ">
+                    <span class="input-group-addon" id="mm_search">优惠券数量</span>
+                    <input type="number" name="nums"
+                           class="form-control  mama_base_data_search" placeholder="{{ nums }}" value="{{ nums }}"
+                           aria-describedby="basic-addon3">
+
+                    <span class="input-group-addon" id="mm_search">优惠券价格￥</span>
+                    <input type="number" name="values" id="input_coup_value" readonly="readonly"
+                           class="form-control  mama_base_data_search" placeholder="{{ values }}" value="{{ values }}"
+                           aria-describedby="basic-addon3">
+
+                    <span class="input-group-btn ">
+                <div class="form-control">
+                    <select id="value_select" name="co_type">
+                        <option value='1' selected="">满30减3</option>
+                        <option value='2' selected="">满300减30</option>
+                        <option value='3' selected="">满（待定）</option>
+                    </select>
+                </div>
+             </span>
+                    <span class="input-group-addon">截至时间</span>
+                    <input type="text" name="deadline" id="left_date_pic" readonly="readonly"
+                           class="form-control select_saletime  datepicker" placeholder="{{ deadline }}"
+                           value="{{ deadline }}"
+                           aria-describedby="basic-addon2">
+
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">生成优惠券</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="panel panel-primary col-xs-5" style="margin-top: 30px">
+            <div class="panel-heading">暂未发放优惠券</div>
+            <table class="table table-bordered table-condensed  table-hover" id="table_weifafang">
+                <thead>
+                <th><input class="quanxuan_1" name="Fruit" type="checkbox"
+                           style=" width: 25px; height: 25px;"/></th>
+                <th>券号</th>
+                <th>券值</th>
+                <th>有效时间</th>
+                </thead>
+                <tbody>
+                {% for usp in  unrelease_soupons %}
+                    <tr style="height: 25px" id="tr_{{ usp.id }}">
+                        <td><input class="fuxuank" name="Fruit" type="checkbox" id="{{ usp.id }}"
+                                   style=" width: 25px; height: 25px;"/></td>
+                        <td> {{ usp.coupon_no }}</td>
+                        <td> {{ usp.coupon_value }}</td>
+                        <td>{{ usp.deadline }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class=" col-xs-2" style="margin-top: 30px">
+            <a onclick="lingqu()">领取发放>></a>
+        </div>
+        <div class=" panel panel-primary col-xs-5" style="margin-top: 30px">
+            <div class="panel-heading">拷贝去发放</div>
+            <textarea rows="100" cols="70" id="callbac_res" readonly="readonly"></textarea>
+        </div>
+    </div>
+{% endblock %}
+
+{% block tail_script %}
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+
+    <script>
+        $(document).ready(function () {
+            $(".fuxuank").mouseover(function () {
+                console.log('ok');
+                //$(this).attr('checked', true);
+                if (this.checked == true) {
+                    this.checked = false;
+                } else {
+                    this.checked = true;
+                }
+            });
+            //选择优惠券类型  指定数字（优惠券价值）到输入框中
+            $("#value_select").change(function () {
+                if ($(this).val() == '1') {
+                    $("#input_coup_value").val(3);
+                }
+                else if ($(this).val() == '2') {
+                    $("#input_coup_value").val(30);
+                }
+                else if ($(this).val() == '3') {
+                    $("#input_coup_value").val();
+                }
+            });
+            $(".quanxuan_1").change(function () {
+                if (this.checked == true) {
+                    //全部选中
+                    $(".fuxuank").attr('checked', true)
+                }
+                else {
+                    //全部不选中
+                    $(".fuxuank").attr('checked', false)
+                }
+            });
+
+        });
+        $(function () {
+            $("#left_date_pic").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+        });
+
+        function lingqu() {
+            $("#table_weifafang").find("input").each(function () {
+                if (this.checked == true) {
+                    var id = $(this).attr('id');
+                    //修改后台数据库 优惠券的 状态
+                    var data = {"id": id};
+                    var url = "/mm/couponrelease/";
+
+                    function callback(res) {
+                        if (res == 'released') {
+                            console.log(id, '已经发放的优惠券');
+                        }
+                        else if (res == 'id_is_null') {
+                            console.log(id, 'id is null');
+                        }
+                        else if (res) {
+                            //填充结果到 textarea
+                            var coupon_no = eval(res)[0].coupon_no;
+                            var append_txt = "\n" + coupon_no;
+                            $("#callbac_res").append(append_txt);
+                            //返回结果则删除对应的行
+                            //$("#tr_" + id).remove();
+                        }
+                    }
+
+                    $.ajax({"url": url, "data": data, "success": callback});
+                }
+            });
+        }
+
+        $('#table_weifafang').dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": true,//false, //自适应宽度
+            "aaSorting": [[0, "asc"]],
+            "iDisplayLength": 50,
+            "aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+            //"bInfo":true,
+            //"sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
+        });
+    </script>
+{% endblock %}
+

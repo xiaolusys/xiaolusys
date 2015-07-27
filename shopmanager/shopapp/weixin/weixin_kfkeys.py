@@ -112,6 +112,7 @@ KFKEYS = [
 
 IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
 KFMAP ={
+        "xiaoxi44":"yMhOQPTKhLvafp41YQMnm6MMTHj1sl4mQmvNpBHibYTgOEAjdib4KYnSYian2JqXzpsqaV7BTn6ibACgfhpqvdDvIA/0",
          "tangbao":"yMhOQPTKhLuMow8pbD4oicRpBrwEK8hTo5UG9wQHhm93H6F3e1U9zUv2usKiasuib5M8935XmPIyVBE7plrXiaZGNQ/0",
         #################################dapeng#################################
      "xiangxiang0":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDLNd2zhrLj6qLwdibP9Qap4hKmnIqPqFuuvgq9LeK86TkmwwapZxZFfA/0", #
@@ -220,19 +221,19 @@ KFMAP ={
       "mingming16":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1DxoOIb3SA8OLN91yQLv4TjmTeNDLOl2IDKBibfib2oEaHrX3jkolMFwg/0",
        "qianxun19":"yMhOQPTKhLvZc2FUku1FliaQ8B8SqeF6Q55G8shIVOgzIpUI5bQ6hF7BJ9ic7DFmCUSTTA7uO9491pvEY9hdbTTg/0",
         
-        "niuniu5":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1q8NmetxTxkpoZALOad17ia2EZ8pTicuwL7Lk4q7YvkHLBEHukib0GzYXg/0",
+         "niuniu5":"yMhOQPTKhLvCTbjPEx63GRglflnPllY1q8NmetxTxkpoZALOad17ia2EZ8pTicuwL7Lk4q7YvkHLBEHukib0GzYXg/0",
        "ningmeng1":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpTQoyJU7SPkpD8uQDZta0IhGUSA7CDCaJJdtXOicHVicfHGI7jmuTV0zQ/0",
         "lanlan32":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z38ibFIicEQGCicVyOgK3a5xrzfmcvxm1hnec1zDicOicOpJTTJo9OpdPOEvaQ/0",
      
-        "mumu3":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG88L2ou3RkvVauTAyA0SOBgg1bib5M6UbnsphP0aCticd2gwaeSHt4KA/0",
-        "qiqi-shuzi2":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBp3iaiacMzibmULmM4qWcybzPHZAnojDz9jHEeibhWkibm4TZRLGjKIo91Obg/0",
+           "mumu3":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpG88L2ou3RkvVauTAyA0SOBgg1bib5M6UbnsphP0aCticd2gwaeSHt4KA/0",
+     "qiqi-shuzi2":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBp3iaiacMzibmULmM4qWcybzPHZAnojDz9jHEeibhWkibm4TZRLGjKIo91Obg/0",
          "yunyun6":"yMhOQPTKhLt8UfGVxAqDTnhPOxglygBpswRlutibR5EJBu4ian97b5OXGY8uLO4f5B7ibBlCQLAfjmKJrrjzaSq8g/0",
       "yuanyuan76":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2qhtRnKNGeL07WI3YC8zxHrYMLQ3iaXDdQGs4bkfkS2GVWzteUPkbjbg/0/0",
         
           "dudu24":"yMhOQPTKhLtwVNgtZuNUJnbO5P487z385UZJW8qvDlLeD2ZrMuWmKnkvhbUYxtXEyjSZdWNibialFvBOz4OzwRXg/0",
          "xinyu41":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF22Y6rP78D034rRCjtX8LAPHFd4C626tLTx2TQOufVgsaxB5k9MdmXCg/0",
          
-        "xiaoxi44":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF26WCSTrRznuOHVZ94UcEnUHrk8yt57J1ZUESavpbqibB3ptzkJLQR0rQ/0",
+#         "xiaoxi44":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF26WCSTrRznuOHVZ94UcEnUHrk8yt57J1ZUESavpbqibB3ptzkJLQR0rQ/0",
          "luoxi47":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2Fv895SchfZvvZnvDmkvDoeCvxYC38Y0pNdRLs5h2wib0hichzYrTX9cg/0",
         "jiajia49":"yMhOQPTKhLtT6gXc7vVWZrYUYJMtKDF2rHSiatXvJa9QRLO7uyGeCwYyFH7UcrJZicQrs93sbeQjBVEpatTSmApw/0",
          

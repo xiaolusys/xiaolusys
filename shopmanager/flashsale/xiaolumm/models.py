@@ -6,7 +6,11 @@ from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
+from shopback.items.models import Product
+from shopapp.weixin.models_sale import WXProductSku
+import logging
 
+logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,7,8)
 ORDER_RATEUP_START = datetime.date(2015,7,8)
 
@@ -138,6 +142,61 @@ class XiaoluMama(models.Model):
         agency_level = agency_levels[0]
         return agency_level.get_Rebeta_Rate()
     
+    def get_Mama_Order_Product_Rate(self,product):
+        """
+        	如果特卖商品detail设置代理了返利，
+        	则返回设置值，否则返回小鹿妈妈统一设置值
+        """
+#         if self.agencylevel != 2:
+#             return 0.0
+        try:
+            pdetail = product.details
+        except:
+            return self.get_Mama_Order_Rebeta_Rate()
+        else:
+            rate = pdetail.mama_rebeta_rate()
+            if rate is None:
+                return self.get_Mama_Order_Rebeta_Rate()
+            return rate
+
+    def get_Mama_Order_Rebeta(self,order):
+        #如果订单来自小鹿特卖平台
+        if hasattr(order,'item_id'):
+            product_qs = Product.objects.filter(id=order.item_id)
+        #如果订单来自微信小店
+        elif hasattr(order,'product_sku'):
+            try:
+                wxsku =  WXProductSku.objects.get(sku_id=order.product_sku,
+            									  product=order.product_id)
+                product_qs = Product.objects.filter(outer_id=wxsku.outer_id) 
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+                product_qs = Product.objects.none()
+        else:
+            product_qs = Product.objects.none()
+            
+        product_ins = product_qs.count() > 0 and product_qs[0] or None
+        rebeta_rate = self.get_Mama_Order_Product_Rate(product_ins)
+        
+        order_price = 0
+        if hasattr(order,'order_total_price'):
+            order_price = order.product_price
+        elif hasattr(order,'payment'):
+            order_price = int(order.payment * 100)
+        
+        return rebeta_rate * order_price
+
+
+    def get_Mama_Trade_Rebeta(self,trade):
+        """ 获取妈妈交易返利提成 """
+        if hasattr(trade,'normal_orders'):
+            rebeta = 0
+            for order in trade.normal_orders:
+                rebeta += self.get_Mama_Order_Rebeta(order)
+            return rebeta
+        
+        return 	self.get_Mama_Order_Rebeta(trade)
+
     def get_Mama_Click_Price(self,ordernum):
         """ 获取今日小鹿妈妈点击价格 """
         
@@ -256,35 +315,13 @@ class AgencyLevel(models.Model):
         return MM_CLICK_DAY_BASE_COUNT + MM_CLICK_PER_ORDER_PLUS_COUNT * order_num
         
     
-    def get_Click_Price_List(self,target_date):
-        
-        d = target_date
-        t_from = datetime.datetime(d.year,d.month,d.day,0,0,0)
-        t_to   = datetime.datetime(d.year,d.month,d.day,23,59,59)
-        
-        price_list = []
-        for ctp in CLICK_TIME_PRICE:
-            if ctp[0] > t_to or ctp[1] < t_from:
-                continue
-            
-            if ctp[0] > t_from:
-                price_list.append((t_from,ctp[0],0))
-            
-            if ctp[1] > t_to:
-                price_list.append((ctp[0],t_to,0))
-            
-            if ctp[1] < t_to:
-                price_list.append((t_to,ctp[1],0))
-            
-        
-    
     def get_Rebeta_Rate(self,*args,**kwargs):
         
         today = datetime.date.today()
         if today > ORDER_RATEUP_START:
-            return (self.basic_rate / 100.0) * 2
+            return self.basic_rate / 100.0
         
-        return self.basic_rate / 100.0
+        return (self.basic_rate / 100.0) / 2
     
 
 # class ClickPrice(models.Model):

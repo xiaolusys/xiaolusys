@@ -109,6 +109,18 @@ def new_order(request):
         orderlist.status = pcfg.SUBMITTING
         if type_of_order == '2':
             orderlist.status = '7'
+            already = OrderList.objects.filter(buyer_name=username, status='7', created=businessDate)
+            if already.count() > 0:
+                return HttpResponse(
+                    '''<div style='position: absolute;top: 40%;
+                        left: 35%;
+                        width: 630px;
+                        margin: -20px 0 0 -75px;
+                        padding: 0 10px;
+                        background: #eee;
+                        line-height: 2.4;'>
+                        您今天已经拍过样品的订货单了，请到订货单号为<a style='font-size: 40px' href='/sale/dinghuo/changedetail/{0}' target='_blank'>{0}</a>添加样品</div>'''.format(
+                        already[0].id))
         orderlist.order_amount = amount
         orderlist.save()
 
@@ -342,7 +354,7 @@ def modify_order_list(req):
     express_no = post['express_no']
     note = post.get('note', "")
     if len(note) > 0:
-        note = "\n" +"-->" + datetime.datetime.now().strftime('%m月%d %H:%M') + req.user.username + ":" + note
+        note = "\n" + "-->" + datetime.datetime.now().strftime('%m月%d %H:%M') + req.user.username + ":" + note
     order_amount = post['order_amount']
     try:
         orderlist = OrderList.objects.get(id=order_list_id)

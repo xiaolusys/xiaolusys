@@ -1079,7 +1079,7 @@ class ResultView(View):
         url_key = KFKEYS[idx]
         kefu_url = IMG_URL_PREFIX + KFMAP[url_key]
 
-        sample_kefu_url = IMG_URL_PREFIX + KFMAP['tangbao'] #[KFMAP['xiangxiang0'],KFMAP['sisi40']][sidx]
+        sample_kefu_url = IMG_URL_PREFIX + [KFMAP['tangbao'],KFMAP['xiaoxi44']][sidx]
 
         response = render_to_response('weixin/invite_result1.html',
                                       {'wx_user':wx_user,
@@ -1128,12 +1128,24 @@ class FinalListView(View):
         
         if month == 1507 and batch == 1:
             start_time = datetime.datetime(2015,7,21)
-            end_time = datetime.datetime(2015,7,29)
+            end_time   = datetime.datetime(2015,7,29)
             order_list = SampleOrder.objects.filter(status=91,created__gt=start_time)
-        if month == 1507 and batch == 2:
+        elif month == 1507 and batch == 2:
             start_time = datetime.datetime(2015,7,21)
-            end_time = datetime.datetime(2015,7,29)
+            end_time   = datetime.datetime(2015,7,29)
             order_list = SampleOrder.objects.filter(status=92,created__gt=start_time)
+        elif month == 1507 and batch == 3:
+            start_time = datetime.datetime(2015,7,21)
+            end_time   = datetime.datetime(2015,7,29)
+            order_list = SampleOrder.objects.filter(status=93,created__gt=start_time)
+        elif month == 1507 and batch == 4:
+            start_time = datetime.datetime(2015,7,21)
+            end_time   = datetime.datetime(2015,7,29)
+            order_list = SampleOrder.objects.filter(status=94,created__gt=start_time)
+        elif month == 1507 and batch == 5:
+            start_time = datetime.datetime(2015,7,21)
+            end_time   = datetime.datetime(2015,7,29)
+            order_list = SampleOrder.objects.filter(status=95,created__gt=start_time)
         elif month == 1504 :
             start_time = datetime.datetime(2015,4,13)
             end_time = datetime.datetime(2015,4,21)

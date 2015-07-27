@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小鹿美美</title>
+    <meta charset="UTF-8">
+    <meta id="viewport" name="viewport"/>
+    <script src="../js/common.js"></script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/gouwuche.css">
+</head>
+<body>
+<div class="header">
+    <a class="back" href="../index.html"></a>
+    <a class="user" href="gerenzhongxin.html"></a>
+
+    <h1>购物车</h1>
+</div>
+
+<div class="cart-list">
+
+</div>
+
+<div class="buy">
+    <p class="coupons">优惠券：-3.00</p>
+
+    <p class="total">总金额：¥<span id="total_price">78.00</span></p>
+    <a class="btn-buy">购&nbsp;&nbsp;买</a>
+</div>
+
+<script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+<script src="../js/tmsc.js"></script>
+<script type="text/javascript">
+(function($){
+  //返回顶部
+  $('#js-scroll-top').on('touchend',function(e){
+    e.preventDefault();
+    $('body').animate({scrollTop:0},400);
+  });
+
+  var startY;
+
+  document.addEventListener('touchstart',function (ev) {
+    startY = ev.touches[0].pageY;
+  }, false);
+
+  document.addEventListener('touchend',function (ev){
+    var endY = ev.changedTouches[0].pageY;
+    var dir = startY - endY;
+    if(dir>0){
+      $('#js-fixed-nav').hide();
+    }else{
+      $('#js-fixed-nav').show();
+    }
+  }, false);
+  //获取
+  get_shop_carts(GLConfig.get_cart_url);
+})(jQuery);
+</script>
+</body>
+</html>

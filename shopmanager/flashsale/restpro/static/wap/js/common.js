@@ -47,7 +47,7 @@ function parseUrlParams(myUrl){
 }
 
 //定义多行字符串函数实现
-function hereDoc(f) {　
+function hereDoc(f) {
     return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
 }
 
@@ -80,10 +80,12 @@ var GLConfig = {
     previous_suffix:'previous', //获取首页昨日商品信息，URL标识
     get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
     get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
+    get_product_detail_url:'/products/{{product_id}}/details.json', //获取时尚女装商品列表
     get_trade_all_url:'/trades.json', //获取用户所有订单
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
     get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
     get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
+    get_cart_url:'/carts.json' //获取购物车详细
 };
 
 

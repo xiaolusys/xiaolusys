@@ -1,0 +1,158 @@
+.header a.user {
+    display: block;
+    width: 88px;
+    height: 88px;
+    position: absolute;
+    right: 0px;
+    background: url(../images/icon-gerenzhongxin.png) no-repeat center center;
+}
+
+.cart-list {
+    width: 640px;
+    margin: 0 auto;
+    padding-top: 20px;
+}
+
+.cart-list .item {
+    height: 220px;
+    position: relative;
+    margin-bottom: 20px;
+    background-color: #fff;
+    border-top: 1px solid #bec0c2;
+    border-bottom: 1px solid #bec0c2;
+}
+
+.cart-list .gpic {
+    width: 190px;
+    height: 177px;
+    position: absolute;
+    left: 24px;
+    top: 20px;
+}
+
+.cart-list .gpic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.cart-list .gname {
+    color: #5f5f5e;
+    font-size: 15px;
+    position: absolute;
+    left: 238px;
+    top: 24px;
+    width: 300px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.cart-list .gprice {
+    color: #f353a1;
+    position: absolute;
+    left: 544px;
+    top: 24px;
+    font-size: 30px;
+}
+
+.cart-list .gsize {
+    font-size: 20px;
+    color: #b7b7b7;
+    position: absolute;
+    left: 238px;
+    top: 80px;
+}
+
+.cart-list .goprice {
+    font-size: 18px;
+    color: #c1c0bf;
+    position: absolute;
+    left: 556px;
+    top: 80px;
+}
+
+.cart-list .btn-del {
+    position: absolute;
+    top: 148px;
+    right: 38px;
+    width: 43px;
+    height: 43px;
+    background-image: url(../images/icon-guanbi.png);
+}
+
+.cart-list .gcount {
+    border: 1px solid #eef0f3;
+    width: 144px;
+    height: 48px;
+    left: 239px;
+    top: 144px;
+    position: absolute;
+}
+
+.cart-list .gcount .btn,
+.cart-list .gcount .total {
+    position: absolute;
+    top: 0;
+    width: 48px;
+    height: 48px;
+}
+
+.cart-list .gcount .reduce {
+    left: 0;
+    background-image: url(../images/btn-reduce.png);
+}
+
+.cart-list .gcount .total {
+    left: 48px;
+}
+
+.cart-list .gcount .total input {
+    display: block;
+    width: 100%;
+    height: 48px;
+    text-align: center;
+}
+
+.cart-list .gcount .plus {
+    right: 0;
+    background-image: url(../images/btn-plus.png);
+}
+
+.buy {
+    width: 640px;
+    height: 156px;
+    border-top: 1px solid #bec0c2;
+    margin: 30px auto 0 auto;
+    background-color: #fff;
+    position: relative;
+    color: #ea4c88;
+}
+
+.btn-buy {
+    position: absolute;
+    font-size: 34px;
+    left: 20px;
+    bottom: 20px;
+    width: 600px;
+    height: 80px;
+    line-height: 80px;
+    background-color: #fcb916;
+    border-radius: 10px;
+    color: #fff;
+    text-align: center;
+}
+
+.buy .coupons {
+    position: absolute;
+    left: 20px;
+    top: 14px;
+    font-size: 22px;
+}
+
+.buy .total {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 26px;
+}

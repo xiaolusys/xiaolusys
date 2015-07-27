@@ -132,8 +132,16 @@ class Product(models.Model):
         return '%s'%self.id
         #return '<%s,%s>'%(self.outer_id,self.name)
     
-    def get_absolute_url(self):
-        return reverse('api_v1:product-detail',args=[self.id])
+    def product_model(self):
+        """ 获取商品款式 """
+        if self.model_id == 0:
+            return None
+        from flashsale.pay.models_custom import ModelProduct
+        try:
+            pmodel = ModelProduct.objects.get(id=self.model_id)
+        except:
+            return None
+        return pmodel
     
     def clean(self):
         for field in self._meta.fields:

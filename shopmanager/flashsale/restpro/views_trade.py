@@ -15,39 +15,60 @@ from flashsale.pay.models import SaleTrade,SaleOrder,Customer,ShoppingCart
 
 from . import permissions as perms
 from . import serializers 
-
-
+from django.db.models import F
+from django.forms.models import model_to_dict
+from shopback.items.models import Product
+from django.core import serializers as my_ser
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    ###特卖购物车REST API接口：
+    delete_carts
+    plus_product_carts
+    minus_product_carts
     """
     queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer# Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
-    def get_owner_queryset(self,request):
+    def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
         
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        data = []
+        for a in queryset:
+            temp_dict = model_to_dict(a)
+            pro = Product.objects.get(id=a.item_id)
+            temp_dict["std_sale_price"] = pro.std_sale_price if pro else 0
+            data.append(temp_dict)
+        return Response(data, content_type='application/json')
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        data = request.data
+        product_id = request.POST.get("item_id", None)
+        buyer_id = request.POST.get("buyer_id", None)
+        sku_id = request.POST.get("sku_id", None)
+        num = request.POST.get("num", 0)
+        if product_id and buyer_id and sku_id:
+            shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id)
+            if shop_cart.count() > 0:
+                shop_cart_temp = shop_cart[0]
+                shop_cart_temp.num += int(num) if num else 0
+                shop_cart_temp.save()
+                return Response("Added")
+
+            new_shop_cart = ShoppingCart()
+            for k, v in data.iteritems():
+                if v:
+                    hasattr(new_shop_cart, k) and setattr(new_shop_cart, k, v)
+            new_shop_cart.save()
+
+            return Response("Created")
+        else:
+            return Response("error")
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -57,10 +78,26 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
+    @detail_route(methods=['post', 'delete'])
+    def delete_carts(self, request, pk=None):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(data="OK", status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['post'])
+    def plus_product_carts(self, request, pk=None):
+        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
+        return Response(update_status)
+
+    @detail_route(methods=['post'])
+    def minus_product_carts(self, request, pk=None):
+        temp_shop = ShoppingCart.objects.filter(id=pk)
+        if temp_shop.count() == 0:
+            return Response("error")
+        if temp_shop[0].num == 1:
+            return Response("can not minus")
+        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
+        return Response(update_status)
 
 
 class SaleOrderViewSet(viewsets.ModelViewSet):
