@@ -155,3 +155,43 @@ class StatsSupplierView(View):
         return render_to_response("dinghuo/data_of_supplier.html", {"all_data": raw, "start_date": start_date,
                                                                     "end_date": end_date, "group_name": group_name},
                                   context_instance=RequestContext(request))
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from flashsale.dinghuo.models import OrderList, OrderDetail
+from django.db.models import Sum
+
+
+class StatsDinghuoView(APIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    template_name = "dinghuo/stats_ding_huo.html"
+
+
+    def get(self, request, format=None):
+        content = request.REQUEST
+        today = datetime.date.today()
+        start_time_str = content.get("df", None)
+        end_time_str = content.get("dt", None)
+        if start_time_str:
+            year, month, day = start_time_str.split('-')
+            start_date = datetime.date(int(year), int(month), int(day))
+        else:
+            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        if end_time_str:
+            year, month, day = end_time_str.split('-')
+            end_date = datetime.date(int(year), int(month), int(day))
+        else:
+            end_date = today
+        print start_date, end_date
+        total_num = OrderDetail.objects.filter(orderlist__created__gte=start_date,
+                                               orderlist__created__lte=end_date).exclude(
+            orderlist__status=u'作废').exclude(
+            orderlist__status=u'7').exclude(orderlist__status=u'草稿').aggregate(total_num=Sum('buy_quantity')).get(
+            'total_num') or 0
+        total_amount = OrderList.objects.filter(created__gte=start_date, created__lte=end_date).exclude(
+            status=u'作废').exclude(
+            status=u'7').exclude(status=u'草稿').aggregate(total_amount=Sum('order_amount')).get('total_amount') or 0
+        data = {"start_date": start_date, "end_date": end_date, "total_amount": total_amount, "total_num": total_num}
+        return Response(data)
