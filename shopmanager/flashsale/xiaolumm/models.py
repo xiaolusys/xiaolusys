@@ -8,7 +8,9 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
+import logging
 
+logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,7,8)
 ORDER_RATEUP_START = datetime.date(2015,7,8)
 
@@ -163,9 +165,13 @@ class XiaoluMama(models.Model):
             product_qs = Product.objects.filter(id=order.item_id)
         #如果订单来自微信小店
         elif hasattr(order,'product_sku'):
-            wxsku =  WXProductSku.objects.get(sku_id=order.product_sku,
-        									  product=order.product_id)
-            product_qs = Product.objects.filter(outer_id=wxsku.outer_id) 
+            try:
+                wxsku =  WXProductSku.objects.get(sku_id=order.product_sku,
+            									  product=order.product_id)
+                product_qs = Product.objects.filter(outer_id=wxsku.outer_id) 
+            except Exception,exc:
+                logger.error(exc.message,exc_info=True)
+                product_qs = Product.objects.none()
         else:
             product_qs = Product.objects.none()
             
@@ -183,7 +189,6 @@ class XiaoluMama(models.Model):
 
     def get_Mama_Trade_Rebeta(self,trade):
         """ 获取妈妈交易返利提成 """
-        print 'debug normal:',hasattr(trade,'normal_orders')
         if hasattr(trade,'normal_orders'):
             rebeta = 0
             for order in trade.normal_orders:

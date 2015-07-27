@@ -177,14 +177,19 @@ def task_daily_stat_group_point():
                 record_point[0].record_time = item.created
                 record_point[0].save()
         target_week_from = today - datetime.timedelta(days=today.weekday())
+        prev_p_week_from = today - datetime.timedelta(days=today.weekday() + 14)
+        prev_p_week_to = today - datetime.timedelta(days=today.weekday() + 8)
+
         prev_week_from = today - datetime.timedelta(days=today.weekday() + 7)
         prev_week_to = today - datetime.timedelta(days=today.weekday() + 1)
+
         user_a = MyUser.objects.values("user__username").filter(group=1)
         user_b = MyUser.objects.values("user__username").filter(group=2)
         user_c = MyUser.objects.values("user__username").filter(group=3)
         user_a = [val["user__username"] for val in user_a]
         user_b = [val["user__username"] for val in user_b]
         user_c = [val["user__username"] for val in user_c]
+        save_point_by_time(prev_p_week_from, prev_p_week_to, user_a, user_b, user_c)
         save_point_by_time(target_week_from, today, user_a, user_b, user_c)
         save_point_by_time(prev_week_from, prev_week_to, user_a, user_b, user_c)
     except Exception, exc:

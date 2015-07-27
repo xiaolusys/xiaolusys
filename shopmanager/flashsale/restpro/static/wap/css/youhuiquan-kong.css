@@ -1,0 +1,46 @@
+.kv{
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  margin-top: 140px;
+  background:url(../images/youhuiquan-kv.png) no-repeat; 
+}
+.tips{
+  font-size: 26px;
+  line-height: 2;
+  text-align: center;
+  margin-top: 70px;
+}
+.ipt-wrap{
+  width: 598px;
+  height: 78px;
+  margin: 0 auto;
+  border:1px solid #d2d2d2;
+  margin-top: 60px;
+}
+.ipt-wrap input{
+  width: 100%;
+  height: 100%;
+  text-indent: 20px;
+}
+.btn-wrap{
+  width: 600px;
+  margin: 0 auto;
+  margin-top: 50px;
+}
+.error-tips{
+  font-size:22px;
+  line-height: 2;
+  text-indent: 30px;
+}
+.btn-submit{
+  margin-top: 10px;
+  display: block;
+  font-size: 34px;
+  height: 80px;
+  line-height: 80px;
+  background-color: #fcb916;
+  border-radius: 10px;
+  color: #fff;
+  text-align: center;
+}

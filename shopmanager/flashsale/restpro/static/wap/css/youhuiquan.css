@@ -1,0 +1,72 @@
+.header a.add{
+  display: block;
+  width: 88px;
+  height: 88px;
+  background: url(../images/icon-jia.png) no-repeat center center;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.list{
+  width: 590px;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+.list li{
+  height: 164px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.list li.type1{
+  background: url(../images/youhuiquan1.png) no-repeat center center;
+}
+.list li.type2{
+  background: url(../images/youhuiquan2.png) no-repeat center center;
+}
+.list li.type3{
+  background: url(../images/youhuiquan3.png) no-repeat center center;
+}
+.list li.type4{
+  background: url(../images/youhuiquan4.png) no-repeat center center;
+}
+.list .name{
+  font-size: 24px;
+  width: 275px;
+  position: absolute;
+  left: 157px;
+  top: 32px;
+  color: #868484;
+}
+.list .date{
+  font-size: 20px;
+  width: 275px;
+  position: absolute;
+  left: 159px;
+  top: 113px;
+  color: #d4d4d4;
+}
+.list .tag{
+  width: 186px;
+  height: 148px;
+  position: absolute;
+  left: 346px;
+  top: 8px;
+  background: url(../images/tag-shixiao.png) no-repeat;
+}
+.shixiao{
+  width: 590px;
+  border-top: 1px solid #cecece;
+  margin:40px auto 40px auto;
+  position: relative;
+}
+.shixiao .title{
+  width: 164px;
+  position: absolute;
+  left: 50%;
+  margin-left: -82px;
+  background-color: #eef0f3;
+  font-size: 20px;
+  top: -14px;
+  text-align: center;
+  color: #cecece;
+}

@@ -23,6 +23,11 @@ router.register(r'trades', views_trade.SaleTradeViewSet)
 router.register(r'refunds', views.SaleRefundViewSet)
 router.register(r'address', views.UserAddressViewSet)
 router.register(r'districts', views.DistrictViewSet)
+router.register(r'integral', views.UserIntegralViewSet)
+router.register(r'integrallog', views.UserIntegralLogViewSet)
+
+router.register(r'couponpool', views.UserCouponPoolViewSet)
+
 
 router_urls = router.urls
 
@@ -38,7 +43,17 @@ router_urls += format_suffix_patterns([
             name='saleorder-detail'),
         url(r'^order/buy/', 
             OrderBuyReview.as_view(), 
-            name="order_buy")
+            name="order_buy"),
+        url(r'^user/integral/',
+            views.UserIntegralViewSet.as_view({'get': 'list'}),
+            name="user-intergral"),
+        url(r'^user/integrallog/',
+            views.UserIntegralLogViewSet.as_view({'get': 'list'}),
+            name="user-intergrallog"),
+        #UserCouponViewSet
+        url(r'^user/mycoupon/',
+            views.UserCouponViewSet.as_view({'get': 'list'}),
+            name="user-coupon"),
     ])
 
 urlpatterns = patterns('',
