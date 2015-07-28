@@ -52,7 +52,7 @@ function update_total_price() {
     $.each(prices, function (index, price) {
             price_id = prices.eq(index).attr("id");
             item_id = price_id.split("_")[1];
-            total_price += parseInt(prices.eq(index).html()) * parseInt($("#num_"+item_id).val());
+            total_price += parseInt(prices.eq(index).html()) * parseInt($("#num_" + item_id).val());
         }
     );
     $("#total_price").html(total_price);
