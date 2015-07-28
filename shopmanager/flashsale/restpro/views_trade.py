@@ -17,8 +17,9 @@ from . import permissions as perms
 from . import serializers 
 from django.db.models import F
 from django.forms.models import model_to_dict
-from shopback.items.models import Product
-from django.core import serializers as my_ser
+from shopback.items.models import Product, ProductSku
+
+
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     ###特卖购物车REST API接口：
@@ -44,7 +45,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             pro = Product.objects.get(id=a.item_id)
             temp_dict["std_sale_price"] = pro.std_sale_price if pro else 0
             data.append(temp_dict)
-        return Response(data, content_type='application/json')
+        return Response(data)
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -52,7 +53,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         buyer_id = request.POST.get("buyer_id", None)
         sku_id = request.POST.get("sku_id", None)
         num = request.POST.get("num", 0)
-        if product_id and buyer_id and sku_id:
+        sku = get_object_or_404(ProductSku, pk=sku_id)
+        lock_success = Product.objects.isQuantityLockable(sku, num)
+        if product_id and buyer_id and sku_id and lock_success:
+
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id)
             if shop_cart.count() > 0:
                 shop_cart_temp = shop_cart[0]
@@ -86,7 +90,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def plus_product_carts(self, request, pk=None):
-        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
+        cart_item = get_object_or_404(ShoppingCart, pk=pk)
+        sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
+        lock_success = Product.objects.isQuantityLockable(sku, cart_item.num+1)
+        if lock_success:
+            update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
+        else:
+            return Response('0')
         return Response(update_status)
 
     @detail_route(methods=['post'])

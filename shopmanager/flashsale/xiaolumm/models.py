@@ -180,7 +180,7 @@ class XiaoluMama(models.Model):
         
         order_price = 0
         if hasattr(order,'order_total_price'):
-            order_price = order.product_price
+            order_price = order.order_total_price
         elif hasattr(order,'payment'):
             order_price = int(order.payment * 100)
         
