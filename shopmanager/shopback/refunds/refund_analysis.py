@@ -63,9 +63,22 @@ def refund_Analysis(request):
     refund_pros = RefundProduct.objects.filter(created__gte=date_time_from, created__lte=date_time_to)
     # 发货总数量
     merge_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to).exclude(status=pcfg.INVALID_STATUS).count()  # 排除作废订单
+
     # 计算退货率 退货单数量／发货总数量
     refund_rate_func = lambda ref_co, merge_counts: 0 if merge_counts == 0 else round(float(ref_co) / merge_counts, 3)
     refund_rate = refund_rate_func(ref_co, merge_counts)
+
+    # 该时间段 待 发货（订单状态）  已作废（系统状态） 订单数量  (已经付款 要退款的数量)
+    merge_wait_invalud_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to,
+                                                            status=pcfg.WAIT_SELLER_SEND_GOODS,
+                                                            sys_status=pcfg.INVALID_STATUS).count()
+    # 退款 交易关闭   已经作废的数量
+    merge_refund_invalud_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to,
+                                                                status=pcfg.TRADE_CLOSED,
+                                                                sys_status=pcfg.INVALID_STATUS).count()
+
+
+
     top_re = refund_pros.values('outer_id', 'title').annotate(t_num=Sum('num'))
     if len(top_re) > 50:
         top_re = sorted(top_re, key=operator.itemgetter('t_num'))   # 排序
@@ -87,9 +100,11 @@ def refund_Analysis(request):
     # top['title'] = title   # 如果同一个编码和名称有多个的情况
 
     return render_to_response("refunds/refund_analysis.html",
-                              {"refund_pros": refund_pros, "ref_co": ref_co, "ref_am": ref_am,
+                              {"refund_pros": refund_pros,
+                               "ref_co": ref_co, "ref_am": ref_am,
                                "ref_su_co": ref_su_co, 'ref_su_am': ref_su_am,
-
+                                "merge_wait_invalud_counts":merge_wait_invalud_counts,
+                               "merge_refund_invalud_counts":merge_refund_invalud_counts,
                                "merge_counts": merge_counts, "refund_rate": refund_rate,
 
                                "reason_count_total": reason_count_total,
