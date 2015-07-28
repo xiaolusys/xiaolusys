@@ -46,7 +46,7 @@ function Create_item_dom(p_obj){
 	function Item_dom(){
 	/* 
 	<li>
-      <a href="pages/details.html?item_id={{ id }}">
+      <a href="pages/shangpinxq.html?id={{ id }}">
         <img src="{{ pic_path }}">
         <p class="gname">{{ name }}</p>
         <p class="gprice">

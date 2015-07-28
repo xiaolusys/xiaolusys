@@ -44,7 +44,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             pro = Product.objects.get(id=a.item_id)
             temp_dict["std_sale_price"] = pro.std_sale_price if pro else 0
             data.append(temp_dict)
-        return Response(data, content_type='application/json')
+        return Response(data)
 
     def create(self, request, *args, **kwargs):
         data = request.data
