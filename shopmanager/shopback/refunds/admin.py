@@ -82,7 +82,7 @@ class RefundProductAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter   = ('can_reuse','is_finish')
+    list_filter   = ('can_reuse','is_finish', 'created')
     search_fields = ['buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid']
     
     #标记为已处理

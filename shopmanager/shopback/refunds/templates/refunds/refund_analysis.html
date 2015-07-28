@@ -96,6 +96,9 @@
 
         <span class="label label-primary">订单总数(不含作废)：{{ merge_counts }}</span>
         <span class="label label-primary">退款率(以时间)：{{ refund_rate }}</span>
+
+        <span class="label label-primary">待发货(已付款)作废：{{ merge_wait_invalud_counts }}</span>
+        <span class="label label-primary">退款交易关闭(退款成功)作废：{{ merge_refund_invalud_counts }}</span>
     </div>
     <hr style="height:5px;border:none;border-top:1px ridge green;"/>
     {#    {{ reason_count_total }} 所有原因的条数（该时间段的） #}
