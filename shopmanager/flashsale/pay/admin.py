@@ -472,7 +472,7 @@ admin.site.register(Integral, IntegralAdmin)
 class IntegralLogAdmin(admin.ModelAdmin):
     list_display = (
         'integral_user', 'order_id', 'mobile', 'log_value', 'log_status', 'log_type', 'in_out', 'created', 'modified')
-    list_filter = ('integral_user', 'mobile',)
+    list_filter = ('created', )
     search_fields = ['integral_user', 'mobile', ]
     list_per_page = 50
 

@@ -305,14 +305,9 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="45", hour="6"),
         'args': ()
     },
-    u'定时更新用户积分':{
-        'task':'flashsale.pay.tasks_coupon.task_Calculate_Users_Integral',
-        'schedule': crontab(minute="30", hour="0"),
-        'args': ()
-    },
     u'定时更新用户优惠券状态':{
-        'task':'flashsale.pay.tasks_coupon.task_Update_CouponPoll_Status',
-        'schedule': crontab(minute="30", hour="4"),
+        'task':'flashsale.pay.tasks.task_Update_CouponPoll_Status',
+        'schedule': crontab(minute="15", hour="2"),
         'args': ()
     },
 
