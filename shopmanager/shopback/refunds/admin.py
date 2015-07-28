@@ -72,7 +72,7 @@ class RefundAdmin(admin.ModelAdmin):
 
 admin.site.register(Refund,RefundAdmin)
   
-  
+from .filters import RefundMonthFilter, BoyGirlWomen
 class RefundProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id', 'title', 'outer_sku_id','show_Product_Price','buyer_nick','buyer_mobile','buyer_phone','trade_id'
                     ,'out_sid','company','can_reuse','is_finish','created','modified','memo','select_Reason')
@@ -82,7 +82,7 @@ class RefundProductAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter   = ('can_reuse','is_finish', 'created')
+    list_filter   = ('can_reuse','is_finish', RefundMonthFilter, BoyGirlWomen)
     search_fields = ['buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid']
     
     #标记为已处理
