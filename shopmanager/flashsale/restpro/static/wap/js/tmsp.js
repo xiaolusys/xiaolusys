@@ -2,13 +2,25 @@
  *@auther:imeron
  *@date:2015-07-25
  */
-function Create_product_topslide_dom(obj_list){
+//创建图片滑动插件
+var swiper = new Swiper('.swiper-container', {
+	pagination: '.swiper-pagination',
+	paginationClickable: true,
+	speed : 500, //设置动画持续时间500ms
+    freeMode : true, //开启自由模式
+    freeModeFluid : true, //开启'fluid'自由模式
+    centeredSlides: true,
+    autoplay: 2500,
+    autoplayDisableOnInteraction: false
+});
+ 
+function Create_product_topslides(obj_list){
 	//创建商品题头图Slide
 	var slides = [];
 	$.each(obj_list,function(index,obj){
-		slides[slides.length] = '<img src="'+ obj +'">';
+		slides[slides.length] = '<div class="swiper-slide"><img src="'+ obj +'"></div>';
 	});
-	return slides.join('');
+	return slides;
 }
 
 function Create_product_detailsku_dom(obj){
@@ -89,13 +101,11 @@ function Set_product_detail(suffix){
 			product_model = data.details;
 		}
 		//设置商品题头图列表
-		var top_dom = Create_product_topslide_dom(product_model.head_imgs);
-		$('.goods-slide .swiper-wrapper').html(top_dom);
+		var slides = Create_product_topslides(product_model.head_imgs);
 		//设置swiper滑动图片
-		var swiper = new Swiper('.swiper-container', {
-		  pagination: '.swiper-pagination',
-		  paginationClickable: true
-		});
+		swiper.removeAllSlides();
+		console.log('debug:',slides);
+		swiper.appendSlide(slides);
 		
 		//设置订单商品明细
 		var detail_dom = Create_product_detailsku_dom(data);
