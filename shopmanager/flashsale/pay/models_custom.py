@@ -86,15 +86,29 @@ class ModelProduct(models.Model):
         return '<%s,%s>'%(self.id,self.name)
     
 from shopback.base.models import JSONCharMyField
-   
+
+POSTER_DEFAULT =(
+'''
+[
+  {
+    "subject":["2折起","Joan&David  女装专场"],
+    "item_link":"商品链接",
+    "pic_link":"海报图片",
+    
+  }
+]
+''')
+
 class GoodShelf(models.Model):
     
-    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报标题')
+    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报说明')
     
-    wem_posters   = JSONCharMyField(max_length=10240, blank=True, default='[\n\t{\n\t"item_link":"",\n\t"pic_link":""\n\t}\n]', 
-                                    verbose_name=u'女装海报\n"item_link":商品链接\n"pic_link":图片链接')
-    chd_posters   = JSONCharMyField(max_length=10240, blank=True, default='[\n\t{\n\t"item_link":"",\n\t"pic_link":""\n\t}\n]',
-                                    verbose_name=u'童装海报\n"item_link":商品链接\n"pic_link":图片链接')
+    wem_posters   = JSONCharMyField(max_length=10240, blank=True, 
+                                    default=POSTER_DEFAULT, 
+                                    verbose_name=u'女装海报')
+    chd_posters   = JSONCharMyField(max_length=10240, blank=True, 
+                                    default=POSTER_DEFAULT,
+                                    verbose_name=u'童装海报')
     
     is_active    = models.BooleanField(default=True,verbose_name=u'上线')
     active_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'上线日期')
