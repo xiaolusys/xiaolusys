@@ -1,0 +1,73 @@
+.add{
+  width: 640px;
+  margin: 0 auto;
+  border-bottom: 1px solid #bec0c2;
+  background-color:#fff;
+}
+.add a{
+  display: block;
+  color: #3d3c3c;
+  font-size: 30px;
+  position: relative;
+}
+.add .p1{
+  padding: 20px 0 0 42px;  
+}
+.add .p2{
+  padding: 11px 0 20px 42px;  
+}
+.add i{
+  display: block;
+  position:absolute;
+  right: 42px;
+  bottom:28px;
+  width: 23px;
+  height: 23px;
+  background-image: url(../images/icon-jia2.png);
+}
+.list{
+  width:640px;
+  margin: 0 auto;
+  padding-top: 20px;
+}
+.list li{
+  border-top:1px solid #bec0c2;
+  border-bottom: 1px solid #bec0c2;
+  background-color: #fff;
+  margin-bottom: 20px;
+  position: relative;
+}
+.list .p1{
+  padding:28px 0 0 100px;
+}
+.list .p2{
+  font-size: 24px;
+  color: #9e9e9e;
+  padding: 8px 100px 26px 100px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.list .close{
+  position: absolute;
+  top:50%;
+  margin-top: -22px;
+  display: block;
+  width: 43px;
+  height: 43px;
+  right: 42px;
+  background-image:url(../images/icon-guanbi.png); 
+}
+.list .radio {
+  position: absolute;
+  display: block;
+  width: 22px;
+  height: 22px;
+  background-image: url(../images/icon-radio.png);
+  top: 50%;
+  margin-top: -11px;
+  left: 42px;
+}
+.list .radio-select{
+  background-image: url(../images/icon-radio-select.png);
+}

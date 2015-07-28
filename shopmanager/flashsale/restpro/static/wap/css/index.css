@@ -124,6 +124,10 @@ nav a:active,
   padding: 0 50px;
   color: #ed145b;
 }
+.poster img{
+	widht:618px;
+	height:253px;
+}
 .new .shengyu{
   position: absolute;
   height: 46px;
