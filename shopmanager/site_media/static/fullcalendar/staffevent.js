@@ -31,7 +31,7 @@ var addStaffEvent = function(e){
 		return;
 	};
 	$('#btn-submit').attr('disabled',false); 
-	var params = {'executor':executors,'start':start,'end':end,'title':title};
+	var params = {'executor':executors,'start':start,'end':end,'title':title,"csrfmiddlewaretoken":csrftoken};
 	var callback = function(data){
 		
 		$('#btn-submit').removeAttr('disabled');
@@ -175,3 +175,19 @@ var showStaffEventTipDialog = function(event,pos){
 	staffEventTipDiv.offset({'top': scrollHeight+pos.y-elHeight-35,'left':pos.x-elwidth/2-10}); 
 };
 
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+var csrftoken = getCookie('csrftoken');

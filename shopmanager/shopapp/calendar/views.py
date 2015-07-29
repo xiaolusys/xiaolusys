@@ -107,7 +107,7 @@ class StaffEventView(APIView):
     #serializer_class = serializers.StaffEventSerializer  #baocuo   xuyao kaolvhao
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
    # template_name = "fullcalendar/default.html"    
     def get(self, request, *args, **kwargs):
         #print "get99"
