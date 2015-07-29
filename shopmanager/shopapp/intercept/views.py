@@ -31,7 +31,7 @@ class InterceptByCsvFileView(FileUploadView_intercept):
     serializer_class = serializers.InterceptTradeSerializer
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     #print "444hhh666"
     file_path     = 'trade'
     filename_save = 'intercept_%s.csv'

@@ -75,7 +75,7 @@ class PurchaseView(APIView):
     """ 采购单 """
     serializer_class = serializers.PurchaseSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (PurchaseHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
 
     def get(self, request, *args, **kwargs):
@@ -130,7 +130,7 @@ class PurchaseInsView(APIView):
     """ 采购单修改界面 """
     serializer_class = serializers.PurchaseSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (PurchaseHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
 
     def get(self, request, id, *args, **kwargs):
@@ -183,7 +183,7 @@ class PurchaseItemView(APIView):
     """ 采购单项 """
     serializer_class = serializers.PurchaseItemSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     
     def get(self, request, *args, **kwargs):
@@ -255,7 +255,7 @@ class PurchaseShipStorageView(APIView):
     """ 采购单与入库单关联视图 """
     serializer_class = serializers.PurchaseSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (PurchaseShipStorageRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         try:
@@ -360,7 +360,7 @@ class PurchaseStorageView(APIView):
     """ 入库单 """
     serializer_class = serializers.PurchaseStorageSerialize
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (PurchaseStorageHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         params = {}
@@ -403,7 +403,7 @@ class PurchaseStorageInsView(APIView):
     """ 入库单修改界面 """
     serializer_class = serializers.PurchaseStorageSerialize
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (PurchaseStorageHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         
@@ -426,7 +426,7 @@ class PurchaseStorageItemView(APIView):
     """ 入库单项 """
     serializer_class = serializers.PurchaseStorageSerialize
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
@@ -488,7 +488,7 @@ class StorageDistributeView(APIView):
     """ 采购入库单匹配 """
     serializer_class = serializers.PurchaseStorageSerialize
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (StorageDistributeRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         try:
@@ -524,7 +524,7 @@ class ConfirmStorageView(APIView):
     """ 确认采购入库 """
     serializer_class = serializers.PurchaseStorageSerialize
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)    
     
     def post(self, request, *args, **kwargs):
@@ -695,7 +695,7 @@ class PurchasePaymentView(APIView):
     """ 采购付款 """
     serializer_class = serializers.PurchasePaymentSerialize
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (PurchasePaymentRenderer,BrowsableAPIRenderer)    #   BaseJsonRenderer 这里有奇怪问题，暂时不返回json
     def get(self, request, *args, **kwargs):
         #print "4455"
@@ -817,7 +817,7 @@ class PaymentDistributeView(APIView):
     """ 付款单金额分配 """
     serializer_class = serializers.PurchasePaymentSerialize
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (PaymentDistributeRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)    #   BaseJsonRenderer 这里有奇怪问题，暂时不返回json
     def get(self, request, id, *args, **kwargs):
         

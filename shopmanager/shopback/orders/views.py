@@ -40,7 +40,7 @@ class TimerOrderStatisticsView(APIView):
     """ docstring for class TimerOrderStatisticsView """
     serializer_class = serializers.TimeOrderStatSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (TimerOrderStatChartRenderer,new_ChartJSONRenderer,BrowsableAPIRenderer)
    # template_name = 'trades/order_report_chart.html' 
     @csrf_exempt
@@ -152,7 +152,7 @@ class ProductOrderView(APIView):
     """ docstring for class ProductOrderView """
     serializer_class = serializers.TimeOrderStatSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_ChartJSONRenderer,BrowsableAPIRenderer,ProductOrderTableRenderer,new_ChartTemplateRenderer)
     def get(self, request, *args, **kwargs):
         dt_f = kwargs.get('dt_f')
@@ -266,7 +266,7 @@ class RelatedOrderStateView(APIView):
     """ docstring for class RelatedOrderStateView """
     serializer_class = serializers.BaseSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RelatedOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
@@ -356,7 +356,7 @@ class RefundOrderView(APIView):
     """ docstring for class RefundOrderView """
     serializer_class = serializers.BaseSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RefundOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         

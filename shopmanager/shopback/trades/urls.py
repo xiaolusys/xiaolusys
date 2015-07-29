@@ -171,19 +171,9 @@ urlpatterns = patterns('shopback.trades.views',
 
     (r'fenxiao/count/detail/$',staff_member_required(showFenxiaoDetail)),
     
-    (r'^scancheck/$',csrf_exempt(PackageScanCheckView.as_view(
-      # resource=BaseResource,
-     #   renderers=(BaseJsonRenderer,),
-#        authentication=(UserLoggedInAuthentication,),  ##fang 2015-7-27  原来就没有
-#        permissions=(IsAuthenticated,)####fang 2015-7-27  原来就没有
-    ))), 
-     
-    (r'^scanweight/$',csrf_exempt(PackageScanWeightView.as_view(
-        #resource=BaseResource,
-        #renderers=(BaseJsonRenderer,),
-#        authentication=(UserLoggedInAuthentication,),     ##fang 2015-7-27  原来就没有
-#        permissions=(IsAuthenticated,)                             ##fang 2015-7-27  原来就没有
-    ))), 
+    (r'^scancheck/$',csrf_exempt(PackageScanCheckView.as_view())), 
+    (r'^scanweight/$',csrf_exempt(PackageScanWeightView.as_view())), 
+    
     (r'^detail/$',csrf_exempt(login_required_ajax(detail))),
     (r'^manybeizhu/$',csrf_exempt(login_required_ajax(manybeizhu))),
    # (r'^beizhu/$',csrf_exempt(login_required_ajax(view_beizhu))),

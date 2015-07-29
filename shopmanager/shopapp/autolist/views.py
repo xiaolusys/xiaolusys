@@ -399,7 +399,7 @@ class CreateListItemTaskModelView(APIView):
     """A view which provides default operations for create, against a model in the database."""
     serializer_class = serializers. ItemListTaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (JSONRenderer,BrowsableAPIRenderer)
     #print "1111111222"
     def post(self, request, *args, **kwargs):

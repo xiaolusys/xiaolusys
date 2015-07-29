@@ -59,7 +59,7 @@ class RefundManagerView(APIView):
     """ docstring for class RefundManagerView """
     serializer_class = serializers.RefundSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RefundManagerRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
@@ -139,7 +139,7 @@ class RefundProductView(APIView):
     """ docstring for class RefundProductView """
     serializer_class = serializers.RefundProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RefundProductRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
@@ -188,8 +188,8 @@ class RefundView(APIView):
     """ docstring for class RefundView """
     serializer_class = serializers.RefundSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,)
     def get(self, request, *args, **kwargs):
 
         content   = request.REQUEST

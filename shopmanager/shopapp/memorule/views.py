@@ -82,7 +82,7 @@ def update_trade_memo(trade_id,trade_memo,user_id):
 class UpdateTradeMemoView(APIView):
     serializer_class = serializers.TradeRuleSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         content   = request.REQUEST
@@ -107,7 +107,7 @@ class UpdateTradeMemoView(APIView):
 class ProductRuleFieldsView(APIView):
     serializer_class = serializers.TradeRuleSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         content = request.REQUEST
@@ -131,7 +131,7 @@ class ProductRuleFieldsView(APIView):
 class ComposeRuleByCsvFileView(FileUploadView_intercept):
     serializer_class = serializers.TradeRuleSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     file_path     = 'product'
     filename_save = 'composerule_%s.csv'
