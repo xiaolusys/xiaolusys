@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小鹿美美</title>
+    <meta charset="UTF-8">
+    <meta id="viewport" name="viewport"/>
+    <script src="../js/common.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-1.8.0.js"></script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/tousu.css">
+</head>
+<body>
+<div class="header">
+    <h1>投诉建议</h1>
+    <a class="back" href="javascript:history.go(-1)"></a>
+    <a class="user" href="gerenzhongxin.html"></a>
+</div>
+
+<div class="ipt-wrap">
+    <textarea class="content" onkeyup="t()" placeholder="请写下您的意见和建议，以便我们更好地服务于您~" maxlength="500"  id="com_content"></textarea>
+</div>
+
+<div class="tips">最少输入5个字符，最多500个字符，已输入<span id="t">0</span>个字符</div>
+
+<div class="tips error-tips">您的意见＜5个字符，或＞500个字符，请核实后再提交~</div>
+
+<button type="button" class="btn-submit" onclick="my_submit()" >提&nbsp;&nbsp;交</button>
+</body>
+<script style="text/javascript">
+    function t() {
+        var l = document.getElementById('com_content').value.length;
+        return document.getElementById('t').innerHTML = l;
+    }
+</script>
+<script src="../js/complain.js"></script>
+</html>

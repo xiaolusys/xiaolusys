@@ -33,7 +33,7 @@ function create_shop_carts_dom(obj) {
          <div class="gcount">
          <div class="btn reduce" onclick="minus_shop({{id}})"></div>
          <div class="total">
-         <input type="tel" id="num_{{id}}" value="{{num}}">
+         <input type="tel" readonly id="num_{{id}}" value="{{num}}">
          </div>
          <div class="btn plus" onclick="plus_shop({{id}})"></div>
          </div>
@@ -64,6 +64,7 @@ function get_shop_carts(suffix) {
     //请求成功回调函数
     var requestCallBack = function (data) {
         var total_price = 0;
+        $("#loading").hide();
         if (data) {
             $.each(data,
                 function (index, product) {
@@ -81,7 +82,16 @@ function get_shop_carts(suffix) {
         url: requestUrl,
         data: {},
         dataType: 'json',
-        success: requestCallBack
+        beforeSend: function () {
+            $("#loading").show();
+        },
+        success: requestCallBack,
+        error: function (data) {
+            if(data.statusText=="FORBIDDEN"){
+                window.location = "denglu2.html";
+            }
+            console.info("error: " + data.statusText);
+        }
     });
 }
 
@@ -110,6 +120,7 @@ function plus_shop(id) {
     var num_id = $("#num_" + id);
     var requestCallBack = function (res) {
         console.log(res);
+        $("#loading").hide();
         if (res == "1") {
             num_id.val(parseInt(num_id.val()) + parseInt(res));
             update_total_price();
@@ -120,6 +131,9 @@ function plus_shop(id) {
         type: 'post',
         url: requestUrl,
         data: {"csrfmiddlewaretoken": csrftoken},
+        beforeSend: function () {
+            $("#loading").show();
+        },
         success: requestCallBack
     });
 }
@@ -128,7 +142,7 @@ function minus_shop(id) {
     var requestUrl = GLConfig.baseApiUrl + suffix;
     var num_id = $("#num_" + id);
     var requestCallBack = function (res) {
-        console.log(res);
+        $("#loading").hide();
         if (res == "1") {
             num_id.val(parseInt(num_id.val()) - parseInt(res));
             update_total_price();
@@ -141,6 +155,10 @@ function minus_shop(id) {
             type: 'post',
             url: requestUrl,
             data: {"csrfmiddlewaretoken": csrftoken},
+            beforeSend: function () {
+                // 禁用按钮防止重复提交
+                $("#loading").show();
+            },
             success: requestCallBack
         });
     }
@@ -151,3 +169,24 @@ $(function () {
     });
 });
 
+
+function create_item(num, item_id, sku_id) {
+    var requestUrl = GLConfig.baseApiUrl + "/carts"
+    var requestCallBack = function (res) {
+        $("#loading").hide();
+        console.log("back");
+        console.log(res);
+
+    };
+    // 发送请求
+    $.ajax({
+        type: 'post',
+        url: requestUrl,
+        data: {"num": num, "item_id": item_id, "sku_id": sku_id, "csrfmiddlewaretoken": csrftoken},
+        beforeSend: function () {
+            $("#loading").show();
+        },
+        success: requestCallBack
+    });
+
+}

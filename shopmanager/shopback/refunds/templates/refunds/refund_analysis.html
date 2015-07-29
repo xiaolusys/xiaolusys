@@ -91,11 +91,20 @@
     <div style="margin-top: 10px">
         <span class="label label-primary">退款总单数：{{ ref_co }}</span>
         <span class="label label-primary">退款金额：{{ ref_am }}</span>
-        <span class="label label-primary">成功退款单数：{{ ref_su_co }}</span>
-        <span class="label label-primary">成功退款金额：{{ ref_su_am }}</span>
+        <span class="label label-info">成功退款单数：{{ ref_su_co }}</span>
+        <span class="label label-info">成功退款金额：{{ ref_su_am }}</span>
 
+        {#        <span class="label label-primary">退款率(以时间)：{{ refund_rate }}</span>#}
+        <hr style="height:1px;border:none;border-top:1px ridge seagreen;"/>
+        <span class="label label-primary">待发货(已付款)作废：{{ merge_wait_invalud_counts }} 条</span>
+        <span class="label label-primary">退款交易关闭(退款成功)作废：{{ merge_refund_invalud_counts }} 条</span>
         <span class="label label-primary">订单总数(不含作废)：{{ merge_counts }}</span>
-        <span class="label label-primary">退款率(以时间)：{{ refund_rate }}</span>
+
+        <br>
+        <span class="label label-info">待发货(已付款)作废金额：{{ wait_invalud_payment }} ￥</span>
+        <span class="label label-info">退款交易关闭(退款成功)作废金额：{{ refund_invalud_payment }} ￥</span>
+        <span class="label label-warning">Merge退款率：{{ merge_refund_rate }}</span>
+
     </div>
     <hr style="height:5px;border:none;border-top:1px ridge green;"/>
     {#    {{ reason_count_total }} 所有原因的条数（该时间段的） #}
@@ -134,47 +143,9 @@
     {% endfor %}
     <hr style="height:5px;border:none;border-top:1px ridge green;"/>
 
+    <a href="/admin/refunds/refundproduct/?created__gte={{ sev_day }}&created__lte={{ today }}" target="view_window">
+        查看对应时间的退货产品详情</a>
 
-    <div class="panel panel-default" style="margin-top: 20px">
-        <div class="panel-heading">退货产品详情 <span class="badge">{{ pros_co }}</span></div>
-        <div class="panel-body">
-            <table class="table table-hover table-condensed" id="mytable">
-                <thead>
-                <th>买家昵称</th>
-                <th>手机</th>
-                <th>原单ID</th>
-                <th>商品编码</th>
-                <th>商品名称</th>
-
-                <th>物流名称</th>
-                <th>数量</th>
-                <th>二次销售</th>
-                <th>创建时间</th>
-                <th>备注</th>
-                <th>退货原因</th>
-                </thead>
-                <tbody>
-                {% for pro in refund_pros %}
-                    <tr>
-                        <td>{{ pro.buyer_nick }}</td>
-                        <td>{{ pro.buyer_mobile }}</td>
-                        <td>{{ pro.trade_id }}</td>
-                        <td>{{ pro.outer_id }}</td>
-                        <td>{{ pro.title }}</td>
-
-                        <td>{{ pro.company }}</td>
-                        <td>{{ pro.num }}</td>
-                        <td>{{ pro.can_reuse }}</td>
-                        <td>{{ pro.created }}</td>
-                        <td>{{ pro.memo }}</td>
-                        <td>{{ pro.get_reason_display }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-                <tfoot></tfoot>
-            </table>
-        </div>
-    </div>
     <hr style="height:5px;border:none;border-top:1px ridge green;"/>
     <div class="panel panel-default" style="margin-top: 20px">
         <div class="panel-heading">退货最多50款产品</div>

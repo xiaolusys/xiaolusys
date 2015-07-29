@@ -6,9 +6,12 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User as DjangoUser
 from shopback.refunds.models import Refund,RefundProduct
 from shopback.items.models import Product, ProductSku
+import datetime,time
 
 __author__ = 'meixqhi'
-
+import cStringIO as StringIO
+from django.http import HttpResponse, HttpResponseRedirect
+from common.utils import gen_cvs_tuple, CSVUnicodeWriter
 
 class RefundAdmin(admin.ModelAdmin):
     list_display = ('refund_id','tid','oid','num_iid','buyer_nick','total_fee','refund_fee','payment'
@@ -72,7 +75,7 @@ class RefundAdmin(admin.ModelAdmin):
 
 admin.site.register(Refund,RefundAdmin)
   
-  
+from .filters import RefundMonthFilter, BoyGirlWomen
 class RefundProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id', 'title', 'outer_sku_id','show_Product_Price','buyer_nick','buyer_mobile','buyer_phone','trade_id'
                     ,'out_sid','company','can_reuse','is_finish','created','modified','memo','select_Reason')
@@ -82,7 +85,7 @@ class RefundProductAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
     #ordering = ['created_at']
 
-    list_filter   = ('can_reuse','is_finish')
+    list_filter   = ('can_reuse','is_finish', RefundMonthFilter, BoyGirlWomen)
     search_fields = ['buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid']
     
     #标记为已处理
@@ -127,12 +130,42 @@ class RefundProductAdmin(admin.ModelAdmin):
                 u'</select>'.format(obj.id, reason, reason_id)
 
         return select
+
+    def export_Refund_Product_Action(self, request, queryset):
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') > -1
+        pcsv = []
+        pcsv.append((u'ID', u'买家昵称', u'手机',
+                     u'物流单号', u'物流名称', u'商品编码', u'规格编码',
+                     u'数量', u'商品名称', u'二次销售', u'处理完成',
+                     u'退货原因', u'创建时间'))
+        for prod in queryset:
+            pcsv.append((str(prod.id),  prod.buyer_nick, prod.buyer_mobile,
+                         prod.out_sid,  prod.company,    prod.outer_id,       prod.outer_sku_id,
+                         str(prod.num), prod.title,      str(prod.can_reuse), str(prod.is_finish),
+                         str(prod.get_reason_display()),   str(prod.created)
+                         ))
+
+        pcsv.append(['', '', '', '', '', '', '', '', '', '', '', ''])
+
+        tmpfile = StringIO.StringIO()
+        writer = CSVUnicodeWriter(tmpfile, encoding=is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=refund-pro-info-%s.csv' % str(int(time.time()))
+
+        return response
+
+    export_Refund_Product_Action.short_description = u"导出退货选中商品信息"
+
+
     class Media:
         js = ("js/select_refubd_pro_reason.js",)
     select_Reason.allow_tags = True
     select_Reason.short_description = u"退货原因"
     
-    actions = ['tag_as_finished',]
+    actions = ['tag_as_finished', 'export_Refund_Product_Action']
 
 admin.site.register(RefundProduct,RefundProductAdmin)
 
