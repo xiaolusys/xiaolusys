@@ -28,11 +28,13 @@
 	</style>
 </head>
 <body>
+	
+	
 	<div class="container">
-		<input id="task_id" type="hidden" value="{{ object.task_id }}" />
-		<input id="async_print_id" type="hidden" value="{{ object.async_print_id }}" />
+		<input id="task_id" type="hidden" value="{{ task_id }}" />
+		<input id="async_print_id" type="hidden" value="{{ async_print_id }}" />
 		<button id="task-status" class="btn btn-large btn-primary">
-			打印批次:{{ object.task_id }}。等待任务完成，倒计时<label id="task_counter_id" class="label label-info">100</label>秒
+			打印批次:{{ task_id }}。等待任务完成，倒计时<label id="task_counter_id" class="label label-info">100</label>秒
 		</button>
 	</div>
 	

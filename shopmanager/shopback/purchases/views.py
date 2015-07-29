@@ -16,13 +16,13 @@ from django.contrib import messages
 from django.db.models import Q,Sum,F
 from django.views.decorators.csrf import csrf_exempt
 from django.db import IntegrityError, transaction
-from djangorestframework.serializer import Serializer
-from djangorestframework.utils import as_tuple
-from djangorestframework import status
-from djangorestframework.renderers import BaseRenderer
-from djangorestframework.response import Response
-from djangorestframework.mixins import CreateModelMixin
-from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceModelView
+#from djangorestframework.serializer import Serializer
+#from djangorestframework.utils import as_tuple
+#from djangorestframework import status
+#from djangorestframework.renderers import BaseRenderer
+#from djangorestframework.response import Response
+#from djangorestframework.mixins import CreateModelMixin
+#from djangorestframework.views import ModelView,ListOrCreateModelView,InstanceModelView
 from shopback.archives.models import Deposite,Supplier,PurchaseType
 from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,\
@@ -34,7 +34,21 @@ from shopback.monitor.models import SystemConfig
 from common.utils import CSVUnicodeWriter
 from auth import staff_requried
 import logging
-
+from django.http import HttpResponse, Http404
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from . import serializers 
+from rest_framework import status
+from shopback.base.new_renders import new_BaseJSONRenderer
+from renderers import *
 
 logger = logging.getLogger('django.request')
 #################################### 采购单 #################################
@@ -45,29 +59,49 @@ def handle_uploaded_file(f,fname):
         for chunk in f.chunks():
             dst.write(chunk)
             
-
-class PurchaseView(ModelView):
+from django.http import HttpResponse
+from rest_framework.renderers import JSONRenderer
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders it's content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = JSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
+        
+        
+class PurchaseView(APIView):
     """ 采购单 """
-    
+    serializer_class = serializers.PurchaseSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (PurchaseHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
+
     def get(self, request, *args, **kwargs):
         
         params = {}
-        params['suppliers']      = Supplier.objects.filter(in_use=True)
-        params['deposites']      = Deposite.objects.filter(in_use=True)
-        params['purchase_types'] = PurchaseType.objects.filter(in_use=True)
+        params['suppliers']      = serializers.SupplierSerializer(Supplier.objects.filter(in_use=True),many=True).data
+        params['deposites']      = serializers.DepositeSerializer(Deposite.objects.filter(in_use=True),many=True).data
+        params['purchase_types'] = serializers.PurchaseTypeSerializer(PurchaseType.objects.filter(in_use=True),many=True).data
+        #print params
         
-        return params
-    
+        #return Response({"object":params})
+        #return Response(params)
+        return  Response({'object':params})
     def post(self, request, *args, **kwargs):
-        
+       # print "post"
         content = request.REQUEST
         purchase_id = content.get('purchase_id')
+        #purchase_id=10004
+        print purchase_id,"99999999999"
         purchase    = None
         state       = False
         
         if purchase_id:
             try:
                 purchase = Purchase.objects.get(id=purchase_id)
+             
             except:
                 return u'输入采购编号未找到'
         else:
@@ -92,31 +126,42 @@ class PurchaseView(ModelView):
         return HttpResponseRedirect('/purchases/%d/'%purchase.id)
 
 
-class PurchaseInsView(ModelView):
+class PurchaseInsView(APIView):
     """ 采购单修改界面 """
-    
+    serializer_class = serializers.PurchaseSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (PurchaseHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
+
     def get(self, request, id, *args, **kwargs):
         
         try:
+           # a=Purchase.objects.all()[0].id
+           # print a
+            #id=10004
             purchase = Purchase.objects.get(id=id)
+            #print purchase
         except Exception,exc:
             raise Http404
             
         params = {}
-        params['suppliers']      = Supplier.objects.filter(in_use=True)
-        params['deposites']      = Deposite.objects.filter(in_use=True)
-        params['purchase_types'] = PurchaseType.objects.filter(in_use=True)
-        params['purchase']       = purchase.json
+        params['suppliers']      = serializers.SupplierSerializer(Supplier.objects.filter(in_use=True),many=True).data
+        params['deposites']      = serializers.DepositeSerializer(Deposite.objects.filter(in_use=True),many=True).data
+        params['purchase_types'] = serializers.PurchaseTypeSerializer(PurchaseType.objects.filter(in_use=True),many=True).data
+        params['purchase']       =      serializers.PurchaseSerializer(purchase).data  
         params['perms']          = {'can_check_purchase':purchase.status == pcfg.PURCHASE_DRAFT \
                                         and perm.has_check_purchase_permission(request.user),
                                     'can_show_storage':purchase.status in 
                                     (pcfg.PURCHASE_APPROVAL,pcfg.PURCHASE_FINISH)}
-        return params
+        #print params['purchase'].attach_files ,"debug"
+        #print "debug ",purchase.json
+        return Response({'object':params})
     
     def post(self, request, id, *args, **kwargs):
-        
+        print "post",request,id
         try:
             purchase = Purchase.objects.get(id=id)
+          
         except Exception,exc:
             raise Http404
         
@@ -131,21 +176,26 @@ class PurchaseInsView(ModelView):
         
         log_action(request.user.id,purchase,CHANGE,u'审核采购单')
         
-        return {'id':purchase.id,'status':purchase.status}
+        return Response({'id':purchase.id,'status':purchase.status})
 
 
-class PurchaseItemView(ModelView):
+class PurchaseItemView(APIView):
     """ 采购单项 """
+    serializer_class = serializers.PurchaseItemSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     
     def get(self, request, *args, **kwargs):
         
         pass
-        
+        return  Response({"example":"get__function"}) #这句话没有用，为了语法才加上的
     def post(self, request, *args, **kwargs):
-        
+        #print "33ytytytyty"
         content = request.REQUEST
         
         purchase_id = content.get('purchase_id')
+       # print purchase_id,"ces"
         outer_id    = content.get('outer_id')
         outer_sku_id  = content.get('outer_sku_id')
         product_id    = content.get('product_id')
@@ -154,7 +204,7 @@ class PurchaseItemView(ModelView):
         num      = int(content.get('num'))
         supplier_item_id = content.get('supplier_item_id','')
         std_price = content.get('std_price','0.0')
-        
+          
         prod     = None
         prod_sku = None
         try:
@@ -162,21 +212,21 @@ class PurchaseItemView(ModelView):
                 prod = Product.objects.get(id=product_id)
             else:
                 prod = Product.objects.get(outer_id=outer_id)
-            
+              
             if sku_id:
                 prod_sku = ProductSku.objects.get(id=sku_id,product=prod)
             else:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
         except :
-            return u'未找到商品及规格' 
-        
+            return Response(u'未找到商品及规格' )
+          
         try:
             purchase = Purchase.objects.get(id=purchase_id)
         except:
-            return u'未找到采购单'
-        
+            return Response(u'未找到采购单')
+          
         if purchase.status==pcfg.PURCHASE_FINISH :
-            return u'你没有权限修改'
+            return Response( u'你没有权限修改')
         purchase_item,state = PurchaseItem.objects.get_or_create(
                                 purchase=purchase,product_id=prod.id,
                                 sku_id=prod_sku and prod_sku.id or None)
@@ -191,28 +241,36 @@ class PurchaseItemView(ModelView):
         purchase_item.total_fee = float(price or 0)*num 
         purchase_item.status=pcfg.NORMAL
         purchase_item.save()
-        
+          
         log_action(request.user.id,purchase,CHANGE,u'%s采购项（%d,%s,%s）'%
                    (state and u'添加' or u'修改',purchase_item.id,num,price))
-        
-        return purchase_item.json
-
-
-class PurchaseShipStorageView(ModelView):
-    """ 采购单与入库单关联视图 """
+        #purchase_item= PurchaseItem.objects.all()[0]   #测试用 
+       # return purchase_item.json  #这是字典
+        #return  JSONResponse(purchase_item.json)#也可以
+        return Response(serializers.PurchaseItemSerializer(purchase_item).data)
     
+
+
+class PurchaseShipStorageView(APIView):
+    """ 采购单与入库单关联视图 """
+    serializer_class = serializers.PurchaseSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (PurchaseShipStorageRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         try:
             purchase = Purchase.objects.get(id=id)
+            #print "采购但",Purchase.objects.all()[0].id
+            
         except:
-            return u'未找到采购单'
+            return Response(u'未找到采购单')
         
         #给关联采购单分配入库数量，并返回未分配的入库数
         unfinish_purchase_items = purchase.unfinish_purchase_items            
         #获取关联采购单信息
         ship_storages        = purchase.get_ship_storages()
         
-        return {'unfinish_purchase_items':unfinish_purchase_items,'ship_storages':ship_storages}
+        return Response({"object":{'unfinish_purchase_items':unfinish_purchase_items,'ship_storages':ship_storages}})
     
 
 @csrf_exempt        
@@ -226,7 +284,7 @@ def delete_purchase_item(request):
     try:
         purchase = Purchase.objects.get(id=purchase_id)
     except:
-        raise http404
+        raise Http404
     
     if purchase.status not in (pcfg.PURCHASE_DRAFT,pcfg.PURCHASE_APPROVAL) \
         and not perm.has_check_purchase_permission(request.user):
@@ -298,16 +356,18 @@ def upload_purchase_file(request,id):
     
 #################################### 采购入库单 #################################
 
-class PurchaseStorageView(ModelView):
+class PurchaseStorageView(APIView):
     """ 入库单 """
-    
+    serializer_class = serializers.PurchaseStorageSerialize
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (PurchaseStorageHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
-        
         params = {}
-        params['suppliers']      = Supplier.objects.filter(in_use=True)
-        params['deposites']      = Deposite.objects.filter(in_use=True)
+        params['suppliers']      = serializers.SupplierSerializer(Supplier.objects.filter(in_use=True),many=True).data
+        params['deposites']      = serializers.DepositeSerializer(Deposite.objects.filter(in_use=True),many=True).data
         
-        return params
+        return Response({"object":params})
     
     def post(self, request, *args, **kwargs):
         
@@ -321,7 +381,7 @@ class PurchaseStorageView(ModelView):
             try:
                 purchase = PurchaseStorage.objects.get(id=purchase_id)
             except:
-                return u'输入采购编号未找到'
+                return Response(u'输入采购编号未找到')
         else:
             state = True
             purchase = PurchaseStorage()
@@ -339,31 +399,39 @@ class PurchaseStorageView(ModelView):
         return HttpResponseRedirect('/purchases/storage/%d/'%purchase.id)
 
 
-class PurchaseStorageInsView(ModelView):
+class PurchaseStorageInsView(APIView):
     """ 入库单修改界面 """
-    
+    serializer_class = serializers.PurchaseStorageSerialize
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (PurchaseStorageHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         
         try:
+           # print   PurchaseStorage.objects.all()[0].id
+
             purchase = PurchaseStorage.objects.get(id=id)
         except Exception,exc:
-            raise Http404
+            raise Http404("no  data")
             
         params = {}
-        params['suppliers']      = Supplier.objects.filter(in_use=True)
-        params['deposites']      = Deposite.objects.filter(in_use=True)
-        params['purchase_storage'] = purchase.json
-        
-        return params
+        params['suppliers']      = serializers.SupplierSerializer(Supplier.objects.filter(in_use=True),many=True).data
+        params['deposites']      = serializers.DepositeSerializer(Deposite.objects.filter(in_use=True),many=True).data
+        #params['purchase_storage'] = purchase.json
+        params['purchase_storage'] = serializers.PurchaseSerializer(purchase).data  
+        return Response({"object":params})
 
 
-class PurchaseStorageItemView(ModelView):
+class PurchaseStorageItemView(APIView):
     """ 入库单项 """
-    
+    serializer_class = serializers.PurchaseStorageSerialize
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
         pass
-        
+        return  Response({"example":"get__function"}) #这句话没有用，为了语法才加上的
     def post(self, request, *args, **kwargs):
         
         content = request.REQUEST
@@ -388,16 +456,16 @@ class PurchaseStorageItemView(ModelView):
             else:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=prod)
         except:
-            return u'未找到商品及规格' 
+            return Response(u'未找到商品及规格' )
         
         try:
             purchase = PurchaseStorage.objects.get(id=purchase_id)
         except:
-            return u'未找到入库单'
+            return Response(u'未找到入库单')
         
         if purchase.status != pcfg.PURCHASE_DRAFT and \
             not perm.has_confirm_storage_permission(request.user):
-            return '你没有权限修改'
+            return Response('你没有权限修改')
         
         purchase_item,state = PurchaseStorageItem.objects.get_or_create(
                                 purchase_storage=purchase,product_id=prod.id,
@@ -413,17 +481,20 @@ class PurchaseStorageItemView(ModelView):
         log_action(request.user.id,purchase,CHANGE,u'%s 入库项（%s,%d）'%
                    (state and u'添加' or u'修改',purchase_item.id,num))
         
-        return purchase_item.json
+       # return purchase_item.json
+        return Response(serializers.PurchaseItemSerializer(purchase_item).data)
 
-
-class StorageDistributeView(ModelView):
+class StorageDistributeView(APIView):
     """ 采购入库单匹配 """
-    
+    serializer_class = serializers.PurchaseStorageSerialize
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (StorageDistributeRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         try:
             purchase_storage = PurchaseStorage.objects.get(id=id)
         except:
-            return u'未找到入库单'
+            return Response(u'未找到入库单')
         
         #给关联采购单分配入库数量，并返回未分配的入库数
         undist_storage_items = purchase_storage.distribute_storage_num()            
@@ -442,16 +513,23 @@ class StorageDistributeView(ModelView):
                  'prepay_complate':prepay_complate
                  }
 
-        return {'undist_storage_items':undist_storage_items,
+        return Response( {"object":{'undist_storage_items':undist_storage_items,
                 'ship_purchases':ship_purchases,
-                'purchase_storage':purchase_storage,
-                'perms':permissions}
+                #'purchase_storage':purchase_storage,
+                'purchase_storage':serializers.PurchaseStorageSerialize(purchase_storage).data,
+                'perms':permissions}})
     
     
-class ConfirmStorageView(ModelView):
+class ConfirmStorageView(APIView):
     """ 确认采购入库 """
-        
+    serializer_class = serializers.PurchaseStorageSerialize
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)    
+    
     def post(self, request, *args, **kwargs):
+        #print  PurchaseStorage.objects.all()[1].id,PurchaseStorage.objects.all()[1].status
+        
         
         content     = request.POST
         purchase_id = content.get('purchase_id')
@@ -461,15 +539,15 @@ class ConfirmStorageView(ModelView):
             purchase_storage = PurchaseStorage.objects.get(
                                         id=purchase_id,status=pcfg.PURCHASE_DRAFT)
         except:
-            return u'未找到入库单'
+            return Response(u'未找到入库单')
         
         if purchase_storage.normal_storage_items.count()==0 or \
             not perm.has_confirm_storage_permission(request.user):
-            return u'无权限确认收货'
+            return Response(u'无权限确认收货')
             
         undist_storage_items = purchase_storage.distribute_storage_num()
         if undist_storage_items:
-            return u'入库项未完全关联采购单'
+            return Response(u'入库项未完全关联采购单')
         
         config = SystemConfig.getconfig()
         
@@ -495,9 +573,9 @@ class ConfirmStorageView(ModelView):
                     storage_item.save()
                     
                     if chg_prod_sku_map.has_key(product_id):
-                        chg_prod_sku_map[product_id].append(prod_sku and (prod_sku.outer_id or product_sku.id) or '')
+                        chg_prod_sku_map[product_id].append(prod_sku and (prod_sku.outer_id or prod_sku.id) or '')####product_sku  报错   2015-7-29
                     else:
-                        chg_prod_sku_map[product_id] = [prod_sku and (prod_sku.outer_id or product_sku.id) or '']
+                        chg_prod_sku_map[product_id] = [prod_sku and (prod_sku.outer_id or prod_sku.id) or '']
                     
                 purchase_storage.is_addon = True
                 
@@ -545,7 +623,7 @@ def delete_purchasestorage_item(request):
     try:
         purchase = PurchaseStorage.objects.get(id=purchase_id)
     except PurchaseStorage.DoesNotExist:
-        raise http404
+        raise Http404
         
     if purchase.status!=pcfg.PURCHASE_DRAFT and not perm.has_confirm_storage_permission(request.user):
         return HttpResponse(
@@ -613,15 +691,23 @@ def upload_purchase_storage_file(request,id):
 
 
 #################################### 采购付款项 #################################
-class PurchasePaymentView(ModelView):
+class PurchasePaymentView(APIView):
     """ 采购付款 """
-    
+    serializer_class = serializers.PurchasePaymentSerialize
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (PurchasePaymentRenderer,BrowsableAPIRenderer)    #   BaseJsonRenderer 这里有奇怪问题，暂时不返回json
     def get(self, request, *args, **kwargs):
-        
-        waitpay_purchases = Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
-        waitpay_storages  = PurchaseStorage.objects.filter(Q(status=pcfg.PURCHASE_APPROVAL)|Q(status=pcfg.PURCHASE_DRAFT,is_pod=True))
-
-        return {'purchases':waitpay_purchases,'storages':waitpay_storages}
+        #print "4455"
+       # waitpay_purchases = serializers.PurchaseSerializer(Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL),many=True).data
+        #waitpay_storages  =serializers.PurchaseStorageSerialize( PurchaseStorage.objects.filter(Q(status=pcfg.PURCHASE_APPROVAL)|Q(status=pcfg.PURCHASE_DRAFT,is_pod=True)),many=True).data
+        waitpay_purchases=Purchase.objects.filter(status=pcfg.PURCHASE_APPROVAL)
+        waitpay_storages  =PurchaseStorage.objects.filter(Q(status=pcfg.PURCHASE_APPROVAL)|Q(status=pcfg.PURCHASE_DRAFT,is_pod=True))
+        #print waitpay_purchases
+       # print waitpay_storages
+      #  a=serializers.PurchaseSerializer(waitpay_purchases[0]).data
+       # b=serializers.PurchaseStorageSerialize(waitpay_storages[0]).data
+        return Response({"object":{'purchases':waitpay_purchases,'storages':waitpay_storages}})
         
     def post(self, request, *args, **kwargs):
         
@@ -722,33 +808,38 @@ class PurchasePaymentView(ModelView):
                 purchase_payment.invalid()
                 log_action(request.user.id,purchase_payment,CHANGE,u'创建采购付款单出错:%s'%exc.message)
                 
-            return {'purchases':waitpay_purchases,'storages':waitpay_storages,'error_msg':exc.message}
+            return Response({"object":{'purchases':waitpay_purchases,'storages':waitpay_storages,'error_msg':exc.message}})
         else:
             return HttpResponseRedirect("/purchases/payment/distribute/%d/"%purchase_payment.id)
             
             
-class PaymentDistributeView(ModelView):
+class PaymentDistributeView(APIView):
     """ 付款单金额分配 """
-    
+    serializer_class = serializers.PurchasePaymentSerialize
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (PaymentDistributeRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)    #   BaseJsonRenderer 这里有奇怪问题，暂时不返回json
     def get(self, request, id, *args, **kwargs):
         
         try:
+            #print PurchasePayment.objects.all()[0].id
             purchase_payment = PurchasePayment.objects.get(id=id)
-        except PruchasePayment.DoesNotExist:
-            return u'采购付款单未找到'
+        except PurchasePayment.DoesNotExist:
+            return Response(u'采购付款单未找到')
         
         perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) 
                  and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
                 'can_apply_payment':purchase_payment.status in (pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT)}
         
-        return {'purchase_payment':purchase_payment.json,'perms':perms}
+        return Response({"object":{'purchase_payment':purchase_payment.json,'perms':perms}})
         
         
     def post(self, request, id, *args, **kwargs):
-        
+        print id,"888888888888888888888888"
         try:
             purchase_payment = PurchasePayment.objects.get(id=id,status__in=(pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT))
-        except PruchasePayment.DoesNotExist:
+            #purchase_payment = PurchasePayment.objects.get(id=7)
+        except PurchasePayment.DoesNotExist:
             raise Http404
         
         try:
@@ -764,7 +855,7 @@ class PaymentDistributeView(ModelView):
             perms = {'can_confirm_payment':perm.has_payment_confirm_permission(request.user) \
                      and purchase_payment.status==pcfg.PP_WAIT_PAYMENT,
                      'can_apply_payment':purchase_payment.status in (pcfg.PP_WAIT_APPLY,pcfg.PP_WAIT_PAYMENT)}
-            return {'purchase_payment':purchase_payment.json,'error_msg':exc.message,'perms':perms}
+            return   Response({'purchase_payment':purchase_payment.json,'error_msg':exc.message,'perms':perms})
         
         purchase_payment.status = pcfg.PP_WAIT_PAYMENT
         purchase_payment.save()

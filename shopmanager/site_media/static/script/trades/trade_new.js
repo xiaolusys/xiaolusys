@@ -464,7 +464,8 @@ $.post('/trades/checkorder/'+trade_id+'/?format=json', {
 					'logistic_code': logisticsDom,
 					'priority':priorityDom,
 					'shipping_type':shippingDom,
-					'action':action_code
+					'action':action_code,
+                                         
 },function(res){
               var that  = this;
            try {
@@ -491,3 +492,5 @@ $.post('/trades/checkorder/'+trade_id+'/?format=json', {
 }
 
 
+
+function getCookie(sName){ var aCookie=document.cookie.split("; "); for(var i=0;i<aCookie.length;i++){ var aCrumb=aCookie[i].split("="); if(sName==aCrumb[0])return (aCrumb[1]); } return null;} 

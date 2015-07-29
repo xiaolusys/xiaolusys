@@ -1,9 +1,12 @@
+#coding:utf-8
 from django.conf.urls.defaults import patterns, url,include
-from shopback.base.authentication import UserLoggedInAuthentication
-from shopback.base.views import InstanceModelView
-from shopback.base.permissions import IsAuthenticated, PerUserThrottling
+# from shopback.base.authentication import UserLoggedInAuthentication
+#fangkaineng  7-29好像没有用这个方法，就删掉了
+##    from shopback.base.views import InstanceModelView
+#kaineng 
+# from shopback.base.permissions import IsAuthenticated, PerUserThrottling
 from shopapp.autolist.views import ListItemTaskView,CreateListItemTaskModelView
-from shopapp.autolist.resources import ItemListTaskResource
+# from shopapp.autolist.resources import ItemListTaskResource
 
 urlpatterns = patterns('shopapp.autolist.views',
     url('^$','pull_from_taobao',name='pull_from_taobao'),
@@ -16,7 +19,17 @@ urlpatterns = patterns('shopapp.autolist.views',
     url('logs/$', 'show_logs', name='show_logs'),
     url('invalid/(?P<num_iid>[^/]+)/$', 'invalid_list_task', name='invalid_list'),
 
-    url(r'^listtask/$', CreateListItemTaskModelView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,),)),
-    url(r'^(?P<pk>[^/]+)/$', InstanceModelView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,))),
-    url(r'^list/self/$', ListItemTaskView.as_view(resource=ItemListTaskResource, authentication=(UserLoggedInAuthentication,), permissions=(IsAuthenticated,),)),
+    url(r'^listtask/$', CreateListItemTaskModelView.as_view()),#fang   2015  7-20 
+    #fang    7-29好像没有用这个方法，就删掉了
+  #  url(r'^(?P<pk>[^/]+)/$', InstanceModelView.as_view(
+                                                       #resource=ItemListTaskResource, 
+                                                       #authentication=(UserLoggedInAuthentication,), 
+                                                       #permissions=(IsAuthenticated,)
+                                               #        )),
+      #  7-29好像没有用这个方法，就删掉了
+    url(r'^list/self/$', ListItemTaskView.as_view(
+                                                 # resource=ItemListTaskResource,
+                                                   #authentication=(UserLoggedInAuthentication,), 
+                                                   #permissions=(IsAuthenticated,),
+                                                   )),
 )
