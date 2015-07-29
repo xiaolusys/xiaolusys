@@ -21,6 +21,9 @@ class SecureRequiredMiddleware(object):
                     return HttpResponsePermanentRedirect(secure_url)
         return None
 
+class DisableDRFCSRFCheck(object):
+    def process_request(self, request):
+        setattr(request, '_dont_enforce_csrf_checks', True)
 
 class QueryCountDebugMiddleware(object):
     """
