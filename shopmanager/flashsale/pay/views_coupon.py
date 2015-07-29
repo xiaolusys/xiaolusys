@@ -77,6 +77,8 @@ def Coupon_Check(request):
     content = request.REQUEST
     coupon_no = content.get('coupon_no', None)
     if coupon_no:
+        # 取出coupon_no的空格
+        coupon_no = coupon_no.replace(' ', '')
         try:
             coupon = CouponPool.objects.get(coupon_no=coupon_no)
             # 判断该优惠券有没有被领取
