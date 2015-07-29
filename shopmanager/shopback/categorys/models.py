@@ -18,7 +18,7 @@ class Category(models.Model):
     cid        = models.IntegerField(primary_key=True)
     parent_cid = models.IntegerField(null=True,db_index=True)
 
-    name       = models.CharField(max_length=32)
+    name       = models.CharField(max_length=32,blank=True)
     is_parent  = models.BooleanField(default=True)
     status     = models.CharField(max_length=7,choices=CAT_STATUS,default=NORMAL)
     sort_order = models.IntegerField(null=True)
@@ -30,7 +30,6 @@ class Category(models.Model):
 
     def __unicode__(self):
         return self.name
-
 
     @classmethod
     def get_or_create(cls,user_id,cat_id):

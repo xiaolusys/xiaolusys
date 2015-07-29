@@ -2,7 +2,8 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-from djangorestframework.views import InstanceModelView
+#from djangorestframework.views import InstanceModelView
+
 from shopback.trades.views    import (StatisticMergeOrderView,
                                       CheckOrderView,
                                       OrderPlusView,
@@ -30,27 +31,27 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       showFenxiaoDetail,
                                       PackageScanCheckView,
                                       PackageScanWeightView,
-                                      
+                                      InstanceModelView_new,
                                       )
-from shopback.trades.views import detail,search_trade,manybeizhu, beizhu
-from shopback.base.renderers  import BaseJsonRenderer
-from shopback.trades.renderers import (CheckOrderRenderer,
-                                       ReviewOrderRenderer,
-                                       ExchangeOrderRender,
-                                       DirectOrderRender,
-                                       StatisticMergeOrderRender,
-                                       StatisticOutStockRender,
-                                       OrderListRender,
-                                       TradeLogisticRender,
-                                       RelatedOrderRenderer)
-from shopback.trades.resources import (BaseResource,
-                                       TradeResource,
-                                       OrderPlusResource,
-                                       ExchangeOrderResource,
-                                       MergeTradeResource,
-                                       StatisticMergeOrderResource)
-from shopback.base.permissions import IsAuthenticated
-from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
+from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test
+# from shopback.base.renderers  import BaseJsonRenderer
+# from shopback.trades.renderers import (CheckOrderRenderer,
+#                                        ReviewOrderRenderer,
+#                                        ExchangeOrderRender,
+#                                        DirectOrderRender,
+#                                        StatisticMergeOrderRender,
+#                                        StatisticOutStockRender,
+#                                        OrderListRender,
+#                                        TradeLogisticRender,
+#                                        RelatedOrderRenderer)
+# from shopback.trades.resources import (BaseResource,
+#                                        TradeResource,
+#                                        OrderPlusResource,
+#                                        ExchangeOrderResource,
+#                                        MergeTradeResource,
+#                                        StatisticMergeOrderResource)
+# from shopback.base.permissions import IsAuthenticated
+from shopback.base.authentication import login_required_ajax
 
 
 from shopback.trades import views_product_analysis
@@ -67,103 +68,103 @@ urlpatterns = patterns('shopback.trades.views',
     (r'logistic/$',csrf_exempt(login_required_ajax(change_logistic_and_outsid))),
     (r'^memo/$',csrf_exempt(login_required_ajax(update_sys_memo))), 
     (r'^priority/(?P<id>\d{1,20})/',ImprovePriorityView.as_view(
-        resource=MergeTradeResource,
-        renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+       # resource=MergeTradeResource,
+       # renderers=(BaseJsonRenderer,),
+       # authentication=(UserLoggedInAuthentication,),
+       # permissions=(IsAuthenticated,)
     )),
     (r'^regular/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(regular_trade))), 
     
-    (r'^trade/(?P<id>\d{1,20})/$',InstanceModelView.as_view(
-        resource=MergeTradeResource,
-        renderers=(BaseJsonRenderer,CheckOrderRenderer),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+    (r'^trade/(?P<id>\d{1,20})/$',InstanceModelView_new.as_view(
+#         resource=MergeTradeResource,
+#         renderers=(BaseJsonRenderer,CheckOrderRenderer),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     )),                   
-    (r'^checkorder/(?P<id>\d{1,20})/$',csrf_exempt(CheckOrderView.as_view(
-        resource=TradeResource,
-        renderers=(BaseJsonRenderer,CheckOrderRenderer),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
-    ))),
+    (r'^checkorder/(?P<id>\d{1,20})/$',CheckOrderView.as_view(
+#         resource=TradeResource,
+#         renderers=(BaseJsonRenderer,CheckOrderRenderer),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
+    )),
     (r'^orderplus/$',OrderPlusView.as_view(
-        resource=OrderPlusResource,
-        renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+       # resource=OrderPlusResource,
+       #renderers=(BaseJsonRenderer,),
+        #authentication=(UserLoggedInAuthentication,),
+        #permissions=(IsAuthenticated,)
     )),
     
     (r'^revieworder/(?P<id>\d{1,20})/$',staff_member_required(ReviewOrderView.as_view(
-        resource=OrderPlusResource,
-        renderers=(BaseJsonRenderer,ReviewOrderRenderer),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+       # resource=OrderPlusResource,
+        #renderers=(BaseJsonRenderer,ReviewOrderRenderer),
+       # authentication=(UserLoggedInAuthentication,),
+       # permissions=(IsAuthenticated,)
     ))),
     (r'^exchange/$',staff_member_required(ExchangeOrderView.as_view(
-        resource=ExchangeOrderResource,
-        renderers=(BaseJsonRenderer,ExchangeOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+       # resource=ExchangeOrderResource,
+        #renderers=(BaseJsonRenderer,ExchangeOrderRender),
+        #authentication=(UserLoggedInAuthentication,),
+       # permissions=(IsAuthenticated,)
     ))),
     url(r'^exchange/(?P<id>\d{1,20})/$',
         staff_member_required(ExchangeOrderInstanceView.as_view(
-            resource=ExchangeOrderResource,
-            renderers=(BaseJsonRenderer,ExchangeOrderRender),
-            authentication=(UserLoggedInAuthentication,),
-            permissions=(IsAuthenticated,)
+            #resource=ExchangeOrderResource,
+           # renderers=(BaseJsonRenderer,ExchangeOrderRender),from django.http import HttpResponse, Http404
+            #authentication=(UserLoggedInAuthentication,),
+           # permissions=(IsAuthenticated,)
     )),name="exchange_order_instance"),
     (r'^direct/$',staff_member_required(DirectOrderView.as_view(
-        resource=ExchangeOrderResource,
-        renderers=(BaseJsonRenderer,DirectOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#         resource=ExchangeOrderResource,
+#         renderers=(BaseJsonRenderer,DirectOrderRender),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     ))),
    url(r'^direct/(?P<id>\d{1,20})/$',
-        staff_member_required(DirectOrderInstanceView.as_view(
-            resource=ExchangeOrderResource,
-            renderers=(BaseJsonRenderer,DirectOrderRender),
-            authentication=(UserLoggedInAuthentication,),
-            permissions=(IsAuthenticated,)
+         staff_member_required(DirectOrderInstanceView.as_view(
+#             resource=ExchangeOrderResource,
+#             renderers=(BaseJsonRenderer,DirectOrderRender),
+#             authentication=(UserLoggedInAuthentication,),
+#             permissions=(IsAuthenticated,)
     )),name="direct_order_instance"),
                        
     (r'^tradeplus/$',TradeSearchView.as_view(
-        resource=OrderPlusResource,
-        renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#         resource=OrderPlusResource,
+#         renderers=(BaseJsonRenderer,),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     )),
     (r'^order/statistic/$',StatisticMergeOrderView.as_view(
-        resource=StatisticMergeOrderResource,
-        renderers=(BaseJsonRenderer,StatisticMergeOrderRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#         resource=StatisticMergeOrderResource,
+#         renderers=(BaseJsonRenderer,StatisticMergeOrderRender),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     )),
     (r'^order/outstock/$',OutStockOrderProductView.as_view(
-        resource=StatisticMergeOrderResource,
-        renderers=(BaseJsonRenderer,StatisticOutStockRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#         resource=StatisticMergeOrderResource,
+#         renderers=(BaseJsonRenderer,StatisticOutStockRender),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     )),
     
     (r'^order/list/(?P<id>\d{1,20})/$',OrderListView.as_view(
-        resource=OrderPlusResource,
-        renderers=(BaseJsonRenderer,OrderListRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#         resource=OrderPlusResource,
+#         renderers=(BaseJsonRenderer,OrderListRender),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     )),
                        
     (r'^related/orders/$',RelatedOrderStateView.as_view(
-        resource=BaseResource,
-        renderers=(RelatedOrderRenderer,BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#         resource=BaseResource,
+#         renderers=(RelatedOrderRenderer,BaseJsonRenderer,),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     )),
                        
     (r'^logistic/query/$',TradeLogisticView.as_view(
-        resource=MergeTradeResource,
-        renderers=(BaseJsonRenderer,TradeLogisticRender),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+#         resource=MergeTradeResource,
+#         renderers=(BaseJsonRenderer,TradeLogisticRender),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
     )),
     
     (r'fenxiao/count/$',csrf_exempt(countFenxiaoAcount)),
@@ -171,29 +172,29 @@ urlpatterns = patterns('shopback.trades.views',
     (r'fenxiao/count/detail/$',staff_member_required(showFenxiaoDetail)),
     
     (r'^scancheck/$',csrf_exempt(PackageScanCheckView.as_view(
-        resource=BaseResource,
-        renderers=(BaseJsonRenderer,),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+      # resource=BaseResource,
+     #   renderers=(BaseJsonRenderer,),
+#        authentication=(UserLoggedInAuthentication,),  ##fang 2015-7-27  原来就没有
+#        permissions=(IsAuthenticated,)####fang 2015-7-27  原来就没有
     ))), 
      
     (r'^scanweight/$',csrf_exempt(PackageScanWeightView.as_view(
-        resource=BaseResource,
-        renderers=(BaseJsonRenderer,),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        #resource=BaseResource,
+        #renderers=(BaseJsonRenderer,),
+#        authentication=(UserLoggedInAuthentication,),     ##fang 2015-7-27  原来就没有
+#        permissions=(IsAuthenticated,)                             ##fang 2015-7-27  原来就没有
     ))), 
     (r'^detail/$',csrf_exempt(login_required_ajax(detail))),
     (r'^manybeizhu/$',csrf_exempt(login_required_ajax(manybeizhu))),
    # (r'^beizhu/$',csrf_exempt(login_required_ajax(view_beizhu))),
     (r'^search_trade/$',csrf_exempt(login_required_ajax(search_trade))),
    #url (r'^check_order/(?P<trade_id>\d+)$',views_new_check_order.check_order,name="check_order"),
-    url (r'^check_order/(?P<id>\d+)$',csrf_exempt(CheckOrderView.as_view(
-        resource=TradeResource,
-        renderers=(BaseJsonRenderer,CheckOrderRenderer),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
-    ))),
+#     url (r'^check_order/(?P<id>\d+)$',csrf_exempt(CheckOrderView.as_view(
+#         resource=TradeResource,
+#         renderers=(BaseJsonRenderer,CheckOrderRenderer),
+#         authentication=(UserLoggedInAuthentication,),
+#         permissions=(IsAuthenticated,)
+#     ))),
     # linjie add in here
     # 产品的销售件数，金额，退货率，次品率
     url(r'^product_analysis/$', views_product_analysis.product_Analysis, name="product_Analysis"),
@@ -204,4 +205,5 @@ urlpatterns = patterns('shopback.trades.views',
     url(r'^product_analysis_collect_top100/$', views_product_analysis.product_Collect_Topp100, name="product_Collect_Topp100"),
    
     url(r'^beizhu/$', beizhu, name='beizhu'),
+    url(r'^test/$', test, name="test"),
 )

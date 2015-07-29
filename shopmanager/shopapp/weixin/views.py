@@ -1510,14 +1510,31 @@ class GiftView(View):
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
-
+# from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
+ 
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from . import serializers 
+from rest_framework import status
+from shopback.base.new_renders import new_BaseJSONRenderer
 
 LINK_RE = re.compile('^.+pid=(?P<pid>[\w-]{16,64})')            
             
-class WeixinProductView(ModelView):
+class WeixinProductView(APIView):
     """ 微信特卖商品更新 """
-    
+    serializer_class = serializers.WeixinProductSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer,TemplateHTMLRenderer)
+    template_name = "weixin/weixinproductsync.html"    
     def getPid(self,link):
         m = LINK_RE.match(link)
         return m and m.groupdict()['pid'] or ''
@@ -1534,9 +1551,7 @@ class WeixinProductView(ModelView):
         content = request.REQUEST
         product_ids = content.get('product_ids','').split(',')
         next    = content.get('next')
-        
         wx_pids = self.getLinkProductIds(content)
-        
         for pid in wx_pids:
             if not pid:continue
             WXProduct.objects.getOrCreate(pid,force_update=True)
@@ -1546,9 +1561,9 @@ class WeixinProductView(ModelView):
         for p in queryset:
             product_list.append(WXProduct.objects.fetchSkuMatchInfo(p))
                     
-        return {'product_list':product_list,
+        return Response({'product_list':product_list,
                 'product_ids':','.join([str(p.id) for p in queryset]),
-                'next':next}
+                'next':next})
 
         
     def post(self, request,*args, **kwargs):
@@ -1620,18 +1635,22 @@ class WeixinProductView(ModelView):
         return HttpResponseRedirect(next)
     
 
-class WeixinProductVerifyView(ModelView):
+class WeixinProductVerifyView(APIView):
     """ 微信特卖商品校验 """
-
+    serializer_class = serializers.WeixinProductSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer,TemplateHTMLRenderer)
+    template_name = "weixin/weixinproductsync.html"    
     def post(self, request, *args, **kwargs):
-        
+       # print "post"
         content = request.REQUEST
         product_ids = content.get('product_ids','').split(',')
-
+        #product_ids=[1,2,3,4,5]
         queryset = Product.objects.filter(id__in=product_ids)
         update_rows = queryset.update(is_verify=True)
                     
-        return {'code':0,'response':{'update_rows':update_rows}}
+        return Response({'code':0,'response':{'update_rows':update_rows}})
 
         
 

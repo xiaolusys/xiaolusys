@@ -12,8 +12,8 @@ from django.views.generic import FormView
 from django.template import RequestContext
 from django.db.models import Q,Sum
 
-from djangorestframework.views import ModelView
-from djangorestframework.response import ErrorResponse
+#from djangorestframework.views import ModelView
+#from djangorestframework.response import ErrorResponse
 from shopback.logistics import getLogisticTrace
 from shopback.trades.models import (
         MergeTrade,
@@ -44,11 +44,26 @@ import logging
 
 logger = logging.getLogger('django.request')
 
-    
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from . import serializers 
+from rest_framework import status
+from shopback.base.new_renders import new_BaseJSONRenderer   
+from renderers import *
 ############################### 缺货订单商品列表 #################################       
-class OutStockOrderProductView(ModelView):
+class OutStockOrderProductView(APIView):
     """ docstring for class OutStockOrderProductView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (StatisticOutStockRender,new_BaseJSONRenderer ,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
         outer_stock_orders  = MergeOrder.objects.filter(
@@ -108,12 +123,15 @@ class OutStockOrderProductView(ModelView):
             skus = trade[1]['skus']
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
 
-        return {'trade_items':trade_list,}
+        return   Response({"object":{'trade_items':trade_list,}})
     
 
-class StatisticMergeOrderView(ModelView):
+class StatisticMergeOrderView(APIView):
     """ docstring for class StatisticsMergeOrderView """
-    
+    #serializer_class = serializers. ItemListTaskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (StatisticMergeOrderRender,new_BaseJSONRenderer ,BrowsableAPIRenderer,)
     def parseStartDt(self,start_dt):
         
         if not start_dt:
@@ -389,9 +407,10 @@ class StatisticMergeOrderView(ModelView):
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         
-        shopers = User.objects.filter(status=User.NORMAL)
+       # shopers = User.objects.filter(status=User.NORMAL)
+        shopers = serializers.UserSerializer(User.objects.filter(status=User.NORMAL),many=True).data
         
-        return {'df':format_datetime(start_dt),
+        return  Response({"object":{'df':format_datetime(start_dt),
                 'dt':format_datetime(end_dt),
                 'sc_by':sc_by,
                 'is_sale':is_sale,
@@ -407,32 +426,38 @@ class StatisticMergeOrderView(ModelView):
                 'refund_fees':refund_fees and round(refund_fees,2) or 0,
                 'buyer_nums':buyer_nums,
                 'trade_nums':trade_nums,
-                'post_fees':total_post_fee }
+                'post_fees':total_post_fee }})
         
     post = get
 
 from django.forms.models import model_to_dict
 from shopback.trades.service import TradeService
 
-class CheckOrderView(ModelView):
-    """ docstring for class CheckOrderView """
+class CheckOrderView(APIView):
+   # serializer_class = serializers. ItemListTaskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = ( authentication.BasicAuthentication,)   #  
+    renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
     
     def get(self, request, id, *args):
-        print "进入get"
+        #print "进入get"
         try:
             trade = MergeTrade.objects.get(id=id)
+            #print trade.inuse_orders
         except MergeTrade.DoesNotExist:
-            return '该订单不存在'.decode('utf8')
+            return Response('该订单不存在'.decode('utf8'))
         
         #rule_signal.send(sender='payment_rule',trade_id=trade.id)
-        logistics = LogisticsCompany.objects.filter(status=True)
+        #logistics = LogisticsCompany.objects.filter(status=True)
+        logistics =serializers.LogisticsCompanySerializer( LogisticsCompany.objects.filter(status=True),many=True).data
         order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         trade_dict = model_to_dict(trade)
         trade_dict.update({'id':trade.id,
                            'seller_nick':trade.user.nick,
-                           'used_orders':trade.inuse_orders,
+                           #'used_orders':trade.inuse_orders,   2015-7-25
+                           'used_orders':serializers.MergeOrderSerializer(trade.inuse_orders,many=True).data,  
                            'total_num':order_nums,
-                           'logistics_company':trade.logistics_company,
+                           'logistics_company':serializers.LogisticsCompanySerializer(trade.logistics_company).data,
                            'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
                            'has_rule_match':(trade.has_rule_match and 
                                              trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
@@ -441,16 +466,16 @@ class CheckOrderView(ModelView):
                            'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
                             'shippings':dict(SHIPPING_TYPE_CHOICE)
                            })
-        return {'trade':trade_dict,  'logistics':logistics  }
-                #'shippings33':dict(SHIPPING_TYPE_CHOICE)  } 
-        
+        return Response({"object":{'trade':trade_dict,  'logistics':logistics } })
+                #'shippings33':dict(SHIPPING_TYPE_CHOICE)  }    
+     
     def post(self, request, id, *args, **kwargs):
-        print "进入post"
+       # print "进入post"
         user_id = request.user.id
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            return u'该订单不存在'
+            return Response(u'该订单不存在')
         content       = request.REQUEST
         priority      = content.get('priority')
         logistic_code = content.get('logistic_code')
@@ -462,7 +487,7 @@ class CheckOrderView(ModelView):
             logistics_company = LogisticsCompany.objects.get(code=logistic_code)
         elif shipping_type != pcfg.EXTRACT_SHIPPING_TYPE:
             #如果没有选择物流也非自提订单，则提示
-            return u'请选择物流公司'
+            return Response(u'请选择物流公司')
         
         is_logistic_change = trade.logistics_company != logistics_company
         trade.logistics_company = logistics_company
@@ -492,8 +517,9 @@ class CheckOrderView(ModelView):
             if orders.count()==0:
                 check_msg.append(u"订单没有商品信息")
             if check_msg:
-                return ','.join(check_msg)
-            
+                #print  "8888888"
+                return Response( ','.join(check_msg))
+            #print "9999"
             if trade.type == pcfg.EXCHANGE_TYPE:
                 change_orders = trade.merge_orders.filter(
                     gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,
@@ -567,27 +593,31 @@ class CheckOrderView(ModelView):
             
         elif action_code == 'review':
             if trade.sys_status not in pcfg.WAIT_SCAN_CHECK_WEIGHT:
-                return u'订单不在待扫描状态'
+                return Response(u'订单不在待扫描状态')
             
             if is_logistic_change:
                 trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
             
             MergeTrade.objects.filter(id=id).update(can_review=True)
             log_action(user_id,trade,CHANGE,u'订单复审')
-            
-        return {'success':True}
+        
+        
+        print "444"    
+        return Response({'success':True})
       
 import re
        
-class OrderPlusView(ModelView):
+class OrderPlusView(APIView):
     """ docstring for class OrderPlusView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = ( authentication.BasicAuthentication,)   #  
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
         q  = request.GET.get('q').strip()
         print "搜索条件",q
         if not q:
-            return '没有输入查询关键字'.decode('utf8')
+            return Response( '没有输入查询关键字'.decode('utf8'))
         
         product_set = set()
         if re.compile('\w+').match(q):
@@ -600,11 +630,12 @@ class OrderPlusView(ModelView):
         prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,
                       [(sku.outer_id,sku.name,sku.quantity) for sku in prod.pskus]) for prod in product_set]
         print prod_list
-        return prod_list
+        return Response(prod_list)
         
     def post(self, request, *args, **kwargs):
+        #print "post88888888888888888"
         CONTENT    = request.REQUEST
-        print "post搜索条件",CONTENT.get('trade_id')
+        #print "post搜索条件",CONTENT.get('trade_id')
         user_id  = request.user.id
       #  trade_id = request.POST.get('trade_id')
         trade_id = CONTENT.get('trade_id')
@@ -620,17 +651,17 @@ class OrderPlusView(ModelView):
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
-            return '该订单不存在'.decode('utf8')
+            return Response('该订单不存在'.decode('utf8'))
         try:
             Product.objects.get(outer_id=outer_id)
         except Product.DoesNotExist:
-            return '该商品不存在'.decode('utf8')
+            return Response ('该商品不存在'.decode('utf8'))
         
         if outer_sku_id:
             try:
                 ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
-                return '该商品规格不存在'.decode('utf8')
+                return Response('该商品规格不存在'.decode('utf8'))
         
         if not merge_trade.can_change_order:
             return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"})
@@ -659,8 +690,8 @@ class OrderPlusView(ModelView):
         
         log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
         
-        print merge_order
-        return merge_order
+        #print merge_order
+        return Response(serializers.MergeOrderSerializer(merge_order).data)
     
            
 def change_trade_addr(request):
@@ -848,26 +879,29 @@ def delete_trade_order(request,id):
     
         
 ############################### 订单复审 #################################       
-class ReviewOrderView(ModelView):
+class ReviewOrderView(APIView):
     """ docstring for class ReviewOrderView """
-    
+    #serializer_class = serializers. ItemListTaskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (ReviewOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            return '该订单不存在'.decode('utf8')
+            return Response('该订单不存在'.decode('utf8'))
         
-        logistics = LogisticsCompany.objects.filter(status=True)
+        logistics = serializers.LogisticsCompanySerializer(LogisticsCompany.objects.filter(status=True),many=True).data
         order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         
         trade_dict = model_to_dict(trade)
         
         trade_dict.update({'id':trade.id,
                            'seller_nick':trade.user.nick,
-                           'used_orders':trade.inuse_orders,
+                           'used_orders':      serializers.MergeOrderSerializer(trade.inuse_orders,many=True).data,                                                                                         # trade.inuse_orders,
                            'order_nums':order_nums,
-                           'logistics_company':trade.logistics_company,
+                           'logistics_company':serializers.LogisticsCompanySerializer(trade.logistics_company).data,                                       #trade.logistics_company,
                            'can_review_status':trade.sys_status in pcfg.WAIT_SCAN_CHECK_WEIGHT,
                            'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
                            'has_rule_match':(trade.has_rule_match and 
@@ -885,8 +919,9 @@ class ReviewOrderView(ModelView):
                            'new_merge':trade.has_reason_code(pcfg.NEW_MERGE_TRADE_CODE),
                            'wait_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
                            })
-
-        return {'trade':trade_dict,'logistics':logistics}
+        print  serializers.MergeOrderSerializer(trade.inuse_orders,many=True).data
+        #print trade_dict
+        return  Response({"object":{'trade':trade_dict,'logistics':logistics}})
         
               
 def review_order(request,id):
@@ -1009,34 +1044,36 @@ def change_logistic_and_outsid(request):
 
 
 ############################### 退换货订单 #################################    
-class ExchangeOrderView(ModelView):
+class ExchangeOrderView(APIView):
     """ docstring for class ExchangeOrderView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    #authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (ExchangeOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
         origin_no   = MergeTrade._meta.get_field_by_name('tid')[0].get_default()
-        sellers = User.objects.all()
+        sellers = serializers.UserSerializer(User.objects.all(),many=True).data
         
-        return {'origin_no':origin_no,'sellers':sellers}
+        return Response({'object' :{'origin_no':origin_no,'sellers':sellers}})
     
     def post(self, request, *args, **kwargs):
         
         content     = request.REQUEST
         trade_id    = content.get('tid')
         seller_id   = content.get('sellerId')
-
+  
         try:
             merge_trade,state = MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
         except Exception,exc:
-            return u'退换货单创建异常:%s'%exc.message
-        
+            return Response(u'退换货单创建异常:%s'%exc.message)
+          
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
-            return u'订单状态已改变'
-        
+            return Response(u'订单状态已改变')
+          
         dt = datetime.datetime.now()
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
-        
+          
         merge_trade.type = pcfg.EXCHANGE_TYPE
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
         merge_trade.sys_status =  merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
@@ -1044,32 +1081,36 @@ class ExchangeOrderView(ModelView):
         merge_trade.pay_time   = dt
         merge_trade.modified   = dt
         merge_trade.save()
-        
+          
         log_action(request.user.id,merge_trade,CHANGE,u'订单创建')
 
         return HttpResponseRedirect(reverse('exchange_order_instance', 
                                             kwargs={'id':merge_trade.id}))
 
-class ExchangeOrderInstanceView(ModelView):
+class ExchangeOrderInstanceView(APIView):
     """ docstring for class ExchangeOrderView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (ExchangeOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request,id, *args, **kwargs):
         
         merge_trade =MergeTrade.objects.get(id=id)
-        
-        return {'trade':merge_trade,
-                'sellers':User.objects.all()}
-    
+        #print merge_trade.user,serializers.MergeTradeSerializer(merge_trade).data['user']
+#         return  Response({ 'object':{'trade':merge_trade,
+#                 'sellers':User.objects.all()}})
+        return  Response({ 'object':{'trade':serializers.MergeTradeSerializer(merge_trade).data,
+                'sellers':serializers.UserSerializer(User.objects.all(),many=True).data}})
     def post(self, request,id, *args, **kwargs):
         
         content     = request.REQUEST
         try:
             merge_trade = MergeTrade.objects.get(id=id)
+            print merge_trade
         except MergeTrade.DoesNotExist:
-            return u'退换货单创建异常'
+            return Response(u'退换货单创建异常')
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
-            return u'订单状态已改变'
+            return Response(u'订单状态已改变')
         
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
@@ -1081,14 +1122,16 @@ class ExchangeOrderInstanceView(ModelView):
         
         log_action(request.user.id,merge_trade,CHANGE,u'订单修改')
         
-        return {'trade':merge_trade,
+        return   Response({'object':{'trade':serializers.MergeTradeSerializer(merge_trade).data,
                 'type':merge_trade.type,  
-                'sellers':User.objects.all()}
+                'sellers':serializers.UserSerializer(User.objects.all(),many=True).data}})
         
 ############################### 内售订单 #################################       
-class DirectOrderView(ModelView):
+class DirectOrderView(APIView):
     """ docstring for class DirectOrderView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (DirectOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
         content = request.REQUEST
@@ -1096,9 +1139,9 @@ class DirectOrderView(ModelView):
         origin_no   = MergeTrade._meta.get_field_by_name('tid')[0].get_default()
         sellers = User.objects.all()
         
-        return {'origin_no':origin_no,
+        return Response({'object':{'origin_no':origin_no,
                 'trade_type':type,                    
-                'sellers':sellers}
+                'sellers':serializers.UserSerializer(sellers,many=True).data}})
     
     def post(self, request, *args, **kwargs):
         
@@ -1108,14 +1151,14 @@ class DirectOrderView(ModelView):
         trade_type   = content.get('trade_type')
         
         if trade_type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
-            return u'订单类型异常'
+            return Response( u'订单类型异常')
         try:
             merge_trade,state =  MergeTrade.objects.get_or_create(user_id=seller_id,tid=trade_id)
         except Exception,exc:
-            return u'退换货单创建异常:%s'%exc.message
+            return Response(u'退换货单创建异常:%s'%exc.message)
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
-            return u'订单状态已改变'
+            return Response( u'订单状态已改变')
         
         dt = datetime.datetime.now()
         for key,val in content.iteritems():
@@ -1134,17 +1177,19 @@ class DirectOrderView(ModelView):
         return  HttpResponseRedirect(reverse('direct_order_instance', 
                                              kwargs={'id':merge_trade.id}))
                    
-class DirectOrderInstanceView(ModelView):
+class DirectOrderInstanceView(APIView):
     """ docstring for class DirectOrderView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (DirectOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id,*args, **kwargs):
         
         merge_trade = MergeTrade.objects.get(id=id)
         sellers = User.objects.all()
         
-        return {'trade':merge_trade,   
+        return  Response({'object':{'trade':serializers.MergeTradeSerializer(merge_trade).data,   
                 'trade_type':merge_trade.type,
-                'sellers':sellers}
+                'sellers':serializers.UserSerializer(sellers,many=True).data}})
     
     def post(self, request, id, *args , **kwargs):
         
@@ -1152,14 +1197,14 @@ class DirectOrderInstanceView(ModelView):
         type = content.get('trade_type')
         
         if type not in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):
-            return u'订单类型异常'
+            return Response(u'订单类型异常')
         try:
             merge_trade =  MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
-            return u'内售单创建异常'
+            return Response(u'内售单创建异常')
         
         if merge_trade.sys_status not in('',pcfg.WAIT_AUDIT_STATUS):
-            return u'订单状态已改变'
+            return Response(u'订单状态已改变')
         
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
@@ -1170,9 +1215,12 @@ class DirectOrderInstanceView(ModelView):
         
         log_action(request.user.id,merge_trade,CHANGE,u'订单修改')
         
-        return {'trade':merge_trade,
+#         return {'trade':merge_trade,
+#                 'trade_type':merge_trade.type,
+#                 'sellers':User.objects.all()}
+        return  Response({'object':{'trade':serializers.MergeTradeSerializer(merge_trade).data,   
                 'trade_type':merge_trade.type,
-                'sellers':User.objects.all()}
+                'sellers':serializers.UserSerializer(User.objects.all(),many=True).data}})
         
         
 def update_sys_memo(request):
@@ -1231,14 +1279,16 @@ def replay_trade_send_result(request,id):
                                   context_instance=RequestContext(request),mimetype="text/html")
 
 
-class TradeSearchView(ModelView):   
+class TradeSearchView(APIView):   
     """ docstring for class ExchangeOrderView """
-         
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)     
     def get(self, request, *args, **kwargs):
          
         q  = request.REQUEST.get('q')
         if not q:
-            return u'请输入查询字符串'
+            return Response(u'请输入查询字符串')
         
         if q.isdigit():
             trades = MergeTrade.objects.filter(Q(id=q)|Q(tid=q)|
@@ -1271,7 +1321,7 @@ class TradeSearchView(ModelView):
             trade_dict['sys_status']  = dict(SYS_TRADE_STATUS).get(trade.sys_status,u'其他')
             trade_list.append(trade_dict)
         
-        return trade_list
+        return  Response(trade_list)
          
          
     def post(self, request, *args, **kwargs):
@@ -1282,12 +1332,12 @@ class TradeSearchView(ModelView):
         type        = content.get('type','')
         
         if not cp_tid or not pt_tid or not type.isdigit():
-            return u'请输入订单编号及退换货类型'
+            return Response(u'请输入订单编号及退换货类型')
             
         try:
             cp_trade = MergeTrade.objects.get(id=cp_tid)
         except MergeTrade.DoesNotExist:
-            return u'订单未找到'
+            return Response(u'订单未找到')
         
         try:
             pt_trade = MergeTrade.objects.get(id=pt_tid)
@@ -1326,13 +1376,15 @@ class TradeSearchView(ModelView):
             'gift_type':order.gift_type,}
             order_list.append(order_dict)
  
-        return order_list
+        return Response(order_list)
 
 
 ############################### 交易订单商品列表 #################################       
-class OrderListView(ModelView):
+class OrderListView(APIView):
     """ docstring for class OrderListView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (OrderListRender,new_BaseJSONRenderer,BrowsableAPIRenderer, )     
     def get(self, request, id, *args, **kwargs):
         
         order_list = []
@@ -1363,13 +1415,15 @@ class OrderListView(ModelView):
             order_dict['status']     = dict(TAOBAO_ORDER_STATUS).get(order.status,u'其他')
             order_list.append(order_dict)
             
-        return {'order_list':order_list}
+        return Response({"object":{'order_list':order_list}})
     
 ############################### 关联销售商品 #################################  
 
-class RelatedOrderStateView(ModelView):
+class RelatedOrderStateView(APIView):
     """ docstring for class RelatedOrderStateView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (RelatedOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer, )     
     def get(self, request, *args, **kwargs):
         
         content = request.REQUEST
@@ -1448,18 +1502,21 @@ class RelatedOrderStateView(ModelView):
                 order_item_list.append(order_item)
             
 
-        return {'df':format_date(start_dt),
+        return      Response({"object" :{'df':format_date(start_dt),
                 'dt':format_date(end_dt),
                 'outer_id':outer_id,
                 'limit':limit,
-                'order_items':order_item_list}
+                'order_items':order_item_list}})
         
     post = get
     
 ############################### 订单物流信息列表 #################################     
-class TradeLogisticView(ModelView):
+class TradeLogisticView(APIView):
     """ docstring for class TradeLogisticView """
-    
+     #serializer_class = serializers.ProductSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (TradeLogisticRender,new_BaseJSONRenderer,BrowsableAPIRenderer, )
     def get(self, request, *args, **kwargs):
         
         content  = request.REQUEST
@@ -1514,7 +1571,7 @@ class TradeLogisticView(ModelView):
             weight_list.append((JZA_weight,JZA_count))
             weight_list.append((OTHER_weight,OTHER_count))
 
-        return {'logistics':trade_list,'df':df or '','dt':dt or '','yunda_count':TOTAL_count,'weights':weight_list}   
+        return   Response({"object":{'logistics':trade_list,'df':df or '','dt':dt or '','yunda_count':TOTAL_count,'weights':weight_list}})   
     
     post = get 
     
@@ -1648,19 +1705,41 @@ def showFenxiaoDetail(request):
                               context_instance=RequestContext(request))
                                                                   
 ########################## 提升订单优先级 ###########################
-class ImprovePriorityView(ModelView):
+class ImprovePriorityView(APIView):
     """ docstring for class OrderListView """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def post(self, request, id, *args, **kwargs):
         
         row = MergeTrade.objects.filter(id=id).update(priority=pcfg.PRIORITY_HIG)
         
-        return {'success':row > 0}
-    
+        return Response({'success':row > 0})
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #     
+#fang  将django中的方法提取出来
+#获取订单备注，几乎是自己重新写的方法   2015-7-29
+class InstanceModelView_new(APIView):
+    #print "zheli"
+    serializer_class = serializers.MergeTradeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
+    def get (self, request, id,*args, **kwargs):
+      # print "zheli44",id
+       trade=MergeTrade.objects.get(id=id)
+       serializer=serializers.MergeTradeSerializer(trade).data
+       #return Response({"example":"get__function"})
+       return Response(serializer)
+
+
+
+########################
 ########################## 订单重量入库 ###########################
-class PackageScanCheckView(ModelView):
+class PackageScanCheckView(APIView):
     """ 订单扫描验货 """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
             return False
@@ -1711,7 +1790,7 @@ class PackageScanCheckView(ModelView):
         content    = request.REQUEST
         package_no = content.get('package_no','').strip()
         if not package_no:
-            return u'运单号不能为空'
+            return  Response(u'运单号不能为空')
         
         package_id = self.parsePackageNo(package_no)
         try:
@@ -1719,15 +1798,15 @@ class PackageScanCheckView(ModelView):
                                           reason_code='',
                                           sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         except MergeTrade.DoesNotExist:
-            return u'运单号未找到订单'
+            return  Response(u'运单号未找到订单')
         except MergeTrade.MultipleObjectsReturned:
-            return u'结果返回多个订单'
+            return  Response(u'结果返回多个订单')
         
         order_items = self.getOrderItemsFromTrade(mt)
         
-        return {'package_no':package_id,
+        return    Response({"object":{'package_no':package_id,
                 'trade_id':mt.id,
-                'order_items':order_items}
+                'order_items':order_items}})
     
         
     def post(self, request,*args, **kwargs):
@@ -1736,7 +1815,7 @@ class PackageScanCheckView(ModelView):
         package_no = content.get('package_no','').strip()
         
         if not package_no:
-            return u'运单号不能为空'
+            return Response(u'运单号不能为空')
         
         package_id = self.parsePackageNo(package_no)
         try:
@@ -1744,10 +1823,10 @@ class PackageScanCheckView(ModelView):
                                         reason_code='',
                                         sys_status=pcfg.WAIT_CHECK_BARCODE_STATUS)
         except MergeTrade.DoesNotExist:
-            return u'运单号未找到订单或被拦截'
+            return Response(u'运单号未找到订单或被拦截')
         
         except MergeTrade.MultipleObjectsReturned:
-            return u'运单号返回多个订单'
+            return  Response(u'运单号返回多个订单')
             
         mt.sys_status = pcfg.WAIT_SCAN_WEIGHT_STATUS
         mt.scanner    = request.user.username
@@ -1755,13 +1834,15 @@ class PackageScanCheckView(ModelView):
         
         log_action(mt.user.user.id,mt,CHANGE,u'扫描验货')
         
-        return {'isSuccess':True}
+        return    Response({'isSuccess':True})
         
     
 ########################## 订单重量入库 ###########################
-class PackageScanWeightView(ModelView):
+class PackageScanWeightView(APIView):
     """ 订单扫描称重 """
-    
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
             return False
@@ -1782,7 +1863,7 @@ class PackageScanWeightView(ModelView):
         content    = request.REQUEST
         package_no = content.get('package_no','').strip()
         if not package_no:
-            return u'运单号不能为空'
+            return  Response(u'运单号不能为空')
         
         package_id = self.parsePackageNo(package_no)
         
@@ -1792,11 +1873,11 @@ class PackageScanWeightView(ModelView):
                                           sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
                                                           pcfg.WAIT_CHECK_BARCODE_STATUS))
         except MergeTrade.DoesNotExist:
-            return u'运单号未找到订单或被拦截'
+            return  Response(u'运单号未找到订单或被拦截')
         except MergeTrade.MultipleObjectsReturned:
-            return u'运单号返回多个订单'
+            return   Response(u'运单号返回多个订单')
 
-        return {'package_no':package_id,
+        return     Response( {'package_no':package_id,
                 'trade_id':mt.id,
                 'seller_nick':mt.user.nick,
                 'trade_type':mt.get_type_display(),
@@ -1809,7 +1890,7 @@ class PackageScanWeightView(ModelView):
                 'receiver_city':mt.receiver_city,
                 'receiver_district':mt.receiver_district,
                 'receiver_address':mt.receiver_address
-                }
+                })
     
         
     def post(self, request,*args, **kwargs):
@@ -1819,13 +1900,13 @@ class PackageScanWeightView(ModelView):
         package_weight = content.get('package_weight','').strip()
         
         if not package_no:
-            return u'运单号不能为空'
+            return Response(u'运单号不能为空')
         
         try:
             if float(package_weight) > 100000:
-                return u'重量超过100千克'
+                return Response(u'重量超过100千克')
         except:
-            return u'重量异常:%s'%package_weight
+            return Response(u'重量异常:%s'%package_weight)
         
         package_id = self.parsePackageNo(package_no)
         try:
@@ -1834,9 +1915,9 @@ class PackageScanWeightView(ModelView):
                                         sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
                                                         pcfg.WAIT_CHECK_BARCODE_STATUS))
         except MergeTrade.DoesNotExist:
-            return u'运单号未找到订单'
+            return  Response(u'运单号未找到订单')
         except MergeTrade.MultipleObjectsReturned:
-            return u'结果返回多个订单'
+            return  Response(u'结果返回多个订单')
             
         MergeTrade.objects.updateProductStockByTrade(mt)
             
@@ -1848,10 +1929,10 @@ class PackageScanWeightView(ModelView):
         
         log_action(mt.user.user.id,mt,CHANGE,u'扫描称重')
         
-        return {'isSuccess':True}
+        return Response({'isSuccess':True})
     
-
-class SaleMergeOrderListView(ModelView):
+####fang   发现这个函数没有被调用
+class SaleMergeOrderListView(APIView):
     """ docstring for class SaleMergeOrderListView """
     
     def parseStartDt(self,start_dt):
@@ -2207,7 +2288,7 @@ def  view_beizhu(request):
     user_id  = request.user.id
     content  = request.REQUEST
 
-   # trade_id = content.get('trade_id','')
+    trade_id = content.get('trade_id','')
     sys_memo = content.get('sys_memo','')
     try:
         merge_trade = MergeTrade.objects.get(id=trade_id)
@@ -2251,4 +2332,8 @@ def beizhu(request):
     return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),content_type="application/json")
     
     
+    
+def test(request):
+        
+     return render(request, 'trades/test.html')
 

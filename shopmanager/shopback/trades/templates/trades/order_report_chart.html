@@ -43,9 +43,11 @@
     {% endif %}
 </head>
 <body>
+
 	<div class="container" >
 	<div style="height:80px;margin:20px auto 10px;">
 		<form  class="form-inline" method="POST" action="/orders/ordernum/pivotchart/" >
+			{% csrf_token %}
 			<div>
 				<ul>
 					<li>

@@ -1,12 +1,12 @@
 #-*- coding:utf8 -*-
 import datetime
 import json
+from django.http import Http404
 from django.http import HttpResponse
 from django.db.models import Sum,Count,Avg
 from django.db import connection,transaction
-from djangorestframework.response import ErrorResponse
-from djangorestframework import status
-from djangorestframework.views import ModelView
+#from djangorestframework import status
+#from djangorestframework.views import ModelView
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
 from auth import staff_requried,apis
@@ -14,14 +14,36 @@ from common.utils import parse_datetime,parse_date,format_date,format_time,map_i
 from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Order,Trade
 from shopback import paramconfig as pcfg
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from . import serializers 
+from rest_framework import status
+from django.core.serializers.json import DjangoJSONEncoder
 
+
+from shopback.base.new_renders import new_ChartJSONRenderer,new_ChartTemplateRenderer,new_BaseJSONRenderer
+from renderers import  TimerOrderStatChartRenderer,ProductOrderTableRenderer,RefundOrderRenderer,RelatedOrderRenderer
+from django.views.decorators.csrf import csrf_exempt
 def map_datetime2daystr(*t):
     return t[0]
         #return (t[0][0] and t[0][0].split(' ')[0] or '',)
 
-class TimerOrderStatisticsView(ModelView):
+class TimerOrderStatisticsView(APIView):
     """ docstring for class TimerOrderStatisticsView """
-
+    serializer_class = serializers.TimeOrderStatSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (TimerOrderStatChartRenderer,new_ChartJSONRenderer,BrowsableAPIRenderer)
+   # template_name = 'trades/order_report_chart.html' 
+    @csrf_exempt
     def get(self, request, *args, **kwargs):
         
         content    = request.REQUEST
@@ -122,13 +144,16 @@ class TimerOrderStatisticsView(ModelView):
                                    'nicks':nicks,'cat_by':cat_by,
                                    'type':trade_type,'xy':xy,'charts':orders_data_chts}
 
-        return chart_data
+        return Response( chart_data)
     
     post = get
 
-class ProductOrderView(ModelView):
+class ProductOrderView(APIView):
     """ docstring for class ProductOrderView """
-
+    serializer_class = serializers.TimeOrderStatSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_ChartJSONRenderer,BrowsableAPIRenderer,ProductOrderTableRenderer,new_ChartTemplateRenderer)
     def get(self, request, *args, **kwargs):
         dt_f = kwargs.get('dt_f')
         dt_t = kwargs.get('dt_t')
@@ -170,7 +195,7 @@ class ProductOrderView(ModelView):
             queryset = queryset.filter(status = pcfg.ORDER_FINISH_STATUS)
              
         if queryset.count() == 0:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="No data for these nick!")
+            raise Http404('no nick found')
         
         if xy == 'vertical':
             categories = [cat_by]
@@ -233,13 +258,16 @@ class ProductOrderView(ModelView):
                     return DjangoJSONEncoder.default(self, obj)
             chart_data = json.loads(json.dumps(chart_data, cls=ChartEncoder))
 
-        return chart_data
+        return Response(chart_data)
   
     
    
-class RelatedOrderStateView(ModelView):
+class RelatedOrderStateView(APIView):
     """ docstring for class RelatedOrderStateView """
-    
+    serializer_class = serializers.BaseSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (RelatedOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
         content = request.REQUEST
@@ -309,7 +337,7 @@ class RelatedOrderStateView(ModelView):
                 order_item_list.append(order_item)
 
 
-        return {'df':format_date(start_dt),'dt':format_date(end_dt),'outer_id':outer_id,'limit':limit,'order_items':order_item_list}
+        return Response({'df':format_date(start_dt),'dt':format_date(end_dt),'outer_id':outer_id,'limit':limit,'order_items':order_item_list})
         
     post = get 
         #    def gen_query_sql(self,outer_id,outer_sku_ids,dt_f,dt_t,limit):
@@ -324,9 +352,12 @@ class RelatedOrderStateView(ModelView):
         #        return ''.join(sql_list)
 
 
-class RefundOrderView(ModelView):
+class RefundOrderView(APIView):
     """ docstring for class RefundOrderView """
-    
+    serializer_class = serializers.BaseSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (RefundOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
         dt_f = kwargs.get('dt_f')
@@ -342,7 +373,8 @@ class RefundOrderView(ModelView):
         part_refunds_num = 0
         consign_full_refunds_num = 0
         consign_part_refunds_num = 0
-        refund_orders = queryset.values_list('trade',flat=True).distinct('trade')
+        refund_orders = queryset.values_list('trade',flat=True).distinct()
+       # refund_orders = queryset.values_list('trade',flat=True)
         for trade in refund_orders:
             trade  = Trade.objects.get(id=trade)
             refunds = Order.objects.filter(trade=trade).exclude(refund_status=pcfg.REFUND_SUCCESS)
@@ -367,8 +399,8 @@ class RefundOrderView(ModelView):
                     'consign_part_refunds':consign_part_refunds_num,
                     'consign_full_refunds':consign_full_refunds_num,
         }
-        
-        return ret_dict
+        #print "eeeeeeeeeeeeeeeeee",ret_dict
+        return Response({"object":ret_dict})
     
     def gen_refund_sql(self,dt_f,dt_t):
         sql_list = []

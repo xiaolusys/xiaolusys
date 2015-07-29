@@ -49,7 +49,7 @@ class ItemListTask(models.Model):
     
     list_weekday = models.IntegerField()
     list_time = models.CharField(max_length=8)
-
+    
     task_type = models.CharField(max_length=10,choices=TASK_TYPE,blank=True,default=LISTING_TYPE)      #listing, delisting
     created_at = models.DateTimeField(null=True,blank=True, auto_now=True)
 

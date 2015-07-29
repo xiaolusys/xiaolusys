@@ -2,21 +2,38 @@
 from django.db.models import Avg, Variance,Sum
 from chartit import DataPool, Chart
 from chartit import PivotDataPool, PivotChart
-from djangorestframework.views import ModelView
-from djangorestframework.response import ErrorResponse
-from djangorestframework import status
+#from djangorestframework.views import ModelView
+#from djangorestframework import status
 from shopback.items.models import Item
 from shopapp.collector.models import ProductPageRank,ProductTrade
 from shopapp.collector.gencharts import genProductPeriodChart,genItemKeywordsChart,genPageRankPivotChart,genItemAvgRankPivotChart
 from shopapp.collector.crawurldata import getTaoBaoPageRank, getCustomShopsPageRank
 from common.utils import map_int2str
-
+from rest_framework.views import APIView
+from . import serializers 
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import status
+from django.http import HttpResponse, Http404
+from shopback.base.new_renders import  *
+from .new_Render import *
 __author__ = 'meixqhi'
 
 
-class ShopsRankView(ModelView):
+class ShopsRankView(APIView):
     """ docstring for class ShopsRankView """
-
+    #serializer_class = serializers.ChartsSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (JSONRenderer,BrowsableAPIRenderer,SearchRankHTMLRenderer)
+    template_name = "search_rank_template.html"  
+    
     def get(self, request, *args, **kwargs):
 
         nicks = request.GET.get('nicks', None)
@@ -24,7 +41,7 @@ class ShopsRankView(ModelView):
         page_nums = int(request.GET.get('page_nums', '5'))
 
         if not nicks and not keywords:
-            return ErrorResponse(status.HTTP_404_NOT_FOUND,content="There is no data for these nicks and keywords!")
+            return Response(status.HTTP_404_NOT_FOUND)
 
         nicks = nicks.split(',')
         keywords = keywords.split(',')
@@ -33,15 +50,20 @@ class ShopsRankView(ModelView):
 
         rank_result = {"results":results}
 
-        return rank_result
+        return Response(rank_result)
 
 ####################################### PageRank Chart views #######################################
 
-class KeywordsMapItemsRankView(ModelView):
+class KeywordsMapItemsRankView(APIView):
     """ docstring for class KeywordsMapItemsRankView """
-
+    #serializer_class = serializers.ChartsSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,new_ChartJSONRenderer,new_ChartTemplateRenderer,RankChartHtmlRenderer)
+   # template_name = "chart_render_template.html"  
+    #print "33344433"
     def get(self, request, *args, **kwargs):
-
+        #print "33333"
         dt_f = kwargs.get('dt_f')
         dt_t = kwargs.get('dt_t')
         nicks = request.GET.get('nicks')
@@ -66,7 +88,7 @@ class KeywordsMapItemsRankView(ModelView):
 
         if not page_rank_chts:
 
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="There is no data for this nick!")
+            raise Response(status.HTTP_404_NOT_FOUND)
 
         page_rank_queryset = ProductPageRank.objects.filter\
                 (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
@@ -86,13 +108,17 @@ class KeywordsMapItemsRankView(ModelView):
 
         chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
 
-        return chart_data
+        return Response(chart_data)
 
 
 
-class ItemsMapKeywordsRankView(ModelView):
+class ItemsMapKeywordsRankView(APIView):
     """ docstring for class ItemsMapKeywordsRankView """
-
+    #serializer_class = serializers.RankSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,new_ChartJSONRenderer,new_ChartTemplateRenderer,KeysChartHtmlRenderer)
+    #template_name = "chart_render_template.html"  
     def get(self, request, *args, **kwargs):
 
         dt_f = kwargs.get('dt_f')
@@ -109,8 +135,8 @@ class ItemsMapKeywordsRankView(ModelView):
                 page_rank_chts.append(cht)
 
         if not page_rank_chts:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="item_ids is not avalible.")
-
+            raise     Http404("item_ids is not avalible.")                                                                            #ErrorResponse(status.HTTP_404_NOT_FOUND,content="item_ids is not avalible.")
+              
         page_rank_queryset = ProductPageRank.objects.filter(item_id__in = item_ids)\
             .values('item_id', 'nick', 'title').distinct('item_id')
 
@@ -128,13 +154,16 @@ class ItemsMapKeywordsRankView(ModelView):
 
         chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
 
-        return chart_data
+        return Response(chart_data)
 
 ####################################### PageRank PivotChart views #######################################
 
-class KeywordsMapItemsRankPivotView(ModelView):
+class KeywordsMapItemsRankPivotView(APIView):
     """ docstring for class ItemsMapKeywordsRankView """
-
+    #serializer_class = serializers.RankSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,new_ChartJSONRenderer,new_ChartTemplateRenderer,RankPivotChartHtmlRenderer)
     def get(self, request, *args, **kwargs):
 
         dt_f = kwargs.get('dt_f')
@@ -159,7 +188,7 @@ class KeywordsMapItemsRankPivotView(ModelView):
                     page_rank_chts.append(cht)
 
         if not page_rank_chts:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
+            raise    Http404("nick is not avalible under this keyword.")                                                        # ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
 
         page_rank_queryset = ProductPageRank.objects.filter\
                 (nick__in=nicks_list, keyword__in=keywords_list, created__gt=dt_f, created__lt=dt_t)\
@@ -179,12 +208,15 @@ class KeywordsMapItemsRankPivotView(ModelView):
 
         chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
 
-        return chart_data
+        return Response(chart_data)
 
 
-class ItemsMapKeywordsRankPivotView(ModelView):
+class ItemsMapKeywordsRankPivotView(APIView):
     """ docstring for class ItemsMapKeywordsRankView """
-
+    #serializer_class = serializers.RankSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,new_ChartJSONRenderer,new_ChartTemplateRenderer,AvgRankPivotChartHtmlRenderer)
     def get(self, request, *args, **kwargs):
 
         dt_f = kwargs.get('dt_f')
@@ -201,7 +233,7 @@ class ItemsMapKeywordsRankPivotView(ModelView):
                 page_rank_chts.append(cht)
 
         if not page_rank_chts:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
+            raise  Http404("nick is not avalible under this keyword.")                      #ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
 
         page_rank_queryset = ProductPageRank.objects.filter\
                 (nick__in=nicks_list,created__gt=dt_f, created__lt=dt_t)\
@@ -221,17 +253,20 @@ class ItemsMapKeywordsRankPivotView(ModelView):
 
         chart_data = {"charts":page_rank_chts,"item_dict":items_dict}
 
-        return chart_data
+        return   Response(chart_data)
 
 
 ####################################### Trade  views #######################################
 
 
-class ShopMapKeywordsTradePivotView(ModelView):
+class ShopMapKeywordsTradePivotView(APIView):
     """ docstring for class ShopMapKeywordsTradeView """
-
+    #serializer_class = serializers.RankSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,new_ChartJSONRenderer,new_ChartTemplateRenderer,TradePivotChartHtmlRenderer)
     def get(self, request, *args, **kwargs):
-
+    
         dt_f = kwargs.get('dt_f')
         dt_t = kwargs.get('dt_t')
         nicks = request.GET.get('nicks',None)
@@ -244,7 +279,7 @@ class ShopMapKeywordsTradePivotView(ModelView):
             .filter(nick__in = nicks_list)
 
         if prod_trade_queryset.count() == 0:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
+            raise        Http404("nick is not avalible under this keyword.")                          # ErrorResponse(status.HTTP_404_NOT_FOUND,content="nick is not avalible under this keyword.")
 
 
         if xy == 'vertical':
@@ -284,12 +319,15 @@ class ShopMapKeywordsTradePivotView(ModelView):
 
         chart_data = {"charts":[orders_data_cht]}
 
-        return chart_data
+        return Response(chart_data)
 
 
-class ShopMapKeywordsTopTradeView(ModelView):
+class ShopMapKeywordsTopTradeView(APIView):
     """ docstring for class ShopMapKeywordsTradeView """
-
+    #serializer_class = serializers.RankSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,new_ChartJSONRenderer,new_ChartTemplateRenderer,TradeTopChartHtmlRenderer)
     def get(self, request, *args, **kwargs):
 
         dt_f = kwargs.get('dt_f')
@@ -300,7 +338,7 @@ class ShopMapKeywordsTopTradeView(ModelView):
         queryset = ProductTrade.objects.filter(trade_at__gte=dt_f,trade_at__lt=dt_t)
 
         if queryset.count() == 0:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND,content="No data for these nick!")
+            raise  Http404("No data for these nick!")
 
         series = {
             'options': {'source': queryset,'categories': ['user_id',]},
@@ -333,7 +371,7 @@ class ShopMapKeywordsTopTradeView(ModelView):
 
         chart_data = {"charts":[orders_data_cht]}
 
-        return chart_data
+        return Response(chart_data)
 
 
   

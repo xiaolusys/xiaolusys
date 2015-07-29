@@ -1,74 +1,74 @@
-from djangorestframework.renderers import TemplateRenderer,JSONRenderer
+#from djangorestframework.renderers import TemplateRenderer,JSONRenderer
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 
 
-
-class PurchaseItemHtmlRenderer(TemplateRenderer):
+class PurchaseItemHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'purchases/'
+    template_name = 'purchases/'
 
     
     
-class PurchaseHtmlRenderer(TemplateRenderer):
+class PurchaseHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'purchases/purchase_page.html'
+    template_name = 'purchases/purchase_page.html'
     
     
-class PurchaseStorageHtmlRenderer(TemplateRenderer):
+class PurchaseStorageHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'purchases/purchase_storage_page.html'
+    template_name = 'purchases/purchase_storage_page.html'
     
 
-class StorageDistributeRenderer(TemplateRenderer):
+class StorageDistributeRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'purchases/distribute_purchase_storage.html'
+    template_name = 'purchases/distribute_purchase_storage.html'
     
 
-class PurchaseShipStorageRenderer(TemplateRenderer):
+class PurchaseShipStorageRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'purchases/ship_storage_page.html'
+    template_name = 'purchases/ship_storage_page.html'
     
         
-class PurchasePaymentRenderer(TemplateRenderer):
+class PurchasePaymentRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'purchases/purchase_payment_page.html'
+    template_name = 'purchases/purchase_payment_page.html'
     
-class PaymentDistributeRenderer(TemplateRenderer):
+class PaymentDistributeRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to HTML
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'purchases/apply_payment_page.html'
+    template_name = 'purchases/apply_payment_page.html'
     
         
