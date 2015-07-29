@@ -83,10 +83,15 @@ function get_shop_carts(suffix) {
         data: {},
         dataType: 'json',
         beforeSend: function () {
-
             $("#loading").show();
         },
-        success: requestCallBack
+        success: requestCallBack,
+        error: function (data) {
+            if(data.statusText=="FORBIDDEN"){
+                window.location = "denglu2.html";
+            }
+            console.info("error: " + data.statusText);
+        }
     });
 }
 
