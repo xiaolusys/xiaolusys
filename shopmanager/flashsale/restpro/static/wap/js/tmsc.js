@@ -64,6 +64,7 @@ function get_shop_carts(suffix) {
     //请求成功回调函数
     var requestCallBack = function (data) {
         var total_price = 0;
+        $("#loading").hide();
         if (data) {
             $.each(data,
                 function (index, product) {
@@ -81,6 +82,10 @@ function get_shop_carts(suffix) {
         url: requestUrl,
         data: {},
         dataType: 'json',
+        beforeSend: function () {
+
+            $("#loading").show();
+        },
         success: requestCallBack
     });
 }
@@ -110,6 +115,7 @@ function plus_shop(id) {
     var num_id = $("#num_" + id);
     var requestCallBack = function (res) {
         console.log(res);
+        $("#loading").hide();
         if (res == "1") {
             num_id.val(parseInt(num_id.val()) + parseInt(res));
             update_total_price();
@@ -120,6 +126,9 @@ function plus_shop(id) {
         type: 'post',
         url: requestUrl,
         data: {"csrfmiddlewaretoken": csrftoken},
+        beforeSend: function () {
+            $("#loading").show();
+        },
         success: requestCallBack
     });
 }
@@ -128,7 +137,7 @@ function minus_shop(id) {
     var requestUrl = GLConfig.baseApiUrl + suffix;
     var num_id = $("#num_" + id);
     var requestCallBack = function (res) {
-        console.log(res);
+        $("#loading").hide();
         if (res == "1") {
             num_id.val(parseInt(num_id.val()) - parseInt(res));
             update_total_price();
@@ -143,7 +152,7 @@ function minus_shop(id) {
             data: {"csrfmiddlewaretoken": csrftoken},
             beforeSend: function () {
                 // 禁用按钮防止重复提交
-                $("#submit").attr({disabled: "disabled"});
+                $("#loading").show();
             },
             success: requestCallBack
         });
@@ -156,13 +165,10 @@ $(function () {
 });
 
 
-function create_item() {
+function create_item(num, item_id, sku_id) {
     var requestUrl = GLConfig.baseApiUrl + "/carts"
-
-    var num = 1;
-    var item_id = 421;
-    var sku_id = 3318;
     var requestCallBack = function (res) {
+        $("#loading").hide();
         console.log("back");
         console.log(res);
 
@@ -172,6 +178,9 @@ function create_item() {
         type: 'post',
         url: requestUrl,
         data: {"num": num, "item_id": item_id, "sku_id": sku_id, "csrfmiddlewaretoken": csrftoken},
+        beforeSend: function () {
+            $("#loading").show();
+        },
         success: requestCallBack
     });
 
