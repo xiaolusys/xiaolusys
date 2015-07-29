@@ -53,13 +53,14 @@ function my_submit() {
         if (res == "7") {
             window.location = "denglu2.html";
         } else if (res == "0") {
-            alert("已经注册过");
+            show_message("已经注册过");
         } else if (res == "3") {
             alert("重新获取验证码");
         } else if (res == "1") {
-            alert("验证码不对");
+
+            show_message("验证码不对")
         } else if (res == "2") {
-            alert("表单填写有误");
+            show_message("表单填写有误");
         }
     };
 
@@ -139,4 +140,28 @@ function execReg(reg, str) {
         return false;
     }
     return true;
+}
+
+/*
+* 模拟toast
+* */
+var intervalCounter = 0;
+function hideToast() {
+    var alert = document.getElementById("toast");
+    alert.style.opacity = 0;
+    clearInterval(intervalCounter);
+}
+function drawToast(message) {
+    var alert = document.getElementById("toast");
+    if (alert == null) {
+        var toastHTML = '<div id="toast">' + message + '</div>';
+        document.body.insertAdjacentHTML('beforeEnd', toastHTML);
+    }
+    else {
+        alert.style.opacity = .9;
+    }
+    intervalCounter = setInterval("hideToast()", 1000);
+}
+function show_message(message) {
+    drawToast(message);
 }
