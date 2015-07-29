@@ -93,8 +93,7 @@ POSTER_DEFAULT =(
   {
     "subject":["2折起","Joan&David  女装专场"],
     "item_link":"商品链接",
-    "pic_link":"海报图片",
-    
+    "pic_link":"海报图片"
   }
 ]
 ''')
@@ -122,6 +121,6 @@ class GoodShelf(models.Model):
         verbose_name_plural = u'特卖商品/海报列表'
     
     def __unicode__(self):
-        return u'<海报：%s>'%(self.id)
+        return u'<海报：%s>'%(self.title)
     
     
