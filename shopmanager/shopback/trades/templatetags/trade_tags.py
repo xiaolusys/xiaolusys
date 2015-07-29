@@ -91,8 +91,10 @@ def prod_name(order):
 
 @register.filter(name='sku_name')  
 def sku_name(order):
-    
-    property_name  = order['sku_properties_name'] if (type(order) == dict) else order.sku_properties_name
+    try:
+            property_name  = order['sku_properties_name'] if (type(order) == dict) else order.sku_properties_name
+    except:
+		    property_name  = order['sku_properties_name'] 
     try:
         prod = ProductSku.objects.get(outer_id=order['outer_sku_id'],product__outer_id=order['outer_id'])
     except:

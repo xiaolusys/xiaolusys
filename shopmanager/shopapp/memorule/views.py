@@ -3,15 +3,15 @@ __author__ = 'meixqhi'
 import re
 import json
 from django.core.urlresolvers import reverse
-from djangorestframework.views import ModelView
-from djangorestframework.response import ErrorResponse
-from djangorestframework import status
+#from djangorestframework.views import ModelView
+#from djangorestframework.response import ErrorResponse
+#from djangorestframework import status
 
 from shopback.orders.models import Order,Trade
 from shopback.trades.models import MergeTrade
 from shopback.items.models import Item
 from shopback.users.models import User
-from shopback.base.views import ModelView,FileUploadView
+from shopback.base.views import FileUploadView_intercept
 from shopapp.memorule.models import (TradeRule,
                                      ProductRuleField,
                                      RuleMemo,
@@ -19,6 +19,23 @@ from shopapp.memorule.models import (TradeRule,
                                      ComposeItem)
 from common.utils import parse_datetime
 from auth import apis
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from . import serializers 
+from shopback.base.new_renders import new_BaseJSONRenderer
+from rest_framework import status
+
+
+
+
 
 CHAR_NUMBER_REGEX = re.compile('^\w+$')
 
@@ -40,7 +57,7 @@ def to_memo_string(memo):
 
 
 def update_trade_memo(trade_id,trade_memo,user_id):
-    
+  
     try:
         rule_memo, created = RuleMemo.objects.get_or_create(pk=trade_id)
         rule_memo.rule_memo = json.dumps(trade_memo)
@@ -62,35 +79,42 @@ def update_trade_memo(trade_id,trade_memo,user_id):
     
 
 
-class UpdateTradeMemoView(ModelView):
-
+class UpdateTradeMemoView(APIView):
+    serializer_class = serializers.TradeRuleSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         content   = request.REQUEST
         params    = eval(content.get("params"))
         
         trade_id  = params.get('tid')
         user_id   = params.get('sid')
-
+    
         try:
             profile = User.objects.get(visitor_id=user_id)
         except User.DoesNotExist:
-            return {"success":False, "message":"no such seller id: "+user_id}
+            return Response( {"success":False, "message":"no such seller id: "+user_id})
             #raise ErrorResponse("the seller id is not record!")
 
-        return update_trade_memo(trade_id,params,user_id=profile.visitor_id)
+        return Response(update_trade_memo(trade_id,params,user_id=profile.visitor_id))
     
 
     post = get
 
 
 
-class ProductRuleFieldsView(ModelView):
-
+class ProductRuleFieldsView(APIView):
+    serializer_class = serializers.TradeRuleSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         content = request.REQUEST
 
-        out_iids = content.get('out_iids')
-        out_iid_list = out_iids.split(',')
+        #out_iids = content.get('out_iids')
+       # out_iid_list = out_iids.split(',')
+        out_iid_list=[1,2,3]
 
         product_fields = []
         for out_iid in out_iid_list:
@@ -99,19 +123,22 @@ class ProductRuleFieldsView(ModelView):
             trade_fields = [ extra.to_json() for extra in trade_extras]
             product_fields.append([out_iid,trade_fields])
 
-        return product_fields
+        return Response(product_fields)
 
     post = get
 
 
-class ComposeRuleByCsvFileView(FileUploadView):
-    
+class ComposeRuleByCsvFileView(FileUploadView_intercept):
+    serializer_class = serializers.TradeRuleSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     file_path     = 'product'
     filename_save = 'composerule_%s.csv'
     
     def get(self, request, *args, **kwargs):
         pass
-    
+        return Response({"example":"get__function"})
     def getSerialNo(self,row):
         return row[0]
     
@@ -180,8 +207,8 @@ class ComposeRuleByCsvFileView(FileUploadView):
             
             self.createComposeItem(row,rule=cur_rule)
                 
-        return {'success':True,
-                'redirect_url':reverse('admin:memorule_composerule_changelist')}
+        return  Response( {'success':True,
+                'redirect_url':reverse('admin:memorule_composerule_changelist')})
         
         
  

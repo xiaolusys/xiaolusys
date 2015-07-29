@@ -83,6 +83,7 @@
     </style>
   </head>
 {% load trade_tags %} 
+
 {% with trade=object.trade sellers=object.sellers origin_no=object.origin_no%}
   <body>
 	<div class="content-main">
@@ -90,15 +91,17 @@
 			<legend><h1 class="head-title" >{% if trade %}修改{% else %}新增{% endif %}&nbsp;退换货单</h1></legend>
 			<div class="content-base-info">
               <form action="./" id="trade-form" method="POST">
+				  {% csrf_token %}
+
               	<input type="hidden" id="id_exchange_trade" value="{{ trade.id }}" />
 				<table class="table table-bordered table-striped table-condensed">
 					<tr>
-						<td>所属店铺:</td>
+						<td>所属店铺:  </td>
 						<td>
 							<select name="sellerId" class="selection" style="width:130px;">
 								<option value='' >-------请选择-------</option>
 								{% for seller in sellers %}
-								<option value='{{ seller.id }}' {% if trade.user.id == seller.id %}selected{% endif %}>{{ seller.nick }}</option>
+								<option value='{{ seller.id }}' {% if trade.user == seller.id %}selected{% endif %}>{{ seller.nick }}</option>
 								{% endfor %}
 							</select>
 						</td>

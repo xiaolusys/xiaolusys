@@ -7,21 +7,28 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
-from djangorestframework.utils import as_tuple
-from djangorestframework import status
-from djangorestframework.response import Response
-from djangorestframework.mixins import CreateModelMixin
-from djangorestframework.views import ModelView
+#from djangorestframework.utils import as_tuple
+#from djangorestframework import status
+#from djangorestframework.response import Response
+#from djangorestframework.mixins import CreateModelMixin
+#from djangorestframework.views import ModelView
 from django.contrib.auth.decorators import login_required
-from shopback.base.views import ListModelView
+# from shopback.base.views import ListModelView
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
 from shopback.items.models import Item,Product
 from shopback.users.models import User
 from shopapp.autolist.models import Logs,ItemListTask,TimeSlots,UNEXECUTE,UNSCHEDULED,DELETE,LISTING_TYPE,DELISTING_TYPE
 from auth import apis
-
-
+from . import serializers 
+from rest_framework import permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.mixins import CreateModelMixin
+from rest_framework import authentication
+from rest_framework import status
 @login_required
 def invalid_list_task(request,num_iid):
 
@@ -79,7 +86,11 @@ def list_all_items(request):
     
     content = request.REQUEST
     user_id = content.get('user_id','')
+    #print user_id,"77666666666666666"
     try:
+        #profile = User.objects.get(user=u"优尼小小世界")
+        #profile = User.objects.all()[1]
+       # print profile
         profile = User.objects.get(user=user_id)
     except Exception:
         profile = request.user.get_profile()
@@ -114,6 +125,7 @@ def show_timetable_cats(request):
     
     content = request.REQUEST
     user_id = content.get('user_id','')
+    print user_id,"8888888888888888888"
     try:
         profile = User.objects.get(user=user_id)
     except Exception:
@@ -344,39 +356,56 @@ def change_list_time(request):
 
 
 ################################ List View ##############################
-
-class ListItemTaskView(ListModelView):
+from rest_framework  import renderers
+class ListItemTaskView(APIView):
+    #queryset = ItemListTask.objects.all()
+#     serializer_class = serializers. ItemListTaskSerializer
+    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
     queryset = None
-
+    
     def get(self, request, *args, **kwargs):
-        model = self.resource.model
+       # print 'debug:',args,kwargs
+        #model = self.resource.model
+
+        model = ItemListTask
         visitor_id = request.session['top_parameters']['visitor_id']
-
+        #visitor_id=1
         queryset = self.get_queryset() if self.get_queryset() is not None else model.objects.all()
-
-        if hasattr(self, 'resource'):
-            ordering = getattr(self.resource, 'ordering', None)
+        #print queryset,"66666666666"
+        if hasattr(self, 'serializer_class'):
+            ordering = getattr(self.serializer_class, 'ordering', None)
+            #print "resource"
         else:
             ordering = None
-
+           # print "resource33"
         kwargs.update({'user_id':visitor_id})
 
         if ordering:
             args = as_tuple(ordering)
             queryset = queryset.order_by(*args)
-        return queryset.filter(**kwargs)
-
+        #return Response(queryset)
+       # return Response(queryset.filter(**kwargs))
+        serializer =  serializers. ItemListTaskSerializer(queryset.filter(**kwargs), many=True)
+        return Response(serializer.data)
+#         return Response(data)
+    
     def get_queryset(self):
         return self.queryset
 
 
-
-class CreateListItemTaskModelView(CreateModelMixin,ModelView):
+from rest_framework import  views  #CreateModelMixin
+class CreateListItemTaskModelView(APIView):
     """A view which provides default operations for create, against a model in the database."""
-
+    serializer_class = serializers. ItemListTaskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (JSONRenderer,BrowsableAPIRenderer)
+    #print "1111111222"
     def post(self, request, *args, **kwargs):
-        model = self.resource.model
-
+        #print "0000000000000000000000"
+        #model = self.resource.model
+        model = self.serializer_class.model
         content = dict(self.CONTENT)
 
         all_kw_args = dict(content.items() + kwargs.items())
@@ -401,7 +430,24 @@ class CreateListItemTaskModelView(CreateModelMixin,ModelView):
             headers['Location'] = self.resource(self).url(instance)
         return Response(status.HTTP_201_CREATED, instance, headers)
 
+# fang  djangorestframework  utils / ini--.py
+def as_tuple(obj):
+    """
+    Given an object which may be a list/tuple, another object, or None,
+    return that object in list form.
 
+    IE:
+    If the object is already a list/tuple just return it.
+    If the object is not None, return it in a list with a single element.
+    If the object is None return an empty list.
+    """
+    if obj is None:
+        return ()
+    elif isinstance(obj, list):
+        return tuple(obj)
+    elif isinstance(obj, tuple):
+        return obj
+    return (obj,)
 
 
 
