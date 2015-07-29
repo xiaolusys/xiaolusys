@@ -162,6 +162,7 @@ INSTALLED_APPS = (
     'games.bomb',
 
 #     'flashsale.supplier',
+    'flashsale.complain',
     'flashsale.pay',
     'flashsale.xiaolumm',
     'flashsale.dinghuo',

@@ -7,6 +7,7 @@ urlpatterns = patterns('',
 #     (r'^purchase/',include('flashsale.purchase.urls')),
 
 #     (r'^pay/',include('flashsale.pay.urls')),
+    (r'^complain/',include('flashsale.complain.urls')),
     (r'^dinghuo/',include('flashsale.dinghuo.urls')),
     (r'^clickcount/', include('flashsale.clickcount.urls')),
     (r'^rebeta/',include('flashsale.clickrebeta.urls')),
