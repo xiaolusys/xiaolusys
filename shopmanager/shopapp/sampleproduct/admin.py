@@ -46,9 +46,13 @@ class SampleScanAdmin(admin.ModelAdmin):
     search_fields = ['id', 'bar_code']
 
     list_display = ('bar_code', 'pid','sku_id','title', 'sku_name', 'scan_num', 'scan_type', 'created','status')
+
+    list_filter = ['created']
+
+
     #过滤..非超级管理员只能查看状态为已确认的
-    def get_queryset(self, request):#重写get_queryset方法
-        qs = super(SampleScanAdmin,self).get_queryset(request)
+    def queryset(self, request):#重写queryset方法
+        qs = super(SampleScanAdmin,self).queryset(request)
         if request.user.is_superuser:
             return qs
         else:

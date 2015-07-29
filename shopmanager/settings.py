@@ -9,7 +9,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-     ('zfz', 'zifei.zhong@xiaolu.so'),
+     ('meixqhi', 'xiuqing.mei@huyi.so'),
 )
 
 MANAGERS = ADMINS
@@ -143,7 +143,9 @@ INSTALLED_APPS = (
     'shopapp.comments',
     'shopapp.weixin',
     'shopapp.tmcnotify',
-    
+
+    #'shopapp.zhongtong',
+
     'shopapp.jingdong',
     'shopapp.intercept',
     'shopapp.examination',
@@ -160,6 +162,7 @@ INSTALLED_APPS = (
     'games.bomb',
 
 #     'flashsale.supplier',
+    'flashsale.complain',
     'flashsale.pay',
     'flashsale.xiaolumm',
     'flashsale.dinghuo',
@@ -168,9 +171,9 @@ INSTALLED_APPS = (
     'flashsale.mmexam',
     'flashsale.daystats',
     'flashsale.restpro',
-    
+
     'mathfilters',
-    
+
     #'test.celery',
     #'shopapp.notify',
 )
@@ -229,5 +232,3 @@ if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
                         'middleware.middleware.QueryCountDebugMiddleware',
                           ) + MIDDLEWARE_CLASSES
-
-
