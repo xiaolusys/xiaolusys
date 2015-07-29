@@ -9,11 +9,11 @@ from shopback.base.proxy  import ProxyView
 from shopapp.weixin_sales.decorators import record_weixin_clicks
 from shopapp.weixin import views
 
-from shopback.base.renderers  import BaseJsonRenderer
-from shopback.base.permissions import IsAuthenticated
-from shopback.base.authentication import UserLoggedInAuthentication
-from .resources import WeixinProductResource
-from .renderers import WeixinProductHtmlRenderer
+# from shopback.base.renderers  import BaseJsonRenderer
+# from shopback.base.permissions import IsAuthenticated
+# from shopback.base.authentication import UserLoggedInAuthentication
+# from .resources import WeixinProductResource
+# from .renderers import WeixinProductHtmlRenderer
 
 
 urlpatterns = patterns('shopapp.weixin.views',
@@ -88,17 +88,8 @@ urlpatterns = patterns('shopapp.weixin.views',
     (r'^sales/',include('shopapp.weixin_sales.urls')),
     (r'^score/',include('shopapp.weixin_score.urls')),
     
-    url(r'^product/sync/$',views.WeixinProductView.as_view(
-        resource=WeixinProductResource,
-        renderers=(BaseJsonRenderer,WeixinProductHtmlRenderer),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)),name='weixin_product_modify'),
-                       
-    url(r'^product/verify/$',views.WeixinProductVerifyView.as_view(
-        resource=WeixinProductResource,
-        renderers=(BaseJsonRenderer,WeixinProductHtmlRenderer),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)),name='weixin_product_verify'),
+    url(r'^product/sync/$',views.WeixinProductView.as_view(),name='weixin_product_modify')   ,        
+    url(r'^product/verify/$',views.WeixinProductVerifyView.as_view(),name='weixin_product_verify'),
     
     (r'^checkqr/',views.TestCodeView.as_view()),
     

@@ -20,6 +20,7 @@ from rest_framework.utils.breadcrumbs import get_breadcrumbs
 from rest_framework.utils.field_mapping import ClassLookupDict
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 from chartit import Chart,PivotChart
+
 from django.core.serializers.json import DjangoJSONEncoder
 
 class new_BaseJSONRenderer(JSONRenderer):
@@ -67,7 +68,7 @@ class new_BaseJSONRenderer(JSONRenderer):
             data = {"code":0,"response_content":data}
         else:
             data = {"code":1,"response_error":data}
-            
+
         renderer_context = renderer_context or {}
         indent = self.get_indent(accepted_media_type, renderer_context)
 

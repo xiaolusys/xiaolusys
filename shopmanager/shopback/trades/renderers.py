@@ -1,88 +1,95 @@
-from djangorestframework.renderers import TemplateRenderer
+# from djangorestframework.renderers import TemplateRenderer
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 
-
-class CheckOrderRenderer(TemplateRenderer):
+class CheckOrderRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/New_check_order.html'
+    template_name = 'trades/New_check_order.html'
     
     
-class ReviewOrderRenderer(TemplateRenderer):
+class ReviewOrderRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/review_order_template.html'
+    template_name = 'trades/review_order_template.html'
     
     
-class ExchangeOrderRender(TemplateRenderer):
+class ExchangeOrderRender(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/exchanges_template.html'
+    template_name = 'trades/exchanges_template.html'
+    
+# class ExchangeOrderRender(TemplateRenderer):
+#     """
+#     Renderer which serializes to Table
+#     """
+#     
+#     media_type = 'text/html'
+#     format = 'html'
+#     template = 'trades/exchanges_template.html'    
+class DirectOrderRender(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to Table
+    """
+    
+    media_type = 'text/html'
+    format_name = 'html'
+    template_name = 'trades/direct_trade_template.html'
     
     
-class DirectOrderRender(TemplateRenderer):
+class StatisticMergeOrderRender(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/direct_trade_template.html'
+    template_name = 'trades/trade_products_statistic.html'
     
     
-class StatisticMergeOrderRender(TemplateRenderer):
+class StatisticOutStockRender(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/trade_products_statistic.html'
+    template_name = 'trades/out_stock_statistic.html'   
     
-    
-class StatisticOutStockRender(TemplateRenderer):
+class OrderListRender(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/out_stock_statistic.html'   
+    template_name = 'trades/trade_order_list.html'
     
-class OrderListRender(TemplateRenderer):
+class TradeLogisticRender(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'trades/trade_order_list.html'
-    
-class TradeLogisticRender(TemplateRenderer):
-    """
-    Renderer which serializes to Table
-    """
-    
-    media_type = 'text/html'
-    format = 'html'
-    template = 'trades/trade_logistic_detail.html'
+    template_name = 'trades/trade_logistic_detail.html'
      
-class RelatedOrderRenderer(TemplateRenderer):
+class RelatedOrderRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to Table
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'related_orders_template.html'
+    template_name = 'related_orders_template.html'

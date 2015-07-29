@@ -33,7 +33,7 @@ var addStaffEvent = function(e){
 	$('#btn-submit').attr('disabled',false); 
 	var params = {'executor':executors,'start':start,'end':end,'title':title};
 	var callback = function(data){
-		
+		alert(data);
 		$('#btn-submit').removeAttr('disabled');
 		if (data.code==1){
 			alert('事件添加失败');

@@ -77,6 +77,7 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
     'middleware.middleware.SecureRequiredMiddleware',
+    'middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -107,7 +108,7 @@ INSTALLED_APPS = (
     'south',
     'gunicorn',
     'raven.contrib.django',
-    'djangorestframework',
+   # 'djangorestframework',
     'rest_framework',
     'djcelery',
     'djkombu',
