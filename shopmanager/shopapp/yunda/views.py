@@ -407,7 +407,10 @@ class PackageWeightView(ModelView):
 class BranchZoneView(ModelView):
     """ 获取分拨集包规则 """
     
-        
+    serializer_class = serializers.BranchZoneSerializer
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,)   
     def get(self, request, *args, **kwargs):
         
         content    = request.REQUEST

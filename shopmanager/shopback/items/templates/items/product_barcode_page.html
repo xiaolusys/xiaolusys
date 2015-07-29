@@ -75,7 +75,7 @@
 		<ul>
 			<li>
 				<label class="control-label" for="outer_id">(商品/商家)编码:</label>
-				<input type="text" name="outer_id" value="{{ object.outer_id }}"/>
+				<input type="text" name="outer_id" value="{{ outer_id }}"/>
 			</li>
 			<li>
 				<input type="submit" value="查询" class="btn btn-primary"/>
@@ -101,7 +101,7 @@
 								<th style="width:30px;">操作</th>
 						</thead>
 						<tbody>
-							{% for product in object.products %}
+							{% for product in products %}
 							{% for item in product.skus %}
 							<tr class="{% cycle 'odd' 'even' %}">
 								<td>{{ product.outer_id }}</td>
