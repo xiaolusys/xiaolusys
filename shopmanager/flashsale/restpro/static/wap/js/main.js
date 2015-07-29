@@ -11,9 +11,12 @@ function Set_posters(suffix){
 			//设置女装海报链接及图片
 			$.each(data.wem_posters,
 				function(index,poster){
-				console.log('debug: poster each,',poster,index);
 					$('.poster .nvzhuang').attr('href',poster.item_link);
 					$('.poster .nvzhuang img').attr('src',poster.pic_link);
+					if (poster.subject === 'undifine' || poster.subject === null ){
+						return
+					}
+					$('.poster .nvzhuang .subject').html('<span class="tips">'+poster.subject[0]+'</span>'+poster.subject[1]);
 				}
 			);
 		}
@@ -23,6 +26,10 @@ function Set_posters(suffix){
 				function(index,poster){
 					$('.poster .chaotong').attr('href',poster.item_link);
 					$('.poster .chaotong img').attr('src',poster.pic_link);
+					if (poster.subject === 'undifine' || poster.subject === null ){
+						return
+					}
+					$('.poster .chaotong .subject').html('<span class="tips">'+poster.subject[0]+'</span>'+poster.subject[1]);
 				}
 			);
 		}

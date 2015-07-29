@@ -24,6 +24,10 @@
   background:#333 url(../images/icon-jiantouzuo.png) no-repeat center center;
   opacity: 0.8;
 }
+.goods-slide img{
+  width: 640px;
+  height: 562px;
+}
 .goods-info{
   width: 640px;
   background-color: #fff;
@@ -148,6 +152,7 @@
   margin: 0 auto;
   background-color: #fff;
   margin-top: 20px;
+  margin-bottom: 78px;
 }
 .goods-img h3{
   font-size: 20px;
@@ -199,7 +204,6 @@
   background-color:#e66351;
   font-size: 30px;
 }
-
 
 .cart,
 .scroll-top{
