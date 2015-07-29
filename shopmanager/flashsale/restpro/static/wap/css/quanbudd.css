@@ -1,0 +1,75 @@
+.list{
+  width: 640px;
+  margin: 0 auto;
+}
+.list li{
+  background-color:#fff; 
+  border-top:1px solid #bec0c2;
+  border-bottom: 1px solid #bec0c2;
+  height: 260px;
+  margin:20px 0;
+  padding: 0 40px;
+}
+.list .top{
+  margin-top: 14px;
+  line-height: 62px;
+  border-bottom: 1px solid #bec0c2;
+}
+.list .top .xiadan{
+  float: left;
+  color: #5f5f5e;
+  font-size: 22px;
+}
+.list .top .shengyu{
+  float: right;
+  color:#f353a0;
+  font-size: 20px;
+  padding-left: 28px;
+  background:url(../images/icon-shengyu.png) no-repeat left center;
+}
+.list .info{
+  color: #5f5f5f;
+  display: block;
+  font-size: 26px;
+  margin-top: 14px;
+  background: url(../images/icon-jiantouyou2.png) no-repeat right 10px center;
+}
+.list .info .left{
+  width:150px;
+  float: left;
+  height: 168px;
+}
+.list .info .left img{
+  width: 137px;
+  height: 124px;
+  margin-top: 15px;
+}
+.list .info .right{
+  width:400px;
+  float: right;
+  height: 168px;
+}
+.list .info .right p{
+  line-height: 2;
+}
+.list .caaaaaa{
+  color:#aaaaaa;
+}
+.list .cf353a0{
+  color:#f353a0;
+}
+.list .top{
+  position: relative;
+}
+.list .top .btn-qianshou {
+  position: absolute;
+  right: 0;
+  top: -6px;
+  width: 160px;
+  height: 60px;
+  line-height: 60px;
+  border-radius: 10px;
+  background-color: #fdb916;
+  color: #fff;
+  text-align: center;
+}

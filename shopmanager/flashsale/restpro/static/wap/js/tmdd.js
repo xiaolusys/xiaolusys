@@ -2,13 +2,26 @@
  *@author: imeron
  *@date: 2015-07-22 
  */
+ 
+ 
 function Create_order_dom(obj){
+	
+	if (obj.status == 1){
+		obj.btn_class   = 'shengyu';
+		obj.btn_content = '剩余时间：';
+	}else if(obj.status == 2){
+		obj.btn_class   = 'btn-qianshou';
+		obj.btn_content = '确认签收';
+	}else{
+		obj.btn_class   = '';
+		obj.btn_content = '';
+	}
 	function Order_dom(){
 	/*
 	<li>
     <div class="top clear">
       <div class="xiadan">下单时间：{{ created }}</div>
-      <div class="shengyu">剩余时间：{{ remain_time }}</div>
+      <div class="{{btn_class}}" xl_created="{{created}}">{{btn_content}}</div>
     </div>
     <a href="./dd-detail.html?id={{ id }}" class="info clear">
       <div class="left"><img src="{{ order_pic }}" /></div>
@@ -26,10 +39,11 @@ function Create_order_dom(obj){
 function Set_orders(suffix){
 	//请求URL
 	var requestUrl = GLConfig.baseApiUrl + suffix;
-	
+	console.log('debug:',requestUrl);
 	//请求成功回调函数
 	var requestCallBack = function(data){
 		if (data.count != 'undifine' && data.count != null){
+			console.log('debug results:',data.results);
 			$.each(data.results,
 				function(index,order){
 					var order_dom = Create_order_dom(order);

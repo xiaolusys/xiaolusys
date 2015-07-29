@@ -11,6 +11,7 @@
   padding: 0 40px;
 }
 .list .top{
+  position: relative;
   margin-top: 14px;
   line-height: 62px;
   border-bottom: 1px solid #bec0c2;
@@ -26,6 +27,18 @@
   font-size: 20px;
   padding-left: 28px;
   background:url(../images/icon-shengyu.png) no-repeat left center;
+}
+.list .top .btn-qianshou {
+  position: absolute;
+  right: 0;
+  top: -6px;
+  width: 160px;
+  height: 60px;
+  line-height: 60px;
+  border-radius: 10px;
+  background-color: #fdb916;
+  color: #fff;
+  text-align: center;
 }
 .list .info{
   color: #5f5f5f;
@@ -193,3 +206,4 @@
 	font-size:26px;
 	color:#f353a0;
 }
+
