@@ -479,3 +479,14 @@ class IntegralLogAdmin(admin.ModelAdmin):
 
 admin.site.register(IntegralLog, IntegralLogAdmin)
 
+from flashsale.pay.models import ShoppingCart
+
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('buyer_id', 'buyer_nick', 'item_id',
+                    'title', 'price', 'sku_id', 'num',
+                    'total_fee', 'sku_name',
+                    'created', 'status')
+    list_filter = ('created', )
+    search_fields = ['item_id', 'title', 'buyer_id', ]
+admin.site.register(ShoppingCart, ShoppingCartAdmin)
