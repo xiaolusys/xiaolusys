@@ -144,7 +144,7 @@ INSTALLED_APPS = (
     'shopapp.weixin',
     'shopapp.tmcnotify',
 
-    'shopapp.zhongtong',
+    #'shopapp.zhongtong',
 
     'shopapp.jingdong',
     'shopapp.intercept',
