@@ -94,6 +94,14 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
+    @list_route(methods=['get'])
+    def show_carts_num(self, request):
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        count = 0
+        for item in queryset:
+            count += item.num
+        return Response(count)
+
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None):
         instance = self.get_object()

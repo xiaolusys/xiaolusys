@@ -75,7 +75,7 @@
     <h3>商品图片</h3>
 
     <div>
-        <img src="images/goods-img.png">
+        <img src="../images/goods-img.png">
     </div>
 </div>
 <ul class="bottom-bar">
@@ -110,6 +110,7 @@
         var product_url = GLConfig.get_product_detail_url.template(urlConf);
 
         Set_product_detail(product_url);
+        Set_shopcarts_num();
     })(jQuery);
 </script>
 </body>
