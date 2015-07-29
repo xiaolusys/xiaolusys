@@ -61,23 +61,29 @@ def refund_Analysis(request):
     ref_su_am = refunds_success.aggregate(total_su_am=Sum('refund_fee')).get('total_su_am') or 0
 
     refund_pros = RefundProduct.objects.filter(created__gte=date_time_from, created__lte=date_time_to)
-    # 发货总数量
-    merge_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to).exclude(status=pcfg.INVALID_STATUS).count()  # 排除作废订单
-
-    # 计算退货率 退货单数量／发货总数量
-    refund_rate_func = lambda ref_co, merge_counts: 0 if merge_counts == 0 else round(float(ref_co) / merge_counts, 3)
-    refund_rate = refund_rate_func(ref_co, merge_counts)
+    # 所有订单（包含任何状态）
+    merges = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to)
+    # 发货总数量(只是排除作废的订单)
+    merge_counts = merges.exclude(status=pcfg.INVALID_STATUS).count()
 
     # 该时间段 待 发货（订单状态）  已作废（系统状态） 订单数量  (已经付款 要退款的数量)
-    merge_wait_invalud_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to,
-                                                            status=pcfg.WAIT_SELLER_SEND_GOODS,
-                                                            sys_status=pcfg.INVALID_STATUS).count()
+    merges_wait_invalud = merges.filter(status=pcfg.WAIT_SELLER_SEND_GOODS, sys_status=pcfg.INVALID_STATUS)
+    merge_wait_invalud_counts = merges_wait_invalud.count()
+    # 待发货作废 退款金额
+    wait_invalud_payment = merges_wait_invalud.aggregate(total_w_pa=Sum('payment')).get('total_w_pa') or 0
+
     # 退款 交易关闭   已经作废的数量
-    merge_refund_invalud_counts = MergeTrade.objects.filter(created__gte=date_time_from, created__lte=date_time_to,
-                                                                status=pcfg.TRADE_CLOSED,
-                                                                sys_status=pcfg.INVALID_STATUS).count()
+    merges_refund_invalud = merges.filter(status=pcfg.TRADE_CLOSED, sys_status=pcfg.INVALID_STATUS)
+    merge_refund_invalud_counts = merges_refund_invalud.count()
+    # 交易关闭退款金额
+    refund_invalud_payment = merges_refund_invalud.aggregate(total_r_pa=Sum('payment')).get('total_r_pa') or 0
 
-
+    # 计算退货率 = (待发货作废 + 退款交易关闭) ／ (待发货作废 + 退款交易关闭 + 发货总数量(只是排除作废的订单) )
+    all_merge_count = merge_wait_invalud_counts + merge_refund_invalud_counts + merge_counts
+    refund_count = merge_wait_invalud_counts + merge_refund_invalud_counts
+    rate_func = lambda x, y: 0 if y == 0 else round(float(x) / y, 3)
+    # refund_rate = rate_func(ref_co, merge_counts)
+    merge_refund_rate = rate_func(refund_count, all_merge_count)
 
     top_re = refund_pros.values('outer_id', 'title').annotate(t_num=Sum('num'))
     if len(top_re) > 50:
@@ -100,12 +106,16 @@ def refund_Analysis(request):
     # top['title'] = title   # 如果同一个编码和名称有多个的情况
 
     return render_to_response("refunds/refund_analysis.html",
-                              {"refund_pros": refund_pros,
-                               "ref_co": ref_co, "ref_am": ref_am,
+                              {"ref_co": ref_co, "ref_am": ref_am,
                                "ref_su_co": ref_su_co, 'ref_su_am': ref_su_am,
                                 "merge_wait_invalud_counts":merge_wait_invalud_counts,
                                "merge_refund_invalud_counts":merge_refund_invalud_counts,
-                               "merge_counts": merge_counts, "refund_rate": refund_rate,
+                               "merge_counts": merge_counts,
+                               #"refund_rate": refund_rate,
+
+                               "wait_invalud_payment": wait_invalud_payment,
+                               "refund_invalud_payment": refund_invalud_payment,
+                               "merge_refund_rate": merge_refund_rate,
 
                                "reason_count_total": reason_count_total,
                                "reason_count": reason_count,

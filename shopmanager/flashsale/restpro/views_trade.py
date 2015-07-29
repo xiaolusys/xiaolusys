@@ -28,7 +28,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     minus_product_carts
     """
     queryset = ShoppingCart.objects.all()
-    serializer_class = serializers.ShoppingCartSerializer# Create your views here.
+    serializer_class = serializers.ShoppingCartSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
@@ -42,21 +42,26 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         data = []
         for a in queryset:
             temp_dict = model_to_dict(a)
-            pro = Product.objects.get(id=a.item_id)
-            temp_dict["std_sale_price"] = pro.std_sale_price if pro else 0
+            pro = Product.objects.filter(id=a.item_id)
+            temp_dict["std_sale_price"] = pro[0].std_sale_price if pro else 0
             data.append(temp_dict)
         return Response(data)
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        product_id = request.POST.get("item_id", None)
-        buyer_id = request.POST.get("buyer_id", None)
-        sku_id = request.POST.get("sku_id", None)
-        num = request.POST.get("num", 0)
-        sku = get_object_or_404(ProductSku, pk=sku_id)
-        lock_success = Product.objects.isQuantityLockable(sku, num)
-        if product_id and buyer_id and sku_id and lock_success:
+        print data
+        customer_user = Customer.objects.filter(user=request.user)
+        if customer_user.count() == 0:
+            return Response("0") #登录过期
 
+        product_id = data.get("item_id", None)
+        buyer_id = customer_user[0].id
+        sku_id = data.get("sku_id", None)
+        num = data.get("num", 0)
+        sku = get_object_or_404(ProductSku, pk=sku_id)
+        # lock_success = Product.objects.isQuantityLockable(sku, num) #限购功能
+        # if product_id and buyer_id and sku_id and lock_success:
+        if product_id and buyer_id and sku_id:
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id)
             if shop_cart.count() > 0:
                 shop_cart_temp = shop_cart[0]
@@ -65,9 +70,16 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 return Response("Added")
 
             new_shop_cart = ShoppingCart()
+            new_shop_cart.buyer_id = buyer_id
             for k, v in data.iteritems():
                 if v:
                     hasattr(new_shop_cart, k) and setattr(new_shop_cart, k, v)
+            new_shop_cart.buyer_nick = customer_user[0].nick if customer_user[0].nick else ""
+            new_shop_cart.price = sku.agent_price
+            new_shop_cart.total_fee = sku.agent_price * int(num) if sku.agent_price else 0
+            new_shop_cart.sku_name = sku.properties_alias if len(sku.properties_alias) > 0 else sku.properties_name
+            new_shop_cart.pic_path = sku.product.pic_path
+            new_shop_cart.title = sku.product.name
             new_shop_cart.save()
 
             return Response("Created")
@@ -90,13 +102,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def plus_product_carts(self, request, pk=None):
-        cart_item = get_object_or_404(ShoppingCart, pk=pk)
-        sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
-        lock_success = Product.objects.isQuantityLockable(sku, cart_item.num+1)
-        if lock_success:
-            update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
-        else:
-            return Response('0')
+        # cart_item = get_object_or_404(ShoppingCart, pk=pk)
+        # sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
+        # lock_success = Product.objects.isQuantityLockable(sku, cart_item.num+1)
+        # if lock_success:
+        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
+        # else:
+        #     return Response('0')
         return Response(update_status)
 
     @detail_route(methods=['post'])

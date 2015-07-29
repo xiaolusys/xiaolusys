@@ -9,8 +9,10 @@ from . import views_user
 from . import views_product 
 from . import views_trade 
 from flashsale.pay.views import OrderBuyReview
+from flashsale.complain.views import ComplainViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'complain', ComplainViewSet)
 router.register(r'register', views_user.RegisterViewSet)
 router.register(r'users', views_user.CustomerViewSet)
 
