@@ -16,9 +16,9 @@ var obj = new Object();
 window.open("/trades/check_order/"+symbol_link,obj,"width=800px,height=700px,left:450px,status=no, center:yes ,location:no ");
 }
 
-
+//2015  7-25  fang 修改
 function showlayer(symbol_link) {
-    url = '/trades/check_order/' +symbol_link;
+    url = '/trades/checkorder/' +symbol_link;
     layer.open({
         type: 2,
         title: "订单审核页面",

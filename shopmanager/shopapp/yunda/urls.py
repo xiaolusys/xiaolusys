@@ -9,50 +9,50 @@ from .views import (PackageByCsvFileView,
                     PackageWeightView,
                     CustomerPackageImportView,
                     BranchZoneView)
-from .resources import (PackageListResource,
-                        LogisticOrderResource,
-                        BranchZoneResource)
-from .renderers import BaseJsonRenderer,PackageDiffHtmlRenderer
-from shopback.base.permissions import IsAuthenticated
-from shopback.base.authentication import UserLoggedInAuthentication,login_required_ajax
+# from .resources import (PackageListResource,
+#                         LogisticOrderResource,
+#                         BranchZoneResource)
+# # from .renderers import BaseJsonRenderer,PackageDiffHtmlRenderer
+# from shopback.base.permissions import IsAuthenticated
+from shopback.base.authentication import login_required_ajax
 
 urlpatterns = patterns('shopapp.yunda.views',
 
      (r'^impackage/$',PackageByCsvFileView.as_view(
-        resource=PackageListResource,
-        renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+        #resource=PackageListResource,
+      #  renderers=(BaseJsonRenderer,),
+       # authentication=(UserLoggedInAuthentication,),
+        #permissions=(IsAuthenticated,)
     )),  
                        
     (r'^today/push/$',DiffPackageDataView.as_view(
-        resource=PackageListResource,
-        renderers=(BaseJsonRenderer,PackageDiffHtmlRenderer),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+       # resource=PackageListResource,
+       # renderers=(BaseJsonRenderer,PackageDiffHtmlRenderer),
+       # authentication=(UserLoggedInAuthentication,),
+      #  permissions=(IsAuthenticated,)
     )), 
                        
     (r'package/weight/$',staff_member_required(TemplateView.as_view(
                         template_name='yunda/weight_small_package.html'))),   
                                        
     (r'^package/$',PackageWeightView.as_view(
-        resource=LogisticOrderResource,
-        renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+       # resource=LogisticOrderResource,
+        #renderers=(BaseJsonRenderer,),
+       # authentication=(UserLoggedInAuthentication,),
+      #  permissions=(IsAuthenticated,)
     )), 
                        
     (r'^order/upload/$',CustomerPackageImportView.as_view(
-        resource=PackageListResource,
-        renderers=(BaseJsonRenderer,),
-        authentication=(UserLoggedInAuthentication,),
-        permissions=(IsAuthenticated,)
+        #resource=PackageListResource,
+        #renderers=(BaseJsonRenderer,),
+       # authentication=(UserLoggedInAuthentication,),
+       # permissions=(IsAuthenticated,)
     )), 
                        
     (r'^branchzone/$',cache_page(BranchZoneView.as_view(
-        resource=BranchZoneResource,
-        renderers=(BaseJsonRenderer,),
-#        authentication=(UserLoggedInAuthentication,),
-#        permissions=(IsAuthenticated,)
+        #resource=BranchZoneResource,
+        #renderers=(BaseJsonRenderer,),
+#        authentication=(UserLoggedInAuthentication,),##yuanlai   ##you fang 
+#        permissions=(IsAuthenticated,)   ##yuanlai ##
     ),24*60*60)),  
 )
