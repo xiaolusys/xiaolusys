@@ -1501,7 +1501,8 @@ class TradeLogisticView(APIView):
      #serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
-    renderer_classes = (TradeLogisticRender,new_BaseJSONRenderer,BrowsableAPIRenderer, )
+    renderer_classes = (TradeLogisticRender,new_BaseJSONRenderer, )
+
     def get(self, request, *args, **kwargs):
         
         content  = request.REQUEST
@@ -1556,7 +1557,7 @@ class TradeLogisticView(APIView):
             weight_list.append((JZA_weight,JZA_count))
             weight_list.append((OTHER_weight,OTHER_count))
 
-        return   Response({"object":{'logistics':trade_list,'df':df or '','dt':dt or '','yunda_count':TOTAL_count,'weights':weight_list}})   
+        return   Response({'logistics':trade_list,'df':df or '','dt':dt or '','yunda_count':TOTAL_count,'weights':weight_list})   
     
     post = get 
     
@@ -1700,13 +1701,16 @@ class ImprovePriorityView(APIView):
         row = MergeTrade.objects.filter(id=id).update(priority=pcfg.PRIORITY_HIG)
         
         return Response({'success':row > 0})
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #     
+
+########################## 提升订单优先级 ###########################
+
 #fang  将django中的方法提取出来
 #获取订单备注，几乎是自己重新写的方法   2015-7-29
 class InstanceModelView_new(APIView):
     #print "zheli"
     serializer_class = serializers.MergeTradeSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,)
     def get (self, request, id,*args, **kwargs):
@@ -1716,15 +1720,14 @@ class InstanceModelView_new(APIView):
        #return Response({"example":"get__function"})
        return Response(serializer)
 
-
-
-########################
 ########################## 订单重量入库 ###########################
 class PackageScanCheckView(APIView):
     """ 订单扫描验货 """
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+#    permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (new_BaseJSONRenderer,)
+
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
             return False
@@ -1789,10 +1792,9 @@ class PackageScanCheckView(APIView):
         
         order_items = self.getOrderItemsFromTrade(mt)
         
-        return    Response({"object":{'package_no':package_id,
-                'trade_id':mt.id,
-                'order_items':order_items}})
-    
+        return Response({'package_no':package_id,
+                         'trade_id':mt.id,
+                         'order_items':order_items})    
         
     def post(self, request,*args, **kwargs):
         
@@ -1825,9 +1827,10 @@ class PackageScanCheckView(APIView):
 ########################## 订单重量入库 ###########################
 class PackageScanWeightView(APIView):
     """ 订单扫描称重 """
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,)
+
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
             return False

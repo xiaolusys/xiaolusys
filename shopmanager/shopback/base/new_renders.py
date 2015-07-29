@@ -20,7 +20,7 @@ from rest_framework.utils.breadcrumbs import get_breadcrumbs
 from rest_framework.utils.field_mapping import ClassLookupDict
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 from chartit import Chart,PivotChart
-from django.template import RequestContext, loader
+
 from django.core.serializers.json import DjangoJSONEncoder
 
 class new_BaseJSONRenderer(JSONRenderer):
