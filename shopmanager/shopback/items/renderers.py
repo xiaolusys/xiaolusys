@@ -1,105 +1,105 @@
-from djangorestframework.renderers import TemplateRenderer,JSONRenderer
+
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 
 
-
-class ProductListHtmlRenderer(TemplateRenderer):
+class ProductListHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to JSON
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'items/itemmainpage.html'
-    
-    
-
-class ProductItemHtmlRenderer(TemplateRenderer):
-    """
-    Renderer which serializes to JSON
-    """
-    
-    media_type = 'text/html'
-    format = 'html'
-    template = 'items/productitemspage.html'
-    
-    
-    
-class ProductUpdateHtmlRenderer(TemplateRenderer):
-    """
-    Renderer which serializes to JSON
-    """
-    
-    media_type = 'text/html'
-    format = 'html'
-    template = 'items/productupdate.html'
-    
-    
-class ProductSkuHtmlRenderer(TemplateRenderer):
-    """
-    Renderer which serializes to JSON
-    """
-    
-    media_type = 'text/html'
-    format = 'html'
-    template = 'items/productskutable.html'
-    
-    
-class ProductHtmlRenderer(TemplateRenderer):
-    """
-    Renderer which serializes to JSON
-    """
-    
-    media_type = 'text/html'
-    format = 'html'
-    template = 'items/product_detail.html'
-    
-class ProductDistrictHtmlRenderer(TemplateRenderer):
-    """
-    Renderer which serializes to JSON
-    """
-    
-    media_type = 'text/html'
-    format = 'html'
-    template = 'items/product_district_page.html'
+   # template_name = 'items/itemmainpage.html'
+    template_name = 'items/new_itemmainpage.html'
     
 
-class ProductBarcodeHtmlRenderer(TemplateRenderer):
+class ProductItemHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to JSON
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'items/product_barcode_page.html'
+    template_name = 'items/productitemspage.html'
     
     
-class ProductWarnHtmlRenderer(TemplateRenderer):
+    
+class ProductUpdateHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to JSON
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'items/product_stock_warn.html'
+    template_name = 'items/productupdate.html'
+    
+    
+class ProductSkuHtmlRenderer(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template_name = 'items/productskutable.html'
+    
+    
+class ProductHtmlRenderer(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template_name = 'items/product_detail.html'
+    
+class ProductDistrictHtmlRenderer(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template_name = 'items/product_district_page.html'
+    
+
+class ProductBarcodeHtmlRenderer(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template_name = 'items/product_barcode_page.html'
+    
+    
+class ProductWarnHtmlRenderer(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    
+    media_type = 'text/html'
+    format = 'html'
+    template_name = 'items/product_stock_warn.html'
     
 
     
-class ProductSaleHtmlRenderer(TemplateRenderer):
+class ProductSaleHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to JSON
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'items/product_sale_stat.html'
+    template_name = 'items/product_sale_stat.html'
 
 
-class ProductScanRenderer(TemplateRenderer):
+class ProductScanRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to JSON
     """
     
     media_type = 'text/html'
     format = 'html'
-    template = 'items/items_storage_scan.html'
+    template_name = 'items/items_storage_scan.html'
 

@@ -7,11 +7,11 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.db.models import Sum,Count,Max
-from djangorestframework import status
-from djangorestframework.response import Response,ErrorResponse
+#from djangorestframework import status
+#from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import LogisticsCompany
-from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView,FileUploadView
+from shopback.base.views import FileUploadView_intercept
 from shopback.base import log_action, ADDITION, CHANGE
 from .service import YundaPackageService,DEFUALT_CUSTOMER_CODE
 from .models import (BranchZone,
@@ -25,16 +25,31 @@ from .models import (BranchZone,
                      NORMAL,
                      DELETE)
 from .options import get_addr_zones
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from . import serializers 
+from rest_framework import status
+from shopback.base.new_renders import new_BaseJSONRenderer
 
-
-class PackageByCsvFileView(FileUploadView):
-    
+class PackageByCsvFileView(FileUploadView_intercept):
+    serializer_class = serializers.PackageListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     file_path     = 'yunda'
     filename_save = 'package_%s.csv'
     
     def get(self, request, *args, **kwargs):
         pass
-    
+        return    Response({"example":"get_function"})
     def getSid(self,row):
         return row[0]
     
@@ -101,19 +116,23 @@ class PackageByCsvFileView(FileUploadView):
                 row = [r.strip().decode(encoding) for r in row]
                 self.createTodayPackageWeight(row)
                 
-        return {'success':True,
-                'redirect_url':reverse('admin:yunda_todaysmallpackageweight_changelist')}
+        return  Response({'success':True,
+                'redirect_url':reverse('admin:yunda_todaysmallpackageweight_changelist')})
     
 
-class CustomerPackageImportView(FileUploadView):
+class CustomerPackageImportView(FileUploadView_intercept):
     
-    
+    serializer_class = serializers.PackageListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     file_path     = 'yunda'
     filename_save = 'cr_package_%s.csv'
     
     def get(self, request, *args, **kwargs):
+        print "get"
         pass
-    
+        return    Response({"example":"get_function"})
     def getCustomer(self,code):
         try:
             return YundaCustomer.objects.get(code=code)
@@ -194,11 +213,15 @@ class CustomerPackageImportView(FileUploadView):
             if self.isValidPackage(row):
                 self.createPackageOrder(customer,row,wave_no)
                 
-        return {'success':True,'redirect_url':'/admin/yunda/logisticorder/?q='+wave_no}
+        return Response({'success':True,'redirect_url':'/admin/yunda/logisticorder/?q='+wave_no})
    
     
-class DiffPackageDataView(ModelView):
-    
+class DiffPackageDataView(APIView):
+    serializer_class = serializers.PackageListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (TemplateHTMLRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
+    template_name="yunda/upload_yunda_package.html"
     def calcWeight(self,sqs,pqs):
         
         tspw_dict = sqs.aggregate(
@@ -242,7 +265,6 @@ class DiffPackageDataView(ModelView):
         
         small_queryset  = TodaySmallPackageWeight.objects.all()
         parent_queryset = TodayParentPackageWeight.objects.all()
-        
         error_packages = []
         
         yunda_service = YundaPackageService()
@@ -267,11 +289,11 @@ class DiffPackageDataView(ModelView):
                     error_packages.append((tppw.parent_package_id,tppw.weight,exc.message))
         
         if error_packages:
-            return {'error_packages':error_packages}
+            return Response({'error_packages':error_packages})
         
         response = self.calcPackageData()
         
-        return response
+        return Response({"object":response})
     
     def post(self, request, *args, **kwargs):
         
@@ -305,10 +327,15 @@ class DiffPackageDataView(ModelView):
         
         return HttpResponseRedirect(reverse('admin:%s_%s_changelist'%(ct.app_label, ct.model)))
     
+
+
     
-class PackageWeightView(ModelView):
+class PackageWeightView(APIView):
     """ 包裹称重视图 """
-    
+    serializer_class = serializers.LogisticOrderSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
             return False
@@ -359,7 +386,7 @@ class PackageWeightView(ModelView):
         except:
             yd_customer = ''
             
-        return {'package_id':package_id,
+        return  Response({'package_id':package_id,
                 'cus_oid':lo.cus_oid,
                 'yd_customer':yd_customer,
                 'receiver_name':lo.receiver_name,
@@ -369,7 +396,7 @@ class PackageWeightView(ModelView):
                 'receiver_address':lo.receiver_address,
                 'created':lo.created,
                 'zone':self.getYundaZone(lo, dc_code)
-                }
+                })
     
         
     def post(self, request,*args, **kwargs):
@@ -401,13 +428,16 @@ class PackageWeightView(ModelView):
         tspw.save()
         log_action(request.user.id,lo,CHANGE,u'扫描称重')
         
-        return {'isSuccess':True}
+        return Response({'isSuccess':True})
     
 
-class BranchZoneView(ModelView):
+class BranchZoneView(APIView):
     """ 获取分拨集包规则 """
     
-        
+    serializer_class = serializers.BranchZoneSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)   
     def get(self, request, *args, **kwargs):
         
         content    = request.REQUEST
@@ -418,9 +448,9 @@ class BranchZoneView(ModelView):
         
         branch_zone = get_addr_zones(province,city,district,address=address)
 
-        return {'province':province,
+        return Response({'province':province,
                 'city':city,
                 'district':district,
                 'address':address,
                 'branch_zone':branch_zone ,
-                }    
+                }    )

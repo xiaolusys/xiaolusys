@@ -1,9 +1,10 @@
 from django.core.paginator import Paginator
 from django.db.models.query import QuerySet
 from django.db.models import signals
-from djangorestframework.response import ErrorResponse
-from djangorestframework import status
-
+# from djangorestframework.response import ErrorResponse
+# from djangorestframework import status
+from rest_framework import status
+from django.http import HttpResponse, Http404
 class PaginatorMixin(object):
     """
     Adds pagination support to GET requests
@@ -89,7 +90,7 @@ class PaginatorMixin(object):
             page_num = 1
 
         if page_num not in paginator.page_range:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND, {'detail': 'That page contains no results'})
+            raise      Http404({'detail': 'That page contains no results'})                               # ErrorResponse(status.HTTP_404_NOT_FOUND, {'detail': 'That page contains no results'})
 
         page = paginator.page(page_num)
 
@@ -150,7 +151,7 @@ class DeleteModelMixin(object):
                 # Otherwise assume the kwargs uniquely identify the model
                 instance = model.objects.get(**kwargs)
         except model.DoesNotExist:
-            raise ErrorResponse(status.HTTP_404_NOT_FOUND, None, {})
+            raise  Http404                       # ErrorResponse(status.HTTP_404_NOT_FOUND, None, {})
 
         instance.status=False
         instance.save()
@@ -159,4 +160,21 @@ class DeleteModelMixin(object):
 
         return
 
+def as_tuple(obj):
+    """
+    Given an object which may be a list/tuple, another object, or None,
+    return that object in list form.
+
+    IE:
+    If the object is already a list/tuple just return it.
+    If the object is not None, return it in a list with a single element.
+    If the object is None return an empty list.
+    """
+    if obj is None:
+        return ()
+    elif isinstance(obj, list):
+        return tuple(obj)
+    elif isinstance(obj, tuple):
+        return obj
+    return (obj,)
 

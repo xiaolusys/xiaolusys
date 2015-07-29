@@ -4,10 +4,20 @@ import json
 from django.http import HttpResponse,HttpResponseNotFound
 from django.db.models import Q,Sum
 from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
-from djangorestframework.views import ModelView
-from djangorestframework.response import ErrorResponse
 from shopapp.calendar.models import StaffEvent
 from common.utils import parse_datetime,format_datetime
+from rest_framework.views import APIView
+from . import serializers 
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from shopback.base.new_renders import new_BaseJSONRenderer
 
 
 def get_users_by_string(executor_strng):
@@ -75,22 +85,32 @@ def complete_staff_event(request,id):
     return HttpResponse(json.dumps(ret),mimetype="application/json")
     
     
-class MainEventPageView(ModelView):
+class MainEventPageView(APIView):
     """ docstring for class MainEventPageView """
-            
+    
+    
+    serializer_class = serializers.MainStaffEventSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (new_BaseJSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer)
+    template_name = "fullcalendar/default.html"    
     def get(self, request, *args, **kwargs):
         
         cur_user = request.user
         staffs = DjangoUser.objects.filter(is_active=True,is_staff=True)
             
-        return {'curuser':cur_user,'staffs':staffs}
+        return Response({'curuser':cur_user,'staffs':staffs})
 
-    
-class StaffEventView(ModelView):
+
+class StaffEventView(APIView):
     """ docstring for class StaffEventView """
-    
+    #print "88855656+44"
+    #serializer_class = serializers.StaffEventSerializer  #baocuo   xuyao kaolvhao
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
+    authentication_classes = (authentication.BasicAuthentication,)
+   # template_name = "fullcalendar/default.html"    
     def get(self, request, *args, **kwargs):
-        
+        #print "get99"
         content   = request.REQUEST
         exector   = content.get('exector')
         date_type = content.get('date_type','task')
@@ -151,9 +171,11 @@ class StaffEventView(ModelView):
                           'is_finished':event.is_finished,
                           }
             staff_list.append(staff_dict)
-        return staff_list
+        
+        return Response(staff_list)
         
     def post(self, request, *args, **kwargs):
+        print "post"
         creator    = request.user
         content = request.REQUEST
         
@@ -201,12 +223,42 @@ class StaffEventView(ModelView):
                           'is_finished':event.is_finished,
                           }
             staff_list.append(staff_dict)
-        return staff_list
+        return Response(staff_list)
         
 
-    
-    
-    
-    
+###############
+class BaseJsonRenderer222(JSONRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+    media_type = 'application/json'
+    format = 'json'
+
+    def render(self, obj=None, media_type=None):
+        """
+        Renders *obj* into serialized JSON.
+        """
+        if isinstance(obj,(list,tuple,)):
+            obj = {"code":0,"response_content":obj}
+        elif isinstance(obj,dict) and (obj.has_key('code') or obj.has_key('field-errors')
+                                       or obj.has_key('errors') or obj.has_key('errcode')):
+            pass
+        elif isinstance(obj,dict):
+            obj = {"code":0,"response_content":obj}
+        else:
+            obj = {"code":1,"response_error":obj}
+
+        # If the media type looks like 'application/json; indent=4', then
+        # pretty print the result.
+        indent = get_media_type_params(media_type).get('indent', None)
+        sort_keys = False
+        try:
+            indent = max(min(int(indent), 8), 0)
+            sort_keys = True
+        except (ValueError, TypeError):
+            indent = None
+
+        return json.dumps(obj, cls=DjangoJSONEncoder, indent=indent, sort_keys=sort_keys)
+
     
     

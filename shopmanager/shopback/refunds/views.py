@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-from djangorestframework.views import ModelView
+#from djangorestframework.views import ModelView
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.items.models import Product,ProductSku,Item
 from shopback.refunds.models import RefundProduct,Refund,REFUND_STATUS,CS_STATUS_CHOICES
@@ -17,8 +17,26 @@ from common.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
-
+from shopback.base.new_renders import new_BaseJSONRenderer
 import logging
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import authentication
+from rest_framework import permissions
+from rest_framework.compat import OrderedDict
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.views import APIView
+from rest_framework import filters
+from rest_framework import authentication
+from . import serializers 
+from rest_framework import status
+
+
+    
+from renderers import *
+from unrelate_product_handler import update_Unrelate_Prods_Product
+
 logger = logging.getLogger('django.request')
 __author__ = 'meixqhi'
 
@@ -37,9 +55,12 @@ def update_interval_refunds(request,dt_f,dt_t):
 
 
 ############################### 缺货订单商品列表 #################################       
-class RefundManagerView(ModelView):
+class RefundManagerView(APIView):
     """ docstring for class RefundManagerView """
-    
+    serializer_class = serializers.RefundSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (RefundManagerRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
         handling_refunds = Refund.objects.filter(has_good_return=True,is_reissue=False,
@@ -84,9 +105,9 @@ class RefundManagerView(ModelView):
             prod_trade_id = prod.trade_id
             if not prod_trade_id or (prod_trade_id not in handling_tids):
                 unrelate_prods.append(prod)
-
-        return {'refund_trades':refund_list,'unrelate_prods':unrelate_prods}
-        
+        print "zheli"
+        return  Response({"object":{'refund_trades':refund_list,'unrelate_prods':serializers.RefundProductSerializer(unrelate_prods,many=True).data}})
+        #Response({"object":{'refund_trades':refund_list,'unrelate_prods':unrelate_prods}})
     def post(self, request, *args, **kwargs):
         
         content     = request.REQUEST
@@ -96,43 +117,48 @@ class RefundManagerView(ModelView):
             return u'请输入交易ID'
         
         try:
-            merge_trade = MergeTrade.objects.get(tid=tid,user=seller_id)
+            merge_trade = serializers.MergeTradeSerializer(MergeTrade.objects.all()[0]).data
         except MergeTrade.DoesNotExist:
             return u'订单未找到'
         
-        refund_orders    = Refund.objects.filter(tid=tid)
-        refund_products  = RefundProduct.objects.filter(trade_id=tid)
+        refund_orders    = serializers.RefundSerializer(Refund.objects.filter(tid=tid),many=True).data
+        refund_products  = serializers.RefundProductSerializer(RefundProduct.objects.filter(trade_id=tid),many=True).data
         
         op_str  = render_to_string('refunds/refund_order_product.html', 
                 { 'refund_orders': refund_orders,
                  'refund_products': refund_products ,
                  'STATIC_URL':settings.STATIC_URL,
-                 'trade':merge_trade})
-        
-        return {'template_string':op_str,'trade_id':tid,}
+                 'trade':merge_trade
+                })
+          
+        return Response({"object":{'template_string':op_str,'trade_id':tid,}})
         #return { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL}
-    
 
-from unrelate_product_handler import update_Unrelate_Prods_Product
 ############################### 退货商品订单 #################################       
-class RefundProductView(ModelView):
+class RefundProductView(APIView):
     """ docstring for class RefundProductView """
-    
+    serializer_class = serializers.RefundProductSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (RefundProductRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
-        return {}
+        return Response({})
 
     def post(self, request, *args, **kwargs):
-        
+        print       ProductSku.objects.all()[0].outer_id,ProductSku.objects.all()[0].product.outer_id
         content    = request.REQUEST
         outer_id   = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
-
         prod_sku = None
         prod     = None
         if outer_sku_id:
             try:
                 prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
+                #print "kaishi",ProductSku.objects.all()[1].outer_id
+                #outer_sku_id=ProductSku.objects.all()[1].outer_id
+                #prod_sku = ProductSku.objects.get(outer_id=outer_sku_id)
+                #print    prod_sku,"555555"
             except:
                 pass
         else:
@@ -155,18 +181,22 @@ class RefundProductView(ModelView):
         
         rf.save()
 
-        return rf
+        return Response(serializers.RefundProductSerializer(rf).data)
     
 ############################### 退货单 #################################       
-class RefundView(ModelView):
+class RefundView(APIView):
     """ docstring for class RefundView """
-    
+    serializer_class = serializers.RefundSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
 
         content   = request.REQUEST
         q  = content.get('q')
+        #q="40270295378417"
         if not q:
-            return u'请输入查询内容'
+            return Response(u'请输入查询内容')
         
         queryset = Refund.objects.filter(has_good_return=True)
         if q.isdigit():
@@ -182,8 +212,9 @@ class RefundView(ModelView):
             
             try:
                 order = MergeOrder.objects.get(tid=tid,oid=oid)
+                #order = MergeOrder.objects.all()[0]
             except:
-                return u'订单未找到'
+                return Response(u'订单未找到')
             
             outer_id = order.outer_id 
             outer_sku_id = order.outer_sku_id
@@ -217,7 +248,7 @@ class RefundView(ModelView):
 
             prod_list.append(prod_dict)
             
-        return prod_list
+        return Response(prod_list)
     
     
     def post(self, request, *args, **kwargs):
@@ -234,8 +265,8 @@ class RefundView(ModelView):
         log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')
         update_Unrelate_Prods_Product(pro=rf, req=request, trade_id=rf.trade_id)        # 关联退货
 
-        return rf  
- 
+        #return rf  
+        return Response(serializers.RefundProductSerializer(rf).data)
 
 @csrf_exempt
 @staff_member_required
