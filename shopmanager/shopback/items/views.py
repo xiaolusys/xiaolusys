@@ -626,7 +626,8 @@ class ProductDistrictView(APIView):
         tag_dict = m.groupdict()
         pno = tag_dict.get('pno')
         dno = tag_dict.get('dno')
-        district = serializers.DepositeDistrictSerializer(DepositeDistrict.objects.get(parent_no=pno or '',district_no=dno or '')).data
+        deposit_obj = DepositeDistrict.objects.get(parent_no=pno or '',district_no=dno or '')
+        district_obj = serializers.DepositeDistrictSerializer(deposit_obj).data
         
         product   = Product.objects.get(outer_id=outer_id)
         prod_sku  = None
@@ -641,7 +642,7 @@ class ProductDistrictView(APIView):
         
         return   Response({"object": {'outer_id':location.outer_id,
                 'outer_sku_id':location.outer_sku_id,
-                'district':district}})
+                'district':district_obj}})
         
         
 @csrf_exempt

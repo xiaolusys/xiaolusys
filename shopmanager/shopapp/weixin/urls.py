@@ -88,18 +88,8 @@ urlpatterns = patterns('shopapp.weixin.views',
     (r'^sales/',include('shopapp.weixin_sales.urls')),
     (r'^score/',include('shopapp.weixin_score.urls')),
     
-    url(r'^product/sync/$',views.WeixinProductView.as_view(
-       # resource=WeixinProductResource,
-      #  renderers=(BaseJsonRenderer,WeixinProductHtmlRenderer),
-       # authentication=(UserLoggedInAuthentication,),
-        #permissions=(IsAuthenticated,)),name='weixin_product_modify'),
-          ))   ,        
-    url(r'^product/verify/$',views.WeixinProductVerifyView.as_view(
-        #resource=WeixinProductResource,
-       # renderers=(BaseJsonRenderer,WeixinProductHtmlRenderer),
-       # authentication=(UserLoggedInAuthentication,),
-       # permissions=(IsAuthenticated,)),name='weixin_product_verify'),
-       )),
+    url(r'^product/sync/$',views.WeixinProductView.as_view(),name='weixin_product_modify')   ,        
+    url(r'^product/verify/$',views.WeixinProductVerifyView.as_view(),name='weixin_product_verify'),
     
     (r'^checkqr/',views.TestCodeView.as_view()),
     

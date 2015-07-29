@@ -58,7 +58,7 @@ function Create_item_dom(p_obj){
         <p class="gname">{{ name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ agent_price }} </span>
-          <span class="oprice"><em>¥</em> {{ std_sale_price }}</span>
+          <s class="oprice"><em>¥</em> {{ std_sale_price }}</s>
         </p>{{ saleout_dom }}
       </a>
     </li>	 */

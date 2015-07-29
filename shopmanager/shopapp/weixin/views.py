@@ -1532,7 +1532,7 @@ class WeixinProductView(APIView):
     """ 微信特卖商品更新 """
     serializer_class = serializers.WeixinProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer,TemplateHTMLRenderer)
     template_name = "weixin/weixinproductsync.html"    
     def getPid(self,link):
@@ -1639,7 +1639,7 @@ class WeixinProductVerifyView(APIView):
     """ 微信特卖商品校验 """
     serializer_class = serializers.WeixinProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer,TemplateHTMLRenderer)
     template_name = "weixin/weixinproductsync.html"    
     def post(self, request, *args, **kwargs):
