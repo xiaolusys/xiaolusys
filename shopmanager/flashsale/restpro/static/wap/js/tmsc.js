@@ -2,30 +2,6 @@
  * Created by yann on 15-7-24.
  */
 
-function create_shop_carts_dom(obj) {
-    function carts_dom() {
-        /*
-         <div class="item" id="item_{{id}}">
-         <div class="gpic"><img src="{{ pic_path}}"></div>
-         <div class="gname">{{ title }}</div>
-         <div class="gprice">¥ <span class="item_price" id="itemprice_{{id}}">{{ price}}</span></div>
-         <div class="gsize">尺码：{{sku_name}}</div>
-         <div class="goprice"><s>¥{{std_sale_price}}</s></div>
-         <div class="btn-del" id="shop_cart_{{id}}" cid="{{id}}" onclick="del_shop({{id}})"></div>
-         <div class="gcount">
-         <div class="btn reduce" onclick="minus_shop({{id}})"></div>
-         <div class="total">
-         <input type="tel" readonly id="num_{{id}}" value="{{num}}">
-         </div>
-         <div class="btn plus" onclick="plus_shop({{id}})"></div>
-         </div>
-         </div>
-         */
-    };
-    return hereDoc(carts_dom).template(obj)
-}
-//定义多行字符串函数实现
-
 function update_total_price() {
     var prices = $(".item_price");
     var total_price = 0;
@@ -50,8 +26,8 @@ function get_shop_carts(suffix) {
             $.each(data,
                 function (index, product) {
                     total_price += product.price * product.num;
-                    var cart_dom = create_shop_carts_dom(product);
-                    $('.cart-list').append(cart_dom);
+                    var html = template('item_template', product);
+                    $('.cart-list').append(html);
                 }
             );
         } else {
