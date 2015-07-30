@@ -15,7 +15,7 @@ class RefundProductSerializer(serializers.ModelSerializer):
         model = RefundProduct
 #         fields = ('buyer_nick','buyer_mobile','buyer_phone','trade_id','out_sid','company','oid',
 #                   'outer_id','outer_sku_id','num','title','property','can_reuse','is_finish','created','modified','memo')
-        exclude=('url',)
+        exclude=()
 
     
 class RefundSerializer(serializers.ModelSerializer):
@@ -23,11 +23,11 @@ class RefundSerializer(serializers.ModelSerializer):
     class Meta:
         model = Refund
         #fields = (
-        exclude=('url',)
+        exclude=()
  
 class MergeTradeSerializer(serializers.ModelSerializer):
     """ docstring for RefundResource """
     class Meta:
         model = MergeTrade
         #fields = (
-        exclude=('url',)
+        exclude=()
