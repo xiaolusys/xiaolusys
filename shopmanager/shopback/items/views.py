@@ -438,7 +438,6 @@ class ProductView(APIView):
 #             return u'填写信息不规则:%s'%exc.message
         log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
         return  Response({'object':product.json}) 
-       # return product.json
     
         
 class ProductSkuView(APIView):
@@ -770,14 +769,9 @@ class ProductNumAssignView(APIView):
     renderer_classes = (new_BaseJSONRenderer,)
     def get(self, request, *args, **kwargs):
         #获取某outer_id对应的商品，以及同步商品库存
-        print "get"
-        #print ProductSku.objects.all()[1].product.outer_id,ProductSku.objects.all()[1].outer_id
         content       = request.REQUEST
-        #outer_id      = content.get('outer_id')
-        #outer_sku_id  = content.get('outer_sku_id')
-        outer_id="2115BN1"
-        outer_sku_id="30LH"
-        print outer_id,outer_sku_id
+        outer_id      = content.get('outer_id')
+        outer_sku_id  = content.get('outer_sku_id')
         
         real_num  = 0
         lday_num  = 0
@@ -856,10 +850,8 @@ class ProductNumAssignView(APIView):
         #删除product或productsku
         
         content   = request.REQUEST
-       # outer_id  =  content.get('assign_outer_id')
-       # outer_sku_id  =  content.get('assign_outer_sku_id')
-        outer_id="2115BN1"
-        outer_sku_id="30LH"
+        outer_id  =  content.get('assign_outer_id')
+        outer_sku_id  =  content.get('assign_outer_sku_id')
         try:
             item_list = self.parse_params(content)
             
