@@ -105,25 +105,24 @@ class RefundManagerView(APIView):
             prod_trade_id = prod.trade_id
             if not prod_trade_id or (prod_trade_id not in handling_tids):
                 unrelate_prods.append(prod)
-        print "zheli"
         return  Response({"object":{'refund_trades':refund_list,'unrelate_prods':serializers.RefundProductSerializer(unrelate_prods,many=True).data}})
         #Response({"object":{'refund_trades':refund_list,'unrelate_prods':unrelate_prods}})
     def post(self, request, *args, **kwargs):
-        
         content     = request.REQUEST
         tid         = content.get('tid')
+        #print "tid",tid
         seller_id   = content.get('seller_id')
         if not tid :
-            return u'请输入交易ID'
+            return Response(u'请输入交易ID')
         
         try:
             merge_trade = serializers.MergeTradeSerializer(MergeTrade.objects.all()[0]).data
         except MergeTrade.DoesNotExist:
-            return u'订单未找到'
+            return Response(u'订单未找到')
         
         refund_orders    = serializers.RefundSerializer(Refund.objects.filter(tid=tid),many=True).data
         refund_products  = serializers.RefundProductSerializer(RefundProduct.objects.filter(trade_id=tid),many=True).data
-        
+       # print "55555",refund_orders
         op_str  = render_to_string('refunds/refund_order_product.html', 
                 { 'refund_orders': refund_orders,
                  'refund_products': refund_products ,
@@ -131,7 +130,7 @@ class RefundManagerView(APIView):
                  'trade':merge_trade
                 })
           
-        return Response({"object":{'template_string':op_str,'trade_id':tid,}})
+        return Response({'template_string':op_str,'trade_id':tid,})
         #return { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL}
 
 ############################### 退货商品订单 #################################       
