@@ -50,7 +50,7 @@ checkrefund.Dialog.prototype.init = function (tid,seller_id) {
         } 
 	}
 	var content = goog.uri.utils.buildQueryDataFromMap(params);
-	goog.net.XhrIo.send('/refunds/manager/?',callback,'POST',content)
+	goog.net.XhrIo.send('/refunds/manager/?format=json',callback,'POST',content)
 }
 
 checkrefund.Dialog.prototype.show = function(data) {
