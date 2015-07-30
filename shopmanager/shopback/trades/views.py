@@ -472,6 +472,7 @@ class CheckOrderView(APIView):
     def post(self, request, id, *args, **kwargs):
        # print "进入post"
         user_id = request.user.id
+        print 'debug checkorder:',user_id
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:

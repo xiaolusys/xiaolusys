@@ -106,9 +106,12 @@ def sku_name(order):
 
 @register.filter(name='refund_sku')  
 def refund_sku(refund,field='name'):
-
-    tid  = refund.tid
-    oid  = refund.oid
+    print "tags",refund['tid']
+    #tid  = refund.tid
+    tid  = refund['tid']
+    print ("bug",tid)
+   # oid  = refund.oid
+    oid  = refund['oid']
     try:
         order = MergeOrder.objects.get(tid=tid,oid=oid)
     except:
