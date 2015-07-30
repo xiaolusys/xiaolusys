@@ -149,28 +149,11 @@ function Create_item() {
             },
             success: requestCallBack,
             error: function (data) {
-                console.info("error: " + data.statusText);
+                if (data.statusText == "FORBIDDEN") {
+                    window.location = "denglu.html";
+                }
             }
         });
     }
 }
 
-function Set_shopcarts_num() {
-    var requestUrl = GLConfig.baseApiUrl + "/carts/show_carts_num";
-    var requestCallBack = function (res) {
-        $(".total").html(res);
-    };
-    // 发送请求
-    $.ajax({
-        type: 'get',
-        url: requestUrl,
-        data: "",
-        beforeSend: function () {
-
-        },
-        success: requestCallBack,
-        error: function (data) {
-            console.info("error: " + data.statusText);
-        }
-    });
-}
