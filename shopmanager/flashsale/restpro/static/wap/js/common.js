@@ -85,7 +85,8 @@ var GLConfig = {
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
     get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
     get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
-    get_cart_url:'/carts.json' //获取购物车详细
+    get_cart_url:'/carts.json', //获取购物车详细
+    get_num_cart:'/carts/show_carts_num?format=json' //获取购物车数量
 };
 
 
@@ -127,4 +128,27 @@ function drawToast(message) {
         alert.style.opacity = .9;
     }
     intervalCounter = setInterval("hideToast()", 1000);
+}
+
+function Set_shopcarts_num() {
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
+    var requestCallBack = function (res) {
+        $(".total").html(res);
+    };
+    // 发送请求
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: "",
+        beforeSend: function () {
+
+        },
+        success: requestCallBack,
+        error: function (data) {
+            if (data.statusText == "FORBIDDEN") {
+                $(".total").html("0");
+            }
+            console.info("debug error: " + data.statusText);
+        }
+    });
 }
