@@ -2,8 +2,6 @@
  * Created by yann on 15-7-24.
  */
 
-
-
 function create_shop_carts_dom(obj) {
     function carts_dom() {
         /*
@@ -27,9 +25,7 @@ function create_shop_carts_dom(obj) {
     return hereDoc(carts_dom).template(obj)
 }
 //定义多行字符串函数实现
-function hereDoc(f) {
-    return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
-}
+
 function update_total_price() {
     var prices = $(".item_price");
     var total_price = 0;
@@ -49,7 +45,8 @@ function get_shop_carts(suffix) {
     var requestCallBack = function (data) {
         var total_price = 0;
         $("#loading").hide();
-        if (data) {
+        $('.cart-list').empty();
+        if (data && data.length > 0) {
             $.each(data,
                 function (index, product) {
                     total_price += product.price * product.num;
@@ -57,6 +54,8 @@ function get_shop_carts(suffix) {
                     $('.cart-list').append(cart_dom);
                 }
             );
+        } else {
+            window.location = "gouwuche-kong.html"
         }
         $("#total_price").html(total_price);
     };
@@ -71,7 +70,7 @@ function get_shop_carts(suffix) {
         },
         success: requestCallBack,
         error: function (data) {
-            if(data.statusText=="FORBIDDEN"){
+            if (data.statusText == "FORBIDDEN") {
                 window.location = "denglu2.html";
             }
             console.info("error: " + data.statusText);
@@ -83,18 +82,18 @@ function del_shop(id) {
     var suffix = "/carts/" + id + "/delete_carts";
     var requestUrl = GLConfig.baseApiUrl + suffix;
     var item_id = $("#item_" + id);
-    var requestCallBack = function (data) {
-        item_id.remove();
-        //重新计算总价格
-        var total_price = 0;
-        update_total_price();
+    var requestCallBack = function (res) {
+        get_shop_carts(GLConfig.get_cart_url);
     };
     // 发送请求
     $.ajax({
         type: 'post',
         url: requestUrl,
         data: {"csrfmiddlewaretoken": csrftoken},
-        success: requestCallBack
+        success: requestCallBack,
+        error: function (res) {
+            get_shop_carts(GLConfig.get_cart_url);
+        }
     });
 }
 
@@ -140,37 +139,17 @@ function minus_shop(id) {
             url: requestUrl,
             data: {"csrfmiddlewaretoken": csrftoken},
             beforeSend: function () {
-                // 禁用按钮防止重复提交
+                // 禁用按钮防止重复提交,加载页面
                 $("#loading").show();
             },
-            success: requestCallBack
+            success: requestCallBack,
+            complete: function () {
+                // 禁用按钮防止重复提交,加载页面
+
+            }
         });
+    }else{
+        drawToast("客官至少买一件嘛");
     }
 }
-$(function () {
-    $(".btn-del").click(function () {
-        alert("Hello World  click");
-    });
-});
 
-
-function create_item(num, item_id, sku_id) {
-    var requestUrl = GLConfig.baseApiUrl + "/carts"
-    var requestCallBack = function (res) {
-        $("#loading").hide();
-        console.log("back");
-        console.log(res);
-
-    };
-    // 发送请求
-    $.ajax({
-        type: 'post',
-        url: requestUrl,
-        data: {"num": num, "item_id": item_id, "sku_id": sku_id, "csrfmiddlewaretoken": csrftoken},
-        beforeSend: function () {
-            $("#loading").show();
-        },
-        success: requestCallBack
-    });
-
-}
