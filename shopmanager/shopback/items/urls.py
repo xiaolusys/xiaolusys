@@ -105,12 +105,7 @@ urlpatterns = patterns('shopback.items.views',
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
-    (r'^product/district/(?P<id>[0-9]+)/$',ProductDistrictView.as_view(
-#         resource=ProductDistrictResource,
-#         renderers=(BaseJsonRenderer,ProductDistrictHtmlRenderer),
-#         authentication=(UserLoggedInAuthentication,),
-#         permissions=(IsAuthenticated,)
-    )),
+    (r'^product/district/(?P<id>[0-9]+)/$',ProductDistrictView.as_view()),
     (r'^podorsku/status/$',ProductOrSkuStatusMdView.as_view(
 #         resource=ProductResource,
 #         renderers=(BaseJsonRenderer,),

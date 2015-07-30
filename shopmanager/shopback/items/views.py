@@ -555,7 +555,7 @@ class ProductBarCodeView(APIView):
         
         product_json = [p.json for p in products]
         
-        return Response({"object":{'products':product_json,'outer_id':outer_id}})
+        return Response({'products':product_json,'outer_id':outer_id})
  
     def post(self, request, *args, **kwargs):
         
@@ -589,7 +589,7 @@ class ProductBarCodeView(APIView):
                    %(outer_id or '',outer_sku_id or '',barcode))
         #product_sku=ProductSku.objects.all()[0]  fang add  ceshi
         #print product_sku
-        return       Response({'barcode':product_sku and product_sku.BARCODE or product.BARCODE}   )
+        return Response({'barcode':product_sku and product_sku.BARCODE or product.BARCODE})
         
           
 
@@ -599,7 +599,7 @@ class ProductDistrictView(APIView):
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
-    renderer_classes = (ProductDistrictHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
+    renderer_classes = (ProductDistrictHtmlRenderer,new_BaseJSONRenderer,)
     def get(self, request, id,*args, **kwargs):
         
         content = request.REQUEST
@@ -610,7 +610,7 @@ class ProductDistrictView(APIView):
         
         product_district = product.get_districts_code() or u'--'
         
-        return Response({"object":{'product':product.json,'product_districts':product_district}})
+        return Response({'product':product.json,'product_districts':product_district})
         
     def post(self, request, id,*args, **kwargs):
 #         print "post"
@@ -635,14 +635,14 @@ class ProductDistrictView(APIView):
             prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=product)
         
         location,state = ProductLocation.objects.get_or_create(
-                            product_id=product.id,sku_id=prod_sku and prod_sku.id,district=district)
+                            product_id=product.id,sku_id=prod_sku and prod_sku.id,district=deposit_obj)
         
         log_action(request.user.id,product,CHANGE,u'更新商品库位:(%s-%s,%s)'
                    %(outer_id or '',outer_sku_id or '',district))
         
-        return   Response({"object": {'outer_id':location.outer_id,
+        return   Response({'outer_id':location.outer_id,
                 'outer_sku_id':location.outer_sku_id,
-                'district':district_obj}})
+                'district':district_obj})
         
         
 @csrf_exempt
