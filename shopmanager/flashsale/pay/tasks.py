@@ -42,9 +42,9 @@ from shopback.trades.models import MergeTrade
   
 @task()
 def task_Push_SaleTrade_Finished(pre_days=10):
+    """ 定时将待确认状态小鹿特卖订单更新成已完成 """
     
     day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
-    
     strades = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
     for strade in strades:
         mtrades = MergeTrade.objects.filter(tid=strade.tid,type=MergeTrade.SALE_TYPE)

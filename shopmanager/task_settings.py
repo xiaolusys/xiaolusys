@@ -210,6 +210,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="*/7"),
         'args':()
     },
+    u'定时更新特卖及微信订单状态':{
+        'task':'flashsale.xiaolumm.tasks.task_Update_Sale_And_Weixin_Order_Status',
+        'schedule':crontab(minute="0",hour="6"),
+        'args':()
+    },
     u'定时短信通知微信用户':{
         'task':'shopapp.weixin_sales.tasks.NotifyParentAwardTask',
         'schedule':crontab(minute="*/5",),
