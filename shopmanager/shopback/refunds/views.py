@@ -154,10 +154,6 @@ class RefundProductView(APIView):
         if outer_sku_id:
             try:
                 prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-                #print "kaishi",ProductSku.objects.all()[1].outer_id
-                #outer_sku_id=ProductSku.objects.all()[1].outer_id
-                #prod_sku = ProductSku.objects.get(outer_id=outer_sku_id)
-                #print    prod_sku,"555555"
             except:
                 pass
         else:
@@ -177,7 +173,6 @@ class RefundProductView(APIView):
         rf.can_reuse = content.get('can_reuse') == 'true' and True or False
         rf.title = prod_sku.product.name if prod_sku else prod.name
         rf.property = prod_sku.properties_alias or prod_sku.properties_name if prod_sku else ''
-        
         rf.save()
 
         return Response(serializers.RefundProductSerializer(rf).data)
