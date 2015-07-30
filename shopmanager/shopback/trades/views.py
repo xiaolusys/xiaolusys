@@ -1716,10 +1716,10 @@ class InstanceModelView_new(APIView):
     renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,)
     def get (self, request, id,*args, **kwargs):
       # print "zheli44",id
-       trade=MergeTrade.objects.get(id=id)
-       serializer=serializers.MergeTradeSerializer(trade).data
-       #return Response({"example":"get__function"})
-       return Response(serializer)
+        trade=MergeTrade.objects.get(id=id)
+        serializer=serializers.MergeTradeSerializer(trade).data
+        #return Response({"example":"get__function"})
+        return Response(serializer)
 
 ########################## 订单重量入库 ###########################
 class PackageScanCheckView(APIView):
