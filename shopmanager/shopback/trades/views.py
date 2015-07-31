@@ -2323,6 +2323,28 @@ def beizhu(request):
     
     
 def test(request):
-        
+
      return render(request, 'trades/test.html')
 
+
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def select_Stock(request):
+    if 'tid' in request.POST and 'stock' in request.POST:
+        tid = request.REQUEST.get('tid')
+        stock = request.REQUEST.get('stock')
+        try:
+            megobj = MergeTrade.objects.get(id=tid)
+        except Exception:
+            return HttpResponse('error')
+        if str(stock) is '0':  # 表示缺货
+            megobj.has_out_stock = False
+            megobj.save()
+        elif str(stock) is '1':
+            megobj.has_out_stock = True
+            megobj.save()
+        return HttpResponse('ok')
+    else:
+        return HttpResponse('error')

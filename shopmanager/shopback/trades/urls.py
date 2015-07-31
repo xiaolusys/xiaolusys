@@ -33,7 +33,7 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       PackageScanWeightView,
                                       InstanceModelView_new,
                                       )
-from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test
+from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test,select_Stock
 # from shopback.base.renderers  import BaseJsonRenderer
 # from shopback.trades.renderers import (CheckOrderRenderer,
 #                                        ReviewOrderRenderer,
@@ -193,7 +193,8 @@ urlpatterns = patterns('shopback.trades.views',
 
     url(r'^product_analysis_top100/$', views_product_analysis.product_Top100_By_Week, name="xlmm_Product_Analysis"),
     url(r'^product_analysis_collect_top100/$', views_product_analysis.product_Collect_Topp100, name="product_Collect_Topp100"),
-   
+    url(r'^select_stock/$', select_Stock, name='select_Stock'),
+
     url(r'^beizhu/$', beizhu, name='beizhu'),
     url(r'^test/$', test, name="test"),
 )

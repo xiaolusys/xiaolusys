@@ -33,9 +33,9 @@
             <s>¥168</s>
         </div>
     </div>
-    <div class="goods-size">
+    <div class="goods-size" >
         <h3>尺寸</h3>
-        <ul id="js-goods-size">
+        <ul id="js-goods-size" >
             <li class="active">S<i></i></li>
             <li class="normal">M<i></i></li>
             <li class="normal">L<i></i></li>
@@ -99,6 +99,10 @@
             $('#js-goods-size li.active').removeClass('active').addClass('normal');
             $(this).removeClass('normal').addClass('active');
         });
+        $('#js-goods-size li.normal').live('click', function () {
+            $('#js-goods-size li.active').removeClass('active').addClass('normal');
+            $(this).removeClass('normal').addClass('active');
+        });
 
         //返回顶部
         $('#js-scroll-top').on('touchend', function (e) {
@@ -106,7 +110,6 @@
             $('body').animate({scrollTop: 0}, 400);
         });
         //设置商品详情
-
         var urlParams = parseUrlParams(window.location.href);
         var urlConf = {'product_id': urlParams['id']};
         var product_url = GLConfig.get_product_detail_url.template(urlConf);

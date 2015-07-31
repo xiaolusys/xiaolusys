@@ -99,6 +99,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
+        """ 获取历史商品列表 """
         queryset = self.filter_queryset(self.get_queryset())
         
         queryset = queryset.filter(sale_time__lt=datetime.date.today())
@@ -113,6 +114,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     def advance(self, request, *args, **kwargs):
+        """ 获取历史商品列表 """
         queryset = self.filter_queryset(self.get_queryset())
         
         queryset = queryset.filter(sale_time__gt=datetime.date.today())
@@ -134,7 +136,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
-        
+        """ 获取今日推荐商品列表 """
         target_date = datetime.date.today()
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
@@ -149,7 +151,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     def promote_previous(self, request, *args, **kwargs):
-        
+        """ 获取历史推荐商品列表 """
         target_date = datetime.date.today() - datetime.timedelta(days=1)        
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
