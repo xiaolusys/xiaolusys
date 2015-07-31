@@ -125,7 +125,7 @@ class MergeTradeAdmin(MyAdmin):
     list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
                     'payment','pay_time','consign_time','status','sys_status',
                     'reason_code','is_picking_print','is_express_print'#
-                    ,'can_review','operator','weight_time','charge_time')
+                    ,'can_review','operator','weight_time','charge_time','has_out_stock_fun')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
@@ -164,6 +164,23 @@ class MergeTradeAdmin(MyAdmin):
     buyer_nick_link.allow_tags = True
     buyer_nick_link.short_description = "买家昵称" 
 
+    def has_out_stock_fun(self, obj):
+        has_out_stock = obj.has_out_stock # 退货状态
+        if has_out_stock:  # 表示缺货
+            content = u'<select class="has_out_stock" cid="{0}" id="select_has_out_stock_{0} " style="width:70px" >'\
+                        u"<option value='{4}' selected='selected'>{1}</option>"\
+                        u"<option value='{3}'>{2}</option>"\
+                        u'</select>'.format(obj.id, u'缺货', u'不缺货', 0, 1)
+        else:
+            content = u'<select class="has_out_stock" cid="{0}" id="select_has_out_stock_{0} " style="width:70px" >'\
+                        u"<option value='{3}' selected='selected'>{2}</option>"\
+                        u"<option value='{4}'>{1}</option>"\
+                        u'</select>'.format(obj.id, u'缺货', u'不缺货', 0, 1)
+            pass
+        return content
+    has_out_stock_fun.allow_tags = True
+    has_out_stock_fun.short_description = "是否缺货"
+
     inlines = [MergeOrderInline]
     
     list_filter   = (TradeStatusFilter,'type','status','user',('pay_time',DateFieldListFilter),
@@ -176,7 +193,7 @@ class MergeTradeAdmin(MyAdmin):
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
         js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js",
-              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js","layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js")
+              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js","layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","jquery/jquery-1.8.13.min.js","script/trades/select_stock.js",)
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
