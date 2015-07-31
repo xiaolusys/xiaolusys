@@ -175,7 +175,7 @@ class ComplainViewSet(viewsets.ModelViewSet):
     queryset = Complain.objects.all()
     serializer_class = ComplainSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAdminSuperUser, permissions.IsOwnerOrReadOnly)
+    permission_classes = (permissions.IsOwnerOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def create(self, request, *args, **kwargs):
