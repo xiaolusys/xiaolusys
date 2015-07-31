@@ -1700,7 +1700,8 @@ def  weixinorder_detail(request):
             return response
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
-        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile)#\
+        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])
+        #\
               #  .filter(status__in=status).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])\
               #  .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)\
                # .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
