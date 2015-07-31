@@ -22,7 +22,7 @@
 <div class="cart-list"></div>
 <script id="item_template" type="text/html">
     <div class="item" id="item_{{ id }}">
-        <div class="gpic"><img src="{{ pic_path }}"></div>
+        <div class="gpic"><a href="/static/wap/pages/shangpinxq.html?id={{ item_id }}"><img src="{{ pic_path }}"></a></div>
         <div class="gname">{{ title }}</div>
         <div class="gprice">¥ <span class="item_price" id="itemprice_{{ id }}">{{ price }}</span></div>
         <div class="gsize">尺码：{{ sku_name }}</div>
