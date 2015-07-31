@@ -28,10 +28,10 @@
         <div class="ipt-wrap">
             <input class="authcode" type="tel" placeholder="请输入验证码">
 
-            <div class="btn-getcode">获取验证码</div>
+            <div class="btn-getcode" onclick="get_code()">获取验证码</div>
         </div>
     </div>
-    <div class="error-tips">验证码错误，请重新输入~</div>
+    <div class="error-tips" id="phone_exist_error"></div>
 </div>
 
 <div class="ipt-panel pass-panel">
@@ -47,11 +47,11 @@
             <input class="text1" type="password" id="password2" placeholder="请确认密码">
         </div>
     </div>
-    <div class="error-tips">两次密码输入不一致，请重新输入~</div>
+    <div class="error-tips" id="password_error">两次密码输入不一致,或者长度太短,请重新输入~</div>
 </div>
 
 <div class="btn-wrap">
-    <a class="btn-submit">确&nbsp;&nbsp;认</a>
+    <a class="btn-submit" onclick="confirm_change()">确&nbsp;&nbsp;认</a>
 </div>
 
 
