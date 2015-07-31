@@ -118,7 +118,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if mobile == "":  # 进行正则判断，待写
             return Response("false")
         reg = Register.objects.filter(vmobile=mobile)
-        if reg.count == 0:
+        if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
             new_reg.verify_code = new_reg.genValidCode()
             new_reg.verify_count = 1
@@ -140,7 +140,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
         verify_code = request.data['valid_code']
-        print request.data
+        
         if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(passwd1) == 0 and len(
                 passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
             return Response('2')
