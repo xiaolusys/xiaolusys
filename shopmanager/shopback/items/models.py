@@ -356,7 +356,7 @@ class Product(models.Model):
         
         return ','.join(ds)
 
-
+from shopback.signals import signal_product_upshelf
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     
     products = Product.objects.filter(id=instance.id)
@@ -365,7 +365,8 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
         #如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
-        
+        if product.shelf_status != instance.shelf_status and product.shelf_status == 0:
+            signal_product_upshelf.send(sender=Product, product_list=[product])
     
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 
