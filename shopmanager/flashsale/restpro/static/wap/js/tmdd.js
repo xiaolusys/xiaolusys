@@ -4,11 +4,12 @@
  */
  
 function parseTimeSM(start_time){
-	//将时间差格式化成字符串
+	//将时间差格式化成字符串[分:秒]
 	var d1 = new Date(start_time);
 	var d2 = new Date();
 	var time_delta = parseInt((d2.getTime() - d1.getTime()) / 1000);
 	var time_alias =  GLConfig.order_expired_in - time_delta;
+	console.log('debug parse:',d1,time_delta,time_alias);
 	if (time_alias < 0){
 		 return '00:00';
 	}
@@ -19,19 +20,28 @@ function parseTimeSM(start_time){
 }
 
 function setOrderTimeInterval(){
+	var has_period = false;
 	$('.shengyu').each(function(index,e){
-		var created_str  = $(e).attr('xl_created').replace(/[TZ]/g,' ');
+		var created_str  = $(e).attr('xl_created');
+		console.log('debug attr:',created_str);
 		var time_str = parseTimeSM(created_str);
 		$(e).html('剩余时间：'+time_str);
+		if (time_str != '00:00'){
+			has_period = true
+		}
 	});
+	//如果页面没有需要更新的计时任务则退出
+	if (!has_period){return}
 	setInterval(setOrderTimeInterval,1000);
 }
 
 function Create_order_dom(obj){
-
+	//创建特卖订单DOM
+	obj.created = obj.created.replace(/[TZ]/g,' ').replace(/-/g,'/')
+	console.log('obj.created',obj.created);
 	if (obj.status == 1){
 		obj.btn_class   = 'shengyu';
-		obj.btn_content = '剩余时间：'+parseTimeSM(obj.created.replace(/[TZ]/g,' '));
+		obj.btn_content = '剩余时间：'+parseTimeSM(obj.created);
 	}else if(obj.status == 2){
 		obj.btn_class   = 'btn-qianshou';
 		obj.btn_content = '确认签收';

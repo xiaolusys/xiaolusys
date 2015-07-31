@@ -235,7 +235,10 @@
   right: 20px;
   background-image:url(../images/icon-fanhuidingbu.png);
 }
-
+size-tips{
+	color:#ce2127;
+	display:none;
+}
 
 #floatOrder {
     width: 25px;

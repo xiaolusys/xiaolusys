@@ -27,7 +27,11 @@ function Create_product_detailsku_dom(obj) {
     //设置规格列表
     var sku_list = [];
     $.each(obj.normal_skus, function (index, sku) {
-        sku_list[sku_list.length] = '<li class="active" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
+    	sku.sku_class="normal";
+    	if (sku.is_saleout === true){
+    		sku.sku_class="disable";
+    	}
+        sku_list[sku_list.length] = '<li class="{{sku_class}}" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
     });
     obj.sku_list = sku_list.join('');
     //创建商品详情及规格信息
@@ -136,7 +140,6 @@ function Create_item() {
         var num = 1;
         var requestUrl = GLConfig.baseApiUrl + "/carts"
         var requestCallBack = function (res) {
-            console.log("back");
             Set_shopcarts_num();
         };
         // 发送请求
