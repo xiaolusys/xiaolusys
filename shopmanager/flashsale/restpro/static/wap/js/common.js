@@ -76,19 +76,21 @@ function hereDoc(f) {
 //全局配置
 var GLConfig = {
 	baseApiUrl:'/rest/v1', //API接口调用前缀
+	order_expired_in:20 * 60,//expired time
 	today_suffix:'today',  //获取首页今日商品信息，URL标识
     previous_suffix:'previous', //获取首页昨日商品信息，URL标识
     get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
     get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
-    get_product_detail_url:'/products/{{product_id}}/details.json', //获取时尚女装商品列表
+    get_product_detail_url:'/products/{{product_id}}/details.json', //获取商品明细
     get_trade_all_url:'/trades.json', //获取用户所有订单
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
     get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
     get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
     get_cart_url:'/carts.json', //获取购物车详细
-    get_num_cart:'/carts/show_carts_num?format=json' //获取购物车数量
+    get_num_cart:'/carts/show_carts_num?format=json', //获取购物车数量
+    get_all_address:'/address/show_address/?format=json',//获取个人用户地址列表
+    delete_address:'/address/delete_address/?format=json',//删除地址
 };
-
 
 // using jQuery
 function getCookie(name) {
@@ -110,8 +112,10 @@ var csrftoken = getCookie('csrftoken');
 
 
 /*
-* 模拟toast
-* */
+ * 模拟toast
+ * auther:yann
+ * date:2015/30/7
+ */
 var intervalCounter = 0;
 function hideToast() {
     var alert = document.getElementById("toast");
@@ -130,7 +134,13 @@ function drawToast(message) {
     intervalCounter = setInterval("hideToast()", 1000);
 }
 
+
 function Set_shopcarts_num() {
+    /*
+    * 得到购物车数量
+    * auther:yann
+    * date:2015/30/7
+    */
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
     var requestCallBack = function (res) {
         $(".total").html(res);

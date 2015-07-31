@@ -41,9 +41,12 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         fields = ('cid', 'parent_cid', 'name', 'status', 'sort_order')
 
 class ProductSkuSerializer(serializers.ModelSerializer):
+    
+    is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
+    
     class Meta:
         model = ProductSku
-        fields = ('id', 'outer_id', 'name', 'remain_num', 'std_sale_price', 'agent_price')
+        fields = ('id', 'outer_id', 'name', 'remain_num', 'is_saleout', 'std_sale_price', 'agent_price')
 
 class JsonListField(serializers.Field):
     
@@ -77,10 +80,11 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     category = ProductCategorySerializer(read_only=True)
 #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
     product_model = ModelProductSerializer()
+    is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
     
     class Meta:
         model = Product
-        fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 
+        fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout',
                   'std_sale_price', 'agent_price', 'sale_time', 'memo', 'product_model')
 
 import json

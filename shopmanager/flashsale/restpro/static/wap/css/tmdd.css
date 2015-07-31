@@ -64,6 +64,8 @@
 }
 .list .info .right p{
   line-height: 2;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .list .caaaaaa{
   color:#aaaaaa;

@@ -14,8 +14,14 @@
                     $(self).data('click', true).live('click', this.addShoping);
                 },
                 addShoping: function (e) {
-                    console.log(e);
+                    console.log('debug:',e);
                     e.stopPropagation();
+                    //如果未选中商品尺寸,事件不执行
+                    if ($('#js-goods-size li.active').length == 0){
+                    	document.getElementById('js-goods-size').scrollIntoView();
+                    	drawToast('请选择正确的商品尺寸');
+                    	return;
+                    };
                     var $target = $(e.target),
                         id = $target.attr('id'),
                         dis = $target.data('click'),
@@ -26,9 +32,9 @@
                     console.log(dis);
                     if (dis) {
                         if ($('#floatOrder').length <= 0) {
-                            $('body').append('<div id="floatOrder"><img src="../images/pro1.jpg" width="25" height="25" /></div>');
+                        	var cart_image_url =  $('.swiper-slide img').first().attr('src');
+                            $('body').append('<div id="floatOrder"><img src="'+cart_image_url+'" width="25" height="25" /></div>');
                         }
-
                         var $obj = $('#floatOrder');
                         console.log(X);
                         if (!$obj.is(':animated')) {

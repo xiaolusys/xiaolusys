@@ -816,7 +816,8 @@ class FreeSampleView(View):
         if (user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' 
             or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'):
             started = True
-            
+        started = False #活动结束
+        
         days = delta.days
         hours = delta.seconds/3600
         minutes = (delta.seconds - hours*3600)/60
@@ -1699,7 +1700,8 @@ def  weixinorder_detail(request):
             return response
             
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
-        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile)#\
+        latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])
+        #\
               #  .filter(status__in=status).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])\
               #  .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)\
                # .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
