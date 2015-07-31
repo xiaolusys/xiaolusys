@@ -66,6 +66,47 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
     
+    def detail(self,request):
+        print"detail",request.user
+        #queryset = self.filter_queryset(self.get_queryset())
+        customer = get_object_or_404(Customer,user=request.user)
+        print customer.id
+       # address_list = []
+        #addresses = UserAddress.filter(cus_uid=customer.id)
+        queryset=UserAddress.objects.filter(cus_uid=customer.id)
+        #print queryset
+        #serializer = serializers.UserAddressSerializer(queryset, many=True,context={'request': request})
+        serializer = self.get_serializer(queryset, many=True)
+        #print serializer.data
+        pass
+        return    Response(serializer.data)
+        
+#     def create(self, request):
+#         pass
+#         return    Response({"nihao","66"})
+
+    def retrieve(self, request, pk=None):
+        pass
+
+    def update(self, request, pk=None):
+        pass
+
+    def partial_update(self, request, pk=None):
+        pass
+
+    def delete(self, request, pk=None):
+       # data = request.data
+       # print"delete",data
+        content = request.REQUEST
+        id = content.get('id',None)
+        result={}
+        try:
+            queryset=UserAddress.objects.filter(id=id)
+            queryset.delete()
+            result['ret']=True
+        except:
+            result['ret']=False
+        return    Response(result)
     
 class DistrictViewSet(viewsets.ModelViewSet):
     """
@@ -87,7 +128,31 @@ class DistrictViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
-
+    
+#     def detail(self,request,pk=None):
+#         print"detail",request.user
+#         queryset = self.filter_queryset(self.get_queryset())
+#         queryset=queryset.filter(cus_uid=2)
+#         serializer = self.get_serializer(queryset, many=True)
+#         pass
+#         return    Response({"nihao",serializer.data})
+#         
+#     def create(self, request):
+#         print("33")
+#         
+#         pass
+#         return    Response({"nihao","66"})
+#     def retrieve(self, request, pk=None):
+#         pass
+# 
+#     def update(self, request, pk=None):
+#         pass
+# 
+#     def partial_update(self, request, pk=None):
+#         pass
+# 
+#     def destroy(self, request, pk=None):
+#         pass
 
 from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
 
