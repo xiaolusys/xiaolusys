@@ -200,7 +200,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(buyer_id=customer.id)
+        return self.queryset.filter(buyer_id=customer.id).order_by('-created')
     
     def list(self, request, *args, **kwargs):
         """ 获取用户订单列表 """

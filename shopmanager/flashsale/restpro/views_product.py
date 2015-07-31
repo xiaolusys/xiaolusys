@@ -11,6 +11,7 @@ from rest_framework import authentication
 from rest_framework import status
 
 from shopback.items.models import Product
+from shopback.categorys.models import ProductCategory
 from flashsale.pay.models import GoodShelf
 
 from . import permissions as perms
@@ -126,11 +127,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     
     def get_female_qs(self,queryset):
-        
         return queryset.filter(outer_id__startswith='8')
     
     def get_child_qs(self,queryset):
-        
         return queryset.filter(outer_id__startswith='9')
     
     @list_route(methods=['get'])
@@ -165,9 +164,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     def childlist(self, request, *args, **kwargs):
+        """ 获取特卖童装列表 """
         target_date = datetime.date.today()
+        start_date = datetime.date.today() - datetime.timedelta(days=1)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        queryset = queryset.filter(sale_time__range=(start_date,target_date)).order_by('-details__is_recommend')
         
         female_qs = self.get_child_qs(queryset)
         page = self.paginate_queryset(female_qs)
@@ -181,9 +182,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     def ladylist(self, request, *args, **kwargs):
+        """ 获取特卖女装列表 """
         target_date = datetime.date.today()
+        start_date = datetime.date.today() - datetime.timedelta(days=1)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        queryset = queryset.filter(sale_time__range=(start_date,target_date)).order_by('-details__is_recommend')
         
         female_qs = self.get_female_qs(queryset)
         page = self.paginate_queryset(female_qs)

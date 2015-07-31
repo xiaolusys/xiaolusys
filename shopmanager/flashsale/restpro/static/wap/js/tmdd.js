@@ -3,12 +3,35 @@
  *@date: 2015-07-22 
  */
  
- 
-function Create_order_dom(obj){
+function parseTimeSM(start_time){
+	//将时间差格式化成字符串
+	var d1 = new Date(start_time);
+	var d2 = new Date();
+	var time_delta = parseInt((d2.getTime() - d1.getTime()) / 1000);
+	var time_alias =  GLConfig.order_expired_in - time_delta;
+	if (time_alias < 0){
+		 return '00:00';
+	}
+	var minute = parseInt(time_alias / 60);
+	var second = parseInt(time_alias % 60);
+	return (minute < 10 ?'0'+minute:minute.toString()+':') + (second < 10 ?'0'+second:second.toString())
 	
+}
+
+function setOrderTimeInterval(){
+	$('.shengyu').each(function(index,e){
+		var created_str  = $(e).attr('xl_created').replace(/[TZ]/g,' ');
+		var time_str = parseTimeSM(created_str);
+		$(e).html('剩余时间：'+time_str);
+	});
+	setInterval(setOrderTimeInterval,1000);
+}
+
+function Create_order_dom(obj){
+
 	if (obj.status == 1){
 		obj.btn_class   = 'shengyu';
-		obj.btn_content = '剩余时间：';
+		obj.btn_content = '剩余时间：'+parseTimeSM(obj.created.replace(/[TZ]/g,' '));
 	}else if(obj.status == 2){
 		obj.btn_class   = 'btn-qianshou';
 		obj.btn_content = '确认签收';
@@ -39,11 +62,10 @@ function Create_order_dom(obj){
 function Set_orders(suffix){
 	//请求URL
 	var requestUrl = GLConfig.baseApiUrl + suffix;
-	console.log('debug:',requestUrl);
+
 	//请求成功回调函数
 	var requestCallBack = function(data){
-		if (data.count != 'undifine' && data.count != null){
-			console.log('debug results:',data.results);
+		if (typeof(data.count) != 'undifined' && data.count != null){
 			$.each(data.results,
 				function(index,order){
 					var order_dom = Create_order_dom(order);
@@ -60,6 +82,9 @@ function Set_orders(suffix){
 		dataType:'json', 
 		success:requestCallBack 
 	}); 
+	
+	//设置订单剩余时间更新
+	setOrderTimeInterval();
 }
 
 function Create_order_top_dom(obj){
@@ -153,7 +178,7 @@ function Set_order_detail(suffix){
 	
 	//请求成功回调函数
 	var requestCallBack = function(data){
-		if (data.id != 'undifine' && data.id != null){
+		if (typeof(data.id) != 'undifined' && data.id != null){
 			//设置订单基本信息
 			var top_dom = Create_order_top_dom(data);
 			$('.basic .panel-top').append(top_dom);
