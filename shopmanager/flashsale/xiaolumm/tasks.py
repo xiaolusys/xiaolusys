@@ -8,7 +8,7 @@ from celery.task import task
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog, OrderRedPacket
 from shopapp.weixin.models_base import WeixinUnionID as Base_WeixinUniID
-from shopapp.weixin.models import WeixinUnionID
+from shopapp.weixin.models import WeixinUnionID,WXOrder
 
 import logging
 logger = logging.getLogger('celery.handler')
@@ -541,6 +541,62 @@ def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):      # 每天 写入记录
         mm_stats.base_click_price = mm_stats.calc_click_price()
         mm_stats.save()
         
+
+@task()
+def task_Push_WXOrder_Finished(pre_days=10):
+    """ 定时将待确认状态微信小店订单更新成已完成 """
+    
+    from flashsale.clickrebeta.models import StatisticsShopping
+    day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
+    
+    SHIP_STATUS_MAP = {WXOrder.WX_CLOSE:StatisticsShopping.REFUNDED,
+                       WXOrder.WX_FINISHED:StatisticsShopping.FINISHED}
+    wxorder = WXOrder.objects.filter(order_status=WXOrder.WX_WAIT_CONFIRM)
+    for wxorder in wxorder:
+        wxorder_id = wxorder.order_id
+        mtrades = MergeTrade.objects.filter(tid=wxorder_id,type=MergeTrade.WX_TYPE)
+        if mtrades.count() == 0:
+            continue
+        
+        mtrade = mtrades[0]
+        if (mtrade.status == MergeTrade.TRADE_CLOSED or 
+            mtrade.sys_status in (MergeTrade.INVALID_STATUS,MergeTrade.EMPTY_STATUS)):
+            
+            wxorder.order_status =  WXOrder.WX_CLOSE
+            wxorder.save()
+        
+        elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS and 
+              (not mtrade.weight_time or mtrade.weight_time < day_date)):
+            
+            morders = mtrade.normal_orders.filter(oid=wxorder_id)
+            if (morders.count() == 0 or 
+                morders[0].status in (MergeTrade.TRADE_CLOSED,
+                                      MergeTrade.TRADE_REFUNDED,
+                                      MergeTrade.TRADE_REFUNDING)):
+                
+                wxorder.order_status =  WXOrder.WX_CLOSE
+                wxorder.save()
+
+            else:
+                wxorder.order_status =  WXOrder.WX_FINISHED
+                wxorder.save()
+        
+        ship_trades = StatisticsShopping.objects.filter(wxorderid=wxorder_id)
+        if ship_trades.count() > 0:
+            ship_trade = ship_trades[0]
+            ship_trade.status = SHIP_STATUS_MAP.get(wxorder.order_status,StatisticsShopping.WAIT_SEND)
+            ship_trade.save()
+
+
+@task
+def task_Update_Sale_And_Weixin_Order_Status(pre_days=10):
+    
+    task_Push_WXOrder_Finished.s(pre_days=pre_days)()
+    
+    from flashsale.pay.tasks import task_Push_SaleTrade_Finished
+    
+    task_Push_SaleTrade_Finished.s(pre_days=pre_days)()
+
 
 from .tasks_manager_summary import task_make_Manager_Summary_Cvs
 # 引入任务文件

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import datetime
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.forms import UserCreationForm
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -11,7 +11,10 @@ from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
-
+from django.core.urlresolvers import reverse
+from shopapp.weixin.models import WeiXinUser
+from django.db import models
+from django.contrib.auth import authenticate, login, logout
 from flashsale.pay.models import Register, Customer
 
 from . import permissions as perms
@@ -98,6 +101,40 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response("7")  #注册成功
         else:
             return Response("2")  #表单填写有误
+
+    @list_route(methods=['post'])
+    def customer_login(self, request):
+        """验证用户登录"""
+        # 获取用户名和密码
+        # 判断网址的结尾是不是登录请求网址(ajax url请求)
+        if not request.path.endswith("customer_login"):
+            return None
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        if not username or not password:
+            return Response('null')
+        try:
+            customer = Customer.objects.get(models.Q(email=username) | models.Q(mobile=username))
+            user = customer.user
+            user1 = authenticate(username=user.username, password=password)
+            if user1 is not None:
+                login(request, user1)
+                user_ifo = "id:{0},name:{1}".format(user.id, user.username)
+                return Response(user_ifo)
+            if not user.check_password(password):
+                return Response("p_error")  # 密码错误
+        except Customer.DoesNotExist:
+            return Response("u_error")  # # 用户错误
+        except Customer.MultipleObjectsReturned:
+            return Response("s_error")  # 账户异常
+        user_ifo = "id:{0},name:{1}".format(user.id, user.username)
+        return Response(user_ifo)
+
+    @list_route(methods=['post'])
+    def customer_logout(self, request):
+        logout(request)
+        return Response('logout')
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
