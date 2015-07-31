@@ -131,6 +131,7 @@ function drawToast(message) {
     else {
         alert.style.opacity = .9;
     }
+    console.log('debug toast:',alert);
     intervalCounter = setInterval("hideToast()", 1000);
 }
 

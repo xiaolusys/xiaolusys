@@ -18,7 +18,7 @@
                     e.stopPropagation();
                     //如果未选中商品尺寸,事件不执行
                     if ($('#js-goods-size li.active').length == 0){
-                    	document.getElementById('js-goods-size').scrollIntoView();
+                    	document.getElementById('js-goods-size').scrollIntoView(false);
                     	drawToast('请选择正确的商品尺寸');
                     	return;
                     };
