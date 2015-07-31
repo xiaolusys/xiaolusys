@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小鹿美美</title>
+    <meta charset="UTF-8">
+    <meta id="viewport" name="viewport"/>
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/changepd.js"></script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/mimaxiugai.css">
+</head>
+<body>
+<div class="header">
+    <a class="back" href="javascript:history.go(-1)"></a>
+
+    <h1>密码修改</h1>
+</div>
+
+<div class="ipt-panel">
+    <div class="ipt-panel-inner">
+        <div class="ipt-wrap ipt-top">
+            <label>手机号码</label>
+            <input class="text1" type="tel" id="mobile_username" placeholder="请输入手机号码">
+
+            <div class="close" id="mobile_close"></div>
+        </div>
+        <div class="ipt-wrap">
+            <input class="authcode" type="tel" placeholder="请输入验证码">
+
+            <div class="btn-getcode" onclick="get_code()">获取验证码</div>
+        </div>
+    </div>
+    <div class="error-tips" id="phone_exist_error"></div>
+</div>
+
+<div class="ipt-panel pass-panel">
+    <div class="ipt-panel-inner">
+        <div class="ipt-wrap ipt-top">
+            <label>设置密码</label>
+            <input class="text1" type="password" id="password1" placeholder="6 - 16位数字、字母组合">
+
+            <div class="close" id="password1_close"></div>
+        </div>
+        <div class="ipt-wrap">
+            <label>确认密码</label>
+            <input class="text1" type="password" id="password2" placeholder="请确认密码">
+        </div>
+    </div>
+    <div class="error-tips" id="password_error">两次密码输入不一致,或者长度太短,请重新输入~</div>
+</div>
+
+<div class="btn-wrap">
+    <a class="btn-submit" onclick="confirm_change()">确&nbsp;&nbsp;认</a>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>小鹿美美</title>
+<meta charset="UTF-8">
+<meta id="viewport" name="viewport" />
+<script src="js/common.js"></script>
+<link rel="stylesheet" href="../css/common.css">
+<link rel="stylesheet" href="../css/shouhuodz-add.css">
+</head>
+<body>
+<div class="header">
+  <a class="back" href="javascript:history.go(-1)"></a>
+  <h1>修改收货地址</h1>
+</div>
+<div class="ipt-wrap">
+  <ul class="ipt">
+    <li>
+      <label>选择省</label>
+      <select id="s_province" name="s_province"></select>
+    </li>
+    <li>
+      <label>选择市</label>
+      <select id="s_city" name="s_city"></select>
+    </li>
+    <li>
+      <label>选择区/县</label>
+      <select id="s_county" name="s_county"></select>
+    </li>
+    <li>
+      <label>街道地址</label>
+      <input type="text" placeholder="请输入街道地址" value="国定东路200号1号楼" >
+    </li>
+    <li>
+      <label>收货人</label>
+      <input type="text" placeholder="请输入收货人姓名" value="美美">
+    </li>
+    <li>
+      <label>手机号码</label>
+      <input type="text" placeholder="请输入收货人手机号码" value="138 2948 5937">
+    </li>
+  </ul>  
+</div>
+
+<div class="bottom-bar">
+  <p class="error-tips">请选择城市！</p>
+  <a class="btn-save">修改地址</a>
+</div>
+
+<script src="../js/area.js"></script>
+<script>
+var s=["s_province","s_city","s_county"];//三个select的id
+var opt0 = ["上海市","上海市","杨浦区"];//初始值
+(function _init_area(){  //初始化函数
+  for(i=0;i<s.length-1;i++){
+    document.getElementById(s[i]).onchange=new Function("change("+(i+1)+")");
+  }
+  change(0);
+})();
+</script>
+</body>
+</html>
