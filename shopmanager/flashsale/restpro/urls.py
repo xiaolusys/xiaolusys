@@ -56,6 +56,12 @@ router_urls += format_suffix_patterns([
         url(r'^user/mycoupon/',
             views.UserCouponViewSet.as_view({'get': 'list'}),
             name="user-coupon"),
+        url(r'^address/show_address/',
+            views.UserAddressViewSet.as_view({'get': 'detail'}),
+            name="detail"),
+        url(r'^address/delete_address/',
+            views.UserAddressViewSet.as_view({'get': 'delete'}),
+            name="delete"),
     ])
 
 urlpatterns = patterns('',
