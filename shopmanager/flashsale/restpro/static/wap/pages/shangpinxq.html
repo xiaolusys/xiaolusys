@@ -20,7 +20,8 @@
         </div>
         <div class="swiper-pagination"></div>
     </div>
-    <a class="btn-back"></a>
+  <a class="btn-back" href="javascript:history.go(-1)"></a>
+
 </div>
 <!-- 商品详细信息 -->
 <div class="goods-content">
@@ -90,6 +91,7 @@
 <script src="//cdn.bootcss.com/Swiper/3.0.7/js/swiper.jquery.min.js"></script>
 <script src="../js/common.js"></script>
 <script src="../js/tmsp.js"></script>
+<script src="../js/jquery-shopping.js"></script>
 <script>
     (function ($) {
         //商品尺寸切换
@@ -111,6 +113,7 @@
 
         Set_product_detail(product_url);
         Set_shopcarts_num();
+        $('.add-cart').shoping();
     })(jQuery);
 </script>
 </body>

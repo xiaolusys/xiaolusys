@@ -235,3 +235,15 @@
   right: 20px;
   background-image:url(../images/icon-fanhuidingbu.png);
 }
+
+
+#floatOrder {
+    width: 25px;
+    height: 25px;
+    padding: 2px;
+    background: #fff;
+    border: solid 5px #e54144;
+    overflow: hidden;
+    position: absolute;
+    z-index: 890;
+}

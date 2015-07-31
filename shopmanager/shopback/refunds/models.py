@@ -227,7 +227,7 @@ class RefundProduct(models.Model):
     
     can_reuse    = models.BooleanField(default=False,verbose_name='二次销售')
     is_finish    = models.BooleanField(default=False,verbose_name='处理完成')
-    reason = models.IntegerField(choices=REFUND_REASON, default=0, verbose_name='退货原因')
+    reason       = models.IntegerField(choices=REFUND_REASON, default=0, verbose_name='退货原因')
     created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name='创建时间')
     modified     = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name='修改时间')
     

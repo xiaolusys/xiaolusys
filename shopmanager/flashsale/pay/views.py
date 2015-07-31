@@ -109,7 +109,7 @@ class PINGPPChargeView(View):
             discount_fee = sku.calc_discount_fee(xlmm=xlmm)
             real_fee = int(sku.agent_price * buy_num * 100) - int(discount_fee * 100)
             
-            assert buy_num > 0 and sku.real_remainnum > buy_num ,u'商品已抢光'
+            assert buy_num > 0 and sku.real_remainnum >= buy_num ,u'商品已抢光'
             
             discount_fee = sku.calc_discount_fee(xlmm=xlmm)
             real_fee = int(sku.agent_price * buy_num * 100) - int(discount_fee * 100)
@@ -186,7 +186,7 @@ class PINGPPChargeView(View):
             err_msg = u'OPENID异常请联系管理'
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
-            err_msg = u'参数错误'
+            err_msg = exc.message
         
         if err_msg:
             response_charge = {'errcode':'10001','errmsg':err_msg}

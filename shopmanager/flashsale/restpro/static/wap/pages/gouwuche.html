@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta id="viewport" name="viewport"/>
     <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script src="http://aui.github.io/artTemplate/dist/template.js"></script>
     <script src="../js/common.js"></script>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/gouwuche.css">
@@ -17,10 +18,26 @@
     <h1>购物车</h1>
 </div>
 
-<div class="cart-list">
 
-</div>
-<div id="loading" ><img src="/static/img/loading.gif"></div>
+<div class="cart-list"></div>
+<script id="item_template" type="text/html">
+    <div class="item" id="item_{{ id }}">
+        <div class="gpic"><img src="{{ pic_path }}"></div>
+        <div class="gname">{{ title }}</div>
+        <div class="gprice">¥ <span class="item_price" id="itemprice_{{ id }}">{{ price }}</span></div>
+        <div class="gsize">尺码：{{ sku_name }}</div>
+        <div class="goprice"><s>¥{{ std_sale_price }}</s></div>
+        <div class="btn-del" id="shop_cart_{{ id }}" cid="{{ id }}" onclick="del_shop({{ id }})"></div>
+        <div class="gcount">
+            <div class="btn reduce" onclick="minus_shop({{ id }})"></div>
+            <div class="total">
+                <input type="tel" readonly id="num_{{ id }}" value="{{ num }}">
+            </div>
+            <div class="btn plus" onclick="plus_shop({{ id }})"></div>
+        </div>
+    </div>
+</script>
+<div id="loading"><img src="/static/img/loading.gif"></div>
 <div class="buy">
     <p class="coupons">优惠券：-3.00</p>
 

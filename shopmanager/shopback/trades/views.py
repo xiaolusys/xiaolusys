@@ -62,7 +62,7 @@ from renderers import *
 class OutStockOrderProductView(APIView):
     """ docstring for class OutStockOrderProductView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (StatisticOutStockRender,new_BaseJSONRenderer ,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
@@ -130,7 +130,7 @@ class StatisticMergeOrderView(APIView):
     """ docstring for class StatisticsMergeOrderView """
     #serializer_class = serializers. ItemListTaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (StatisticMergeOrderRender,new_BaseJSONRenderer ,BrowsableAPIRenderer,)
     def parseStartDt(self,start_dt):
         
@@ -436,7 +436,7 @@ from shopback.trades.service import TradeService
 class CheckOrderView(APIView):
    # serializer_class = serializers. ItemListTaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = ( authentication.BasicAuthentication,)   #  
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)   #  
     renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
     
     def get(self, request, id, *args):
@@ -472,6 +472,7 @@ class CheckOrderView(APIView):
     def post(self, request, id, *args, **kwargs):
        # print "进入post"
         user_id = request.user.id
+        print 'debug checkorder:',user_id
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
@@ -610,7 +611,7 @@ import re
 class OrderPlusView(APIView):
     """ docstring for class OrderPlusView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = ( authentication.BasicAuthentication,)   #  
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)   #  
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
@@ -673,10 +674,10 @@ class OrderPlusView(APIView):
             is_reverse_order = True    
         #print "你好299888882"
         try:
-             merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
+            merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
                                                status=pcfg.WAIT_BUYER_CONFIRM_GOODS,
                                                is_reverse=is_reverse_order)
-             print "正确"
+            print "正确"
         except:
             print  "有错"
             
@@ -701,21 +702,6 @@ def change_trade_addr(request):
     CONTENT    = request.REQUEST
     #print "参数是",CONTENT.get('receiver_name')
     trade_id   = CONTENT.get('trade_id')
-    receiver_name=CONTENT.get('receiver_name')
-    receiver_phone=CONTENT.get('receiver_phone')
-    receiver_mobile=CONTENT.get('receiver_mobile')
-    receiver_state=CONTENT.get('receiver_state')
-    receiver_city=CONTENT.get('receiver_city')
-    receiver_district=CONTENT.get('receiver_district')
-    receiver_address=CONTENT.get('receiver_address')
-    receiver_zip=CONTENT.get('receiver_zip')
-    #tb_user_id=CONTENT.get('tb_user_id')
-    
-    
-    
-    
-    
-    print "订单id", receiver_name
     try:
         trade = MergeTrade.objects.get(id=trade_id)
     except MergeTrade.DoesNotExist:
@@ -883,7 +869,7 @@ class ReviewOrderView(APIView):
     """ docstring for class ReviewOrderView """
     #serializer_class = serializers. ItemListTaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ReviewOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         
@@ -1047,7 +1033,7 @@ def change_logistic_and_outsid(request):
 class ExchangeOrderView(APIView):
     """ docstring for class ExchangeOrderView """
     permission_classes = (permissions.IsAuthenticated,)
-    #authentication_classes = (authentication.BasicAuthentication,)
+    #authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ExchangeOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
@@ -1090,7 +1076,7 @@ class ExchangeOrderView(APIView):
 class ExchangeOrderInstanceView(APIView):
     """ docstring for class ExchangeOrderView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ExchangeOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request,id, *args, **kwargs):
         
@@ -1130,7 +1116,7 @@ class ExchangeOrderInstanceView(APIView):
 class DirectOrderView(APIView):
     """ docstring for class DirectOrderView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (DirectOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
@@ -1180,7 +1166,7 @@ class DirectOrderView(APIView):
 class DirectOrderInstanceView(APIView):
     """ docstring for class DirectOrderView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (DirectOrderRender,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id,*args, **kwargs):
         
@@ -1282,7 +1268,7 @@ def replay_trade_send_result(request,id):
 class TradeSearchView(APIView):   
     """ docstring for class ExchangeOrderView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)     
     def get(self, request, *args, **kwargs):
          
@@ -1383,7 +1369,7 @@ class TradeSearchView(APIView):
 class OrderListView(APIView):
     """ docstring for class OrderListView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (OrderListRender,new_BaseJSONRenderer,BrowsableAPIRenderer, )     
     def get(self, request, id, *args, **kwargs):
         
@@ -1422,7 +1408,7 @@ class OrderListView(APIView):
 class RelatedOrderStateView(APIView):
     """ docstring for class RelatedOrderStateView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RelatedOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer, )     
     def get(self, request, *args, **kwargs):
         
@@ -1515,8 +1501,9 @@ class TradeLogisticView(APIView):
     """ docstring for class TradeLogisticView """
      #serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (TradeLogisticRender,new_BaseJSONRenderer,BrowsableAPIRenderer, )
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (TradeLogisticRender,new_BaseJSONRenderer, )
+
     def get(self, request, *args, **kwargs):
         
         content  = request.REQUEST
@@ -1571,7 +1558,7 @@ class TradeLogisticView(APIView):
             weight_list.append((JZA_weight,JZA_count))
             weight_list.append((OTHER_weight,OTHER_count))
 
-        return   Response({"object":{'logistics':trade_list,'df':df or '','dt':dt or '','yunda_count':TOTAL_count,'weights':weight_list}})   
+        return   Response({'logistics':trade_list,'df':df or '','dt':dt or '','yunda_count':TOTAL_count,'weights':weight_list})   
     
     post = get 
     
@@ -1708,38 +1695,40 @@ def showFenxiaoDetail(request):
 class ImprovePriorityView(APIView):
     """ docstring for class OrderListView """
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def post(self, request, id, *args, **kwargs):
         
         row = MergeTrade.objects.filter(id=id).update(priority=pcfg.PRIORITY_HIG)
         
         return Response({'success':row > 0})
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #     
+
+########################## 提升订单优先级 ###########################
+
 #fang  将django中的方法提取出来
 #获取订单备注，几乎是自己重新写的方法   2015-7-29
 class InstanceModelView_new(APIView):
     #print "zheli"
     serializer_class = serializers.MergeTradeSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
+
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,)
     def get (self, request, id,*args, **kwargs):
       # print "zheli44",id
-       trade=MergeTrade.objects.get(id=id)
-       serializer=serializers.MergeTradeSerializer(trade).data
-       #return Response({"example":"get__function"})
-       return Response(serializer)
+        trade=MergeTrade.objects.get(id=id)
+        serializer=serializers.MergeTradeSerializer(trade).data
+        #return Response({"example":"get__function"})
+        return Response(serializer)
 
-
-
-########################
 ########################## 订单重量入库 ###########################
 class PackageScanCheckView(APIView):
     """ 订单扫描验货 """
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+#    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (new_BaseJSONRenderer,)
+
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
             return False
@@ -1804,10 +1793,9 @@ class PackageScanCheckView(APIView):
         
         order_items = self.getOrderItemsFromTrade(mt)
         
-        return    Response({"object":{'package_no':package_id,
-                'trade_id':mt.id,
-                'order_items':order_items}})
-    
+        return Response({'package_no':package_id,
+                         'trade_id':mt.id,
+                         'order_items':order_items})    
         
     def post(self, request,*args, **kwargs):
         
@@ -1840,9 +1828,10 @@ class PackageScanCheckView(APIView):
 ########################## 订单重量入库 ###########################
 class PackageScanWeightView(APIView):
     """ 订单扫描称重 """
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,)
+
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
             return False

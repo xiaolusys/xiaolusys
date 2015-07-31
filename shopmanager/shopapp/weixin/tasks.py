@@ -200,7 +200,7 @@ def pullFeedBackWXOrderTask(begintime,endtime):
         
     _wx_api._wx_account.changeRefundUpdated(dt)
     
-    
+
 @task
 def syncStockByWxShopTask(wx_product):
     

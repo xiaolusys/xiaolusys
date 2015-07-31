@@ -86,5 +86,19 @@
     </a>
   </li>
 </ul>
+<script src="http://cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+<script src="../js/tmdd.js"></script>
+<script>
+(function($){
+  //返回顶部
+  $('#js-scroll-top').on('touchend',function(e){
+    e.preventDefault();
+    $('body').animate({scrollTop:0},400);  
+  });
+   //获取待支付订单列表
+  Set_orders(GLConfig.get_trade_all_url);
+
+})(jQuery);  
+</script>
 </body>
 </html>

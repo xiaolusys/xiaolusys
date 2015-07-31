@@ -189,7 +189,7 @@ class ProductListView(viewsets.ModelViewSet):    #ListOrCreateModelView
     queryset = None
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductListHtmlRenderer,JSONRenderer,BrowsableAPIRenderer,)
     def list(self, request, *args, **kwargs):
         #获取库存商品列表
@@ -240,7 +240,7 @@ class ProductItemView(APIView):#ListModelView
     queryset = None
     serializer_class = serializers.ProductItemSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductItemHtmlRenderer,JSONRenderer,BrowsableAPIRenderer,)
     #template_name = "fullcalendar/default.html"    
     def get(self, request, *args, **kwargs):
@@ -297,7 +297,7 @@ class ProductModifyView(APIView):
     """ docstring for ProductListView """
     serializer_class = serializers.ProductItemSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (JSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         #取消库存警告
@@ -317,7 +317,7 @@ class ProductUpdateView(APIView):
     """ docstring for ProductListView """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductUpdateHtmlRenderer,JSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
@@ -363,7 +363,7 @@ class ProductSkuInstanceView(APIView):
     """ docstring for ProductSkuInstanceView """
     serializer_class = serializers.ProductSkuSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductSkuHtmlRenderer,JSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, sku_id, *args, **kwargs):
         
@@ -392,7 +392,7 @@ class ProductView(APIView):
     
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
         
@@ -438,14 +438,13 @@ class ProductView(APIView):
 #             return u'填写信息不规则:%s'%exc.message
         log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
         return  Response({'object':product.json}) 
-       # return product.json
     
         
 class ProductSkuView(APIView):
     """ docstring for ProductSkuView """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     
     def get(self, request, pid, sku_id, *args, **kwargs):
@@ -510,7 +509,7 @@ class ProductSearchView(APIView):
     """ 根据商品编码，名称查询商品 """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         #print Product.objects.all()[1].outer_id
@@ -543,8 +542,8 @@ class ProductBarCodeView(APIView):
 
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (ProductBarcodeHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (ProductBarcodeHtmlRenderer,new_BaseJSONRenderer,)
     def get(self, request, *args, **kwargs):
         #获取库存商品列表
         print     Product.objects.all()[0].outer_id
@@ -555,7 +554,7 @@ class ProductBarCodeView(APIView):
         
         product_json = [p.json for p in products]
         
-        return Response({"object":{'products':product_json,'outer_id':outer_id}})
+        return Response({'products':product_json,'outer_id':outer_id})
  
     def post(self, request, *args, **kwargs):
         
@@ -589,7 +588,7 @@ class ProductBarCodeView(APIView):
                    %(outer_id or '',outer_sku_id or '',barcode))
         #product_sku=ProductSku.objects.all()[0]  fang add  ceshi
         #print product_sku
-        return       Response({'barcode':product_sku and product_sku.BARCODE or product.BARCODE}   )
+        return Response({'barcode':product_sku and product_sku.BARCODE or product.BARCODE})
         
           
 
@@ -598,8 +597,8 @@ class ProductDistrictView(APIView):
     """ 根据商品编码，名称查询商品 """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (ProductDistrictHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (ProductDistrictHtmlRenderer,new_BaseJSONRenderer,)
     def get(self, request, id,*args, **kwargs):
         
         content = request.REQUEST
@@ -610,7 +609,7 @@ class ProductDistrictView(APIView):
         
         product_district = product.get_districts_code() or u'--'
         
-        return Response({"object":{'product':product.json,'product_districts':product_district}})
+        return Response({'product':product.json,'product_districts':product_district})
         
     def post(self, request, id,*args, **kwargs):
 #         print "post"
@@ -635,14 +634,14 @@ class ProductDistrictView(APIView):
             prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=product)
         
         location,state = ProductLocation.objects.get_or_create(
-                            product_id=product.id,sku_id=prod_sku and prod_sku.id,district=district)
+                            product_id=product.id,sku_id=prod_sku and prod_sku.id,district=deposit_obj)
         
         log_action(request.user.id,product,CHANGE,u'更新商品库位:(%s-%s,%s)'
                    %(outer_id or '',outer_sku_id or '',district))
         
-        return   Response({"object": {'outer_id':location.outer_id,
+        return   Response({'outer_id':location.outer_id,
                 'outer_sku_id':location.outer_sku_id,
-                'district':district_obj}})
+                'district':district_obj})
         
         
 @csrf_exempt
@@ -709,8 +708,8 @@ class ProductOrSkuStatusMdView(APIView):
     """ 库存警告商品管理 """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,)
     def post(self, request,*args, **kwargs):
         
         content      = request.REQUEST
@@ -747,8 +746,8 @@ class ProductWarnMgrView(APIView):
     """ 库存警告商品管理 """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (ProductWarnHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (ProductWarnHtmlRenderer,new_BaseJSONRenderer)
     def get(self, request, *args, **kwargs):
         
         pskus = ProductSku.objects.filter(product__status=pcfg.NORMAL,status=pcfg.NORMAL,is_assign=False)\
@@ -766,18 +765,13 @@ class ProductNumAssignView(APIView):
     """ docstring for ProductNumAssignView """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,)
     def get(self, request, *args, **kwargs):
         #获取某outer_id对应的商品，以及同步商品库存
-        print "get"
-        #print ProductSku.objects.all()[1].product.outer_id,ProductSku.objects.all()[1].outer_id
         content       = request.REQUEST
-        #outer_id      = content.get('outer_id')
-        #outer_sku_id  = content.get('outer_sku_id')
-        outer_id="2115BN1"
-        outer_sku_id="30LH"
-        print outer_id,outer_sku_id
+        outer_id      = content.get('outer_id')
+        outer_sku_id  = content.get('outer_sku_id')
         
         real_num  = 0
         lday_num  = 0
@@ -856,10 +850,8 @@ class ProductNumAssignView(APIView):
         #删除product或productsku
         
         content   = request.REQUEST
-       # outer_id  =  content.get('assign_outer_id')
-       # outer_sku_id  =  content.get('assign_outer_sku_id')
-        outer_id="2115BN1"
-        outer_sku_id="30LH"
+        outer_id  =  content.get('assign_outer_id')
+        outer_sku_id  =  content.get('assign_outer_sku_id')
         try:
             item_list = self.parse_params(content)
             
@@ -950,8 +942,8 @@ class StatProductSaleView(APIView):
     """ docstring for class StatisticsMergeOrderView """
        #serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (ProductSaleHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer, )
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (ProductSaleHtmlRenderer,new_BaseJSONRenderer, )
     def parseDate(self,start_dt):
         
         if not start_dt:
@@ -1220,8 +1212,8 @@ class StatProductSaleView(APIView):
 class ProductScanView(APIView):
     #serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (ProductScanRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer, )
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (ProductScanRenderer,new_BaseJSONRenderer, )
     def get(self,request,*args,**kwargs):
         
         wave_no = datetime.datetime.now().strftime("%Y-%m-%d-%H")

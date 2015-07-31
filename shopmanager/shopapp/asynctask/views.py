@@ -20,7 +20,7 @@ class AsyncCategoryView(APIView):
     serializer_class = serializers.PrintAsyncTaskModeSerializer
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,BrowsableAPIRenderer)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     #print "start3333"
     def get(self, request, cids, *args, **kwargs):
         
@@ -40,7 +40,7 @@ class AsyncOrderView(APIView):
     serializer_class = serializers.PrintAsyncTaskModeSerializer
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,BrowsableAPIRenderer)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     def get(self, request, start_dt, end_dt, *args, **kwargs):
 
         profile    = request.user.get_profile()
@@ -60,7 +60,7 @@ class AsyncInvoicePrintView(APIView):
     serializer_class = serializers.PrintAsyncTaskModeSerializer
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (TemplateHTMLRenderer,BrowsableAPIRenderer)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     template_name = "asynctask/async_print_commit.html"
     #print "start   AsyncInvoicePrintView"
     def get(self, request, *args, **kwargs):
@@ -87,7 +87,7 @@ class AsyncExpressPrintView(APIView):
     serializer_class = serializers.PrintAsyncTaskModeSerializer
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (TemplateHTMLRenderer,BrowsableAPIRenderer)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     template_name = "asynctask/async_print_commit.html"
     def get(self, request, *args, **kwargs):
 

@@ -59,7 +59,7 @@ class RefundManagerView(APIView):
     """ docstring for class RefundManagerView """
     serializer_class = serializers.RefundSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RefundManagerRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
         
@@ -105,25 +105,24 @@ class RefundManagerView(APIView):
             prod_trade_id = prod.trade_id
             if not prod_trade_id or (prod_trade_id not in handling_tids):
                 unrelate_prods.append(prod)
-        print "zheli"
         return  Response({"object":{'refund_trades':refund_list,'unrelate_prods':serializers.RefundProductSerializer(unrelate_prods,many=True).data}})
         #Response({"object":{'refund_trades':refund_list,'unrelate_prods':unrelate_prods}})
     def post(self, request, *args, **kwargs):
-        
         content     = request.REQUEST
         tid         = content.get('tid')
+        #print "tid",tid
         seller_id   = content.get('seller_id')
         if not tid :
-            return u'请输入交易ID'
+            return Response(u'请输入交易ID')
         
         try:
             merge_trade = serializers.MergeTradeSerializer(MergeTrade.objects.all()[0]).data
         except MergeTrade.DoesNotExist:
-            return u'订单未找到'
+            return Response(u'订单未找到')
         
         refund_orders    = serializers.RefundSerializer(Refund.objects.filter(tid=tid),many=True).data
         refund_products  = serializers.RefundProductSerializer(RefundProduct.objects.filter(trade_id=tid),many=True).data
-        
+       # print "55555",refund_orders
         op_str  = render_to_string('refunds/refund_order_product.html', 
                 { 'refund_orders': refund_orders,
                  'refund_products': refund_products ,
@@ -131,7 +130,7 @@ class RefundManagerView(APIView):
                  'trade':merge_trade
                 })
           
-        return Response({"object":{'template_string':op_str,'trade_id':tid,}})
+        return Response({'template_string':op_str,'trade_id':tid,})
         #return { 'refund_orders': refund_orders,'refund_products': refund_products ,'STATIC_URL':settings.STATIC_URL}
 
 ############################### 退货商品订单 #################################       
@@ -139,7 +138,7 @@ class RefundProductView(APIView):
     """ docstring for class RefundProductView """
     serializer_class = serializers.RefundProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RefundProductRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
         
@@ -155,10 +154,6 @@ class RefundProductView(APIView):
         if outer_sku_id:
             try:
                 prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-                #print "kaishi",ProductSku.objects.all()[1].outer_id
-                #outer_sku_id=ProductSku.objects.all()[1].outer_id
-                #prod_sku = ProductSku.objects.get(outer_id=outer_sku_id)
-                #print    prod_sku,"555555"
             except:
                 pass
         else:
@@ -178,7 +173,6 @@ class RefundProductView(APIView):
         rf.can_reuse = content.get('can_reuse') == 'true' and True or False
         rf.title = prod_sku.product.name if prod_sku else prod.name
         rf.property = prod_sku.properties_alias or prod_sku.properties_name if prod_sku else ''
-        
         rf.save()
 
         return Response(serializers.RefundProductSerializer(rf).data)
@@ -188,8 +182,8 @@ class RefundView(APIView):
     """ docstring for class RefundView """
     serializer_class = serializers.RefundSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,)
     def get(self, request, *args, **kwargs):
 
         content   = request.REQUEST

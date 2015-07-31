@@ -42,7 +42,7 @@ from shopback.base.new_renders import new_BaseJSONRenderer
 class PackageByCsvFileView(FileUploadView_intercept):
     serializer_class = serializers.PackageListSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     file_path     = 'yunda'
     filename_save = 'package_%s.csv'
@@ -124,7 +124,7 @@ class CustomerPackageImportView(FileUploadView_intercept):
     
     serializer_class = serializers.PackageListSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     file_path     = 'yunda'
     filename_save = 'cr_package_%s.csv'
@@ -219,7 +219,7 @@ class CustomerPackageImportView(FileUploadView_intercept):
 class DiffPackageDataView(APIView):
     serializer_class = serializers.PackageListSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (TemplateHTMLRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
     template_name="yunda/upload_yunda_package.html"
     def calcWeight(self,sqs,pqs):
@@ -334,7 +334,7 @@ class PackageWeightView(APIView):
     """ 包裹称重视图 """
     serializer_class = serializers.LogisticOrderSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
     def isValidYundaId(self,package_no):
         if len(package_no) < 13:
@@ -435,9 +435,10 @@ class BranchZoneView(APIView):
     """ 获取分拨集包规则 """
     
     serializer_class = serializers.BranchZoneSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)   
+#     permission_classes = (permissions.IsAuthenticated,)
+#     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,)   
+
     def get(self, request, *args, **kwargs):
         
         content    = request.REQUEST

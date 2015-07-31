@@ -85,7 +85,8 @@ var GLConfig = {
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
     get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
     get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
-    get_cart_url:'/carts.json' //获取购物车详细
+    get_cart_url:'/carts.json', //获取购物车详细
+    get_num_cart:'/carts/show_carts_num?format=json' //获取购物车数量
 };
 
 
@@ -95,7 +96,7 @@ function getCookie(name) {
     if (document.cookie && document.cookie != '') {
         var cookies = document.cookie.split(';');
         for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
+            var cookie = cookies[i].trim();
             // Does this cookie string begin with the name we want?
             if (cookie.substring(0, name.length + 1) == (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
@@ -106,3 +107,48 @@ function getCookie(name) {
     return cookieValue;
 }
 var csrftoken = getCookie('csrftoken');
+
+
+/*
+* 模拟toast
+* */
+var intervalCounter = 0;
+function hideToast() {
+    var alert = document.getElementById("toast");
+    alert.style.opacity = 0;
+    clearInterval(intervalCounter);
+}
+function drawToast(message) {
+    var alert = document.getElementById("toast");
+    if (alert == null) {
+        var toastHTML = '<div id="toast">' + message + '</div>';
+        document.body.insertAdjacentHTML('beforeEnd', toastHTML);
+    }
+    else {
+        alert.style.opacity = .9;
+    }
+    intervalCounter = setInterval("hideToast()", 1000);
+}
+
+function Set_shopcarts_num() {
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
+    var requestCallBack = function (res) {
+        $(".total").html(res);
+    };
+    // 发送请求
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: "",
+        beforeSend: function () {
+
+        },
+        success: requestCallBack,
+        error: function (data) {
+            if (data.statusText == "FORBIDDEN") {
+                $(".total").html("0");
+            }
+            console.info("debug error: " + data.statusText);
+        }
+    });
+}

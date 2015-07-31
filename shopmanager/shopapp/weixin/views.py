@@ -1533,7 +1533,7 @@ class WeixinProductView(APIView):
     serializer_class = serializers.WeixinProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer,TemplateHTMLRenderer)
+    renderer_classes = (new_BaseJSONRenderer,TemplateHTMLRenderer)
     template_name = "weixin/weixinproductsync.html"    
     def getPid(self,link):
         m = LINK_RE.match(link)
@@ -1549,7 +1549,8 @@ class WeixinProductView(APIView):
     def get(self, request, *args, **kwargs):
         
         content = request.REQUEST
-        product_ids = content.get('product_ids','').split(',')
+        product_ids = content.get('product_ids','')
+        product_ids = product_ids and product_ids.split(',') or []
         next    = content.get('next')
         wx_pids = self.getLinkProductIds(content)
         for pid in wx_pids:
@@ -1558,6 +1559,7 @@ class WeixinProductView(APIView):
         
         product_list = []
         queryset = Product.objects.filter(id__in=product_ids)
+
         for p in queryset:
             product_list.append(WXProduct.objects.fetchSkuMatchInfo(p))
                     
@@ -1640,13 +1642,13 @@ class WeixinProductVerifyView(APIView):
     serializer_class = serializers.WeixinProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
-    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer,TemplateHTMLRenderer)
+    renderer_classes = (new_BaseJSONRenderer,TemplateHTMLRenderer)
     template_name = "weixin/weixinproductsync.html"    
     def post(self, request, *args, **kwargs):
        # print "post"
         content = request.REQUEST
-        product_ids = content.get('product_ids','').split(',')
-        #product_ids=[1,2,3,4,5]
+        product_ids = content.get('product_ids','')
+        product_ids = product_ids and product_ids.split(',') or []
         queryset = Product.objects.filter(id__in=product_ids)
         update_rows = queryset.update(is_verify=True)
                     

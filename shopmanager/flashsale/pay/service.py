@@ -28,7 +28,7 @@ class FlashSaleService(LocalService):
         from shopback.trades.models import MergeOrder
         from shopback.items.models import Product,ProductSku
         
-        order_id = order.id
+        order_id = order.oid
         merge_order,state = MergeOrder.objects.get_or_create(oid=order_id,
                                                              merge_trade=merge_trade)
         state = state or not merge_order.sys_status
