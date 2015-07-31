@@ -76,6 +76,7 @@ function hereDoc(f) {
 //全局配置
 var GLConfig = {
 	baseApiUrl:'/rest/v1', //API接口调用前缀
+	order_expired_in:20 * 60,//expired time
 	today_suffix:'today',  //获取首页今日商品信息，URL标识
     previous_suffix:'previous', //获取首页昨日商品信息，URL标识
     get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
@@ -88,7 +89,6 @@ var GLConfig = {
     get_cart_url:'/carts.json', //获取购物车详细
     get_num_cart:'/carts/show_carts_num?format=json' //获取购物车数量
 };
-
 
 // using jQuery
 function getCookie(name) {
