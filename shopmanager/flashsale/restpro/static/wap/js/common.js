@@ -110,8 +110,10 @@ var csrftoken = getCookie('csrftoken');
 
 
 /*
-* 模拟toast
-* */
+ * 模拟toast
+ * auther:yann
+ * date:2015/30/7
+ */
 var intervalCounter = 0;
 function hideToast() {
     var alert = document.getElementById("toast");
@@ -130,7 +132,13 @@ function drawToast(message) {
     intervalCounter = setInterval("hideToast()", 1000);
 }
 
+
 function Set_shopcarts_num() {
+    /*
+    * 得到购物车数量
+    * auther:yann
+    * date:2015/30/7
+    */
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
     var requestCallBack = function (res) {
         $(".total").html(res);

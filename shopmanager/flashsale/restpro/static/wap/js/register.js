@@ -3,24 +3,6 @@
  */
 
 
-// using jQuery
-function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie != '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-var csrftoken = getCookie('csrftoken');
-
 $(function () {
     var mobile = $("#mobile_username");
     var password1 = $("#password1");
@@ -39,11 +21,16 @@ $(function () {
 
 
 function my_submit() {
+    /*
+    * 表单提交
+    * auther:yann
+    * date:2015/30/7
+    */
     var mobile = $("#mobile_username").val();
     var valid_code = $("#valid_code").val();
     var password1 = $("#password1").val();
     var password2 = $("#password2").val();
-
+    var phone_exist_error = $("#phone_exist_error");
     //请求URL
     var requestUrl = "/rest/v1/register/check_code_user";
 
@@ -53,18 +40,21 @@ function my_submit() {
         if (res == "7") {
             window.location = "denglu2.html";
         } else if (res == "0") {
-            show_message("已经注册过");
+            phone_exist_error.text("此手机号码已注册，您可尝试修改密码~").show();
+            setTimeout("error_hide()", 1000);
         } else if (res == "3") {
-            alert("重新获取验证码");
+            phone_exist_error.text("请点击获取验证码").show();
+            setTimeout("error_hide()", 1000);
         } else if (res == "1") {
-
-            show_message("验证码不对")
+            phone_exist_error.text("验证码有误").show();
+            setTimeout("error_hide()", 1000);
         } else if (res == "2") {
-            show_message("表单填写有误");
+            phone_exist_error.text("表单填写有误").show();
+            setTimeout("error_hide()", 1000);
         }
     };
 
-
+    //phone num and password check
     if (!execReg(regCheck(4), mobile)) {
         var phone_error = $("#phone_error");
         phone_error.show();
@@ -91,10 +81,17 @@ function my_submit() {
 
     }
 }
+
 function error_hide() {
     $(".error-tips").hide();
 }
+
 function get_code() {
+    /*
+     * 获取验证码
+     * auther:yann
+     * date:2015/21/7
+     */
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
     if (!execReg(regCheck(4), mobile)) {
@@ -111,7 +108,7 @@ function get_code() {
                 } else if (result == "OK") {
                     phone_exist_error.text("可以注册").show();
                     setTimeout("error_hide()", 1000);
-                }else if(result == "1"){
+                } else if (result == "1") {
                     phone_exist_error.text("亲,60s内验证码有效的").show();
                     setTimeout("error_hide()", 1000);
                 }
@@ -144,28 +141,4 @@ function execReg(reg, str) {
         return false;
     }
     return true;
-}
-
-/*
-* 模拟toast
-* */
-var intervalCounter = 0;
-function hideToast() {
-    var alert = document.getElementById("toast");
-    alert.style.opacity = 0;
-    clearInterval(intervalCounter);
-}
-function drawToast(message) {
-    var alert = document.getElementById("toast");
-    if (alert == null) {
-        var toastHTML = '<div id="toast">' + message + '</div>';
-        document.body.insertAdjacentHTML('beforeEnd', toastHTML);
-    }
-    else {
-        alert.style.opacity = .9;
-    }
-    intervalCounter = setInterval("hideToast()", 1000);
-}
-function show_message(message) {
-    drawToast(message);
 }
