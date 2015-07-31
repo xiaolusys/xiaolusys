@@ -75,6 +75,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     - {prefix}/previous[.format]: 获取昨日特卖商品列表;
     
     - {prefix}/advance[.format]: 获取明日特卖商品列表;
+
+    - {prefix}/seckill[.format]: 获取秒杀商品列表;
     
     """
     queryset = Product.objects.filter(status=Product.NORMAL,shelf_status=Product.UP_SHELF)
@@ -215,8 +217,39 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         product_dict['details'] = pdetail_dict
             
         return Response(product_dict)
-    
-    
-    
-    
-    
+
+    def myfilter_queryset(self,queryset,history,time_line):
+        if history == 'none':
+            return queryset
+
+        today = datetime.date.today()
+        if history:
+            filter_date = today - datetime.timedelta(days=time_line)
+            return queryset.filter(sale_time__gte=filter_date,sale_time__lt=today)
+
+        return queryset.filter(sale_time=today)
+
+
+    @list_route(methods=['get'])
+    def seckill(self, request, *args, **kwargs):
+        """
+        获取秒杀商品列表
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        queryset = self.filter_queryset(self.get_queryset())
+
+        queryset = queryset.filter(category=11)
+
+        queryset = self.myfilter_queryset(queryset, history='none', time_line=0)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
