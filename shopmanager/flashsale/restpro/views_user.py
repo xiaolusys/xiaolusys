@@ -41,6 +41,9 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if mobile == "":  #进行正则判断，待写
             return Response("false")
         reg = Register.objects.filter(vmobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile)
+        if already_exist.count() > 0:
+            return Response("0")  #已经有用户了
         if reg.count() > 0:
             temp_reg = reg[0]
             reg_pass = reg.filter(mobile_pass=True)
@@ -80,6 +83,9 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         mobile = post['username']
         reg = Register.objects.filter(vmobile=mobile)
         reg_pass = reg.filter(mobile_pass=True)
+        already_exist = Customer.objects.filter(mobile=mobile)
+        if already_exist.count() > 0:
+            return Response("0")  #已经有用户了
         if reg.count() == 0:
             return Response("3")  #未获取验证码
         elif reg_pass.count() > 0:
