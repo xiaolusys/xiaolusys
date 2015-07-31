@@ -118,7 +118,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if mobile == "":  # 进行正则判断，待写
             return Response("false")
         reg = Register.objects.filter(vmobile=mobile)
-        if reg.count == 0:
+        if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
             new_reg.verify_code = new_reg.genValidCode()
             new_reg.verify_count = 1
