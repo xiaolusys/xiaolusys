@@ -60,7 +60,20 @@ function init(){
                
             });  
         });
-
+        
+$("ul li  i").each(function () {  
+            $(this).click(function(){  
+				$("ul li  i").removeClass("radio-select")//去掉之前选中的
+              $(this).addClass("radio-select")//选中
+                      $(this).parent().css({"color":"red","border":"2px solid red"});  //增加框
+                       $(this).parent().siblings().css({"color":"","border":""});  //取消框
+                       default_id=$(this).parent().attr('id');
+                        obj=$(this).parent();
+                       change_default(obj,default_id);
+                       
+                       
+            });  
+        });
 
 
 
@@ -82,12 +95,12 @@ function init(){
 	
 	
 	function delete_address( obj,id){
-	alert(id);
+	//alert(id);
 	//obj.remove()     //删除地址
 		//请求成功回调函数
 	var requestUrl=GLConfig.baseApiUrl +GLConfig.delete_address
 	var requestCallBack = function(data){
-		alert(data.ret)
+		//alert(data.ret)
 		if(data.ret==true){
 			obj.remove()     //删除地址
 			
@@ -96,11 +109,6 @@ function init(){
 			alert("删除失败")
 			
 		}
-     
-     
-
-
-
 	};
 	// 发送请求
 	$.ajax({ 
@@ -115,6 +123,28 @@ function init(){
 }
 	
 
+	function change_default( obj,id){
+	//obj.remove()     //删除地址
+		//请求成功回调函数
+	var requestUrl=GLConfig.baseApiUrl +GLConfig.change_default
+	var requestCallBack = function(data){
+		if(data.ret==true){
 
+		}
+		else{
+			alert("送货修改失败")
+		}
+	};
+	// 发送请求
+	$.ajax({ 
+		type:'get', 
+		url:requestUrl, 
+		data:{"csrfmiddlewaretoken": csrftoken,"id":id}, 
+		dataType:'json', 
+		success:requestCallBack 
+	}); 
+	
+	
+}
 
 
