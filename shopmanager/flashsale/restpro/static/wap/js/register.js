@@ -37,18 +37,19 @@ function my_submit() {
     //请求成功回调函数
     var requestCallBack = function (res) {
         console.log(res);
-        if (res == "7") {
+        var result = res.result;
+        if (result == "7") {
             window.location = "denglu2.html";
-        } else if (res == "0") {
+        } else if (result == "0") {
             phone_exist_error.text("此手机号码已注册，您可尝试修改密码~").show();
             setTimeout("error_hide()", 1000);
-        } else if (res == "3") {
+        } else if (result == "3") {
             phone_exist_error.text("请点击获取验证码").show();
             setTimeout("error_hide()", 1000);
-        } else if (res == "1") {
+        } else if (result == "1") {
             phone_exist_error.text("验证码有误").show();
             setTimeout("error_hide()", 1000);
-        } else if (res == "2") {
+        } else if (result == "2") {
             phone_exist_error.text("表单填写有误").show();
             setTimeout("error_hide()", 1000);
         }
@@ -100,8 +101,8 @@ function get_code() {
         setTimeout("error_hide()", 1000);
     } else {
         $.post("/rest/v1/register", {"vmobile": mobile},
-            function (result) {
-                console.log(result);
+            function (data) {
+                var result = data.result;
                 if (result == "0") {
                     phone_exist_error.text("此手机号码已注册，您可尝试修改密码~").show();
                     setTimeout("error_hide()", 1000);

@@ -42,31 +42,31 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=60)
         if mobile == "":  # 进行正则判断，待写
-            return Response("false")
+            return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=mobile)
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
-            return Response("0")  # 已经有用户了
+            return Response({"result": "0"})  # 已经有用户了
         if reg.count() > 0:
             temp_reg = reg[0]
             reg_pass = reg.filter(mobile_pass=True)
             if reg_pass.count() > 0:
-                return Response("0")  # 已经注册过
+                return Response({"result": "0"})  # 已经注册过
             if temp_reg.modified > last_send_time:
-                return Response("1")  # 60s内已经发送过
+                return Response({"result": "1"})  # 60s内已经发送过
             else:
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.verify_count += 1
                 temp_reg.save()
-                task_register_code.s(mobile)()
-                return Response("OK")
+                # task_register_code.s(mobile)()
+                return Response({"result": "OK"})
 
         new_reg = Register(vmobile=mobile)
         new_reg.verify_code = new_reg.genValidCode()
         new_reg.verify_count = 1
         new_reg.save()
-        task_register_code.s(mobile)()
-        return Response("OK")
+        # task_register_code.s(mobile)()
+        return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
 
@@ -81,15 +81,15 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         reg_pass = reg.filter(mobile_pass=True)
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
-            return Response("0")  # 已经有用户了
+            return Response({"result": "0"})  # 已经有用户了
         if reg.count() == 0:
-            return Response("3")  # 未获取验证码
+            return Response({"result": "3"})  # 未获取验证码
         elif reg_pass.count() > 0:
-            return Response("0")  # 已经注册过
+            return Response({"result": "0"})  # 已经注册过
         reg_temp = reg[0]
         verify_code = reg_temp.verify_code
         if verify_code != post.get('valid_code', 0):
-            return Response("1")  # 验证码不对
+            return Response({"result": "1"})  # 验证码不对
         form = UserCreationForm(post)
         if form.is_valid():
             new_user = form.save()
@@ -100,9 +100,9 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             reg_temp.mobile_pass = True
             reg_temp.cus_uid = a.id
             reg_temp.save()
-            return Response("7")  # 注册成功
+            return Response({"result": "7"})  # 注册成功
         else:
-            return Response("2")  # 表单填写有误
+            return Response({"result": "2"})  # 表单填写有误
 
     # from django.contrib.auth.views import password_change
     @list_route(methods=['post'])
