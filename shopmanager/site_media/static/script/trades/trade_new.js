@@ -499,13 +499,25 @@ $.post('/trades/checkorder/'+trade_id+'/?format=json', {
            try {
                if (res.code == 0){
                 //alert("审核成功");
+
               // window.close();
                // parent.location.reload();
+
+var result_table =  parent.document.getElementById('result_list');
+                   // alert("窗体"+result_table);
+                var trs=result_table.getElementsByTagName("tr");
+                  for(var i=1;i<trs.length;i++){
+                    //alert("成功" +trs[i].childNodes[0].childNodes[0].getAttribute("value"));
+                    if(  trs[i].childNodes[0].childNodes[0].getAttribute("value")==   trade_id  ){                          
+                      trs[i].remove();
+                         }
+                   }
                 var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
                     parent.layer.close(index); //执行关闭
                   // window.location.reload();
  //self.opener.location.reload();
-             //alert("刷新");
+
+
 
                 }
               else{
