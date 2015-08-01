@@ -25,9 +25,16 @@ def get_product_dict_from_product(product_result):
     """ 从商品queryset中得到关于这个商品的所有信息加上尺寸的所有信息，并且返回dict"""
     product_list = []
     for product in product_result:
-        detail2pro = product.details
+        try:
+            detail2pro = product.details
+        except:
+            detail2pro = False
+
         product_dict = model_to_dict(product)
-        detail_d = model_to_dict(detail2pro)
+        if detail2pro:
+            detail_d = model_to_dict(detail2pro)
+        else:
+            detail_d = {"head_imgs": "", "content_imgs": ""}
         product_dict['details'] = detail_d
         product_dict['prod_skus'] = []
         all_sku = product.prod_skus.all()
