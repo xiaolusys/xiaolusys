@@ -44,7 +44,13 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     
 class UserAddressViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that allows groups to be   viewed or edited.
+    author： kaineng .fang  2015-8--
+    方法及其目的
+    detail  （）：获得用户所有收获地址
+    delete（）：删除某个地址
+    change_default：选择收获地址
+    create_address：创建新的收获地址
     """
     queryset = UserAddress.objects.all()
     serializer_class = serializers.UserAddressSerializer# Create your views here.
@@ -139,6 +145,11 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 class DistrictViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
+    author:kaineng.fang
+    方法名及其目的：
+    province_list（）：省列表
+    city_list：根据省获得市
+    country_list:根据市获得区或者县
     """
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer# Create your views here.
