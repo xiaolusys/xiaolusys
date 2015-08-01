@@ -93,7 +93,7 @@ var GLConfig = {
     province_list:'/districts/province_list/?format=json',//省份列表
     city_list:'/districts/city_list/?format=json',//城市列表
     country_list:'/districts/country_list/?format=json',//区/县列表
-    create_address:'/districts/create_address/?format=json',//创建新的收获地址
+    create_address:'/address/create_address/?format=json',//创建新的收获地址
 };
 
 
