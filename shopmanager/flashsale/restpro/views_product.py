@@ -12,7 +12,7 @@ from rest_framework import status
 
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
-from flashsale.pay.models import GoodShelf
+from flashsale.pay.models import GoodShelf,ModelProduct
 
 from . import permissions as perms
 from . import serializers 
@@ -23,7 +23,6 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     特卖海报API：
     
     - {prefix}/today[.format]: 获取今日特卖海报;
-    
     - {prefix}/previous[.format]: 获取昨日特卖海报;
     """
     queryset = GoodShelf.objects.filter(is_active=True)
@@ -58,8 +57,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
-    
-    
+
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -79,6 +77,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     - {prefix}/seckill[.format]: 获取秒杀商品列表;
     
+    - {prefix}/modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）
     """
     queryset = Product.objects.filter(status=Product.NORMAL,shelf_status=Product.UP_SHELF)
     serializer_class = serializers.ProductSerializer
@@ -129,10 +128,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     
     def get_female_qs(self,queryset):
-        return queryset.filter(outer_id__startswith='8')
+        return queryset.filter(outer_id__startswith='8',outer_id__endswith='1')
     
     def get_child_qs(self,queryset):
-        return queryset.filter(outer_id__startswith='9')
+        return queryset.filter(outer_id__startswith='9',outer_id__endswith='1')
     
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
@@ -200,6 +199,18 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(serializer.data)
     
+    @list_route(methods=['get'])
+    def modellist(self, request, *args, **kwargs):
+        """ 获取款式商品列表 """
+        
+        model_id = kwargs.get('model_id',None)
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        queryset = queryset.filter(model_id=model_id)
+
+        serializer = self.get_serializer(queryset, many=True)
+        
+        return Response(serializer.data)
     
     @detail_route(methods=['get'])
     def details(self, request, *args, **kwargs):

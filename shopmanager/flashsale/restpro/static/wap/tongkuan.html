@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>小鹿美美</title>
+<meta charset="UTF-8">
+<meta id="viewport" name="viewport" />
+<script src="js/common.js"></script>
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/tongkuan.css">
+</head>
+<body>
+<div class="top">
+  <a href="javascript:history.go(-1)" class="back"></a>
+  <a href="index.html" class="user"></a>
+  <p>剩余2天1小时18分</p>
+</div>
+<ul class="glist">
+
+</ul>
+<a class="cart" href="gouwuche.html"><span class="total">2</span></a>
+<div class="scroll-top" id="js-scroll-top"></div>
+<script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+<script src="js/main.js"></script>
+<script>
+(function($){
+  //返回顶部
+  $('#js-scroll-top').on('touchend',function(e){
+    e.preventDefault();
+    $('body').animate({scrollTop:0},400);  
+  });
+  
+  //获取同款聚合商品列表
+  var urlParams = parseUrlParams(window.location.href);
+  var urlConf = {'model_id':urlParams['id']};
+  Set_model_product(GLConfig.get_modellist_url.template(urlConf));
+})(jQuery);  
+</script>  
+</body>
+</html>

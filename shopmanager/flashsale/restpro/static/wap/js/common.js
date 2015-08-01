@@ -81,6 +81,7 @@ var GLConfig = {
     previous_suffix:'previous', //获取首页昨日商品信息，URL标识
     get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
     get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
+    get_modellist_url:'/products/modellist/{{model_id}}.json', //获取同款商品列表
     get_product_detail_url:'/products/{{product_id}}/details.json', //获取商品明细
     get_trade_all_url:'/trades.json', //获取用户所有订单
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单

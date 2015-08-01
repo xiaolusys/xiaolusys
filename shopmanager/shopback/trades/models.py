@@ -174,7 +174,7 @@ class MergeTrade(models.Model):
     user       = models.ForeignKey(User,related_name='merge_trades',verbose_name=u'所属店铺')
     buyer_nick  = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'买家昵称')
     
-    type        = models.CharField(max_length=32,choices=TRADE_TYPE,
+    type        = models.CharField(max_length=32,choices=TRADE_TYPE,db_index=True,
                                   blank=True,verbose_name=u'订单类型')
     shipping_type = models.CharField(max_length=12,blank=True,
                                      choices=SHIPPING_TYPE_CHOICE,verbose_name=u'物流方式')

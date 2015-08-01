@@ -32,7 +32,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-
+    
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
@@ -185,7 +185,6 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         return Response(strade_dict)
     
 
-
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单REST API接口：
@@ -197,6 +196,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    
+    paginate_by = 25
+    page_query_param = 'page_size'
+    max_paginate_by = 100
     
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)

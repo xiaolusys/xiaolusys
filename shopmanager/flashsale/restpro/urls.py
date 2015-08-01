@@ -34,6 +34,9 @@ router.register(r'couponpool', views.UserCouponPoolViewSet)
 router_urls = router.urls
 
 router_urls += format_suffix_patterns([
+        url(r'^products/modellist/(?P<model_id>[0-9]+)$',
+            views_product.ProductViewSet.as_view({'get': 'modellist'}),
+            name='product-model-list'),
         url(r'^trades/(?P<pk>[0-9]+)/orders$',
             views_trade.SaleOrderViewSet.as_view({'get': 'list'}),
             name='saletrade-saleorder'),

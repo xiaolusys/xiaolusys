@@ -104,9 +104,10 @@ function Set_product_detail(suffix) {
             return
         }
         product_model = data.product_modle;
-        if (data.product_model == 'undifine' || data.product_model == null) {
+        if (typeof(product_model) == 'undefined' || product_model == null) {
             product_model = data.details;
         }
+        console.log('debug:',product_model);
         //设置商品题头图列表
         var slides = Create_product_topslides(product_model.head_imgs);
         //设置swiper滑动图片
