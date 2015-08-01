@@ -65,6 +65,22 @@ router_urls += format_suffix_patterns([
         url(r'^address/delete_address/',
             views.UserAddressViewSet.as_view({'get': 'delete'}),
             name="delete"),
+        url(r'^address/change_default/',
+            views.UserAddressViewSet.as_view({'get': 'change_default'}),
+            name="change_default"),                                
+        url(r'^districts/province_list/',
+            views.DistrictViewSet.as_view({'get': 'province_list'}),
+            name="province_list"),   
+        url(r'^districts/city_list/',
+            views.DistrictViewSet.as_view({'get': 'city_list'}),
+            name="city_list"),                                                                    
+        url(r'^districts/country_list/',
+            views.DistrictViewSet.as_view({'get': 'country_list'}),
+            name="country_list"), 
+         url(r'^districts/create_address/',
+            views.UserAddressViewSet.as_view({'post': 'create_address'}),
+            name="create_address"),                         
+                               
     ])
 
 urlpatterns = patterns('',
