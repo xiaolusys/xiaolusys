@@ -25,9 +25,11 @@ def get_product_dict_from_product(product_result):
     """ 从商品queryset中得到关于这个商品的所有信息加上尺寸的所有信息，并且返回dict"""
     product_list = []
     for product in product_result:
+        detail2pro = product.details
         product_dict = model_to_dict(product)
+        detail_d = model_to_dict(detail2pro)
+        product_dict['details'] = detail_d
         product_dict['prod_skus'] = []
-
         all_sku = product.prod_skus.all()
         for gui_ge in all_sku:
             sku_dict = model_to_dict(gui_ge)
@@ -166,7 +168,6 @@ def get_sale_num_by_sku(pro_outer_id, sku_outer_id, order_dict):
 
 
 def send_txt_msg(token, content, to_user="@all", to_party="", to_tag="", application_id=0, safe=0):
-
     try:
         data = {
             "touser": to_user,
@@ -272,5 +273,5 @@ def get_result_daily():
                     trade_dict[product[0]] = [temp_dict]
                 else:
                     trade_dict[product[0]].append(temp_dict)
-        result_str += str(group_name[groupname-1]) + "缺:" + str(total_less_num) + " 多" + str(total_more_num) + "\n"
+        result_str += str(group_name[groupname - 1]) + "缺:" + str(total_less_num) + " 多" + str(total_more_num) + "\n"
     return result_str

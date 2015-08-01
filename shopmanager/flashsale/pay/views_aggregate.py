@@ -16,16 +16,19 @@ class AggregateProductView(View):
     @transaction.commit_on_success
     def post(request):
         post = request.POST
+        print post
         m = ModelProduct()
         buy_limit = post.get("buy_limit", 0)
 
         m.name = post["product_name"]
         m.sale_time = post["df"]
-        print buy_limit, "eeeeeeeeee"
+        m.head_imgs = post.get('head_img', '')
+        m.content_imgs = post.get('content_img', '')
         if buy_limit == "on":
             m.buy_limit = True
             m.per_limit = int(post.get("per_limit", 0))
         m.save()
+
         product_id_list = post.getlist("product_id")
         for product_id in product_id_list:
             pro = Product.objects.filter(id=product_id)
@@ -33,19 +36,7 @@ class AggregateProductView(View):
                 temp_pro = pro[0]
                 temp_pro.model_id = m.id
                 temp_pro.save()
-                all_details = Productdetail.objects.filter(product_id=product_id)
-                head_imgs_str = ""
-                content_imgs_str = ""
-                for detail in all_details:
-                    head_imgs_str = detail.head_imgs
-                    content_imgs_str = detail.content_imgs
-                if m.head_imgs != "":
-                    m.head_imgs += "\n"
-                    m.head_imgs += head_imgs_str
-                else:
-                    m.head_imgs += head_imgs_str
-                m.content_imgs = content_imgs_str
-                m.save()
+
         return redirect("/mm/add_aggregeta/?search_model=" + str(m.id))
 
 

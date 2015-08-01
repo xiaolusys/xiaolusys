@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="header">
-    <a class="back" href="../index.html"></a>
+    <a class="back" href="javascript:history.go(-1)"></a>
     <a class="user" href="gerenzhongxin.html"></a>
 
     <h1>购物车</h1>
@@ -48,27 +48,6 @@
 <script src="../js/tmsc.js"></script>
 <script type="text/javascript">
     (function ($) {
-        //返回顶部
-        $('#js-scroll-top').on('touchend', function (e) {
-            e.preventDefault();
-            $('body').animate({scrollTop: 0}, 400);
-        });
-
-        var startY;
-
-        document.addEventListener('touchstart', function (ev) {
-            startY = ev.touches[0].pageY;
-        }, false);
-
-        document.addEventListener('touchend', function (ev) {
-            var endY = ev.changedTouches[0].pageY;
-            var dir = startY - endY;
-            if (dir > 0) {
-                $('#js-fixed-nav').hide();
-            } else {
-                $('#js-fixed-nav').show();
-            }
-        }, false);
         //获取
         get_shop_carts(GLConfig.get_cart_url);
     })(jQuery);

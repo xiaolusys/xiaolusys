@@ -14,6 +14,11 @@ function update_total_price() {
     $("#total_price").html(total_price);
 }
 function get_shop_carts(suffix) {
+    /*
+    * 获取购物车内容
+    * auther:yann
+    * date:2015/1/8
+    */
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + suffix;
 
@@ -21,6 +26,7 @@ function get_shop_carts(suffix) {
     var requestCallBack = function (data) {
         var total_price = 0;
         $("#loading").hide();
+        $(".buy").show();
         $('.cart-list').empty();
         if (data && data.length > 0) {
             $.each(data,
