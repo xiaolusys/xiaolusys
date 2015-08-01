@@ -58,8 +58,8 @@ class JsonListField(serializers.Field):
 
 class ProductdetailSerializer(serializers.ModelSerializer):
     
-    head_imgs = JsonListField(read_only=True)
-    content_imgs = JsonListField(read_only=True)
+    head_imgs = JsonListField(read_only=True,required=False)
+    content_imgs = JsonListField(read_only=True,required=False)
     
     class Meta:
         model = Productdetail
@@ -67,8 +67,8 @@ class ProductdetailSerializer(serializers.ModelSerializer):
 
 class ModelProductSerializer(serializers.ModelSerializer):
     
-    head_imgs = JsonListField(read_only=True)
-    content_imgs = JsonListField(read_only=True)
+    head_imgs = JsonListField(read_only=True,required=False)
+    content_imgs = JsonListField(read_only=True,required=False)
     
     class Meta:
         model = ModelProduct
@@ -79,7 +79,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
     category = ProductCategorySerializer(read_only=True)
 #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
-    product_model = ModelProductSerializer()
+    product_model = ModelProductSerializer(required=False)
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
     
     class Meta:
@@ -100,8 +100,8 @@ class JSONParseField(serializers.Field):
 class PosterSerializer(serializers.HyperlinkedModelSerializer):
     
     url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
-    wem_posters = JSONParseField(read_only=True)
-    chd_posters = JSONParseField(read_only=True)
+    wem_posters = JSONParseField(read_only=True,required=False)
+    chd_posters = JSONParseField(read_only=True,required=False)
     
     class Meta:
         model = GoodShelf
