@@ -19,6 +19,7 @@ CLICK_REBETA_DAYS = 3
 ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 
+
 @task()
 def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
     """
@@ -54,13 +55,15 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
     xlmm_id:小鹿妈妈id
     """
     from flashsale.mmexam.models import Result
-    #结算订单那提成
+    #结算订单提成
     task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=xlmm_id)
     #结算点击补贴
     task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=xlmm_id)
+    #结算千元提成
+    task_Push_Pending_ThousRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=xlmm_id)
     
     c_logs = CarryLog.objects.filter(log_type__in=(#CarryLog.CLICK_REBETA,
-                                                   CarryLog.THOUSAND_REBETA,
+                                                   #CarryLog.THOUSAND_REBETA,
                                                    CarryLog.MAMA_RECRUIT
                                                    ),
 #                                      |Q(log_type=CarryLog.AGENCY_SUBSIDY,carry_date__lt=pre_date),
@@ -367,21 +370,35 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
                                                  shoptime__range=(time_from,time_to))
         
         calc_fee = shopings.aggregate(total_amount=Sum('wxorderamount')).get('total_amount') or 0
+        agency_rebeta_rate  = xlmm.get_Mama_Agency_Rebeta_Rate()
+        agency_rebeta       = calc_fee * agency_rebeta_rate
         
         clog = CarryLog.objects.get(id=cl.id)
-        if clog.status != CarryLog.PENDING:
+        if clog.status != CarryLog.PENDING or agency_rebeta > clog.value:
             continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        agency_rebeta_rate  = xlmm.get_Mama_Agency_Rebeta_Rate()
-        clog.value     = calc_fee * agency_rebeta_rate
+        
+        clog.value  = agency_rebeta
         clog.save() 
         
         xlmm.push_carrylog_to_cash(clog)
         
 
-### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
-
 from flashsale.clickrebeta.models import StatisticsShopping
+### 代理提成表 的task任务  每个月 8号执行 计算 订单成交额超过1000人民币的提成
+def calc_Mama_Thousand_Rebeta(xlmm,start,end):
+    # 千元补贴
+    shoppings = StatisticsShopping.objects.filter(
+        linkid=xlmm.id, 
+        shoptime__range=(start,end),
+        status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED)
+    )
+#         # 过去一个月的成交额
+    sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
+    
+    return sum_wxorderamount
+
+
 @task()
 def task_ThousandRebeta(date_from,date_to):
     """
@@ -392,20 +409,15 @@ def task_ThousandRebeta(date_from,date_to):
     carry_no = date_from.strftime('%y%m%d')
     xlmms = XiaoluMama.objects.filter(agencylevel=2,charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
-        # 千元补贴
-        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, 
-                                                      shoptime__range=(date_from,date_to),
-                                                      status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED))
-#         # 过去一个月的成交额
-        sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
+        commission = calc_Mama_Thousand_Rebeta(xlmm,date_from,date_to)
 
-        if sum_wxorderamount > 100000: # 分单位
+        if commission > 100000: # 分单位
             # 写一条carry_log记录
             carry_log, state = CarryLog.objects.get_or_create(xlmm=xlmm.id,order_num=carry_no,
                                                               log_type=CarryLog.THOUSAND_REBETA)
             carry_log.buyer_nick = xlmm.mobile
             carry_log.carry_type = CarryLog.CARRY_IN
-            carry_log.value      = sum_wxorderamount * 0.05   # 上个月的千元提成
+            carry_log.value      = commission * xlmm.get_Mama_Thousand_Rate()   # 上个月的千元提成
             carry_log.buyer_nick = xlmm.mobile
             carry_log.status     = CarryLog.PENDING
             carry_log.save()
@@ -436,8 +448,59 @@ def task_Calc_Month_ThousRebeta(pre_month=1):
     date_to   = datetime.datetime(year,month,month_range[1],23,59,59)
     
     task_ThousandRebeta(date_from,date_to)
+    
+    
+@task()
+def task_Push_Pending_ThousRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
+    """
+    计算待确认千元提成并计入妈妈现金帐号
+    xlmm_id:小鹿妈妈id，
+    day_ago：计算时间 = 当前时间 - 前几天
+    """
+    pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
+    
+    c_logs = CarryLog.objects.filter(log_type=CarryLog.THOUSAND_REBETA, 
+                                     carry_date__lte=pre_date,
+                                     status=CarryLog.PENDING,
+                                     carry_type=CarryLog.CARRY_IN)
+    
+    if xlmm_id:
+        c_logs = c_logs.filter(xlmm=xlmm_id)
+    
+    for cl in c_logs:
+        xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
+        if xlmms.count() == 0:
+            continue
+        
+        xlmm = xlmms[0]
+        #是否考试通过
+        if not xlmm.exam_Passed():
+            continue
+        
+        #重新计算pre_date之前订单金额，取消退款订单提成
+        carry_date = cl.carry_date
+        pre_year,pre_month = get_pre_month(carry_date.year,carry_date.month)
+        
+        month_range = calendar.monthrange(pre_year,pre_month)
+    
+        date_from = datetime.datetime(pre_year,pre_month,1,0,0,0)
+        date_to   = datetime.datetime(pre_year,pre_month,month_range[1],23,59,59)
+        
+        thousand_rebeta = calc_Mama_Thousand_Rebeta(xlmm,date_from,date_to)
+        commission_fee  = thousand_rebeta * xlmm.get_Mama_Thousand_Rate()
+        #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
+        
+        clog = CarryLog.objects.get(id=cl.id)
+        if clog.status != CarryLog.PENDING or commission_fee > clog.value:
+            continue
+        
+        clog.value     = commission_fee
+        clog.save()
+        
+        xlmm.push_carrylog_to_cash(cl)
 
 ### 代理提成表 的task任务   计算 每个妈妈的代理提成，上交的给推荐人的提成
+
 
 @task()
 def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录

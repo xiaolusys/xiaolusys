@@ -33,6 +33,10 @@ String.prototype.template = function(data) {
 		}
 	}
 };
+//判断是否为空
+function isNone(value){
+	return typeof(value) == 'undifined' || value == null
+}
 
 function parseUrlParams(myUrl){
     var vars = [], hash;

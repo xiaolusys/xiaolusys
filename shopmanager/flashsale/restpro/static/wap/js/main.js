@@ -7,7 +7,7 @@ function Set_posters(suffix){
 	var posterUrl = GLConfig.baseApiUrl + '/posters/'+ suffix +'.json';
 	
 	var posterCallBack = function(data){
-		if (data.wem_posters != 'undifine' && data.wem_posters != null){
+		if (!isNone(data.wem_posters)){
 			//设置女装海报链接及图片
 			$.each(data.wem_posters,
 				function(index,poster){
@@ -20,7 +20,7 @@ function Set_posters(suffix){
 				}
 			);
 		}
-		if (data.chd_posters != 'undifine' && data.chd_posters != null){
+		if (!isNone(data.chd_posters)){
 			//设置童装海报链接及图片
 			$.each(data.chd_posters,
 				function(index,poster){
@@ -78,7 +78,7 @@ function Create_item_dom(p_obj,close_model){
     */
 	};
 	//如果没有close model,并且model_product存在
-	if (!close_model && !(typeof(p_obj.product_model)=='undifined' || p_obj.product_model==null)){
+	if (!close_model && !isNone(p_obj.product_model)){
 		return hereDoc(Model_dom).template(p_obj);
 	}
 
@@ -95,7 +95,7 @@ function Set_promotes_product(suffix){
 	
 	var promoteCallBack = function(data){
 
-		if (data.female_list != 'undifine' && data.female_list != null){
+		if (!isNone(data.female_list)){
 			
 			$('.glist .nvzhuang').empty();
 			//设置女装推荐链接及图片
@@ -107,7 +107,7 @@ function Set_promotes_product(suffix){
 			);
 		}
 		
-		if (data.child_list != 'undifine' && data.child_list != null){
+		if (!isNone(data.child_list)){
 			
 			$('.glist .chaotong').empty();
 			//设置童装推荐链接及图片
@@ -135,7 +135,7 @@ function Set_category_product(suffix){
 	var promoteUrl = GLConfig.baseApiUrl + suffix;
 	
 	var promoteCallBack = function(data){
-		if (data.results != 'undifine' && data.results != null){
+		if (!isNone(data.results)){
 			//设置女装推荐链接及图片
 			$.each(data.results,
 				function(index,p_obj){
