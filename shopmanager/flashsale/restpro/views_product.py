@@ -84,6 +84,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
+    paginate_by = 25
+    page_query_param = 'page_size'
+    max_paginate_by = 100
+    
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         

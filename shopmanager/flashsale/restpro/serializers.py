@@ -58,8 +58,8 @@ class JsonListField(serializers.Field):
 
 class ProductdetailSerializer(serializers.ModelSerializer):
     
-    head_imgs = JsonListField()
-    content_imgs = JsonListField()
+    head_imgs = JsonListField(read_only=True)
+    content_imgs = JsonListField(read_only=True)
     
     class Meta:
         model = Productdetail
@@ -67,8 +67,8 @@ class ProductdetailSerializer(serializers.ModelSerializer):
 
 class ModelProductSerializer(serializers.ModelSerializer):
     
-    head_imgs = JsonListField()
-    content_imgs = JsonListField()
+    head_imgs = JsonListField(read_only=True)
+    content_imgs = JsonListField(read_only=True)
     
     class Meta:
         model = ModelProduct
@@ -100,8 +100,8 @@ class JSONParseField(serializers.Field):
 class PosterSerializer(serializers.HyperlinkedModelSerializer):
     
     url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
-    wem_posters = JSONParseField()
-    chd_posters = JSONParseField()
+    wem_posters = JSONParseField(read_only=True)
+    chd_posters = JSONParseField(read_only=True)
     
     class Meta:
         model = GoodShelf

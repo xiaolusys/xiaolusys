@@ -127,6 +127,10 @@ class XiaoluMama(models.Model):
             return True
         return False
     
+    def get_Mama_Thousand_Rate(self):
+        """ 获取妈妈千元提成 """
+        return 0.05
+        
     def get_Mama_Agency_Rebeta_Rate(self):
         """ 获取代理妈妈获取子级代理的提成点数 """
         if self.agencylevel == 2:
@@ -158,7 +162,7 @@ class XiaoluMama(models.Model):
             if rate is None:
                 return self.get_Mama_Order_Rebeta_Rate()
             return rate
-
+        
     def get_Mama_Order_Rebeta(self,order):
         #如果订单来自小鹿特卖平台
         if hasattr(order,'item_id'):
