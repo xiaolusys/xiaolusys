@@ -12,7 +12,7 @@
     <!-- js -->
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
     <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
-
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.zclip.js"></script>
     <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
     <!--datepicker -->
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
@@ -33,10 +33,13 @@
                                     var count = 0;
                                     $.each(result, function (index, dd) {
                                         var guiges = dd.prod_skus;
+                                        console.log(dd.details.head_imgs)
                                         tb.append('<tr id=\"tr_' + dd.id + '\"><td><label id=\"tb_id_' + dd.id + '\">' + dd.outer_id + '</label></td>' +
                                         '<td><label id=\"tb_name_' + dd.id + '\">' + dd.name + '</label></td>' +
                                         '<td><img id=\"tb_img_' + dd.id + '\" width="80px" src = "' + dd.pic_path + '" class="img-circle"/></td>' +
-                                        '<td><span id=\"tb_sale_time_' + dd.id +'">'+dd.sale_time+'</span></td>' +
+                                        '<td><div><pre id=\"tb_head_img_' + dd.id + '">' + dd.details.head_imgs + '</pre></div>' +
+                                        '<div><pre id=\"tb_content_img_' + dd.id + '">' + dd.details.content_imgs + '</pre></div></td>' +
+                                        '<td><span id=\"tb_sale_time_' + dd.id + '">' + dd.sale_time + '</span></td>' +
                                         '<td><input type="button" class="btn btn-default" value="选择" onclick="add_to_merge(' + dd.id + ')"></td></tr>');
                                     });
                                     var scroll_offset = $("#searchfield").offset();
@@ -55,7 +58,6 @@
                                     var ret = eval("(" + result + ")");
                                     console.log(ret.result);
                                     if (ret.result) {
-                                        product_name_input.focus();
                                         $('#error_tip').show(1000).html('该款式已经存在').addClass("error");
                                     } else {
                                         $('#error_tip').removeClass("error");
@@ -64,7 +66,6 @@
                                     }
                                 });
                     } else {
-                        product_name_input.focus();
                         $('#error_tip').show(1000).html('款式名称不能为空').addClass("error");
 
                     }
@@ -103,7 +104,7 @@
                 result_tb.append('<tr id="result_tr_' + product_id + '"><td><input name="product_id" style="display: None" value="' + product_id + '">' + outer_id + '</td>' +
                 '<td>' + name + '</td>' +
                 '<td><img class="img-circle" width="80px" src="' + img_src + '"></td>' +
-                '<td><span>'+sale_time+'</span></td>' +
+                '<td><span>' + sale_time + '</span></td>' +
                 '<td><input type="button" class="btn btn-default" value="去除" onclick="remove_from_result(' + product_id + ')"></td>' +
                 '</tr>');
                 search_tb.remove();
@@ -112,9 +113,9 @@
                 var tr = $("#result_tr_" + product_id);
                 tr.remove();
             }
-            function all_choose(){
+            function all_choose() {
                 var search_table = $("#searchtable tbody tr");
-                for(var i=0;i<search_table.length;i++){
+                for (var i = 0; i < search_table.length; i++) {
                     var tr_id = search_table[i].id.split('_')[1];
                     console.log(tr_id)
                     add_to_merge(tr_id);
@@ -123,9 +124,9 @@
             $(document).ready(function () {
                 $(document).keydown(function (e) {
                     if (e.keyCode == 13) {
-
                     }
                 });
+
             });
         </script>
         <style type="text/css">
@@ -134,7 +135,19 @@
                 top: 200px;
                 left: 20px;
                 position: absolute;
-            }</style>
+            }
+
+            pre {
+                background-color: #f2f2f2;
+                -webkit-border-radius: 6px;
+                -moz-border-radius: 6px;
+                -ms-border-radius: 6px;
+                -o-border-radius: 6px;
+                border-radius: 6px;
+                padding: 0 0.5rem 0.1rem 0.5rem;
+                width: 450px;
+            }
+        </style>
     {% endblock %}
 </head>
 <body>
@@ -153,6 +166,7 @@
                     <div class="panel-heading">
                         <h3 class="panel-title">基本信息填写</h3>
                     </div>
+
                     <div class="panel-body">
                         <div class="row form-group">
                             <div class="col-xs-6">
@@ -167,7 +181,16 @@
                                        class="form-control datepicker"/>
                             </div>
                         </div>
-
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <label class="control-label" for="head_img">题头照:</label>
+                                <textarea name="head_img" class="form-control"></textarea>
+                            </div>
+                            <div class="col-xs-6">
+                                <label class="control-label" for="content_img">内容照:</label>
+                                <textarea name="content_img" class="form-control"></textarea>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-xs-6">
                                 <span style="font-size: 20px">是否限购:</span>
@@ -182,19 +205,20 @@
                 <div class="panel panel-danger">
                     <div class="panel-heading">
                         <h3 class="panel-title" style="display: inline">马上聚合的商品</h3>
-                        <input type="button" class="btn btn-danger" style="float: right" onclick="my_submit()" value="生成新款">
+                        <input type="button" class="btn btn-danger" style="float: right" onclick="my_submit()"
+                               value="生成新款">
                     </div>
 
 
-                        <table id="result_table" border="1" class="table table-striped table-bordered table-hover">
-                            <thead>
-                            <th width="20%">商品编码</th>
-                            <th width="20%">商品名称</th>
-                            <th width="20%">图片</th>
-                            <th width="20%">上架时间</th>
-                            <th width="20%">操作</th>
-                            </thead>
-                        </table>
+                    <table id="result_table" border="1" class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <th width="20%">商品编码</th>
+                        <th width="20%">商品名称</th>
+                        <th width="20%">图片</th>
+                        <th width="20%">上架时间</th>
+                        <th width="20%">操作</th>
+                        </thead>
+                    </table>
 
 
                 </div>
@@ -216,18 +240,21 @@
                 <div class="row">
                     <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
                         <thead>
-                        <th width="20%">商品编码</th>
-                        <th width="20%">商品名称</th>
-                        <th width="20%">图片</th>
-                        <th width="20%">上架时间</th>
-                        <th width="20%"><button class="btn btn-info" onclick="all_choose()">全选</button></th>
+                        <th width="10%">商品编码</th>
+                        <th width="15%">商品名称</th>
+                        <th width="15%">图片</th>
+                        <th width="40%">照片</th>
+                        <th width="10%">上架时间</th>
+                        <th width="10%">
+                            <button class="btn btn-info" onclick="all_choose()">全选</button>
+                        </th>
                         </thead>
                     </table>
                 </div>
             </div>
         </div>
 
-        <span id="error_tip" class="col-xs-3" style="font-size: 20px;color: red"
+        <span id="error_tip" style="font-size: 20px;color: red"
               hidden="hidden"></span>
     {% endblock %}
 </div>

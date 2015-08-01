@@ -24,8 +24,11 @@ from shopapp.smsmgr.tasks import task_register_code
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
-    特卖平台 用户注册API：
-    
+    特卖平台 用户注册,修改密码API：
+    - {prefix}/[.format]: params={vmobile} 注册新用户时，获取验证码;
+    - {prefix}/check_code_user: params={username,valid_code,password1,password2} 注册新用户;
+    - {prefix}/change_pwd_code: params={vmobile} 修改密码时，获取验证码api;
+    - {prefix}/change_user_pwd: params={username,valid_code,password1,password2} 提交修改密码api;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -66,14 +69,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         return Response("OK")
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response("not open")
 
     @list_route(methods=['post'])
     def check_code_user(self, request):
@@ -140,8 +137,9 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
         verify_code = request.data['valid_code']
-        
-        if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(passwd1) == 0 and len(
+
+        if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(
+                passwd1) == 0 and len(
                 passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
             return Response('2')
         already_exist = Customer.objects.filter(mobile=mobile)

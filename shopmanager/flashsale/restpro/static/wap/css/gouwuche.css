@@ -127,6 +127,7 @@
     background-color: #fff;
     position: relative;
     color: #ea4c88;
+    display: none;
 }
 
 .btn-buy {

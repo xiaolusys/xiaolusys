@@ -44,7 +44,13 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     
 class UserAddressViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that allows groups to be   viewed or edited.
+    author： kaineng .fang  2015-8--
+    方法及其目的
+    detail  （）：获得用户所有收获地址
+    delete（）：删除某个地址
+    change_default：选择收获地址
+    create_address：创建新的收获地址
     """
     queryset = UserAddress.objects.all()
     serializer_class = serializers.UserAddressSerializer# Create your views here.
@@ -65,19 +71,12 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
-    
+#fang kaineng  2015-7-31    
     def detail(self,request):
-        print"detail",request.user
-        #queryset = self.filter_queryset(self.get_queryset())
         customer = get_object_or_404(Customer,user=request.user)
-        print customer.id
-       # address_list = []
-        #addresses = UserAddress.filter(cus_uid=customer.id)
+        #print customer.id
         queryset=UserAddress.objects.filter(cus_uid=customer.id)
-        #print queryset
-        #serializer = serializers.UserAddressSerializer(queryset, many=True,context={'request': request})
         serializer = self.get_serializer(queryset, many=True)
-        #print serializer.data
         pass
         return    Response(serializer.data)
         
@@ -95,22 +94,62 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         pass
 
     def delete(self, request, pk=None):
-       # data = request.data
-       # print"delete",data
+        # data = request.data
+        # print"delete",data
         content = request.REQUEST
-        id = content.get('id',None)
+        id_delete = content.get('id',None)
         result={}
         try:
-            queryset=UserAddress.objects.filter(id=id)
+            queryset=UserAddress.objects.filter(id=id_delete)
             queryset.delete()
             result['ret']=True
         except:
             result['ret']=False
         return    Response(result)
+
+    def change_default(self, request, pk=None):
+        #print ("change default")
+        content = request.REQUEST
+        id_default = content.get('id',None)
+        result={}
+        try:
+            customer = get_object_or_404(Customer,user=request.user)
+            other_addr=UserAddress.objects.filter(cus_uid=customer.id)
+            for one  in  other_addr:
+                print one.default
+                one.default=False
+                one.save()
+            default_addr=UserAddress.objects.get(id=id_default)
+            default_addr.default=True
+            default_addr.save()
+            result['ret']=True
+        except:
+            result['ret']=False
+        return    Response(result)
+
+    def create_address(self, request, pk=None):
+        customer = get_object_or_404(Customer,user=request.user)
+        customer_id=customer.id     #  获取用户id
+        content = request.REQUEST
+        receiver_state = content.get('receiver_state',None)
+        receiver_city = content.get('receiver_city',None)
+        receiver_district = content.get('receiver_district',None)
+        receiver_address= content.get('receiver_address',None)
+        receiver_name=content.get('receiver_name',None)
+        receiver_mobile=content.get('receiver_mobile',None)
+        UserAddress.objects.create(  cus_uid= customer_id, receiver_name =  receiver_name,  receiver_state    = receiver_state , receiver_city    =  receiver_city,receiver_district  =   receiver_district,receiver_address   =  receiver_address, receiver_mobile    =  receiver_mobile   )
+        return Response({"22":55})
+
+
     
 class DistrictViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
+    author:kaineng.fang
+    方法名及其目的：
+    province_list（）：省列表
+    city_list：根据省获得市
+    country_list:根据市获得区或者县
     """
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer# Create your views here.
@@ -128,31 +167,30 @@ class DistrictViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
+#  fang  2015-8-1    
+    def province_list(self, request, *args, **kwargs):
+        queryset=District.objects.filter(grade=1)
+        serializer = self.get_serializer(queryset, many=True)
+        pass
+        return Response(serializer.data)
     
-#     def detail(self,request,pk=None):
-#         print"detail",request.user
-#         queryset = self.filter_queryset(self.get_queryset())
-#         queryset=queryset.filter(cus_uid=2)
-#         serializer = self.get_serializer(queryset, many=True)
-#         pass
-#         return    Response({"nihao",serializer.data})
-#         
-#     def create(self, request):
-#         print("33")
-#         
-#         pass
-#         return    Response({"nihao","66"})
-#     def retrieve(self, request, pk=None):
-#         pass
-# 
-#     def update(self, request, pk=None):
-#         pass
-# 
-#     def partial_update(self, request, pk=None):
-#         pass
-# 
-#     def destroy(self, request, pk=None):
-#         pass
+    def city_list(self, request, *args, **kwargs):
+        content = request.REQUEST
+        province_id = content.get('id',None)
+        print  province_id
+        queryset=District.objects.filter(parent_id=province_id)
+        serializer = self.get_serializer(queryset, many=True)
+        pass
+        return Response(serializer.data) 
+
+    def country_list(self, request, *args, **kwargs):
+        content = request.REQUEST
+        city_id = content.get('id',None)
+        print  city_id
+        queryset=District.objects.filter(parent_id=city_id)
+        serializer = self.get_serializer(queryset, many=True)
+        pass
+        return Response(serializer.data)    
 
 from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
 
