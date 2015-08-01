@@ -130,7 +130,7 @@ function regCheck(type) {
     } else if (type == 3) {            //邮箱验证
         reg = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
     } else if (type == 4) {
-        reg = /1[3458][0-9]{9}/;
+        reg = /1[34578][0-9]{9}/;
     }
     return reg;
 }
