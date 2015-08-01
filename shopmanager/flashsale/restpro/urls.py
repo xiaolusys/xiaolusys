@@ -77,7 +77,7 @@ router_urls += format_suffix_patterns([
         url(r'^districts/country_list/',
             views.DistrictViewSet.as_view({'get': 'country_list'}),
             name="country_list"), 
-         url(r'^districts/create_address/',
+         url(r'^address/create_address/',
             views.UserAddressViewSet.as_view({'post': 'create_address'}),
             name="create_address"),                         
                                
