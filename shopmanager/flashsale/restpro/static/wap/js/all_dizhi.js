@@ -35,12 +35,12 @@ function init(){
 			//alert(typeof(data[i].default))
 			if (data[i].default==true){
 		var  address="<li   id="+data[i].id+"> <p class='p1'>"+data[i].receiver_name+data[i].receiver_mobile+
-		"</p><p class='p2'>"+data[i].receiver_state +"-"+ data[i].receiver_city+"-"+ data[i].receiver_district +"</p><a class='close'  ></a><i class='radio  radio-select'  ></i></li>"
+		"</p><p class='p2'>"+data[i].receiver_state +"-"+ data[i].receiver_city+"-"+ data[i].receiver_district + "-"+data[i].receiver_address+"</p><a class='close'  ></a><i class='radio  radio-select'  ></i></li>"
        }
        else {
 		   
 		   var  address="<li   id="+data[i].id+"> <p class='p1'>"+data[i].receiver_name+data[i].receiver_mobile+
-		"</p><p class='p2'>"+data[i].receiver_state +"-"+ data[i].receiver_city+"-"+ data[i].receiver_district +"</p><a class='close'  ></a><i class='radio '  ></i></li>"
+		"</p><p class='p2'>"+data[i].receiver_state +"-"+ data[i].receiver_city+"-"+ data[i].receiver_district +"-"+data[i].receiver_address+"</p><a class='close'  ></a><i class='radio '  ></i></li>"
    
 	   }
 		$("ul").append(address)
@@ -60,6 +60,16 @@ function init(){
                
             });  
         });
+        
+        
+  	//$("ul li  p").each(function () {  
+         //   $(this).click(function(){  
+         //       alert("跳转");
+         //      window.location.href="shouhuodz-edit.html"
+        //    });  
+      //  });
+        
+        
         
 $("ul li  i").each(function () {  
             $(this).click(function(){  
