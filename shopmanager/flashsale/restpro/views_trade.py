@@ -23,9 +23,10 @@ from shopback.items.models import Product, ProductSku
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     ###特卖购物车REST API接口：
-    delete_carts
-    plus_product_carts
-    minus_product_carts
+    - {prefix}/pk/delete_carts: 删除;
+    - {prefix}/pk/plus_product_carts: 增加一件;
+    - {prefix}/pk/minus_product_carts: 减少一件;
+    - {prefix}/show_carts_num: 显示购物车数量;
     """
     queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer
