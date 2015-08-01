@@ -67,6 +67,7 @@ class ProductdetailSerializer(serializers.ModelSerializer):
 
 class ModelProductSerializer(serializers.ModelSerializer):
     
+    id = serializers.IntegerField(read_only=True)
     head_imgs = JsonListField(read_only=True,required=False)
     content_imgs = JsonListField(read_only=True,required=False)
     
@@ -79,7 +80,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
     category = ProductCategorySerializer(read_only=True)
 #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
-    product_model = ModelProductSerializer(required=False)
+    product_model = ModelProductSerializer(read_only=True)
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
     
     class Meta:
