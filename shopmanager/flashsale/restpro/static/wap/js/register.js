@@ -102,19 +102,19 @@ function get_code() {
         phone_error.show();
         setTimeout("error_hide()", 1000);
     } else {
-        time(get_code_btn);
         $.post("/rest/v1/register", {"vmobile": mobile},
             function (data) {
                 var result = data.result;
                 if (result == "0") {
                     phone_exist_error.text("此手机号码已注册，您可尝试修改密码~").show();
-                    setTimeout("error_hide()", 1000);
+                    setTimeout("error_hide()", 3000);
                 } else if (result == "OK") {
-                    phone_exist_error.text("可以注册").show();
-                    setTimeout("error_hide()", 1000);
+                    time(get_code_btn);
+                    phone_exist_error.text("亲,验证码已经发送到手机").show();
+                    setTimeout("error_hide()", 3000);
                 } else if (result == "1") {
-                    phone_exist_error.text("亲,60s内验证码有效的").show();
-                    setTimeout("error_hide()", 1000);
+                    phone_exist_error.text("亲,60s内无需重新获取").show();
+                    setTimeout("error_hide()", 3000);
                 }
             });
     }
