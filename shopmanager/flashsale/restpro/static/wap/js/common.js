@@ -154,7 +154,7 @@ function Set_shopcarts_num() {
     */
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
     var requestCallBack = function (res) {
-        $(".total").html(res);
+        $(".total").html(res.result);
     };
     // 发送请求
     $.ajax({
