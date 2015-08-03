@@ -171,7 +171,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         password = request.POST.get('password')
 
         if not username or not password:
-            return Response('null')
+            return Response({"result": "null"})
         try:
             customer = Customer.objects.get(models.Q(email=username) | models.Q(mobile=username))
             user = customer.user
@@ -181,11 +181,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 user_ifo = "id:{0},name:{1}".format(user.id, user.username)
                 return Response(user_ifo)
             if not user.check_password(password):
-                return Response("p_error")  # 密码错误
+                return Response({"result": "p_error"})  # 密码错误
         except Customer.DoesNotExist:
-            return Response("u_error")  # # 用户错误
+            return Response({"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
-            return Response("s_error")  # 账户异常
+            return Response({"result": "s_error"})  # 账户异常
         user_ifo = "id:{0},name:{1}".format(user.id, user.username)
         return Response(user_ifo)
 
