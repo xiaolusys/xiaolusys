@@ -118,7 +118,7 @@ def init_Data_Red_Packet():
             
 
 from django.db import transaction
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,MergeBuyerTrade
 
 def shoptime_To_DateStr(shoptime):
     return shoptime.strftime("%Y-%m-%d")
@@ -628,9 +628,20 @@ def task_Push_WXOrder_Finished(pre_days=10):
             wxorder.order_status =  WXOrder.WX_CLOSE
             wxorder.save()
         
-        elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS and 
-              (not mtrade.weight_time or mtrade.weight_time < day_date)):
+        elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS ):
             
+            if mtrade.weight_time and mtrade.weight_time > day_date:
+                continue
+            #如果父订单已称重，并且称重日期达到确认期，则系统自动将订单放入已完成
+            if not mtrade.weight_time :
+                merge_status = MergeBuyerTrade.getMergeType(mtrade.id)
+                if merge_status != MergeBuyerTrade.SUB_MERGE_TYPE:
+                    continue
+                smergetrade = MergeBuyerTrade.objects.filter(sub_tid=mtrade.id)
+                ptrade = MergeTrade.objects.filter(id=smergetrade.main_tid)
+                if not ptrade.weight_time or ptrade.weight_time > day_date:
+                    continue
+                    
             morders = mtrade.normal_orders.filter(oid=wxorder_id)
             if (morders.count() == 0 or 
                 morders[0].status in (MergeTrade.TRADE_CLOSED,
