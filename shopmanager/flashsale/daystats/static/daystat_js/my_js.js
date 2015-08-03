@@ -23,7 +23,7 @@ function get_data() {
         url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
         method: "GET", //静态页用get方法，否则服务器会抛出405错误
         success: function (res) {
-            console.log(res.task.status);
+            console.log("1", res.task.status);
             if (res.task.status == "SUCCESS") {
                 var tb = $('#repeat_table');
                 var result_data = eval(res.task.result);
@@ -54,6 +54,7 @@ function get_data2() {
         url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
         method: "GET", //静态页用get方法，否则服务器会抛出405错误
         success: function (res) {
+            console.log("2",res.task.status);
             if (res.task.status == "SUCCESS") {
                 var tb = $('#data-table-people');
                 var result_data = eval(res.task.result);
