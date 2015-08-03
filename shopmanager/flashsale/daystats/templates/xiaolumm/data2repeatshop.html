@@ -1,27 +1,9 @@
 {% extends "xiaolumm/daystats_base.html" %}
 {% block title %}重复购买统计{% endblock %}
 {% block head_script %}
-    <script>
-        $(function () {
-            var my_data = {"df": $("#f_datepicker").val(), "dt": $("#t_datepicker").val()}
-            $.ajax({
-                url: "/sale/daystats/stats_sale/", //这里是静态页的地址
-                method: "GET", //静态页用get方法，否则服务器会抛出405错误
-                data: my_data,
-                success: function (res) {
-                    $("#all_data").html(res);
-                }
-            });
-            $.ajax({
-                url: "/sale/daystats/stats_people/", //这里是静态页的地址
-                method: "GET", //静态页用get方法，否则服务器会抛出405错误
-                data: my_data,
-                success: function (res) {
-                    $("#all_data2").html(res);
-                }
-            });
-        });
-    </script>
+    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script src="{{ STATIC_URL }}daystat_js/my_js.js"></script>
+
 {% endblock %}
 {% block container %}
     <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/stats_repeat/">
@@ -40,8 +22,10 @@
             </div>
         </div>
     </form>
+    <input value="{{ task_id }}" id="task_id_repeat" hidden="hidden">
+    <input value="{{ task_id_2 }}" id="task_id_2" hidden="hidden">
     <div class="row" style="margin-top: 40px">
-        <table class="table table-bordered" id="data-table">
+        <table class="table table-bordered" id="repeat_table">
             <thead>
             <th>新增(用户数)复购率(%)</th>
             {% for month in month_range %}
@@ -49,26 +33,28 @@
             {% endfor %}
             </thead>
             <tbody>
-            {% for data in all_data %}
-                <tr>
-                    <td>{{ data.month }}月({{ data.new_user }})</td>
-                    {% for user_data_item in data.user_data %}
-                        {% ifequal "None" user_data_item %}
-                            <td>-</td>
-                        {% else %}
-                            <td>({{ user_data_item.num }}){{ user_data_item.rec_num }}</td>
-                        {% endifequal %}
-                    {% endfor %}
-                </tr>
-            {% endfor %}
             </tbody>
         </table>
     </div>
-    <div class="row" >
+    <div class="row">
         <div id="all_data"></div>
     </div>
-        <div class="row" >
-        <div id="all_data2"></div>
+    <div class="row" style="margin-top: 20px"><h2>用户统计</h2></div>
+    <div class="row">
+        <div id="all_data2">
+            <table class="table table-bordered" id="data-table-people">
+            <thead>
+            <th></th>
+            <th>总购买人数</th>
+            <th>总购买mm</th>
+            <th>重复购买</th>
+            <th>重复购买的妈妈</th>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        </div>
     </div>
 {% endblock %}
 {% block tail_script %}
