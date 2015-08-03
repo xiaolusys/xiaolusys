@@ -79,7 +79,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     - {prefix}/modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）
     """
-    queryset = Product.objects.filter(status=Product.NORMAL,shelf_status=Product.UP_SHELF)
+    queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
@@ -87,6 +87,23 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     paginate_by = 25
     page_query_param = 'page_size'
     max_paginate_by = 100
+    
+    def get_today_date(self):
+        """ 获取今日上架日期 """
+        tnow  = datetime.datetime.now()
+        weekday = tnow.strftime("%w") 
+        if weekday == '0':
+            return (tnow - datetime.timedelta(days=1)).date()
+        return tnow.date()
+    
+    def get_previous_date(self):
+        """ 获取昨日上架日期 """
+        tnow  = datetime.datetime.now()
+        tlast = tnow - datetime.timedelta(days=1)
+        weekday = tnow.strftime("%w")
+        if weekday == '1':
+            return (tnow - datetime.timedelta(days=2)).date()
+        return tlast.date().date()
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -99,13 +116,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
         """ 获取历史商品列表 """
+        previous_dt = self.get_previous_date()
         queryset = self.filter_queryset(self.get_queryset())
-        
-        queryset = queryset.filter(sale_time__lt=datetime.date.today())
+        queryset = queryset.filter(sale_time__lt=previous_dt)
         
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -117,10 +133,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     def advance(self, request, *args, **kwargs):
-        """ 获取历史商品列表 """
+        """ 获取明日商品列表 """
+        advance_dt = datetime.date.today() + datetime.timedelta(days=1)
         queryset = self.filter_queryset(self.get_queryset())
-        
-        queryset = queryset.filter(sale_time__gt=datetime.date.today())
+        queryset = queryset.filter(sale_time__gt=advance_dt)
         
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -140,9 +156,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
         """ 获取今日推荐商品列表 """
-        target_date = datetime.date.today()
+        today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        queryset = queryset.filter(sale_time=today_dt).order_by('-details__is_recommend')
         
         female_qs = self.get_female_qs(queryset)[0:4]
         men_qs  = self.get_child_qs(queryset)[0:4]
@@ -155,9 +171,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def promote_previous(self, request, *args, **kwargs):
         """ 获取历史推荐商品列表 """
-        target_date = datetime.date.today() - datetime.timedelta(days=1)        
+        previous_dt = self.get_previous_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=target_date).order_by('-details__is_recommend')
+        queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend')
         
         female_qs = self.get_female_qs(queryset)[0:4]
         men_qs  = self.get_child_qs(queryset)[0:4]
@@ -170,13 +186,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def childlist(self, request, *args, **kwargs):
         """ 获取特卖童装列表 """
-        target_date = datetime.date.today()
-        start_date = datetime.date.today() - datetime.timedelta(days=1)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time__range=(start_date,target_date)).order_by('-details__is_recommend')
+        queryset = queryset.filter(shelf_status=Product.UP_SHELF).order_by('-details__is_recommend')
         
-        female_qs = self.get_child_qs(queryset)
-        page = self.paginate_queryset(female_qs)
+        child_qs = self.get_child_qs(queryset)
+        page = self.paginate_queryset(child_qs)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
@@ -188,10 +202,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def ladylist(self, request, *args, **kwargs):
         """ 获取特卖女装列表 """
-        target_date = datetime.date.today()
-        start_date = datetime.date.today() - datetime.timedelta(days=1)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time__range=(start_date,target_date)).order_by('-details__is_recommend')
+        queryset = queryset.filter(shelf_status=Product.UP_SHELF).order_by('-details__is_recommend')
         
         female_qs = self.get_female_qs(queryset)
         page = self.paginate_queryset(female_qs)
@@ -220,7 +232,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def details(self, request, *args, **kwargs):
         """ 商品明细，包含详细规格信息 """
         instance = self.get_object()
-        
         product_dict = self.get_serializer(instance).data
         
         #设置商品规格信息

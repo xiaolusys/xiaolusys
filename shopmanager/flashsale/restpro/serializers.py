@@ -81,14 +81,15 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     category = ProductCategorySerializer(read_only=True)
 #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
     product_model = ModelProductSerializer(read_only=True)
-    is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
+    is_saleout    = serializers.BooleanField(source='sale_out', read_only=True)
+    is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
+    is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
     
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout',
-                  'std_sale_price', 'agent_price', 'sale_time', 'memo', 'product_model')
+                  'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo', 'product_model')
 
-import json
 
 class JSONParseField(serializers.Field):
     def to_representation(self, obj):

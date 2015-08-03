@@ -183,6 +183,14 @@ class Product(models.Model):
 
         return sale_out
     
+    def sale_open(self):
+        """ 返回特卖商品是否开售 """
+        return self.shelf_status == self.UP_SHELF
+    
+    def new_good(self):
+        """ 返回特卖商品是否新品 """
+        return self.sale_time and self.sale_time >= datetime.date.today()
+    
     @property
     def is_out_stock(self):
         if self.collect_num<0 or self.wait_post_num <0 :
