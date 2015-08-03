@@ -58,14 +58,14 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.verify_count += 1
                 temp_reg.save()
-                # task_register_code.s(mobile)()
+                task_register_code.s(mobile)()
                 return Response({"result": "OK"})
 
         new_reg = Register(vmobile=mobile)
         new_reg.verify_code = new_reg.genValidCode()
         new_reg.verify_count = 1
         new_reg.save()
-        # task_register_code.s(mobile)()
+        task_register_code.s(mobile)()
         return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
