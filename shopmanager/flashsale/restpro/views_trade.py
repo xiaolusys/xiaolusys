@@ -50,10 +50,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        print data
         customer_user = Customer.objects.filter(user=request.user)
         if customer_user.count() == 0:
-            return Response("0") #登录过期
+            return Response({"result": "0"}) #登录过期
 
         product_id = data.get("item_id", None)
         buyer_id = customer_user[0].id
@@ -68,7 +67,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 shop_cart_temp = shop_cart[0]
                 shop_cart_temp.num += int(num) if num else 0
                 shop_cart_temp.save()
-                return Response("Added")
+                return Response({"result": "1"}) #购物车已经有了
 
             new_shop_cart = ShoppingCart()
             new_shop_cart.buyer_id = buyer_id
@@ -83,9 +82,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             new_shop_cart.title = sku.product.name
             new_shop_cart.save()
 
-            return Response("Created")
+            return Response({"result": "2"}) #购物车没有
         else:
-            return Response("error")
+            return Response({"result": "error"})  #未知错误
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -101,7 +100,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         count = 0
         for item in queryset:
             count += item.num
-        return Response(count)
+        return Response({"result": count})
 
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None):
@@ -118,7 +117,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
         # else:
         #     return Response('0')
-        return Response(update_status)
+        return Response({"status": update_status})
 
     @detail_route(methods=['post'])
     def minus_product_carts(self, request, pk=None):
@@ -128,7 +127,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if temp_shop[0].num == 1:
             return Response("can not minus")
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
-        return Response(update_status)
+        return Response({"status": update_status})
 
 
 class SaleOrderViewSet(viewsets.ModelViewSet):

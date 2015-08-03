@@ -27,12 +27,13 @@ function Create_product_detailsku_dom(obj) {
     //设置规格列表
     var sku_list = [];
     $.each(obj.normal_skus, function (index, sku) {
-    	sku.sku_class="normal";
-    	if (sku.is_saleout === true){
+    	sku.sku_class = "normal";
+    	if (sku.is_saleout === true || !obj.is_saleopen ){
     		sku.sku_class="disable";
     	}
         sku_list[sku_list.length] = '<li class="{{sku_class}}" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
     });
+
     obj.sku_list = sku_list.join('');
     //创建商品详情及规格信息
     function Content_dom() {

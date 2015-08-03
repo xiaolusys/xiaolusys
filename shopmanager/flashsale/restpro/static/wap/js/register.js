@@ -17,15 +17,16 @@ $(function () {
             password2.val("");
         }
     });
+    $("#get_code_btn").click(get_code)
 });
 
 
 function my_submit() {
     /*
-    * 表单提交
-    * auther:yann
-    * date:2015/30/7
-    */
+     * 表单提交
+     * auther:yann
+     * date:2015/30/7
+     */
     var mobile = $("#mobile_username").val();
     var valid_code = $("#valid_code").val();
     var password1 = $("#password1").val();
@@ -94,6 +95,7 @@ function get_code() {
      * date:2015/21/7
      */
     var mobile = $("#mobile_username").val();
+    var get_code_btn = $("#get_code_btn");
     var phone_exist_error = $("#phone_exist_error");
     if (!execReg(regCheck(4), mobile)) {
         var phone_error = $("#phone_error");
@@ -105,13 +107,14 @@ function get_code() {
                 var result = data.result;
                 if (result == "0") {
                     phone_exist_error.text("此手机号码已注册，您可尝试修改密码~").show();
-                    setTimeout("error_hide()", 1000);
+                    setTimeout("error_hide()", 3000);
                 } else if (result == "OK") {
-                    phone_exist_error.text("可以注册").show();
-                    setTimeout("error_hide()", 1000);
+                    time(get_code_btn);
+                    phone_exist_error.text("亲,验证码已经发送到手机").show();
+                    setTimeout("error_hide()", 3000);
                 } else if (result == "1") {
-                    phone_exist_error.text("亲,60s内验证码有效的").show();
-                    setTimeout("error_hide()", 1000);
+                    phone_exist_error.text("亲,60s内无需重新获取").show();
+                    setTimeout("error_hide()", 3000);
                 }
             });
     }
@@ -142,4 +145,22 @@ function execReg(reg, str) {
         return false;
     }
     return true;
+}
+
+
+var wait = 60;
+function time(btn) {
+    if (wait == 0) {
+        btn.click(get_code);
+        btn.text("获取验证码");
+        wait = 60;
+    } else {
+        btn.unbind("click")
+        btn.text(wait + "秒后重新获取");
+        wait--;
+        setTimeout(function () {
+                time(btn);
+            },
+            1000)
+    }
 }

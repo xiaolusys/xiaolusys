@@ -16,41 +16,51 @@ $(document).ready(function () {
     $(".btn-login").click(function () {
         var username = $(".username_in").val();
         var password = $(".password_in").val();
-        console.log(username, password);
-        var data = {"username":username,"password":password};
+        var error_tips = $(".error-tips");
+        var data = {"username": username, "password": password};
         var url = "/rest/v1/register/customer_login";
-
-        function requestCallBack(res){
-            if (res=='null'){
-                console.log('有空项  请输入用户名以及密码！！！');
+        if (username.trim().length == 0) {
+            error_tips.text("帐号不能为空～").show();
+            setTimeout("error_hide()", 1000);
+            return;
+        } else if (password.trim().length == 0) {
+            error_tips.text("密码不能为空～").show();
+            setTimeout("error_hide()", 1000);
+            return;
+        }
+        function requestCallBack(res) {
+            if (res.result == 'null') {
+                error_tips.text("请输入用户名以及密码！！！").show();
+                setTimeout("error_hide()", 1000);
             }
-            else if(res=='p_error'){
-                console.log('密码错误');
+            else if (res.result == 'p_error') {
+                error_tips.text("密码错误~").show();
+                setTimeout("error_hide()", 1000);
             }
-            else if(res=='u_error'){
-                console.log('用户名错误')
+            else if (res.result == 'u_error') {
+                error_tips.text("用户不存在~").show();
+                setTimeout("error_hide()", 1000);
             }
-            else if(res=='s_error'){
-                console.log('账户异常')
+            else if (res.result == 's_error') {
+                error_tips.text("账户异常~").show();
+                setTimeout("error_hide()", 1000);
             }
-            else{
-                console.log(res);
+            else {
                 //跳转到首页
                 window.location = "../index.html";
             }
         }
+
         $.ajax({
             url: url, data: data, type: 'post',
-            beforeSend: function () {
-                $("#loading").show();
-            },
             success: requestCallBack,
             error: function (data) {
-                if (data.statusText == "FORBIDDEN") {
-                    window.location = "denglu2.html";
-                }
                 console.info("error: " + data.statusText);
             }
         })
     });
 });
+
+function error_hide() {
+    $(".error-tips").hide();
+}

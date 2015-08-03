@@ -58,14 +58,14 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.verify_count += 1
                 temp_reg.save()
-                # task_register_code.s(mobile)()
+                task_register_code.s(mobile)()
                 return Response({"result": "OK"})
 
         new_reg = Register(vmobile=mobile)
         new_reg.verify_code = new_reg.genValidCode()
         new_reg.verify_count = 1
         new_reg.save()
-        # task_register_code.s(mobile)()
+        task_register_code.s(mobile)()
         return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
@@ -171,7 +171,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         password = request.POST.get('password')
 
         if not username or not password:
-            return Response('null')
+            return Response({"result": "null"})
         try:
             customer = Customer.objects.get(models.Q(email=username) | models.Q(mobile=username))
             user = customer.user
@@ -181,11 +181,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 user_ifo = "id:{0},name:{1}".format(user.id, user.username)
                 return Response(user_ifo)
             if not user.check_password(password):
-                return Response("p_error")  # 密码错误
+                return Response({"result": "p_error"})  # 密码错误
         except Customer.DoesNotExist:
-            return Response("u_error")  # # 用户错误
+            return Response({"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
-            return Response("s_error")  # 账户异常
+            return Response({"result": "s_error"})  # 账户异常
         user_ifo = "id:{0},name:{1}".format(user.id, user.username)
         return Response(user_ifo)
 

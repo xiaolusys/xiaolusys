@@ -25,14 +25,10 @@ function hereDoc(f) {
 
 function Set_orders() {
     //请求URL
-    console.log("fffffffff");
     var requestUrl = "/rest/v1/products/seckill";
 
     //请求成功回调函数
     var requestCallBack = function (data) {
-
-        console.log(data);
-
         if (data.count != 'undifine' && data.count != null) {
             console.log('debug results:', data.results);
             $.each(data.results,

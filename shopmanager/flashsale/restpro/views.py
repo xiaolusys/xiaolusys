@@ -80,33 +80,18 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         pass
         return    Response(serializer.data)
         
-#     def create(self, request):
-#         pass
-#         return    Response({"nihao","66"})
 
-    def retrieve(self, request, pk=None):
-        pass
-
-    def update(self, request, pk=None):
-        pass
-
-    def partial_update(self, request, pk=None):
-        pass
-
+    @detail_route(methods=['post'])
     def delete(self, request, pk=None):
-        # data = request.data
-        # print"delete",data
-        content = request.REQUEST
-        id_delete = content.get('id',None)
-        result={}
-        try:
-            queryset=UserAddress.objects.filter(id=id_delete)
-            queryset.delete()
-            result['ret']=True
-        except:
-            result['ret']=False
-        return    Response(result)
 
+        instance = self.get_object()
+        
+        instance.status = UserAddress.DELETE
+        instance.save()
+        
+        return Response({'ret':True})
+    
+    @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
         #print ("change default")
         content = request.REQUEST
@@ -126,7 +111,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         except:
             result['ret']=False
         return    Response(result)
-
+    
+    @detail_route(methods=['post'])
     def create_address(self, request, pk=None):
         customer = get_object_or_404(Customer,user=request.user)
         customer_id=customer.id     #  获取用户id
@@ -166,14 +152,16 @@ class DistrictViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)    
-#  fang  2015-8-1    
+        return Response(serializer.data)   
+     
+    @list_route(methods=['get'])
     def province_list(self, request, *args, **kwargs):
         queryset=District.objects.filter(grade=1)
         serializer = self.get_serializer(queryset, many=True)
         pass
         return Response(serializer.data)
     
+    @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
         content = request.REQUEST
         province_id = content.get('id',None)
@@ -182,7 +170,8 @@ class DistrictViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         pass
         return Response(serializer.data) 
-
+    
+    @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
         content = request.REQUEST
         city_id = content.get('id',None)
