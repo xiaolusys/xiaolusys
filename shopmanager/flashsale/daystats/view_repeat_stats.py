@@ -47,8 +47,9 @@ class StatsRepeatView(View):
         end_month = end_date.month
         month_range = range(start_month + 1, end_month + 1)
         task_id = task_calc_new_user_repeat.delay(start_date, end_date)
+        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)
         return render_to_response("xiaolumm/data2repeatshop.html",
-                                  {"task_id": task_id, "start_date": start_date, "end_date": end_date,
+                                  {"task_id": task_id, "task_id_2": send_tasks, "start_date": start_date, "end_date": end_date,
                                    "month_range": month_range},
                                   context_instance=RequestContext(request))
 
@@ -121,7 +122,6 @@ class StatsSalePeopleView(View):
         content = request.REQUEST
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
-        print start_time_str,end_time_str
         send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)
         return render_to_response("xiaolumm/data2salepeople.html",
                                   {"task_id": send_tasks},

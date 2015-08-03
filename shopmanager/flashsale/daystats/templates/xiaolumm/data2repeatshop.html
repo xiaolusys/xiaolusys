@@ -22,7 +22,8 @@
             </div>
         </div>
     </form>
-    <input value="{{ task_id }}" id="task_id" hidden="hidden">
+    <input value="{{ task_id }}" id="task_id_repeat" hidden="hidden">
+    <input value="{{ task_id_2 }}" id="task_id_2" hidden="hidden">
     <div class="row" style="margin-top: 40px">
         <table class="table table-bordered" id="repeat_table">
             <thead>
@@ -38,8 +39,22 @@
     <div class="row">
         <div id="all_data"></div>
     </div>
+    <div class="row" style="margin-top: 20px"><h2>用户统计</h2></div>
     <div class="row">
-        <div id="all_data2"></div>
+        <div id="all_data2">
+            <table class="table table-bordered" id="data-table-people">
+            <thead>
+            <th></th>
+            <th>总购买人数</th>
+            <th>总购买mm</th>
+            <th>重复购买</th>
+            <th>重复购买的妈妈</th>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        </div>
     </div>
 {% endblock %}
 {% block tail_script %}
