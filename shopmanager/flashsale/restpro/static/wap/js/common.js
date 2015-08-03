@@ -142,7 +142,7 @@ function drawToast(message) {
         alert.style.opacity = .9;
     }
     console.log('debug toast:',alert);
-    intervalCounter = setInterval("hideToast()", 1000);
+    intervalCounter = setInterval("hideToast()", 2000);
 }
 
 

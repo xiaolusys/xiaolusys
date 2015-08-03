@@ -37,7 +37,7 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
     except Exception,exc:
         logger.debug(exc.message,exc_info=True)
     
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,MergeBuyerTrade
 
   
 @task()
@@ -59,8 +59,19 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             strade.status =  SaleTrade.TRADE_CLOSED
             strade.save()
         
-        elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS and 
-              (not mtrade.weight_time or mtrade.weight_time < day_date)):
+        elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS ):
+            if mtrade.weight_time and mtrade.weight_time > day_date:
+                continue
+            
+            #如果父订单已称重，并且称重日期达到确认期，则系统自动将订单放入已完成
+            if not mtrade.weight_time :
+                merge_status = MergeBuyerTrade.getMergeType(mtrade.id)
+                if merge_status != MergeBuyerTrade.SUB_MERGE_TYPE:
+                    continue
+                smergetrade = MergeBuyerTrade.objects.filter(sub_tid=mtrade.id)
+                ptrade = MergeTrade.objects.filter(id=smergetrade.main_tid)
+                if not ptrade.weight_time or ptrade.weight_time > day_date:
+                    continue
             
             sale_refunds = SaleRefund.objects.filter(trade_id=mtrade.id,status__gt=SaleRefund.REFUND_CLOSED)
             if sale_refunds.count() > 0:

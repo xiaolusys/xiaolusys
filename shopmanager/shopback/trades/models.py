@@ -783,11 +783,15 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
                                                    'has_out_stock',
                                                    'has_rule_match',
                                                    'sys_status'])
-        
+
 post_save.connect(refresh_trade_status, sender=MergeOrder)
 
 
 class MergeBuyerTrade(models.Model):
+    
+    MAIN_MERGE_TYPE = pcfg.MAIN_MERGE_TYPE
+    NO_MERGE_TYPE   = pcfg.NO_MERGE_TYPE
+    SUB_MERGE_TYPE  = pcfg.SUB_MERGE_TYPE
     
     sub_tid    =  models.BigIntegerField(primary_key=True)
     main_tid   =  models.BigIntegerField(db_index=True)
