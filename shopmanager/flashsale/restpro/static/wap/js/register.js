@@ -17,15 +17,16 @@ $(function () {
             password2.val("");
         }
     });
+    $("#get_code_btn").click(get_code)
 });
 
 
 function my_submit() {
     /*
-    * 表单提交
-    * auther:yann
-    * date:2015/30/7
-    */
+     * 表单提交
+     * auther:yann
+     * date:2015/30/7
+     */
     var mobile = $("#mobile_username").val();
     var valid_code = $("#valid_code").val();
     var password1 = $("#password1").val();
@@ -94,12 +95,14 @@ function get_code() {
      * date:2015/21/7
      */
     var mobile = $("#mobile_username").val();
+    var get_code_btn = $("#get_code_btn");
     var phone_exist_error = $("#phone_exist_error");
     if (!execReg(regCheck(4), mobile)) {
         var phone_error = $("#phone_error");
         phone_error.show();
         setTimeout("error_hide()", 1000);
     } else {
+        time(get_code_btn);
         $.post("/rest/v1/register", {"vmobile": mobile},
             function (data) {
                 var result = data.result;
@@ -142,4 +145,22 @@ function execReg(reg, str) {
         return false;
     }
     return true;
+}
+
+
+var wait = 60;
+function time(btn) {
+    if (wait == 0) {
+        btn.click(get_code);
+        btn.text("获取验证码");
+        wait = 60;
+    } else {
+        btn.unbind("click")
+        btn.text(wait + "秒后重新获取");
+        wait--;
+        setTimeout(function () {
+                time(btn);
+            },
+            1000)
+    }
 }
