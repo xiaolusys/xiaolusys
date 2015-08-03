@@ -84,10 +84,9 @@ function plus_shop(id) {
     var requestUrl = GLConfig.baseApiUrl + suffix;
     var num_id = $("#num_" + id);
     var requestCallBack = function (res) {
-        console.log(res);
         $("#loading").hide();
-        if (res == "1") {
-            num_id.val(parseInt(num_id.val()) + parseInt(res));
+        if (res.status == "1") {
+            num_id.val(parseInt(num_id.val()) + parseInt(res.status));
             update_total_price();
         }
     };
@@ -108,8 +107,8 @@ function minus_shop(id) {
     var num_id = $("#num_" + id);
     var requestCallBack = function (res) {
         $("#loading").hide();
-        if (res == "1") {
-            num_id.val(parseInt(num_id.val()) - parseInt(res));
+        if (res.status == "1") {
+            num_id.val(parseInt(num_id.val()) - parseInt(res.status));
             update_total_price();
         }
 
