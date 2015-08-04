@@ -23,11 +23,8 @@ function init() {
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_all_address
     var requestCallBack = function (data) {
-
+        var data = data.results;
         for (var i = 0; i < data.length; i++) {
-
-            //alert(data.length);
-            //alert(typeof(data[i].default))
             if (data[i].default == true) {
                 var address = "<li   id=" + data[i].id + "> <p class='p1'>" + data[i].receiver_name + data[i].receiver_mobile +
                     "</p><p class='p2'>" + data[i].receiver_state + "-" + data[i].receiver_city + "-" + data[i].receiver_district + "-" + data[i].receiver_address + "</p><a class='close'  ></a><i class='radio  radio-select'  ></i></li>"
@@ -46,7 +43,7 @@ function init() {
                 console.info($(this).parent().attr('id'));
                 delete_id = $(this).parent().attr('id');
                 obj = $(this).parent();
-                console.log("delete_id",delete_id);
+                console.log("delete_id", delete_id);
                 delete_address(obj, delete_id);
                 //$(this).parent().remove()
                 //$(this).parent().css({"color":"red","border":"2px solid red"});  //增加颜色
@@ -58,11 +55,9 @@ function init() {
             $(this).click(function () {
                 up_id = $(this).parent().attr('id');
                 location.assign("shouhuodz-edit.html?id=" + up_id);
-
             });
         });
-
-
+        
         $("ul li  i").each(function () {
             $(this).click(function () {
                 $("ul li  i").removeClass("radio-select")//去掉之前选中的
@@ -72,8 +67,6 @@ function init() {
                 default_id = $(this).parent().attr('id');
                 obj = $(this).parent();
                 change_default(obj, default_id);
-
-
             });
         });
 
@@ -95,7 +88,7 @@ function delete_address(obj, id) {
     //alert(id);
     //obj.remove()     //删除地址
     //请求成功回调函数
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.delete_address
+    var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/delete_address/";
     var requestCallBack = function (data) {
         //alert(data.ret)
         if (data.ret == true) {
@@ -109,9 +102,9 @@ function delete_address(obj, id) {
     };
     // 发送请求
     $.ajax({
-        type: 'get',
+        type: 'post',
         url: requestUrl,
-        data: {"csrfmiddlewaretoken": csrftoken, "id": id},
+        data: {"csrfmiddlewaretoken": csrftoken},
         dataType: 'json',
         success: requestCallBack
     });

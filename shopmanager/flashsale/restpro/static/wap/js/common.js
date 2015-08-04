@@ -93,7 +93,7 @@ var GLConfig = {
     get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
     get_cart_url:'/carts.json', //获取购物车详细
     get_num_cart:'/carts/show_carts_num?format=json', //获取购物车数量
-    get_all_address:'/address/show_address/?format=json',//获取个人用户地址列表
+    get_all_address:'/address.json',//获取个人用户地址列表
     delete_address:'/address/delete_address/?format=json',//删除地址
     change_default:'/address/change_default/?format=json',//更改默认地址
     province_list:'/districts/province_list/?format=json',//省份列表

@@ -60,25 +60,19 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(cus_uid=customer.id)
+        return self.queryset.filter(cus_uid=customer.id, status='normal')
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         page = self.paginate_queryset(queryset)
+
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
-#fang kaineng  2015-7-31    
-    def detail(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
-        #print customer.id
-        queryset=UserAddress.objects.filter(cus_uid=customer.id)
-        serializer = self.get_serializer(queryset, many=True)
-        pass
-        return    Response(serializer.data)
+
         
     @detail_route(methods=['post'])
     def update(self, request, *args, **kwargs):
@@ -102,12 +96,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             receiver_mobile=receiver_mobile)
         return Response("0")
 
-
-    @detail_route(methods=['post'])
     def delete(self, request, pk=None):
-        print "fffffffffffffffff"
         instance = self.get_object()
-        
         instance.status = UserAddress.DELETE
         instance.save()
         
