@@ -80,10 +80,32 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         pass
         return    Response(serializer.data)
         
+    @detail_route(methods=['post'])
+    def update(self, request, *args, **kwargs):
+        customer = get_object_or_404(Customer,user=request.user)
+        customer_id=customer.id     #  获取用户id
+        content = request.REQUEST
+        id = content.get('id',None)
+        receiver_state = content.get('receiver_state',None)
+        receiver_city = content.get('receiver_city',None)
+        receiver_district = content.get('receiver_district',None)
+        receiver_address= content.get('receiver_address',None)
+        receiver_name=content.get('receiver_name',None)
+        receiver_mobile=content.get('receiver_mobile',None)
+        UserAddress.objects.filter(id=id).update(
+            cus_uid=customer_id,
+            receiver_name=receiver_name,
+            receiver_state=receiver_state,
+            receiver_city=receiver_city,
+            receiver_district=receiver_district,
+            receiver_address=receiver_address,
+            receiver_mobile=receiver_mobile)
+        return Response("0")
+
 
     @detail_route(methods=['post'])
     def delete(self, request, pk=None):
-
+        print "fffffffffffffffff"
         instance = self.get_object()
         
         instance.status = UserAddress.DELETE
@@ -126,8 +148,13 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         UserAddress.objects.create(  cus_uid= customer_id, receiver_name =  receiver_name,  receiver_state    = receiver_state , receiver_city    =  receiver_city,receiver_district  =   receiver_district,receiver_address   =  receiver_address, receiver_mobile    =  receiver_mobile   )
         return Response({"22":55})
 
-
-    
+    @list_route(methods=['get'])
+    def get_one_address(self, request):
+        id =  request.GET.get("id")
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        qs = queryset.filter(id=id)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
 class DistrictViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
