@@ -142,9 +142,9 @@ function test(up_id) {
 //修改事件
 
 $("#btn-up").click(function () {
-    alert("up")
+
     var id = $('#up_id').val();
-    alert(id);
+
     var receiver_name = $('#inputReceiverName').val();
     var receiver_mobile = $('#inputReceiverMobile').val();
     var receiver_state = $('#s_province  option:selected').text();//省
