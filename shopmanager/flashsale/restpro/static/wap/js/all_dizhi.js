@@ -57,7 +57,7 @@ function init() {
                 location.assign("shouhuodz-edit.html?id=" + up_id);
             });
         });
-        
+
         $("ul li  i").each(function () {
             $(this).click(function () {
                 $("ul li  i").removeClass("radio-select")//去掉之前选中的
@@ -88,7 +88,7 @@ function delete_address(obj, id) {
     //alert(id);
     //obj.remove()     //删除地址
     //请求成功回调函数
-    var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/delete_address/";
+    var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/delete_address";
     var requestCallBack = function (data) {
         //alert(data.ret)
         if (data.ret == true) {
@@ -116,7 +116,7 @@ function delete_address(obj, id) {
 function change_default(obj, id) {
     //obj.remove()     //删除地址
     //请求成功回调函数
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.change_default
+    var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/change_default";
     var requestCallBack = function (data) {
         if (data.ret == true) {
 
@@ -127,9 +127,9 @@ function change_default(obj, id) {
     };
     // 发送请求
     $.ajax({
-        type: 'get',
+        type: 'post',
         url: requestUrl,
-        data: {"csrfmiddlewaretoken": csrftoken, "id": id},
+        data: {"csrfmiddlewaretoken": csrftoken},
         dataType: 'json',
         success: requestCallBack
     });

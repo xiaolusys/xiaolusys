@@ -96,33 +96,30 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             receiver_mobile=receiver_mobile)
         return Response("0")
 
-    def delete(self, request, pk=None):
+    @detail_route(methods=["post"])
+    def delete_address(self, request, pk=None):
         instance = self.get_object()
         instance.status = UserAddress.DELETE
         instance.save()
-        
-        return Response({'ret':True})
+        return Response({'ret': True})
     
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
-        #print ("change default")
-        content = request.REQUEST
-        id_default = content.get('id',None)
-        result={}
+        id_default = pk
+        result = {}
         try:
             customer = get_object_or_404(Customer,user=request.user)
-            other_addr=UserAddress.objects.filter(cus_uid=customer.id)
-            for one  in  other_addr:
-                print one.default
-                one.default=False
+            other_addr = UserAddress.objects.filter(cus_uid=customer.id)
+            for one in other_addr:
+                one.default = False
                 one.save()
-            default_addr=UserAddress.objects.get(id=id_default)
-            default_addr.default=True
+            default_addr = UserAddress.objects.get(id=id_default)
+            default_addr.default = True
             default_addr.save()
-            result['ret']=True
+            result['ret'] = True
         except:
-            result['ret']=False
-        return    Response(result)
+            result['ret'] = False
+        return Response(result)
     
     @detail_route(methods=['post'])
     def create_address(self, request, pk=None):
@@ -140,11 +137,13 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def get_one_address(self, request):
-        id =  request.GET.get("id")
+        id = request.GET.get("id")
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         qs = queryset.filter(id=id)
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
+
+
 class DistrictViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
@@ -173,17 +172,15 @@ class DistrictViewSet(viewsets.ModelViewSet):
      
     @list_route(methods=['get'])
     def province_list(self, request, *args, **kwargs):
-        queryset=District.objects.filter(grade=1)
+        queryset = District.objects.filter(grade=1)
         serializer = self.get_serializer(queryset, many=True)
-        pass
         return Response(serializer.data)
     
     @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
         content = request.REQUEST
         province_id = content.get('id',None)
-        print  province_id
-        queryset=District.objects.filter(parent_id=province_id)
+        queryset = District.objects.filter(parent_id=province_id)
         serializer = self.get_serializer(queryset, many=True)
         pass
         return Response(serializer.data) 
@@ -193,7 +190,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         city_id = content.get('id',None)
         print  city_id
-        queryset=District.objects.filter(parent_id=city_id)
+        queryset = District.objects.filter(parent_id=city_id)
         serializer = self.get_serializer(queryset, many=True)
         pass
         return Response(serializer.data)    
