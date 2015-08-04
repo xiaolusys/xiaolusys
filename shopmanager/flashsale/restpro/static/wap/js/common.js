@@ -100,6 +100,8 @@ var GLConfig = {
     city_list:'/districts/city_list/?format=json',//城市列表
     country_list:'/districts/country_list/?format=json',//区/县列表
     create_address:'/address/create_address/?format=json',//创建新的收获地址
+    get_user_info:'/users.json',//得到用户信息
+    get_user_point:'/integral.json'//得到用户积分
 };
 
 // using jQuery
