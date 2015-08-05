@@ -99,7 +99,7 @@
             $('#js-goods-size li.active').removeClass('active').addClass('normal');
             $(this).removeClass('normal').addClass('active');
         });
-        $('#js-goods-size li.normal').live('click', function () {
+        $('#js-goods-size li.normal').on('click', function () {
             $('#js-goods-size li.active').removeClass('active').addClass('normal');
             $(this).removeClass('normal').addClass('active');
         });
