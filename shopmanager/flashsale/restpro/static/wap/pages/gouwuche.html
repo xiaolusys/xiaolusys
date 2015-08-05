@@ -4,8 +4,6 @@
     <title>小鹿美美</title>
     <meta charset="UTF-8">
     <meta id="viewport" name="viewport"/>
-    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
-    <script src="http://aui.github.io/artTemplate/dist/template.js"></script>
     <script src="../js/common.js"></script>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/gouwuche.css">
@@ -21,7 +19,7 @@
 
 <div class="cart-list"></div>
 <script id="item_template" type="text/html">
-    <div class="item" id="item_{{ id }}">
+    <div class="item" id="item_{{ id }}" cartid="{{ id }}">
         <div class="gpic"><a href="shangpinxq.html?id={{ item_id }}"><img src="{{ pic_path }}"></a></div>
         <div class="gname">{{ title }}</div>
         <div class="gprice">¥ <span class="item_price" id="itemprice_{{ id }}">{{ price }}</span></div>
@@ -40,17 +38,32 @@
 <div id="loading"><img src="/static/img/loading_circle.gif"></div>
 <div class="buy">
     <p class="coupons">优惠券：-3.00</p>
-
     <p class="total">总金额：¥<span id="total_price">78.00</span></p>
     <a class="btn-buy">购&nbsp;&nbsp;买</a>
 </div>
-
+<script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+<script src="http://aui.github.io/artTemplate/dist/template.js"></script>
 <script src="../js/tmsc.js"></script>
 <script type="text/javascript">
     (function ($) {
         //获取
         get_shop_carts(GLConfig.get_cart_url);
+        
+        $('.btn-buy').on('click',Ctrl_sure_pay);
     })(jQuery);
+    
+    function Ctrl_sure_pay(){
+    	/*去付款*/	
+    	var cart_ids = [];
+    	$('.item').each(function(index,e){
+    		cart_ids[cart_ids.length] = $(e).attr('cartid');
+    	});
+    	if (cart_ids.length == 0){
+    		drawToast("购物车没有商品");
+    		return
+    	}
+    	window.location = 'queren-dd.html?cart_ids='+cart_ids.join(',');
+    }
 </script>
 </body>
 </html>

@@ -1,0 +1,250 @@
+.header .user{
+  display: block;
+  width: 88px;
+  height: 88px;
+  position: absolute;
+  right: 0;
+  top:0;
+  background: url(../images/icon-gerenzhongxin2.png) no-repeat center center;
+}
+.addr{
+  width: 640px;
+  background-color: #fff;
+  margin: 0 auto;
+}
+.addr li{
+  border-bottom: 1px solid #ccc; 
+  position: relative;
+}
+.addr a{
+  color: #3d3c3c; 
+}
+.addr .label1{
+  padding: 23px 0 0 43px;
+}
+.addr .label2{
+  font-size: 26px;
+  padding: 15px 0 21px 85px;
+  margin-right: 60px;
+  background:url(../images/icon-jia2.png) no-repeat right center;
+}
+.addr .label3{
+  font-size:26px;
+  padding: 15px 0 0 86px;
+}
+.addr .label4 {
+  font-size: 22px;
+  color: #9e9e9e;
+  padding: 8px 82px 19px 82px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.addr .icon-edit{
+  position: absolute;
+  display: block;
+  width: 26px;
+  height: 28px;
+  background-image:url(../images/icon-xiugai.png);
+  top:47px;
+  right: 58px;
+}
+.addr .icon-radio{
+  position: absolute;
+  display: block;
+  width: 22px;
+  height: 22px;
+  background-image:url(../images/icon-radio.png);
+  top:23px;
+  left: 42px;
+}
+.addr .icon-radio-select{
+  background-image:url(../images/icon-radio-select.png);
+}
+
+
+.cost{
+  width: 640px;
+  margin: auto;
+  color:#3d3c3c;
+}
+.cost h2{
+  font-size: 28px;
+  padding: 34px 0 8px 42px;
+}
+.cost>div{
+  background-color: #fff;
+  border-top:1px solid #bec0c2;
+  border-bottom:1px solid #bec0c2;
+}
+.cost .label1{
+  padding:28px 0 0 86px;
+}
+.cost .label2{
+  padding:14px 0 24px 86px;
+}
+.cost p{
+  margin-right: 60px;
+}
+.cost p>span{
+  display: block;
+  float: right;
+  color: #ea4c88;
+}
+
+
+.coupons{
+  width: 640px;
+  margin: 0 auto;
+  background-color: #fff;
+  margin-top: 20px;
+	border-bottom:1px solid #cacaca;
+}
+.coupons .title{
+  border-top:1px solid #cacaca;
+  border-bottom:1px solid #cacaca;
+  padding-top:13px;
+}
+.coupons .title .inner{
+  width: 200px;
+  height: 44px;
+  line-height: 44px;
+  background-color:#fdb916;
+  border-radius: 10px;
+  margin:0 auto 13px auto;
+  text-align: center;
+  font-size: 20px;
+  color: #fff;
+}
+.coupons-list{
+  margin: 0 auto;
+  background: #f8f8f8;
+  padding: 20px 25px;
+}
+.coupons-list li{
+  height: 164px;
+  position: relative;
+  margin-bottom: 20px;
+  box-shadow-bottom: 0 0 5px 0 red;
+}
+.coupons-list li:last-child{
+  margin-bottom: 0;
+}
+.coupons-list li.type1{
+  background: url(../images/youhuiquan1.png) no-repeat center center;
+}
+.coupons-list li.type2{
+  background: url(../images/youhuiquan2.png) no-repeat center center;
+}
+.coupons-list li.type3{
+  background: url(../images/youhuiquan3.png) no-repeat center center;
+}
+.coupons-list .name{
+  font-size: 24px;
+  width: 275px;
+  position: absolute;
+  left: 157px;
+  top: 32px;
+  color: #868484;
+}
+.coupons-list .date{
+  font-size: 20px;
+  width: 275px;
+  position: absolute;
+  left: 159px;
+  top: 113px;
+  color: #d4d4d4;
+}
+.coupons-list .tag{
+  width: 186px;
+  height: 148px;
+  position: absolute;
+  left: 346px;
+  top: 8px;
+  background: url(../images/tag-shixiao.png) no-repeat;
+}
+.coupons-list .icon-radio{
+  position: absolute;
+  display: block;
+  width: 22px;
+  height: 22px;
+  background-image: url(../images/icon-radio.png);
+  top: 74px;
+  left: 21px;
+}
+.coupons-list .icon-radio-select{
+  background-image:url(../images/icon-radio-select.png);
+}
+
+
+.pay-type{
+  width: 640px;
+  margin: auto;
+  color:#3d3c3c;
+}
+.pay-type h2{
+  font-size: 28px;
+  padding: 34px 0 8px 42px;
+}
+.pay-list {
+	background-color:#fff;
+	border-top:1px solid #dfe0e1;
+}
+.pay-list li{
+	height:78px;
+	line-height:78px;
+	font-size:26px;
+	text-indent:100px;
+	position:relative;
+	border-bottom:1px solid #dfe0e1;
+}
+.pay-list li i{
+	position: absolute;
+  display: block;
+  width: 22px;
+  height: 22px;
+  top: 50%;
+	margin-top:-11px;
+  left: 42px;
+	background-image: url(../images/icon-radio.png);
+}
+.pay-list li i.cur{
+	background-image: url(../images/icon-radio-select.png);
+}
+
+
+
+.buy{
+	width:640px;
+	height:156px;
+	border-top:1px solid #bec0c2;
+	margin:30px auto 0 auto;
+	background-color:#fff;
+	position:relative;
+	color:#ea4c88;
+}
+.btn-buy{
+	position: absolute;
+  font-size: 34px;
+  left:20px;
+  bottom: 20px;
+  width: 600px;
+  height: 80px;
+  line-height: 80px;
+  background-color: #fcb916;
+  border-radius: 10px;
+  color: #fff;
+  text-align: center;
+}
+.buy .cou{
+	position: absolute;
+  left: 20px;
+  top: 14px;
+  font-size: 22px;
+}
+.buy .total{
+	position: absolute;
+  right: 20px;
+  top: 10px;
+  font-size: 26px;
+}

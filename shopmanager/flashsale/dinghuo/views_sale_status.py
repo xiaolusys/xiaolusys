@@ -88,7 +88,8 @@ class TopStockView(View):
             outer_idset.add(outer_id)
             if router_id not in sale_top:
                 sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num,
-                                       'sale_time': str(product.sale_time) if product.sale_time else ""}
+                                       'sale_time': str(product.sale_time) if product.sale_time else "",
+                                       "category": product.category.name}
             else:
                 sale_top[router_id]['collect_num'] += product.collect_num
 
