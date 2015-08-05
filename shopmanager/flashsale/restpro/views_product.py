@@ -103,7 +103,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         weekday = tnow.strftime("%w")
         if weekday == '1':
             return (tnow - datetime.timedelta(days=2)).date()
-        return tlast.date().date()
+        return tlast.date()
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
