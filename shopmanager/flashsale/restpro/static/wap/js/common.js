@@ -82,6 +82,7 @@ var GLConfig = {
 	baseApiUrl:'/rest/v1', //API接口调用前缀
 	order_expired_in:20 * 60,//expired time
 	zhifucg_url:'zhifucg.html',//支付成功跳转URL
+	daizhifu_url:'daizhifu-dd.html',//待支付订单页面
 	today_suffix:'today',  //获取首页今日商品信息，URL标识
     previous_suffix:'previous', //获取首页昨日商品信息，URL标识
     get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表

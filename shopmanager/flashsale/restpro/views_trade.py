@@ -373,14 +373,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         buyer_openid  = buyer.openid
         order_no      = sale_trade.tid
         channel       = sale_trade.channel
-        payback_url = urlparse.urljoin(settings.M_SITE_URL,'static/wap/pages/zhifucg.html')
+        payback_url = urlparse.urljoin(settings.M_SITE_URL,'/pages/zhifucg.html')
+        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,'/pages/daizhifu-dd.html')
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
             
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
-                     "cancel_url":payback_url}
+                     "cancel_url":cancel_url}
             
         elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":payback_url}
@@ -474,7 +475,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             cart_payment += cart.price * cart.num * 100
         
         cart_payment = cart_payment + post_fee #- discount_fee
-        print 'debug payment:',post_fee,payment,cart_payment
         if post_fee < 0 or payment < 0 or payment != cart_payment:
             raise exceptions.ParseError(u'付款金额异常')
         
@@ -498,7 +498,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def perform_destroy(self, instance):
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
-            raise Exception(u'订单不在待付款状态')
+            raise exceptions.APIException(u'订单不在待付款状态')
         instance.status = SaleTrade.TRADE_CLOSED_BY_SYS
         instance.save()
 

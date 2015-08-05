@@ -115,7 +115,14 @@ function Ctrl_sure_charge(){
       		window.location.href = GLConfig.zhifucg_url;
       	}else{
           pingpp.createPayment(data, function(result, err) {
-              window.location.href =  GLConfig.zhifucg_url;
+          	if (result == "success") {
+		        window.location.href =  GLConfig.zhifucg_url;
+		    } else if (result == "fail") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    } else if (result == "cancel") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    }
+            
           });
         }
        }else{

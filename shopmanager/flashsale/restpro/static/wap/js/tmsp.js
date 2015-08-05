@@ -101,6 +101,7 @@ function Set_product_detail(suffix) {
     var requestUrl = GLConfig.baseApiUrl + suffix;
     //请求成功回调函数
     var requestCallBack = function (data) {
+    	$("#loading").hide();
         if (data.id == 'undifine' && data.id == null) {
             return
         }
@@ -122,6 +123,7 @@ function Set_product_detail(suffix) {
         //设置商品内容图列表
         var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
         $('.goods-img div').html(bottom_dom);
+        
     };
     // 发送请求
     $.ajax({
@@ -129,6 +131,9 @@ function Set_product_detail(suffix) {
         url: requestUrl,
         data: {},
         dataType: 'json',
+        beforeSend: function () {
+            $("#loading").show();
+        },
         success: requestCallBack
     });
 }
