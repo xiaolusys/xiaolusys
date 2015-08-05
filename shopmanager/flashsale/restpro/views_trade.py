@@ -257,11 +257,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    def perform_destroy(self,instance):
+    def perform_destroy(self, instance):
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise Exception(u'订单不在待付款状态')
-        
         instance.status = SaleTrade.TRADE_CLOSED_BY_SYS
         instance.save()
-        
-        
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(data={"ok": True})
