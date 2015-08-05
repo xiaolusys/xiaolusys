@@ -2,6 +2,9 @@
     //获取
     get_user_info();
     get_point();
+    $(".btn-wrap .btn-logout").click(function () {
+        logout();
+    });
 })(jQuery);
 
 function get_user_info() {
@@ -15,8 +18,10 @@ function get_user_info() {
 
     //请求成功回调函数
     var requestCallBack = function (res) {
-        if (res.results != null){
-            $(".nickname").html("昵称:"+res.results[0].nick);
+        if (res.results != null) {
+            $(".nickname").html("昵称:" + res.results[0].nick);
+        }else{
+            $(".nickname").html("昵称:小鹿鹿");
         }
     };
     // 发送请求
@@ -25,9 +30,6 @@ function get_user_info() {
         url: requestUrl,
         data: {},
         dataType: 'json',
-        beforeSend: function () {
-
-        },
         success: requestCallBack,
         error: function (data) {
             if (data.statusText == "FORBIDDEN") {
@@ -49,11 +51,10 @@ function get_point() {
 
     //请求成功回调函数
     var requestCallBack = function (res) {
-        console.log(res.results.length);
-        if (res.results != null && res.results.length > 0){
-            $(".score").html("积分:"+res.results[0].integral_value);
-        }else{
-            $(".score").html("积分:"+"0");
+        if (res.results != null && res.results.length > 0) {
+            $(".score").html("积分:" + res.results[0].integral_value);
+        } else {
+            $(".score").html("积分:" + "0");
         }
     };
     // 发送请求
@@ -62,9 +63,37 @@ function get_point() {
         url: requestUrl,
         data: {},
         dataType: 'json',
-        beforeSend: function () {
+        success: requestCallBack,
+        error: function (data) {
+            if (data.statusText == "FORBIDDEN") {
+                window.location = "denglu2.html";
+            }
+            console.info("error: " + data.statusText);
+        }
+    });
+}
 
-        },
+function logout() {
+    /*
+     * 注销
+     * auther:yann
+     * date:2015/5/8
+     */
+    //请求URL
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.user_logout;
+
+    //请求成功回调函数
+    var requestCallBack = function (res) {
+        if (res && res.result == "logout") {
+            window.location = "denglu2.html";
+        }
+    };
+    // 发送请求
+    $.ajax({
+        type: 'post',
+        url: requestUrl,
+        data: {},
+        dataType: 'json',
         success: requestCallBack,
         error: function (data) {
             if (data.statusText == "FORBIDDEN") {
