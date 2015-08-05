@@ -17,8 +17,7 @@
 
 <ul id="js-addr" class="addr">
   <li>
-    <a class="add" href="#">
-      <p class="label1">收货地址</p>
+    <a class="add" href="shouhuodz.html">
       <p class="label2">新增收货地址</p>  
     </a>
   </li>
@@ -41,7 +40,6 @@
   </div>
 </div>
 
-
 <div class="coupons">
   <div class="title">
     <div class="inner">可用优惠券（0）</div>
@@ -57,9 +55,9 @@
   </ul>
 </div>
 
-<div id="#js-pay-type" class="pay-type">
+<div class="pay-type">
   <h2>支付方式</h2>
-  <ul class="pay-list">
+  <ul id="js-pay-type" class="pay-list">
 <!--  	<li><i></i>货到付款（现金）</li>-->
   </ul>
 </div>
@@ -114,11 +112,12 @@
 function change_address(){
     $('#js-addr li.active').removeClass('active').addClass('normal');
     $(this).removeClass('normal').addClass('active');
-}
+};
 function change_paytype(){
-    $('#js-addr li.active').removeClass('active').addClass('normal');
+	console.log('click paytype');
+    $('#js-pay-type li.active').removeClass('active').addClass('normal');
     $(this).removeClass('normal').addClass('active');
-}
+};
 </script>
 </body>
 </html>

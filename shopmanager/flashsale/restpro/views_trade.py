@@ -183,7 +183,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               xlmm.cash >= int(total_fee * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash / 100.0
-
+        wallet_payable = True
         for cart in queryset:
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
         
