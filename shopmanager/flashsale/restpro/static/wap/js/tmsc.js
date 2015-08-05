@@ -37,7 +37,7 @@ function get_shop_carts(suffix) {
                 }
             );
         } else {
-            window.location = "gouwuche-kong.html"
+            window.location = "gouwuche-kong.html";
         }
         $("#total_price").html(total_price);
     };
@@ -133,4 +133,3 @@ function minus_shop(id) {
         drawToast("客官至少买一件嘛");
     }
 }
-

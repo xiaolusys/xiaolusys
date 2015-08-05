@@ -81,6 +81,7 @@ function hereDoc(f) {
 var GLConfig = {
 	baseApiUrl:'/rest/v1', //API接口调用前缀
 	order_expired_in:20 * 60,//expired time
+	zhifucg_url:'zhifucg.html',//支付成功跳转URL
 	today_suffix:'today',  //获取首页今日商品信息，URL标识
     previous_suffix:'previous', //获取首页昨日商品信息，URL标识
     get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
@@ -91,9 +92,12 @@ var GLConfig = {
     get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
     get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
     get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
+    get_trade_charge_url:'/trades/pingpp_cart_create.json', //获取用户待发货订单
     get_cart_url:'/carts.json', //获取购物车详细
+    get_cart_payinfo_url:'/carts/carts_payinfo.json?cart_ids={{cart_ids}}', //根据购物车id列表获取支付明细
     get_num_cart:'/carts/show_carts_num?format=json', //获取购物车数量
     get_all_address:'/address.json',//获取个人用户地址列表
+    get_user_address:'/address.json',//获取个人用户地址列表
     delete_address:'/address/delete_address/?format=json',//删除地址
     change_default:'/address/change_default/?format=json',//更改默认地址
     province_list:'/districts/province_list?format=json',//省份列表
