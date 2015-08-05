@@ -52,7 +52,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     change_default：选择收获地址
     create_address：创建新的收获地址
     """
-    queryset = UserAddress.objects.all()
+    queryset = UserAddress.normal_objects.order_by('-default')
     serializer_class = serializers.UserAddressSerializer# Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
@@ -64,15 +64,17 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        page = self.paginate_queryset(queryset)
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
+    
+#fang kaineng  2015-7-31    
+    def detail(self,request):
+        customer = get_object_or_404(Customer,user=request.user)
+        #print customer.id
+        queryset=UserAddress.objects.filter(cus_uid=customer.id)
+        serializer = self.get_serializer(queryset, many=True)
 
+        return    Response(serializer.data)
         
     @detail_route(methods=['post'])
     def update(self, request, *args, **kwargs):
@@ -182,7 +184,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
         province_id = content.get('id',None)
         queryset = District.objects.filter(parent_id=province_id)
         serializer = self.get_serializer(queryset, many=True)
-        pass
+
         return Response(serializer.data) 
     
     @list_route(methods=['get'])
@@ -192,7 +194,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
         print  city_id
         queryset = District.objects.filter(parent_id=city_id)
         serializer = self.get_serializer(queryset, many=True)
-        pass
+
         return Response(serializer.data)    
 
 from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon

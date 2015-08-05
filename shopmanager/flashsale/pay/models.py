@@ -27,9 +27,12 @@ AGENCY_DIPOSITE_CODE = 'RMB'
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
 
+def genUniqueid():
+    return uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.date.today().strftime('%y%m%d')))
+
 class SaleTrade(models.Model):
     
-    PREFIX_NO  = 'FD'
+    PREFIX_NO  = 'xd'
     WX_PUB     = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
     UPMP_WAP   = 'upmp_wap'
@@ -89,7 +92,7 @@ class SaleTrade(models.Model):
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=40,unique=True,
-                             default=lambda:uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.datetime.now().strftime('%y%m%d'))),
+                             default=genUniqueid,
                              verbose_name=u'原单ID')  
     buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
@@ -213,6 +216,7 @@ class SaleTrade(models.Model):
 
 class SaleOrder(models.Model):
     
+    PREFIX_NO  = 'xo'
     TRADE_NO_CREATE_PAY = 0
     WAIT_BUYER_PAY = 1
     WAIT_SELLER_SEND_GOODS = 2
@@ -241,7 +245,7 @@ class SaleOrder(models.Model):
     
     id    = BigIntegerAutoField(primary_key=True)
     oid   = models.CharField(max_length=40,unique=True,
-                             default=lambda:uniqid('FO%s'%(datetime.datetime.now().strftime('%y%m%d'))),
+                             default=lambda:uniqid('%s%s'%(SaleOrder.PREFIX_NO,datetime.date.today().strftime('%y%m%d'))),
                              verbose_name=u'原单ID')
     sale_trade = BigIntegerForeignKey(SaleTrade,related_name='sale_orders',
                                        verbose_name=u'所属订单')
@@ -333,6 +337,7 @@ class TradeCharge(models.Model):
     def __unicode__(self):
         return '<%s>'%(self.id)
     
+from shopback.items.models import Product,ProductSku
 
 class ShoppingCart(models.Model):
     """ 购物车 """
@@ -374,4 +379,13 @@ class ShoppingCart(models.Model):
     def __unicode__(self):
         return '%s'%(self.id)
     
+    def is_deposite(self):
+        product = Product.objects.get(id=self.item_id)
+        return product.outer_id.startswith('RMB')
+    
+    def calc_discount_fee(self,xlmm=None):
+        product_sku = ProductSku.objects.get(id=self.sku_id)
+        return product_sku.calc_discount_fee(xlmm)
+    
 from signals_coupon import *
+
