@@ -483,7 +483,7 @@ from flashsale.pay.models import ShoppingCart
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('buyer_id', 'buyer_nick', 'item_id',
+    list_display = ('id','buyer_id', 'buyer_nick', 'item_id',
                     'title', 'price', 'sku_id', 'num',
                     'total_fee', 'sku_name',
                     'created', 'status')

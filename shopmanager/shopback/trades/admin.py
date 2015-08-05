@@ -192,8 +192,9 @@ class MergeTradeAdmin(MyAdmin):
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
-        js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js",
-              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js","layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","jquery/jquery-1.8.13.min.js","script/trades/select_stock.js",)
+        js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
+#               "script/trades/checkorder.js","script/trades/tradetags.js",
+              "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","script/trades/select_stock.js",)
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
