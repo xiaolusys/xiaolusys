@@ -8,7 +8,7 @@ from . import views
 from . import views_user
 from . import views_product 
 from . import views_trade 
-from flashsale.pay.views import OrderBuyReview
+from flashsale.pay.views import PINGPPCallbackView
 from flashsale.complain.views import ComplainViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -46,9 +46,9 @@ router_urls += format_suffix_patterns([
         url(r'^trades/(?P<tid>[0-9]+)/orders/(?P<pk>[0-9]+)$',
             views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
             name='saleorder-detail'),
-        url(r'^order/buy/', 
-            OrderBuyReview.as_view(), 
-            name="order_buy"),
+        url(r'^trades/callback/', 
+            PINGPPCallbackView.as_view(), 
+            name="pingpp-callback"),
         url(r'^user/integral/',
             views.UserIntegralViewSet.as_view({'get': 'list'}),
             name="user-intergral"),

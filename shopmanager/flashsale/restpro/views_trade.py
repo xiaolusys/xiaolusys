@@ -183,7 +183,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               xlmm.cash >= int(total_fee * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash / 100.0
-
+        wallet_payable = True
         for cart in queryset:
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
         
@@ -496,11 +496,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         return Response(response_charge)
     
-    def perform_destroy(self,instance):
+    def perform_destroy(self, instance):
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise Exception(u'订单不在待付款状态')
-        
         instance.status = SaleTrade.TRADE_CLOSED_BY_SYS
         instance.save()
-        
-        
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(data={"ok": True})

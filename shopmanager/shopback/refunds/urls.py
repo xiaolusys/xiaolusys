@@ -8,7 +8,7 @@ from shopback.refunds.views import RefundProductView,RefundView,RefundManagerVie
 # from shopback.base.renderers  import BaseJsonRenderer
 # from shopback.refunds.renderers import RefundProductRenderer,RefundManagerRenderer
 # from shopback.refunds.resources import RefundProductResource,RefundResource
-from refund_analysis import refund_Analysis, refund_Reason
+from refund_analysis import refund_Analysis, refund_Reason, refund_Invalid_Create
 
 
 
@@ -50,4 +50,8 @@ urlpatterns = patterns('shopback.refunds.views',
     # refund reason
     url('refund_analysis/$', staff_member_required(refund_Analysis), name='refunde_reson_analysis'),
     url('refund_reason/$', staff_member_required(refund_Reason), name='refunde_reson_analysis'),
+
+    # refund_Invalid_Create
+    url('refund_invalid_create/$', staff_member_required(refund_Invalid_Create), name='refunde_reson_analysis'),
+
 )

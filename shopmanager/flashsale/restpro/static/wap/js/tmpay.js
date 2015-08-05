@@ -53,13 +53,13 @@ function Set_user_orderinfo(suffix){
 		$('.buy .total span').html('<em>￥</em>' + data.total_payment);
 		
 		if (data.wallet_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="wallet"></i>小鹿钱包</li>')
+			$('.pay-type .pay-list').append('<li class="normal"><i id="wallet"></i>小鹿钱包</li>');
 		}
 		if (data.weixin_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="wx_pub"></i>微信支付 <div class="money">可用余额:<span><em>￥</em>'+data.wallet_cash+'</span></div></li>')
+			$('.pay-type .pay-list').append('<li class="normal"><i id="wx_pub"></i>微信支付</li>');
 		}
 		if (data.alipay_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="alipay_wap"></i>支付宝</li>')
+			$('.pay-type .pay-list').append('<li class="normal"><i id="alipay_wap"></i>支付宝</li>');
 		}
 		$('.pay-type .pay-list li:first').removeClass('normal').addClass('active');
 		
@@ -87,7 +87,7 @@ function Ctrl_sure_charge(){
     	return
 	}
     
-    var addrid = $('.addr li.active ').attr('addrid');
+    var addrid = $('.addr li.active i').attr('addrid');
     if (isNone(addrid)){
     	drawToast('请填写收货信息');
     	return

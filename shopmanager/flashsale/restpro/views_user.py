@@ -189,16 +189,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         user_ifo = "id:{0},name:{1}".format(user.id, user.username)
         return Response(user_ifo)
 
-    @list_route(methods=['post'])
-    def customer_logout(self, request):
-        logout(request)
-        return Response('logout')
-
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """
     特卖平台 用户操作API：
-    
+    - {prefix}/customer_logout:用户注销api;
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
@@ -226,7 +221,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
         instance.status = Customer.DELETE
         instance.save()
     
-    
+    @list_route(methods=['post'])
+    def customer_logout(self, request):
+        logout(request)
+        return Response({"result": 'logout'})
     
     
 
