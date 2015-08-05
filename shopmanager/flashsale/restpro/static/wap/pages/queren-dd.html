@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>小鹿美美</title>
+<meta charset="UTF-8">
+<meta id="viewport" name="viewport" />
+<script src="../js/common.js"></script>
+<link rel="stylesheet" href="../css/common.css">
+<link rel="stylesheet" href="../css/queren-dd.css">
+</head>
+<body>
+<div class="header">
+  <h1>确认订单</h1>
+  <a class="back" href="javascript:history.go(-1)"></a>
+  <a class="user" href="gerenzhongxin.html"></a>
+</div>
+
+<ul id="js-addr" class="addr">
+  <li>
+    <a class="add" href="#">
+      <p class="label1">收货地址</p>
+      <p class="label2">新增收货地址</p>  
+    </a>
+  </li>
+  <script id="addr-template" type="text/html">
+  <li class="{{ addr_class }}">
+    <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
+    <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
+    <a class="icon-edit"></a>
+    <i class="icon-radio" addrid={{ id }}></i>
+  </li>
+  </script>
+</ul>
+
+
+<div class="cost">
+  <h2>费用详情</h2>
+  <div>
+    <p class="label1">商品总金额<span>¥ 0</span></p>
+    <p class="label2">小鹿美美运费<span>¥ 0</span></p>
+  </div>
+</div>
+
+
+<div class="coupons">
+  <div class="title">
+    <div class="inner">可用优惠券（0）</div>
+  </div>
+  <ul class="coupons-list">
+  <script id="coupon-template" type="text/html">
+  <li class="type1">
+      <p class="name">{{ coupon_name }}</p>
+      <p class="date">{{ created }} - {{ end }}</p>
+      <i class="icon-radio {{ coupon_class }}"></i>
+  </li>
+  </script>
+  </ul>
+</div>
+
+<div id="#js-pay-type" class="pay-type">
+  <h2>支付方式</h2>
+  <ul class="pay-list">
+<!--  	<li><i></i>货到付款（现金）</li>-->
+  </ul>
+</div>
+
+<div class="buy">
+  <p class="cou">优惠金额：<span>￥ 0</span></p>
+  <p class="total">总金额：<span>￥ 0</span></p>
+  <a class="btn-buy">购&nbsp;&nbsp;买</a>
+</div>
+<div class="pay-form">
+<script id="form-template" type="text/html">
+<form id="pay-form" action="#" method="POST">
+<input type="hidden" name="uuid" value="{{uuid}}" />
+<input type="hidden" name="cart_ids" value="{{cart_ids}}" />
+<input type="hidden" name="payment" value="{{ total_payment }}" />
+<input type="hidden" name="post_fee" value="{{ post_fee }}" />
+<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
+<input type="hidden" name="total_fee" value="{{ total_fee }}" />
+</form>
+</script>
+</div>
+<script src="http://cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+<script src="http://aui.github.io/artTemplate/dist/template.js"></script>
+<script src="../js/pingpp_pay.js"></script>
+<script src="../js/pingpp_ap.js"></script>
+<script src="../js/tmpay.js"></script>
+<script type="text/javascript">
+(function($){
+  
+  //地址切换
+  $('#js-addr li').live({
+  	touchend:change_address,
+  	click:change_address
+  });
+  //支付方式切换
+  $('#js-pay-type li').live({
+  	touchend:change_paytype,
+  	click:change_paytype
+  });
+  //获取用户地址
+  Set_user_address(GLConfig.get_user_address);
+  //获取用户优惠券
+  //Set_user_coupons(GLConfig.today_suffix);
+  //获取购买信息
+  var urlParams = parseUrlParams(window.location.href);
+  var urlConf = {'cart_ids':urlParams['cart_ids']};
+  Set_user_orderinfo(GLConfig.get_cart_payinfo_url.template(urlConf));
+  
+  $('.buy .btn-buy').on('click',Ctrl_sure_charge);
+})(jQuery);
+
+function change_address(){
+    $('#js-addr li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+}
+function change_paytype(){
+    $('#js-addr li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+}
+</script>
+</body>
+</html>

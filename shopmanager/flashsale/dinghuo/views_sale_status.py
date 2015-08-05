@@ -51,7 +51,7 @@ class SaleHotView(View):
 
 
 from django.db.models import Q
-
+from shopback.categorys.models import ProductCategory
 
 class TopStockView(View):
     @staticmethod
@@ -87,8 +87,17 @@ class TopStockView(View):
                 continue
             outer_idset.add(outer_id)
             if router_id not in sale_top:
+                if product.category.is_parent == 1:
+                    category_name = product.category.name
+                else:
+                    cate = ProductCategory.objects.filter(cid=product.category.parent_cid)
+                    if cate.count() > 0:
+                        category_name = cate[0].name
+                    else:
+                        category_name = ""
                 sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num,
-                                       'sale_time': str(product.sale_time) if product.sale_time else ""}
+                                       'sale_time': str(product.sale_time) if product.sale_time else "",
+                                       "category": category_name}
             else:
                 sale_top[router_id]['collect_num'] += product.collect_num
 
