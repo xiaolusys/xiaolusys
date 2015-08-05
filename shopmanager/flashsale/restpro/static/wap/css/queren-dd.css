@@ -54,14 +54,17 @@
   display: block;
   width: 22px;
   height: 22px;
-  background-image:url(../images/icon-radio.png);
   top:23px;
   left: 42px;
 }
-.addr .icon-radio-select{
-  background-image:url(../images/icon-radio-select.png);
+
+.addr li.normal i, .pay-list li.normal i{
+	background-image: url(../images/icon-radio.png);
 }
 
+.addr li.active i, .pay-list li.active i{
+	background-image: url(../images/icon-radio-select.png);
+}
 
 .cost{
   width: 640px;
@@ -206,13 +209,7 @@
   top: 50%;
 	margin-top:-11px;
   left: 42px;
-	background-image: url(../images/icon-radio.png);
 }
-.pay-list li i.cur{
-	background-image: url(../images/icon-radio-select.png);
-}
-
-
 
 .buy{
 	width:640px;

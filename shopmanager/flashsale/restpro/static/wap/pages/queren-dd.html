@@ -15,7 +15,7 @@
   <a class="user" href="gerenzhongxin.html"></a>
 </div>
 
-<ul class="addr">
+<ul id="js-addr" class="addr">
   <li>
     <a class="add" href="#">
       <p class="label1">收货地址</p>
@@ -23,11 +23,11 @@
     </a>
   </li>
   <script id="addr-template" type="text/html">
-  <li>
+  <li class="{{ addr_class }}">
     <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
     <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
     <a class="icon-edit"></a>
-    <i class="icon-radio {{ addr_class }}" addrid={{ id }}></i>
+    <i class="icon-radio" addrid={{ id }}></i>
   </li>
   </script>
 </ul>
@@ -57,7 +57,7 @@
   </ul>
 </div>
 
-<div class="pay-type">
+<div id="#js-pay-type" class="pay-type">
   <h2>支付方式</h2>
   <ul class="pay-list">
 <!--  	<li><i></i>货到付款（现金）</li>-->
@@ -88,6 +88,17 @@
 <script src="../js/tmpay.js"></script>
 <script type="text/javascript">
 (function($){
+  
+  //地址切换
+  $('#js-addr li').live({
+  	touchend:change_address,
+  	click:change_address
+  });
+  //支付方式切换
+  $('#js-pay-type li').live({
+  	touchend:change_paytype,
+  	click:change_paytype
+  });
   //获取用户地址
   Set_user_address(GLConfig.get_user_address);
   //获取用户优惠券
@@ -99,6 +110,15 @@
   
   $('.buy .btn-buy').on('click',Ctrl_sure_charge);
 })(jQuery);
+
+function change_address(){
+    $('#js-addr li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+}
+function change_paytype(){
+    $('#js-addr li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+}
 </script>
 </body>
 </html>

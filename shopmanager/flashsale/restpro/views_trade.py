@@ -164,7 +164,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         has_deposite = 0 
         wallet_cash  = 0 
         for cart in queryset:
-            total_fee +=  cart.total_fee
+            total_fee +=  cart.price * cart.num
             has_deposite |= cart.is_deposite()
                 
         xlmm = None
@@ -474,6 +474,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             cart_payment += cart.price * cart.num * 100
         
         cart_payment = cart_payment + post_fee #- discount_fee
+        print 'debug payment:',post_fee,payment,cart_payment
         if post_fee < 0 or payment < 0 or payment != cart_payment:
             raise exceptions.ParseError(u'付款金额异常')
         
