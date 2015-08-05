@@ -69,14 +69,17 @@
                 <th width="20%">商品编码</th>
                 <th width="20%">商品名称</th>
                 <th width="20%">上架时间</th>
+                <th width="20%">分类</th>
                 <th width="20%">库存数</th>
                 </thead>
                 <tbody>
                 {% for pro in sale_list %}
                     <tr>
+
                         <td><a href="/admin/items/product/?q={{ pro.0 }}" target="_blank">{{ pro.0 }}</a></td>
                         <td>{{ pro.1.name }}</td>
                         <td>{{ pro.1.sale_time }}</td>
+                        <td>{{ pro.1.category }}</td>
                         <td>{{ pro.1.collect_num }}</td>
                     </tr>
                 {% endfor %}
