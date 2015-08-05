@@ -114,3 +114,12 @@
     color: #fff;
     background-color: #62cfc9;
 }
+
+.header a.home {
+    display: block;
+    width: 88px;
+    height: 88px;
+    position: absolute;
+    right: 0px;
+    background: url(../images/icon-shouye.png) no-repeat center center;
+}

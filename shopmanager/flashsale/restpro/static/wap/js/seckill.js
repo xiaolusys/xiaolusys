@@ -31,6 +31,7 @@ function Set_orders() {
     var requestCallBack = function (data) {
         if (data.count != 'undifine' && data.count != null) {
             console.log('debug results:', data.results);
+            $("#loading").hide();
             $.each(data.results,
                 function (index, product) {
 
@@ -46,6 +47,9 @@ function Set_orders() {
         url: requestUrl,
         data: {},
         dataType: 'json',
+        beforeSend: function () {
+            $("#loading").show();
+        },
         success: requestCallBack
     });
 }

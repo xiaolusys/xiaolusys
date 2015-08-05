@@ -3,7 +3,10 @@
 <head>
     <title>小鹿美美</title>
     <meta charset="UTF-8">
-    <meta id="viewport" name="viewport"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="format-detection" content="email=no"/>
+    <meta name="format-detection" content="telephone=no"/>
+   	<meta id="viewport" name="viewport" />
     <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
     <script src="../js/common.js"></script>
     <link rel="stylesheet" href="../css/swiper3.07.min.css">
@@ -21,7 +24,6 @@
         <div class="swiper-pagination"></div>
     </div>
   <a class="btn-back" href="javascript:history.go(-1)"></a>
-
 </div>
 <!-- 商品详细信息 -->
 <div class="goods-content">
@@ -93,31 +95,32 @@
 <script src="../js/tmsp.js"></script>
 <script src="../js/jquery-shopping.js"></script>
 <script>
-    (function ($) {
-        //商品尺寸切换
-        $('#js-goods-size li.normal').live('touchend', function () {
-            $('#js-goods-size li.active').removeClass('active').addClass('normal');
-            $(this).removeClass('normal').addClass('active');
-        });
-        $('#js-goods-size li.normal').on('click', function () {
-            $('#js-goods-size li.active').removeClass('active').addClass('normal');
-            $(this).removeClass('normal').addClass('active');
-        });
+(function ($) {
+    //商品尺寸切换
+    $('#js-goods-size li.normal').live({
+    	touchend:change_goodsize,
+    	click:change_goodsize
+    });
 
-        //返回顶部
-        $('#js-scroll-top').on('touchend', function (e) {
-            e.preventDefault();
-            $('body').animate({scrollTop: 0}, 400);
-        });
-        //设置商品详情
-        var urlParams = parseUrlParams(window.location.href);
-        var urlConf = {'product_id': urlParams['id']};
-        var product_url = GLConfig.get_product_detail_url.template(urlConf);
+    //返回顶部
+    $('#js-scroll-top').on('touchend', function (e) {
+        e.preventDefault();
+        $('body').animate({scrollTop: 0}, 400);
+    });
+    //设置商品详情
+    var urlParams = parseUrlParams(window.location.href);
+    var urlConf = {'product_id': urlParams['id']};
+    var product_url = GLConfig.get_product_detail_url.template(urlConf);
 
-        Set_product_detail(product_url);
-        Set_shopcarts_num();
-        $('.add-cart').shoping();
-    })(jQuery);
+    Set_product_detail(product_url);
+    Set_shopcarts_num();
+    $('.add-cart').shoping();
+})(jQuery);
+
+function change_goodsize() {
+    $('#js-goods-size li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+}
 </script>
 </body>
 </html>

@@ -3,6 +3,10 @@
 <head>
 <title>小鹿美美</title>
 <meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="format-detection" content="email=no"/>
 <meta id="viewport" name="viewport" />
 <script src="../js/common.js"></script>
 <link rel="stylesheet" href="../css/common.css">
@@ -17,8 +21,7 @@
 
 <ul id="js-addr" class="addr">
   <li>
-    <a class="add" href="#">
-      <p class="label1">收货地址</p>
+    <a class="add" href="shouhuodz.html">
       <p class="label2">新增收货地址</p>  
     </a>
   </li>
@@ -32,7 +35,6 @@
   </script>
 </ul>
 
-
 <div class="cost">
   <h2>费用详情</h2>
   <div>
@@ -40,7 +42,6 @@
     <p class="label2">小鹿美美运费<span>¥ 0</span></p>
   </div>
 </div>
-
 
 <div class="coupons">
   <div class="title">
@@ -57,9 +58,9 @@
   </ul>
 </div>
 
-<div id="#js-pay-type" class="pay-type">
+<div class="pay-type">
   <h2>支付方式</h2>
-  <ul class="pay-list">
+  <ul id="js-pay-type" class="pay-list">
 <!--  	<li><i></i>货到付款（现金）</li>-->
   </ul>
 </div>
@@ -114,11 +115,12 @@
 function change_address(){
     $('#js-addr li.active').removeClass('active').addClass('normal');
     $(this).removeClass('normal').addClass('active');
-}
+};
 function change_paytype(){
-    $('#js-addr li.active').removeClass('active').addClass('normal');
+	console.log('click paytype');
+    $('#js-pay-type li.active').removeClass('active').addClass('normal');
     $(this).removeClass('normal').addClass('active');
-}
+};
 </script>
 </body>
 </html>

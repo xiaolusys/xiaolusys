@@ -94,7 +94,7 @@ function Set_promotes_product(suffix){
 	var promoteUrl = GLConfig.baseApiUrl + '/products/promote_'+ suffix +'.json';
 	
 	var promoteCallBack = function(data){
-
+        $("#loading").hide();
 		if (!isNone(data.female_list)){
 			
 			$('.glist .nvzhuang').empty();
@@ -124,7 +124,10 @@ function Set_promotes_product(suffix){
 		type:'get', 
 		url:promoteUrl, 
 		data:{}, 
-		dataType:'json', 
+		dataType:'json',
+        beforeSend: function () {
+            $("#loading").show();
+        },
 		success:promoteCallBack 
 	}); 
 	
@@ -136,6 +139,7 @@ function Set_category_product(suffix){
 	
 	var promoteCallBack = function(data){
 		if (!isNone(data.results)){
+            $("#loading").hide();
 			//设置女装推荐链接及图片
 			$.each(data.results,
 				function(index,p_obj){
@@ -150,7 +154,10 @@ function Set_category_product(suffix){
 		type:'get', 
 		url:promoteUrl, 
 		data:{}, 
-		dataType:'json', 
+		dataType:'json',
+        beforeSend: function () {
+            $("#loading").show();
+        },
 		success:promoteCallBack 
 	}); 
 	
@@ -161,6 +168,7 @@ function Set_model_product(suffix){
 	var promoteUrl = GLConfig.baseApiUrl + suffix;
 	
 	var promoteCallBack = function(data){
+        $("#loading").hide();
 		//设置女装推荐链接及图片
 		$.each(data,
 			function(index,p_obj){
@@ -174,7 +182,10 @@ function Set_model_product(suffix){
 		type:'get', 
 		url:promoteUrl, 
 		data:{}, 
-		dataType:'json', 
+		dataType:'json',
+        beforeSend: function () {
+            $("#loading").show();
+        },
 		success:promoteCallBack 
 	}); 
 	

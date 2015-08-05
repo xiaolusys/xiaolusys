@@ -204,11 +204,13 @@ class PINGPPCallbackView(View):
         
         content = request.body 
         logger.debug('pingpp callback:%s'%content )
-
-        # 读取异步通知数据
-        notify   = json.loads(content)
-        response = ''
+        try:
+            # 读取异步通知数据
+            notify   = json.loads(content)
+        except:
+            return HttpResponse('no params')
         
+        response = ''
         # 对异步通知做处理
         if 'object' not in notify:
             response = 'fail'
