@@ -102,12 +102,12 @@ function Create_order_top_dom(obj){
 	function Top_dom(){
 	/*
     <ul class="u1">
-      <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa">{{ status_display }}</span></li>
+      <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa" id="status_display">{{ status_display }}</span></li>
       <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">{{ tid }}</span></li>
       <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">{{ created }}</span></li>
       <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
     </ul>
-    <a href="#" class="btn-quxiao">取消订单</a>
+    <a  class="btn-quxiao">取消订单</a>
 	*/};
 	return hereDoc(Top_dom).template(obj);
 }
@@ -205,6 +205,8 @@ function Set_order_detail(suffix){
 					$('.basic .panel-bottom').append(detail_dom);			
 				}
 			);
+
+            Cancel_order(suffix);//页面加载完成  调用 取消订单功能
 		}
 	};
 	// 发送请求
@@ -215,6 +217,43 @@ function Set_order_detail(suffix){
 		dataType:'json', 
 		success:requestCallBack 
 	}); 
+}
+
+function Cancel_order(suffix) {
+    // 取消订单
+    $(".btn-quxiao").click(function () {
+        if ($("#status_display").html() == "交易关闭") {
+            drawToast("交易已经取消！");
+        }
+        else {
+            var cancel_bt = $(".btn-quxiao");
+            //取消订单
+            var arr = suffix.split('/'); //分割字符串获取订单id  /trades/78/orders/details.json
+            var requestUrl = GLConfig.baseApiUrl + GLConfig.delete_detail_trade.template({"trade_id": arr[2]});
+             ///rest/v1/trades/77  请求的地址
+            if (cancel_bt.hasClass('loading')) {
+                return;
+            }
+            cancel_bt.addClass('loading');
+            function requestCallBack(res) {
+                if (res['ok']) {
+                    $("#status_display").html("交易关闭");
+                    cancel_bt.removeClass('loading');
+                }
+                else{
+                    drawToast("取消失败，请尝试刷新页面！");
+                }
+            }
+
+            $.ajax({
+                type: 'post',
+                url: requestUrl,
+                data: {'csrfmiddlewaretoken': csrftoken, '_method': 'DELETE'},//封装请求要求的request.data
+                dataType: 'json',
+                success: requestCallBack
+            });
+        }
+    });
 }
 
 

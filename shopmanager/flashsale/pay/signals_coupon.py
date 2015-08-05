@@ -35,6 +35,8 @@ def add_Order_Integral(sender, instance, created, **kwargs):
     cus = Customer.objects.get(id=trade.buyer_id)  # 由交易的buyer_id找
     buyer_id = trade.buyer_id  # 用户ID
     orid = instance.id  # order id
+    if instance.outer_id == 'RMB100':    # 代理费不需要生成积分
+        return
     if created and order_created >= INTEGRAL_START_TIME and instance.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
         # 生成时间必须是大于活动开始时间  AND  必须是已经付款的才有积分记录   # SaleOrder.WAIT_SELLER_SEND_GOODS  # 已经付款
         integrallog = get_IntegralLog(buyer_id, orid)

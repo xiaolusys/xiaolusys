@@ -1,0 +1,90 @@
+{% extends "admin/trades/change_trade_form.html" %}
+{% load i18n %}
+
+{% block submit_buttons_bottom %}
+    {% load trade_tags %}
+    {% trade_submit_row %}
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            jQuery('head').append('<link>');
+            a = jQuery('head').children(':last');
+            a.attr({
+                rel: 'stylesheet',
+                type: 'text/css',
+                href: '{{ STATIC_URL }}css/jquery-ui-1.10.1.css'
+            });
+            $("#pop_div").remove();
+            var pop_div = '<div id="pop_div" title="选择作废原因" style="text-align:center"><br>' +
+                    '<select style="background: yellow " class="select_reason" id="reason_select" style="width:100px" >' +
+                    '<option value="" selected="selected">-----------</option>' +
+                    '<option value="0">其他</option>' +
+                    '<option value="1">错拍</option>' +
+                    '<option value="2">缺货</option>' +
+                    '<option value="3">没有发货</option>' +
+                    '<option value="4">未收到货</option>' +
+                    '<option value="5">与描述不符</option>' +
+                    '<option value="6">七天无理由退换货</option>' +
+                    '</select></div>';
+            $("body").append(pop_div);
+            $("input[name='_invalid']").attr('id', 'pop_r');
+            $("#pop_div").dialog({
+                autoOpen: false,
+                show: {
+                    effect: "blind",
+                    duration: 1000
+                },
+                hide: {
+                    effect: "explode",
+                    duration: 1000
+                }
+            });
+
+            $("#pop_r").click(function () {
+                $("#pop_div").dialog("open");
+            });
+
+            console.log('is running ...');
+
+            $("input[name='_invalid']").click(function (e) {
+                e.preventDefault(); //阻止form 提交动作
+                var commit = $('form');
+                var callback = function (resp) {
+                    console.log('debug: resp ', resp);
+                    window.location.reload(true);
+                    window.close();
+                };
+                var form_array = commit.serializeArray();
+                var params = {};
+                $.each(form_array, function (i, n) {
+                    params[n['name']] = n['value'];
+                });
+                $("#reason_select").change(function () {
+                    var reason_val = this.value;
+                    var tid = params.tid;
+                    $("#reason_select").css('background', 'green');
+                    var data = {"tid": tid, "reason": reason_val};
+                    //创建退货款单 带上原因
+                    var url = "/refunds/refund_invalid_create/";
+                    var callback1 = function (res) {
+                        console.log("debug: res ", res);
+                        params['_invalid'] = '';
+                        $.post(commit.attr('action'), params, callback);//提交当前表单
+                    };
+                    $.ajax({"url": url, "data": data, "type": "POST", "success": callback1});
+                });
+
+                return false;
+            });
+        })
+        ;
+
+    </script>
+{% endblock extrahead %}
+
+

@@ -11,6 +11,7 @@ from django.template import RequestContext
 import operator
 from shopback.trades.models import MergeTrade
 from shopback import paramconfig as pcfg
+
 """
     # (0, u'其他'),
     # (1, u'错拍'),
@@ -87,7 +88,7 @@ def refund_Analysis(request):
 
     top_re = refund_pros.values('outer_id', 'title').annotate(t_num=Sum('num'))
     if len(top_re) > 50:
-        top_re = sorted(top_re, key=operator.itemgetter('t_num'))   # 排序
+        top_re = sorted(top_re, key=operator.itemgetter('t_num'))  # 排序
         top_re = top_re[len(top_re) - 50:]
 
     # 有时间的情况 输出总的 对应时间的退货产品统计内容
@@ -108,10 +109,10 @@ def refund_Analysis(request):
     return render_to_response("refunds/refund_analysis.html",
                               {"ref_co": ref_co, "ref_am": ref_am,
                                "ref_su_co": ref_su_co, 'ref_su_am': ref_su_am,
-                                "merge_wait_invalud_counts":merge_wait_invalud_counts,
-                               "merge_refund_invalud_counts":merge_refund_invalud_counts,
+                               "merge_wait_invalud_counts": merge_wait_invalud_counts,
+                               "merge_refund_invalud_counts": merge_refund_invalud_counts,
                                "merge_counts": merge_counts,
-                               #"refund_rate": refund_rate,
+                               # "refund_rate": refund_rate,
 
                                "wait_invalud_payment": wait_invalud_payment,
                                "refund_invalud_payment": refund_invalud_payment,
@@ -138,3 +139,31 @@ def refund_Reason(request):
         return HttpResponse('ok')
     except:
         return HttpResponse('change error')
+
+
+@csrf_exempt
+def refund_Invalid_Create(request):
+    """
+    在审核订单的时候作废了，生成对应原因的退货款单
+    """
+    REASON = (u"其他", u"错拍", u"缺货", u"没有发货", u"未收到货", u"与描述不符", u"七天无理由退换货")
+    content = request.REQUEST
+    tid = content.get("tid", None)
+    reason = int(content.get("reason", None))
+    try:
+        trade = MergeTrade.objects.get(tid=tid)
+        ref = Refund()
+        ref.tid = tid
+        ref.user = trade.user  # 店铺
+        ref.buyer_nick = trade.buyer_nick  # 买家昵称
+        ref.mobile = trade.receiver_mobile  # 手机
+        ref.total_fee = trade.total_fee  # 总费用
+        ref.payment = trade.payment  # 退款费用
+        ref.company_name = trade.logistics_company  # 快递公司
+        ref.sid = trade.out_sid  # 快递单号
+        ref.reason = REASON[reason]  # 原因
+        ref.order_status = trade.get_status_display()  # 订单状态
+        ref.save()
+        return HttpResponse("ok")
+    except:
+        return HttpResponse('error')
