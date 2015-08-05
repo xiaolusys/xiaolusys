@@ -270,10 +270,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         :param kwargs:
         :return:
         """
-
+        # 今日上架时间，shelf_status=已上架
+        today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
 
-        queryset = queryset.filter(category=11)
+        queryset = queryset.filter(sale_time=today_dt, category=11, shelf_status=1)
 
         queryset = self.myfilter_queryset(queryset, history='none', time_line=0)
 
