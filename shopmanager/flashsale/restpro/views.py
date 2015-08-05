@@ -60,57 +60,66 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(cus_uid=customer.id)
+        return self.queryset.filter(cus_uid=customer.id, status='normal')
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         page = self.paginate_queryset(queryset)
+
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)    
-#fang kaineng  2015-7-31    
-    def detail(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
-        #print customer.id
-        queryset=UserAddress.objects.filter(cus_uid=customer.id)
-        serializer = self.get_serializer(queryset, many=True)
-        pass
-        return    Response(serializer.data)
-        
 
+        
     @detail_route(methods=['post'])
-    def delete(self, request, pk=None):
+    def update(self, request, *args, **kwargs):
+        customer = get_object_or_404(Customer,user=request.user)
+        customer_id=customer.id     #  获取用户id
+        content = request.REQUEST
+        id = content.get('id',None)
+        receiver_state = content.get('receiver_state',None)
+        receiver_city = content.get('receiver_city',None)
+        receiver_district = content.get('receiver_district',None)
+        receiver_address= content.get('receiver_address',None)
+        receiver_name=content.get('receiver_name',None)
+        receiver_mobile=content.get('receiver_mobile',None)
+        UserAddress.objects.filter(id=id).update(
+            cus_uid=customer_id,
+            receiver_name=receiver_name,
+            receiver_state=receiver_state,
+            receiver_city=receiver_city,
+            receiver_district=receiver_district,
+            receiver_address=receiver_address,
+            receiver_mobile=receiver_mobile)
+        return Response("0")
 
+    @detail_route(methods=["post"])
+    def delete_address(self, request, pk=None):
         instance = self.get_object()
-        
         instance.status = UserAddress.DELETE
         instance.save()
-        
-        return Response({'ret':True})
+        return Response({'ret': True})
     
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
-        #print ("change default")
-        content = request.REQUEST
-        id_default = content.get('id',None)
-        result={}
+        id_default = pk
+        result = {}
         try:
             customer = get_object_or_404(Customer,user=request.user)
-            other_addr=UserAddress.objects.filter(cus_uid=customer.id)
-            for one  in  other_addr:
-                print one.default
-                one.default=False
+            other_addr = UserAddress.objects.filter(cus_uid=customer.id)
+            for one in other_addr:
+                one.default = False
                 one.save()
-            default_addr=UserAddress.objects.get(id=id_default)
-            default_addr.default=True
+            default_addr = UserAddress.objects.get(id=id_default)
+            default_addr.default = True
             default_addr.save()
-            result['ret']=True
+            result['ret'] = True
         except:
-            result['ret']=False
-        return    Response(result)
+            result['ret'] = False
+        return Response(result)
     
     @detail_route(methods=['post'])
     def create_address(self, request, pk=None):
@@ -126,8 +135,15 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         UserAddress.objects.create(  cus_uid= customer_id, receiver_name =  receiver_name,  receiver_state    = receiver_state , receiver_city    =  receiver_city,receiver_district  =   receiver_district,receiver_address   =  receiver_address, receiver_mobile    =  receiver_mobile   )
         return Response({"22":55})
 
+    @list_route(methods=['get'])
+    def get_one_address(self, request):
+        id = request.GET.get("id")
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        qs = queryset.filter(id=id)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
 
-    
+
 class DistrictViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
@@ -156,17 +172,15 @@ class DistrictViewSet(viewsets.ModelViewSet):
      
     @list_route(methods=['get'])
     def province_list(self, request, *args, **kwargs):
-        queryset=District.objects.filter(grade=1)
+        queryset = District.objects.filter(grade=1)
         serializer = self.get_serializer(queryset, many=True)
-        pass
         return Response(serializer.data)
     
     @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
         content = request.REQUEST
         province_id = content.get('id',None)
-        print  province_id
-        queryset=District.objects.filter(parent_id=province_id)
+        queryset = District.objects.filter(parent_id=province_id)
         serializer = self.get_serializer(queryset, many=True)
         pass
         return Response(serializer.data) 
@@ -176,7 +190,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         city_id = content.get('id',None)
         print  city_id
-        queryset=District.objects.filter(parent_id=city_id)
+        queryset = District.objects.filter(parent_id=city_id)
         serializer = self.get_serializer(queryset, many=True)
         pass
         return Response(serializer.data)    

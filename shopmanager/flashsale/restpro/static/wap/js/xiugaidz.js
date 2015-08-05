@@ -1,26 +1,3 @@
-/*
- * author :方凯能
- * 内容：增加收货地址
- * 日期：2015-8-1
- * */
-
-
-
-
-
-
-
-
-
-
-
-//$(function(){
-//alert("ok");
-province_list();
-
-
-//})
-
 function province_list() {
     var selectid = document.getElementById("s_province");
     selectid.options.length = 0;
@@ -61,8 +38,6 @@ function province_list() {
 function setSecond(obj) {
     selected_province = $("#s_province option:selected");
     province_id = selected_province.val()    //获取省份的id
-    //alert(selected_province.val());
-    //console.info(obj)
     var selectid = document.getElementById("s_city");
     selectid.options.length = 0;
     selectid[0] = new Option("请选择市", 0);
@@ -71,14 +46,15 @@ function setSecond(obj) {
     var requestCallBack = function (data) {
 
         for (var i = 1; i <= data.length; i++) {
-            //alert(data[i].name)
+
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
 
         //alert(typeof(data))
         //console.info(data)
-
+        $("#s_city option:contains(" + receiver_city + ")").attr("selected", true);
+        setThird();
     };
     // 发送请求
     $.ajax({
@@ -96,8 +72,6 @@ function setSecond(obj) {
 function setThird(obj) {
     selected_city = $("#s_city option:selected");
     city_id = selected_city.val()    //获取城市的id
-    //alert(selected_province.val());
-    //console.info(obj)
     var selectid = document.getElementById("s_country");
     selectid.options.length = 0;
     selectid[0] = new Option('请选择区/县', 0);
@@ -110,8 +84,7 @@ function setThird(obj) {
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
-        //alert(typeof(data))
-        //console.info(data)
+        $("#s_country option:contains(" + receiver_district + ")").attr("selected", true);
     };
     // 发送请求
     $.ajax({
@@ -124,11 +97,54 @@ function setThird(obj) {
 }
 
 
-//保存事件
+var receiver_state;
+var receiver_district;
+var receiver_city;
+//shuchihua
+function test(up_id) {
 
-$(".btn-save").click(function () {
+    selected_city = $("#s_city option:selected");
+    city_id = selected_city.val()    //获取城市的id
+    //alert(selected_province.val());
+    //console.info(obj)
+    var selectid = document.getElementById("s_country");
+    selectid.options.length = 0;
+    selectid[0] = new Option('请选择区/县', 0);
+    //请求成功回调函数
+    var requestUrl = GLConfig.baseApiUrl + "/address/get_one_address";
+    var requestCallBack = function (data) {
 
-    //alert("保存");
+
+        console.info(data[0]);
+
+        receiver_state = data[0].receiver_state;
+        receiver_district = data[0].receiver_district;
+        receiver_city = data[0].receiver_city;
+        $("#s_province option:contains(" + receiver_state + ")").attr("selected", true);
+        setSecond();
+        document.getElementById('inputReceiverAddress').value = data[0].receiver_address;
+        document.getElementById('inputReceiverName').value = data[0].receiver_name;
+        document.getElementById('inputReceiverMobile').value = data[0].receiver_mobile;
+        document.getElementById('up_id').value = data[0].id;
+
+    };
+    // 发送请求
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: {"csrfmiddlewaretoken": csrftoken, "id": up_id},
+        dataType: 'json',
+        success: requestCallBack
+    });
+}
+
+
+//修改事件
+
+$("#btn-up").click(function () {
+
+    var id = $('#up_id').val();
+
     var receiver_name = $('#inputReceiverName').val();
     var receiver_mobile = $('#inputReceiverMobile').val();
     var receiver_state = $('#s_province  option:selected').text();//省
@@ -149,8 +165,6 @@ $(".btn-save").click(function () {
         $('p').html('请选择城市');
         return false
     }
-    //var district_options = $('#inputReceiverDistrict option');
-    //if (receiver_district == '请选择区/县' && district_options.length != 0){
     if (receiver_district == '请选择区/县' || receiver_district == '') {
         $('p').html('请选择区/县');
         return false
@@ -168,41 +182,28 @@ $(".btn-save").click(function () {
         return false
     }
     //请求成功回调函数
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.create_address
+    var reqUrl = GLConfig.baseApiUrl + GLConfig.update
     var requestCallBack = function (data) {
-        //alert(data)
-        //alert(typeof(data))
-        //console.info(data)
+        alert("修改成功！")
         window.location.href = "shouhuodz.html"
     };
     // 发送请求
     $.ajax({
         type: 'post',
-        url: requestUrl,
+        url: reqUrl,
         data: {
             "csrfmiddlewaretoken": csrftoken,
+            "id": id,
             "receiver_state": receiver_state,
             "receiver_city": receiver_city,
             "receiver_district": receiver_district,
             "receiver_address": receiver_address,
             "receiver_name": receiver_name,
-            "receiver_mobile": receiver_mobile,
+            "receiver_mobile": receiver_mobile
         },
         dataType: 'json',
         success: requestCallBack
     });
-
-
-})
-
-
-
-
-
-
-
-
-
-
+});
 
 
