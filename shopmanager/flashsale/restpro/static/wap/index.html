@@ -32,14 +32,14 @@
       <a class="nvzhuang" href="#">
         <img src="#">
         <p class="subject"><span class="tips"></span></p>
-        <div class="shengyu"><i></i>剩余2天</div>
+        <div class="shengyu"><i></i><div class="poster_timer">剩余2天</div></div>
       </a>
     </dd>
     <dd>
       <a class="chaotong" href="#">
         <img src="#">
         <p class="subject"><span class="tips"></span></p>
-        <div class="shengyu"><i></i>剩余2天</div>
+        <div class="shengyu"><i></i><div class="poster_timer">剩余2天</div></div>
       </a>
     </dd>
   </dl>
@@ -47,7 +47,7 @@
 <div class="glist ">
   <div class="header">
     <div class="text"><i></i>潮童专区</div>
-    <div class="shengyu"><i></i>剩余2天1小时</div>
+    <div class="shengyu"><i></i><div class="poster_timer">剩余2天1小时</div></div>
   </div>
   <ul class="chaotong">
     <li>
@@ -75,7 +75,7 @@
 <div class="glist">
   <div class="header">
     <div class="text"><i></i>时尚女装</div>
-    <div class="shengyu"><i></i>剩余2天1小时</div>
+    <div class="shengyu"><i></i><div class="poster_timer">剩余2天1小时</div></div>
   </div>
   <ul class="nvzhuang">
     <li>
@@ -100,6 +100,7 @@
     </li>
   </ul>
 </div>
+
 <div id="loading"><span class="timer-loader"></span></div>
 <a class="cart" href="pages/gouwuche.html"><span class="total">2</span></a>
 <div class="scroll-top" id="js-scroll-top"></div>
@@ -134,7 +135,8 @@
   //获取今日推荐商品
   Set_promotes_product(GLConfig.today_suffix);
   //获取购物车商品数
-  Set_shopcarts_num()
+  Set_shopcarts_num();
+    today_timer();
 })(jQuery);
 </script>
 </body>
