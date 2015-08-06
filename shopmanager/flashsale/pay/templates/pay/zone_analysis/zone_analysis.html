@@ -108,12 +108,11 @@
                     for (var i = 0; i < rowCount; i++) {
                         var tr = $("<tr></tr>");
                         tr.appendTo(table);
-                        console.log(res[0][1]);
                         for (var j = 0; j < 2; j++) {
                             var td = $("<td>" + res[i][j] + "</td>");
                             td.appendTo(tr);
                         }
-                        var percent_td = $("<td>" +(res[i][1]/res[0][1]).toFixed(3)+ "</td>");
+                        var percent_td = $("<td>" + (res[i][1] / res[0][1]).toFixed(3) + "</td>");
                         percent_td.appendTo(tr);
 
 
@@ -151,7 +150,7 @@
                             var td = $("<td>" + res[i][j] + "</td>");
                             td.appendTo(tr);
                         }
-                        var percent_td = $("<td>" +(res[i][1]/res[0][1]).toFixed(3)+ "</td>");
+                        var percent_td = $("<td>" + (res[i][1] / res[0][1]).toFixed(3) + "</td>");
                         percent_td.appendTo(tr);
                     }
                     tr.appendTo(table);
@@ -165,5 +164,7 @@
             });
 
         });
+
+
     </script>
 {% endblock %}
