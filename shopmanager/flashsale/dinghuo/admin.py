@@ -38,7 +38,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
-    search_fields = ['id']
+    search_fields = ['id', '=supplier_name']
     date_hierarchy = 'created'
 
     def queryset(self, request):
@@ -59,8 +59,8 @@ class ordelistAdmin(admin.ModelAdmin):
     quantity.short_description = "商品数量"
 
     def supply_chain(self, obj):
-        return u'<a href="{0}" target="_blank">{1}</a>'.format(obj.supplier_name,
-                                                               obj.supplier_shop or (obj.supplier_name and '商品链接' ))
+        return u'<div style="width: 150px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"><a href="{0}" target="_blank" >{1}</a></div>'.format(obj.supplier_name,
+                                                               obj.supplier_shop or obj.supplier_name)
 
     supply_chain.allow_tags = True
     supply_chain.short_description = "供应商"
