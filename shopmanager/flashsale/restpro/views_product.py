@@ -147,6 +147,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    def order_queryset(self,request,queryset):
+        """ 对集合列表进行排序 """
+        order_by = request.REQUEST.get('order_by')
+        if order_by == 'price':
+            queryset = queryset.order_by('-agent_price')
+        else:
+            queryset = queryset.order_by('-details__is_recommend')
+        return queryset
     
     def get_female_qs(self,queryset):
         return queryset.filter(outer_id__startswith='8',outer_id__endswith='1')
@@ -188,9 +196,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def childlist(self, request, *args, **kwargs):
         """ 获取特卖童装列表 """
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(shelf_status=Product.UP_SHELF).order_by('-details__is_recommend')
-        
-        child_qs = self.get_child_qs(queryset)
+        queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+   
+        child_qs = self.order_queryset(request, self.get_child_qs(queryset))
         page = self.paginate_queryset(child_qs)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -206,7 +214,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(shelf_status=Product.UP_SHELF).order_by('-details__is_recommend')
         
-        female_qs = self.get_female_qs(queryset)
+        female_qs = self.order_queryset(request,self.get_female_qs(queryset))
         page = self.paginate_queryset(female_qs)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

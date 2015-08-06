@@ -71,7 +71,7 @@
   margin: auto;
   color:#3d3c3c;
 }
-.cost h2{
+.cost h2,.add .h2{
   font-size: 28px;
   padding: 34px 0 8px 42px;
 }
@@ -94,7 +94,6 @@
   float: right;
   color: #ea4c88;
 }
-
 
 .coupons{
   width: 640px;
@@ -219,6 +218,7 @@
 	background-color:#fff;
 	position:relative;
 	color:#ea4c88;
+	display:block;
 }
 .btn-buy{
 	position: absolute;

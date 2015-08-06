@@ -3,12 +3,10 @@ import time
 import json
 import datetime
 from django.db import models
-from django.db.models import Q,Sum
-from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
 
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
+from shopback.items.models import DIPOSITE_CODE_PREFIX
 from .models_user import Register,Customer
 from .models_addr import District,UserAddress
 from .models_custom import Productdetail,GoodShelf,ModelProduct
@@ -22,12 +20,12 @@ from .options import uniqid
 import uuid
 
 FLASH_SELLER_ID = 'flashsale'
-AGENCY_DIPOSITE_CODE = 'RMB'
+AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
 
-def genUniqueid():
+def genTradeUniqueid():
     return uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.date.today().strftime('%y%m%d')))
 
 class SaleTrade(models.Model):
@@ -92,7 +90,7 @@ class SaleTrade(models.Model):
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     
     tid   = models.CharField(max_length=40,unique=True,
-                             default=genUniqueid,
+                             default=genTradeUniqueid,
                              verbose_name=u'原单ID')  
     buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')

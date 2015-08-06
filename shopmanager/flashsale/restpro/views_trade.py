@@ -19,7 +19,7 @@ from flashsale.pay.models import (
     Customer,
     ShoppingCart,
     UserAddress,
-    genUniqueid
+    genTradeUniqueid
 )
 
 from . import permissions as perms
@@ -178,18 +178,15 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 
         alipay_payable = True
         wallet_payable = False
-        if xlmm:
-            wallet_payable = (xlmm.cash > 0 and 
-                              xlmm.cash >= int(total_fee * 100) and
-                              not has_deposite)
-            wallet_cash    = xlmm.cash / 100.0
-        wallet_payable = True
         for cart in queryset:
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
-        
         total_payment = total_fee + post_fee - discount_fee
-        
-        response = {'uuid':genUniqueid(),
+        if xlmm:
+            wallet_payable = (xlmm.cash > 0 and 
+                              xlmm.cash >= int(total_payment * 100) and
+                              not has_deposite)
+            wallet_cash    = xlmm.cash / 100.0
+        response = {'uuid':genTradeUniqueid(),
                     'total_fee':total_fee,
                     'post_fee':post_fee,
                     'discount_fee':discount_fee,
@@ -200,6 +197,52 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'wallet_payable':wallet_payable,
                     'cart_ids':','.join([str(c) for c in cart_ids]),
                     'cart_list':serializer.data}
+        
+        return Response(response)
+    
+    @list_route(methods=['get'])
+    def now_payinfo(self, request, *args, **kwargs):
+        """ 立即购买获取支付信息 """
+        sku_id   = int(request.REQUEST.get('sku_id'))
+        product_sku = get_object_or_404(ProductSku,id=sku_id)
+        product  = product_sku.product
+        product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
+        product_sku_dict['product'] = serializers.ProductSerializer(product,
+                                         context={'request': request}).data
+        
+        total_fee = product_sku.agent_price * 1
+        post_fee = 0
+        has_deposite = product.is_deposite()
+        wallet_cash  = 0 
+                
+        xlmm = None
+        weixin_payable = False
+        if isFromWeixin(request):
+            customers = Customer.objects.filter(user=request.user)
+            if customers.count() > 0 and not customers[0].unionid.isspace():
+                weixin_payable = True
+                xiaolumms = XiaoluMama.objects.filter(openid=customers[0].unionid)
+                xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
+                
+        alipay_payable = True
+        wallet_payable = False
+        discount_fee = product_sku.calc_discount_fee(xlmm=xlmm)
+        total_payment = total_fee + post_fee - discount_fee
+        if xlmm:
+            wallet_payable = (xlmm.cash > 0 and 
+                              xlmm.cash >= int(total_payment * 100) and
+                              not has_deposite)
+            wallet_cash    = xlmm.cash_money
+        response = {'uuid':genTradeUniqueid(),
+                    'total_fee':total_fee,
+                    'post_fee':post_fee,
+                    'discount_fee':discount_fee,
+                    'total_payment':total_payment,
+                    'wallet_cash':wallet_cash,
+                    'weixin_payable':weixin_payable,
+                    'alipay_payable':alipay_payable,
+                    'wallet_payable':wallet_payable,
+                    'sku':product_sku_dict}
         
         return Response(response)
 
@@ -367,10 +410,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return {'channel':channel,'success':True,'id':sale_trade.id}
     
     @rest_exception(errmsg=u'pingpp支付异常')
-    def pingpp_charge(self,sale_trade,buyer):
+    def pingpp_charge(self,sale_trade):
         """ pingpp支付实现 """
         payment       = int(sale_trade.payment * 100) 
-        buyer_openid  = buyer.openid
+        buyer_openid  = sale_trade.openid
         order_no      = sale_trade.tid
         channel       = sale_trade.channel
         payback_url = urlparse.urljoin(settings.M_SITE_URL,'/pages/zhifucg.html')
@@ -428,7 +471,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         )
         return sale_trade
     
-    @rest_exception(errmsg=u'特卖订单创建异常')
+    @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
         """ 根据购物车创建订单明细方法 """
         for cart in cart_qs:
@@ -453,8 +496,29 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if not settings.DEBUG:
             cart_qs.delete()
             
+    @rest_exception(errmsg=u'特卖订单明细创建异常')
+    def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
+        """ 根据商品明细创建订单明细方法 """
+        cart_payment = sku.agent_price * num
+        total_fee = cart_payment
+        SaleOrder.objects.create(
+             sale_trade=saletrade,
+             item_id=product.id,
+             sku_id=sku.id,
+             num=num,
+             outer_id=product.outer_id,
+             outer_sku_id=sku.outer_id,
+             title=product.name,
+             payment=cart_payment,
+             total_fee=total_fee,
+             pic_path=product.pic_path,
+             sku_name=sku.properties_alias,
+             status=SaleTrade.WAIT_BUYER_PAY
+        )
+      
+            
     @list_route(methods=['post'])
-    def pingpp_cart_create(self, request, *args, **kwargs):
+    def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
         CONTENT  = request.POST
         cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
@@ -478,7 +542,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if post_fee < 0 or payment < 0 or payment != cart_payment:
             raise exceptions.ParseError(u'付款金额异常')
         
-        addr_id  = CONTENT.get('addrid')
+        addr_id  = CONTENT.get('addr_id')
         address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
         
         channel  = CONTENT.get('channel')
@@ -492,8 +556,44 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             response_charge = self.wallet_charge(sale_trade, customer)
         else:
             #pingpp 支付
-            response_charge = self.pingpp_charge(sale_trade, customer)
+            response_charge = self.pingpp_charge(sale_trade)
         
+        return Response(response_charge)
+    
+    @list_route(methods=['post'])
+    def buynow_create(self, request, *args, **kwargs):
+        """ 立即购买订单支付接口 """
+        CONTENT  = request.REQUEST
+        item_id   = CONTENT.get('item_id')
+        sku_id   = CONTENT.get('sku_id')
+        sku_num  = int(CONTENT.get('num','1'))
+        customer = get_object_or_404(Customer,user=request.user)
+        product         = get_object_or_404(Product,id=item_id)
+        product_sku     = get_object_or_404(ProductSku,id=sku_id)
+        payment         = int(float(CONTENT.get('payment','0')) * 100)
+        post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
+        discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
+        cart_payment    = int(product_sku.agent_price * sku_num * 100)
+        
+        cart_payment = cart_payment + post_fee #- discount_fee
+        if post_fee < 0 or payment <= 0 or payment != cart_payment:
+            raise exceptions.ParseError(u'付款金额异常')
+        
+        addr_id  = CONTENT.get('addr_id')
+        address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
+        
+        channel  = CONTENT.get('channel')
+        if channel not in dict(SaleTrade.CHANNEL_CHOICES):
+            raise exceptions.ParseError(u'付款方式有误')
+        
+        sale_trade = self.create_Saletrade(CONTENT, address, customer)
+        self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
+        if channel == SaleTrade.WALLET:
+            #小鹿钱包支付
+            response_charge = self.wallet_charge(sale_trade, customer)
+        else:
+            #pingpp 支付
+            response_charge = self.pingpp_charge(sale_trade)
         return Response(response_charge)
     
     def perform_destroy(self, instance):
