@@ -36,8 +36,8 @@ $(document).ready(function () {
         function callback(res) {
             bt_commit.removeClass('loading');
             if (res == "ok") {
-                //有效则跳转到我的优惠券 /static/wap/pages/youhuiquan.html
-                location.href = '/static/wap/pages/youhuiquan.html';
+                //有效则跳转到我的优惠券 ../pages/youhuiquan.html
+                location.href = '../pages/youhuiquan.html';
             }
             else if (res == "user_not_found") {
                 //无效显示无效提示（不跳转）
