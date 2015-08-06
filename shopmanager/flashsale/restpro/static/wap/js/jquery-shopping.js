@@ -11,7 +11,7 @@
                 $body = $('.J-shoping-body')
             var S = {
                 init: function () {
-                    $(self).data('click', true).live('click', this.addShoping);
+                    $(self).data('click', true).on('click', this.addShoping);
                 },
                 addShoping: function (e) {
                     console.log('debug:',e);

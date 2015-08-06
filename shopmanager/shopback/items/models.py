@@ -41,6 +41,8 @@ PRODUCT_STATUS = (
     (pcfg.NORMAL,u'使用'),
     (pcfg.DELETE,u'作废'),
 )
+#押金编码前缀
+DIPOSITE_CODE_PREFIX = 'RMB'
 
 class ProductDefectException(Exception):
     pass
@@ -191,6 +193,9 @@ class Product(models.Model):
         """ 返回特卖商品是否新品 """
         return self.sale_time and self.sale_time >= datetime.date.today()
     
+    def is_deposite(self):
+        return self.outer_id.startswith(DIPOSITE_CODE_PREFIX)
+
     @property
     def is_out_stock(self):
         if self.collect_num<0 or self.wait_post_num <0 :

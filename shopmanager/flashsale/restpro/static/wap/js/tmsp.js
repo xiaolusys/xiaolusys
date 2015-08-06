@@ -60,21 +60,13 @@ function Create_product_detailsku_dom(obj) {
          <td>{{name}}</td>
          </tr>
          <tr>
-         <td>产<span class="space"></span>地</td>
-         <td>男孩印花短袖</td>
-         </tr>
-         <tr>
-         <td>材<span class="space"></span>质</td>
-         <td>97%棉花，3%氨纶</td>
-         </tr>
-         <tr>
          <td>洗涤说明</td>
          <td>30℃以下手洗；阴凉处悬挂晾干</td>
          </tr>
          <tr>
          <td>备<span class="space"></span>注</td>
          <td>{{memo}}</td>
-         </tr>
+         </tr> 
          <tr>
          <td>货品编号</td>
          <td>{{outer_id}}</td>
@@ -105,8 +97,8 @@ function Set_product_detail(suffix) {
         if (data.id == 'undifine' && data.id == null) {
             return
         }
-        product_model = data.product_modle;
-        if (typeof(product_model) == 'undefined' || product_model == null) {
+        product_model = data.product_model;
+        if (isNone(product_model)) {
             product_model = data.details;
         }
         console.log('debug:',product_model);
@@ -114,7 +106,6 @@ function Set_product_detail(suffix) {
         var slides = Create_product_topslides(product_model.head_imgs);
         //设置swiper滑动图片
         swiper.removeAllSlides();
-        console.log('debug:', slides);
         swiper.appendSlide(slides);
 
         //设置订单商品明细
@@ -122,8 +113,7 @@ function Set_product_detail(suffix) {
         $('.goods-content').html(detail_dom);
         //设置商品内容图列表
         var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
-        $('.goods-img div').html(bottom_dom);
-        
+        $('.goods-img .list').html(bottom_dom);
     };
     // 发送请求
     $.ajax({

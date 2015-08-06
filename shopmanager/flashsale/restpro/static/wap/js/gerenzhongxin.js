@@ -2,7 +2,7 @@
 	$("#loading").show();
     //获取
     get_user_profile();
-    $(".btn-wrap .btn-logout").on('click',function () {
+    $(document).on('click','.btn-logout',function () {
         logout();
     });
 })(jQuery);
