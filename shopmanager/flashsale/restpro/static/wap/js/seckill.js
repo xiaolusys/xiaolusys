@@ -29,9 +29,11 @@ function Set_orders() {
 
     //请求成功回调函数
     var requestCallBack = function (data) {
-        if (data.count != 'undifine' && data.count != null) {
-            console.log('debug results:', data.results);
-            $("#loading").hide();
+        $("#loading").hide();
+        if (data.results != "undefined" && data.results.length != 0) {
+
+            // 头图
+            $('#tips').html('<img src="'+data.results[0].pic_path+'">');
             $.each(data.results,
                 function (index, product) {
 
