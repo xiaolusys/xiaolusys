@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required  
 from django.views.generic import TemplateView
 
-from . import views ,views_duokefu,views_top100_iter,mama_data_search
+from . import views ,views_duokefu,views_top100_iter,mama_data_search,views_order_percent
 from .views_register import MamaRegisterView,MamaConfirmView
 
 
@@ -56,5 +56,9 @@ urlpatterns = patterns('',
 
     # mama data search
     url(r'^mama_show_all/$', staff_member_required(mama_data_search.all_Show), name="MamaAll"),
+    # order analysis in different linkid
+    url(r'^order_linkid_analysis/$', staff_member_required(views_order_percent.by_Linkid_Analysis), name="by_Linkid_Analysis"),
+    url(r'^order_linkid_showpage/$', staff_member_required(views_order_percent.show_Orderlink_Page), name="by_Linkid_Analysis"),
+
 
 )
