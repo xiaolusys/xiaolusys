@@ -60,7 +60,7 @@ $(document).ready(function () {
             });
         }
         else {
-            location.href = '/static/wap/pages/youhuiquan-kong.html';
+            location.href = '../pages/youhuiquan-kong.html';
         }
 
     });

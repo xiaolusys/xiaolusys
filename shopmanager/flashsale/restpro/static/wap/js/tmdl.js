@@ -5,11 +5,12 @@
 
 $(document).ready(function () {
     //清空输入框的内容
+
     $(".username").click(function () {
-        $(".username_in").attr("value", "");
+        $(".username_in").val("");
     });
     $(".password").click(function () {
-        $(".password_in").attr("value", "");
+        $(".password_in").val("");
     });
 
     //获取 输入框内容

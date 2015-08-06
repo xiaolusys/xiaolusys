@@ -36,7 +36,7 @@ $(document).ready(function () {
             });
         }
         else {
-            location.href = '/static/wap/pages/wodejifen-kong.html';
+            location.href = '../pages/wodejifen-kong.html';
         }
     });
 

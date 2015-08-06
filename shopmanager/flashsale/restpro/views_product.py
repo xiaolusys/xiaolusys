@@ -13,6 +13,7 @@ from rest_framework import status
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
 from flashsale.pay.models import GoodShelf,ModelProduct
+from flashsale.pay.models_custom import Productdetail
 
 from . import permissions as perms
 from . import serializers 
@@ -257,16 +258,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             
         return Response(product_dict)
 
-    def myfilter_queryset(self,queryset,history,time_line):
-        if history == 'none':
-            return queryset
-
-        today = datetime.date.today()
-        if history:
-            filter_date = today - datetime.timedelta(days=time_line)
-            return queryset.filter(sale_time__gte=filter_date,sale_time__lt=today)
-
-        return queryset.filter(sale_time=today)
 
 
     @list_route(methods=['get'])
@@ -282,10 +273,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
 
-        queryset = queryset.filter(sale_time=today_dt, category=11, shelf_status=1)
-
-        queryset = self.myfilter_queryset(queryset, history='none', time_line=0)
-
+        queryset = queryset.filter(sale_time=today_dt, category=11, shelf_status=Product.UP_SHELF)
+        # if queryset.exists: 判断不为空
+        #     test = []
+        #     for i in range(0, len(queryset)):
+        #         test.append(Productdetail.objects.filter(product=queryset[0].id, is_seckill=False))
+        # print "test", test
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

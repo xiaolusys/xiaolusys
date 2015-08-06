@@ -172,37 +172,45 @@
                 </div>
             </div>
         {% else %}
-             <div class="row" style="margin-top: 20px">
-                <div class="panel panel-danger">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">
-                            最近聚合的款式
-                        </h3>
-                    </div>
-
-                    <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
-                        <thead>
-                        <th width="20%">款式编码</th>
-                        <th width="20%">款式名称</th>
-                        <th width="20%">是否限购</th>
-                        <th width="20%">限购数量</th>
-                        <th width="20%">修改</th>
-                        </thead>
-                        <tbody>
-                        {% for product in all_model_product %}
-                            <tr><td>{{ product.id }}</td><td>{{ product.name }}</td><td>{{ product.buy_limit }}</td><td>{{ product.per_limit }}</td><td><a href="/mm/add_aggregeta/?search_model={{ product.id }}">修改</a></td></tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+            <div class="row" style="margin-top: 20px">
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        最近聚合的款式
+                    </h3>
                 </div>
+
+                <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <th width="10%">款式编码</th>
+                    <th width="20%">款式名称</th>
+                    <th width="10%">上架时间</th>
+                    <th width="20%">是否限购</th>
+                    <th width="20%">限购数量</th>
+                    <th width="15%">修改</th>
+                    </thead>
+                    <tbody>
+                    {% for product in all_model_product %}
+                        <tr>
+                            <td>{{ product.id }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.sale_time }}</td>
+                            <td>{{ product.buy_limit }}</td>
+                            <td>{{ product.per_limit }}</td>
+                            <td><a href="/mm/add_aggregeta/?search_model={{ product.id }}">修改</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
 
     {% endblock %}
-</div>
+    </div>
 
 
-{% block tail_script %}
-{% endblock %}
+    {% block tail_script %}
+    {% endblock %}
 
 </body>
 </html>
