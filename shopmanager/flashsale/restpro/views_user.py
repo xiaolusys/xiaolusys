@@ -15,7 +15,7 @@ from django.core.urlresolvers import reverse
 from shopapp.weixin.models import WeiXinUser
 from django.db import models
 from django.contrib.auth import authenticate, login, logout
-from flashsale.pay.models import Register, Customer
+from flashsale.pay.models import Register, Customer,Integral
 
 from . import permissions as perms
 from . import serializers
@@ -189,16 +189,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         user_ifo = "id:{0},name:{1}".format(user.id, user.username)
         return Response(user_ifo)
 
-    @list_route(methods=['post'])
-    def customer_logout(self, request):
-        logout(request)
-        return Response('logout')
-
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """
     特卖平台 用户操作API：
-    
+    - {prefix}/customer_logout:用户注销api;
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
@@ -221,12 +216,28 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    @list_route(methods=['get'])
+    def profile(self,request, *args, **kwargs):
+        
+        customer = get_object_or_404(Customer,user=request.user)
+        serializer = self.get_serializer(customer)
+        user_info  = serializer.data
+        user_scores = Integral.objects.filter(integral_user=customer.id)
+        user_score = 0
+        if user_scores.count() > 0:
+            user_score = user_scores[0].integral_value
+        user_info['score'] = user_score
+        return Response(user_info)
 
     def perform_destroy(self, instance):
         instance.status = Customer.DELETE
         instance.save()
     
-    
+    @list_route(methods=['post'])
+    def customer_logout(self, request, *args, **kwargs):
+        logout(request)
+        return Response({"result": 'logout'})
     
     
 

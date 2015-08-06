@@ -3,6 +3,10 @@
 <head>
 <title>小鹿美美</title>
 <meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="format-detection" content="email=no"/>
 <meta id="viewport" name="viewport" />
 <script src="../js/common.js"></script>
 <link rel="stylesheet" href="../css/common.css">
@@ -15,23 +19,21 @@
   <a class="user" href="gerenzhongxin.html"></a>
 </div>
 
-<ul class="addr">
+<ul id="js-addr" class="addr">
   <li>
-    <a class="add" href="#">
-      <p class="label1">收货地址</p>
+    <a class="add" href="shouhuodz.html">
       <p class="label2">新增收货地址</p>  
     </a>
   </li>
   <script id="addr-template" type="text/html">
-  <li>
+  <li class="{{ addr_class }}">
     <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
     <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
     <a class="icon-edit"></a>
-    <i class="icon-radio {{ addr_class }}" addrid={{ id }}></i>
+    <i class="icon-radio" addrid={{ id }}></i>
   </li>
   </script>
 </ul>
-
 
 <div class="cost">
   <h2>费用详情</h2>
@@ -40,7 +42,6 @@
     <p class="label2">小鹿美美运费<span>¥ 0</span></p>
   </div>
 </div>
-
 
 <div class="coupons">
   <div class="title">
@@ -59,7 +60,7 @@
 
 <div class="pay-type">
   <h2>支付方式</h2>
-  <ul class="pay-list">
+  <ul id="js-pay-type" class="pay-list">
 <!--  	<li><i></i>货到付款（现金）</li>-->
   </ul>
 </div>
@@ -81,13 +82,23 @@
 </form>
 </script>
 </div>
-<script src="http://cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
-<script src="http://aui.github.io/artTemplate/dist/template.js"></script>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/pingpp_pay.js"></script>
 <script src="../js/pingpp_ap.js"></script>
 <script src="../js/tmpay.js"></script>
 <script type="text/javascript">
 (function($){
+  
+  //地址切换
+  $('#js-addr li').live({
+  	touchend:change_address,
+  	click:change_address
+  });
+  //支付方式切换
+  $('#js-pay-type li').live({
+  	touchend:change_paytype,
+  	click:change_paytype
+  });
   //获取用户地址
   Set_user_address(GLConfig.get_user_address);
   //获取用户优惠券
@@ -99,6 +110,16 @@
   
   $('.buy .btn-buy').on('click',Ctrl_sure_charge);
 })(jQuery);
+
+function change_address(){
+    $('#js-addr li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+};
+function change_paytype(){
+	console.log('click paytype');
+    $('#js-pay-type li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+};
 </script>
 </body>
 </html>

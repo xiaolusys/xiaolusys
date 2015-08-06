@@ -164,7 +164,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         has_deposite = 0 
         wallet_cash  = 0 
         for cart in queryset:
-            total_fee +=  cart.total_fee
+            total_fee +=  cart.price * cart.num
             has_deposite |= cart.is_deposite()
                 
         xlmm = None
@@ -183,7 +183,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               xlmm.cash >= int(total_fee * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash / 100.0
-
+        wallet_payable = True
         for cart in queryset:
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
         
@@ -373,14 +373,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         buyer_openid  = buyer.openid
         order_no      = sale_trade.tid
         channel       = sale_trade.channel
-        payback_url = urlparse.urljoin(settings.M_SITE_URL,'static/wap/pages/zhifucg.html')
+        payback_url = urlparse.urljoin(settings.M_SITE_URL,'/pages/zhifucg.html')
+        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,'/pages/daizhifu-dd.html')
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
             
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
-                     "cancel_url":payback_url}
+                     "cancel_url":cancel_url}
             
         elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":payback_url}
@@ -495,11 +496,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         return Response(response_charge)
     
-    def perform_destroy(self,instance):
+    def perform_destroy(self, instance):
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
-            raise Exception(u'订单不在待付款状态')
-        
+            raise exceptions.APIException(u'订单不在待付款状态')
         instance.status = SaleTrade.TRADE_CLOSED_BY_SYS
         instance.save()
-        
-        
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(data={"ok": True})

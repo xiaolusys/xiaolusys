@@ -5,7 +5,7 @@ function Set_user_address(suffix){
 	var callBack = function(data){
 		//回调处理
 		$.each(data,function(index,obj){
-			obj.addr_class = obj.default==true?'icon-radio-select':'';
+			obj.addr_class = obj.default==true?'active':'normal';
 			var addr_dom = $('#addr-template').html().template(obj);
 			$('.addr').append(addr_dom);
 		});
@@ -53,15 +53,15 @@ function Set_user_orderinfo(suffix){
 		$('.buy .total span').html('<em>￥</em>' + data.total_payment);
 		
 		if (data.wallet_payable){
-			$('.pay-type .pay-list').append('<li><i id="wallet"></i>小鹿钱包</li>')
+			$('.pay-type .pay-list').append('<li class="normal"><i id="wallet"></i>小鹿钱包</li>');
 		}
 		if (data.weixin_payable){
-			$('.pay-type .pay-list').append('<li><i id="wx_pub"></i>微信支付 <div class="money">可用余额:<span><em>￥</em>'+data.wallet_cash+'</span></div></li>')
+			$('.pay-type .pay-list').append('<li class="normal"><i id="wx_pub"></i>微信支付</li>');
 		}
 		if (data.alipay_payable){
-			$('.pay-type .pay-list').append('<li><i id="alipay_wap"></i>支付宝</li>')
+			$('.pay-type .pay-list').append('<li class="normal"><i id="alipay_wap"></i>支付宝</li>');
 		}
-		$('.pay-type .pay-list li i:first').addClass('cur');
+		$('.pay-type .pay-list li:first').removeClass('normal').addClass('active');
 		
 		var form_tempalte = $('#form-template').html().template(data);
 		$('.pay-form').html(form_tempalte);
@@ -81,13 +81,13 @@ function Ctrl_sure_charge(){
 	if ($('.btn-buy').hasClass('charged')){return;}       
 	var WALLET_PAY = 'wallet';	
     var CHARGE_URL  = GLConfig.baseApiUrl + GLConfig.get_trade_charge_url;
-	var channel     = $('.pay-type .pay-list li i.cur').attr('id');
+	var channel     = $('.pay-type .pay-list li.active i').attr('id');
 	if (isNone(channel)){
 		drawToast('请选择正确的支付方式');
     	return
 	}
     
-    var addrid = $('.addr .icon-radio-select ').attr('addrid');
+    var addrid = $('.addr li.active i').attr('addrid');
     if (isNone(addrid)){
     	drawToast('请填写收货信息');
     	return
@@ -115,7 +115,14 @@ function Ctrl_sure_charge(){
       		window.location.href = GLConfig.zhifucg_url;
       	}else{
           pingpp.createPayment(data, function(result, err) {
-              window.location.href =  GLConfig.zhifucg_url;
+          	if (result == "success") {
+		        window.location.href =  GLConfig.zhifucg_url;
+		    } else if (result == "fail") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    } else if (result == "cancel") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    }
+            
           });
         }
        }else{

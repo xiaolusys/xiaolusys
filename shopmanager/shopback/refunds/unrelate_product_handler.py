@@ -12,11 +12,26 @@ logger = logging.getLogger('django.request')
 #   2 更新订单退货状态到订单列表（MergeTrade）,修改status的状态为退款关闭 status = pcfg.TRADE_CLOSED
 
 def update_Unrelate_Prods_Product(pro, req, trade_id=''):
+    REFUND_REASON = (
+        (0, u'其他'),
+        (1, u'错拍'),
+        (2, u'缺货'),
+        (3, u'开线/脱色/脱毛/有色差/有虫洞'),
+        (4, u'发错货/漏发'),
+        (5, u'没有发货'),
+        (6, u'未收到货'),
+        (7, u'与描述不符'),
+        (8, u'退运费'),
+        (9, u'发票问题'),
+        (10, u'七天无理由退换货')
+    )
     refunds = Refund.objects.filter(tid=trade_id)
     if refunds.count() > 0:     # 如果存在退货款单记录
         pass                    # 不做处理
     else:                       # 没有记录则创建一条记录
         # 根据原单 trade_id 找 MergeTrade
+        reason = pro.reason  #
+        reason_str = REFUND_REASON[int(reason)][1]
         merge_trade = MergeTrade.objects.filter(tid=trade_id)
         # 根据merge_trade 找 MergeOrder
         merge_order = MergeOrder.objects.filter(merge_trade_id=merge_trade[0].id, outer_id=pro.outer_id, outer_sku_id=pro.outer_sku_id)
@@ -42,7 +57,7 @@ def update_Unrelate_Prods_Product(pro, req, trade_id=''):
                 refund.oid = merge_order[0].oid                                 # 订单ID
                 refund.company_name = pro.company                               # 仓库收到退回产品的发货物流公司
                 refund.sid = pro.out_sid                                        # 仓库收到退回产品的快递单号
-                # refund.reason =                                               # 退货原因
+                refund.reason = reason_str                                      # 退货原因
                 # refund.desc =                                                 # 描述
                 refund.has_good_return = True                                   # 是否退货（是）
                 refund.good_status = GOOD_STATUS_CHOICES[2][0]                  # 退货商品的状态（买家已经退货）

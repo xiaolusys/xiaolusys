@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <title>小鹿美美</title>
     <meta id="viewport" name="viewport"/>
-    <script src="//cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/gerenzhongxin.js"></script>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/gerenzhongxin.css">
 </head>
 <body>
-
+<div id="loading"><span class="timer-loader"></span></div>
+<script id="profile_template" type="text/html">
 <div class="header">
     <a class="home" href="../index.html"></a>
 
@@ -19,8 +20,8 @@
 </div>
 
 <div class="userinfo">
-    <div class="nickname">昵称:</div>
-    <div class="score">积分:</div>
+    <div class="nickname">昵称:{{nick}}</div>
+    <div class="score">积分:{{score}}</div>
     <a class="daizhifu" href="daizhifu-dd.html">待支付</a>
     <a class="daishouhuo" href="daishouhuo-dd.html">待收货</a>
     <a class="quanbudingdan" href="quanbu-dd.html">全部订单</a>
@@ -54,7 +55,7 @@
     </li>
     <li>
         <i class="icon icon-tousujianyi"></i>
-        <a href="/static/wap/pages/tousu.html">投诉建议</a>
+        <a href="tousu.html">投诉建议</a>
         <i class="icon-jiantouyou"></i>
     </li>
     <li>
@@ -65,8 +66,8 @@
 </ul>
 
 <div class="btn-wrap">
-    <a class="btn-logout">退&nbsp;&nbsp;出</a>
+    <a class="btn-logout" onclick="logout()">退&nbsp;&nbsp;出</a>
 </div>
-
+</script>
 </body>
 </html>

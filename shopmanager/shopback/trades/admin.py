@@ -125,19 +125,19 @@ class MergeTradeAdmin(MyAdmin):
     list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
                     'payment','pay_time','consign_time','status','sys_status',
                     'reason_code','is_picking_print','is_express_print'#
-                    ,'can_review','operator','weight_time','charge_time','has_out_stock_fun')
+                    ,'can_review','operator','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     
     change_list_template  = "admin/trades/change_list.html"
-    change_form_template  = "admin/trades/change_trade_form.html"
+    # change_form_template  = "admin/trades/change_trade_form.html"
     
     ordering    = ['-sys_status']
     list_per_page = 50
     
     def trade_id_link(self, obj):
        
-        link_content = '''<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d"      data-toggle="tooltip" data-placement="right" 
+        link_content = '''<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d" data-toggle="tooltip" data-placement="right" 
         title="  
         买家昵称:%s                                                                
         买家留言：%s                                                    
@@ -192,9 +192,11 @@ class MergeTradeAdmin(MyAdmin):
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
-        js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
-#               "script/trades/checkorder.js","script/trades/tradetags.js",
-              "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","script/trades/select_stock.js",)
+#         js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
+#               "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","script/trades/select_stock.js",)
+        js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js",
+              "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js",
+              "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","jquery/jquery-1.8.13.min.js","script/trades/select_stock.js")
         
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {

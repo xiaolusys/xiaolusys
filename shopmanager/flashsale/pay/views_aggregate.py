@@ -38,7 +38,7 @@ class AggregateProductView(View):
                 temp_pro.model_id = m.id
                 temp_pro.save()
                 log_action(request.user.id, temp_pro, CHANGE, u'聚合商品到{0}'.format(m.id))
-        return redirect("/mm/add_aggregeta/?search_model=" + str(m.id))
+        return redirect("/mm/aggregeta_product/")
 
 
 class ModelProductView(View):
@@ -46,7 +46,7 @@ class ModelProductView(View):
     def get(request):
         content = request.GET
         search_model = content.get('search_model', '0')
-        all_model_product = ModelProduct.objects.exclude(status=u'1')
+        all_model_product = ModelProduct.objects.exclude(status=u'1').order_by('-created')
         if len(search_model) == 0:
             search_model = 0
         model_change = ModelProduct.objects.filter(id=search_model)

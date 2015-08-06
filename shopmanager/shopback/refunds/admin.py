@@ -134,18 +134,25 @@ class RefundProductAdmin(admin.ModelAdmin):
     def export_Refund_Product_Action(self, request, queryset):
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') > -1
         pcsv = []
-        pcsv.append((u'ID', u'买家昵称', u'手机',
+
+        pcsv.append((u'ID', u'买家昵称', u'手机', u'出售价格',
                      u'物流单号', u'物流名称', u'商品编码', u'规格编码',
                      u'数量', u'商品名称', u'二次销售', u'处理完成',
                      u'退货原因', u'创建时间'))
         for prod in queryset:
-            pcsv.append((str(prod.id),  prod.buyer_nick, prod.buyer_mobile,
+            outer_id = prod.outer_id
+            outer_sku_id = prod.outer_sku_id
+            skus = ProductSku.objects.filter(product__outer_id=outer_id, outer_id=outer_sku_id)
+            price = 0
+            if skus.exists():
+                price = skus[0].agent_price
+            pcsv.append((str(prod.id),  prod.buyer_nick, prod.buyer_mobile, str(price),
                          prod.out_sid,  prod.company,    prod.outer_id,       prod.outer_sku_id,
                          str(prod.num), prod.title,      str(prod.can_reuse), str(prod.is_finish),
                          str(prod.get_reason_display()),   str(prod.created)
                          ))
 
-        pcsv.append(['', '', '', '', '', '', '', '', '', '', '', ''])
+        pcsv.append(['', '', '', '', '', '', '', '', '', '', '', '', ''])
 
         tmpfile = StringIO.StringIO()
         writer = CSVUnicodeWriter(tmpfile, encoding=is_windows and "gbk" or 'utf8')

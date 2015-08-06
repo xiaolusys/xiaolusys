@@ -46,7 +46,7 @@ RAVEN_CONFIG = {
 #WEB DNS
 SITE_URL = 'http://youni.huyi.so/' 
 #WAP DNS
-M_SITE_URL = 'http://weixin.huyi.so/'  
+M_SITE_URL = 'http://m.xiaolu.so'  
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (

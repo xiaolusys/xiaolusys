@@ -410,8 +410,8 @@ class ModelProductAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'name', 'buy_limit', 'per_limit', 'sale_time', 'status')
 
-    list_filter = ('name', 'sale_time', 'status',
-                   ('created',DateFieldListFilter))
+    list_filter = (('sale_time', DateFieldListFilter), 'status',
+                   ('created', DateFieldListFilter))
     #-------------- 页面布局 --------------
     fieldsets = (('基本信息:', {'classes': ('expand',),
                     'fields': (('name',), ('head_imgs', 'content_imgs')
