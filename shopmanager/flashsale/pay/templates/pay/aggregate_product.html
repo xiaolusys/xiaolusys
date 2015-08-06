@@ -34,9 +34,9 @@
                                     $.each(result, function (index, dd) {
                                         var guiges = dd.prod_skus;
                                         console.log(dd.details.head_imgs)
-                                        tb.append('<tr id=\"tr_' + dd.id + '\"><td><label id=\"tb_id_' + dd.id + '\">' + dd.outer_id + '</label></td>' +
-                                        '<td><label id=\"tb_name_' + dd.id + '\">' + dd.name + '</label></td>' +
-                                        '<td><img id=\"tb_img_' + dd.id + '\" width="80px" src = "' + dd.pic_path + '" class="img-circle"/></td>' +
+                                        tb.append('<tr id=\"tr_' + dd.id + '\"><td><label id=\"tb_id_' + dd.id + '\">' + dd.outer_id + '</label>' +
+                                        '<label style="font-size:10px" id=\"tb_name_' + dd.id + '\">' + dd.name + '</label>' +
+                                        '<img id=\"tb_img_' + dd.id + '\" width="80px" src = "' + dd.pic_path + '" class="img-circle"/></td>' +
                                         '<td><div><pre id=\"tb_head_img_' + dd.id + '">' + dd.details.head_imgs + '</pre></div>' +
                                         '<div><pre id=\"tb_content_img_' + dd.id + '">' + dd.details.content_imgs + '</pre></div></td>' +
                                         '<td><span id=\"tb_sale_time_' + dd.id + '">' + dd.sale_time + '</span></td>' +
@@ -145,7 +145,7 @@
                 -o-border-radius: 6px;
                 border-radius: 6px;
                 padding: 0 0.5rem 0.1rem 0.5rem;
-                width: 450px;
+                width: 800px;
             }
         </style>
     {% endblock %}
@@ -182,14 +182,16 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-xs-6">
-                                <label class="control-label" for="head_img">题头照:</label>
-                                <textarea name="head_img" class="form-control"></textarea>
-                            </div>
-                            <div class="col-xs-6">
-                                <label class="control-label" for="content_img">内容照:</label>
-                                <textarea name="content_img" class="form-control"></textarea>
-                            </div>
+
+                            <label class="control-label" for="head_img">题头照:</label>
+                            <textarea name="head_img" rows="6" class="form-control"></textarea>
+
+                        </div>
+                        <div class="row">
+
+                            <label class="control-label" for="content_img">内容照:</label>
+                            <textarea name="content_img" rows="4" class="form-control"></textarea>
+
                         </div>
                         <div class="row">
                             <div class="col-xs-6">
@@ -240,10 +242,9 @@
                 <div class="row">
                     <table id="searchtable" border="1" class="table table-striped table-bordered table-hover">
                         <thead>
-                        <th width="10%">商品编码</th>
-                        <th width="15%">商品名称</th>
-                        <th width="15%">图片</th>
-                        <th width="40%">照片</th>
+                        <th width="15%">商品信息</th>
+
+                        <th width="70%">照片</th>
                         <th width="10%">上架时间</th>
                         <th width="10%">
                             <button class="btn btn-info" onclick="all_choose()">全选</button>
