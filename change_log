@@ -1,3 +1,5 @@
+########### 2015-8-6 #################
+alter table flashsale_productdetail add is_seckill boolean NOT NULL default False;
 ########### 2015-7-31 #################
 ALTER TABLE shop_trades_mergetrade ADD INDEX IDX_TYPE (TYPE);
 ########### 2015-7-25 #################
