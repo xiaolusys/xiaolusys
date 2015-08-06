@@ -60,6 +60,18 @@
 
 <div class="pay-type">
   <h2>支付方式</h2>
+  <div id="item-list">
+    <script id="form-template" type="text/html">
+      <form id="pay-form" action="#" method="POST">
+	<input type="hidden" name="uuid" value="{{uuid}}" />
+	<input type="hidden" name="cart_ids" value="{{cart_ids}}" />
+	<input type="hidden" name="payment" value="{{ total_payment }}" />
+	<input type="hidden" name="post_fee" value="{{ post_fee }}" />
+	<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
+	<input type="hidden" name="total_fee" value="{{ total_fee }}" />
+      </form>
+    </script>
+  </div>
   <ul id="js-pay-type" class="pay-list">
 <!--  	<li><i></i>货到付款（现金）</li>-->
   </ul>
@@ -70,18 +82,7 @@
   <p class="total">总金额：<span>￥ 0</span></p>
   <a class="btn-buy">购&nbsp;&nbsp;买</a>
 </div>
-<div class="pay-form">
-<script id="form-template" type="text/html">
-<form id="pay-form" action="#" method="POST">
-<input type="hidden" name="uuid" value="{{uuid}}" />
-<input type="hidden" name="cart_ids" value="{{cart_ids}}" />
-<input type="hidden" name="payment" value="{{ total_payment }}" />
-<input type="hidden" name="post_fee" value="{{ post_fee }}" />
-<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
-<input type="hidden" name="total_fee" value="{{ total_fee }}" />
-</form>
-</script>
-</div>
+
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/pingpp_pay.js"></script>
 <script src="../js/pingpp_ap.js"></script>
