@@ -2,28 +2,26 @@
  *@author: imeron
  *@date: 2015-07-22 
  */
- 
+var time_interval_id = null;
+
 function parseTimeSM(start_time){
 	//将时间差格式化成字符串[分:秒]
 	var d1 = new Date(start_time);
 	var d2 = new Date();
 	var time_delta = parseInt((d2.getTime() - d1.getTime()) / 1000);
 	var time_alias =  GLConfig.order_expired_in - time_delta;
-	console.log('debug parse:',d1,time_delta,time_alias);
 	if (time_alias < 0){
 		 return '00:00';
 	}
 	var minute = parseInt(time_alias / 60);
 	var second = parseInt(time_alias % 60);
-	return (minute < 10 ?'0'+minute:minute.toString()+':') + (second < 10 ?'0'+second:second.toString())
-	
+	return (minute < 10 ?'0'+minute:minute.toString())+':'+ (second < 10 ?'0'+second:second.toString())
 }
 
 function setOrderTimeInterval(){
 	var has_period = false;
 	$('.shengyu').each(function(index,e){
 		var created_str  = $(e).attr('xl_created');
-		console.log('debug attr:',created_str);
 		var time_str = parseTimeSM(created_str);
 		$(e).html('剩余时间：'+time_str);
 		if (time_str != '00:00'){
@@ -31,8 +29,7 @@ function setOrderTimeInterval(){
 		}
 	});
 	//如果页面没有需要更新的计时任务则退出
-	if (!has_period){return}
-	setInterval(setOrderTimeInterval,1000);
+	if (!has_period){clearInterval(time_interval_id);return;}
 }
 
 function Create_order_dom(obj){
@@ -94,7 +91,7 @@ function Set_orders(suffix){
 	}); 
 	
 	//设置订单剩余时间更新
-	setOrderTimeInterval();
+	time_interval_id = setInterval(setOrderTimeInterval,1000);
 }
 
 function Create_order_top_dom(obj){
@@ -238,7 +235,11 @@ function Cancel_order(suffix) {
             function requestCallBack(res) {
                 if (res['ok']) {
                     $("#status_display").html("交易关闭");
-                    cancel_bt.removeClass('loading');
+                    drawToast("交易已经取消！");
+                    //删除取消退款的button
+                    $(".btn-quxiao").remove();
+                    //删除最下方购买button
+                    $(".btn-buy").remove();
                 }
                 else{
                     drawToast("取消失败，请尝试刷新页面！");

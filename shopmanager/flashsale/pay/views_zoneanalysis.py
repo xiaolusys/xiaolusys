@@ -54,7 +54,7 @@ def by_zone_City(request):
     pay_raw = pay_trade(sql1)
     weixin_raw = weixin_trade(sql2)
 
-    raw = province_raw_handler(pay_raw=pay_raw, weixin_raw=weixin_raw)
+    raw = city_raw_handler(pay_raw=pay_raw, weixin_raw=weixin_raw)
     return HttpResponse(json.dumps(raw, cls=DjangoJSONEncoder), mimetype="application/json")
 
 
@@ -100,26 +100,71 @@ def province_raw_handler(pay_raw=None, weixin_raw=None):
     """
     pro_s = set()
     pay_raw_dic = {}
+    pay_sum_num = 0
     for i in pay_raw:
         province = i[0][0:2]
         if province == "":
             continue
         num = i[1]
+        pay_sum_num += num
         pay_raw_dic[province] = num
         pro_s.add(province)  # 省份集合
 
     weixin_raw_dic = {}
+    weixin_sum_num = 0
     for j in weixin_raw:
-        province = j[0][0:2]
+        province = j[0][0:2]    # 截取前面两个字符来核算 省份
         if province == "":
             continue
         num = j[1]
+        weixin_sum_num += num
         weixin_raw_dic[province] = num
         pro_s.add(province)  # 省份集合
+    total_num = pay_sum_num + weixin_sum_num
 
     sum_lit = []
     for s in pro_s:  # 寻找存在的KEY求和
         sum_num = pay_raw_dic[s] if s in pay_raw_dic else 0 + weixin_raw_dic[s] if s in weixin_raw_dic else 0
         sum_lit.append((s, sum_num))
-    sum_lit = sorted(sum_lit, key=lambda s : s[1])
+    sum_lit = sorted(sum_lit, key=lambda s: s[1])
+    sum_lit.append((u"总单数量",total_num))
+    return sum_lit[::-1]
+
+
+
+def city_raw_handler(pay_raw=None, weixin_raw=None):
+    """
+    处理sql的raw 两个类别的raw 结果(两列，键-值)
+    返回 合并后的元组列表
+    """
+    pro_s = set()
+    pay_raw_dic = {}
+    pay_sum_num = 0
+    for i in pay_raw:
+        province = i[0][0:3]
+        if province == "":
+            continue
+        num = i[1]
+        pay_sum_num += num
+        pay_raw_dic[province] = num
+        pro_s.add(province)  # 省份集合
+
+    weixin_raw_dic = {}
+    weixin_sum_num = 0
+    for j in weixin_raw:
+        province = j[0][0:3]    # 截取前面两个字符来核算 省份
+        if province == "":
+            continue
+        num = j[1]
+        weixin_sum_num += num
+        weixin_raw_dic[province] = num
+        pro_s.add(province)  # 省份集合
+    total_num = pay_sum_num + weixin_sum_num
+
+    sum_lit = []
+    for s in pro_s:  # 寻找存在的KEY求和
+        sum_num = pay_raw_dic[s] if s in pay_raw_dic else 0 + weixin_raw_dic[s] if s in weixin_raw_dic else 0
+        sum_lit.append((s, sum_num))
+    sum_lit = sorted(sum_lit, key=lambda s: s[1])
+    sum_lit.append((u"总单数量",total_num))
     return sum_lit[::-1]

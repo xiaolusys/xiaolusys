@@ -64,7 +64,7 @@ function Set_user_orderinfo(suffix){
 		$('.pay-type .pay-list li:first').removeClass('normal').addClass('active');
 		
 		var form_tempalte = $('#form-template').html().template(data);
-		$('.pay-form').html(form_tempalte);
+		$('#item-list').html(form_tempalte);
 	};
 	// 调用接口
 	$.ajax({ 
@@ -76,11 +76,11 @@ function Set_user_orderinfo(suffix){
 	}); 
 }
 
-function Ctrl_sure_charge(){
+function Ctrl_sure_charge(pay_url){
 	//确认支付
 	if ($('.btn-buy').hasClass('charged')){return;}       
 	var WALLET_PAY = 'wallet';	
-    var CHARGE_URL  = GLConfig.baseApiUrl + GLConfig.get_trade_charge_url;
+    var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
 	var channel     = $('.pay-type .pay-list li.active i').attr('id');
 	if (isNone(channel)){
 		drawToast('请选择正确的支付方式');
@@ -101,7 +101,7 @@ function Ctrl_sure_charge(){
 	if(channel == WALLET_PAY && !confirm("确认使用小鹿钱包支付金额（￥"+params.payment+'元)吗？')){
 		return 
 	}
-	params.addrid = addrid;
+	params.addr_id = addrid;
 	params.channel = channel;
 	params.csrftoken = csrftoken;
 	
@@ -132,4 +132,22 @@ function Ctrl_sure_charge(){
     
 	$.post(CHARGE_URL,params,callback,'json');
 }
+
+function update_total_price(){
+	//更新订单价格显示
+}
+
+function plus_shop(id) {
+    var num_id = $("#num_" + id);
+    num_id.val(parseInt(num_id.val()) + 1);
+    update_total_price();
+}
+
+function minus_shop(id) {
+    var num_id = $("#num_" + id);
+    num_id.val(parseInt(num_id.val()) - 1);
+    update_total_price();
+}
+
+
 

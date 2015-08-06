@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta id="viewport" name="viewport"/>
     <script src="../js/common.js"></script>
-    <link rel="stylesheet" href="../css/timer-loading.css">
+    <link rel="stylesheet" href="../css/whirly.css">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/gouwuche.css">
 </head>
@@ -13,10 +13,8 @@
 <div class="header">
     <a class="back" href="javascript:history.go(-1)"></a>
     <a class="user" href="gerenzhongxin.html"></a>
-
     <h1>购物车</h1>
 </div>
-
 
 <div class="cart-list"></div>
 <script id="item_template" type="text/html">
@@ -36,7 +34,7 @@
         </div>
     </div>
 </script>
-<div id="loading"><span class="timer-loader"></span></div>
+<div id="loading"><span class="whirly-loader"></span></div>
 <div class="buy">
     <p class="coupons">优惠券：0</p>
     <p class="total">总金额：¥<span id="total_price">0</span></p>
@@ -50,7 +48,7 @@
         //获取
         get_shop_carts(GLConfig.get_cart_url);
         
-        $('.btn-buy').on('click',Ctrl_sure_pay);
+        $(document).on('click','.btn-buy',Ctrl_sure_pay);
     })(jQuery);
     
     function Ctrl_sure_pay(){

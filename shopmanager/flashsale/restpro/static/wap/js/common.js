@@ -92,9 +92,11 @@ var GLConfig = {
 	get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
 	get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
 	get_trade_details_url:'/trades/{{trade_id}}/orders/details.json', //获取订单明细
-	get_trade_charge_url:'/trades/pingpp_cart_create.json', //获取用户待发货订单
+	get_trade_charge_url:'/trades/shoppingcart_create.json', //购物车结算订单接口
+	get_buynow_url:'/trades/buynow_create.json', //立即购物订单创建接口
 	get_cart_url:'/carts.json', //获取购物车详细
 	get_cart_payinfo_url:'/carts/carts_payinfo.json?cart_ids={{cart_ids}}', //根据购物车id列表获取支付明细
+	get_now_payinfo_url:'/carts/now_payinfo.json?item_id={{item_id}}&sku_id={{sku_id}}', //根据购物车id列表获取支付明细
 	get_num_cart:'/carts/show_carts_num?format=json', //获取购物车数量
 	get_all_address:'/address.json',//获取个人用户地址列表
 	get_user_address:'/address.json',//获取个人用户地址列表
