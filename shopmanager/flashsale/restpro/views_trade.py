@@ -315,15 +315,20 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     ###特卖订单REST API接口：
     - {path}/wait_pay[.formt]:获取待支付订单；
     - {path}/wait_send[.formt]:获取待发货订单；
-    - {path}/pingpp_cart_create[.formt]:pingpp创建订单接口
-        + cart_ids：购物车明细ID，如 `100,101,...` 
-        + addr_id:客户地址ID
-        + channel:支付方式
-        + payment：付款金额
-        + post_fee：快递费用
-        + discount_fee：优惠折扣
-        + total_fee：总费用
-        + uuid：UUID
+    - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
+    > - cart_ids：购物车明细ID，如 `100,101,...` 
+    > - addr_id:客户地址ID
+    > - channel:支付方式
+    > - payment：付款金额
+    > - post_fee：快递费用
+    > - discount_fee：优惠折扣
+    > - total_fee：总费用
+    > - uuid：系统分配唯一ID
+    - {path}/buynow_create[.formt]:立即支付订单接口
+    > - item_id：商品ID，如 `100,101,...` 
+    > - sku_id:规格ID
+    > - num:购买数量
+    > - 其它参数如上
     """
     queryset = SaleTrade.objects.all()
     serializer_class = serializers.SaleTradeSerializer# Create your views here.
