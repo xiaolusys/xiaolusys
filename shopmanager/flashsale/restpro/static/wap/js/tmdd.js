@@ -238,7 +238,11 @@ function Cancel_order(suffix) {
             function requestCallBack(res) {
                 if (res['ok']) {
                     $("#status_display").html("交易关闭");
-                    cancel_bt.removeClass('loading');
+                    drawToast("交易已经取消！");
+                    //删除取消退款的button
+                    $(".btn-quxiao").remove();
+                    //删除最下方购买button
+                    $(".btn-buy").remove();
                 }
                 else{
                     drawToast("取消失败，请尝试刷新页面！");
