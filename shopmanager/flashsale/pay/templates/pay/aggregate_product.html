@@ -26,6 +26,8 @@
                 $('#searchbutton').click(function () {
                     var searchtext = $("#searchtext").val();
                     if (searchtext.length > 0) {
+                        searchtext =  searchtext.substring(0,searchtext.length-1);
+                        $("#searchtext").val(searchtext);
                         $("#searchtable thead").eq(0).nextAll().remove();
                         $.get("/sale/dinghuo/searchproduct/", {searchtext: searchtext},
                                 function (result) {
