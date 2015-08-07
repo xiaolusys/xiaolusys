@@ -26,17 +26,16 @@
 <ul class="glist">
 </ul>
 <div id="loading"><span class="dots-loader"></span></div>
-<a class="cart" href="pages/gouwuche.html"><span class="total">2</span></a>
+<a class="cart" href="javascript:void();"><span class="total">2</span></a>
 <div class="scroll-top" id="js-scroll-top"></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="js/jquery-shopping.js"></script>
 <script src="js/main.js"></script>
 <script>
 (function($){
   //返回顶部
-  $('#js-scroll-top').on('touchend',function(e){
-    e.preventDefault();
-    $('body').animate({scrollTop:0},400);  
-  });
+  $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
+  $('.cart').listencart();
   //设置潮童商品列表
   var urlParams = parseUrlParams(window.location.href);
   var req_url   = GLConfig.get_childlist_url;
@@ -44,7 +43,11 @@
   	req_url += '?'+$.param({order_by:urlParams['order_by']})
   }
   Set_category_product(req_url);
-})(jQuery);  
+})(jQuery);
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}  
 </script>  
 </body>
 </html>

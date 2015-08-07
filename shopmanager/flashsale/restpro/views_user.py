@@ -205,7 +205,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if request.user.is_anonymous():
             return self.queryset.none()
         return self.queryset.filter(user=request.user)
-
+    
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
 
@@ -239,5 +239,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         logout(request)
         return Response({"result": 'logout'})
     
-    
+    @list_route(methods=['get'])
+    def islogin(self,request, *args, **kwargs):
+        return Response({'result':'login'})
 

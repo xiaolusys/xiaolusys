@@ -328,7 +328,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     > - item_id：商品ID，如 `100,101,...` 
     > - sku_id:规格ID
     > - num:购买数量
-    > - 其它参数如上
+    > - 其它参数(不包含cart_ids)如上
     """
     queryset = SaleTrade.objects.all()
     serializer_class = serializers.SaleTradeSerializer# Create your views here.

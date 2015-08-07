@@ -5,6 +5,23 @@
 
 (function ($) {
     $.extend($.fn, {
+    	//监听购物车点击事件
+        listencart: function (options) {
+        	var self = this;
+        	console.log('listercart');
+        	var C = {
+                init: function () {
+                    $(self).data('click', true).on('click', this.doIflogin);
+                },
+                doIflogin:function(){
+                	DoIfLogin({
+			    		callback:function(){window.location='/pages/gouwuche.html';},
+			    		redirecto:'/pages/gouwuche.html'
+			    	});
+                }
+            };
+        	C.init();
+        },
         shoping: function (options) {
             var self = this,
                 $shop = $('.cart'),

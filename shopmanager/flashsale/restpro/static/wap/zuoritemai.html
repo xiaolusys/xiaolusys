@@ -172,43 +172,42 @@
     </ul>
 </div>
 <div id="loading"><span class="dots-loader"></span></div>
-<a class="cart" href="pages/gouwuche.html"><span class="total">2</span></a>
+<a class="cart" href="javascript:void();"><span class="total">2</span></a>
 
 <div class="scroll-top" id="js-scroll-top"></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="js/jquery-shopping.js"></script>
 <script src="js/main.js"></script>
 <script>
-    (function ($) {
-        //返回顶部
-        $('#js-scroll-top').on('touchend', function (e) {
-            e.preventDefault();
-            $('body').animate({scrollTop: 0}, 400);
-        });
-
-        var startY;
-
-        document.addEventListener('touchstart', function (ev) {
-            startY = ev.touches[0].pageY;
-        }, false);
-
-        document.addEventListener('touchend', function (ev) {
-            var endY = ev.changedTouches[0].pageY;
-            var dir = startY - endY;
-            if (dir > 0) {
-                $('#js-fixed-nav').hide();
-            } else {
-                $('#js-fixed-nav').show();
-            }
-        }, false);
-
-        //获取昨日海报
-        Set_posters(GLConfig.previous_suffix);
-        //获取昨日推荐商品
-        Set_promotes_product(GLConfig.previous_suffix);
-        //获取购物车商品数
-        Set_shopcarts_num();
-        yesterday_timer();
-    })(jQuery);
+(function ($) {
+    //返回顶部
+    $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
+    var startY;
+    document.addEventListener('touchstart', function (ev) {
+        startY = ev.touches[0].pageY;
+    }, false);
+    document.addEventListener('touchend', function (ev) {
+        var endY = ev.changedTouches[0].pageY;
+        var dir = startY - endY;
+        if (dir > 0) {
+            $('#js-fixed-nav').hide();
+        } else {
+            $('#js-fixed-nav').show();
+        }
+    }, false);
+	$('.cart').listencart();
+    //获取昨日海报
+    Set_posters(GLConfig.previous_suffix);
+    //获取昨日推荐商品
+    Set_promotes_product(GLConfig.previous_suffix);
+    //获取购物车商品数
+    Set_shopcarts_num();
+    yesterday_timer();
+})(jQuery);
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}
 </script>
 </body>
 </html>
