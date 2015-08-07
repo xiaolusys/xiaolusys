@@ -150,6 +150,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def order_queryset(self,request,queryset):
         """ 对集合列表进行排序 """
         order_by = request.REQUEST.get('order_by')
+        print 'debug',order_by
         if order_by == 'price':
             queryset = queryset.order_by('-agent_price')
         else:

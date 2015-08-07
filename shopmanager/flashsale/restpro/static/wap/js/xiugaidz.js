@@ -2,25 +2,14 @@ function province_list() {
     var selectid = document.getElementById("s_province");
     selectid.options.length = 0;
     selectid[0] = new Option("请选择省", 0);
-    //selectid[0]=new Option("---- 设置显示0 ----",0);
-    // selectid[1]=new Option("---- 设置显示1 ----",1);
-    //selectid[2]=new Option("---- 设置显示2 ----",2);
-    //请求成功回调函数
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.province_list
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.province_list;
     var requestCallBack = function (data) {
-        //alert(typeof(data))
-        //console.info(data)
         for (var i = 1; i <= data.length; i++) {
-            //alert(data[i].name)
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
         }
-        //if(data.ret==true){
-        //alert("success");
-        //	}
-        //	else{
-        //alert("删除失败")
-
-        //	}
+        var urlParams = parseUrlParams(window.location.href);
+        var up_id = {'up_id': urlParams['id']};
+        test(up_id.up_id);
     };
     // 发送请求
     $.ajax({
@@ -33,7 +22,6 @@ function province_list() {
 
 }
 
-
 //第一个框的点击事件
 function setSecond(obj) {
     selected_province = $("#s_province option:selected");
@@ -44,15 +32,10 @@ function setSecond(obj) {
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.city_list
     var requestCallBack = function (data) {
-
         for (var i = 1; i <= data.length; i++) {
-
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
-
-        //alert(typeof(data))
-        //console.info(data)
         $("#s_city option:contains(" + receiver_city + ")").attr("selected", true);
         setThird();
     };
@@ -100,23 +83,14 @@ function setThird(obj) {
 var receiver_state;
 var receiver_district;
 var receiver_city;
-//shuchihua
+
+//初始化
 function test(up_id) {
 
-    selected_city = $("#s_city option:selected");
-    city_id = selected_city.val()    //获取城市的id
-    //alert(selected_province.val());
-    //console.info(obj)
-    var selectid = document.getElementById("s_country");
-    selectid.options.length = 0;
-    selectid[0] = new Option('请选择区/县', 0);
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/get_one_address";
     var requestCallBack = function (data) {
-
-
         console.info(data[0]);
-
         receiver_state = data[0].receiver_state;
         receiver_district = data[0].receiver_district;
         receiver_city = data[0].receiver_city;

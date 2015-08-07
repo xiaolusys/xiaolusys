@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta id="viewport" name="viewport"/>
     <script src="../js/common.js"></script>
-    <link rel="stylesheet" href="../css/whirly.css">
+    <link rel="stylesheet" href="../css/dots-loading.css">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/gouwuche.css">
 </head>
@@ -34,7 +34,7 @@
         </div>
     </div>
 </script>
-<div id="loading"><span class="whirly-loader"></span></div>
+<div id="loading"><span class="dots-loader"></span></div>
 <div class="buy">
     <p class="coupons">优惠券：0</p>
     <p class="total">总金额：¥<span id="total_price">0</span></p>
@@ -44,25 +44,25 @@
 <script src="http://aui.github.io/artTemplate/dist/template.js"></script>
 <script src="../js/tmsc.js"></script>
 <script type="text/javascript">
-    (function ($) {
-        //获取
-        get_shop_carts(GLConfig.get_cart_url);
-        
-        $(document).on('click','.btn-buy',Ctrl_sure_pay);
-    })(jQuery);
-    
-    function Ctrl_sure_pay(){
-    	/*去付款*/	
-    	var cart_ids = [];
-    	$('.item').each(function(index,e){
-    		cart_ids[cart_ids.length] = $(e).attr('cartid');
-    	});
-    	if (cart_ids.length == 0){
-    		drawToast("购物车没有商品");
-    		return
-    	}
-    	window.location = 'queren-dd.html?cart_ids='+cart_ids.join(',');
-    }
+(function ($) {
+  //获取
+  get_shop_carts(GLConfig.get_cart_url);
+  
+  $(document).on({click:Ctrl_sure_pay,touchend:Ctrl_sure_pay},'.btn-buy');
+})(jQuery);
+  
+function Ctrl_sure_pay(){
+  /*去付款*/	
+  var cart_ids = [];
+  $('.item').each(function(index,e){
+    cart_ids[cart_ids.length] = $(e).attr('cartid');
+  });
+  if (cart_ids.length == 0){
+    drawToast("购物车没有商品");
+    return
+  }
+  window.location = 'queren-dd.html?cart_ids='+cart_ids.join(',');
+}
 </script>
 </body>
 </html>
