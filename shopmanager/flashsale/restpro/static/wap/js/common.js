@@ -71,8 +71,8 @@ function hereDoc(f) {
         oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
     }
     window.onload = function () {
-        document.body.addEventListener('touchstart', function () {
-        });
+        document.body.addEventListener('touchstart', function () {});
+        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
     }
 })();
 

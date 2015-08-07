@@ -90,6 +90,16 @@
     position: absolute;
 }
 
+.cart-list .scount {
+    border: 1px solid #eef0f3;
+    width: 50px;
+    height: 48px;
+    left: 239px;
+    top: 144px;
+    position: absolute;
+    text-align:center;
+}
+
 .cart-list .gcount .btn,
 .cart-list .gcount .total {
     position: absolute;

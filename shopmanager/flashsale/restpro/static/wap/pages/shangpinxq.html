@@ -121,6 +121,7 @@
 
 function change_goodsize() {
     $('#js-goods-size li.active').removeClass('active').addClass('normal');
+    if ($(this).hasClass('disable'))return;
     $(this).removeClass('normal').addClass('active');
 }
 </script>

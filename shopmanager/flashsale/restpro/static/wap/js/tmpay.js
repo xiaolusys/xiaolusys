@@ -62,9 +62,18 @@ function Set_user_orderinfo(suffix){
 			$('.pay-type .pay-list').append('<li class="normal"><i id="alipay_wap"></i>支付宝</li>');
 		}
 		$('.pay-type .pay-list li:first').removeClass('normal').addClass('active');
-		
-		var form_tempalte = $('#form-template').html().template(data);
-		$('#item-list').html(form_tempalte);
+		if (!isNone(data.sku)){
+			var form_tempalte = $('#form-template').html().template(data);
+			$('#item-list').html(form_tempalte);
+		}
+		if (!isNone(data.cart_list)){
+			var item_template = $('#item-template').html();
+			$.each(data.cart_list,function(index,cart){
+				$('#item-list').append(item_template.template(cart));
+			})
+			var form_template = $('#form-template').html();
+			$('#item-list').append(form_template.template(data));
+		}
 	};
 	// 调用接口
 	$.ajax({ 
@@ -108,7 +117,7 @@ function Ctrl_sure_charge(pay_url){
     $('.btn-buy').addClass('charged');
     $('.btn-buy').addClass('pressed');
 
-    var callback = function(data){
+    var callBack = function(data){
       
       if(isNone(data.errcode)){ 
       	if (data.channel == WALLET_PAY){//使用钱包支付
@@ -130,7 +139,14 @@ function Ctrl_sure_charge(pay_url){
        }
     }
     
-	$.post(CHARGE_URL,params,callback,'json');
+    // 调用接口
+	$.ajax({ 
+		type:'post', 
+		url:CHARGE_URL, 
+		data:params, 
+		dataType:'json', 
+		success:callBack 
+	});
 }
 
 function update_total_price(){
