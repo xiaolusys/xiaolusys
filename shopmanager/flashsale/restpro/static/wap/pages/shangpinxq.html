@@ -132,6 +132,7 @@ function buynow(){
     	drawToast('请选择正确的商品尺寸');
     	return;
     };
+    var item_id = parseUrlParams(window.location.href)['id'];
     var sku_id = $('#js-goods-size li.active').attr('sku_id');
     window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
 }
