@@ -117,6 +117,37 @@
   background-color: #7d7d7d;
   color: #fff;
 }
+.btn_top_style{
+  display: block;
+  width: 158px;
+  height: 54px;
+  line-height: 54px;
+  border: 1px solid #7d7d7d;
+  color: #7d7d7d;
+  text-align: center;
+  border-radius: 10px;
+  position: absolute;
+  right: 20px;
+  bottom:30px;
+}
+.btn_top_style:active{
+  background-color: #7d7d7d;
+  color: #fff;
+}
+
+.btn_top_0:after{content: "取消订单";} /* 订单创建显示取消订单 */
+.btn_top_1:after{content: "取消订单";} /* 待付款显示取消订单 */
+
+.btn_top_2:after{content: "申请退款";} /* 已经付款显示申请退款 */
+
+.btn_top_3:after{content: "申请退货";} /* 已发货显示申请退货 */
+.btn_top_4:after{content: "申请退货";} /* 已经签收显示申请退货 */
+
+.btn_top_5{display: none;}   /* 交易成功不显示 */
+.btn_top_6{display: none;}   /* 退款关闭不显示 */
+.btn_top_7{display: none;}   /* 交易关闭不显示 */
+
+
 .fl{ float: left;}
 .fr{ float: right;}
 .goods{margin-top: 10px;}
