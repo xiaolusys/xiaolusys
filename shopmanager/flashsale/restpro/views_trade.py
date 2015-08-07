@@ -597,8 +597,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response(response_charge)
     
     def perform_destroy(self, instance):
-        if instance.status != SaleTrade.WAIT_BUYER_PAY:
-            raise exceptions.APIException(u'订单不在待付款状态')
+        # 订单不在 待付款的 或者不在创建状态
+        if instance.status not in (SaleTrade.WAIT_BUYER_PAY, SaleTrade.TRADE_NO_CREATE_PAY):
+            raise exceptions.APIException(u'订单不在待付款或者不在创建状态')
         instance.status = SaleTrade.TRADE_CLOSED_BY_SYS
         instance.save()
 
