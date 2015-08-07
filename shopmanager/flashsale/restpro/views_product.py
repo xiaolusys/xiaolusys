@@ -274,7 +274,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
 
-        queryset = queryset.filter(sale_time=today_dt, category=11, shelf_status=Product.UP_SHELF)
+        queryset = queryset.filter(category=11, shelf_status=Product.UP_SHELF)
         # if queryset.exists: 判断不为空
         #     test = []
         #     for i in range(0, len(queryset)):

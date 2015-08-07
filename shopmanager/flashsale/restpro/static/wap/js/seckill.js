@@ -33,10 +33,12 @@ function Set_orders() {
         if (data.results != "undefined" && data.results.length != 0) {
 
             // 头图
-            $('#tips').html('<img src="'+data.results[0].pic_path+'">');
+            $('#tips').html('<a href="pages/shangpinxq.html?id='+data.results[0].id+'"><img src="'+data.results[0].pic_path+'"></a>')
             $.each(data.results,
                 function (index, product) {
-
+                    if (index == 0){
+                        return
+                    }
                     var cart_dom = show_seckill_list_shop(product);
                     $('#prod_list').append(cart_dom);
                 }

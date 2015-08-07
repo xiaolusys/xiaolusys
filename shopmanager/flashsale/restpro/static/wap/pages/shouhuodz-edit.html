@@ -50,23 +50,9 @@
 <script src="../js/xiugaidz.js"></script>
 <script>
     (function ($) {
-        var urlParams = parseUrlParams(window.location.href);
-        var up_id = {'up_id':urlParams['id']};
         province_list();
-        test(up_id.up_id);
     })(jQuery);
 </script>
-<!--
-<script src="../js/area.js"></script>
-<script>
-var s=["s_province","s_city","s_county"];//三个select的id
-var opt0 = ["上海市","上海市","杨浦区"];//初始值
-(function _init_area(){  //初始化函数
-  for(i=0;i<s.length-1;i++){
-    document.getElementById(s[i]).onchange=new Function("change("+(i+1)+")");
-  }
-  change(0);
-})();
-</script> -->
+
 </body>
 </html>

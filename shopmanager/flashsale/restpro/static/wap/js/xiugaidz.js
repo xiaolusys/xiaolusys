@@ -2,25 +2,17 @@ function province_list() {
     var selectid = document.getElementById("s_province");
     selectid.options.length = 0;
     selectid[0] = new Option("请选择省", 0);
-    //selectid[0]=new Option("---- 设置显示0 ----",0);
-    // selectid[1]=new Option("---- 设置显示1 ----",1);
-    //selectid[2]=new Option("---- 设置显示2 ----",2);
+
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.province_list
     var requestCallBack = function (data) {
-        //alert(typeof(data))
-        //console.info(data)
+
         for (var i = 1; i <= data.length; i++) {
-            //alert(data[i].name)
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
         }
-        //if(data.ret==true){
-        //alert("success");
-        //	}
-        //	else{
-        //alert("删除失败")
-
-        //	}
+        var urlParams = parseUrlParams(window.location.href);
+        var up_id = {'up_id':urlParams['id']};
+        xugaifuzi(up_id.up_id);
     };
     // 发送请求
     $.ajax({
@@ -35,7 +27,7 @@ function province_list() {
 
 
 //第一个框的点击事件
-function setSecond(obj) {
+function setSecond() {
     selected_province = $("#s_province option:selected");
     province_id = selected_province.val()    //获取省份的id
     var selectid = document.getElementById("s_city");
@@ -51,8 +43,6 @@ function setSecond(obj) {
 
         }
 
-        //alert(typeof(data))
-        //console.info(data)
         $("#s_city option:contains(" + receiver_city + ")").attr("selected", true);
         setThird();
     };
@@ -69,7 +59,7 @@ function setSecond(obj) {
 }
 
 //城市框的点击事件
-function setThird(obj) {
+function setThird() {
     selected_city = $("#s_city option:selected");
     city_id = selected_city.val()    //获取城市的id
     var selectid = document.getElementById("s_country");
@@ -80,7 +70,7 @@ function setThird(obj) {
     var requestCallBack = function (data) {
 
         for (var i = 1; i <= data.length; i++) {
-            //alert(data[i].name)
+
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
@@ -100,16 +90,9 @@ function setThird(obj) {
 var receiver_state;
 var receiver_district;
 var receiver_city;
-//shuchihua
-function test(up_id) {
+//初始化赋值
+function xugaifuzi(up_id) {
 
-    selected_city = $("#s_city option:selected");
-    city_id = selected_city.val()    //获取城市的id
-    //alert(selected_province.val());
-    //console.info(obj)
-    var selectid = document.getElementById("s_country");
-    selectid.options.length = 0;
-    selectid[0] = new Option('请选择区/县', 0);
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/get_one_address";
     var requestCallBack = function (data) {
@@ -183,7 +166,7 @@ $("#btn-up").click(function () {
     }
     //请求成功回调函数
     var reqUrl = GLConfig.baseApiUrl + GLConfig.update
-    var requestCallBack = function (data) {
+    var requestCallBack = function () {
         alert("修改成功！")
         window.location.href = "shouhuodz.html"
     };
