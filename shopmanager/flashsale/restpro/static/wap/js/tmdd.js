@@ -95,20 +95,13 @@ function Set_orders(suffix){
 }
 
 function Create_order_top_dom(obj){
-	//创建订单基本信息DOM
-	function Top_dom(){
-	/*
-    <ul class="u1">
-      <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa" id="status_display">{{ status_display }}</span></li>
-      <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">{{ tid }}</span></li>
-      <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">{{ created }}</span></li>
-      <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
-    </ul>
-    <a  class="btn-quxiao">取消订单</a>
-	*/};
-	return hereDoc(Top_dom).template(obj);
+    var html = $('#top_template').html();
+    return hereDoc(html).template(obj);
 }
-
+function Create_button_buy_dom(){
+    var html = $('#button_buy').html();
+    return hereDoc(html);
+}
 function Create_detail_dom(obj){
 	//创建订单基本信息DOM
 	function Detail_topdom(){
@@ -182,7 +175,7 @@ function Create_detail_feiyong_dom(obj){
 function Set_order_detail(suffix){
 	//请求URL
 	var requestUrl = GLConfig.baseApiUrl + suffix;
-	
+
 	//请求成功回调函数
 	var requestCallBack = function(data){
 		if (typeof(data.id) != 'undifined' && data.id != null){
@@ -198,12 +191,13 @@ function Set_order_detail(suffix){
 			//设置订单商品明细
 			$.each(data.orders,
 				function(index,order){
-					var detail_dom = Create_detail_dom(order);		
+					var detail_dom = Create_detail_dom(order);
 					$('.basic .panel-bottom').append(detail_dom);			
 				}
 			);
 
             Cancel_order(suffix);//页面加载完成  调用 取消订单功能
+
 		}
 	};
 	// 发送请求
@@ -218,16 +212,22 @@ function Set_order_detail(suffix){
 
 function Cancel_order(suffix) {
     // 取消订单
-    $(".btn-quxiao").click(function () {
+    var cid = $(".btn_interactive").attr('cid')
+    if (cid == 0 || cid == 1){
+        var buy_button = Create_button_buy_dom();
+        $('.buy_button').append(buy_button);
+    }
+    $(".btn_interactive").click(function () {
+        var cid = $(this).attr('cid');
         if ($("#status_display").html() == "交易关闭") {
             drawToast("交易已经取消！");
         }
-        else {
-            var cancel_bt = $(".btn-quxiao");
+        else if (cid == 0 || cid == 1) {        //订单创建 或者 待付款  允许取消订单
+            var cancel_bt = $(".btn_interactive");
             //取消订单
             var arr = suffix.split('/'); //分割字符串获取订单id  /trades/78/orders/details.json
             var requestUrl = GLConfig.baseApiUrl + GLConfig.delete_detail_trade.template({"trade_id": arr[2]});
-             ///rest/v1/trades/77  请求的地址
+            ///rest/v1/trades/77  请求的地址
             if (cancel_bt.hasClass('loading')) {
                 return;
             }
@@ -240,8 +240,10 @@ function Cancel_order(suffix) {
                     $(".btn-quxiao").remove();
                     //删除最下方购买button
                     $(".btn-buy").remove();
+                    //刷新页面
+                    location.reload()
                 }
-                else{
+                else {
                     drawToast("取消失败，请尝试刷新页面！");
                 }
             }
@@ -253,6 +255,9 @@ function Cancel_order(suffix) {
                 dataType: 'json',
                 success: requestCallBack
             });
+        }
+        else {
+
         }
     });
 }

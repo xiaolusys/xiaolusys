@@ -2,14 +2,18 @@ function province_list() {
     var selectid = document.getElementById("s_province");
     selectid.options.length = 0;
     selectid[0] = new Option("请选择省", 0);
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.province_list;
+
+    //请求成功回调函数
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.province_list
     var requestCallBack = function (data) {
+
         for (var i = 1; i <= data.length; i++) {
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
         }
         var urlParams = parseUrlParams(window.location.href);
-        var up_id = {'up_id': urlParams['id']};
-        test(up_id.up_id);
+
+        var up_id = {'up_id':urlParams['id']};
+        xugaifuzi(up_id.up_id);
     };
     // 发送请求
     $.ajax({
@@ -23,7 +27,7 @@ function province_list() {
 }
 
 //第一个框的点击事件
-function setSecond(obj) {
+function setSecond() {
     selected_province = $("#s_province option:selected");
     province_id = selected_province.val()    //获取省份的id
     var selectid = document.getElementById("s_city");
@@ -52,7 +56,7 @@ function setSecond(obj) {
 }
 
 //城市框的点击事件
-function setThird(obj) {
+function setThird() {
     selected_city = $("#s_city option:selected");
     city_id = selected_city.val()    //获取城市的id
     var selectid = document.getElementById("s_country");
@@ -63,7 +67,7 @@ function setThird(obj) {
     var requestCallBack = function (data) {
 
         for (var i = 1; i <= data.length; i++) {
-            //alert(data[i].name)
+
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
@@ -84,8 +88,7 @@ var receiver_state;
 var receiver_district;
 var receiver_city;
 
-//初始化
-function test(up_id) {
+function xugaifuzi(up_id) {
 
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/get_one_address";
@@ -157,7 +160,7 @@ $("#btn-up").click(function () {
     }
     //请求成功回调函数
     var reqUrl = GLConfig.baseApiUrl + GLConfig.update
-    var requestCallBack = function (data) {
+    var requestCallBack = function () {
         alert("修改成功！")
         window.location.href = "shouhuodz.html"
     };
