@@ -416,7 +416,7 @@ class ModelProductAdmin(admin.ModelAdmin):
     fieldsets = (('基本信息:', {'classes': ('expand',),
                     'fields': (('name',), ('head_imgs', 'content_imgs')
                                , ('buy_limit', 'per_limit', 'sale_time', 'status'))}),)
-    search_fields = ['name', ]
+    search_fields = ['name', '=id']
     list_per_page = 50
 
 admin.site.register(ModelProduct, ModelProductAdmin)

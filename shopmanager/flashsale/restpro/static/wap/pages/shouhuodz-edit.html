@@ -1,58 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>小鹿美美</title>
-<meta charset="UTF-8">
-<meta id="viewport" name="viewport" />
-<script src="../js/common.js"></script>
-<link rel="stylesheet" href="../css/common.css">
-<link rel="stylesheet" href="../css/shouhuodz-add.css">
+    <title>小鹿美美</title>
+    <meta charset="UTF-8">
+    <meta id="viewport" name="viewport"/>
+    <script src="../js/common.js"></script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/shouhuodz-add.css">
 </head>
 <body>
 <div class="header">
-  <a class="back" href="javascript:history.go(-1)"></a>
-  <h1>修改收货地址</h1>
+    <a class="back" href="javascript:history.go(-1)"></a>
+
+    <h1>修改收货地址</h1>
 </div>
 <div class="ipt-wrap">
-  <ul class="ipt">
-    <li>
-      <label>选择省</label>
-      <select id="s_province" name="s_province"   onchange="setSecond(this)"></select>
-    </li>
-    <li>
-      <label>选择市</label>
-      <select id="s_city" name="s_city"    onchange="setThird(this)" ></select>
-    </li>
-    <li>
-      <label>选择区/县</label>
-      <select id="s_country" name="s_country"></select>
-    </li>
-    <li>
-      <label>街道地址</label>
-      <input type="text" placeholder="请输入街道地址"     id="inputReceiverAddress"  >
-    </li>
-    <li>
-      <label>收货人</label>
-      <input type="text" placeholder="请输入收货人姓名"    id="inputReceiverName">
-    </li>
-    <li>
-      <label>手机号码</label>
-      <input type="text" placeholder="请输入收货人手机号码"   id="inputReceiverMobile"  >
-    </li>
-  </ul>  
+    <ul class="ipt">
+        <li>
+            <label>选择省</label>
+            <select id="s_province" name="s_province" onchange="setSecond(this)"></select>
+        </li>
+        <li>
+            <label>选择市</label>
+            <select id="s_city" name="s_city" onchange="setThird(this)"></select>
+        </li>
+        <li>
+            <label>选择区/县</label>
+            <select id="s_country" name="s_country"></select>
+        </li>
+        <li>
+            <label>街道地址</label>
+            <input type="text" placeholder="请输入街道地址" id="inputReceiverAddress">
+        </li>
+        <li>
+            <label>收货人</label>
+            <input type="text" placeholder="请输入收货人姓名" id="inputReceiverName">
+        </li>
+        <li>
+            <label>手机号码</label>
+            <input type="text" placeholder="请输入收货人手机号码" id="inputReceiverMobile">
+        </li>
+    </ul>
 </div>
 <input type="text" id="up_id" hidden="hidden">
+
 <div class="bottom-bar">
-  <p class="error-tips"></p>
-  <a class="btn-save" id="btn-up">修改地址</a>
+    <p class="error-tips"></p>
+    <a class="btn-save" id="btn-up">修改地址</a>
 </div>
- <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/xiugaidz.js"></script>
 <script>
     (function ($) {
         province_list();
     })(jQuery);
 </script>
-
 </body>
 </html>

@@ -11,6 +11,7 @@ function province_list() {
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
         }
         var urlParams = parseUrlParams(window.location.href);
+
         var up_id = {'up_id':urlParams['id']};
         xugaifuzi(up_id.up_id);
     };
@@ -25,7 +26,6 @@ function province_list() {
 
 }
 
-
 //第一个框的点击事件
 function setSecond() {
     selected_province = $("#s_province option:selected");
@@ -36,13 +36,10 @@ function setSecond() {
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.city_list
     var requestCallBack = function (data) {
-
         for (var i = 1; i <= data.length; i++) {
-
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
-
         $("#s_city option:contains(" + receiver_city + ")").attr("selected", true);
         setThird();
     };
@@ -90,16 +87,13 @@ function setThird() {
 var receiver_state;
 var receiver_district;
 var receiver_city;
-//初始化赋值
+
 function xugaifuzi(up_id) {
 
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/get_one_address";
     var requestCallBack = function (data) {
-
-
         console.info(data[0]);
-
         receiver_state = data[0].receiver_state;
         receiver_district = data[0].receiver_district;
         receiver_city = data[0].receiver_city;
