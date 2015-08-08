@@ -82,6 +82,12 @@ function Set_user_orderinfo(suffix){
 		data:{}, 
 		dataType:'json', 
 		success:callBack 
+		error:function(err){
+			var resp = JSON.parse(err.responseText);
+			if (!isNone(resp.detail)){
+				drawToast(resp.detail);
+			}
+		}
 	}); 
 }
 

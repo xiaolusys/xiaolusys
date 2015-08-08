@@ -169,12 +169,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 
         xlmm = None
         weixin_payable = False
-        if isFromWeixin(request):
-            customers = Customer.objects.filter(user=request.user)
-            if customers.count() > 0 and not customers[0].unionid.isspace():
-                weixin_payable = True
-                xiaolumms = XiaoluMama.objects.filter(openid=customers[0].unionid)
-                xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
+        customers = Customer.objects.filter(user=request.user)
+        if customers.count() > 0 and not customers[0].unionid.isspace():
+            weixin_payable = isFromWeixin(request)
+            xiaolumms = XiaoluMama.objects.filter(openid=customers[0].unionid)
+            xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
                 
         alipay_payable = True
         wallet_payable = False
@@ -217,12 +216,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 
         xlmm = None
         weixin_payable = False
-        if isFromWeixin(request):
-            customers = Customer.objects.filter(user=request.user)
-            if customers.count() > 0 and not customers[0].unionid.isspace():
-                weixin_payable = True
-                xiaolumms = XiaoluMama.objects.filter(openid=customers[0].unionid)
-                xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
+        customers = Customer.objects.filter(user=request.user)
+        if customers.count() > 0 and not customers[0].unionid.isspace():
+            weixin_payable = isFromWeixin(request)
+            xiaolumms = XiaoluMama.objects.filter(openid=customers[0].unionid)
+            xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
                 
         alipay_payable = True
         wallet_payable = False
@@ -344,6 +342,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(buyer_id=customer.id).order_by('-created')
     
+    def get_xlmm(self,request):
+        customer = get_object_or_404(Customer,user=request.user)
+        if customer.unionid.isspace():
+            return None
+        xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
+        return xiaolumms.count() > 0 and xiaolumms[0] or None
+        
     def list(self, request, *args, **kwargs):
         """ 获取用户订单列表 """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -535,16 +540,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         )
         if cart_qs.count() != len(cart_ids):
             raise exceptions.ParseError(u'购物车信息异常')
-        
+        xlmm            = self.get_xlmm(request)
         payment         = int(float(CONTENT.get('payment','0')) * 100)
         post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
         discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
-        cart_payment    = 0 
+        cart_total_fee  = 0 
+        cart_discount   = 0
         for cart in cart_qs:
-            cart_payment += cart.price * cart.num * 100
-        
-        cart_payment = cart_payment + post_fee #- discount_fee
-        if post_fee < 0 or payment < 0 or payment != cart_payment:
+            cart_total_fee += cart.price * cart.num * 100
+            cart_discount += cart.calc_discount_fee(xlmm=xlmm) * 100
+            
+        cart_payment = cart_total_fee + post_fee - cart_discount
+        if post_fee < 0 or payment < 0 or payment < cart_payment:
             raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
@@ -578,10 +585,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         payment         = int(float(CONTENT.get('payment','0')) * 100)
         post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
         discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
-        cart_payment    = int(product_sku.agent_price * sku_num * 100)
+        bn_totalfee     = int(product_sku.agent_price * sku_num * 100)
         
-        cart_payment = cart_payment + post_fee #- discount_fee
-        if post_fee < 0 or payment <= 0 or payment != cart_payment:
+        xlmm            = self.get_xlmm(request)
+        bn_discount     = product_sku.calc_discount_fee(xlmm) 
+        bn_payment      = bn_totalfee + post_fee - bn_discount
+        if post_fee < 0 or payment <= 0 or payment < bn_payment:
             raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
