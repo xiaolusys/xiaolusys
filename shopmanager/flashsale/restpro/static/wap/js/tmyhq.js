@@ -16,6 +16,12 @@ function create_yhq_dom(obj) {
     return hereDoc(yhq_dom).template(obj)
 }
 
+
+function create_yhqk_dom() {
+    var html = $("#youhuiquan_kong").html();
+    return hereDoc(html);
+}
+
 $(document).ready(function () {
     var url = "/rest/v1/user/mycoupon/";
     $.get(url, function (res) {
@@ -60,7 +66,8 @@ $(document).ready(function () {
             });
         }
         else {
-            location.href = '../pages/youhuiquan-kong.html';
+            var yhqk = create_yhqk_dom();
+            $("body").append(yhqk);
         }
 
     });

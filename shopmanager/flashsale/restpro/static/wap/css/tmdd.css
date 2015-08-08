@@ -139,7 +139,6 @@
 .btn_top_1:after{content: "取消订单";} /* 待付款显示取消订单 */
 
 .btn_top_2:after{content: "申请退款";} /* 已经付款显示申请退款 */
-
 .btn_top_3:after{content: "申请退货";} /* 已发货显示申请退货 */
 .btn_top_4:after{content: "申请退货";} /* 已经签收显示申请退货 */
 
