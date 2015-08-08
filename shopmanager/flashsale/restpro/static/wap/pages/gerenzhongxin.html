@@ -16,7 +16,6 @@
 <script id="profile_template" type="text/html">
 <div class="header">
     <a class="home" href="../index.html"></a>
-
     <h1>个人中心</h1>
 </div>
 
@@ -69,6 +68,16 @@
 <div class="btn-wrap">
     <a class="btn-logout" onclick="logout()">退&nbsp;&nbsp;出</a>
 </div>
+</script>
+<script type="text/javascript">
+(function ($) {
+	$("#loading").show();
+    //获取
+    get_user_profile();
+    $(document).on('click','.btn-logout',function () {
+        logout();
+    });
+})(jQuery);
 </script>
 </body>
 </html>

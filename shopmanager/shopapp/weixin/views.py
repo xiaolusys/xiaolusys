@@ -120,8 +120,8 @@ def warn(request):
 from urllib import urlopen
 
 
-START_TIME = datetime.datetime(2015,7,21,12)
-END_TIME = datetime.datetime(2015,7,28,10)
+START_TIME = datetime.datetime(2015,8,10,10)
+END_TIME = datetime.datetime(2015,8,18,10)
 
 
 def get_user_openid(request, code, 
@@ -345,7 +345,6 @@ class OrderInfoView(View):
             
             order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
-        print  "   订单是", latest_trades
         trade = latest_trades[0]
         
         data = {}
@@ -795,7 +794,7 @@ class FreeSampleView(View):
         today_orders = SampleOrder.objects.filter(created__gt=today_time)
         
         order_exist = False
-        start_time1 = datetime.datetime(2015,7,21)
+        start_time1 = datetime.datetime(2015,8,10)
         order = SampleOrder.objects.filter(user_openid=user_openid).filter(created__gt=start_time1)
         
         if order.count() > 0:
@@ -1127,30 +1126,10 @@ class FinalListView(View):
         
         order_list = SampleOrder.objects.none()
         
-        if month == 1507 and batch == 1:
+        if month == 1507 :
             start_time = datetime.datetime(2015,7,21)
             end_time   = datetime.datetime(2015,7,29)
-            order_list = SampleOrder.objects.filter(status=91,created__gt=start_time)
-        elif month == 1507 and batch == 2:
-            start_time = datetime.datetime(2015,7,21)
-            end_time   = datetime.datetime(2015,7,29)
-            order_list = SampleOrder.objects.filter(status=92,created__gt=start_time)
-        elif month == 1507 and batch == 3:
-            start_time = datetime.datetime(2015,7,21)
-            end_time   = datetime.datetime(2015,7,29)
-            order_list = SampleOrder.objects.filter(status=93,created__gt=start_time)
-        elif month == 1507 and batch == 4:
-            start_time = datetime.datetime(2015,7,21)
-            end_time   = datetime.datetime(2015,7,29)
-            order_list = SampleOrder.objects.filter(status=94,created__gt=start_time)
-        elif month == 1507 and batch == 5:
-            start_time = datetime.datetime(2015,7,21)
-            end_time   = datetime.datetime(2015,7,29)
-            order_list = SampleOrder.objects.filter(status=95,created__gt=start_time)
-        elif month == 1507 and batch == 6:
-            start_time = datetime.datetime(2015,7,21)
-            end_time   = datetime.datetime(2015,7,29)
-            order_list = SampleOrder.objects.filter(status=96,created__gt=start_time)
+            order_list = SampleOrder.objects.filter(status__gt=90,status__lt=100,created__gt=start_time)
         elif month == 1504 :
             start_time = datetime.datetime(2015,4,13)
             end_time = datetime.datetime(2015,4,21)
@@ -1702,9 +1681,9 @@ def  weixinorder_detail(request):
         status = [pcfg.WAIT_SELLER_SEND_GOODS,pcfg.WAIT_BUYER_CONFIRM_GOODS, pcfg.TRADE_FINISHED]
         latest_trades = MergeTrade.objects.filter(receiver_mobile=wx_user.mobile).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])
         #\
-              #  .filter(status__in=status).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])\
-              #  .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)\
-               # .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
+        #  .filter(status__in=status).exclude(sys_status__in=[pcfg.ON_THE_FLY_STATUS,pcfg.INVALID_STATUS])\
+        #  .exclude(sys_status=pcfg.FINISHED_STATUS,is_express_print=False)\
+        # .exclude(type=pcfg.FENXIAO_TYPE).order_by('-pay_time')
         
         if latest_trades.count() == 0:
             wx_trades = WXOrder.objects.filter(buyer_openid=user_openid).order_by('-order_create_time')
@@ -1717,7 +1696,7 @@ def  weixinorder_detail(request):
             order_id = wx_trades[0].order_id
             latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
         #print  "   订单是", latest_trades
-       # trade = latest_trades[0]
+        # trade = latest_trades[0]
         trade22 = latest_trades
         rec1=[]
         for  trade in trade22:
@@ -1777,11 +1756,11 @@ def  weixinorder_detail(request):
             refund = None
             refund_list = Refund.objects.filter(trade_id=trade.id)
             if refund_list.count() > 0:
-               refund = refund_list[0]
+                refund = refund_list[0]
         
             passed = False
             start_time = datetime.datetime(2015,3,9)
-            sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=70,status__lt=90)
+            sample_orders = SampleOrder.objects.filter(user_openid=user_openid,status__gt=90,status__lt=100)
             refund_records = Refund.objects.filter(user_openid=user_openid,created__gt=start_time)
             if specific_order_finished and sample_orders.count() > 0 :
                 if refund_records.filter(refund_status__in=(0,1)).count() == 0:

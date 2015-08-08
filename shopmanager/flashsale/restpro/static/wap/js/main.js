@@ -171,7 +171,7 @@ function Create_item_dom(p_obj,close_model){
 	}
 
 	p_obj.saleout_dom = '';
-	if (p_obj.saleout){
+	if (p_obj.is_saleout){
 		p_obj.saleout_dom = '<div class="mask"></div><div class="text">抢光了</div>';
 	}
 	return hereDoc(Item_dom).template(p_obj);

@@ -8,7 +8,6 @@
     	//监听购物车点击事件
         listencart: function (options) {
         	var self = this;
-        	console.log('listercart');
         	var C = {
                 init: function () {
                     $(self).data('click', true).on('click', this.doIflogin);
