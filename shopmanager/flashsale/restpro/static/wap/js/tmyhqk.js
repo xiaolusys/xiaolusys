@@ -15,7 +15,7 @@ $(document).ready(function () {
             var tips_content = '您已经有' + nums + '张优惠券咯，赶紧去花吧，不要过期哦！';
             $(".tips").empty().append(tips_content);//后添加
         } else {
-            $(".tips").empty().append("暂无优惠券,赶紧索取吧!~");
+            $(".tips").empty().append("赶紧索取吧!~");
         }
     });
 

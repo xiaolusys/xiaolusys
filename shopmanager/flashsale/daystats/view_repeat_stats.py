@@ -105,8 +105,8 @@ class StatsSaleView(View):
             for s, m in sm.iteritems():
                 total_sale_num += len(m)
 
-            total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).exclude(weight_time=None).filter(
-                sys_status=u'FINISHED').filter(pay_time__gte=month_start_date, pay_time__lt=month_end_date).count()
+            total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).filter(
+                sys_status=u'FINISHED').filter(weight_time__gte=month_start_date, weight_time__lt=month_end_date).count()
             result_list.append(
                 {"month": month, "total_sale_amount": total_sale_amount / 100, "total_order_num": total_order_num,
                  "total_package_num": total_package_num, "total_sale_num": total_sale_num})
