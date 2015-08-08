@@ -5,17 +5,42 @@
 
 (function ($) {
     $.extend($.fn, {
+    	//监听购物车点击事件
+        listencart: function (options) {
+        	var self = this;
+        	var C = {
+                init: function () {
+                    $(self).data('click', true).on('click', this.doIflogin);
+                },
+                doIflogin:function(){
+                	DoIfLogin({
+			    		callback:function(){window.location='/pages/gouwuche.html';},
+			    		redirecto:'/pages/gouwuche.html'
+			    	});
+                }
+            };
+        	C.init();
+        },
         shoping: function (options) {
             var self = this,
                 $shop = $('.cart'),
-                $body = $('.J-shoping-body')
+                $body = $('.J-shoping-body'),
+                $event = null;
             var S = {
                 init: function () {
-                    $(self).data('click', true).on('click', this.addShoping);
+                    $(self).data('click', true).on('click', this.doIflogin);
                 },
-                addShoping: function (e) {
+                doIflogin:function(e){
+                	e.stopPropagation();
+                	$event = e;
+                	DoIfLogin({
+			    		callback:function(){ S.addShoping();},
+			    		redirecto:window.location.href
+			    	});
+                },
+                addShoping: function () {
+                	e = $event;
                     console.log('debug:',e);
-                    e.stopPropagation();
                     //如果未选中商品尺寸,事件不执行
                     if ($('#js-goods-size li.active').length == 0){
                     	document.getElementById('js-goods-size').scrollIntoView(false);
@@ -29,7 +54,6 @@
                         y = $target.offset().top + 10,
                         X = $shop.offset().left + $shop.width() / 2 - $target.width() / 2 + 10,
                         Y = $shop.offset().top;
-                    console.log(dis);
                     if (dis) {
                         if ($('#floatOrder').length <= 0) {
                         	var cart_image_url =  $('.swiper-slide img').first().attr('src');

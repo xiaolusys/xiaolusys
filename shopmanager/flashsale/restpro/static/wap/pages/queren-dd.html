@@ -3,13 +3,12 @@
 <head>
 <title>小鹿美美</title>
 <meta charset="UTF-8">
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="format-detection" content="telephone=no"/>
 <meta name="format-detection" content="email=no"/>
 <meta id="viewport" name="viewport" />
 <script src="../js/common.js"></script>
 <link rel="stylesheet" href="../css/common.css">
+<link rel="stylesheet" href="../css/gouwuche.css">
 <link rel="stylesheet" href="../css/queren-dd.css">
 </head>
 <body>
@@ -36,7 +35,31 @@
 </ul>
 
 <div class="cost">
-  <h2>费用详情</h2>
+  <h2>商品支付详情</h2>
+  <div id="item-list" class="cart-list">
+    <script id="item-template" type="text/html">
+	<div class="item" >
+	  <div class="gpic"><img src="{{ pic_path }}"></div>
+	  <div class="gname">{{ title }}</div>
+	  <div class="gprice">¥ <span class="item_price" id="itemprice_{{ id }}">{{ price }}</span></div>
+	  <div class="gsize">尺码：{{ sku_name }}</div>
+	  <div class="goprice"><s>¥{{ std_sale_price }}</s></div>
+	  <div class="scount">
+	    <span>{{ num }}</span>
+	  </div>
+	</div>
+    </script>
+    <script id="form-template" type="text/html">
+      <form id="pay-form" action="#" method="POST">
+		<input type="hidden" name="uuid" value="{{uuid}}" />
+		<input type="hidden" name="cart_ids" value="{{cart_ids}}" />
+		<input type="hidden" name="payment" value="{{ total_payment }}" />
+		<input type="hidden" name="post_fee" value="{{ post_fee }}" />
+		<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
+		<input type="hidden" name="total_fee" value="{{ total_fee }}" />
+      </form>
+    </script>
+  </div>
   <div>
     <p class="label1">商品总金额<span>¥ 0</span></p>
     <p class="label2">小鹿美美运费<span>¥ 0</span></p>
@@ -60,18 +83,6 @@
 
 <div class="pay-type">
   <h2>支付方式</h2>
-  <div id="item-list">
-    <script id="form-template" type="text/html">
-      <form id="pay-form" action="#" method="POST">
-	<input type="hidden" name="uuid" value="{{uuid}}" />
-	<input type="hidden" name="cart_ids" value="{{cart_ids}}" />
-	<input type="hidden" name="payment" value="{{ total_payment }}" />
-	<input type="hidden" name="post_fee" value="{{ post_fee }}" />
-	<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
-	<input type="hidden" name="total_fee" value="{{ total_fee }}" />
-      </form>
-    </script>
-  </div>
   <ul id="js-pay-type" class="pay-list">
 <!--  	<li><i></i>货到付款（现金）</li>-->
   </ul>
@@ -89,7 +100,6 @@
 <script src="../js/tmpay.js"></script>
 <script type="text/javascript">
 (function($){
-  
   //地址切换
   $(document).on({
   	touchend:change_address,
@@ -109,7 +119,7 @@
   var urlConf = {'cart_ids':urlParams['cart_ids']};
   Set_user_orderinfo(GLConfig.get_cart_payinfo_url.template(urlConf));
   
-  $(document).on('click','.btn-buy',Confirm_charge);
+  $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy .btn-buy');
 })(jQuery);
 
 function change_address(){

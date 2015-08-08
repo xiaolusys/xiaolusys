@@ -40,8 +40,16 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
-    
+
+    def create(self, request, *args, **kwargs):
+        """
+        创建退款单 根据退款状态的不同 创建不同的状态的退款/退款单
+        """
+        print request.path, '----------------'
+        print u"这里是退款API", request.data
+        return Response(data={'ok': True})
+
+
 class UserAddressViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be   viewed or edited.

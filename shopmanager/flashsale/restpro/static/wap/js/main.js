@@ -2,6 +2,94 @@
  *@author: imeron
  *@date: 2015-07-22 
  */
+var timestamp = Date.parse(new Date());
+var wait = 60;
+function time(btn) {
+    if (wait == 0) {
+        btn.click(get_code);
+        btn.text("获取验证码");
+        wait = 60;
+    } else {
+        btn.unbind("click")
+        btn.text(wait + "秒后重新获取");
+        wait--;
+        setTimeout(function () {
+                time(btn);
+            },
+            1000)
+    }
+}
+
+var today = new Date();
+function today_timer() {
+    /*
+     * 首页(今日)倒计时
+     * auther:yann
+     * date:2015/6/8
+     */
+    var ts = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
+    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
+    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    dd = checkTime(dd);
+    hh = checkTime(hh);
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+    console.log(dd, hh, mm, ss);
+    if (ts > 100800000 && ts < 136800000) {
+        $(".poster_timer").text("敬请期待");
+    } else if (ts < 100800000 && ts >= 86400000) {
+        $(".poster_timer").text(dd + "天" + hh + "时" + mm + "分" + ss + "秒");
+        setTimeout(function () {
+                today_timer();
+            },
+            1000);
+    } else if (ts < 86400000) {
+        $(".poster_timer").text(hh + "时" + mm + "分" + ss + "秒");
+        setTimeout(function () {
+                today_timer();
+            },
+            1000);
+    }
+
+}
+
+function yesterday_timer() {
+    /*
+     * 昨日特卖倒计时
+     * auther:yann
+     * date:2015/6/8
+     */
+    var ts = (new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0, 0)) - (new Date());//计算剩余的毫秒数
+    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
+    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    dd = checkTime(dd);
+    hh = checkTime(hh);
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+    console.log(dd, hh, mm, ss);
+    if (ts > 0) {
+        $(".poster_timer").text(hh + "时" + mm + "分" + ss + "秒");
+        setTimeout(function () {
+                yesterday_timer();
+            },
+            1000);
+    } else {
+        $(".poster_timer").text("敬请期待明日上新");
+    }
+
+}
+
+function checkTime(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}
+
 function Set_posters(suffix){
 	//获取海报
 	var posterUrl = GLConfig.baseApiUrl + '/posters/'+ suffix +'.json';
@@ -83,7 +171,7 @@ function Create_item_dom(p_obj,close_model){
 	}
 
 	p_obj.saleout_dom = '';
-	if (p_obj.saleout){
+	if (p_obj.is_saleout){
 		p_obj.saleout_dom = '<div class="mask"></div><div class="text">抢光了</div>';
 	}
 	return hereDoc(Item_dom).template(p_obj);
@@ -190,5 +278,4 @@ function Set_model_product(suffix){
 	}); 
 	
 }
-
 

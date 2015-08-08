@@ -31,24 +31,18 @@
         <dd>
             <a class="nvzhuang" href="#">
                 <img src="#">
-
                 <p class="subject"><span class="tips"></span></p>
-
                 <div class="shengyu"><i></i>
-
-                    <div class="poster_timer">剩余2天</div>
+                    <div class="poster_timer">剩余 天</div>
                 </div>
             </a>
         </dd>
         <dd>
             <a class="chaotong" href="#">
                 <img src="#">
-
                 <p class="subject"><span class="tips"></span></p>
-
                 <div class="shengyu"><i></i>
-
-                    <div class="poster_timer">剩余2天</div>
+                    <div class="poster_timer">剩余 天</div>
                 </div>
             </a>
         </dd>
@@ -58,32 +52,47 @@
     <div class="header">
         <div class="text"><i></i>潮童专区</div>
         <div class="shengyu"><i></i>
-
-            <div class="poster_timer">剩余2天1小时</div>
+            <div class="poster_timer">剩余 天 小时</div>
         </div>
     </div>
     <ul class="chaotong">
         <li>
             <a href="#">
                 <img src="#">
-
-                <p class="gname">男童超薄透气款套装</p>
-
+                <p class="gname"></p>
                 <p class="gprice">
-                    <span class="nprice">¥ 68 </span>
-                    <s class="oprice">¥ 168</s>
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
                 </p>
             </a>
         </li>
-        <li>
+         <li>
             <a href="#">
                 <img src="#">
-
-                <p class="gname">男童超薄透气款套装</p>
-
+                <p class="gname"></p>
                 <p class="gprice">
-                    <span class="nprice">¥ 68 </span>
-                    <s class="oprice">¥ 168</s>
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
+                </p>
+            </a>
+        </li>
+         <li>
+            <a href="#">
+                <img src="#">
+                <p class="gname"></p>
+                <p class="gprice">
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
+                </p>
+            </a>
+        </li>
+         <li>
+            <a href="#">
+                <img src="#">
+                <p class="gname"></p>
+                <p class="gprice">
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
                 </p>
             </a>
         </li>
@@ -94,31 +103,47 @@
         <div class="text"><i></i>时尚女装</div>
         <div class="shengyu"><i></i>
 
-            <div class="poster_timer">剩余2天1小时</div>
+            <div class="poster_timer">剩余 天 小时</div>
         </div>
     </div>
     <ul class="nvzhuang">
         <li>
-            <a href="">
+            <a href="#">
                 <img src="#">
-
-                <p class="gname">男童超薄透气款套装</p>
-
+                <p class="gname"></p>
                 <p class="gprice">
-                    <span class="nprice">¥ 68 </span>
-                    <s class="oprice">¥ 168</s>
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
                 </p>
             </a>
         </li>
         <li>
-            <a href="">
+            <a href="#">
                 <img src="#">
-
-                <p class="gname">男童超薄透气款套装</p>
-
+                <p class="gname"></p>
                 <p class="gprice">
-                    <span class="nprice">¥ 68 </span>
-                    <s class="oprice">¥ 168</s>
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
+                </p>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <img src="#">
+                <p class="gname"></p>
+                <p class="gprice">
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
+                </p>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <img src="#">
+                <p class="gname"></p>
+                <p class="gprice">
+                    <span class="nprice">¥  </span>
+                    <s class="oprice">¥ </s>
                 </p>
             </a>
         </li>
@@ -126,43 +151,45 @@
 </div>
 
 <div id="loading"><span class="dots-loader"></span></div>
-<a class="cart" href="pages/gouwuche.html"><span class="total">2</span></a>
+<a class="cart" href="javascript:void();"><span class="total">2</span></a>
 
 <div class="scroll-top" id="js-scroll-top"></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="js/jquery-shopping.js"></script>
 <script src="js/main.js"></script>
 <script type="text/javascript">
-    (function ($) {
-        //返回顶部
-        $('#js-scroll-top').on('touchend', function (e) {
-            e.preventDefault();
-            $('body').animate({scrollTop: 0}, 400);
-        });
+(function ($) {
+    //返回顶部
+    $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
 
-        var startY;
+    var startY;
 
-        document.addEventListener('touchstart', function (ev) {
-            startY = ev.touches[0].pageY;
-        }, false);
+    document.addEventListener('touchstart', function (ev) {
+        startY = ev.touches[0].pageY;
+    }, false);
 
-        document.addEventListener('touchend', function (ev) {
-            var endY = ev.changedTouches[0].pageY;
-            var dir = startY - endY;
-            if (dir > 0) {
-                $('#js-fixed-nav').hide();
-            } else {
-                $('#js-fixed-nav').show();
-            }
-        }, false);
-
-        //获取今日海报
-        Set_posters(GLConfig.today_suffix);
-        //获取今日推荐商品
-        Set_promotes_product(GLConfig.today_suffix);
-        //获取购物车商品数
-        Set_shopcarts_num();
-        today_timer();
-    })(jQuery);
+    document.addEventListener('touchend', function (ev) {
+        var endY = ev.changedTouches[0].pageY;
+        var dir = startY - endY;
+        if (dir > 0) {
+            $('#js-fixed-nav').hide();
+        } else {
+            $('#js-fixed-nav').show();
+        }
+    }, false);
+	$('.cart').listencart();
+    //获取今日海报
+    Set_posters(GLConfig.today_suffix);
+    //获取今日推荐商品
+    Set_promotes_product(GLConfig.today_suffix);
+    //获取购物车商品数
+    Set_shopcarts_num();
+    today_timer();
+})(jQuery);
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}
 </script>
 </body>
 </html>

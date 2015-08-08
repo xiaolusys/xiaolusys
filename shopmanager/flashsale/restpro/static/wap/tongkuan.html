@@ -19,23 +19,25 @@
 
 </ul>
 <div id="loading"><span class="dots-loader"></span></div>
-<a class="cart" href="gouwuche.html"><span class="total">2</span></a>
+<a class="cart" href="javascript:void();"><span class="total">2</span></a>
 <div class="scroll-top" id="js-scroll-top"></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="js/jquery-shopping.js"></script>
 <script src="js/main.js"></script>
 <script>
 (function($){
   //返回顶部
-  $('#js-scroll-top').on('touchend',function(e){
-    e.preventDefault();
-    $('body').animate({scrollTop:0},400);  
-  });
-  
+  $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
+  $('.cart').listencart();
   //获取同款聚合商品列表
   var urlParams = parseUrlParams(window.location.href);
   var urlConf = {'model_id':urlParams['id']};
   Set_model_product(GLConfig.get_modellist_url.template(urlConf));
 })(jQuery);  
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}
 </script>  
 </body>
 </html>

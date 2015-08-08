@@ -143,16 +143,15 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
- 
+        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
     def order_queryset(self,request,queryset):
         """ 对集合列表进行排序 """
         order_by = request.REQUEST.get('order_by')
-        print 'debug',order_by
         if order_by == 'price':
-            queryset = queryset.order_by('-agent_price')
+            queryset = queryset.order_by('agent_price')
         else:
             queryset = queryset.order_by('-details__is_recommend')
         return queryset

@@ -16,6 +16,20 @@ function create_jf_dom(obj) {
     return hereDoc(jf_dom).template(obj)
 }
 
+function create_jfk_dom() {
+    function jfk_dom() {
+        /*
+            <div class="kv"></div>
+            <p class="tips">
+                您还未获得积分，赶快去首页购买<br>商品，获取积分吧~
+            </p>
+            <a class="back-index" href="../index.html">去首页逛逛</a>
+         */
+    };
+    return hereDoc(jfk_dom)
+}
+
+
 $(document).ready(function () {
     var url = "/rest/v1/user/integrallog/";
     $.get(url, function (res) {
@@ -36,7 +50,8 @@ $(document).ready(function () {
             });
         }
         else {
-            location.href = '../pages/wodejifen-kong.html';
+            var kong = create_jfk_dom();
+            $("body").append(kong);
         }
     });
 

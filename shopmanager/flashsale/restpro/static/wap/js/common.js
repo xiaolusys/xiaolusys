@@ -71,8 +71,8 @@ function hereDoc(f) {
         oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
     }
     window.onload = function () {
-        document.body.addEventListener('touchstart', function () {
-        });
+        document.body.addEventListener('touchstart', function () {});
+        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
     }
 })();
 
@@ -80,6 +80,7 @@ function hereDoc(f) {
 var GLConfig = {
 	baseApiUrl:'/rest/v1', //API接口调用前缀
 	order_expired_in:20 * 60,//expired time
+	login_url:'/pages/denglu.html',//登录URL
 	zhifucg_url:'zhifucg.html',//支付成功跳转URL
 	daizhifu_url:'daizhifu-dd.html',//待支付订单页面
 	today_suffix:'today',  //获取首页今日商品信息，URL标识
@@ -110,7 +111,9 @@ var GLConfig = {
 	get_user_profile:'/users/profile.json',//得到用户信息
 	get_user_point:'/integral.json',//得到用户积分
 	delete_detail_trade:'/trades/{{trade_id}}',//用户取消订单
-	user_logout:'/users/customer_logout'//用户注销
+	user_logout:'/users/customer_logout',//用户注销
+	user_islogin:'/users/islogin.json',//用户是否登录
+    refunds:'/refunds'//退款
 };
 
 // using jQuery
@@ -156,6 +159,21 @@ function drawToast(message) {
     intervalCounter = setInterval("hideToast()", 2000);
 }
 
+function DoIfLogin(cfg){
+	$.ajax({
+        type: 'get',
+        url: GLConfig.baseApiUrl + GLConfig.user_islogin,
+        data: "",
+        success: cfg.callback,
+        error: function (data) {
+        	console.log('debug login:',data);
+            if (data.status == 403) {
+                window.location = GLConfig.login_url+'?next='+encodeURIComponent(cfg.redirecto);
+            }
+        }
+    });
+}
+
 
 function Set_shopcarts_num() {
     /*
@@ -177,100 +195,11 @@ function Set_shopcarts_num() {
         },
         success: requestCallBack,
         error: function (data) {
-            if (data.statusText == "FORBIDDEN") {
+        	console.log('debug cartnum:',data);
+            if (data.status == 403) {
                 $(".total").html("0");
             }
-            console.info("debug error: " + data.statusText);
         }
     });
 }
-var timestamp = Date.parse(new Date());
 
-var wait = 60;
-function time(btn) {
-    if (wait == 0) {
-        btn.click(get_code);
-        btn.text("获取验证码");
-        wait = 60;
-    } else {
-        btn.unbind("click")
-        btn.text(wait + "秒后重新获取");
-        wait--;
-        setTimeout(function () {
-                time(btn);
-            },
-            1000)
-    }
-}
-
-
-var today = new Date();
-function today_timer() {
-    /*
-     * 首页(今日)倒计时
-     * auther:yann
-     * date:2015/6/8
-     */
-    var ts = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
-    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
-    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
-    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
-    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
-    dd = checkTime(dd);
-    hh = checkTime(hh);
-    mm = checkTime(mm);
-    ss = checkTime(ss);
-    console.log(dd, hh, mm, ss);
-    if (ts > 100800000 && ts < 136800000) {
-        $(".poster_timer").text("敬请期待");
-    } else if (ts < 100800000 && ts >= 86400000) {
-        $(".poster_timer").text(dd + "天" + hh + "时" + mm + "分" + ss + "秒");
-        setTimeout(function () {
-                today_timer();
-            },
-            1000);
-    } else if (ts < 86400000) {
-        $(".poster_timer").text(hh + "时" + mm + "分" + ss + "秒");
-        setTimeout(function () {
-                today_timer();
-            },
-            1000);
-    }
-
-}
-
-
-function yesterday_timer() {
-    /*
-     * 昨日特卖倒计时
-     * auther:yann
-     * date:2015/6/8
-     */
-    var ts = (new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0, 0)) - (new Date());//计算剩余的毫秒数
-    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
-    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
-    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
-    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
-    dd = checkTime(dd);
-    hh = checkTime(hh);
-    mm = checkTime(mm);
-    ss = checkTime(ss);
-    console.log(dd, hh, mm, ss);
-    if (ts > 0) {
-        $(".poster_timer").text(hh + "时" + mm + "分" + ss + "秒");
-        setTimeout(function () {
-                yesterday_timer();
-            },
-            1000);
-    } else {
-        $(".poster_timer").text("敬请期待明日上新");
-    }
-
-}
-
-function checkTime(i) {
-    if (i < 10) {
-        i = "0" + i;
-    }
-    return i;
-}
