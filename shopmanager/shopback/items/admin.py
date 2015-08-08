@@ -666,7 +666,7 @@ class ProductAdmin(admin.ModelAdmin):
         
     upshelf_product_action.short_description = u"上架微信商品 (批量)"
     
-    #库存商品上架（批量）
+    #库存商品下架（批量）
     def downshelf_product_action(self,request,queryset):
          
         outer_ids = [p.outer_id for p in queryset]
