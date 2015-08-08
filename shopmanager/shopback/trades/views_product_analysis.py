@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'linjie'
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response,render
 from django.template import RequestContext
 from models import MergeTrade, MergeOrder
 import datetime
@@ -13,6 +13,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from shopback.items.models import Product, ProductSku
+from django.http import HttpResponse
 
 
 def get_Month_By_Date(date_time):
@@ -220,3 +221,63 @@ def product_Collect_Topp100(request):
 
     return render_to_response('product_analysis/product_analysis_collect_top100.html', {'data': pro},
                               context_instance=RequestContext(request))
+# 打开订单送货时间查询页面
+def open_trade_time(request):
+
+    return render(request, 'trades/trade_time.html')
+
+import json
+# 订单送货时间查询结果
+from rest_framework.response import Response
+@csrf_exempt
+def list_trade_time(request):
+
+    quest = request.POST
+    start = quest['startdate']
+    end   = quest['enddate']
+
+    year, month, day = start.split('-')
+    start_date = datetime.date(int(year), int(month), int(day))
+
+    year, month, day = end.split('-')
+    end_date = datetime.date(int(year), int(month), int(day))
+    print "test"
+
+    listTrade = MergeTrade.objects.filter(Q(pay_time__gte=start_date), Q(pay_time__lte=end_date), Q(sys_status=pcfg.FINISHED_STATUS),
+                                          Q(status=pcfg.WAIT_BUYER_CONFIRM_GOODS) | Q(status=pcfg.TRADE_BUYER_SIGNED)
+                                          | Q(status=pcfg.TRADE_FINISHED) | Q(status=pcfg.TRADE_CLOSED)
+                                          )
+    # 定义全局变量
+    global c3, c5, c7, c9, c10
+    c3 = 0
+    c5 = 0
+    c7 = 0
+    c9 = 0
+    c10 = 0
+
+    for trade in listTrade:
+        if trade.consign_time not in (None, " "):
+            tian = int((trade.consign_time-trade.pay_time).days)+1
+            if tian <= 3:# 三天之内发货的
+                c3 += 1
+            elif tian > 3 and tian <= 5:# 三到五天之内发货的的
+                c5 += 1
+            elif tian > 5 and tian <= 7:# 五到七天之内发货的的
+                c7 += 1
+            elif tian > 7 and tian <= 9:# 七到九天之内发货的的
+                c9 += 1
+            else:# 九天之后发货的
+                c10 += 1
+    csum = c3+c5+c7+c9+c10
+    data = {"c3": c3, "c5": c5, "c7": c7, "c9": c9, "c10": c10, "csum":csum}
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+
+
+
+
+
+
+
+
