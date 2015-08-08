@@ -195,10 +195,10 @@ function Set_shopcarts_num() {
         },
         success: requestCallBack,
         error: function (data) {
-            if (data.statusText == "FORBIDDEN") {
+        	console.log('debug cartnum:',data);
+            if (data.status == 403) {
                 $(".total").html("0");
             }
-            console.info("debug error: " + data.statusText);
         }
     });
 }

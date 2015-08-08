@@ -102,12 +102,7 @@
     Set_product_detail(product_url);
     Set_shopcarts_num();
     //登录后才可以操作
-    $('.add-cart').click(function(){
-    	DoIfLogin({
-    		callback:function(){$('.add-cart').shoping()},
-    		redirecto:window.location.href
-    	});
-    })
+    $('.add-cart').shoping()
     $('.cart').listencart();
     $('.buy-now').click(function(){
     	DoIfLogin({
