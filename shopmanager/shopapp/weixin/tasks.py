@@ -110,11 +110,11 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
             
             wx_skus = WXProductSku.objects.filter(outer_id=outer_id).values('product').distinct()
             wx_prodids = [p['product'] for p in wx_skus]
-            
+
             wx_prods = WXProduct.objects.filter(product_id__in=wx_prodids).order_by('-modified')
             if wx_prods.count() == 0 :
                 continue
-            
+
             wx_product = wx_prods[0]
             wxproduct_id = wx_product.product_id
             if wxproduct_id not in update_wxpids:
@@ -128,6 +128,7 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
                 signals.signal_product_upshelf.send(sender=Product,product_list=[product])
             else:
                 product.shelf_status = Product.DOWN_SHELF
+                signals.signal_product_downshelf.send(sender=Product, product_list=[product])
             product.save()
             
     except WeiXinRequestException, exc:
