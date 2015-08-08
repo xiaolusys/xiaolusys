@@ -243,7 +243,7 @@ def list_trade_time(request):
     end_date = datetime.date(int(year), int(month), int(day))
     print "test"
 
-    listTrade = MergeTrade.objects.filter(Q(pay_time__gte=start_date), Q(pay_time__lte=end_date), Q(sys_status=pcfg.FINISHED_STATUS),
+    listTrade = MergeTrade.objects.filter(Q(weight_time__gte=start_date), Q(weight_time__lte=end_date), Q(sys_status=pcfg.FINISHED_STATUS),
                                           Q(status=pcfg.WAIT_BUYER_CONFIRM_GOODS) | Q(status=pcfg.TRADE_BUYER_SIGNED)
                                           | Q(status=pcfg.TRADE_FINISHED) | Q(status=pcfg.TRADE_CLOSED)
                                           )
@@ -256,8 +256,8 @@ def list_trade_time(request):
     c10 = 0
 
     for trade in listTrade:
-        if trade.consign_time not in (None, " "):
-            tian = int((trade.consign_time-trade.pay_time).days)+1
+        if trade.weight_time not in (None, " "):
+            tian = int((trade.weight_time-trade.pay_time).days)+1
             if tian <= 3:# 三天之内发货的
                 c3 += 1
             elif tian > 3 and tian <= 5:# 三到五天之内发货的的
