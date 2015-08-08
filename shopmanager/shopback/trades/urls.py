@@ -197,4 +197,6 @@ urlpatterns = patterns('shopback.trades.views',
 
     url(r'^beizhu/$', beizhu, name='beizhu'),
     url(r'^test/$', test, name="test"),
+    url(r'^open_trade/$', views_product_analysis.open_trade_time, name="open_trade"),
+    url(r'^list_trade/$', views_product_analysis.list_trade_time, name="list_trade"),
 )
