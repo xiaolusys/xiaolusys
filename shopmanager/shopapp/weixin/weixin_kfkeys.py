@@ -1,9 +1,9 @@
-
-URLMAP = [7, 11, 12, 13, 14, 17, 18, 20,
+#-*- coding:utf8 -*
+URLMAP = [7, 11, 13, 14, 17, 20, 
          21, 22, 23, 25, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39,
          40,42, 43, 45, 46, 48, 51, 52, 53, 54, 55, 56, 58, 59, 60,
          61, 62, 63, 64, 65, 66, 67, 68, 70, 71, 72, 73, 74, 75, 77, 78, 79, 80,
-         81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+         81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99,101]
 
 KFKEYS = [
    "xiangxiang0",#0 
@@ -18,12 +18,12 @@ KFKEYS = [
        "duoduo9",#9
     "mengmeng10",#mengmengda
     "ningning11",#11
-    "lingling12",#12
+    "lingling12",#12 
         "qiqi13",#13
       "huahua14",#14
      "chengzi15",#15
     "mingming16",#16
-        "yuyu17",#17
+        "yuyu17",#17 玉玉
         "mimi18",#18
      "qianxun19",#19
       "qinqin20",#20
@@ -108,8 +108,9 @@ KFKEYS = [
     "miaomiao98",
     "qiaoqiao99",
        "sisi100",
+       "buma101",
     ]
-
+print 'len',len(set(URLMAP))
 IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
 KFMAP ={
         "xiaoxi44":"yMhOQPTKhLvafp41YQMnm6MMTHj1sl4mQmvNpBHibYTgOEAjdib4KYnSYian2JqXzpsqaV7BTn6ibACgfhpqvdDvIA/0",
@@ -168,7 +169,7 @@ KFMAP ={
         "yujia95":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDFriaOBvPCNPvzRouImic6tMfS4ic7TH14HmN8nS7mS7uETGK5aASZgntA/0",
   "xiongbaobao67":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDhkQ5r2UFuY5aHOpHHmtV5vBicBSoTnaic39SAUxb5rQXYfULiaRciaP0vQ/0",
          "yaya37":"yMhOQPTKhLuUEpsvL3icWJ1UfRSPY8mIDabMYyliaKzmgISWEEPaNmOBVWEC9ZawKHVr92bOKY8CQkZY9jsoVm4A/0",
-        
+        "buma101":"yMhOQPTKhLsfyrORMJ9a1GR4ERrQZOwdicYfz9pS28h7RQlibBuPxhs8xM6RmLFtdLLiadjd0NUbGjYQqGZGhJRWQ/0",
         
         #################################liyechu#################################
 

@@ -377,6 +377,10 @@ class ShoppingCart(models.Model):
     def __unicode__(self):
         return '%s'%(self.id)
     
+    def std_sale_price(self):
+        sku = ProductSku.objects.get(id=self.sku_id)
+        return sku.std_sale_price
+    
     def is_deposite(self):
         product = Product.objects.get(id=self.item_id)
         return product.outer_id.startswith('RMB')

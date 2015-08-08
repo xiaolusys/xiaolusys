@@ -29,20 +29,23 @@
 
 </div>
 <div id="loading"><span class="dots-loader"></span></div>
-<a class="cart" href="pages/gouwuche.html"><span class="total">2</span></a>
+<a class="cart" href="javascript:void();"><span class="total">2</span></a>
 
 <div class="scroll-top" id="js-scroll-top"></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="js/jquery-shopping.js"></script>
 <script>
-    (function ($) {
-        //返回顶部
-        $('#js-scroll-top').on('touchend', function (e) {
-            e.preventDefault();
-            $('body').animate({scrollTop: 0}, 400);
-        });
-        Set_orders();
-        Set_shopcarts_num();
-    })(jQuery);
+(function ($) {
+    //返回顶部
+    $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
+    $('.cart').listencart();
+    Set_orders();
+    Set_shopcarts_num();
+})(jQuery);
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}  
 </script>
 </body>
 </html>

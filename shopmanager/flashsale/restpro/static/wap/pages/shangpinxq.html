@@ -78,7 +78,7 @@
     <li class="add-cart" onclick="Create_item()">加入购物车</li>
     <li class="buy buy-now">立即购买</li>
 </ul>
-<a class="cart" href="gouwuche.html"><span class="total">2</span></a>
+<a class="cart" href="javascript:void();"><span class="total">0</span></a>
 <div class="scroll-top" id="js-scroll-top"></div>
 <div id="loading"><span class="dots-loader"></span></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
@@ -93,35 +93,48 @@
     	touchend:change_goodsize,
     	click:change_goodsize
     },'#js-goods-size li');
-
     //返回顶部
-    $('#js-scroll-top').on('touchend', function (e) {
-        e.preventDefault();
-        $('body').animate({scrollTop: 0}, 400);
-    });
+    $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
     //设置商品详情
     var item_id = parseUrlParams(window.location.href)['id'];
     var urlConf = {'product_id': item_id};
     var product_url = GLConfig.get_product_detail_url.template(urlConf);
     Set_product_detail(product_url);
     Set_shopcarts_num();
-   
-    $('.add-cart').shoping();
+    //登录后才可以操作
+    $('.add-cart').click(function(){
+    	DoIfLogin({
+    		callback:function(){$('.add-cart').shoping()},
+    		redirecto:window.location.href
+    	});
+    })
+    $('.cart').listencart();
     $('.buy-now').click(function(){
-    	//如果未选中商品尺寸,事件不执行
-        if ($('#js-goods-size li.active').length == 0){
-        	document.getElementById('js-goods-size').scrollIntoView(false);
-        	drawToast('请选择正确的商品尺寸');
-        	return;
-        };
-        var sku_id = $('#js-goods-size li.active').attr('sku_id');
-        window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
+    	DoIfLogin({
+    		callback:buynow,
+    		redirecto:window.location.href
+    	});
     });
 })(jQuery);
-
 function change_goodsize() {
     $('#js-goods-size li.active').removeClass('active').addClass('normal');
+    if ($(this).hasClass('disable'))return;
     $(this).removeClass('normal').addClass('active');
+}
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}  
+function buynow(){
+	//如果未选中商品尺寸,事件不执行
+    if ($('#js-goods-size li.active').length == 0){
+    	document.getElementById('js-goods-size').scrollIntoView(false);
+    	drawToast('请选择正确的商品尺寸');
+    	return;
+    };
+    var item_id = parseUrlParams(window.location.href)['id'];
+    var sku_id = $('#js-goods-size li.active').attr('sku_id');
+    window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
 }
 </script>
 </body>

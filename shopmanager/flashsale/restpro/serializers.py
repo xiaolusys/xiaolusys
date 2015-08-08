@@ -124,8 +124,8 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = ShoppingCart
-        fields = ( 'id', 'url','buyer_id', 'buyer_nick', 'item_id', 'title', 'price', 'sku_id',
-                   'num', 'total_fee', 'sku_name', 'pic_path', 'created', 'status')
+        fields = ( 'id', 'url','buyer_id', 'buyer_nick', 'item_id', 'title', 'price', 'std_sale_price',
+                    'sku_id', 'num', 'total_fee', 'sku_name', 'pic_path', 'created', 'status')
 
 
 class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
