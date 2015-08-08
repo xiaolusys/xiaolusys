@@ -113,6 +113,7 @@ var GLConfig = {
 	delete_detail_trade:'/trades/{{trade_id}}',//用户取消订单
 	user_logout:'/users/customer_logout',//用户注销
 	user_islogin:'/users/islogin.json',//用户是否登录
+    refunds:'/refunds'//退款
 };
 
 // using jQuery
