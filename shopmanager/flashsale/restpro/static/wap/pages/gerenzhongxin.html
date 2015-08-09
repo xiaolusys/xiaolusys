@@ -74,7 +74,7 @@
 })(jQuery);
 function loginclick(e){
 	e.stopPropagation();
-	if (isNone(GLConfig.user_profile) || !isNone($(e.target).attr('href'))){
+	if (isNone(GLConfig.user_profile) || isNone($(e.target).attr('href'))){
 		e.preventDefault();
 		window.location = GLConfig.login_url;
 	}	
