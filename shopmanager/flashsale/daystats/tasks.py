@@ -177,56 +177,91 @@ def task_PopularizeCost_By_Day(pre_day=1):
         logger.warning('First time running no popularizecost data to search ')
 
 
+import os
+import csv
+STAT_DIR = "stat_backup"
+
 @task(max_retry=3, default_retry_delay=5)
-def task_calc_xlmm(start_time_str, end_time_str):
+def task_calc_xlmm(start_time_str, end_time_str, old=True):
+    """计算某个月内所有购买的人数和小鹿妈妈数量，重复购买"""
     try:
-        today = datetime.date.today()
-        if start_time_str:
-            year, month, day = start_time_str.split('-')
-            start_date = datetime.date(int(year), int(month), int(day))
-            if start_date > today:
-                start_date = today
+        if old:
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT, STAT_DIR)
+            if not os.path.exists(file_dir):
+                os.makedirs(file_dir)
+            file_name = u'month_sale.csv'
+            file_path_name = os.path.join(file_dir, file_name)
+
+            result_list = []
+            my_file = file(file_path_name, 'rb')
+            reader = csv.reader(my_file)
+            for line in reader:
+                result_list.append(line)
+            my_file.close()
+            return result_list
         else:
-            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
-        if end_time_str:
-            year, month, day = end_time_str.split('-')
-            end_date = datetime.date(int(year), int(month), int(day))
-        else:
-            end_date = today
-        """找出选择的开始月份和结束月份"""
-        start_month = start_date.month
-        end_month = end_date.month
-        month_range = range(start_month, end_month + 1)
-        result_list = []
-        for month in month_range:
-            month_start_date = datetime.date(start_date.year, month, 1)
-            month_end_date = datetime.date(end_date.year, month + 1, 1)
+            today = datetime.date.today()
+            if start_time_str:
+                year, month, day = start_time_str.split('-')
+                start_date = datetime.date(int(year), int(month), int(day))
+                if start_date > today:
+                    start_date = today
+            else:
+                start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+            if end_time_str:
+                year, month, day = end_time_str.split('-')
+                end_date = datetime.date(int(year), int(month), int(day))
+            else:
+                end_date = today
+            """找出选择的开始月份和结束月份"""
+            start_month = start_date.month
+            end_month = end_date.month
+            month_range = range(start_month, end_month + 1)
+            result_list = []
+            for month in month_range:
+                month_start_date = datetime.date(start_date.year, month, 1)
+                month_end_date = datetime.date(end_date.year, month + 1, 1)
 
-            all_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
-                                                             shoptime__lt=month_end_date).values(
-                "openid").distinct()
-            all_purchase_num = all_purchase.count()
-            history_purchase = StatisticsShopping.objects.filter(shoptime__lt=month_start_date).values(
-                "openid").distinct()
-            history_purchase_detail = set([val['openid'] for val in history_purchase])
+                all_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
+                                                                 shoptime__lt=month_end_date).values(
+                    "openid").distinct()
+                all_purchase_num = all_purchase.count()
+                history_purchase = StatisticsShopping.objects.filter(shoptime__lt=month_start_date).values(
+                    "openid").distinct()
+                history_purchase_detail = set([val['openid'] for val in history_purchase])
 
-            all_purchase_detail = set([val['openid'] for val in all_purchase])
-            all_purchase_detail_unionid = set(
-                [get_Unionid(val['openid'], settings.WEIXIN_APPID) for val in all_purchase])
+                all_purchase_detail = set([val['openid'] for val in all_purchase])
+                all_purchase_detail_unionid = set(
+                    [get_Unionid(val['openid'], settings.WEIXIN_APPID) for val in all_purchase])
 
-            repeat_user = all_purchase_detail & history_purchase_detail
-            repeat_user_unionid = set([get_Unionid(val, settings.WEIXIN_APPID) for val in repeat_user])
+                repeat_user = all_purchase_detail & history_purchase_detail
+                repeat_user_unionid = set([get_Unionid(val, settings.WEIXIN_APPID) for val in repeat_user])
 
-            all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel=2).values("openid").distinct()
-            all_xlmm_detail = set([val['openid'] for val in all_xlmm])
+                all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel=2).values("openid").distinct()
+                all_xlmm_detail = set([val['openid'] for val in all_xlmm])
 
-            repeat_xlmm = repeat_user_unionid & all_xlmm_detail
-            xlmm_num = all_purchase_detail_unionid & all_xlmm_detail
-            result_list.append(
-                {"month": month, "all_purchase_num": all_purchase_num, "repeat_user_num": len(repeat_user),
-                 "repeat_xlmm_num": len(repeat_xlmm), "xlmm_num": len(xlmm_num)}
-            )
-        return result_list
+                repeat_xlmm = repeat_user_unionid & all_xlmm_detail
+                xlmm_num = all_purchase_detail_unionid & all_xlmm_detail
+                result_list.append(
+                    (month, all_purchase_num, len(repeat_user), len(repeat_xlmm), len(xlmm_num))
+                )
+
+
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT, STAT_DIR)
+            if not os.path.exists(file_dir):
+                os.makedirs(file_dir)
+
+            file_name = u'month_sale.csv'
+            file_path_name = os.path.join(file_dir, file_name)
+
+
+
+            csvfile = file(file_path_name, 'wb')
+            writer = csv.writer(csvfile)
+            data = result_list
+            writer.writerows(data)
+            csvfile.close()
+            return result_list
     except Exception, exc:
         raise task_calc_xlmm.retry(exc=exc)
 
@@ -239,6 +274,7 @@ from flashsale.dinghuo.models import OrderList, OrderDetail
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
+    """计算热销商品"""
     try:
         today = datetime.date.today()
         if start_time_str:
@@ -287,6 +323,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_stock_top(start_time_str, end_time_str, limit=100):
+    """计算滞销商品"""
     try:
         today = datetime.date.today()
         if start_time_str:
@@ -337,6 +374,7 @@ def get_new_user(user_data, old_user):
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_new_user_repeat(start_date, end_date):
+    """计算新用户的重复购买率"""
     start_month = start_date.month
     end_month = end_date.month
     month_march = "2015-03-01"
@@ -384,3 +422,74 @@ def task_calc_new_user_repeat(start_date, end_date):
         return result_data_list
     except Exception, exc:
         raise task_calc_new_user_repeat.retry(exc=exc)
+
+from shopback.trades.models import MergeTrade
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_calc_package(start_date, end_date, old=True):
+    """计算包裹数量"""
+    try:
+        if old:
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT, STAT_DIR)
+            if not os.path.exists(file_dir):
+                os.makedirs(file_dir)
+            file_name = u'month_package.csv'
+            file_path_name = os.path.join(file_dir, file_name)
+
+
+            result_list = []
+            my_file = file(file_path_name, 'rb')
+            reader = csv.reader(my_file)
+            for line in reader:
+                result_list.append(line)
+            my_file.close()
+            return result_list
+        else:
+            start_month = start_date.month
+            end_month = end_date.month
+
+            month_range = range(start_month, end_month + 1)
+            result_list = []
+            for month in month_range:
+                month_start_date = datetime.date(start_date.year, month, 1)
+                month_end_date = datetime.date(end_date.year, month + 1, 1)
+                total_sale_amount = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                             day_date__lt=month_end_date).aggregate(
+                    total_sale_amount=Sum('total_payment')).get('total_sale_amount') or 0
+                total_order_num = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                           day_date__lt=month_end_date).aggregate(
+                    total_sale_order=Sum('total_order_num')).get('total_sale_order') or 0
+                shoping_stats = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
+                                                                  shoptime__lt=month_end_date)
+                total_sale_num = 0
+                sm = {}
+                for shop_stat in shoping_stats:
+                    tm = '%s-%s-%s' % (shop_stat.shoptime.year, shop_stat.shoptime.month, shop_stat.shoptime.day)
+                    if tm in sm:
+                        sm[tm].add(shop_stat.openid)
+                    else:
+                        sm[tm] = set([shop_stat.openid])
+                for s, m in sm.iteritems():
+                    total_sale_num += len(m)
+
+                total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).filter(
+                    sys_status=u'FINISHED').filter(weight_time__gte=month_start_date, weight_time__lt=month_end_date).count()
+                result_list.append(
+                    (month, total_sale_amount / 100, total_order_num, total_package_num, total_sale_num))
+
+            file_dir = os.path.join(settings.DOWNLOAD_ROOT, STAT_DIR)
+            if not os.path.exists(file_dir):
+                os.makedirs(file_dir)
+
+            file_name = u'month_package.csv'
+            file_path_name = os.path.join(file_dir, file_name)
+
+            csv_file = file(file_path_name, 'wb')
+            writer = csv.writer(csv_file)
+            data = result_list
+            writer.writerows(data)
+            csv_file.close()
+            return result_list
+    except Exception, exc:
+        raise task_calc_package.retry(exc=exc)
