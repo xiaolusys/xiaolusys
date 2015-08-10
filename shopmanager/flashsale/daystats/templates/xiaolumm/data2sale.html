@@ -1,11 +1,39 @@
 {% extends "xiaolumm/daystats_base.html" %}
 {% block title %}销售统计{% endblock %}
 {% block head_script %}
+
+    <script>
+        function get_data() {
+            console.log("get_data");
+            var task_id = $("#task_id_sale").val();
+            $.ajax({
+                url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
+                method: "GET", //静态页用get方法，否则服务器会抛出405错误
+                success: function (res) {
+                    console.log(res.task.status);
+                    if (res.task.status == "SUCCESS") {
+                        var tb = $('#data-table-sale');
+                        var result_data = eval(res.task.result);
+                        $("#data-table-people thead").eq(0).nextAll().remove();
+                        $.each(result_data, function (index, dd) {
+
+                            tb.append("<tr><td>" + dd[0] + "月份</td><td>" + dd[1] + "</td><td>" + dd[2] + "</td><td>" + dd[4] + "</td><td>" + dd[3] + "</td></tr>");
+                        });
+
+                    } else {
+                        setTimeout(get_data, 4000);
+                    }
+                }
+            });
+        }
+        setTimeout(get_data, 4000);
+    </script>
 {% endblock %}
 {% block container %}
     <div class="row" style="margin-top: 20px"><h2>销售统计</h2></div>
     <div class="row">
-        <table class="table table-bordered" id="data-table">
+    <input id="task_id_sale" value="{{ task_id_sale }}" hidden="hidden">
+        <table class="table table-bordered" id="data-table-sale">
             <thead>
             <th></th>
             <th>销售额</th>
