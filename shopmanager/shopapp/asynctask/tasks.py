@@ -252,7 +252,7 @@ class AsyncCategoryTask(TaobaoAsyncBaseTask):
                 self.save_category(sub_cat_json)
 
 tasks.register(AsyncCategoryTask) 
-  
+
 
 #================================ Async Order Task   ==================================
 class AsyncOrderTask(TaobaoAsyncBaseTask): 

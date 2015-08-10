@@ -162,8 +162,8 @@ class WXOrder(models.Model):
     trans_id  = models.CharField(max_length=32,blank=True,verbose_name=u'交易ID')
     seller_id = models.CharField(max_length=32,db_index=True,verbose_name=u'商家ID')
 
-    buyer_openid = models.CharField(max_length=64,blank=True,verbose_name=u'买家OPENID')
-    buyer_nick   = models.CharField(max_length=32,blank=True,verbose_name=u'买家昵称')
+    buyer_openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'买家OPENID')
+    buyer_nick   = models.CharField(max_length=32,blank=True,db_index=True,verbose_name=u'买家昵称')
 
     order_total_price   = models.IntegerField(default=0,verbose_name=u'订单总价(分)')
     order_express_price = models.IntegerField(default=0,verbose_name=u'订单运费(分)')
