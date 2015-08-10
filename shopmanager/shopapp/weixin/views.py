@@ -815,7 +815,6 @@ class FreeSampleView(View):
         if (user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' 
             or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'):
             started = True
-        started = False #活动结束
         
         days = delta.days
         hours = delta.seconds/3600
