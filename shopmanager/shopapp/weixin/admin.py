@@ -148,8 +148,8 @@ class WeiXinUserAdmin(MyAdmin):
     
     user_groups = []
     list_per_page = 25
-    list_display = ('openid','nickname','sex','province','city','mobile','subscribe'
-                    ,'subscribe_time','vipcode_link','referal_count','charge_link','group_select','isvalid')
+    list_display = ('openid','nickname','sex','province','city','mobile','subscribe' #,'referal_count'
+                    ,'subscribe_time','vipcode_link','charge_link','group_select','isvalid')
     
     list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
     search_fields = ['=openid','=mobile']

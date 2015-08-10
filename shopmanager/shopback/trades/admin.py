@@ -183,7 +183,7 @@ class MergeTradeAdmin(MyAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = (TradeStatusFilter,'type','status','user',('pay_time',DateFieldListFilter),
+    list_filter   = (TradeStatusFilter,'status','user',('pay_time',DateFieldListFilter),#,'type'
                      ('weight_time',DateFieldListFilter),('trade_from', BitFieldListFilter,),
                      'has_out_stock','has_rule_match','has_merge','has_sys_err','has_memo',
                     'is_picking_print','is_express_print', 'is_locked','is_charged','is_qrcode')
