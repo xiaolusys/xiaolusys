@@ -5,8 +5,8 @@
 $(function () {
 
     setTimeout(get_data, 4000);
-    setTimeout(get_data2, 4000);
-    setTimeout(get_data3, 4000);
+    setTimeout(get_data2, 2000);
+    setTimeout(get_data3, 2000);
 });
 function get_data() {
     var task_id = $("#task_id_repeat").val();
@@ -48,13 +48,13 @@ function get_data2() {
             if (res.task.status == "SUCCESS") {
                 var tb = $('#data-table-people');
                 var result_data_people = eval(res.task.result);
-
+                console.log(result_data_people);
                 $("#data-table-people thead").eq(0).nextAll().remove();
                 $.each(result_data_people, function (index, dd) {
-                    tb.append("<tr><td>" + dd.month + "月份</td><td>" + dd.all_purchase_num + "</td><td>" + dd.xlmm_num + "</td><td>" + dd.repeat_user_num + "</td><td>" + dd.repeat_xlmm_num + "</td></tr>");
+                    tb.append("<tr><td>" + dd[0] + "月份</td><td>" + dd[1] + "</td><td>" + dd[2] + "</td><td>" + dd[3] + "</td><td>" + dd[4] + "</td></tr>");
                 });
             } else {
-                setTimeout(get_data2, 4000);
+                setTimeout(get_data2, 2000);
             }
         }
     });
@@ -69,16 +69,17 @@ function get_data3() {
         success: function (res) {
             console.log("3",res.task.status);
             if (res.task.status == "SUCCESS") {
+
                 var tb = $('#data-table-sale');
                 var result_data = eval(res.task.result);
+
                 $("#data-table-sale thead").eq(0).nextAll().remove();
                 $.each(result_data, function (index, dd) {
-
-                    tb.append("<tr><td>" + dd.month + "月份</td><td>" + dd.total_sale_amount + "</td><td>" + dd.total_order_num + "</td><td>" + dd.total_sale_num + "</td><td>" + dd.total_package_num + "</td></tr>");
+                    tb.append("<tr><td>" + dd[0] + "月份</td><td>" + dd[1] + "</td><td>" + dd[2] + "</td><td>" + dd[4] + "</td><td>" + dd[3] + "</td></tr>");
                 });
 
             } else {
-                setTimeout(get_data3, 4000);
+                setTimeout(get_data3, 2000);
             }
         }
     });

@@ -17,7 +17,7 @@
                         $("#data-table-people thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
 
-                            tb.append("<tr><td>" + dd.month + "月份</td><td>" + dd.total_sale_amount + "</td><td>" + dd.total_order_num + "</td><td>" + dd.total_sale_num + "</td><td>" + dd.total_package_num + "</td></tr>");
+                            tb.append("<tr><td>" + dd[0] + "月份</td><td>" + dd[1] + "</td><td>" + dd[2] + "</td><td>" + dd[4] + "</td><td>" + dd[3] + "</td></tr>");
                         });
 
                     } else {

@@ -82,7 +82,7 @@ class StatsSaleView(View):
         start_month = start_date.month
         end_month = end_date.month
         month_range = range(start_month, end_month + 1)
-        task_id = task_calc_package.delay(start_date, end_date)
+        task_id = task_calc_package.delay(start_date, end_date, False)
         return render_to_response("xiaolumm/data2sale.html",
                                   {"month_range": month_range, "task_id_sale": task_id, "start_date": start_date,
                                    "end_date": end_date},
@@ -95,7 +95,7 @@ class StatsSalePeopleView(View):
         content = request.REQUEST
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
-        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)
+        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str, False)
         return render_to_response("xiaolumm/data2salepeople.html",
                                   {"task_id": send_tasks},
                                   context_instance=RequestContext(request))
