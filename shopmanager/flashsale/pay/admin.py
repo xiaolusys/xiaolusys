@@ -336,6 +336,25 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
             return HttpResponseRedirect("../%s/" % pk_value)
 
+        elif request.POST.has_key("_refund_complete"):
+            try:
+
+                if obj.status == SaleRefund.REFUND_APPROVE:
+
+                    obj.status = SaleRefund.REFUND_SUCCESS
+                    obj.save()
+
+                    log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
+                    self.message_user(request, '确认退款已完成')
+                else:
+                    self.message_user(request, '退款尚未完成')
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
+                self.message_user(request, '系统出错:%s' % exc.message)
+
+            return HttpResponseRedirect("../%s/" % pk_value)
+
+
         return super(SaleRefundAdmin, self).response_change(request, obj, *args, **kwargs)
 
 
