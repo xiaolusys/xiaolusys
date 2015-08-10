@@ -179,6 +179,7 @@ def task_PopularizeCost_By_Day(pre_day=1):
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_xlmm(start_time_str, end_time_str):
+    """计算某个月内所有购买的人数和小鹿妈妈数量，重复购买"""
     try:
         today = datetime.date.today()
         if start_time_str:
@@ -239,6 +240,7 @@ from flashsale.dinghuo.models import OrderList, OrderDetail
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
+    """计算热销商品"""
     try:
         today = datetime.date.today()
         if start_time_str:
@@ -287,6 +289,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_stock_top(start_time_str, end_time_str, limit=100):
+    """计算滞销商品"""
     try:
         today = datetime.date.today()
         if start_time_str:
@@ -337,6 +340,7 @@ def get_new_user(user_data, old_user):
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_new_user_repeat(start_date, end_date):
+    """计算新用户的重复购买率"""
     start_month = start_date.month
     end_month = end_date.month
     month_march = "2015-03-01"
@@ -384,3 +388,45 @@ def task_calc_new_user_repeat(start_date, end_date):
         return result_data_list
     except Exception, exc:
         raise task_calc_new_user_repeat.retry(exc=exc)
+
+from shopback.trades.models import MergeTrade
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_calc_package(start_date, end_date):
+    try:
+        start_month = start_date.month
+        end_month = end_date.month
+
+        month_range = range(start_month, end_month + 1)
+        result_list = []
+        for month in month_range:
+            month_start_date = datetime.date(start_date.year, month, 1)
+            month_end_date = datetime.date(end_date.year, month + 1, 1)
+            total_sale_amount = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                         day_date__lt=month_end_date).aggregate(
+                total_sale_amount=Sum('total_payment')).get('total_sale_amount') or 0
+            total_order_num = DailyStat.objects.filter(day_date__gte=month_start_date,
+                                                       day_date__lt=month_end_date).aggregate(
+                total_sale_order=Sum('total_order_num')).get('total_sale_order') or 0
+            shoping_stats = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
+                                                              shoptime__lt=month_end_date)
+            total_sale_num = 0
+            sm = {}
+            for shop_stat in shoping_stats:
+                tm = '%s-%s-%s' % (shop_stat.shoptime.year, shop_stat.shoptime.month, shop_stat.shoptime.day)
+                if tm in sm:
+                    sm[tm].add(shop_stat.openid)
+                else:
+                    sm[tm] = set([shop_stat.openid])
+            for s, m in sm.iteritems():
+                total_sale_num += len(m)
+
+            total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).filter(
+                sys_status=u'FINISHED').filter(weight_time__gte=month_start_date, weight_time__lt=month_end_date).count()
+            result_list.append(
+                {"month": month, "total_sale_amount": total_sale_amount / 100, "total_order_num": total_order_num,
+                 "total_package_num": total_package_num, "total_sale_num": total_sale_num})
+        return result_list
+    except Exception, exc:
+        raise task_calc_package.retry(exc=exc)

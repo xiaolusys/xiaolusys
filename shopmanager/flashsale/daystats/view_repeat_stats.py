@@ -12,7 +12,7 @@ from django.db.models import Sum
 from flashsale.xiaolumm.models import XiaoluMama
 from django.conf import settings
 from shopapp.weixin.models import get_Unionid
-from flashsale.daystats.tasks import task_calc_xlmm, task_calc_new_user_repeat
+from flashsale.daystats.tasks import task_calc_xlmm, task_calc_new_user_repeat, task_calc_package
 
 
 def get_new_user(user_data, old_user):
@@ -46,10 +46,11 @@ class StatsRepeatView(View):
         start_month = start_date.month
         end_month = end_date.month
         month_range = range(start_month + 1, end_month + 1)
-        task_id = task_calc_new_user_repeat.delay(start_date, end_date)
-        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str)
+        task_id = task_calc_new_user_repeat.delay(start_date, end_date) #计算重复购买
+        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str) #计算小鹿妈妈购买
+        task_id_sale = task_calc_package.delay(start_date, end_date)  #计算包裹数量
         return render_to_response("xiaolumm/data2repeatshop.html",
-                                  {"task_id": task_id, "task_id_2": send_tasks, "start_date": start_date, "end_date": end_date,
+                                  {"task_id": task_id, "task_id_2": send_tasks, "task_id_sale": task_id_sale, "start_date": start_date, "end_date": end_date,
                                    "month_range": month_range},
                                   context_instance=RequestContext(request))
 
@@ -80,38 +81,10 @@ class StatsSaleView(View):
         """找出选择的开始月份和结束月份"""
         start_month = start_date.month
         end_month = end_date.month
-
         month_range = range(start_month, end_month + 1)
-        result_list = []
-        for month in month_range:
-            month_start_date = datetime.date(start_date.year, month, 1)
-            month_end_date = datetime.date(end_date.year, month + 1, 1)
-            total_sale_amount = DailyStat.objects.filter(day_date__gte=month_start_date,
-                                                         day_date__lt=month_end_date).aggregate(
-                total_sale_amount=Sum('total_payment')).get('total_sale_amount') or 0
-            total_order_num = DailyStat.objects.filter(day_date__gte=month_start_date,
-                                                       day_date__lt=month_end_date).aggregate(
-                total_sale_order=Sum('total_order_num')).get('total_sale_order') or 0
-            shoping_stats = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
-                                                              shoptime__lt=month_end_date)
-            total_sale_num = 0
-            sm = {}
-            for shop_stat in shoping_stats:
-                tm = '%s-%s-%s' % (shop_stat.shoptime.year, shop_stat.shoptime.month, shop_stat.shoptime.day)
-                if tm in sm:
-                    sm[tm].add(shop_stat.openid)
-                else:
-                    sm[tm] = set([shop_stat.openid])
-            for s, m in sm.iteritems():
-                total_sale_num += len(m)
-
-            total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).filter(
-                sys_status=u'FINISHED').filter(weight_time__gte=month_start_date, weight_time__lt=month_end_date).count()
-            result_list.append(
-                {"month": month, "total_sale_amount": total_sale_amount / 100, "total_order_num": total_order_num,
-                 "total_package_num": total_package_num, "total_sale_num": total_sale_num})
+        task_id = task_calc_package.delay(start_date, end_date)
         return render_to_response("xiaolumm/data2sale.html",
-                                  {"month_range": month_range, "result_list": result_list, "start_date": start_date,
+                                  {"month_range": month_range, "task_id_sale": task_id, "start_date": start_date,
                                    "end_date": end_date},
                                   context_instance=RequestContext(request))
 

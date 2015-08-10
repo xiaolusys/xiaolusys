@@ -36,25 +36,42 @@
             </tbody>
         </table>
     </div>
-    <div class="row">
-        <div id="all_data"></div>
-    </div>
+
+
+
     <div class="row" style="margin-top: 20px"><h2>用户统计</h2></div>
     <div class="row">
         <div id="all_data2">
             <table class="table table-bordered" id="data-table-people">
+                <thead>
+                <th></th>
+                <th>总购买人数</th>
+                <th>总购买mm</th>
+                <th>重复购买</th>
+                <th>重复购买的妈妈</th>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+    <div class="row" style="margin-top: 20px"><h2>销售统计</h2></div>
+    <div class="row">
+        <input id="task_id_sale" value="{{ task_id_sale }}" hidden="hidden">
+        <table class="table table-bordered" id="data-table-sale">
             <thead>
             <th></th>
-            <th>总购买人数</th>
-            <th>总购买mm</th>
-            <th>重复购买</th>
-            <th>重复购买的妈妈</th>
+            <th>销售额</th>
+            <th>总成交单数</th>
+            <th>成交(当天内同一人购买算一单)单数</th>
+            <th>包裹数</th>
             </thead>
             <tbody>
             </tbody>
         </table>
-
-        </div>
     </div>
 {% endblock %}
 {% block tail_script %}

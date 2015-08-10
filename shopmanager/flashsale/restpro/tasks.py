@@ -28,7 +28,7 @@ def task_off_the_shelf(product_id=None):
                         trade.save()
 
         else:
-            ShoppingCart.objects.filter(item_id=product_id).update(status=u"1")
+            ShoppingCart.objects.filter(item_id=product_id).update(status=ShoppingCart.CANCEL)
             SaleTrade.objects.filter(sale_orders__item_id=product_id).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
     except Exception, exc:
         raise task_off_the_shelf.retry(exc=exc)
