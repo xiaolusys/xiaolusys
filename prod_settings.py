@@ -91,7 +91,7 @@ ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 
 ################### HTTPS/SSL SETTINGS ##################
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-HTTPS_SUPPORT = True
+HTTPS_SUPPORT = False
 SECURE_REQUIRED_PATHS = (
     '/admin/',
 )
