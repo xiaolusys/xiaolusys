@@ -51,7 +51,7 @@ function get_data2() {
                 console.log(result_data_people);
                 $("#data-table-people thead").eq(0).nextAll().remove();
                 $.each(result_data_people, function (index, dd) {
-                    tb.append("<tr><td>" + dd[0] + "月份</td><td>" + dd[1] + "</td><td>" + dd[2] + "</td><td>" + dd[3] + "</td><td>" + dd[4] + "</td></tr>");
+                    tb.append("<tr><td>" + dd[0] + "月份</td><td>" + dd[1] + "</td><td>" + dd[4] + "</td><td>" + dd[2] + "</td><td>" + dd[3] + "</td></tr>");
                 });
             } else {
                 setTimeout(get_data2, 2000);
