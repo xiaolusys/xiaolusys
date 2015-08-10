@@ -7,21 +7,18 @@
     <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/gerenzhongxin.js"></script>
-    <link rel="stylesheet" href="../css/dots-loading.css">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/gerenzhongxin.css">
 </head>
 <body>
-<div id="loading"><span class="dots-loader"></span></div>
-<script id="profile_template" type="text/html">
 <div class="header">
     <a class="home" href="../index.html"></a>
     <h1>个人中心</h1>
 </div>
 
 <div class="userinfo">
-    <div class="nickname">昵称:{{nick}}</div>
-    <div class="score">积分:{{score}}</div>
+    <div class="nickname">昵称:<span>[游客身份]</span></div>
+    <div class="score">积分:<span>0</span></div>
     <a class="daizhifu" href="daizhifu-dd.html">待支付</a>
     <a class="daishouhuo" href="daishouhuo-dd.html">待收货</a>
     <a class="quanbudingdan" href="quanbu-dd.html">全部订单</a>
@@ -68,16 +65,20 @@
 <div class="btn-wrap">
     <a class="btn-logout" onclick="logout()">退&nbsp;&nbsp;出</a>
 </div>
-</script>
 <script type="text/javascript">
 (function ($) {
-	$("#loading").show();
+	//$("#loading").show();
     //获取
     get_user_profile();
-    $(document).on('click','.btn-logout',function () {
-        logout();
-    });
+    $(document).on({click:loginclick,touchend:loginclick},'.userinfo a,.userinfo-list a');
 })(jQuery);
+function loginclick(e){
+	e.stopPropagation();
+	if (isNone(GLConfig.user_profile) || isNone($(e.target).attr('href'))){
+		e.preventDefault();
+		window.location = GLConfig.login_url;
+	}	
+}
 </script>
 </body>
 </html>

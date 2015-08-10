@@ -1048,11 +1048,11 @@ class ResultView(View):
         hongbao_pass = False
         sample_order = None 
         user_charged = False
-        start_time   = datetime.datetime(2015,7,21)
+        start_time   = datetime.datetime(2015,8,10)
         sample_orders = SampleOrder.objects.filter(user_openid=user_openid,created__gte=start_time).order_by('-created')#,created__gte=START_TIME)
         if sample_orders.count() > 0:
             sample_order = sample_orders[0]
-            sample_pass  = (sample_order.status > 90 and sample_order.status < 100)
+            sample_pass  = (sample_order.status > 100 and sample_order.status < 110)
             
             xlmms = XiaoluMama.objects.filter(openid=wx_user.unionid)
             hongbao_pass = (wx_user.charge_status == WeiXinUser.UNCHARGE 

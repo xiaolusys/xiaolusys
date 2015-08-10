@@ -14,3 +14,5 @@ confirm_trade_signal = Signal(providing_args=["trade_id"])
 
 signal_product_upshelf = Signal(providing_args=["product_list"])
 
+signal_product_downshelf = Signal(providing_args=["product_list"])
+

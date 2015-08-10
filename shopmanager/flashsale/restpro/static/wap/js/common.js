@@ -78,6 +78,7 @@ function hereDoc(f) {
 
 //全局配置
 var GLConfig = {
+	user_profile:null,
 	baseApiUrl:'/rest/v1', //API接口调用前缀
 	order_expired_in:20 * 60,//expired time
 	login_url:'/pages/denglu.html',//登录URL

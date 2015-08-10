@@ -10,8 +10,9 @@ function get_user_profile() {
 
     //请求成功回调函数
     var requestCallBack = function (obj) {
-    	var profile_dom = $('#profile_template').html();
-    	$(document.body).html(profile_dom.template(obj));
+    	GLConfig.user_profile = obj;
+    	$('.userinfo .nickname span').html(obj.nick!=''?obj.nick:obj.mobile);
+    	$('.userinfo .score span').html(obj.score);
     };
     // 发送请求
     $.ajax({
@@ -23,7 +24,7 @@ function get_user_profile() {
         error: function (data) {
         	console.log('debug profile:',data)
             if (data.status == 403) {
-                window.location = "denglu.html";
+                drawToast('当前用户为游客身份');
             }
         }
     });

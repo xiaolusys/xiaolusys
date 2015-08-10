@@ -67,7 +67,7 @@ class ProductdetailInline(admin.StackedInline):
     model = Productdetail
     
     fields = (('head_imgs','content_imgs')
-              ,('is_recommend','mama_discount','buy_limit','per_limit','mama_rebeta'))
+              ,('is_seckill','is_recommend','mama_discount','buy_limit','per_limit','mama_rebeta'))
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'50'})},
@@ -109,8 +109,8 @@ class ProductAdmin(admin.ModelAdmin):
 #     ordering = ['created','']
 
     list_filter = ('shelf_status','is_verify','status',('sale_time',DateScheduleFilter),
-                   ChargerFilter,'sync_stock','is_split','is_match','is_assign'
-                   ,'post_check',
+                   ChargerFilter,'sync_stock','is_split','is_match','is_assign',
+                   'details__is_seckill','details__is_recommend',
                    ('created',DateFieldListFilter),
                    CategoryFilter,
                    GroupNameFilter)
@@ -666,7 +666,7 @@ class ProductAdmin(admin.ModelAdmin):
         
     upshelf_product_action.short_description = u"上架微信商品 (批量)"
     
-    #库存商品上架（批量）
+    #库存商品下架（批量）
     def downshelf_product_action(self,request,queryset):
          
         outer_ids = [p.outer_id for p in queryset]
