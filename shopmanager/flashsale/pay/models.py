@@ -398,6 +398,9 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
     for pro_bean in product_list:
         ShoppingCart.objects.filter(item_id=pro_bean.id).update(status=ShoppingCart.CANCEL)
-        SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
+        # SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)\
+        #     .update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
+        # SaleOrder.objects.filter(item_id=pro_bean.id, status=SaleOrder.WAIT_BUYER_PAY)\
+        #     .update(status=SaleOrder.TRADE_CLOSED_BY_SYS)
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
