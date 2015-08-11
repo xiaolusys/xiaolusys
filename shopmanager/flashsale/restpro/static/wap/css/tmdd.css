@@ -145,6 +145,7 @@
 .btn_top_5{display: none;}   /* 交易成功不显示 */
 .btn_top_6{display: none;}   /* 退款关闭不显示 */
 .btn_top_7{display: none;}   /* 交易关闭不显示 */
+.btn_top_8{display: none;}   /* 交易关闭不显示 */
 
 
 .fl{ float: left;}
