@@ -791,7 +791,7 @@ class FreeSampleView(View):
         
         today = datetime.datetime.today()
         today_time = datetime.datetime(today.year, today.month, today.day)
-        today_orders = SampleOrder.objects.filter(created__gt=today_time)
+        #today_orders = SampleOrder.objects.filter(created__gt=today_time)
         
         order_exist = False
         start_time1 = datetime.datetime(2015,8,10)
@@ -801,7 +801,6 @@ class FreeSampleView(View):
             #redirect_url = '/weixin/sampleads/%d/' % wx_user.pk
             #return redirect(redirect_url)
             order_exist = True
-        
         
         started = False
         days,hours,minutes,delta = 0,0,0,None
@@ -824,7 +823,7 @@ class FreeSampleView(View):
         response = render_to_response(
             html, 
             {"wx_user":wx_user, "fcode":fcode, "started":started, 
-             "order_exist":order_exist, "order_number":today_orders.count(),
+             "order_exist":order_exist, "order_number": 1000, #today_orders.count(),
              "self_vipcode":self_vipcode,
              "days":days, "hours":hours, "minutes":minutes},
             context_instance=RequestContext(request))
@@ -1125,7 +1124,11 @@ class FinalListView(View):
         
         order_list = SampleOrder.objects.none()
         
-        if month == 1507 :
+        if month == 1508 and batch == 1:
+            start_time = datetime.datetime(2015,8,10)
+            end_time   = datetime.datetime(2015,8,18)
+            order_list = SampleOrder.objects.filter(status__gt=100,status__lt=110,created__gt=start_time)
+        elif month == 1507 :
             start_time = datetime.datetime(2015,7,21)
             end_time   = datetime.datetime(2015,7,29)
             order_list = SampleOrder.objects.filter(status__gt=90,status__lt=100,created__gt=start_time)

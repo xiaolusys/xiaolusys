@@ -623,7 +623,7 @@ class VipCode(models.Model):
     max_usage = models.IntegerField(default=0,verbose_name=u'可用次数')
 
     ### total number of usage
-    usage_count = models.IntegerField(default=0,verbose_name=u'已使用')
+    usage_count = models.IntegerField(default=0,db_index=True,verbose_name=u'已使用')
 
     created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
     
