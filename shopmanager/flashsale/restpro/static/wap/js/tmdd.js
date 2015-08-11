@@ -216,6 +216,7 @@ function Cancel_order(suffix) {
     if (cid == 0 || cid == 1){
         var buy_button = Create_button_buy_dom();
         $('.buy_button').append(buy_button);
+        $(".btn_interactive").removeAttr('href');  //删除退款跳转的链接 防止跳转到 退款页面
     }
     $(".btn_interactive").click(function () {
         var cid = $(this).attr('cid');

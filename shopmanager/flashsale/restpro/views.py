@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
+from .views_refund import refund_Handler
 
 from flashsale.pay.models import SaleTrade,Customer
 
@@ -43,11 +44,10 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """
-        创建退款单 根据退款状态的不同 创建不同的状态的退款/退款单
+            创建退款单 根据退款状态的不同 创建不同的状态的退款/退款单
         """
-        print request.path, '----------------'
-        print u"这里是退款API", request.data
-        return Response(data={'ok': True})
+        res = refund_Handler(request)
+        return Response(data=res)
 
 
 class UserAddressViewSet(viewsets.ModelViewSet):

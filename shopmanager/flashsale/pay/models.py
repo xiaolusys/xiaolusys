@@ -59,6 +59,8 @@ class SaleTrade(models.Model):
     TRADE_FINISHED = 5
     TRADE_CLOSED = 6
     TRADE_CLOSED_BY_SYS = 7
+    TRADE_REFUNDING = 8
+    TRADE_REFUNDPROING = 8
     
     NORMAL_TRADE_STATUS = (WAIT_BUYER_PAY,
                            WAIT_SELLER_SEND_GOODS,
@@ -85,6 +87,8 @@ class SaleTrade(models.Model):
         (TRADE_FINISHED,u'交易成功'),
         (TRADE_CLOSED,u'退款关闭'),
         (TRADE_CLOSED_BY_SYS,u'交易关闭'),
+        (TRADE_REFUNDING,u'退款申请中'),
+        (TRADE_REFUNDPROING,u'退货申请中'),
     )
 
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
@@ -223,7 +227,9 @@ class SaleOrder(models.Model):
     TRADE_FINISHED = 5
     TRADE_CLOSED = 6
     TRADE_CLOSED_BY_SYS = 7
-    
+    TRADE_REFUNDING = 8
+    TRADE_REFUNDPROING = 9
+
     ORDER_STATUS = (
         (TRADE_NO_CREATE_PAY,u'订单创建'),
         (WAIT_BUYER_PAY,u'待付款'),
@@ -233,6 +239,8 @@ class SaleOrder(models.Model):
         (TRADE_FINISHED,u'交易成功'),
         (TRADE_CLOSED,u'退款关闭'),
         (TRADE_CLOSED_BY_SYS,u'交易关闭'),
+        (TRADE_REFUNDING,u'退款申请中'),
+        (TRADE_REFUNDPROING,u'退货申请中'),
     )
     
     NORMAL_ORDER_STATUS = (WAIT_BUYER_PAY,

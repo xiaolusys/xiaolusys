@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小鹿美美</title>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" id="viewport">
+    <script src="../js/common.js"></script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/tmtuikuan.css">
+</head>
+<body>
+<script type="text/html" id="tuikuan_header">
+    <div class="header">
+        <a class="back" href="gerenzhongxin.html"></a>
+
+        <h1>申请退款</h1><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+    </div>
+</script>
+<script type="text/html" id="tuihuo_header">
+    <div class="header">
+        <a class="back" href="gerenzhongxin.html"></a>
+
+        <h1>申请退货</h1><span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+    </div>
+</script>
+
+<!-- 订单信息 start -->
+<div class="panel basic">
+    <div class="panel-top">
+        <script id="top_template" type="text/html">
+            <ul class="u1">
+                <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
+            </ul>
+        </script>
+    </div>
+    <div class="panel-bottom ">
+        <script type="text/html" id="orders_details">
+            <div class="goods clear" id="order_detail_{{ id }}">
+                <div class="fl goods-img">
+                    <img src="{{ pic_path }}">
+                </div>
+                <div class="fr goods-info">
+                    <p>{{ title }}</p>
+                    <p>
+                        <span class="size">尺码：{{ sku_name }}</span>
+                        <span class="count " style="display:inline-block;" >数量：</span>
+                        <div style="display:inline-block;">
+                            <div class="btn reduce subdiv_allinline" style="width: 48px;height: 48px;margin-top: 10px" id="button_reduce_num" onclick="Button_reduct_num({{ id }});"></div>
+                                <span id="show_num_{{ id }}" cid="{{ num }} " class="order_detail_num" style="text-align: center">{{ num }}</span>
+                            <div class="btn plus subdiv_allinline" style="width: 48px;height: 48px" id="button_plus_num" onclick="Button_plus_num({{ id }});"></div>
+                        </div>
+                    </p>
+                    <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span></p>
+                </div>
+            </div>
+        </script>
+    </div>
+</div>
+<!-- 订单信息 end -->
+
+<!-- 费用详情 start -->
+<div class="panel feiyong">
+    <div class="panel-top">
+        <h2>费用详情</h2>
+    </div>
+
+    <div class="panel-bottom">
+        <script type="text/html" id="feiyongdetail">
+            <div class="info">
+                <p class="clear">
+                    <span class="label">商品总金额：</span>
+                    <span class="value"><em>¥</em> {{ total_fee }}</span>
+                </p>
+
+                <p class="clear">
+                    <span class="label">运费：</span>
+                    <span class="value"><em>¥</em> {{ post_fee }}</span>
+                </p>
+
+                <p class="clear">
+                    <span class="label">优惠金额：</span>
+                    <span class="value" id="youhuijine"><em>¥</em> -{{ discount_fee }}</span>
+                </p>
+
+                <p class="clear">
+                    <span class="label">应付金额：</span>
+                    <span class="value total"><em>¥</em> {{ payment }}</span>
+                </p>
+            </div>
+        </script>
+    </div>
+</div>
+<!-- 费用详情 end -->
+
+<div class="panel shouhuo">
+
+    <div class="panel-bottom">
+        <div class="info">
+        </div>
+        <!--退货原因-->
+        <script type="text/html" id="refund_reason">
+            <option value='0' select="selected">其他</option>
+            <option value='1'>错拍</option>
+            <option value='2'>缺货</option>
+            <option value='3'>开线/脱色/脱毛/有色差/有虫洞</option>
+            <option value='4'>发错货/漏发</option>
+            <option value='5'>没有发货</option>
+            <option value='6'>未收到货</option>
+            <option value='7'>与描述不符</option>
+            <option value='8'>退运费</option>
+            <option value='9'>发票问题</option>
+            <option value='10'>七天无理由退换货</option>
+        </script>
+        <div class="info reason">
+            <p class="clear">
+                <span class="label ">选择原因：</span>
+                <select id="selec_resason"></select>
+            </p>
+        </div>
+    </div>
+</div>
+<div class="buy_button">
+    <div class="btn-wrap">
+        <a class="btn-buy" onclick="Button_tijiao()">提&nbsp;&nbsp;交</a>
+    </div>
+</div>
+
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="../js/tuikuan.js"></script>
+<script type="text/javascript">
+    (function ($) {
+        //返回顶部
+        $('#js-scroll-top').on('touchend', function (e) {
+            e.preventDefault();
+            $('body').animate({scrollTop: 0}, 400);
+        });
+
+        var startY;
+
+        document.addEventListener('touchstart', function (ev) {
+            startY = ev.touches[0].pageY;
+        }, false);
+
+        document.addEventListener('touchend', function (ev) {
+            var endY = ev.changedTouches[0].pageY;
+            var dir = startY - endY;
+            if (dir > 0) {
+                $('#js-fixed-nav').hide();
+            } else {
+                $('#js-fixed-nav').show();
+            }
+        }, false);
+
+        var urlParams = parseUrlParams(window.location.href);
+        var urlConf = {'trade_id': urlParams['id']};
+        var order_url = GLConfig.get_trade_details_url.template(urlConf);
+
+        //获取待支付订单列表
+        Set_order_detail(order_url);
+        Create_refun_reason();
+    })(jQuery);
+</script>
+</body>
+</html>
