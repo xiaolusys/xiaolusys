@@ -12,10 +12,15 @@ $(document).ready(function () {
                     nums = nums + 1;//有效可用的优惠券数量
                 }
             });
-            var tips_content = '您已经有' + nums + '张优惠券咯，赶紧去花吧，不要过期哦！';
-            $(".tips").empty().append(tips_content);//后添加
+            if(nums==0){
+                $(".tips").empty().append("您的优惠券过期了，赶紧索取吧!~");
+            }
+            else{
+                var tips_content = '您已经有' + nums + '张有效优惠券咯，赶紧去花吧！';
+                $(".tips").empty().append(tips_content);//后添加
+                }
         } else {
-            $(".tips").empty().append("赶紧索取吧!~");
+            $(".tips").empty().append("您还没有优惠券，赶紧索取吧!~");
         }
     });
 
