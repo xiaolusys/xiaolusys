@@ -50,7 +50,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     - {prefix}/{{pk}}/minus_product_carts: 减少一件;
     - {prefix}/show_carts_num: 显示购物车数量;
     """
-    queryset = ShoppingCart.objects.all()
+    queryset = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL)
     serializer_class = serializers.ShoppingCartSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
