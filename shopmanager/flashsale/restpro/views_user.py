@@ -178,16 +178,14 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             user1 = authenticate(username=user.username, password=password)
             if user1 is not None:
                 login(request, user1)
-                user_ifo = "id:{0},name:{1}".format(user.id, user.username)
-                return Response(user_ifo)
+                return Response({"result": "login"})   # 登录成功
             if not user.check_password(password):
                 return Response({"result": "p_error"})  # 密码错误
         except Customer.DoesNotExist:
             return Response({"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
             return Response({"result": "s_error"})  # 账户异常
-        user_ifo = "id:{0},name:{1}".format(user.id, user.username)
-        return Response(user_ifo)
+        return Response({"result": "fail"})
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
