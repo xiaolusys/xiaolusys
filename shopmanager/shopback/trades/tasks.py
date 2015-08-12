@@ -567,3 +567,215 @@ def task_Gen_Logistic_Report_File_By_Month(pre_month=1):
     
     task_Gen_Logistic_Report_File(date_from,date_to)
    
+
+
+
+
+from . import serializers
+from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime, format_date, format_datetime)
+from shopback.refunds.models import REFUND_STATUS, Refund
+@task()
+def task_Gen_Product_Statistic(shop_id, sc_by, wait_send, p_outer_id, start_dt, end_dt, is_sale="1"):
+    print start_dt,end_dt
+    order_qs = getSourceOrders(shop_id=shop_id, sc_by=sc_by, wait_send=wait_send,
+                                p_outer_id=p_outer_id, start_dt=start_dt, end_dt=end_dt, is_sale=is_sale)
+
+    empty_order_qs = getSourceOrders(shop_id=shop_id,
+                                     sc_by=sc_by,
+                                     wait_send=wait_send,
+                                     p_outer_id=p_outer_id,
+                                     start_dt=start_dt,
+                                     end_dt=end_dt,
+                                     empty_code=True)
+
+    trade_qs = getSourceTrades(order_qs)
+
+    buyer_nums = len(trade_qs)
+    trade_nums = len(trade_qs)
+    total_post_fee = 0.00
+
+    refund_fees = getTotalRefundFee(order_qs)
+    empty_order_count = empty_order_qs.count()
+    trade_list = getTradeSortedItems(order_qs, is_sale=is_sale)
+    total_num = trade_list.pop()
+    total_cost = trade_list.pop()
+    total_sales = trade_list.pop()
+    print buyer_nums
+    return {'trade_items': trade_list,
+            'empty_order_count': empty_order_count,
+            'total_cost': total_cost and round(total_cost, 2) or 0,
+            'total_sales': total_sales and round(total_sales, 2) or 0,
+            'total_num': total_num,
+            'refund_fees': refund_fees and round(refund_fees, 2) or 0,
+            'buyer_nums': buyer_nums,
+            'trade_nums': trade_nums,
+            'post_fees': total_post_fee}
+
+
+def getSourceOrders(shop_id=None, is_sale=None,
+                    sc_by='created', start_dt=None,
+                    end_dt=None, wait_send='0',
+                    p_outer_id='', empty_code=False):
+
+    order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT)\
+        .exclude(merge_trade__type=pcfg.REISSUE_TYPE)\
+        .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE)\
+        .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
+    if shop_id:
+        order_qs = order_qs.filter(merge_trade__user=shop_id)
+
+    if sc_by == 'pay':
+        order_qs = order_qs.filter(pay_time__gte=start_dt, pay_time__lte=end_dt)
+    elif sc_by == 'weight':
+        order_qs = order_qs.filter(merge_trade__weight_time__gte=start_dt,
+                                   merge_trade__weight_time__lte=end_dt)
+    else:
+        order_qs = order_qs.filter(created__gte=start_dt, created__lte=end_dt)
+
+    if wait_send == '1':
+        order_qs = order_qs.filter(merge_trade__sys_status=pcfg.WAIT_PREPARE_SEND_STATUS)
+    elif wait_send == '2':
+        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS,
+                                   merge_trade__sys_status__in=pcfg.WAIT_WEIGHT_STATUS)
+    else:
+        order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
+            .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS))\
+            .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
+
+    if empty_code:
+        order_qs = order_qs.filter(outer_id='')
+        return order_qs
+
+    if is_sale:
+        order_qs = order_qs.extra(where=["CHAR_LENGTH(outer_id)>=9"])\
+            .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8"))
+
+    if p_outer_id:
+        order_qs = order_qs.filter(outer_id__startswith=p_outer_id)
+
+    return order_qs
+
+
+def getSourceTrades(order_qs):
+    trade_ids = [t[0] for t in order_qs.values_list('merge_trade__id')]
+    return set(trade_ids)
+
+
+def getTotalRefundFee(order_qs):
+    effect_oids = getEffectOrdersId(order_qs)
+
+    return Refund.objects.filter(oid__in=effect_oids, status__in=(
+                pcfg.REFUND_WAIT_SELLER_AGREE, pcfg.REFUND_CONFIRM_GOODS, pcfg.REFUND_SUCCESS))\
+                .aggregate(total_refund_fee=Sum('refund_fee')).get('total_refund_fee') or 0
+
+
+def getTradeSortedItems(order_qs, is_sale=False):
+
+    trade_items  = {}
+    for order in order_qs:
+
+        outer_id = order.outer_id.strip() or str(order.num_iid)
+        outer_sku_id = order.outer_sku_id.strip() or str(order.sku_id)
+        payment = float(order.payment or 0)
+        order_num = order.num or 0
+        prod, prod_sku = getProductAndSku(outer_id,outer_sku_id)
+
+        if trade_items.has_key(outer_id):
+            trade_items[outer_id]['num'] += order_num
+            skus = trade_items[outer_id]['skus']
+
+            if skus.has_key(outer_sku_id):
+                skus[outer_sku_id]['num']   += order_num
+                skus[outer_sku_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order_num
+                skus[outer_sku_id]['sales'] += payment
+                #累加商品成本跟销售额
+                trade_items[outer_id]['cost']  += skus[outer_sku_id]['std_purchase_price']*order_num
+                trade_items[outer_id]['sales'] += payment
+            else:
+                prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
+                purchase_price = float(prod_sku.cost) if prod_sku else 0
+                #累加商品成本跟销售额
+                trade_items[outer_id]['cost']  += purchase_price*order_num
+                trade_items[outer_id]['sales'] += payment
+
+                skus[outer_sku_id] = {
+                                      'sku_name':prod_sku_name,
+                                      'num':order_num,
+                                      'cost':purchase_price*order_num,
+                                      'sales':payment,
+                                      'std_purchase_price':purchase_price}
+        else:
+            prod_sku_name  = prod_sku.name if prod_sku else order.sku_properties_name
+            purchase_price = float(prod_sku.cost) if prod_sku else payment/order_num
+            trade_items[outer_id]={
+                                   'product_id':prod and prod.id or None,
+                                   'num':order_num,
+                                   'title': prod.name if prod else order.title,
+                                   'cost':purchase_price*order_num ,
+                                   'pic_path':prod and prod.PIC_PATH or '',
+                                   'sales':payment,
+                                   'sale_charger':prod and prod.sale_charger or '',
+                                   'storage_charger':prod and prod.storage_charger or '',
+                                   'sales':payment,
+                                   'skus':{outer_sku_id:{
+                                        'sku_name':prod_sku_name,
+                                        'num':order_num,
+                                        'cost':purchase_price*order_num ,
+                                        'sales':payment,
+                                        'std_purchase_price':purchase_price}}
+                                   }
+
+    if  is_sale:
+        def sort_items(x,y):
+            if x[0][:-1] == y[0][:-1]:
+                return -cmp(x[1],y[1])
+            return cmp(x[0],y[0])
+        order_items = sorted(trade_items.items(),key=lambda d:(d[0],d[1]['num']),cmp=sort_items)
+    else:
+        order_items = sorted(trade_items.items(),key=lambda d:d[1]['num'],reverse=True)
+
+    total_cost   = 0
+    total_sales  = 0
+    total_num    = 0
+    for trade in order_items:
+        total_cost  += trade[1]['cost']
+        total_sales += trade[1]['sales']
+        total_num   += trade[1]['num']
+        trade[1]['skus'] = sorted(trade[1]['skus'] .items(),key=lambda d:d[0])
+
+    order_items.append(total_sales)
+    order_items.append(total_cost)
+    order_items.append(total_num)
+
+    return order_items
+
+
+def getEffectOrdersId(order_qs):
+    return [o[0] for o in order_qs.values_list('oid') if len(o) > 0]
+
+
+def getProductAndSku(outer_id,outer_sku_id):
+
+    prod_map = {}
+    outer_key = '-'.join((outer_id,outer_sku_id))
+    if prod_map.has_key(outer_key):
+        return prod_map.get(outer_key)
+
+    prod = getProductByOuterId(outer_id)
+    prod_sku = getProductSkuByOuterId(outer_id,outer_sku_id)
+    prod_map[outer_key] = (prod,prod_sku)
+    return (prod, prod_sku)
+
+
+def getProductByOuterId(outer_id):
+    try:
+        return Product.objects.get(outer_id=outer_id)
+    except:
+        return None
+
+
+def getProductSkuByOuterId(outer_id,outer_sku_id):
+    try:
+        return ProductSku.objects.get(outer_id=outer_sku_id, product__outer_id=outer_id)
+    except:
+        return None

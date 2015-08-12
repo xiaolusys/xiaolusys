@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>订单交易商品统计</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}wap/css/dots-loading.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <!-- <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery.ui.datepicker-zh-CN.js.js" type="text/javascript" charset="gb2312"></script> -->
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        ul li {
+            list-style: none;
+            display: inline;
+            margin-top: 30px;
+            margin-left: 20px;
+            float: left;
+        }
+
+        .inner-filter {
+            margin: 20px auto 0px;
+            width: 60%;
+        }
+
+        ul {
+            width: 900px;
+            display: block;
+        }
+
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 40%;
+            bottom: 0;
+            right: 0;
+            z-index: 10000000;
+            text-align: center;
+            width: 400px;
+            height: 200px;
+            display: none;
+        }
+    </style>
+
+</head>
+<body>
+<input hidden="hidden" value="{{ task_id }}" id="task_id">
+
+<div class="container">
+    <div class="inner-filter">
+        <form class="form-horizontal" role="form" method="GET" action="/trades/order/statistic_async/">
+            <input type="hidden" name="is_sale" value="{{ is_sale }}"/>
+
+            <div class="row form-group">
+                <div class="col-xs-4">
+                    <label class="control-label" for="sc_by">日期类型:</label>
+                    <select name="sc_by" class="form-control">
+                        <option value="pay" {% if object.sc_by == "pay" %}selected{% endif %}>付款日期</option>
+                        <option value="weight" {% if object.sc_by == "weight" %}selected{% endif %}>称重日期</option>
+                        <option value="create" {% if object.sc_by == "create" %}selected{% endif %}>生成日期</option>
+                    </select>
+                </div>
+                <div class="col-xs-4">
+                    <label class="control-label" for="df">起始日期:</label>
+                    <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
+                           value="{{ df }}"/>
+                </div>
+                <div class="col-xs-4">
+                    <label class="control-label" for="dt">结束日期:</label>
+                    <input type="text" id="t_datepicker" name="dt" class="form-control datepicker"
+                           value="{{ dt }}"/>
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-xs-4">
+                    <label class="control-label" for="shop_id">选择店铺:</label>
+                    <select name="shop_id" class="form-control">
+                        <option value="">全部</option>
+                        {% for shop in shops %}
+                            <option value="{{ shop.id }}"
+                                    {% if shop_id == shop.id %}selected{% endif %}>{{ shop.nick }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-xs-4">
+                    <label class="control-label" for="outer_id">商家编码:</label>
+                    <input type="text" name="outer_id" class="form-control" value="{{ outer_id }}"/>
+                </div>
+                <div class="col-xs-2">
+                    <label class="control-label" for="wait_send">发货状态:</label>
+                    <select name="wait_send" class="form-control">
+                        <option value="0" {% if object.wait_send == "0" %}selected{% endif %}>全部</option>
+                        <option value="1" {% if object.wait_send == "1" %}selected{% endif %}>待发货</option>
+                        <option value="2" {% if object.wait_send == "2" %}selected{% endif %}>待出库</option>
+                    </select>
+                </div>
+                <div class="col-xs-2">
+                    <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="post-items" style="display:block;clear:both;">
+        <fieldset>
+            <legend><h2><label>{% if is_sale %}特卖订单{% else %}订单{% endif %}</label> 商品统计列表
+
+                <a href="/admin/trades/mergeorder/?outer_id__exact=&pay_time__gte={{ df }}&pay_time__lte={{ dt }}"
+                   class="label label-danger" target="_blank" id="empty_order_count_link" style="display: none"><span
+                        id="empty_order_count"></span></a></h2>
+            </legend>
+            <table id="id-head-table" class="table table-bordered  table-condensed">
+                <thead>
+                <tr style="background-color:#01B5A2;">
+                    <th colspan="2">成本：<span id="total_cost"></span></th>
+                    <th colspan="2">销售额:<span id="total_sales"></span></th>
+                    <th colspan="2">实付邮费:<span id="post_fees"></span></th>
+                    <th>付款单数:<span id="trade_nums"></span></th>
+                    <th>退款:<span id="refund_fees"></span></th>
+                    <th colspan="2">购买人数:<span id="buyer_nums"></span></th>
+                </tr>
+                <tr style="background-color:#428BCA;">
+                    <th class="col-xs-1">商品编码</th>
+                    <th class="col-xs-2">商品图片</th>
+                    <th class="col-xs-1">总数量</th>
+                    <th class="col-xs-1">成本</th>
+                    <th class="col-xs-1">销售额</th>
+                    <th class="col-xs-1">规格编码</th>
+                    <th class="col-xs-2">商品规格</th>
+                    <th class="col-xs-1">数量</th>
+                    <th class="col-xs-1">成本</th>
+                    <th class="col-xs-1">销售额</th>
+                </tr>
+                </thead>
+            </table>
+
+            <table class="table table-bordered  table-condensed" id="result-table">
+                <thead>
+                <tr style="background-color:#428BCA;">
+                    <th class="col-xs-1">合计:</th>
+                    <th class="col-xs-2">--</th>
+                    <th class="col-xs-1"><span id="total_num"></span></th>
+                    <th class="col-xs-1">--</th>
+                    <th class="col-xs-1">--</th>
+                    <th class="col-xs-1">--</th>
+                    <th class="col-xs-2">--</th>
+                    <th class="col-xs-1">--</th>
+                    <th class="col-xs-1">--</th>
+                    <th class="col-xs-1">--</th>
+                </tr>
+                </thead>
+                <tbody id="result-data-field">
+
+                </tbody>
+
+            </table>
+        </fieldset>
+    </div>
+</div>
+
+<div id="loading"><span class="dots-loader"></span><br><br><span style='margin-top: 20px; font-size: 30px'>请耐心等候……</span></div>
+</body>
+<script src="{{ STATIC_URL }}js/trade_async.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $("#f_datepicker").datetimepicker({
+            timeFormat: "HH:mm:ss",
+            dateFormat: "yy-mm-dd"
+        });
+        $("#t_datepicker").datetimepicker({
+            timeFormat: "HH:mm:ss",
+            dateFormat: "yy-mm-dd"
+        });
+        //置顶按钮显示/隐藏实现
+        $(window).scroll(function () {
+            var w_height = $(window).height();//浏览器高度
+            var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度
+            if (scroll_top > 100) {
+                $("#id-head-table").css("position", "fixed").css("top", "0").css("width", 1140);
+            } else {
+                $("#id-head-table").css("position", "static");
+            }
+        });
+    });
+</script>
+</html>

@@ -56,7 +56,17 @@ class StatisticMergeOrderRender(TemplateHTMLRenderer):
     media_type = 'text/html'
     format = 'html'
     template_name = 'trades/trade_products_statistic.html'
-    
+
+
+class StatisticMergeOrderAsyncRender(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to Table
+    """
+
+    media_type = 'text/html'
+    format = 'html'
+    template_name = 'trades/trade_products_statistic_async.html'
+
     
 class StatisticOutStockRender(TemplateHTMLRenderer):
     """
