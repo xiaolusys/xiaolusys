@@ -67,11 +67,13 @@ function del_shop(id) {
     var requestCallBack = function (res) {
         get_shop_carts(GLConfig.get_cart_url);
     };
+
     swal({
             title: "",
             text: "删掉的商品可能被别人抢走哦～\n要删除吗？",
             type: "",
             showCancelButton: true,
+            imageUrl: "http://image.xiaolu.so/logo.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: '删除',
             cancelButtonText: '先留着'
