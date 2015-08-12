@@ -79,15 +79,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_id = data.get("item_id", None)
         buyer_id = customer_user[0].id
         sku_id = data.get("sku_id", None)
-        num = data.get("num", 0)
+        sku_num = 1
         sku = get_object_or_404(ProductSku, pk=sku_id)
+        if not Product.objects.lockQuantity(sku,sku_num):
+            raise exceptions.APIException(u'商品库存不足')
         # lock_success = Product.objects.isQuantityLockable(sku, num) #限购功能
         # if product_id and buyer_id and sku_id and lock_success:
         if product_id and buyer_id and sku_id:
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id)
             if shop_cart.count() > 0:
                 shop_cart_temp = shop_cart[0]
-                shop_cart_temp.num += int(num) if num else 0
+                shop_cart_temp.num += int(sku_num) if sku_num else 0
                 shop_cart_temp.save()
                 return Response({"result": "1"}) #购物车已经有了
 
@@ -98,7 +100,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     hasattr(new_shop_cart, k) and setattr(new_shop_cart, k, v)
             new_shop_cart.buyer_nick = customer_user[0].nick if customer_user[0].nick else ""
             new_shop_cart.price = sku.agent_price
-            new_shop_cart.total_fee = sku.agent_price * int(num) if sku.agent_price else 0
+            new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
             new_shop_cart.sku_name = sku.properties_alias if len(sku.properties_alias) > 0 else sku.properties_name
             new_shop_cart.pic_path = sku.product.pic_path
             new_shop_cart.title = sku.product.name
@@ -132,23 +134,26 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def plus_product_carts(self, request, pk=None):
-        # cart_item = get_object_or_404(ShoppingCart, pk=pk)
-        # sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
-        # lock_success = Product.objects.isQuantityLockable(sku, cart_item.num+1)
-        # if lock_success:
+        cart_item = get_object_or_404(ShoppingCart, pk=pk)
+        sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
+        lockable = Product.objects.isQuantityLockable(sku, cart_item.num+1)
+        if not lockable:
+            raise exceptions.APIException(u'商品库存不足或限购')
+        lock_success =  Product.objects.lockQuantity(sku,1)
+        if not lock_success:
+            raise exceptions.APIException(u'商品库存不足')
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
-        # else:
-        #     return Response('0')
+
         return Response({"status": update_status})
 
     @detail_route(methods=['post'])
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
-        temp_shop = ShoppingCart.objects.filter(id=pk)
-        if temp_shop.count() == 0:
-            return Response("error")
-        if temp_shop[0].num == 1:
-            return Response("can not minus")
+        cart_item = get_object_or_404(ShoppingCart, pk=pk)
+        if cart_item.num <= 1:
+            return exceptions.APIException(u'购买数量不少于1')
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
+        sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
+        Product.objects.releaseLockQuantity(sku,1)
         return Response({"status": update_status})
     
     @list_route(methods=['get'])
@@ -547,6 +552,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cart_total_fee  = 0 
         cart_discount   = 0
         for cart in cart_qs:
+            if not cart.is_good_enough():
+                raise exceptions.ParseError(u'抱歉,商品已被抢光')
             cart_total_fee += cart.price * cart.num * 100
             cart_discount += cart.calc_discount_fee(xlmm=xlmm) * 100
             
@@ -590,6 +597,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         xlmm            = self.get_xlmm(request)
         bn_discount     = product_sku.calc_discount_fee(xlmm) 
         bn_payment      = bn_totalfee + post_fee - bn_discount
+        if product_sku.free_num < sku_num:
+            raise exceptions.ParseError(u'抱歉,商品已被抢光!')
+        
         if post_fee < 0 or payment <= 0 or payment < bn_payment:
             raise exceptions.ParseError(u'付款金额异常')
         

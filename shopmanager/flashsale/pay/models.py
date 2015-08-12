@@ -387,7 +387,7 @@ class ShoppingCart(models.Model):
     
     def is_good_enough(self):
         product_sku = ProductSku.objects.get(id=self.sku_id)
-        return self.num >= product_sku.free_num
+        return product_sku.real_remainnum >= self.num
         
     def calc_discount_fee(self,xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)
