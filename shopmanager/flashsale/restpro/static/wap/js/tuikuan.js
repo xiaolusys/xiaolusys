@@ -130,17 +130,21 @@ function Button_tijiao() {
 
         function callback(res) {
             console.log(res);
-            if (res.res == "not_in_send") {
+            if (res.res == "already_refund") {
                 alert("您的订单已经不在已经付款状态中，无法退款！");
             }
-            else if (res.res == "refund_ok") {
+            else if (res.res == "refund_success") {
                 alert("退款成功！")
             }
-            else if (res == "refund_product_ok") {
+            else if (res.res == "refund_product_ok") {
                 alert("退货成功！")
             }
-            else if (res == "not_in_pro") {
+            else if (res.res == "not_in_pro") {
                 alert("您的订单不在已发货状态，无法退货！")
+            }
+            else if (res.res == "forbidden"){
+                console.log(res,'res is here ');
+                alert("您的交易已经不在已经付款状态中，或者已经提交了申请,耐心等待售后处理！")
             }
 
         }

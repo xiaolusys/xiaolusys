@@ -1,103 +1,200 @@
 # coding=utf-8
 from rest_framework.response import Response
-from shopback.refunds.models import Refund, REFUND_REASON
+from flashsale.pay.models_refund import SaleRefund
 from flashsale.pay.models import SaleOrder, SaleTrade
+from shopback.refunds.models import REFUND_REASON
+
+"""
+    REFUND_STATUS = (
+        (NO_REFUND,'没有退款'),
+        (REFUND_WAIT_SELLER_AGREE,'买家已经申请退款'),
+        (REFUND_WAIT_RETURN_GOODS,'卖家已经同意退款'),
+        (REFUND_CONFIRM_GOODS,'买家已经退货'),
+        (REFUND_REFUSE_BUYER,'卖家拒绝退款'),
+        (REFUND_APPROVE,'确认退款，等待返款'),
+        (REFUND_CLOSED,'退款关闭'),
+        (REFUND_SUCCESS,'退款成功'),
+    )
+    refund_id     = models.BigIntegerField(null=True,verbose_name=u'退款ID')
+    refund_fee    = models.FloatField(default=0.0,verbose_name=u'退款费用')
+    refund_status = models.IntegerField(choices=SaleRefund.REFUND_STATUS,
+                                       default=SaleRefund.NO_REFUND,
+                                       blank=True,verbose_name='退款状态')
+"""
+
+
+def create_Sale_Refund(trade_id=None, order_id=None):
+    """
+    参数：trade_id:交易id   order_id:子订单id
+    功能：修改特卖/退款单状态
+    返回：False:创建失败  sale_refund
+         True:创建成功 sale_refund
+    """
+    sale_refund, state = SaleRefund.objects.get_or_create(trade_id=trade_id, order_id=order_id)
+    return sale_refund, state
+
+
+def get_Sale_Refund(trade_id=None, order_id=None, sale_refund_id=None):
+    """
+    参数：trade_id:交易id   order_id:子订单id
+    功能：获取退款单
+    返回：False:没有找到
+         True:找到
+    """
+    try:
+        if sale_refund_id is None:  # 没有
+            sale_refund = SaleRefund.objects.get(trade_id=trade_id, order_id=order_id)
+            return True
+        elif sale_refund_id is not None:
+            sale_refund = SaleRefund.objects.get(id=sale_refund_id)
+            return sale_refund
+    except SaleRefund.DoesNotExist:
+        return False
+
+
+def get_Refund_Order_Trade(order_id=None):
+    """
+    参数：子订单id
+    功能：获取子订单对象,交易对象,交易的子订单数量
+    返回：order.obj   trade.obj   order.count
+    """
+    order = SaleOrder.objects.get(id=order_id)
+    trade = order.sale_trade
+    order_count = trade.sale_orders.all().count()
+    return trade, order, order_count
+
+
+def judge_Refund(order_id=None):
+    """
+    参数：子订单id
+    功能：判断子订单能否退款
+    返回：False:不能退款
+         True:可以退款   　
+    """
+    # 查看sale_trade 的状态 WAIT_SELLER_SEND_GOODS  已付款的才可以退款
+    # 查看sale_order 的状态　WAIT_SELLER_SEND_GOODS　已经付款的才可以退款
+    # 查看退款单　　如果不存存在该退款单(没有申请过)　　则允许申请　
+    trade, order, order_count = get_Refund_Order_Trade(order_id=order_id)
+    t_status = True if trade.status == SaleTrade.WAIT_SELLER_SEND_GOODS else False
+    o_status = True if order.status == SaleOrder.WAIT_SELLER_SEND_GOODS else False
+    refund = get_Sale_Refund(trade_id=trade.id, order_id=order.id)
+    if t_status and o_status and not refund:
+        return True
+    else:
+        return False
+
+
+def judge_Refund_Product(order_id=None):
+    """
+    参数：子订单id
+    功能：判断子订单能否退货
+    返回：False:不能退货
+         True:可以退货
+    """
+    # 查看sale_trade 的状态 WAIT_BUYER_CONFIRM_GOODS  已发货的才可以退货
+    # 查看sale_order 的状态　WAIT_BUYER_CONFIRM_GOODS　已经发货的才可以退货
+    # 查看退款单　　如果不存存在该退款单　　则允许申请退货　
+    trade, order, order_count = get_Refund_Order_Trade(order_id=order_id)
+    t_status = True if trade.status == SaleTrade.WAIT_BUYER_CONFIRM_GOODS else False
+    o_status = True if order.status == SaleOrder.WAIT_BUYER_CONFIRM_GOODS else False
+    refund = get_Sale_Refund(trade_id=trade.id, order_id=order.id)
+    if t_status and o_status and not refund:
+        return True
+    else:
+        return False
+
+
+def modify_Sale_Refund_Status(sale_refund_id=None, status=None):
+    """
+    参数：
+    功能：修改特卖/退款单状态
+    返回：False:修改失败
+         True:修改成功
+    """
+    sale_refund = get_Sale_Refund(sale_refund_id=sale_refund_id)
+    if sale_refund:
+        sale_refund.status = status
+        sale_refund.save()
+        return True
+    else:
+        return False
+
+
+def save_Other_Atriibut(trade=None, order=None, sale_refund=None, refund_num=None, reason=None):
+    sale_refund.buyer_id = trade.buyer_id
+    sale_refund.title = order.title
+    sale_refund.charge = trade.charge
+    sale_refund.item_id = int(order.item_id) if order.item_id else 0
+    sale_refund.sku_id = int(order.sku_id) if order.sku_id else 0
+    sale_refund.sku_name = order.sku_name
+    sale_refund.refund_num = refund_num
+    sale_refund.buyer_nick = trade.buyer_nick
+    sale_refund.mobile = trade.receiver_mobile
+    sale_refund.phone = trade.receiver_phone
+    sale_refund.total_fee = order.total_fee
+    sale_refund.payment = order.payment
+    sale_refund.refund_fee = order.refund_fee
+    sale_refund.reason = REFUND_REASON[reason][1]  # 填写原因
+    sale_refund.good_status = SaleRefund.BUYER_NOT_RECEIVED
+    sale_refund.status = SaleRefund.REFUND_WAIT_SELLER_AGREE
+    sale_refund.save()
+
+
+def save_Resund_Product_Atribut():
+    """
+    参数：物流信息　是否退货　是否换货
+    功能：对于退货产品要保留的一些额外的信息
+    返回：None
+    """
+    pass
+
+
+def sub_Handler(request=None, length=None, reason=None):
+    for i in range(1, length + 1):
+        oid = int(request.data["refund[" + str(i) + "][id]"])
+        num = int(request.data["refund[" + str(i) + "][num]"])
+        price = float(request.data["refund[" + str(i) + "][sum_price]"])
+        # 如果num　等与０ break
+        if num == 0:  # 提交的退款产品数量为0
+            break
+        # １、判断能否退款　能则继续　否则 break
+        if judge_Refund(order_id=oid):
+            # ２、get_or_create 退款单对象
+            trade, order, order_count = get_Refund_Order_Trade(order_id=oid)
+            # 退款处理　生成退款单
+            sale_refund, state = create_Sale_Refund(trade_id=trade.id, order_id=order.id)
+            # 如果state 为真　则继续
+            if state:
+                print "state is here: ", state
+                # 修改该订单的
+                order.refund_id = sale_refund.id  # refund_id
+                # refund_fee    = models.FloatField(default=0.0,verbose_name=u'退款费用')
+                # 退款费用为原来订单的实付款除以数量的单价　乘以要退产品的数量
+                order.refund_fee = order.payment / order.num * num
+                # refund_status =  SaleRefund.REFUND_WAIT_SELLER_AGREE 已经申请退款状态
+                order.refund_status = SaleRefund.REFUND_WAIT_SELLER_AGREE
+                order.save()
+                # 保存其他信息到sale_refund
+                save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num,
+                                    reason=reason)
+            # 否则
+            else:
+                # 返回提示已经申请　禁止重复申请
+                return {"res": "already_refund"}
+                # (有记录则曾经申请过　不予再次申请)
+        else:
+            return {"res": "forbidden"}
+    return {"res": "refund_success"}
 
 
 def refund_Handler(request):
     length = int(request.data["refund[0][length]"])
     reason = int(request.data["refund[0][reason]"])
-    refund_or_pro = int(request.data["refund[0][refund_or_pro]"])
-    print refund_or_pro, "refund_or_prorefund_or_prorefund_or_prorefund_or_pro"
-    if refund_or_pro == 0:
-        for i in range(1, length + 1):
-            oid = int(request.data["refund[" + str(i) + "][id]"])
-            num = int(request.data["refund[" + str(i) + "][num]"])
-            price = float(request.data["refund[" + str(i) + "][sum_price]"])
-            ref_product = SaleOrder.objects.get(id=oid)
-            trade = ref_product.sale_trade
-            discount_fee = trade.discount_fee  # 总折扣价格
-            if trade.status == SaleTrade.WAIT_SELLER_SEND_GOODS:  # 已付款状态
-                # 交易中子订单的个数
-                if ref_product.status == SaleOrder.TRADE_REFUNDING:  # 如果是　退款申请中　返回　
-                    return {'res': "refunding"}
-                if num == 0:  # 如过退的数量是0则　退出本次循环
-                    break
-                # 找到这一个order 的单件折扣价格
-                refund = Refund()
-                refund.tid = trade.id
-                refund.title = ref_product.title
-                refund.num_iid = ref_product.item_id or 0
-                # refund.user = trade.user
-                refund.seller_id = trade.buyer_id
-                refund.buyer_nick = trade.buyer_nick
-                refund.mobile = trade.receiver_mobile
-                refund.phone = trade.receiver_phone
-                refund.total_fee = trade.total_fee
-                # 订单中的单价　数量
-                # 退款金额为 价格* 数量　减去　折扣费用　注意这里如果是交易里面有多个订单退单都会减去折扣
-                refund.refund_fee = str((ref_product.payment / ref_product.num) * num)
-                refund.payment = ref_product.payment
-                refund.oid = oid
-                refund.company_name = trade.logistics_company.name if trade.logistics_company else u"暂无"
-                refund.sid = trade.out_sid
-                refund.reason = REFUND_REASON[reason][1]
-                # refund.good_status =
-                # refund.order_status =
-                # refund.cs_status =
-                refund.status = Refund.REFUND_WAIT_SELLER_AGREE
-                # 生成退货款单
-                refund.save()
-                ref_product.status = SaleOrder.TRADE_REFUNDING  # 修改该明细状态到退款申请中
-                ref_product.save()  # 保存
-            else:  # 否则返回不在已付款状态的说明
-                return {"res": "not_in_send"}
-        trade.status = SaleTrade.TRADE_REFUNDING
-        trade.save()
-        return {"res": "refund_ok"}
-    if refund_or_pro == 1:
-        # 创建退货款单
-        for i in range(1, length + 1):
-            oid = int(request.data["refund[" + str(i) + "][id]"])
-            num = int(request.data["refund[" + str(i) + "][num]"])
-            price = float(request.data["refund[" + str(i) + "][sum_price]"])
-            ref_product = SaleOrder.objects.get(id=oid)
-            trade = ref_product.sale_trade
-            if trade.status == SaleTrade.WAIT_BUYER_CONFIRM_GOODS:  # 已经发货状态
-                # 交易中子订单的个数
-                if ref_product.status == SaleOrder.TRADE_REFUNDING:  # 如果是　退款申请中　返回　
-                    return {'res': "refunding"}
-                if num == 0:  # 如过退的数量是0则　退出本次循环
-                    break
-                # 找到这一个order 的单件折扣价格
-                refund = Refund()
-                refund.tid = trade.id
-                refund.title = ref_product.title
-                refund.num_iid = ref_product.item_id or 0
-                # refund.user = trade.user
-                refund.seller_id = trade.buyer_id
-                refund.buyer_nick = trade.buyer_nick
-                refund.mobile = trade.receiver_mobile
-                refund.phone = trade.receiver_phone
-                refund.total_fee = trade.total_fee
-                # 订单中的单价　数量
-                # 退款金额为 价格* 数量　减去　折扣费用　注意这里如果是交易里面有多个订单退单都会减去折扣
-                refund.refund_fee = str((ref_product.payment / ref_product.num) * num)
-                refund.payment = ref_product.payment
-                refund.oid = oid
-                refund.company_name = trade.logistics_company.name if trade.logistics_company else u"暂无"
-                refund.sid = trade.out_sid
-                refund.reason = REFUND_REASON[reason][1]
-                # refund.good_status =
-                # refund.order_status =
-                # refund.cs_status =
-                refund.status = Refund.REFUND_WAIT_SELLER_AGREE
-                # 生成退货款单
-                refund.save()
-                ref_product.status = SaleOrder.TRADE_REFUNDPROING  # 修改该明细状态到退退货申请中
-                ref_product.save()  # 保存
-            else:
-                return {"res": "not_in_pro"}
-        trade.status = SaleTrade.TRADE_REFUNDPROING  # 修改交易状态到退货申请中
-        trade.save()
-        return {"res": "refund_product_ok"}
+    refund_or_pro = int(request.data["refund[0][refund_or_pro]"])  # 用来判断是退货还是退款的变量
+    if refund_or_pro == 0:  # 退款处理
+        message = sub_Handler(request=request, length=length, reason=reason)
+        return message
+    if refund_or_pro == 1:  # 退货处理
+        # 退货要填写退货的　　物流信息　快递公司　　快递单号　　通过页面接受过来
+        message = sub_Handler(request=request, length=length, reason=reason)
+        return message
