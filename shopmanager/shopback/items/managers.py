@@ -307,7 +307,7 @@ class ProductManager(models.Manager):
         
         
     def lockQuantity(self,sku,num):
-        
+        #锁定库存
         try:
             product_detail = sku.product.details
             if product_detail.buy_limit and num > product_detail.per_limit:
@@ -319,6 +319,16 @@ class ProductManager(models.Manager):
                  remain_num__gte=models.F('wait_post_num')+models.F('lock_num')+num)
                  .update(lock_num=models.F('lock_num')+num))
                                   
+        return urows > 0
+    
+    def releaseLockQuantity(self,sku,num):
+        #释放锁定库存
+        if sku.lock_num < num:
+            num = sku.lock_num
+            
+        urows = (sku.__class__.objects.filter(id=sku.id)
+                 .update(lock_num=models.F('lock_num')-num))
+            
         return urows > 0
     
     

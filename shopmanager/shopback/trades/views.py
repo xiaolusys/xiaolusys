@@ -124,7 +124,6 @@ class OutStockOrderProductView(APIView):
             trade[1]['skus'] = sorted(skus.items(),key=lambda d:d[1]['num'],reverse=True)
 
         return   Response({"object":{'trade_items':trade_list,}})
-    
 
 class StatisticMergeOrderView(APIView):
     """ docstring for class StatisticsMergeOrderView """
@@ -429,6 +428,54 @@ class StatisticMergeOrderView(APIView):
                 'post_fees':total_post_fee }})
         
     post = get
+from shopback.trades.tasks import task_Gen_Product_Statistic
+
+class StatisticMergeOrderAsyncView(APIView):
+    """ docstring for class StatisticsMergeOrderView """
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+    renderer_classes = (StatisticMergeOrderAsyncRender, new_BaseJSONRenderer)
+
+    def parseStartDt(self, start_dt):
+        if not start_dt:
+            dt = datetime.datetime.now()
+            return datetime.datetime(dt.year, dt.month, dt.day, 0, 0, 0)
+        if len(start_dt) > 10:
+            return parse_datetime(start_dt)
+        return parse_date(start_dt)
+
+    def parseEndDt(self, end_dt):
+        if not end_dt:
+            dt = datetime.datetime.now()
+            return datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59)
+        if len(end_dt) > 10:
+            return parse_datetime(end_dt)
+
+        return parse_date(end_dt)
+    def get(self, request, *args, **kwargs):
+        content = request.REQUEST
+        start_dt = content.get('df', '').strip()
+        end_dt = content.get('dt', '').strip()
+        shop_id = content.get('shop_id')
+        p_outer_id = content.get('outer_id', '')
+        sc_by = content.get('sc_by', 'pay')
+        wait_send = content.get('wait_send', '0')
+        is_sale = content.get('is_sale', '')
+        action = content.get('action', '')
+
+        start_dt = self.parseStartDt(start_dt)
+        end_dt = self.parseEndDt(end_dt)
+        shopers = serializers.UserSerializer(User.objects.filter(status=User.NORMAL), many=True).data
+        task_id = task_Gen_Product_Statistic.s(shop_id, sc_by, wait_send, p_outer_id, start_dt, end_dt, is_sale)()
+        return Response({"task_id": task_id,
+                         'df': format_datetime(start_dt),
+                         'dt': format_datetime(end_dt),
+                         'sc_by': sc_by,
+                         'is_sale': is_sale,
+                         'outer_id': p_outer_id,
+                         'wait_send': wait_send,
+                         'shops': shopers,
+                         'shop_id': shop_id and int(shop_id) or ''})
 
 from django.forms.models import model_to_dict
 from shopback.trades.service import TradeService

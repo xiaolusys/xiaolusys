@@ -32,6 +32,7 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       PackageScanCheckView,
                                       PackageScanWeightView,
                                       InstanceModelView_new,
+                                      StatisticMergeOrderAsyncView,
                                       )
 from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test,select_Stock
 # from shopback.base.renderers  import BaseJsonRenderer
@@ -139,6 +140,7 @@ urlpatterns = patterns('shopback.trades.views',
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
+    (r'^order/statistic_async/$', StatisticMergeOrderAsyncView.as_view()),
     (r'^order/outstock/$',OutStockOrderProductView.as_view(
 #         resource=StatisticMergeOrderResource,
 #         renderers=(BaseJsonRenderer,StatisticOutStockRender),
