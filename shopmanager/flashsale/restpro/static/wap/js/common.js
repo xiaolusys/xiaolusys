@@ -157,6 +157,7 @@ function drawToast(message) {
         document.body.insertAdjacentHTML('beforeEnd', toastHTML);
     }
     else {
+        alert.innerHTML = message;
         alert.style.opacity = .9;
         alert.style.zIndex = 9999;
     }
