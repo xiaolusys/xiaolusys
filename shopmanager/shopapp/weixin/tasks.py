@@ -120,7 +120,7 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
             if wxproduct_id not in update_wxpids:
                 update_wxpids.add(wxproduct_id)
                 _wx_api.modMerchantProductStatus(wxproduct_id, status)
-            
+
             product = Product.objects.get(outer_id=outer_id)
             if status == WXProduct.UP_ACTION:
                 product.shelf_status = Product.UP_SHELF

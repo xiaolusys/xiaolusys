@@ -18,6 +18,7 @@ from .managers import SaleTradeManager
 from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
 import uuid
+from shopback.base import log_action, ADDITION, CHANGE
 
 FLASH_SELLER_ID = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
@@ -398,11 +399,17 @@ from signals_coupon import *
 
 from shopback import signals
 
-
+from django.contrib.auth.models import User as DjangoUser
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
     for pro_bean in product_list:
         ShoppingCart.objects.filter(item_id=pro_bean.id).update(status=ShoppingCart.CANCEL)
+        all_trade = SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)
+        for trade in all_trade:
+            trade.status = SaleTrade.TRADE_CLOSED_BY_SYS
+            djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+            log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+            trade.save()
         # SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)\
         #     .update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
         # SaleOrder.objects.filter(item_id=pro_bean.id, status=SaleOrder.WAIT_BUYER_PAY)\
