@@ -256,7 +256,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer)
     
-    def get_queryset(self,request,pk=None):
+    def get_queryset(self,saletrade_id=None,*args,**kwargs):
         """
         获取订单明细QS
         """
@@ -266,7 +266,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
             % self.__class__.__name__
         )
  
-        queryset = self.queryset.filter(sale_trade=pk)
+        queryset = self.queryset.filter(sale_trade=saletrade_id)
         if isinstance(queryset, QuerySet):
             # Ensure queryset is re-evaluated on each request.
             queryset = queryset.all()
@@ -276,7 +276,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         """ 
         获取用户订单列表 
         """
-        queryset = self.filter_queryset(self.get_queryset(request,pk))
+        queryset = self.filter_queryset(self.get_queryset(saletrade_id=pk))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -288,16 +288,47 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def details(self, request, pk, *args, **kwargs):
         """ 获取用户订单及订单明细列表 """
+
         customer = get_object_or_404(Customer,user=request.user)
         strade   = get_object_or_404(SaleTrade,id=pk,buyer_id=customer.id)
         strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
         
-        queryset = self.filter_queryset(self.get_queryset(request,pk))
+        queryset = self.filter_queryset(self.get_queryset(saletrade_id=pk))
         serializer = self.get_serializer(queryset, many=True)
         
         strade_dict['orders'] = serializer.data
         
         return Response(strade_dict)
+
+    def get_object(self):
+        """
+        Returns the object the view is displaying.
+
+        You may want to override this if you need to provide non-standard
+        queryset lookups.  Eg if objects are referenced using multiple
+        keyword arguments in the url conf.
+        """
+
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        assert lookup_url_kwarg in self.kwargs, (
+            'Expected view %s to be called with a URL keyword argument '
+            'named "%s". Fix your URL conf, or set the `.lookup_field` '
+            'attribute on the view correctly.' %
+            (self.__class__.__name__, lookup_url_kwarg)
+        )
+        tid =  self.kwargs.get('tid',None)
+        queryset = self.filter_queryset(self.get_queryset(saletrade_id=tid))
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        print 'debug filter:',filter_kwargs
+        obj = get_object_or_404(queryset, **filter_kwargs)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
+
 
 import json
 import pingpp

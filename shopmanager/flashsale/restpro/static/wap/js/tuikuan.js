@@ -30,11 +30,6 @@ function Create_detail_dom(obj) {
     return hereDoc(html).template(obj);
 }
 
-function Create_detail_feiyong_dom(obj) {
-    //创建订单费用信息DOM
-    var feiyong = $("#feiyongdetail").html();
-    return hereDoc(feiyong).template(obj);
-}
 
 function Create_refun_reason() {
     var html = $("#refund_reason").html();
@@ -44,9 +39,11 @@ function Set_order_detail(suffix) {
 
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + suffix;
+    console.log(requestUrl, "requestUrl requestUrl requestUrl");
     //请求成功回调函数
     var requestCallBack = function (data) {
         if (typeof(data.id) != 'undifined' && data.id != null) {
+            console.log(data.status);
             if (data.status == 2) { //显示申请退款标题
                 console.log(data.status, '订单状态');
                 var header = Create_tuikuan_header();
@@ -63,16 +60,11 @@ function Set_order_detail(suffix) {
             //设置订单基本信息
             var top_dom = Create_order_top_dom(data);
             $('.basic .panel-top').append(top_dom);
-            //设置订单费用信息
-            var feiyong_dom = Create_detail_feiyong_dom(data);
-            $('.feiyong .panel-bottom').append(feiyong_dom);
             //设置订单商品明细
-            $.each(data.orders,
-                function (index, order) {
-                    var detail_dom = Create_detail_dom(order);
-                    $('.basic .panel-bottom').append(detail_dom);
-                }
-            );
+            var detail_dom = Create_detail_dom(data);
+            $('.basic .panel-bottom').append(detail_dom);
+
+
         }
     };
     // 发送请求
@@ -116,7 +108,6 @@ function Button_tijiao() {
 
     var data = [];
     var refund_reason = $("#selec_resason").val();
-    var length = $('.goods-info').length;
 
     console.log("data tttt", data[0]);
     if (refund_or_pro == 1 && (logi_company == "" || logi_sid == "")) {
@@ -131,14 +122,14 @@ function Button_tijiao() {
     else {
         if (refund_or_pro == 1) {//退货　　物流信息
             data.push({
-                "length": length, "reason": refund_reason,
+                "reason": refund_reason,
                 "refund_or_pro": refund_or_pro,
                 "logi_company": logi_company,
                 "logi_sid": logi_sid
             });
         }
         if (refund_or_pro == 0) {//退款
-            data.push({"length": length, "reason": refund_reason, "refund_or_pro": refund_or_pro});
+            data.push({"reason": refund_reason, "refund_or_pro": refund_or_pro});
         }
         $('.goods-info').each(function (i, v) {
             var num = $(v).find(".order_detail_num").html();
@@ -148,31 +139,23 @@ function Button_tijiao() {
             var sub_data = {"id": oid, "num": num, "price": gprice, "sum_price": sum_price};
             data.push(sub_data);
         });
-        var total_money = 0;
-        for (var i = 1; i < data.length; i++) {
-            var total_money = total_money + data[i].sum_price;          //总价格
-        }
-        console.log("total_money", total_money);
-        //　退款
-        var confi = confirm("退款金额为：" + total_money + "￥");
-        console.log(confi);
 
+        //　退款的订单金额
+        var order_payment = $("#order_payment").html().split(">")[2];
+        var confi = confirm("退款金额为：" + order_payment + "￥" +"您确定退单~");
         var url = GLConfig.baseApiUrl + GLConfig.refunds;
         if (confi) {
-            //获取原因
             //ajax 请求　生成　退货款单
-
             function callback(res) {
                 console.log(res);
                 if (res.res == "already_refund") {
-                    alert("您已经提交了申请,耐心等待售后处理！");
+                    drawToast("您已经提交了申请,耐心等待售后处理！");
                 }
                 else if (res.res == "refund_success") {
-                    alert("操作成功！")
+                    drawToast("操作成功！");
                 }
                 else if (res.res == "forbidden") {
-                    console.log(res, 'res is here ');
-                    alert("您的订单已经在处理中！")
+                    drawToast("您的订单已经在处理中！");
                 }
             }
 

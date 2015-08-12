@@ -30,7 +30,7 @@
     <div class="panel-top">
         <script id="top_template" type="text/html">
             <ul class="u1">
-                <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
+                <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0" id="order_payment"><em>¥</em>{{ payment }}</span></li>
             </ul>
         </script>
     </div>
@@ -64,40 +64,6 @@
     </div>
 </div>
 <!-- 订单信息 end -->
-
-<!-- 费用详情 start -->
-<div class="panel feiyong">
-    <div class="panel-top">
-        <h2>费用详情</h2>
-    </div>
-
-    <div class="panel-bottom">
-        <script type="text/html" id="feiyongdetail">
-            <div class="info">
-                <p class="clear">
-                    <span class="label">商品总金额：</span>
-                    <span class="value"><em>¥</em> {{ total_fee }}</span>
-                </p>
-
-                <p class="clear">
-                    <span class="label">运费：</span>
-                    <span class="value"><em>¥</em> {{ post_fee }}</span>
-                </p>
-
-                <p class="clear">
-                    <span class="label">优惠金额：</span>
-                    <span class="value" id="youhuijine"><em>¥</em> -{{ discount_fee }}</span>
-                </p>
-
-                <p class="clear">
-                    <span class="label">应付金额：</span>
-                    <span class="value total"><em>¥</em> {{ payment }}</span>
-                </p>
-            </div>
-        </script>
-    </div>
-</div>
-<!-- 费用详情 end -->
 
 <div class="panel shouhuo">
 
@@ -173,9 +139,11 @@
         }, false);
 
         var urlParams = parseUrlParams(window.location.href);
-        var urlConf = {'trade_id': urlParams['id']};
-        var order_url = GLConfig.get_trade_details_url.template(urlConf);
+        var url_conf = {'oid': urlParams['oid'],"tid":urlParams['tid']};
+        console.log(url_conf);
 
+        var order_url = GLConfig.get_order_detail_url.template(url_conf);
+        console.log(order_url,"order_url order_url order_url");
         //获取待支付订单列表
         Set_order_detail(order_url);
         Create_refun_reason();
