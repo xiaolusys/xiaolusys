@@ -147,6 +147,7 @@ var intervalCounter = 0;
 function hideToast() {
     var alert = document.getElementById("toast");
     alert.style.opacity = 0;
+    alert.style.zIndex = -9999;
     clearInterval(intervalCounter);
 }
 function drawToast(message) {
@@ -157,6 +158,7 @@ function drawToast(message) {
     }
     else {
         alert.style.opacity = .9;
+        alert.style.zIndex = 9999;
     }
     console.log('debug toast:', alert);
     intervalCounter = setInterval("hideToast()", 2000);
