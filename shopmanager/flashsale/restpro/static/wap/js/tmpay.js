@@ -81,7 +81,7 @@ function Set_user_orderinfo(suffix){
 		url:reqUrl, 
 		data:{}, 
 		dataType:'json', 
-		success:callBack 
+		success:callBack ,
 		error:function(err){
 			var resp = JSON.parse(err.responseText);
 			if (!isNone(resp.detail)){
@@ -135,7 +135,6 @@ function Ctrl_sure_charge(pay_url){
 		    } else if (result == "cancel") {
 		        window.location.href =  GLConfig.daizhifu_url;
 		    }
-	        
 	      });
 	    }
     }
@@ -148,11 +147,12 @@ function Ctrl_sure_charge(pay_url){
 		dataType:'json', 
 		success:callBack,
 		error:function(err){
+			$('.btn-buy').removeClass('charged').removeClass('pressed');
 			var resp = JSON.parse(err.responseText);
 			if (!isNone(resp.detail)){
 				drawToast(resp.detail);
 			}else{
-				drawToast('支付出现异常');
+				drawToast('支付异常');
 			}
 		} 
 	});
@@ -160,17 +160,50 @@ function Ctrl_sure_charge(pay_url){
 
 function update_total_price(){
 	//更新订单价格显示
+	var sku_price = parseFloat($('input[name="agent_price"]').val());
+	var sku_num   = parseInt($('input[name="num"]').val());
+	var discount_fee   = parseFloat($('input[name="discount_fee"]').val());
+	var post_fee   = parseFloat($('input[name="post_fee"]').val());
+	var total_fee = sku_price * sku_num;
+	console.log('debug:',sku_price,sku_num);
+	var total_payment = total_fee + post_fee - discount_fee;
+	$('.cost .label1 span').html('¥ ' + total_fee);
+	$('.buy .total span').html('¥ ' + total_fee);
+	$('input[name="total_fee"]').val(total_fee);
+	$('input[name="payment"]').val(total_payment);
 }
 
-function plus_shop(id) {
-    var num_id = $("#num_" + id);
-    num_id.val(parseInt(num_id.val()) + 1);
-    update_total_price();
+function plus_shop(sku_id) {
+    var sku_num = parseInt($("#num_" + sku_id).val());
+    var params  = {'sku_id':sku_id, 'sku_num':sku_num + 1};
+    var PLUS_URL = GLConfig.baseApiUrl + GLConfig.get_plus_skunum_url;
+    var callBack = function(resp){
+    	$("#num_" + resp.sku_id).val(resp.sku_num);
+    	update_total_price();
+    }
+    // 调用接口
+	$.ajax({ 
+		type:'post', 
+		url:PLUS_URL, 
+		data:params, 
+		dataType:'json', 
+		success:callBack,
+		error:function(err){
+			var resp = JSON.parse(err.responseText);
+			if (!isNone(resp.detail)){
+				drawToast(resp.detail);
+			}else{
+				drawToast('添加订单数量异常');
+			}
+		} 
+	});
+    
 }
 
-function minus_shop(id) {
-    var num_id = $("#num_" + id);
-    num_id.val(parseInt(num_id.val()) - 1);
+function minus_shop(sku_id) {
+    var sku_num = parseInt($("#num_" + sku_id).val());
+    if (sku_num <= 1){return}
+    $("#num_" + sku_id).val(sku_num - 1);
     update_total_price();
 }
 

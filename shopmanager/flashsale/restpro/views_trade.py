@@ -26,6 +26,7 @@ from . import permissions as perms
 from . import serializers 
 from .exceptions import rest_exception
 from django.db.models import F
+from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from django.forms.models import model_to_dict
 from shopback.items.models import Product, ProductSku
 import logging
@@ -134,11 +135,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def plus_product_carts(self, request, pk=None):
-        cart_item = get_object_or_404(ShoppingCart, pk=pk)
+        customer = get_object_or_404(Customer, user=request.user)
+        cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
-        lockable = Product.objects.isQuantityLockable(sku, cart_item.num+1)
+        user_skunum = getUserSkuNumByLast24Hours(customer,sku)
+        lockable = Product.objects.isQuantityLockable(sku, user_skunum + 1)
         if not lockable:
-            raise exceptions.APIException(u'商品库存不足或限购')
+            raise exceptions.APIException(u'达到商品数量限购')
         lock_success =  Product.objects.lockQuantity(sku,1)
         if not lock_success:
             raise exceptions.APIException(u'商品库存不足')
@@ -150,11 +153,29 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
-            return exceptions.APIException(u'购买数量不少于1')
+            return exceptions.APIException(u'至少购买一件')
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
         Product.objects.releaseLockQuantity(sku,1)
         return Response({"status": update_status})
+    
+    @list_route(methods=['post'])
+    def sku_num_enough(self, request, *args, **kwargs):
+        """ 规格数量是否充足 """
+        sku_id   = request.REQUEST.get('sku_id','')
+        sku_num  = request.REQUEST.get('sku_num','')
+        if not sku_id.isdigit() and not sku_num.isdigit():
+            raise exceptions.APIException(u'规格ID或数量有误')
+        sku_num = int(sku_num)
+        customer = get_object_or_404(Customer, user=request.user)
+        sku      = get_object_or_404(ProductSku, pk=sku_id)
+        user_skunum = getUserSkuNumByLast24Hours(customer,sku)
+        lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
+        if not lockable:
+            raise exceptions.APIException(u'达到商品限购数量')
+        if sku.free_num < sku_num:
+            raise exceptions.APIException(u'库存不足，赶快下单')
+        return Response({"sku_id": sku_id,"sku_num":sku_num})
     
     @list_route(methods=['get'])
     def carts_payinfo(self, request, *args, **kwargs):
@@ -207,18 +228,21 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def now_payinfo(self, request, *args, **kwargs):
         """ 立即购买获取支付信息 """
-        sku_id   = int(request.REQUEST.get('sku_id'))
+        sku_id      = int(request.REQUEST.get('sku_id'))
         product_sku = get_object_or_404(ProductSku,id=sku_id)
-        product  = product_sku.product
-        product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
-        product_sku_dict['product'] = serializers.ProductSerializer(product,
-                                         context={'request': request}).data
+        product     = product_sku.product
         
-        total_fee = product_sku.agent_price * 1
+        total_fee = float(product_sku.agent_price) * 1
         post_fee = 0
         has_deposite = product.is_deposite()
         wallet_cash  = 0 
-                
+        
+        customer = get_object_or_404(Customer, user=request.user)
+        user_skunum = getUserSkuNumByLast24Hours(customer, product_sku)
+        lockable = Product.objects.isQuantityLockable(product_sku, user_skunum + 1)
+        if not lockable:
+            raise exceptions.APIException(u'达到商品限购数量')
+        
         xlmm = None
         weixin_payable = False
         customers = Customer.objects.filter(user=request.user)
@@ -236,6 +260,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               xlmm.cash >= int(total_payment * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash_money
+            
+        product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
+        product_sku_dict['product'] = serializers.ProductSerializer(product,
+                                         context={'request': request}).data
+        
         response = {'uuid':genTradeUniqueid(),
                     'total_fee':total_fee,
                     'post_fee':post_fee,
@@ -300,10 +329,10 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         
         queryset = self.filter_queryset(self.get_queryset(saletrade_id=pk))
         serializer = self.get_serializer(queryset, many=True)
-        
         strade_dict['orders'] = serializer.data
         
         return Response(strade_dict)
+    
 
     def get_object(self):
         """

@@ -48,7 +48,7 @@ class ProductSkuInline(admin.TabularInline):
     
     model = ProductSku
     fields = ('outer_id','properties_name','properties_alias','quantity','warn_num',
-              'remain_num','wait_post_num','reduce_num','cost','std_sale_price','agent_price',
+              'remain_num','wait_post_num','reduce_num','lock_num','cost','std_sale_price','agent_price',
               'sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
     
     formfield_overrides = {
@@ -59,7 +59,7 @@ class ProductSkuInline(admin.TabularInline):
     
     def get_readonly_fields(self, request, obj=None):
         if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + ('quantity','warn_num','wait_post_num','is_split')
+            return self.readonly_fields + ('quantity','warn_num','lock_num','wait_post_num','is_split')
         return self.readonly_fields
     
 class ProductdetailInline(admin.StackedInline):

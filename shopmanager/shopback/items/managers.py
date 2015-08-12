@@ -302,19 +302,11 @@ class ProductManager(models.Manager):
                 return False
         except ObjectDoesNotExist:
             pass
-  
-        return sku.free_num >= num
+        return True
         
         
     def lockQuantity(self,sku,num):
         #锁定库存
-        try:
-            product_detail = sku.product.details
-            if product_detail.buy_limit and num > product_detail.per_limit:
-                return False
-        except:
-            pass
-
         urows = (sku.__class__.objects.filter(id=sku.id,
                  remain_num__gte=models.F('wait_post_num')+models.F('lock_num')+num)
                  .update(lock_num=models.F('lock_num')+num))

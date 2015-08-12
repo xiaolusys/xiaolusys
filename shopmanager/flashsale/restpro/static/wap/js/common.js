@@ -101,6 +101,7 @@ var GLConfig = {
 	get_cart_payinfo_url:'/carts/carts_payinfo.json?cart_ids={{cart_ids}}', //根据购物车id列表获取支付明细
 	get_now_payinfo_url:'/carts/now_payinfo.json?item_id={{item_id}}&sku_id={{sku_id}}', //根据购物车id列表获取支付明细
 	get_num_cart:'/carts/show_carts_num?format=json', //获取购物车数量
+	get_plus_skunum_url:'/carts/sku_num_enough.json', //添加订单数量接口
 	get_all_address:'/address.json',//获取个人用户地址列表
 	get_user_address:'/address.json',//获取个人用户地址列表
 	delete_address:'/address/delete_address/?format=json',//删除地址

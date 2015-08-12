@@ -301,8 +301,7 @@ class SaleOrder(models.Model):
     def refundable(self):
         
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
-   
-   
+      
 
 class TradeCharge(models.Model):
     
