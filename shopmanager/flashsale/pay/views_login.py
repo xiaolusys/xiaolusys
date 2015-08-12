@@ -55,7 +55,7 @@ def weixin_login(request):
     else :
         user = authenticate(request=request)
         if not user or user.is_anonymous():
-            return HttpResponseRedirect('/denglu.html')
+            return HttpResponseRedirect('/pages/denglu.html')
         
         request.session[SESSION_KEY] = user.id
         auth_login(request, user)
