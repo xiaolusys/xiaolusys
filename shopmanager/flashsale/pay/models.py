@@ -251,7 +251,7 @@ class SaleOrder(models.Model):
     
     item_id  = models.CharField(max_length=64,blank=True,verbose_name=u'商品ID')
     title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
-    price  = models.FloatField(default=0.0,verbose_name=u'单价')
+    price  = models.FloatField(default=0.0,verbose_name=u'商品单价')
 
     sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'属性编码')
     num = models.IntegerField(null=True,default=0,verbose_name=u'商品数量')
@@ -301,8 +301,7 @@ class SaleOrder(models.Model):
     def refundable(self):
         
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
-   
-   
+      
 
 class TradeCharge(models.Model):
     

@@ -26,6 +26,7 @@ from . import permissions as perms
 from . import serializers 
 from .exceptions import rest_exception
 from django.db.models import F
+from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from django.forms.models import model_to_dict
 from shopback.items.models import Product, ProductSku
 import logging
@@ -134,11 +135,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def plus_product_carts(self, request, pk=None):
-        cart_item = get_object_or_404(ShoppingCart, pk=pk)
+        customer = get_object_or_404(Customer, user=request.user)
+        cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
-        lockable = Product.objects.isQuantityLockable(sku, cart_item.num+1)
+        user_skunum = getUserSkuNumByLast24Hours(customer,sku)
+        lockable = Product.objects.isQuantityLockable(sku, user_skunum + 1)
         if not lockable:
-            raise exceptions.APIException(u'商品库存不足或限购')
+            raise exceptions.APIException(u'达到商品数量限购')
         lock_success =  Product.objects.lockQuantity(sku,1)
         if not lock_success:
             raise exceptions.APIException(u'商品库存不足')
@@ -150,11 +153,29 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
-            return exceptions.APIException(u'购买数量不少于1')
+            return exceptions.APIException(u'至少购买一件')
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
         Product.objects.releaseLockQuantity(sku,1)
         return Response({"status": update_status})
+    
+    @list_route(methods=['post'])
+    def sku_num_enough(self, request, *args, **kwargs):
+        """ 规格数量是否充足 """
+        sku_id   = request.REQUEST.get('sku_id','')
+        sku_num  = request.REQUEST.get('sku_num','')
+        if not sku_id.isdigit() and not sku_num.isdigit():
+            raise exceptions.APIException(u'规格ID或数量有误')
+        sku_num = int(sku_num)
+        customer = get_object_or_404(Customer, user=request.user)
+        sku      = get_object_or_404(ProductSku, pk=sku_id)
+        user_skunum = getUserSkuNumByLast24Hours(customer,sku)
+        lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
+        if not lockable:
+            raise exceptions.APIException(u'达到商品限购数量')
+        if sku.free_num < sku_num:
+            raise exceptions.APIException(u'库存不足，赶快下单')
+        return Response({"sku_id": sku_id,"sku_num":sku_num})
     
     @list_route(methods=['get'])
     def carts_payinfo(self, request, *args, **kwargs):
@@ -207,18 +228,21 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def now_payinfo(self, request, *args, **kwargs):
         """ 立即购买获取支付信息 """
-        sku_id   = int(request.REQUEST.get('sku_id'))
+        sku_id      = int(request.REQUEST.get('sku_id'))
         product_sku = get_object_or_404(ProductSku,id=sku_id)
-        product  = product_sku.product
-        product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
-        product_sku_dict['product'] = serializers.ProductSerializer(product,
-                                         context={'request': request}).data
+        product     = product_sku.product
         
-        total_fee = product_sku.agent_price * 1
+        total_fee = float(product_sku.agent_price) * 1
         post_fee = 0
         has_deposite = product.is_deposite()
         wallet_cash  = 0 
-                
+        
+        customer = get_object_or_404(Customer, user=request.user)
+        user_skunum = getUserSkuNumByLast24Hours(customer, product_sku)
+        lockable = Product.objects.isQuantityLockable(product_sku, user_skunum + 1)
+        if not lockable:
+            raise exceptions.APIException(u'达到商品限购数量')
+        
         xlmm = None
         weixin_payable = False
         customers = Customer.objects.filter(user=request.user)
@@ -236,6 +260,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               xlmm.cash >= int(total_payment * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash_money
+            
+        product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
+        product_sku_dict['product'] = serializers.ProductSerializer(product,
+                                         context={'request': request}).data
+        
         response = {'uuid':genTradeUniqueid(),
                     'total_fee':total_fee,
                     'post_fee':post_fee,
@@ -261,7 +290,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer)
     
-    def get_queryset(self,request,pk=None):
+    def get_queryset(self,saletrade_id=None,*args,**kwargs):
         """
         获取订单明细QS
         """
@@ -271,7 +300,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
             % self.__class__.__name__
         )
  
-        queryset = self.queryset.filter(sale_trade=pk)
+        queryset = self.queryset.filter(sale_trade=saletrade_id)
         if isinstance(queryset, QuerySet):
             # Ensure queryset is re-evaluated on each request.
             queryset = queryset.all()
@@ -281,7 +310,7 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         """ 
         获取用户订单列表 
         """
-        queryset = self.filter_queryset(self.get_queryset(request,pk))
+        queryset = self.filter_queryset(self.get_queryset(saletrade_id=pk))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -293,16 +322,47 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def details(self, request, pk, *args, **kwargs):
         """ 获取用户订单及订单明细列表 """
+
         customer = get_object_or_404(Customer,user=request.user)
         strade   = get_object_or_404(SaleTrade,id=pk,buyer_id=customer.id)
         strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
         
-        queryset = self.filter_queryset(self.get_queryset(request,pk))
+        queryset = self.filter_queryset(self.get_queryset(saletrade_id=pk))
         serializer = self.get_serializer(queryset, many=True)
-        
         strade_dict['orders'] = serializer.data
         
         return Response(strade_dict)
+    
+
+    def get_object(self):
+        """
+        Returns the object the view is displaying.
+
+        You may want to override this if you need to provide non-standard
+        queryset lookups.  Eg if objects are referenced using multiple
+        keyword arguments in the url conf.
+        """
+
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        assert lookup_url_kwarg in self.kwargs, (
+            'Expected view %s to be called with a URL keyword argument '
+            'named "%s". Fix your URL conf, or set the `.lookup_field` '
+            'attribute on the view correctly.' %
+            (self.__class__.__name__, lookup_url_kwarg)
+        )
+        tid =  self.kwargs.get('tid',None)
+        queryset = self.filter_queryset(self.get_queryset(saletrade_id=tid))
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        print 'debug filter:',filter_kwargs
+        obj = get_object_or_404(queryset, **filter_kwargs)
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
+
 
 import json
 import pingpp

@@ -40,13 +40,13 @@ function today_timer() {
     if (ts > 100800000 && ts < 136800000) {
         $(".poster_timer").text("敬请期待");
     } else if (ts < 100800000 && ts >= 86400000) {
-        $(".poster_timer").text(dd + "天" + hh + "时" + mm + "分" + ss + "秒");
+        $(".poster_timer").text("剩余" + dd + "天" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 today_timer();
             },
             1000);
     } else if (ts < 86400000) {
-        $(".poster_timer").text(hh + "时" + mm + "分" + ss + "秒");
+        $(".poster_timer").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 today_timer();
             },

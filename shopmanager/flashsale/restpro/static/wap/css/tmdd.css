@@ -138,14 +138,25 @@
 .btn_top_0:after{content: "取消订单";} /* 订单创建显示取消订单 */
 .btn_top_1:after{content: "取消订单";} /* 待付款显示取消订单 */
 
-.btn_top_2:after{content: "申请退款";} /* 已经付款显示申请退款 */
-.btn_top_3:after{content: "申请退货";} /* 已发货显示申请退货 */
-.btn_top_4:after{content: "申请退货";} /* 已经签收显示申请退货 */
+.btn_top_2{display: none;}/*已付款 不显示*/
+.btn_top_3{display: none;}/*已发货 不显示*/
+.btn_top_4{display: none;}/*已货到付款签收 不显示*/
 
 .btn_top_5{display: none;}   /* 交易成功不显示 */
 .btn_top_6{display: none;}   /* 退款关闭不显示 */
 .btn_top_7{display: none;}   /* 交易关闭不显示 */
-.btn_top_8{display: none;}   /* 交易关闭不显示 */
+
+
+.btn_order_status_0{display: none;}/*订单创建 不显示*/
+.btn_order_status_1{display: none;}/*待付款 不显示*/
+
+.btn_order_status_2:after{content: "我要退";}/*已付款 显示*/
+.btn_order_status_3:after{content: "我要退";}/*已付款 显示*/
+.btn_order_status_4:after{content: "我要退";}/*已付款 显示*/
+
+.btn_order_status_5{display: none;}/*交易成功 不显示*/
+.btn_order_status_6{display: none;}/*退款关闭 不显示*/
+.btn_order_status_7{display: none;}/*交易关闭 不显示*/
 
 
 .fl{ float: left;}

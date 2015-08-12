@@ -113,7 +113,13 @@ function plus_shop(id) {
         beforeSend: function () {
             $("#loading").show();
         },
-        success: requestCallBack
+        success: requestCallBack,
+        error: function(err){
+        	var resp = JSON.parse(err.responseText);
+			if (!isNone(resp.detail)){
+				drawToast(resp.detail);
+			}
+        }
     });
 }
 function minus_shop(id) {
@@ -139,10 +145,12 @@ function minus_shop(id) {
                 $("#loading").show();
             },
             success: requestCallBack,
-            complete: function () {
-                // 禁用按钮防止重复提交,加载页面
-
-            }
+            error: function(err){
+	        	var resp = JSON.parse(err.responseText);
+				if (!isNone(resp.detail)){
+					drawToast(resp.detail);
+				}
+	        }
         });
     } else {
         drawToast("客官至少买一件嘛");

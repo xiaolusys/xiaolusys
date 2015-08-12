@@ -14,7 +14,8 @@ class IsOwnerOnly(permissions.BasePermission):
             buyer_id = obj.buyer_id
         elif hasattr(obj,'cus_uid'):
             buyer_id = obj.cus_uid
-
+        else:
+            return True
         try:
             customer = get_object_or_404(Customer,id=buyer_id)
         except:
