@@ -58,9 +58,11 @@ POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
 def getLogisticTrace(out_sid,exType):
     
     
-    apikey = '47deda738666430bab15306c2878dd3a'     
+    #apikey = '47deda738666430bab15306c2878dd3a'     
+    apikey='6a214a769ab8426da93445e9d2078cc8'
     #访问的API代码  
-    uid = '39400'
+   # uid = '39400'
+    uid='39500'
     post_array = []
     post_array.append((u'快递公司', POST_CODE_NAME_MAP.get(exType,'other')))
     post_array.append((u'快递单号', out_sid))
