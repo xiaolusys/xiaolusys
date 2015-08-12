@@ -15,10 +15,10 @@ function update_total_price() {
 }
 function get_shop_carts(suffix) {
     /*
-    * 获取购物车内容
-    * auther:yann
-    * date:2015/1/8
-    */
+     * 获取购物车内容
+     * auther:yann
+     * date:2015/1/8
+     */
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + suffix;
 
@@ -67,16 +67,29 @@ function del_shop(id) {
     var requestCallBack = function (res) {
         get_shop_carts(GLConfig.get_cart_url);
     };
-    // 发送请求
-    $.ajax({
-        type: 'post',
-        url: requestUrl,
-        data: {"csrfmiddlewaretoken": csrftoken},
-        success: requestCallBack,
-        error: function (res) {
-            get_shop_carts(GLConfig.get_cart_url);
-        }
-    });
+    swal({
+            title: "",
+            text: "删掉的商品可能被别人抢走哦～\n要删除吗？",
+            type: "",
+            showCancelButton: true,
+            confirmButtonColor: '#DD6B55',
+            confirmButtonText: '删除',
+            cancelButtonText: '先留着'
+        },
+        function () {
+            //发送请求
+            $.ajax({
+                type: 'post',
+                url: requestUrl,
+                data: {"csrfmiddlewaretoken": csrftoken},
+                success: requestCallBack,
+                error: function (res) {
+                    get_shop_carts(GLConfig.get_cart_url);
+                }
+            });
+        });
+
+
 }
 
 function plus_shop(id) {
@@ -129,7 +142,7 @@ function minus_shop(id) {
 
             }
         });
-    }else{
+    } else {
         drawToast("客官至少买一件嘛");
     }
 }
