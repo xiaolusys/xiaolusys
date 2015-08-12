@@ -576,7 +576,6 @@ from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime, format_d
 from shopback.refunds.models import REFUND_STATUS, Refund
 @task()
 def task_Gen_Product_Statistic(shop_id, sc_by, wait_send, p_outer_id, start_dt, end_dt, is_sale="1"):
-    print start_dt,end_dt
     order_qs = getSourceOrders(shop_id=shop_id, sc_by=sc_by, wait_send=wait_send,
                                 p_outer_id=p_outer_id, start_dt=start_dt, end_dt=end_dt, is_sale=is_sale)
 
@@ -600,7 +599,6 @@ def task_Gen_Product_Statistic(shop_id, sc_by, wait_send, p_outer_id, start_dt, 
     total_num = trade_list.pop()
     total_cost = trade_list.pop()
     total_sales = trade_list.pop()
-    print buyer_nums
     return {'trade_items': trade_list,
             'empty_order_count': empty_order_count,
             'total_cost': total_cost and round(total_cost, 2) or 0,

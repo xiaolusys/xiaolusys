@@ -53,8 +53,11 @@ function get_data() {
                 $("#trade_nums").html(result_data.trade_nums);
                 $("#refund_fees").html(result_data.refund_fees);
                 $("#buyer_nums").html(result_data.buyer_nums);
-                $("#empty_order_count_link").show();
-                $("#empty_order_count").html("有 "+ result_data.empty_order_count + " 个订单的商品编码异常>>");
+                if (result_data.empty_order_count > 0) {
+                    $("#empty_order_count_link").show();
+                    $("#empty_order_count").html("有 " + result_data.empty_order_count + " 个订单的商品编码异常>>");
+                }
+
                 var item_list = result_data.trade_items;
 
                 var tb = $('#result-data-field');
@@ -71,9 +74,9 @@ function get_data() {
                         "product_id": product_info.product_id,
                         "pic_path": product_info.pic_path,
                         "title": product_info.title,
-                        "num": product_info.num,
-                        "cost": product_info.cost,
-                        "sales": product_info.sales
+                        "num": product_info.num.toFixed(2),
+                        "cost": product_info.cost.toFixed(2),
+                        "sales": product_info.sales.toFixed(2)
                     }
 
                     if (sku_info.length > 0) {
