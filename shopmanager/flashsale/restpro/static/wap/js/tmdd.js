@@ -117,7 +117,7 @@ function Create_detail_dom(obj){
 	          <span class="count">数量：{{ num }}</span>
 	        </p>
 	        <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span></p>
-	      </div> 
+	      </div>
 	    </div> 
 	*/};
 	return hereDoc(Detail_topdom).template(obj);

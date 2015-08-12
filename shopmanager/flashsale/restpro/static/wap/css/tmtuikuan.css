@@ -342,3 +342,39 @@ option {
     background-image: url(../images/btn-plus.png);
 }
 
+
+.ipt-panel-inner {
+    width: 595px;
+    margin: 0 auto;
+}
+.ipt-wrap {
+    height: 47px;
+    position: relative;
+}
+.ipt-wrap label {
+    position: absolute;
+    font-size: 28px;
+    top: 15px;
+    left: 28px;
+}
+
+.ipt-wrap .text {
+    width: 100px;
+    height: 47px;
+    position: absolute;
+    left: 120px;
+}
+
+.ipt-wrap.ipt-top {
+    height: 50px;
+    border-bottom: 1px solid #bec0c2;
+}
+.shouhuo .panel-bottom .reason .clear input{
+    width: 416px;
+    height: 47px;
+    text-indent: 2px;
+    text-align: center;
+    font-size: 20px;
+    margin-top: 0px;
+    /*border: double;*/
+}
