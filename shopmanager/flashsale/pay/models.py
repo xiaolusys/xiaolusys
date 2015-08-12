@@ -385,9 +385,14 @@ class ShoppingCart(models.Model):
         product = Product.objects.get(id=self.item_id)
         return product.outer_id.startswith('RMB')
     
+    def is_good_enough(self):
+        product_sku = ProductSku.objects.get(id=self.sku_id)
+        return self.num >= product_sku.free_num
+        
     def calc_discount_fee(self,xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return product_sku.calc_discount_fee(xlmm)
+    
     
 from signals_coupon import *
 
