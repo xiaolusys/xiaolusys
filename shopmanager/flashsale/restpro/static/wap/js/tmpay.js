@@ -124,25 +124,20 @@ function Ctrl_sure_charge(pay_url){
     $('.btn-buy').addClass('pressed');
 
     var callBack = function(data){
-      
-      if(isNone(data.errcode)){ 
-      	if (data.channel == WALLET_PAY){//使用钱包支付
-      		window.location.href = GLConfig.zhifucg_url;
-      	}else{
-          pingpp.createPayment(data, function(result, err) {
-          	if (result == "success") {
+	  	if (data.channel == WALLET_PAY){//使用钱包支付
+	  		window.location.href = GLConfig.zhifucg_url;
+	  	}else{
+	      pingpp.createPayment(data, function(result, err) {
+	      	if (result == "success") {
 		        window.location.href =  GLConfig.zhifucg_url;
 		    } else if (result == "fail") {
 		        window.location.href =  GLConfig.daizhifu_url;
 		    } else if (result == "cancel") {
 		        window.location.href =  GLConfig.daizhifu_url;
 		    }
-            
-          });
-        }
-       }else{
-       	 alert('err:' + data.errmsg);
-       }
+	        
+	      });
+	    }
     }
     
     // 调用接口
@@ -151,7 +146,15 @@ function Ctrl_sure_charge(pay_url){
 		url:CHARGE_URL, 
 		data:params, 
 		dataType:'json', 
-		success:callBack 
+		success:callBack,
+		error:function(err){
+			var resp = JSON.parse(err.responseText);
+			if (!isNone(resp.detail)){
+				drawToast(resp.detail);
+			}else{
+				drawToast('支付出现异常');
+			}
+		} 
 	});
 }
 

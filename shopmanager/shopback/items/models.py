@@ -467,14 +467,20 @@ class ProductSku(models.Model):
     
     @property
     def real_remainnum(self):
-        if self.remain_num >= self.wait_post_num:
-            return self.remain_num - self.wait_post_num
+        wait_post_num = max(self.wait_post_num, 0)
+        if self.remain_num > 0 and self.remain_num >= wait_post_num:
+            return self.remain_num - wait_post_num
         return 0
     
     @property
     def free_num(self):
-        return self.remain_num - self.wait_post_num - self.lock_num
-    
+        lock_num = max(self.lock_num,0)
+        wait_post_num = max(self.wait_post_num,0)
+        rnum = self.remain_num - wait_post_num - lock_num
+        if rnum < 0:
+            return 0
+        return rnum 
+        
     @property
     def sale_out(self):
         return self.free_num <= 0
@@ -497,11 +503,9 @@ class ProductSku(models.Model):
     
     @property
     def is_out_stock(self):
-        if self.quantity<0 or self.wait_post_num <0 :
-            self.quantity      = self.quantity >= 0 and self.quantity or 0
-            self.wait_post_num = self.wait_post_num >= 0 and self.wait_post_num or 0
-            self.save()
-        return self.quantity-self.wait_post_num <= 0
+        quantity      = max(self.quantity, 0)
+        wait_post_num = max(self.wait_post_num, 0)
+        return quantity - wait_post_num <= 0
     
     @property
     def json(self):
@@ -617,11 +621,10 @@ class ProductSku(models.Model):
         1，如果当前库存小于0；
         2，同步库存（当前库存-预留库存-待发数）小于警告库位 且没有设置警告取消；
         """
-        quantity = self.quantity >0 and self.quantity or 0
-        remain_num = self.remain_num >0 and self.remain_num or 0
-        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0
-        sync_num = quantity - remain_num - wait_post_num
-        return sync_num <= 0
+        quantity = max(self.quantity, 0)
+        remain_num = max(self.remain_num, 0)
+        wait_post_num = max(self.wait_post_num, 0)
+        return quantity - remain_num - wait_post_num <= 0
     
     @property
     def is_warning(self):
@@ -629,9 +632,9 @@ class ProductSku(models.Model):
         库存预警:
         1，如果当前能同步的库存小昨日销量；
         """
-        quantity      = self.quantity >0 and self.quantity or 0
-        remain_num    = self.remain_num >0 and self.remain_num or 0    
-        wait_post_num = self.wait_post_num >0 and self.wait_post_num or 0   
+        quantity      = max(self.quantity, 0)
+        remain_num    = max(self.remain_num, 0)    
+        wait_post_num = max(self.wait_post_num, 0)   
         sync_num      = quantity - remain_num - wait_post_num                    
         return self.warn_num >0 and self.warn_num >= sync_num 
     
@@ -641,23 +644,19 @@ class ProductSku(models.Model):
     
     def get_districts_code(self):
         """ 商品库中区位,ret_type :c,返回组合后的字符串；o,返回[父编号]-[子编号],... """
-        
         locations = self.get_district_list()
-        sdict = {}
+        sdict     = {}
         for d in locations:
-            
             dno = d[1]
             pno = d[0]
             if sdict.has_key(pno):
                 sdict[pno].add(dno)
             else:
                 sdict[pno] = set([dno])
-        
         dc_list = sorted(sdict.items(),key=lambda d:d[0])
         ds = []
         for k,v in dc_list:
             ds.append('%s-[%s]'%(k,','.join(v)))
-        
         return ','.join(ds)
     
     
