@@ -670,8 +670,19 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
         
-        sale_trade = self.create_Saletrade(CONTENT, address, customer)
-        self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
+        try:
+            lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
+            if not lock_success:
+                raise exceptions.APIException(u'商品库存不足')
+            sale_trade = self.create_Saletrade(CONTENT, address, customer)
+            self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
+        except exceptions.APIException,exc:
+            raise exc
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            Product.objects.releaseLockQuantity(product_sku, sku_num)
+            raise exceptions.APIException(u'生成订单错误')
+            
         if channel == SaleTrade.WALLET:
             #小鹿钱包支付
             response_charge = self.wallet_charge(sale_trade, customer)

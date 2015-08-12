@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 from django.db import models
-from shopback.items.models import Product
+from shopback.items.models import Product,ProductSku
 
 class Productdetail(models.Model):
     
@@ -123,4 +123,4 @@ class GoodShelf(models.Model):
     def __unicode__(self):
         return u'<海报：%s>'%(self.title)
     
-    
+

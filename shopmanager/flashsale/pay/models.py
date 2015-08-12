@@ -415,3 +415,16 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
         #     .update(status=SaleOrder.TRADE_CLOSED_BY_SYS)
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
+
+def confirm_minus_sku_locknum(sender, obj, *args, **kwargs):
+    """ 订单确认付款后释放锁定库存 """
+    try:
+        for order in obj.normal_orders:
+            product_sku = ProductSku.objects.get(id=order.sku_id)
+            Product.objects.releaseLockQuantity(product_sku, order.num)
+    except Exception,exc:
+        logger = logging.getLogger('django.request')
+        logger.error(exc.message,exc_info=True)
+
+
+signal_saletrade_pay_confirm.connect(confirm_minus_sku_locknum, sender=SaleTrade)
