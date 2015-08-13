@@ -74,7 +74,7 @@ function get_data() {
                         "product_id": product_info.product_id,
                         "pic_path": product_info.pic_path,
                         "title": product_info.title,
-                        "num": product_info.num.toFixed(2),
+                        "num": product_info.num,
                         "cost": product_info.cost.toFixed(2),
                         "sales": product_info.sales.toFixed(2)
                     }
@@ -92,8 +92,8 @@ function get_data() {
                                 "sku_id": sku[0],
                                 "sku_name": sku[1].sku_name,
                                 "num": sku[1].num,
-                                "cost": sku[1].cost,
-                                "sales": sku[1].sales
+                                "cost": sku[1].cost.toFixed(2),
+                                "sales": sku[1].sales.toFixed(2)
                             }
                             if (sku_index == 0) {
                                 var second_dom = create_second_normal_dom(sku_data);
