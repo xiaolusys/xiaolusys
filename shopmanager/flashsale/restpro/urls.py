@@ -10,6 +10,7 @@ from . import views_product
 from . import views_trade 
 from flashsale.pay.views_login import weixin_login
 from flashsale.complain.views import ComplainViewSet
+from flashsale.pay.views_coupon import Coupon_Check
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
@@ -69,6 +70,7 @@ router_urls += format_suffix_patterns([
         url(r'^address/update/',
             views.UserAddressViewSet.as_view({'post': 'update'}),
             name="update"),
+        url(r'^user/couponcheck/$', Coupon_Check, name="coupon_check"),
                                
     ])
 
