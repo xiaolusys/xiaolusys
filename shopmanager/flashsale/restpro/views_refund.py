@@ -225,6 +225,7 @@ def sub_Handler(request=None, reason=None, categry=None):
                 save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num,
                                     reason=reason)
                 # sale_refund good_status 的商品状态为买家收到货 BUYER_RETURNED_GOODS,'买家已退货'
+                # ??
                 sale_refund.good_status = SaleRefund.BUYER_RETURNED_GOODS
                 # 填写物流信息后 表明买家已经退货
                 # 这里最好指定 有哪些物流公司 然后根据物流公司接口查询物流单号是否已经有退货的物流信息  有则予以退货申请

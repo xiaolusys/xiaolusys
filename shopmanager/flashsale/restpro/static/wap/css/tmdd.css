@@ -154,18 +154,41 @@
 .btn_order_status_3:after{content: "我要退";}/*已发货 显示*/
 .btn_order_status_4:after{content: "我要退";}/*已签收 显示*/
 
+
+.btn_order_status_2:active{
+  background-color: #7d7d7d;  color: #fff;
+}
+.btn_order_status_2{  width: auto;  height: 44px;  line-height: 44px;
+  border: 1px solid #7d7d7d;  color: #7d7d7d;  text-align: center;
+  border-radius: 10px;
+}
+.btn_order_status_3:active{
+  background-color: #7d7d7d;  color: #fff;
+}
+.btn_order_status_3{  width: auto;  height: 44px;  line-height: 44px;
+  border: 1px solid #7d7d7d;  color: #7d7d7d;  text-align: center;
+  border-radius: 10px;
+}
+.btn_order_status_4:active{
+  background-color: #7d7d7d;  color: #fff;
+}
+.btn_order_status_4{  width: auto;  height: 44px;  line-height: 44px;
+  border: 1px solid #7d7d7d;  color: #7d7d7d;  text-align: center;
+  border-radius: 10px;
+}
+
 .btn_order_status_5{display: none;}/*交易成功 不显示*/
 .btn_order_status_6{display: none;}/*退款关闭 不显示*/
 .btn_order_status_7{display: none;}/*交易关闭 不显示*/
 
 /*.refund_status_0:after{content: "没有退款";}            /*没有退款*/
-.refund_status_1:after{content: "退款关闭";}             /*退款关闭*/
-.refund_status_2:after{content: "卖家拒绝退款";}          /*卖家拒绝退款*/
-.refund_status_3:after{content: "买家已经申请退款";}       /*买家已经申请退款*/
-.refund_status_4:after{content: "卖家已经同意退款";}       /*卖家已经同意退款*/
-.refund_status_5:after{content: "买家已经退货";}          /*买家已经退货*/
-.refund_status_6:after{content: "确认退款，等待返款";}     /*确认退款，等待返款*/
-.refund_status_7:after{content: "退款成功";}             /*退款成功*/
+.refund_status_1:after{content: "退款关闭";font-size: 22px;  color: #b7b7b7;border:solid #fff; }             /*退款关闭*/
+.refund_status_2:after{content: "卖家拒绝退款";font-size: 22px;  color: #b7b7b7;border: solid #fff;}          /*卖家拒绝退款*/
+.refund_status_3:after{content: "买家已经申请退款";font-size: 22px;  color: #b7b7b7; border: solid #fff;}       /*买家已经申请退款*/
+.refund_status_4:after{content: "卖家已经同意退款";font-size: 22px;  color: #b7b7b7;border: solid #fff;}       /*卖家已经同意退款*/
+.refund_status_5:after{content: "买家已经退货";font-size: 22px;  color: #b7b7b7;border: solid #fff;}          /*买家已经退货*/
+.refund_status_6:after{content: "确认退款，等待返款";font-size: 22px;  color: #b7b7b7;border: solid #fff;}     /*确认退款，等待返款*/
+.refund_status_7:after{content: "退款成功";font-size: 22px;  color: #b7b7b7;border: solid #fff;}             /*退款成功*/
 
 
 .fl{ float: left;}
