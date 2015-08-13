@@ -121,7 +121,7 @@ from urllib import urlopen
 
 
 START_TIME = datetime.datetime(2015,8,10,10)
-END_TIME = datetime.datetime(2015,8,18,10)
+END_TIME = datetime.datetime(2015,8,17,10)
 
 
 def get_user_openid(request, code, 

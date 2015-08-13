@@ -126,13 +126,16 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         for item in queryset:
             count += item.num
         return Response({"result": count})
-
+    
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(data="OK", status=status.HTTP_204_NO_CONTENT)
-
+    
+    def perform_destroy(self,instance):
+        instance.close_cart()
+    
     @detail_route(methods=['post'])
     def plus_product_carts(self, request, pk=None):
         customer = get_object_or_404(Customer, user=request.user)
@@ -355,7 +358,6 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         tid =  self.kwargs.get('tid',None)
         queryset = self.filter_queryset(self.get_queryset(saletrade_id=tid))
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        print 'debug filter:',filter_kwargs
         obj = get_object_or_404(queryset, **filter_kwargs)
 
         # May raise a permission denied
@@ -693,10 +695,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def perform_destroy(self, instance):
         # 订单不在 待付款的 或者不在创建状态
-        if instance.status not in (SaleTrade.WAIT_BUYER_PAY, SaleTrade.TRADE_NO_CREATE_PAY):
-            raise exceptions.APIException(u'订单不在待付款或者不在创建状态')
-        instance.status = SaleTrade.TRADE_CLOSED_BY_SYS
-        instance.save()
+        instance.close_trade()
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
