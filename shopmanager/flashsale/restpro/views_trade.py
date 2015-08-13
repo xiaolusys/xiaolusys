@@ -51,7 +51,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     - {prefix}/{{pk}}/minus_product_carts: 减少一件;
     - {prefix}/show_carts_num: 显示购物车数量;
     """
-    queryset = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL)
+    queryset = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL).order_by('-created')
     serializer_class = serializers.ShoppingCartSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
@@ -121,11 +121,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     
     @list_route(methods=['get'])
     def show_carts_num(self, request, *args, **kwargs):
+        import time
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        queryset = queryset.order_by('-created')
         count = 0
+        last_created = 0
+        if queryset.count > 0:
+            print queryset[0].created
+            last_created = time.mktime(queryset[0].created.timetuple())
         for item in queryset:
             count += item.num
-        return Response({"result": count})
+        return Response({"result": count, "last_created": last_created})
 
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
