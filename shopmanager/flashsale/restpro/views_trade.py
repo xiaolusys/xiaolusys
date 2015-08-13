@@ -130,7 +130,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         queryset = queryset.order_by('-created')
         count = 0
         last_created = 0
-        if queryset.count > 0:
+        if queryset.count() > 0:
             last_created = time.mktime(queryset[0].remain_time.timetuple())
         for item in queryset:
             count += item.num
