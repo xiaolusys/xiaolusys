@@ -100,8 +100,6 @@ function Set_orders(suffix) {
 
 function Create_order_top_dom(obj) {
     var html = $('#top_template').html();
-    //给状态
-    //<a  class="btn_top_{{ status }} btn_top_style btn_interactive " cid="{{ status }}" href="tuikuan.html?id={{ id }}"></a>
     console.log(obj.stauts, "order 状态");
     return hereDoc(html).template(obj);
 }
@@ -123,7 +121,8 @@ function Create_detail_dom(obj) {
          <span class="size">尺码：{{ sku_name }}</span>
          <span class="count">数量：{{ num }}</span>
          </p>
-         <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span><a class="btn_order_status_{{ status }}  refund_status_{{ refund_status }}" href="tuikuan.html?oid={{id}}&tid={{trade_id}}" cid={{ id }}></a></p>
+         <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span>
+         <a id="btn_refund" class="btn_order_status_{{ status }}  refund_status_{{ refund_status }}" cid="{{ refund_status }}" href="tuikuan.html?oid={{id}}&tid={{trade_id}}" cid={{ id }}></a></p>
          </div>
          </div>
          */
@@ -208,7 +207,7 @@ function Set_order_detail(suffix) {
             );
 
             Cancel_order(suffix);//页面加载完成  调用 取消订单功能
-
+            Handler_Refund_Bth();
         }
     };
     // 发送请求
@@ -220,6 +219,14 @@ function Set_order_detail(suffix) {
         success: requestCallBack
     });
 }
+
+function Handler_Refund_Bth(){
+    for(var i= 1;i<=7;i++){
+        console.log(i);
+        $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
+    }
+}
+
 
 function Cancel_order(suffix) {
     // 取消订单

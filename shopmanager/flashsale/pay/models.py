@@ -396,7 +396,8 @@ class ShoppingCart(models.Model):
     
     created       =  models.DateTimeField(null=True,auto_now_add=True,db_index=True,blank=True,verbose_name=u'创建日期')
     modified      =  models.DateTimeField(null=True,auto_now=True,db_index=True,blank=True,verbose_name=u'修改日期')
-    
+    remain_time   =  models.DateTimeField(null=True, blank=True, verbose_name=u'保留时间')
+
     status = models.IntegerField(choices=STATUS_CHOICE,default=NORMAL,
                               db_index=True,blank=True,verbose_name=u'订单状态') 
     
