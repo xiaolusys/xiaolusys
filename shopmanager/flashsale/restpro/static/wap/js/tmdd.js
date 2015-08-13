@@ -231,10 +231,23 @@ function Cancel_order(suffix) {
     }
     $(".btn_interactive").click(function () {
         var cid = $(this).attr('cid');
-        var conf = confirm("取消的产品可能被别人抢走哦～ 要取消么");
-        if (conf) { // 确定则取消
+        var mess = "取消的产品可能被别人抢走哦～ \n要取消么";
+        swal({
+            title: "小鹿美美",
+            text: mess,
+            type: "",
+            showCancelButton: true,
+            imageUrl: "http://image.xiaolu.so/logo.png",
+            confirmButtonColor: '#DD6B55',
+            confirmButtonText: "确定",
+            cancelButtonText: "取消"
+        },
+        function () {
+            ajax_to_server();
+        });
+        function ajax_to_server (){ // 确定则取消
             if ($("#status_display").html() == "交易关闭") {
-                drawToast("交易已经取消！");
+                drawToast("交易已经取消啦~");
             }
             else if (cid == 0 || cid == 1) {        //订单创建 或者 待付款  允许取消订单
                 var cancel_bt = $(".btn_interactive");
