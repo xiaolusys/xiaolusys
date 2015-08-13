@@ -203,7 +203,9 @@ class DistrictViewSet(viewsets.ModelViewSet):
         queryset = District.objects.filter(parent_id=city_id)
         serializer = self.get_serializer(queryset, many=True)
 
-        return Response(serializer.data)    
+        return Response(serializer.data)   
+       
+        
 
 from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
 
