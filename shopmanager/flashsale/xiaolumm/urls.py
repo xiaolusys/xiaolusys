@@ -59,6 +59,7 @@ urlpatterns = patterns('',
     # order analysis in different linkid
     url(r'^order_linkid_analysis/$', staff_member_required(views_order_percent.by_Linkid_Analysis), name="by_Linkid_Analysis"),
     url(r'^order_linkid_showpage/$', staff_member_required(views_order_percent.show_Orderlink_Page), name="by_Linkid_Analysis"),
+    url(r'^order_carry_analysis/$', staff_member_required(views_order_percent.xlmm_Carry_Log), name="xlmm_Carry_Log"),
 
 
 )
