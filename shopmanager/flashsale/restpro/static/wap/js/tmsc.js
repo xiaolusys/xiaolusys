@@ -168,7 +168,7 @@ function get_remain_time() {
     var requestCallBack = function (res) {
         var newDate = new Date();
         if (res.last_created > 0) {
-            newDate.setTime(res.last_created * 1000 + 20 * 60 * 1000);
+            newDate.setTime(res.last_created * 1000);
             cart_timer(newDate)
         }
     };
@@ -209,7 +209,7 @@ function cart_timer(remain_date) {
             },
             1000);
     } else {
-        console.log(remain_date);
+        $("#remain_time").text("");
     }
 
 }
