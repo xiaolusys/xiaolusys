@@ -123,7 +123,7 @@
 			       <p>{{ trace.0 }}: {{ trace.1 }}</p>
 			       {% else %}
       <p>{{ trace.0 }}:</p>
-      {% for t in trace.1   reversed %}
+      {% for t in trace.1 %}
        {% if  forloop.last   %}
                 <p  style="color:red"   >{{ t.0 }}: {{ t.1 }}</p>
                     {% else %}

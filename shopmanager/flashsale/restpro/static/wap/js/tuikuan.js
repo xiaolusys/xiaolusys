@@ -80,8 +80,8 @@ function Set_order_detail(suffix) {
 function Button_reduct_num(id) {
     var num = parseInt($("#show_num_" + id).html());
     var num = num - 1;
-    if (num < 0) {
-        var num = 0;
+    if (num <= 0) {
+        var num = 1;
         $("#show_num_" + id).html(num);
     } else {
         $("#show_num_" + id).html(num);
@@ -99,74 +99,76 @@ function Button_plus_num(id) {
     }
 }
 
-function Button_tijiao() {
-    console.log("tijiao");
 
+function Button_tijiao() {
     var logi_company = $("#logi_company").val();
     var logi_sid = $("#logi_sid").val();
-    console.log(logi_company, logi_sid, "快递信息");
-
     var data = [];
     var refund_reason = $("#selec_resason").val();
-
-    console.log("data tttt", data[0]);
-    if (refund_or_pro == 1 && (logi_company == "" || logi_sid == "")) {
-        // 是退货状态　　并且　快递公司或者　快递单号　有一个为空　　不执行
-        if (logi_company == "") {
-            alert("请填写快递公司！");
+    var order_payment = $("#order_payment").html().split(">")[2];     //　退款的订单金额
+    if (refund_or_pro == 1) {//退货　　物流信息
+        data.push({
+            "reason": refund_reason,
+            "refund_or_pro": refund_or_pro,
+            "logi_company": logi_company,
+            "logi_sid": logi_sid
+        });
+        if (logi_company == "" || logi_sid == "") {
+            // 物流信息不完整
+            var mess = "退款金额为：" + order_payment + "￥" + "\n物流信息不全将导致申请进度受阻\n您确定退单？";
         }
-        else if (logi_sid == "") {
-            alert("请填写快递单号！");
+        else {
+            mess = "退款金额为：" + order_payment + "￥" + "\n您确定退单？";
         }
     }
-    else {
-        if (refund_or_pro == 1) {//退货　　物流信息
-            data.push({
-                "reason": refund_reason,
-                "refund_or_pro": refund_or_pro,
-                "logi_company": logi_company,
-                "logi_sid": logi_sid
-            });
+    if (refund_or_pro == 0) {//退款
+        data.push({"reason": refund_reason, "refund_or_pro": refund_or_pro});
+        mess = "退款金额为：" + order_payment + "￥" + "\n您确定退单？";
+    }
+    $('.goods-info').each(function (i, v) {
+        var num = $(v).find(".order_detail_num").html();
+        var oid = $(v).find(".order_detail_num").attr('id').split("_")[2];
+        var gprice = ($(v).find(".gprice").html()).split(">")[2];
+        var sum_price = num * gprice;
+        var sub_data = {"id": oid, "num": num, "price": gprice, "sum_price": sum_price};
+        data.push(sub_data);
+    });
+
+    var url = GLConfig.baseApiUrl + GLConfig.refunds;
+
+    var requetCall = function callback(res) {
+        drawToast("您已经提交了申请,耐心等待售后处理！");
+        if (res.res == "already_refund") {
+            drawToast("您已经提交了申请,耐心等待售后处理！");
         }
-        if (refund_or_pro == 0) {//退款
-            data.push({"reason": refund_reason, "refund_or_pro": refund_or_pro});
+        else if (res.res == "refund_success") {
+            drawToast("操作成功！");
         }
-        $('.goods-info').each(function (i, v) {
-            var num = $(v).find(".order_detail_num").html();
-            var oid = $(v).find(".order_detail_num").attr('id').split("_")[2];
-            var gprice = ($(v).find(".gprice").html()).split(">")[2];
-            var sum_price = num * gprice;
-            var sub_data = {"id": oid, "num": num, "price": gprice, "sum_price": sum_price};
-            data.push(sub_data);
+        else if (res.res == "forbidden") {
+            drawToast("您的订单已经在处理中！");
+        }
+    };
+    swal({
+            title: "小鹿美美",
+            text: mess,
+            type: "",
+            showCancelButton: true,
+            imageUrl: "http://image.xiaolu.so/logo.png",
+            confirmButtonColor: '#DD6B55',
+            confirmButtonText: "确定",
+            cancelButtonText: "取消"
+        },
+        function () {
+            ajax_to_server();
         });
-
-        //　退款的订单金额
-        var order_payment = $("#order_payment").html().split(">")[2];
-        var confi = confirm("退款金额为：" + order_payment + "￥" +"您确定退单~");
-        var url = GLConfig.baseApiUrl + GLConfig.refunds;
-        if (confi) {
-            //ajax 请求　生成　退货款单
-            function callback(res) {
-                console.log(res);
-                if (res.res == "already_refund") {
-                    drawToast("您已经提交了申请,耐心等待售后处理！");
-                }
-                else if (res.res == "refund_success") {
-                    drawToast("操作成功！");
-                }
-                else if (res.res == "forbidden") {
-                    drawToast("您的订单已经在处理中！");
-                }
-            }
-
-            $.ajax({
-                "url": url,
-                "data": {'csrfmiddlewaretoken': csrftoken, "refund": data},
-                "type": "post",
-                dataType: 'json',
-                success: callback
-            });
-        }
+    function ajax_to_server() {
+        $.ajax({
+            "url": url,
+            "data": {'csrfmiddlewaretoken': csrftoken, "refund": data},
+            "type": "post",
+            dataType: 'json',
+            success: requetCall
+        });
     }
 }
 
