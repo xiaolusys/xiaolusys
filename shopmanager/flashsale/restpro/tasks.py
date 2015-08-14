@@ -20,24 +20,28 @@ def task_off_the_shelf(product_id=None):
             for product_in_cart in all_product_in_cart:
                 product_a = Product.objects.filter(id=product_in_cart.item_id)
                 if product_a.count() > 0 and product_a[0].shelf_status == Product.DOWN_SHELF:
-                    product_in_cart.status = ShoppingCart.CANCEL
+                    product_in_cart.close_cart()
                     log_action(djuser.id, product_in_cart, CHANGE, u'下架后更新')
-                    product_in_cart.save()
+
             all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY)
             for trade in all_trade:
                 all_order = trade.sale_orders.all()
                 for order in all_order:
                     product_b = Product.objects.filter(outer_id=order.outer_id)
                     if product_b.count() > 0 and product_b[0].shelf_status == Product.DOWN_SHELF:
-                        trade.status = SaleTrade.TRADE_CLOSED_BY_SYS
+                        trade.close_trade()
                         log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
-                        trade.save()
+
         else:
-            ShoppingCart.objects.filter(item_id=product_id).update(status=ShoppingCart.CANCEL)
+            all_cart = ShoppingCart.objects.filter(item_id=product_id, status=ShoppingCart.NORMAL)
+            for cart in all_cart:
+                cart.close_cart()
+                log_action(djuser.id, cart, CHANGE, u'下架后更新')
+
             all_trade = SaleTrade.objects.filter(sale_orders__item_id=product_id, status=SaleTrade.WAIT_BUYER_PAY)
             for trade in all_trade:
-                trade.status = SaleTrade.TRADE_CLOSED_BY_SYS
+                trade.close_trade()
                 log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
-                trade.save()
+
     except Exception, exc:
         raise task_off_the_shelf.retry(exc=exc)
