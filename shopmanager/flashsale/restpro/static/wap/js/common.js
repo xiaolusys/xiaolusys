@@ -190,6 +190,12 @@ function Set_shopcarts_num() {
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
     var requestCallBack = function (res) {
         $(".total").html(res.result);
+        var newDate = new Date();
+        if (res.last_created > 0) {
+            newDate.setTime(res.last_created * 1000);
+            cart_timer(newDate)
+        }
+
     };
     // 发送请求
     $.ajax({
@@ -209,3 +215,34 @@ function Set_shopcarts_num() {
     });
 }
 
+function cart_timer(remain_date) {
+    /*
+     * 购物车倒计时
+     * auther:yann
+     * date:2015/14/8
+     */
+    var ts =  remain_date - (new Date());//计算剩余的毫秒数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+
+    if (ts > 0) {
+        $(".carttime").html(mm + ":" + ss);
+        $(".cart").animate({width:"160px"});
+        setTimeout(function () {
+                cart_timer(remain_date);
+            },
+            1000);
+    } else {
+        $(".carttime").html("");
+        $(".cart").animate({width:"80px"});
+    }
+
+}
+function checkTime(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}
