@@ -158,6 +158,49 @@ function Ctrl_sure_charge(pay_url){
 	});
 }
 
+function Ctrl_order_charge(pay_url){
+	//待支付订单确认支付
+	if ($('.btn-buy').hasClass('charged')){return;}   
+	var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
+	var WALLET_PAY  = 'wallet';
+	$('.btn-buy').addClass('charged');
+    $('.btn-buy').addClass('pressed');
+	var params = {};
+    var callBack = function(data){
+	  	if (data.channel == WALLET_PAY){//使用钱包支付
+	  		window.location.href = GLConfig.zhifucg_url;
+	  	}else{
+	      pingpp.createPayment(data, function(result, err) {
+	      	if (result == "success") {
+		        window.location.href =  GLConfig.zhifucg_url;
+		    } else if (result == "fail") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    } else if (result == "cancel") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    }
+	      });
+	    }
+    }
+    
+    // 调用接口
+	$.ajax({ 
+		type:'post', 
+		url:CHARGE_URL, 
+		data:params, 
+		dataType:'json', 
+		success:callBack,
+		error:function(err){
+			$('.btn-buy').removeClass('charged').removeClass('pressed');
+			var resp = JSON.parse(err.responseText);
+			if (!isNone(resp.detail)){
+				drawToast(resp.detail);
+			}else{
+				drawToast('支付异常');
+			}
+		} 
+	});
+}
+
 function update_total_price(){
 	//更新订单价格显示
 	var sku_price = parseFloat($('input[name="agent_price"]').val());

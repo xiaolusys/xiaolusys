@@ -350,14 +350,6 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
     
 
     def get_object(self):
-        """
-        Returns the object the view is displaying.
-
-        You may want to override this if you need to provide non-standard
-        queryset lookups.  Eg if objects are referenced using multiple
-        keyword arguments in the url conf.
-        """
-
         # Perform the lookup filtering.
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
 
@@ -392,6 +384,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     ###特卖订单REST API接口：
     - {path}/wait_pay[.formt]:获取待支付订单；
     - {path}/wait_send[.formt]:获取待发货订单；
+    - {path}/{pk}/charge[.formt]:支付待支付订单
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
     > - cart_ids：购物车明细ID，如 `100,101,...` 
     > - addr_id:客户地址ID
@@ -473,9 +466,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
     @rest_exception(errmsg='')
-    def wallet_charge(self, sale_trade, buyer):
+    def wallet_charge(self, sale_trade):
         """ 小鹿钱包支付实现 """
-
+        
+        buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = int(sale_trade.payment * 100) 
         buyer_unionid = buyer.unionid
         strade_id     = sale_trade.id
@@ -699,10 +693,29 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             
         if channel == SaleTrade.WALLET:
             #小鹿钱包支付
-            response_charge = self.wallet_charge(sale_trade, customer)
+            response_charge = self.wallet_charge(sale_trade)
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
+        return Response(response_charge)
+    
+    @detail_route(methods=['post'])
+    def charge(self, request, *args, **kwargs):
+        """ 待支付订单支付 """
+        _errmsg = {SaleTrade.WAIT_SELLER_SEND_GOODS:u'订单无需重复付款',
+                   SaleTrade.TRADE_CLOSED_BY_SYS:u'订单已关闭或超时',
+                   'default':u'订单不在可支付状态'}
+         
+        instance = self.get_object()
+        if instance.status != SaleTrade.WAIT_BUYER_PAY:
+            raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))
+            
+        if instance.channel == SaleTrade.WALLET:
+            #小鹿钱包支付
+            response_charge = self.wallet_charge(instance)
+        else:
+            #pingpp 支付
+            response_charge = self.pingpp_charge(instance)
         return Response(response_charge)
     
     def perform_destroy(self, instance):
