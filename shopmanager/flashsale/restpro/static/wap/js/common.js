@@ -181,6 +181,9 @@ function DoIfLogin(cfg){
 }
 
 
+
+var remain_date = 0;
+
 function Set_shopcarts_num() {
     /*
      * 得到购物车数量
@@ -192,8 +195,8 @@ function Set_shopcarts_num() {
         $(".total").html(res.result);
         var newDate = new Date();
         if (res.last_created > 0) {
-            newDate.setTime(res.last_created * 1000);
-            cart_timer(newDate)
+            remain_date = newDate.setTime(res.last_created * 1000);
+            cart_timer.publicMethod();
         }
 
     };
@@ -202,12 +205,9 @@ function Set_shopcarts_num() {
         type: 'get',
         url: requestUrl,
         data: "",
-        beforeSend: function () {
-
-        },
         success: requestCallBack,
         error: function (data) {
-        	console.log('debug cartnum:',data);
+            console.log('debug cartnum:', data);
             if (data.status == 403) {
                 $(".total").html("0");
             }
@@ -215,31 +215,39 @@ function Set_shopcarts_num() {
     });
 }
 
-function cart_timer(remain_date) {
+var cart_timer = function () {
     /*
      * 购物车倒计时
      * auther:yann
      * date:2015/14/8
      */
-    var ts =  remain_date - (new Date());//计算剩余的毫秒数
-    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
-    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
-    mm = checkTime(mm);
-    ss = checkTime(ss);
-
-    if (ts > 0) {
-        $(".carttime").html(mm + ":" + ss);
-        $(".cart").animate({width:"160px"});
-        setTimeout(function () {
-                cart_timer(remain_date);
-            },
-            1000);
-    } else {
-        $(".carttime").html("");
-        $(".cart").animate({width:"80px"});
+    function privateFunction() {
+        var ts = remain_date - (new Date());//计算剩余的毫秒数
+        var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+        var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+        mm = checkTime(mm);
+        ss = checkTime(ss);
+        if (ts > 0) {
+            $(".carttime").html(mm + ":" + ss);
+            $(".cart").animate({width: "160px"});
+            setTimeout(function () {
+                    privateFunction();
+                },
+                1000);
+        } else {
+            $(".carttime").html("");
+            $(".cart").animate({width: "80px"});
+        }
     }
 
-}
+
+    return {
+        publicMethod: function () {
+            return privateFunction();
+        }
+    };
+}();
+
 function checkTime(i) {
     if (i < 10) {
         i = "0" + i;
