@@ -28,11 +28,11 @@
         <div class="goprice"><s>¥{{ std_sale_price }}</s></div>
         <div class="btn-del" id="shop_cart_{{ id }}" cid="{{ id }}" onclick="del_shop({{ id }})"></div>
         <div class="gcount">
-            <div class="btn reduce" onclick="minus_shop({{ id }})"></div>
+            <div class="btn reduce" onclick="minus_shop({{ id }})" name="btn-reduce"></div>
             <div class="total">
                 <input type="tel" readonly id="num_{{ id }}" value="{{ num }}">
             </div>
-            <div class="btn plus" onclick="plus_shop({{ id }})"></div>
+            <div class="btn plus" onclick="plus_shop({{ id }})" name="btn-plus"></div>
         </div>
     </div>
 </script>
@@ -40,7 +40,7 @@
 <div class="buy">
     <p class="coupons">优惠券：0</p>
     <p class="total">总金额：¥<span id="total_price">0</span></p>
-    <a class="btn-buy">购&nbsp;&nbsp;买&nbsp;&nbsp;<span id="remain_time"></span></a>
+    <a class="btn-buy" name="btn-buy">购&nbsp;&nbsp;买&nbsp;&nbsp;<span id="remain_time"></span></a>
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/template.js"></script>

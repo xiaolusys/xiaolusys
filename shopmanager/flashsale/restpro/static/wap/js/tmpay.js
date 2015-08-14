@@ -53,13 +53,13 @@ function Set_user_orderinfo(suffix){
 		$('.buy .total span').html('<em>￥</em>' + data.total_payment);
 		
 		if (data.wallet_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="wallet"></i>小鹿钱包</li>');
+			$('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="wallet"></i>小鹿钱包</li>');
 		}
 		if (data.weixin_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="wx_pub"></i>微信支付</li>');
+			$('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="wx_pub"></i>微信支付</li>');
 		}
 		if (data.alipay_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="alipay_wap"></i>支付宝</li>');
+			$('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="alipay_wap"></i>支付宝</li>');
 		}
 		$('.pay-type .pay-list li:first').removeClass('normal').addClass('active');
 		if (!isNone(data.sku)){
