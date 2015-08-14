@@ -40,7 +40,6 @@ def by_Linkid_Analysis(request):
     inner_raw = order_num(sql2)
     mm_raw = order_num(sql3)
     result_list = raw_handler(outer_raw=outer_raw, mm_raw=mm_raw, inner_raw=inner_raw)
-    print time_from, time_to, '时间区间', result_list
     return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), mimetype="application/json")
 
 
@@ -83,3 +82,84 @@ def raw_handler(outer_raw=None, mm_raw=None, inner_raw=None):
     result_lit = [[u"非专属链接", outer_order_num, outer_per], [u"代理专属链接", mm_order_num, mm_per],
                   [u"内部专属链接", inner_order_num, inner_per], [u"订单总数", sum_order, 1]]
     return result_lit
+
+
+"""
+2015-08-13
+添加到
+use shopmgr;
+SELECT sum(value)/100 FROM xiaolumm_carrylog WHERE created BETWEEN '2015-07-01' AND '2015-08-01'
+ AND log_type = 'rebeta' AND status = 'confirmed' ;      # 订单返利
+
+SELECT sum(value)/100
+FROM xiaolumm_carrylog
+WHERE created BETWEEN '2015-07-01' AND '2015-08-01'
+AND log_type = 'subsidy' AND status = 'confirmed' ;     # 代理补贴
+
+SELECT  count(*),sum(wxorderamount)/100
+FROM flashsale_tongji_shopping
+WHERE shoptime BETWEEN '2015-07-01' AND '2015-08-01' and status in(0,1) and linkid> 134;
+
+"""
+
+
+@csrf_exempt
+def xlmm_Carry_Log(request):
+    """
+    计算 某个时间段的小鹿妈妈总的 确定订单返利  待确定订单返利
+    """
+    content = request.POST
+    time_from = content.get("time_from", None)
+    time_to = content.get("time_to", None)
+    type_value = int(content.get("value", None))
+
+    log_type = judeg_Loge_Type(type_value)
+
+    sql1 = "SELECT log_type ,sum(value)/100 FROM xiaolumm_carrylog WHERE created BETWEEN '{0}' AND '{1}'AND " \
+           "log_type in {2} AND status = 'confirmed' AND xlmm>134 GROUP BY log_type;".format(time_from, time_to, log_type)
+
+    raw = order_num(sql1)
+    result_list = carry_Raw_Hander(raw=raw)
+    return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), mimetype="application/json")
+
+
+def carry_Raw_Hander(raw=None):
+    type_dic = {
+        'rebeta': u'订单返利',
+        'buy': u'消费支出',
+        'click': u'点击兑现',
+        'refund': u'退款返现',
+        'cashout': u'钱包提现',
+        'deposit': u'押金',
+        'thousand': u'千元提成',
+        'subsidy': u'代理补贴',
+        'recruit': u'招募奖金',
+        'ordred': u'订单红包'
+    }
+
+    result_list = []
+    value_all = 0
+    all_name = u"总值"
+    for i in raw:
+        type_name = type_dic[i[0]]
+        type_value = i[1]
+        type_content = [type_name, type_value]
+        result_list.append(type_content)
+        value_all += type_value
+    result_list.append([all_name, value_all])
+
+    return result_list[::-1]
+
+
+def judeg_Loge_Type(type_value=None):
+    if type_value == 15:
+        log_type = ("rebeta", "subsidy", "thousand", "ordred")
+    elif type_value == 7:
+        log_type = ("rebeta", "subsidy", "thousand")  # 7
+    elif type_value == 3:
+        log_type = ("rebeta", "subsidy")  # 3
+    elif type_value == 1:
+        log_type = ("rebeta","")  # 1
+    else:
+        log_type = ("rebeta","")    # 默认返回订单返利
+    return log_type
