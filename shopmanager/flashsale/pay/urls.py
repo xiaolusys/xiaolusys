@@ -1,3 +1,4 @@
+from urlparse import urljoin
 from django.conf.urls import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
@@ -5,7 +6,7 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import RedirectView 
 from django.conf import settings
 
-from .decorators import sale_buyer_required
+from .decorators import sale_buyer_required,weixin_xlmm_auth
 from . import views
 from .views_login import flashsale_login
 from .views_address import AddressList,UserAddressDetail,DistrictList
@@ -25,7 +26,7 @@ urlpatterns = (
     
     url(r'^plist/$', 
 #        views.ProductList.as_view(),
-        RedirectView.as_view(url=settings.M_SITE_URL),
+        weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL, '/pages/denglu.html'))(RedirectView.as_view(url=settings.M_SITE_URL)),
         name="sale_home"),
     url(r'^p/(?P<pk>[0-9]+)/$', views.ProductDetail.as_view(),name="product_detail"),
     url(r'^locknum/$', sale_buyer_required(productsku_quantity_view),name="skuquantity_lock"),
