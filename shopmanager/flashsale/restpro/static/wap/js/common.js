@@ -182,6 +182,9 @@ function DoIfLogin(cfg){
 }
 
 
+
+var remain_date = 0;
+
 function Set_shopcarts_num() {
     /*
      * 得到购物车数量
@@ -191,18 +194,21 @@ function Set_shopcarts_num() {
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
     var requestCallBack = function (res) {
         $(".total").html(res.result);
+        var newDate = new Date();
+        if (res.last_created > 0) {
+            remain_date = newDate.setTime(res.last_created * 1000);
+            cart_timer.publicMethod();
+        }
+
     };
     // 发送请求
     $.ajax({
         type: 'get',
         url: requestUrl,
         data: "",
-        beforeSend: function () {
-
-        },
         success: requestCallBack,
         error: function (data) {
-        	console.log('debug cartnum:',data);
+            console.log('debug cartnum:', data);
             if (data.status == 403) {
                 $(".total").html("0");
             }
@@ -210,3 +216,42 @@ function Set_shopcarts_num() {
     });
 }
 
+var cart_timer = function () {
+    /*
+     * 购物车倒计时
+     * auther:yann
+     * date:2015/14/8
+     */
+    function privateFunction() {
+        var ts = remain_date - (new Date());//计算剩余的毫秒数
+        var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+        var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+        mm = checkTime(mm);
+        ss = checkTime(ss);
+        if (ts > 0) {
+            $(".carttime").html(mm + ":" + ss);
+            $(".cart").animate({width: "160px"});
+            setTimeout(function () {
+                    privateFunction();
+                },
+                1000);
+        } else {
+            $(".carttime").html("");
+            $(".cart").animate({width: "80px"});
+        }
+    }
+
+
+    return {
+        publicMethod: function () {
+            return privateFunction();
+        }
+    };
+}();
+
+function checkTime(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}

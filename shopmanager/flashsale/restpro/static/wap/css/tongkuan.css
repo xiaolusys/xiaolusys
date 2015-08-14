@@ -131,7 +131,9 @@ body{
 }
 .cart{
   left:20px;
-  background-image:url(../images/icon-gouwuche.png); 
+  background:url(../images/icon-gouwuche1.png) no-repeat #666666;
+  border-radius: 40px;
+  width: 80px;
 }
 .cart .total{
   display: block;
@@ -144,8 +146,8 @@ body{
   border-radius: 50%;
   background-color: #ea4c88;
   position: absolute;
-  right: 11px;
-  top:14px;
+  left: 50px;
+  top: 10px;
 }
 .scroll-top{
   right: 20px;
