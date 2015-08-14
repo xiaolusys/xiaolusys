@@ -1803,13 +1803,13 @@ def  weixinorder_detail(request):
             info['score_refund']=score_refund
             info['post_fee_refund']=post_fee_refund
             rec1.append(info)
-       # print "这是",rec1
+        # print "这是",rec1    
         #response = render_to_response('weixin/weixinorder_detail.html', 
-                                     # {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
-                                      # "specific_order_finished":specific_order_finished,"refund": refund, 
-                                     #  "passed":passed, "openid":user_openid, "score_refund":score_refund,
-                                       #"post_fee_refund":post_fee_refund},
-                                     # context_instance=RequestContext(request))
+        # {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
+        # "specific_order_finished":specific_order_finished,"refund": refund, 
+        #  "passed":passed, "openid":user_openid, "score_refund":score_refund,
+        #"post_fee_refund":post_fee_refund},
+        # context_instance=RequestContext(request))
         response = render_to_response('weixin/weixinorder_detail.html', 
                                      {'info':rec1},
                                       context_instance=RequestContext(request))                          

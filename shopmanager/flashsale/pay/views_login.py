@@ -40,6 +40,9 @@ def flashsale_login(request):
     
         return HttpResponseRedirect(next_url)
 
+def productlist_redirect(request):
+    return HttpResponseRedirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+
 import urllib
 from urlparse import urljoin
 from .decorators import weixin_xlmm_auth
