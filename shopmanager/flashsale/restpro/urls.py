@@ -12,6 +12,8 @@ from flashsale.pay.views_login import weixin_login
 from flashsale.complain.views import ComplainViewSet
 from flashsale.pay.views_coupon import Coupon_Check
 
+from . import views_wuliu
+
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
 router.register(r'register', views_user.RegisterViewSet)
@@ -65,6 +67,7 @@ urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^v1/', include(router_urls,namespace='v1')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
 )
 
 
