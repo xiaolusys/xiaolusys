@@ -45,6 +45,32 @@
         </div>
     </div>
     <div id="tab_cup" class="container"></div>
+        <div class="container" style="margin-top: 50px;margin-bottom: 5px">
+        <h3>返利补贴情况<span class="label label-primary">按照时间区间</span></h3>
+
+        <div class="input-group ">
+            <span class="input-group-addon" id="date_from">开始时间</span>
+            <input type="text" name="date_from" id="left_date_pic_carry"
+                   class="form-control select_saletime  datepicker" placeholder="2015-03-01"
+                   value="2015-03-01"
+                   aria-describedby="basic-addon1">
+
+            <span class="input-group-addon" id="date_to">结束时间</span>
+            <input type="text" name="date_to" id="right_date_pic_carry"
+                   class="form-control select_saletime  datepicker" placeholder="{{ today }}" value="{{ today }}"
+                   aria-describedby="basic-addon2">
+            <span class="input-group-btn">
+                <button class="btn btn-default" id="go_search_carry">Go!</button>
+            </span>
+        </div>
+        <div id="log_type">
+            <span class="label label-info">订单返利<input name="rebeta" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="1" /></span>
+            <span class="label label-info">代理补贴<input name="subsidy" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="2" /></span>
+            <span class="label label-info">千元提成<input name="thousand" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="4" /></span>
+            <span class="label label-info">订单红包<input name="ordred" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="8" /></span>
+        </div>
+    </div>
+    <div id="tab_cup_carry" class="container"></div>
 
 {% endblock %}
 
@@ -57,9 +83,17 @@
             $("#right_date_pic_prov").datepicker({
                 dateFormat: "yy-mm-dd"
             });
+            $("#left_date_pic_carry").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+            $("#right_date_pic_carry").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
 
         });
         var t_id = 0;
+        var carry_id = 0;
+
         $(document).ready(function () {
 
             $("#go_search_province").click(function () {
@@ -95,6 +129,49 @@
                 }
 
                 $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+
+            });
+
+            $("#go_search_carry").click(function(){
+                var value = 0;
+                var url = "/m/order_carry_analysis/";
+                var time_from = $("#left_date_pic_carry").val();
+                var time_to = $("#right_date_pic_carry").val();
+                $(".log_type").each(function(i,v){
+                    console.log($(v).checked);
+                    if($(".log_type")[i].checked==true){
+                        value = value + parseInt($(v).val());
+                    }
+                    console.log(value,'value is here....');
+                });
+                var data = {"time_from": time_from, "time_to": time_to,"value":value};
+                function callback(res){
+                    console.log(res);
+                    var table_container = '<div class="panel col-md-4 panel-default container" id="createtable_carry_' + carry_id + '">' +
+                            '<div class="panel-heading">' + time_from + '至' + time_to + '</div></div>';
+                    $("#tab_cup_carry").append(table_container);
+                    console.log(res);
+                    var rowCount = res.length;
+
+                    var table = $('<table class="table table-condensed table-hover"><thead><th>Carry类型</th><th>￥数值</th><th>占比</th><thead>');
+                    table.appendTo($("#createtable_carry_" + carry_id));
+                    for (var i = 0; i < rowCount; i++) {
+                        var tr = $("<tr></tr>");
+                        tr.appendTo(table);
+                        for (var j = 0; j < 2; j++) {
+                            var td = $("<td>" + res[i][j] + "</td>");
+                            td.appendTo(tr);
+                        }
+                        var percent_td = $("<td>" + (res[i][1] / res[0][1]).toFixed(3) + "</td>");
+                        percent_td.appendTo(tr);
+                    }
+                    tr.appendTo(table);
+                    $("#createtable_carry_" + carry_id).append("</table>");
+                    carry_id = carry_id + 1;
+                    console.log(carry_id,"carry_id")
+                }
+                $.ajax({"url": url, "data": data, "type": "post", "success": callback});
+
 
             });
         });
