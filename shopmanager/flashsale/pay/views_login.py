@@ -40,28 +40,16 @@ def flashsale_login(request):
     
         return HttpResponseRedirect(next_url)
 
+def productlist_redirect(request):
+    return HttpResponseRedirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+
 import urllib
+from urlparse import urljoin
+from .decorators import weixin_xlmm_auth
 
+@weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL,'/pages/denglu.html'))
 def weixin_login(request):
-    code   = request.GET.get('code')
-    if not code :
-        params = {'appid':settings.WXPAY_APPID,
-                  'redirect_uri':request.build_absolute_uri().split('#')[0],
-                  'response_type':'code',
-                  'scope':'snsapi_base',
-                  'state':'135'}
-        redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
-        return HttpResponseRedirect(redirect_url)
-    else :
-        user = authenticate(request=request)
-        if not user or user.is_anonymous():
-            return HttpResponseRedirect('/pages/denglu.html')
-        
-        request.session[SESSION_KEY] = user.id
-        auth_login(request, user)
-        
-        return HttpResponseRedirect('/')
-
+    return HttpResponseRedirect('/')
 
 
 

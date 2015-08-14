@@ -107,8 +107,8 @@ var GLConfig = {
 	delete_address:'/address/delete_address/?format=json',//删除地址
 	change_default:'/address/change_default/?format=json',//更改默认地址
 	province_list:'/districts/province_list?format=json',//省份列表
-	city_list:'/districts/city_list/?format=json',//城市列表
-	country_list:'/districts/country_list/?format=json',//区/县列表
+	city_list:'/districts/city_list?format=json',//城市列表
+	country_list:'/districts/country_list?format=json',//区/县列表
 	create_address:'/address/create_address/?format=json',//创建新的收货地址
 	update:'/address/update/?format=json',//修改收货地址
 	get_user_profile:'/users/profile.json',//得到用户信息

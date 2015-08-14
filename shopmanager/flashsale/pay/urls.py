@@ -1,13 +1,14 @@
+from urlparse import urljoin
 from django.conf.urls import patterns, include, url
+from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.decorators.cache import cache_page
-from django.views.generic import RedirectView 
 from django.conf import settings
 
-from .decorators import sale_buyer_required
+from .decorators import sale_buyer_required,weixin_xlmm_auth
 from . import views
-from .views_login import flashsale_login
+from .views_login import flashsale_login,productlist_redirect
 from .views_address import AddressList,UserAddressDetail,DistrictList
 from .views_refund import RefundApply,RefundConfirm
 from .views_product import productsku_quantity_view
@@ -24,8 +25,8 @@ urlpatterns = (
     url(r'^wxwarn/$', csrf_exempt(views.WXPayWarnView.as_view())),
     
     url(r'^plist/$', 
-#        views.ProductList.as_view(),
-        RedirectView.as_view(url=settings.M_SITE_URL),
+#         views.ProductList.as_view(),
+        productlist_redirect,
         name="sale_home"),
     url(r'^p/(?P<pk>[0-9]+)/$', views.ProductDetail.as_view(),name="product_detail"),
     url(r'^locknum/$', sale_buyer_required(productsku_quantity_view),name="skuquantity_lock"),

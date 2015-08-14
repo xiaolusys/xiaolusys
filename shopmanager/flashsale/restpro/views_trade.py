@@ -75,20 +75,23 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         data = request.data
         customer_user = Customer.objects.filter(user=request.user)
+
         if customer_user.count() == 0:
             return Response({"result": "0"}) #登录过期
 
         product_id = data.get("item_id", None)
         buyer_id = customer_user[0].id
         sku_id = data.get("sku_id", None)
+        if product_id and sku_id:
+            raise exceptions.APIException(u'参数错误')
         sku_num = 1
         sku = get_object_or_404(ProductSku, pk=sku_id)
-        if not Product.objects.lockQuantity(sku,sku_num):
+        if not Product.objects.lockQuantity(sku, sku_num):
             raise exceptions.APIException(u'商品库存不足')
-        # lock_success = Product.objects.isQuantityLockable(sku, num) #限购功能
-        # if product_id and buyer_id and sku_id and lock_success:
+
         if product_id and buyer_id and sku_id:
-            shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id)
+            shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id,
+                                                    status=ShoppingCart.NORMAL)
             if shop_cart.count() > 0:
                 shop_cart_temp = shop_cart[0]
                 shop_cart_temp.num += int(sku_num) if sku_num else 0
@@ -148,7 +151,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def plus_product_carts(self, request, pk=None):
         customer = get_object_or_404(Customer, user=request.user)
-        cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id)
+        cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id, status=ShoppingCart.NORMAL)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
         user_skunum = getUserSkuNumByLast24Hours(customer,sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + 1)

@@ -1136,6 +1136,10 @@ class FinalListView(View):
             start_time = datetime.datetime(2015,8,10)
             end_time   = datetime.datetime(2015,8,18)
             order_list = SampleOrder.objects.filter(status=103,created__gt=start_time)
+        elif month == 1508 and batch == 4:
+            start_time = datetime.datetime(2015,8,10)
+            end_time   = datetime.datetime(2015,8,18)
+            order_list = SampleOrder.objects.filter(status=104,created__gt=start_time)
         elif month == 1507 :
             start_time = datetime.datetime(2015,7,21)
             end_time   = datetime.datetime(2015,7,29)
@@ -1799,13 +1803,13 @@ def  weixinorder_detail(request):
             info['score_refund']=score_refund
             info['post_fee_refund']=post_fee_refund
             rec1.append(info)
-       # print "这是",rec1
+        # print "这是",rec1    
         #response = render_to_response('weixin/weixinorder_detail.html', 
-                                     # {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
-                                      # "specific_order_finished":specific_order_finished,"refund": refund, 
-                                     #  "passed":passed, "openid":user_openid, "score_refund":score_refund,
-                                       #"post_fee_refund":post_fee_refund},
-                                     # context_instance=RequestContext(request))
+        # {'tradedata':data, "traces":shipping_traces, "score_passed":score_passed,
+        # "specific_order_finished":specific_order_finished,"refund": refund, 
+        #  "passed":passed, "openid":user_openid, "score_refund":score_refund,
+        #"post_fee_refund":post_fee_refund},
+        # context_instance=RequestContext(request))
         response = render_to_response('weixin/weixinorder_detail.html', 
                                      {'info':rec1},
                                       context_instance=RequestContext(request))                          

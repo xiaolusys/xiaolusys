@@ -31,7 +31,7 @@ function Create_product_detailsku_dom(obj) {
     	if (sku.is_saleout === true || !obj.is_saleopen ){
     		sku.sku_class="disable";
     	}
-        sku_list[sku_list.length] = '<li class="{{sku_class}}" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
+        sku_list[sku_list.length] = '<li class="{{sku_class}}" name="select-sku" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
     });
 
     obj.sku_list = sku_list.join('');
@@ -128,7 +128,9 @@ function Set_product_detail(suffix) {
     });
 }
 
-
+function reload(){
+    location.reload();
+}
 function Create_item() {
     var item_id = $("#product_id").html();
     var sku = $("#js-goods-size .active");
@@ -149,6 +151,12 @@ function Create_item() {
             },
             success: requestCallBack,
             error: function (data) {
+                if(data.status==500){
+                    if($.parseJSON(data.responseText).detail=="商品库存不足"){
+                        drawToast("商品库存不足");
+                        setTimeout(reload,1000)
+                    }
+                }
                 if (data.statusText == "FORBIDDEN") {
                     window.location = "denglu.html";
                 }
