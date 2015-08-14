@@ -102,8 +102,15 @@ function get_code() {
         phone_error.show();
         setTimeout("error_hide()", 1000);
     } else {
-        $.post("/rest/v1/register", {"vmobile": mobile},
-            function (data) {
+
+        $.ajax({
+            type: 'post',
+            url: "/rest/v1/register",
+            data: {"vmobile": mobile},
+            beforeSend: function () {
+
+            },
+            success: function (data) {
                 var result = data.result;
                 if (result == "0") {
                     phone_exist_error.text("此手机号码已注册，您可尝试修改密码~").show();
@@ -116,7 +123,18 @@ function get_code() {
                     phone_exist_error.text("亲,60s内无需重新获取").show();
                     setTimeout("error_hide()", 3000);
                 }
-            });
+            },
+            error: function (data) {
+
+                if(data.status==500){
+                    if($.parseJSON(data.responseText).detail=="手机号码有误"){
+                        phone_exist_error.text("手机号码有误").show();
+                        setTimeout("error_hide()", 3000);
+                    }
+                }
+            }
+        });
+
     }
 }
 
