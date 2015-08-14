@@ -75,18 +75,20 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         data = request.data
         customer_user = Customer.objects.filter(user=request.user)
+
         if customer_user.count() == 0:
             return Response({"result": "0"}) #登录过期
 
         product_id = data.get("item_id", None)
         buyer_id = customer_user[0].id
         sku_id = data.get("sku_id", None)
+        if product_id and sku_id:
+            raise exceptions.APIException(u'参数错误')
         sku_num = 1
         sku = get_object_or_404(ProductSku, pk=sku_id)
-        if not Product.objects.lockQuantity(sku,sku_num):
+        if not Product.objects.lockQuantity(sku, sku_num):
             raise exceptions.APIException(u'商品库存不足')
-        # lock_success = Product.objects.isQuantityLockable(sku, num) #限购功能
-        # if product_id and buyer_id and sku_id and lock_success:
+
         if product_id and buyer_id and sku_id:
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id,
                                                     status=ShoppingCart.NORMAL)

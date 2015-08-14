@@ -16,11 +16,14 @@ from shopapp.weixin.models import WeiXinUser
 from django.db import models
 from django.contrib.auth import authenticate, login, logout
 from flashsale.pay.models import Register, Customer,Integral
+from rest_framework import exceptions
 
 from . import permissions as perms
 from . import serializers
 from shopapp.smsmgr.tasks import task_register_code
 
+import re
+PHONE_NUM_RE = re.compile(r'1[34578][0-9]{9}', re.IGNORECASE)
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
@@ -41,8 +44,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         mobile = request.data['vmobile']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=60)
-        if mobile == "":  # 进行正则判断，待写
-            return Response({"result": "false"})
+        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+            raise exceptions.APIException(u'手机号码有误')
         reg = Register.objects.filter(vmobile=mobile)
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
