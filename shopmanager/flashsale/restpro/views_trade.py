@@ -82,7 +82,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_id = data.get("item_id", None)
         buyer_id = customer_user[0].id
         sku_id = data.get("sku_id", None)
-        if product_id and sku_id:
+        if not (product_id and sku_id):
             raise exceptions.APIException(u'参数错误')
         sku_num = 1
         sku = get_object_or_404(ProductSku, pk=sku_id)

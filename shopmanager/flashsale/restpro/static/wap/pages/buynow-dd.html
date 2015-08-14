@@ -46,11 +46,11 @@
 		  <div class="gsize">尺码：{{ sku.sku_name }}</div>
 		  <div class="goprice"><s>¥{{ sku.std_sale_price }}</s></div>
 		  <div class="gcount">
-		    <div class="btn reduce" onclick="minus_shop({{ sku.id }})"></div>
+		    <div class="btn reduce" onclick="minus_shop({{ sku.id }})" name="btn-reduce"></div>
 		    <div class="total">
 		      <input type="number" name="num" readonly id="num_{{ sku.id }}" value="1">
 		    </div>
-		    <div class="btn plus" onclick="plus_shop({{ sku.id }})"></div>
+		    <div class="btn plus" onclick="plus_shop({{ sku.id }})" name="btn-plus"></div>
 		  </div>
 		</div>
 		<input type="hidden" name="uuid" value="{{uuid}}" />
