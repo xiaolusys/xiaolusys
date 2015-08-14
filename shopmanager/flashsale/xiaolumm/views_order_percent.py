@@ -40,7 +40,6 @@ def by_Linkid_Analysis(request):
     inner_raw = order_num(sql2)
     mm_raw = order_num(sql3)
     result_list = raw_handler(outer_raw=outer_raw, mm_raw=mm_raw, inner_raw=inner_raw)
-    print time_from, time_to, '时间区间', result_list
     return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), mimetype="application/json")
 
 
@@ -119,14 +118,9 @@ def xlmm_Carry_Log(request):
     sql1 = "SELECT log_type ,sum(value)/100 FROM xiaolumm_carrylog WHERE created BETWEEN '{0}' AND '{1}'AND " \
            "log_type in {2} AND status = 'confirmed' AND xlmm>134 GROUP BY log_type;".format(time_from, time_to, log_type)
 
-    print sql1, "sql1"
     raw = order_num(sql1)
     result_list = carry_Raw_Hander(raw=raw)
-    print result_list, "result_list"
-    #((u'rebeta', Decimal('122.0000')), (u'subsidy', Decimal('35.0000')), (u'thousand', Decimal('500.0000')))
-    print sql1, "sql1"
     return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), mimetype="application/json")
-
 
 
 def carry_Raw_Hander(raw=None):
@@ -154,10 +148,13 @@ def carry_Raw_Hander(raw=None):
         value_all += type_value
     result_list.append([all_name, value_all])
 
-    return result_list
+    return result_list[::-1]
+
 
 def judeg_Loge_Type(type_value=None):
-    if type_value == 7:
+    if type_value == 15:
+        log_type = ("rebeta", "subsidy", "thousand", "ordred")
+    elif type_value == 7:
         log_type = ("rebeta", "subsidy", "thousand")  # 7
     elif type_value == 3:
         log_type = ("rebeta", "subsidy")  # 3

@@ -67,6 +67,7 @@
             <span class="label label-info">订单返利<input name="rebeta" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="1" /></span>
             <span class="label label-info">代理补贴<input name="subsidy" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="2" /></span>
             <span class="label label-info">千元提成<input name="thousand" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="4" /></span>
+            <span class="label label-info">订单红包<input name="ordred" class="log_type" style=" width: 25px; height: 25px;" type="checkbox" value="8" /></span>
         </div>
     </div>
     <div id="tab_cup_carry" class="container"></div>
@@ -152,7 +153,7 @@
                     console.log(res);
                     var rowCount = res.length;
 
-                    var table = $('<table class="table table-condensed table-hover"><thead><th>Carry类型</th><th>￥数值</th><thead>');
+                    var table = $('<table class="table table-condensed table-hover"><thead><th>Carry类型</th><th>￥数值</th><th>占比</th><thead>');
                     table.appendTo($("#createtable_carry_" + carry_id));
                     for (var i = 0; i < rowCount; i++) {
                         var tr = $("<tr></tr>");
@@ -161,6 +162,8 @@
                             var td = $("<td>" + res[i][j] + "</td>");
                             td.appendTo(tr);
                         }
+                        var percent_td = $("<td>" + (res[i][1] / res[0][1]).toFixed(3) + "</td>");
+                        percent_td.appendTo(tr);
                     }
                     tr.appendTo(table);
                     $("#createtable_carry_" + carry_id).append("</table>");
