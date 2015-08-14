@@ -34,7 +34,7 @@ router.register(r'couponpool', views.UserCouponPoolViewSet)
 
 router_urls = router.urls
 
-router_urls += format_suffix_patterns([
+router_urls += format_suffix_patterns([  
         url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),    
         url(r'^products/modellist/(?P<model_id>[0-9]+)$',
             views_product.ProductViewSet.as_view({'get': 'modellist'}),
