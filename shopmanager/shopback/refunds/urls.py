@@ -9,7 +9,7 @@ from shopback.refunds.views import RefundProductView,RefundView,RefundManagerVie
 # from shopback.refunds.renderers import RefundProductRenderer,RefundManagerRenderer
 # from shopback.refunds.resources import RefundProductResource,RefundResource
 from refund_analysis import refund_Analysis, refund_Reason, refund_Invalid_Create
-
+from .views_quality_tracert import tracert_Page_Show, tracert_Data_Collect
 
 
 
@@ -53,5 +53,9 @@ urlpatterns = patterns('shopback.refunds.views',
 
     # refund_Invalid_Create
     url('refund_invalid_create/$', staff_member_required(refund_Invalid_Create), name='refunde_reson_analysis'),
+
+    # refund quality handler
+    url('refund_quality_handler/$', staff_member_required(tracert_Page_Show), name='refunde_reson_analysis'),
+    url('refund_quality_data/$', staff_member_required(tracert_Data_Collect), name='refunde_reson_analysis'),
 
 )
