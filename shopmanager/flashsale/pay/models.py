@@ -3,6 +3,7 @@ import time
 import json
 import datetime
 from django.db import models
+from django.shortcuts import get_object_or_404
 
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
@@ -196,8 +197,16 @@ class SaleTrade(models.Model):
                 return True
         return False
     
+    def release_lock_skunum(self):
+        try:
+            for order in self.normal_orders:
+                product_sku = ProductSku.objects.get(id=order.sku_id)
+                Product.objects.releaseLockQuantity(product_sku, order.num)
+        except Exception,exc:
+            logger = logging.getLogger('django.request')
+            logger.error(exc.message,exc_info=True)
+    
     def confirm_payment(self):
-        
         signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
             
     def charge_confirm(self,charge_time=None):
@@ -210,8 +219,19 @@ class SaleTrade(models.Model):
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
         
+        self.release_lock_skunum()        
         self.confirm_payment()
-
+        
+    def close_trade(self):
+        """ 关闭待付款订单 """
+        SaleTrade.objects.get(id=self.id,status=SaleTrade.WAIT_BUYER_PAY)
+        
+        for order in self.normal_orders:
+            order.close_order()
+            
+        self.status = SaleTrade.TRADE_CLOSED_BY_SYS
+        self.save()
+            
 
 class SaleOrder(models.Model):
     
@@ -299,9 +319,20 @@ class SaleOrder(models.Model):
         
     @property
     def refundable(self):
-        
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
-      
+    
+    def close_order(self):
+        """ 待付款关闭订单 """
+        try:
+            SaleOrder.objects.get(id=self.id,status=SaleOrder.WAIT_BUYER_PAY)
+        except SaleOrder.DoesNotExist,exc:
+            return
+    
+        self.status = self.TRADE_CLOSED_BY_SYS
+        self.save()
+        sku = get_object_or_404(ProductSku, pk=self.sku_id)
+        Product.objects.releaseLockQuantity(sku,self.num)
+        
 
 class TradeCharge(models.Model):
     
@@ -365,7 +396,8 @@ class ShoppingCart(models.Model):
     
     created       =  models.DateTimeField(null=True,auto_now_add=True,db_index=True,blank=True,verbose_name=u'创建日期')
     modified      =  models.DateTimeField(null=True,auto_now=True,db_index=True,blank=True,verbose_name=u'修改日期')
-    
+    remain_time   =  models.DateTimeField(null=True, blank=True, verbose_name=u'保留时间')
+
     status = models.IntegerField(choices=STATUS_CHOICE,default=NORMAL,
                               db_index=True,blank=True,verbose_name=u'订单状态') 
     
@@ -376,6 +408,18 @@ class ShoppingCart(models.Model):
         
     def __unicode__(self):
         return '%s'%(self.id)
+    
+    def close_cart(self):
+        """ 关闭购物车 """
+        try:
+            ShoppingCart.objects.get(id=self.id,status=ShoppingCart.NORMAL)
+        except ShoppingCart.DoesNotExist:
+            return
+    
+        self.status = self.CANCEL
+        self.save()
+        sku = get_object_or_404(ProductSku, pk=self.sku_id)
+        Product.objects.releaseLockQuantity(sku,self.num)
     
     def std_sale_price(self):
         sku = ProductSku.objects.get(id=self.sku_id)
@@ -416,15 +460,3 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
-def confirm_minus_sku_locknum(sender, obj, *args, **kwargs):
-    """ 订单确认付款后释放锁定库存 """
-    try:
-        for order in obj.normal_orders:
-            product_sku = ProductSku.objects.get(id=order.sku_id)
-            Product.objects.releaseLockQuantity(product_sku, order.num)
-    except Exception,exc:
-        logger = logging.getLogger('django.request')
-        logger.error(exc.message,exc_info=True)
-
-
-signal_saletrade_pay_confirm.connect(confirm_minus_sku_locknum, sender=SaleTrade)

@@ -114,11 +114,11 @@ function plus_shop(id) {
             $("#loading").show();
         },
         success: requestCallBack,
-        error: function(err){
-        	var resp = JSON.parse(err.responseText);
-			if (!isNone(resp.detail)){
-				drawToast(resp.detail);
-			}
+        error: function (err) {
+            var resp = JSON.parse(err.responseText);
+            if (!isNone(resp.detail)) {
+                drawToast(resp.detail);
+            }
         }
     });
 }
@@ -145,14 +145,77 @@ function minus_shop(id) {
                 $("#loading").show();
             },
             success: requestCallBack,
-            error: function(err){
-	        	var resp = JSON.parse(err.responseText);
-				if (!isNone(resp.detail)){
-					drawToast(resp.detail);
-				}
-	        }
+            error: function (err) {
+                var resp = JSON.parse(err.responseText);
+                if (!isNone(resp.detail)) {
+                    drawToast(resp.detail);
+                }
+            }
         });
     } else {
         drawToast("客官至少买一件嘛");
     }
+}
+
+get_remain_time();
+function get_remain_time() {
+    /*
+     * 得到购物车数量
+     * auther:yann
+     * date:2015/13/8
+     */
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
+    var requestCallBack = function (res) {
+        var newDate = new Date();
+        if (res.last_created > 0) {
+            newDate.setTime(res.last_created * 1000);
+            cart_timer(newDate)
+        }
+    };
+    // 发送请求
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: "",
+        beforeSend: function () {
+
+        },
+        success: requestCallBack,
+        error: function (data) {
+            console.log('debug cartnum:', data);
+            if (data.status == 403) {
+                $(".total").html("0");
+            }
+        }
+    });
+}
+
+function cart_timer(remain_date) {
+    /*
+     * 购物车倒计时
+     * auther:yann
+     * date:2015/13/8
+     */
+    var ts =  remain_date - (new Date());//计算剩余的毫秒数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+    console.log("sss",ts);
+    if (ts > 0) {
+        $("#remain_time").text( mm + ":" + ss);
+        setTimeout(function () {
+                cart_timer(remain_date);
+            },
+            1000);
+    } else {
+        $("#remain_time").text("");
+    }
+
+}
+function checkTime(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
 }

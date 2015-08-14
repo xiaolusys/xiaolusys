@@ -73,7 +73,7 @@ class WeixinPubBackend(RemoteUserBackend):
 
     def authenticate(self, request, **kwargs):
         
-        if not request.path.startswith(("/mm/","/pages/")):
+        if not request.path.startswith(("/mm/","/rest/")):
             return None
         
         code = request.GET.get('code')

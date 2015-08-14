@@ -58,20 +58,7 @@ router_urls += format_suffix_patterns([
         url(r'^user/mycoupon/',
             views.UserCouponViewSet.as_view({'get': 'list'}),
             name="user-coupon"),
-        url(r'^districts/city_list/',
-            views.DistrictViewSet.as_view({'get': 'city_list'}),
-            name="city_list"),                                                                    
-        url(r'^districts/country_list/',
-            views.DistrictViewSet.as_view({'get': 'country_list'}),
-            name="country_list"), 
-         url(r'^address/create_address/',
-            views.UserAddressViewSet.as_view({'post': 'create_address'}),
-            name="create_address"),
-        url(r'^address/update/',
-            views.UserAddressViewSet.as_view({'post': 'update'}),
-            name="update"),
-        url(r'^user/couponcheck/$', Coupon_Check, name="coupon_check"),
-                               
+        url(r'^user/couponcheck/$', Coupon_Check, name="coupon_check")
     ])
 
 urlpatterns = patterns('',
