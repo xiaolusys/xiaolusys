@@ -149,6 +149,17 @@ body{
   left: 50px;
   top: 10px;
 }
+.cart .carttime {
+    display: block;
+    font-size: 28px;
+    line-height: 22px;
+    font-style: normal;
+    margin-left: 12px;
+    color: #fff;
+    position: absolute;
+    top: 30px;
+    right: 10px;
+}
 .scroll-top{
   right: 20px;
   background-image:url(../images/icon-fanhuidingbu.png);
