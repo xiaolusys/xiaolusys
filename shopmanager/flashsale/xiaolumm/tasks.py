@@ -393,10 +393,10 @@ def calc_Mama_Thousand_Rebeta(xlmm,start,end):
         shoptime__range=(start,end),
         status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED)
     )
-    # 过去一个月的成交额
-    sum_tichengcount = shoppings.aggregate(total_tichengcount=Sum('tichengcount')).get('total_tichengcount') or 0
+#         # 过去一个月的成交额
+    sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
     
-    return sum_tichengcount
+    return sum_wxorderamount
 
 
 @task()
