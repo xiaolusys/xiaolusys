@@ -149,13 +149,13 @@ function product_timer(shelf_time) {
     ss = checkTime(ss);
 
     if (ts > 0) {
-        $(".shengyu span").text(hh + "时" + mm + "分" + ss + "秒");
+        $(".shengyu span").text(hh + ":" + mm + ":" + ss + ":");
         setTimeout(function () {
                 product_timer(shelf_time);
             },
             1000);
     } else {
-        $(".shengyu span").text("00:00");
+        $(".shengyu span").text("00:00:00");
     }
 
 }
