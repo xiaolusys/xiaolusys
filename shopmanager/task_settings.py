@@ -315,6 +315,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="15", hour="2"),
         'args': ()
     },
+    u'定时更新购物车和订单状态':{
+        'task':'flashsale.restpro.tasks.task_off_the_shelf',
+        'schedule': crontab(minute="20", hour="2"),
+        'args': ()
+    },
 
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',

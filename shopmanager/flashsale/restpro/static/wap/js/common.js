@@ -221,28 +221,36 @@ var cart_timer = function () {
      * auther:yann
      * date:2015/14/8
      */
+    var count = 0;
+
     function privateFunction() {
         var ts = remain_date - (new Date());//计算剩余的毫秒数
         var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
         var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
         mm = checkTime(mm);
         ss = checkTime(ss);
-        if (ts > 0) {
-            $(".carttime").html(mm + ":" + ss);
-            $(".cart").animate({width: "160px"});
-            setTimeout(function () {
-                    privateFunction();
-                },
-                1000);
-        } else {
-            $(".carttime").html("");
-            $(".cart").animate({width: "80px"});
+        if (count == 1) {
+            if (ts > 0) {
+                $(".carttime").html(mm + ":" + ss);
+                $(".cart").animate({width: "160px"});
+                setTimeout(function () {
+                        privateFunction();
+                    },
+                    1000);
+            } else {
+                $(".carttime").html("");
+                $(".cart").animate({width: "80px"});
+            }
+        }else{
+            count = 1;
         }
+
     }
 
 
     return {
         publicMethod: function () {
+            count++;
             return privateFunction();
         }
     };
