@@ -488,10 +488,10 @@ def logclicks(request, linkid):
     if not valid_openid(openid):
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
         return redirect(redirect_url)
-
+    
     click_time = datetime.datetime.now()
     tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
-
+    
     return redirect(SHOPURL)
 
 

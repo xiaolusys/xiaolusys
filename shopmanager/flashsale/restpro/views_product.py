@@ -212,7 +212,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def ladylist(self, request, *args, **kwargs):
         """ 获取特卖女装列表 """
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(shelf_status=Product.UP_SHELF).order_by('-details__is_recommend')
+        queryset = queryset.filter(shelf_status=Product.UP_SHELF)
         
         female_qs = self.order_queryset(request,self.get_female_qs(queryset))
         page = self.paginate_queryset(female_qs)
