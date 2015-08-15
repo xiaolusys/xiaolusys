@@ -97,6 +97,7 @@ var GLConfig = {
     get_order_detail_url:'/trades/{{ tid }}/orders/{{ oid　}}',//获取单个SaleOrder明细
 	get_trade_charge_url:'/trades/shoppingcart_create.json', //购物车结算订单接口
 	get_buynow_url:'/trades/buynow_create.json', //立即购物订单创建接口
+	waitpay_charge:'/trades/{{trade_id}}/charge.json', //待支付订单结算接口
 	get_cart_url:'/carts.json', //获取购物车详细
 	get_cart_payinfo_url:'/carts/carts_payinfo.json?cart_ids={{cart_ids}}', //根据购物车id列表获取支付明细
 	get_now_payinfo_url:'/carts/now_payinfo.json?item_id={{item_id}}&sku_id={{sku_id}}', //根据购物车id列表获取支付明细
@@ -181,6 +182,9 @@ function DoIfLogin(cfg){
 }
 
 
+
+var remain_date = 0;
+
 function Set_shopcarts_num() {
     /*
      * 得到购物车数量
@@ -190,18 +194,21 @@ function Set_shopcarts_num() {
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_num_cart;
     var requestCallBack = function (res) {
         $(".total").html(res.result);
+        var newDate = new Date();
+        if (res.last_created > 0) {
+            remain_date = newDate.setTime(res.last_created * 1000);
+            cart_timer.publicMethod();
+        }
+
     };
     // 发送请求
     $.ajax({
         type: 'get',
         url: requestUrl,
         data: "",
-        beforeSend: function () {
-
-        },
         success: requestCallBack,
         error: function (data) {
-        	console.log('debug cartnum:',data);
+            console.log('debug cartnum:', data);
             if (data.status == 403) {
                 $(".total").html("0");
             }
@@ -209,3 +216,42 @@ function Set_shopcarts_num() {
     });
 }
 
+var cart_timer = function () {
+    /*
+     * 购物车倒计时
+     * auther:yann
+     * date:2015/14/8
+     */
+    function privateFunction() {
+        var ts = remain_date - (new Date());//计算剩余的毫秒数
+        var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+        var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+        mm = checkTime(mm);
+        ss = checkTime(ss);
+        if (ts > 0) {
+            $(".carttime").html(mm + ":" + ss);
+            $(".cart").animate({width: "160px"});
+            setTimeout(function () {
+                    privateFunction();
+                },
+                1000);
+        } else {
+            $(".carttime").html("");
+            $(".cart").animate({width: "80px"});
+        }
+    }
+
+
+    return {
+        publicMethod: function () {
+            return privateFunction();
+        }
+    };
+}();
+
+function checkTime(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}

@@ -218,7 +218,9 @@
 }
 .cart{
   left:20px;
-  background-image:url(../images/icon-gouwuche.png); 
+  background:url(../images/icon-gouwuche1.png) no-repeat #666666;
+  border-radius: 40px;
+  width: 80px;
 }
 .cart .total{
   display: block;
@@ -231,9 +233,22 @@
   border-radius: 50%;
   background-color: #ea4c88;
   position: absolute;
-  right: 11px;
-  top:14px;
+  left: 50px;
+  top: 10px;
 }
+
+.cart .carttime {
+    display: block;
+    font-size: 28px;
+    line-height: 22px;
+    font-style: normal;
+    margin-left: 12px;
+    color: #fff;
+    position: absolute;
+    top: 30px;
+    right: 10px;
+}
+
 .scroll-top{
   right: 20px;
   background-image:url(../images/icon-fanhuidingbu.png);

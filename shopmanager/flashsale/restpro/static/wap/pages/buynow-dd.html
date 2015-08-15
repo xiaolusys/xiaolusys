@@ -25,7 +25,7 @@
     </a>
   </li>
   <script id="addr-template" type="text/html">
-  <li class="{{ addr_class }}">
+  <li class="{{ addr_class }}" name="select-addr">
     <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
     <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
     <a class="icon-edit"></a>
@@ -46,11 +46,11 @@
 		  <div class="gsize">尺码：{{ sku.sku_name }}</div>
 		  <div class="goprice"><s>¥{{ sku.std_sale_price }}</s></div>
 		  <div class="gcount">
-		    <div class="btn reduce" onclick="minus_shop({{ sku.id }})"></div>
+		    <div class="btn reduce" onclick="minus_shop({{ sku.id }})" name="btn-reduce"></div>
 		    <div class="total">
 		      <input type="number" name="num" readonly id="num_{{ sku.id }}" value="1">
 		    </div>
-		    <div class="btn plus" onclick="plus_shop({{ sku.id }})"></div>
+		    <div class="btn plus" onclick="plus_shop({{ sku.id }})" name="btn-plus"></div>
 		  </div>
 		</div>
 		<input type="hidden" name="uuid" value="{{uuid}}" />
@@ -95,7 +95,7 @@
 <div class="buy">
   <p class="cou">优惠金额：<span>￥ 0</span></p>
   <p class="total">总金额：<span>￥ 0</span></p>
-  <a class="btn-buy">购&nbsp;&nbsp;买</a>
+  <a class="btn-buy" name="btn-buy">购&nbsp;&nbsp;买</a>
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/pingpp_pay.js"></script>

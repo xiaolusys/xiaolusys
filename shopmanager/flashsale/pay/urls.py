@@ -4,7 +4,6 @@ from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.decorators.cache import cache_page
-from django.conf import settings
 
 from .decorators import sale_buyer_required,weixin_xlmm_auth
 from . import views

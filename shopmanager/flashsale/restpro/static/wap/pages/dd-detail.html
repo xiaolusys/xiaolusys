@@ -65,7 +65,10 @@
 
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="../js/pingpp_pay.js"></script>
+<script src="../js/pingpp_ap.js"></script>
 <script src="../js/tmdd.js"></script>
+<script src="../js/tmpay.js"></script>
 <script src="../js/sweet-alert.min.js"></script>
 <script type="text/javascript">
 (function($){
@@ -97,7 +100,15 @@
 
   //获取待支付订单列表
   Set_order_detail(order_url);
+  //确认支付事件响应
+  $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy_button .btn-buy');
 })(jQuery);
+function Confirm_charge(){
+	var urlParams = parseUrlParams(window.location.href);
+  	var urlConf = {'trade_id':urlParams['id']};
+    Ctrl_order_charge(GLConfig.waitpay_charge.template(urlConf));
+};
+
 </script>
 </body>
 </html>

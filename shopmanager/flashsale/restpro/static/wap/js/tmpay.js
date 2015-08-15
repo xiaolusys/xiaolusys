@@ -53,13 +53,13 @@ function Set_user_orderinfo(suffix){
 		$('.buy .total span').html('<em>￥</em>' + data.total_payment);
 		
 		if (data.wallet_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="wallet"></i>小鹿钱包</li>');
+			$('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="wallet"></i>小鹿钱包</li>');
 		}
 		if (data.weixin_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="wx_pub"></i>微信支付</li>');
+			$('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="wx_pub"></i>微信支付</li>');
 		}
 		if (data.alipay_payable){
-			$('.pay-type .pay-list').append('<li class="normal"><i id="alipay_wap"></i>支付宝</li>');
+			$('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="alipay_wap"></i>支付宝</li>');
 		}
 		$('.pay-type .pay-list li:first').removeClass('normal').addClass('active');
 		if (!isNone(data.sku)){
@@ -123,6 +123,49 @@ function Ctrl_sure_charge(pay_url){
     $('.btn-buy').addClass('charged');
     $('.btn-buy').addClass('pressed');
 
+    var callBack = function(data){
+	  	if (data.channel == WALLET_PAY){//使用钱包支付
+	  		window.location.href = GLConfig.zhifucg_url;
+	  	}else{
+	      pingpp.createPayment(data, function(result, err) {
+	      	if (result == "success") {
+		        window.location.href =  GLConfig.zhifucg_url;
+		    } else if (result == "fail") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    } else if (result == "cancel") {
+		        window.location.href =  GLConfig.daizhifu_url;
+		    }
+	      });
+	    }
+    }
+    
+    // 调用接口
+	$.ajax({ 
+		type:'post', 
+		url:CHARGE_URL, 
+		data:params, 
+		dataType:'json', 
+		success:callBack,
+		error:function(err){
+			$('.btn-buy').removeClass('charged').removeClass('pressed');
+			var resp = JSON.parse(err.responseText);
+			if (!isNone(resp.detail)){
+				drawToast(resp.detail);
+			}else{
+				drawToast('支付异常');
+			}
+		} 
+	});
+}
+
+function Ctrl_order_charge(pay_url){
+	//待支付订单确认支付
+	if ($('.btn-buy').hasClass('charged')){return;}   
+	var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
+	var WALLET_PAY  = 'wallet';
+	$('.btn-buy').addClass('charged');
+    $('.btn-buy').addClass('pressed');
+	var params = {};
     var callBack = function(data){
 	  	if (data.channel == WALLET_PAY){//使用钱包支付
 	  		window.location.href = GLConfig.zhifucg_url;

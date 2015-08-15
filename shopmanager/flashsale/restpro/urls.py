@@ -33,7 +33,6 @@ router.register(r'integrallog', views.UserIntegralLogViewSet)
 
 router.register(r'couponpool', views.UserCouponPoolViewSet)
 
-
 router_urls = router.urls
 
 router_urls += format_suffix_patterns([  
