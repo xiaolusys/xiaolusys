@@ -68,8 +68,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             "receiver_mobile": receiver_mobile,
         }
         
-        get_one_addres： 得到要修改的那一个地址的信息（get请求）        /address/get_one_address       data{"id":}         
-        /address/update/?format=json  :修改地址    （post）      data: {
+        get_one_addres： 得到要修改的那一个地址的信息（get请求）        /address/  get_one_address       data{"id":}         
+         update:        "/address/" + id + "/update";  :修改地址    （post）      data: {
              “id”：
             "receiver_state": receiver_state,
             "receiver_city": receiver_city,
