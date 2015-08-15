@@ -168,7 +168,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
-            return exceptions.APIException(u'至少购买一件')
+            raise exceptions.APIException(u'至少购买一件')
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
         Product.objects.releaseLockQuantity(sku,1)
