@@ -28,7 +28,9 @@ def task_off_the_shelf(product_id=None):
                 all_order = trade.sale_orders.all()
                 for order in all_order:
                     product_b = Product.objects.filter(outer_id=order.outer_id)
-                    if product_b.count() > 0 and product_b[0].shelf_status == Product.DOWN_SHELF:
+                    if product_b.count() > 0 \
+                            and product_b[0].shelf_status == Product.DOWN_SHELF \
+                            and trade.status == SaleTrade.WAIT_BUYER_PAY:
                         trade.close_trade()
                         log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
 
