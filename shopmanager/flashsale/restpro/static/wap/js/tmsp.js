@@ -114,6 +114,10 @@ function Set_product_detail(suffix) {
         //设置商品内容图列表
         var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
         $('.goods-img .list').html(bottom_dom);
+        if(data.sale_time){
+            var shelf_time = new Date(data.sale_time);
+            product_timer(shelf_time);
+        }
     };
     // 发送请求
     $.ajax({
@@ -126,6 +130,34 @@ function Set_product_detail(suffix) {
         },
         success: requestCallBack
     });
+}
+
+function product_timer(shelf_time) {
+    /*
+     * 商品倒计时
+     * auther:yann
+     * date:2015/15/8
+     */
+    var ts = (new Date(shelf_time.getFullYear(), shelf_time.getMonth(), shelf_time.getDate() + 1, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
+
+    var hh = parseInt(ts / 1000 / 60 / 60 , 10);//计算剩余的小时数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+
+    hh = checkTime(hh);
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+
+    if (ts > 0) {
+        $(".shengyu span").text(hh + "时" + mm + "分" + ss + "秒");
+        setTimeout(function () {
+                product_timer(shelf_time);
+            },
+            1000);
+    } else {
+        $(".shengyu span").text("00:00");
+    }
+
 }
 
 function reload(){

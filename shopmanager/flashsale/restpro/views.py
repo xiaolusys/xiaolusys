@@ -55,10 +55,29 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     API endpoint that allows groups to be   viewed or edited.
     author： kaineng .fang  2015-8--
     方法及其目的
-    detail  （）：获得用户所有收获地址
-    delete（）：删除某个地址
-    change_default：选择收获地址
-    create_address：创建新的收获地址
+    detail  （）：获得用户所有收获地址  (使用 get 方法）    /address.json
+    delete（）：删除某个地址 （post  方法)      /address/" + id + "/delete_address
+    change_default：选择收获地址  (post方法）    /address/" + id + "/change_default",更改默认地址
+    create_address：创建新的收获地址（post方法）  /address/create_address?format=json'   data: {
+          
+            "receiver_state": receiver_state,
+            "receiver_city": receiver_city,
+            "receiver_district": receiver_district,
+            "receiver_address": receiver_address,
+            "receiver_name": receiver_name,
+            "receiver_mobile": receiver_mobile,
+        }
+        
+        get_one_addres： 得到要修改的那一个地址的信息（get请求）        /address/  get_one_address       data{"id":}         
+         update:        "/address/" + id + "/update";  :修改地址    （post）      data: {
+             “id”：
+            "receiver_state": receiver_state,
+            "receiver_city": receiver_city,
+            "receiver_district": receiver_district,
+            "receiver_address": receiver_address,
+            "receiver_name": receiver_name,
+            "receiver_mobile": receiver_mobile,
+        }
     """
     queryset = UserAddress.normal_objects.order_by('-default')
     serializer_class = serializers.UserAddressSerializer# Create your views here.
@@ -76,13 +95,6 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)    
     
 #fang kaineng  2015-7-31    
-    def detail(self,request):
-        customer = get_object_or_404(Customer,user=request.user)
-        #print customer.id
-        queryset=UserAddress.objects.filter(cus_uid=customer.id)
-        serializer = self.get_serializer(queryset, many=True)
-
-        return    Response(serializer.data)
         
     @detail_route(methods=['post'])
     def update(self, request, *args, **kwargs):

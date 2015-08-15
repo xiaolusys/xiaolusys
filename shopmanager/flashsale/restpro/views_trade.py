@@ -732,3 +732,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(data={"ok": True})
+
+    @detail_route(methods=['post'])
+    def confirm_sign(self, request, pk=None):
+        instance = self.get_object()
+        instance.confirm_sign_trade()
+        return Response(data={"ok": True})

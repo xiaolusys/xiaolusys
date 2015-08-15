@@ -159,7 +159,7 @@ $("#btn-up").click(function () {
         return false
     }
     //请求成功回调函数
-    var reqUrl = GLConfig.baseApiUrl + GLConfig.update
+    var reqUrl = GLConfig.baseApiUrl + "/address/" + id + "/update";
     var requestCallBack = function () {
         alert("修改成功！")
         window.location.href = "shouhuodz.html"

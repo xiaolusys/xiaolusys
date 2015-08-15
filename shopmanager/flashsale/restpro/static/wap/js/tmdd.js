@@ -42,9 +42,10 @@ function Create_order_dom(obj) {
     if (obj.status == 1) {
         obj.btn_class = 'shengyu';
         obj.btn_content = '剩余时间：' + parseTimeSM(obj.created);
-    } else if (obj.status == 2) {
+    } else if (obj.status == 3) {// 已发货才显示确认签收
         obj.btn_class = 'btn-qianshou';
         obj.btn_content = '确认签收';
+        obj.cid = obj.id;
     } else {
         obj.btn_class = '';
         obj.btn_content = '';
@@ -54,7 +55,7 @@ function Create_order_dom(obj) {
          <li>
          <div class="top clear">
          <div class="xiadan">下单时间：{{ created }}</div>
-         <div class="{{btn_class}}" xl_created="{{created}}">{{btn_content}}</div>
+         <div class="{{btn_class}}" xl_created="{{created}}" cid="{{cid}}" onclick="Confirm_Sign_For(this)">{{btn_content}}</div>
          </div>
          <a href="./dd-detail.html?id={{ id }}" class="info clear">
          <div class="left"><img src="{{ order_pic }}" /></div>
@@ -297,5 +298,43 @@ function Cancel_order(suffix) {
     });
 }
 
+//确认签收
+function Confirm_Sign_For(dom) {
+    var trade_id = $(dom).attr('cid');
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.confirm_sign_trade.template({"trade_id": trade_id});
+    swal({
+            title: "",
+            text: "订单准备签收啦~ 确认收货么？",
+            type: "",
+            showCancelButton: true,
+            imageUrl: "http://image.xiaolu.so/logo.png",
+            confirmButtonColor: '#DD6B55',
+            confirmButtonText: "确定",
+            cancelButtonText: "取消"
+        },
+        function (){
+            confirm_Sign_For();
+        }
+    );
+    function requestCallBack(res){
+        if(res.ok){
+            //签收成功 则 刷新页面
+            console.log("reload page");
+            location.reload();
+        }
+        else{
+            drawToast("签收出现了问题，请联系客服咯~");
+        }
+    }
 
+    function confirm_Sign_For() {
+        $.ajax({
+            type: 'post',
+            url: requestUrl,
+            data: {'csrfmiddlewaretoken': csrftoken, '_method': 'POST'},//封装请求要求的request.data
+            dataType: 'json',
+            success: requestCallBack
+        });
+    }
+}
 
