@@ -110,7 +110,6 @@ var GLConfig = {
 	city_list:'/districts/city_list?format=json',//城市列表
 	country_list:'/districts/country_list?format=json',//区/县列表
 	create_address:'/address/create_address?format=json',//创建新的收货地址
-	update:'/address/update/?format=json',//修改收货地址
 	get_user_profile:'/users/profile.json',//得到用户信息
 	get_user_point:'/integral.json',//得到用户积分
 	delete_detail_trade:'/trades/{{trade_id}}',//用户取消订单
