@@ -105,6 +105,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     hasattr(new_shop_cart, k) and setattr(new_shop_cart, k, v)
             new_shop_cart.buyer_nick = customer_user[0].nick if customer_user[0].nick else ""
             new_shop_cart.price = sku.agent_price
+            new_shop_cart.num = 1
             new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
             new_shop_cart.sku_name = sku.properties_alias if len(sku.properties_alias) > 0 else sku.properties_name
             new_shop_cart.pic_path = sku.product.pic_path
