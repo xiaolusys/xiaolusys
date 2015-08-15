@@ -231,7 +231,21 @@ class SaleTrade(models.Model):
             
         self.status = SaleTrade.TRADE_CLOSED_BY_SYS
         self.save()
-            
+
+    @property
+    def can_sign_order(self):
+        """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""
+        return self.sale_orders.filter(status__in=(SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                                   SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                                                   SaleOrder.TRADE_BUYER_SIGNED))
+
+    def confirm_sign_trade(self):
+        """确认签收 修改该交易 状态到交易完成 """
+        SaleTrade.objects.get(id=self.id)
+        for order in self.can_sign_order:
+            order.confirm_sign_order()  # 同时修改正常订单到交易完成
+        self.status = SaleTrade.TRADE_FINISHED
+        self.save()
 
 class SaleOrder(models.Model):
     
@@ -332,7 +346,15 @@ class SaleOrder(models.Model):
         self.save()
         sku = get_object_or_404(ProductSku, pk=self.sku_id)
         Product.objects.releaseLockQuantity(sku,self.num)
-        
+
+    def confirm_sign_order(self):
+        """确认签收 修改该订单状态到 交易完成"""
+        try:
+            SaleOrder.objects.get(id=self.id)
+        except SaleOrder.DoesNotExist,exc:
+            return
+        self.status = self.TRADE_FINISHED
+        self.save()
 
 class TradeCharge(models.Model):
     
