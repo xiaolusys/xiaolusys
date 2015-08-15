@@ -30,13 +30,14 @@ class StatisticsShopping(models.Model):
     
     NORMAL_STATUS = [WAIT_SEND,FINISHED]
     
-    linkid = models.IntegerField(default=0,verbose_name=u"链接ID")
-    linkname = models.CharField(max_length=20, default="", verbose_name=u'代理人')
-    openid = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"优尼OpenId")
+    linkid    = models.IntegerField(default=0,verbose_name=u"链接ID")
+    linkname  = models.CharField(max_length=20, default="", verbose_name=u'代理人')
+    openid    = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"优尼OpenId")
     wxorderid = models.CharField(max_length=64, db_index=True, verbose_name=u'微信订单')
-    wxordernick = models.CharField(max_length=32, verbose_name=u'购买昵称')
+    wxordernick   = models.CharField(max_length=32, verbose_name=u'购买昵称')
     wxorderamount = models.IntegerField(default=0, verbose_name=u'微信订单价格')
-    tichengcount = models.IntegerField(default=0, verbose_name=u'提成')
+    rebetamount   = models.IntegerField(default=0, verbose_name=u'可返利金额')
+    tichengcount  = models.IntegerField(default=0, verbose_name=u'订单提成')
     shoptime = models.DateTimeField(default=datetime.datetime.now, db_index=True, verbose_name=u'提成时间')
     status   = models.IntegerField(default=0, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
     
@@ -137,6 +138,7 @@ def tongji_wxorder(sender, obj, **kwargs):
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     mm_order_amount = obj.order_total_price
+    mm_rebeta_amount = 0
     mm_order_rebeta = 0
     wx_unionid = get_Unionid(obj.buyer_openid,settings.WEIXIN_APPID)
     isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,agencylevel=2,
@@ -145,6 +147,7 @@ def tongji_wxorder(sender, obj, **kwargs):
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]
         #计算小鹿妈妈订单返利
+        mm_rebeta_amount    = xiaolumm.get_Mama_Trade_Amount(obj) 
         mm_order_rebeta     = xiaolumm.get_Mama_Trade_Rebeta(obj) 
         tongjiorder,state   = StatisticsShopping.objects.get_or_create(linkid=xiaolumm.id,
                                                                wxorderid=str(obj.order_id))
@@ -152,6 +155,7 @@ def tongji_wxorder(sender, obj, **kwargs):
         tongjiorder.openid        = obj.buyer_openid
         tongjiorder.wxordernick   = obj.buyer_nick
         tongjiorder.wxorderamount = mm_order_amount
+        tongjiorder.rebetamount   = mm_rebeta_amount
         tongjiorder.shoptime      = obj.order_create_time
         tongjiorder.tichengcount  = mm_order_rebeta
         tongjiorder.save()
@@ -182,13 +186,15 @@ def tongji_wxorder(sender, obj, **kwargs):
         if xiaolu_mmset.count() > 0:
             xiaolu_mm = xiaolu_mmset[0]
             #计算小鹿妈妈订单返利
-            mm_order_rebeta     =  xiaolu_mm.get_Mama_Trade_Rebeta(obj) 
+            mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj) 
+            mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj) 
             tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                    wxorderid=str(obj.order_id))
             tongjiorder.linkname = xiaolu_mm.weikefu
             tongjiorder.openid = obj.buyer_openid
             tongjiorder.wxordernick = obj.buyer_nick
             tongjiorder.wxorderamount = mm_order_amount
+            tongjiorder.rebetamount   = mm_rebeta_amount
             tongjiorder.shoptime = obj.order_create_time
             tongjiorder.tichengcount = mm_order_rebeta
             tongjiorder.save()
@@ -245,6 +251,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     buyer_openid = obj.openid
     mm_order_amount   = int(obj.payment * 100)
     mm_order_rebeta	  = 0
+    mm_rebeta_amount  = 0
     order_id     = obj.tid
     ordertime    = obj.pay_time
     order_stat_from = ordertime - datetime.timedelta(days=1)
@@ -275,7 +282,8 @@ def tongji_saleorder(sender, obj, **kwargs):
     if isinxiaolumm.count() > 0:
         xiaolumm = isinxiaolumm[0]
         #计算小鹿妈妈订单返利
-        mm_order_rebeta     =  xiaolumm.get_Mama_Trade_Rebeta(obj)
+        mm_rebeta_amount    = xiaolumm.get_Mama_Trade_Amount(obj) 
+        mm_order_rebeta     = xiaolumm.get_Mama_Trade_Rebeta(obj)
         tongjiorder,state   = StatisticsShopping.objects.get_or_create(linkid=xiaolumm.id,
                                                                wxorderid=order_id)
         tongjiorder.linkname      = xiaolumm.weikefu
@@ -284,6 +292,7 @@ def tongji_saleorder(sender, obj, **kwargs):
         tongjiorder.wxorderamount = mm_order_amount
         tongjiorder.shoptime      = ordertime
         tongjiorder.tichengcount  = mm_order_rebeta
+        tongjiorder.rebetamount   = mm_rebeta_amount
         tongjiorder.save()
         
         daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xiaolumm.id, 
@@ -310,13 +319,15 @@ def tongji_saleorder(sender, obj, **kwargs):
         if xiaolu_mmset.count() > 0:
             xiaolu_mm = xiaolu_mmset[0]
             #计算小鹿妈妈订单返利
-            mm_order_rebeta     =  xiaolu_mm.get_Mama_Trade_Rebeta(obj)
+            mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj) 
+            mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj)
             tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                    wxorderid=order_id)
             tongjiorder.linkname    = xiaolu_mm.weikefu
             tongjiorder.openid      = xd_openid
             tongjiorder.wxordernick = obj.buyer_nick
             tongjiorder.wxorderamount = mm_order_amount
+            tongjiorder.rebetamount  = mm_rebeta_amount
             tongjiorder.shoptime      = ordertime
             tongjiorder.tichengcount  = mm_order_rebeta
             tongjiorder.save()
@@ -334,8 +345,7 @@ def tongji_saleorder(sender, obj, **kwargs):
             if buyercount != daytongji.buyercount:
                 StatisticsShoppingByDay.objects.filter(linkid=xiaolu_mm.id, 
                                                    tongjidate=target_time).update(buyercount=buyercount)
-                                                   
-
+            
         else:
             StatisticsShopping(linkid=0, 
                                openid=xd_openid, 

@@ -365,7 +365,7 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
                                                  status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED),
                                                  shoptime__range=(time_from,time_to))
         
-        calc_fee = shopings.aggregate(total_amount=Sum('wxorderamount')).get('total_amount') or 0
+        calc_fee = shopings.aggregate(total_amount=Sum('rebetamount')).get('total_amount') or 0
         agency_rebeta_rate  = xlmm.get_Mama_Agency_Rebeta_Rate()
         agency_rebeta       = calc_fee * agency_rebeta_rate
         
@@ -389,8 +389,8 @@ def calc_Mama_Thousand_Rebeta(xlmm,start,end):
         shoptime__range=(start,end),
         status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED)
     )
-#         # 过去一个月的成交额
-    sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
+    # 过去一个月的成交额
+    sum_wxorderamount = shoppings.aggregate(total_order_amount=Sum('rebetamount')).get('total_order_amount') or 0
     
     return sum_wxorderamount
 
@@ -517,7 +517,7 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
                                                               status__in=(StatisticsShopping.WAIT_SEND,
                                                                           StatisticsShopping.FINISHED))
             # 过滤出子代理昨天的订单
-            sum_wxorderamount = sub_shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
+            sum_wxorderamount = sub_shoppings.aggregate(total_order_amount=Sum('rebetamount')).get('total_order_amount') or 0
             
             commission = sum_wxorderamount * xlmm.get_Mama_Agency_Rebeta_Rate()
             if commission == 0:  # 如果订单总额是0则不做记录
@@ -610,8 +610,8 @@ def task_Push_WXOrder_Finished(pre_days=10):
     
     SHIP_STATUS_MAP = {WXOrder.WX_CLOSE:StatisticsShopping.REFUNDED,
                        WXOrder.WX_FINISHED:StatisticsShopping.FINISHED}
-    wxorder = WXOrder.objects.filter(order_status=WXOrder.WX_WAIT_CONFIRM)
-    for wxorder in wxorder:
+    wxorders = WXOrder.objects.filter(order_status=WXOrder.WX_WAIT_CONFIRM)
+    for wxorder in wxorders:
         wxorder_id = wxorder.order_id
         mtrades = MergeTrade.objects.filter(tid=wxorder_id,type=MergeTrade.WX_TYPE)
         if mtrades.count() == 0:

@@ -449,7 +449,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def waitsend(self, request, *args, **kwargs):
         """ 获取用户待发货订单列表 """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        queryset = queryset.filter(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+        queryset = queryset.filter(status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                               SaleTrade.WAIT_BUYER_CONFIRM_GOODS))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

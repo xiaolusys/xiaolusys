@@ -189,6 +189,17 @@ class XiaoluMama(models.Model):
             order_price = int(order.payment * 100)
         
         return rebeta_rate * order_price
+    
+    
+    def get_Mama_Order_Amount(self,order):
+        #如果订单来自小鹿特卖平台
+        order_price = 0
+        if hasattr(order,'order_total_price'):
+            order_price = order.order_total_price
+        elif hasattr(order,'payment'):
+            order_price = int(order.payment * 100)
+        
+        return order_price
 
 
     def get_Mama_Trade_Rebeta(self,trade):
@@ -200,7 +211,21 @@ class XiaoluMama(models.Model):
             return rebeta
         
         return 	self.get_Mama_Order_Rebeta(trade)
-
+    
+    def get_Mama_Trade_Amount(self,trade):
+        """ 获取妈妈交易返利提成 """
+        if hasattr(trade,'normal_orders'):
+            amount = 0
+            for order in trade.normal_orders:
+                if self.get_Mama_Order_Rebeta(order) == 0:
+                    continue
+                amount += self.get_Mama_Order_Amount(order)
+            return amount
+        
+        if self.get_Mama_Order_Rebeta(trade) == 0:
+            return 0
+        return self.get_Mama_Order_Amount(trade)
+    
     def get_Mama_Click_Price(self,ordernum):
         """ 获取今日小鹿妈妈点击价格 """
         
