@@ -105,12 +105,11 @@ var GLConfig = {
 	get_plus_skunum_url:'/carts/sku_num_enough.json', //添加订单数量接口
 	get_all_address:'/address.json',//获取个人用户地址列表
 	get_user_address:'/address.json',//获取个人用户地址列表
-	delete_address:'/address/delete_address/?format=json',//删除地址
 	change_default:'/address/change_default/?format=json',//更改默认地址
 	province_list:'/districts/province_list?format=json',//省份列表
 	city_list:'/districts/city_list?format=json',//城市列表
 	country_list:'/districts/country_list?format=json',//区/县列表
-	create_address:'/address/create_address/?format=json',//创建新的收货地址
+	create_address:'/address/create_address?format=json',//创建新的收货地址
 	update:'/address/update/?format=json',//修改收货地址
 	get_user_profile:'/users/profile.json',//得到用户信息
 	get_user_point:'/integral.json',//得到用户积分
