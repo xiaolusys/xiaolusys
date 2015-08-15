@@ -712,7 +712,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))
         
-        if instance.pay_time <= deadline:
+        if instance.created <= deadline:
             raise exceptions.APIException(_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS))   
         
         if instance.channel == SaleTrade.WALLET:
