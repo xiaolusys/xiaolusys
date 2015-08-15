@@ -31,7 +31,8 @@
     <div class="panel-top">
         <script id="top_template" type="text/html">
             <ul class="u1">
-                <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0" id="order_payment"><em>¥</em>{{ payment }}</span></li>
+                <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0" id="order_payment"><em>¥</em>{{ payment }}</span>
+                </li>
             </ul>
         </script>
     </div>
@@ -43,22 +44,30 @@
                 </div>
                 <div class="fr goods-info">
                     <p>{{ title }}</p>
-
                     <p>
                         <span class="size">尺码：{{ sku_name }}</span>
-                        <span class="count " style="display:inline-block;">数量：</span>
+                        <span class="count " style="display:inline-block;">数量</span>
 
                     <div style="display:inline-block;">
-                        <div class="btn reduce subdiv_allinline" style="width: 48px;height: 48px;margin-top: 10px"
-                             id="button_reduce_num" onclick="Button_reduct_num({{ id }});"></div>
-                        <span id="show_num_{{ id }}" cid="{{ num }} " class="order_detail_num"
-                              style="text-align: center">{{ num }}</span>
+                        <div class="subdiv_allinline">
+                            <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span></p>
+                        </div>
+                    <div class="subdiv_allinline" style="margin-left: 120px">
+                        <div class="btn reduce subdiv_allinline" style="width: 48px;height: 48px;"
+                             id="button_reduce_num" onclick="Button_reduct_num({{ id }});">
 
-                        <div class="btn plus subdiv_allinline" style="width: 48px;height: 48px" id="button_plus_num"
-                             onclick="Button_plus_num({{ id }});"></div>
+                        </div>
+                        <div class="subdiv_allinline bt_in">
+                            <span id="show_num_{{ id }}" cid="{{ num }} " class="order_detail_num"
+                                  style="">{{ num }}</span>
+                        </div>
+
+                        <div class="btn plus subdiv_allinline" style="width: 48px;height: 48px;" id="button_plus_num"
+                                 onclick="Button_plus_num({{ id }});">
+                        </div>
+                    </div>
                     </div>
                     </p>
-                    <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span></p>
                 </div>
             </div>
         </script>
@@ -89,20 +98,20 @@
             <p class="clear" id="refund_more_info">
                 <span class="label ">选择原因:</span>
                 <select id="selec_resason"></select>
-            <script type="text/html" id="sid_company">
+                <script type="text/html" id="sid_company">
 
-                <div class="ipt-panel-inner">
-                    <div class="ipt-wrap ipt-top">
-                        <span class="label">快递公司:</span>
-                        <input type="text" class="text username_in" placeholder="请输入快递公司" id="logi_company">
+                    <div class="ipt-panel-inner">
+                        <div class="ipt-wrap ipt-top">
+                            <span class="label">快递公司:</span>
+                            <input type="text" class="text username_in" placeholder="请输入快递公司" id="logi_company">
+                        </div>
+                        <div class="ipt-wrap">
+                            <span class="label">快递单号:</span>
+                            <input type="text" class="text password_in" placeholder="请输入快递单号" id="logi_sid">
+                        </div>
                     </div>
-                    <div class="ipt-wrap">
-                        <span class="label">快递单号:</span>
-                        <input type="text" class="text password_in" placeholder="请输入快递单号" id="logi_sid">
-                    </div>
-                </div>
 
-            </script>
+                </script>
             </p>
         </div>
     </div>
@@ -141,11 +150,11 @@
         }, false);
 
         var urlParams = parseUrlParams(window.location.href);
-        var url_conf = {'oid': urlParams['oid'],"tid":urlParams['tid']};
+        var url_conf = {'oid': urlParams['oid'], "tid": urlParams['tid']};
         console.log(url_conf);
 
         var order_url = GLConfig.get_order_detail_url.template(url_conf);
-        console.log(order_url,"order_url order_url order_url");
+        console.log(order_url, "order_url order_url order_url");
         //获取待支付订单列表
         Set_order_detail(order_url);
         Create_refun_reason();

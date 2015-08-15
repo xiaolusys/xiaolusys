@@ -378,3 +378,13 @@ option {
     margin-top: 0px;
     /*border: double;*/
 }
+
+.bt_in {
+    width: 40px;
+    height: 48px;
+    text-align: center;
+}
+.order_detail_num{
+    position: relative;
+    bottom: 13px;
+}

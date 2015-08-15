@@ -160,7 +160,7 @@
 }
 .btn_order_status_2{  width: auto;  height: 44px;  line-height: 44px;
   border: 1px solid #7d7d7d;  color: #7d7d7d;  text-align: center;
-  border-radius: 10px;
+  border-radius: 10px;!important;
 }
 .btn_order_status_3:active{
   background-color: #7d7d7d;  color: #fff;
@@ -188,7 +188,15 @@
 .refund_status_4:after{content: "卖家已经同意退款";font-size: 22px;  color: #b7b7b7;border: solid #fff;}       /*卖家已经同意退款*/
 .refund_status_5:after{content: "买家已经退货";font-size: 22px;  color: #b7b7b7;border: solid #fff;}          /*买家已经退货*/
 .refund_status_6:after{content: "确认退款，等待返款";font-size: 22px;  color: #b7b7b7;border: solid #fff;}     /*确认退款，等待返款*/
-.refund_status_7:after{content: "退款成功";font-size: 22px;  color: #b7b7b7;border: solid #fff;}             /*退款成功*/
+.refund_status_7:after{content: "退款成功";font-size: 22px;  clear:both;color: #b7b7b7;border: solid #fff;}             /*退款成功*/
+
+.refund_status_1{border:  #ffffff;}
+.refund_status_2{border:  #ffffff;}
+.refund_status_3{border:  #ffffff;}
+.refund_status_4{border:  #ffffff;}
+.refund_status_5{border:  #ffffff;}
+.refund_status_6{border:  #ffffff;}
+.refund_status_7{border:  #ffffff;}
 
 
 .fl{ float: left;}
