@@ -665,8 +665,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         xlmm            = self.get_xlmm(request)
         bn_discount     = product_sku.calc_discount_fee(xlmm) 
         bn_payment      = bn_totalfee + post_fee - bn_discount
-        if product_sku.free_num < sku_num:
-            raise exceptions.ParseError(u'抱歉,商品已被抢光!')
+        if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
+            raise exceptions.ParseError(u'商品已被抢光啦！')
         
         if post_fee < 0 or payment <= 0 or payment < bn_payment:
             raise exceptions.ParseError(u'付款金额异常')
@@ -706,10 +706,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                    SaleTrade.TRADE_CLOSED_BY_SYS:u'订单已关闭或超时',
                    'default':u'订单不在可支付状态'}
          
+        deadline = datetime.datetime.now() - datetime.timedelta(seconds=3600)
+        
         instance = self.get_object()
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))
-            
+        
+        if instance.pay_time <= deadline:
+            raise exceptions.APIException(_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS))   
+        
         if instance.channel == SaleTrade.WALLET:
             #小鹿钱包支付
             response_charge = self.wallet_charge(instance)
