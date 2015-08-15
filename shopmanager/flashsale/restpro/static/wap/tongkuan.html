@@ -33,6 +33,7 @@
   var urlParams = parseUrlParams(window.location.href);
   var urlConf = {'model_id':urlParams['id']};
   Set_model_product(GLConfig.get_modellist_url.template(urlConf));
+  Set_shopcarts_num();
 })(jQuery);  
 function scroll_top(e){
     e.preventDefault();

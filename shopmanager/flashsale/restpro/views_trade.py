@@ -105,6 +105,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     hasattr(new_shop_cart, k) and setattr(new_shop_cart, k, v)
             new_shop_cart.buyer_nick = customer_user[0].nick if customer_user[0].nick else ""
             new_shop_cart.price = sku.agent_price
+            new_shop_cart.num = 1
             new_shop_cart.total_fee = sku.agent_price * int(sku_num) if sku.agent_price else 0
             new_shop_cart.sku_name = sku.properties_alias if len(sku.properties_alias) > 0 else sku.properties_name
             new_shop_cart.pic_path = sku.product.pic_path
@@ -168,7 +169,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
-            return exceptions.APIException(u'至少购买一件')
+            raise exceptions.APIException(u'至少购买一件')
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
         Product.objects.releaseLockQuantity(sku,1)
@@ -665,8 +666,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         xlmm            = self.get_xlmm(request)
         bn_discount     = product_sku.calc_discount_fee(xlmm) 
         bn_payment      = bn_totalfee + post_fee - bn_discount
-        if product_sku.free_num < sku_num:
-            raise exceptions.ParseError(u'抱歉,商品已被抢光!')
+        if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
+            raise exceptions.ParseError(u'商品已被抢光啦！')
         
         if post_fee < 0 or payment <= 0 or payment < bn_payment:
             raise exceptions.ParseError(u'付款金额异常')
@@ -706,10 +707,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                    SaleTrade.TRADE_CLOSED_BY_SYS:u'订单已关闭或超时',
                    'default':u'订单不在可支付状态'}
          
+        deadline = datetime.datetime.now() - datetime.timedelta(seconds=3600)
+        
         instance = self.get_object()
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))
-            
+        
+        if instance.pay_time <= deadline:
+            raise exceptions.APIException(_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS))   
+        
         if instance.channel == SaleTrade.WALLET:
             #小鹿钱包支付
             response_charge = self.wallet_charge(instance)

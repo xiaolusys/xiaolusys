@@ -274,11 +274,9 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
             continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         clog.value   = click_rebeta
-        clog.save()
-        
+        clog.save()        
         xlmm.push_carrylog_to_cash(clog)
-        
-        
+
 
 @task()
 def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
@@ -350,7 +348,6 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         c_logs = c_logs.filter(xlmm=xlmm_id)
     
     for cl in c_logs:
-        
         xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
         if xlmms.count() == 0:
             continue
@@ -362,7 +359,6 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         
         #重新计算pre_date之前订单金额，取消退款订单提成
         carry_date = cl.carry_date
-        
         time_from = datetime.datetime(carry_date.year, carry_date.month, carry_date.day)
         time_to = datetime.datetime(carry_date.year, carry_date.month, carry_date.day, 23, 59, 59)
         shopings = StatisticsShopping.objects.filter(linkid=cl.order_num,
@@ -518,7 +514,8 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
             # 扣除记录
             sub_shoppings = StatisticsShopping.objects.filter(linkid=sub_xlmm.id,
                                                               shoptime__range=(time_from,time_to),
-                                                              status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED))
+                                                              status__in=(StatisticsShopping.WAIT_SEND,
+                                                                          StatisticsShopping.FINISHED))
             # 过滤出子代理昨天的订单
             sum_wxorderamount = sub_shoppings.aggregate(total_order_amount=Sum('wxorderamount')).get('total_order_amount') or 0
             
@@ -609,7 +606,6 @@ def task_Calc_Mama_Lasttwoweek_Stats(pre_day=0):      # 每天 写入记录
 def task_Push_WXOrder_Finished(pre_days=10):
     """ 定时将待确认状态微信小店订单更新成已完成 """
     
-    from flashsale.clickrebeta.models import StatisticsShopping
     day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
     
     SHIP_STATUS_MAP = {WXOrder.WX_CLOSE:StatisticsShopping.REFUNDED,
@@ -624,12 +620,10 @@ def task_Push_WXOrder_Finished(pre_days=10):
         mtrade = mtrades[0]
         if (mtrade.status == MergeTrade.TRADE_CLOSED or 
             mtrade.sys_status in (MergeTrade.INVALID_STATUS,MergeTrade.EMPTY_STATUS)):
-            
             wxorder.order_status =  WXOrder.WX_CLOSE
             wxorder.save()
         
         elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS ):
-            
             if mtrade.weight_time and mtrade.weight_time > day_date:
                 continue
             #如果父订单已称重，并且称重日期达到确认期，则系统自动将订单放入已完成
@@ -647,10 +641,8 @@ def task_Push_WXOrder_Finished(pre_days=10):
                 morders[0].status in (MergeTrade.TRADE_CLOSED,
                                       MergeTrade.TRADE_REFUNDED,
                                       MergeTrade.TRADE_REFUNDING)):
-                
                 wxorder.order_status =  WXOrder.WX_CLOSE
                 wxorder.save()
-
             else:
                 wxorder.order_status =  WXOrder.WX_FINISHED
                 wxorder.save()

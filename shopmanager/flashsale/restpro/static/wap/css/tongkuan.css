@@ -131,7 +131,7 @@ body{
 }
 .cart{
   left:20px;
-  background:url(../images/icon-gouwuche1.png) no-repeat #666666;
+  background:url(../images/icon-gouwuche.png) no-repeat #666666;
   border-radius: 40px;
   width: 80px;
 }
@@ -148,6 +148,17 @@ body{
   position: absolute;
   left: 50px;
   top: 10px;
+}
+.cart .carttime {
+    display: block;
+    font-size: 28px;
+    line-height: 22px;
+    font-style: normal;
+    margin-left: 12px;
+    color: #fff;
+    position: absolute;
+    top: 30px;
+    right: 10px;
 }
 .scroll-top{
   right: 20px;

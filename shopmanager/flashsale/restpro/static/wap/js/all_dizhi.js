@@ -62,8 +62,6 @@ function init() {
                 change_default(obj, default_id);
             });
         });
-
-
     };
     // 发送请求
     $.ajax({
@@ -78,19 +76,14 @@ function init() {
 
 
 function delete_address(obj, id) {
-    //alert(id);
-    //obj.remove()     //删除地址
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/delete_address";
     var requestCallBack = function (data) {
-        //alert(data.ret)
         if (data.ret == true) {
-            obj.remove()     //删除地址
-
+            obj.remove();   //删除地址
         }
         else {
             alert("删除失败")
-
         }
     };
     // 发送请求
@@ -107,7 +100,7 @@ function delete_address(obj, id) {
 
 
 function change_default(obj, id) {
-    //obj.remove()     //删除地址
+    //删除地址
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/change_default";
     var requestCallBack = function (data) {

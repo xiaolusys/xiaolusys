@@ -105,13 +105,11 @@ var GLConfig = {
 	get_plus_skunum_url:'/carts/sku_num_enough.json', //添加订单数量接口
 	get_all_address:'/address.json',//获取个人用户地址列表
 	get_user_address:'/address.json',//获取个人用户地址列表
-	delete_address:'/address/delete_address/?format=json',//删除地址
 	change_default:'/address/change_default/?format=json',//更改默认地址
 	province_list:'/districts/province_list?format=json',//省份列表
 	city_list:'/districts/city_list?format=json',//城市列表
 	country_list:'/districts/country_list?format=json',//区/县列表
-	create_address:'/address/create_address/?format=json',//创建新的收货地址
-	update:'/address/update/?format=json',//修改收货地址
+	create_address:'/address/create_address?format=json',//创建新的收货地址
 	get_user_profile:'/users/profile.json',//得到用户信息
 	get_user_point:'/integral.json',//得到用户积分
 	delete_detail_trade:'/trades/{{trade_id}}',//用户取消订单
@@ -223,28 +221,36 @@ var cart_timer = function () {
      * auther:yann
      * date:2015/14/8
      */
+    var count = 0;
+
     function privateFunction() {
         var ts = remain_date - (new Date());//计算剩余的毫秒数
         var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
         var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
         mm = checkTime(mm);
         ss = checkTime(ss);
-        if (ts > 0) {
-            $(".carttime").html(mm + ":" + ss);
-            $(".cart").animate({width: "160px"});
-            setTimeout(function () {
-                    privateFunction();
-                },
-                1000);
-        } else {
-            $(".carttime").html("");
-            $(".cart").animate({width: "80px"});
+        if (count == 1) {
+            if (ts > 0) {
+                $(".carttime").html(mm + ":" + ss);
+                $(".cart").animate({width: "160px"});
+                setTimeout(function () {
+                        privateFunction();
+                    },
+                    1000);
+            } else {
+                $(".carttime").html("");
+                $(".cart").animate({width: "80px"});
+            }
+        }else{
+            count = 1;
         }
+
     }
 
 
     return {
         publicMethod: function () {
+            count++;
             return privateFunction();
         }
     };
