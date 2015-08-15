@@ -113,6 +113,7 @@ var GLConfig = {
 	get_user_profile:'/users/profile.json',//得到用户信息
 	get_user_point:'/integral.json',//得到用户积分
 	delete_detail_trade:'/trades/{{trade_id}}',//用户取消订单
+    confirm_sign_trade:'/trades/{{trade_id}}/confirm_sign',//用户确认签收
 	user_logout:'/users/customer_logout',//用户注销
 	user_islogin:'/users/islogin.json',//用户是否登录
     refunds:'/refunds'//退款

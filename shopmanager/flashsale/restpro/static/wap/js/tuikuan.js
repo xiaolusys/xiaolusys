@@ -35,6 +35,9 @@ function Create_refun_reason() {
     var html = $("#refund_reason").html();
     $(html).appendTo("#selec_resason");
 }
+
+
+var swal_flag = 0;
 function Set_order_detail(suffix) {
 
     //请求URL
@@ -43,11 +46,18 @@ function Set_order_detail(suffix) {
     //请求成功回调函数
     var requestCallBack = function (data) {
         if (typeof(data.id) != 'undifined' && data.id != null) {
-            console.log(data.status);
+            var refun_status = (data.refund_status_display);
+            if (refun_status=="没有退款"){
+                swal_flag = 1;//设置cookie 果冻弹窗的次数 为 0
+            }
+            else{
+                swal_flag = 0;
+            }
             if (data.status == 2) { //显示申请退款标题
                 console.log(data.status, '订单状态');
                 var header = Create_tuikuan_header();
                 $('body').before(header);  //在body 的最前面添加
+
             }
             else if (data.status == 3) {//显示申请退货标题
                 console.log(data.status, '订单状态');
@@ -101,6 +111,7 @@ function Button_plus_num(id) {
 
 
 function Button_tijiao() {
+
     var logi_company = $("#logi_company").val();
     var logi_sid = $("#logi_sid").val();
     var data = [];
@@ -140,27 +151,53 @@ function Button_tijiao() {
         drawToast("您已经提交了申请,耐心等待售后处理！");
         if (res.res == "already_refund") {
             drawToast("您已经提交了申请,耐心等待售后处理！");
+            swal_flag = 0;
         }
         else if (res.res == "refund_success") {
             drawToast("操作成功！");
+            swal_flag = 0;
         }
         else if (res.res == "forbidden") {
             drawToast("您的订单已经在处理中！");
+            swal_flag = 0;
         }
     };
-    swal({
-            title: "小鹿美美",
-            text: mess,
-            type: "",
-            showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
-            confirmButtonColor: '#DD6B55',
-            confirmButtonText: "确定",
-            cancelButtonText: "取消"
-        },
-        function () {
-            ajax_to_server();
-        });
+    if(swal_flag==0){
+        swal({
+                title: "",
+                text: "已经提交过了哦~ 去首页逛逛?",
+                type: "",
+                showCancelButton: true,
+                imageUrl: "http://image.xiaolu.so/logo.png",
+                confirmButtonColor: '#DD6B55',
+                confirmButtonText: "确定",
+                cancelButtonText: "取消"
+
+            },
+            function() {
+                //这里可以跳转到首页
+                location.href ="../index.html"
+            }
+        )
+    }
+    else {
+        swal({
+                title: "",
+                text: mess,
+                type: "",
+                showCancelButton: true,
+                imageUrl: "http://image.xiaolu.so/logo.png",
+                confirmButtonColor: '#DD6B55',
+                confirmButtonText: "确定",
+                cancelButtonText: "取消"
+            },
+            function () {
+                ajax_to_server();
+                //setCookie_Swal_Flag('0');//设置cookie 果冻弹窗的初始化 为 0
+            }
+        );
+    }
+
     function ajax_to_server() {
         $.ajax({
             "url": url,
