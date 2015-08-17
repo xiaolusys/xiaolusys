@@ -5,6 +5,9 @@
 //将从接口获取的JSON填充到HTML中
 
 function create_yhq_dom(obj) {
+    var deadline= obj.deadline.split(' ');
+    obj.deadline = deadline[0];
+
     function yhq_dom() {
         /*
          <li class="type{{ type }}">

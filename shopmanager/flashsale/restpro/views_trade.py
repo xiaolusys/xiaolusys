@@ -450,7 +450,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def waitsend(self, request, *args, **kwargs):
         """ 获取用户待发货订单列表 """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        queryset = queryset.filter(status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+        queryset = queryset.filter(status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                               SaleTrade.WAIT_BUYER_CONFIRM_GOODS))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -713,7 +714,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))
         
-        if instance.pay_time <= deadline:
+        if instance.created <= deadline:
             raise exceptions.APIException(_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS))   
         
         if instance.channel == SaleTrade.WALLET:
