@@ -512,11 +512,10 @@ def logChannelClicks(request, linkid):
         redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
         return HttpResponseRedirect(redirect_url)
     
-    if code:
-        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,
-                                          secret=settings.WXPAY_SECRET)
-        click_time = datetime.datetime.now()
-        tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
+    openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
+                                      secret=settings.WEIXIN_SECRET)
+    click_time = datetime.datetime.now()
+    tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
     return redirect(settings.M_SITE_URL)
 
 
