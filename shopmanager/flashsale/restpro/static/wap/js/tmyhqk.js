@@ -29,7 +29,7 @@ $(document).ready(function () {
         console.log(coupon_no);
         //去后台判断优惠券是否有效（传 cupon_no 到后台）
         var data = {"coupon_no": coupon_no};
-        var url = GLConfig.baseApiUrl + "/user/couponcheck/";
+        var url = GLConfig.baseApiUrl + GLConfig.pull_user_coupon;
 
         //防止重复提交
         var bt_commit = $('.btn-submit');

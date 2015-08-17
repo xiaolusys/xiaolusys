@@ -101,7 +101,6 @@ function Set_orders(suffix) {
 
 function Create_order_top_dom(obj) {
     var html = $('#top_template').html();
-    console.log(obj.stauts, "order 状态");
     return hereDoc(html).template(obj);
 }
 function Create_button_buy_dom() {
@@ -223,7 +222,6 @@ function Set_order_detail(suffix) {
 
 function Handler_Refund_Bth(){
     for(var i= 1;i<=7;i++){
-        console.log(i);
         $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
     }
 }
@@ -319,7 +317,6 @@ function Confirm_Sign_For(dom) {
     function requestCallBack(res){
         if(res.ok){
             //签收成功 则 刷新页面
-            console.log("reload page");
             location.reload();
         }
         else{
