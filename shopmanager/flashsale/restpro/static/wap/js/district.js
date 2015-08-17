@@ -173,7 +173,20 @@ $(".btn-save").click(function () {
         //alert(data)
         //alert(typeof(data))
         //console.info(data)
-        window.location.href = "shouhuodz.html"
+        var referrer = document.referrer;
+        console.log(referrer);
+        var vars = [], hash;
+        var hashes = referrer.slice(referrer.indexOf('?') + 1).split('&');
+        for (var i = 0; i < hashes.length; i++) {
+            hash = hashes[i].split('=');
+            vars.push(hash[0]);
+            vars[hash[0]] = hash[1];
+        }
+        if (vars[0] == "item_id" && vars[1] == "sku_id") {
+            window.location.href = referrer;
+        } else {
+            window.location.href = "shouhuodz.html"
+        }
     };
     // 发送请求
     $.ajax({
