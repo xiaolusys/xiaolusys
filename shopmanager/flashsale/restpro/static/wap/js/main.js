@@ -258,12 +258,17 @@ function Set_model_product(suffix){
 	var promoteCallBack = function(data){
         $("#loading").hide();
 		//设置女装推荐链接及图片
+
 		$.each(data,
 			function(index,p_obj){
 				var item_dom = Create_item_dom(p_obj,true);
 				$('.glist').append(item_dom);
 			}
 		);
+        if(data && data.length > 0 && data[0].sale_time){
+            var shelf_time = new Date(data[0].sale_time);
+            product_timer(shelf_time);
+        }
 	};
 	// 请求推荐数据
 	$.ajax({ 
@@ -279,3 +284,39 @@ function Set_model_product(suffix){
 	
 }
 
+function product_timer(shelf_time) {
+    /*
+     * 商品倒计时
+     * auther:yann
+     * date:2015/15/8
+     */
+    var ts = (new Date(shelf_time.getFullYear(), shelf_time.getMonth(), shelf_time.getDate() + 1, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
+
+    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
+    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    dd = checkTime(dd);
+    hh = checkTime(hh);
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+
+    if (ts > 100800000 && ts < 136800000) {
+        $(".top p").text("敬请期待");
+    } else if (ts < 100800000 && ts >= 86400000) {
+        $(".top p").text("剩余" + dd + "天" + hh + "时" + mm + "分");
+        setTimeout(function () {
+                product_timer(shelf_time);
+            },
+            2000);
+    } else if (ts < 86400000 && ts > 0) {
+        $(".top p").text("剩余" + hh + "时" + mm + "分");
+        setTimeout(function () {
+                product_timer(shelf_time);
+            },
+            2000);
+    } else if (ts < 0) {
+        $(".top p").text("已下架");
+    }
+
+}

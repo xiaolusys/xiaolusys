@@ -61,5 +61,13 @@
 <!--<script src="http://cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>  -->
     <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/all_dizhi.js"></script>
+<script type="text/javascript">
+    var referrer = document.referrer;
+    var hashes = referrer.split("?")[0].split('/');
+    console.log(hashes);
+    if(hashes && hashes[hashes.length-1] == "shouhuodz-add.html" || hashes[hashes.length-1] == "shouhuodz-edit.html"){
+        $(".back").attr("href","gerenzhongxin.html");
+    }
+</script>
 </body>
 </html>
