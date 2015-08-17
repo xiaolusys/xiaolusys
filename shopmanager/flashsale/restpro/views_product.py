@@ -101,9 +101,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取昨日上架日期 """
         tnow  = datetime.datetime.now()
         tlast = tnow - datetime.timedelta(days=1)
-        weekday = tnow.strftime("%w")
-        if weekday == '1':
-            return (tnow - datetime.timedelta(days=2)).date()
+        # weekday = tnow.strftime("%w")
+        # if weekday == '1':
+        #     return (tnow - datetime.timedelta(days=2)).date()
         return tlast.date()
     
     def list(self, request, *args, **kwargs):
