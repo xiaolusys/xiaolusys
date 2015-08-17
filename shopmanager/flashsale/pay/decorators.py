@@ -31,7 +31,6 @@ def sale_buyer_required(view_func):
                           'scope':'snsapi_base',
                           'state':'135'}
                 redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
-                print 'debug redirect to:',redirect_url
                 return HttpResponseRedirect(redirect_url)
             
             else :
