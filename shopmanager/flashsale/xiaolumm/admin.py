@@ -183,7 +183,7 @@ class ClicksChangeList(ChangeList):
                 qs = qs.filter(openid__in=openids)
                 return qs
     
-            qs = qs.filter(openid=search_q)
+            qs = qs.filter(Q(openid=search_q)|Q(linkid=search_q))
             return qs
         
         return super(ClicksChangeList,self).get_query_set(request)
@@ -192,7 +192,7 @@ class ClicksChangeList(ChangeList):
 class ClicksAdmin(MyAdmin):
     list_display = ('linkid','openid','isvalid','click_time')
     list_filter = ('isvalid',('click_time',DateFieldListFilter),)
-    search_fields = ['=openid', '=linkid']
+    search_fields = ['=linkid', '=openid']
     
     def get_changelist(self, request, **kwargs):
 
