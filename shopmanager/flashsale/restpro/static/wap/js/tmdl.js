@@ -56,7 +56,11 @@ $(document).ready(function () {
             url: url, data: data, type: 'post',
             success: requestCallBack,
             error: function (data) {
-                console.info("error: " + data.statusText);
+                if (data.status == 500) {
+                    error_tips.text("账户未设置密码").show();
+                    setTimeout("error_hide()", 1000);
+                }
+                console.log("error: " + data);
             }
         })
     });
