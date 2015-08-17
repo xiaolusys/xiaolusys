@@ -96,8 +96,6 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
         raise confirmTradeChargeTask.retry(exc=exc)
             
 
-
-
 @task(max_retry=3,default_retry_delay=60)
 def notifyTradePayTask(notify):
 
