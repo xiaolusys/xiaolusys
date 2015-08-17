@@ -149,7 +149,7 @@ function product_timer(shelf_time) {
     ss = checkTime(ss);
 
     if (ts > 0) {
-        $(".shengyu span").text(hh + ":" + mm + ":" + ss + ":");
+        $(".shengyu span").text(hh + ":" + mm + ":" + ss);
         setTimeout(function () {
                 product_timer(shelf_time);
             },
