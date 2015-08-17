@@ -24,11 +24,11 @@ class CouponPoolView(View):
         values = content.get('values', None)
         co_type = content.get('co_type', None)
         today  = datetime.datetime.today()
-        print nums, deadline, values, co_type
         if deadline:
             year, month, day = deadline.split('-')
             deadline_time = datetime.datetime(int(year), int(month), int(day))
             if deadline_time < datetime.datetime.now():
+                # 默认 如果截止间小于明天 零时 则截止时间为 七天后
                 deadline_time = datetime.datetime(today.year,today.month, today.day,0,0,0) + datetime.timedelta(days=7)
         else:
             deadline_time = datetime.datetime.today() + datetime.timedelta(days=7)
@@ -36,7 +36,7 @@ class CouponPoolView(View):
         for i in range(0, int(nums)):
             cou = CouponPool()
             cou.coupon_value = values
-            cou.deadline = deadline
+            cou.deadline = deadline_time
             cou.coupon_type = int(co_type)  # 优惠券类型
             cou.save()
         unrelease_soupons = CouponPool.objects.filter(
