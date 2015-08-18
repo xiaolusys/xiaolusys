@@ -85,7 +85,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    paginate_by = 25
+    paginate_by = 50
     page_query_param = 'page_size'
     max_paginate_by = 100
     
@@ -205,7 +205,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        
         return Response(serializer.data)
     
     @list_route(methods=['get'])
@@ -221,7 +220,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        
         return Response(serializer.data)
     
     @list_route(methods=['get'])
