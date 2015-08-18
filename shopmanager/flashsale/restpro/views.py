@@ -293,6 +293,7 @@ class UserCouponViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         data = []
         for query in queryset:
+            id = query.id
             coupon_no = query.coupon_no
             coupol = CouponPool.objects.get(coupon_no=coupon_no)
             coupon_user = query.coupon_user
@@ -301,7 +302,7 @@ class UserCouponViewSet(viewsets.ModelViewSet):
             coupon_status = coupol.coupon_status
             created = coupol.created.strftime("%Y-%m-%d")
             deadline = coupol.deadline.strftime("%Y-%m-%d %H:%M")
-            data_entry = {"coupon_user": coupon_user, "coupon_no": coupon_no, "coupon_type": coupon_type,
+            data_entry = {"id": id, "coupon_user": coupon_user, "coupon_no": coupon_no, "coupon_type": coupon_type,
                           "coupon_value": coupon_value, "coupon_status": coupon_status,
                           "deadline": deadline,"created":created
                           }
