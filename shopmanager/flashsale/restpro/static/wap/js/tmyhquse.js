@@ -5,10 +5,11 @@
 
 function get_Coupon_On_Buy() {
     var url = "/rest/v1/user/mycoupon/";
+    var nums = 0;//优惠券数量最小为０
     $.get(url, function (res) {
         console.log(res);
         if (res.length > 0) {
-            var nums = 0;
+            //var nums = 0;
             $.each(res, function (i, val) {
                 if (val.coupon_status == 3) {
                     nums = nums + 1;//有效可用的优惠券数量
@@ -25,6 +26,13 @@ function Coupon_Nums_Show(nums) {
         $("#coupon_nums").click(function () {
             console.log("jump to choose page...");
             location.href = "./choose-coupon.html";
+        });
+    }
+    else if(nums==0){// 没有优惠券　　点击　领取优惠券
+        $("#coupon_nums").text("可用优惠券（" + nums + "）");
+        $("#coupon_value").text("点击领取");
+        $("#coupon_value").click(function(){
+            location.href = "./youhuiquan-kong.html";// 跳转到优惠券kong
         });
     }
 }
