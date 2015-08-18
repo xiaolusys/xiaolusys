@@ -383,8 +383,8 @@ from flashsale.pay.tasks import confirmTradeChargeTask
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单REST API接口：
-    - {path}/wait_pay[.formt]:获取待支付订单；
-    - {path}/wait_send[.formt]:获取待发货订单；
+    - {path}/waitpay[.formt]:获取待支付订单；
+    - {path}/waitsend[.formt]:获取待发货订单；
     - {path}/{pk}/charge[.formt]:支付待支付订单
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
     > - cart_ids：购物车明细ID，如 `100,101,...` 
@@ -524,8 +524,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                   'body':u'支付成功',
                   'metadata':dict(color='red'),
                   'extra':extra}
-        
-        return pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
+        charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
+        sale_trade.charge = charge.id
+        sale_trade.save()
+        return charge
     
     @rest_exception(errmsg=u'特卖订单创建异常')
     def create_Saletrade(self,form,address,customer):
