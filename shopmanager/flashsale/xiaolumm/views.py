@@ -1,7 +1,7 @@
 #-*- coding:utf-8 -*-
 
 import json
-from django.http import HttpResponse,Http404
+from django.http import HttpResponse,Http404,HttpResponseRedirect
 from django.shortcuts import redirect,render_to_response
 from django.views.generic import View
 from django.template import RequestContext
@@ -476,6 +476,7 @@ class StatsView(View):
                                    "target_date":target_date, "next_day":next_day}, 
                                   context_instance=RequestContext(request))
 
+import urllib
 from . import tasks
 
 def logclicks(request, linkid):
@@ -493,6 +494,29 @@ def logclicks(request, linkid):
     tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
     
     return redirect(SHOPURL)
+
+def logChannelClicks(request, linkid):
+    content = request.REQUEST
+    code = content.get('code',None)
+
+    user_agent = request.META.get('HTTP_USER_AGENT')
+    if not user_agent or user_agent.find('MicroMessenger') < 0:
+        return redirect(settings.M_SITE_URL)
+    
+    if not code:
+        params = {'appid':settings.WXPAY_APPID,
+                  'redirect_uri':request.build_absolute_uri().split('#')[0],
+                  'response_type':'code',
+                  'scope':'snsapi_base',
+                  'state':'135'}
+        redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+        return HttpResponseRedirect(redirect_url)
+    
+    openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
+                                      secret=settings.WEIXIN_SECRET)
+    click_time = datetime.datetime.now()
+    tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
+    return redirect(settings.M_SITE_URL)
 
 
 from django.shortcuts import get_object_or_404
