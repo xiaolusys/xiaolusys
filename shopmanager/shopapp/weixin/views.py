@@ -810,7 +810,7 @@ class FreeSampleView(View):
             delta = END_TIME - now
         else:
             delta = START_TIME - now
-        
+        started = False
         if (user_openid == 'oMt59uE55lLOV2KS6vYZ_d0dOl5c' 
             or user_openid == 'oMt59uJJBoNRC7Fdv1b5XiOAngdU'):
             started = True
