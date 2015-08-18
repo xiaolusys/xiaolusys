@@ -4,6 +4,7 @@ from shopback.base.models import JSONCharMyField
 import datetime
 from options import uniqid
 
+
 """
 用户  积分 + 优惠券  模块
 用户ID：SaleTrade 中的  buyer_id  也即是：models_user 中的  Customer  id '客户ID'
@@ -83,6 +84,37 @@ class Coupon(models.Model):
     def __unicode__(self):
         return '<%s>' % (self.id)
 
+    def xlmm_Coupon_Create(self, *args ,**kwargs):
+        """
+        :function create the xlmm's coupon
+        :arg    unionid
+                mobile
+                deadline
+                coupon_type
+                coupon_value
+                coupon_user
+        :return instance of the coupon
+        """
+        from flashsale.xiaolumm.models import XiaoluMama
+        mobile = kwargs['mobile'] or ''
+        unionid = kwargs['unionid'] or ''
+        coupon_type = kwargs['coupon_type'] or ''
+        coupon_value = kwargs['coupon_value'] or ''
+        deadline = kwargs['deadline'] or ''
+        coupon_user = kwargs['coupon_user'] or ''
+        cou_p = CouponPool.objects.create(deadline=deadline, coupon_type=coupon_type,
+                                          coupon_value=coupon_value, coupon_status=CouponPool.PULLED)
+        try:
+            xlmm = XiaoluMama.objects.get(models.Q(mobile=mobile) | models.Q(openid=unionid))
+        except XiaoluMama.DoesNotExist:
+            return
+        if xlmm and xlmm.agencylevel == 2 and xlmm.charge_status == XiaoluMama.CHARGED:
+            self.coupon_user = coupon_user
+            self.coupon_no = cou_p.coupon_no
+            self.mobile = mobile
+            self.save()
+        return "%s" % (self.id)
+
 
 class CouponPool(models.Model):
     """
@@ -116,6 +148,11 @@ class CouponPool(models.Model):
     def __unicode__(self):
         return '<%s>' % (self.coupon_no)
 
-    @property
-    def get_pulled_instance(self):
-        return self.objects.filter(coupon_status=CouponPool.PULLED)
+    def use_coupon(self):
+        # 修改　可用优惠券　到　已经使用
+        if self.coupon_status is CouponPool.PULLED:
+            self.coupon_status = CouponPool.USED
+            self.save()
+            return 'ok'
+        else:
+            return 'notInStatus'

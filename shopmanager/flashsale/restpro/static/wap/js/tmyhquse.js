@@ -7,7 +7,6 @@ function get_Coupon_On_Buy() {
     var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
 
     $.get(url, function (res) {
-        console.log(res,"res .....................");
         if (res.length > 0) {
             var nums = 0;
             $.each(res, function (i, val) {
@@ -119,8 +118,15 @@ function get_Coupon_On_Choose() {
                         var yhq_tree2 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree2);
                     }
+                    if(nums==0){
+                        pop_info();
+                    }
                 }
             });
+        }
+        else {
+            // 显示提示信息　没有优惠券
+            pop_info();
         }
     });
 }
@@ -165,8 +171,8 @@ function change_Coupon_Stauts(coupon_id){
         if (res[0] == 'ok') {
             console.log("用户优惠券状态修改成功！！！");
         }
-        else if(res[0] == "used"){
-            drawToast("优惠券已经使用过了！");
+        else if(res[0] == "notInStatus"){
+            drawToast("不可用优惠券！");
         }
         else {
             console.log("用户优惠券修改失败！！！");
@@ -197,4 +203,21 @@ function getUrlParam(name) {
     var r = window.location.search.substr(1).match(reg);  //匹配目标参数
     if (r != null) return unescape(r[2]);
     return null; //返回参数值
+}
+
+function pop_info() {
+    // 显示提示信息　没有优惠券
+    swal({
+            title: "",
+            text: '您暂时还没有优惠券哦~',
+            type: "",
+            showCancelButton: false,
+            imageUrl: "http://image.xiaolu.so/logo.png",
+            confirmButtonColor: '#DD6B55',
+            confirmButtonText: "返回",
+            cancelButtonText: "取消"
+        },
+        function () {//确定　则跳转
+            location.href = document.referrer;
+        });
 }

@@ -3,7 +3,6 @@
  */
 
 $(document).ready(function () {
-    //var url = "/rest/v1/user/mycoupon/";
     var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
      var nums = 0;
     $.get(url, function (res) {

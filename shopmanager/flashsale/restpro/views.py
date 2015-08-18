@@ -315,24 +315,24 @@ class UserCouponViewSet(viewsets.ModelViewSet):
         """用户购买页面　在自己没有优惠券的情况下　生成优惠券 """
         data = ['ok']
         customer = Customer.objects.get(user=request.user.id)
-        # 生成优惠券池中的数据
-        # 将优惠券给该用户
         coupon_type = request.data.get("coupon_type", 0)
         if coupon_type:
             value_type = int(coupon_type)
             COUPON_VALUE = (0, 3, 30)   # 优惠券价格
-            today = datetime.datetime.today()
-            cou = CouponPool()      # 生成优惠券
-            cou.coupon_value = COUPON_VALUE[value_type]
-            cou.deadline = today + datetime.timedelta(days=2)  # 有效两天
-            cou.coupon_type = value_type  # 优惠券类型
-            cou.coupon_status = 3  # 可以使用的
-            cou.save()
-            mycou = Coupon()    # 发放优惠券到用户
-            mycou.coupon_user = customer.id
-            mycou.coupon_no = cou.coupon_no
-            mycou.mobile = customer.mobile
-            mycou.save()
+            mobile = customer.mobile
+            coupon_user = customer.id
+            unionid = customer.unionid
+            coupon_value = COUPON_VALUE[value_type]
+            deadline = datetime.datetime.today() + datetime.timedelta(days=2)
+            karg_dic = {"coupon_user": coupon_user, "unionid": unionid, "mobile": mobile, "deadline": deadline,
+                        "coupon_type": coupon_type, "coupon_value": coupon_value}
+            cou_xlmm = Coupon()
+            cou_xlmm.xlmm_Coupon_Create(**karg_dic)
+            # 每个客户都生成优惠券
+            # cou = CouponPool.objects.create(coupon_value=coupon_value, deadline=deadline,
+            #                                coupon_type=value_type, coupon_status=3)  # 生成优惠券 # 可以使用的 # 有效两天
+            # Coupon.objects.create(coupon_user=customer.id, coupon_no=cou.coupon_no, mobile=mobile)  # 发放优惠券到用户
+
         return Response(data)
 
     @detail_route(methods=['post'])
@@ -343,8 +343,5 @@ class UserCouponViewSet(viewsets.ModelViewSet):
         # 优惠券发放列表中找到对应的优惠券
         coupon_pool = CouponPool.objects.get(coupon_no=coupon_no)
         # 修改该优惠券状态到　已经使用的
-        if coupon_pool.coupon_status == CouponPool.USED:
-            return Response(data=['used'])
-        coupon_pool.coupon_status = CouponPool.USED
-        coupon_pool.save()
-        return Response(data=['ok'])
+        res = coupon_pool.use_coupon()
+        return Response(data=[res])
