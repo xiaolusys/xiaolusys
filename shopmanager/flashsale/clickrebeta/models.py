@@ -8,7 +8,6 @@ import datetime
 class NormalShopingManager(models.Manager):
 
     def get_queryset(self):
-        
         super_tm = super(NormalShopingManager,self)
         #adapt to higer version django(>1.4)
         if hasattr(super_tm,'get_query_set'):
