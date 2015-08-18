@@ -11,7 +11,7 @@ function create_yhq_dom(obj) {
     function yhq_dom() {
         /*
          <li class="type{{ type }}">
-         <p class="name">全场任意商品满{{ full }}返{{ fan }}多可叠加</p>
+         <p class="name">全场任意商品满{{ full }}返{{ fan }}</p>
          <p class="date">{{ created }} － {{ deadline }}</p>
          </li>
          */

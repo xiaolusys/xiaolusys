@@ -176,7 +176,6 @@ def sub_Handler(request=None, reason=None, categry=None):
         return
     # １、判断能否退款　能则继续　否则 break
     if categry == 0:
-        print "退款。。。。。"
         if judge_Refund(order_id=oid):
             # ２、get_or_create 退款单对象
             trade, order, order_count = get_Refund_Order_Trade(order_id=oid)
@@ -184,7 +183,6 @@ def sub_Handler(request=None, reason=None, categry=None):
             sale_refund, state = create_Sale_Refund(trade_id=trade.id, order_id=order.id)
             # 如果state 为真　则继续
             if state:
-                print "state is here: ", state
                 # 修改该订单的
                 order.refund_id = sale_refund.id  # refund_id
                 # refund_fee    = models.FloatField(default=0.0,verbose_name=u'退款费用')
@@ -204,7 +202,6 @@ def sub_Handler(request=None, reason=None, categry=None):
         else:
             return {"res": "forbidden"}
     if categry:
-        print "退货。。。。。"
         if judge_Refund_Product(order_id=oid):
             # ２、get_or_create 退款单对象
             trade, order, order_count = get_Refund_Order_Trade(order_id=oid)
@@ -212,7 +209,6 @@ def sub_Handler(request=None, reason=None, categry=None):
             sale_refund, state = create_Sale_Refund(trade_id=trade.id, order_id=order.id)
             # 如果state 为真　则继续
             if state:
-                print "state is here: ", state
                 # 修改该订单的
                 order.refund_id = sale_refund.id  # refund_id
                 # refund_fee    = models.FloatField(default=0.0,verbose_name=u'退款费用')
@@ -249,11 +245,9 @@ def refund_Handler(request):
     reason = int(request.data.get("refund[0][reason]", "0"))
     refund_or_pro = int(request.data["refund[0][refund_or_pro]"])  # 用来判断是退货还是退款的变量
     if refund_or_pro == 0:  # 退款处理
-        print "退款。。。"
         message = sub_Handler(request=request, reason=reason, categry=refund_or_pro)
         return message
     if refund_or_pro == 1:  # 退货处理
-        print "退货。。。"
         message = sub_Handler(request=request, reason=reason, categry=refund_or_pro)
         return message
 
