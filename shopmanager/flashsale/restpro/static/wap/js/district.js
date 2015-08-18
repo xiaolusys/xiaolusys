@@ -174,15 +174,8 @@ $(".btn-save").click(function () {
         //alert(typeof(data))
         //console.info(data)
         var referrer = document.referrer;
-        console.log(referrer);
-        var vars = [], hash;
-        var hashes = referrer.slice(referrer.indexOf('?') + 1).split('&');
-        for (var i = 0; i < hashes.length; i++) {
-            hash = hashes[i].split('=');
-            vars.push(hash[0]);
-            vars[hash[0]] = hash[1];
-        }
-        if (vars[0] == "item_id" && vars[1] == "sku_id") {
+        var hashes = referrer.split("?")[0].split('/');
+        if (hashes && (hashes[hashes.length - 1] == "buynow-dd.html" || hashes[hashes.length - 1] == "queren-dd.html")) {
             window.location.href = referrer;
         } else {
             window.location.href = "shouhuodz.html"

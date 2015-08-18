@@ -162,7 +162,13 @@ $("#btn-up").click(function () {
     var reqUrl = GLConfig.baseApiUrl + "/address/" + id + "/update";
     var requestCallBack = function () {
         alert("修改成功！")
-        window.location.href = "shouhuodz.html"
+        var referrer = document.referrer;
+        var hashes = referrer.split("?")[0].split('/');
+        if (hashes && (hashes[hashes.length - 1] == "buynow-dd.html" || hashes[hashes.length - 1] == "queren-dd.html")) {
+            window.location.href = referrer;
+        } else {
+            window.location.href = "shouhuodz.html"
+        }
     };
     // 发送请求
     $.ajax({

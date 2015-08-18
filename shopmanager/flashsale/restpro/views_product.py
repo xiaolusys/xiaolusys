@@ -85,7 +85,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    paginate_by = 25
+    paginate_by = 50
     page_query_param = 'page_size'
     max_paginate_by = 100
     
@@ -169,8 +169,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=today_dt).order_by('-details__is_recommend')
         
-        female_qs = self.get_female_qs(queryset)[0:4]
-        men_qs  = self.get_child_qs(queryset)[0:4]
+        female_qs = self.get_female_qs(queryset)
+        men_qs  = self.get_child_qs(queryset)
         
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
                          'child_list':self.get_serializer(men_qs, many=True).data}
@@ -184,8 +184,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend')
         
-        female_qs = self.get_female_qs(queryset)[0:4]
-        men_qs  = self.get_child_qs(queryset)[0:4]
+        female_qs = self.get_female_qs(queryset)
+        men_qs  = self.get_child_qs(queryset)
         
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
                          'child_list':self.get_serializer(men_qs, many=True).data}
@@ -205,7 +205,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        
         return Response(serializer.data)
     
     @list_route(methods=['get'])
@@ -221,7 +220,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        
         return Response(serializer.data)
     
     @list_route(methods=['get'])

@@ -20,7 +20,7 @@
 
 <ul id="js-addr" class="addr">
   <li>
-    <a class="add" href="shouhuodz.html">
+    <a class="add" href="shouhuodz-add.html">
       <p class="h2 label2">新增收货地址</p>  
     </a>
   </li>
@@ -28,7 +28,7 @@
   <li class="{{ addr_class }}" name="select-addr">
     <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
     <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
-    <a class="icon-edit"></a>
+    <a class="icon-edit" href="shouhuodz-edit.html?id={{ id }}"></a>
     <i class="icon-radio" addrid={{ id }}></i>
   </li>
   </script>

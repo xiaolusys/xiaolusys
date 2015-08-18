@@ -177,7 +177,7 @@ body{
 }
 .cart{
   left:20px;
-  background:url(../images/icon-gouwuche.png) no-repeat;
+  background:url(../images/icon-gouwuche.png) no-repeat rgba(0,0,0,0.6);
 }
 .cart .total{
   display: block;
