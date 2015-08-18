@@ -26,7 +26,7 @@ function create_yhqk_dom() {
 }
 
 $(document).ready(function () {
-    var url = "/rest/v1/user/mycoupon/";
+    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
     $.get(url, function (res) {
         if (res.length > 0) {
             $.each(res, function (i, val) {

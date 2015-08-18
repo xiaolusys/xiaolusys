@@ -115,3 +115,7 @@ class CouponPool(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.coupon_no)
+
+    @property
+    def get_pulled_instance(self):
+        return self.objects.filter(coupon_status=CouponPool.PULLED)

@@ -308,5 +308,43 @@ class UserCouponViewSet(viewsets.ModelViewSet):
                           }
             data.append(data_entry)
 
-        return HttpResponse(json.dumps(data), content_type='application/json')
-    
+        return Response(data)
+
+    @list_route(methods=['post'])
+    def user_create_coupon(self, request, *args, **kwargs):
+        """用户购买页面　在自己没有优惠券的情况下　生成优惠券 """
+        data = ['ok']
+        customer = Customer.objects.get(user=request.user.id)
+        # 生成优惠券池中的数据
+        # 将优惠券给该用户
+        coupon_type = request.data.get("coupon_type", 0)
+        if coupon_type:
+            value_type = int(coupon_type)
+            COUPON_VALUE = (0, 3, 30)   # 优惠券价格
+            today = datetime.datetime.today()
+            cou = CouponPool()      # 生成优惠券
+            cou.coupon_value = COUPON_VALUE[value_type]
+            cou.deadline = today + datetime.timedelta(days=2)  # 有效两天
+            cou.coupon_type = value_type  # 优惠券类型
+            cou.coupon_status = 3  # 可以使用的
+            cou.save()
+            mycou = Coupon()    # 发放优惠券到用户
+            mycou.coupon_user = customer.id
+            mycou.coupon_no = cou.coupon_no
+            mycou.mobile = customer.mobile
+            mycou.save()
+        return Response(data)
+
+    @detail_route(methods=['post'])
+    def pass_user_coupon(self, request, pk=None, *args, **kwargs):
+        # 修改该优惠券为　使用过的状态　CouponPool.USED
+        instance = self.get_object()
+        coupon_no = instance.coupon_no
+        # 优惠券发放列表中找到对应的优惠券
+        coupon_pool = CouponPool.objects.get(coupon_no=coupon_no)
+        # 修改该优惠券状态到　已经使用的
+        if coupon_pool.coupon_status == CouponPool.USED:
+            return Response(data=['used'])
+        coupon_pool.coupon_status = CouponPool.USED
+        coupon_pool.save()
+        return Response(data=['ok'])
