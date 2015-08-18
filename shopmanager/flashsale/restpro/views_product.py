@@ -1,6 +1,7 @@
 # -*- coding:utf8 -*-
 import datetime
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -160,7 +161,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset.filter(outer_id__startswith='8',outer_id__endswith='1')
     
     def get_child_qs(self,queryset):
-        return queryset.filter(outer_id__startswith='9',outer_id__endswith='1')
+        return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1')
     
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
@@ -170,10 +171,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.filter(sale_time=today_dt).order_by('-details__is_recommend')
         
         female_qs = self.get_female_qs(queryset)
-        men_qs  = self.get_child_qs(queryset)
+        child_qs  = self.get_child_qs(queryset)
         
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
-                         'child_list':self.get_serializer(men_qs, many=True).data}
+                         'child_list':self.get_serializer(child_qs, many=True).data}
         
         return Response(response_date)
     
@@ -185,10 +186,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend')
         
         female_qs = self.get_female_qs(queryset)
-        men_qs  = self.get_child_qs(queryset)
+        child_qs  = self.get_child_qs(queryset)
         
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
-                         'child_list':self.get_serializer(men_qs, many=True).data}
+                         'child_list':self.get_serializer(child_qs, many=True).data}
         
         return Response(response_date)
     
