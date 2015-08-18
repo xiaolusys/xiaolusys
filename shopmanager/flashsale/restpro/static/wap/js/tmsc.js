@@ -115,6 +115,7 @@ function plus_shop(id) {
         },
         success: requestCallBack,
         error: function (err) {
+            $("#loading").hide();
             var resp = JSON.parse(err.responseText);
             if (!isNone(resp.detail)) {
                 drawToast(resp.detail);
