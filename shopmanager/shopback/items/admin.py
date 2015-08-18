@@ -678,7 +678,7 @@ class ProductAdmin(admin.ModelAdmin):
             self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
             
         up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
-        down_queryset = len(outer_ids) - up_queryset.count()
+        down_queryset  = Product.objects.filter(outer_ids__in=outer_ids,shelf_status=Product.DOWN_SHELF)
         
         self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))
         for product in down_queryset:
