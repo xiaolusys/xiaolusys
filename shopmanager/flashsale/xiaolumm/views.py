@@ -477,6 +477,8 @@ class StatsView(View):
                                   context_instance=RequestContext(request))
 
 import urllib
+from urlparse import urljoin
+from django.core.urlresolvers import reverse
 from . import tasks
 
 def logclicks(request, linkid):
@@ -493,7 +495,7 @@ def logclicks(request, linkid):
     click_time = datetime.datetime.now()
     tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
     
-    return redirect(SHOPURL)
+    return redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
 
 def logChannelClicks(request, linkid):
     content = request.REQUEST
