@@ -71,19 +71,13 @@
 </div>
 
 <div class="coupons">
-  <div class="title">
-    <div class="inner">可用优惠券（0）</div>
-  </div>
-  <ul class="coupons-list">
-  <script id="coupon-template" type="text/html">
-  <li class="type1">
-      <p class="name">{{ coupon_name }}</p>
-      <p class="date">{{ created }} - {{ end }}</p>
-      <i class="icon-radio {{ coupon_class }}"></i>
-  </li>
-  </script>
-  </ul>
+    <div class="title">
+        <div class="inner" id="coupon_nums"></div>
+        <div class="coupon_value"><span id="coupon_value"></span></div>
+    </div>
+
 </div>
+
 
 <div class="pay-type">
   <h2>支付方式</h2>
@@ -101,6 +95,7 @@
 <script src="../js/pingpp_pay.js"></script>
 <script src="../js/pingpp_ap.js"></script>
 <script src="../js/tmpay.js"></script>
+<script src="../js/tmyhquse.js"></script>
 <script type="text/javascript">
 (function($){
   //地址切换
@@ -123,6 +118,10 @@
   Set_user_orderinfo(GLConfig.get_now_payinfo_url.template(urlConf));
   
   $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy .btn-buy');
+    //优惠券显示
+    get_Coupon_On_Buy();
+    //显示回传过来的　优惠券数值
+    get_Coupon_Value_Show_In_Buy();
 })(jQuery);
 
 function change_address(){
