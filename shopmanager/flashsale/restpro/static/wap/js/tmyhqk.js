@@ -3,10 +3,11 @@
  */
 
 $(document).ready(function () {
-    var url = "/rest/v1/user/mycoupon/";
+    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
+     var nums = 0;
     $.get(url, function (res) {
         if (res.length > 0) {
-            var nums = 0;
+
             $.each(res, function (i, val) {
                 if (val.coupon_status == 3) {
                     nums = nums + 1;//有效可用的优惠券数量

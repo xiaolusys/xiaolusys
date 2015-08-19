@@ -71,3 +71,14 @@
 .list .radio-select{
   background-image: url(../images/icon-radio-select.png);
 }
+.icon-edit{
+  position: absolute;
+  top:50%;
+  margin-top: -22px;
+  display: block;
+  width: 27px;
+  height: 30px;
+  background-image:url(../images/icon-xiugai.png);
+  
+  right: 140px;
+}
