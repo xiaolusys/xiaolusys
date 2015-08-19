@@ -649,7 +649,7 @@ class ProductAdmin(admin.ModelAdmin):
         try:
             task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
         except Exception,exc:
-            self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
+            self.message_user(request,u"更新错误，微信商品上下架接口异常：%s"%exc.message)
             
         up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
         down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
