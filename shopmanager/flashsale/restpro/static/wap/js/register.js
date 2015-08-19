@@ -37,7 +37,6 @@ function my_submit() {
 
     //请求成功回调函数
     var requestCallBack = function (res) {
-        console.log(res);
         var result = res.result;
         if (result == "7") {
             window.location = "denglu2.html";

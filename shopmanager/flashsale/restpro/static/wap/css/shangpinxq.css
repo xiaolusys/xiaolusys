@@ -108,7 +108,7 @@
 }
 .goods-size li.disable{
   color: #c5c9cd;
-  border: 1px solid #d8dcdf;
+  border: 2px solid #d8dcdf;
   background-color: #f0f1f3;
 }
 .goods-size li.disable i{

@@ -29,6 +29,7 @@ from django.db.models import F
 from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from django.forms.models import model_to_dict
 from shopback.items.models import Product, ProductSku
+from shopback.base import log_action, ADDITION, CHANGE
 import logging
 
 logger = logging.getLogger('restapi.errors')
@@ -710,7 +711,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                    SaleTrade.TRADE_CLOSED_BY_SYS:u'订单已关闭或超时',
                    'default':u'订单不在可支付状态'}
          
-        deadline = datetime.datetime.now() - datetime.timedelta(seconds=3600)
+        deadline = datetime.datetime.now() - datetime.timedelta(seconds=1500)
         
         instance = self.get_object()
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
@@ -734,10 +735,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
+        log_action(request.user.id, instance, CHANGE, u'通过接口程序－取消订单')
         return Response(data={"ok": True})
 
     @detail_route(methods=['post'])
     def confirm_sign(self, request, pk=None):
         instance = self.get_object()
         instance.confirm_sign_trade()
+        log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
         return Response(data={"ok": True})
