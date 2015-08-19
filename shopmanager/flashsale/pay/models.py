@@ -467,20 +467,20 @@ from shopback import signals
 
 from django.contrib.auth.models import User as DjangoUser
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
-    djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
-    for pro_bean in product_list:
-        all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL)
-        for cart in all_cart:
-            cart.close_cart()
-            log_action(djuser.id, cart, CHANGE, u'下架后更新')
-        all_trade = SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)
-        for trade in all_trade:
-            trade.close_trade()
-            log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
-        # SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)\
-        #     .update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
-        # SaleOrder.objects.filter(item_id=pro_bean.id, status=SaleOrder.WAIT_BUYER_PAY)\
-        #     .update(status=SaleOrder.TRADE_CLOSED_BY_SYS)
+    try:
+        djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+        for pro_bean in product_list:
+            all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL)
+            for cart in all_cart:
+                cart.close_cart()
+                log_action(djuser.id, cart, CHANGE, u'下架后更新')
+            all_trade = SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)
+            for trade in all_trade:
+                trade.close_trade()
+                log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+    except Exception, exc:
+        logger = logging.getLogger('django.request')
+        logger.error(exc.message, exc_info=True)
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
