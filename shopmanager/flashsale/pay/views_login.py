@@ -26,18 +26,14 @@ def flashsale_login(request):
         req_params = request.POST
         user = authenticate(request=request,**req_params)
         if not user or user.is_anonymous():
-            
             defaults = {
                 "title":u'登录',
                 REDIRECT_FIELD_NAME: next_url
             }
             return render_to_response("pay/mlogin.html", defaults,
                                       context_instance=RequestContext(request))
-    
-        
         request.session[SESSION_KEY] = user.id
         auth_login(request, user)
-    
         return HttpResponseRedirect(next_url)
 
 def productlist_redirect(request):
