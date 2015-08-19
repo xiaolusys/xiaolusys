@@ -276,7 +276,7 @@ class UserCouponPoolViewSet(viewsets.ModelViewSet):
 
 import json
 from django.http import HttpResponse
-
+from shopback.base import log_action, ADDITION, CHANGE
 
 class UserCouponViewSet(viewsets.ModelViewSet):
     queryset = Coupon.objects.all()
@@ -327,7 +327,9 @@ class UserCouponViewSet(viewsets.ModelViewSet):
             karg_dic = {"coupon_user": coupon_user, "unionid": unionid, "mobile": mobile, "deadline": deadline,
                         "coupon_type": coupon_type, "coupon_value": coupon_value}
             cou_xlmm = Coupon()
+            # 只是为小鹿代理生成优惠券
             cou_xlmm.xlmm_Coupon_Create(**karg_dic)
+            log_action(request.user.id, customer, CHANGE, u'通过接口程序－生成优惠券')
             # 每个客户都生成优惠券
             # cou = CouponPool.objects.create(coupon_value=coupon_value, deadline=deadline,
             #                                coupon_type=value_type, coupon_status=3)  # 生成优惠券 # 可以使用的 # 有效两天

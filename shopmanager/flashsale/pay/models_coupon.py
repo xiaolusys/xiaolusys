@@ -102,13 +102,13 @@ class Coupon(models.Model):
         coupon_value = kwargs['coupon_value'] or ''
         deadline = kwargs['deadline'] or ''
         coupon_user = kwargs['coupon_user'] or ''
-        cou_p = CouponPool.objects.create(deadline=deadline, coupon_type=coupon_type,
-                                          coupon_value=coupon_value, coupon_status=CouponPool.PULLED)
         try:
             xlmm = XiaoluMama.objects.get(models.Q(mobile=mobile) | models.Q(openid=unionid))
         except XiaoluMama.DoesNotExist:
             return
         if xlmm and xlmm.agencylevel == 2 and xlmm.charge_status == XiaoluMama.CHARGED:
+            cou_p = CouponPool.objects.create(deadline=deadline, coupon_type=coupon_type,
+                                              coupon_value=coupon_value, coupon_status=CouponPool.PULLED)
             self.coupon_user = coupon_user
             self.coupon_no = cou_p.coupon_no
             self.mobile = mobile
