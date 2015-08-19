@@ -114,9 +114,9 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         mobile = request.data['vmobile']
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() == 0:
-            return Response("1")  # 尚无用户或者手机未绑定
-        if mobile == "":  # 进行正则判断，待写
-            return Response("false")
+            return Response({"result": "1"})  # 尚无用户或者手机未绑定
+        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+            return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
@@ -125,13 +125,13 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.mobile_pass = True
             new_reg.save()
             task_register_code.s(mobile)()
-            return Response('0')
+            return Response({"result": "0"})
         else:
             reg_temp = reg[0]
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.save()
             task_register_code.s(mobile)()
-        return Response("0")
+        return Response({"result": "0"})
 
     @list_route(methods=['post'])
     def change_user_pwd(self, request):
@@ -144,24 +144,24 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(
                 passwd1) == 0 and len(
                 passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
-            return Response('2')
+            return Response({"result": "2"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() == 0:
-            return Response("1")  # 尚无用户或者手机未绑定
+            return Response({"result": "1"})  # 尚无用户或者手机未绑定
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
-            return Response("3")  # 验证码不对
+            return Response({"result": "3"})  # 验证码不对
         reg_temp = reg[0]
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
-            return Response("3")  # 验证码不对
+            return Response({"result": "3"})  # 验证码不对
         try:
             system_user = already_exist[0].user
             system_user.set_password(passwd1)
             system_user.save()
         except:
-            return Response("5")
-        return Response("0")
+            return Response({"result": "5"})
+        return Response({"result": "0"})
 
     @list_route(methods=['post'])
     def customer_login(self, request):
