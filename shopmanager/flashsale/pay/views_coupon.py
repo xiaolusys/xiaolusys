@@ -125,7 +125,6 @@ XLMM_COUPON_50_RELEASE_TIME = datetime.datetime(2015, 8, 19, 0, 0, 0)
 def xlmm_Coupon_Release(sender, instance, created, **kwargs):
     # buyer_id
     # 判断　用户是不是　小鹿代理
-    print 'xlmm coupon release is runnning  ,,..'
     today = datetime.datetime.today()
     if today >= XLMM_COUPON_50_RELEASE_TIME and instance.outer_id == 'RMB200'\
             and instance.refund_status == SaleRefund.NO_REFUND and instance.payment == 200 \
@@ -140,11 +139,9 @@ def xlmm_Coupon_Release(sender, instance, created, **kwargs):
             xlmm = XiaoluMama.objects.get(openid=unionid)
         except XiaoluMama.DoesNotExist:
             return
-        print 'xlmm get is ok ,,,,,,'
         if xlmm and xlmm.agencylevel == 2 and xlmm.charge_status == XiaoluMama.CHARGED:
             # 代理级别为２　并且已经接管的
             # 生成优惠券（仅仅生成一次　get try except）
-            print 'mama status is righe .....'
             coupon = Coupon.objects.filter(coupon_user=buyer_id)
             if coupon.exists():  # 此人曾经有优惠券 去过滤　是否存在ＲＭＢ２００的优惠券　存在就不发放
                 for c in coupon:
@@ -154,10 +151,8 @@ def xlmm_Coupon_Release(sender, instance, created, **kwargs):
                     for i in range(2):
                         cou = Coupon()
                         cou.lmi200_Xlmm_Coupon(buyer_id, trade_id, mobile)
-                        print 'every is 11111done ------'
             else:   # 以前没有过优惠券　则直接生成优惠券
                 for i in range(2):
                         cou = Coupon()
                         cou.lmi200_Xlmm_Coupon(buyer_id, trade_id, mobile)
-                        print 'every is 222222done ------'
 post_save.connect(xlmm_Coupon_Release, sender=SaleOrder)
