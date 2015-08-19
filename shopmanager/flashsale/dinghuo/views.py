@@ -582,7 +582,6 @@ class DailyWorkView(View):
                           "shop_items_product where  sale_time='{0}' and status!='delete' " \
                           "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser {1}))".format(
                 target_date, group_sql)
-        print product_sql
         sql = "select product.outer_id,product.product_name,product.pic_path," \
               "order_info.sale_num,product.id " \
               "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id "
@@ -594,7 +593,6 @@ class DailyWorkView(View):
 
         for product in raw:
             sale_num = int(product[3] or 0)
-            print sale_num
             outer_id = product[0]
             temp_dict = {"outer_id": product[0], "product_id": product[4], "product_name": product[1],
                          "pic_path": product[2], "sale_num": sale_num or 0}
@@ -603,8 +601,7 @@ class DailyWorkView(View):
                 trade_dict[pro_id] = temp_dict
             else:
                 trade_dict[pro_id]['sale_num'] += sale_num
-        trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
-        print type(trade_dict)
+        trade_dict = sorted(trade_dict.items(), key=lambda d: d[1]['sale_num'], reverse=True)
         return render_to_response("dinghuo/dailywork.html",
                                   {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo": query_time, 'groupname': groupname,
