@@ -68,7 +68,7 @@
   padding-bottom: 24px;
 }
 .goods-size ul li{
-  width: 100px;
+  width: 170px;
   height: 50px;
   float: left;
   border-width: 2px;
@@ -107,12 +107,12 @@
   background-color: #5f5f5e;
 }
 .goods-size li.disable{
-  background-color: #EFF4FD;
-  border-color: #e3e2e2;
-  color: #CCC6C6;
+  color: #c5c9cd;
+  border: 1px solid #d8dcdf;
+  background-color: #f0f1f3;
 }
 .goods-size li.disable i{
-  background-color:#e3e2e2;
+  background-color:#d8dcdf;
 }
 .goods-param{
   width: 640px;
