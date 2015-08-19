@@ -710,7 +710,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                    SaleTrade.TRADE_CLOSED_BY_SYS:u'订单已关闭或超时',
                    'default':u'订单不在可支付状态'}
          
-        deadline = datetime.datetime.now() - datetime.timedelta(seconds=3600)
+        deadline = datetime.datetime.now() - datetime.timedelta(seconds=1500)
         
         instance = self.get_object()
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
