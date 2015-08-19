@@ -66,13 +66,8 @@ from django.contrib.auth.models import User as DjangoUser
 from shopback.users.models import User
 
 def getOrCreateSaleSeller():
-    
     from flashsale.pay.models import FLASH_SELLER_ID
-    
     seller = User.getOrCreateSeller(FLASH_SELLER_ID,seller_type=User.SHOP_TYPE_SALE)
-    seller.nick  = u'小鹿美美特卖平台'
-    seller.save()
-    
     return seller
 
 from django.forms import model_to_dict
