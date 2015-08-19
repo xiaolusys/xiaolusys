@@ -30,8 +30,8 @@ function get_code() {
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
     var requestUrl = "/rest/v1/register/change_pwd_code";
-    var requestCallBack = function (result) {
-        console.log("back");
+    var requestCallBack = function (res) {
+        var result = res.result;
         if (result == "1") {
             phone_exist_error.text("尚无该用户或者手机未绑定~").show();
             setTimeout("error_hide()", 1000);
@@ -71,10 +71,10 @@ function confirm_change() {
     var valid_code = $("#valid_code").val();
     var password1 = $("#password1").val();
     var password2 = $("#password2").val();
-    console.log(password1, password2);
+
     var requestUrl = "/rest/v1/register/change_user_pwd";
-    var requestCallBack = function (result) {
-        console.log("back");
+    var requestCallBack = function (res) {
+        var result = res.result;
         if (result == "1") {
             phone_exist_error.text("尚无该用户或者手机未绑定~").show();
             setTimeout("error_hide()", 1000);
@@ -103,7 +103,7 @@ function confirm_change() {
         setTimeout("error_hide()", 2000);
     } else {
         // 发送请求
-        console.log("begin");
+        
         $.ajax({
             type: 'post',
             url: requestUrl,
