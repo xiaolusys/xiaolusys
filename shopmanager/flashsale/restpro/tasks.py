@@ -51,3 +51,32 @@ def task_off_the_shelf(product_id=None):
 
     except Exception, exc:
         raise task_off_the_shelf.retry(exc=exc)
+
+
+import datetime
+@task(max_retry=3, default_retry_delay=5)
+def task_schedule_cart():
+    """
+        定时清空购物车中已经超过预留时间和订单中未支付的。
+    """
+    try:
+        djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+        now = datetime.datetime.now()
+        all_product_in_cart = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, remain_time__lte=now)
+
+        for product_in_cart in all_product_in_cart:
+            product_in_cart.close_cart()
+            log_action(djuser.id, product_in_cart, CHANGE, u'超出预留时间')
+
+        all_trade = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_PAY,
+                                             created__lte=datetime.datetime.now() - datetime.timedelta(minutes=20))
+        for trade in all_trade:
+            try:
+                trade.close_trade()
+                log_action(djuser.id, trade, CHANGE, u'超出待支付时间')
+            except Exception, exc:
+                logger = logging.getLogger('django.request')
+                logger.error(exc.message, exc_info=True)
+
+    except Exception, exc:
+        raise task_schedule_cart.retry(exc=exc)
