@@ -104,10 +104,9 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
     
     update_wxpids   = set([])
     _wx_api         = WeiXinAPI()
-    
-    try:  
-        for outer_id in outer_ids:
-            
+    exception     = None
+    for outer_id in outer_ids:
+        try:
             wx_skus = WXProductSku.objects.filter(outer_id=outer_id).values('product').distinct()
             wx_prodids = [p['product'] for p in wx_skus]
 
@@ -121,20 +120,23 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
                 update_wxpids.add(wxproduct_id)
                 _wx_api.modMerchantProductStatus(wxproduct_id, status)
 
-            product = Product.objects.get(outer_id=outer_id)
-            if status == WXProduct.UP_ACTION:
-                product.shelf_status = Product.UP_SHELF
-                #发送商品上架消息
-                signals.signal_product_upshelf.send(sender=Product,product_list=[product])
-            else:
-                product.shelf_status = Product.DOWN_SHELF
-                signals.signal_product_downshelf.send(sender=Product, product_list=[product])
-            product.save()
+        except WeiXinRequestException, exc:
+            exception = exc
+        
+        product = Product.objects.get(outer_id=outer_id)
+        if status == WXProduct.UP_ACTION:
+            product.shelf_status = Product.UP_SHELF
+            #发送商品上架消息
+            signals.signal_product_upshelf.send(sender=Product,product_list=[product])
+        else:
+            product.shelf_status = Product.DOWN_SHELF
+            signals.signal_product_downshelf.send(sender=Product, product_list=[product])
+        product.save()
+        
+    if exception:
+        raise exception
+         
             
-    except WeiXinRequestException, exc:
-        raise task_Mod_Merchant_Product_Status.retry(exc=exc)
-    
-
 @task
 def pullWXProductTask():
     
