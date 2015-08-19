@@ -1,5 +1,5 @@
 {% extends "dinghuo/dinghuo_base.html" %}
-{% block title %}大货统计{% endblock %}
+{% block title %}爆款{% endblock %}
 {% block head_script %}
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
@@ -55,22 +55,7 @@
                     </option>
                 </select>
             </div>
-            <div class="col-xs-2">
-                <label class="control-label" for="dhstatus">大货状态:</label>
-                <select class="form-control" name="dhstatus" id="dhstatus_id">
-                    <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
-                    <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
-                            value="1">显示异常(缺货,订多)
-                    </option>
-                    <option class="btn-danger" {% ifequal dhstatus '2' %} selected="selected" {% endifequal %}
-                            value="2">只显示缺货
-                    </option>
-                    <option class="btn-danger" {% ifequal dhstatus '3' %} selected="selected" {% endifequal %}
-                            value="3">只显示订多
-                    </option>
 
-                </select>
-            </div>
             <div class="col-xs-1">
                 <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
@@ -79,44 +64,18 @@
     <div class="row" style="margin-top: 20px">
         <table class="table table-bordered" id="resultTable">
             <thead style="background-color:#01B5A2;">
-            <th width="250px">商品信息</th>
-            <th width="100px">图片</th>
-            <th>尺寸</th>
+            <th>商品信息</th>
+            <th>图片</th>
             <th>销售数</th>
-            <th>已拍数量(有效数量)</th>
-            <th width="150px">状态</th>
             </thead>
             <tbody>
-            {% for product in  targetproduct %}
-                {% with product.prod_skus|length as sku_len %}
-                    {% if sku_len > 0 %}
-                        {% for sku in product.prod_skus %}
-                            <tr>
-                                {% if forloop.first %}
-                                    <td rowspan="{{ sku_len }}">{{ product.name }}<br>
-                                        <a href="/sale/dinghuo/adddetail/{{ product.outer_id }}"
-                                           target="_blank">编码:{{ product.outer_id }}</a>
-                                    </td>
-                                    <td rowspan="{{ sku_len }}"><img src="{{ product.pic_path }}" width="100px"
-                                                                     class="img-circle">
-                                    </td>
-                                {% endif %}
-                                <td>{{ sku.sku_name }}</td>
-                                <td><span id="sale_num_{{ sku.id }}">{{ sku.sale_num }}</span></td>
-                                <td><a href="/sale/dinghuo/statsbypid/{{ product.id }}" target="_blank"
+            {% for product in  target_product %}
 
-                                       id="ding_huo_num_{{ sku.id }}">{{ sku.dinghuo_num }} </a>({{ sku.effect_quantity }})
-                                </td>
-                                <td>
-                                    <span class="dinghuo_status" id="dinghuostatus_{{ sku.id }}"
-                                            {% if sku.flag_of_less %} style="color: red;font-size: 20px"
-                                            {% elif sku.flag_of_more %}
-                                          style="color: blue;font-size: 20px"{% endif %}>{{ sku.dinghuo_status }}</span>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+                <tr>
+                    <td>{{ product.0 }}</td>
+                    <td><img src="{{ product.1.pic_path }}" width="100px" class="img-circle"></td>
+                    <td>{{ product.1.sale_num }}</td>
+                </tr>
             {% endfor %}
             </tbody>
         </table>
@@ -136,6 +95,8 @@
         <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
                 class="glyphicon glyphicon-arrow-down"></span></button>
     </div>
+
+    {{ targetproduct }}
 {% endblock %}
 
 {% block tail_script %}

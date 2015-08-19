@@ -523,6 +523,7 @@ class StatsByProductIdView(View):
 
 
 from flashsale.dinghuo.models_user import MyUser, MyGroup
+from django.db import connection
 
 
 class DailyWorkView(View):
@@ -534,20 +535,6 @@ class DailyWorkView(View):
             return functions.parse_datetime(end_dt)
         return functions.parse_date(end_dt)
 
-
-    def getSourceDinghuo(self, start_dt=None, end_dt=None):
-        dinghuo_qs = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(created__gte=start_dt,
-                                                                                 created__lte=end_dt)
-        return dinghuo_qs
-
-    def getDinghuoQuantityByPidAndSku(self, outer_id, sku_id, dinghuo_qs):
-        ding_huo_qs = dinghuo_qs.filter(product_id=outer_id, chichu_id=sku_id)
-        buy_quantity, effect_quantity = 0, 0
-        for ding_huo in ding_huo_qs:
-            buy_quantity += ding_huo.buy_quantity
-            effect_quantity += ding_huo.buy_quantity - ding_huo.inferior_quantity - ding_huo.non_arrival_quantity
-        return buy_quantity, effect_quantity
-
     def get(self, request):
         content = request.REQUEST
         today = datetime.date.today()
@@ -555,9 +542,8 @@ class DailyWorkView(View):
         shelve_to_str = content.get("dt", None)
         query_time_str = content.get("showt", None)
         groupname = content.get("groupname", 0)
-        dhstatus = content.get("dhstatus", '1')
         groupname = int(groupname)
-        group_tuple = ('0', '采购A', '采购B', '采购C')
+        search_text = content.get("search_text", '').strip()
         target_date = today
         if shelve_fromstr:
             year, month, day = shelve_fromstr.split('-')
@@ -567,57 +553,57 @@ class DailyWorkView(View):
 
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_to_str)
-        if time_to - shelve_from > datetime.timedelta(3):
-            time_to = shelve_from + datetime.timedelta(3)
+        if time_to - shelve_from < datetime.timedelta(0):
+            time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
+        order_sql = "select id,outer_id,sum(num) as sale_num,pay_time from " \
+                    "shop_trades_mergeorder where sys_status='IN_EFFECT' " \
+                    "and merge_trade_id in (select id from shop_trades_mergetrade where type not in ('reissue','exchange') " \
+                    "and status in ('WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED') " \
+                    "and sys_status not in('INVALID','ON_THE_FLY') " \
+                    "and id not in (select id from shop_trades_mergetrade where sys_status='FINISHED' and is_express_print=False))" \
+                    "and gift_type !=4 " \
+                    "and (pay_time between '{0}' and '{1}') " \
+                    "and char_length(outer_id)>=9 " \
+                    "and (left(outer_id,1)='9' or left(outer_id,1)='8' or left(outer_id,1)='1') " \
+                    "group by outer_id".format(shelve_from, time_to)
 
-        product_dicts = functions.get_product_by_date(target_date, group_tuple[groupname])
-        orderqs = functions.get_source_orders(shelve_from, time_to)
-        order_dict = functions.get_product_from_order(orderqs)
-        ding_huo_qs = self.getSourceDinghuo(shelve_from, query_time)
+        if groupname == 0:
+            group_sql = ""
+        else:
+            group_sql = " where group_id = " + str(groupname)
+        if len(search_text) > 0:
+            search_text = str(search_text)
+            product_sql = "select id,name as product_name,outer_id,pic_path from " \
+                          "shop_items_product where status='normal' and outer_id like '%%{0}%%' or name like '%%{0}%%'".format(
+                search_text)
+        else:
+            product_sql = "select id,name as product_name,outer_id,pic_path from " \
+                          "shop_items_product where  sale_time='{0}' and status!='delete' " \
+                          "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser {1}))".format(
+                target_date, group_sql)
+        sql = "select product.outer_id,product.product_name,product.pic_path," \
+              "order_info.sale_num,product.id " \
+              "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id "
 
-        trade_list = []
-        all_pro_sale = {}
-        for product_dict in product_dicts:
-            product_dict['prod_skus'] = []
-            all_sku = ProductSku.objects.values('id', 'outer_id', 'properties_name', 'properties_alias', 'memo').filter(
-                product_id=product_dict['id'])
-            temp_total_sale_num = 0
-            for sku_dict in all_sku:
-                sale_num = functions.get_sale_num_by_sku(product_dict['outer_id'], sku_dict['outer_id'], order_dict)
-                temp_total_sale_num = temp_total_sale_num + sale_num
-                ding_huo_num, effect_quantity = self.getDinghuoQuantityByPidAndSku(product_dict['id'], sku_dict['id'],
-                                                                                   ding_huo_qs)
-                dinghuostatusstr, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                    sale_num, ding_huo_num, 0)
-                if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
-                            flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
-                    sku_dict['sale_num'] = sale_num
-                    sku_dict['dinghuo_num'] = ding_huo_num
-                    sku_dict['effect_quantity'] = effect_quantity
-                    sku_dict['sku_name'] = sku_dict['properties_alias'] if len(
-                        sku_dict['properties_alias']) > 0 else sku_dict['properties_name']
-                    sku_dict['dinghuo_status'] = dinghuostatusstr
-                    sku_dict['flag_of_more'] = flag_of_more
-                    sku_dict['flag_of_less'] = flag_of_less
-                    product_dict['prod_skus'].append(sku_dict)
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        raw = cursor.fetchall()
+        trade_dict = {}
 
-            product_dict['total_sale_num'] = temp_total_sale_num
-            key_of_pro = product_dict['outer_id'][0:len(product_dict['outer_id']) - 1]
-            if key_of_pro in all_pro_sale:
-                all_pro_sale[key_of_pro]['total_sale_num'] += temp_total_sale_num
+        for product in raw:
+            sale_num = int(product[3] or 0)
+            outer_id = product[0]
+            temp_dict = {"outer_id": product[0], "product_id": product[4], "product_name": product[1],
+                         "pic_path": product[2], "sale_num": sale_num or 0}
+            pro_id = outer_id[0:len(outer_id) - 1]
+            if pro_id not in trade_dict:
+                trade_dict[pro_id] = temp_dict
             else:
-                all_pro_sale[key_of_pro] = {"total_sale_num": product_dict['total_sale_num'],
-                                            "pic_path": product_dict['pic_path']}
-                all_pro_sale[key_of_pro]['name'] = product_dict['name'].split("-")[0]
-            trade_list.append(product_dict)
-        all_pro_sale_items = sorted(all_pro_sale.items(), key=lambda d: d[1]['total_sale_num'], reverse=True)
-        the_best_sale_pro = []
-        if all_pro_sale_items:
-            the_best_sale_pro = all_pro_sale_items[0]
+                trade_dict[pro_id]['sale_num'] += sale_num
+        trade_dict = sorted(trade_dict.items(), key=lambda d: d[1]['sale_num'], reverse=True)
         return render_to_response("dinghuo/dailywork.html",
-                                  {"targetproduct": trade_list, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "all_pro_sale": the_best_sale_pro},
+                                  {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
+                                   "searchDinghuo": query_time, 'groupname': groupname,
+                                   "search_text": search_text},
                                   context_instance=RequestContext(request))
-

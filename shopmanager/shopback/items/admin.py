@@ -101,7 +101,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
                     , 'model_id', 'sync_stock','is_match','is_split','sale_time_select',
-                   'purchase_select','charger_select','district_link','shelf_status')
+                   'sale_charger','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
@@ -649,7 +649,7 @@ class ProductAdmin(admin.ModelAdmin):
         try:
             task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
         except Exception,exc:
-            self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
+            self.message_user(request,u"更新错误，微信商品上下架接口异常：%s"%exc.message)
             
         up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
         down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
@@ -678,7 +678,7 @@ class ProductAdmin(admin.ModelAdmin):
             self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
             
         up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
-        down_queryset = len(outer_ids) - up_queryset.count()
+        down_queryset  = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
         
         self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))
         for product in down_queryset:
