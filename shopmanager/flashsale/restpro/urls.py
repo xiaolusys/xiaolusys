@@ -32,6 +32,7 @@ router.register(r'integral', views.UserIntegralViewSet)
 router.register(r'integrallog', views.UserIntegralLogViewSet)
 
 router.register(r'couponpool', views.UserCouponPoolViewSet)
+router.register(r'mycoupon', views.UserCouponViewSet)
 
 router_urls = router.urls
 
@@ -55,10 +56,6 @@ router_urls += format_suffix_patterns([
         url(r'^user/integrallog/',
             views.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
-        #UserCouponViewSet
-        url(r'^user/mycoupon/',
-            views.UserCouponViewSet.as_view({'get': 'list'}),
-            name="user-coupon"),
         url(r'^user/couponcheck/$', Coupon_Check, name="coupon_check")
     ])
 

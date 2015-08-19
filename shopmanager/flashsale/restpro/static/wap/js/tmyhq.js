@@ -8,14 +8,27 @@ function create_yhq_dom(obj) {
     var deadline= obj.deadline.split(' ');
     obj.deadline = deadline[0];
 
-    function yhq_dom() {
+    function yhq_dom56() {
         /*
          <li class="type{{ type }}">
-         <p class="name">全场任意商品满{{ full }}返{{ fan }}</p>
+         <p class="name">{{ full }}  </p>
          <p class="date">{{ created }} － {{ deadline }}</p>
          </li>
          */
     };
+    if (obj.type == 5 || obj.type == 6) {
+        return hereDoc(yhq_dom56).template(obj)
+    }
+    else {
+        function yhq_dom() {
+            /*
+             <li class="type{{ type }}">
+             <p class="name">全场任意商品满{{ full }}返{{ fan }}</p>
+             <p class="date">{{ created }} － {{ deadline }}</p>
+             </li>
+             */
+        };
+    }
     return hereDoc(yhq_dom).template(obj)
 }
 
@@ -26,7 +39,7 @@ function create_yhqk_dom() {
 }
 
 $(document).ready(function () {
-    var url = "/rest/v1/user/mycoupon/";
+    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
     $.get(url, function (res) {
         if (res.length > 0) {
             $.each(res, function (i, val) {
@@ -53,18 +66,32 @@ $(document).ready(function () {
                 if (coupon_value == 30 && coupon_status == 2) {
                     //已经过期的优惠券 满30返3
                     yhq_obj.type = 3;
-                    yhq_obj.full = 300;
-                    yhq_obj.fan = 30;
+                    yhq_obj.full = 30;
+                    yhq_obj.fan = 3;
                     var yhq_tree3 = create_yhq_dom(yhq_obj);
                     $(".shixiao_list").append(yhq_tree3);
                 }
                 if (coupon_value == 3 && coupon_status == 2) {
                     //已经过期的优惠券
                     yhq_obj.type = 4;
-                    yhq_obj.full = 30;
-                    yhq_obj.fan = 3;
+                    yhq_obj.full = 300;
+                    yhq_obj.fan = 30;
                     var yhq_tree4 = create_yhq_dom(yhq_obj);
                     $(".shixiao_list").append(yhq_tree4);
+                }
+                if (coupon_value == 50 && coupon_status == 3) {
+                    yhq_obj.type = 5;
+                    yhq_obj.full = "代理专享";
+                    yhq_obj.fan = 50;
+                    var yhq_tree5 = create_yhq_dom(yhq_obj);
+                    $(".shixiao_list").append(yhq_tree5);
+                }
+                if (coupon_value == 50 && coupon_status == 2) {
+                    yhq_obj.type = 6;
+                    yhq_obj.full = "代理专享";
+                    yhq_obj.fan = 50;
+                    var yhq_tree6 = create_yhq_dom(yhq_obj);
+                    $(".shixiao_list").append(yhq_tree6);
                 }
             });
         }

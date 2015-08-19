@@ -20,34 +20,34 @@ function init() {
         for (var i = 0; i < data.length; i++) {
             if (data[i].default == true) {
                 var address = "<li   id=" + data[i].id + "> <p class='p1'>" + data[i].receiver_name + data[i].receiver_mobile +
-                    "</p><p class='p2'>" + data[i].receiver_state + "-" + data[i].receiver_city + "-" + data[i].receiver_district + "-" + data[i].receiver_address + "</p><a class='close'  ></a><i class='radio  radio-select'  ></i></li>"
+                    "</p><p class='p2'>" + data[i].receiver_state + "-" + data[i].receiver_city + "-" + data[i].receiver_district + "-" + data[i].receiver_address + "</p><a class='close'  ></a><a class='icon-edit'></a><i class='radio  radio-select'  ></i></li>"
             }
             else {
 
                 var address = "<li   id=" + data[i].id + "> <p class='p1'>" + data[i].receiver_name + data[i].receiver_mobile +
-                    "</p><p class='p2'>" + data[i].receiver_state + "-" + data[i].receiver_city + "-" + data[i].receiver_district + "-" + data[i].receiver_address + "</p><a class='close'  ></a><i class='radio '  ></i></li>"
+                    "</p><p class='p2'>" + data[i].receiver_state + "-" + data[i].receiver_city + "-" + data[i].receiver_district + "-" + data[i].receiver_address + "</p><a class='close'  ></a><a class='icon-edit'></a><i class='radio '  ></i></li>"
 
             }
             $("ul").append(address)
         }
 
-        $("ul li  a").each(function () {
+        $(" .close").each(function () {
             $(this).click(function () {
-                console.info($(this).parent().attr('id'));
+                //console.info($(this).parent().attr('id'));
                 delete_id = $(this).parent().attr('id');
                 obj = $(this).parent();
-                console.log("delete_id", delete_id);
+                //console.log("delete_id", delete_id);
                 delete_address(obj, delete_id);
                 //$(this).parent().remove()
                 //$(this).parent().css({"color":"red","border":"2px solid red"});  //增加颜色
             });
         });
 
-
-        $("ul li  p").each(function () {
+       //修改地址
+        $(".icon-edit").each(function () {
             $(this).click(function () {
                 up_id = $(this).parent().attr('id');
-                location.assign("shouhuodz-edit.html?id=" + up_id);
+                window.location.href="shouhuodz-edit.html?id=" + up_id;
             });
         });
 
@@ -61,8 +61,28 @@ function init() {
                 obj = $(this).parent();
                 change_default(obj, default_id);
             });
-        });
-    };
+        })
+
+      //点击li也可以
+     $("ul li").click(function () {
+
+//console.log($(this).children());
+                 $(this).children("i")[0].click();
+            });
+       
+
+
+
+
+  
+
+     };
+    
+
+
+
+
+
     // 发送请求
     $.ajax({
         type: 'get',

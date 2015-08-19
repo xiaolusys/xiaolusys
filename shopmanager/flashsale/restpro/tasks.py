@@ -5,7 +5,7 @@ from flashsale.pay.models import ShoppingCart, SaleTrade
 from shopback.items.models import Product
 from django.contrib.auth.models import User as DjangoUser
 from shopback.base import log_action, ADDITION, CHANGE
-
+import logging
 
 @task(max_retry=3, default_retry_delay=5)
 def task_off_the_shelf(product_id=None):
@@ -31,8 +31,12 @@ def task_off_the_shelf(product_id=None):
                     if product_b.count() > 0 \
                             and product_b[0].shelf_status == Product.DOWN_SHELF \
                             and trade.status == SaleTrade.WAIT_BUYER_PAY:
-                        trade.close_trade()
-                        log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+                        try:
+                            trade.close_trade()
+                            log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+                        except Exception, exc:
+                            logger = logging.getLogger('django.request')
+                            logger.error(exc.message, exc_info=True)
 
         else:
             all_cart = ShoppingCart.objects.filter(item_id=product_id, status=ShoppingCart.NORMAL)
