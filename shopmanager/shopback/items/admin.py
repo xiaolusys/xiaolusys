@@ -101,7 +101,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
                     , 'model_id', 'sync_stock','is_match','is_split','sale_time_select',
-                   'purchase_select','charger_select','district_link','shelf_status')
+                   'sale_charger','charger_select','district_link','shelf_status')
     list_display_links = ('id',)
     #list_editable = ('name',)
     
