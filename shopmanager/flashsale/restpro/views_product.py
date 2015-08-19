@@ -66,19 +66,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     特卖商品API：
     
     - {prefix}/promote_today[.format]: 获取今日推荐商品列表;
-    
     - {prefix}/promote_previous[.format]: 获取昨日推荐商品列表;
-    
     - {prefix}/childlist[.format]: 获取童装专区商品列表;
-    
     - {prefix}/ladylist[.format]: 获取女装专区商品列表;
-    
     - {prefix}/previous[.format]: 获取昨日特卖商品列表;
-    
     - {prefix}/advance[.format]: 获取明日特卖商品列表;
-
     - {prefix}/seckill[.format]: 获取秒杀商品列表;
-    
     - {prefix}/modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）
     """
     queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
@@ -156,10 +149,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
     
     def get_female_qs(self,queryset):
-        return queryset.filter(outer_id__startswith='8',outer_id__endswith='1')
+        return queryset.filter(outer_id__startswith='8',outer_id__endswith='1',details__is_seckill=False)
     
     def get_child_qs(self,queryset):
-        return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1')
+        return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1',details__is_seckill=False)
     
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
@@ -256,7 +249,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(product_dict)
 
 
-
     @list_route(methods=['get'])
     def seckill(self, request, *args, **kwargs):
         """
@@ -269,10 +261,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         # 今日上架时间，shelf_status=已上架
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-
+        
         queryset = queryset.filter(details__is_seckill=True, 
                                    sale_time=today_dt,
                                    shelf_status=Product.UP_SHELF)
+        queryset = self.order_queryset(request, queryset)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
