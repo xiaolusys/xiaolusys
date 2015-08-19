@@ -15,6 +15,7 @@ SMS_NOTIFY_TOCITY   = 'tocity'     #同城提醒
 SMS_NOTIFY_SIGN     = 'sign'       #签收提醒
 SMS_NOTIFY_BIRTH    = 'birth'      #生日祝福
 SMS_NOTIFY_VERIFY_CODE = 'code'   #验证码
+SMS_NOTIFY_GOODS_LATER = 'later_send'   #五天未发货
 
 SMS_RECORD_STATUS = (
     (pcfg.SMS_CREATED,'初始创建'),
@@ -32,6 +33,7 @@ SMS_NOITFY_TYPE =(
     (SMS_NOTIFY_BIRTH   ,u'生日祝福'), 
     (SMS_NOTIFY_ACTIVITY,u'活动宣传'),                
     (SMS_NOTIFY_VERIFY_CODE,u'验证码'),
+    (SMS_NOTIFY_GOODS_LATER,u'五天未发货'),
 )
 
 

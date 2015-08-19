@@ -943,5 +943,15 @@ class ReplayPostTrade(models.Model):
         self.status = pcfg.RP_CANCEL_STATUS
         self.save()
         return True
-    
-    
+
+
+class SendLaterTrade(models.Model):
+    trade_id = models.BigIntegerField(default=0, verbose_name=u'订单id')
+    success = models.BooleanField(default=False, verbose_name=u'发送成功否')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+
+    class Meta:
+        db_table = 'shop_trades_sendlatertrade'
+        verbose_name = u'发送超过五天的订单'
+        verbose_name_plural = u'发送超过五天的订单'
