@@ -320,7 +320,16 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="20", hour="2"),
         'args': ()
     },
-
+    u'定时发送发货超过五天订单':{
+        'task':'shopapp.smsmgr.tasks.task_deliver_goods_later',
+        'schedule': crontab(minute="40", hour="19"),
+        'args': ()
+    },
+    u'定时清理购物车和待支付订单任务':{
+        'task':'flashsale.restpro.tasks.task_schedule_cart',
+        'schedule':crontab(minute="*/5"),
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
