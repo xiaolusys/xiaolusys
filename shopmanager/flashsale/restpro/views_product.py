@@ -273,11 +273,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.filter(details__is_seckill=True, 
                                    sale_time=today_dt,
                                    shelf_status=Product.UP_SHELF)
-        # if queryset.exists: 判断不为空
-        #     test = []
-        #     for i in range(0, len(queryset)):
-        #         test.append(Productdetail.objects.filter(product=queryset[0].id, is_seckill=False))
-        # print "test", test
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
