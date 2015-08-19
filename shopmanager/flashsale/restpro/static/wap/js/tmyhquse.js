@@ -36,41 +36,50 @@ function Coupon_Nums_Show(nums) {
             location.href = "./choose-coupon.html";
         });
     }
-    else if (nums == 0) {// 没有优惠券　　点击　领取优惠券
-        $("#coupon_nums").text("可用优惠券（" + nums + "）");
+    // 用户创建自己的优惠券　　满三十　即可达到创建条件　关闭本功能　
+    //else if (nums == 0) {// 没有优惠券　　点击　领取优惠券
+    //    $("#coupon_nums").text("可用优惠券（" + nums + "）");
+    //    $("#coupon_value").text("点击领取");
+    //    $("#coupon_value").click(function () {
+    //        //　或者这里直接生成创建优惠券
+    //        //　判断页面的订单价格生成　对应的　优惠券　类型　价值
+    //        var coupon_type = 1;// 优惠券类型 这里可以根据页面　数据判断生成那种类型的优惠券
+    //        var requestUrl = GLConfig.baseApiUrl + GLConfig.create_user_pay_coupon; // 用户在支付页面创建自己的优惠券
+    //        //　１:满３０　减3  2:满３００减３０  3: 待定
+    //        var total_money = parseFloat($("#total_money").html().split(">")[2]);
+    //        if (total_money >= 30) {
+    //            console.log(total_money);
+    //
+    //            $.ajax({
+    //                type: 'post',
+    //                url: requestUrl,
+    //                data: {'csrfmiddlewaretoken': csrftoken, 'coupon_type': coupon_type},
+    //                dataType: 'json',
+    //                success: requestCallBack
+    //            });
+    //            function requestCallBack(res) {
+    //                console.log(res);
+    //                if(res[0]=='ok'){
+    //                location.href = "./choose-coupon.html";
+    //                }
+    //                else{
+    //                    console.log("用户创建优惠券失败！！！");
+    //                }
+    //            }
+    //        }
+    //        else{
+    //            drawToast("您的订单不满３０元哦~");
+    //        }
+    //    });
+    //}
+    else if (nums == 0) {
+        $("#coupon_nums").text("可用优惠券（" + 0 + "）");
         $("#coupon_value").text("点击领取");
         $("#coupon_value").click(function () {
-            //　或者这里直接生成创建优惠券
-            //　判断页面的订单价格生成　对应的　优惠券　类型　价值
-            var coupon_type = 1;// 优惠券类型 这里可以根据页面　数据判断生成那种类型的优惠券
-            var requestUrl = GLConfig.baseApiUrl + GLConfig.create_user_pay_coupon; // 用户在支付页面创建自己的优惠券
-            //　１:满３０　减3  2:满３００减３０  3: 待定
-            var total_money = parseFloat($("#total_money").html().split(">")[2]);
-            if (total_money >= 30) {
-                console.log(total_money);
-
-                $.ajax({
-                    type: 'post',
-                    url: requestUrl,
-                    data: {'csrfmiddlewaretoken': csrftoken, 'coupon_type': coupon_type},
-                    dataType: 'json',
-                    success: requestCallBack
-                });
-                function requestCallBack(res) {
-                    console.log(res);
-                    if(res[0]=='ok'){
-                    location.href = "./choose-coupon.html";
-                    }
-                    else{
-                        console.log("用户创建优惠券失败！！！");
-                    }
-                }
-            }
-            else{
-                drawToast("您的订单不满３０元哦~");
-            }
+            location.href = "./youhuiquan-kong.html"; //跳转到优惠券空页面
         });
     }
+
     else if(nums==-1){
         $("#coupon_nums").text("可用优惠券（" + 0 + "）");
         $("#coupon_value").text("点击领取");
@@ -118,6 +127,15 @@ function get_Coupon_On_Choose() {
                         var yhq_tree2 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree2);
                     }
+                    if (coupon_value == 50 && coupon_status == 3) {
+                        //满300返30
+                        yhq_obj.type = 5;
+                        yhq_obj.full = 300;
+                        yhq_obj.fan = 30;
+                        var yhq_tree3 = Create_coupon_dom(yhq_obj);
+                        $('.coupons').append(yhq_tree3);
+                    }
+
                     if(nums==0){
                         pop_info();
                     }
@@ -132,7 +150,12 @@ function get_Coupon_On_Choose() {
 }
 
 function Create_coupon_dom(obj) {
-    var html = $("#coupon-template").html();
+    if(obj.type==5){
+        var html = $("#coupon_template_xlmm_coupon").html();
+    }
+    else{
+        var html = $("#coupon-template").html();
+    }
     return hereDoc(html).template(obj)
 }
 
@@ -191,7 +214,13 @@ function get_Coupon_Value_Show_In_Buy() {
                     console.log("coupon value end :", val.coupon_value);
                     //将显示出来的数值填充到页面中
                     var coupon_value = val.coupon_value;
-                    $("#coupon_value").text("￥-" + coupon_value);
+                    var total_money = parseFloat($("#total_money").html().split(">")[2]);
+                    if (total_money >= 50 && val.coupon_type == 4) {// 大于50才能使用 并且优惠券类型是4
+                        $("#coupon_value").text("￥-" + coupon_value);
+                    }
+                    else if(total_money < 50 && val.coupon_type == 4){
+                        drawToast("商品金额小于50，优惠券不可用哦~");
+                    }
                 }
             });
         }

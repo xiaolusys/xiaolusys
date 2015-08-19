@@ -30,6 +30,15 @@
             </li>
         </ul>
     </script>
+        <script id="coupon_template_xlmm_coupon" type="text/html">
+        <ul class="coupons-list">
+            <li class="type{{ type }}">
+                <p class="name">代理专享</p>
+                <p class="date">{{ created }} - {{ deadline }}</p>
+                <i class="icon-radio" onclick="choose_Coupon({{ id }});"></i>
+            </li>
+        </ul>
+    </script>
 </div>
 
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
