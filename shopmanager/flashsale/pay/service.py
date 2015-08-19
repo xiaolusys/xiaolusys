@@ -1,10 +1,12 @@
 #-*- coding:utf8 -*-
 import json
 import datetime
-from .models import SaleTrade,SaleOrder,SaleRefund
+from .models import SaleTrade,SaleOrder,SaleRefund, FLASH_SELLER_ID
 from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
+from shopapp.weixin.models import MIAOSHA_SELLER_ID
+from shopback.users.models import User
 import logging
 
 logger = logging.getLogger('celery.handler')
@@ -61,18 +63,31 @@ class FlashSaleService(LocalService):
         merge_order.refund_fee    = order.refund_fee
         merge_order.refund_status = dict(SaleRefund.REFUND_STATUS_MAP).get(order.refund_status)
         merge_order.save()
-        
         return merge_order
         
+    @classmethod
+    def getOrCreateSeller(cls,trade):
+        
+        seller_id = FLASH_SELLER_ID
+        seller_type = User.SHOP_TYPE_WX
+        for order in trade.normal_orders:
+            if order.title.find(u'秒杀') >= 0:
+                ###需要创建wxmiaosha 该买家才能正常工作
+                seller_id   = MIAOSHA_SELLER_ID
+                seller_type = User.SHOP_TYPE_SALE
+                if trade.buyer_nick.find(u'[秒杀]') < 0:
+                    trade.buyer_nick = u'[秒杀]' + trade.buyer_nick 
+                break
+        seller = User.getOrCreateSeller(seller_id,seller_type=seller_type)
+        return seller
         
     @classmethod
     def createMergeTrade(cls,trade,*args,**kwargs):
         
         from shopback.trades.handlers import trade_handler 
         from shopback.trades.models import MergeTrade
-        from .options import getOrCreateSaleSeller
         
-        seller = getOrCreateSaleSeller()
+        seller = cls.getOrCreateSeller(trade)
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.tid,
                                                              user=seller)
         

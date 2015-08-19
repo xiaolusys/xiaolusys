@@ -579,9 +579,7 @@ class WxShopService(LocalService):
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
         
         if state:
-
             wx_product = WXProduct.objects.getOrCreate(order.product_id)
-             
             wx_skus = WXProductSku.objects.filter(sku_id=order.product_sku,product=wx_product)
             outer_id, outer_sku_id  = '', ''
             if wx_skus.count() > 0:
@@ -600,14 +598,11 @@ class WxShopService(LocalService):
         merge_order.refund_status = refund_status
         merge_order.status = WXOrder.mapOrderStatus(order.order_status)
         merge_order.sys_status = sys_status
-        
         merge_order.save()
-        
         return merge_order
     
     @classmethod
     def getOrCreateSeller(cls,trade):
-        
         wx_product = WXProduct.objects.getOrCreate(trade.product_id)
         product_name   = wx_product.product_name
         
@@ -617,9 +612,7 @@ class WxShopService(LocalService):
             seller_id = MIAOSHA_SELLER_ID
             if trade.buyer_nick.find(u'[秒杀]') < 0:
                 trade.buyer_nick = u'[秒杀]' + trade.buyer_nick 
-
         seller = User.getOrCreateSeller(seller_id,seller_type=User.SHOP_TYPE_WX)
-        
         return seller
     
     @classmethod
