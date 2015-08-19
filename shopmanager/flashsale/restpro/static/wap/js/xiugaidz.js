@@ -1,7 +1,11 @@
+
 function province_list() {
     var selectid = document.getElementById("s_province");
     selectid.options.length = 0;
     selectid[0] = new Option("请选择省", 0);
+
+
+
 
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.province_list
@@ -93,7 +97,7 @@ function xugaifuzi(up_id) {
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/get_one_address";
     var requestCallBack = function (data) {
-        console.info(data[0]);
+        //console.info(data[0]);
         receiver_state = data[0].receiver_state;
         receiver_district = data[0].receiver_district;
         receiver_city = data[0].receiver_city;

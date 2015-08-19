@@ -4,6 +4,7 @@ from shopback.base.models import JSONCharMyField
 import datetime
 from options import uniqid
 
+
 """
 用户  积分 + 优惠券  模块
 用户ID：SaleTrade 中的  buyer_id  也即是：models_user 中的  Customer  id '客户ID'
@@ -83,6 +84,53 @@ class Coupon(models.Model):
     def __unicode__(self):
         return '<%s>' % (self.id)
 
+    def xlmm_Coupon_Create(self, *args ,**kwargs):
+        """
+        :function create the xlmm's coupon
+        :arg    unionid
+                mobile
+                deadline
+                coupon_type
+                coupon_value
+                coupon_user
+        :return instance of the coupon
+        """
+        from flashsale.xiaolumm.models import XiaoluMama
+        mobile = kwargs['mobile'] or ''
+        unionid = kwargs['unionid'] or ''
+        coupon_type = kwargs['coupon_type'] or ''
+        coupon_value = kwargs['coupon_value'] or ''
+        deadline = kwargs['deadline'] or ''
+        coupon_user = kwargs['coupon_user'] or ''
+        try:
+            xlmm = XiaoluMama.objects.get(models.Q(mobile=mobile) | models.Q(openid=unionid))
+        except XiaoluMama.DoesNotExist:
+            return
+        if xlmm and xlmm.agencylevel == 2 and xlmm.charge_status == XiaoluMama.CHARGED:
+            cou_p = CouponPool.objects.create(deadline=deadline, coupon_type=coupon_type,
+                                              coupon_value=coupon_value, coupon_status=CouponPool.PULLED)
+            self.coupon_user = coupon_user
+            self.coupon_no = cou_p.coupon_no
+            self.mobile = mobile
+            self.save()
+        return "%s" % (self.id)
+
+    def lmi200_Xlmm_Coupon(self, buyer_id, trade_id, mobile):
+        """
+        功能：　代理充值　满200送 2张50的
+        参数：　buyer_id　卖家的用户ＩＤ
+        """
+        print 'coupon self is running ......'
+        deadline = datetime.datetime.today() + datetime.timedelta(days=60)  # 60天有效
+        cou = CouponPool.objects.create(coupon_value=50, deadline=deadline,
+                                        coupon_type=CouponPool.LIM200, coupon_status=CouponPool.PULLED)  # 生成优惠券 # 可以使用的 # 有效两天
+        self.coupon_no = cou.coupon_no
+        self.coupon_user = buyer_id
+        self.trade_id = trade_id
+        self.mobile = mobile
+        self.save()
+        return
+
 
 class CouponPool(models.Model):
     """
@@ -94,10 +142,11 @@ class CouponPool(models.Model):
     PULLED = 3
     USED = 4
     COUPON_STATUS = ((RELEASE, u'已发放'), (UNRELEASE, u'未发放'), (PAST, u'过期作废'), (PULLED, u'可以使用'), (USED, u'已经使用'))
-    LIM10 = 1
-    LIM50 = 2
+    LIM30 = 1
+    LIM300 = 2
     LIM100 = 3
-    CO_TYPE = ((LIM10, u"满30减3"), (LIM50, u"满300减30"), (LIM100, u"满（待定）"))
+    LIM200 = 4
+    CO_TYPE = ((LIM30, u"满30减3"), (LIM300, u"满300减30"), (LIM200, u"充200送100"))
 
     coupon_no = models.CharField(max_length=40, unique=True, default=lambda: uniqid(
         '%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))), verbose_name=u"优惠券号码")
@@ -115,3 +164,12 @@ class CouponPool(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.coupon_no)
+
+    def use_coupon(self):
+        # 修改　可用优惠券　到　已经使用
+        if self.coupon_status is CouponPool.PULLED:
+            self.coupon_status = CouponPool.USED
+            self.save()
+            return 'ok'
+        else:
+            return 'notInStatus'

@@ -276,7 +276,7 @@ class UserCouponPoolViewSet(viewsets.ModelViewSet):
 
 import json
 from django.http import HttpResponse
-
+from shopback.base import log_action, ADDITION, CHANGE
 
 class UserCouponViewSet(viewsets.ModelViewSet):
     queryset = Coupon.objects.all()
@@ -308,5 +308,42 @@ class UserCouponViewSet(viewsets.ModelViewSet):
                           }
             data.append(data_entry)
 
-        return HttpResponse(json.dumps(data), content_type='application/json')
-    
+        return Response(data)
+
+    @list_route(methods=['post'])
+    def user_create_coupon(self, request, *args, **kwargs):
+        """用户购买页面　在自己没有优惠券的情况下　生成优惠券 """
+        data = ['ok']
+        customer = Customer.objects.get(user=request.user.id)
+        coupon_type = request.data.get("coupon_type", 0)
+        if coupon_type:
+            value_type = int(coupon_type)
+            COUPON_VALUE = (0, 3, 30)   # 优惠券价格
+            mobile = customer.mobile
+            coupon_user = customer.id
+            unionid = customer.unionid
+            coupon_value = COUPON_VALUE[value_type]
+            deadline = datetime.datetime.today() + datetime.timedelta(days=2)
+            karg_dic = {"coupon_user": coupon_user, "unionid": unionid, "mobile": mobile, "deadline": deadline,
+                        "coupon_type": coupon_type, "coupon_value": coupon_value}
+            cou_xlmm = Coupon()
+            # 只是为小鹿代理生成优惠券
+            cou_xlmm.xlmm_Coupon_Create(**karg_dic)
+            log_action(request.user.id, customer, CHANGE, u'通过接口程序－生成优惠券')
+            # 每个客户都生成优惠券
+            # cou = CouponPool.objects.create(coupon_value=coupon_value, deadline=deadline,
+            #                                coupon_type=value_type, coupon_status=3)  # 生成优惠券 # 可以使用的 # 有效两天
+            # Coupon.objects.create(coupon_user=customer.id, coupon_no=cou.coupon_no, mobile=mobile)  # 发放优惠券到用户
+
+        return Response(data)
+
+    @detail_route(methods=['post'])
+    def pass_user_coupon(self, request, pk=None, *args, **kwargs):
+        # 修改该优惠券为　使用过的状态　CouponPool.USED
+        instance = self.get_object()
+        coupon_no = instance.coupon_no
+        # 优惠券发放列表中找到对应的优惠券
+        coupon_pool = CouponPool.objects.get(coupon_no=coupon_no)
+        # 修改该优惠券状态到　已经使用的
+        res = coupon_pool.use_coupon()
+        return Response(data=[res])
