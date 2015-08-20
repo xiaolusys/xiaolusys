@@ -64,6 +64,7 @@ urlpatterns = patterns('',
     url(r'^v1/', include(router_urls,namespace='v1')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
+    url(r'^test/',views_wuliu.test),
 )
 
 

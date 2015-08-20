@@ -298,3 +298,33 @@ CODE_RULE_ERROR_CODE = 22 #编码映射错误
 SYSTEM_ERROR_CODE = 23 #系统未知错误
 TRADE_DEFECT_CODE = 24 #订单商品编码不对
 
+
+
+
+#物流状态
+
+#-1 待查询、在批量查询中才会出现的状态,指提交后还没有进行任何更新的单号
+#0 查询异常
+#1 暂无记录、单号没有任何跟踪记录
+#2 在途中
+#3 派送中
+#4 已签收
+#5 拒收、用户拒签
+#6 疑难件、以为某些原因无法进行派送
+#7 无效单
+#8 超时单
+#9 签收失败
+
+RP_BUG_STATUS     = 0
+RP_NO_RECORD_STATUS = 1
+RP_IN_WAY_STATUS  = 2
+RP_IN_SENDSTATUS      = 3
+RP_ALREADY_SIGN_STATUS      = 4
+RP_REFUSE_SIGN_STATUS      = 5
+RP_CANNOT_SEND_STATUS      = 6
+RP_INVALID__STATUS      = 7
+RP_OVER_TIME_STATUS      = 8
+RP_FAILED_SIGN_STATUS      = 9
+
+
+

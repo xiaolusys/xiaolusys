@@ -188,6 +188,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
             return Response({"result": "s_error"})  # 账户异常
+        except ValueError, exc:
+            return Response({"result": "no_pwd"})
         return Response({"result": "fail"})
 
 

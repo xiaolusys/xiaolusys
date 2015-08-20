@@ -34,7 +34,31 @@
   </div>
 </div>
 <!-- 订单信息 end -->
-
+<!-- 物流信息 start -->
+<div class="panel wuliu">
+<!--<div class="panel-top">
+    <p class="bianhao">订单编号：<span>1571938491</span></p>
+    <p class="daohuo">预计到货时间：<span>2015-05-15</span></p>
+    <div class="btn-qianshou" id="js-btn-qianshou">确认签收</div>
+  </div> 
+  -->
+  <div class="panel-bottom">
+    <ul class="step-list">
+     <!-- <li>
+        <p class="text">您的订单已提交</p>
+        <p class="time">2015-05-15   12:30:21</p>
+        <div class="dotted"></div>
+      </li>
+      <li>
+        <p class="text">您的订单已出货</p>
+        <p class="time">2015-05-15   12:36:21</p>
+        <div class="dotted"></div>
+      </li>
+      <li></li>  -->
+    </ul>
+   
+  </div>
+</div>
 <!-- 收货信息 start -->
 <div class="panel shouhuo">
   <div class="panel-top">
@@ -72,6 +96,9 @@
 <script src="../js/sweet-alert.min.js"></script>
 <script type="text/javascript">
 (function($){
+	
+	
+	
   //返回顶部
   $('#js-scroll-top').on('touchend',function(e){
     e.preventDefault();
@@ -102,13 +129,80 @@
   Set_order_detail(order_url);
   //确认支付事件响应
   $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy_button .btn-buy');
+  
+  
+  
+  //  fang  2015-8-20
+  //var status=$("#status_display").innerHTML;
+  Wuliu();
 })(jQuery);
+
 function Confirm_charge(){
 	var urlParams = parseUrlParams(window.location.href);
   	var urlConf = {'trade_id':urlParams['id']};
     Ctrl_order_charge(GLConfig.waitpay_charge.template(urlConf));
 };
 
+
+function  Wuliu(){
+	
+	       var urlParams = parseUrlParams(window.location.href);
+  	       var urlConf = {'trade_id':urlParams['id']};
+  	       //获取物流信息
+    //alert(urlParams['id'])
+    var requestUrl =  "/rest/wuliu/";
+    var requestCallBack = function (info) {
+		//alert(ret);
+	    
+	    if(info.response_content.result){
+	    
+		if (parseInt(info.response_content.ret.status)>0){
+		var	data1=info.response_content.ret.data;
+		if (data1.length>2){
+		for (var i = data1.length-2; i < data1.length; i++) {
+			   if(i>data1.length-2){
+				   
+                var address = "<li> <p class='text'>"+data1[i].content+"</p><p class='time'>"+data1[i].time+"</p><div class='dotted'></div></li><li></li>"
+            $(".step-list").append(address)
+        }
+        else{
+			  var address = "<li> <p class='text'>"+data1[i].content+"</p><p class='time'>"+data1[i].time+"</p><div class='dotted'></div></li>"
+            $(".step-list").append(address)
+	}		
+	}
+}
+	else {
+		  for (var i = 0; i < data1.length; i++) {
+                var address = "<li> <p class='text'>"+data1[i].content+"</p><p class='time'>"+data1[i].time+"</p><div class='dotted'></div></li><li></li>"
+            $(".step-list").append(address)
+        }		
+	}
+}
+else{
+	      var address =" <li><p class='text'>暂无记录、单号没有任何跟踪记录</p><p class='time'></p><div class='dotted'></div> </li><li></li>"
+            $(".step-list").append(address)
+}
+    }
+    
+
+
+else{
+	
+	
+	
+}
+}
+    // 发送请求
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: {'tid':urlParams['id']},
+        dataType: 'json',
+        success: requestCallBack
+    });
+  	       
+	
+}
 </script>
 </body>
 </html>

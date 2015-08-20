@@ -45,6 +45,12 @@ from common.utils import (gen_cvs_tuple,
 from auth import apis
 import logging 
 
+#fang  2015-8-19
+from shopback.trades.models import Trade_wuliu
+
+
+
+
 logger =  logging.getLogger('django.request')
 
 import re
@@ -1217,3 +1223,15 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     actions = ['replay_post','check_post','merge_post_result','split_post_result']
 
 admin.site.register(ReplayPostTrade,ReplayPostTradeAdmin)
+
+
+
+
+
+
+
+class  WuliuAdmin(admin.ModelAdmin):
+    list_display = ('id','tid','logistics_company','out_sid','status','time','content',)
+    search_fields = ['tid','out_sid']
+    list_filter = ('status',)
+admin.site.register(Trade_wuliu,WuliuAdmin)
