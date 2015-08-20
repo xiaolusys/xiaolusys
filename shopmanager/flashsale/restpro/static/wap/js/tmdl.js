@@ -46,7 +46,10 @@ $(document).ready(function () {
                 error_tips.text("账户异常~").show();
                 setTimeout("error_hide()", 1000);
             }
-            else {
+            else if (res.result == 'no_pwd'){
+                error_tips.text("账户未设置密码~").show();
+                setTimeout("error_hide()", 1000);
+            }else {
                 //跳转到首页
                 window.location = "../index.html";
             }
