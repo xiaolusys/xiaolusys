@@ -85,11 +85,25 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         sku_id = data.get("sku_id", None)
         if not (product_id and sku_id):
             raise exceptions.APIException(u'参数错误')
+        
+        product = get_object_or_404(Product, pk=product_id)
+        try:
+            assert not product.details.is_seckill,u'秒杀商品不能加购物车'
+        except Exception:
+            pass
+        except AssertionError,exc:
+            raise exceptions.APIException(exc.message)
+        
         sku_num = 1
-        sku = get_object_or_404(ProductSku, pk=sku_id)
+        sku     = get_object_or_404(ProductSku, pk=sku_id)
+        user_skunum = getUserSkuNumByLast24Hours(customer_user,sku)
+        lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
+        if not lockable:
+            raise exceptions.APIException(u'该商品已限购')
+        
         if not Product.objects.lockQuantity(sku, sku_num):
             raise exceptions.APIException(u'商品库存不足')
-
+        
         if product_id and buyer_id and sku_id:
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id,
                                                     status=ShoppingCart.NORMAL)
