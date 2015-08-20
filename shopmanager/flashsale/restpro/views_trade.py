@@ -79,9 +79,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         if customer_user.count() == 0:
             return Response({"result": "0"}) #登录过期
-
+        customer = customer_user[0]
         product_id = data.get("item_id", None)
-        buyer_id = customer_user[0].id
+        buyer_id = customer.id
         sku_id = data.get("sku_id", None)
         if not (product_id and sku_id):
             raise exceptions.APIException(u'参数错误')
@@ -96,7 +96,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
         sku_num = 1
         sku     = get_object_or_404(ProductSku, pk=sku_id)
-        user_skunum = getUserSkuNumByLast24Hours(customer_user,sku)
+        user_skunum = getUserSkuNumByLast24Hours(customer,sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
         if not lockable:
             raise exceptions.APIException(u'该商品已限购')
