@@ -868,6 +868,12 @@ REPLAY_TRADE_STATUS = (
     (pcfg.RP_CANCEL_STATUS,u'已作废'),
 )
 
+
+
+
+
+
+
 class ReplayPostTrade(models.Model):
     """ 已发货清单 """
     
@@ -955,3 +961,55 @@ class SendLaterTrade(models.Model):
         db_table = 'shop_trades_sendlatertrade'
         verbose_name = u'发送超过五天的订单'
         verbose_name_plural = u'发送超过五天的订单'
+        
+        
+#fang  2015-8-15  物流信息跟踪
+REPLAY_TRADE__WULIU_STATUS = (
+                              
+
+    (pcfg.RP_BUG_STATUS,u'查询异常'),
+    (pcfg.RP_NO_RECORD_STATUS , u'没有记录' ) ,
+    (pcfg.RP_IN_WAY_STATUS  , u'在路上'),
+    (pcfg.RP_IN_SENDSTATUS      , u'派送中'),
+    (pcfg.RP_ALREADY_SIGN_STATUS      , u'已经签收'),
+    (pcfg.RP_REFUSE_SIGN_STATUS      , u'拒绝签收'),
+    (pcfg.RP_CANNOT_SEND_STATUS      ,u'某些原因，无法派送'),
+    (pcfg.RP_INVALID__STATUS      , u'无效单'),
+    (pcfg.RP_OVER_TIME_STATUS      , u'超时单'),
+    (pcfg.RP_FAILED_SIGN_STATUS      ,u'签收失败' ),
+    
+    
+)
+
+class Trade_wuliu(models.Model):
+    """ 已发货清单 """
+    
+    tid   = models.CharField(max_length=32,
+                             default=lambda:'DD%d'%int(time.time()*10**5),
+                             verbose_name=u'原单ID')  
+    
+    out_sid         = models.CharField(max_length=64,db_index=True,
+                                       blank=True,verbose_name=u'物流编号')
+   # logistics_company  = models.ForeignKey(LogisticsCompany,null=True,
+                                        #   blank=True,verbose_name=u'物流公司')
+    logistics_company=models.CharField(max_length=64,db_index=True,
+                                       blank=True,verbose_name=u'物流公司')
+    status     =  models.IntegerField(default=0,db_index=True,choices=REPLAY_TRADE__WULIU_STATUS,verbose_name=u'物流状态')
+    time=models.DateTimeField(null=True,db_index=True,auto_now_add=False,verbose_name=u'时间')
+    content   =  models.CharField(max_length=640,blank=True,verbose_name=u'物流详情')
+    
+    created    =  models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'记录日期')
+    modified      =  models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
+    errcode =models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'错误代码')
+    remark =models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'备注')
+    
+    class Meta:
+        db_table = 'shop_trades_wuliuDetail'
+        verbose_name = u'物流跟踪'
+        verbose_name_plural = u'物流跟踪列表'
+
+    def __unicode__(self):
+        return '<%d,%s,%s,%s>'%(self.id,self.status,
+                                self.content,
+                                dict(REPLAY_TRADE_STATUS).get(self.status,''))    
+        
