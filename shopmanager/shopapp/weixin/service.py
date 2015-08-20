@@ -129,7 +129,6 @@ class WeixinUserService():
     _wx_user = None
     
     def __init__(self, openId=None, unionId=None):
-        
         self._wx_api = WeiXinAPI()
         if openId:
             self._wx_user = self.getOrCreateUser(openId,unionId=unionId)
@@ -445,10 +444,8 @@ class WeixinUserService():
         ret_params = {'ToUserName':params['FromUserName'],
                       'FromUserName':params['ToUserName'],
                       'CreateTime':int(time.time())}
-        
         try:
             if msgtype == WeiXinAutoResponse.WX_EVENT:
-                
                 eventType = params['Event']
                 if eventType == WeiXinAutoResponse.WX_EVENT_ORDER:
                     ret_params.update(self.handleMerchantOrder(params['ToUserName'],
@@ -456,59 +453,54 @@ class WeixinUserService():
                                                                 params['OrderStatus'],
                                                                 params['ProductId'],
                                                                 params['SkuInfo']))
-                    
                 elif eventType == WeiXinAutoResponse.WX_EVENT_LOCATION:    
                     ret_params.update(self.genTextRespJson(
                                     u'你的地理位置（%s,%s）.' % 
                                     (params['Latitude'], params['Longitude'])))
-                    
                 elif eventType in (WeiXinAutoResponse.WX_EVENT_PIC_SYSPHOTO,
                                    WeiXinAutoResponse.WX_EVENT_PIC_ALBUM,
                                    WeiXinAutoResponse.WX_EVENT_PIC_WEIXIN):
                     ret_params.update(self.handleSaleAction(openId,
                                                             params['SendPicsInfo']))
-                    
                 else:
                     eventKey = params.get('EventKey','')
                     ret_params.update(self.handleEvent(eventKey and eventKey.upper() or '',
                                                        openId, eventType=eventType))
-                    
                 return ret_params
                 
-            matchMsg = ''
-            if msgtype == WeiXinAutoResponse.WX_TEXT: 
-                matchMsg = params['Content']
-                if event_re.match(matchMsg):
-                    ret_params.update(self.handleEvent(matchMsg.upper(), openId))
-                    return ret_params
-                
-            elif msgtype == WeiXinAutoResponse.WX_IMAGE:
-                
-                from shopapp.weixin_sales.service import WeixinSaleService
-                WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
-                
-                ret_params.update(WeiXinAutoResponse.respDKF())
-                return ret_params
-                
-            elif msgtype == WeiXinAutoResponse.WX_VOICE:
-                matchMsg = u'语音'
-            elif msgtype == WeiXinAutoResponse.WX_VIDEO:
-                matchMsg = u'视频'
-            elif msgtype == WeiXinAutoResponse.WX_LOCATION:
-                matchMsg = u'位置'
-            else:
-                matchMsg = u'链接'
-            
-            resp = self.getResponseByBestMatch(matchMsg.strip(), openId)
+#             matchMsg = ''
+#             if msgtype == WeiXinAutoResponse.WX_TEXT: 
+#                 matchMsg = params['Content']
+#                 if event_re.match(matchMsg):
+#                     ret_params.update(self.handleEvent(matchMsg.upper(), openId))
+#                     return ret_params
+#                 
+#             elif msgtype == WeiXinAutoResponse.WX_IMAGE:
+#                 
+#                 from shopapp.weixin_sales.service import WeixinSaleService
+#                 WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
+#                 
+#                 ret_params.update(WeiXinAutoResponse.respDKF())
+#                 return ret_params
+#                 
+#             elif msgtype == WeiXinAutoResponse.WX_VOICE:
+#                 matchMsg = u'语音'
+#             elif msgtype == WeiXinAutoResponse.WX_VIDEO:
+#                 matchMsg = u'视频'
+#             elif msgtype == WeiXinAutoResponse.WX_LOCATION:
+#                 matchMsg = u'位置'
+#             else:
+#                 matchMsg = u'链接'
+#             resp = self.getResponseByBestMatch(matchMsg.strip(), openId)
+            resp = WeiXinAutoResponse.respDKF()
             ret_params.update(resp)
         except MessageException, exc:
             ret_params.update(self.genTextRespJson(exc.message))
-            
         except Exception, exc:
             logger.error(u'微信请求异常:%s' % exc.message , exc_info=True)
             ret_params.update(self.genTextRespJson(u'不好了，小优尼闹情绪不想干活了！[撇嘴]'))
-            
         return ret_params
+    
     
 from .models import WXProductSku,MIAOSHA_SELLER_ID
 

@@ -999,6 +999,7 @@ class Trade_wuliu(models.Model):
     content   =  models.CharField(max_length=640,blank=True,verbose_name=u'物流详情')
     
     created    =  models.DateTimeField(null=True,db_index=True,auto_now_add=True,verbose_name=u'记录日期')
+    modified      =  models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     errcode =models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'错误代码')
     remark =models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'备注')
     
