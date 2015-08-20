@@ -329,12 +329,23 @@ class UserCouponViewSet(viewsets.ModelViewSet):
             cou_xlmm = Coupon()
             # 只是为小鹿代理生成优惠券
             cou_xlmm.xlmm_Coupon_Create(**karg_dic)
-            log_action(request.user.id, customer, CHANGE, u'通过接口程序－生成优惠券')
-            # 每个客户都生成优惠券
-            # cou = CouponPool.objects.create(coupon_value=coupon_value, deadline=deadline,
-            #                                coupon_type=value_type, coupon_status=3)  # 生成优惠券 # 可以使用的 # 有效两天
-            # Coupon.objects.create(coupon_user=customer.id, coupon_no=cou.coupon_no, mobile=mobile)  # 发放优惠券到用户
+            log_action(request.user.id, customer, CHANGE, u'通过接口程序－生成小鹿代理优惠券')
+        return Response(data)
 
+    @list_route(methods=['post'])
+    def user_create_coupon_every(self, request, *args, **kwargs):
+        """　　默认创建￥３　有效两天　类型为１　的优惠券　每个coustomer　都可以创建"""
+        customer = Customer.objects.get(user=request.user.id)
+        coupon_type = request.data.get("coupon_type", CouponPool.LIM30)
+        coupon_value = request.data.get("coupon_value", 3)
+        deadline = request.data.get("deadline", datetime.datetime.today()+datetime.timedelta(days=2))
+        mobile = customer.mobile or ''
+        data = ['ok']
+        if coupon_type:
+            # 每个客户都生成优惠券
+            cou = CouponPool.objects.create(coupon_value=coupon_value, deadline=deadline,
+                                            coupon_type=coupon_type, coupon_status=3)  # 生成优惠券 # 可以使用的 # 有效两天
+            Coupon.objects.create(coupon_user=customer.id, coupon_no=cou.coupon_no, mobile=mobile)  # 发放优惠券到用户
         return Response(data)
 
     @detail_route(methods=['post'])
