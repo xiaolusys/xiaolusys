@@ -38,15 +38,15 @@ function today_timer() {
     ss = checkTime(ss);
     console.log(dd, hh, mm, ss);
     if (ts > 100800000 && ts < 136800000) {
-        $(".poster_timer").text("敬请期待");
+        $(".poster_timer.tm2").text("敬请期待");
     } else if (ts < 100800000 && ts >= 86400000) {
-        $(".poster_timer").text("剩余" + dd + "天" + hh + "时" + mm + "分" + ss + "秒");
+        $(".poster_timer.tm2").text("剩余" + dd + "天" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 today_timer();
             },
             1000);
     } else if (ts < 86400000) {
-        $(".poster_timer").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
+        $(".poster_timer.tm2").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 today_timer();
             },
@@ -81,13 +81,45 @@ function yesterday_timer() {
         $(".poster_timer.tm2").text("敬请期待明日上新");
     }
 }
+function tm_timer_today() {
+    /*
+     * 今天海报特卖倒计时
+     * auther:yann
+     * date:2015/20/8
+     */
+    var ts = (new Date(2015, 7, 23, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
+    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
+    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    dd = checkTime(dd);
+    hh = checkTime(hh);
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+    console.log(dd, hh, mm, ss);
+    if (ts >= 86400000) {
+        $(".poster_timer.tm1").text("剩余" + dd + "天" + hh + "时" + mm + "分" + ss + "秒");
+        setTimeout(function () {
+                tm_timer_today();
+            },
+            1000);
+    } else if (ts < 86400000 && ts > 0) {
+        $(".poster_timer.tm1").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
+        setTimeout(function () {
+                tm_timer_today();
+            },
+            1000);
+    } else {
+        $(".poster_timer.tm1").text("敬请期待下次活动");
+    }
+}
 function tm_timer() {
     /*
-     * 昨日特卖倒计时
+     * 昨日海报特卖倒计时
      * auther:yann
-     * date:2015/6/8
+     * date:2015/20/8
      */
-    var ts = (new Date(2015, 7, 24, 10, 0, 0)) - (new Date());//计算剩余的毫秒数
+    var ts = (new Date(2015, 7, 24, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
     var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
     var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
     var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
@@ -103,12 +135,14 @@ function tm_timer() {
                 tm_timer();
             },
             1000);
-    } else if (ts < 86400000) {
+    } else if (ts < 86400000 && ts > 0) {
         $(".poster_timer.tm1").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 tm_timer();
             },
             1000);
+    } else {
+        $(".poster_timer.tm1").text("敬请期待下次");
     }
 }
 function checkTime(i) {
