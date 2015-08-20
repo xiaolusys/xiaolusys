@@ -103,12 +103,14 @@ function tm_timer_today() {
                 tm_timer_today();
             },
             1000);
-    } else if (ts < 86400000) {
+    } else if (ts < 86400000 && ts > 0) {
         $(".poster_timer.tm1").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 tm_timer_today();
             },
             1000);
+    } else {
+        $(".poster_timer.tm1").text("敬请期待下次活动");
     }
 }
 function tm_timer() {
@@ -133,12 +135,14 @@ function tm_timer() {
                 tm_timer();
             },
             1000);
-    } else if (ts < 86400000) {
+    } else if (ts < 86400000 && ts > 0) {
         $(".poster_timer.tm1").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 tm_timer();
             },
             1000);
+    } else {
+        $(".poster_timer.tm1").text("敬请期待下次");
     }
 }
 function checkTime(i) {
