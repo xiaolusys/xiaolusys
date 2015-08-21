@@ -112,7 +112,7 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
 
             wx_prods = WXProduct.objects.filter(product_id__in=wx_prodids).order_by('-modified')
             if wx_prods.count() == 0 :
-                continue
+                raise Exception(u'未找到商品编码(%s)对应线上小店商品'%outer_id)
 
             wx_product = wx_prods[0]
             wxproduct_id = wx_product.product_id
@@ -120,7 +120,7 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
                 update_wxpids.add(wxproduct_id)
                 _wx_api.modMerchantProductStatus(wxproduct_id, status)
 
-        except WeiXinRequestException, exc:
+        except Exception, exc:
             exception = exc
         
         product = Product.objects.get(outer_id=outer_id)
