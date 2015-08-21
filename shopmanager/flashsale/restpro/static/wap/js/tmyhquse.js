@@ -206,26 +206,27 @@ function change_Coupon_Stauts(coupon_id){
 function get_Coupon_Value_Show_In_Buy() {
     var coupon_id = getUrlParam("coupon_id");
     console.log("coupon_id:", coupon_id);
-    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
+    var url = GLConfig.baseApiUrl + GLConfig.get_user_coupon_by_id.template({"coupon_id": coupon_id});
+    console.log(url);
     $.get(url, function (res) {
+        console.log(res);
+        console.log(res[0],'res');
         if (res.length > 0) {
-            $.each(res, function (i, val) {
-                if (val.coupon_status == 3 && val.id == coupon_id) { //判断是否有效
-                    console.log("coupon value end :", val.coupon_value);
-                    //将显示出来的数值填充到页面中
-                    var coupon_value = val.coupon_value;
-                    var total_money = parseFloat($("#total_money").html().split(">")[2]);
-                    if (total_money >= 30 && val.coupon_type == 4) {// 大于30才能使用 并且优惠券类型是4  代理专享优惠券
-                        $("#coupon_value").text("￥-" + coupon_value);
-                    }
-                    else if(total_money < 30 && val.coupon_type == 4){
-                        drawToast("优惠券不可用哦~");
-                    }
-                    else{
-                        drawToast("优惠券不可用哦~");
-                    }
+            if (res[0].coupon_status == 3 && res[0].id == coupon_id) { //判断是否有效
+                console.log("coupon value end :", res[0].coupon_value);
+                //将显示出来的数值填充到页面中
+                var coupon_value = res[0].coupon_value;
+                var total_money = parseFloat($("#total_money").html().split("¥")[1]);
+                if (total_money > 30 && res[0].coupon_type == 4) {// 大于30才能使用 并且优惠券类型是4  代理专享优惠券
+                    $("#coupon_value").text("¥-" + coupon_value);
                 }
-            });
+                else if (total_money < 30 && res[0].coupon_type == 4) {
+                    drawToast("优惠券不可用哦~");
+                }
+                else {
+                    drawToast("优惠券不可用哦~");
+                }
+            }
         }
     });
 }

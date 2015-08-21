@@ -362,3 +362,19 @@ class UserCouponViewSet(viewsets.ModelViewSet):
         # 修改该优惠券状态到　已经使用的
         res = coupon_pool.use_coupon()
         return Response(data=[res])
+
+    @detail_route(methods=['get'])
+    def get_user_coupon(self, request, pk=None, *args, **kwargs):
+        # 修改该优惠券为　使用过的状态　CouponPool.USED
+        instance = self.get_object()
+        coupon_no = instance.coupon_no
+        # 优惠券发放列表中找到对应的优惠券
+        coupon_pool = CouponPool.objects.get(coupon_no=coupon_no)
+        # 修改该优惠券状态到　已经使用的
+        data_entry = {"id": instance.id, "coupon_user": instance.coupon_user,
+                      "coupon_no": coupon_no, "coupon_type": coupon_pool.coupon_type,
+                      "coupon_value": coupon_pool.coupon_value,
+                      "coupon_status": coupon_pool.coupon_status,
+                      "deadline": coupon_pool.deadline, "created": coupon_pool.created
+                      }
+        return Response(data=[data_entry])
