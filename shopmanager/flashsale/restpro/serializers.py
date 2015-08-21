@@ -51,7 +51,7 @@ class ProductSkuSerializer(serializers.ModelSerializer):
 class JsonListField(serializers.Field):
     
     def to_representation(self, obj):
-        return [s.strip() for s in obj.split('\n') if s.startswith(('http://','https://'))]
+        return [s.strip() for s in obj.split() if s.startswith(('http://','https://'))]
         
     def to_internal_value(self, data):
         return data
