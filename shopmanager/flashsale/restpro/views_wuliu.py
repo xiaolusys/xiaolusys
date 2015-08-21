@@ -74,7 +74,7 @@ POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
 #     
     
 from shopback.trades.models import MergeTrade
-class WuliuView22(APIView):
+class WuliuView01(APIView):
     """ 物流地址api     方凯能         2015-8-13 
      /rest/wuliu/      传递参数tid
      
@@ -229,20 +229,23 @@ def test22(request):
         return Response(content)    
     
     
-
+from flashsale.restpro.tasks import SaveWuliu,SaveWuliu_only
 def test(request):
             
     print "大家好"
     if request.method=='GET':
-        trade=MergeTrade.objects.filter(sys_status='FINISHED')[:10]
+        #trade=MergeTrade.objects.filter(sys_status='FINISHED')[:10]
+        trade=SaleTrade.objects.filter()[:10]
         for info in trade:
-            SaveWuliu(info.tid)
+           #SaveWuliu(info.tid)
             print info.tid
+            #test1.delay()
+            SaveWuliu.delay(info.tid)
         #print  "信息",content['status']
-        return Response("")         
+        return     HttpResponse("ok")         
 
 
-def  SaveWuliu(tid):
+def  SaveWuliu01(tid):
         print "调用"
         apikey='ebd77d3a6ef243c4bf1b1f8610443e27'
     #访问的API代码  
@@ -275,9 +278,9 @@ def  SaveWuliu(tid):
             
             
             
-            
-class WuliuView(APIView):
-    """ 物流地址api     方凯能         2015-8-13 
+ ##fang 2015-8-20  version      就是边查边存      
+class WuliuView02(APIView):
+    """ 物流地址api     方凯能         2015-8-20
      /rest/wuliu/      传递参数tid
      
          id          快递代号、点击 代码对照 查看所有快递对应代号
@@ -325,9 +328,9 @@ class WuliuView(APIView):
             number=request.GET['tid']
         except:
             ##本地固定
-            number="13294025981601113267"
+            number="xd15081555cedf5eb94f3"
             ##服务器固定
-            #number="13294025981600958639"
+            #number="xd15081955d45da07263e"
         try:
             trade_info=SaleTrade.objects.get( id=number )
         except:
@@ -376,3 +379,77 @@ class WuliuView(APIView):
 #         post_array.append(('运输信息', traces))
 #         print  "信息",post_array
         return Response({"result":True,"ret":content})                
+    
+    
+    
+    
+    
+    
+   ##fang 2015-8-21 new version        
+class WuliuView(APIView):
+    """ 物流地址api     方凯能         2015-8-20
+     /rest/wuliu/      传递参数tid
+     
+         id          快递代号、点击 代码对照 查看所有快递对应代号
+         name        快递名称
+         order          快递单号、注意区分大小写
+    快递API单号状态（status）
+    -1     待查询、在批量查询中才会出现的状态,指提交后还没有进行任何更新的单号
+0     查询异常
+1     暂无记录、单号没有任何跟踪记录
+2     在途中
+3     派送中
+4     已签收
+5     拒收、用户拒签
+6     疑难件、以为某些原因无法进行派送
+7     无效单
+8     超时单
+9     签收失败
+    
+    快递API错误代号（errcode）
+    0000     接口调用正常,无任何错误
+0001     传输参数格式有误
+0002     用户编号(uid)无效
+0003     用户被禁用
+0004     key无效
+0005     快递代号(id)无效
+0006     访问次数达到最大额度
+0007     查询服务器返回错误
+    '""" 
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
+    renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer,)
+    def get(self, request, *args, **kwargs):
+        apikey = '47deda738666430bab15306c2878dd3a'     
+        #apikey='ebd77d3a6ef243c4bf1b1f8610443e27'
+    #访问的API代码  
+        uid = '39400'
+       # uid='40340'
+        try :            
+            number=request.GET['tid']
+        except:
+            ##本地固定
+            #number="xd15081555cedf5eb94f3"
+            ##服务器固定
+            number="xd15081955d45da07263e"
+        try:
+            trade_info=SaleTrade.objects.get( id=number )
+        except:
+            trade_info=SaleTrade.objects.get(tid=number )
+        try:
+            exType=trade_info.logistics_company.code
+            out_sid=trade_info.out_sid
+        except:
+            print trade_info.status
+            if trade_info.status==2:
+                return    Response({"result":False,"message":"您的订单正在配货","time":trade_info.pay_time }) 
+         
+        if exType not in POST_CODE_NAME_MAP.keys():
+            return Response({"result":False,"message":"亲，您的包裹已经在路上啦!暂时不支持此快递公司物流信息哦！","time":trade_info.consign_time})   
+        
+        tid=trade_info.tid
+        data = {'id':BAIDU_POST_CODE_EXCHANGE.get(exType),'order':out_sid,'key': apikey,'uid': uid}
+        req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data),timeout=30)
+        content = json.loads(req.read())
+        SaveWuliu_only.delay(tid,content)  ##异步任务，存储物流信息到数据库
+        return Response({"result":True,"ret":content,"time":trade_info.consign_time,"create_time":trade_info.pay_time})                    
