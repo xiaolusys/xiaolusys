@@ -738,16 +738,11 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
     #更新主订单的状态
     merge_trade   = instance.merge_trade
     
-    if (merge_trade.buyer_nick and 
-        (not instance.seller_nick or not instance.buyer_nick)):
-        instance.seller_nick = merge_trade.user.nick
-        instance.buyer_nick  = merge_trade.buyer_nick
-        instance.created     = merge_trade.created
-        instance.pay_time    = merge_trade.pay_time
+    if not (instance.pay_time and instance.created):
+        instance.created     = instance.created or merge_trade.created
+        instance.pay_time    = instance.pay_time or merge_trade.pay_time
         
-        update_model_fields(instance,update_fields=['seller_nick',
-                                                    'buyer_nick',
-                                                    'created',
+        update_model_fields(instance,update_fields=['created',
                                                     'pay_time'])
     
     effect_orders         = merge_trade.inuse_orders
