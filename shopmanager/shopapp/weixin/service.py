@@ -434,16 +434,16 @@ class WeixinUserService():
     def handleRequest(self, params):
         
         MsgId = params.get('MsgId', None)
-        if MsgId and not cache.add(MsgId, True, WX_MESSAGE_TIMEOUT):
-            return ''
-        
-        openId = params['FromUserName']
-        msgtype = params['MsgType']
-        
-        self.setOpenId(openId)
         ret_params = {'ToUserName':params['FromUserName'],
                       'FromUserName':params['ToUserName'],
                       'CreateTime':int(time.time())}
+        if MsgId and not cache.add(MsgId, True, WX_MESSAGE_TIMEOUT):
+            ret_params.update(WeiXinAutoResponse.respDKF())
+            return ret_params
+        
+        openId = params['FromUserName']
+        msgtype = params['MsgType']
+        self.setOpenId(openId)
         try:
             if msgtype == WeiXinAutoResponse.WX_EVENT:
                 eventType = params['Event']
@@ -468,31 +468,29 @@ class WeixinUserService():
                                                        openId, eventType=eventType))
                 return ret_params
                 
-#             matchMsg = ''
-#             if msgtype == WeiXinAutoResponse.WX_TEXT: 
-#                 matchMsg = params['Content']
-#                 if event_re.match(matchMsg):
-#                     ret_params.update(self.handleEvent(matchMsg.upper(), openId))
-#                     return ret_params
-#                 
-#             elif msgtype == WeiXinAutoResponse.WX_IMAGE:
-#                 
-#                 from shopapp.weixin_sales.service import WeixinSaleService
-#                 WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
-#                 
-#                 ret_params.update(WeiXinAutoResponse.respDKF())
-#                 return ret_params
-#                 
-#             elif msgtype == WeiXinAutoResponse.WX_VOICE:
-#                 matchMsg = u'语音'
-#             elif msgtype == WeiXinAutoResponse.WX_VIDEO:
-#                 matchMsg = u'视频'
-#             elif msgtype == WeiXinAutoResponse.WX_LOCATION:
-#                 matchMsg = u'位置'
-#             else:
-#                 matchMsg = u'链接'
-#             resp = self.getResponseByBestMatch(matchMsg.strip(), openId)
-            resp = WeiXinAutoResponse.respDKF()
+            matchMsg = ''
+            if msgtype == WeiXinAutoResponse.WX_TEXT: 
+                matchMsg = params['Content']
+                if event_re.match(matchMsg):
+                    ret_params.update(self.handleEvent(matchMsg.upper(), openId))
+                    return ret_params
+                 
+            elif msgtype == WeiXinAutoResponse.WX_IMAGE:
+                from shopapp.weixin_sales.service import WeixinSaleService
+                WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
+                 
+                ret_params.update(WeiXinAutoResponse.respDKF())
+                return ret_params
+                 
+            elif msgtype == WeiXinAutoResponse.WX_VOICE:
+                matchMsg = u'语音'
+            elif msgtype == WeiXinAutoResponse.WX_VIDEO:
+                matchMsg = u'视频'
+            elif msgtype == WeiXinAutoResponse.WX_LOCATION:
+                matchMsg = u'位置'
+            else:
+                matchMsg = u'链接'
+            resp = self.getResponseByBestMatch(matchMsg.strip(), openId)
             ret_params.update(resp)
         except MessageException, exc:
             ret_params.update(self.genTextRespJson(exc.message))
