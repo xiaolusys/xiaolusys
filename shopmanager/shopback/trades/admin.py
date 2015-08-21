@@ -1231,7 +1231,7 @@ admin.site.register(ReplayPostTrade,ReplayPostTradeAdmin)
 
 
 class  WuliuAdmin(admin.ModelAdmin):
-    list_display = ('id','tid','logistics_company','out_sid','status','time','content',)
+    list_display = ('id','tid','logistics_company','out_sid','status','time','content','created',)
     search_fields = ['tid','out_sid']
     list_filter = ('status',)
 admin.site.register(Trade_wuliu,WuliuAdmin)
