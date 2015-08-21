@@ -103,7 +103,7 @@ function Set_product_detail(suffix) {
         }
         console.log('debug:',product_model);
         //设置商品题头图列表
-        var slides = Create_product_topslides(product_model.head_imgs);
+        var slides = Create_product_topslides([data.pic_path]);
         //设置swiper滑动图片
         swiper.removeAllSlides();
         swiper.appendSlide(slides);

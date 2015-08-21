@@ -760,9 +760,13 @@ from flashsale.pay.models import SaleTrade,SaleOrder
 
 def get_Deposit_Trade(openid, mobile):
     try:
+        # 2015-08-21 二期代理招募修改
+        payment = 118
+        outer_id = 'RMB118'
+
         customer = Customer.objects.filter(unionid=openid)  # 找到对应的unionid 等于小鹿妈妈openid的顾客
         if customer.exists():
-            sale_orders = SaleOrder.objects.filter(outer_id='RMB100', payment=100, refund_status=SaleRefund.NO_REFUND,
+            sale_orders = SaleOrder.objects.filter(outer_id=outer_id, payment=payment, refund_status=SaleRefund.NO_REFUND,
                                                status=SaleOrder.WAIT_SELLER_SEND_GOODS,
                                                sale_trade__buyer_id=customer[0].id,
                                                sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
@@ -772,14 +776,14 @@ def get_Deposit_Trade(openid, mobile):
 
         # 按照手机号码来匹配代理缴费情况
 
-        sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=100,
+        sale_trades = SaleTrade.objects.filter(receiver_mobile=mobile, payment=payment,
                                                status=SaleTrade.WAIT_SELLER_SEND_GOODS)
         if sale_trades.count() == 0:    # 没有交易记录返回空
             return None
         else:
             # 有TRDE记录， 则查看订单
             for trade in sale_trades:  # 寻找RMB100的Order
-                orders = SaleOrder.objects.filter(sale_trade=trade.id, outer_id='RMB100', payment=100,
+                orders = SaleOrder.objects.filter(sale_trade=trade.id, outer_id=outer_id, payment=payment,
                                                   refund_status=SaleRefund.NO_REFUND,
                                                   status=SaleOrder.WAIT_SELLER_SEND_GOODS)
                 if orders.count() == 0:
@@ -788,6 +792,24 @@ def get_Deposit_Trade(openid, mobile):
                     return orders
     except:
         return None
+
+
+from flashsale.pay.models_coupon import Coupon
+
+
+def create_coupon(sale_orders):
+    # 创建优惠券
+    print 'running ...'
+    buyer_id = sale_orders[0].sale_trade.buyer_id
+    print buyer_id, "buyer_id"
+    trade_id = sale_orders[0].sale_trade.id
+    print buyer_id, trade_id, 'id is here '
+    customer = Customer.objects.get(id=buyer_id)
+    mobile = customer.mobile
+    cou = Coupon()
+    cou.lmi118_Xlmm_Coupon(buyer_id, trade_id, mobile)
+    return cou
+
 
 
 @csrf_exempt
@@ -804,7 +826,6 @@ def mama_Verify_Action(request):
         return HttpResponse('already')
     sale_orders = get_Deposit_Trade(openid, mobile)  # 调用函数 传入参数（妈妈的openid，mobile）
     if sale_orders is None:
-        print "sale_orders", sale_orders
         return HttpResponse('reject')
     
     referal_mama = None
@@ -817,7 +838,10 @@ def mama_Verify_Action(request):
             return HttpResponse('unfound')
         except XiaoluMama.MultipleObjectsReturned:
             return HttpResponse('multiple')
-    
+    # 创建优惠券
+    cou = create_coupon(sale_orders)
+    log_action(request.user.id, cou, CHANGE, u'妈妈审核过程中,添加专属优惠券！')
+
     order = sale_orders[0]
     order.status = SaleOrder.TRADE_FINISHED # 改写订单明细状态
     order.save()
@@ -827,8 +851,9 @@ def mama_Verify_Action(request):
     trade.status = SaleTrade.TRADE_FINISHED  # 改写 订单状态
     trade.save()
     log_action(request.user.id, trade, CHANGE, u'妈妈审核过程中修改订单交易状态为 交易成功')
-    
-    diposit_cash = 13000
+
+    # diposit_cash = 13000  2015-08-21 第二期代理招募　修改　充１１８　写cash１１８
+    diposit_cash = 11800
     recruit_rebeta = 5000
     # 修改小鹿妈妈的记录
     log_tp = CarryLog.objects.get_or_create(xlmm=xlmm.id,
