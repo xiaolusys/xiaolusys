@@ -156,8 +156,9 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = SaleTrade
-        fields = ( 'id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment', 'post_fee', 'total_fee', 'discount_fee', 'status',
-                   'status_display','order_pic','buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 'logistics_company',
+        fields = ( 'id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
+                    'post_fee', 'total_fee', 'discount_fee', 'status','status_display','order_pic',
+                    'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 'logistics_company',
                    'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_mobile', 'receiver_phone')
         
  
