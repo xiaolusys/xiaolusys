@@ -89,10 +89,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product = get_object_or_404(Product, pk=product_id)
         try:
             assert not product.details.is_seckill,u'秒杀商品不能加购物车'
-        except Exception:
-            pass
         except AssertionError,exc:
             raise exceptions.APIException(exc.message)
+        except Exception:
+            pass
         
         sku_num = 1
         sku     = get_object_or_404(ProductSku, pk=sku_id)

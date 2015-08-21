@@ -183,9 +183,10 @@ function Create_item() {
             },
             success: requestCallBack,
             error: function (data) {
-                if(data.status==500){
-                    if($.parseJSON(data.responseText).detail=="商品库存不足"){
-                        drawToast("商品库存不足");
+                if(data.status >= 300){
+                	var errmsg = $.parseJSON(data.responseText).detail;
+                	drawToast(errmsg);
+                    if(errmsg == "商品库存不足"){
                         setTimeout(reload,1000)
                     }
                 }
