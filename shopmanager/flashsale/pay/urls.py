@@ -79,4 +79,5 @@ urlpatterns = (
     url(r'^zone_analysis/province/$', csrf_exempt(by_zone_Province), name="show_Zone_Page"),
     # by_zone_City
     url(r'^zone_analysis/city/$', csrf_exempt(by_zone_City), name="by_zone_City"),
+    url(r'^qiniu/$', views.QiniuApi.as_view()),
 )
