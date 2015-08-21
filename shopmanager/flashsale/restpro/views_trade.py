@@ -79,17 +79,31 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
         if customer_user.count() == 0:
             return Response({"result": "0"}) #登录过期
-
+        customer = customer_user[0]
         product_id = data.get("item_id", None)
-        buyer_id = customer_user[0].id
+        buyer_id = customer.id
         sku_id = data.get("sku_id", None)
         if not (product_id and sku_id):
             raise exceptions.APIException(u'参数错误')
+        
+        product = get_object_or_404(Product, pk=product_id)
+        try:
+            assert not product.details.is_seckill,u'秒杀商品不能加购物车'
+        except AssertionError,exc:
+            raise exceptions.APIException(exc.message)
+        except Exception:
+            pass
+        
         sku_num = 1
-        sku = get_object_or_404(ProductSku, pk=sku_id)
+        sku     = get_object_or_404(ProductSku, pk=sku_id)
+        user_skunum = getUserSkuNumByLast24Hours(customer,sku)
+        lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
+        if not lockable:
+            raise exceptions.APIException(u'该商品已限购')
+        
         if not Product.objects.lockQuantity(sku, sku_num):
             raise exceptions.APIException(u'商品库存不足')
-
+        
         if product_id and buyer_id and sku_id:
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id,
                                                     status=ShoppingCart.NORMAL)
@@ -299,7 +313,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 class SaleOrderViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单明细REST API接口：
-    - {path}/details[.formt]:获取订单及商品明细；
+    
     """
     queryset = SaleOrder.objects.all()
     serializer_class = serializers.SaleOrderSerializer# Create your views here.
@@ -336,21 +350,6 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @list_route(methods=['get'])
-    def details(self, request, pk, *args, **kwargs):
-        """ 获取用户订单及订单明细列表 """
-
-        customer = get_object_or_404(Customer,user=request.user)
-        strade   = get_object_or_404(SaleTrade,id=pk,buyer_id=customer.id)
-        strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
-        
-        queryset = self.filter_queryset(self.get_queryset(saletrade_id=pk))
-        serializer = self.get_serializer(queryset, many=True)
-        strade_dict['orders'] = serializer.data
-        
-        return Response(strade_dict)
-    
-
     def get_object(self):
         # Perform the lookup filtering.
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
@@ -386,7 +385,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     ###特卖订单REST API接口：
     - {path}/waitpay[.formt]:获取待支付订单；
     - {path}/waitsend[.formt]:获取待发货订单；
-    - {path}/{pk}/charge[.formt]:支付待支付订单
+    - {path}/{pk}/charge[.formt]:支付待支付订单;
+    - {path}/{pk}/details[.formt]:获取订单及明细；
     - {path}/shoppingcart_create[.formt]:pingpp创建订单接口
     > - cart_ids：购物车明细ID，如 `100,101,...` 
     > - addr_id:客户地址ID
@@ -433,6 +433,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    @detail_route(methods=['get'])
+    def details(self, request, pk, *args, **kwargs):
+        """ 获取用户订单及订单明细列表 """
+        strade   = self.get_object()
+        strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
+        orders_serializer = serializers.SaleOrderSerializer(strade.sale_orders.all(), many=True)
+        strade_dict['orders'] = orders_serializer.data
+        
+        return Response(strade_dict)
     
     @list_route(methods=['get'])
     def waitpay(self, request, *args, **kwargs):

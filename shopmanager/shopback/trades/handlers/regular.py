@@ -18,7 +18,8 @@ class RegularSaleHandler(BaseHandler):
             merge_trade.type not in (pcfg.WX_TYPE,pcfg.SALE_TYPE)):
             return False
         #秒杀订单 取消定时
-        if merge_trade.user.visitor_id.lower().endswith('miaosha'):
+        if (merge_trade.user.visitor_id.lower().endswith('miaosha') 
+            or merge_trade.user.nick.find(u'秒杀') >= 0):
             return False
         
         orders = merge_trade.inuse_orders.extra(where=["CHAR_LENGTH(outer_id)>=9"])\

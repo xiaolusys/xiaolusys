@@ -161,22 +161,17 @@ class WeixinAcceptView(View):
         return WeixinUserService()
     
     def get(self, request):
-        
         content    = request.REQUEST
-
         wx_service = self.get_wx_service()
         if wx_service.checkSignature(content.get('signature',''),
                                      content.get('timestamp',0),
                                      content.get('nonce','')):
             wx_service.activeAccount()
-            
             return HttpResponse(content['echostr'])
-        
         return HttpResponse(u'微信接口验证失败')
-    
+
     
     def post(self,request):
-        
         content    = request.REQUEST
 
         wx_service = self.get_wx_service()
@@ -184,15 +179,11 @@ class WeixinAcceptView(View):
                                          content.get('timestamp',0),
                                          content.get('nonce','')):
             return HttpResponse(u'非法请求')
-        
+        logger
         content  = request.body
-        
         params   = parseXML2Param(content)
-        
         ret_params = wx_service.handleRequest(params)
-       
         response = formatParam2XML(ret_params)
-        
         return HttpResponse(response,mimetype="text/xml")
 
 

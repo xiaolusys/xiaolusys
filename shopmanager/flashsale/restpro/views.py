@@ -98,6 +98,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         
     @detail_route(methods=['post'])
     def update(self, request, *args, **kwargs):
+        result = {}
         customer = get_object_or_404(Customer,user=request.user)
         customer_id=customer.id     #  获取用户id
         content = request.REQUEST
@@ -116,7 +117,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             receiver_district=receiver_district,
             receiver_address=receiver_address,
             receiver_mobile=receiver_mobile)
-        return Response("0")
+        result['ret'] = True
+        return Response(result)
 
     @detail_route(methods=["post"])
     def delete_address(self, request, pk=None):
@@ -145,6 +147,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def create_address(self, request):
+        result = {}
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id  # 获取用户id
         content = request.REQUEST
@@ -157,7 +160,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, receiver_state=receiver_state,
                                    receiver_city=receiver_city, receiver_district=receiver_district,
                                    receiver_address=receiver_address, receiver_mobile=receiver_mobile)
-        return Response({"22": 55})
+        result['ret'] = True
+        return Response(result)
 
     @list_route(methods=['get'])
     def get_one_address(self, request):

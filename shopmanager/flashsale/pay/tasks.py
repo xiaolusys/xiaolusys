@@ -68,8 +68,8 @@ def task_Push_SaleTrade_Finished(pre_days=10):
                 merge_status = MergeBuyerTrade.getMergeType(mtrade.id)
                 if merge_status != MergeBuyerTrade.SUB_MERGE_TYPE:
                     continue
-                smergetrade = MergeBuyerTrade.objects.filter(sub_tid=mtrade.id)
-                ptrade = MergeTrade.objects.filter(id=smergetrade.main_tid)
+                smergetrade = MergeBuyerTrade.objects.get(sub_tid=mtrade.id)
+                ptrade = MergeTrade.objects.get(id=smergetrade.main_tid)
                 if not ptrade.weight_time or ptrade.weight_time > day_date:
                     continue
             

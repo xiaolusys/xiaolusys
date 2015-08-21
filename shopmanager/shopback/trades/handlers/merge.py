@@ -11,7 +11,8 @@ class MergeHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
         #秒杀订单 取消合并
-        if merge_trade.user.visitor_id.lower().endswith('miaosha'):
+        if (merge_trade.user.visitor_id.lower().endswith('miaosha') 
+            or merge_trade.user.nick.find(u'秒杀') >= 0):
             return False
         
         return (kwargs.get('trade_merge_flag',True) and

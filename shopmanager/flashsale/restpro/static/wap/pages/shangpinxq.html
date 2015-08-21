@@ -81,11 +81,23 @@
 <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
 <div class="scroll-top" id="js-scroll-top"></div>
 <div id="loading"><span class="dots-loader"></span></div>
+<div class="service_box">
+	<ul class="tab_nav">
+		<li><a href="javascript:void(0);"><i class="icon icon_1"></i>在线客服</a></li>
+	</ul>
+	<div class="tab_content">
+		<div class="tab_plan" style="display: none;"><img src="http://image.xiaolu.so/gongzhonghao.jpg" alt="官方微信自助客服" width="130" height="130">
+			<p>扫一扫,进公众号</p>
+		</div>
+	</div>
+</div>
+
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="//cdn.bootcss.com/Swiper/3.0.7/js/swiper.jquery.min.js"></script>
 <script src="../js/common.js"></script>
 <script src="../js/tmsp.js"></script>
 <script src="../js/jquery-shopping.js"></script>
+<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.min.js"></script>
 <script>
 (function ($) {
 	 //商品尺寸切换,动态加载内容需事件委托
@@ -110,6 +122,17 @@
     		redirecto:window.location.href
     	});
     });
+
+    $(".service_box").on("swipeleft tap", function () {
+        $(".service_box .tab_plan").show().siblings().hide();
+        $(".service_box").animate({right: 0}, 800);
+    });
+    $(".service_box").on("swiperight", function () {
+        $(".service_box").animate({right: "-146px"}, 800);
+    });
+    $(document).on("scrollstart", function () {
+        $(".service_box").animate({right: "-146px"}, 800);
+    });
 })(jQuery);
 function change_goodsize() {
     $('#js-goods-size li.active').removeClass('active').addClass('normal');
@@ -131,6 +154,8 @@ function buynow(){
     var sku_id = $('#js-goods-size li.active').attr('sku_id');
     window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
 }
+
+
 </script>
 </body>
 </html>

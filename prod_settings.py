@@ -29,12 +29,12 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
-ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','121.199.168.159','192.168.1.1']
+ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','121.199.168.159']
 
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
+        'LOCATION': '10.132.179.237:11211',
     }
 }
     
@@ -63,7 +63,7 @@ TRADE_HANDLERS_PATH = (
 #    'shopback.trades.handlers.InterceptHandler',
    'shopback.trades.handlers.RegularSaleHandler',
    'shopback.trades.handlers.FinalHandler',
-   'shopback.trades.handlers.FlashSaleHandler',
+#    'shopback.trades.handlers.FlashSaleHandler',
 )
 #sale order regular days
 REGULAR_DAYS = 20
