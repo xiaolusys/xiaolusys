@@ -156,7 +156,7 @@ function  Wuliu(){
 	    
 	    if(info.response_content.result){
 	    
-		if (parseInt(info.response_content.ret.status)>0){
+		if (parseInt(info.response_content.ret.status)>1){
 		var	data1=info.response_content.ret.data;
 		if (data1.length>2){
 		for (var i = data1.length-2; i < data1.length; i++) {
@@ -179,7 +179,11 @@ function  Wuliu(){
 	}
 }
 else{
-	      var address =" <li><p class='text'>暂无记录、单号没有任何跟踪记录</p><p class='time'></p><div class='dotted'></div> </li><li></li>"
+	   //加上前一个状态，就是配货
+	         var address =" <li><p class='text'>您的商品配货完成</p><p class='time'>"+info.response_content.create_time+"</p><div class='dotted'></div> </li>"
+            $(".step-list").append(address)
+	
+	      var address =" <li><p class='text'>您的商品已出库</p><p class='time'>"+info.response_content.time+"</p><div class='dotted'></div> </li><li></li>"
             $(".step-list").append(address)
 }
     }
@@ -187,8 +191,9 @@ else{
 
 
 else{
-	
-	
+	 
+	var address =" <li><p class='text'>"+info.response_content.message+"</p><p class='time'>"+info.response_content.time+"</p><div class='dotted'></div> </li><li></li>"
+            $(".step-list").append(address)
 	
 }
 }
