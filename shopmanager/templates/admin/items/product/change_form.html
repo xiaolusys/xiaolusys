@@ -4,48 +4,7 @@
 {% load admin_urls %}
 
 {% block extrahead %}{{ block.super }}
-    <script>
-        $(document).ready(function () {
-            var all_outer_id = $('input[id^=id_prod_skus].[id$=-outer_id]');
-            var all_remain_num = $("input[id^=id_prod_skus].[id$=-remain_num]");
-            var all_cost = $("input[id^=id_prod_skus].[id$=-cost]");
-            var all_sale_price = $("input[id^=id_prod_skus].[id$=-std_sale_price]");
-            var all_agent_price = $("input[id^=id_prod_skus].[id$=-agent_price]");
 
-            all_remain_num.eq(0).change(function () {
-                var value = all_remain_num.eq(0).val();
-                for (var i = 0; i < all_remain_num.length; i++) {
-                    if(all_outer_id.eq(i).val().length!=0){
-                        all_remain_num.eq(i).val(value);
-                    }
-                }
-            });
-            all_cost.eq(0).change(function () {
-                var value = all_cost.eq(0).val();
-                for (var i = 0; i < all_cost.length; i++) {
-                    if(all_outer_id.eq(i).val().length!=0){
-                        all_cost.eq(i).val(value);
-                    }
-                }
-            });
-            all_sale_price.eq(0).change(function () {
-                var value = all_sale_price.eq(0).val();
-                for (var i = 0; i < all_sale_price.length; i++) {
-                    if(all_outer_id.eq(i).val().length!=0){
-                        all_sale_price.eq(i).val(value);
-                    }
-                }
-            });
-            all_agent_price.eq(0).change(function () {
-                var value = all_agent_price.eq(0).val();
-                for (var i = 0; i < all_agent_price.length; i++) {
-                    if(all_outer_id.eq(i).val().length!=0){
-                        all_agent_price.eq(i).val(value);
-                    }
-                }
-            });
-        });
-    </script>
 {% url 'admin:jsi18n' as jsi18nurl %}
 <script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
 {{ media }}
@@ -102,6 +61,8 @@
 {% for inline_admin_formset in inline_admin_formsets %}
     {% include inline_admin_formset.opts.template %}
 {% endfor %}
+
+
 {% endblock %}
 
 {% block after_related_objects %}{% endblock %}
@@ -117,4 +78,59 @@
 
 </div>
 </form></div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            load_quick();
+            get_add_row();
+        });
+        function load_quick() {
+            var all_outer_id = $('input[id^=id_prod_skus].[id$=-outer_id]');
+            var all_remain_num = $("input[id^=id_prod_skus].[id$=-remain_num]");
+            var all_cost = $("input[id^=id_prod_skus].[id$=-cost]");
+            var all_sale_price = $("input[id^=id_prod_skus].[id$=-std_sale_price]");
+            var all_agent_price = $("input[id^=id_prod_skus].[id$=-agent_price]");
+
+            all_remain_num.eq(0).change(function () {
+                var value = all_remain_num.eq(0).val();
+                for (var i = 0; i < all_remain_num.length; i++) {
+                    if (all_outer_id.eq(i).val().length != 0) {
+                        all_remain_num.eq(i).val(value);
+                    }
+                }
+            });
+            all_cost.eq(0).change(function () {
+                var value = all_cost.eq(0).val();
+                for (var i = 0; i < all_cost.length; i++) {
+                    if (all_outer_id.eq(i).val().length != 0) {
+                        all_cost.eq(i).val(value);
+                    }
+                }
+            });
+            all_sale_price.eq(0).change(function () {
+                var value = all_sale_price.eq(0).val();
+                for (var i = 0; i < all_sale_price.length; i++) {
+                    if (all_outer_id.eq(i).val().length != 0) {
+                        all_sale_price.eq(i).val(value);
+                    }
+                }
+            });
+            all_agent_price.eq(0).change(function () {
+                var value = all_agent_price.eq(0).val();
+                for (var i = 0; i < all_agent_price.length; i++) {
+                    if (all_outer_id.eq(i).val().length != 0) {
+                        all_agent_price.eq(i).val(value);
+                    }
+                }
+            });
+        }
+        function get_add_row() {
+            if ($(".add-row td a").length > 0) {
+                $(".add-row td a").click(load_quick);
+            } else {
+                setTimeout(function () {get_add_row();},1000);
+            }
+
+        }
+    </script>
 {% endblock %}
