@@ -215,11 +215,14 @@ function get_Coupon_Value_Show_In_Buy() {
                     //将显示出来的数值填充到页面中
                     var coupon_value = val.coupon_value;
                     var total_money = parseFloat($("#total_money").html().split(">")[2]);
-                    if (total_money >= 50 && val.coupon_type == 4) {// 大于50才能使用 并且优惠券类型是4
+                    if (total_money >= 30 && val.coupon_type == 4) {// 大于30才能使用 并且优惠券类型是4  代理专享优惠券
                         $("#coupon_value").text("￥-" + coupon_value);
                     }
-                    else if(total_money < 50 && val.coupon_type == 4){
-                        drawToast("商品金额小于50，优惠券不可用哦~");
+                    else if(total_money < 30 && val.coupon_type == 4){
+                        drawToast("优惠券不可用哦~");
+                    }
+                    else{
+                        drawToast("优惠券不可用哦~");
                     }
                 }
             });
