@@ -223,7 +223,13 @@
 
         <div class="col-lg-4">
             <div class="alert alert-success" role="alert">
-                <strong>填写地址:</strong>上海市佘山镇吉业路245号5号楼_{{ orderlist.id }}室
+                <strong>填写地址:</strong>
+                {% ifequal orderlist.p_district "3" %}
+                    广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼_{{ orderlist.id }}室
+                {% else %}
+                    上海市佘山镇吉业路245号5号楼_{{ orderlist.id }}室
+                {% endifequal %}
+
             </div>
         </div>
 

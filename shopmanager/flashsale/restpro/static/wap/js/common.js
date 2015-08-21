@@ -117,6 +117,7 @@ var GLConfig = {
     pull_user_coupon:'/user/couponcheck/',//用户领取优惠券
     create_user_pay_coupon:"/mycoupon/user_create_coupon",// 用户支付时候生成的优惠券
     user_own_coupon:"/mycoupon",//用户获取自己的优惠券
+    get_user_coupon_by_id:"/mycoupon/{{ coupon_id }}/get_user_coupon",//获取指定用户指定的优惠券
     change_user_coupon_used:"/mycoupon/{{ coupon_id}}/pass_user_coupon",//修改自己的指定优惠券状态到使用过的状态
 	user_logout:'/users/customer_logout',//用户注销
 	user_islogin:'/users/islogin.json',//用户是否登录

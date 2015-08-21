@@ -217,7 +217,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="tongkuan.html?id={{ product_model.id }}">
-        <img src="{{ pic_path }}">
+        <img src="{{ product_model.head_imgs }}">
         <p class="gname">{{ product_model.name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ agent_price }} </span>
@@ -229,6 +229,7 @@ function Create_item_dom(p_obj,close_model){
 	};
 	//如果没有close model,并且model_product存在
 	if (!close_model && !isNone(p_obj.product_model)){
+        p_obj.product_model.head_imgs = p_obj.product_model.head_imgs[0]
 		return hereDoc(Model_dom).template(p_obj);
 	}
 
