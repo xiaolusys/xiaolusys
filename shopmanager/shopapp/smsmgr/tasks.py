@@ -263,7 +263,7 @@ def func2send_message(trade):
         all_order = trade.merge_orders.all()
         if all_order.count() == 0:
             return
-        title = all_order[0].title[0:8]
+        title = all_order[0].title[6:14]
 
         content = POST_CONTENT_SEND_LATER.format(trade.pay_time.strftime('%m月%d号'), title.encode('utf-8'))
         if not content:
