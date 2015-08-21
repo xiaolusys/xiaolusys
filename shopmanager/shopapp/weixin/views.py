@@ -173,7 +173,7 @@ class WeixinAcceptView(View):
     
     def post(self,request):
         content    = request.REQUEST
-        logger.error('debug weixin:',content)
+
         wx_service = self.get_wx_service()
         if not wx_service.checkSignature(content.get('signature',''),
                                          content.get('timestamp',0),
@@ -184,7 +184,6 @@ class WeixinAcceptView(View):
         params   = parseXML2Param(content)
         ret_params = wx_service.handleRequest(params)
         response = formatParam2XML(ret_params)
-        logger.error('debug resp:',response)
         return HttpResponse(response,mimetype="text/xml")
 
 
