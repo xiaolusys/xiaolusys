@@ -115,44 +115,44 @@ def Coupon_Check(request):
         return HttpResponse('no_is_null')
 
 
-from models import SaleOrder
-from flashsale.xiaolumm.models import XiaoluMama
-from flashsale.pay.models_user import Customer
-from models_refund import SaleRefund
-XLMM_COUPON_50_RELEASE_TIME = datetime.datetime(2015, 8, 19, 0, 0, 0)
-
-
-def xlmm_Coupon_Release(sender, instance, created, **kwargs):
-    # buyer_id
-    # 判断　用户是不是　小鹿代理
-    today = datetime.datetime.today()
-    if today >= XLMM_COUPON_50_RELEASE_TIME and instance.outer_id == 'RMB200'\
-            and instance.refund_status == SaleRefund.NO_REFUND and instance.payment == 200 \
-            and instance.status == SaleOrder.TRADE_FINISHED:
-        # 执行时间大于开始时间　外部编码为RMB200 没有退款　　且交易成功 实付款为２００
-        buyer_id = instance.sale_trade.buyer_id
-        customer = Customer.objects.get(id=buyer_id)
-        mobile = customer.mobile or ''
-        unionid = customer.unionid or ''
-        trade_id = instance.sale_trade.id
-        try:
-            xlmm = XiaoluMama.objects.get(openid=unionid)
-        except XiaoluMama.DoesNotExist:
-            return
-        if xlmm and xlmm.agencylevel == 2 and xlmm.charge_status == XiaoluMama.CHARGED:
-            # 代理级别为２　并且已经接管的
-            # 生成优惠券（仅仅生成一次　get try except）
-            coupon = Coupon.objects.filter(coupon_user=buyer_id)
-            if coupon.exists():  # 此人曾经有优惠券 去过滤　是否存在ＲＭＢ２００的优惠券　存在就不发放
-                for c in coupon:
-                    cou_p = CouponPool.objects.filter(coupon_no=c.coupon_no, coupon_type=CouponPool.LIM200)
-                    if cou_p.exists():  # 如果存在　则不发放
-                        return
-                    for i in range(2):
-                        cou = Coupon()
-                        cou.lmi200_Xlmm_Coupon(buyer_id, trade_id, mobile)
-            else:   # 以前没有过优惠券　则直接生成优惠券
-                for i in range(2):
-                        cou = Coupon()
-                        cou.lmi200_Xlmm_Coupon(buyer_id, trade_id, mobile)
-post_save.connect(xlmm_Coupon_Release, sender=SaleOrder)
+# from models import SaleOrder
+# from flashsale.xiaolumm.models import XiaoluMama
+# from flashsale.pay.models_user import Customer
+# from models_refund import SaleRefund
+# XLMM_COUPON_50_RELEASE_TIME = datetime.datetime(2015, 8, 19, 0, 0, 0)
+#
+#
+# def xlmm_Coupon_Release(sender, instance, created, **kwargs):
+#     # buyer_id
+#     # 判断　用户是不是　小鹿代理
+#     today = datetime.datetime.today()
+#     if today >= XLMM_COUPON_50_RELEASE_TIME and instance.outer_id == 'RMB118'\
+#             and instance.refund_status == SaleRefund.NO_REFUND and instance.payment == 100 \
+#             and instance.status == SaleOrder.TRADE_FINISHED:
+#         # 执行时间大于开始时间　外部编码为 RMB100_c30 没有退款　　且交易成功 实付款为100
+#         buyer_id = instance.sale_trade.buyer_id
+#         customer = Customer.objects.get(id=buyer_id)
+#         mobile = customer.mobile or ''
+#         unionid = customer.unionid or ''
+#         trade_id = instance.sale_trade.id
+#         try:
+#             xlmm = XiaoluMama.objects.get(openid=unionid)
+#         except XiaoluMama.DoesNotExist:
+#             return
+#         if xlmm and xlmm.agencylevel == 2 and xlmm.charge_status == XiaoluMama.CHARGED:
+#             # 代理级别为２　并且已经接管的
+#             # 生成优惠券（仅仅生成一次　get try except）
+#             coupon = Coupon.objects.filter(coupon_user=buyer_id)
+#             if coupon.exists():  # 此人曾经有优惠券 去过滤　是否存在ＲＭＢ２００的优惠券　存在就不发放
+#                 for c in coupon:
+#                     cou_p = CouponPool.objects.filter(coupon_no=c.coupon_no, coupon_type=CouponPool.LIM200)
+#                     if cou_p.exists():  # 如果存在　则不发放
+#                         return
+#                     for i in range(2):
+#                         cou = Coupon()
+#                         cou.lmi200_Xlmm_Coupon(buyer_id, trade_id, mobile)
+#             else:   # 以前没有过优惠券　则直接生成优惠券
+#                 for i in range(2):
+#                         cou = Coupon()
+#                         cou.lmi200_Xlmm_Coupon(buyer_id, trade_id, mobile)
+# post_save.connect(xlmm_Coupon_Release, sender=SaleOrder)
