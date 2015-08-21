@@ -440,10 +440,10 @@ class WuliuView(APIView):
             exType=trade_info.logistics_company.code
             out_sid=trade_info.out_sid
         except:
-            print trade_info.status
+            #print trade_info.status
             if trade_info.status==2:
                 return    Response({"result":False,"message":"您的订单正在配货","time":trade_info.pay_time }) 
-         
+            return    Response({"result":False,"message":"订单创建完成","time":trade_info.created }) 
         if exType not in POST_CODE_NAME_MAP.keys():
             return Response({"result":False,"message":"亲，您的包裹已经在路上啦!暂时不支持此快递公司物流信息哦！","time":trade_info.consign_time})   
         
