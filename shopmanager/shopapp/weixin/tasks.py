@@ -120,7 +120,7 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
                 update_wxpids.add(wxproduct_id)
                 _wx_api.modMerchantProductStatus(wxproduct_id, status)
 
-        except WeiXinRequestException, exc:
+        except Exception, exc:
             exception = exc
         
         product = Product.objects.get(outer_id=outer_id)
