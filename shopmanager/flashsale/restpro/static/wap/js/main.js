@@ -222,21 +222,38 @@ function Create_item_dom(p_obj,close_model){
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ agent_price }} </span>
           <s class="oprice"><em>¥</em> {{ std_sale_price }}</s>
-        </p>
+        </p>{{ saleout_dom }}
       </a>
     </li>
     */
 	};
-	//如果没有close model,并且model_product存在
-	if (!close_model && !isNone(p_obj.product_model)){
-        p_obj.product_model.head_imgs = p_obj.product_model.head_imgs[0]
-		return hereDoc(Model_dom).template(p_obj);
-	}
 
-	p_obj.saleout_dom = '';
-	if (p_obj.is_saleout){
-		p_obj.saleout_dom = '<div class="mask"></div><div class="text">抢光了</div>';
-	}
+    p_obj.saleout_dom = '';
+    var today = new Date().Format("yyyy-MM-dd");
+
+    //如果没有close model,并且model_product存在
+    if (!close_model && !isNone(p_obj.product_model)) {
+        if (!p_obj.is_saleopen) {
+            if (p_obj.sale_time == today) {
+                p_obj.saleout_dom = '<div class="mask"></div><div class="text">即将开售</div>';
+            } else {
+                p_obj.saleout_dom = '<div class="mask"></div><div class="text">已过期</div>';
+            }
+        }
+        p_obj.product_model.head_imgs = p_obj.product_model.head_imgs[0]
+        return hereDoc(Model_dom).template(p_obj);
+    }
+
+    //上架判断
+    if (!p_obj.is_saleopen) {
+        if (p_obj.sale_time == today) {
+            p_obj.saleout_dom = '<div class="mask"></div><div class="text">即将开售</div>';
+        } else {
+            p_obj.saleout_dom = '<div class="mask"></div><div class="text">已过期</div>';
+        }
+    } else if (p_obj.is_saleout) {
+        p_obj.saleout_dom = '<div class="mask"></div><div class="text">抢光了</div>';
+    }
 	return hereDoc(Item_dom).template(p_obj);
 }
 
@@ -382,4 +399,25 @@ function product_timer(shelf_time) {
         $(".top p").text("已下架");
     }
 
+}
+
+    /*
+     * 时间格式化
+     * auther:yann
+     * date:2015/22/8
+     */
+Date.prototype.Format = function (fmt) {
+    var o = {
+        "M+": this.getMonth() + 1, //月份
+        "d+": this.getDate(), //日
+        "h+": this.getHours(), //小时
+        "m+": this.getMinutes(), //分
+        "s+": this.getSeconds(), //秒
+        "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+        "S": this.getMilliseconds() //毫秒
+    };
+    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (var k in o)
+    if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    return fmt;
 }
