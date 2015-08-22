@@ -161,7 +161,7 @@ def  SaveWuliu(tid):
 
 #fang  2015-8-21
 @task(max_retry=3, default_retry_delay=5)  
-def  SaveWuliu_only(tid,content):
+def  SaveWuliu_only01(tid,content):
     """
         用户点击物流信息，进行物流信息存入数据库。
     """
@@ -184,3 +184,55 @@ def  SaveWuliu_only(tid,content):
                         wuliu.content=t['content']
                         wuliu.time=t['time']
                         wuliu.save()
+
+
+#fang  2015-8-22  newVersions
+@task(max_retry=3, default_retry_delay=5)  
+def  SaveWuliu_only(tid,content):
+    """
+        用户点击物流信息，进行物流信息存入数据库。
+    """
+    if content['status']==1:
+        try:
+            wuliu_info=Trade_wuliu.objects.filter(tid=tid)
+            wuliu_info.delete()
+            wuliu=   Trade_wuliu()
+            wuliu.tid=tid
+            wuliu.status=content['status']
+            wuliu.logistics_company=content['name']
+            wuliu.out_sid=content['order']
+            wuliu.errcode=content['errcode']
+            wuliu.save()
+        except:
+            wuliu=   Trade_wuliu()
+            wuliu.tid=tid
+            wuliu.status=content['status']
+            wuliu.logistics_company=content['name']
+            wuliu.out_sid=content['order']
+            wuliu.errcode=content['errcode']
+            wuliu.save()
+    else:
+        try:
+            wuliu_info=Trade_wuliu.objects.filter(tid=tid)
+            wuliu_info.delete()
+            for t in content['data']:
+                wuliu=   Trade_wuliu()
+                wuliu.tid=tid
+                wuliu.status=content['status']
+                wuliu.logistics_company=content['name']
+                wuliu.out_sid=content['order']
+                wuliu.errcode=content['errcode']
+                wuliu.content=t['content']
+                wuliu.time=t['time']
+                wuliu.save()
+        except:
+            for t in content['data']:
+                wuliu=   Trade_wuliu()
+                wuliu.tid=tid
+                wuliu.status=content['status']
+                wuliu.logistics_company=content['name']
+                wuliu.out_sid=content['order']
+                wuliu.errcode=content['errcode']
+                wuliu.content=t['content']
+                wuliu.time=t['time']
+                wuliu.save()
