@@ -172,7 +172,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return None
         username = request.POST.get('username')
         password = request.POST.get('password')
-
+        next_url = request.POST.get('next','/index.html')
         if not username or not password:
             return Response({"result": "null"})
         try:
@@ -181,7 +181,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             user1 = authenticate(username=user.username, password=password)
             if user1 is not None:
                 login(request, user1)
-                return Response({"result": "login"})   # 登录成功
+                return Response({"result": "login","next":next_url})   # 登录成功
             if not user.check_password(password):
                 return Response({"result": "p_error"})  # 密码错误
         except Customer.DoesNotExist:

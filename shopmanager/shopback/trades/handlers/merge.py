@@ -39,17 +39,13 @@ class MergeHandler(BaseHandler):
             
             if merge_queryset.count() == 1:
                 return 
-            
             merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-            
             main_trade = MergeTrade.objects.driveMergeTrade(merge_trade,
                                                             latest_paytime=latest_paytime)
             if main_trade:
                 ruleMatchPayment(main_trade)
         else:
-
             merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
-            
             main_trade = MergeTrade.objects.driveMergeTrade(merge_trade)
             if main_trade:
                 ruleMatchPayment(main_trade)

@@ -34,19 +34,51 @@
                 	e.stopPropagation();
                 	$event = e;
                 	DoIfLogin({
-			    		callback:function(){ S.addShoping();},
-			    		redirecto:window.location.href
-			    	});
+			    		callback:function(){ 
+			    			S.addCartItem();
+				    	},
+				    	redirecto:window.location.href
+				    });
+                }, 
+                addCartItem: function() {
+                	var item_id = $("#product_id").html();
+				    var sku = $("#js-goods-size li.active");
+				    //如果未选中商品尺寸,事件不执行
+                    if (sku.length == 0){
+                    	document.getElementById('js-goods-size').scrollIntoView(false);
+                    	drawToast('请选择商品尺寸');
+                    	return;
+                    };
+				    var sku_id = sku.eq(0).attr("sku_id");
+				    var num = 1;
+				    var requestUrl = GLConfig.baseApiUrl + GLConfig.get_cart_url;
+				    var requestCallBack = function (res) {
+				    	S.addShoping();
+				        Set_shopcarts_num();
+				    };
+				    // 发送请求
+				    $.ajax({
+				        type: 'post',
+				        url: requestUrl,
+				        data: {"num": num, "item_id": item_id, "sku_id": sku_id, "csrfmiddlewaretoken": csrftoken},
+				        beforeSend: function () {
+				
+				        },
+				        success: requestCallBack,
+				        error: function (data) {
+				            if(data.status >= 300){
+				            	var errmsg = $.parseJSON(data.responseText).detail;
+				            	drawToast(errmsg);
+				                if(errmsg == "商品库存不足"){
+				                    setTimeout(reload,1000)
+				                }
+				            }
+				        }
+				    });
                 },
                 addShoping: function () {
                 	e = $event;
                     console.log('debug:',e);
-                    //如果未选中商品尺寸,事件不执行
-                    if ($('#js-goods-size li.active').length == 0){
-                    	document.getElementById('js-goods-size').scrollIntoView(false);
-                    	drawToast('请选择正确的商品尺寸');
-                    	return;
-                    };
                     var $target = $(e.target),
                         id = $target.attr('id'),
                         dis = $target.data('click'),

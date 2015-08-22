@@ -17,8 +17,10 @@ $(document).ready(function () {
     $(".btn-login").click(function () {
         var username = $(".username_in").val();
         var password = $(".password_in").val();
+        var next = parseUrlParams(window.location.href)['next'];
         var error_tips = $(".error-tips");
         var data = {"username": username, "password": password};
+        if (!isNone(next)){data['next'] = next};
         var url = "/rest/v1/register/customer_login";
         if (username.trim().length == 0) {
             error_tips.text("帐号不能为空～").show();
@@ -51,7 +53,7 @@ $(document).ready(function () {
                 setTimeout("error_hide()", 1000);
             }else {
                 //跳转到首页
-                window.location = "../index.html";
+                window.location = decodeURIComponent(res.next);
             }
         }
 

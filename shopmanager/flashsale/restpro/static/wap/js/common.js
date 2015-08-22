@@ -203,7 +203,6 @@ function Set_shopcarts_num() {
             remain_date = newDate.setTime(res.last_created * 1000);
             cart_timer.publicMethod();
         }
-
     };
     // 发送请求
     $.ajax({
