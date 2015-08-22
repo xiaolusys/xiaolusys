@@ -54,7 +54,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     - {prefix}/show_carts_num[.formt]: 显示购物车数量;
     - {prefix}/sku_num_enough[.formt]: 获取规格数量是否充足;
     - {prefix}/carts_payinfo[.formt]: 根据购物车记录获取支付信息;
+    > cart_ids：购物车ID列表,如101,102,103,...
     - {prefix}/now_payinfo[.formt]: 根据立即购买获取支付信息;
+    > sku_id：要立即购买的商品规格ID
     """
     queryset = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL).order_by('-created')
     serializer_class = serializers.ShoppingCartSerializer
@@ -215,9 +217,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def carts_payinfo(self, request, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
         cart_ids = [int(i) for i in request.GET.get('cart_ids','').split(',') if i.isdigit()]
+        if len(cart_ids) == 0:
+            raise exceptions.APIException(u'购物车ID不能为空')
         queryset = self.get_owner_queryset(request).filter(id__in=cart_ids)
         serializer = self.get_serializer(queryset, many=True)
-        
         total_fee = 0
         discount_fee = 0
         post_fee = 0
@@ -226,7 +229,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         for cart in queryset:
             total_fee +=  cart.price * cart.num
             has_deposite |= cart.is_deposite()
-                
         xlmm = None
         weixin_payable = False
         customers = Customer.objects.filter(user=request.user)
@@ -262,7 +264,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def now_payinfo(self, request, *args, **kwargs):
         """ 立即购买获取支付信息 """
-        sku_id      = int(request.REQUEST.get('sku_id'))
+        sku_id      = request.REQUEST.get('sku_id','')
+        if not sku_id.isdigit():
+            raise exceptions.APIException(u'传入规格ID不合法')
+        
+        sku_id      = int(sku_id)
         product_sku = get_object_or_404(ProductSku,id=sku_id)
         product     = product_sku.product
         
