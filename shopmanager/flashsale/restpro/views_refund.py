@@ -160,7 +160,7 @@ def judge_Logistics(company=None, sid=None):
     返回：有效：True  无效：False
     """
     pass
-
+from flashsale.pay.tasks import pushTradeRefundTask
 
 def sub_Handler(request=None, reason=None, categry=None):
     oid = int(request.data.get("refund[1][id]"))
@@ -191,6 +191,7 @@ def sub_Handler(request=None, reason=None, categry=None):
                 # refund_status =  SaleRefund.REFUND_WAIT_SELLER_AGREE 已经申请退款状态
                 order.refund_status = SaleRefund.REFUND_WAIT_SELLER_AGREE
                 order.save()
+                pushTradeRefundTask(sale_refund.id)
                 # 保存其他信息到sale_refund
                 save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num,
                                     reason=reason)
@@ -227,7 +228,7 @@ def sub_Handler(request=None, reason=None, categry=None):
                 # 这里最好指定 有哪些物流公司 然后根据物流公司接口查询物流单号是否已经有退货的物流信息  有则予以退货申请
                 # 否则 返回未查到物流信息
                 sale_refund.save()
-
+                pushTradeRefundTask(sale_refund.id)
                 # 如果物流信息不是空　，　填写物流信息
                 if logi_company and logi_sid:
                     save_Resund_Product_Atribut(refund=sale_refund, company=logi_company, sid=logi_sid)
