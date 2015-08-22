@@ -48,10 +48,13 @@ def isFromWeixin(request):
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     ###特卖购物车REST API接口：
-    - {prefix}/{{pk}}/delete_carts: 删除;
-    - {prefix}/{{pk}}/plus_product_carts: 增加一件;
-    - {prefix}/{{pk}}/minus_product_carts: 减少一件;
-    - {prefix}/show_carts_num: 显示购物车数量;
+    - {prefix}/{{pk}}/delete_carts[.formt]: 删除;
+    - {prefix}/{{pk}}/plus_product_carts[.formt]: 增加一件;
+    - {prefix}/{{pk}}/minus_product_carts[.formt]: 减少一件;
+    - {prefix}/show_carts_num[.formt]: 显示购物车数量;
+    - {prefix}/sku_num_enough[.formt]: 获取规格数量是否充足;
+    - {prefix}/carts_payinfo[.formt]: 根据购物车记录获取支付信息;
+    - {prefix}/now_payinfo[.formt]: 根据立即购买获取支付信息;
     """
     queryset = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL).order_by('-created')
     serializer_class = serializers.ShoppingCartSerializer
@@ -195,7 +198,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         """ 规格数量是否充足 """
         sku_id   = request.REQUEST.get('sku_id','')
         sku_num  = request.REQUEST.get('sku_num','')
-        if not sku_id.isdigit() and not sku_num.isdigit():
+        if not sku_id.isdigit() or not sku_num.isdigit():
             raise exceptions.APIException(u'规格ID或数量有误')
         sku_num = int(sku_num)
         customer = get_object_or_404(Customer, user=request.user)
