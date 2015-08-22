@@ -178,7 +178,8 @@ function  Wuliu(){
         }		
 	}
 }
-else{
+//针对有物流单，暂时没有数据
+else if  (parseInt(info.response_content.ret.status)==1 ) {
 	   //加上前一个状态，就是配货
 	         var address =" <li><p class='text'>您的商品配货完成</p><p class='time'>"+info.response_content.create_time+"</p><div class='dotted'></div> </li>"
             $(".step-list").append(address)
@@ -186,8 +187,34 @@ else{
 	      var address =" <li><p class='text'>您的商品已出库</p><p class='time'>"+info.response_content.time+"</p><div class='dotted'></div> </li><li></li>"
             $(".step-list").append(address)
 }
+
+//根据从数据库来查询的数据的格式
+else{
+	  		var	data1=info.response_content.ret;
+		if (data1.length>2){
+		for (var i = data1.length-2; i < data1.length; i++) {
+			   if(i>data1.length-2){
+				   
+                var address = "<li> <p class='text'>"+data1[i].content+"</p><p class='time'>"+data1[i].time+"</p><div class='dotted'></div></li><li></li>"
+            $(".step-list").append(address)
+        }
+        else{
+			  var address = "<li> <p class='text'>"+data1[i].content+"</p><p class='time'>"+data1[i].time+"</p><div class='dotted'></div></li>"
+            $(".step-list").append(address)
+	}		
+	}
+}
+	else {
+		  for (var i = 0; i < data1.length; i++) {
+                var address = "<li> <p class='text'>"+data1[i].content+"</p><p class='time'>"+data1[i].time+"</p><div class='dotted'></div></li><li></li>"
+            $(".step-list").append(address)
+        }		
+	}
+	
+	
+	
     }
-    
+  }  
 
 
 else{
