@@ -591,7 +591,6 @@ class MergeTradeAdmin(MyAdmin):
                 elif is_merge_success:
                     #合并后金额匹配
                     ruleMatchPayment(main_trade)
-                    
                     is_merge_success = True
                     log_action(request.user.id,main_trade,CHANGE,
                                u'合并订单(%s)'%','.join([str(id) for id in merge_trade_ids]))
@@ -600,7 +599,6 @@ class MergeTradeAdmin(MyAdmin):
                                                                pcfg.WAIT_PREPARE_SEND_STATUS)
                                                ).order_by('pay_time')	
                 if audit_trades.count()>0:
-                    
                     merge_trades = audit_trades.filter(has_merge=True)
                     if merge_trades.count()>0:
                         main_trade = merge_trades[0]

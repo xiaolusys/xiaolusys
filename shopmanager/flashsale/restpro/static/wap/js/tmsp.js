@@ -166,35 +166,30 @@ function reload(){
 function Create_item() {
     var item_id = $("#product_id").html();
     var sku = $("#js-goods-size .active");
-    if (sku.length > 0) {
-        var sku_id = sku.eq(0).attr("sku_id");
-        var num = 1;
-        var requestUrl = GLConfig.baseApiUrl + "/carts"
-        var requestCallBack = function (res) {
-            Set_shopcarts_num();
-        };
-        // 发送请求
-        $.ajax({
-            type: 'post',
-            url: requestUrl,
-            data: {"num": num, "item_id": item_id, "sku_id": sku_id, "csrfmiddlewaretoken": csrftoken},
-            beforeSend: function () {
+    var sku_id = sku.eq(0).attr("sku_id");
+    var num = 1;
+    var requestUrl = GLConfig.baseApiUrl + "/carts"
+    var requestCallBack = function (res) {
+        Set_shopcarts_num();
+    };
+    // 发送请求
+    $.ajax({
+        type: 'post',
+        url: requestUrl,
+        data: {"num": num, "item_id": item_id, "sku_id": sku_id, "csrfmiddlewaretoken": csrftoken},
+        beforeSend: function () {
 
-            },
-            success: requestCallBack,
-            error: function (data) {
-                if(data.status >= 300){
-                	var errmsg = $.parseJSON(data.responseText).detail;
-                	drawToast(errmsg);
-                    if(errmsg == "商品库存不足"){
-                        setTimeout(reload,1000)
-                    }
-                }
-                if (data.statusText == "FORBIDDEN") {
-                    window.location = "denglu.html";
+        },
+        success: requestCallBack,
+        error: function (data) {
+            if(data.status >= 300){
+            	var errmsg = $.parseJSON(data.responseText).detail;
+            	drawToast(errmsg);
+                if(errmsg == "商品库存不足"){
+                    setTimeout(reload,1000)
                 }
             }
-        });
-    }
+        }
+    });
 }
 

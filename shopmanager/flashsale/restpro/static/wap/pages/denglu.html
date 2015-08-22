@@ -14,5 +14,21 @@
 </div>
 <a href="denglu2.html" class="btn-xiaolu">小鹿美美账号登陆</a>
 <a href="/rest/v1/users/weixin_login/" class="btn-weixin">微信一键登陆</a>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript">
+(function ($) {
+	 //点击登录或授权按钮事件
+    $(document).on({
+    	touchend:login,
+    	click:login
+    },'.btn-xiaolu,.btn-weixin');
+})(jQuery);
+function login(e){
+	e.preventDefault();
+	var redirect_url = $(this).attr('href');
+	var next = parseUrlParams(window.location.href)['next'];
+	window.location = redirect_url + '?next=' + next;
+}
+</script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import time
 import datetime
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
@@ -144,7 +145,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     
     @list_route(methods=['get'])
     def show_carts_num(self, request, *args, **kwargs):
-        import time
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = queryset.order_by('-created')
         count = 0
@@ -172,7 +172,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         user_skunum = getUserSkuNumByLast24Hours(customer,sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + 1)
         if not lockable:
-            raise exceptions.APIException(u'达到商品数量限购')
+            raise exceptions.APIException(u'商品数量限购')
         lock_success =  Product.objects.lockQuantity(sku,1)
         if not lock_success:
             raise exceptions.APIException(u'商品库存不足')
@@ -203,9 +203,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         user_skunum = getUserSkuNumByLast24Hours(customer,sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
         if not lockable:
-            raise exceptions.APIException(u'达到商品限购数量')
+            raise exceptions.APIException(u'商品数量限购')
         if sku.free_num < sku_num:
-            raise exceptions.APIException(u'库存不足，赶快下单')
+            raise exceptions.APIException(u'库存不足赶快下单')
         return Response({"sku_id": sku_id,"sku_num":sku_num})
     
     @list_route(methods=['get'])

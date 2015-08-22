@@ -16,7 +16,7 @@ ORDER_RATEUP_START = datetime.date(2015,7,8)
 
 MM_CLICK_DAY_LIMIT = 1
 MM_CLICK_DAY_BASE_COUNT  = 50
-MM_CLICK_PER_ORDER_PLUS_COUNT = 30
+MM_CLICK_PER_ORDER_PLUS_COUNT = 50
 
 
 class XiaoluMama(models.Model):
@@ -133,7 +133,7 @@ class XiaoluMama(models.Model):
         
     def get_Mama_Agency_Rebeta_Rate(self):
         """ 获取代理妈妈获取子级代理的提成点数 """
-        if self.agencylevel == 2:
+        if self.agencylevel > 2:
             return 0.05
         return 0
         
@@ -198,7 +198,6 @@ class XiaoluMama(models.Model):
             order_price = order.order_total_price
         elif hasattr(order,'payment'):
             order_price = int(order.payment * 100)
-        
         return order_price
 
 
@@ -236,16 +235,17 @@ class XiaoluMama(models.Model):
     def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
         """ 按日期获取小鹿妈妈点击价格 """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
-        if agency_levels.count() == 0:
+        if agency_levels.count() < 2:
             return 0
         
-        agency_level = agency_levels[0]
-        base_price = 20
         
-        if not day_date or day_date < ROI_CLICK_START:
-            return base_price + agency_level.get_Click_Price(ordernum)
-        
-        return 0
+        base_price = 10
+        return base_price
+#         agency_level = agency_levels[0]
+#         if not day_date or day_date < ROI_CLICK_START:
+#             return base_price + agency_level.get_Click_Price(ordernum)
+#         
+#         return 0
         
 #         pre_date = day_date - datetime.timedelta(days=1)
 #         mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
@@ -330,14 +330,14 @@ class AgencyLevel(models.Model):
         """ 点击据订单价格提成 """
         if self.id < 2:
             return 0
-        
-        click_price = 0
-        if order_num > 2:
-            click_price = 0.3
-        else:
-            click_price += order_num * 0.1
-        
-        return click_price * 100
+        return 0
+#         click_price = 0
+#         if order_num > 2:
+#             click_price = 0.3
+#         else:
+#             click_price += order_num * 0.1
+#         
+#         return click_price * 100
     
     def get_Max_Valid_Clickcount(self,order_num):
         
