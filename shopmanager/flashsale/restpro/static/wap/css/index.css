@@ -190,7 +190,7 @@ nav a:active,
     color: #fff;
 }
 
-.glist .text {
+.glist .header .text {
     font-size: 26px;
     text-indent: 50px;
     position: relative;
@@ -336,3 +336,60 @@ nav a:active,
     display: none;
 }
 
+.chaotong li a {
+    position: relative;
+}
+.nvzhuang li a {
+    position: relative;
+}
+.chaotong li a .mask{
+  background-color: #9B9B9B;
+  opacity: 0.47;
+  position: absolute;
+  left:0;
+  top:0;
+  right: 0;
+  bottom: 0;
+}
+.chaotong li a .text{
+  background-color: #403B3B;
+  opacity: 0.88;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  border-radius: 50%;
+  left:50%;
+  top:50%;
+  margin-left: -50px;
+  margin-top: -50px;
+  text-align: center;
+  color: #fff;
+  font-size:22px;
+}
+
+.nvzhuang li a .mask{
+  background-color: #9B9B9B;
+  opacity: 0.47;
+  position: absolute;
+  left:0;
+  top:0;
+  right: 0;
+  bottom: 0;
+}
+.nvzhuang li a .text{
+  background-color: #403B3B;
+  opacity: 0.88;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  border-radius: 50%;
+  left:50%;
+  top:50%;
+  margin-left: -50px;
+  margin-top: -50px;
+  text-align: center;
+  color: #fff;
+  font-size:22px;
+}
