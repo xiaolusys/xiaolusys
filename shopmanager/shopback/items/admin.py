@@ -108,9 +108,9 @@ class ProductAdmin(admin.ModelAdmin):
     date_hierarchy = 'sale_time'
 #     ordering = ['created','']
 
-    list_filter = ('shelf_status','is_verify','status',('sale_time',DateScheduleFilter),
-                   ChargerFilter,'sync_stock','is_split','is_match','is_assign',
-                   'details__is_seckill','details__is_recommend',
+    list_filter = ('shelf_status','status',('sale_time',DateScheduleFilter),'ware_by',
+                   'sync_stock','is_split','is_match','is_assign' #ChargerFilter,
+                   ,'is_verify','details__is_seckill','details__is_recommend',
                    ('created',DateFieldListFilter),
                    CategoryFilter,
                    GroupNameFilter)
@@ -640,10 +640,9 @@ class ProductAdmin(admin.ModelAdmin):
     #库存商品上架（批量）
     def upshelf_product_action(self,request,queryset):
         
-        verify_qs = queryset.filter(is_verify=True)
         unverify_qs = queryset.filter(is_verify=False)
         
-        outer_ids = [p.outer_id for p in verify_qs]
+        outer_ids = [p.outer_id for p in queryset]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
         try:
@@ -655,7 +654,7 @@ class ProductAdmin(admin.ModelAdmin):
         down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
         
         if unverify_qs.count() > 0:
-            self.message_user(request,u"有%s个商品未核对，请核对后上架!"%unverify_qs.count())
+            self.message_user(request,u"有%s个商品未核对，请核对后才能在微信上架!"%unverify_qs.count())
         
         for product in up_queryset:
             log_action(request.user.id,product,CHANGE,u'上架商品')
