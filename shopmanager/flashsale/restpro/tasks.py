@@ -9,7 +9,7 @@ import logging
 
 import json
 import urllib,urllib2
-from shopback.trades.models import Trade_wuliu
+from shopback.trades.models import TradeWuliu
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"
 BAIDU_POST_CODE_EXCHANGE={
                          'YUNDA':'yunda',
@@ -135,7 +135,7 @@ def  SaveWuliu(tid):
                 content = json.loads(req.read())
                 #if content['data'].length=0
                 if content['status']==1:
-                    wuliu=   Trade_wuliu()
+                    wuliu=   TradeWuliu()
                     wuliu.tid=tid
                     wuliu.status=content['status']
                     wuliu.logistics_company=content['name']
@@ -144,7 +144,7 @@ def  SaveWuliu(tid):
                     wuliu.save()
                 else:
                     for t in content['data']:
-                        wuliu=   Trade_wuliu()
+                        wuliu=   TradeWuliu()
                         wuliu.tid=tid
                         wuliu.status=content['status']
                         wuliu.logistics_company=content['name']
@@ -166,7 +166,7 @@ def  SaveWuliu_only01(tid,content):
         用户点击物流信息，进行物流信息存入数据库。
     """
     if content['status']==1:
-                    wuliu=   Trade_wuliu()
+                    wuliu=   TradeWuliu()
                     wuliu.tid=tid
                     wuliu.status=content['status']
                     wuliu.logistics_company=content['name']
@@ -175,7 +175,7 @@ def  SaveWuliu_only01(tid,content):
                     wuliu.save()
     else:
                     for t in content['data']:
-                        wuliu=   Trade_wuliu()
+                        wuliu=   TradeWuliu()
                         wuliu.tid=tid
                         wuliu.status=content['status']
                         wuliu.logistics_company=content['name']
@@ -194,9 +194,9 @@ def  SaveWuliu_only(tid,content):
     """
     if content['status']==1:
         try:
-            wuliu_info=Trade_wuliu.objects.filter(tid=tid)
+            wuliu_info=TradeWuliu.objects.filter(tid=tid)
             wuliu_info.delete()
-            wuliu=   Trade_wuliu()
+            wuliu=   TradeWuliu()
             wuliu.tid=tid
             wuliu.status=content['status']
             wuliu.logistics_company=content['name']
@@ -204,7 +204,7 @@ def  SaveWuliu_only(tid,content):
             wuliu.errcode=content['errcode']
             wuliu.save()
         except:
-            wuliu=   Trade_wuliu()
+            wuliu=   TradeWuliu()
             wuliu.tid=tid
             wuliu.status=content['status']
             wuliu.logistics_company=content['name']
@@ -213,10 +213,10 @@ def  SaveWuliu_only(tid,content):
             wuliu.save()
     else:
         try:
-            wuliu_info=Trade_wuliu.objects.filter(tid=tid)
+            wuliu_info=TradeWuliu.objects.filter(tid=tid)
             wuliu_info.delete()
             for t in content['data']:
-                wuliu=   Trade_wuliu()
+                wuliu=   TradeWuliu()
                 wuliu.tid=tid
                 wuliu.status=content['status']
                 wuliu.logistics_company=content['name']
@@ -227,7 +227,7 @@ def  SaveWuliu_only(tid,content):
                 wuliu.save()
         except:
             for t in content['data']:
-                wuliu=   Trade_wuliu()
+                wuliu=   TradeWuliu()
                 wuliu.tid=tid
                 wuliu.status=content['status']
                 wuliu.logistics_company=content['name']

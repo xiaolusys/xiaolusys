@@ -1,3 +1,5 @@
+########### 2015-8-22 #################
+alter table shop_items_product add ware_by int(11) NOT NULL;
 ########### 2015-8-15 #################
 ALTER TABLE flashsale_tongji_shopping ADD rebetamount INT(11) DEFAULT 0; 
 ########### 2015-8-13 #################

@@ -17,9 +17,9 @@ from shopback.base.new_renders import new_BaseJSONRenderer
 from django.http import  HttpResponse
 from rest_framework.response import Response
 
-from flashsale.restpro.serializers import Trade_wuliuSerializer
+from flashsale.restpro.serializers import TradeWuliuSerializer
 #fang  2015-8-19
-from shopback.trades.models import Trade_wuliu
+from shopback.trades.models import TradeWuliu
 from shopback.items.models import Product
 from flashsale.pay.models import  SaleTrade,SaleOrder
 # BADU_KD100_URL = "http://baidu.kuaidi100.com/query"
@@ -202,13 +202,13 @@ def test22(request):
         content = json.loads(req.read())
         print content
         
-        # wuliu=   Trade_wuliu()
+        # wuliu=   TradeWuliu()
         #wuliu.tid=number
         #wuliu.status=content['status']
         #wuliu.out_sid=content['order']
         #wuliu.errcode=content['errcode']
         for t in content['data']:
-            wuliu=   Trade_wuliu()
+            wuliu=   TradeWuliu()
             wuliu.tid=number
             wuliu.status=content['status']
             wuliu.logistics_company=content['name']
@@ -262,7 +262,7 @@ def  SaveWuliu01(tid):
         content = json.loads(req.read())
         print content
         for t in content['data']:
-            wuliu=   Trade_wuliu()
+            wuliu=   TradeWuliu()
             wuliu.tid=tid
             wuliu.status=content['status']
             wuliu.logistics_company=content['name']
@@ -361,7 +361,7 @@ class WuliuView02(APIView):
         req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data),timeout=30)
         content = json.loads(req.read())
         for t in content['data']:
-            wuliu=   Trade_wuliu()
+            wuliu=   TradeWuliu()
             wuliu.tid=tid
             wuliu.status=content['status']
             wuliu.logistics_company=content['name']
@@ -517,7 +517,7 @@ class WuliuView(APIView):
         except:
             #print trade_info.status
             if trade_info.status==2:
-                product_outid=SaleOrder.objects.get(sale_trade=trade_info).outer_id
+                product_outid=SaleOrder.objects.filter(sale_trade=trade_info)[0].outer_id
                 shelf_status=Product.objects.get(outer_id=product_outid).shelf_status
                 if  shelf_status==0:
                     return    Response({"result":False,"message":"您的订单正在配货","time":trade_info.pay_time }) 
@@ -534,7 +534,7 @@ class WuliuView(APIView):
         
         
         
-        count=Trade_wuliu.objects.filter(tid=trade_info.tid).count()
+        count=TradeWuliu.objects.filter(tid=trade_info.tid).count()
         print "数目",count
         if (count==0  or count==1):
             tid=trade_info.tid
@@ -544,7 +544,7 @@ class WuliuView(APIView):
             SaveWuliu_only.delay(tid,content)  ##异步任务，存储物流信息到数据库
             return Response({"result":True,"ret":content,"time":trade_info.consign_time,"create_time":trade_info.pay_time})        
         else :
-            wuliu_info=Trade_wuliu.objects.filter(tid=trade_info.tid)[0]
+            wuliu_info = TradeWuliu.objects.filter(tid=trade_info.tid)[0]
             last_time=wuliu_info.created  #上一次的访问时间
             #print wuliu_info.created,type(wuliu_info.created)
             now =datetime.datetime.now()
@@ -554,13 +554,13 @@ class WuliuView(APIView):
             #两个小时内访问数据库
             
             if wuliu_info.status==4:
-                info=Trade_wuliu.objects.filter(tid=trade_info.tid)
-                serializer=serializers.Trade_wuliuSerializer(info,many=True).data
+                info=TradeWuliu.objects.filter(tid=trade_info.tid)
+                serializer=serializers.TradeWuliuSerializer(info,many=True).data
                 return Response({"result":True,"ret":serializer,"time":trade_info.consign_time,"create_time":trade_info.pay_time})
             elif last_now<6800:
                 print "两个小时内哦"
-                info=Trade_wuliu.objects.filter(tid=trade_info.tid)
-                serializer=serializers.Trade_wuliuSerializer(info,many=True).data
+                info=TradeWuliu.objects.filter(tid=trade_info.tid)
+                serializer=serializers.TradeWuliuSerializer(info,many=True).data
                 return Response({"result":True,"ret":serializer,"time":trade_info.consign_time,"create_time":trade_info.pay_time})
             #两个小时外，就请求接口API
             else:

@@ -59,6 +59,13 @@ class Product(models.Model):
     SHELF_CHOICES = ((UP_SHELF,u'已上架'),
                      (DOWN_SHELF,u'未上架'))
     
+    WARE_NONE  = 0
+    WARE_SH    = 1
+    WARE_GZ    = 2
+    WARE_CHOICES = ((WARE_NONE,u'未选仓'),
+                    (WARE_SH,u'上海仓'),
+                    (WARE_GZ,u'广州仓'))
+    
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
     NO_PIC_PATH = '/media/img/nopic.jpg'
@@ -88,7 +95,6 @@ class Product(models.Model):
     staff_price        = models.FloatField(default=0,verbose_name=u'员工价')
     
     weight       = models.CharField(max_length=10,blank=True,verbose_name=u'重量(g)')
-
     created      = models.DateTimeField(null=True,blank=True,
                                         auto_now_add=True,verbose_name=u'创建时间')
     modified     = models.DateTimeField(null=True,blank=True,
@@ -97,10 +103,8 @@ class Product(models.Model):
     
     is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
-    
     sync_stock   = models.BooleanField(default=True,verbose_name=u'库存同步')
     is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告')
-    
     post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
     status       = models.CharField(max_length=16,db_index=True,
                                     choices=ONLINE_PRODUCT_STATUS,
@@ -110,12 +114,16 @@ class Product(models.Model):
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name=u'客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name=u'备注')
     
-    sale_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属采购员')
-    storage_charger = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'归属仓管员')
+    sale_charger = models.CharField(max_length=32,db_index=True,blank=True,
+                                    verbose_name=u'归属采购员')
+    storage_charger = models.CharField(max_length=32,db_index=True,blank=True,
+                                    verbose_name=u'归属仓管员')
     
     is_verify    = models.BooleanField(default=False,verbose_name=u'是否校对')
-    shelf_status = models.IntegerField(choices=SHELF_CHOICES,default=DOWN_SHELF,verbose_name=u'上架状态')
-    
+    shelf_status = models.IntegerField(choices=SHELF_CHOICES,db_index=True,
+                                       default=DOWN_SHELF,verbose_name=u'上架状态')
+    ware_by        = models.IntegerField(default=WARE_SH,choices=WARE_CHOICES,
+                                         db_index=True,verbose_name=u'所属仓库')
     objects = ProductManager()
     
     class Meta:
@@ -539,13 +547,10 @@ class ProductSku(models.Model):
                 'match_reason':sku.match_reason,
                 'districts':sku.get_district_list(),
                 'barcode':sku.BARCODE}
-        
     
     
     def update_quantity(self,num,full_update=False,dec_update=False):
-        """
-        更新规格库存
-        """
+        """ 更新规格库存 """
         if full_update:
             self.quantity = num
         elif dec_update:
@@ -561,11 +566,7 @@ class ProductSku(models.Model):
         
         
     def update_wait_post_num(self,num,full_update=False,dec_update=False):
-        """
-        更新规格待发数:
-            full_update:是否全量更新
-            dec_update:是否减库存
-        """
+        """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
         if full_update:
             self.wait_post_num = num
         elif dec_update:
@@ -581,11 +582,7 @@ class ProductSku(models.Model):
          
           
     def update_reduce_num(self,num,full_update=False,dec_update=False):
-        """
-            更新商品库存:
-                full_update:是否全量更新
-                dec_update:是否减库存
-        """
+        """ 更新商品库存: full_update:是否全量更新 dec_update:是否减库存 """
         if full_update:
             self.reduce_num = num
         elif dec_update:

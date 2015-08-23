@@ -123,6 +123,7 @@ GIFT_TYPE = (
     (pcfg.ITEM_GIFT_TYPE,u'买就送'),
 )
 
+
 class MergeTrade(models.Model):
     
     TAOBAO_TYPE = pcfg.TAOBAO_TYPE
@@ -166,8 +167,14 @@ class MergeTrade(models.Model):
     SHIPPING_TYPE_CHOICE = SHIPPING_TYPE_CHOICE
     PRIORITY_TYPE    = PRIORITY_TYPE
     
-    id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
+    WARE_NONE  = 0
+    WARE_SH    = 1
+    WARE_GZ    = 2
+    WARE_CHOICES = ((WARE_NONE,u'未选仓'),
+                    (WARE_SH,u'上海仓'),
+                    (WARE_GZ,u'广州仓'))
     
+    id    = BigIntegerAutoField(primary_key=True,verbose_name=u'订单ID')
     tid   = models.CharField(max_length=32,
                              default=lambda:'DD%d'%int(time.time()*10**5),
                              verbose_name=u'原单ID')  
@@ -278,7 +285,8 @@ class MergeTrade(models.Model):
     sys_status     =  models.CharField(max_length=32,db_index=True,
                                        choices=SYS_TRADE_STATUS,blank=True,
                                        default='',verbose_name=u'系统状态')
-    
+    ware_by        = models.IntegerField(default=WARE_SH,choices=WARE_CHOICES,
+                                     db_index=True,verbose_name=u'所属仓库') 
     reserveo       =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义1')       
     reservet       =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义2') 
     reserveh       =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义3') 
@@ -562,6 +570,54 @@ def recalc_trade_fee(sender,trade_id,*args,**kwargs):
 
 
 recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
+# 
+# class MergeController(models.Model):
+#     
+#     WARE_SH  = 0
+#     WARE_GZ  = 1
+#     WARE_CHOICES = ((WARE_SH,u'上海仓'),
+#                     (WARE_GZ,u'广州仓'))
+#     
+#     mergetrade       = models.OneToOneField(MergeTrade,primary_key=True,
+#                                           related_name='controller',verbose_name=u'所属订单')
+#     
+#     is_picking_print = models.BooleanField(default=False,verbose_name=u'发货单')
+#     is_express_print = models.BooleanField(default=False,verbose_name=u'物流单')
+#     is_send_sms      = models.BooleanField(default=False,verbose_name=u'发货通知')
+#     has_refund       = models.BooleanField(default=False,verbose_name=u'待退款')
+#     has_out_stock    = models.BooleanField(default=False,verbose_name=u'缺货')
+#     has_rule_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
+#     has_memo         = models.BooleanField(default=False,verbose_name=u'有留言')
+#     has_merge        = models.BooleanField(default=False,verbose_name=u'有合单')
+#     has_sys_err      = models.BooleanField(default=False,verbose_name=u'系统错误')
+#     refund_num       = models.IntegerField(null=True,default=0,verbose_name=u'退款单数')  #退款单数
+#     
+#     is_qrcode        = models.BooleanField(default=False,verbose_name=u'热敏订单')
+#     qrcode_msg       = models.CharField(max_length=32,blank=True,verbose_name=u'打印信息')
+#     
+#     can_review       = models.BooleanField(default=False,verbose_name=u'复审') 
+#     priority       =  models.IntegerField(default=0,
+#                                           choices=PRIORITY_TYPE,verbose_name=u'优先级')
+#     operator       =  models.CharField(max_length=32,blank=True,verbose_name=u'打单员')
+#     scanner        =  models.CharField(max_length=64,blank=True,verbose_name=u'扫描员')
+#     weighter       =  models.CharField(max_length=64,blank=True,verbose_name=u'称重员')
+#     is_locked      =  models.BooleanField(default=False,verbose_name=u'锁定')
+#     is_charged     =  models.BooleanField(default=False,verbose_name=u'揽件')
+#     sys_status     =  models.CharField(max_length=32,db_index=True,
+#                                        choices=SYS_TRADE_STATUS,blank=True,
+#                                        default='',verbose_name=u'系统状态')
+#     
+#     ware_by        = models.IntegerField(default=WARE_SH,choices=WARE_CHOICES,
+#                                          index=True,verbose_name=u'所属仓库') 
+#     reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
+#     class Meta:
+#         db_table = 'shop_trades_controller'
+#         verbose_name=u'订单操作状态'
+#         verbose_name_plural = u'订单操作状态列表'
+#         
+#     def __unicode__(self):
+#         return '<%s,%s>'%(str(self.mergetrade),self.sys_status)
+    
 
 class MergeOrder(models.Model):
     
@@ -864,11 +920,6 @@ REPLAY_TRADE_STATUS = (
 )
 
 
-
-
-
-
-
 class ReplayPostTrade(models.Model):
     """ 已发货清单 """
     
@@ -976,7 +1027,7 @@ REPLAY_TRADE__WULIU_STATUS = (
     
 )
 
-class Trade_wuliu(models.Model):
+class TradeWuliu(models.Model):
     """ 已发货清单 """
     
     tid   = models.CharField(max_length=32,
