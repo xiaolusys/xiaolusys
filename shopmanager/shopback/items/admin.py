@@ -261,7 +261,7 @@ class ProductAdmin(admin.ModelAdmin):
                                ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
                                ,('std_purchase_price','staff_price','sale_time')
                                ,('cost','std_sale_price','agent_price')
-                               ,('status','shelf_status','model_id'))
+                               ,('status','shelf_status','model_id','ware_by'))
                 }),
                 ('商品系统设置:', {
                     'classes': ('collapse',),

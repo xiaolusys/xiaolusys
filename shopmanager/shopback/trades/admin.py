@@ -46,7 +46,7 @@ from auth import apis
 import logging 
 
 #fang  2015-8-19
-from shopback.trades.models import Trade_wuliu
+from shopback.trades.models import TradeWuliu
 
 
 
@@ -230,7 +230,7 @@ class MergeTradeAdmin(MyAdmin):
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review','is_qrcode')
                                ,('is_locked','is_charged','priority','reason_code','refund_num')
                                ,('remind_time','weight_time','charge_time')
-                               ,('operator','scanner','weighter','weight')
+                               ,('ware_by','operator','scanner','weighter','weight')
                                ,('reserveo','reservet','reserveh','sys_status'))
                 }))
 
@@ -1232,4 +1232,4 @@ class  WuliuAdmin(admin.ModelAdmin):
     list_display = ('id','tid','logistics_company','out_sid','status','time','content','created',)
     search_fields = ['tid','out_sid']
     list_filter = ('status',)
-admin.site.register(Trade_wuliu,WuliuAdmin)
+admin.site.register(TradeWuliu,WuliuAdmin)

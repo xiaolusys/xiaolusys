@@ -2,6 +2,7 @@
 from django.conf import settings
 from .handler import BaseHandler
 from shopback.trades.models import MergeTrade
+from shopback.items.models import Product
 from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
 
@@ -49,19 +50,34 @@ class LogisticsHandler(BaseHandler):
             return LogisticsCompany.objects.get_or_create(
                                         code=shipping_type)[0]
         
-            
+    def getTradeWare(self,trade):
+        """ 获取订单关联仓库 """
+        pre_ware    = MergeTrade.WARE_NONE
+        for order in trade.normal_orders:
+            try:
+                cur_ware =  Product.objects.get(outer_id=order.outer_id).ware_by
+                if pre_ware and  pre_ware != cur_ware:
+                    return MergeTrade.WARE_NONE
+                pre_ware = cur_ware
+            except:
+                return MergeTrade.WARE_NONE
+        return pre_ware
+    
     def process(self,merge_trade,*args,**kwargs):
         
         if settings.DEBUG:
             print 'DEBUG LOGISTIC:',merge_trade
         
         try:
+            merge_trade.ware_by = self.getTradeWare(merge_trade)
             if merge_trade.is_force_wlb:
                 merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
              
             merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
-                 
-            update_model_fields(merge_trade,update_fields=['logistics_company'])
+            update_model_fields(merge_trade,update_fields=['logistics_company','ware_by'])
+            
+            if merge_trade.ware_by == MergeTrade.WARE_NONE:
+                raise Exception(u'请拆单或选择始发仓')
         except Exception,exc:
             merge_trade.sys_memo += u'[物流：%s]'%exc.message
             update_model_fields(merge_trade,update_fields=['sys_memo'])

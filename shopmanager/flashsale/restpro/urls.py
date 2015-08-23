@@ -21,7 +21,6 @@ router.register(r'users', views_user.CustomerViewSet)
 
 router.register(r'posters', views_product.PosterViewSet)
 router.register(r'products', views_product.ProductViewSet)
-
 router.register(r'carts', views_trade.ShoppingCartViewSet)
 router.register(r'trades', views_trade.SaleTradeViewSet)
 
@@ -30,7 +29,6 @@ router.register(r'address', views.UserAddressViewSet)
 router.register(r'districts', views.DistrictViewSet)
 router.register(r'integral', views.UserIntegralViewSet)
 router.register(r'integrallog', views.UserIntegralLogViewSet)
-
 router.register(r'couponpool', views.UserCouponPoolViewSet)
 router.register(r'mycoupon', views.UserCouponViewSet)
 

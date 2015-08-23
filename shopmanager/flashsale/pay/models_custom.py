@@ -16,22 +16,20 @@ class Productdetail(models.Model):
                      (TWENTY_PERCENT,u'返利百分之20'),
                      (THIRTY_PERCENT,u'返利百分之30'),)
     
-    product  = models.OneToOneField(Product, primary_key=True,related_name='details',verbose_name=u'库存商品')
+    product  = models.OneToOneField(Product, primary_key=True,
+                                    related_name='details',verbose_name=u'库存商品')
     
     head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
-    
     content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
     
     mama_discount  = models.IntegerField(default=100,verbose_name=u'妈妈折扣')
-    
     is_recommend = models.BooleanField(db_index=True,verbose_name=u'专区推荐')
     is_seckill   = models.BooleanField(default=False, verbose_name=u'是否秒杀')
     buy_limit    = models.BooleanField(default=False,verbose_name=u'是否限购')
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
-    
     mama_rebeta  = models.IntegerField(default=OUT_PERCENT, choices=REBETA_CHOICES, 
 					db_index=True, verbose_name=u'代理返利')
-
+    
     class Meta:
         db_table = 'flashsale_productdetail'
         verbose_name=u'特卖商品/详情'

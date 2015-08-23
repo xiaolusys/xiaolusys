@@ -11,7 +11,7 @@ from flashsale.pay.models import (
     Register,
     GoodShelf
     )
-from shopback.trades.models import Trade_wuliu
+from shopback.trades.models import TradeWuliu
 from rest_framework import serializers
 
 
@@ -237,7 +237,7 @@ class UserCouponPoolSerializer(serializers.ModelSerializer):
 
 
 
-class Trade_wuliuSerializer(serializers.ModelSerializer):
+class TradeWuliuSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Trade_wuliu
+        model = TradeWuliu
         exclude=()
