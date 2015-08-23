@@ -18,7 +18,7 @@ window.open("/trades/check_order/"+symbol_link,obj,"width=800px,height=700px,lef
 
 //2015  7-25  fang 修改
 function showlayer(symbol_link) {
-    url = '/trades/checkorder/' +symbol_link;
+    var url = '/trades/checkorder/' +symbol_link;
     layer.open({
         type: 2,
         title: "订单审核页面",
@@ -28,8 +28,7 @@ function showlayer(symbol_link) {
         content: url,
         //end:function(){
         //window.location.reload();
-
-//}
+		//}
     });
 }
 
