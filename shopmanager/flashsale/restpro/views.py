@@ -283,7 +283,7 @@ from django.http import HttpResponse
 from shopback.base import log_action, ADDITION, CHANGE
 
 class UserCouponViewSet(viewsets.ModelViewSet):
-    queryset = Coupon.objects.all()
+    queryset = Coupon.objects.filter(status=Coupon.RECEIVE)
     serializer_class = serializers.UserCouponSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
@@ -297,7 +297,6 @@ class UserCouponViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         data = []
         for query in queryset:
-            print 'query  ....', query
             id = query.id
             coupon_no = query.coupon_no
             coupol = CouponPool.objects.get(coupon_no=coupon_no)

@@ -229,10 +229,10 @@ class UserCouponSerializer(serializers.ModelSerializer):
 
 
 class UserCouponPoolSerializer(serializers.ModelSerializer):
+    coupon_title = serializers.CharField(source='get_coupon_type_display', read_only=True)
     class Meta:
         model = CouponPool
-        fields = (
-            'id', 'deadline', 'coupon_value', 'coupon_type', 'coupon_status')
+        fields = ('id', 'deadline', 'coupon_value', 'coupon_type','coupon_status','coupon_title')
 
 
 

@@ -75,6 +75,15 @@
         <div class="inner" id="coupon_nums"></div>
         <div class="coupon_value"><span id="coupon_value"></span></div>
     </div>
+    <ul class="coupons-list">
+	  <script id="coupon-template" type="text/html">
+	  <li class="type1">
+	      <p class="name">{{ coupon_title }}</p>
+	      <p class="date">{{ receive_date }} - {{ deadline }}</p>
+	      <i class="icon-radio icon-radio-select" couponid="{{ id }}"></i>
+	  </li>
+	  </script>
+  </ul>
 </div>
 
 
@@ -112,14 +121,11 @@
   //获取用户优惠券
   //Set_user_coupons(GLConfig.today_suffix);
   //获取购买信息
-  var urlParams = parseUrlParams(window.location.href);
-  var urlConf = {'item_id':urlParams['item_id'],'sku_id':urlParams['sku_id']};
-  Set_user_orderinfo(GLConfig.get_now_payinfo_url.template(urlConf));
+  var urlParams = window.location.href.split('?')[1];
+  Set_user_orderinfo(GLConfig.get_now_payinfo_url+'?'+urlParams);
   
   //优惠券显示
   get_Coupon_On_Buy();
-  //显示回传过来的　优惠券数值
-  get_Coupon_Value_Show_In_Buy();
   
   $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy .btn-buy');
     
