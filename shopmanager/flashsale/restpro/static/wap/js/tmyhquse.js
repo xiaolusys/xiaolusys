@@ -4,7 +4,7 @@
 
 
 function get_Coupon_On_Buy() {
-    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
+    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
 
     $.get(url, function (res) {
         if (res.length > 0) {
@@ -14,28 +14,39 @@ function get_Coupon_On_Buy() {
                     nums = nums + 1;//有效可用的优惠券数量
                 }
             });
-            if(nums==0){
+            if (nums == 0) {
                 Coupon_Nums_Show(-1);// 表示曾经有过期或这使用过的优惠券
             }
-            else{
-                    Coupon_Nums_Show(nums);//显示优惠券数量
-                }
+            else {
+                Coupon_Nums_Show(nums);//显示优惠券数量
+            }
         }
-        else if(res.length==0){
+        else if (res.length == 0) {
             Coupon_Nums_Show(0);//显示优惠券数量
         }
     });
 }
 
 function Coupon_Nums_Show(nums) {
-    console.log('nums nums ',nums);
+    console.log('nums nums ', nums);
     $("#coupon_nums").text("可用优惠券（" + nums + "）");
     if (nums > 0) {
         $("#coupon_nums").click(function () {
-            console.log("jump to choose page...");
-            location.href = "./choose-coupon.html";
+            var cart_ids = getUrlParam('cart_ids').replace(",",'');
+            console.log('cart_ids',cart_ids);
+            if (cart_ids > 0) {//购物车购买页面
+                var total_monty = $("#total_monty").html().split(">")[2];
+                console.log(total_monty);
+                location.href = "./choose-coupon.html?price=" + total_monty;
+            }
+            else { //立即购买页面
+                var total_money = ($("#total_money").html().split(">")[2]);
+                console.log("jump to choose page...");
+                location.href = "./choose-coupon.html?price=" + total_money;
+            }
         });
     }
+
     // 用户创建自己的优惠券　　满三十　即可达到创建条件　关闭本功能　
     //else if (nums == 0) {// 没有优惠券　　点击　领取优惠券
     //    $("#coupon_nums").text("可用优惠券（" + nums + "）");
@@ -72,6 +83,8 @@ function Coupon_Nums_Show(nums) {
     //        }
     //    });
     //}
+
+
     else if (nums == 0) {
         $("#coupon_nums").text("可用优惠券（" + 0 + "）");
         $("#coupon_value").text("点击领取");
@@ -80,10 +93,10 @@ function Coupon_Nums_Show(nums) {
         });
     }
 
-    else if(nums==-1){
+    else if (nums == -1) {
         $("#coupon_nums").text("可用优惠券（" + 0 + "）");
         $("#coupon_value").text("点击领取");
-        $("#coupon_value").click(function (){
+        $("#coupon_value").click(function () {
             location.href = "./youhuiquan-kong.html"; //跳转到优惠券空页面
         });
     }
@@ -91,7 +104,7 @@ function Coupon_Nums_Show(nums) {
 
 
 function get_Coupon_On_Choose() {
-     var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
+    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
     $.get(url, function (res) {
         console.log(res);
         if (res.length > 0) {
@@ -114,13 +127,13 @@ function get_Coupon_On_Choose() {
                         "deadline": deadline,
                         "coupon_value": coupon_value
                     };
-                    console.log(coupon_value,coupon_status,coupon_type,'kkkkkkkkkkkkkk');
-                    if (coupon_value == 3 && coupon_status == 3 && coupon_type==1) {
+                    console.log("debug", coupon_value, coupon_status, coupon_type);
+                    if (coupon_value == 3 && coupon_status == 3 && coupon_type == 1) {
                         //满30返3
                         var yhq_tree1 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree1);
                     }
-                    if (coupon_value == 30 && coupon_status == 3 && coupon_type==2) {
+                    if (coupon_value == 30 && coupon_status == 3 && coupon_type == 2) {
                         //满300返30
                         yhq_obj.type = 2;
                         yhq_obj.full = 300;
@@ -128,7 +141,7 @@ function get_Coupon_On_Choose() {
                         var yhq_tree2 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree2);
                     }
-                    if (coupon_value == 30 && coupon_status == 3 && coupon_type==4) {
+                    if (coupon_value == 30 && coupon_status == 3 && coupon_type == 4) {
                         //满30返30　　代理审核生成的优惠券
                         yhq_obj.type = 5;
                         yhq_obj.full = 30;
@@ -137,7 +150,7 @@ function get_Coupon_On_Choose() {
                         $('.coupons').append(yhq_tree3);
                     }
 
-                    if(nums==0){
+                    if (nums == 0) {
                         pop_info();
                     }
                 }
@@ -151,38 +164,45 @@ function get_Coupon_On_Choose() {
 }
 
 function Create_coupon_dom(obj) {
-    if(obj.type==5){
+    if (obj.type == 5) {
         var html = $("#coupon_template_xlmm_coupon").html();
     }
-    else{
+    else {
         var html = $("#coupon-template").html();
     }
     return hereDoc(html).template(obj)
 }
 
 function choose_Coupon(coupon_id) {
-    swal({
-            title: "",
-            text: '确定选择这张优惠券吗？',
-            type: "",
-            showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/logo.png",
-            confirmButtonColor: '#DD6B55',
-            confirmButtonText: "确定",
-            cancelButtonText: "取消"
-        },
-        function () {//确定　则跳转
-            console.log(document.referrer);
-            var buy_nuw_url = document.referrer.split("&")[0] + "&" + document.referrer.split("&")[1];
-            var include_coupon = buy_nuw_url + "&coupon_id=" + coupon_id;
-            location.href = include_coupon;
-        });
+    var price = parseFloat(getUrlParam('price'));
+    if (price >= 30) {
+
+        swal({
+                title: "",
+                text: '确定选择这张优惠券吗？',
+                type: "",
+                showCancelButton: true,
+                imageUrl: "http://image.xiaolu.so/logo.png",
+                confirmButtonColor: '#DD6B55',
+                confirmButtonText: "确定",
+                cancelButtonText: "取消"
+            },
+            function () {//确定　则跳转
+                console.log(document.referrer);
+                var buy_nuw_url = document.referrer.split("&")[0] + "&" + document.referrer.split("&")[1];
+                var include_coupon = buy_nuw_url + "&coupon_id=" + coupon_id;
+                location.href = include_coupon;
+            });
+    }
+    else {
+        drawToast("商品价格不足优惠券使用金额哦~");
+    }
 }
 
-function change_Coupon_Stauts(coupon_id){
+function change_Coupon_Stauts(coupon_id) {
     console.log(coupon_id);
     // 使用过的优惠劵　修改其状态到　使用过的状态
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.change_user_coupon_used.template({"coupon_id":coupon_id});
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.change_user_coupon_used.template({"coupon_id": coupon_id});
     console.log(requestUrl);
     $.ajax({
         type: 'post',
@@ -195,7 +215,7 @@ function change_Coupon_Stauts(coupon_id){
         if (res[0] == 'ok') {
             console.log("用户优惠券状态修改成功！！！");
         }
-        else if(res[0] == "notInStatus"){
+        else if (res[0] == "notInStatus") {
             drawToast("不可用优惠券！");
         }
         else {
@@ -211,21 +231,15 @@ function get_Coupon_Value_Show_In_Buy() {
     console.log(url);
     $.get(url, function (res) {
         console.log(res);
-        console.log(res[0],'res');
+        console.log(res[0], 'res');
         if (res.length > 0) {
             if (res[0].coupon_status == 3 && res[0].id == coupon_id) { //判断是否有效
                 console.log("coupon value end :", res[0].coupon_value);
                 //将显示出来的数值填充到页面中
                 var coupon_value = res[0].coupon_value;
-                var total_money = parseFloat($("#total_money").html().split("¥")[1]);
-                
-                console.log("total_money",total_money,'res[0].coupon_type',res[0].coupon_type);
-
-                if (total_money > 30 && res[0].coupon_type == 4) {// 大于30才能使用 并且优惠券类型是4  代理专享优惠券
+                console.log('res[0].coupon_type', res[0].coupon_type);
+                if (res[0].coupon_type == 4) {// 大于30才能使用 并且优惠券类型是4  代理专享优惠券
                     $("#coupon_value").text("¥-" + coupon_value);
-                }
-                else if (total_money < 30 || res[0].coupon_type == 4) {
-                    drawToast("购买金额小于30　优惠券不可用哦~");
                 }
                 else {
                     drawToast("优惠券不可用哦~");
