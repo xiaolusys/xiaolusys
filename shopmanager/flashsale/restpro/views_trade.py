@@ -514,7 +514,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         return {'channel':channel,'success':True,'id':sale_trade.id}
     
-    @rest_exception(errmsg=u'pingpp支付异常')
+    @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self,sale_trade):
         """ pingpp支付实现 """
         payment       = int(sale_trade.payment * 100) 
