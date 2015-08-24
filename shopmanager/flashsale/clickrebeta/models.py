@@ -251,7 +251,8 @@ def tongji_saleorder(sender, obj, **kwargs):
     mm_order_amount   = int(obj.payment * 100)
     mm_order_rebeta	  = 0
     mm_rebeta_amount  = 0
-    order_id     = obj.tid
+    order_id          = obj.tid
+    order_buyer_nick  = obj.buyer_nick or '%s(%s)'%(obj.receiver_name,obj.receiver_mobile[8,11])
     ordertime    = obj.pay_time
     order_stat_from = ordertime - datetime.timedelta(days=1)
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
@@ -287,7 +288,7 @@ def tongji_saleorder(sender, obj, **kwargs):
                                                                wxorderid=order_id)
         tongjiorder.linkname      = xiaolumm.weikefu
         tongjiorder.openid        = xd_openid
-        tongjiorder.wxordernick   = obj.buyer_nick
+        tongjiorder.wxordernick   = order_buyer_nick
         tongjiorder.wxorderamount = mm_order_amount
         tongjiorder.shoptime      = ordertime
         tongjiorder.tichengcount  = mm_order_rebeta
@@ -324,9 +325,9 @@ def tongji_saleorder(sender, obj, **kwargs):
                                                                    wxorderid=order_id)
             tongjiorder.linkname    = xiaolu_mm.weikefu
             tongjiorder.openid      = xd_openid
-            tongjiorder.wxordernick = obj.buyer_nick
+            tongjiorder.wxordernick = order_buyer_nick
             tongjiorder.wxorderamount = mm_order_amount
-            tongjiorder.rebetamount  = mm_rebeta_amount
+            tongjiorder.rebetamount   = mm_rebeta_amount
             tongjiorder.shoptime      = ordertime
             tongjiorder.tichengcount  = mm_order_rebeta
             tongjiorder.save()

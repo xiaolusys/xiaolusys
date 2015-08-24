@@ -453,5 +453,5 @@ class BranchZoneView(APIView):
                 'city':city,
                 'district':district,
                 'address':address,
-                'branch_zone':branch_zone ,
-                }    )
+                'branch_zone':branch_zone and serializers.BranchZoneSerializer(branch_zone).data or {},
+                })

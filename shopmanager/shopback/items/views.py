@@ -399,7 +399,7 @@ class ProductView(APIView):
         product = Product.objects.get(id=id)
         prod_serializer = serializers.ProductSerializer(product).data
         prod_serializer['skus'] = serializers.ProductSkuSerializer(product.pskus,many=True).data
-        return  Response({'object':prod_serializer})  #这个也能实现2015-7-27
+        return  Response(prod_serializer)  #这个也能实现2015-7-27
         #return  Response({'object':serializers.ProductSerializer(product).data}) 
 
     def post(self, request, id, *args, **kwargs):

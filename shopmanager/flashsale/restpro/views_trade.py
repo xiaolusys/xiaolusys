@@ -264,13 +264,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def now_payinfo(self, request, *args, **kwargs):
         """ 立即购买获取支付信息 """
-        sku_id      = request.REQUEST.get('sku_id','')
+        content     = request.GET
+        sku_id      = content.get('sku_id','')
         if not sku_id.isdigit():
             raise exceptions.APIException(u'传入规格ID不合法')
         
         sku_id      = int(sku_id)
         product_sku = get_object_or_404(ProductSku,id=sku_id)
         product     = product_sku.product
+        
+#         coupon_id   = content.get('coupon_id','')
+#         coupon      = get_object_or_404()
         
         total_fee = float(product_sku.agent_price) * 1
         post_fee = 0
@@ -514,7 +518,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         return {'channel':channel,'success':True,'id':sale_trade.id}
     
-    @rest_exception(errmsg=u'pingpp支付异常')
+    @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self,sale_trade):
         """ pingpp支付实现 """
         payment       = int(sale_trade.payment * 100) 
