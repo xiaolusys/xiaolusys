@@ -51,19 +51,21 @@
 	    <input type="text" id="id_code_input" class="form-control col-xs-8" placeholder="请输入验证码">
 	    <a href="#" id="id_verifycode_button" class="btn btn-default input-group-addon" onclick="verifycode();">验证手机号</a>
 	  </div>
-          <div class="checkbox">
-              <label>
-                  <input name="tiaokuan" id="tk" type="checkbox"> <a href="{{ STATIC_URL }}tiaokuan.html">我已阅读并同意相关服务条款和隐私政策</a>
-              </label>
-          </div>
 	  </div>
 	  {% else %}
 	  <div class="form-group">
-	     <div class="alert alert-danger" role="alert"><lable>提示：</lable>您已绑定手机号，请直接点击<span class="text-success">进入下一步</span>！</div>
+	     <div class="alert alert-danger" role="alert"><lable>提示：</lable>您已绑定手机号，<br>请直接点击<span class="text-success">进入下一步</span>！</div>
 	  </div>
 	  {% endif %}
 	  <div class="form-group">
-		 <button  type="submit" id="next_step" name="diposite" class="btn btn-lg btn-warning">进入下一步</button>
+	   	<div class="checkbox">
+          <label>
+              <input name="tiaokuan" id="tk" type="checkbox"> <a href="{{ STATIC_URL }}tiaokuan.html">我已阅读并同意相关服务条款和隐私政策</a>
+          </label>
+        </div>
+      </div>
+	  <div class="form-group">
+		 <button  type="submit" id="next_step" name="diposite" class="btn btn-lg btn-default">进入下一步</button>
 	  </div>
 	</form>
   </div>
@@ -110,7 +112,7 @@
         }
 
         btn.attr("status","1");
-	btn[0].innerHTML = "180";
+		btn[0].innerHTML = "180";
         global_timer = window.setInterval(updateTime, 1000);
 
 	var openid = $("#id_openid").val();
@@ -166,7 +168,7 @@
             return;
           }
 
-	  window.clearInterval(global_timer);
+	  	window.clearInterval(global_timer);
           $("#id_verifycode_group").css("display","none");
           $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
           $("#id_mobile_input").attr("disabled","disabled");
@@ -174,19 +176,20 @@
           $("#id_requestcode_button").attr("status", "2");
         };
         var openid = $("#id_openid").val();
-	var data = {"verifycode":verifycode, "openid":openid};
+		var data = {"verifycode":verifycode, "openid":openid};
         $.ajax({url:url, data:data, success:callback});
       };
-
+		
+	  $('#tk').change(function(e){
+	  	  if($("#tk").prop("checked")){
+			$('#next_step').removeClass('btn-default').addClass('btn-warning');
+	      }else{
+	        $('#next_step').removeClass('btn-warning').addClass('btn-default');  
+	      }
+	  });
+		
       $("#next_step").click(function(e){
-          if($("#tk").prop("checked")){
-
-          }else{
-              e.preventDefault();
-              alert("请勾选");
-          }
-
-
+          if (!$('#next_step').hasClass('btn-warning')){e.preventDefault();return false;}
       })
     </script>
 {% endblock %}
