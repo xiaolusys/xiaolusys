@@ -35,10 +35,11 @@
         </div>
     </div>
     <div class="goods-size" >
-        <h3>尺寸</h3>
+        <img src="http://image.xiaolu.so/TT-1440400465278-chi_ma.png" width="100%">
     </div>
+
     <div class="goods-param">
-        <h3>商品参数</h3>
+        <img class="spcs" src="http://image.xiaolu.so/TT-1440400292786-spcs.png" width="100%">
         <table cellpadding="0" cellspacing="0">
             <tr>
                 <td>商品名称</td>
@@ -68,7 +69,7 @@
     </div>
 </div>
 <div class="goods-img">
-    <h3>商品图片</h3>
+    <img src="http://image.xiaolu.so/TT-1440400785024-sotp.png" width="100%">
     <div class="list">
     <!-- 这里添加商品图片 -->
     </div>
@@ -91,10 +92,59 @@
 		</div>
 	</div>
 </div>
+<script id="params" type="text/html">
+    <div class="detail-introduce">
+        <img src="http://image.xiaolu.so/TT-1440400880119-zhengpin.png" width="100%">
+    </div>
+    <div class="goods-param">
+        <img class="spcs" src="http://image.xiaolu.so/TT-1440400292786-spcs.png">
+        <hr style="height:1px;border:none;border-top:2px solid #FFCC00;width: 600px;margin: 0 auto;" />
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <td>商品名称：</td>
+                <td>{{ name }}</td>
+            </tr>
+            <tr>
+                <td>货品编号：</td>
+                <td>{{ outer_id }}</td>
+            </tr>
+            {{ if details.material }}
+            <tr>
+                <td>商品材质：</td>
+                <td>{{ details.material }}</td>
+            </tr>
+            {{ /if }}
+            {{ if details.color }}
+            <tr>
+                <td>可选颜色:</td>
+                <td>{{ details.color }}</td>
+            </tr>
+            {{ /if }}
+            {{ if details.note }}
+            <tr>
+                <td>备<span class="space"></span>注：</td>
+                <td>{{ details.note }}</td>
+            </tr>
+            {{ /if }}
+            {{ if details.wash_instructions }}
+            <tr>
+                <td valign="top">洗涤说明：</td>
+                <td><span class="wash">{{ details.wash_instructions }}</span></td>
+            </tr>
+            {{ else }}
+            <tr>
+                <td>洗涤说明：</td>
+                <td>30℃以下手洗；阴凉处悬挂晾干</td>
+            </tr>
+            {{ /if }}
+        </table>
+    </div>
 
+</script>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="//cdn.bootcss.com/Swiper/3.0.7/js/swiper.jquery.min.js"></script>
 <script src="../js/common.js"></script>
+<script src="../js/template.js"></script>
 <script src="../js/tmsp.js"></script>
 <script src="../js/jquery-shopping.js"></script>
 <script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.min.js"></script>
