@@ -1,3 +1,8 @@
+########### 2015-8-24 #################
+alter table flashsale_productdetail add column material varchar(64) null;
+alter table flashsale_productdetail add column color varchar(64) null;
+alter table flashsale_productdetail add column wash_instructions varchar(128) null;
+alter table flashsale_productdetail add column note varchar(64) null;
 ########### 2015-8-22 #################
 alter table shop_items_product add ware_by int(11) NOT NULL;
 alter table shop_items_product add index SH_IT_PR_SF_SU_ST_WB_IDX(sale_time,shelf_status,ware_by);

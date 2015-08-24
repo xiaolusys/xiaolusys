@@ -47,31 +47,10 @@ function Create_product_detailsku_dom(obj) {
          <span id="product_id" style="display:none">{{id}}</span>
          </div>
          <div class="goods-size">
-         <h3>尺寸</h3>
+         <img src="http://image.xiaolu.so/TT-1440400465278-chi_ma.png" width="100%">
          <ul id="js-goods-size">
          {{sku_list}}
          </ul>
-         </div>
-         <div class="goods-param">
-         <h3>商品参数</h3>
-         <table cellpadding="0" cellspacing="0">
-         <tr>
-         <td>商品名称</td>
-         <td>{{name}}</td>
-         </tr>
-         <tr>
-         <td>洗涤说明</td>
-         <td>30℃以下手洗；阴凉处悬挂晾干</td>
-         </tr>
-         <tr>
-         <td>备<span class="space"></span>注</td>
-         <td>{{memo}}</td>
-         </tr> 
-         <tr>
-         <td>货品编号</td>
-         <td>{{outer_id}}</td>
-         </tr>
-         </table>
          </div>
          */
     }
@@ -110,7 +89,8 @@ function Set_product_detail(suffix) {
 
         //设置订单商品明细
         var detail_dom = Create_product_detailsku_dom(data);
-        $('.goods-content').html(detail_dom);
+        var params = template('params', data);
+        $('.goods-content').html(detail_dom+params);
         //设置商品内容图列表
         var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
         $('.goods-img .list').html(bottom_dom);
