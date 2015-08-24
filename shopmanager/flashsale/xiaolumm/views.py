@@ -799,11 +799,8 @@ from flashsale.pay.models_coupon import Coupon
 
 def create_coupon(sale_orders):
     # 创建优惠券
-    print 'running ...'
     buyer_id = sale_orders[0].sale_trade.buyer_id
-    print buyer_id, "buyer_id"
     trade_id = sale_orders[0].sale_trade.id
-    print buyer_id, trade_id, 'id is here '
     customer = Customer.objects.get(id=buyer_id)
     mobile = customer.mobile
     cou = Coupon()
@@ -869,7 +866,7 @@ def mama_Verify_Action(request):
         log_action(request.user.id, log_tp[0], ADDITION, u'妈妈审核过程中创建妈妈首个收支记录')
     xlmm.cash = F('cash') + diposit_cash # 分单位
     xlmm.referal_from = referal_mobile
-    xlmm.agencylevel = 2
+    xlmm.agencylevel = 3  # 2015-08-24 第二期代理招募　代理级别为 3
     xlmm.charge_status = XiaoluMama.CHARGED
     xlmm.manager = request.user.id
     xlmm.weikefu = weikefu
