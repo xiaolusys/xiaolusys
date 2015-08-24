@@ -3,7 +3,7 @@ from django.db import models
 from shopback.items.models import Product,ProductSku
 
 class Productdetail(models.Model):
-    
+    WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
     OUT_PERCENT = 0 #未设置代理返利比例
     ZERO_PERCENT = -1
     TEN_PERCENT = 10
@@ -30,7 +30,7 @@ class Productdetail(models.Model):
 
     material = models.CharField(max_length=64, blank=True, verbose_name=u'商品材质')
     color = models.CharField(max_length=64, blank=True, verbose_name=u'可选颜色')
-    wash_instructions = models.TextField(blank=True, verbose_name=u'洗涤说明')
+    wash_instructions = models.TextField(default=WASH_INSTRUCTION, blank=True, verbose_name=u'洗涤说明')
     note = models.CharField(max_length=64, blank=True, verbose_name=u'备注')
     mama_rebeta = models.IntegerField(default=OUT_PERCENT, choices=REBETA_CHOICES,
                                       db_index=True, verbose_name=u'代理返利')
