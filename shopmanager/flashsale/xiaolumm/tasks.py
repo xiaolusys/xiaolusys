@@ -240,7 +240,6 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
     day_ago：计算时间 = 当前时间 - 前几天
     """
     from flashsale.clickcount.tasks import calc_Xlmm_ClickRebeta
-
     pre_date = datetime.date.today() - datetime.timedelta(days=day_ago)
     c_logs = CarryLog.objects.filter(log_type=CarryLog.CLICK_REBETA, 
                                      carry_date__lte=pre_date,

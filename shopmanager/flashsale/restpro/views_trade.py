@@ -250,6 +250,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_ticket  = None
         if coupon_id:
             coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            if coupon.status != Coupon.RECEIVE:
+                raise exceptions.APIException(u'该优惠券已使用')
             coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
             discount_fee += coupon_pool.coupon_value
             coupon_ticket = serializers.UserCouponPoolSerializer(coupon_pool).data
@@ -314,6 +316,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_ticket  = None
         if coupon_id:
             coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            if coupon.status != Coupon.RECEIVE:
+                raise exceptions.APIException(u'该优惠券已使用')
             coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
             discount_fee    += coupon_pool.coupon_value
             coupon_ticket   = serializers.UserCouponPoolSerializer(coupon_pool).data

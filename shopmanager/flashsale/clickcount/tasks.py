@@ -27,7 +27,6 @@ def task_patch_mamacash_61():
             continue
         
         xlmm = xlmms[0]
-                            
         agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
         if agency_levels.count() == 0:
             continue
@@ -64,14 +63,11 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
         mama_ccs = ClickCount.objects.filter(date=time_from.date(),linkid=xlmm.id)
         if mama_ccs.count() == 0:
             return 0
-        
         xlmm_cc = mama_ccs[0]
         
     buyercount = StatisticsShopping.normal_objects.filter(linkid=xlmm.id,
                             shoptime__range=(time_from, time_to)).values('openid').distinct().count()
-    
     day_date     = time_from.date()
-    
     click_price  = xlmm.get_Mama_Click_Price_By_Day(buyercount, day_date=day_date)
     click_num    = xlmm_cc.valid_num
     
@@ -82,9 +78,10 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
     ten_click_num   = 0
     ten_click_price = 0
     if CLICK_ACTIVE_START_TIME.date() == time_from.date():
-        click_qs = Clicks.objects.filter(linkid=xlmm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_to),isvalid=True)
+        click_qs = Clicks.objects.filter(linkid=xlmm_cc.linkid,
+                                         click_time__range=(CLICK_ACTIVE_START_TIME,time_to),isvalid=True)
         ten_click_num = click_qs.values('openid').distinct().count()
-        ten_click_price = click_price + 30
+        ten_click_price = click_price + 0
         
     if time_from.date() >= CLICK_MAX_LIMIT_DATE:
         click_num = min(max_click_count,click_num - ten_click_num)
