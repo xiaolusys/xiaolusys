@@ -41,6 +41,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
+from rest_framework import exceptions
 from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 from rest_framework.views import APIView
@@ -395,9 +396,10 @@ class ProductView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductHtmlRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, id, *args, **kwargs):
-        
         product = Product.objects.get(id=id)
-        return  Response({'object':product.json})  #这个也能实现2015-7-27
+        prod_serializer = serializers.ProductSerializer(product).data
+        prod_serializer['skus'] = serializers.ProductSkuSerializer(product.pskus,many=True).data
+        return  Response({'object':prod_serializer})  #这个也能实现2015-7-27
         #return  Response({'object':serializers.ProductSerializer(product).data}) 
 
     def post(self, request, id, *args, **kwargs):
@@ -406,38 +408,30 @@ class ProductView(APIView):
             product = Product.objects.get(id=id)
             print product
             content = request.REQUEST
-            
-            fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost',
+            fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost','ware_by',
                       'std_purchase_price','std_sale_price','agent_price','staff_price','is_split',
                       'sync_stock','post_check','is_match','match_reason','buyer_prompt','memo','storage_charger']
-            
             check_fields = set(['is_split','sync_stock'])
             if not product.prod_skus.count() > 0:
                 check_fields.update(['post_check','is_match'])
-                
             for k,v in content.iteritems():
                 if k not in fields:continue
-                
                 if k in check_fields:
                     check_fields.remove(k)
-                    
                 if k in ('wait_post_num','remain_num'):
                     v = int(v)
-                    
                 setattr(product,k,v)
-                
-            
             for k in check_fields:
                 setattr(product,k,False)
-            
-            
             product.save()
         except Product.DoesNotExist:
             return Response(u'商品未找到')
-#         except Exception,exc:
-#             return u'填写信息不规则:%s'%exc.message
+        except Exception,exc:
+            raise exceptions.APIException(u'填写信息不规则:%s'%exc.message)
         log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
-        return  Response({'object':product.json}) 
+        prod_serializer     = serializers.ProductSerializer(product).data
+        prod_serializer['skus'] = serializers.ProductSkuSerializer(product.pskus,many=True).data
+        return  Response(prod_serializer) 
     
         
 class ProductSkuView(APIView):
@@ -494,14 +488,14 @@ class ProductSkuView(APIView):
             product_sku.save()
         
         except ProductSku.DoesNotExist:
-            return '未找到商品属性'
+            return Response('未找到商品属性')
         except Exception,exc:
-            return u'填写信息不规则'
+            return Response(u'填写信息不规则')
         
         log_action(request.user.id,product_sku.product,CHANGE,
                    u'更新商品规格信息:%s'%unicode(product_sku))
         
-        return product_sku.json
+        return Response(product_sku.json)
     
     
         
