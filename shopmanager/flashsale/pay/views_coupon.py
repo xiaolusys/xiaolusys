@@ -89,14 +89,12 @@ def Coupon_Check(request):
                     cus = Customer.objects.get(user_id=user_id)  # 根据请求找到 平台的用户
                     # 为该用户创建一条 优惠券记录
                     try:
-                        # 创建该用户的优惠券之前要修改优惠券的状态
-                        coupon.coupon_status = CouponPool.PULLED  # 修改状态为被领取（可以使用）
-                        coupon.save()
                         # 创建该用户的优惠券
                         user_coupon, state = Coupon.objects.get_or_create(coupon_user=cus.id,
                                                                           coupon_no=coupon.coupon_no)
                         if state:
                             user_coupon.mobile = cus.mobile
+                            user_coupon.status = Coupon.RECEIVE  # 已经领取
                             user_coupon.save()  # 保存该用户提交的优惠券
                             return HttpResponse("ok")
                         else:

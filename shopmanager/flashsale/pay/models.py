@@ -13,7 +13,7 @@ from .models_addr import District,UserAddress
 from .models_custom import Productdetail,GoodShelf,ModelProduct
 from .models_refund import SaleRefund
 from .models_envelope import Envelop
-from .models_coupon import Integral,IntegralLog,Coupon
+from .models_coupon import Integral,IntegralLog,Coupon,CouponPool
 from .managers import SaleTradeManager
 
 from .signals import signal_saletrade_pay_confirm

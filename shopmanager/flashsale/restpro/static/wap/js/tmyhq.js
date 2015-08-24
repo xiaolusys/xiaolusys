@@ -43,19 +43,21 @@ $(document).ready(function () {
     $.get(url, function (res) {
         if (res.length > 0) {
             $.each(res, function (i, val) {
+                console.log(val,"优惠券啊！");
                 var coupon_status = val.coupon_status;
                 var coupon_type = val.coupon_type;
                 var coupon_value = val.coupon_value;
                 var deadline = val.deadline;
                 var created = val.created;
                 //默认对象
+                console.log(coupon_status,coupon_type);
                 var yhq_obj = {"type": 1, "full": 30, "fan": 3, "created": created, "deadline": deadline};
-                if (coupon_value == 3 && coupon_status == 3) {
+                if (coupon_value == 3 && coupon_status == 0) {
                     //满30返3
                     var yhq_tree = create_yhq_dom(yhq_obj);
                     $(".youxiao").append(yhq_tree);
                 }
-                if (coupon_value == 30 && coupon_status == 3) {
+                if (coupon_value == 30 && coupon_status == 0) {
                     //满300返30
                     yhq_obj.type = 2;
                     yhq_obj.full = 300;
@@ -78,20 +80,6 @@ $(document).ready(function () {
                     yhq_obj.fan = 30;
                     var yhq_tree4 = create_yhq_dom(yhq_obj);
                     $(".shixiao_list").append(yhq_tree4);
-                }
-                if (coupon_value == 50 && coupon_status == 3) {
-                    yhq_obj.type = 5;
-                    yhq_obj.full = "代理专享";
-                    yhq_obj.fan = 50;
-                    var yhq_tree5 = create_yhq_dom(yhq_obj);
-                    $(".shixiao_list").append(yhq_tree5);
-                }
-                if (coupon_value == 50 && coupon_status == 2) {
-                    yhq_obj.type = 6;
-                    yhq_obj.full = "代理专享";
-                    yhq_obj.fan = 50;
-                    var yhq_tree6 = create_yhq_dom(yhq_obj);
-                    $(".shixiao_list").append(yhq_tree6);
                 }
             });
         }

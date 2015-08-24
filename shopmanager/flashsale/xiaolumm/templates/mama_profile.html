@@ -51,6 +51,11 @@
 	    <input type="text" id="id_code_input" class="form-control col-xs-8" placeholder="请输入验证码">
 	    <a href="#" id="id_verifycode_button" class="btn btn-default input-group-addon" onclick="verifycode();">验证手机号</a>
 	  </div>
+          <div class="checkbox">
+              <label>
+                  <input name="tiaokuan" id="tk" type="checkbox"> <a href="{{ STATIC_URL }}tiaokuan.html">我已阅读并同意相关服务条款和隐私政策</a>
+              </label>
+          </div>
 	  </div>
 	  {% else %}
 	  <div class="form-group">
@@ -58,7 +63,7 @@
 	  </div>
 	  {% endif %}
 	  <div class="form-group">
-		 <button  type="submit" name="diposite" class="btn btn-lg btn-warning">进入下一步</button>
+		 <button  type="submit" id="next_step" name="diposite" class="btn btn-lg btn-warning">进入下一步</button>
 	  </div>
 	</form>
   </div>
@@ -173,6 +178,15 @@
         $.ajax({url:url, data:data, success:callback});
       };
 
-      
+      $("#next_step").click(function(e){
+          if($("#tk").prop("checked")){
+
+          }else{
+              e.preventDefault();
+              alert("请勾选");
+          }
+
+
+      })
     </script>
 {% endblock %}
