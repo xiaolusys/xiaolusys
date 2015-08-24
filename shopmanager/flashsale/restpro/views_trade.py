@@ -218,7 +218,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def carts_payinfo(self, request, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
-        cart_ids = [int(i) for i in request.GET.get('cart_ids','').split(',') if i.isdigit()]
+        content = request.GET
+        cartid_list =  content.get('cart_ids','')
+        cart_ids = [int(i) for i in cartid_list.split(',') if i.isdigit()]
         if len(cart_ids) == 0:
             raise exceptions.APIException(u'购物车ID不能为空')
         queryset = self.get_owner_queryset(request).filter(id__in=cart_ids)
@@ -233,16 +235,26 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             has_deposite |= cart.is_deposite()
         xlmm = None
         weixin_payable = False
-        customers = Customer.objects.filter(user=request.user)
-        if customers.count() > 0 and not customers[0].unionid.isspace():
+        customer = get_object_or_404(Customer, user=request.user)
+        if not customer.unionid.isspace():
             weixin_payable = isFromWeixin(request)
-            xiaolumms = XiaoluMama.objects.filter(openid=customers[0].unionid)
+            xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
                 
         alipay_payable = True
         wallet_payable = False
         for cart in queryset:
             discount_fee += cart.calc_discount_fee(xlmm=xlmm)
+        
+        coupon_id      = content.get('coupon_id','')
+        coupon_ticket  = None
+        if coupon_id:
+            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
+            discount_fee += coupon_pool.coupon_value
+            coupon_ticket = serializers.UserCouponPoolSerializer(coupon_pool).data
+            coupon_ticket['receive_date'] = coupon.created
+            
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -258,6 +270,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
                     'wallet_payable':wallet_payable,
+                    'coupon_ticket':coupon_ticket,
                     'cart_ids':','.join([str(c) for c in cart_ids]),
                     'cart_list':serializer.data}
         
@@ -266,7 +279,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def now_payinfo(self, request, *args, **kwargs):
         """ 立即购买获取支付信息 """
-        content     = request.GET
+        content     = request.REQUEST
         sku_id      = content.get('sku_id','')
         if not sku_id.isdigit():
             raise exceptions.APIException(u'传入规格ID不合法')
@@ -292,7 +305,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             weixin_payable = isFromWeixin(request)
             xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
-                
+        
         alipay_payable = True
         wallet_payable = False
         discount_fee = product_sku.calc_discount_fee(xlmm=xlmm)
@@ -302,9 +315,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if coupon_id:
             coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
             coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
-            discount_fee += coupon_pool.coupon_value
-            coupon_ticket = serializers.UserCouponPoolSerializer(coupon_ticket).data
-            
+            discount_fee    += coupon_pool.coupon_value
+            coupon_ticket   = serializers.UserCouponPoolSerializer(coupon_pool).data
+            coupon_ticket['receive_date'] = coupon.created
+
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -650,6 +664,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         )
         if cart_qs.count() != len(cart_ids):
             raise exceptions.ParseError(u'购物车信息异常')
+        
         xlmm            = self.get_xlmm(request)
         payment         = int(float(CONTENT.get('payment','0')) * 100)
         post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
@@ -661,9 +676,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError(u'抱歉,商品已被抢光')
             cart_total_fee += cart.price * cart.num * 100
             cart_discount += cart.calc_discount_fee(xlmm=xlmm) * 100
-            
+        
+        coupon_id = CONTENT.get('coupon_id','')
+        if coupon_id:
+            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
+            cart_discount    += int(coupon_pool.coupon_value * 100)
+        
+        if discount_fee > cart_discount:
+            raise exceptions.ParseError(u'优惠金额异常')
+        
         cart_payment = cart_total_fee + post_fee - cart_discount
-        if post_fee < 0 or payment < 0 or payment < cart_payment:
+        if post_fee < 0 or payment < 0  or payment < cart_payment:
             raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
@@ -701,10 +725,19 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         xlmm            = self.get_xlmm(request)
         bn_discount     = product_sku.calc_discount_fee(xlmm) 
-        bn_payment      = bn_totalfee + post_fee - bn_discount
         if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
             raise exceptions.ParseError(u'商品已被抢光啦！')
         
+        coupon_id = CONTENT.get('coupon_id','')
+        if coupon_id:
+            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
+            bn_discount    += int(coupon_pool.coupon_value * 100)
+        
+        if discount_fee > bn_discount:
+            raise exceptions.ParseError(u'优惠金额异常')
+        
+        bn_payment      = bn_totalfee + post_fee - bn_discount
         if post_fee < 0 or payment <= 0 or payment < bn_payment:
             raise exceptions.ParseError(u'付款金额异常')
         

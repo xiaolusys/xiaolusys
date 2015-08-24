@@ -42,8 +42,6 @@ class MamaRegisterView(APIView):
                                           request=request)
         if not valid_openid(openid) or not valid_openid(unionid):
             absolute_url = request.build_absolute_uri().split('#')[0]
-            if absolute_url.find('m.xiaolu.so') < 0:
-                absolute_url = absolute_url.replace('xiaolu.so', 'm.xiaolu.so')
             params = {'appid':settings.WEIXIN_APPID,
                       'redirect_uri':absolute_url,
                       'response_type':'code',

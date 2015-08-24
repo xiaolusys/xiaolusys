@@ -5,22 +5,21 @@
 
 function get_Coupon_On_Buy() {
     var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
-
+	console.log('debug:',url);
     $.get(url, function (res) {
         if (res.length > 0) {
             console.log('debug res :', res);
             var nums = 0;
             $.each(res, function (i, val) {
-                if (val.coupon_status == 0) {
-                    nums = nums + 1;//有效可用的优惠券数量
-                }
+                nums = nums + 1;//有效可用的优惠券数量
             });
-            if (nums == 0) {
-                Coupon_Nums_Show(-1);// 表示曾经有过期或这使用过的优惠券
-            }
-            else {
-                Coupon_Nums_Show(nums);//显示优惠券数量
-            }
+            Coupon_Nums_Show(nums);//显示优惠券数量
+//            if (nums == 0) {
+//                Coupon_Nums_Show(-1);// 表示曾经有过期或这使用过的优惠券
+//            }
+//            else {
+//                Coupon_Nums_Show(nums);//显示优惠券数量
+//            }
         }
         else if (res.length == 0) {
             Coupon_Nums_Show(0);//显示优惠券数量
@@ -80,21 +79,21 @@ function Coupon_Nums_Show(nums) {
     //}
 
 
-    else if (nums == 0) {
-        $("#coupon_nums").text("可用优惠券（" + 0 + "）");
-        $("#coupon_value").text("点击领取");
-        $("#coupon_value").click(function () {
-            location.href = "./youhuiquan-kong.html"; //跳转到优惠券空页面
-        });
-    }
-
-    else if (nums == -1) {
-        $("#coupon_nums").text("可用优惠券（" + 0 + "）");
-        $("#coupon_value").text("点击领取");
-        $("#coupon_value").click(function () {
-            location.href = "./youhuiquan-kong.html"; //跳转到优惠券空页面
-        });
-    }
+    //else if (nums == 0) {
+//        $("#coupon_nums").text("可用优惠券（" + 0 + "）");
+//        $("#coupon_value").text("点击领取");
+//        $("#coupon_value").click(function () {
+//            location.href = "./youhuiquan-kong.html"; //跳转到优惠券空页面
+//        });
+//    }
+//
+//    else if (nums == -1) {
+//        $("#coupon_nums").text("可用优惠券（" + 0 + "）");
+//        $("#coupon_value").text("点击领取");
+//        $("#coupon_value").click(function () {
+//            location.href = "./youhuiquan-kong.html"; //跳转到优惠券空页面
+//        });
+//    }
 }
 
 
@@ -208,6 +207,7 @@ function change_Coupon_Stauts(coupon_id) {
         success: requestCallBack
     });
     function requestCallBack(res) {
+        console.log("debug coupon use change status:",res);
         if (res[0] == 'ok') {
             console.log("用户优惠券状态修改成功！！！");
         }

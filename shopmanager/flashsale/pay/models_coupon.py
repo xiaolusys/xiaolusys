@@ -144,7 +144,7 @@ class Coupon(models.Model):
 
     def use_coupon(self):
         # 修改　可用优惠券　到　已经使用
-        if self.status is Coupon.RECEIVE:
+        if self.status == Coupon.RECEIVE:
             self.status = Coupon.USED
             self.save()
             return 'ok'
@@ -166,21 +166,21 @@ class CouponPool(models.Model):
     LIM300 = 2
     LIM100 = 3
     LIM118 = 4
-    CO_TYPE = ((LIM30, u"满30减3"), (LIM300, u"满300减30"), (LIM118, u"充118送30"))
+    CO_TYPE = ((LIM30, u"订单满30减3"), (LIM300, u"订单满300减30"), (LIM118, u"妈妈专享 订单满30减30"))
 
-    coupon_no = models.CharField(max_length=40, unique=True, default=lambda: uniqid(
+    coupon_no    = models.CharField(max_length=40, unique=True, default=lambda: uniqid(
         '%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))), verbose_name=u"优惠券号码")
-    deadline = models.DateTimeField(verbose_name=u"截止日期")
-    coupon_type = models.IntegerField(choices=CO_TYPE, default=1, verbose_name=u"优惠券类型")
+    deadline     = models.DateTimeField(verbose_name=u"截止日期")
+    coupon_type  = models.IntegerField(choices=CO_TYPE, default=1, verbose_name=u"优惠券类型")
     coupon_value = models.FloatField(default=1.0, verbose_name=u"优惠券数值")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+    created      = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    modified     = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     coupon_status = models.IntegerField(choices=COUPON_STATUS, default=1, verbose_name=u"优惠券状态")
 
     class Meta:
         db_table = "sale_user_coupon_pool"
-        verbose_name = u"特卖用户/优惠券/发放"
-        verbose_name_plural = u"特卖用户/优惠券/发放列表"
+        verbose_name = u"优惠券/模板"
+        verbose_name_plural = u"优惠券/模板"
 
     def __unicode__(self):
         return '<%s>' % (self.coupon_no)
