@@ -64,7 +64,8 @@ class ProductdetailSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Productdetail
-        fields = ( 'head_imgs', 'content_imgs', 'mama_discount', 'is_recommend', 'buy_limit','per_limit','mama_rebeta')
+        fields = ( 'head_imgs', 'content_imgs', 'mama_discount', 'is_recommend',
+                   'buy_limit', 'per_limit', 'mama_rebeta', 'material', 'wash_instructions', 'note', 'color')
 
 class ModelProductSerializer(serializers.ModelSerializer):
     
