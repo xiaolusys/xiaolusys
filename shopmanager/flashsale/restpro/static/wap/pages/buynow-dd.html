@@ -117,11 +117,13 @@
   var urlConf = {'item_id':urlParams['item_id'],'sku_id':urlParams['sku_id']};
   Set_user_orderinfo(GLConfig.get_now_payinfo_url.template(urlConf));
   
+  //优惠券显示
+  get_Coupon_On_Buy();
+  //显示回传过来的　优惠券数值
+  get_Coupon_Value_Show_In_Buy();
+  
   $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy .btn-buy');
-    //优惠券显示
-    get_Coupon_On_Buy();
-    //显示回传过来的　优惠券数值
-    get_Coupon_Value_Show_In_Buy();
+    
 })(jQuery);
 
 function change_address(){
