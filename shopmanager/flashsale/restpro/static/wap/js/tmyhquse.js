@@ -114,12 +114,13 @@ function get_Coupon_On_Choose() {
                         "deadline": deadline,
                         "coupon_value": coupon_value
                     };
-                    if (coupon_value == 3 && coupon_status == 3) {
+                    console.log(coupon_value,coupon_status,coupon_type,'kkkkkkkkkkkkkk');
+                    if (coupon_value == 3 && coupon_status == 3 && coupon_type==1) {
                         //满30返3
                         var yhq_tree1 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree1);
                     }
-                    if (coupon_value == 30 && coupon_status == 3) {
+                    if (coupon_value == 30 && coupon_status == 3 && coupon_type==2) {
                         //满300返30
                         yhq_obj.type = 2;
                         yhq_obj.full = 300;
@@ -127,10 +128,10 @@ function get_Coupon_On_Choose() {
                         var yhq_tree2 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree2);
                     }
-                    if (coupon_value == 50 && coupon_status == 3) {
-                        //满300返30
+                    if (coupon_value == 30 && coupon_status == 3 && coupon_type==4) {
+                        //满30返30　　代理审核生成的优惠券
                         yhq_obj.type = 5;
-                        yhq_obj.full = 300;
+                        yhq_obj.full = 30;
                         yhq_obj.fan = 30;
                         var yhq_tree3 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree3);
@@ -217,11 +218,14 @@ function get_Coupon_Value_Show_In_Buy() {
                 //将显示出来的数值填充到页面中
                 var coupon_value = res[0].coupon_value;
                 var total_money = parseFloat($("#total_money").html().split("¥")[1]);
+                
+                console.log("total_money",total_money,'res[0].coupon_type',res[0].coupon_type);
+
                 if (total_money > 30 && res[0].coupon_type == 4) {// 大于30才能使用 并且优惠券类型是4  代理专享优惠券
                     $("#coupon_value").text("¥-" + coupon_value);
                 }
-                else if (total_money < 30 && res[0].coupon_type == 4) {
-                    drawToast("优惠券不可用哦~");
+                else if (total_money < 30 || res[0].coupon_type == 4) {
+                    drawToast("购买金额小于30　优惠券不可用哦~");
                 }
                 else {
                     drawToast("优惠券不可用哦~");
