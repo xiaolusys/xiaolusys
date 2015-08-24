@@ -22,6 +22,29 @@ $(".category_select").live("change", function (e) {
     $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
 });
 
+$(".ware_select").live("change", function (e) {
+    e.preventDefault();
+
+    var target = e.target;
+    var pid = target.getAttribute('pid');
+    var cat_id = $(target).val();
+
+    var url = "/items/product/" + pid + "/?format=json";
+    var callback = function (res) {
+        if (res.code == 0 && res.response_content.ware_by.toString() == cat_id) {
+            $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+        }
+    };
+
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var data = {
+        "csrfmiddlewaretoken": csrf_token,
+        "format": "json",
+        "ware_by": cat_id
+    };
+
+    $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
+});
 
 $(".charger_select").live("change", function (e) {
     e.preventDefault();

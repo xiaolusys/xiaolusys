@@ -94,14 +94,15 @@ from flashsale.dinghuo.models import OrderDetail
 class ProductAdmin(admin.ModelAdmin):
     
     category_list = []
-    storage_chargers = []
+    ware_list  = []
+#     storage_chargers = []
     
     form = ProductModelForm
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
                     'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
                     , 'model_id', 'sync_stock','is_match','is_split','sale_time_select',
-                   'sale_charger','charger_select','district_link','shelf_status')
+                   'sale_charger','ware_select','district_link','shelf_status') #'charger_select',
     list_display_links = ('id',)
     #list_editable = ('name',)
     
@@ -192,29 +193,47 @@ class ProductAdmin(admin.ModelAdmin):
 
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
+    
+    def ware_select(self, obj):
 
+        wares = self.model.WARE_CHOICES
+        
+        cat_list = ["<select class='ware_select' pid='%s'>"%obj.id]
+        cat_list.append("<option value=''>-------------</option>")
 
-    def purchase_select(self, obj):
-        sale_charger = obj.sale_charger
-        systemuesr = DjangoUser.objects.filter(username=sale_charger)
-        if systemuesr.count() <= 0:
-            return "找不到采购员"
-        groups = MyGroup.objects.all()
-        myuser = MyUser.objects.filter(user_id=systemuesr[0].id)
-        if len(sale_charger) > 0 and groups.count() > 0:
-            group_list = ["<select class='purchase_charger_select' cid='%s'>"%systemuesr[0].id]
-            group_list.append("<option value=''>---------------</option>")
-            for group in groups:
-                if myuser.count() > 0 and myuser[0].group_id == group.id:
-                    group_list.append("<option value='%s' selected>%s</option>" % (group.id, group.name))
-                    continue
-                group_list.append("<option value='%s'>%s</option>" % (group.id, group.name))
-            group_list.append("</select>")
-            return "%s"%sale_charger+"".join(group_list)
+        for cat in wares:
+            if obj.ware_by is not None and obj.ware_by == cat[0]:
+                cat_list.append("<option value='%s' selected>%s</option>"%(cat[0],cat[1]))
+                continue
+            cat_list.append("<option value='%s'>%s</option>"%(cat[0],cat[1]))
+        cat_list.append("</select>")
 
+        return "".join(cat_list)
 
-    purchase_select.allow_tags = True
-    purchase_select.short_description = u"所属采购组"
+    ware_select.allow_tags = True
+    ware_select.short_description = u"所属仓库"
+
+#     def purchase_select(self, obj):
+#         sale_charger = obj.sale_charger
+#         systemuesr = DjangoUser.objects.filter(username=sale_charger)
+#         if systemuesr.count() <= 0:
+#             return "找不到采购员"
+#         groups = MyGroup.objects.all()
+#         myuser = MyUser.objects.filter(user_id=systemuesr[0].id)
+#         if len(sale_charger) > 0 and groups.count() > 0:
+#             group_list = ["<select class='purchase_charger_select' cid='%s'>"%systemuesr[0].id]
+#             group_list.append("<option value=''>---------------</option>")
+#             for group in groups:
+#                 if myuser.count() > 0 and myuser[0].group_id == group.id:
+#                     group_list.append("<option value='%s' selected>%s</option>" % (group.id, group.name))
+#                     continue
+#                 group_list.append("<option value='%s'>%s</option>" % (group.id, group.name))
+#             group_list.append("</select>")
+#             return "%s"%sale_charger+"".join(group_list)
+# 
+# 
+#     purchase_select.allow_tags = True
+#     purchase_select.short_description = u"所属采购组"
 
     # 选择上架时间
     def sale_time_select(self, obj):
@@ -348,10 +367,10 @@ class ProductAdmin(admin.ModelAdmin):
         """
         Returns the ChangeList class for use on the changelist page.
         """
-        if perms.has_change_product_skunum_permission(request.user):
-            groups = Group.objects.filter(name=u'仓管员')
-            if groups.count() > 0:
-                self.storage_chargers = groups[0].user_set.filter(is_staff=True)
+#         if perms.has_change_product_skunum_permission(request.user):
+#             groups = Group.objects.filter(name=u'仓管员')
+#             if groups.count() > 0:
+#                 self.storage_chargers = groups[0].user_set.filter(is_staff=True)
                 
         self.category_list = ProductCategory.objects.filter()
    
