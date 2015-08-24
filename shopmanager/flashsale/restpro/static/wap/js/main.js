@@ -110,7 +110,7 @@ function tm_timer_today() {
             },
             1000);
     } else {
-        $(".poster_timer.tm1").text("敬请期待下次活动");
+        $(".poster_timer.tm1").text("敬请期待");
     }
 }
 function tm_timer() {
@@ -142,7 +142,7 @@ function tm_timer() {
             },
             1000);
     } else {
-        $(".poster_timer.tm1").text("敬请期待下次");
+        $(".poster_timer.tm1").text("敬请期待");
     }
 }
 function checkTime(i) {
