@@ -799,11 +799,8 @@ from flashsale.pay.models_coupon import Coupon
 
 def create_coupon(sale_orders):
     # 创建优惠券
-    print 'running ...'
     buyer_id = sale_orders[0].sale_trade.buyer_id
-    print buyer_id, "buyer_id"
     trade_id = sale_orders[0].sale_trade.id
-    print buyer_id, trade_id, 'id is here '
     customer = Customer.objects.get(id=buyer_id)
     mobile = customer.mobile
     cou = Coupon()

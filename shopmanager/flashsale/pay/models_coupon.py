@@ -127,16 +127,19 @@ class Coupon(models.Model):
         功能：　代理充值118　送30 满30可用　　优惠券
         参数：　buyer_id　卖家的用户ＩＤ
         """
-        deadline = datetime.datetime.today() + datetime.timedelta(days=365)  # 365天有效
-        coupon_value = 30
-        cou = CouponPool.objects.create(coupon_value=coupon_value, deadline=deadline,
-                                        coupon_type=CouponPool.LIM118,
-                                        coupon_status=CouponPool.PULLED)  # 生成优惠券 # 可以使用的 # 有效两天
-        self.coupon_no = cou.coupon_no
-        self.coupon_user = buyer_id
-        self.trade_id = trade_id
-        self.mobile = mobile
-        self.save()
+        cou, state = CouponPool.objects.get_or_create(coupon_type=CouponPool.LIM118,
+                                                      coupon_status=CouponPool.RELEASE)
+                                                      # 生成优惠券 # 已经发放的
+        import logging
+        try:
+            self.coupon_no = cou.coupon_no
+            self.coupon_user = buyer_id
+            self.trade_id = trade_id
+            self.mobile = mobile
+            self.save()
+        except Exception, exc:
+                        log = logging.getLogger('django.request')
+                        log.error(exc.message, exc_info=True)
         return
 
     def use_coupon(self):
