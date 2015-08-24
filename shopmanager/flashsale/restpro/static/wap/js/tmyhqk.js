@@ -51,7 +51,7 @@ $(document).ready(function () {
                 $(".error-tips").append(warring1);////先清理后添加
             }
             else if (res == "not_found") {
-                var warring5 = "无效的优惠券~";
+                var warring5 = "没有找到优惠券~";
                 $(".error-tips").empty().append(warring5);////先清理后添加
             }
             else if (res == "used") {
@@ -63,8 +63,12 @@ $(document).ready(function () {
                 $(".error-tips").empty().append(warring3);////先清理后添加
             }
             else if (res == "not_release") {
-                var warring4 = "无效的优惠券~";
+                var warring4 = "未发放优惠券~";
                 $(".error-tips").empty().append(warring4);////先清理后添加
+            }
+            else if(res =="save error"){
+                var warring6 = "保存失败~";
+                $(".error-tips").empty().append(warring6);////先清理后添加
             }
         }
 

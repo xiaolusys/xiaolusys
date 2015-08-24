@@ -69,18 +69,18 @@ class Coupon(models.Model):
     优惠券只能使用一次，退货不退回使用的优惠券。
     """
     RECEIVE = 0
-    USED  = 1
+    USED = 1
     EXPIRED = 2
     COUPON_STATUS = ((RECEIVE, u'已领取'), (USED, u'已使用'), (EXPIRED, u'已过期'))
-    
+
     coupon_user = models.CharField(max_length=32, db_index=True, verbose_name=u"用户ID")
     coupon_no = models.CharField(max_length=40, default='YH0', verbose_name=u"优惠券号码")
     mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'手机')
     trade_id = models.CharField(max_length=40, blank=True, verbose_name=u"交易ID")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
-    status   = models.IntegerField(verbose_name=u'使用状态')
-    
+    status = models.IntegerField(db_index=True, default=RECEIVE, choices=COUPON_STATUS,verbose_name=u'使用状态')
+
     class Meta:
         unique_together = ('coupon_user', 'coupon_no')
         db_table = "sale_user_coupon_table"
@@ -90,7 +90,7 @@ class Coupon(models.Model):
     def __unicode__(self):
         return '<%s>' % (self.id)
 
-    def xlmm_Coupon_Create(self, *args ,**kwargs):
+    def xlmm_Coupon_Create(self, *args, **kwargs):
         """
         :function create the xlmm's coupon
         :arg    unionid
@@ -102,6 +102,7 @@ class Coupon(models.Model):
         :return instance of the coupon
         """
         from flashsale.xiaolumm.models import XiaoluMama
+
         mobile = kwargs['mobile'] or ''
         unionid = kwargs['unionid'] or ''
         coupon_type = kwargs['coupon_type'] or ''
@@ -129,14 +130,15 @@ class Coupon(models.Model):
         deadline = datetime.datetime.today() + datetime.timedelta(days=365)  # 365天有效
         coupon_value = 30
         cou = CouponPool.objects.create(coupon_value=coupon_value, deadline=deadline,
-                                        coupon_type=CouponPool.LIM118, coupon_status=CouponPool.PULLED)  # 生成优惠券 # 可以使用的 # 有效两天
+                                        coupon_type=CouponPool.LIM118,
+                                        coupon_status=CouponPool.PULLED)  # 生成优惠券 # 可以使用的 # 有效两天
         self.coupon_no = cou.coupon_no
         self.coupon_user = buyer_id
         self.trade_id = trade_id
         self.mobile = mobile
         self.save()
         return
-    
+
     def use_coupon(self):
         # 修改　可用优惠券　到　已经使用
         if self.status is Coupon.RECEIVE:

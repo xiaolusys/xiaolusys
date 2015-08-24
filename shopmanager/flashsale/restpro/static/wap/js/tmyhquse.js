@@ -8,9 +8,10 @@ function get_Coupon_On_Buy() {
 
     $.get(url, function (res) {
         if (res.length > 0) {
+            console.log('debug res :', res);
             var nums = 0;
             $.each(res, function (i, val) {
-                if (val.coupon_status == 3) {
+                if (val.coupon_status == 0) {
                     nums = nums + 1;//有效可用的优惠券数量
                 }
             });
@@ -32,18 +33,12 @@ function Coupon_Nums_Show(nums) {
     $("#coupon_nums").text("可用优惠券（" + nums + "）");
     if (nums > 0) {
         $("#coupon_nums").click(function () {
-            var cart_ids = getUrlParam('cart_ids').replace(",",'');
-            console.log('cart_ids',cart_ids);
-            if (cart_ids > 0) {//购物车购买页面
-                var total_monty = $("#total_monty").html().split(">")[2];
-                console.log(total_monty);
-                location.href = "./choose-coupon.html?price=" + total_monty;
-            }
-            else { //立即购买页面
-                var total_money = ($("#total_money").html().split(">")[2]);
-                console.log("jump to choose page...");
-                location.href = "./choose-coupon.html?price=" + total_money;
-            }
+            console.log("debug click coupon_nums");
+
+            var total_money = ($("#total_money").html().split(">")[2]);
+            console.log("jump to choose page...");
+            location.href = "./choose-coupon.html?price=" + total_money;
+
         });
     }
 
@@ -106,11 +101,11 @@ function Coupon_Nums_Show(nums) {
 function get_Coupon_On_Choose() {
     var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
     $.get(url, function (res) {
-        console.log(res);
+        console.log("debug res",res);
         if (res.length > 0) {
             var nums = 0;
             $.each(res, function (i, val) {
-                if (val.coupon_status == 3) {
+                if (val.coupon_status == 0) {
                     nums = nums + 1;//有效可用的优惠券数量
                     var id = val.id;
                     var coupon_status = val.coupon_status;
@@ -127,13 +122,14 @@ function get_Coupon_On_Choose() {
                         "deadline": deadline,
                         "coupon_value": coupon_value
                     };
-                    console.log("debug", coupon_value, coupon_status, coupon_type);
-                    if (coupon_value == 3 && coupon_status == 3 && coupon_type == 1) {
+                    console.log("debug var :", coupon_value, coupon_status, coupon_type);
+
+                    if (coupon_value == 3 && coupon_status == 0 && coupon_type == 1) {
                         //满30返3
                         var yhq_tree1 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree1);
                     }
-                    if (coupon_value == 30 && coupon_status == 3 && coupon_type == 2) {
+                    if (coupon_value == 30 && coupon_status == 0 && coupon_type == 2) {
                         //满300返30
                         yhq_obj.type = 2;
                         yhq_obj.full = 300;
@@ -141,7 +137,7 @@ function get_Coupon_On_Choose() {
                         var yhq_tree2 = Create_coupon_dom(yhq_obj);
                         $('.coupons').append(yhq_tree2);
                     }
-                    if (coupon_value == 30 && coupon_status == 3 && coupon_type == 4) {
+                    if (coupon_value == 30 && coupon_status == 0 && coupon_type == 4) {
                         //满30返30　　代理审核生成的优惠券
                         yhq_obj.type = 5;
                         yhq_obj.full = 30;
@@ -226,14 +222,14 @@ function change_Coupon_Stauts(coupon_id) {
 
 function get_Coupon_Value_Show_In_Buy() {
     var coupon_id = getUrlParam("coupon_id");
-    console.log("coupon_id:", coupon_id);
+    console.log("debug coupon_id:", coupon_id);
     var url = GLConfig.baseApiUrl + GLConfig.get_user_coupon_by_id.template({"coupon_id": coupon_id});
     console.log(url);
     $.get(url, function (res) {
         console.log(res);
         console.log(res[0], 'res');
         if (res.length > 0) {
-            if (res[0].coupon_status == 3 && res[0].id == coupon_id) { //判断是否有效
+            if (res[0].coupon_status == 0 && res[0].id == coupon_id) { //判断是否有效
                 console.log("coupon value end :", res[0].coupon_value);
                 //将显示出来的数值填充到页面中
                 var coupon_value = res[0].coupon_value;

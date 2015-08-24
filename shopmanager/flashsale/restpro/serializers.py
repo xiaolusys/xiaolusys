@@ -225,14 +225,14 @@ class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
 class UserCouponSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coupon
-        fields = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified')
+        fields = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified', 'status')
 
 
 class UserCouponPoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = CouponPool
         fields = (
-            'id', 'deadline', 'coupon_value', 'coupon_type')
+            'id', 'deadline', 'coupon_value', 'coupon_type', 'coupon_status')
 
 
 
