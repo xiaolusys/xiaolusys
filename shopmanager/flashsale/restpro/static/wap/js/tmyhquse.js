@@ -8,7 +8,6 @@ function get_Coupon_On_Buy() {
 
     $.get(url, function (res) {
         if (res.length > 0) {
-            console.log('debug res :', res);
             var nums = 0;
             $.each(res, function (i, val) {
                 if (val.coupon_status == 0) {
@@ -101,7 +100,6 @@ function Coupon_Nums_Show(nums) {
 function get_Coupon_On_Choose() {
     var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
     $.get(url, function (res) {
-        console.log("debug res",res);
         if (res.length > 0) {
             var nums = 0;
             $.each(res, function (i, val) {
@@ -122,7 +120,6 @@ function get_Coupon_On_Choose() {
                         "deadline": deadline,
                         "coupon_value": coupon_value
                     };
-                    console.log("debug var :", coupon_value, coupon_status, coupon_type);
 
                     if (coupon_value == 3 && coupon_status == 0 && coupon_type == 1) {
                         //满30返3
@@ -208,7 +205,6 @@ function change_Coupon_Stauts(coupon_id) {
         success: requestCallBack
     });
     function requestCallBack(res) {
-        console.log("debug coupon use change status:",res);
         if (res[0] == 'ok') {
             console.log("用户优惠券状态修改成功！！！");
         }
@@ -227,14 +223,10 @@ function get_Coupon_Value_Show_In_Buy() {
     var url = GLConfig.baseApiUrl + GLConfig.get_user_coupon_by_id.template({"coupon_id": coupon_id});
     console.log(url);
     $.get(url, function (res) {
-        console.log(res);
-        console.log(res[0], 'res');
         if (res.length > 0) {
             if (res[0].coupon_status == 0 && res[0].id == coupon_id) { //判断是否有效
-                console.log("coupon value end :", res[0].coupon_value);
                 //将显示出来的数值填充到页面中
                 var coupon_value = res[0].coupon_value;
-                console.log('res[0].coupon_type', res[0].coupon_type);
                 if (res[0].coupon_type == 4) {// 大于30才能使用 并且优惠券类型是4  代理专享优惠券
                     $("#coupon_value").text("¥-" + coupon_value);
                 }
