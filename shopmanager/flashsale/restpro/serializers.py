@@ -198,8 +198,6 @@ class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):
     
     url = serializers.HyperlinkedIdentityField(view_name='v1:district-detail')
-    
-    
     class Meta:
         model = District
         fields = ( 'id' , 'url', 'parent_id', 'name', 'grade', 'sort_order')
