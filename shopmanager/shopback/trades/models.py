@@ -1050,7 +1050,7 @@ class TradeWuliu(models.Model):
     remark =models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'备注')
     
     class Meta:
-        db_table = 'shop_trades_wuliuDetail'
+        db_table = 'shop_trades_wuliudetail'
         verbose_name = u'物流跟踪'
         verbose_name_plural = u'物流跟踪列表'
 

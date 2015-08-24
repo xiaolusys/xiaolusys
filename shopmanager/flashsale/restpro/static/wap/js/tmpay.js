@@ -74,6 +74,11 @@ function Set_user_orderinfo(suffix){
 			var form_template = $('#form-template').html();
 			$('#item-list').append(form_template.template(data));
 		}
+		console.log('debug:',data.coupon_ticket);
+		if (!isNone(data.coupon_ticket)){
+			var coupon_template = $('#coupon-template').html();
+			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
+		}
 	};
 	// 调用接口
 	$.ajax({ 
@@ -107,6 +112,7 @@ function Ctrl_sure_charge(pay_url){
     	drawToast('请填写收货信息');
     	return
     }
+    var couponid = $('.coupons li i').attr('couponid');
     //获取表单参数
 	var params = {};
 	var form_array = $('#pay-form').serializeArray();
@@ -119,7 +125,9 @@ function Ctrl_sure_charge(pay_url){
 	params.addr_id = addrid;
 	params.channel = channel;
 	params.csrftoken = csrftoken;
-	
+	if(!isNone(couponid)){
+		params.coupon_id = couponid;
+	}
     $('.btn-buy').addClass('charged');
     $('.btn-buy').addClass('pressed');
 
@@ -208,10 +216,9 @@ function update_total_price(){
 	var discount_fee   = parseFloat($('input[name="discount_fee"]').val());
 	var post_fee   = parseFloat($('input[name="post_fee"]').val());
 	var total_fee = sku_price * sku_num;
-	console.log('debug:',sku_price,sku_num);
 	var total_payment = total_fee + post_fee - discount_fee;
 	$('.cost .label1 span').html('¥ ' + total_fee);
-	$('.buy .total span').html('¥ ' + total_fee);
+	$('.buy .total span').html('¥ ' + total_payment);
 	$('input[name="total_fee"]').val(total_fee);
 	$('input[name="payment"]').val(total_payment);
 }
