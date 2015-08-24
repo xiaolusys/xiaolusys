@@ -208,6 +208,7 @@ function change_Coupon_Stauts(coupon_id) {
         success: requestCallBack
     });
     function requestCallBack(res) {
+        console.log("debug coupon use change status:",res);
         if (res[0] == 'ok') {
             console.log("用户优惠券状态修改成功！！！");
         }

@@ -144,7 +144,7 @@ class Coupon(models.Model):
 
     def use_coupon(self):
         # 修改　可用优惠券　到　已经使用
-        if self.status is Coupon.RECEIVE:
+        if self.status == Coupon.RECEIVE:
             self.status = Coupon.USED
             self.save()
             return 'ok'
