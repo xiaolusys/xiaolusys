@@ -87,7 +87,7 @@ function tm_timer_today() {
      * auther:yann
      * date:2015/20/8
      */
-    var ts = (new Date(2015, 7, 23, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
+    var ts = (new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
     var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
     var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
     var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
