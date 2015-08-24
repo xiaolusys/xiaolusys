@@ -20,6 +20,8 @@ from flashsale.pay.models import (
     Customer,
     ShoppingCart,
     UserAddress,
+    Coupon,
+    CouponPool,
     genTradeUniqueid
 )
 
@@ -273,9 +275,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_sku = get_object_or_404(ProductSku,id=sku_id)
         product     = product_sku.product
         
-#         coupon_id   = content.get('coupon_id','')
-#         coupon      = get_object_or_404()
-        
         total_fee = float(product_sku.agent_price) * 1
         post_fee = 0
         has_deposite = product.is_deposite()
@@ -285,22 +284,31 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         user_skunum = getUserSkuNumByLast24Hours(customer, product_sku)
         lockable = Product.objects.isQuantityLockable(product_sku, user_skunum + 1)
         if not lockable:
-            raise exceptions.APIException(u'达到商品限购数量')
+            raise exceptions.APIException(u'商品数量限购')
         
         xlmm = None
         weixin_payable = False
-        customers = Customer.objects.filter(user=request.user)
-        if customers.count() > 0 and not customers[0].unionid.isspace():
+        if not customer.unionid.isspace():
             weixin_payable = isFromWeixin(request)
-            xiaolumms = XiaoluMama.objects.filter(openid=customers[0].unionid)
+            xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
                 
         alipay_payable = True
         wallet_payable = False
         discount_fee = product_sku.calc_discount_fee(xlmm=xlmm)
+        
+        coupon_id      = content.get('coupon_id','')
+        coupon_ticket  = None
+        if coupon_id:
+            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
+            discount_fee += coupon_pool.coupon_value
+            coupon_ticket = serializers.UserCouponPoolSerializer(coupon_ticket).data
+            
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
+                              total_payment >= 0 and
                               xlmm.cash >= int(total_payment * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash_money
@@ -318,7 +326,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
                     'wallet_payable':wallet_payable,
-                    'sku':product_sku_dict}
+                    'coupon_ticket':coupon_ticket,
+                    'sku':product_sku_dict }
         
         return Response(response)
 

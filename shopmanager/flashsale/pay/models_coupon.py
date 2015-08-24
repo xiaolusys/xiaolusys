@@ -68,13 +68,19 @@ class Coupon(models.Model):
     """
     优惠券只能使用一次，退货不退回使用的优惠券。
     """
+    RECEIVE = 0
+    USED  = 1
+    EXPIRED = 2
+    COUPON_STATUS = ((RECEIVE, u'已领取'), (USED, u'已使用'), (EXPIRED, u'已过期'))
+    
     coupon_user = models.CharField(max_length=32, db_index=True, verbose_name=u"用户ID")
     coupon_no = models.CharField(max_length=40, default='YH0', verbose_name=u"优惠券号码")
     mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'手机')
     trade_id = models.CharField(max_length=40, blank=True, verbose_name=u"交易ID")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
-
+    status   = models.IntegerField(verbose_name=u'使用状态')
+    
     class Meta:
         unique_together = ('coupon_user', 'coupon_no')
         db_table = "sale_user_coupon_table"
@@ -130,6 +136,15 @@ class Coupon(models.Model):
         self.mobile = mobile
         self.save()
         return
+    
+    def use_coupon(self):
+        # 修改　可用优惠券　到　已经使用
+        if self.status is Coupon.RECEIVE:
+            self.status = Coupon.USED
+            self.save()
+            return 'ok'
+        else:
+            return 'notInStatus'
 
 
 class CouponPool(models.Model):
@@ -141,7 +156,7 @@ class CouponPool(models.Model):
     PAST = 2
     PULLED = 3
     USED = 4
-    COUPON_STATUS = ((RELEASE, u'已发放'), (UNRELEASE, u'未发放'), (PAST, u'过期作废'), (PULLED, u'可以使用'), (USED, u'已经使用'))
+    COUPON_STATUS = ((RELEASE, u'已发放'), (UNRELEASE, u'未发放'), (PAST, u'过期作废'))
     LIM30 = 1
     LIM300 = 2
     LIM100 = 3
@@ -165,11 +180,3 @@ class CouponPool(models.Model):
     def __unicode__(self):
         return '<%s>' % (self.coupon_no)
 
-    def use_coupon(self):
-        # 修改　可用优惠券　到　已经使用
-        if self.coupon_status is CouponPool.PULLED:
-            self.coupon_status = CouponPool.USED
-            self.save()
-            return 'ok'
-        else:
-            return 'notInStatus'
