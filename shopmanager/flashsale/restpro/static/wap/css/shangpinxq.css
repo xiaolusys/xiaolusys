@@ -54,9 +54,10 @@
 }
 
 .goods-size{
+  padding-top: 24px;
   width: 640px;
   background-color: #fff;
-  margin: 20px auto;
+  margin: 1px auto;
 }
 .goods-size h3{
   font-size: 20px;
@@ -115,18 +116,18 @@
   background-color:#d8dcdf;
 }
 .detail-introduce{
+    padding-top: 10px;
     width: 640px;
     background-color: #fff;
-    margin: 20px auto;
-
+    margin: 1px auto;
 }
 
-
 .goods-param {
+    padding-top: 20px;
     width: 640px;
     background-color: #fff;
-    margin: 0 auto;
-    padding-bottom: 25px;
+    margin: 1px auto;
+    padding-bottom: 20px;
 }
 
 .goods-param .spcs {
@@ -150,7 +151,6 @@
 
 .goods-param table td {
     padding: .1rem 0;
-
 }
 
 
@@ -163,10 +163,11 @@
   padding-right: 44px;
 }
 .goods-img{
+  padding-top: 20px;
   width: 640px;
   margin: 0 auto;
   background-color: #fff;
-  margin-top: 20px;
+
 }
 .goods-img .list{
   padding-bottom:78px;
