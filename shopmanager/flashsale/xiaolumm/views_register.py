@@ -57,7 +57,7 @@ class MamaRegisterView(APIView):
             if xiaolumm.progress == XiaoluMama.PASS:
                 return redirect(reverse('mama_homepage'))
             
-            if xiaolumm.progress != XiaoluMama.PROFILE:
+            if xiaolumm.progress == XiaoluMama.PROFILE:
                 self.template_name = 'mama_deposit.html'
             elif xiaolumm.progress == XiaoluMama.PAY:
                 self.template_name = 'mama_contact.html'
