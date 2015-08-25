@@ -208,6 +208,8 @@ function Set_order_detail(suffix) {
 
             Cancel_order(suffix);//页面加载完成  调用 取消订单功能
             Handler_Refund_Bth();
+
+
         }
     };
     // 发送请求
@@ -221,6 +223,17 @@ function Set_order_detail(suffix) {
 }
 
 function Handler_Refund_Bth(){
+    var t = new Date();
+    var h  = t.getHours();
+    if(h>=14){ //大于下午两点　不能退款
+        console.log("debug now hour:",h);
+        $(".refund_status_"+0).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
+        $("#btn_refund").click(function () {
+        if (h >= 14) { //大于下午两点　不能退款
+            drawToast("商品已经出仓,拼命的朝您奔来~");
+        }
+    });
+    }
     for(var i= 1;i<=7;i++){
         $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
     }
