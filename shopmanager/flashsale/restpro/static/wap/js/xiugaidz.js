@@ -2,7 +2,7 @@
 function province_list() {
     var selectid = document.getElementById("s_province");
     selectid.options.length = 0;
-    selectid[0] = new Option("请选择省", 0);
+    //selectid[0] = new Option("请选择省", 0);
 
 
 
@@ -36,7 +36,7 @@ function setSecond() {
     province_id = selected_province.val()    //获取省份的id
     var selectid = document.getElementById("s_city");
     selectid.options.length = 0;
-    selectid[0] = new Option("请选择市", 0);
+   // selectid[0] = new Option("请选择市", 0);
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.city_list
     var requestCallBack = function (data) {
@@ -65,7 +65,7 @@ function setThird() {
     city_id = selected_city.val()    //获取城市的id
     var selectid = document.getElementById("s_country");
     selectid.options.length = 0;
-    selectid[0] = new Option('请选择区/县', 0);
+    //selectid[0] = new Option('请选择区/县', 0);
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.country_list
     var requestCallBack = function (data) {
@@ -97,12 +97,23 @@ function xugaifuzi(up_id) {
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + "/address/get_one_address";
     var requestCallBack = function (data) {
-        //console.info(data[0]);
+        console.info(data[0]);
         receiver_state = data[0].receiver_state;
         receiver_district = data[0].receiver_district;
         receiver_city = data[0].receiver_city;
-        $("#s_province option:contains(" + receiver_state + ")").attr("selected", true);
-        setSecond();
+        //alert(receiver_state);
+       // document.getElementById("s_province")
+        var selectid1 = document.getElementById("s_province");
+selectid1[0] = new Option(receiver_state, 0);
+
+        var selectid2 = document.getElementById("s_city");
+selectid2[0] = new Option(receiver_city, 0);
+
+        var selectid3= document.getElementById("s_country");
+selectid3[0] = new Option(receiver_district, 0);
+
+      //  $("#s_province ").val(72);
+        //setSecond();
         document.getElementById('inputReceiverAddress').value = data[0].receiver_address;
         document.getElementById('inputReceiverName').value = data[0].receiver_name;
         document.getElementById('inputReceiverMobile').value = data[0].receiver_mobile;
