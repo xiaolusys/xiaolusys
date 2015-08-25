@@ -55,6 +55,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     - {prefix}/{{pk}}/minus_product_carts[.formt]: 减少一件;
     - {prefix}/show_carts_num[.formt]: 显示购物车数量;
     - {prefix}/sku_num_enough[.formt]: 获取规格数量是否充足;
+    > sku_id:规格ID;
+    > sku_num:规格数量;
     - {prefix}/carts_payinfo[.formt]: 根据购物车记录获取支付信息;
     > cart_ids：购物车ID列表,如101,102,103,...
     - {prefix}/now_payinfo[.formt]: 根据立即购买获取支付信息;
