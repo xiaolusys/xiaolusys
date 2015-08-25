@@ -517,9 +517,14 @@ class WuliuView(APIView):
         except:
             #print trade_info.status
             if trade_info.status==2:
-                product_outid=SaleOrder.objects.filter(sale_trade=trade_info)[0].outer_id
-                shelf_status=Product.objects.get(outer_id=product_outid).shelf_status
-                if  shelf_status==0:
+                sale_order=SaleOrder.objects.filter(sale_trade=trade_info)
+                shelf=False
+                for t in  sale_order :
+                    shelf_status=Product.objects.get(outer_id=t.outer_id).shelf_status
+                    if  shelf_status==0:
+                        shelf=True
+                        break
+                if  shelf==True:
                     return    Response({"result":False,"message":"您的订单正在配货","time":trade_info.pay_time }) 
                 else:
                     return    Response({"result":False,"message":"付款成功","time":trade_info.pay_time }) 
