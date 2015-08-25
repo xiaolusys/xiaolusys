@@ -305,7 +305,6 @@ class MamaIncomeDetailView(View):
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
         
         active_start = CLICK_ACTIVE_START_TIME.date() == time_from.date()
-        
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
         if target_date < today:
@@ -330,9 +329,9 @@ class MamaIncomeDetailView(View):
             order_list = StatisticsShopping.normal_objects.filter(linkid=xlmm.pk,shoptime__range=(time_from,time_to))
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             carry_confirm = False
-            if target_date >= ORDER_RATEUP_START:
-                rebeta_swift = True
-
+#             if target_date >= ORDER_RATEUP_START:
+#                 rebeta_swift = True
+                
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
                 total_value = order_stat[0].orderamountcount / 100.0
@@ -386,7 +385,7 @@ class MamaIncomeDetailView(View):
                 click_pay  = click_num * click_price                              
                 ten_click_pay = ten_click_num * ten_click_price
                 
-            data = { "xlmm":xlmm,"pk":xlmm.pk,'rebeta_swift':rebeta_swift,
+            data = {"xlmm":xlmm,"pk":xlmm.pk,'rebeta_swift':rebeta_swift,
                     "order_num":order_num, "order_list":order_list, 
                     "exam_pass":exam_pass,"total_value":total_value,
                     "carry":carry, 'carry_confirm':carry_confirm,

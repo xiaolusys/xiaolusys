@@ -250,6 +250,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_ticket  = None
         if coupon_id:
             coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            if coupon.status != Coupon.RECEIVE:
+                raise exceptions.APIException(u'该优惠券已使用')
             coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
             discount_fee += coupon_pool.coupon_value
             coupon_ticket = serializers.UserCouponPoolSerializer(coupon_pool).data
@@ -314,6 +316,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_ticket  = None
         if coupon_id:
             coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
+            if coupon.status != Coupon.RECEIVE:
+                raise exceptions.APIException(u'该优惠券已使用')
             coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
             discount_fee    += coupon_pool.coupon_value
             coupon_ticket   = serializers.UserCouponPoolSerializer(coupon_pool).data
@@ -349,7 +353,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 class SaleOrderViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单明细REST API接口：
-    
     """
     queryset = SaleOrder.objects.all()
     serializer_class = serializers.SaleOrderSerializer# Create your views here.
@@ -699,6 +702,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         sale_trade = self.create_Saletrade(CONTENT, address, customer)
         self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        #使用优惠券，并修改状态
+        if coupon_id and coupon:
+            coupon.status = Coupon.USED
+            coupon.trade_id = sale_trade.id
+            coupon.save()
+            
         if channel == SaleTrade.WALLET:
             #小鹿钱包支付
             response_charge = self.wallet_charge(sale_trade, customer)
@@ -760,7 +769,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             logger.error(exc.message,exc_info=True)
             Product.objects.releaseLockQuantity(product_sku, sku_num)
             raise exceptions.APIException(u'生成订单错误')
-            
+        #使用优惠券，并修改状态
+        if coupon_id and coupon:
+            coupon.status = Coupon.USED
+            coupon.trade_id = sale_trade.id
+            coupon.save()
+        
         if channel == SaleTrade.WALLET:
             #小鹿钱包支付
             response_charge = self.wallet_charge(sale_trade)

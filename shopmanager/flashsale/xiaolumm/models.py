@@ -11,7 +11,7 @@ from shopapp.weixin.models_sale import WXProductSku
 import logging
 
 logger = logging.getLogger('django.request')
-ROI_CLICK_START = datetime.date(2015,7,8)
+ROI_CLICK_START = datetime.date(2015,8,25)
 ORDER_RATEUP_START = datetime.date(2015,7,8)
 
 MM_CLICK_DAY_LIMIT = 1
@@ -208,7 +208,6 @@ class XiaoluMama(models.Model):
             for order in trade.normal_orders:
                 rebeta += self.get_Mama_Order_Rebeta(order)
             return rebeta
-        
         return 	self.get_Mama_Order_Rebeta(trade)
     
     def get_Mama_Trade_Amount(self,trade):
@@ -220,16 +219,13 @@ class XiaoluMama(models.Model):
                     continue
                 amount += self.get_Mama_Order_Amount(order)
             return amount
-        
         if self.get_Mama_Order_Rebeta(trade) == 0:
             return 0
         return self.get_Mama_Order_Amount(trade)
     
     def get_Mama_Click_Price(self,ordernum):
         """ 获取今日小鹿妈妈点击价格 """
-        
         cur_date = datetime.date.today() 
-        
         return self.get_Mama_Click_Price_By_Day(ordernum,day_date=cur_date)
     
     def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
@@ -237,10 +233,9 @@ class XiaoluMama(models.Model):
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() < 2:
             return 0
-        
-        
-        base_price = 10
-        return base_price
+        if day_date >= ROI_CLICK_START:
+            return 10
+        return 0
 #         agency_level = agency_levels[0]
 #         if not day_date or day_date < ROI_CLICK_START:
 #             return base_price + agency_level.get_Click_Price(ordernum)
@@ -340,7 +335,6 @@ class AgencyLevel(models.Model):
 #         return click_price * 100
     
     def get_Max_Valid_Clickcount(self,order_num):
-        
         return MM_CLICK_DAY_BASE_COUNT + MM_CLICK_PER_ORDER_PLUS_COUNT * order_num
         
     
@@ -349,7 +343,6 @@ class AgencyLevel(models.Model):
         today = datetime.date.today()
         if today > ORDER_RATEUP_START:
             return self.basic_rate / 100.0
-        
         return (self.basic_rate / 100.0) / 2
     
 
