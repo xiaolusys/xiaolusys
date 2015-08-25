@@ -57,10 +57,10 @@ $(document).ready(function () {
                     var yhq_tree = create_yhq_dom(yhq_obj);
                     $(".youxiao").append(yhq_tree);
                 }
-                if (coupon_value == 30 && coupon_status == 0) {
-                    //满300返30
+                if (coupon_value == 30 && coupon_status == 0 &&coupon_type==4) {
+                    //满30返30  代理专享
                     yhq_obj.type = 2;
-                    yhq_obj.full = 300;
+                    yhq_obj.full = 30;
                     yhq_obj.fan = 30;
                     var yhq_tree2 = create_yhq_dom(yhq_obj);
                     $(".youxiao").append(yhq_tree2);
@@ -76,8 +76,8 @@ $(document).ready(function () {
                 if (coupon_value == 3 && coupon_status == 2) {
                     //已经过期的优惠券
                     yhq_obj.type = 4;
-                    yhq_obj.full = 300;
-                    yhq_obj.fan = 30;
+                    yhq_obj.full = 30;
+                    yhq_obj.fan = 3;
                     var yhq_tree4 = create_yhq_dom(yhq_obj);
                     $(".shixiao_list").append(yhq_tree4);
                 }
