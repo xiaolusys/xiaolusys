@@ -310,10 +310,10 @@ class MamaIncomeDetailView(View):
         if target_date < today:
             next_day = target_date + datetime.timedelta(days=1)
         
-        exam_pass = False
-        result = Result.objects.filter(daili_user=unionid)
-        if result.count() > 0:
-            exam_pass = result[0].is_Exam_Funished()
+        exam_pass = True
+#         result = Result.objects.filter(daili_user=unionid)
+#         if result.count() > 0:
+#             exam_pass = result[0].is_Exam_Funished()
             
         data   = {}
         try:

@@ -255,9 +255,9 @@ def task_Push_Pending_ClickRebeta_Cash(day_ago=CLICK_REBETA_DAYS, xlmm_id=None):
             continue
         
         xlmm = xlmms[0]
-        #是否考试通过
-        if not xlmm.exam_Passed():
-            continue
+#         #是否考试通过
+#         if not xlmm.exam_Passed():
+#             continue
         
         #重新计算pre_date之前订单金额，取消退款订单提成
         carry_date = cl.carry_date
