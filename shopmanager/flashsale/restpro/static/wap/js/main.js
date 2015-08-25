@@ -36,7 +36,7 @@ function today_timer() {
     hh = checkTime(hh);
     mm = checkTime(mm);
     ss = checkTime(ss);
-    console.log(dd, hh, mm, ss);
+
     if (ts > 100800000 && ts < 136800000) {
         $(".poster_timer.tm2").text("敬请期待");
     } else if (ts < 100800000 && ts >= 86400000) {
@@ -97,20 +97,20 @@ function tm_timer_today() {
     mm = checkTime(mm);
     ss = checkTime(ss);
     console.log(dd, hh, mm, ss);
-    if (ts >= 86400000) {
+    if (ts > 100800000 && ts < 136800000) {
+        $(".poster_timer.tm1").text("敬请期待");
+    } else if (ts < 100800000 && ts >= 86400000) {
         $(".poster_timer.tm1").text("剩余" + dd + "天" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 tm_timer_today();
             },
             1000);
-    } else if (ts < 86400000 && ts > 0) {
+    } else if (ts < 86400000) {
         $(".poster_timer.tm1").text("剩余" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
                 tm_timer_today();
             },
             1000);
-    } else {
-        $(".poster_timer.tm1").text("敬请期待");
     }
 }
 function tm_timer() {
@@ -119,7 +119,7 @@ function tm_timer() {
      * auther:yann
      * date:2015/20/8
      */
-    var ts = (new Date(2015, 7, 24, 14, 0, 0)) - (new Date());//计算剩余的毫秒数
+    var ts = (new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0, 0)) - (new Date());//计算剩余的毫秒数
     var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
     var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
     var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
