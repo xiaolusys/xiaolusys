@@ -230,8 +230,7 @@ class XiaoluMama(models.Model):
     
     def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
         """ 按日期获取小鹿妈妈点击价格 """
-        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
-        if agency_levels.count() < 2:
+        if self.agencylevel < 2:
             return 0
         if day_date >= ROI_CLICK_START:
             return 10
