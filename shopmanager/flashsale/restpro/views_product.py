@@ -79,7 +79,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    paginate_by = 50
+    paginate_by = 60
     page_query_param = 'page_size'
     max_paginate_by = 100
     

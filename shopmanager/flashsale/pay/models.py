@@ -210,16 +210,18 @@ class SaleTrade(models.Model):
         signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
             
     def charge_confirm(self,charge_time=None):
-        
+        """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
+        trade_close = self.status == self.TRADE_CLOSED_BY_SYS
         self.status = self.WAIT_SELLER_SEND_GOODS
         self.pay_time = charge_time or datetime.datetime.now()
         self.save()
         
-        for order in self.normal_orders:
+        for order in self.sale_orders.all():
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
-        
-        self.release_lock_skunum()        
+        if not trade_close:
+            self.release_lock_skunum()    
+                
         self.confirm_payment()
         
     def close_trade(self):
@@ -235,9 +237,10 @@ class SaleTrade(models.Model):
     @property
     def can_sign_order(self):
         """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""
-        return self.sale_orders.filter(status__in=(SaleOrder.WAIT_SELLER_SEND_GOODS,
-                                                   SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
-                                                   SaleOrder.TRADE_BUYER_SIGNED))
+        return self.sale_orders.filter(status__in=
+                                       (SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                       SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                                       SaleOrder.TRADE_BUYER_SIGNED))
 
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """

@@ -133,7 +133,7 @@ class XiaoluMama(models.Model):
         
     def get_Mama_Agency_Rebeta_Rate(self):
         """ 获取代理妈妈获取子级代理的提成点数 """
-        if self.agencylevel > 2:
+        if self.agencylevel > 1:
             return 0.05
         return 0
         
@@ -230,8 +230,7 @@ class XiaoluMama(models.Model):
     
     def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
         """ 按日期获取小鹿妈妈点击价格 """
-        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
-        if agency_levels.count() < 2:
+        if self.agencylevel < 2:
             return 0
         if day_date >= ROI_CLICK_START:
             return 10

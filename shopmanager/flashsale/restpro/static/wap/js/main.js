@@ -96,7 +96,6 @@ function tm_timer_today() {
     hh = checkTime(hh);
     mm = checkTime(mm);
     ss = checkTime(ss);
-    console.log(dd, hh, mm, ss);
     if (ts > 100800000 && ts < 136800000) {
         $(".poster_timer.tm1").text("敬请期待");
     } else if (ts < 100800000 && ts >= 86400000) {
@@ -237,7 +236,7 @@ function Create_item_dom(p_obj,close_model){
             if (p_obj.sale_time == today) {
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">即将开售</div>';
             } else {
-                p_obj.saleout_dom = '<div class="mask"></div><div class="text">已过期</div>';
+                p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
             }
         }
         p_obj.product_model.head_imgs = p_obj.product_model.head_imgs[0]
@@ -249,10 +248,10 @@ function Create_item_dom(p_obj,close_model){
         if (p_obj.sale_time == today) {
             p_obj.saleout_dom = '<div class="mask"></div><div class="text">即将开售</div>';
         } else {
-            p_obj.saleout_dom = '<div class="mask"></div><div class="text">已过期</div>';
+            p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
         }
     } else if (p_obj.is_saleout) {
-        p_obj.saleout_dom = '<div class="mask"></div><div class="text">抢光了</div>';
+        p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
     }
 	return hereDoc(Item_dom).template(p_obj);
 }
