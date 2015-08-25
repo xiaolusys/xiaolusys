@@ -468,8 +468,8 @@ admin.site.register(CouponPool, CouponPoolAdmin)
 
 
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified')
-    list_filter = ('created',)
+    list_display = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified', 'status')
+    list_filter = ('created', 'status')
     search_fields = ['coupon_user', 'mobile', 'trade_id']
     list_per_page = 50
 
