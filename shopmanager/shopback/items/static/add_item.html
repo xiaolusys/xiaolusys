@@ -161,6 +161,7 @@
 
                 </div>
             </div>
+
             <div class="row">
 
                 <div class="col-md-1"><label>尺码</label></div>
@@ -205,6 +206,48 @@
                     </label>
                 </div>
             </div>
+            <div class="row">
+
+                <div class="col-md-1"><label>尺码对照</label></div>
+
+                <div class="col-md-10">
+                    &nbsp;
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="衣长">衣长
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="肩宽">肩宽
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="胸围">胸围
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="袖长">袖长
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="下摆宽">下摆宽
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="腰围">腰围
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="臀围">臀围
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="裙长">裙长
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="裤长">裤长
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="裙长/裤长">裙长/裤长
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="chima-choose" value="建议身高">建议身高
+                    </label>
+
+                </div>
+            </div>
         </div>
     </div>
 
@@ -213,7 +256,7 @@
         <div class="panel-heading">
             <h3 class="panel-title">价格&库存</h3>
         </div>
-        <table class="table" id="table-id">
+        <table class="table table-striped" id="table-id">
             <thead>
             <th>商品颜色名称</th>
             <th>系统规格名称</th>
@@ -231,9 +274,28 @@
         <div class="panel-heading">
             <h3 class="panel-title">尺码表填写</h3>
         </div>
-        <div class="panel-body">
-        </div>
+        <table class="table table-striped" id="chima-table">
+            <thead style="height: 20px"></thead>
+            <tbody></tbody>
+        </table>
     </div>
+
+    <script id="thead-template" type="text/html">
+        <th></th>
+        {{ each sku as one_sku k}}
+        <th>{{ one_sku }}</th>
+        {{/each}}
+    </script>
+    <script id="chi-template" type="text/html">
+        {{ each chi_ma as one_chi i}}
+        <tr>
+            <td>{{ one_chi }}</td>
+            {{ each sku as one_sku j}}
+            <td><input type="text" class="form-control"/></td>
+            {{/each}}
+        </tr>
+        {{/each}}
+    </script>
     <script id="tr-template" type="text/html">
         {{ each color as one_color i}}
         <tr>
@@ -261,9 +323,7 @@
         {{/each}}
 
     </script>
-    <input type="button" id="btnval" class="btn" value="获取值"/>
-    <input type="button" id="btntext" class="btn" value="获取文本"/>
-    <input type="button" id="add-more" class="btn" value="增加一行"/>
+
 
 </div>
 
@@ -291,10 +351,10 @@
 <script src="http://youni.huyi.so/static/wap/js/template.js"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
-<script type="text/javascript" src="http://youni.huyi.so/static/script/ui.js"></script>
+<script type="text/javascript" src="js/ui.js"></script>
 <script type="text/javascript" src="http://youni.huyi.so/static/script/qiniu.js"></script>
 <script type="text/javascript" src="js/sku_choose.js"></script>
 
-<script type="text/javascript" src="http://youni.huyi.so/static/script/main.js"></script>
+<script type="text/javascript" src="js/main.js"></script>
 </body>
 </html>
