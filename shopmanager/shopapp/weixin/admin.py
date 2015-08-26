@@ -43,7 +43,7 @@ from shopapp.weixin.models import (WeiXinAccount,
 import logging
 logger = logging.getLogger("django.request")
 
-class WeixinUnionIDAdmin(admin.ModelAdmin):
+class WeixinUnionIDAdmin(MyAdmin):
     
     list_display = ('openid','app_key','unionid','created')
     

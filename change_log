@@ -1,3 +1,10 @@
+########### 2015-8-26 #################
+CREATE INDEX `shop_items_product_52094d6e` ON `shop_items_product` (`name`);
+CREATE INDEX `shop_items_product_aff30766` ON `shop_items_product` (`model_id`);
+CREATE INDEX `flashsale_productdetail_44e36594` ON `flashsale_productdetail` (`is_recommend`);
+CREATE INDEX `flashsale_productdetail_28ffeec5` ON `flashsale_productdetail` (`is_seckill`);
+CREATE INDEX `flashsale_productdetail_dfd6476a` ON `flashsale_productdetail` (`buy_limit`);
+CREATE INDEX `suplychain_flashsale_orderdetail_bb420c12` ON `suplychain_flashsale_orderdetail` (`product_id`,`chichu_id`);
 ########### 2015-8-24 #################
 alter table flashsale_productdetail add column material varchar(64) null;
 alter table flashsale_productdetail add column color varchar(64) null;

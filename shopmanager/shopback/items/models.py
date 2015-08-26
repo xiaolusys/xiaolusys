@@ -72,7 +72,7 @@ class Product(models.Model):
     
     outer_id     = models.CharField(max_length=64,unique=True,null=False,
                                     blank=True,verbose_name=u'外部编码')
-    name         = models.CharField(max_length=64,blank=True,verbose_name=u'商品名称')
+    name         = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品名称')
     
     model_id     = models.BigIntegerField(db_index=True,default=0,verbose_name='商品款式ID')
     
