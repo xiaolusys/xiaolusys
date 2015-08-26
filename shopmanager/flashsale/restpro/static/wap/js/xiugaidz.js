@@ -30,6 +30,45 @@ function province_list() {
 
 }
 
+function province(){
+
+ var selectid_province = document.getElementById("s_province");
+  
+    selectid_province[0] = new Option("请选择省", 0);
+ var selectid_city = document.getElementById("s_city");
+    selectid_city.options.length = 0;
+    selectid_city[0] = new Option("请选择市", 0);
+  var selectid_country = document.getElementById("s_country");
+    selectid_country.options.length = 0;
+    selectid_country[0] = new Option('请选择区/县', 0);
+
+}
+
+
+function city(){
+selected_province = $("#s_province option:selected");
+    province_id = selected_province.val()    //获取省份的id
+
+if (province_id==0){
+ var selectid_province = document.getElementById("s_province");
+    selectid_province[0] = new Option("请选择省", 0);
+ var selectid_city = document.getElementById("s_city");
+    selectid_city.options.length = 0;
+    selectid_city[0] = new Option("请选择市", 0);
+  var selectid_country = document.getElementById("s_country");
+    selectid_country.options.length = 0;
+    selectid_country[0] = new Option('请选择区/县', 0);
+}
+
+else{
+
+
+}
+
+}
+
+
+
 //第一个框的点击事件
 function setSecond() {
     selected_province = $("#s_province option:selected");
