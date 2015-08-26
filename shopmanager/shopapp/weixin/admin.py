@@ -43,13 +43,13 @@ from shopapp.weixin.models import (WeiXinAccount,
 import logging
 logger = logging.getLogger("django.request")
 
-class WeixinUnionIDAdmin(admin.ModelAdmin):
+class WeixinUnionIDAdmin(MyAdmin):
     
     list_display = ('openid','app_key','unionid','created')
     
     list_display_links = ('openid',)
     
-    list_filter = ('app_key',)
+    list_filter = (('created',DateFieldListFilter),)
     search_fields = ['=openid','=unionid']
 
 admin.site.register(WeixinUnionID, WeixinUnionIDAdmin)  

@@ -24,8 +24,8 @@ class Productdetail(models.Model):
     
     mama_discount  = models.IntegerField(default=100,verbose_name=u'妈妈折扣')
     is_recommend = models.BooleanField(db_index=True,verbose_name=u'专区推荐')
-    is_seckill   = models.BooleanField(default=False, verbose_name=u'是否秒杀')
-    buy_limit    = models.BooleanField(default=False,verbose_name=u'是否限购')
+    is_seckill   = models.BooleanField(db_index=True,default=False, verbose_name=u'是否秒杀')
+    buy_limit    = models.BooleanField(db_index=True,default=False,verbose_name=u'是否限购')
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
 
     material = models.CharField(max_length=64, blank=True, verbose_name=u'商品材质')

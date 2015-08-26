@@ -15,7 +15,7 @@ logger = logging.getLogger('celery.handler')
 
 __author__ = 'meixqhi'
 
-CLICK_REBETA_DAYS = 3
+CLICK_REBETA_DAYS = 11
 ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 
@@ -634,7 +634,7 @@ def task_Push_WXOrder_Finished(pre_days=10):
                 ptrade = MergeTrade.objects.get(id=smergetrade.main_tid)
                 if not ptrade.weight_time or ptrade.weight_time > day_date:
                     continue
-                    
+                
             morders = mtrade.normal_orders.filter(oid=wxorder_id)
             if (morders.count() == 0 or 
                 morders[0].status in (MergeTrade.TRADE_CLOSED,

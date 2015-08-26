@@ -12,8 +12,8 @@ class WeixinUnionID(models.Model):
     class Meta:
         db_table = 'shop_weixin_unionid'
         unique_together = ('openid', 'app_key') 
-        verbose_name=u'微信用户UNIONID'
-        verbose_name_plural = u'微信用户UNIONID列表'
+        verbose_name=u'微信用户授权ID'
+        verbose_name_plural = u'微信用户授权ID列表'
     
     def __unicode__(self):
         return u'<%s>'%self.openid

@@ -66,9 +66,11 @@ class ProductdetailInline(admin.StackedInline):
     
     model = Productdetail
     
-    fields = (('head_imgs','content_imgs'),
+    fields = ('head_imgs',
+              'content_imgs',
               ('is_seckill','is_recommend','mama_discount','buy_limit','per_limit','mama_rebeta'),
-              ('material', 'wash_instructions', 'note', 'color'))
+              ('material', 'color'),
+              ('note', 'wash_instructions'))
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'50'})},
@@ -92,7 +94,7 @@ class ItemAdmin(admin.ModelAdmin):
 admin.site.register(Item, ItemAdmin)
 
 from flashsale.dinghuo.models import OrderDetail
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(MyAdmin):
     
     category_list = []
     ware_list  = []
@@ -244,12 +246,8 @@ class ProductAdmin(admin.ModelAdmin):
     sale_time_select.allow_tags = True
     sale_time_select.short_description = u"上架时间"
 
-
-
     def charger_select(self, obj):
-
         categorys = self.storage_chargers
-
         if len(categorys) > 0:
             cat_list = ["<select class='charger_select' cid='%s'>"%obj.id]
             cat_list.append("<option value=''>---------------</option>")
@@ -352,9 +350,7 @@ class ProductAdmin(admin.ModelAdmin):
                 
         for action in unauth_actions:
             del actions[action]
-                
         return actions
-    
     
     def response_add(self, request, obj, post_url_continue='../%s/'):
         
@@ -633,6 +629,7 @@ class ProductAdmin(admin.ModelAdmin):
             else:
                 t.ware_by = MergeTrade.WARE_NONE
                 t.sys_memo += u'[物流：请拆单或选择始发仓]'
+                t.append_reason_code(pcfg.DISTINCT_RULE_CODE)
             update_model_fields(t,update_fields=['sys_status','sys_memo','ware_by'])
             if t.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS):
                 log_action(request.user.id,t,CHANGE,u'取消定时提醒')

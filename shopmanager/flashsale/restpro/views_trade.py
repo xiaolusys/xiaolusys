@@ -258,6 +258,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             discount_fee += coupon_pool.coupon_value
             coupon_ticket = serializers.UserCouponPoolSerializer(coupon_pool).data
             coupon_ticket['receive_date'] = coupon.created
+            coupon_ticket['coupon_id'] = coupon_id
             
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
@@ -309,7 +310,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             weixin_payable = isFromWeixin(request)
             xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
-        
+            
         alipay_payable = True
         wallet_payable = False
         discount_fee = product_sku.calc_discount_fee(xlmm=xlmm)
@@ -324,7 +325,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             discount_fee    += coupon_pool.coupon_value
             coupon_ticket   = serializers.UserCouponPoolSerializer(coupon_pool).data
             coupon_ticket['receive_date'] = coupon.created
-
+            coupon_ticket['coupon_id'] = coupon_id
+            
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
