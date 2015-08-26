@@ -122,10 +122,13 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["post"])
     def delete_address(self, request, pk=None):
-        instance = self.get_object()
-        instance.status = UserAddress.DELETE
-        instance.save()
-        return Response({'ret': True})
+        try:
+            instance = self.get_object()
+            instance.status = UserAddress.DELETE
+            instance.save()
+            return Response({'ret': True})
+        except:
+            return Response({'ret': False})
     
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
@@ -157,10 +160,13 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address = content.get('receiver_address', None)
         receiver_name = content.get('receiver_name', None)
         receiver_mobile = content.get('receiver_mobile', None)
-        UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, receiver_state=receiver_state,
+        try:
+            UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, receiver_state=receiver_state,
                                    receiver_city=receiver_city, receiver_district=receiver_district,
                                    receiver_address=receiver_address, receiver_mobile=receiver_mobile)
-        result['ret'] = True
+            result['ret'] = True
+        except:
+            result['ret'] = False
         return Response(result)
 
     @list_route(methods=['get'])
