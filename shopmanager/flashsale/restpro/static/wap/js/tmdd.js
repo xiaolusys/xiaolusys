@@ -223,18 +223,30 @@ function Set_order_detail(suffix) {
 }
 
 function Handler_Refund_Bth(data){
-    console.log("debug status",data.status);
-    var t = new Date();
-    var h  = t.getHours();
-    if(h>=14 && data.status==2){ //大于下午两点 且是已经付款的状态的　不能退款
-        console.log("debug now hour:",h);
-        $(".refund_status_"+0).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
-        $("#btn_refund").click(function () {
-        if (h >= 14) { //大于下午两点　不能退款
-            drawToast("商品已经出仓,拼命的朝您奔来~");
+    console.log("debug data.orders.length:", data.orders[0]);
+    for (var i = 0; i < data.orders.length; i++) {
+        var item_id = data.orders[i].item_id;
+        var requestUrl = GLConfig.baseApiUrl + "/products/" + item_id;
+        $.ajax({
+            type: 'get',
+            url: requestUrl,
+            data: {},
+            dataType: 'json',
+            success: requestCallBack
+        });
+        function requestCallBack(res) {
+            console.log(res.is_saleopen);
+            if (res.is_saleopen==false && data.status == 2) {//　商品已经下架了　在付款状态的就不予退款
+                $(".refund_status_" + 0).removeAttr("href");// 删除锚文本的链接　不予跳转
+                $("#btn_refund").click(function () {
+                    if (res.is_saleopen==false) { //商品已经下架
+                        drawToast("订单已在处理中~");
+                    }
+                });
+            }
         }
-    });
     }
+
     for(var i= 1;i<=7;i++){
         $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
     }
