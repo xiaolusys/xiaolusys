@@ -49,7 +49,7 @@ class WeixinUnionIDAdmin(admin.ModelAdmin):
     
     list_display_links = ('openid',)
     
-    list_filter = ('app_key',)
+    list_filter = (('created',DateFieldListFilter),)
     search_fields = ['=openid','=unionid']
 
 admin.site.register(WeixinUnionID, WeixinUnionIDAdmin)  

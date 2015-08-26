@@ -483,7 +483,11 @@ from . import tasks
 def logclicks(request, linkid):
     content = request.REQUEST
     code = content.get('code',None)
-
+    
+    user_agent = request.META.get('HTTP_USER_AGENT')
+    if not user_agent or user_agent.find('MicroMessenger') < 0:
+        return redirect(settings.M_SITE_URL)
+    
     openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET)
 
