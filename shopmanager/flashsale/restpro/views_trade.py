@@ -50,6 +50,7 @@ def isFromWeixin(request):
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     """
     ###特卖购物车REST API接口：
+    > payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
     - {prefix}/{{pk}}/delete_carts[.formt]: 删除;
     - {prefix}/{{pk}}/plus_product_carts[.formt]: 增加一件;
     - {prefix}/{{pk}}/minus_product_carts[.formt]: 减少一件;
@@ -426,6 +427,7 @@ from flashsale.pay.tasks import confirmTradeChargeTask
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
     ###特卖订单REST API接口：
+    > payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额)
     - {path}/waitpay[.formt]:获取待支付订单；
     - {path}/waitsend[.formt]:获取待发货订单；
     - {path}/{pk}/charge[.formt]:支付待支付订单;

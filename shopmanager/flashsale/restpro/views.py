@@ -283,7 +283,7 @@ from django.http import HttpResponse
 from shopback.base import log_action, ADDITION, CHANGE
 
 class UserCouponViewSet(viewsets.ModelViewSet):
-    queryset = Coupon.objects.filter(status=Coupon.RECEIVE)
+    queryset = Coupon.objects.filter()
     serializer_class = serializers.UserCouponSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
@@ -304,15 +304,14 @@ class UserCouponViewSet(viewsets.ModelViewSet):
             coupon_type = coupol.coupon_type
             coupon_value = coupol.coupon_value
             created = coupol.created.strftime("%Y-%m-%d")
-            deadline = coupol.deadline.strftime("%Y-%m-%d %H:%M")
+            deadline = coupol.deadline.strftime("%Y-%m-%d")
             data_entry = {"id": id, "coupon_user": coupon_user, "coupon_no": coupon_no, "coupon_type": coupon_type,
                           "coupon_value": coupon_value, "coupon_status": query.status,
                           "deadline": deadline,"created":created
                           }
             data.append(data_entry)
-
         return Response(data)
-
+    
     @list_route(methods=['post'])
     def user_create_coupon(self, request, *args, **kwargs):
         """用户购买页面　在自己没有优惠券的情况下　生成优惠券 """
@@ -374,3 +373,4 @@ class UserCouponViewSet(viewsets.ModelViewSet):
                       "deadline": coupon_pool.deadline, "created": coupon_pool.created
                       }
         return Response(data=[data_entry])
+    

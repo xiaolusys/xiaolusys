@@ -31,7 +31,7 @@ def genTradeUniqueid():
     return uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.date.today().strftime('%y%m%d')))
 
 class SaleTrade(models.Model):
-    
+    """ payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额) """
     PREFIX_NO  = 'xd'
     WX_PUB     = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
@@ -223,17 +223,25 @@ class SaleTrade(models.Model):
             self.release_lock_skunum()    
                 
         self.confirm_payment()
-        
+    
     def close_trade(self):
         """ 关闭待付款订单 """
-        SaleTrade.objects.get(id=self.id,status=SaleTrade.WAIT_BUYER_PAY)
-        
+        try:
+            SaleTrade.objects.get(id=self.id,status=SaleTrade.WAIT_BUYER_PAY)
+        except:
+            return
         for order in self.normal_orders:
             order.close_order()
             
         self.status = SaleTrade.TRADE_CLOSED_BY_SYS
         self.save()
-
+        #释放被当前订单使用的优惠券
+        self.release_coupon()
+        
+    def release_coupon(self):
+        """ 释放订单对应的优惠券 """
+        Coupon.objects.filter(trade_id=self.id,status=Coupon.USED).update(status=Coupon.RECEIVE)
+    
     @property
     def can_sign_order(self):
         """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""
