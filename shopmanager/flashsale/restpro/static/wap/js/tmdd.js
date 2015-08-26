@@ -207,7 +207,7 @@ function Set_order_detail(suffix) {
             );
 
             Cancel_order(suffix);//页面加载完成  调用 取消订单功能
-            Handler_Refund_Bth(data);
+            Handler_Refund_Bth();
 
 
         }
@@ -222,30 +222,7 @@ function Set_order_detail(suffix) {
     });
 }
 
-function Handler_Refund_Bth(data){
-    console.log("debug data.orders.length:", data.orders[0]);
-    for (var i = 0; i < data.orders.length; i++) {
-        var item_id = data.orders[i].item_id;
-        var requestUrl = GLConfig.baseApiUrl + "/products/" + item_id;
-        $.ajax({
-            type: 'get',
-            url: requestUrl,
-            data: {},
-            dataType: 'json',
-            success: requestCallBack
-        });
-        function requestCallBack(res) {
-            console.log(res.is_saleopen);
-            if (res.is_saleopen==false && data.status == 2) {//　商品已经下架了　在付款状态的就不予退款
-                $(".refund_status_" + 0).removeAttr("href");// 删除锚文本的链接　不予跳转
-                $("#btn_refund").click(function () {
-                    if (res.is_saleopen==false) { //商品已经下架
-                        drawToast("订单已在处理中~");
-                    }
-                });
-            }
-        }
-    }
+function Handler_Refund_Bth(){
 
     for(var i= 1;i<=7;i++){
         $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接

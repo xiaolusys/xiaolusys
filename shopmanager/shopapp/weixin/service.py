@@ -470,7 +470,7 @@ class WeixinUserService():
                 
             matchMsg = ''
             if msgtype == WeiXinAutoResponse.WX_TEXT: 
-                matchMsg = params['Content']
+                matchMsg = params['Content'] or ''
                 if event_re.match(matchMsg):
                     ret_params.update(self.handleEvent(matchMsg.upper(), openId))
                     return ret_params

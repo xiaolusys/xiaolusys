@@ -209,6 +209,31 @@ function Button_tijiao() {
     }
 }
 
+function Handler_Refund_Infor(data) {// data 是订单信息
+    console.log("debug data.orders.length:", data.orders[0]);
+    for (var i = 0; i < data.orders.length; i++) {
+        var item_id = data.orders[i].item_id;
+        var requestUrl = GLConfig.baseApiUrl + "/products/" + item_id;
+        $.ajax({
+            type: 'get',
+            url: requestUrl,
+            data: {},
+            dataType: 'json',
+            success: requestCallBack
+        });
+        function requestCallBack(res) {
+            console.log(res.is_saleopen);
+            if (res.is_saleopen == false && data.status == 2) {//　商品已经下架了　在付款状态的就不予退款
+                $(".refund_status_" + 0).removeAttr("href");// 删除锚文本的链接　不予跳转
+                $("#btn_refund").click(function () {
+                    if (res.is_saleopen == false) { //商品已经下架
+                        drawToast("订单已在处理中~");
+                    }
+                });
+            }
+        }
+    }
+}
 
 
 

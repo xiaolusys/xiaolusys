@@ -60,6 +60,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
+# from rest_framework_extensions.cache.decorators import cache_response
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -154,13 +155,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_child_qs(self,queryset):
         return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1',details__is_seckill=False)
     
+#     @cache_response()
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
         """ 获取今日推荐商品列表 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=today_dt).order_by('-details__is_recommend')
-        
+
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
         
