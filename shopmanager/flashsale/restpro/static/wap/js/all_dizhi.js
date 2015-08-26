@@ -64,10 +64,11 @@ function init() {
         })
 
       //点击li也可以
-     $("ul li").click(function () {
+      //点击li也可以
+     $("ul li p").click(function () {
 
 //console.log($(this).children());
-                 $(this).children("i")[0].click();
+                 $(this).parent().children("i")[0].click();
             });
        
 
