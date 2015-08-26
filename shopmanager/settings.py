@@ -228,6 +228,11 @@ REST_FRAMEWORK = {
     'MAX_PAGINATE_BY': 100     
 }
 
+REST_FRAMEWORK_EXTENSIONS = {
+    'DEFAULT_CACHE_ERRORS': False,
+    'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15,
+    'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
+}
 
 if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',

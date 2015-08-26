@@ -134,23 +134,19 @@ def task_Record_User_Click(pre_day=1):
     time_to = datetime.datetime(pre_date.year, pre_date.month, pre_date.day, 23, 59, 59)  # 停止时间
 
     xiaolumamas = XiaoluMama.objects.all()  # 所有小鹿妈妈们
-    
     for xiaolumama in xiaolumamas:  #
-        
         clicks = Clicks.objects.filter(click_time__range=(time_from, time_to),
                                        linkid=xiaolumama.id)  # 根据代理的id过滤出点击表中属于该代理的点击
-        
         click_num = clicks.count()  # 点击数量
         user_num  = clicks.values('openid').distinct().count()  # 点击人数
         valid_num = clicks.filter(isvalid=True).values('openid').distinct().count()
         
         clickcount, state = ClickCount.objects.get_or_create(date=pre_date,
                                                              linkid=xiaolumama.id)  # 在点击统计表中找今天的记录 如果 有number和小鹿妈妈的id相等的 说明已经该记录已经统计过了
-        
-        clickcount.weikefu = xiaolumama.weikefu  # 写名字到统计表
-        clickcount.username = xiaolumama.manager  # 接管人
+        clickcount.weikefu   = xiaolumama.weikefu  # 写名字到统计表
+        clickcount.username  = xiaolumama.manager  # 接管人
         clickcount.click_num = click_num
-        clickcount.mobile = xiaolumama.mobile
+        clickcount.mobile    = xiaolumama.mobile
         clickcount.agencylevel = xiaolumama.agencylevel
         clickcount.user_num = user_num
         clickcount.valid_num = valid_num
