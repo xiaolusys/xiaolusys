@@ -76,7 +76,7 @@ class Coupon(models.Model):
     coupon_user = models.CharField(max_length=32, db_index=True, verbose_name=u"用户ID")
     coupon_no = models.CharField(max_length=40, default='YH0', verbose_name=u"优惠券号码")
     mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'手机')
-    trade_id = models.CharField(max_length=40, blank=True, verbose_name=u"交易ID")
+    trade_id = models.CharField(max_length=40, db_index=True, blank=True, verbose_name=u"交易ID")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     status = models.IntegerField(db_index=True, default=RECEIVE, choices=COUPON_STATUS,verbose_name=u'使用状态')

@@ -120,16 +120,28 @@ class XiaoluMama(models.Model):
             return '%s'%self.manager
     
     def exam_Passed(self):
-        
-        from flashsale.mmexam.models import Result
-        results = Result.objects.filter(daili_user=self.openid)
-        if results.count() > 0  and results[0].is_Exam_Funished():
-            return True
-        return False
+        """ 妈妈考试是否通过 """
+        return True
+#         from flashsale.mmexam.models import Result
+#         results = Result.objects.filter(daili_user=self.openid)
+#         if results.count() > 0  and results[0].is_Exam_Funished():
+#             return True
+#         return False
+    
+    def get_Mama_Thousand_Target_Amount(self):
+        """ 获取妈妈千元基准成交额 """
+        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
+        if agency_levels.count() == 0:
+            return float('Inf')
+        return agency_levels[0].target
     
     def get_Mama_Thousand_Rate(self):
-        """ 获取妈妈千元提成 """
-        return 0.05
+        """ 获取妈妈千元提成率 """
+        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
+        if agency_levels.count() == 0:
+            return 0
+        return agency_levels[0].extra_rate
+        
         
     def get_Mama_Agency_Rebeta_Rate(self):
         """ 获取代理妈妈获取子级代理的提成点数 """

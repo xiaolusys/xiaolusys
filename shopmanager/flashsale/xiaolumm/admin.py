@@ -81,7 +81,6 @@ class XiaoluMamaAdmin(MyAdmin):
     total_inout_item.short_description = u"总收入/支出"
     
     def charge_link(self, obj):
-
         if obj.charge_status == XiaoluMama.CHARGED:
             return u'%s' % obj.manager_name
         
@@ -95,14 +94,8 @@ class XiaoluMamaAdmin(MyAdmin):
     charge_link.short_description = u"管理员"
     
     def exam_pass(self, obj):
-
-        results = Result.objects.filter(daili_user=obj.openid)
-        try:
-            if results.count() > 0  and results[0].is_Exam_Funished():
-                return u'<img src="/static/admin/img/icon-yes.gif"></img>&nbsp;%s' % results[0].get_exam_state_display()
-        except Exception,exc:
-            print 'debug exam pass:',exc.message
-
+        if obj.exam_Passed():
+            return u'<img src="/static/admin/img/icon-yes.gif"></img>&nbsp;已通过'
         return u'<img src="/static/admin/img/icon-no.gif"></img>&nbsp;未通过' 
         
     exam_pass.allow_tags = True
