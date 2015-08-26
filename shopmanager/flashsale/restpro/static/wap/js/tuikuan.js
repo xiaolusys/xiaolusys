@@ -73,6 +73,7 @@ function Set_order_detail(suffix) {
             //设置订单商品明细
             var detail_dom = Create_detail_dom(data);
             $('.basic .panel-bottom').append(detail_dom);
+            Handler_Refund_Infor(data.item_id,data.status);
 
 
         }
@@ -209,28 +210,31 @@ function Button_tijiao() {
     }
 }
 
-function Handler_Refund_Infor(data) {// data 是订单信息
-    console.log("debug data.orders.length:", data.orders[0]);
-    for (var i = 0; i < data.orders.length; i++) {
-        var item_id = data.orders[i].item_id;
-        var requestUrl = GLConfig.baseApiUrl + "/products/" + item_id;
-        $.ajax({
-            type: 'get',
-            url: requestUrl,
-            data: {},
-            dataType: 'json',
-            success: requestCallBack
-        });
-        function requestCallBack(res) {
-            console.log(res.is_saleopen);
-            if (res.is_saleopen == false && data.status == 2) {//　商品已经下架了　在付款状态的就不予退款
-                $(".refund_status_" + 0).removeAttr("href");// 删除锚文本的链接　不予跳转
-                $("#btn_refund").click(function () {
-                    if (res.is_saleopen == false) { //商品已经下架
-                        drawToast("订单已在处理中~");
-                    }
-                });
+function Handler_Refund_Infor(item_id,status) {// data 是订单信息
+    console.log("debug item_id:", item_id,status);// 2　退款　　３是退货
+    var requestUrl = GLConfig.baseApiUrl + "/products/" + item_id;
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: {},
+        dataType: 'json',
+        success: requestCallBack
+    });
+    function requestCallBack(res) {
+        console.log(res.is_saleopen);
+        res.is_saleopen = false;
+        if (res.is_saleopen == false) {//商品已经下架了
+            // 显示提示信息
+            var html = "";
+            if (status == 2) {
+                 html = '<span class="" style="float:right;font-size:15px;color:red">特卖商品已下架,' +
+                    '仓库可能已整理好您的购买的商品,装箱等待发货,请求可能会因此有所延迟,还请耐心等待,祝您购物愉快!</span>';
             }
+            //if (status == 3) {
+            //     html = '<span class="" style="float:right;font-size:15px;color:red">' +
+            //     '您购买的商品正在像您飞来,提交的退货请求会尽快的给您处理,还请耐心等待,祝您购物愉快!</span>';
+            //}
+            $(".panel-top").after(html);
         }
     }
 }
