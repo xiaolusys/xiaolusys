@@ -76,27 +76,22 @@ $(function () {
     uploader.bind('FileUploaded', function () {
         console.log('hello man,a file is uploaded');
     });
-    console.log($('#container'));
     $('#container').on(
         'dragenter',
         function (e) {
-            console.log("eeeeee");
             e.preventDefault();
             $('#container').addClass('draging');
             e.stopPropagation();
         }
     ).on('drop', function (e) {
-            console.log("eeeeeeff");
             e.preventDefault();
             $('#container').removeClass('draging');
             e.stopPropagation();
         }).on('dragleave', function (e) {
-            console.log("eeeeeddde");
             e.preventDefault();
             $('#container').removeClass('draging');
             e.stopPropagation();
         }).on('dragover', function (e) {
-            console.log("eaaaeeeee");
             e.preventDefault();
             $('#container').addClass('draging');
             e.stopPropagation();

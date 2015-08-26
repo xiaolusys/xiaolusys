@@ -101,6 +101,7 @@ function delete_address(obj, id) {
     var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/delete_address";
     var requestCallBack = function (data) {
         if (data.ret == true) {
+            alert("删除地址成功");
             obj.remove();   //删除地址
         }
         else {
