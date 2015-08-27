@@ -39,8 +39,12 @@ function mama_verify(id) { //通过
             alert("小鹿妈妈不能相互推荐或自荐");
         } else if (result == "already") {
             alert("小鹿妈妈已经被接管了");
-        } else {
-            alert("server error");
+        }
+        else if(result == "l_error"){
+            alert("推荐人代理级别有问题，请管理员检查下");
+        }
+        else {
+            alert("未知错误，联系技术人员");
         }
     }
 
