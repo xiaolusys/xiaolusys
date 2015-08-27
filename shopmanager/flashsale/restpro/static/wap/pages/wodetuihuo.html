@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>小鹿美美</title>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta id="viewport" name="viewport"/>
+
+    <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/tmtuihuo.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/wodetuihuo.css">
+    <link rel="stylesheet" href="../css/wodetuihuo-kong.css">
+</head>
+<body>
+<div class="header">
+    <a class="back" href="gerenzhongxin.html"></a>
+
+    <h1>我的退货</h1>
+</div>
+<ul class="jifen-list"></ul>
+
+<script type="text/html" id="tuihuo_kong">
+    <div class="kv"></div>
+    <p class="tips">
+        您还没有退货记录~<br>
+    </p>
+    <a class="back-index" href="../index.html">去首页逛逛</a>
+</script>
+
+<script type="text/html" id="tuihuo_list">
+    <li>
+        <p class="time">下单时间：{{ create }} <span style="float:right">{{ refund_status_display }}</span></p>
+        <a href="./wodetuihuo-detail.html?tid={{ t_id }}&id={{ id }}" class="info clear">
+            <div class="info">
+                <div class="left">
+                    <img src="{{ pic_path }}"/>
+                </div>
+                <div class="right">
+                    <p>订单编号：<span class="caaaaaa">{{ oid }}</span></p>
+                    <p>订单状态：<span class="cf353a0">{{ status_display }}</span></p>
+                    <p>订单金额：<span class="cf353a0">¥{{ total_fee }}</span></p>
+                </div>
+            </div>
+        </a>
+    </li>
+</script>
+</body>
+</html>
+
+
+

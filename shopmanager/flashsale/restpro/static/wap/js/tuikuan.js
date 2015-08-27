@@ -47,12 +47,13 @@ function Set_order_detail(suffix) {
     var requestCallBack = function (data) {
         if (typeof(data.id) != 'undifined' && data.id != null) {
             var refun_status = (data.refund_status_display);
-            if (refun_status=="没有退款"){
-                swal_flag = 1;//设置cookie 果冻弹窗的次数 为 0
-            }
-            else{
-                swal_flag = 0;
-            }
+            console.log(refun_status, 'refun_status');
+            //if (refun_status == "没有退款") {
+            //    swal_flag = 1;
+            //}
+            //else {
+            //    swal_flag = 0;
+            //}
             if (data.status == 2) { //显示申请退款标题
                 console.log(data.status, '订单状态');
                 var header = Create_tuikuan_header();
@@ -63,9 +64,6 @@ function Set_order_detail(suffix) {
                 console.log(data.status, '订单状态');
                 var header = Create_tuihuo_header();
                 $('body').before(header);  //在body 的最前面添加
-                //添加输入　退回快递公司　　退回快递单号
-                var mor_input = Create_sid_commpany();
-                $("#refund_more_info").append(mor_input);
             }
             //设置订单基本信息
             var top_dom = Create_order_top_dom(data);
@@ -77,6 +75,18 @@ function Set_order_detail(suffix) {
 
 
         }
+        var order_payment = $("#order_payment").html().split(">")[2];
+        $("#shenqingjine").keyup(function(){
+            var refund_fee = parseFloat(($(this).val()).trim());
+            console.log("debug refund_fee :",refund_fee);
+            var checkNum = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;
+            if(!checkNum.test(refund_fee)){
+                drawToast("您申请金额填写的不正确哦~");
+            }
+            if(refund_fee >order_payment){
+                drawToast("您申请金额超过了可以申请的金额哦~");
+            }
+        });
     };
     // 发送请求
     $.ajax({
@@ -112,101 +122,133 @@ function Button_plus_num(id) {
 
 
 function Button_tijiao() {
-
-    var logi_company = $("#logi_company").val();
-    var logi_sid = $("#logi_sid").val();
     var data = [];
     var refund_reason = $("#selec_resason").val();
-    var order_payment = $("#order_payment").html().split(">")[2];     //　退款的订单金额
-    if (refund_or_pro == 1) {//退货　　物流信息
-        data.push({
-            "reason": refund_reason,
-            "refund_or_pro": refund_or_pro,
-            "logi_company": logi_company,
-            "logi_sid": logi_sid
-        });
-        if (logi_company == "" || logi_sid == "") {
-            // 物流信息不完整
-            var mess = "退款金额为：" + order_payment + "￥" + "\n物流信息不全将导致申请进度受阻\n您确定退单？";
-        }
-        else {
-            mess = "退款金额为：" + order_payment + "￥" + "\n您确定退单？";
-        }
+    var shenqingjine = $.trim($("#shenqingjine").val());     //　退款的订单金额
+    var feedback = $("#feedback").val();
+    var checkNum = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;
+
+    var urlParams = parseUrlParams(window.location.href);
+    var modify = urlParams['modify'];  // 是否是修改内容
+    console.log(modify, 'modify');
+    if (modify) {
+        modify = 1;// 不是修改页面来的
     }
-    if (refund_or_pro == 0) {//退款
-        data.push({"reason": refund_reason, "refund_or_pro": refund_or_pro});
-        mess = "退款金额为：" + order_payment + "￥" + "\n您确定退单？";
+    else{
+        modify = 0;
     }
-    $('.goods-info').each(function (i, v) {
-        var num = $(v).find(".order_detail_num").html();
-        var oid = $(v).find(".order_detail_num").attr('id').split("_")[2];
-        var gprice = ($(v).find(".gprice").html()).split(">")[2];
-        var sum_price = num * gprice;
-        var sub_data = {"id": oid, "num": num, "price": gprice, "sum_price": sum_price};
-        data.push(sub_data);
-    });
-
-    var url = GLConfig.baseApiUrl + GLConfig.refunds;
-
-    var requetCall = function callback(res) {
-        drawToast("您已经提交了申请,耐心等待售后处理！");
-        if (res.res == "already_refund") {
-            drawToast("您已经提交了申请,耐心等待售后处理！");
-            swal_flag = 0;
-        }
-        else if (res.res == "refund_success") {
-            drawToast("操作成功！");
-            swal_flag = 0;
-        }
-        else if (res.res == "forbidden") {
-            drawToast("您的订单已经在处理中！");
-            swal_flag = 0;
-        }
-    };
-    if(swal_flag==0){
-        swal({
-                title: "",
-                text: "已经提交过了哦~ 去首页逛逛?",
-                type: "",
-                showCancelButton: true,
-                imageUrl: "http://image.xiaolu.so/logo.png",
-                confirmButtonColor: '#DD6B55',
-                confirmButtonText: "确定",
-                cancelButtonText: "取消"
-
-            },
-            function() {
-                //这里可以跳转到首页
-                location.href ="../index.html"
-            }
-        )
+    console.log(modify, 'modify');
+    if (shenqingjine == '') {
+        drawToast("您申请的金额为空哦~");
+    }
+    else if (!checkNum.test(shenqingjine)) {
+        drawToast("您申请金额填写的不正确哦~");
+    }
+    else if (feedback == '') {
+        drawToast("您申请建议为空,更好的有助于售后更好的服务哦~");
     }
     else {
-        swal({
-                title: "",
-                text: mess,
-                type: "",
-                showCancelButton: true,
-                imageUrl: "http://image.xiaolu.so/logo.png",
-                confirmButtonColor: '#DD6B55',
-                confirmButtonText: "确定",
-                cancelButtonText: "取消"
-            },
-            function () {
-                ajax_to_server();
-                //setCookie_Swal_Flag('0');//设置cookie 果冻弹窗的初始化 为 0
-            }
-        );
-    }
-
-    function ajax_to_server() {
-        $.ajax({
-            "url": url,
-            "data": {'csrfmiddlewaretoken': csrftoken, "refund": data},
-            "type": "post",
-            dataType: 'json',
-            success: requetCall
+        console.log(feedback, 'feedback');
+        console.log(shenqingjine, 'shenqingjine');
+        console.log(refund_or_pro, 'refund_or_pro');
+        if (refund_or_pro == 1) {//退货　　物流信息
+            data.push({
+                "reason": refund_reason,
+                "refund_or_pro": refund_or_pro
+            });
+            var mess = "退款金额为：" + shenqingjine + "￥" + "\n您确定退单？";
+        }
+        if (refund_or_pro == 0) {//退款
+            data.push({
+                "reason": refund_reason,
+                "refund_or_pro": refund_or_pro
+            });
+            mess = "退款金额为：" + shenqingjine + "￥" + "\n您确定退单？";
+        }
+        $('.goods-info').each(function (i, v) {
+            var num = $(v).find(".order_detail_num").html();
+            var oid = $(v).find(".order_detail_num").attr('id').split("_")[2];
+            var gprice = ($(v).find(".gprice").html()).split(">")[2];
+            var sub_data = {
+                "id": oid,
+                "num": num,
+                "price": gprice,
+                "sum_price": shenqingjine,
+                "feedback": feedback,
+                "modify": modify
+            };
+            data.push(sub_data);
         });
+
+        var url = GLConfig.baseApiUrl + GLConfig.refunds;
+        var requetCall = function callback(res) {
+            drawToast("您已经提交了申请,耐心等待售后处理！");
+            console.log(",res.res",res.res);
+            if (res.res == "already_refund") {
+                drawToast("您已经提交了申请,耐心等待售后处理！");
+                swal_flag = 0;
+                //跳转到我的退货款页面
+                window.location.href = "../pages/wodetuihuo.html";
+            }
+            else if (res.res == "refund_success") {
+                drawToast("操作成功！");
+                swal_flag = 0;
+                //跳转到我的退货款页面
+                location.href = "../pages/wodetuihuo.html";
+            }
+            else if (res.res == "forbidden") {
+                drawToast("您的订单已经在处理中！");
+                swal_flag = 0;
+            }
+            else if(res.res=="ok"){
+                window.location.href = "../pages/wodetuihuo.html";
+            }
+        };
+        if (swal_flag == 1) {
+            swal({
+                    title: "",
+                    text: "已经提交过了哦~ 去首页逛逛?",
+                    type: "",
+                    showCancelButton: true,
+                    imageUrl: "http://image.xiaolu.so/logo.png",
+                    confirmButtonColor: '#DD6B55',
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消"
+
+                },
+                function () {
+                    //这里可以跳转到首页
+                    location.href = "../index.html"
+                }
+            )
+        }
+        else {
+            swal({
+                    title: "",
+                    text: mess,
+                    type: "",
+                    showCancelButton: true,
+                    imageUrl: "http://image.xiaolu.so/logo.png",
+                    confirmButtonColor: '#DD6B55',
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消"
+                },
+                function () {
+                    ajax_to_server();
+                    //setCookie_Swal_Flag('0');//设置cookie 果冻弹窗的初始化 为 0
+                }
+            );
+        }
+
+        function ajax_to_server() {
+            $.ajax({
+                "url": url,
+                "data": {'csrfmiddlewaretoken': csrftoken, "refund": data},
+                "type": "post",
+                dataType: 'json',
+                success: requetCall
+            });
+        }
     }
 }
 
@@ -238,6 +280,5 @@ function Handler_Refund_Infor(item_id,status) {// data 是订单信息
         }
     }
 }
-
 
 

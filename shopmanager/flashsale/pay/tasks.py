@@ -175,7 +175,7 @@ def pushTradeRefundTask(refund_id):
         
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
-        
+
         from shopback.refunds.models import Refund
         
         seller = getOrCreateSaleSeller()

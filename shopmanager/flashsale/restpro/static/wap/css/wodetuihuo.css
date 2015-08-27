@@ -1,0 +1,57 @@
+.jifen-list{
+	width:640px;
+	margin:0 auto;
+}
+.jifen-list li{
+  background-color:#fff;
+  border-top:1px solid #bec0c2;
+  border-bottom: 1px solid #bec0c2;
+  height: 260px;
+  margin:20px 0;
+  padding: 0 40px;
+  color: #5f5f5f;
+}
+.jifen-list .time{
+  color: #5f5f5e;
+  font-size: 22px;
+  line-height: 62px;
+  border-bottom: 1px solid #bec0c2;
+  margin-top: 14px;
+}
+.jifen-list .info{
+  font-size: 26px;
+  margin-top: 14px;
+}
+.jifen-list .info .left{
+  width:150px;
+  float: left;
+  height: 168px;
+}
+.jifen-list .info .left img{
+  width: 137px;
+  height: 124px;
+  margin-top: 15px;
+}
+.jifen-list .info .right{
+  width:400px;
+  float: right;
+  height: 168px;
+}
+.jifen-list .info .right p{
+  line-height: 2;
+}
+.jifen-list .caaaaaa{
+  color:#aaaaaa;
+    font-size: smaller;
+}
+.jifen-list .cf353a0{
+  color:#f353a0;
+}
+
+.clear{
+  color: #5f5f5f;
+  display: block;
+  font-size: 26px;
+  margin-top: 14px;
+  background: url(../images/icon-jiantouyou2.png) no-repeat right 10px center;
+}
