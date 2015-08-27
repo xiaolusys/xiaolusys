@@ -1,0 +1,414 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>小鹿美美</title>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta id="viewport" name="viewport"/>
+    <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/template.js"></script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
+    <link rel="stylesheet" href="../css/tuihuo-detail.css">
+    <link rel="stylesheet" href="../css/wodetuihuo-kong.css">
+</head>
+<body>
+<div class="header">
+    <a class="back" href="wodetuihuo.html"></a>
+
+    <h1>退货(款)详情</h1>
+</div>
+
+<div class="content">
+    <div class="warring_info">
+
+        <script type="text/html" id="warring_info_content_1">
+            <div class="warring">
+                <img src="../images/tuihuo-warning.png" class="icon">
+
+                <p class="warring_info_x">等待小鹿处理退货申请</p>
+            </div>
+        </script>
+
+        <script type="text/html" id="warring_info_content_2">
+            <div class="warring">
+                <img src="../images/icon-ok.png" class="icon">
+
+                <p class="warring_info_x" style="margin-left: 22%">退货申请成功</p>
+            </div>
+        </script>
+        <!-- 退款申请成功-->
+        <script type="text/html" id="warring_info_content_8">
+            <div class="warring">
+                <img src="../images/icon-ok.png" class="icon">
+
+                <p class="warring_info_x" style="margin-left: 22%">退款申请成功</p>
+            </div>
+        </script>
+        <script type="text/html" id="warring_info_content_3">
+            <div class="warring">
+                <img src="../images/tuihuo-ing.png" class="icon" style="width: 50px;height: 50px">
+
+                <p class="warring_info_x">退货中...请耐心等待!</p>
+            </div>
+        </script>
+        <script type="text/html" id="warring_info_content_4">
+            <div class="warring">
+                <img src="../images/tuihuo-close.png" class="icon">
+
+                <p class="warring_info_x">卖家拒绝了您的申请!</p>
+            </div>
+        </script>
+        <script type="text/html" id="warring_info_content_5">
+            <div class="warring">
+                <img src="../images/icon-ok.png" class="icon">
+
+                <p class="warring_info_x">确认退款,等待返款!</p>
+            </div>
+        </script>
+        <script type="text/html" id="warring_info_content_6">
+            <div class="warring">
+                <img src="../images/icon-ok.png" class="icon">
+
+                <p class="warring_info_x" style="margin-left: 22%">退款成功 !</p>
+            </div>
+        </script>
+        <script type="text/html" id="warring_info_content_7">
+            <div class="warring">
+                <img src="../images/tuihuo-close.png" class="icon">
+
+                <p class="warring_info_x" style="margin-left: 22%">退款关闭 !</p>
+            </div>
+        </script>
+    </div>
+    <div class="jifen-list">
+
+    </div>
+    <!-- 修改申请btn -->
+    <script type="text/html" id="modify_refund">
+        <div class="buy_buttom">
+            <div class="btn-wrap">
+                <a class="btn-buy" onclick="Modify_Refund()">修&nbsp;改&nbsp;申&nbsp;请</a>
+            </div>
+        </div>
+    </script>
+    <!-- 确认提交申请btn -->
+    <script type="text/html" id="btn_confirm_refund">
+        <div class="buy_buttom">
+            <div class="btn-wrap">
+                <a class="btn-buy" onclick="Confirm_Refund()">确&nbsp;认&nbsp;提&nbsp;交</a>
+            </div>
+        </div>
+    </script>
+</div>
+
+<!-- 提交申请：买家已经提交申请提示信息 -->
+<script type="text/html" id="info_1">
+
+    <div>
+        <p class="main">
+            如果小鹿同意：
+        </p>
+
+        <p class="no_main">
+            申请将达成,需要退货的用户需要退货给仓库,这里会通知您退货地址的信息.
+        </p>
+
+    </div>
+    <div>
+        <p class="main">
+            如果小鹿很纠结：
+        </p>
+
+        <p class="no_main">
+            可能需要您修改退货申请内容以通过审核.
+        </p>
+    </div>
+    <div>
+        <p class="main">
+            如果小鹿没来及处理：
+        </p>
+
+        <p class="no_main">
+            超过5天,合理申请将默认达成,如需要退货,届时您需要将商品寄送到仓库;或者您可以联系客服人员为您服务~
+        </p>
+    </div>
+
+</script>
+
+<!-- 提交申请：卖家同意（已发货）提供仓库地址提示信息 -->
+<script type="text/html" id="info_2">
+    <div>
+        <p class="main">
+            小鹿同意了您的申请：
+        </p>
+
+        <p class="no_main">
+            申请达成,需要您退货给仓库.
+        </p>
+
+        {{ ware_by_address }}
+    </div>
+</script>
+
+<!-- 提交申请：卖家同意（已付款）提供仓库地址提示信息 -->
+<script type="text/html" id="info_8">
+    <div>
+        <p class="main">
+            小鹿同意了您的申请：
+        </p>
+
+        <p class="no_main">
+            如果您使用的是小鹿钱包,您的退款将在申请被同意后当日加入您的账户余额<br>
+        </p>
+
+        <p class="no_main">
+            如果使用的是微信支付或者支付宝,您的退款将在5个工作日内返还到您的账户,如果没有转如您的微信账户,请联系客服人员<br>
+        </p>
+    </div>
+</script>
+
+
+<!-- 买家退货　提示退货中　提示信息 -->
+<script type="text/html" id="info_3">
+    <div>
+        <p class="main">
+            申请退款金额：
+        </p>
+
+        <span class="no_main" style="display: inline">
+            ￥{{ refund_fee }}
+        </span>
+
+        <p class="main">申请时间：</p>
+
+        <p class="no_main">
+            {{ created }}
+        </p>
+
+        <p class="main">退货款号：</p>
+
+        <p class="no_main">
+            {{ refund_no }}
+        </p>
+
+        <p class="main">快递公司：</p>
+
+        <p class="no_main">
+            {{ company_name }}
+        </p>
+
+        <p class="main">快递单号：</p>
+
+        <p class="no_main">
+            {{ sid }}
+        </p>
+
+        <p class="main">描述：</p>
+        {{ if desc }}
+
+        <p class="no_main">
+            {{ desc }}
+        </p>
+        {{ else }}
+        <p class="no_main">
+            暂无描述信息...
+        </p>
+        {{ /if }}
+    </div>
+</script>
+
+<!-- 卖家拒绝申请　提示信息 -->
+<script type="text/html" id="info_4">
+    <div>
+        <p class="main">拒绝原因：</p>
+
+        <p class="no_main">您好,您的申请被拒绝,可能是您提交的申请金额或者原因不合申请要求导致的,麻烦您修改下，申请内容,谢谢！</p>
+    </div>
+
+    <div class="buy_kefu">
+        <a class="kefu" href="tel:021-50939326">联系客服</a>
+    </div>
+</script>
+
+<!-- 卖家返款中　提示信息 -->
+<script type="text/html" id="info_5">
+    <div class="p_content">
+        <p class="main">
+            商家同意：
+        </p>
+
+        <p class="no_main">您好,您的申请已经通过,正在给您做退款处理,届时您的退款将到达您的账户.</p>
+
+        <p class="no_main">如果您使用的是小鹿钱包,您的退款将在申请被同意后当日加入您的账户余额.<br></p>
+
+        <p class="no_main">如果使用的是微信支付或者支付宝,您的退款将在5个工作日内返还到您的账户,如果没有转如您的微信账户,请联系客服人员,祝您购物愉快!<br></p>
+
+        <div class="buy_kefu">
+            <a class="kefu" href="tel:021-50939326">联系客服</a>
+        </div>
+    </div>
+</script>
+<!-- 退款成功　提示信息 -->
+<script type="text/html" id="info_6">
+    <div class="p_content">
+        <p class="main">
+            申请退款金额：
+        </p>
+
+        <p class="no_main">
+            {{ refund_fee }}
+        </p>
+
+        <p class="main">申请时间：</p>
+
+        <p class="no_main">
+            {{ created }}
+        </p>
+        <p class="main">退回原因：</p>
+
+        <p class="no_main">
+            {{ reason }}
+        </p>
+
+        <p class="main">商品名称：</p>
+
+        <p class="no_main">
+            {{ title }}
+        </p>
+
+        <p class="main">描述：</p>
+
+        <p class="no_main">
+            {{ desc }}
+        </p>
+
+        <p class="main">退货款号：</p>
+
+        <p class="no_main">
+            {{ refund_no }}
+        </p>
+
+        <p class="main">快递公司：</p>
+
+        <p class="no_main">
+            {{ company_name }}
+        </p>
+
+        <p class="main">快递单号：</p>
+
+        <p class="no_main">
+            {{ sid }}
+        </p>
+    </div>
+</script>
+
+<script type="text/html" id="info_7">
+    <div class="p_content">
+        <p class="main">
+            申请退款金额：
+        </p>
+
+        <p class="no_main">
+            ￥{{ refund_fee }}
+        </p>
+
+        <p class="main">申请时间：</p>
+
+        <p class="no_main">
+            {{ created }}
+        </p>
+
+        <p class="main">描述：</p>
+
+        <p class="no_main">
+            {{ reason }}
+        </p>
+
+        <p class="no_main">
+            {{ desc }}
+        </p>
+    </div>
+</script>
+
+
+<!-- 快递公司和快递单号输入框　-->
+<script type="text/html" id="logistics_info">
+
+    <div class="ipt-panel-inner">
+        <div class="ipt-wrap ipt-top">
+            <span class="label">快递公司:</span>
+            <input type="text" class="text username_in" placeholder="请输入快递公司" id="logi_company">
+        </div>
+        <div class="ipt-wrap">
+            <span class="label">快递单号:</span>
+            <input type="text" class="text password_in" placeholder="请输入快递单号" id="logi_sid">
+        </div>
+    </div>
+
+</script>
+<!-- 上海仓地址-->
+<script id="shanghai_address" type="text/html">
+    <div class="address">
+        <div class="address_inner">
+            <span class="main">退回地址：</span>
+
+            <p class="no_main">上海市松江区佘山镇吉业路245号5号楼优尼世界售后(收)</p>
+        </div>
+        <div class="address_inner">
+            <span class="main">联系电话：</span>
+
+            <p class="no_main">021-50939326-818</p>
+        </div>
+        <div class="address_inner">
+            <span class="main">邮编：</span>
+
+            <p class="no_main">201602</p>
+        </div>
+        <div class="address_inner">
+            <span class="main">备注：</span>
+
+            <p class="no_main">请将包裹里原发货单一并寄回，或者写张纸条，注明您的微信昵称、联系电话和退换货的原因方便我们售后收到及时为您处理哦，谢谢！ ^_^</p><br>
+
+            <p class="no_main">邮费需要您先支付哦，我们会和产品的金额分开退还给您的！发普通的快递即可！请勿发顺丰或EMS等高邮费的快递，拒收到付件，请保持衣服吊牌完整；不影响二次销售</p>
+        </div>
+    </div>
+</script>
+
+<!-- 广州仓地址-->
+<script id="guangzhou_address" type="text/html">
+    <div class="address">
+        <div class="address_inner">
+            <span class="main">退回地址：</span>
+
+            <p class="no_main">广东省广州市越秀区水荫一横路38号604</p> 
+        </div>
+        <div class="address_inner">
+            <span class="main">联系电话：</span>
+
+            <p class="no_main">18321409485</p>   
+        </div>
+        <div class="address_inner">
+            <span class="main">收货人：</span>
+
+            <p class="no_main">邱凯</p>  
+        </div>
+        <div class="address_inner">
+            <span class="main">备注：</span>
+
+            <p class="no_main">请将包裹里原发货单一并寄回或者写张纸条，注明您的微信昵称、联系电话和退换货的原因，方便我们售后收到及时为您处理哦，谢谢！　^_^</p><br>
+
+            <p class="no_main">邮费需要您先支付哦，我们会和产品的金额分开退还给您的！发普通的快递即可！请勿发顺丰或EMS等高邮费的快递，拒收到付件，请保持衣服吊牌完整；不影响二次销售</p>
+        </div>
+    </div>
+</script>
+<script src="../js/sweet-alert.min.js"></script>
+
+<script src="../js/tmtuihuo-detail.js"></script>
+
+</body>
+</html>
+
+
+
