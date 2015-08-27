@@ -68,14 +68,18 @@ function setSecond(obj) {
     selectid[0] = new Option("请选择市", 0);
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.city_list
-    var requestCallBack = function (data) {
-
+    var requestCallBack = function (ret) {
+if (ret.result==true){
+	var data=ret.data;
         for (var i = 1; i <= data.length; i++) {
             //alert(data[i].name)
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
-
+}
+else{
+	
+}
         //alert(typeof(data))
         //console.info(data)
 
@@ -103,13 +107,18 @@ function setThird(obj) {
     selectid[0] = new Option('请选择区/县', 0);
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.country_list
-    var requestCallBack = function (data) {
+    var requestCallBack = function (ret) {
 
+ if (ret.result==true){
+	 var data=ret.data;
         for (var i = 1; i <= data.length; i++) {
             //alert(data[i].name)
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
-
         }
+	}
+	else{
+		
+	}
         //alert(typeof(data))
         //console.info(data)
     };

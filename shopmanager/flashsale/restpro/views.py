@@ -217,19 +217,26 @@ class DistrictViewSet(viewsets.ModelViewSet):
     def city_list(self, request, *args, **kwargs):
         content = request.REQUEST
         province_id = content.get('id',None)
-        queryset = District.objects.filter(parent_id=province_id)
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data) 
+        if province_id==u'0':
+            return      Response({"result":False})
+        else:
+            queryset = District.objects.filter(parent_id=province_id)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({"result":True,"data":serializer.data})  
     
     @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
         content = request.REQUEST
         city_id = content.get('id',None)
-        queryset = District.objects.filter(parent_id=city_id)
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)   
+        #print city_id.encode("utf-8"),type(int(city_id.encode("utf-8")))
+        print type(city_id),city_id
+        if city_id==u'0':
+            print "等于0"
+            return      Response({"result":False})
+        else:
+            queryset = District.objects.filter(parent_id=city_id)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({"result":True,"data":serializer.data})   
        
         
 
