@@ -1,0 +1,131 @@
+
+.content {
+    margin-top: 30px;
+    padding: 10px;
+    background: #FFFFFF;
+    width: 615px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+p {
+    color: #3c3c3c;
+}
+
+.circle {
+    background: none repeat scroll 0 0 #FAB816;
+    border-radius: 70.5px 70.5px 70.5px 70.5px;
+    color: #FFFFFF;
+    padding: 8px 8px;
+    position: relative;
+}
+
+
+.warring_info_x {
+    display: inline;
+    color: #3c3c3c;
+}
+.warring .icon {
+    position: relative;
+    top:10px;
+    width: 48px;
+    height: 48px;
+}
+.main {
+    margin-bottom: 20px;
+    margin-top: 10px;
+    color: #5f5f5f;
+}
+
+.no_main {
+    margin-bottom: 20px;
+    margin-top: 10px;
+    font-size: 23px;
+    color: #aaaaaa;
+}
+
+.buy_buttom {
+    display: block;
+    font-size: 34px;
+    height: 80px;
+    line-height: 80px;
+    background-color: #fcb916;
+    border-radius: 10px;
+    color: #fff;
+    text-align: center;
+}
+
+div .buy_kefu {
+    width: 100px;
+    margin-left: 20%;
+    font-size: 15px;
+    line-height: 60px;
+    background-color: #fcb916;
+    border-radius: 10px;
+    color: #fff;
+    text-align: center;
+    position: relative;
+    left: 30%;
+}
+div .buy_kefu a{
+    color: #fff;
+}
+
+.warring {
+    margin-top: 30px;
+    margin-left: 10%;
+    position: relative;
+}
+
+.warring .warring_info_x {
+    margin-left: 50px;
+}
+
+.jifen-list div {
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-bottom: 50px;
+    margin-top: 40px;
+}
+
+div .address {
+    font-size: 15px;
+    margin-right: 1%;
+    margin-left: 1%;
+    margin-top: 70px;
+}
+
+div .address .main {
+    margin-bottom: 20px;
+    margin-top: 10px;
+    color: #5f5f5f;
+    font-size: 20px;
+}
+
+div .address .no_main {
+    margin-bottom: 20px;
+    margin-top: 10px;
+    color: #aaaaaa;
+    font-size: 17px;
+    display: inline;
+}
+
+div .address .address_inner {
+    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-right: 0%;
+    margin-left: 0%;
+    color: #aaaaaa;
+    font-size: 15px;
+}
+
+div .ipt-wrap {
+    margin-right: 0%;
+    margin-left: 0%;
+}
+
+div .ipt-wrap input {
+    text-align: center;
+    border-bottom: groove;
+    border-width: 1px;
+}

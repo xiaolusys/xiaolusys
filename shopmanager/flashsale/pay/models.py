@@ -33,6 +33,8 @@ def genTradeUniqueid():
 class SaleTrade(models.Model):
     """ payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额) """
     PREFIX_NO  = 'xd'
+    WX         = 'wx'
+    ALIPAY     = 'alipay'
     WX_PUB     = 'wx_pub'
     ALIPAY_WAP = 'alipay_wap'
     UPMP_WAP   = 'upmp_wap'
@@ -40,6 +42,8 @@ class SaleTrade(models.Model):
     
     CHANNEL_CHOICES = (
         (WALLET,u'小鹿钱包'),
+        (WX,u'微信APP'),
+        (ALIPAY,u'支付宝APP'),
         (WX_PUB,u'微支付'),
         (ALIPAY_WAP,u'支付宝'),
         (UPMP_WAP,u'银联'),

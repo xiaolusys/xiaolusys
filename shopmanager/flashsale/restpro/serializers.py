@@ -90,7 +90,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout',
-                  'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo', 'product_model')
+                  'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo', 'product_model','ware_by')
 
 
 class JSONParseField(serializers.Field):
@@ -178,7 +178,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
         fields = ( 'id', 'url', 'refund_no', 'trade_id', 'order_id', 'buyer_id', 'item_id', 'title',
                    'sku_id', 'sku_name', 'refund_num','buyer_nick', 'mobile', 'phone',
                     'total_fee', 'payment', 'created', 'company_name', 'sid', 'reason',
-                   'desc','feedback','has_good_return','has_good_change', 'good_status', 'status')
+                   'desc','feedback','has_good_return','has_good_change', 'good_status', 'status', 'refund_fee')
         
 
 #####################################################################################

@@ -1,0 +1,30 @@
+.kv{
+  width: 200px;
+  height: 200px;
+  margin: 140px auto;
+  background:url(../images/jifen-kv.png) no-repeat; 
+}
+.tips{
+	width:640px;
+	margin:0 auto;
+  font-size: 26px;
+  line-height: 2;
+  text-align: center;
+}
+.back-index{
+  display: block;
+  margin: 0 auto;
+  margin-top: 100px;
+  width:394px;
+  height: 82px;
+  line-height: 82px;
+  border:3px solid #fcb916;
+  border-radius: 10px;
+  color: #fcb916;
+  text-align: center;
+  font-size: 30px;
+}
+.back-index:active{
+  background-color: #fcb916;
+  color: #fff;
+}
