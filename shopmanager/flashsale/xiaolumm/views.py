@@ -99,12 +99,9 @@ class CashoutView(View):
         kefu_mobile = '18516655836'
         if app_cashouts.count() == 0 or app_cashouts[0].created > datetime.datetime(2015,6,30,15):
             kefu_mobile = '18516316989'
-        
         cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
-            
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
         pending_cashouts = cashout_objs.filter(status=CashOut.PENDING)
-        
         data = {"xlmm":xlmm, "cashout": pending_cashouts.count(), 'kefu_mobile':kefu_mobile,
                 "referal_list":referal_list ,"could_cash_out":int(could_cash_out)}
         
@@ -310,17 +307,13 @@ class MamaIncomeDetailView(View):
         if target_date < today:
             next_day = target_date + datetime.timedelta(days=1)
         
-        exam_pass = True
-#         result = Result.objects.filter(daili_user=unionid)
-#         if result.count() > 0:
-#             exam_pass = result[0].is_Exam_Funished()
-            
         data   = {}
         try:
             xlmm,state  = XiaoluMama.objects.get_or_create(openid=unionid)
             if xlmm.status == XiaoluMama.FROZEN:
                 return render_to_response("mama_404.html")
             
+            exam_pass = xlmm.exam_Passed()
             order_num   = 0
             total_value = 0
             carry       = 0

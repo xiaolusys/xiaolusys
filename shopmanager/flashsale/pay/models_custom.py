@@ -4,9 +4,9 @@ from shopback.items.models import Product,ProductSku
 
 class Productdetail(models.Model):
     WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
-    OUT_PERCENT = 0 #未设置代理返利比例
+    OUT_PERCENT  = 0 #未设置代理返利比例
     ZERO_PERCENT = -1
-    TEN_PERCENT = 10
+    TEN_PERCENT  = 10
     TWENTY_PERCENT = 20
     THIRTY_PERCENT = 30
 

@@ -496,7 +496,7 @@ class CheckOrderView(APIView):
         
         #rule_signal.send(sender='payment_rule',trade_id=trade.id)
         #logistics = LogisticsCompany.objects.filter(status=True)
-        logistics =serializers.LogisticsCompanySerializer( LogisticsCompany.objects.filter(status=True),many=True).data
+        logistics  = serializers.LogisticsCompanySerializer(LogisticsCompany.objects.filter(status=True),many=True).data
         order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         trade_dict = model_to_dict(trade)
         trade_dict.update({'id':trade.id,
@@ -511,7 +511,8 @@ class CheckOrderView(APIView):
                            'is_product_defect':(trade.has_rule_match and 
                                                 trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
                            'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
-                            'shippings':dict(SHIPPING_TYPE_CHOICE)
+                           'shippings':dict(SHIPPING_TYPE_CHOICE),
+                           'ware_list':MergeTrade.WARE_CHOICES
                            })
         return Response({"object":{'trade':trade_dict,  'logistics':logistics } })
                 #'shippings33':dict(SHIPPING_TYPE_CHOICE)  }    
@@ -529,6 +530,7 @@ class CheckOrderView(APIView):
         logistic_code = content.get('logistic_code')
         shipping_type = content.get('shipping_type')
         action_code   = content.get('action')
+        ware_by       = content.get('ware_by')
         logistics_company = None
            
         if logistic_code:
@@ -541,6 +543,7 @@ class CheckOrderView(APIView):
         trade.logistics_company = logistics_company
         trade.priority = priority
         trade.shipping_type = shipping_type
+        trade.ware_by  = ware_by
         trade.save()
             
         if action_code == 'check':

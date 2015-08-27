@@ -109,7 +109,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address= content.get('receiver_address',None)
         receiver_name=content.get('receiver_name',None)
         receiver_mobile=content.get('receiver_mobile',None)
-        UserAddress.objects.filter(id=id).update(
+        try:
+            UserAddress.objects.filter(id=id).update(
             cus_uid=customer_id,
             receiver_name=receiver_name,
             receiver_state=receiver_state,
@@ -117,15 +118,20 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             receiver_district=receiver_district,
             receiver_address=receiver_address,
             receiver_mobile=receiver_mobile)
-        result['ret'] = True
+            result['ret'] = True
+        except:
+            result['ret'] = False
         return Response(result)
 
     @detail_route(methods=["post"])
     def delete_address(self, request, pk=None):
-        instance = self.get_object()
-        instance.status = UserAddress.DELETE
-        instance.save()
-        return Response({'ret': True})
+        try:
+            instance = self.get_object()
+            instance.status = UserAddress.DELETE
+            instance.save()
+            return Response({'ret': True})
+        except:
+            return Response({'ret': False})
     
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
@@ -157,10 +163,13 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address = content.get('receiver_address', None)
         receiver_name = content.get('receiver_name', None)
         receiver_mobile = content.get('receiver_mobile', None)
-        UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, receiver_state=receiver_state,
+        try:
+            UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, receiver_state=receiver_state,
                                    receiver_city=receiver_city, receiver_district=receiver_district,
                                    receiver_address=receiver_address, receiver_mobile=receiver_mobile)
-        result['ret'] = True
+            result['ret'] = True
+        except:
+            result['ret'] = False
         return Response(result)
 
     @list_route(methods=['get'])
@@ -208,20 +217,26 @@ class DistrictViewSet(viewsets.ModelViewSet):
     def city_list(self, request, *args, **kwargs):
         content = request.REQUEST
         province_id = content.get('id',None)
-        queryset = District.objects.filter(parent_id=province_id)
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data) 
+        if province_id==u'0':
+            return      Response({"result":False})
+        else:
+            queryset = District.objects.filter(parent_id=province_id)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({"result":True,"data":serializer.data})  
     
     @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
         content = request.REQUEST
         city_id = content.get('id',None)
-        print  city_id
-        queryset = District.objects.filter(parent_id=city_id)
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)   
+        #print city_id.encode("utf-8"),type(int(city_id.encode("utf-8")))
+        print type(city_id),city_id
+        if city_id==u'0':
+            print "等于0"
+            return      Response({"result":False})
+        else:
+            queryset = District.objects.filter(parent_id=city_id)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({"result":True,"data":serializer.data})   
        
         
 
@@ -283,7 +298,7 @@ from django.http import HttpResponse
 from shopback.base import log_action, ADDITION, CHANGE
 
 class UserCouponViewSet(viewsets.ModelViewSet):
-    queryset = Coupon.objects.filter(status=Coupon.RECEIVE)
+    queryset = Coupon.objects.filter()
     serializer_class = serializers.UserCouponSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
@@ -304,15 +319,14 @@ class UserCouponViewSet(viewsets.ModelViewSet):
             coupon_type = coupol.coupon_type
             coupon_value = coupol.coupon_value
             created = coupol.created.strftime("%Y-%m-%d")
-            deadline = coupol.deadline.strftime("%Y-%m-%d %H:%M")
+            deadline = coupol.deadline.strftime("%Y-%m-%d")
             data_entry = {"id": id, "coupon_user": coupon_user, "coupon_no": coupon_no, "coupon_type": coupon_type,
                           "coupon_value": coupon_value, "coupon_status": query.status,
                           "deadline": deadline,"created":created
                           }
             data.append(data_entry)
-
         return Response(data)
-
+    
     @list_route(methods=['post'])
     def user_create_coupon(self, request, *args, **kwargs):
         """用户购买页面　在自己没有优惠券的情况下　生成优惠券 """
@@ -374,3 +388,4 @@ class UserCouponViewSet(viewsets.ModelViewSet):
                       "deadline": coupon_pool.deadline, "created": coupon_pool.created
                       }
         return Response(data=[data_entry])
+    

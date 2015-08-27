@@ -54,7 +54,6 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
     将待确认金额重新计算并加入妈妈现金账户
     xlmm_id:小鹿妈妈id
     """
-    from flashsale.mmexam.models import Result
     #结算订单提成
     task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=xlmm_id)
     #结算点击补贴
@@ -82,8 +81,7 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         
         xlmm = xlmms[0]
         #是否考试通过
-        results = Result.objects.filter(daili_user=xlmm.openid)
-        if results.count() == 0 or not results[0].is_Exam_Funished():
+        if not xlmm.exam_Passed():
             continue
         #重新计算pre_date之前订单金额，取消退款订单提成
         
@@ -405,7 +403,6 @@ def task_ThousandRebeta(date_from,date_to):
     xlmms = XiaoluMama.objects.filter(agencylevel=2,charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
         commission = calc_Mama_Thousand_Rebeta(xlmm,date_from,date_to)
-
         if commission > 100000: # 分单位
             # 写一条carry_log记录
             carry_log, state = CarryLog.objects.get_or_create(xlmm=xlmm.id,order_num=carry_no,

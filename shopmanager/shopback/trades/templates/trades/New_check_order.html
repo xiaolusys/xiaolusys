@@ -14,17 +14,13 @@
   </head>
 {% load trade_tags %} 
 {% with trade=object.trade     logistics=object.logistics %}
-  <body>
+<body>
+<div class="container">
   {% if  trade.sys_status == "WAIT_AUDIT" %}
-
 <h4  style="background-color:green" >订单审核详情</h4>
-
-{% else          %}
+{% else %}
 <h4  style="background-color:green" >订单重审页面</h4>
 {%endif%}
-  
-
-
 
 
 <div class="body1" style="margin-left: auto; margin-right: auto; width: 100%;">
@@ -49,7 +45,6 @@
 <label class="simple-label">物流方式:</label>   
 
 <select id="id_shipping_type" class="selection" style="width:100px;">
-
 	{% for k,v in trade.shippings.items %}
 	<option value='{{ k }}' {% if k == trade.shipping_type %}selected{% endif %} >{{ v }}</option>
 	{% endfor %}
@@ -61,10 +56,17 @@
 	<option value='{{ lg.code }}' {% if lg.id == trade.logistics_company.id %}selected{% endif %} >{{ lg.name }}</option>
 	{% endfor %}
 </select> 
-<label class="simple-label">优先级: </label> <select id="id_priority" name="priority" class="selection" style="width:100px;">
+<label class="simple-label">优先级: </label> 
+<select id="id_priority" name="priority" class="selection" style="width:100px;">
 	<option {% if trade.priority == -1 %}selected{% endif %} value="-1">低</option>
 	<option {% if trade.priority == 0 %}selected{% endif %} value="0">中</option>
 	<option {% if trade.priority == 1 %}selected{% endif %} value="1">高</option>
+</select>
+<label class="simple-label">所属仓库: </label> 
+<select id="id_ware" name="ware_by" class="selection" style="width:100px;">
+	{% for ware in trade.ware_list %}
+	<option {% if trade.ware_by == ware.0 %}selected{% endif %} value="{{ ware.0 }}">{{ ware.1 }}</option>
+	{% endfor %}
 </select>
 <label class="simple-label">问题编号:</label><span>{{ trade.reason_code }}</span>
 </div>
@@ -301,6 +303,7 @@
 	<script>
           
 </script>
+</div>  
 </body>
 {% endwith %}
 </html>

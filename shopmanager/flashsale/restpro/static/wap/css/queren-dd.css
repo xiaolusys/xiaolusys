@@ -19,6 +19,15 @@
 .addr a{
   color: #3d3c3c; 
 }
+.addr .title{
+  width:80%;
+  display:inline;
+}
+.addr .add{
+  width:18%;
+  display:inline;
+  float:right;
+}
 .addr .label1{
   padding: 23px 0 0 43px;
 }
@@ -54,7 +63,7 @@
   display: block;
   width: 22px;
   height: 22px;
-  top:23px;
+  top:45px;
   left: 42px;
 }
 
@@ -71,7 +80,7 @@
   margin: auto;
   color:#3d3c3c;
 }
-.cost h2,.add .h2{
+.cost h2,.addr .h2{
   font-size: 28px;
   padding: 34px 0 8px 42px;
 }
