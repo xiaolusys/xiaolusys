@@ -16,7 +16,7 @@ from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopp
 
 def referal_From(mobile):
     # 找推荐来的代理
-    referals = XiaoluMama.objects.filter(referal_from=mobile, agencylevel=2, charge_status=XiaoluMama.CHARGED)
+    referals = XiaoluMama.objects.filter(referal_from=mobile, agencylevel__in=(2, 3), charge_status=XiaoluMama.CHARGED)
     return referals
 
 
