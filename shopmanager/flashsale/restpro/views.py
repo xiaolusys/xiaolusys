@@ -109,7 +109,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_address= content.get('receiver_address',None)
         receiver_name=content.get('receiver_name',None)
         receiver_mobile=content.get('receiver_mobile',None)
-        UserAddress.objects.filter(id=id).update(
+        try:
+            UserAddress.objects.filter(id=id).update(
             cus_uid=customer_id,
             receiver_name=receiver_name,
             receiver_state=receiver_state,
@@ -117,7 +118,9 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             receiver_district=receiver_district,
             receiver_address=receiver_address,
             receiver_mobile=receiver_mobile)
-        result['ret'] = True
+            result['ret'] = True
+        except:
+            result['ret'] = False
         return Response(result)
 
     @detail_route(methods=["post"])
@@ -223,7 +226,6 @@ class DistrictViewSet(viewsets.ModelViewSet):
     def country_list(self, request, *args, **kwargs):
         content = request.REQUEST
         city_id = content.get('id',None)
-        print  city_id
         queryset = District.objects.filter(parent_id=city_id)
         serializer = self.get_serializer(queryset, many=True)
 
