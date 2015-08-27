@@ -29,6 +29,10 @@ table {
     border-spacing: 0;
 }
 
+.table input[type="text"]{
+	width:auto;
+}
+
 tr {
     display: table-row;
     vertical-align: inherit;
