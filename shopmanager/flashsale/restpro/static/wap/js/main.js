@@ -161,7 +161,7 @@ function Set_posters(suffix){
 			$.each(data.wem_posters,
 				function(index,poster){
 					$('.poster .nvzhuang').attr('href',poster.item_link);
-					$('.poster .nvzhuang img').attr('src',poster.pic_link);
+					$('.poster .nvzhuang img').attr('src',poster.pic_link+"?imageMogr2/format/jpg/quality/100");
 					if (poster.subject === 'undifine' || poster.subject === null ){
 						return
 					}
@@ -174,7 +174,7 @@ function Set_posters(suffix){
 			$.each(data.chd_posters,
 				function(index,poster){
 					$('.poster .chaotong').attr('href',poster.item_link);
-					$('.poster .chaotong img').attr('src',poster.pic_link);
+					$('.poster .chaotong img').attr('src',poster.pic_link+"?imageMogr2/format/jpg/quality/100");
 					if (poster.subject === 'undifine' || poster.subject === null ){
 						return
 					}
@@ -200,7 +200,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="pages/shangpinxq.html?id={{ id }}">
-        <img src="{{ pic_path }}?imageMogr2/thumbnail/289x289">
+        <img src="{{ pic_path }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
         <p class="gname">{{ name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ agent_price }} </span>
@@ -216,7 +216,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="tongkuan.html?id={{ product_model.id }}">
-        <img src="{{ product_model.head_imgs }}?imageMogr2/thumbnail/289x289">
+        <img src="{{ product_model.head_imgs }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
         <p class="gname">{{ product_model.name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ agent_price }} </span>
