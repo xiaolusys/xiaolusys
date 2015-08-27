@@ -195,5 +195,10 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'restapi.errors': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
     }
 }
