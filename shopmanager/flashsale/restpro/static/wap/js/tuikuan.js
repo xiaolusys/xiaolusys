@@ -227,7 +227,7 @@ function Handler_Refund_Infor(item_id,status) {// data 是订单信息
             // 显示提示信息
             var html = "";
             if (status == 2) {
-                 html = '<span class="" style="float:right;font-size:15px;color:red">特卖商品已下架,' +
+                 html = '<span class="alert alert-danger"  >特卖商品已下架,' +
                     '仓库可能已整理好您的购买的商品,装箱等待发货,请求可能会因此有所延迟,还请耐心等待,祝您购物愉快!</span>';
             }
             //if (status == 3) {
