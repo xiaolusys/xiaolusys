@@ -140,6 +140,7 @@ tr {
 .simple-label {
     color:#999;
     display:inline;
+    margin-left:10px;
 }
 
 .thumbnails1 {
