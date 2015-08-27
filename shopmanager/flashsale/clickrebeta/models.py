@@ -35,7 +35,7 @@ class StatisticsShopping(models.Model):
     wxorderid = models.CharField(max_length=64, db_index=True, verbose_name=u'微信订单')
     wxordernick   = models.CharField(max_length=32, verbose_name=u'购买昵称')
     wxorderamount = models.IntegerField(default=0, verbose_name=u'微信订单价格')
-    rebetamount   = models.IntegerField(default=0, verbose_name=u'可返利金额')
+    rebetamount   = models.IntegerField(default=0, verbose_name=u'有效金额')
     tichengcount  = models.IntegerField(default=0, verbose_name=u'订单提成')
     shoptime = models.DateTimeField(default=datetime.datetime.now, db_index=True, verbose_name=u'提成时间')
     status   = models.IntegerField(default=0, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
@@ -56,7 +56,12 @@ class StatisticsShopping(models.Model):
 
     order_cash.allow_tags = True
     order_cash.short_description = u"订单金额"
+    
+    def rebeta_cash(self):
+        return self.wxorderamount / 100.0
 
+    rebeta_cash.allow_tags = True
+    rebeta_cash.short_description = u"有效金额"
 
     def ticheng_cash(self):
         return self.tichengcount / 100.0
