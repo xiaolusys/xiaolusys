@@ -83,8 +83,8 @@ function setSecond() {
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
-        $("#s_city option:contains(" + receiver_city + ")").attr("selected", true);
-        setThird();
+       // $("#s_city option:contains(" + receiver_city + ")").attr("selected", true);
+        //setThird();
     };
     // 发送请求
     $.ajax({
@@ -108,13 +108,13 @@ function setThird() {
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.country_list
     var requestCallBack = function (data) {
-
+          //console.log(data);
         for (var i = 1; i <= data.length; i++) {
 
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
 
         }
-        $("#s_country option:contains(" + receiver_district + ")").attr("selected", true);
+       // $("#s_country option:contains(" + receiver_district + ")").attr("selected", true);
     };
     // 发送请求
     $.ajax({
@@ -214,15 +214,29 @@ $("#btn-up").click(function () {
     }
     //请求成功回调函数
     var reqUrl = GLConfig.baseApiUrl + "/address/" + id + "/update";
-    var requestCallBack = function () {
-        alert("修改成功！")
+    var requestCallBack = function (data) {
+      console.log(data);
+        if(data.ret==true){
+          //drawToast("收货地址修改成功");
+alert("地址修改成功");
         var referrer = document.referrer;
         var hashes = referrer.split("?")[0].split('/');
         if (hashes && (hashes[hashes.length - 1] == "buynow-dd.html" || hashes[hashes.length - 1] == "queren-dd.html")) {
             window.location.href = referrer;
+     
         } else {
+              // drawToast("收货地址修改成功");
             window.location.href = "shouhuodz.html"
+          
         }
+
+}
+else{
+drawToast("收货地址修改失败");
+
+}
+        
+         
     };
     // 发送请求
     $.ajax({
