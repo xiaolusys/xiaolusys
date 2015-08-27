@@ -483,8 +483,8 @@ var action_code = '';
     var logisticsDom = document.getElementById("id_logistics").value;
     var priorityDom  = document.getElementById("id_priority").value;
     var shippingDom  = document.getElementById("id_shipping_type").value;
-    //
-    var trade_id  = $('#id_check_trade').val();
+    var ware_by      = $('#id_ware').val();
+    var trade_id     = $('#id_check_trade').val();
 
 $.post('/trades/checkorder/'+trade_id+'/?format=json', {
 					'format':'json',
@@ -492,7 +492,8 @@ $.post('/trades/checkorder/'+trade_id+'/?format=json', {
 					'priority':priorityDom,
 					'shipping_type':shippingDom,
 					'action':action_code,
-                                        "csrfmiddlewaretoken": csrftoken,
+                    "csrfmiddlewaretoken": csrftoken,
+                    'ware_by':ware_by,
                                          
 },function(res){
               var that  = this;
@@ -516,9 +517,6 @@ var result_table =  parent.document.getElementById('result_list');
                     parent.layer.close(index); //执行关闭
                   // window.location.reload();
  //self.opener.location.reload();
-
-
-
                 }
               else{
                 alert("审核失败:"+res.response_error);
