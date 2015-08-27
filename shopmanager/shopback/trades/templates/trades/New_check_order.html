@@ -139,18 +139,16 @@
 			<th>单价</th>
 			<th>缺货</th>
 			<th>类型</th>
+			<th>所属仓库</th>
 			<th>操作</th>
 		</tr>
 	</thead>
 	<tbody>
-	
 		{% for order in trade.used_orders %}
-		
 		<tr>
 			<td>{{ order.id }}</td>
 			<td>{{ order.outer_id }}</td>
 			<td>{{ order|prod_name }}</td>
-		
 			<td>
 				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku" >
 					<option value="">---------</option>
@@ -159,7 +157,7 @@
 					{% endfor %}
 				</select> 
 			</td>
-			<td    ><input   id="id-change-order-num-{{ forloop.counter }}" class="order_num" type="text" value="{{ order.num }}" size="8"  /></td>
+			<td ><input id="id-change-order-num-{{ forloop.counter }}" class="order_num" type="text" value="{{ order.num }}" size="8"  /></td>
 			<td>{{ order.price }}</td>
 			<td>{% if order.out_stock %}
 				<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
@@ -169,6 +167,7 @@
 			</td>
 			<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
 				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}退货{% elif order.gift_type == 5 %}换货{% else %}其他{% endif %}</td>
+			<td >{% for ware in trade.ware_list %}{% if ware.0 == order.ware_by %}<span class="label label-info">{{ ware.1 }}</span>{% endif %}{% endfor %}</td>
 			<td><button class="change-order btn-warning" idx="{{ forloop.counter }}"  oid="{{ order.id }}"   onclick="changeOrder(this)"     >修改</button>
 			    <button class="delete-order btn-danger" oid="{{ order.id }}"       onclick="deleteOrder(this)">删除</button>
 			</td>

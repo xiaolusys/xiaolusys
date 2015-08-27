@@ -698,7 +698,13 @@ class MergeOrder(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
-            
+    
+    def get_ware_by(self):
+        try:
+            return Product.objects.get(outer_id=self.outer_id).ware_by
+        except:
+            return Product.WARE_NONE
+    
     @classmethod
     def get_yesterday_orders_totalnum(cls,shop_user_id,outer_id,outer_sku_id):
         """ 获取某店铺昨日某商品销售量，与总销量 """
