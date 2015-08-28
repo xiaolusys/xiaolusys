@@ -26,7 +26,7 @@ logger = logging.getLogger('django.request')
 class SaleOrderInline(admin.TabularInline):
     model = SaleOrder
     fields = (
-    'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'num', 'refund_fee', 'refund_status', 'status','item_id')
+    'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'num','discount_fee', 'refund_fee', 'refund_status', 'status','item_id')
 
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '16'})},
@@ -46,7 +46,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'channel', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
-    search_fields = ['tid', 'id', 'receiver_mobile']
+    search_fields = ['=tid', '=id', '=receiver_mobile']
 
     inlines = [SaleOrderInline]
 
@@ -127,7 +127,10 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ('id', 'nick', 'mobile', 'phone', 'created', 'modified', 'unionid')
     list_display_links = ('id', 'nick',)
 
-    search_fields = ['id', 'mobile', 'openid', 'unionid']
+    search_fields = ['=id', '=mobile', '=openid', '=unionid']
+    
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + ('user',)
 
 
 admin.site.register(Customer, CustomerAdmin)
@@ -135,7 +138,7 @@ admin.site.register(Customer, CustomerAdmin)
 
 class DistrictAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'full_name', 'parent_id', 'grade', 'sort_order')
-    search_fields = ['id', 'parent_id', 'name']
+    search_fields = ['=id', '=parent_id', '^name']
 
     list_filter = ('grade',)
 
@@ -194,7 +197,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change')
 
-    search_fields = ['trade_id', 'order_id', 'refund_id', 'mobile']
+    search_fields = ['=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
 
     def order_no(self, obj):
@@ -279,11 +282,9 @@ class SaleRefundAdmin(admin.ModelAdmin):
                             raise Exception(u'妈妈unoind:%s' % customer.unionid)
                         xlmm = xlmm_queryset[0]
                         clogs = CarryLog.objects.filter(xlmm=xlmm.id,
-                                                        order_num=strade.id,
+                                                        order_num=strade.order_id,
                                                         log_type=CarryLog.REFUND_RETURN)
-                        if clogs.count() > 0:
-                            raise Exception(u'订单已经退款！！！')
-
+                        assert clogs.count() == 0, u'订单已经退款！'
                         CarryLog.objects.create(xlmm=xlmm.id,
                                                 order_num=strade.id,
                                                 buyer_nick=strade.buyer_nick,
@@ -461,7 +462,7 @@ class CouponPoolAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'coupon_no', 'deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
     list_filter = ('deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
-    search_fields = ['id', 'coupon_no']
+    search_fields = ['=id', '=coupon_no']
     list_per_page = 50
 
 admin.site.register(CouponPool, CouponPoolAdmin)
@@ -470,7 +471,7 @@ admin.site.register(CouponPool, CouponPoolAdmin)
 class CouponAdmin(admin.ModelAdmin):
     list_display = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified', 'status')
     list_filter = ('created', 'status')
-    search_fields = ['coupon_user', 'mobile', 'trade_id']
+    search_fields = ['=coupon_user', '=mobile', '=trade_id']
     list_per_page = 50
 
 
@@ -480,7 +481,7 @@ admin.site.register(Coupon, CouponAdmin)
 class IntegralAdmin(admin.ModelAdmin):
     list_display = ('id', 'integral_user', 'integral_value', 'created', 'modified')
     list_filter = ('created',)
-    search_fields = ['integral_user', ]
+    search_fields = ['=integral_user', ]
     list_per_page = 50
 
 
@@ -491,7 +492,7 @@ class IntegralLogAdmin(admin.ModelAdmin):
     list_display = (
         'integral_user', 'order_id', 'mobile', 'log_value', 'log_status', 'log_type', 'in_out', 'created', 'modified')
     list_filter = ('created', 'log_status', 'log_type', 'in_out', )
-    search_fields = ['integral_user', 'mobile', ]
+    search_fields = ['=integral_user', '=mobile' ]
     list_per_page = 50
 
 
@@ -506,5 +507,5 @@ class ShoppingCartAdmin(admin.ModelAdmin):
                     'total_fee', 'sku_name',
                     'created', 'remain_time', 'status')
     list_filter = ('created', 'status')
-    search_fields = ['item_id', 'title', 'buyer_id', ]
+    search_fields = ['=item_id', '=buyer_id', ]
 admin.site.register(ShoppingCart, ShoppingCartAdmin)

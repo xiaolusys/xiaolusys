@@ -239,7 +239,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         xlmm = None
         weixin_payable = False
         customer = get_object_or_404(Customer, user=request.user)
-        if not customer.unionid.isspace():
+        if customer.unionid.strip():
             weixin_payable = isFromWeixin(request)
             xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
@@ -307,7 +307,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
         xlmm = None
         weixin_payable = False
-        if not customer.unionid.isspace():
+        if customer.unionid.strip():
             weixin_payable = isFromWeixin(request)
             xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
@@ -463,7 +463,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def get_xlmm(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-        if customer.unionid.isspace():
+        if not customer.unionid.strip():
             return None
         xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
         return xiaolumms.count() > 0 and xiaolumms[0] or None
@@ -615,12 +615,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return sale_trade
     
     @rest_exception(errmsg=u'特卖订单明细创建异常')
-    def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
+    def create_Saleorder_By_Shopcart(self,CONTENT,saletrade,cart_qs):
         """ 根据购物车创建订单明细方法 """
+        total_fee = saletrade.total_fee
+        total_payment = saletrade.payment - saletrade.post_fee
+        discount_fee = saletrade.discount_fee
         for cart in cart_qs:
             product = Product.objects.get(id=cart.item_id)
             sku = ProductSku.objects.get(id=cart.sku_id)
-            cart_payment = cart.price * cart.num
+            cart_payment = (total_payment / total_fee) * cart.total_fee
+            cart_discount = (discount_fee / total_fee) * cart.total_fee
             SaleOrder.objects.create(
                  sale_trade=saletrade,
                  item_id=cart.item_id,
@@ -630,6 +634,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  outer_sku_id=sku.outer_id,
                  title=product.name,
                  payment=cart_payment,
+                 discount_fee=cart_discount,
                  total_fee=cart.total_fee,
                  pic_path=product.pic_path,
                  sku_name=sku.properties_alias,
@@ -642,8 +647,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
         """ 根据商品明细创建订单明细方法 """
-        cart_payment = sku.agent_price * num
-        total_fee = cart_payment
+        total_fee = saletrade.total_fee
+        rnow_payment = saletrade.payment - saletrade.post_fee
+        discount_fee = saletrade.discount_fee
         SaleOrder.objects.create(
              sale_trade=saletrade,
              item_id=product.id,
@@ -652,8 +658,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
              outer_id=product.outer_id,
              outer_sku_id=sku.outer_id,
              title=product.name,
-             payment=cart_payment,
+             payment=rnow_payment,
              total_fee=total_fee,
+             discount_fee=discount_fee,
              pic_path=product.pic_path,
              sku_name=sku.properties_alias,
              status=SaleTrade.WAIT_BUYER_PAY
@@ -716,7 +723,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             
         if channel == SaleTrade.WALLET:
             #小鹿钱包支付
-            response_charge = self.wallet_charge(sale_trade, customer)
+            response_charge = self.wallet_charge(sale_trade)
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
@@ -774,7 +781,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             Product.objects.releaseLockQuantity(product_sku, sku_num)
-            raise exceptions.APIException(u'生成订单错误')
+            raise exceptions.APIException(u'订单生成异常')
         #使用优惠券，并修改状态
         if coupon_id and coupon:
             coupon.status = Coupon.USED

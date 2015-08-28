@@ -18,7 +18,7 @@ __author__ = 'meixqhi'
 CLICK_REBETA_DAYS = 11
 ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
-
+AGENCY_RECRUIT_DAYS = 3
 
 @task()
 def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
@@ -61,11 +61,13 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
     #结算千元提成
     task_Push_Pending_ThousRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=xlmm_id)
     
+    recruit_date = datetime.date.today() - datetime.timedelta(days=AGENCY_RECRUIT_DAYS)
+    
     c_logs = CarryLog.objects.filter(log_type__in=(#CarryLog.CLICK_REBETA,
                                                    #CarryLog.THOUSAND_REBETA,
                                                    CarryLog.MAMA_RECRUIT,
                                                    ),
-#                                      |Q(log_type=CarryLog.AGENCY_SUBSIDY,carry_date__lt=pre_date),
+                                     carry_date__lt=recruit_date,
                                      carry_type=CarryLog.CARRY_IN,
                                      status=CarryLog.PENDING)
     
