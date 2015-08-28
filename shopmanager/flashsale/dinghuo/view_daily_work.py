@@ -53,7 +53,7 @@ class DailyDingHuoView(View):
         if groupname == 0:
             group_sql = ""
         else:
-            group_sql = " where group_id = " + str(groupname)
+            group_sql = "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id = {0}))".format(str(groupname))
         if len(search_text) > 0:
             search_text = str(search_text)
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
@@ -66,11 +66,11 @@ class DailyDingHuoView(View):
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
                           "(select id,name as product_name,outer_id,pic_path from " \
                           "shop_items_product where  sale_time='{0}' " \
-                          "and status!='delete' " \
-                          "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser {1}))) as A " \
+                          "and status!='delete' {1}) as A " \
                           "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
                 target_date, group_sql)
+        print product_sql
         ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' or A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
                        "sum(if(status='5' or status='6' or status='有问题' or status='验货完成' or status='已处理',B.arrival_quantity,0)) as arrival_quantity,B.effect_quantity,A.status" \
                        " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created between '{0}' and '{1}') as A " \
