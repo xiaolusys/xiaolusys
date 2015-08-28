@@ -38,7 +38,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
-    search_fields = ['id', '=supplier_name', '=supplier_shop']
+    search_fields = ['id', '=supplier_name', '=supplier_shop', '=express_no']
     date_hierarchy = 'created'
 
     def queryset(self, request):
