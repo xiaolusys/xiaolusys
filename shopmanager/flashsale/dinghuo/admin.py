@@ -105,7 +105,7 @@ class ordelistAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('status', 'supplier_shop',)
         return self.readonly_fields
 
-    # 测试action
+    # 批量审核
     def test_order_action(self, request, queryset):
         for p in queryset:
             if p.status != "审核":
@@ -119,8 +119,33 @@ class ordelistAdmin(admin.ModelAdmin):
 
     test_order_action.short_description = u"审核（批量 ）"
 
-    actions = ['test_order_action']
 
+    # 批量验货完成
+    def action_quick_complete(self, request, queryset):
+        count = 0
+        for p in queryset:
+            if p.status == OrderList.APPROVAL:
+                p.status = OrderList.DEALED
+                p.save()
+                log_action(request.user.id, p, CHANGE, u'过期处理订货单')
+                count += 1
+        self.message_user(request, u"成功处理{0}个订货单!".format(str(count)))
+
+        return HttpResponseRedirect(request.get_full_path())
+
+    action_quick_complete.short_description = u"处理过期订货单（批量 ）"
+    actions = ['test_order_action', 'action_quick_complete']
+
+    def get_actions(self, request):
+
+        user = request.user
+        actions = super(ordelistAdmin, self).get_actions(request)
+
+        if user.is_superuser:
+            return actions
+        else:
+            del actions["action_quick_complete"]
+            return actions
     class Media:
         css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
         js = ("js/admin_js.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
