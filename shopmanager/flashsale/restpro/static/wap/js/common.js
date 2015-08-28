@@ -76,6 +76,19 @@ function hereDoc(f) {
     }
 })();
 
+//加载百度统计插件
+function loadBaiduStat(){
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?f8a445bf4aa2309eb173c6ad194dd6e7";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+}
+
+loadBaiduStat();
+
 //全局配置
 var GLConfig = {
 	user_profile:null,
@@ -266,3 +279,4 @@ function checkTime(i) {
     }
     return i;
 }
+

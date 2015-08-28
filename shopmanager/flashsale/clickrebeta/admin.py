@@ -12,9 +12,11 @@ class StatisticsShoppingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(StatisticsShoppingForm, self).__init__(*args, **kwargs)
         self.initial['wxorderamount'] = self.instance.order_cash()
+        self.initial['rebetamount'] = self.instance.rebeta_cash()
         self.initial['tichengcount'] = self.instance.ticheng_cash()
 
     wxorderamount = forms.FloatField(label=u'订单价格', min_value=0)
+    rebetamount = forms.FloatField(label=u'有效金额', min_value=0)
     tichengcount = forms.FloatField(label=u'提成', min_value=0)
 
     class Meta:
@@ -23,6 +25,10 @@ class StatisticsShoppingForm(forms.ModelForm):
     def clean_wxorderamount(self):
         wxorderamount = self.cleaned_data['wxorderamount']
         return int(wxorderamount * 100)
+    
+    def clean_rebetamount(self):
+        rebetamount = self.cleaned_data['rebetamount']
+        return int(rebetamount * 100)
 
     def clean_tichengcount(self):
         tichengcount = self.cleaned_data['tichengcount']

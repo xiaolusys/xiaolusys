@@ -21,11 +21,13 @@ class LogisticsCompanySerializer(serializers.ModelSerializer):
         exclude=()
 
 class MergeOrderSerializer(serializers.ModelSerializer):
-  
+    
+    ware_by  = serializers.IntegerField(source='get_ware_by', read_only=True)
     class Meta:
         model = MergeOrder
-        #fields = (
-        exclude=()
+        fields = ('id','oid','title','price','num','outer_id','outer_sku_id','payment',
+                  'sku_properties_name','pic_path','created','pay_time','out_stock','is_merge',
+                  'is_rule_match','is_reverse_order','gift_type','status','sys_status','ware_by')
 
 
 #2015-7-27  User
