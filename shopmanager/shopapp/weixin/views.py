@@ -1703,7 +1703,7 @@ def  weixinorder_detail(request):
                 return response
             
             order_id = wx_trades[0].order_id
-            latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')
+            latest_trades = MergeTrade.objects.filter(tid=order_id).order_by('-pay_time')[0:15]   #  显示最近15条 ，方凯能    2015-8-28
         #print  "   订单是", latest_trades
         # trade = latest_trades[0]
         trade22 = latest_trades
