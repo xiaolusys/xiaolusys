@@ -13,9 +13,7 @@ class Register(models.Model):
     MAX_SUBMIT_TIMES  = 6
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
-    
     cus_uid      = models.BigIntegerField(db_index=True,null=True,verbose_name=u"客户ID")
-    
     vmobile      = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
     verify_code  = models.CharField(max_length=8,blank=True,verbose_name=u"验证码")
     
@@ -77,9 +75,7 @@ class Customer(models.Model):
     )
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'客户ID')
-    
     user  = models.OneToOneField(DjangoUser,verbose_name= u'原始用户')
-    
     nick  = models.CharField(max_length=32,blank=True,verbose_name=u'昵称') 
     mobile  = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u'手机') 
     email   = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'邮箱') 

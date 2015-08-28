@@ -259,6 +259,7 @@ def push_history_week_data():  # 初始执行
 @task()
 def task_Count_ClickCount_Info(instance=None, created=None):
     if created:
+        print('task click count')
         today = datetime.datetime.today()
         # 这里只是补货创建记录　当有创建的时候　才会去获取或者修改该　点击统计的记录
         click_count, state = ClickCount.objects.get_or_create(date=today, linkid=instance.linkid)
