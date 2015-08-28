@@ -23,15 +23,17 @@
             padding-top: 8px;
             height: 34px;
             position: relative;
-            margin-left: 20px;
+            -webkit-padding-start: 10px;
         }
-
+		ul {
+			margin-bottom: auto;
+		}
         .js-goods-size li {
-            height: 40px;
+            height: 34px;
             float: left;
             border-width: 1px;
             border-style: solid;
-            margin-left: 20px;
+            margin-left: 10px;
             text-align: center;
             font-size: 20px;
             font-weight: bold;
@@ -85,7 +87,7 @@
         </ul>
 	      {% csrf_token %}
 	      <span class="input-group-btn">
-		<button class="btn btn-warning" type="button" id="cashout_confirm">确认提交</button>
+		<button class="btn btn-warning" type="button" style="margin-left:10px;" id="cashout_confirm">确认提交</button>
 	      </span>
 	    </div>
 	    <p id="id-submit-message" style="color:red"></p>
