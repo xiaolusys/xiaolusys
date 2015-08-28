@@ -60,7 +60,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
-# from rest_framework_extensions.cache.decorators import cache_response
+from rest_framework_extensions.cache.decorators import cache_response
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -99,6 +99,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             return (tnow - datetime.timedelta(days=2)).date()
         return tlast.date()
     
+    @cache_response()
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         
@@ -110,6 +111,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    @cache_response()
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
         """ 获取历史商品列表 """
@@ -125,6 +127,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    @cache_response()
     @list_route(methods=['get'])
     def advance(self, request, *args, **kwargs):
         """ 获取明日商品列表 """
@@ -146,7 +149,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if order_by == 'price':
             queryset = queryset.order_by('agent_price')
         else:
-            queryset = queryset.order_by('-details__is_recommend')
+            queryset = queryset.order_by('-wait_post_num')
         return queryset
     
     def get_female_qs(self,queryset):
@@ -155,14 +158,15 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_child_qs(self,queryset):
         return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1',details__is_seckill=False)
     
-#     @cache_response()
+    @cache_response()
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
         """ 获取今日推荐商品列表 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=today_dt).order_by('-details__is_recommend')
-
+        queryset = queryset.filter(sale_time=today_dt).order_by('-wait_post_num')
+        import time
+        print 'debug promote:',time.time()
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
         
@@ -171,12 +175,13 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(response_date)
     
+    @cache_response()
     @list_route(methods=['get'])
     def promote_previous(self, request, *args, **kwargs):
         """ 获取历史推荐商品列表 """
         previous_dt = self.get_previous_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend')
+        queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
         
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
@@ -186,6 +191,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(response_date)
     
+    @cache_response()
     @list_route(methods=['get'])
     def childlist(self, request, *args, **kwargs):
         """ 获取特卖童装列表 """
@@ -201,6 +207,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    @cache_response()
     @list_route(methods=['get'])
     def ladylist(self, request, *args, **kwargs):
         """ 获取特卖女装列表 """
@@ -216,6 +223,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    @cache_response()
     @list_route(methods=['get'])
     def modellist(self, request, *args, **kwargs):
         """ 获取款式商品列表 """
@@ -249,8 +257,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         product_dict['details'] = pdetail_dict
             
         return Response(product_dict)
-
-
+    
+    @cache_response()
     @list_route(methods=['get'])
     def seckill(self, request, *args, **kwargs):
         """

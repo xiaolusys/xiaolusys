@@ -230,6 +230,7 @@ REST_FRAMEWORK = {
 }
 
 REST_FRAMEWORK_EXTENSIONS = {
+    'DEFAULT_USE_CACHE':'default',
     'DEFAULT_CACHE_ERRORS': False,
     'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15,
     'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
