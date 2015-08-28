@@ -128,13 +128,14 @@ class CashoutView(View):
             cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm[0], cash_outable=cash_outable)
         v = content.get("v")
         m = re.match(r'^\d+$', v)
-
+        print("v is here ",v)
         status = {"code":0, "status":"ok"}
         if m:
             value = int(m.group()) * 100
             could_cash_out_int = int(could_cash_out)*100
-
-            if value < 2000 or value > 20000 or value > could_cash_out_int:
+            # 2015-8-28 修改为　只是允许１００　和200　提现
+            # if value < 2000 or value > 20000 or value > could_cash_out_int:
+            if value not in (10000, 20000) or value > could_cash_out_int:
                 status = {"code":3, "status": "input error"}
             else:
                 try:
