@@ -161,7 +161,7 @@ def common_Handler(request, oid, reason, num, shenqingjine, feedback, good_statu
         # 保存其他信息到sale_refund
         save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num,
                             reason=reason, feedback=feedback)
-        # pushTradeRefundTask(sale_refund.id)
+        pushTradeRefundTask(sale_refund.id)
         return {"res": "ok"}
     if state:
         # 修改该订单的
@@ -175,7 +175,7 @@ def common_Handler(request, oid, reason, num, shenqingjine, feedback, good_statu
         save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num,
                             reason=reason, feedback=feedback)
         log_action(request.user.id, sale_refund, ADDITION, u'用户售后增加退货款单信息！')
-        # pushTradeRefundTask(sale_refund.id)
+        pushTradeRefundTask(sale_refund.id)
         return {"res": "ok"}
     # 否则
     else:
