@@ -615,7 +615,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return sale_trade
     
     @rest_exception(errmsg=u'特卖订单明细创建异常')
-    def create_Saleorder_By_Shopcart(self,CONTENT,saletrade,cart_qs):
+    def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
         """ 根据购物车创建订单明细方法 """
         total_fee = saletrade.total_fee
         total_payment = saletrade.payment - saletrade.post_fee
