@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>小鹿美美-购物车支付</title>
+<meta id="viewport" name="viewport"/>
+<script>
+//设置初始页面VIEWPORT
+(function () {
+    var oViewport = document.getElementById('viewport');
+    var phoneWidth = parseInt(window.screen.width);
+    var phoneScale = phoneWidth / 640;
+    var ua = navigator.userAgent;
+    if (/Android (\d+\.\d+)/.test(ua)) {
+        var version = parseFloat(RegExp.$1);
+        if (version > 2.3) {
+            oViewport.setAttribute('content', 'width=640, minimum-scale = ' + phoneScale + ', maximum-scale = ' + phoneScale + ', target-densitydpi=device-dpi')
+        } else {
+            oViewport.setAttribute('content', 'width=640, target-densitydpi=device-dpi');
+        }
+    } else {
+        oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
+    }
+    window.onload = function () {
+        document.body.addEventListener('touchstart', function () {});
+        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
+    }
+})();
+</script>
+<style>
+a {
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	text-decoration: none;
+}
+.logo-wrap {
+	padding-top: 120px;
+}
+.logo {
+	width: 328px;
+	height: 382px;
+	background-image: url(/static/wap/images/logo.png);
+	margin: 0 auto;
+}
+.tips {
+	width: 640px;
+	margin: 40px auto 0;
+	font-size: 26px;
+	line-height: 2;
+	text-align: center;
+	color: #242424;
+}
+.back-index {
+	display: block;
+	margin: 80px auto 0;
+	width: 394px;
+	height: 82px;
+	line-height: 82px;
+	border: 3px solid #fcb916;
+	border-radius: 10px;
+	color: #fcb916;
+	text-align: center;
+	font-size: 30px;
+}
+</style>
+</head>
+<body>
+<div class="logo-wrap">
+    <div class="logo"></div>
+</div>
+<div class="tips"></div>
+<a class="back-index" href="/">返回首页</a>
+</body>
+</html>

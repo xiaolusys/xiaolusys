@@ -128,7 +128,6 @@ function set_Order_Detail() {
             $(".jifen-list").append(status1);
             var w_info = Create_warring_Info();
             $(".warring_info").append(w_info);
-            $(".content").append(btn_modify);  // 加入修改申请button
         }
         if (res.refund_status == REFUND_WAIT_RETURN_GOODS) {  //卖家同意申请
 
@@ -207,7 +206,8 @@ function Confirm_Refund() { //确认提交 物流信息  到　服务器
         drawToast("物流信息不正确哦~");
         return
     }
-    var data = {"tid": tid, "id": oid, "modify": modify, "company": company, "sid": sid};
+    var data = {"tid": tid, "id": oid, "modify": modify, "company": company,
+        "sid": sid,'csrfmiddlewaretoken': csrftoken};
     swal({
             title: "",
             text: "确定提交物流信息么？",
@@ -222,7 +222,7 @@ function Confirm_Refund() { //确认提交 物流信息  到　服务器
         function () {
             $.ajax({
                 "url": url,
-                "data": {'csrfmiddlewaretoken': csrftoken, "refund": data},
+                "data": data,
                 "type": "post",
                 dataType: 'json',
                 success: requetCall

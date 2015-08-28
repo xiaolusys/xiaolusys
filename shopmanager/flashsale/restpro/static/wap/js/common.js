@@ -198,7 +198,32 @@ function DoIfLogin(cfg){
     });
 }
 
+function openWindow(name)  
+{  
+   window.open('about:blank',name,'height=400, width=400, top=0, left=0, toolbar=yes, menubar=yes, scrollbars=no, resizable=no,location=yes, status=yes');   
+}
 
+function openPostWindow(url, data, name)  
+{  
+  var tempForm = document.createElement("form");  
+  tempForm.id="tempForm1";  
+  tempForm.method="get";  
+  tempForm.action=url;  
+  tempForm.target=name;  
+  
+  var hideInput = document.createElement("input");  
+  hideInput.type="hidden";  
+  hideInput.name= "content"
+  hideInput.value= data;
+  tempForm.appendChild(hideInput);   
+  tempForm.attachEvent("onsubmit",function(){ openWindow(name); });
+  document.body.appendChild(tempForm);  
+  
+  tempForm.fireEvent("onsubmit");
+  tempForm.submit();
+  document.body.removeChild(tempForm);
+}
+ 
 
 var remain_date = 0;
 
@@ -263,7 +288,6 @@ var cart_timer = function () {
         }
 
     }
-
 
     return {
         publicMethod: function () {

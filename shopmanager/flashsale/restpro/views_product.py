@@ -223,7 +223,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response()
+#     @cache_response()
     @list_route(methods=['get'])
     def modellist(self, request, *args, **kwargs):
         """ 获取款式商品列表 """
