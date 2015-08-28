@@ -122,7 +122,7 @@ function Create_detail_dom(obj) {
          <span class="count">数量：{{ num }}</span>
          </p>
          <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span>
-         <a id="btn_refund" class="btn_order_status_{{ status }}  refund_status_{{ refund_status }}" cid="{{ refund_status }}" href="tuikuan.html?oid={{id}}&tid={{trade_id}}" cid={{ id }}></a></p>
+         <a id="btn_refund" class="btn_order_status_{{ status }}  refund_status_{{ refund_status }} refund_btn_show" cid="{{ refund_status }}" href="tuikuan.html?oid={{id}}&tid={{trade_id}}" cid={{ id }}></a></p>
          </div>
          </div>
          */

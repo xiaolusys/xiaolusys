@@ -14,14 +14,14 @@ $(document).ready(function () {
                 }
             });
             if(nums==0){
-                $(".tips").empty().append("您的优惠券过期了，赶紧索取吧!~");
+                $(".tips").empty().append("亲，暂无优惠券派发，敬请期待吧~");
             }
             else{
                 var tips_content = '您已经有' + nums + '张有效优惠券咯，赶紧去花吧！';
                 $(".tips").empty().append(tips_content);//后添加
                 }
         } else {
-            $(".tips").empty().append("您还没有优惠券，赶紧索取吧!~");
+            $(".tips").empty().append("亲，暂无优惠券派发哦，敬请期待吧~");
         }
     });
 
