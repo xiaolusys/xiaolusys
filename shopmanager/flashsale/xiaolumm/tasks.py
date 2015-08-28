@@ -150,7 +150,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
    
 
     mama = XiaoluMama.objects.get(id=xlmm)
-    if mama.agencylevel == 3:
+    if mama.agencylevel != 2:
         return
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     # 据要求2015-07-11 修改为 按照人数来发放红包
