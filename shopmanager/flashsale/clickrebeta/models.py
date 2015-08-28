@@ -112,15 +112,15 @@ class StatisticsShoppingByDay(models.Model):
         return c_logs.count() > 0
     
 # 2015-08-24  取消首单十个单红包　之前发放的会在任务里面　予以确定
-# from django.db.models.signals import post_save
-#
-# def check_or_create_order_redenvelop(sender,instance, **kwargs):
-#
-#     from flashsale.xiaolumm.tasks import order_Red_Packet_Pending_Carry
-#     # 首单十单红包创建 2015-07-08 添加
-#     order_Red_Packet_Pending_Carry(instance.linkid, datetime.date.today())
-#
-# post_save.connect(check_or_create_order_redenvelop, sender=StatisticsShoppingByDay)
+from django.db.models.signals import post_save
+
+def check_or_create_order_redenvelop(sender,instance, **kwargs):
+
+    from flashsale.xiaolumm.tasks import order_Red_Packet_Pending_Carry
+    # 首单十单红包创建 2015-07-08 添加
+    order_Red_Packet_Pending_Carry(instance.linkid, datetime.date.today())
+
+post_save.connect(check_or_create_order_redenvelop, sender=StatisticsShoppingByDay)
 
 
 from django.db.models import F
