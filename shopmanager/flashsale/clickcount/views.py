@@ -7,7 +7,7 @@ from flashsale.clickcount.tasks import task_Count_ClickCount_Info
 
 
 def Create_Or_Change_Clickcount(sender, instance, created, **kwargs):
-    task_Count_ClickCount_Info.delay(instance, created)
+    task_Count_ClickCount_Info.s(instance, created)()
 
 
 post_save.connect(Create_Or_Change_Clickcount, sender=Clicks)
