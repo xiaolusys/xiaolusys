@@ -282,7 +282,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                             raise Exception(u'妈妈unoind:%s' % customer.unionid)
                         xlmm = xlmm_queryset[0]
                         clogs = CarryLog.objects.filter(xlmm=xlmm.id,
-                                                        order_num=strade.order_id,
+                                                        order_num=obj.order_id,
                                                         log_type=CarryLog.REFUND_RETURN)
                         assert clogs.count() == 0, u'订单已经退款！'
                         CarryLog.objects.create(xlmm=xlmm.id,
