@@ -150,8 +150,11 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
     # 2015-07-04 上午  要求修改为pending状态
     # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
    
-    red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
+
     mama = XiaoluMama.objects.get(id=xlmm)
+    if mama.agencylevel != 2:
+        return
+    red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     # 据要求2015-07-11 修改为 按照人数来发放红包
     buyercount = buyer_Num(xlmm, finish=False)
     if red_packet.first_red is False and mama.agencylevel == 2 and mama.charge_status == XiaoluMama.CHARGED:
