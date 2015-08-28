@@ -67,8 +67,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ShoppingCartSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,renderers.TemplateHTMLRenderer)
+    template_name = 'homeback.html'
+        
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
@@ -218,10 +219,14 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u'库存不足赶快下单')
         return Response({"sku_id": sku_id,"sku_num":sku_num})
     
-    @list_route(methods=['get'])
-    def carts_payinfo(self, request, *args, **kwargs):
+    @list_route(methods=['get','post'])
+    def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
         content = request.GET
+        method  = request.method.lower()
+        if format == 'html' and method == 'get':
+            return Response({})
+        
         cartid_list =  content.get('cart_ids','')
         cart_ids = [int(i) for i in cartid_list.split(',') if i.isdigit()]
         if len(cart_ids) == 0:
@@ -279,13 +284,22 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'coupon_ticket':coupon_ticket,
                     'cart_ids':','.join([str(c) for c in cart_ids]),
                     'cart_list':serializer.data}
+
+        if format == 'html':
+            self.template_name    = 'confirmpay.html' 
+            addr_list = UserAddress.normal_objects.filter(cus_uid=customer.id)
+            response['addr_list'] = serializers.UserAddressSerializer(addr_list)
         
         return Response(response)
     
     @list_route(methods=['get'])
-    def now_payinfo(self, request, *args, **kwargs):
+    def now_payinfo(self, request, format=None, *args, **kwargs):
         """ 立即购买获取支付信息 """
         content     = request.REQUEST
+        method  = request.method.lower()
+        if format == 'html' and method == 'get':
+            return Response({})
+        
         sku_id      = content.get('sku_id','')
         if not sku_id.isdigit():
             raise exceptions.APIException(u'传入规格ID不合法')
@@ -339,7 +353,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
         product_sku_dict['product'] = serializers.ProductSerializer(product,
                                          context={'request': request}).data
-        
         response = {'uuid':genTradeUniqueid(),
                     'total_fee':total_fee,
                     'post_fee':post_fee,
@@ -351,6 +364,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'wallet_payable':wallet_payable,
                     'coupon_ticket':coupon_ticket,
                     'sku':product_sku_dict }
+        
+        if format == 'html':
+            self.template_name    = 'confirmpay.html' 
+            addr_list = UserAddress.normal_objects.filter(cus_uid=customer.id)
+            response['addr_list'] = serializers.UserAddressSerializer(addr_list)
         
         return Response(response)
 
