@@ -47,7 +47,7 @@ function Create_product_detailsku_dom(obj) {
          <span id="product_id" style="display:none">{{id}}</span>
          </div>
          <div class="goods-size">
-         <img src="http://image.xiaolu.so/TT-1440400465278-chi_ma.png" width="100%">
+         <img src="http://image.xiaolu.so/kexuanchima.png" width="100%">
          <ul id="js-goods-size">
          {{sku_list}}
          </ul>

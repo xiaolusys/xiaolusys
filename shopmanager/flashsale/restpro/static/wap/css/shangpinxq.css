@@ -94,11 +94,11 @@
   -webkit-transform: rotate(45deg);
 }
 .goods-size li.active{
-  border-color: #fdb916;
-  color: #fdb916;
+  border-color: #ff6d73;
+  color: #ff6d73;
 }
 .goods-size li.active i{
-  background-color:#fdb916;
+  background-color:#ff6d73;
 }
 .goods-size li.normal{
   border-color: #bab7b7;
