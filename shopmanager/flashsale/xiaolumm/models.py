@@ -24,7 +24,7 @@ class XiaoluMama(models.Model):
     EFFECT = 'effect'
     FROZEN = 'forzen'
     STATUS_CHOICES = (
-        (EFFECT,u'正常中'),
+        (EFFECT,u'正常'),
         (FROZEN,u'已冻结')
     )
     

@@ -1,6 +1,6 @@
 # coding=utf-8
 from flashsale.clickcount.models import ClickCount
-from shopmanager.flashsale.xiaolumm.models import Clicks, XiaoluMama
+from flashsale.xiaolumm.models import Clicks, XiaoluMama
 import datetime
 from django.db.models.signals import post_save
 from flashsale.clickcount.tasks import task_Count_ClickCount_Info

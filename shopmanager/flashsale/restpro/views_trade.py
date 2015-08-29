@@ -299,11 +299,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         method  = request.method.lower()
         if format == 'html' and method == 'get':
             return Response({})
-        
         sku_id      = content.get('sku_id','')
         if not sku_id.isdigit():
             raise exceptions.APIException(u'传入规格ID不合法')
-        
         sku_id      = int(sku_id)
         product_sku = get_object_or_404(ProductSku,id=sku_id)
         product     = product_sku.product
@@ -755,6 +753,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         item_id   = CONTENT.get('item_id')
         sku_id   = CONTENT.get('sku_id')
         sku_num  = int(CONTENT.get('num','1'))
+        
         customer = get_object_or_404(Customer,user=request.user)
         product         = get_object_or_404(Product,id=item_id)
         product_sku     = get_object_or_404(ProductSku,id=sku_id)

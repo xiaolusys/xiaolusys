@@ -97,8 +97,10 @@ var GLConfig = {
 	login_url:'/pages/denglu.html',//登录URL
 	zhifucg_url:'/pages/zhifucg.html',//支付成功跳转URL
 	daizhifu_url:'daizhifu-dd.html',//待支付订单页面
-	today_suffix:'today',  //获取首页今日商品信息，URL标识
-	previous_suffix:'previous', //获取首页昨日商品信息，URL标识
+	poster_today:'/posters/today.json',  //获取今日特卖海报
+	poster_previous:'/posters/previous.json',  //获取昨日特卖海报
+	products_today:'/products/promote_today.json',  //获取昨日特卖推荐列表
+	products_previous:'/products/promote_previous.json',  //获取昨日特卖推荐列表
 	get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
 	get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
 	get_modellist_url:'/products/modellist/{{model_id}}.json', //获取同款商品列表

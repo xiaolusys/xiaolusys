@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+import datetime
 from django.contrib import admin
 from django.db import models
 from django.conf import settings
@@ -124,7 +125,7 @@ admin.site.register(Register, RegisterAdmin)
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nick', 'mobile', 'phone', 'created', 'modified', 'unionid')
+    list_display = ('id', 'user', 'nick', 'mobile', 'phone', 'created', 'modified', 'unionid')
     list_display_links = ('id', 'nick',)
 
     search_fields = ['=id', '=mobile', '=openid', '=unionid']
@@ -445,12 +446,20 @@ from flashsale.pay.models_custom import GoodShelf
 
 class GoodShelfAdmin(admin.ModelAdmin):
     
-    list_display = ('id','title','is_active','active_time','created')
+    list_display = ('id','title','is_active','active_time','created','preview_link')
     
     list_filter = ('is_active',('active_time',DateFieldListFilter),('created',DateFieldListFilter))
     search_fields = ['title']
-    list_per_page = 50
+    list_per_page = 25
    
+    def preview_link(self, obj):
+        if obj.active_time:
+            pre_days = (obj.active_time - datetime.datetime.now()).days
+            return u'<a href="http://m.xiaolu.so/preview.html?days=%s">预览一下</a>'%pre_days
+        return u'' 
+        
+    preview_link.allow_tags = True
+    preview_link.short_description = u"预览"
 
 admin.site.register(GoodShelf, GoodShelfAdmin)
 
