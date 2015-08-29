@@ -23,19 +23,19 @@
             padding-top: 8px;
             height: 34px;
             position: relative;
-            margin-left: 20px;
+            -webkit-padding-start: 10px;
         }
-
+		ul {
+			margin-bottom: auto;
+		}
         .js-goods-size li {
-            width: 80px;
-            height: 30px;
+            height: 34px;
             float: left;
             border-width: 1px;
             border-style: solid;
-            margin-left: 20px;
-
+            margin-left: 10px;
             text-align: center;
-            font-size: 10px;
+            font-size: 20px;
             font-weight: bold;
             line-height: 30px;
             position: relative;
@@ -81,14 +81,13 @@
 	  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
 	    <p>&nbsp;提现需100元或者200元,请选择提现金额：</p>
 	    <div class="input-group" style="margin-top:5px">
-
         <ul class="js-goods-size">
-            <li value="100" class="normal" id="value_100" onclick="select_value100(this)">￥100元</li>
-            <li value="200" class="normal" id="value_200" onclick="select_value200(this)">￥200元</li>
+            <li value="100" class="col-xs-5 normal" id="value_100" onclick="select_value100(this)">￥100元</li>
+            <li value="200" class="col-xs-5 normal" id="value_200" onclick="select_value200(this)">￥200元</li>
         </ul>
 	      {% csrf_token %}
 	      <span class="input-group-btn">
-		<button class="btn btn-warning" type="button" id="cashout_confirm">确认提交</button>
+		<button class="btn btn-warning" type="button" style="margin-left:10px;" id="cashout_confirm">确认提交</button>
 	      </span>
 	    </div>
 	    <p id="id-submit-message" style="color:red"></p>
@@ -280,15 +279,11 @@
         	return ;
         }
         subtn.addClass('loading');
-        var value = 0;
-        $(".js-goods-size li").each(function(i,v){
-            console.log(i,v,$(v).attr('class'));
-            if($(v).attr('class')=="active"){
-                console.log("this value is ",$(v).val());
-                value = parseInt($(v).val());
-            }
-        });
-
+        var value = $(".js-goods-size li.active").val() || 0;
+		if (value == 0 || value == 'undifined'){
+			$("#id-submit-message")[0].innerHTML = "请选择提现金额";
+			return;
+		}
         var callback = function (res) {
           subtn.removeClass('loading');
 	      if (res["code"] == 0) {
