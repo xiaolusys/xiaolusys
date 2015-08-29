@@ -390,7 +390,15 @@ class Clicks(models.Model):
 
     def __unicode__(self):
         return '%s'%self.id
-    
+
+from django.db.models.signals import post_save
+
+
+def Create_Or_Change_Clickcount(sender, instance, created, **kwargs):
+    from flashsale.clickcount.tasks import task_Count_ClickCount_Info
+    task_Count_ClickCount_Info.s(instance, created)()
+
+post_save.connect(Create_Or_Change_Clickcount, sender=Clicks)
 
 class CashOut(models.Model):
     PENDING = 'pending'

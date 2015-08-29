@@ -20,22 +20,22 @@
 </div>
 
 <div class="coupons">
-
-    <script id="coupon-template" type="text/html">
+    <script id="coupon_template_xlmm" type="text/html">
         <ul class="coupons-list">
-            <li class="type{{ type }}">
-                <p class="name">全场任意商品满{{ full }}返{{ fan }}</p>
+            <li class="type2">
+                <p class="name">妈妈专享　订单满30减30</p>
+
                 <p class="date">{{ created }} - {{ deadline }}</p>
                 <i class="icon-radio" onclick="choose_Coupon({{ id }});"></i>
             </li>
         </ul>
     </script>
-        <script id="coupon_template_xlmm_coupon" type="text/html">
+    <script id="coupon_template_xlmm_used" type="text/html">
         <ul class="coupons-list">
-            <li class="type{{ type }}">
-                <p class="name">全场任意商品满{{ full }}返{{ fan }}</p>
+            <li class="type4">
+                <p class="name">已经使用过的优惠券</p>
+
                 <p class="date">{{ created }} - {{ deadline }}</p>
-                <i class="icon-radio" onclick="choose_Coupon({{ id }});"></i>
             </li>
         </ul>
     </script>

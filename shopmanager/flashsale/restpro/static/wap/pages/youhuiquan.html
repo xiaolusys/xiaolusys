@@ -15,15 +15,17 @@
 <div class="header">
     <a class="back" href="javascript:history.go(-1)"></a>
     <a class="add" href="youhuiquan-kong.html"></a>
+
     <h1>优惠券</h1>
 </div>
 <ul class="list youxiao">
 
 </ul>
+<!--
 <div class="shixiao">
     <div class="title">已失效的券</div>
 </div>
-
+-->
 <ul class="list shixiao_list">
 
 </ul>
@@ -33,6 +35,20 @@
         <p class="tips"></p>
     </div>
     <p class="tips">暂无优惠券~</p>
+</script>
+<!-- 代理118优惠券　-->
+<script type="text/html" id="xlmm_118">
+    <li class="type2">
+        <p class="name">妈妈专享　订单满30减30</p>
+        <p class="date">{{ created }} － {{ deadline }}</p>
+    </li>
+</script>
+<!-- 代理118优惠券  已经使用过的　-->
+<script type="text/html" id="xlmm_118_used">
+    <li class="type4">
+        <p class="name">优惠券已经使用过了哦~</p>
+        <p class="date">{{ created }} － {{ deadline }}</p>
+    </li>
 </script>
 </body>
 </html>
