@@ -171,7 +171,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def show_carts_history(self, request, *args, **kwargs):
-        queryset = ShoppingCart.objects.filter(status=ShoppingCart.CANCEL).order_by('-created')
+        before = datetime.datetime.now() - datetime.timedelta(hours=12)
+        customer = get_object_or_404(Customer, user=request.user)
+
+        queryset = ShoppingCart.objects.filter(buyer_id=customer.id, status=ShoppingCart.CANCEL,
+                                               created__gt=before).order_by('-created')
         data = []
         for a in queryset:
             temp_dict = model_to_dict(a)
