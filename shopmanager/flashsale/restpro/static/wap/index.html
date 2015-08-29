@@ -173,9 +173,9 @@
     }, false);
 	$('.cart').listencart();
     //获取今日海报
-    Set_posters(GLConfig.today_suffix);
+    Set_posters(GLConfig.poster_today);
     //获取今日推荐商品
-    Set_promotes_product(GLConfig.today_suffix);
+    Set_promotes_product(GLConfig.products_today);
     //获取购物车商品数
     Set_shopcarts_num();
     today_timer();
@@ -185,5 +185,7 @@ function scroll_top(e){
     $('body').animate({scrollTop: 0}, 400);
 }
 </script>
+<link rel="stylesheet" type="text/css" href="css/sweet-alert.css">
+<script src="js/sweet-alert.min.js"></script>
 </body>
 </html>

@@ -97,8 +97,10 @@ var GLConfig = {
 	login_url:'/pages/denglu.html',//登录URL
 	zhifucg_url:'/pages/zhifucg.html',//支付成功跳转URL
 	daizhifu_url:'daizhifu-dd.html',//待支付订单页面
-	today_suffix:'today',  //获取首页今日商品信息，URL标识
-	previous_suffix:'previous', //获取首页昨日商品信息，URL标识
+	poster_today:'/posters/today.json',  //获取今日特卖海报
+	poster_previous:'/posters/previous.json',  //获取昨日特卖海报
+	products_today:'/products/promote_today.json',  //获取昨日特卖推荐列表
+	products_previous:'/products/promote_previous.json',  //获取昨日特卖推荐列表
 	get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
 	get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
 	get_modellist_url:'/products/modellist/{{model_id}}.json', //获取同款商品列表
@@ -273,17 +275,35 @@ var cart_timer = function () {
         ss = checkTime(ss);
         if (count == 1) {
             if (ts > 0) {
+                if (ts > 299400 && ts < 300600) {
+                    swal({
+                            title: "",
+                            text: "亲,5分钟后购物车的商品将被清空，去购物车结算吗？",
+                            type: "",
+                            showCancelButton: true,
+                            imageUrl: "http://image.xiaolu.so/logo.png",
+                            confirmButtonColor: '#DD6B55',
+                            confirmButtonText: '去购物车',
+                            cancelButtonText: '取消'
+                        },
+                        function () {
+                            //发送请求
+                            window.location = "pages/gouwuche.html";
+                        });
+                }
                 $(".carttime").html(mm + ":" + ss);
                 $(".cart").animate({width: "160px"});
                 setTimeout(function () {
                         privateFunction();
                     },
                     1000);
+
+
             } else {
                 $(".carttime").html("");
                 $(".cart").animate({width: "80px"});
             }
-        }else{
+        } else {
             count = 1;
         }
 

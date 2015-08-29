@@ -204,6 +204,7 @@ FileProgress.prototype.setComplete = function(up, info) {
             "<div class=hash><strong>Hash:</strong>" + res.hash + "</div>";
     }
     $("#header_img_content").val(url);
+    $("#preview").attr("src",url);
 
 
 
