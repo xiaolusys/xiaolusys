@@ -105,7 +105,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(exc.message)
         except Exception:
             pass
-        
+        cart_id = data.get("cart_id", None)
+        if cart_id:
+            s_temp = ShoppingCart.objects.filter(id=cart_id, status=ShoppingCart.CANCEL)
+            s_temp.delete()
         sku_num = 1
         sku     = get_object_or_404(ProductSku, pk=sku_id)
         user_skunum = getUserSkuNumByLast24Hours(customer,sku)
@@ -166,6 +169,20 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             count += item.num
         return Response({"result": count, "last_created": last_created})
 
+    @list_route(methods=['get'])
+    def show_carts_history(self, request, *args, **kwargs):
+        queryset = ShoppingCart.objects.filter(status=ShoppingCart.CANCEL).order_by('-created')
+        data = []
+        for a in queryset:
+            temp_dict = model_to_dict(a)
+            pro = Product.objects.filter(id=a.item_id)
+            pro_sku = ProductSku.objects.filter(id=a.sku_id)
+            if pro.count() > 0:
+                if pro[0].sale_open():
+                    temp_dict["std_sale_price"] = pro[0].std_sale_price
+                    temp_dict["is_sale_out"] = pro_sku[0].sale_out if pro_sku else False
+                    data.append(temp_dict)
+        return Response(data)
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
         instance = self.get_object()
