@@ -28,7 +28,7 @@ $(document).ready(function () {
                 var created = val.created;
                 //默认对象
                 console.log("devug val:", val);// status 0:已领取 1:已使用  2:已过期
-                var yhq_obj = {"type": 2, "full": 30, "fan": 30, "created": created, "deadline": deadline};
+                var yhq_obj = {"created": created, "deadline": deadline};
                 if (coupon_value == 30 && coupon_status == 0 && coupon_type == 4) {
                     //满30返30  代理 coupon_type 4
                     var yhq_tree1 = create_yhq_dom(yhq_obj);
@@ -36,13 +36,11 @@ $(document).ready(function () {
                 }
                 if (coupon_value == 30 && coupon_status == 2 && coupon_type == 4) {
                     //满30返30  代理 coupon_type 4 过期
-                    yhq_obj.type = 4;
                     var yhq_tree2 = create_yhq_dom(yhq_obj);
                     $(".youxiao").append(yhq_tree2);
                 }
                 if (coupon_value == 30 && coupon_status == 1 && coupon_type == 4) {
                     //满30返30  代理 coupon_type 4 已使用
-                    yhq_obj.type = 2;
                     var yhq_tree3 = create_yhq_dom_used(yhq_obj);
                     $(".youxiao").append(yhq_tree3);
                 }

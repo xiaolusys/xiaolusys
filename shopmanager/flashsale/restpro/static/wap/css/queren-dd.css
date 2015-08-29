@@ -153,15 +153,18 @@
 .coupons-list li.type1{
   background: url(../images/youhuiquan1.png) no-repeat center center;
 }
+/*type2 30元　有效优惠券　*/
 .coupons-list li.type2{
   background: url(../images/youhuiquan2.png) no-repeat center center;
 }
 .coupons-list li.type3{
   background: url(../images/youhuiquan3.png) no-repeat center center;
 }
-.coupons-list li.type5{
-  background: url(../images/youhuiquan7.png) no-repeat center center;
+/*type4 30元　使用过的优惠券　*/
+.coupons-list li.type4{
+  background: url(../images/youhuiquan4.png) no-repeat center center;
 }
+
 
 .coupons-list .name{
   font-size: 24px;
