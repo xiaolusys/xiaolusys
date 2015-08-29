@@ -273,17 +273,35 @@ var cart_timer = function () {
         ss = checkTime(ss);
         if (count == 1) {
             if (ts > 0) {
+                if (ts > 299400 && ts < 300600) {
+                    swal({
+                            title: "",
+                            text: "亲,5分钟后购物车的商品将被清空，去购物车结算吗？",
+                            type: "",
+                            showCancelButton: true,
+                            imageUrl: "http://image.xiaolu.so/logo.png",
+                            confirmButtonColor: '#DD6B55',
+                            confirmButtonText: '去购物车',
+                            cancelButtonText: '取消'
+                        },
+                        function () {
+                            //发送请求
+                            window.location = "pages/gouwuche.html";
+                        });
+                }
                 $(".carttime").html(mm + ":" + ss);
                 $(".cart").animate({width: "160px"});
                 setTimeout(function () {
                         privateFunction();
                     },
                     1000);
+
+
             } else {
                 $(".carttime").html("");
                 $(".cart").animate({width: "80px"});
             }
-        }else{
+        } else {
             count = 1;
         }
 
