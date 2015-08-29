@@ -131,7 +131,7 @@ class MergeTradeAdmin(MyAdmin):
     list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
                     'payment','pay_time','consign_time','status','sys_status',
                     'reason_code','is_picking_print','is_express_print'#
-                    ,'can_review','operator','weight_time','charge_time')
+                    ,'can_review','ware_by','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
     #list_editable = ('update_time','task_type' ,'is_success','status')
     

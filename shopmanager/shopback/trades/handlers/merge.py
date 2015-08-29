@@ -19,6 +19,7 @@ class MergeHandler(BaseHandler):
         if (merge_trade.user.visitor_id.lower().endswith('miaosha') 
             or merge_trade.user.nick.find(u'秒杀') >= 0):
             return False
+        
         #判断订单商品是否同仓
         pre_ware    = None
         for order in merge_trade.normal_orders:
@@ -40,7 +41,7 @@ class MergeHandler(BaseHandler):
         if settings.DEBUG:
             print 'DEBUG MERGE:',merge_trade
             
-        if merge_trade.type == MergeTrade.WX_TYPE:
+        if merge_trade.type in (MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE):
             latest_paytime = datetime.datetime(merge_trade.pay_time.year
                                                ,merge_trade.pay_time.month
                                                ,merge_trade.pay_time.day) 
