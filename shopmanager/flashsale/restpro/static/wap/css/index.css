@@ -343,7 +343,6 @@ nav a:active,
     position: relative;
 }
 .chaotong li a .mask{
-  background-color: #9B9B9B;
   opacity: 0.47;
   position: absolute;
   left:0;
@@ -369,7 +368,6 @@ nav a:active,
 }
 
 .nvzhuang li a .mask{
-  background-color: #9B9B9B;
   opacity: 0.47;
   position: absolute;
   left:0;

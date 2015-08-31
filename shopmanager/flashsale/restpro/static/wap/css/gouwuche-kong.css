@@ -92,6 +92,7 @@ body {
     width: 640px;
     margin: 0 auto;
     padding-top: 20px;
+    position: relative;
 }
 
 .cart-list .item {
@@ -164,12 +165,11 @@ body {
     position: absolute;
 
 }
+
 .cart-list .history-btn {
     padding-left: 15px;
     color: #E4007F;
 }
-
-
 
 #floatOrder {
     width: 150px;
@@ -183,7 +183,30 @@ body {
     z-index: 9999;
 }
 
-
+.cart-list .item .mask{
+  opacity: 0.47;
+  position: absolute;
+  left:0;
+  top:0;
+  right: 0;
+  bottom: 0;
+}
+.cart-list .item .text{
+  background-color: rgba(0,0,0,0.6);
+  opacity: 0.88;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  border-radius: 50%;
+  left:50%;
+  top:50%;
+  margin-left: -50px;
+  margin-top: -50px;
+  text-align: center;
+  color: #fff;
+  font-size:22px;
+}
 
 
 
