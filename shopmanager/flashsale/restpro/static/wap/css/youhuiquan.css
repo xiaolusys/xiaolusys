@@ -29,6 +29,12 @@
 .list li.type4{
   background: url(../images/youhuiquan4.png) no-repeat center center;
 }
+.list li.type5{
+  background: url(../images/youhuiquan5.png) no-repeat center center;
+}
+.list li.type6{
+  background: url(../images/youhuiquan6.png) no-repeat center center;
+}
 
 
 .list .name{

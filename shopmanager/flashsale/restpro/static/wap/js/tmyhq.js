@@ -15,6 +15,14 @@ function create_yhq_dom_used(obj) {
     var xlmm_118_used = $("#xlmm_118_used").html();
     return hereDoc(xlmm_118_used).template(obj)
 }
+function create_yhq_dom_post_fee(obj) {
+    var xlmm_118_used = $("#post_fee").html();
+    return hereDoc(xlmm_118_used).template(obj)
+}
+function create_yhq_dom_post_fee_used(obj) {
+    var xlmm_118_used = $("#post_fee_used").html();
+    return hereDoc(xlmm_118_used).template(obj)
+}
 
 $(document).ready(function () {
     var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
@@ -43,6 +51,16 @@ $(document).ready(function () {
                     //满30返30  代理 coupon_type 4 已使用
                     var yhq_tree3 = create_yhq_dom_used(yhq_obj);
                     $(".youxiao").append(yhq_tree3);
+                }
+                if (coupon_value == 10 && coupon_status == 0 && coupon_type == 5) {
+                    //10元现金券   coupon_type 5
+                    var yhq_tree5 = create_yhq_dom_post_fee(yhq_obj);
+                    $(".youxiao").append(yhq_tree5);
+                }
+                if (coupon_value == 10 && coupon_status == 1 && coupon_type == 5) {
+                    //10元现金券   coupon_type 5 已使用
+                    var yhq_tree6 = create_yhq_dom_post_fee_used(yhq_obj);
+                    $(".youxiao").append(yhq_tree6);
                 }
             });
         }
