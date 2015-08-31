@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.admin import SimpleListFilter, FieldListFilter
 import datetime
-
+from flashsale.dinghuo.models import OrderList
 
 class GroupNameFilter(SimpleListFilter):
     """按组过滤"""
@@ -28,6 +28,30 @@ class GroupNameFilter(SimpleListFilter):
             user_list = MyUser.objects.filter(group_id__in=group_id)
             my_users = [my_user.user.username for my_user in user_list]
             return queryset.filter(buyer_name__in=my_users)
+
+
+class OrderListStatusFilter(SimpleListFilter):
+    """按订货单状态过滤"""
+    title = u'订货单状态'
+    parameter_name = 'custom_status'
+
+    def lookups(self, request, model_admin):
+        status_list = OrderList.ORDER_PRODUCT_STATUS
+        querstion = (("0", u'售后处理'),)
+        status_list1 = status_list + querstion
+        print status_list1
+        return status_list1
+
+    def queryset(self, request, queryset):
+        status_id = self.value()
+        if not status_id:
+            return queryset
+        else:
+            print status_id == '0',status_id
+            if status_id == '0':
+                return queryset.filter(status__in=(OrderList.QUESTION, OrderList.CIPIN, OrderList.QUESTION_OF_QUANTITY))
+            else:
+                return queryset.filter(status=status_id)
 
 
 class DateFieldListFilter(FieldListFilter):
