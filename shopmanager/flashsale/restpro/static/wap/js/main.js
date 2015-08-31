@@ -153,7 +153,7 @@ function checkTime(i) {
 
 function Set_posters(suffix){
 	//获取海报
-	var posterUrl = GLConfig.baseApiUrl + '/posters/'+ suffix +'.json';
+	var posterUrl = GLConfig.baseApiUrl + suffix;
 	
 	var posterCallBack = function(data){
 		if (!isNone(data.wem_posters)){
@@ -258,7 +258,7 @@ function Create_item_dom(p_obj,close_model){
 
 function Set_promotes_product(suffix){
 	//获取今日推荐商品
-	var promoteUrl = GLConfig.baseApiUrl + '/products/promote_'+ suffix +'.json';
+	var promoteUrl = GLConfig.baseApiUrl + suffix;
 	
 	var promoteCallBack = function(data){
         $("#loading").hide();

@@ -5,6 +5,8 @@ from shopback.trades.models import MergeTrade
 from shopback.items.models import Product
 from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
+from shopback.logistics.models import (LogisticsCompany,
+                                       DestCompany)
 
 class LogisticsHandler(BaseHandler):
     
@@ -12,12 +14,11 @@ class LogisticsHandler(BaseHandler):
         return (kwargs.get('first_pay_load',None) or 
                 not merge_trade.logistics_company)
             
-            
+    def getYundaLGC(self):
+        return LogisticsCompany.objects.get_or_create(code='YUNDA')[0]
+    
     def getLogisticCompany(self,merge_trade):
         
-        from shopback.logistics.models import (Logistics,
-                                               LogisticsCompany,
-                                               DestCompany)
         if merge_trade.is_force_wlb:
             return LogisticsCompany.objects.get_or_create(
                                     code=pcfg.WLB_LOGISTIC_CODE)
@@ -72,8 +73,11 @@ class LogisticsHandler(BaseHandler):
             merge_trade.ware_by = self.getTradeWare(merge_trade)
             if merge_trade.is_force_wlb:
                 merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
-             
-            merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
+            #如果订单属于广州仓，则默认发韵达
+            if merge_trade.ware_by == MergeTrade.WARE_GZ:
+                merge_trade.logistics_company = self.getYundaLGC()
+            else:
+                merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
             update_model_fields(merge_trade,update_fields=['logistics_company','ware_by'])
             
             if merge_trade.ware_by == MergeTrade.WARE_NONE:

@@ -23,7 +23,6 @@ from . import serializers
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     """
     特卖海报API：
-    
     - {prefix}/today[.format]: 获取今日特卖海报;
     - {prefix}/previous[.format]: 获取昨日特卖海报;
     """
@@ -38,9 +37,18 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
                                     active_time__month=target_date.month,
                                     active_time__day=target_date.day)
         return posters.count() and posters[0] or None
-        
+    
     def get_previous_poster(self):
         target_date = datetime.date.today() - datetime.timedelta(days=1)
+        posters = self.queryset.filter(active_time__year=target_date.year,
+                                   active_time__month=target_date.month,
+                                   active_time__day=target_date.day)
+        return posters.count() and posters[0] or None
+    
+    def get_future_poster(self,request):
+        view_days   = int(request.GET.get('days','1'))
+        target_date = datetime.date.today() + datetime.timedelta(days=view_days)
+        print target_date
         posters = self.queryset.filter(active_time__year=target_date.year,
                                    active_time__month=target_date.month,
                                    active_time__day=target_date.day)
@@ -49,14 +57,18 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def today(self, request, *args, **kwargs):
         poster = self.get_today_poster()
-
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
     
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
         poster = self.get_previous_poster()
-
+        serializer = self.get_serializer(poster, many=False)
+        return Response(serializer.data)
+    
+    @list_route(methods=['get'])
+    def preview(self, request, *args, **kwargs):
+        poster = self.get_future_poster(request)
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
@@ -95,6 +107,15 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取昨日上架日期 """
         tnow  = datetime.datetime.now()
         tlast = tnow - datetime.timedelta(days=1)
+        if tnow.hour < 10:
+            return (tnow - datetime.timedelta(days=2)).date()
+        return tlast.date()
+    
+    def get_priview_date(self,request):
+        """ 获取昨日上架日期 """
+        tdays  = int(request.GET.get('days','1'))
+        tnow   = datetime.datetime.now() 
+        tlast  = tnow - datetime.timedelta(days=tdays)
         if tnow.hour < 10:
             return (tnow - datetime.timedelta(days=2)).date()
         return tlast.date()
@@ -180,6 +201,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def promote_previous(self, request, *args, **kwargs):
         """ 获取历史推荐商品列表 """
         previous_dt = self.get_previous_date()
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
+        
+        female_qs = self.get_female_qs(queryset)
+        child_qs  = self.get_child_qs(queryset)
+        
+        response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
+                         'child_list':self.get_serializer(child_qs, many=True).data}
+        
+        return Response(response_date)
+    
+    @list_route(methods=['get'])
+    def promote_preview(self, request, *args, **kwargs):
+        """ 获取历史推荐商品列表 """
+        previous_dt = self.get_priview_date(request)
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
         

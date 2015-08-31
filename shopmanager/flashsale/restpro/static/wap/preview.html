@@ -1,48 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>小鹿美美</title>
+    <title>小鹿美美-预览版</title>
     <meta id="viewport" name="viewport"/>
     <script src="js/common.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/dots-loading.css">
     <link rel="stylesheet" type="text/css" href="css/index.css">
+    <style>
+    .bg-primary{
+    	text-align:center;
+    	height:67px;
+    	line-height:67px;
+    }
+    </style>
 </head>
 <body>
 <div class="top">
+	<p class="bg-primary">现在是预览模式 </p>
+	<!--<p>
     <a class="user" href="pages/gerenzhongxin.html"></a>
     <a class="home"></a>
+    </p>-->
 </div>
-<nav>
-    <a href="index.html">今日上新</a>
-    <a href="javascript:void(0)" class="active">昨日特卖</a>
+<!--<nav>
+    <a href="javascript:void(0)" class="active">今日上新</a>
+    <a href="zuoritemai.html">昨日特卖</a>
     <a href="chaotong.html">潮童专区</a>
     <a href="nvzhuang.html">时尚女装</a>
 </nav>
 <div class="fixed-nav" id="js-fixed-nav">
-    <a href="index.html">今日上新</a>
-    <a href="javascript:void(0)" class="active">昨日特卖</a>
+    <a href="javascript:void(0)" class="active">今日上新</a>
+    <a href="zuoritemai.html">昨日特卖</a>
     <a href="chaotong.html">潮童专区</a>
     <a href="nvzhuang.html">时尚女装</a>
-</div>
+</div>-->
 <div class="poster new">
-    <dl style="padding-top:20px;">
+    <dl>
+        <dt>每日10:00 新品上线</dt>
         <dd>
             <a class="nvzhuang" href="#">
                 <img src="#">
-                <p><span class="tips"></span></p>
-
+                <p class="subject"><span class="tips"></span></p>
             </a>
         </dd>
         <dd>
             <a class="chaotong" href="#">
                 <img src="#">
-                <p><span class="tips"></span></p>
+                <p class="subject"><span class="tips"></span></p>
             </a>
         </dd>
     </dl>
 </div>
-<div class="glist">
+<div class="glist ">
     <div class="header">
         <div class="text"><i></i>潮童专区</div>
         <div class="shengyu"><i></i>
@@ -60,7 +71,7 @@
                 </p>
             </a>
         </li>
-        <li>
+         <li>
             <a href="#">
                 <img src="#">
                 <p class="gname"></p>
@@ -70,7 +81,7 @@
                 </p>
             </a>
         </li>
-        <li>
+         <li>
             <a href="#">
                 <img src="#">
                 <p class="gname"></p>
@@ -80,7 +91,7 @@
                 </p>
             </a>
         </li>
-        <li>
+         <li>
             <a href="#">
                 <img src="#">
                 <p class="gname"></p>
@@ -96,6 +107,7 @@
     <div class="header">
         <div class="text"><i></i>时尚女装</div>
         <div class="shengyu"><i></i>
+
             <div class="poster_timer tm2">剩余 天 小时</div>
         </div>
     </div>
@@ -142,6 +154,7 @@
         </li>
     </ul>
 </div>
+
 <div id="loading"><span class="dots-loader"></span></div>
 <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
 
@@ -149,14 +162,16 @@
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="js/jquery-shopping.js"></script>
 <script src="js/main.js"></script>
-<script>
+<script type="text/javascript">
 (function ($) {
     //返回顶部
     $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
     var startY;
+
     document.addEventListener('touchstart', function (ev) {
         startY = ev.touches[0].pageY;
     }, false);
+
     document.addEventListener('touchend', function (ev) {
         var endY = ev.changedTouches[0].pageY;
         var dir = startY - endY;
@@ -167,20 +182,19 @@
         }
     }, false);
 	$('.cart').listencart();
-    //获取昨日海报
-    Set_posters(GLConfig.poster_previous);
-    //获取昨日推荐商品
-    Set_promotes_product(GLConfig.products_previous);
+	var urlparams = window.location.href.split('?').length > 1?window.location.href.split('?')[1]:'';
+    //获取今日海报
+    Set_posters('/posters/preview.json?' + urlparams);
+    //获取今日推荐商品
+    Set_promotes_product('/products/promote_preview.json?' + urlparams);
     //获取购物车商品数
     Set_shopcarts_num();
-    yesterday_timer();
+
 })(jQuery);
 function scroll_top(e){
     e.preventDefault();
     $('body').animate({scrollTop: 0}, 400);
 }
 </script>
-<link rel="stylesheet" type="text/css" href="css/sweet-alert.css">
-<script src="js/sweet-alert.min.js"></script>
 </body>
 </html>

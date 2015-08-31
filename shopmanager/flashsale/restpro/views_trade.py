@@ -105,7 +105,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(exc.message)
         except Exception:
             pass
-        
+        cart_id = data.get("cart_id", None)
+        if cart_id:
+            s_temp = ShoppingCart.objects.filter(id=cart_id, status=ShoppingCart.CANCEL)
+            s_temp.delete()
         sku_num = 1
         sku     = get_object_or_404(ProductSku, pk=sku_id)
         user_skunum = getUserSkuNumByLast24Hours(customer,sku)
@@ -166,6 +169,24 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             count += item.num
         return Response({"result": count, "last_created": last_created})
 
+    @list_route(methods=['get'])
+    def show_carts_history(self, request, *args, **kwargs):
+        before = datetime.datetime.now() - datetime.timedelta(hours=12)
+        customer = get_object_or_404(Customer, user=request.user)
+
+        queryset = ShoppingCart.objects.filter(buyer_id=customer.id, status=ShoppingCart.CANCEL,
+                                               created__gt=before).order_by('-created')
+        data = []
+        for a in queryset:
+            temp_dict = model_to_dict(a)
+            pro = Product.objects.filter(id=a.item_id)
+            pro_sku = ProductSku.objects.filter(id=a.sku_id)
+            if pro.count() > 0:
+                if pro[0].sale_open():
+                    temp_dict["std_sale_price"] = pro[0].std_sale_price
+                    temp_dict["is_sale_out"] = pro_sku[0].sale_out if pro_sku else False
+                    data.append(temp_dict)
+        return Response(data)
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
         instance = self.get_object()
@@ -299,11 +320,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         method  = request.method.lower()
         if format == 'html' and method == 'get':
             return Response({})
-        
         sku_id      = content.get('sku_id','')
         if not sku_id.isdigit():
             raise exceptions.APIException(u'传入规格ID不合法')
-        
         sku_id      = int(sku_id)
         product_sku = get_object_or_404(ProductSku,id=sku_id)
         product     = product_sku.product
@@ -755,6 +774,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         item_id   = CONTENT.get('item_id')
         sku_id   = CONTENT.get('sku_id')
         sku_num  = int(CONTENT.get('num','1'))
+        
         customer = get_object_or_404(Customer,user=request.user)
         product         = get_object_or_404(Product,id=item_id)
         product_sku     = get_object_or_404(ProductSku,id=sku_id)

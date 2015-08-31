@@ -103,7 +103,7 @@ SYNC_MODEL_SCHEDULE = {
      },
      u'定时更新商品待发数':{     #更新库存
         'task':'shopback.items.tasks.updateProductWaitPostNumTask',
-        'schedule':crontab(minute="0",hour="5"),#
+        'schedule':crontab(minute="0",hour="5,14"),#
         'args':()
      },
      u'定时更新淘宝商品库存':{     #更新库存

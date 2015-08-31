@@ -5,14 +5,53 @@
     <title>小鹿美美</title>
     <meta id="viewport" name="viewport"/>
     <script src="../js/common.js"></script>
+    <link rel="stylesheet" href="../css/dots-loading.css">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/gouwuche-kong.css">
 </head>
 <body>
-<div class="logo-wrap">
-    <div class="logo"></div>
-</div>
-<div class="tips">您的购物车还是空的<br>去首页逛逛吧 ~ ~</div>
-<a class="back-index" href="../index.html">去首页逛逛</a>
+<script id="logo_template" type="text/html">
+    {{ if show }}
+    <div class="logo-wrap">
+        <div class="logo"></div>
+    </div>
+    <div class="tips">您的购物车还是空的<br>去首页逛逛吧 ~ ~</div>
+    <a class="back-index" href="../index.html">去首页逛逛</a>
+    {{ else }}
+    <div class="tips">您的购物车空空如也，以下宝贝可重新加入哦~ ~ ~</div>
+    <div class="cart-list"></div>
+    <a class="back-index" href="../index.html">去首页逛逛</a>
+    {{ /if }}
+</script>
+
+<a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+
+<div class="scroll-top" id="js-scroll-top"></div>
+
+<div id="loading"><span class="dots-loader"></span></div>
+<script id="item_template" type="text/html">
+    <div class="item" id="item_{{ id }}" cartid="{{ id }}">
+        <div class="gpic"><a href="shangpinxq.html?id={{ item_id }}"><img src="{{ pic_path }}"></a></div>
+        <div class="gname">{{ title }}</div>
+        <div class="gprice">¥ <span class="item_price" id="itemprice_{{ id }}">{{ price }}</span></div>
+        <div class="gsize">尺码：{{ sku_name }}</div>
+        <div class="goprice"><s>¥{{ std_sale_price }}</s></div>
+        <div class="historydiv">
+            <div class="history-btn" cid="{{ item_id }}" vid="{{ sku_id }}" gid="{{ id }}">重新购买</div>
+        </div>
+    </div>
+</script>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="../js/jquery-shopping.js"></script>
+<script src="../js/template.js"></script>
+<script src="../js/tmsc_history.js"></script>
+<script type="text/javascript">
+    (function ($) {
+        //获取
+        $('.cart').listencart();
+        get_history_carts(GLConfig.get_cart_url);
+        Set_shopcarts_num();
+    })(jQuery);
+</script>
 </body>
 </html>
