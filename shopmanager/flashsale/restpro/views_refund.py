@@ -148,7 +148,10 @@ def common_Handler(request, oid, reason, num, shenqingjine, feedback, good_statu
     # ２、get_or_create 退款单对象
     trade, order, order_count = get_Refund_Order_Trade(order_id=oid)
     # 退款处理　生成退款单
+    if shenqingjine > order.payment:
+        return {"res": "reject"}
     sale_refund, state = create_Sale_Refund(trade_id=trade.id, order_id=order.id)
+
     # 如果state 为真　则继续
     if modify:
         # 修改该订单的
