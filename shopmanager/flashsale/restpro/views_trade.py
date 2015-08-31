@@ -183,6 +183,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     temp_dict["is_sale_out"] = pro_sku[0].sale_out if pro_sku else False
                     data.append(temp_dict)
         return Response(data)
+    
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
         instance = self.get_object()
@@ -204,8 +205,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         lock_success =  Product.objects.lockQuantity(sku,1)
         if not lock_success:
             raise exceptions.APIException(u'商品库存不足')
-        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1)
-
+        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1,total_fee = F('num') * cart_item.price)
         return Response({"status": update_status})
 
     @detail_route(methods=['post'])
@@ -213,7 +213,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
             raise exceptions.APIException(u'至少购买一件')
-        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1)
+        update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') - 1,total_fee = F('num') * cart_item.price)
         sku = get_object_or_404(ProductSku, pk=cart_item.sku_id)
         Product.objects.releaseLockQuantity(sku,1)
         return Response({"status": update_status})
@@ -656,8 +656,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for cart in cart_qs:
             product = Product.objects.get(id=cart.item_id)
             sku = ProductSku.objects.get(id=cart.sku_id)
-            cart_payment = (total_payment / total_fee) * cart.total_fee
-            cart_discount = (discount_fee / total_fee) * cart.total_fee
+            cart_total_fee = cart.price * cart.num
+            cart_payment  = (total_payment / total_fee) * cart_total_fee
+            cart_discount = (discount_fee / total_fee) * cart_total_fee
             SaleOrder.objects.create(
                  sale_trade=saletrade,
                  item_id=cart.item_id,

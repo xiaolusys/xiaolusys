@@ -422,7 +422,7 @@ class ShoppingCart(models.Model):
     title  =  models.CharField(max_length=128,blank=True,verbose_name=u'商品标题')
     price  = models.FloatField(default=0.0,verbose_name=u'单价')
 
-    sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'属性编码')
+    sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格ID')
     num = models.IntegerField(null=True,default=0,verbose_name=u'商品数量')
     
     total_fee    = models.FloatField(default=0.0,verbose_name=u'总费用')
