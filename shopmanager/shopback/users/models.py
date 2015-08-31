@@ -116,13 +116,11 @@ class User(models.Model):
     
     buyer_credit = models.CharField(max_length=80,blank=True,verbose_name= u'买家信用')
     seller_credit = models.CharField(max_length=80,blank=True,verbose_name= u'卖家信用')
-    
     has_fenxiao = models.BooleanField(default=False,verbose_name= u'管理分销')
     
     location = models.CharField(max_length=256,blank=True,verbose_name= u'店铺地址')
     created = models.CharField(max_length=19,blank=True)
     birthday = models.CharField(max_length=19,blank=True)
-
     type = models.CharField(max_length=8,blank=True,
                             choices=SHOP_TYPE,
                             verbose_name= u'店铺类型')
@@ -135,7 +133,6 @@ class User(models.Model):
     auto_repost = models.CharField(max_length=16,blank=True,verbose_name= u'是否受限')
 
     alipay_bind = models.CharField(max_length=10,blank=True,verbose_name= u'支付宝绑定')
-
     alipay_no   = models.CharField(max_length=20,blank=True,verbose_name= u'支付宝帐号')
 
     sync_stock    = models.BooleanField(default=True,verbose_name= u'同步库存')
