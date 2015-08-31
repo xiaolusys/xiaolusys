@@ -288,7 +288,7 @@ var cart_timer = function () {
                         },
                         function () {
                             //发送请求
-                            window.location = "pages/gouwuche.html";
+                            window.location = "/pages/gouwuche.html";
                         });
                 }
                 $(".carttime").html(mm + ":" + ss);

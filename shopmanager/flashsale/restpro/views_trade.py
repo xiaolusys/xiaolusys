@@ -75,6 +75,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(buyer_id=customer.id)
         
     def list(self, request, *args, **kwargs):
+        """列出购物车中所有的状态为正常的数据"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         data = []
         for a in queryset:
@@ -85,6 +86,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response(data)
     
     def create(self, request, *args, **kwargs):
+        """创建购物车数据"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         data = request.data
         customer_user = Customer.objects.filter(user=request.user)
@@ -107,11 +109,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             pass
         cart_id = data.get("cart_id", None)
         if cart_id:
-            s_temp = ShoppingCart.objects.filter(id=cart_id, status=ShoppingCart.CANCEL)
+            s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id, status=ShoppingCart.CANCEL,
+                                                 buyer_id=customer.id)
             s_temp.delete()
         sku_num = 1
-        sku     = get_object_or_404(ProductSku, pk=sku_id)
-        user_skunum = getUserSkuNumByLast24Hours(customer,sku)
+        sku = get_object_or_404(ProductSku, pk=sku_id)
+        user_skunum = getUserSkuNumByLast24Hours(customer, sku)
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + sku_num)
         if not lockable:
             raise exceptions.APIException(u'该商品已限购')
@@ -159,6 +162,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     
     @list_route(methods=['get'])
     def show_carts_num(self, request, *args, **kwargs):
+        """显示购物车的数量和保留时间"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = queryset.order_by('-created')
         count = 0
@@ -171,26 +175,33 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def show_carts_history(self, request, *args, **kwargs):
-        queryset = ShoppingCart.objects.filter(status=ShoppingCart.CANCEL).order_by('-created')
+        """显示该用户12个小时内购物清单历史"""
+        before = datetime.datetime.now() - datetime.timedelta(hours=12)
+        customer = get_object_or_404(Customer, user=request.user)
+        queryset = ShoppingCart.objects.filter(buyer_id=customer.id, status=ShoppingCart.CANCEL,
+                                               modified__gt=before).order_by('-modified')
         data = []
+        sku_list = []     #保存sku的id来去重
         for a in queryset:
             temp_dict = model_to_dict(a)
             pro = Product.objects.filter(id=a.item_id)
             pro_sku = ProductSku.objects.filter(id=a.sku_id)
-            if pro.count() > 0:
+            if pro.count() > 0 and pro_sku.count() > 0 and pro_sku[0].id not in sku_list:
                 if pro[0].sale_open():
+                    sku_list.append(pro_sku[0].id)
                     temp_dict["std_sale_price"] = pro[0].std_sale_price
                     temp_dict["is_sale_out"] = pro_sku[0].sale_out if pro_sku else False
                     data.append(temp_dict)
         return Response(data)
-    
+
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
+        """关闭购物车中的某一个数据，调用关闭接口"""
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(data="OK", status=status.HTTP_204_NO_CONTENT)
     
-    def perform_destroy(self,instance):
+    def perform_destroy(self, instance):
         instance.close_cart()
     
     @detail_route(methods=['post'])
@@ -202,7 +213,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         lockable = Product.objects.isQuantityLockable(sku, user_skunum + 1)
         if not lockable:
             raise exceptions.APIException(u'商品数量限购')
-        lock_success =  Product.objects.lockQuantity(sku,1)
+        lock_success = Product.objects.lockQuantity(sku, 1)
         if not lock_success:
             raise exceptions.APIException(u'商品库存不足')
         update_status = ShoppingCart.objects.filter(id=pk).update(num=F('num') + 1,total_fee = F('num') * cart_item.price)

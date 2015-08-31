@@ -7,7 +7,7 @@ from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
 import time
-from .filters import GroupNameFilter
+from .filters import GroupNameFilter, OrderListStatusFilter
 from flashsale.dinghuo import permissions as perms
 
 
@@ -37,7 +37,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'display_pic', 'created', 'shenhe',
         'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
-    list_filter = (('created', DateFieldListFilter), GroupNameFilter, 'status', 'buyer_name')
+    list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'buyer_name')
     search_fields = ['id', '=supplier_name', 'supplier_shop', 'express_no']
     date_hierarchy = 'created'
 

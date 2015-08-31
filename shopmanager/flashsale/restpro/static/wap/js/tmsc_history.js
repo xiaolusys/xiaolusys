@@ -18,6 +18,11 @@ function get_history_carts(suffix) {
                 function (index, product) {
                     var html = template('item_template', product);
                     $('.cart-list').append(html);
+                    if(product.is_sale_out){
+                        $(".cart-list #item_"+product.id+" .gprice").eq(0).css("color","rgba(0,0,0,0.6)")
+                        $(".cart-list #item_"+product.id+" .history-btn").eq(0).css("color","rgba(0,0,0,0.6)")
+                        $(".cart-list #item_"+product.id+" .historydiv").eq(0).css("border","1px solid rgba(0,0,0,0.6)")
+                    }
                 }
             );
         } else {
