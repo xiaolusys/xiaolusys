@@ -190,6 +190,9 @@ function Button_tijiao() {
             else if (res.res == "ok") {
                 window.location.href = "../pages/wodetuihuo.html";
             }
+            else if(res.res == "reject"){
+                drawToast("您申请的金额，超出了实际付款，请重新填写！");
+            }
         };
         if (swal_flag == 1) {
             swal({
