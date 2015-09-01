@@ -4,9 +4,16 @@
     border: 0;
 }
 
-body, div, p, ul, li, a, span, img {
+body, div, p, ul, li, a, img {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+}
+
+span {
+	-webkit-user-select: text;
+	-moz-user-select:text;
+	-o-user-select:text;
+	-user-select:text;
 }
 
 body {
