@@ -105,7 +105,7 @@ class MergeTradeChangeList(ChangeList):
             return trades
         
         if search_q.isdigit():
-            trades = qs.filter(models.Q(id=search_q)|models.Q(tid=search_q)|models.Q(out_sid=search_q))
+            trades = qs.filter(models.Q(id=search_q)|models.Q(tid__startswith=search_q)|models.Q(out_sid=search_q))
             return trades
         
         if re.compile('^wx[\d]{20,28}$').match(search_q):
@@ -118,7 +118,7 @@ class MergeTradeChangeList(ChangeList):
                     TradeService.createTrade(shops[0].uid, tid, MergeTrade.WX_TYPE)
             except:
                 pass
-            return qs.filter(tid=tid)
+            return qs.filter(tid__startswith=tid)
             
         if search_q:
             trades = qs.filter(models.Q(buyer_nick=search_q)|models.Q(tid=search_q)|models.Q(out_sid=search_q))

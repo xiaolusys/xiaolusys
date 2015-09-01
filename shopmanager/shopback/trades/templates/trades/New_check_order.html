@@ -145,10 +145,10 @@
 	</thead>
 	<tbody>
 		{% for order in trade.used_orders %}
-		<tr>
+		<tr id="tr_{{ order.id }}">
 			<td>{{ order.id }}</td>
-			<td>{{ order.outer_id }}</td>
-			<td>{{ order|prod_name }}</td>
+			<td><span id="outer_id_{{ order.id }}">{{ order.outer_id }}</span></td>
+			<td><span id="pro_name_{{ order.id }}">{{ order|prod_name }}</span></td>
 			<td>
 				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku" >
 					<option value="">---------</option>
@@ -170,6 +170,7 @@
 			<td >{% for ware in trade.ware_list %}{% if ware.0 == order.ware_by %}<span class="label label-info">{{ ware.1 }}</span>{% endif %}{% endfor %}</td>
 			<td><button class="change-order btn-warning" idx="{{ forloop.counter }}"  oid="{{ order.id }}"   onclick="changeOrder(this)"     >修改</button>
 			    <button class="delete-order btn-danger" oid="{{ order.id }}"       onclick="deleteOrder(this)">删除</button>
+			    <button class="delete-order btn-info" oid="{{ order.id }}"       onclick="addorderto(this)">加入拆单</button>
 			</td>
 		</tr>
 		{% endfor %}
@@ -182,12 +183,33 @@
 		</tr>
 	</tfoot>
 </table>
+
 </div>
-<div >
+    <div class="row">
+        <table id="chai_dan_table" class="table table-bordered">
+            <thead>
+            <tr>
+                <th>编号</th>
+                <th>商家编码</th>
+                <th>商品简称</th>
+                <th>规格</th>
+                <th>数量</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-2">
+            <button class="delete-order btn-danger" onclick="begin_chai()" style="float: right">开始拆单</button>
+        </div>
+    </div>
+
+<div>
 	<input type="text" id="id-search-q" class="input-medium search-query" >
 	<button id="id-search-prod" class="btn"   onclick="searchProd()">商品搜索</button>
 	<div style="height: 10px"></div>
-	<table id="id-search-table" class="table table-bordered"     style="display:none;">
+	<table id="id-search-table" class="table table-bordered"  style="display:none;">
 		<thead>
 			<tr>
 				<td>编号</td>
