@@ -76,7 +76,13 @@ function Set_user_orderinfo(suffix){
 		}
 		console.log('debug:',data.coupon_ticket);
 		if (!isNone(data.coupon_ticket)){
-			var coupon_template = $('#coupon-template').html();
+            var coupon_template = "";
+            if(data.coupon_ticket.coupon_type==4){
+                coupon_template = $('#coupon-template').html();
+            }
+            if(data.coupon_ticket.coupon_type==5){
+                coupon_template = $('#coupon_post_fee').html();
+            }
 			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
 		}
 	};

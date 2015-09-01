@@ -465,26 +465,26 @@ admin.site.register(GoodShelf, GoodShelfAdmin)
 
 
 from models_coupon import CouponPool, Coupon, Integral, IntegralLog
+#
 
-
-class CouponPoolAdmin(admin.ModelAdmin):
+class CouponPoololdAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'coupon_no', 'deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
     list_filter = ('deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
     search_fields = ['=id', '=coupon_no']
     list_per_page = 50
 
-admin.site.register(CouponPool, CouponPoolAdmin)
+admin.site.register(CouponPool, CouponPoololdAdmin)
 
 
-class CouponAdmin(admin.ModelAdmin):
+class CouponoldAdmin(admin.ModelAdmin):
     list_display = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified', 'status')
     list_filter = ('created', 'status')
     search_fields = ['=coupon_user', '=mobile', '=trade_id']
     list_per_page = 50
 
 
-admin.site.register(Coupon, CouponAdmin)
+admin.site.register(Coupon, CouponoldAdmin)
 
 
 class IntegralAdmin(admin.ModelAdmin):
@@ -504,8 +504,35 @@ class IntegralLogAdmin(admin.ModelAdmin):
     search_fields = ['=integral_user', '=mobile' ]
     list_per_page = 50
 
-
 admin.site.register(IntegralLog, IntegralLogAdmin)
+
+
+
+###################################################################
+from models_coupon_new import CouponsPool, UserCoupon, CouponTemplate
+
+
+class CouponTemplateAdmin(admin.ModelAdmin):
+    list_display = ("title", "value", "valid", "created", "modified","deadline","preset_days","active_days")
+    list_filter = ("valid", "created")
+
+admin.site.register(CouponTemplate, CouponTemplateAdmin)
+
+
+class CouponPoolAdmin(admin.ModelAdmin):
+    list_display = ("id", "template", "coupon_no", "status", "created", "modified")
+    list_filter = ("template", "status", "created")
+
+admin.site.register(CouponsPool, CouponPoolAdmin)
+
+
+class UserCouponAdmin(admin.ModelAdmin):
+    list_display = ("cp_id", "customer", "status", "created", "modified")
+    list_filter = ("status", "created")
+
+admin.site.register(UserCoupon, UserCouponAdmin)
+
+######################################################################
 
 from flashsale.pay.models import ShoppingCart
 

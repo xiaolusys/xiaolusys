@@ -39,6 +39,24 @@
             </li>
         </ul>
     </script>
+    <script id="coupon_post_fee" type="text/html">
+        <ul class="coupons-list">
+            <li class="type5">
+                <p class="name">优惠券</p>
+                <p class="date">{{ created }} - {{ deadline }}</p>
+                <i class="icon-radio" onclick="choose_Coupon({{ id }});"></i>
+            </li>
+        </ul>
+    </script>
+    <script id="coupon_post_fee_used" type="text/html">
+        <ul class="coupons-list">
+            <li class="type6">
+                <p class="name">优惠券　已使用~</p>
+
+                <p class="date">{{ created }} - {{ deadline }}</p>
+            </li>
+        </ul>
+    </script>
 </div>
 
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>

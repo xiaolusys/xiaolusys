@@ -79,7 +79,7 @@ class Coupon(models.Model):
     trade_id = models.CharField(max_length=40, db_index=True, blank=True, verbose_name=u"交易ID")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
-    status = models.IntegerField(db_index=True, default=RECEIVE, choices=COUPON_STATUS,verbose_name=u'使用状态')
+    status = models.IntegerField(db_index=True, default=RECEIVE, choices=COUPON_STATUS, verbose_name=u'使用状态')
 
     class Meta:
         unique_together = ('coupon_user', 'coupon_no')
@@ -129,8 +129,9 @@ class Coupon(models.Model):
         """
         cou, state = CouponPool.objects.get_or_create(coupon_type=CouponPool.LIM118,
                                                       coupon_status=CouponPool.RELEASE)
-                                                      # 生成优惠券 # 已经发放的
+        # 生成优惠券 # 已经发放的
         import logging
+
         try:
             self.coupon_no = cou.coupon_no
             self.coupon_user = buyer_id
@@ -138,8 +139,8 @@ class Coupon(models.Model):
             self.mobile = mobile
             self.save()
         except Exception, exc:
-                        log = logging.getLogger('django.request')
-                        log.error(exc.message, exc_info=True)
+            log = logging.getLogger('django.request')
+            log.error(exc.message, exc_info=True)
         return
 
     def use_coupon(self):
@@ -166,15 +167,16 @@ class CouponPool(models.Model):
     LIM300 = 2
     LIM100 = 3
     LIM118 = 4
-    CO_TYPE = ((LIM30, u"订单满30减3"), (LIM300, u"订单满300减30"), (LIM118, u"妈妈专享 订单满30减30"))
+    POST_FEE = 5
+    CO_TYPE = ((LIM30, u"订单满30减3"), (LIM300, u"订单满300减30"), (LIM118, u"妈妈专享 订单满30减30"),(POST_FEE, u"优惠券"))
 
-    coupon_no    = models.CharField(max_length=40, unique=True, default=lambda: uniqid(
+    coupon_no = models.CharField(max_length=40, unique=True, default=lambda: uniqid(
         '%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))), verbose_name=u"优惠券号码")
-    deadline     = models.DateTimeField(verbose_name=u"截止日期")
-    coupon_type  = models.IntegerField(choices=CO_TYPE, default=1, verbose_name=u"优惠券类型")
+    deadline = models.DateTimeField(verbose_name=u"截止日期")
+    coupon_type = models.IntegerField(choices=CO_TYPE, default=1, verbose_name=u"优惠券类型")
     coupon_value = models.FloatField(default=1.0, verbose_name=u"优惠券数值")
-    created      = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified     = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     coupon_status = models.IntegerField(choices=COUPON_STATUS, default=1, verbose_name=u"优惠券状态")
 
     class Meta:

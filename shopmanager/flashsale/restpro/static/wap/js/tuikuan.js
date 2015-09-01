@@ -252,7 +252,6 @@ function Handler_Refund_Infor(item_id, status) {// data 是订单信息
     });
     function requestCallBack(res) {
         console.log(res.is_saleopen);
-        res.is_saleopen = false;
         if (res.is_saleopen == false) {//商品已经下架了
             // 显示提示信息
             var html = "";

@@ -59,6 +59,16 @@ function get_Coupon_On_Choose() {
                     var yhq_tree4 = Create_coupon_used_xlmm_dom(yhq_obj);
                     $('.coupons').append(yhq_tree4);
                 }
+                if (coupon_value == 10 && coupon_status == 0 && coupon_type == 5) {
+                    //满30返30　　代理审核生成的优惠券
+                    var yhq_tree5 = Create_coupon_post_fee(yhq_obj);
+                    $('.coupons').append(yhq_tree5);
+                }
+                if (coupon_value == 10 && coupon_status == 1 && coupon_type == 5) {
+                    //满30返30　　代理审核生成的优惠券
+                    var yhq_tree6 = Create_coupon_post_fee_used(yhq_obj);
+                    $('.coupons').append(yhq_tree6);
+                }
             });
         }
         else {
@@ -76,6 +86,19 @@ function Create_coupon_used_xlmm_dom(obj) {
     var html = $("#coupon_template_xlmm_used").html();
     return hereDoc(html).template(obj)
 }
+
+
+// 退运费　使用优惠券
+function Create_coupon_post_fee(obj) {
+    var html = $("#coupon_post_fee").html();
+    return hereDoc(html).template(obj)
+}
+
+function Create_coupon_post_fee_used(obj) {
+    var html = $("#coupon_post_fee_used").html();
+    return hereDoc(html).template(obj)
+}
+
 
 function choose_Coupon(coupon_id) {
     var price = parseFloat(getUrlParam('price'));
