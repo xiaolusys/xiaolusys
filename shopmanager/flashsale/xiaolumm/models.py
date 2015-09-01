@@ -140,7 +140,7 @@ class XiaoluMama(models.Model):
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
-        return agency_levels[0].extra_rate
+        return agency_levels[0].extra_rate_percent()
         
         
     def get_Mama_Agency_Rebeta_Rate(self):
@@ -328,7 +328,6 @@ class AgencyLevel(models.Model):
     get_extra_rate_display.admin_order_field = 'extra_rate'
     get_extra_rate_display.short_description = u"奖励佣金率"
     
-    @property
     def extra_rate_percent(self):
         return self.get_extra_rate_display()
     
