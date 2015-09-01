@@ -34,7 +34,7 @@ class ChaiTradeView(APIView):
         order_list_str = request.data.get("data", None)
         if not order_list_str or len(order_list_str) == 0:
             return Response({"result": "NO ORDER"})
-        result = split_merge_trade(order_list_str,user)
+        result = split_merge_trade(order_list_str, user)
         return Response({"result": result})
 
 
@@ -59,25 +59,27 @@ def split_merge_trade(merger_order_id, modify_user):
 
     m = MergeOrder.objects.filter(Q(id=order_list[0], sys_status=IN_EFFECT))
     if m.count() == 0:
-        return "error"
+        return "no IN_EFFECT order"
     parent_trade = m[0].merge_trade
+    if parent_trade.has_merge:
+        return "has merge"
     parent_trade_tid = parent_trade.tid.split("-")[0]
     first_p = Product.objects.filter(outer_id=m[0].outer_id)
     if first_p.count() == 0:
-        return "error"
+        return "product not found"
     payment = 0
     for order_id in order_list:
         m = MergeOrder.objects.filter(Q(id=order_id, sys_status=IN_EFFECT))
         if m.count() == 0:
-            return "error"
+            return "no IN_EFFECT order"
         if parent_trade.id != m[0].merge_trade.id:
-            return "error"
+            return "no the one trade"
 
         p = Product.objects.filter(outer_id=m[0].outer_id)
         if p.count() == 0:
-            return "error"
+            return "product not found"
         if first_p[0].ware_by != p[0].ware_by:
-            return "error"
+            return "not same ware"
         payment += m[0].payment
 
     count = 1
