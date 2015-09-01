@@ -681,6 +681,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  payment=cart_payment,
                  discount_fee=cart_discount,
                  total_fee=cart.total_fee,
+                 price=cart.price,
                  pic_path=product.pic_path,
                  sku_name=sku.properties_alias,
                  status=SaleTrade.WAIT_BUYER_PAY
@@ -705,6 +706,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
              title=product.name,
              payment=rnow_payment,
              total_fee=total_fee,
+             price=sku.agent_price,
              discount_fee=discount_fee,
              pic_path=product.pic_path,
              sku_name=sku.properties_alias,
@@ -720,9 +722,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer,user=request.user)
         cart_qs = ShoppingCart.objects.filter(
             id__in=[i for i in cart_ids if i.isdigit()], 
-            buyer_id=customer.id, 
-            status=ShoppingCart.NORMAL
+            buyer_id=customer.id
         )
+        #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             raise exceptions.ParseError(u'购物车信息异常')
         
