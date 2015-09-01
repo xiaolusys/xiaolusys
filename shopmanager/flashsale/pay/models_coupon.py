@@ -143,27 +143,6 @@ class Coupon(models.Model):
             log.error(exc.message, exc_info=True)
         return
 
-    def refund_post_Coupon(self, buyer_id, trade_id, mobile):
-        """
-        功能：　卖家申请退货　要求退运费　优惠券
-        参数：　buyer_id　卖家的用户ＩＤ
-        """
-        cou, state = CouponPool.objects.get_or_create(coupon_type=CouponPool.POST_FEE,
-                                                      coupon_status=CouponPool.RELEASE)
-        # 生成优惠券 # 已经发放的
-        import logging
-
-        try:
-            self.coupon_no = cou.coupon_no
-            self.coupon_user = buyer_id
-            self.trade_id = trade_id
-            self.mobile = mobile
-            self.save()
-        except Exception, exc:
-            log = logging.getLogger('django.request')
-            log.error(exc.message, exc_info=True)
-        return
-
     def use_coupon(self):
         # 修改　可用优惠券　到　已经使用
         if self.status == Coupon.RECEIVE:

@@ -85,34 +85,3 @@ def add_Order_Integral(sender, instance, created, **kwargs):
 
 
 post_save.connect(add_Order_Integral, sender=SaleOrder)
-
-from .models import SaleRefund
-from .models_coupon import Coupon
-
-
-def release_Coupon_For_Refund_Pro(sender, instance, created, **kwargs):
-    print " refund status to coupon (7) is :", instance.status
-    # 判断在退款成功的时候发放10元的优惠券
-    # 是 退货的　情况下才会退邮费优惠券
-    if created:
-        print "创建　退款单"
-        return
-    if instance.status is not SaleRefund.REFUND_SUCCESS:  # 退款不成功不发
-        print "不是退款成功状态"
-        return
-    if not instance.has_good_return:  # 没有退货不发
-        print "没有退货"
-        return
-    if instance.has_good_change:  # 换货的则不发
-        print "换货　不予发放"
-        return
-    print "------"
-    trade_id = instance.trade_id
-    buyer_id = instance.buyer_id
-    mobile = instance.mobile if instance.mobile else ""
-    cou = Coupon()
-    cou.refund_post_Coupon(buyer_id, trade_id, mobile)
-    print "优惠券发放成功．．．．"
-
-
-post_save.connect(release_Coupon_For_Refund_Pro, sender=SaleRefund)
