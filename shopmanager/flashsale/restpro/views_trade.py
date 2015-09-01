@@ -193,7 +193,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     temp_dict["is_sale_out"] = pro_sku[0].sale_out if pro_sku else False
                     data.append(temp_dict)
         return Response(data)
-
+    
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
         """关闭购物车中的某一个数据，调用关闭接口"""
@@ -668,8 +668,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             product = Product.objects.get(id=cart.item_id)
             sku = ProductSku.objects.get(id=cart.sku_id)
             cart_total_fee = cart.price * cart.num
-            cart_payment  = (total_payment / total_fee) * cart_total_fee
-            cart_discount = (discount_fee / total_fee) * cart_total_fee
+            cart_payment  = float('%.2f'%(total_payment / total_fee) * cart_total_fee)
+            cart_discount = float('%.2f'%(discount_fee / total_fee) * cart_total_fee)
             SaleOrder.objects.create(
                  sale_trade=saletrade,
                  item_id=cart.item_id,
