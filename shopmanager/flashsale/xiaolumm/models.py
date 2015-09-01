@@ -128,6 +128,20 @@ class XiaoluMama(models.Model):
 #             return True
 #         return False
     
+    def get_Mama_Deposite(self):
+        """ 获取妈妈押金金额 """
+        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
+        if agency_levels.count() == 0:
+            return 0
+        return agency_levels[0].deposit
+    
+    def get_Mama_Deposite_Amount(self):
+        """ 获取妈妈押金对应账户金额 """
+        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
+        if agency_levels.count() == 0:
+            return 0
+        return agency_levels[0].cash
+    
     def get_Mama_Thousand_Target_Amount(self):
         """ 获取妈妈千元基准成交额 """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
@@ -140,7 +154,7 @@ class XiaoluMama(models.Model):
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
-        return agency_levels[0].extra_rate
+        return agency_levels[0].extra_rate_percent()
         
         
     def get_Mama_Agency_Rebeta_Rate(self):
@@ -296,12 +310,12 @@ class XiaoluMama(models.Model):
 class AgencyLevel(models.Model):
     
     category = models.CharField(max_length=11,unique=True,blank=False,verbose_name=u"类别")
-    deposit = models.IntegerField(default=0,verbose_name=u"押金(元)")
-    cash = models.IntegerField(default=0,verbose_name=u"现金(元)")
+    deposit  = models.IntegerField(default=0,verbose_name=u"押金(元)")
+    cash     = models.IntegerField(default=0,verbose_name=u"现金(元)")
     basic_rate = models.IntegerField(default=0,verbose_name=u"基本佣金率（百分比）")
-    target = models.IntegerField(default=0,verbose_name=u"达标额度（元）")
+    target     = models.IntegerField(default=0,verbose_name=u"达标额度（元）")
     extra_rate = models.IntegerField(default=0,verbose_name=u"奖励佣金率（百分比）")
-    created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
 
     class Meta:
         db_table = 'xiaolumm_agencylevel'
@@ -328,7 +342,6 @@ class AgencyLevel(models.Model):
     get_extra_rate_display.admin_order_field = 'extra_rate'
     get_extra_rate_display.short_description = u"奖励佣金率"
     
-    @property
     def extra_rate_percent(self):
         return self.get_extra_rate_display()
     

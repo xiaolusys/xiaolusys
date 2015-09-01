@@ -51,11 +51,8 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
     refund_value = (clog_refunds.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
 
     payment = consume_value - refund_value
-    x_choice = 0
-    if cash_outable:
-        x_choice = 100.00
-    else:
-        x_choice = 130.00
+    x_choice = cash_outable and xlmm.get_Mama_Deposite() or xlmm.get_Mama_Deposite_Amount()
+    
     mony_without_pay = cash + payment # 从未消费情况下的金额
     leave_cash_out = mony_without_pay - x_choice   # 可提现金额
     could_cash_out = cash
@@ -578,7 +575,7 @@ def cash_Out_Verify(request, id, xlmm):
 
     # for cashout_status_is_pending in cashouts_status_is_pending:
     # xlmm = cashout_status_is_pending.xlmm
-    value = cashout_status_is_pending.value/100.0
+    value = cashout_status_is_pending.value / 100.0
     status = cashout_status_is_pending.status
     xiaolumama = XiaoluMama.objects.get(pk=xlmm)
     
@@ -597,12 +594,12 @@ def cash_Out_Verify(request, id, xlmm):
     # 提现审核界面加上总收入总支出两项数据
     carrylogs_in = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
     sum_carry_in = carrylogs_in.aggregate(total_carry_in=Sum('value')).get('total_carry_in') or 0
-    sum_carry_in = sum_carry_in/100.0
+    sum_carry_in = sum_carry_in / 100.0
 
     # 总支出
     carrylogs_out = CarryLog.objects.filter(xlmm=xlmm, carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
     sum_carry_out = carrylogs_out.aggregate(total_carry_out=Sum('value')).get('total_carry_out') or 0
-    sum_carry_out = sum_carry_out/100.0
+    sum_carry_out = sum_carry_out / 100.0
 
     # 差值
     carry_in_minus_out = sum_carry_in - sum_carry_out

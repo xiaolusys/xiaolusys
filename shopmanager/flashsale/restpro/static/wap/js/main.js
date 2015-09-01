@@ -233,7 +233,7 @@ function Create_item_dom(p_obj,close_model){
     //如果没有close model,并且model_product存在
     if (!close_model && !isNone(p_obj.product_model)) {
         if (!p_obj.is_saleopen) {
-            if (p_obj.sale_time == today) {
+            if (p_obj.sale_time >= today) {
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">即将开售</div>';
             } else {
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
@@ -245,7 +245,7 @@ function Create_item_dom(p_obj,close_model){
 
     //上架判断
     if (!p_obj.is_saleopen) {
-        if (p_obj.sale_time == today) {
+        if (p_obj.sale_time >= today) {
             p_obj.saleout_dom = '<div class="mask"></div><div class="text">即将开售</div>';
         } else {
             p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';

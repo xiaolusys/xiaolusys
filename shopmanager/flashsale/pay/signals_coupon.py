@@ -12,7 +12,7 @@ from django.db.models import ObjectDoesNotExist
 当创建订单的时候创建积分待确认记录
 """
 INTEGRAL_START_TIME = datetime.datetime(2015, 7, 25, 0, 0, 0)
-
+logger = logging.getLogger('django.request')
 
 def get_IntegralLog(buyer_id, orid):
     try:
@@ -82,6 +82,4 @@ def add_Order_Integral(sender, instance, created, **kwargs):
                 user_interal.integral_user = buyer_id
                 user_interal.integral_value = int(instance.payment)
                 user_interal.save()
-
-
 post_save.connect(add_Order_Integral, sender=SaleOrder)

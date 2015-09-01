@@ -193,7 +193,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     temp_dict["is_sale_out"] = pro_sku[0].sale_out if pro_sku else False
                     data.append(temp_dict)
         return Response(data)
-
+    
     @detail_route(methods=['post', 'delete'])
     def delete_carts(self, request, pk=None, *args, **kwargs):
         """关闭购物车中的某一个数据，调用关闭接口"""
@@ -668,8 +668,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             product = Product.objects.get(id=cart.item_id)
             sku = ProductSku.objects.get(id=cart.sku_id)
             cart_total_fee = cart.price * cart.num
-            cart_payment  = (total_payment / total_fee) * cart_total_fee
-            cart_discount = (discount_fee / total_fee) * cart_total_fee
+            cart_payment  = float('%.2f'%(total_payment / total_fee * cart_total_fee))
+            cart_discount = float('%.2f'%(discount_fee / total_fee * cart_total_fee))
             SaleOrder.objects.create(
                  sale_trade=saletrade,
                  item_id=cart.item_id,
@@ -681,6 +681,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  payment=cart_payment,
                  discount_fee=cart_discount,
                  total_fee=cart.total_fee,
+                 price=cart.price,
                  pic_path=product.pic_path,
                  sku_name=sku.properties_alias,
                  status=SaleTrade.WAIT_BUYER_PAY
@@ -705,6 +706,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
              title=product.name,
              payment=rnow_payment,
              total_fee=total_fee,
+             price=sku.agent_price,
              discount_fee=discount_fee,
              pic_path=product.pic_path,
              sku_name=sku.properties_alias,
@@ -720,9 +722,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer,user=request.user)
         cart_qs = ShoppingCart.objects.filter(
             id__in=[i for i in cart_ids if i.isdigit()], 
-            buyer_id=customer.id, 
-            status=ShoppingCart.NORMAL
+            buyer_id=customer.id
         )
+        #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
         if cart_qs.count() != len(cart_ids):
             raise exceptions.ParseError(u'购物车信息异常')
         

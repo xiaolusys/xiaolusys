@@ -112,12 +112,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return tlast.date()
     
     def get_priview_date(self,request):
-        """ 获取昨日上架日期 """
+        """ 获取明日上架日期 """
         tdays  = int(request.GET.get('days','1'))
         tnow   = datetime.datetime.now() 
-        tlast  = tnow - datetime.timedelta(days=tdays)
-        if tnow.hour < 10:
-            return (tnow - datetime.timedelta(days=2)).date()
+        tlast  = tnow + datetime.timedelta(days=tdays)
         return tlast.date()
     
     @cache_response()
