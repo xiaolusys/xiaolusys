@@ -668,8 +668,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             product = Product.objects.get(id=cart.item_id)
             sku = ProductSku.objects.get(id=cart.sku_id)
             cart_total_fee = cart.price * cart.num
-            cart_payment  = float('%.2f'%(total_payment / total_fee) * cart_total_fee)
-            cart_discount = float('%.2f'%(discount_fee / total_fee) * cart_total_fee)
+            cart_payment  = float('%.2f'%(total_payment / total_fee * cart_total_fee))
+            cart_discount = float('%.2f'%(discount_fee / total_fee * cart_total_fee))
             SaleOrder.objects.create(
                  sale_trade=saletrade,
                  item_id=cart.item_id,
