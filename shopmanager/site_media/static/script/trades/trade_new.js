@@ -555,8 +555,8 @@ function begin_chai(){
         if(res.result=="OK"){
             var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
             parent.layer.close(index); //执行关闭
-        }else{
-            alert("有错误");
+        }else {
+            alert(res.result);
         }
     };
     $.ajax({

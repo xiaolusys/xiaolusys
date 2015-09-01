@@ -30,29 +30,28 @@ class ChaiTradeView(APIView):
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
 
     def post(self, request, *args, **kwargs):
-        print request.data
+        user = request.user
         order_list_str = request.data.get("data", None)
         if not order_list_str or len(order_list_str) == 0:
             return Response({"result": "NO ORDER"})
-        result = split_merge_trade(order_list_str)
+        result = split_merge_trade(order_list_str, user)
         return Response({"result": result})
 
 
 from shopback.paramconfig import INVALID_STATUS, IN_EFFECT
-from shopback.base import log_action, CHANGE
-from django.contrib.auth.models import User as DjangoUser
+from shopback.base import log_action, CHANGE, ADDITION
 from django.db import transaction
 from shopback.items.models import Product
 from django.db.models import Q
 
 
 @transaction.commit_on_success
-def split_merge_trade(merger_order_id):
+def split_merge_trade(merger_order_id, modify_user):
     """
         批量拆单功能实现
         参数为order_id 以逗号拼接的字串
     """
-    djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+
 
     order_list = merger_order_id.split(",")
     if len(order_list) == 0:
@@ -60,25 +59,27 @@ def split_merge_trade(merger_order_id):
 
     m = MergeOrder.objects.filter(Q(id=order_list[0], sys_status=IN_EFFECT))
     if m.count() == 0:
-        return "error"
+        return "no IN_EFFECT order"
     parent_trade = m[0].merge_trade
+    if parent_trade.has_merge:
+        return "has merge"
     parent_trade_tid = parent_trade.tid.split("-")[0]
     first_p = Product.objects.filter(outer_id=m[0].outer_id)
     if first_p.count() == 0:
-        return "error"
+        return "product not found"
     payment = 0
     for order_id in order_list:
         m = MergeOrder.objects.filter(Q(id=order_id, sys_status=IN_EFFECT))
         if m.count() == 0:
-            return "error"
+            return "no IN_EFFECT order"
         if parent_trade.id != m[0].merge_trade.id:
-            return "error"
+            return "no the one trade"
 
         p = Product.objects.filter(outer_id=m[0].outer_id)
         if p.count() == 0:
-            return "error"
+            return "product not found"
         if first_p[0].ware_by != p[0].ware_by:
-            return "error"
+            return "not same ware"
         payment += m[0].payment
 
     count = 1
@@ -102,7 +103,7 @@ def split_merge_trade(merger_order_id):
                 hasattr(new_trade, k) and setattr(new_trade, k, v)
 
     new_trade.save()
-
+    log_action(modify_user.id, new_trade, ADDITION, u'从订单{0}拆过来'.format(parent_trade.id))
     # 将新的order合入新的订单
     for order_id in order_list:
         mergeorder = MergeOrder.objects.get(id=order_id, sys_status=IN_EFFECT)
@@ -120,8 +121,8 @@ def split_merge_trade(merger_order_id):
 
         mergeorder.sys_status = INVALID_STATUS
         mergeorder.save()
-        log_action(djuser.id, mergeorder, CHANGE, u'被拆单')
+        log_action(modify_user.id, mergeorder, CHANGE, u'被拆单')
     parent_trade.sys_memo += u"拆单到{0}".format(new_trade.id)
     parent_trade.save()
-    log_action(djuser.id, parent_trade, CHANGE, u'拆到订单{0}'.format(new_trade.id))
+    log_action(modify_user.id, parent_trade, CHANGE, u'拆到订单{0}'.format(new_trade.id))
     return "OK"
