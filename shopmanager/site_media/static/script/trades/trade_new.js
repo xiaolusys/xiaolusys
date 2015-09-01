@@ -536,7 +536,6 @@ function addorderto(info) {
 
 function begin_chai(){
     var table_chai = $("#chai_dan_table tbody tr .chai_oid");
-    console.log(table_chai);
     var data = "";
     if(table_chai.length == 0){
         return
