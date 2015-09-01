@@ -343,7 +343,6 @@ nav a:active,
     position: relative;
 }
 .chaotong li a .mask{
-  background-color: #9B9B9B;
   opacity: 0.47;
   position: absolute;
   left:0;
@@ -360,7 +359,7 @@ nav a:active,
   line-height: 100px;
   border-radius: 50%;
   left:50%;
-  top:50%;
+  top:40%;
   margin-left: -50px;
   margin-top: -50px;
   text-align: center;
@@ -369,7 +368,6 @@ nav a:active,
 }
 
 .nvzhuang li a .mask{
-  background-color: #9B9B9B;
   opacity: 0.47;
   position: absolute;
   left:0;
@@ -386,7 +384,7 @@ nav a:active,
   line-height: 100px;
   border-radius: 50%;
   left:50%;
-  top:50%;
+  top:40%;
   margin-left: -50px;
   margin-top: -50px;
   text-align: center;

@@ -39,6 +39,9 @@
         <div class="historydiv">
             <div class="history-btn" cid="{{ item_id }}" vid="{{ sku_id }}" gid="{{ id }}">重新购买</div>
         </div>
+        {{ if is_sale_out }}
+            <div class="mask"></div><div class="text">已抢光</div>
+        {{ /if }}
     </div>
 </script>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>

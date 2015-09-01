@@ -21,7 +21,6 @@ class SaleRefund(models.Model):
     REFUND_APPROVE = 6
     REFUND_SUCCESS = 7
     
-    
     REFUND_STATUS = (
         (NO_REFUND,'没有退款'),
         (REFUND_WAIT_SELLER_AGREE,'买家已经申请退款'),

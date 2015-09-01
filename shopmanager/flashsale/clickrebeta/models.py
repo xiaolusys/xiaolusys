@@ -313,7 +313,6 @@ def tongji_saleorder(sender, obj, **kwargs):
         if buyercount != daytongji.buyercount:
             StatisticsShoppingByDay.objects.filter(linkid=xiaolumm.id, 
                                                tongjidate=target_time).update(buyercount=buyercount)
-
         return
     
     mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
@@ -350,11 +349,11 @@ def tongji_saleorder(sender, obj, **kwargs):
             if buyercount != daytongji.buyercount:
                 StatisticsShoppingByDay.objects.filter(linkid=xiaolu_mm.id, 
                                                    tongjidate=target_time).update(buyercount=buyercount)
-            
         else:
             StatisticsShopping(linkid=0, 
                                openid=xd_openid, 
                                wxorderid=order_id,
+                               wxordernick=order_buyer_nick,
                                wxorderamount=mm_order_amount,
                                shoptime=ordertime, 
                                tichengcount=mm_order_rebeta).save()
@@ -362,6 +361,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     else:
         tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=order_id)
         tongjiorder.openid = xd_openid
+        tongjiorder.wxordernick=order_buyer_nick,
         tongjiorder.wxorderamount = mm_order_amount
         tongjiorder.shoptime = ordertime
         tongjiorder.tichengcount=mm_order_rebeta
