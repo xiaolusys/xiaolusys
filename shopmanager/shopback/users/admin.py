@@ -41,6 +41,9 @@ class UserAdmin(admin.ModelAdmin):
                     'fields': (('sync_stock','percentage','is_primary','status'),)
                 }))
     
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + ('user',)
+    
     def get_actions(self, request):
         
         user = request.user
