@@ -9,6 +9,9 @@ from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStat
 import time
 from .filters import GroupNameFilter, OrderListStatusFilter
 from flashsale.dinghuo import permissions as perms
+from django.contrib.admin.views.main import ChangeList
+from django.db import models
+import re
 
 
 class orderdetailInline(admin.TabularInline):
@@ -146,9 +149,24 @@ class ordelistAdmin(admin.ModelAdmin):
         else:
             del actions["action_quick_complete"]
             return actions
+
+    def get_changelist(self, request, **kwargs):
+        return OrderListChangeList
+
     class Media:
         css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
         js = ("js/admin_js.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
+
+
+class OrderListChangeList(ChangeList):
+
+    def get_query_set(self, request):
+        qs = self.root_query_set
+        search_q = request.GET.get('q', '').strip()
+        if search_q.isdigit():
+            trades = qs.filter(models.Q(id=search_q))
+            return trades
+        return super(OrderListChangeList, self).get_query_set(request)
 
 
 class orderdetailAdmin(admin.ModelAdmin):
