@@ -408,10 +408,14 @@ def task_ThousandRebeta(date_from,date_to):
     xlmms = XiaoluMama.objects.filter(agencylevel=2,charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
         commission = calc_Mama_Thousand_Rebeta(xlmm,date_from,date_to)
-        if commission > 100000: # 分单位
+        c_logs = CarryLog.objects.filter(xlmm=xlmm.id,order_num=carry_no,log_type=CarryLog.THOUSAND_REBETA)
+        if c_logs.count() > 0 or commission >= xlmm.get_Mama_Thousand_Target_Amount(): # 分单位
             # 写一条carry_log记录
             carry_log, state = CarryLog.objects.get_or_create(xlmm=xlmm.id,order_num=carry_no,
                                                               log_type=CarryLog.THOUSAND_REBETA)
+            if not state and carry_log.status != CarryLog.PENDING:
+                continue
+            
             carry_log.buyer_nick = xlmm.mobile
             carry_log.carry_type = CarryLog.CARRY_IN
             carry_log.value      = commission * xlmm.get_Mama_Thousand_Rate()   # 上个月的千元提成
@@ -527,6 +531,8 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
             carry_log_f,state  = CarryLog.objects.get_or_create(xlmm=xlmm.id,order_num=sub_xlmm.id,
                                                           carry_date = target_date,
                                                           log_type=CarryLog.AGENCY_SUBSIDY)
+            if not state and carry_log_f.status != CarryLog.PENDING:
+                continue
 #             carry_log_f.xlmm       = xlmm.id  # 锁定本代理
 #             carry_log_f.order_num  = sub_xlmm.id      # 这里写的是子代理的ID
             carry_log_f.buyer_nick = xlmm.mobile

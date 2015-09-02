@@ -34,7 +34,7 @@ def task_Push_Rebeta_To_MamaCash(target_date):
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                      order_num=carry_no,
                                                      log_type=CarryLog.ORDER_REBETA)
-        if not state :
+        if not state and c_log.status != CarryLog.PENDING:
             continue
         c_log.value  = order_rebeta
         c_log.carry_date = target_date

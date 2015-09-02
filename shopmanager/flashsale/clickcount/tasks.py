@@ -114,7 +114,7 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
                                                      order_num=carry_no,
                                                      log_type=CarryLog.CLICK_REBETA)
-        if not state :
+        if not state and c_log.status != CarryLog.PENDING:
             continue
         
         c_log.value = click_rebeta
