@@ -167,7 +167,7 @@ def getupMorningLockTask():
     
 from flashsale.pay.models_user import Register
 @task
-def task_register_code(mobile):
+def task_register_code(mobile, send_type="1"):
     """ 短信验证码 """
     #选择默认短信平台商，如果没有，任务退出
     try:
@@ -175,9 +175,12 @@ def task_register_code(mobile):
     except:
         return
     try:
-        register_v = Register.objects.get(vmobile=mobile)
 
-        content = register_v.verify_code
+        register_v = Register.objects.get(vmobile=mobile)
+        if send_type == "1":
+            content = u"注册验证码为：" + register_v.verify_code + "，请在页面输入完成验证。如非本人操作请忽略。 --小鹿美美"
+        elif send_type == "2":
+            content = u"您设置新密码的验证码：" + register_v.verify_code + "，请即时输入，为保证您的账户安全，请勿外泄。如有疑问请致电021-50939326【小鹿美美】"
         if not content:
             return
         params = {}
@@ -206,7 +209,7 @@ def task_register_code(mobile):
         #发送短信接口
         try:
             success, task_id, succnums, response = manager.batch_send(**params)
-        except Exception,exc:
+        except Exception, exc:
             sms_record.status = pcfg.SMS_ERROR
             sms_record.memo = exc.message
             logger.error(exc.message,exc_info=True)
@@ -216,7 +219,6 @@ def task_register_code(mobile):
             sms_record.retmsg = response
             sms_record.status = success and pcfg.SMS_COMMIT or pcfg.SMS_ERROR
         sms_record.save()
-        print "success",success
         if success:
             SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums')+int(succnums))
             register_v.verify_count += 1
@@ -263,7 +265,7 @@ def func2send_message(trade):
         all_order = trade.merge_orders.all()
         if all_order.count() == 0:
             return
-        title = all_order[0].title[6:14]
+        title = all_order[0].title[6:]
 
         content = POST_CONTENT_SEND_LATER.format(trade.pay_time.strftime('%m月%d号'), title.encode('utf-8'))
         if not content:
