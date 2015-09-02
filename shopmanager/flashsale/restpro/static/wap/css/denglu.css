@@ -8,7 +8,9 @@
     background-image: url(../images/logo.png);
     margin: 0 auto;
 }
-
+body{
+    position: relative;
+}
 .btn-xiaolu,
 .btn-weixin {
     display: block;
