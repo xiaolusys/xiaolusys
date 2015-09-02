@@ -292,7 +292,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             
         return Response(product_dict)
     
-    @cache_response()
+#     @cache_response()
     @list_route(methods=['get'])
     def seckill(self, request, *args, **kwargs):
         """
