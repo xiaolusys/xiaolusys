@@ -39,7 +39,6 @@ class OrderListStatusFilter(SimpleListFilter):
         status_list = OrderList.ORDER_PRODUCT_STATUS
         querstion = (("0", u'售后处理'),)
         status_list1 = status_list + querstion
-        print status_list1
         return status_list1
 
     def queryset(self, request, queryset):
@@ -47,7 +46,6 @@ class OrderListStatusFilter(SimpleListFilter):
         if not status_id:
             return queryset
         else:
-            print status_id == '0',status_id
             if status_id == '0':
                 return queryset.filter(status__in=(OrderList.QUESTION, OrderList.CIPIN, OrderList.QUESTION_OF_QUANTITY))
             else:
