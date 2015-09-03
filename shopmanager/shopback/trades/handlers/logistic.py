@@ -15,7 +15,7 @@ class LogisticsHandler(BaseHandler):
                 not merge_trade.logistics_company)
             
     def getYundaLGC(self):
-        return LogisticsCompany.objects.get_or_create(code='YUNDA')[0]
+        return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
     
     def getLogisticCompany(self,merge_trade):
         
