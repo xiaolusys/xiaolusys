@@ -405,7 +405,7 @@ def task_ThousandRebeta(date_from,date_to):
     date_to：结束日期
     """
     carry_no = date_from.strftime('%y%m%d')
-    xlmms = XiaoluMama.objects.filter(agencylevel=2,charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
+    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED) 
     for xlmm in xlmms:
         commission = calc_Mama_Thousand_Rebeta(xlmm,date_from,date_to)
         c_logs = CarryLog.objects.filter(xlmm=xlmm.id,order_num=carry_no,log_type=CarryLog.THOUSAND_REBETA)

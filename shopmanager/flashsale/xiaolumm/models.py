@@ -147,7 +147,7 @@ class XiaoluMama(models.Model):
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return float('Inf')
-        return agency_levels[0].target
+        return agency_levels[0].target * 100
     
     def get_Mama_Thousand_Rate(self):
         """ 获取妈妈千元提成率 """
