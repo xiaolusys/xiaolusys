@@ -123,6 +123,15 @@ def check_or_create_order_redenvelop(sender,instance, **kwargs):
 post_save.connect(check_or_create_order_redenvelop, sender=StatisticsShoppingByDay)
 
 
+def get_xlmm_linkid(click_set):
+    ''' 根据点击获取小鹿妈妈ID '''
+    exclude_xlmmids = (0,44)
+    for cc in click_set:
+        if cc.linkid in exclude_xlmmids:
+            continue
+        return cc.linkid
+    return 44
+
 from django.db.models import F
 from django.conf import settings
 from shopapp import signals
@@ -183,7 +192,7 @@ def tongji_wxorder(sender, obj, **kwargs):
     mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
         openid=obj.buyer_openid).order_by('-click_time')
     if mm_clicks.count() > 0:
-        mm_linkid   = mm_clicks[0].linkid
+        mm_linkid   = get_xlmm_linkid(mm_clicks)
         mm_order_rebeta =  obj.order_total_price
         
         xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
@@ -316,9 +325,9 @@ def tongji_saleorder(sender, obj, **kwargs):
         return
     
     mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
-        openid=xd_openid).order_by('-click_time')
+        openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
     if mm_clicks.count() > 0:
-        mm_linkid   = mm_clicks[0].linkid
+        mm_linkid   = get_xlmm_linkid(mm_clicks)
         xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
         if xiaolu_mmset.count() > 0:
             xiaolu_mm = xiaolu_mmset[0]
