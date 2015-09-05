@@ -181,6 +181,8 @@ def task_register_code(mobile, send_type="1"):
             content = u"注册验证码为：" + register_v.verify_code + "，请在页面输入完成验证。如非本人操作请忽略。 --小鹿美美"
         elif send_type == "2":
             content = u"您设置新密码的验证码：" + register_v.verify_code + "，请即时输入，为保证您的账户安全，请勿外泄。如有疑问请致电021-50939326【小鹿美美】"
+        elif send_type == "3":
+            content = u"您绑定手机的验证码：" + register_v.verify_code + "，请在页面输入完成验证。如非本人操作请忽略。 --小鹿美美"
         if not content:
             return
         params = {}
