@@ -3,7 +3,7 @@ __author__ = 'yann'
 from django.views.generic import View
 from django.shortcuts import HttpResponse, render_to_response
 from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product, task_stats_daily_order_by_group, \
-    task_send_daily_message, task_write_supply_name
+    task_send_daily_message, task_write_supply_name, task_supplier_stat
 from django.template import RequestContext
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 import time
@@ -129,30 +129,8 @@ class StatsSupplierView(View):
                 end_date = today
         else:
             end_date = today
-        if group_name == 0:
-            group_sql = ""
-        else:
-            group_sql = " where group_id = " + str(group_name)
-        sql = 'select supply.supplier_shop,sum(supplydata.ding_huo_num) as ding_huo_num,' \
-              'sum(supplydata.sale_num) as sale_num,sum(supplydata.sale_cost_of_product) as sale_amount,' \
-              'sum(inferior_num) as inferior_num,sum(return_num) as return_num,supply.group_name,supply.supplier_name ' \
-              'from (select * from supply_chain_stats_daily where sale_time >="{0}" and sale_time<="{1}") as supplydata left join ' \
-              '(select detail.outer_id,list.supplier_shop,list.group_name,list.supplier_name from ' \
-              '(select outer_id,orderlist_id from suplychain_flashsale_orderdetail ' \
-              'where orderlist_id not in(select id from suplychain_flashsale_orderlist where status="作废")) as detail left join ' \
-              '(select A.id,A.supplier_shop,my_group.name as group_name,A.supplier_name  from ' \
-              '(select temp_list.id,temp_list.supplier_shop,temp_list.supplier_name,my_user.group_id from ' \
-              '(select temp_list.id,temp_list.supplier_shop,admin_user.id as user_id,temp_list.supplier_name  from suplychain_flashsale_orderlist as temp_list ' \
-              'left join auth_user as admin_user on temp_list.buyer_name=admin_user.username) as temp_list ' \
-              'left join suplychain_flashsale_myuser as my_user on temp_list.user_id=my_user.user_id  {2}) as A ' \
-              'left join suplychain_flashsale_mygroup as my_group on A.group_id=my_group.id) as list ' \
-              'on detail.orderlist_id=list.id where list.supplier_shop!="" group by outer_id) as supply ' \
-              'on supplydata.product_id=supply.outer_id where supply.supplier_shop!="" group by supply.supplier_shop'.format(
-            start_date, end_date, group_sql)
-        cursor = connection.cursor()
-        cursor.execute(sql)
-        raw = cursor.fetchall()
-        return render_to_response("dinghuo/data_of_supplier.html", {"all_data": raw, "start_date": start_date,
+        work_task = task_supplier_stat.s(start_date, end_date, group_name)()
+        return render_to_response("dinghuo/data_of_supplier.html", {"task_id": work_task, "start_date": start_date,
                                                                     "end_date": end_date, "group_name": group_name},
                                   context_instance=RequestContext(request))
 
