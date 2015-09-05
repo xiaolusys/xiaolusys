@@ -318,6 +318,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user.save()
             customer.mobile = mobile
             customer.save()
+            reg_temp.cus_uid = customer.id
+            reg_temp.mobile_pass = True
+            reg_temp.save()
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
