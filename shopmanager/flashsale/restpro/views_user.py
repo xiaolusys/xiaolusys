@@ -150,7 +150,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "1"})  # 尚无用户或者手机未绑定
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
-            return Response({"result": "3"})  # 验证码不对
+            return Response({"result": "3"})  # 未获取验证码
         reg_temp = reg[0]
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
@@ -245,3 +245,133 @@ class CustomerViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def islogin(self,request, *args, **kwargs):
         return Response({'result': 'login'})
+
+    @list_route(methods=['get'])
+    def need_set_info(self, request):
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        if customer.mobile and len(customer.mobile) == 11:
+            return Response({'result': 'no', 'mobile': customer.mobile})
+        else:
+            return Response({'result': 'yes'})
+
+
+    @list_route(methods=['post'])
+    def bang_mobile_code(self, request):
+        """绑定手机时获取验证码"""
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        if len(customer.mobile) != 0:
+            raise exceptions.APIException(u'账户异常，请联系客服～')
+        mobile = request.data['vmobile']
+        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+            return Response({"result": "false"})
+        already_exist = Customer.objects.filter(mobile=mobile)
+        if already_exist.count() > 0:
+            return Response({"result": "1"})  # 手机已经绑定
+
+        reg = Register.objects.filter(vmobile=mobile)
+        if reg.count() == 0:
+            new_reg = Register(vmobile=mobile)
+            new_reg.verify_code = new_reg.genValidCode()
+            new_reg.verify_count = 1
+            new_reg.save()
+            task_register_code.s(mobile, "3")()
+            return Response({"result": "0"})
+        else:
+            reg_temp = reg[0]
+            reg_temp.verify_code = reg_temp.genValidCode()
+            reg_temp.save()
+            task_register_code.s(mobile, "3")()
+        return Response({"result": "0"})
+
+    @list_route(methods=['post'])
+    def bang_mobile(self, request):
+        """绑定手机,并初始化密码"""
+        mobile = request.data['username']
+        passwd1 = request.data['password1']
+        passwd2 = request.data['password2']
+        verify_code = request.data['valid_code']
+
+        if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 \
+                and len(passwd1) == 0 and len(passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
+            return Response({"result": "2"})
+        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+            return Response({"result": "false"})
+        already_exist = Customer.objects.filter(mobile=mobile)
+        if already_exist.count() > 0:
+            return Response({"result": "1"})  # 手机已经绑定
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        if len(customer.mobile) != 0:
+            raise exceptions.APIException(u'账户异常，请联系客服～')
+        reg = Register.objects.filter(vmobile=mobile)
+        if reg.count() == 0:
+            return Response({"result": "3"})  # 验证码不对
+        reg_temp = reg[0]
+        verify_code_server = reg_temp.verify_code
+        if verify_code_server != verify_code:
+            return Response({"result": "3"})  # 验证码不对
+        try:
+            system_user = customer.user
+            system_user.set_password(passwd1)
+            system_user.save()
+            customer.mobile = mobile
+            customer.save()
+        except:
+            return Response({"result": "5"})
+        return Response({"result": "0"})
+
+    @list_route(methods=['post'])
+    def change_pwd_code(self, request):
+        """修改密码时获取验证码"""
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        if customer.mobile == "" and re.findall(PHONE_NUM_RE, customer.mobile):  # 进行正则判断，待写
+            return Response({"result": "false"})
+        reg = Register.objects.filter(vmobile=customer.mobile)
+        if reg.count() == 0:
+            new_reg = Register(vmobile=customer.mobile)
+            new_reg.verify_code = new_reg.genValidCode()
+            new_reg.verify_count = 1
+            new_reg.mobile_pass = True
+            new_reg.save()
+            task_register_code.s(customer.mobile, "2")()
+            return Response({"result": "0"})
+        else:
+            reg_temp = reg[0]
+            reg_temp.verify_code = reg_temp.genValidCode()
+            reg_temp.save()
+            task_register_code.s(customer.mobile, "2")()
+        return Response({"result": "0"})
+
+    @list_route(methods=['post'])
+    def change_user_pwd(self, request):
+        """提交修改密码"""
+        mobile = request.data['username']
+        passwd1 = request.data['password1']
+        passwd2 = request.data['password2']
+        verify_code = request.data['valid_code']
+
+        if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(
+                passwd1) == 0 and len(
+                passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
+            return Response({"result": "2"})
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        if customer.mobile != mobile:
+            raise exceptions.APIException(u'手机参数出错')
+        reg = Register.objects.filter(vmobile=mobile)
+        if reg.count() == 0:
+            return Response({"result": "3"})  # 验证码不对
+        reg_temp = reg[0]
+        verify_code_server = reg_temp.verify_code
+        if verify_code_server != verify_code:
+            return Response({"result": "3"})  # 验证码不对
+        try:
+            system_user = customer.user
+            system_user.set_password(passwd1)
+            system_user.save()
+        except:
+            return Response({"result": "5"})
+        return Response({"result": "0"})

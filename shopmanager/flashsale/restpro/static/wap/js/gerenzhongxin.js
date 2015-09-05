@@ -60,3 +60,26 @@ function logout() {
         }
     });
 }
+
+
+function need_set_info(){
+	//获取设置帐号的信息
+	var requestUrl = GLConfig.baseApiUrl + "/users/need_set_info";
+
+	var requestCallBack = function(res){
+        var result = res.result;
+        if(result=="yes"){
+            $('<div class="text">NEW</div>').insertAfter(".icon-mimaxiugai");
+        }
+
+	};
+	// 请求推荐数据
+	$.ajax({
+		type:'get',
+		url:requestUrl,
+		data:{},
+		dataType:'json',
+		success:requestCallBack
+	});
+
+}
