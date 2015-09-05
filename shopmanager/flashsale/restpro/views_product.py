@@ -1,5 +1,7 @@
 # -*- coding:utf8 -*-
+import json
 import datetime
+import hashlib
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -92,7 +94,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    paginate_by = 70
+    paginate_by = 100
     page_query_param = 'page_size'
     max_paginate_by = 100
     
@@ -223,7 +225,23 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(response_date)
     
-    @cache_response()
+    def calc_items_cache_key(self, view_instance, view_method,
+                            request, args, kwargs):
+        key_vals = ['order_by','id','model_id']
+        key_maps = kwargs or {}
+
+        for k,v in request.GET:
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+                
+        return u'.'.join([
+                view_instance.__module__,
+                view_instance.__class__.__name__,
+                view_method.__name__,
+                hashlib.sha256(json.dumps(key_maps, sort_keys=True).encode('utf-8')).hexdigest()
+            ])
+    
+    @cache_response(key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def childlist(self, request, *args, **kwargs):
         """ 获取特卖童装列表 """
@@ -239,7 +257,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response()
+    @cache_response(key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def ladylist(self, request, *args, **kwargs):
         """ 获取特卖女装列表 """
@@ -255,16 +273,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-#     @cache_response()
+    @cache_response(key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def modellist(self, request, *args, **kwargs):
         """ 获取款式商品列表 """
         
         model_id = kwargs.get('model_id',None)
         queryset = self.filter_queryset(self.get_queryset())
-        
         queryset = queryset.filter(model_id=model_id)
-
         serializer = self.get_serializer(queryset, many=True)
         
         return Response(serializer.data)
@@ -290,7 +306,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             
         return Response(product_dict)
     
-#     @cache_response()
     @list_route(methods=['get'])
     def seckill(self, request, *args, **kwargs):
         """

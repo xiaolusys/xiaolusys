@@ -1,7 +1,7 @@
 $('#data-table').dataTable({
     //"bJQueryUI": true,
     "bAutoWidth": false, //自适应宽度
-    "aaSorting": [[2, "desc"]],
+    "aaSorting": [[3, "desc"]],
     "iDisplayLength": 30,
     "aLengthMenu": [[30, 50, 100, -1], [30, 50, 100, "All"]],
     //"bInfo":true,
