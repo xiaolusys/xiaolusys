@@ -419,3 +419,26 @@ Date.prototype.Format = function (fmt) {
     if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
     return fmt;
 }
+
+
+function need_set_info(){
+	//获取设置帐号的信息
+	var requestUrl = GLConfig.baseApiUrl + "/users/need_set_info";
+
+	var requestCallBack = function(res){
+        var result = res.result;
+        if(result=="yes" && $(".top .user").length){
+            $(".top .user").append('<div class="red-dot"></div>');
+        }
+
+	};
+	// 请求推荐数据
+	$.ajax({
+		type:'get',
+		url:requestUrl,
+		data:{},
+		dataType:'json',
+		success:requestCallBack
+	});
+
+}

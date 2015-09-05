@@ -152,7 +152,6 @@
 .btn-logout {
     display: block;
     margin: 0 auto;
-
     width: 400px;
     height: 80px;
     line-height: 80px;
@@ -161,4 +160,38 @@
     border-radius: 10px;
     color: #fff;
     font-size: 34px;
+}
+
+.userinfo-list .text {
+    background-color: #E4007F;
+    text-align: center;
+    font-size: 25px;
+    line-height: 30px;
+    color: #ffffff;
+    display: block;
+    position: relative;
+    float: right;
+    top: 30px;
+    right: 60px;
+    width: 80px;
+    height: 30px;
+    border-radius: 5px;
+}
+
+.userinfo-list .text:before, .userinfo-list .text:after {
+    content: "";
+    display: block;
+    border-width: 10px 5px 6px;
+    position: absolute;
+    bottom: -15px;
+    left: 60px;
+    border-style: solid dashed dashed;
+    border-color: #E4007F transparent transparent;
+    font-size: 0;
+    line-height: 0;
+}
+
+.userinfo-list .text:after {
+    bottom: -10px;
+    border-color: #E4007F transparent transparent;
 }

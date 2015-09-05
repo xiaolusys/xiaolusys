@@ -55,6 +55,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     - {prefix}/{{pk}}/plus_product_carts[.formt]: 增加一件;
     - {prefix}/{{pk}}/minus_product_carts[.formt]: 减少一件;
     - {prefix}/show_carts_num[.formt]: 显示购物车数量;
+    - {prefix}/show_carts_history[.formt]: 显示购物车历史;
     - {prefix}/sku_num_enough[.formt]: 获取规格数量是否充足;
     > sku_id:规格ID;
     > sku_num:规格数量;

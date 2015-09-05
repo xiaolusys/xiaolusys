@@ -47,7 +47,7 @@
     </li>
     <li>
         <i class="icon icon-mimaxiugai"></i>
-        <a href="mimaxiugai.html">密码修改</a>
+        <a href="bangding.html">密码修改</a>
         <i class="icon-jiantouyou"></i>
     </li>
     <li>
@@ -71,6 +71,7 @@
     //获取
     get_user_profile();
     $(document).on({click:loginclick,touchend:loginclick},'.userinfo a,.userinfo-list a');
+    need_set_info();
 })(jQuery);
 function loginclick(e){
 	e.stopPropagation();

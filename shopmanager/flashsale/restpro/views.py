@@ -389,3 +389,44 @@ class UserCouponViewSet(viewsets.ModelViewSet):
                       }
         return Response(data=[data_entry])
     
+from flashsale.pay.models_coupon_new import UserCoupon
+
+
+class UserCouponsViewSet(viewsets.ModelViewSet):
+
+    queryset = UserCoupon.objects.filter()
+    serializer_class = serializers.UsersCouponSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def get_owner_queryset(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        return self.queryset.filter(customer=customer.id)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        data = []
+        for query in queryset:
+            id = query.id
+            coupon_no = query.cp_id.coupon_no
+            customer = query.customer
+            coupon_type = query.cp_id.template.type
+            coupon_value = query.cp_id.template.value
+            valid = query.cp_id.template.valid
+            title = query.cp_id.template.title
+            poll_status = query.cp_id.status
+            status = query.status
+            sale_trade = query.sale_trade
+            created = query.created.strftime("%Y-%m-%d")
+            deadline = query.cp_id.template.deadline.strftime("%Y-%m-%d")
+            data_entry = {"id": id, "coupon_no": coupon_no, "status": status, "poll_status": poll_status,
+                          "coupon_type": coupon_type, "sale_trade": sale_trade,
+                          "customer": customer, "coupon_value": coupon_value,
+                          "valid": valid, "title": title, "created": created,
+                          "deadline": deadline}
+            data.append(data_entry)
+        return Response(data)
+
+    def create(self, request, *args, **kwargs):
+        return Response("error")
