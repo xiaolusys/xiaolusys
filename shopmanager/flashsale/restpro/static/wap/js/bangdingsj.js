@@ -19,12 +19,14 @@ function get_code() {
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
     var requestUrl = "/rest/v1/users/change_pwd_code";
+    var get_code_btn = $("#get_code_btn");
     var requestCallBack = function (res) {
         var result = res.result;
         if (result == "1") {
             phone_exist_error.text("尚无该用户或者手机未绑定~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "0") {
+            time(get_code_btn);
             phone_exist_error.text("获取验证码成功,请查看手机~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "2") {
@@ -57,12 +59,14 @@ function bang_get_code() {
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
     var requestUrl = "/rest/v1/users/bang_mobile_code";
+    var get_code_btn = $("#get_code_btn");
     var requestCallBack = function (res) {
         var result = res.result;
         if (result == "1") {
             phone_exist_error.text("手机已经绑定账户了~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "0") {
+            time(get_code_btn);
             phone_exist_error.text("获取验证码成功,请查看手机~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "2") {
@@ -249,7 +253,7 @@ function execReg(reg, str) {
     return true;
 }
 
-
+var gloal_result="";
 function need_set_info(){
     /*
      * 获取设置帐号的信息
@@ -274,6 +278,13 @@ function need_set_info(){
                 password2.val("");
             }
         });
+        gloal_result = res.result;
+        if(res.result=="no"){
+            $("#get_code_btn").click(get_code);
+        }else if(res.result=="yes"){
+            $("#get_code_btn").click(bang_get_code);
+        }
+
 	};
 	// 请求推荐数据
 	$.ajax({
@@ -289,4 +300,27 @@ function need_set_info(){
         }
 	});
 
+}
+
+
+var wait = 180;
+function time(btn) {
+    if (wait == 0) {
+        if(gloal_result=="yes"){
+             btn.click(bang_get_code);
+        }else{
+             btn.click(get_code);
+        }
+
+        btn.text("获取验证码");
+        wait = 180;
+    } else {
+        btn.unbind("click");
+        btn.text(wait + "秒后重新获取");
+        wait--;
+        setTimeout(function () {
+                time(btn);
+            },
+            1000)
+    }
 }
