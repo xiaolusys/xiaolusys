@@ -240,3 +240,11 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
     class Meta:
         model = TradeWuliu
         exclude=()
+
+from flashsale.pay.models_coupon_new import CouponsPool, CouponTemplate, UserCoupon
+
+
+class UsersCouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserCoupon
+        fields = ("id", "cp_id", "customer", "sale_trade", "status", "created", "modified")
