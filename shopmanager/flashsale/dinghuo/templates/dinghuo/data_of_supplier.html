@@ -13,14 +13,13 @@
                 method: "GET", //静态页用get方法，否则服务器会抛出405错误
                 success: function (res) {
                     console.log(res.task.status);
-                    console.log(res.task.result);
                     if (res.task.status == "SUCCESS") {
                         console.log(res.task.result);
                         var tb = $('#data-table');
                         var result_data = eval(res.task.result);
                         $("#data-table thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
-                            tb.append("<tr><td>" + dd[6] + "</td><td><a href='" + dd[7] + "\' target=\'_blank\'>" +dd[0]+"</a>" + "</td><td>" + dd[2] + "</td><td>" + dd[3] + "</td><td>" + dd[1] + "</td><td>" + dd[4] + "</td><td>" + dd[5] + "</td></tr>");
+                            tb.append("<tr><td>" + dd[6] + "</td><td><a href='" + dd[7] + "\' target=\'_blank\'>" +dd[0]+"</a>" + "</td><td>" + dd[8] + "</td><td>" + dd[2] + "</td><td>" + dd[3] + "</td><td>" + dd[1] + "</td><td>" + dd[4] + "</td><td>" + dd[5] + "</td></tr>");
                         });
                         var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
@@ -75,6 +74,7 @@
             <thead>
             <th>组别</th>
             <th>供应商</th>
+            <th>商品个数</th>
             <th>销售数量</th>
             <th>销售额</th>
             <th>订货数量</th>

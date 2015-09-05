@@ -373,7 +373,7 @@ def task_supplier_stat(start_date, end_date, group_name):
         group_sql = " where group_id = " + str(group_name)
     sql = 'select supply.supplier_shop,sum(supplydata.ding_huo_num) as ding_huo_num,' \
           'sum(supplydata.sale_num) as sale_num,sum(supplydata.sale_cost_of_product) as sale_amount,' \
-          'sum(inferior_num) as inferior_num,sum(return_num) as return_num,supply.group_name,supply.supplier_name ' \
+          'sum(inferior_num) as inferior_num,sum(return_num) as return_num,supply.group_name,supply.supplier_name,count(supplydata.product_id) ' \
           'from (select * from supply_chain_stats_daily where sale_time >="{0}" and sale_time<="{1}") as supplydata left join ' \
           '(select detail.outer_id,list.supplier_shop,list.group_name,list.supplier_name from ' \
           '(select outer_id,orderlist_id from suplychain_flashsale_orderdetail ' \
@@ -387,6 +387,7 @@ def task_supplier_stat(start_date, end_date, group_name):
           'on detail.orderlist_id=list.id where list.supplier_shop!="" group by outer_id) as supply ' \
           'on supplydata.product_id=supply.outer_id where supply.supplier_shop!="" group by supply.supplier_shop'.format(
         start_date, end_date, group_sql)
+    print sql
     cursor = connection.cursor()
     cursor.execute(sql)
     raw = cursor.fetchall()
