@@ -130,7 +130,7 @@ function Ctrl_sure_charge(pay_url){
 	}
 	params.addr_id = addrid;
 	params.channel = channel;
-	params.csrftoken = csrftoken;
+	params.csrfmiddlewaretoken = csrftoken;
 	if(!isNone(couponid)){
 		params.coupon_id = couponid;
 	}
@@ -231,7 +231,7 @@ function update_total_price(){
 
 function plus_shop(sku_id) {
     var sku_num = parseInt($("#num_" + sku_id).val());
-    var params  = {'sku_id':sku_id, 'sku_num':sku_num + 1};
+    var params  = {'sku_id':sku_id, 'sku_num':sku_num + 1, 'csrfmiddlewaretoken':getCSRF()};
     var PLUS_URL = GLConfig.baseApiUrl + GLConfig.get_plus_skunum_url;
     var callBack = function(resp){
     	$("#num_" + resp.sku_id).val(resp.sku_num);

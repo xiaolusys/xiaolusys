@@ -200,7 +200,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="pages/shangpinxq.html?id={{ id }}">
-        <img src="{{ pic_path }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+        <img src="{{ head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
         <p class="gname">{{ name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ agent_price }} </span>
@@ -216,7 +216,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="tongkuan.html?id={{ product_model.id }}">
-        <img src="{{ product_model.head_imgs }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+        <img src="{{ product_model.head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
         <p class="gname">{{ product_model.name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ agent_price }} </span>
@@ -239,7 +239,7 @@ function Create_item_dom(p_obj,close_model){
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
             }
         }
-        p_obj.product_model.head_imgs = p_obj.product_model.head_imgs[0]
+        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0]
         return hereDoc(Model_dom).template(p_obj);
     }
 
@@ -275,7 +275,6 @@ function Set_promotes_product(suffix){
 		}
 		
 		if (!isNone(data.child_list)){
-			
 			$('.glist .chaotong').empty();
 			//设置童装推荐链接及图片
 			$.each(data.child_list,
@@ -419,4 +418,27 @@ Date.prototype.Format = function (fmt) {
     for (var k in o)
     if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
     return fmt;
+}
+
+
+function need_set_info(){
+	//获取设置帐号的信息
+	var requestUrl = GLConfig.baseApiUrl + "/users/need_set_info";
+
+	var requestCallBack = function(res){
+        var result = res.result;
+        if(result=="yes" && $(".top .user").length){
+            $(".top .user").append('<div class="red-dot"></div>');
+        }
+
+	};
+	// 请求推荐数据
+	$.ajax({
+		type:'get',
+		url:requestUrl,
+		data:{},
+		dataType:'json',
+		success:requestCallBack
+	});
+
 }

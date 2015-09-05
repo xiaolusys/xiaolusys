@@ -184,8 +184,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=today_dt).order_by('-wait_post_num')
-        import time
-        print 'debug promote:',time.time()
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
         
@@ -292,7 +290,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             
         return Response(product_dict)
     
-    @cache_response()
+#     @cache_response()
     @list_route(methods=['get'])
     def seckill(self, request, *args, **kwargs):
         """
