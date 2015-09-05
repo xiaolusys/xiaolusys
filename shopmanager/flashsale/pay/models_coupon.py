@@ -187,3 +187,45 @@ class CouponPool(models.Model):
     def __unicode__(self):
         return '<%s>' % (self.coupon_no)
 
+
+from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate, CouponsPool
+"""
+这个是数据库数据迁移的程序片段
+关系：
+    １　目前数据库中只有，二期代理的类型的优惠券
+    ２　在新的 CouponTemplate 中新建代理模板，退货补邮费模板
+    ３　将Coupon中的  coupon_user 与 UserCoupon customer　匹配
+    　　将使用状态　Coupon的status 与　UserCoupon　status　匹配
+"""
+
+
+def coupon_migration_handler():
+    coupons = Coupon.objects.all()  # 获取原来旧表中的数据
+    items = 0
+    for coupon in coupons:
+        customer = coupon.coupon_user
+        trade_id = coupon.trade_id
+        if coupon.status == Coupon.USED:  # 已使用状态
+            new_status = UserCoupon.USED    # 已经使用
+        else:
+            new_status = UserCoupon.UNUSED   # 没有使用的
+        if customer and trade_id:
+            tpl = CouponTemplate.objects.get(type=CouponTemplate.RMB118, valid=True)  # 获取：模板采用admin后台手动产生
+            try:
+                # 如果该用户发放过则不发放
+                UserCoupon.objects.get(customer=customer, cp_id__template__type=CouponTemplate.RMB118,
+                                       sale_trade=trade_id)
+            except UserCoupon.DoesNotExist:
+                cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
+                if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
+                    cou.delete()  # 删除create 防止产生脏数据
+                    message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
+                    raise Exception(message)
+                else:
+                    usercou = UserCoupon.objects.create(cp_id=cou, customer=customer, sale_trade=trade_id,
+                                                        status=new_status)
+                    cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
+                    cou.save()
+                    items += 1
+                    print "id:", usercou.id, "customer:", customer, "trade_id:", trade_id
+    print "共保存{0}条记录".format(items)
