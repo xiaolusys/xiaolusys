@@ -155,7 +155,11 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-var csrftoken = getCookie('csrftoken');
+
+function getCSRF(){
+	return getCookie('csrftoken');
+}
+var csrftoken = getCSRF();
 
 
 /*

@@ -83,7 +83,6 @@
       <script id="coupon_post_fee" type="text/html">
           <li class="type5">
               <p class="name">{{ coupon_title }}</p>
-
               <p class="date">{{ receive_date }} - {{ deadline }}</p>
               <i class="icon-radio icon-radio-select" couponid="{{ coupon_id }}"></i>
           </li>
@@ -105,21 +104,25 @@
 </div>
 
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.js"></script>
 <script src="../js/pingpp_pay.js"></script>
 <script src="../js/pingpp_ap.js"></script>
 <script src="../js/tmpay.js"></script>
 <script src="../js/tmyhquse.js"></script>
 <script type="text/javascript">
-(function($){
+$(document).ready(function(){
+  $('.ui-loader').remove();
   //地址切换
   $(document).on({
-  	touchend:change_address,
-  	click:change_address
+  	//touchend:change_address,
+  	tap:change_address,
+  	//click:change_address
   },'#js-addr li');
   //支付方式切换
   $(document).on({
-  	touchend:change_paytype,
-  	click:change_paytype
+  	//touchend:change_paytype,
+  	tap:change_paytype,
+  	//click:change_paytype
   },'#js-pay-type li');
   //获取用户地址
   Set_user_address(GLConfig.get_user_address);
@@ -129,11 +132,10 @@
   var urlParams = window.location.href.split('?')[1];
   Set_user_orderinfo(GLConfig.get_cart_payinfo_url+'?'+urlParams);
   
-  $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy .btn-buy');
-
+  $(document).on({tap:Confirm_charge},'.buy .btn-buy');
   get_Coupon_On_Buy();  //获取优惠券数量
 
-})(jQuery);
+});
 
 function change_address(){
     $('#js-addr li.active').removeClass('active').addClass('normal');

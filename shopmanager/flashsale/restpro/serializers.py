@@ -89,7 +89,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = Product
-        fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout',
+        fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo', 'product_model','ware_by')
 
 
@@ -218,8 +218,7 @@ class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = IntegralLog
-        fields = \
-            ('id', 'integral_user', 'mobile', 'order', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
+        fields = ('id', 'integral_user', 'mobile', 'order', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
 
 
 class UserCouponSerializer(serializers.ModelSerializer):
@@ -240,3 +239,11 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
     class Meta:
         model = TradeWuliu
         exclude=()
+
+from flashsale.pay.models_coupon_new import CouponsPool, CouponTemplate, UserCoupon
+
+
+class UsersCouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserCoupon
+        fields = ("id", "cp_id", "customer", "sale_trade", "status", "created", "modified")

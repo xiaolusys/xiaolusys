@@ -512,7 +512,7 @@ from models_coupon_new import CouponsPool, UserCoupon, CouponTemplate
 
 
 class CouponTemplateAdmin(admin.ModelAdmin):
-    list_display = ("title", "value", "valid", "created", "modified","deadline","preset_days","active_days")
+    list_display = ("title", "value", "valid", "nums","preset_days","active_days","created", "modified","deadline")
     list_filter = ("valid", "created")
 
 admin.site.register(CouponTemplate, CouponTemplateAdmin)
@@ -530,6 +530,7 @@ class UserCouponAdmin(admin.ModelAdmin):
     list_filter = ("status", "created")
 
 admin.site.register(UserCoupon, UserCouponAdmin)
+
 
 ######################################################################
 
