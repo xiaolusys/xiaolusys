@@ -50,6 +50,8 @@
                 else if (result == "ok") {
                     bt_verify.text('已审核');
                     bt_verify.attr("disabled", "disabled");
+                    //返回上一页
+                    window.location="/admin/xiaolumm/cashout/";
                 }
                 else {
                     alert("server error");
@@ -72,7 +74,7 @@
                     console.log(id);
                     bt_jujue.text("已拒绝");
                     bt_jujue.attr("disabled", "disabled");
-
+                    window.location="/admin/xiaolumm/cashout/";
                 }
             }
 
