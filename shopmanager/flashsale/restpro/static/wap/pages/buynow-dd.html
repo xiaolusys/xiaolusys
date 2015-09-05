@@ -44,7 +44,7 @@
 		  <div class="gpic"><img src="{{ sku.product.pic_path }}"></div>
 		  <div class="gname">{{ sku.product.name }}</div>
 		  <div class="gprice">¥ <span class="item_price" id="itemprice_{{ sku.id }}">{{ sku.agent_price }}</span></div>
-		  <div class="gsize">尺码：{{ sku.sku_name }}</div>
+		  <div class="gsize">尺码：{{ sku.name }}</div>
 		  <div class="goprice"><s>¥{{ sku.std_sale_price }}</s></div>
 		  <div class="gcount">
 		    <div class="btn reduce" onclick="minus_shop({{ sku.id }})" name="btn-reduce"></div>
@@ -108,21 +108,25 @@
   <a class="btn-buy" name="btn-buy">购&nbsp;&nbsp;买</a>
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.js"></script>
 <script src="../js/pingpp_pay.js"></script>
 <script src="../js/pingpp_ap.js"></script>
 <script src="../js/tmpay.js"></script>
 <script src="../js/tmyhquse.js"></script>
 <script type="text/javascript">
-(function($){
+$(document).ready(function(){
+  $('.ui-loader').remove();
   //地址切换
   $(document).on({
-  	touchend:change_address,
-  	click:change_address
+  	//touchend:change_address,
+  	tap:change_address,
+  	//click:change_address
   },'#js-addr li');
   //支付方式切换
   $(document).on({
-  	touchend:change_paytype,
-  	click:change_paytype
+  	//touchend:change_paytype,
+  	tap:change_paytype,
+  	//click:change_paytype
   },'#js-pay-type li');
   //获取用户地址
   Set_user_address(GLConfig.get_user_address);
@@ -134,10 +138,9 @@
   
   //优惠券显示
   get_Coupon_On_Buy();
-  
-  $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy .btn-buy');
+  $(document).on({tap:Confirm_charge},'.buy .btn-buy');
     
-})(jQuery);
+});
 
 function change_address(){
     $('#js-addr li.active').removeClass('active').addClass('normal');
