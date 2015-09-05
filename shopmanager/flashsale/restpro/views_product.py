@@ -229,8 +229,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                             request, args, kwargs):
         key_vals = ['order_by','id','model_id']
         key_maps = kwargs or {}
-
-        for k,v in request.GET:
+        for k,v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
                 key_maps[k] = v
                 
