@@ -253,6 +253,9 @@ function Create_item_dom(p_obj,close_model){
     } else if (p_obj.is_saleout) {
         p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
     }
+    if (close_model && true){
+    	p_obj.head_img = p_obj.pic_path;
+    }
 	return hereDoc(Item_dom).template(p_obj);
 }
 

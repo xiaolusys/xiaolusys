@@ -145,7 +145,7 @@ def notifyTradeRefundTask(notify):
         srefund = SaleRefund.objects.get(refund_id=refund_id)
         
         log_action(seller.user.id,srefund,CHANGE,
-                   u'%s(金额:%s)'%([u'退款成功',u'退款失败'][notify['succeed'] and 1 or 0],notify['amount']))
+                   u'%s(金额:%s)'%([u'退款失败',u'退款成功'][notify['succeed'] and 1 or 0],notify['amount']))
         
         if not notify['succeed']:
             logger.error('refund error:%s'%notify)
