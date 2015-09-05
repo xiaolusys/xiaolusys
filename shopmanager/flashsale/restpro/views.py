@@ -427,3 +427,6 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                           "deadline": deadline}
             data.append(data_entry)
         return Response(data)
+
+    def create(self, request, *args, **kwargs):
+        return Response("error")
