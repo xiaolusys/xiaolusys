@@ -216,6 +216,20 @@ class Product(models.Model):
     def PIC_PATH(self):
         return self.pic_path.strip() or self.NO_PIC_PATH
         
+    def head_img(self):
+        """ 获取商品款式 """
+        if self.model_id == 0:
+            self.model_id = None
+        from flashsale.pay.models_custom import ModelProduct
+        try:
+            pmodel = ModelProduct.objects.get(id=self.model_id)
+        except:
+            try:
+                return self.details.head_imgs.split()[0]
+            except:
+                return self.PIC_PATH
+        return pmodel.head_imgs.split()[0]
+        
     @property
     def json(self):
         

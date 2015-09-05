@@ -108,7 +108,6 @@ INSTALLED_APPS = (
     'south',
     'gunicorn',
     'raven.contrib.django',
-   # 'djangorestframework',
     'rest_framework',
     'djcelery',
     'djkombu',
@@ -155,14 +154,13 @@ INSTALLED_APPS = (
     'shopapp.weixin_examination',
     'shopapp.sampleproduct',
     
-    
     #'shopapp.second_time_sort',
     'supplychain.wavepick',
     #'supplychain.temai',
     'games.paint',
     'games.bomb',
 
-#     'flashsale.supplier',
+    #'flashsale.supplier',
     'flashsale.complain',
     'flashsale.pay',
     'flashsale.xiaolumm',

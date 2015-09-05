@@ -20,6 +20,8 @@ six==1.6.1
 jsonfield==0.9.20
 greenlet==0.4.3
 gevent==1.0.1
+lxml==2.3
+South==1.0
 
 Pillow>=2.0.0
 coverage==3.5
@@ -36,15 +38,12 @@ pingpp==2.0.1
 #line_profiler
 #guppy
 
-#git+ssh://user1@qiyue.huyi.so/home/user1/repo/xhtml2pdf.git#egg=xhtml2pdf
-#git+ssh://user1@qiyue.huyi.so/home/user1/repo/django-chartit.git#egg=django-chartit
-#git+shh://user1@222.73.86.185/repo/django-rest-framework.git#egg=djangorestframework
-
+git+ssh://user1@qiyue.huyi.so/home/user1/repo/xhtml2pdf.git#egg=xhtml2pdf
+git+ssh://user1@qiyue.huyi.so/home/user1/repo/django-chartit.git#egg=django-chartit
   
 ##########extra package(not install in the virtualenv)##########
 #sudo apt-get install python-mysqldb
 #virtualenv==1.8.2
-#lxml==2.3
 #PIL==1.1.7
 #South==1.0
 #raven==2.0.6
