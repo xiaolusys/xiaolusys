@@ -193,8 +193,7 @@ from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = (
-    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created',
-    'status')
+    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status')
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change')
 
@@ -217,14 +216,14 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     #-------------- 页面布局 --------------
     fieldsets = (('基本信息:', {
-        'classes': ('expand',),
-        'fields': (('refund_no', 'trade_id', 'order_id')
-                   , ('buyer_id', 'title', 'sku_name',)
-                   , ('payment', 'total_fee',)
-                   , ('company_name', 'sid')
-                   , ('reason', 'desc')
-                   )
-    }),
+                    'classes': ('expand',),
+                    'fields': (('refund_no', 'trade_id', 'order_id')
+                               , ('buyer_id', 'title', 'sku_name',)
+                               , ('payment', 'total_fee',)
+                               , ('company_name', 'sid')
+                               , ('reason', 'desc')
+                               )
+                 }),
                  ('内部信息:', {
                      'classes': ('collapse',),
                      'fields': (('buyer_nick', 'mobile', 'phone',),

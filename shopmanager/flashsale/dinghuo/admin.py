@@ -9,6 +9,9 @@ from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStat
 import time
 from .filters import GroupNameFilter, OrderListStatusFilter
 from flashsale.dinghuo import permissions as perms
+from django.contrib.admin.views.main import ChangeList
+from django.db import models
+import re
 
 
 class orderdetailInline(admin.TabularInline):
@@ -38,7 +41,7 @@ class ordelistAdmin(admin.ModelAdmin):
         'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'buyer_name')
-    search_fields = ['id', '=supplier_name', 'supplier_shop', 'express_no']
+    search_fields = ['id', '=supplier_name', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
     def queryset(self, request):
@@ -146,9 +149,24 @@ class ordelistAdmin(admin.ModelAdmin):
         else:
             del actions["action_quick_complete"]
             return actions
+
+    def get_changelist(self, request, **kwargs):
+        return OrderListChangeList
+
     class Media:
         css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
         js = ("js/admin_js.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
+
+
+class OrderListChangeList(ChangeList):
+
+    def get_query_set(self, request):
+        qs = self.root_query_set
+        search_q = request.GET.get('q', '').strip()
+        if search_q.isdigit():
+            trades = qs.filter(models.Q(id=search_q))
+            return trades
+        return super(OrderListChangeList, self).get_query_set(request)
 
 
 class orderdetailAdmin(admin.ModelAdmin):

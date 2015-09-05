@@ -61,14 +61,14 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.verify_count += 1
                 temp_reg.save()
-                task_register_code.s(mobile)()
+                task_register_code.s(mobile, "1")()
                 return Response({"result": "OK"})
 
         new_reg = Register(vmobile=mobile)
         new_reg.verify_code = new_reg.genValidCode()
         new_reg.verify_count = 1
         new_reg.save()
-        task_register_code.s(mobile)()
+        task_register_code.s(mobile, "1")()
         return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
@@ -110,7 +110,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     # from django.contrib.auth.views import password_change
     @list_route(methods=['post'])
     def change_pwd_code(self, request):
-        """修改密码时获取验证码"""
+        """忘记密码时获取验证码"""
         mobile = request.data['vmobile']
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() == 0:
@@ -124,13 +124,13 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.verify_count = 1
             new_reg.mobile_pass = True
             new_reg.save()
-            task_register_code.s(mobile)()
+            task_register_code.s(mobile, "2")()
             return Response({"result": "0"})
         else:
             reg_temp = reg[0]
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.save()
-            task_register_code.s(mobile)()
+            task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
 
     @list_route(methods=['post'])
@@ -244,5 +244,4 @@ class CustomerViewSet(viewsets.ModelViewSet):
     
     @list_route(methods=['get'])
     def islogin(self,request, *args, **kwargs):
-        return Response({'result':'login'})
-
+        return Response({'result': 'login'})
