@@ -409,7 +409,7 @@ def task_ThousandRebeta(date_from,date_to):
     for xlmm in xlmms:
         commission = calc_Mama_Thousand_Rebeta(xlmm,date_from,date_to)
         c_logs = CarryLog.objects.filter(xlmm=xlmm.id,order_num=carry_no,log_type=CarryLog.THOUSAND_REBETA)
-        if c_logs.count() > 0 or commission >= xlmm.get_Mama_Thousand_Target_Amount(): # 分单位
+        if c_logs.count() > 0 or commission >= xlmm.get_Mama_Thousand_Target_Amount() * 100: # 分单位
             # 写一条carry_log记录
             carry_log, state = CarryLog.objects.get_or_create(xlmm=xlmm.id,order_num=carry_no,
                                                               log_type=CarryLog.THOUSAND_REBETA)
