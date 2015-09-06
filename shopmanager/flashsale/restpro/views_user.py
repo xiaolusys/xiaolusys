@@ -362,14 +362,13 @@ class CustomerViewSet(viewsets.ModelViewSet):
         reg_temp.submit_count += 1     #提交次数加一
         reg_temp.save()
         if reg_temp.code_time and reg_temp.code_time < last_send_time:
+            log_action(request.user.id, reg_temp, CHANGE, u'验证码过期')
             return Response({"result": "4"}) #验证码过期
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
+            log_action(request.user.id, reg_temp, CHANGE, u'验证码不对')
             return Response({"result": "3"})  # 验证码不对
         try:
-            system_user = customer.user
-            system_user.set_password(passwd1)
-            system_user.save()
             customer.mobile = mobile
             customer.save()
             log_action(request.user.id, customer, CHANGE, u'手机绑定成功')
@@ -377,6 +376,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
             reg_temp.mobile_pass = True
             reg_temp.save()
             log_action(request.user.id, reg_temp, CHANGE, u'手机绑定成功')
+            system_user = customer.user
+            system_user.set_password(passwd1)
+            system_user.save()
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})

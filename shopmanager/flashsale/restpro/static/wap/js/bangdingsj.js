@@ -107,7 +107,7 @@ function confirm_change() {
      */
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
-    var valid_code = $("#valid_code").val();
+    var valid_code = $("#valid_code").val().trim();
     var password1 = $("#password1").val();
     var password2 = $("#password2").val();
 
@@ -176,7 +176,7 @@ function confirm_bang() {
      */
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
-    var valid_code = $("#valid_code").val();
+    var valid_code = $("#valid_code").val().trim();
     var password1 = $("#password1").val();
     var password2 = $("#password2").val();
 
@@ -202,7 +202,7 @@ function confirm_bang() {
             phone_exist_error.text("验证码不对~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "5") {
-            phone_exist_error.text("请联系客服~").show();
+            phone_exist_error.text("系统繁忙，可联系客服~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "4") {
             phone_exist_error.text("验证码过期～").show();
