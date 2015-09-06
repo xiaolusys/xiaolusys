@@ -24,7 +24,7 @@ from shopapp.smsmgr.tasks import task_register_code
 
 import re
 PHONE_NUM_RE = re.compile(r'1[34578][0-9]{9}', re.IGNORECASE)
-TIME_LIMIT = 180
+TIME_LIMIT = 360
 
 def check_day_limit(reg_bean):
     if reg_bean.code_time and datetime.datetime.now().strftime('%Y-%m-%d') == reg_bean.code_time.strftime('%Y-%m-%d'):
@@ -432,6 +432,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response({"result": "3"})  # 验证码不对
         reg_temp = reg[0]
         reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.cus_uid = customer.id
         reg_temp.save()
         if reg_temp.code_time and reg_temp.code_time < last_send_time:
             return Response({"result": "4"}) #验证码过期
