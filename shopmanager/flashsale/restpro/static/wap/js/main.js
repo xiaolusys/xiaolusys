@@ -253,6 +253,9 @@ function Create_item_dom(p_obj,close_model){
     } else if (p_obj.is_saleout) {
         p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
     }
+    if (close_model && true){
+    	p_obj.head_img = p_obj.pic_path;
+    }
 	return hereDoc(Item_dom).template(p_obj);
 }
 
@@ -427,10 +430,9 @@ function need_set_info(){
 
 	var requestCallBack = function(res){
         var result = res.result;
-        if(result=="yes" && $(".top .user").length){
-            $(".top .user").append('<div class="red-dot"></div>');
+        if(result=="yes"){
+            $(".p-center").append('<span class="center-red-dot"></span>');
         }
-
 	};
 	// 请求推荐数据
 	$.ajax({
@@ -440,5 +442,4 @@ function need_set_info(){
 		dataType:'json',
 		success:requestCallBack
 	});
-
 }

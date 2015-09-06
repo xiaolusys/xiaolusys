@@ -297,7 +297,7 @@ var cart_timer = function () {
                         });
                 }
                 $(".carttime").html(mm + ":" + ss);
-                $(".cart").animate({width: "160px"});
+                $(".cart").animate({width: "170px"});
                 setTimeout(function () {
                         privateFunction();
                     },

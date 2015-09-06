@@ -17,14 +17,15 @@ from django.db import models
 from django.contrib.auth import authenticate, login, logout
 from flashsale.pay.models import Register, Customer,Integral
 from rest_framework import exceptions
-
+from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
 from shopapp.smsmgr.tasks import task_register_code
 
 import re
 PHONE_NUM_RE = re.compile(r'1[34578][0-9]{9}', re.IGNORECASE)
-TIME_LIMIT = 180
+TIME_LIMIT = 360
+
 
 def check_day_limit(reg_bean):
     if reg_bean.code_time and datetime.datetime.now().strftime('%Y-%m-%d') == reg_bean.code_time.strftime('%Y-%m-%d'):
@@ -37,6 +38,7 @@ def check_day_limit(reg_bean):
             reg_bean.verify_count = 0
             reg_bean.save()
         return False
+
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
@@ -74,7 +76,6 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 return Response({"result": "1"})  # 180s内已经发送过
             else:
                 temp_reg.verify_code = temp_reg.genValidCode()
-                temp_reg.verify_count += 1
                 temp_reg.code_time = current_time
                 temp_reg.save()
                 task_register_code.s(mobile, "1")()
@@ -82,7 +83,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
         new_reg = Register(vmobile=mobile)
         new_reg.verify_code = new_reg.genValidCode()
-        new_reg.verify_count = 1
+        new_reg.verify_count = 0
         new_reg.code_time = current_time
         new_reg.save()
         task_register_code.s(mobile, "1")()
@@ -146,7 +147,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
             new_reg.verify_code = new_reg.genValidCode()
-            new_reg.verify_count = 1
+            new_reg.verify_count = 0
             new_reg.mobile_pass = True
             new_reg.code_time = current_time
             new_reg.save()
@@ -160,7 +161,6 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 return Response({"result": "3"})  # 180s内已经发送过
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
-            reg_temp.verify_count += 1
             reg_temp.save()
             task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
@@ -314,9 +314,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
             new_reg.verify_code = new_reg.genValidCode()
-            new_reg.verify_count = 1
+            new_reg.verify_count = 0
             new_reg.code_time = current_time
             new_reg.save()
+            log_action(request.user.id, new_reg, ADDITION, u'新建，绑定手机验证码')
             task_register_code.s(mobile, "3")()
             return Response({"result": "0"})
         else:
@@ -327,8 +328,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
                 return Response({"result": "3"})  # 180s内已经发送过
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
-            reg_temp.verify_count += 1
             reg_temp.save()
+            log_action(request.user.id, reg_temp, CHANGE, u'绑定手机获取验证码')
             task_register_code.s(mobile, "3")()
         return Response({"result": "0"})
 
@@ -371,9 +372,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user.save()
             customer.mobile = mobile
             customer.save()
+            log_action(request.user.id, customer, CHANGE, u'手机绑定成功')
             reg_temp.cus_uid = customer.id
             reg_temp.mobile_pass = True
             reg_temp.save()
+            log_action(request.user.id, reg_temp, CHANGE, u'手机绑定成功')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
@@ -391,10 +394,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if reg.count() == 0:
             new_reg = Register(vmobile=customer.mobile)
             new_reg.verify_code = new_reg.genValidCode()
-            new_reg.verify_count = 1
+            new_reg.verify_count = 0
             new_reg.mobile_pass = True
             new_reg.code_time = current_time
             new_reg.save()
+            log_action(request.user.id, new_reg, ADDITION, u'登录后，新建，修改密码')
             task_register_code.s(customer.mobile, "2")()
             return Response({"result": "0"})
         else:
@@ -406,6 +410,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
+            log_action(request.user.id, reg_temp, ADDITION, u'登录后，修改密码')
             task_register_code.s(customer.mobile, "2")()
         return Response({"result": "0"})
 
@@ -432,7 +437,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response({"result": "3"})  # 验证码不对
         reg_temp = reg[0]
         reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.cus_uid = customer.id
         reg_temp.save()
+        log_action(request.user.id, reg_temp, CHANGE, u'修改密码')
         if reg_temp.code_time and reg_temp.code_time < last_send_time:
             return Response({"result": "4"}) #验证码过期
 
@@ -443,6 +450,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user = customer.user
             system_user.set_password(passwd1)
             system_user.save()
+            log_action(request.user.id, customer, CHANGE, u'修改密码')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})

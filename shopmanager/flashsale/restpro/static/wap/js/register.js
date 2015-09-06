@@ -123,7 +123,7 @@ function get_code() {
                     phone_exist_error.text("亲,验证码已经发送到手机～").show();
                     setTimeout("error_hide()", 3000);
                 } else if (result == "1") {
-                    phone_exist_error.text("亲,3分钟内无需重新获取～").show();
+                    phone_exist_error.text("亲,6分钟内无需重新获取～").show();
                     setTimeout("error_hide()", 3000);
                 } else if (result == "2") {
                     phone_exist_error.text("亲，今日验证码获取次数已到上限～").show();
@@ -131,7 +131,6 @@ function get_code() {
                 }
             },
             error: function (data) {
-                alert("ff");
                 if(data.status==500){
                     if($.parseJSON(data.responseText).detail=="手机号码有误"){
                         phone_exist_error.text("手机号码有误~").show();

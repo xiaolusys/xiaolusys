@@ -224,7 +224,6 @@ def task_register_code(mobile, send_type="1"):
         if success:
             SMSPlatform.objects.filter(code=platform.code).update(sendnums=F('sendnums')+int(succnums))
             register_v.verify_count += 1
-            register_v.submit_count = 0
             register_v.save()
     except Exception,exc:
         logger.error(exc.message or 'empty error',exc_info=True)

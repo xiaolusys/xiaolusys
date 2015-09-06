@@ -130,7 +130,7 @@ class SaleRefund(models.Model):
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save()
-    
+
 
 
 def buyeridPatch():

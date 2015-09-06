@@ -80,7 +80,10 @@
     <li class="add-cart" name="btn-add-cart" >加入购物车</li>
     <li class="buy buy-now" name="btn-buynow">立即购买</li>
 </ul>
-<a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+<div class="cart-container">
+    <a class="p-center" href="javascript:void(0);"></a>
+    <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+</div>
 <div class="scroll-top" id="js-scroll-top"></div>
 <div id="loading"><span class="dots-loader"></span></div>
 <div class="service_box">
@@ -93,6 +96,10 @@
 		</div>
 	</div>
 </div>
+<div class="footer clearfix">
+<p class="copyright">Copyright © 2008-2015 小鹿美美，All Rights Reserved 沪ICP备15013901号-1</p>
+</div>
+
 <script id="params" type="text/html">
     <div class="detail-introduce">
         <img src="http://image.xiaolu.so/xuanchuan.png" width="100%">
@@ -164,9 +171,13 @@
     var product_url = GLConfig.get_product_detail_url.template(urlConf);
     Set_product_detail(product_url);
     Set_shopcarts_num();
+    need_set_info();
     //登录后才可以操作
     $('.add-cart').shoping()
     $('.cart').listencart();
+    $('.p-center').click(function(){
+        window.location = "gerenzhongxin.html";
+    })
     $('.buy-now').click(function(){
     	DoIfLogin({
     		callback:buynow,
