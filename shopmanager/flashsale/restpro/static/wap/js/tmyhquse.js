@@ -3,13 +3,13 @@
  */
 
 function get_Coupon_On_Buy() {
-    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
         if (res.length > 0) {
             var nums = 0;
             $.each(res, function (i, val) {
-                console.log("debug coupon status:", val.coupon_status);
-                if (val.coupon_status == 0) {
+                console.log("debug coupon status:", val.status);
+                if (val.status == 0) {
                     nums = nums + 1;//有效可用的优惠券数量
                 }
             });
@@ -33,12 +33,13 @@ function Coupon_Nums_Show(nums) {
 }
 
 function get_Coupon_On_Choose() {
-    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
+        console.log("debug choose coupon:",res);
         if (res.length > 0) {
             $.each(res, function (i, val) {
                 var id = val.id;
-                var coupon_status = val.coupon_status;
+                var coupon_status = val.status;
                 var coupon_type = val.coupon_type;
                 var coupon_value = val.coupon_value;
                 var deadline = val.deadline.split(' ')[0];
@@ -49,22 +50,22 @@ function get_Coupon_On_Choose() {
                     "deadline": deadline,
                     "coupon_value": coupon_value
                 };
-                if (coupon_value == 30 && coupon_status == 0 && coupon_type == 4) {
+                if (coupon_value == 30 && coupon_status == 0 && coupon_type == 0) {
                     //满30返30　　代理审核生成的优惠券
                     var yhq_tree3 = Create_xlmm_coupon_dom(yhq_obj);
                     $('.coupons').append(yhq_tree3);
                 }
-                if (coupon_value == 30 && coupon_status == 1 && coupon_type == 4) {
+                if (coupon_value == 30 && coupon_status == 1 && coupon_type == 0) {
                     //满30返30　　代理审核生成的优惠券
                     var yhq_tree4 = Create_coupon_used_xlmm_dom(yhq_obj);
                     $('.coupons').append(yhq_tree4);
                 }
-                if (coupon_value == 10 && coupon_status == 0 && coupon_type == 5) {
+                if (coupon_value == 10 && coupon_status == 0 && coupon_type == 1) {
                     //满30返30　　代理审核生成的优惠券
                     var yhq_tree5 = Create_coupon_post_fee(yhq_obj);
                     $('.coupons').append(yhq_tree5);
                 }
-                if (coupon_value == 10 && coupon_status == 1 && coupon_type == 5) {
+                if (coupon_value == 10 && coupon_status == 1 && coupon_type == 1) {
                     //满30返30　　代理审核生成的优惠券
                     var yhq_tree6 = Create_coupon_post_fee_used(yhq_obj);
                     $('.coupons').append(yhq_tree6);

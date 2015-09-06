@@ -13,7 +13,6 @@ from .views_refund import RefundApply,RefundConfirm
 from .views_product import productsku_quantity_view
 from .views_order import order_flashsale,time_rank,sale_state,refund_state,refunding_state,preorder_flashsale,nextorder_flashsale,search_flashsale
 from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView
-from flashsale.pay.views_coupon import CouponPoolView,Change_Coupon_Status, Coupon_Check
 from flashsale.pay.views_zoneanalysis import show_Zone_Page, by_zone_Province, by_zone_City
 urlpatterns = (
     url(r'^charge/$', csrf_exempt(views.PINGPPChargeView.as_view())),
@@ -70,9 +69,6 @@ urlpatterns = (
     url(r'^aggregeta_product/$', csrf_exempt(AggregateProductView.as_view()), name="aggregate_product"),
     url(r'^add_aggregeta/$', csrf_exempt(ModelProductView.as_view()), name="add_aggregate"),
     url(r'^checkmodelexist/$', csrf_exempt(CheckModelExistView.as_view()), name="check_model_exist"),
-    url(r'^couponpool/$', csrf_exempt(CouponPoolView.as_view()), name="coupon"),
-    url(r'^couponrelease/$', csrf_exempt(Change_Coupon_Status), name="coupon_release"),
-    url(r'^couponcheck/$', csrf_exempt(Coupon_Check), name="coupon_check"),
 
     url(r'^zone_analysis/$', csrf_exempt(show_Zone_Page), name="show_Zone_Page"),
     # zone_analysis/province/

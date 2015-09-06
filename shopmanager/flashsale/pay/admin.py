@@ -526,8 +526,9 @@ admin.site.register(CouponsPool, CouponPoolAdmin)
 
 
 class UserCouponAdmin(admin.ModelAdmin):
-    list_display = ("cp_id", "customer", "status", "created", "modified")
+    list_display = ("id", "cp_id", "customer", "status", "created", "modified")
     list_filter = ("status", "created")
+    search_fields = ['=id',]
 
 admin.site.register(UserCoupon, UserCouponAdmin)
 

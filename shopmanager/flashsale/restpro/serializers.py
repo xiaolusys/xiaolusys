@@ -244,6 +244,9 @@ from flashsale.pay.models_coupon_new import CouponsPool, CouponTemplate, UserCou
 
 
 class UsersCouponSerializer(serializers.ModelSerializer):
+    type = serializers.IntegerField(source='cp_id.template.type', read_only=True)
+    deadline = serializers.CharField(source='cp_id.template.deadline')
+    title = serializers.CharField(source='cp_id.template.title')
     class Meta:
         model = UserCoupon
-        fields = ("id", "cp_id", "customer", "sale_trade", "status", "created", "modified")
+        fields = ("id", "cp_id", "type",'title', "customer", "deadline", "sale_trade", "status", "created", "modified")
