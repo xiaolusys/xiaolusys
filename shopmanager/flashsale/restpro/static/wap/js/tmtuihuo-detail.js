@@ -151,6 +151,7 @@ function set_Order_Detail() {
             var content = Create_Info_Show4();
             $(".jifen-list").append(content);
             $(".content").append(btn_modify);  // 加入修改申请button
+            //　显示 拒绝原因
         }
         if (res.refund_status == REFUND_APPROVE) { //等待返款
             var w_info5 = Create_warring_Info5;
