@@ -1,3 +1,5 @@
+########### 2015-9-6 #################
+alter table flashsale_productdetail modify column note varchar(256);
 ########### 2015-8-26 #################
 alter table flashsale_order add discount_fee double NOT NULL;
 ########### 2015-8-26 #################
