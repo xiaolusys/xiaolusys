@@ -430,10 +430,9 @@ function need_set_info(){
 
 	var requestCallBack = function(res){
         var result = res.result;
-        if(result=="yes" && $(".top .user").length){
-            $(".top .user").append('<div class="red-dot"></div>');
+        if(result=="yes"){
+            $(".p-center").append('<span class="center-red-dot"></span>');
         }
-
 	};
 	// 请求推荐数据
 	$.ajax({
@@ -443,5 +442,4 @@ function need_set_info(){
 		dataType:'json',
 		success:requestCallBack
 	});
-
 }

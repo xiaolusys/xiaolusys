@@ -73,7 +73,7 @@ function bang_get_code() {
             phone_exist_error.text("获取验证码成功,请查看手机~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "3") {
-            phone_exist_error.text("亲,6分钟内验证码有效的～").show();
+            phone_exist_error.text("亲,6分钟内验证码是有效的～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "2") {
             phone_exist_error.text("亲，今日验证码获取次数已到上限～").show();

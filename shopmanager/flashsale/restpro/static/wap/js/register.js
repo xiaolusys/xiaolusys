@@ -131,7 +131,6 @@ function get_code() {
                 }
             },
             error: function (data) {
-                alert("ff");
                 if(data.status==500){
                     if($.parseJSON(data.responseText).detail=="手机号码有误"){
                         phone_exist_error.text("手机号码有误~").show();
