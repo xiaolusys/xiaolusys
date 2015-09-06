@@ -140,14 +140,14 @@ class XiaoluMama(models.Model):
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
-        return agency_levels[0].cash * 100
+        return agency_levels[0].cash 
     
     def get_Mama_Thousand_Target_Amount(self):
         """ 获取妈妈千元基准成交额 """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return float('Inf')
-        return agency_levels[0].target * 100
+        return agency_levels[0].target 
     
     def get_Mama_Thousand_Rate(self):
         """ 获取妈妈千元提成率 """
