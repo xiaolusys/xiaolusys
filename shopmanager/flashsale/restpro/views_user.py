@@ -24,6 +24,19 @@ from shopapp.smsmgr.tasks import task_register_code
 
 import re
 PHONE_NUM_RE = re.compile(r'1[34578][0-9]{9}', re.IGNORECASE)
+TIME_LIMIT = 180
+
+def check_day_limit(reg_bean):
+    if reg_bean.code_time and datetime.datetime.now().strftime('%Y-%m-%d') == reg_bean.code_time.strftime('%Y-%m-%d'):
+        if reg_bean.verify_count >= 5:
+            return True
+        else:
+            return False
+    else:
+        if reg_bean.verify_count >= 1:
+            reg_bean.verify_count = 0
+            reg_bean.save()
+        return False
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
@@ -43,7 +56,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         """发送验证码时候新建register对象"""
         mobile = request.data['vmobile']
         current_time = datetime.datetime.now()
-        last_send_time = current_time - datetime.timedelta(seconds=60)
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             raise exceptions.APIException(u'手机号码有误')
         reg = Register.objects.filter(vmobile=mobile)
@@ -55,11 +68,14 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             reg_pass = reg.filter(mobile_pass=True)
             if reg_pass.count() > 0:
                 return Response({"result": "0"})  # 已经注册过
-            if temp_reg.modified > last_send_time:
-                return Response({"result": "1"})  # 60s内已经发送过
+            if check_day_limit(temp_reg):
+                return Response({"result": "2"})  #当日验证次数超过5
+            if temp_reg.code_time and temp_reg.code_time > last_send_time:
+                return Response({"result": "1"})  # 180s内已经发送过
             else:
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.verify_count += 1
+                temp_reg.code_time = current_time
                 temp_reg.save()
                 task_register_code.s(mobile, "1")()
                 return Response({"result": "OK"})
@@ -67,6 +83,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         new_reg = Register(vmobile=mobile)
         new_reg.verify_code = new_reg.genValidCode()
         new_reg.verify_count = 1
+        new_reg.code_time = current_time
         new_reg.save()
         task_register_code.s(mobile, "1")()
         return Response({"result": "OK"})
@@ -77,9 +94,12 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
     @list_route(methods=['post'])
     def check_code_user(self, request):
-        """验证码判断、验证码过时功能（未写）、新建用户"""
+        """验证码判断、验证码过时功能、新建用户"""
         post = request.POST
         mobile = post['username']
+        client_valid_code = post.get('valid_code', 0)
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         reg = Register.objects.filter(vmobile=mobile)
         reg_pass = reg.filter(mobile_pass=True)
         already_exist = Customer.objects.filter(mobile=mobile)
@@ -90,9 +110,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         elif reg_pass.count() > 0:
             return Response({"result": "0"})  # 已经注册过
         reg_temp = reg[0]
-        verify_code = reg_temp.verify_code
-        if verify_code != post.get('valid_code', 0):
-            return Response({"result": "1"})  # 验证码不对
+        server_verify_code = reg_temp.verify_code
+        reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.save()
+        if (reg_temp.code_time and reg_temp.code_time < last_send_time) or server_verify_code != client_valid_code:
+            return Response({"result": "1"})  # 验证码过期或者不对
         form = UserCreationForm(post)
         if form.is_valid():
             new_user = form.save()
@@ -102,17 +124,20 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             a.save()
             reg_temp.mobile_pass = True
             reg_temp.cus_uid = a.id
+
             reg_temp.save()
             return Response({"result": "7"})  # 注册成功
         else:
             return Response({"result": "2"})  # 表单填写有误
 
-    # from django.contrib.auth.views import password_change
+
     @list_route(methods=['post'])
     def change_pwd_code(self, request):
         """忘记密码时获取验证码"""
         mobile = request.data['vmobile']
         already_exist = Customer.objects.filter(mobile=mobile)
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if already_exist.count() == 0:
             return Response({"result": "1"})  # 尚无用户或者手机未绑定
         if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
@@ -123,12 +148,19 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.verify_code = new_reg.genValidCode()
             new_reg.verify_count = 1
             new_reg.mobile_pass = True
+            new_reg.code_time = current_time
             new_reg.save()
             task_register_code.s(mobile, "2")()
             return Response({"result": "0"})
         else:
             reg_temp = reg[0]
+            if check_day_limit(reg_temp):
+                return Response({"result": "2"})  #当日验证次数超过5
+            if reg_temp.code_time and reg_temp.code_time > last_send_time:
+                return Response({"result": "3"})  # 180s内已经发送过
             reg_temp.verify_code = reg_temp.genValidCode()
+            reg_temp.code_time = current_time
+            reg_temp.verify_count += 1
             reg_temp.save()
             task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
@@ -140,6 +172,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
         verify_code = request.data['valid_code']
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
 
         if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(
                 passwd1) == 0 and len(
@@ -153,6 +187,10 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "3"})  # 未获取验证码
         reg_temp = reg[0]
         verify_code_server = reg_temp.verify_code
+        reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.save()
+        if reg_temp.code_time and reg_temp.code_time < last_send_time:
+            return Response({"result": "4"})
         if verify_code_server != verify_code:
             return Response({"result": "3"})  # 验证码不对
         try:
@@ -261,6 +299,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         """绑定手机时获取验证码"""
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if len(customer.mobile) != 0:
             raise exceptions.APIException(u'账户异常，请联系客服～')
         mobile = request.data['vmobile']
@@ -275,12 +315,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg = Register(vmobile=mobile)
             new_reg.verify_code = new_reg.genValidCode()
             new_reg.verify_count = 1
+            new_reg.code_time = current_time
             new_reg.save()
             task_register_code.s(mobile, "3")()
             return Response({"result": "0"})
         else:
             reg_temp = reg[0]
+            if check_day_limit(reg_temp):
+                return Response({"result": "2"})  #当日验证次数超过5
+            if reg_temp.code_time and reg_temp.code_time > last_send_time:
+                return Response({"result": "3"})  # 180s内已经发送过
             reg_temp.verify_code = reg_temp.genValidCode()
+            reg_temp.code_time = current_time
+            reg_temp.verify_count += 1
             reg_temp.save()
             task_register_code.s(mobile, "3")()
         return Response({"result": "0"})
@@ -292,6 +339,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
         verify_code = request.data['valid_code']
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
 
         if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 \
                 and len(passwd1) == 0 and len(passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
@@ -309,6 +358,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if reg.count() == 0:
             return Response({"result": "3"})  # 验证码不对
         reg_temp = reg[0]
+        reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.save()
+        if reg_temp.code_time and reg_temp.code_time < last_send_time:
+            return Response({"result": "4"}) #验证码过期
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
             return Response({"result": "3"})  # 验证码不对
@@ -328,6 +381,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def change_pwd_code(self, request):
         """修改密码时获取验证码"""
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         if customer.mobile == "" and re.findall(PHONE_NUM_RE, customer.mobile):  # 进行正则判断，待写
@@ -338,12 +393,18 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg.verify_code = new_reg.genValidCode()
             new_reg.verify_count = 1
             new_reg.mobile_pass = True
+            new_reg.code_time = current_time
             new_reg.save()
             task_register_code.s(customer.mobile, "2")()
             return Response({"result": "0"})
         else:
             reg_temp = reg[0]
+            if check_day_limit(reg_temp):
+                return Response({"result": "2"})  #当日验证次数超过5
+            if reg_temp.code_time and reg_temp.code_time > last_send_time:
+                return Response({"result": "3"})  # 180s内已经发送过
             reg_temp.verify_code = reg_temp.genValidCode()
+            reg_temp.code_time = current_time
             reg_temp.save()
             task_register_code.s(customer.mobile, "2")()
         return Response({"result": "0"})
@@ -351,6 +412,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def change_user_pwd(self, request):
         """提交修改密码"""
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         mobile = request.data['username']
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
@@ -368,6 +431,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if reg.count() == 0:
             return Response({"result": "3"})  # 验证码不对
         reg_temp = reg[0]
+        reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.save()
+        if reg_temp.code_time and reg_temp.code_time < last_send_time:
+            return Response({"result": "4"}) #验证码过期
+
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
             return Response({"result": "3"})  # 验证码不对

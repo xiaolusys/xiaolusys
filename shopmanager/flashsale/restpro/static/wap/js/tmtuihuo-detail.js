@@ -70,9 +70,9 @@ function Create_Info_Show3(obj) {// 创建退货中　内容　信息
     return htmlx;
 
 }
-function Create_Info_Show4() {//　创建　卖家拒绝申请　　内容
+function Create_Info_Show4(obj) {//　创建　卖家拒绝申请　　内容
     var html = $("#info_4").html();
-    return hereDoc(html);
+    return hereDoc(html).template(obj);
 }
 function Create_Info_Show5() {//　创建　卖家正在返款到　　客户账户
     var html = $("#info_5").html();
@@ -146,11 +146,11 @@ function set_Order_Detail() {
         }
         if (res.refund_status == REFUND_REFUSE_BUYER) { //卖家拒绝申请
             console.log("debug status", "卖家拒绝申请");
-            var w_info4 = Create_warring_Info4;
-            $(".warring_info").append(w_info4);
-            var content = Create_Info_Show4();
-            $(".jifen-list").append(content);
-            $(".content").append(btn_modify);  // 加入修改申请button
+
+            //　显示 拒绝原因
+            var order_id = res.id;
+            console.log("debug order_id: ",order_id );
+            get_refund(order_id);
         }
         if (res.refund_status == REFUND_APPROVE) { //等待返款
             var w_info5 = Create_warring_Info5;
@@ -170,6 +170,26 @@ function set_Order_Detail() {
             var success2 = 2;//表是退款成功
             Set_Logistic_Info(success2);// 设置页面等信息
         }
+    }
+}
+// 访问特卖退款接口  处理　feedback 的字段给用户看，主要是因为客服审核退款的时候，要向客户解释原因．
+function get_refund(order_id){
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.refunds_by_order_id.template({"order_id":oid});
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: {},
+        dataType: 'json',
+        success: requestCallBack
+    });
+    var btn_modify = Create_Btn_Modify_Refund();  // 修改订单btn
+    function requestCallBack(res){
+        console.log("debug res: ", res);
+        var w_info4 = Create_warring_Info4;
+        $(".warring_info").append(w_info4);
+        var content = Create_Info_Show4(res);
+        $(".jifen-list").append(content);
+        $(".content").append(btn_modify);  // 加入修改申请button
     }
 }
 
