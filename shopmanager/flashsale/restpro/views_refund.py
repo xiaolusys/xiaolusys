@@ -122,7 +122,7 @@ def save_Other_Atriibut(trade=None, order=None, sale_refund=None, refund_num=Non
     sale_refund.payment = order.payment
     sale_refund.refund_fee = order.refund_fee
     sale_refund.reason = REFUND_REASON[reason][1]  # 填写原因
-    sale_refund.feedback = feedback  # 填写审核建议
+    sale_refund.desc = feedback  # 填写审核建议2015-09-06　修改此前字段填写出错
     sale_refund.good_status = SaleRefund.BUYER_NOT_RECEIVED
     sale_refund.status = SaleRefund.REFUND_WAIT_SELLER_AGREE
     sale_refund.save()

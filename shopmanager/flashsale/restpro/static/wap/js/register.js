@@ -17,7 +17,7 @@ $(function () {
             password2.val("");
         }
     });
-    $("#get_code_btn").click(get_code)
+    $("#get_code_btn").click(get_code);
 });
 
 
@@ -39,18 +39,22 @@ function my_submit() {
     var requestCallBack = function (res) {
         var result = res.result;
         if (result == "7") {
-            window.location = "denglu2.html";
+            drawToast("注册成功～<br>3秒后跳转到登录页面");
+            setTimeout(function () {
+                window.location = "denglu2.html";
+            },
+            3000);
         } else if (result == "0") {
-            phone_exist_error.text("此手机号码已注册，您可尝试修改密码~").show();
+            phone_exist_error.text("此手机号码已注册，您可尝试修改密码～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "3") {
-            phone_exist_error.text("请点击获取验证码").show();
+            phone_exist_error.text("请点击获取验证码～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "1") {
-            phone_exist_error.text("验证码有误").show();
+            phone_exist_error.text("验证码有误或者过期～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "2") {
-            phone_exist_error.text("表单填写有误").show();
+            phone_exist_error.text("表单填写有误～").show();
             setTimeout("error_hide()", 1000);
         }
     };
@@ -116,18 +120,21 @@ function get_code() {
                     setTimeout("error_hide()", 3000);
                 } else if (result == "OK") {
                     time(get_code_btn);
-                    phone_exist_error.text("亲,验证码已经发送到手机").show();
+                    phone_exist_error.text("亲,验证码已经发送到手机～").show();
                     setTimeout("error_hide()", 3000);
                 } else if (result == "1") {
-                    phone_exist_error.text("亲,60s内无需重新获取").show();
+                    phone_exist_error.text("亲,6分钟内无需重新获取～").show();
+                    setTimeout("error_hide()", 3000);
+                } else if (result == "2") {
+                    phone_exist_error.text("亲，今日验证码获取次数已到上限～").show();
                     setTimeout("error_hide()", 3000);
                 }
             },
             error: function (data) {
-
+                alert("ff");
                 if(data.status==500){
                     if($.parseJSON(data.responseText).detail=="手机号码有误"){
-                        phone_exist_error.text("手机号码有误").show();
+                        phone_exist_error.text("手机号码有误~").show();
                         setTimeout("error_hide()", 3000);
                     }
                 }
@@ -165,12 +172,12 @@ function execReg(reg, str) {
 }
 
 
-var wait = 60;
+var wait = 180;
 function time(btn) {
     if (wait == 0) {
         btn.click(get_code);
         btn.text("获取验证码");
-        wait = 60;
+        wait = 180;
     } else {
         btn.unbind("click")
         btn.text(wait + "秒后重新获取");
