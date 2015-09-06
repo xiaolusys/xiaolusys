@@ -28,7 +28,7 @@ function my_submit() {
      * date:2015/30/7
      */
     var mobile = $("#mobile_username").val();
-    var valid_code = $("#valid_code").val();
+    var valid_code = $("#valid_code").val().trim();
     var password1 = $("#password1").val();
     var password2 = $("#password2").val();
     var phone_exist_error = $("#phone_exist_error");
