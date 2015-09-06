@@ -19,7 +19,10 @@
 
 </ul>
 <div id="loading"><span class="dots-loader"></span></div>
-<a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+<div class="cart-container">
+    <a class="p-center" href="pages/gerenzhongxin.html"></a>
+    <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+</div>
 <div class="scroll-top" id="js-scroll-top"></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="js/jquery-shopping.js"></script>
@@ -34,6 +37,7 @@
   var urlConf = {'model_id':urlParams['id']};
   Set_model_product(GLConfig.get_modellist_url.template(urlConf));
   Set_shopcarts_num();
+  need_set_info();
 })(jQuery);  
 function scroll_top(e){
     e.preventDefault();

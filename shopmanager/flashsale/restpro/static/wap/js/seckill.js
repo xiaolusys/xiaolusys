@@ -57,3 +57,24 @@ function Set_orders() {
         success: requestCallBack
     });
 }
+
+function need_set_info(){
+	//获取设置帐号的信息
+	var requestUrl = GLConfig.baseApiUrl + "/users/need_set_info";
+
+	var requestCallBack = function(res){
+        var result = res.result;
+        if(result=="yes"){
+            $(".p-center").append('<span class="center-red-dot"></span>');
+        }
+
+	};
+	// 请求推荐数据
+	$.ajax({
+		type:'get',
+		url:requestUrl,
+		data:{},
+		dataType:'json',
+		success:requestCallBack
+	});
+}
