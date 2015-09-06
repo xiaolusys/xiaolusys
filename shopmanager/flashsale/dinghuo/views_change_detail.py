@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import F
 from django.http import HttpResponse
 import datetime
+import logging
 
 
 class ChangeDetailView(View):
@@ -67,6 +68,16 @@ class ChangeDetailView(View):
         flag_of_sample = False
         if order_list.status == u'7':
             flag_of_sample = True
+        #是否到货商品关联订单
+        try:
+            from shopback.items.tasks import releaseProductTradesTask
+            distinct_pids = [p['product_id'] for p in order_details.values('product_id').distinct()]
+            outer_ids = [p['outer_id'] for p in Product.objects.filter(id__in=distinct_pids).values('outer_id')]
+            releaseProductTradesTask.s(outer_ids)()
+        except Exception,exc:
+            logger = logging.getLogger('django.request')
+            logger.error(exc.message,exc_info=True)
+            
         return render_to_response("dinghuo/changedetail.html", {"orderlist": order_list, "flagofstatus": flag_of_status,
                                                                 "orderdetails": order_list_list,
                                                                 "flag_of_sample": flag_of_sample },

@@ -11,6 +11,10 @@ function get_user_profile() {
     //请求成功回调函数
     var requestCallBack = function (obj) {
     	GLConfig.user_profile = obj;
+    	if (isNone(obj.mobile)){
+    		drawToast('您还未设置密码哦');
+    	}
+    	var name = obj.nick!=''?obj.nick:obj.mobile || '[无名]';
     	$('.userinfo .nickname span').html(obj.nick!=''?obj.nick:obj.mobile);
     	$('.userinfo .score span').html(obj.score);
     };
