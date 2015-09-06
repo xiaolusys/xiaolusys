@@ -70,9 +70,9 @@ function Create_Info_Show3(obj) {// 创建退货中　内容　信息
     return htmlx;
 
 }
-function Create_Info_Show4(obj) {//　创建　卖家拒绝申请　　内容
+function Create_Info_Show4() {//　创建　卖家拒绝申请　　内容
     var html = $("#info_4").html();
-    return hereDoc(html).template(obj);
+    return hereDoc(html);
 }
 function Create_Info_Show5() {//　创建　卖家正在返款到　　客户账户
     var html = $("#info_5").html();
@@ -109,6 +109,11 @@ function Create_Logistics_Dom() {//创建　退货的　输入框
     return hereDoc(html);
 }
 
+function Create_Feedback_Dom(obj){
+    var html = $("#feedback_info").html();
+    return hereDoc(html).template(obj);
+}
+
 function set_Order_Detail() {
 
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_order_detail_url.template({"tid": tid, "oid": oid});
@@ -121,8 +126,6 @@ function set_Order_Detail() {
     });
     function requestCallBack(res) {
         console.log("debug order res:", res);
-        var btn_modify = Create_Btn_Modify_Refund();  // 修改订单btn
-        var btn_confirm_refund = Create_Btn_Confirm_Refun();// 确认提交物流信息btn
         if (res.refund_status == 3) {  //买家申请退款
             var status1 = Create_Info_Show();
             $(".jifen-list").append(status1);
@@ -135,6 +138,7 @@ function set_Order_Detail() {
             // 这里判断下订单状态是不是已付款　　　如果是已付款不是已发货　则不显示　退货地址以及
             console.log(res.item_id, res.status);
             get_ware_by(res.item_id, res.status);
+            get_refund(REFUND_WAIT_RETURN_GOODS);// 同意申请　显示feedback内容
         }
         if (res.refund_status == 5) {// REFUND_CONFIRM_GOODS = 5  买家已经退货
             var w_info3 = Create_warring_Info3();
@@ -146,11 +150,8 @@ function set_Order_Detail() {
         }
         if (res.refund_status == REFUND_REFUSE_BUYER) { //卖家拒绝申请
             console.log("debug status", "卖家拒绝申请");
-
-            //　显示 拒绝原因
-            var order_id = res.id;
-            console.log("debug order_id: ",order_id );
-            get_refund(order_id);
+            //　显示 拒绝原因 显示 feedback
+            get_refund(REFUND_REFUSE_BUYER);
         }
         if (res.refund_status == REFUND_APPROVE) { //等待返款
             var w_info5 = Create_warring_Info5;
@@ -173,23 +174,42 @@ function set_Order_Detail() {
     }
 }
 // 访问特卖退款接口  处理　feedback 的字段给用户看，主要是因为客服审核退款的时候，要向客户解释原因．
-function get_refund(order_id){
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.refunds_by_order_id.template({"order_id":oid});
-    $.ajax({
-        type: 'get',
-        url: requestUrl,
-        data: {},
-        dataType: 'json',
-        success: requestCallBack
-    });
-    var btn_modify = Create_Btn_Modify_Refund();  // 修改订单btn
-    function requestCallBack(res){
-        console.log("debug res: ", res);
-        var w_info4 = Create_warring_Info4;
-        $(".warring_info").append(w_info4);
-        var content = Create_Info_Show4(res);
-        $(".jifen-list").append(content);
-        $(".content").append(btn_modify);  // 加入修改申请button
+function get_refund(state) {
+    if (state == REFUND_REFUSE_BUYER) {
+        var requestUrl = GLConfig.baseApiUrl + GLConfig.refunds_by_order_id.template({"order_id": oid});
+        $.ajax({
+            type: 'get',
+            url: requestUrl,
+            data: {},
+            dataType: 'json',
+            success: requestCallBack
+        });
+        var btn_modify = Create_Btn_Modify_Refund();  // 修改订单btn
+        function requestCallBack(res) {
+            console.log("debug res: ", res);
+            var w_info4 = Create_warring_Info4;
+            $(".warring_info").append(w_info4);
+            var content = Create_Info_Show4();
+            var feed_dom = Create_Feedback_Dom(res);
+            $(".jifen-list").append(content);
+            $(".buy_kefu").before(feed_dom);
+            $(".content").append(btn_modify);  // 加入修改申请button
+        }
+    }
+    if(state==REFUND_WAIT_RETURN_GOODS){
+        var requestUrl2 = GLConfig.baseApiUrl + GLConfig.refunds_by_order_id.template({"order_id": oid});
+        $.ajax({
+            type: 'get',
+            url: requestUrl2,
+            data: {},
+            dataType: 'json',
+            success: callback
+        });
+        function callback(res){
+            var feed_dom = Create_Feedback_Dom(res);
+            $(".jifen-list").append(feed_dom);
+            $(".buy_kefu").before(feed_dom);
+        }
     }
 }
 
