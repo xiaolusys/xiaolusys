@@ -723,7 +723,6 @@ class MergeTradeAdmin(MyAdmin):
 
     pull_order_action.short_description = "重新下单".decode('utf8')
     
-                          
     #订单
     def push_trade_to_scan(self, request, queryset):
         
