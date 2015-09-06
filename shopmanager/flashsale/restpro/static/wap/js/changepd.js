@@ -16,6 +16,7 @@ $(function () {
             password2.val("");
         }
     });
+    $("#get_code_btn").click(get_code);
 });
 
 function error_hide() {
@@ -30,16 +31,21 @@ function get_code() {
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
     var requestUrl = "/rest/v1/register/change_pwd_code";
+    var get_code_btn = $("#get_code_btn");
     var requestCallBack = function (res) {
         var result = res.result;
         if (result == "1") {
-            phone_exist_error.text("尚无该用户或者手机未绑定~").show();
+            phone_exist_error.text("尚无该用户或者手机未绑定～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "0") {
-            phone_exist_error.text("获取验证码成功,请查看手机~").show();
+            time(get_code_btn);
+            phone_exist_error.text("获取验证码成功,请查看手机～").show();
+            setTimeout("error_hide()", 1000);
+        } else if (result == "3") {
+            phone_exist_error.text("亲,3分钟内验证码有效的～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "2") {
-            phone_exist_error.text("亲,60s内验证码有效的").show();
+            phone_exist_error.text("亲，今日验证码获取次数已到上限～").show();
             setTimeout("error_hide()", 1000);
         }
     };
@@ -76,21 +82,28 @@ function confirm_change() {
     var requestCallBack = function (res) {
         var result = res.result;
         if (result == "1") {
-            phone_exist_error.text("尚无该用户或者手机未绑定~").show();
+            phone_exist_error.text("尚无该用户或者手机未绑定～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "0") {
-            window.location = "denglu.html"
+            drawToast("修改成功～<br>3秒后跳转到登录页面");
+            setTimeout(function () {
+                window.location = "denglu2.html";
+            },
+            3000);
         } else if (result == "2") {
-            phone_exist_error.text("填写有误").show();
+            phone_exist_error.text("填写有误～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "1") {
-            phone_exist_error.text("尚无用户或者手机未绑定").show();
+            phone_exist_error.text("尚无用户或者手机未绑定～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "3") {
-            phone_exist_error.text("验证码不对").show();
+            phone_exist_error.text("验证码不对～").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "5") {
-            phone_exist_error.text("请联系客服~").show();
+            phone_exist_error.text("请联系客服～").show();
+            setTimeout("error_hide()", 1000);
+        } else if (result == "4") {
+            phone_exist_error.text("验证码过期～").show();
             setTimeout("error_hide()", 1000);
         }
     };
@@ -147,4 +160,22 @@ function execReg(reg, str) {
         return false;
     }
     return true;
+}
+
+
+var wait = 180;
+function time(btn) {
+    if (wait == 0) {
+        btn.click(get_code);
+        btn.text("获取验证码");
+        wait = 180;
+    } else {
+        btn.unbind("click")
+        btn.text(wait + "秒后重新获取");
+        wait--;
+        setTimeout(function () {
+                time(btn);
+            },
+            1000)
+    }
 }

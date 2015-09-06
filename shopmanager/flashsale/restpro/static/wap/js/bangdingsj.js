@@ -29,8 +29,11 @@ function get_code() {
             time(get_code_btn);
             phone_exist_error.text("获取验证码成功,请查看手机~").show();
             setTimeout("error_hide()", 1000);
+        } else if (result == "3") {
+            phone_exist_error.text("亲,3分钟内验证码有效的").show();
+            setTimeout("error_hide()", 1000);
         } else if (result == "2") {
-            phone_exist_error.text("亲,60s内验证码有效的").show();
+            phone_exist_error.text("亲，今日验证码获取次数已到上限～").show();
             setTimeout("error_hide()", 1000);
         }
     };
@@ -69,8 +72,11 @@ function bang_get_code() {
             time(get_code_btn);
             phone_exist_error.text("获取验证码成功,请查看手机~").show();
             setTimeout("error_hide()", 1000);
+        } else if (result == "3") {
+            phone_exist_error.text("亲,3分钟内验证码有效的～").show();
+            setTimeout("error_hide()", 1000);
         } else if (result == "2") {
-            phone_exist_error.text("亲,60s内验证码有效的").show();
+            phone_exist_error.text("亲，今日验证码获取次数已到上限～").show();
             setTimeout("error_hide()", 1000);
         }
     };
@@ -128,6 +134,9 @@ function confirm_change() {
             setTimeout("error_hide()", 1000);
         } else if (result == "5") {
             phone_exist_error.text("请联系客服~").show();
+            setTimeout("error_hide()", 1000);
+        } else if (result == "4") {
+            phone_exist_error.text("验证码过期～").show();
             setTimeout("error_hide()", 1000);
         }
     };
@@ -194,6 +203,9 @@ function confirm_bang() {
             setTimeout("error_hide()", 1000);
         } else if (result == "5") {
             phone_exist_error.text("请联系客服~").show();
+            setTimeout("error_hide()", 1000);
+        } else if (result == "4") {
+            phone_exist_error.text("验证码过期～").show();
             setTimeout("error_hide()", 1000);
         }
     };
