@@ -80,7 +80,10 @@
     <li class="add-cart" name="btn-add-cart" >加入购物车</li>
     <li class="buy buy-now" name="btn-buynow">立即购买</li>
 </ul>
-<a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+<div class="cart-container">
+    <a class="p-center" href="pages/gerenzhongxin.html"></a>
+    <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+</div>
 <div class="scroll-top" id="js-scroll-top"></div>
 <div id="loading"><span class="dots-loader"></span></div>
 <div class="service_box">
@@ -168,6 +171,7 @@
     var product_url = GLConfig.get_product_detail_url.template(urlConf);
     Set_product_detail(product_url);
     Set_shopcarts_num();
+    need_set_info();
     //登录后才可以操作
     $('.add-cart').shoping()
     $('.cart').listencart();

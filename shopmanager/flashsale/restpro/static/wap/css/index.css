@@ -275,6 +275,36 @@ nav a:active,
     padding-left: 46px;
 }
 
+.p-center{
+    position: fixed;
+    bottom: 20px;
+    width: 80px;
+    height: 80px;
+    z-index: 999;
+}
+
+.p-center {
+    left: 20px;
+    background:url(../images/icon-gerenzhongxin3.png) no-repeat rgba(0,0,0,0.6);
+    width: 80px;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+.center-red-dot{
+    display: block;
+    color: #fff;
+    text-align: center;
+    font-size: 20px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #ea4c88;
+    position: absolute;
+    left: 50px;
+    top: 10px;
+}
+
 .cart,
 .scroll-top {
     position: fixed;
@@ -285,10 +315,11 @@ nav a:active,
 }
 
 .cart {
-    left: 20px;
-    background:url(../images/icon-gouwuche.png) no-repeat rgba(0,0,0,0.6);
-    border-radius: 40px;
+    left: 101px;
+    background: url(../images/icon-gouwuche.png) no-repeat rgba(0, 0, 0, 0.6);
     width: 80px;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
 }
 
 .cart .total {
@@ -311,7 +342,6 @@ nav a:active,
     font-size: 28px;
     line-height: 22px;
     font-style: normal;
-    margin-left: 12px;
     color: #fff;
     position: absolute;
     top: 30px;

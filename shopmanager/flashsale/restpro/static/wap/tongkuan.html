@@ -19,7 +19,10 @@
 <!-- 这里添加商品列表 -->
 </ul>
 <div id="loading"><span class="dots-loader"></span></div>
-<a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+<div class="cart-container">
+    <a class="p-center" href="pages/gerenzhongxin.html"></a>
+    <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
+</div>
 <div class="scroll-top" id="js-scroll-top"></div>
 <div class="footer clearfix">
 <p class="copyright">Copyright © 2008-2015 小鹿美美，All Rights Reserved 沪ICP备15013901号-1</p>
@@ -37,6 +40,7 @@
   var urlConf = {'model_id':urlParams['id']};
   Set_model_product(GLConfig.get_modellist_url.template(urlConf));
   Set_shopcarts_num();
+  need_set_info();
 })(jQuery);  
 function scroll_top(e){
     e.preventDefault();

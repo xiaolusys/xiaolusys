@@ -17,7 +17,7 @@ from django.db import models
 from django.contrib.auth import authenticate, login, logout
 from flashsale.pay.models import Register, Customer,Integral
 from rest_framework import exceptions
-
+from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
 from shopapp.smsmgr.tasks import task_register_code
@@ -317,6 +317,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg.verify_count = 0
             new_reg.code_time = current_time
             new_reg.save()
+            log_action(request.user.id, new_reg, ADDITION, u'新建，绑定手机验证码')
             task_register_code.s(mobile, "3")()
             return Response({"result": "0"})
         else:
@@ -328,6 +329,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
+            log_action(request.user.id, reg_temp, CHANGE, u'绑定手机获取验证码')
             task_register_code.s(mobile, "3")()
         return Response({"result": "0"})
 
@@ -370,9 +372,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user.save()
             customer.mobile = mobile
             customer.save()
+            log_action(request.user.id, customer, CHANGE, u'手机绑定成功')
             reg_temp.cus_uid = customer.id
             reg_temp.mobile_pass = True
             reg_temp.save()
+            log_action(request.user.id, reg_temp, CHANGE, u'手机绑定成功')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
@@ -394,6 +398,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg.mobile_pass = True
             new_reg.code_time = current_time
             new_reg.save()
+            log_action(request.user.id, new_reg, ADDITION, u'登录后，新建，修改密码')
             task_register_code.s(customer.mobile, "2")()
             return Response({"result": "0"})
         else:
@@ -405,6 +410,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
+            log_action(request.user.id, reg_temp, ADDITION, u'登录后，修改密码')
             task_register_code.s(customer.mobile, "2")()
         return Response({"result": "0"})
 
@@ -433,6 +439,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         reg_temp.submit_count += 1     #提交次数加一
         reg_temp.cus_uid = customer.id
         reg_temp.save()
+        log_action(request.user.id, reg_temp, CHANGE, u'修改密码')
         if reg_temp.code_time and reg_temp.code_time < last_send_time:
             return Response({"result": "4"}) #验证码过期
 
@@ -443,6 +450,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user = customer.user
             system_user.set_password(passwd1)
             system_user.save()
+            log_action(request.user.id, customer, CHANGE, u'修改密码')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
