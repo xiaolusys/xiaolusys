@@ -16,23 +16,25 @@
     <div class="header">
         <a class="back" href="javascript:history.go(-1)"></a>
 
-        <h1>{{ if result == 'no' }}密码修改{{ else }}绑定手机{{ /if }}</h1>
+        <h1>{{ if result == 'no' }}密码修改{{ else }}{{ if result == '1' }}设置密码{{ else }}绑定手机{{ /if }}{{ /if }}</h1>
     </div>
 
     <div class="ipt-panel">
         <div class="ipt-panel-inner">
             <div class="ipt-wrap ipt-top">
-                <label>{{ if result == 'no' }}您的帐号名为{{ else }}手机号码{{ /if }}</label>
-                <input class="text1" type="tel" id="mobile_username" placeholder="请输入手机号码" {{ if result == 'no' }} value="{{ mobile }}" readonly="true" {{ /if }}>
+                <label>{{ if result == 'no' || result == '1' }}您的帐号名为{{ else }}手机号码{{ /if }}</label>
+                <input class="text1" type="tel" id="mobile_username" placeholder="请输入手机号码" {{ if result == 'no' || result == '1' }} value="{{ mobile }}" readonly="true" {{ /if }}>
                 {{ if result == 'yes' }}
                 <div class="close" id="mobile_close"></div>
                 {{ /if }}
             </div>
+            {{ if result == 'yes' || result == "no" }}
             <div class="ipt-wrap">
                 <input class="authcode" type="tel" id="valid_code" placeholder="请输入验证码">
 
                 <div class="btn-getcode" id="get_code_btn" >获取验证码</div>
             </div>
+            {{ /if }}
         </div>
         <div class="error-tips" id="phone_exist_error"></div>
     </div>
@@ -54,7 +56,7 @@
     </div>
 
     <div class="btn-wrap">
-        <a class="btn-submit" onclick="{{ if result == 'no' }}confirm_change(){{ else }}confirm_bang(){{ /if }}">确&nbsp;&nbsp;认</a>
+        <a class="btn-submit" onclick="{{ if result == 'no' }}confirm_change(){{ else }}{{ if result == '1' }}confirm_set(){{ else }}confirm_bang(){{ /if }}{{ /if }}">确&nbsp;&nbsp;认</a>
     </div>
 </script>
 </body>

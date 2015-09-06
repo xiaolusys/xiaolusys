@@ -65,10 +65,15 @@ function logout() {
 function need_set_info(){
 	//获取设置帐号的信息
 	var requestUrl = GLConfig.baseApiUrl + "/users/need_set_info";
-
+    var pass_word =  $(".text-mimaxiugai");
 	var requestCallBack = function(res){
         var result = res.result;
-        if(result=="yes"){
+        if(result=="yes" || result == "1"){
+            if(result=="yes"){
+                pass_word.html("绑定手机");
+            }else if(result=="1"){
+                pass_word.html("设置密码");
+            }
             $('<div class="text">NEW</div>').insertAfter(".icon-mimaxiugai");
         }
 
