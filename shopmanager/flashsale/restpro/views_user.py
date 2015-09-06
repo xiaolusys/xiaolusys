@@ -288,8 +288,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def need_set_info(self, request):
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
+        has_set_passwd = True
+        try:
+            user = customer.user
+            authenticate(username=user.username, password=u"testxiaolummpasswd")
+            # authenticate(username="testxiaolu", password=u"testxiaolummpasswd")
+        except ValueError, exc:
+            has_set_passwd = False
+
         if customer.mobile and len(customer.mobile) == 11:
-            return Response({'result': 'no', 'mobile': customer.mobile})
+            if has_set_passwd:
+                return Response({'result': 'no', 'mobile': customer.mobile})
+            else:
+                return Response({'result': '1', 'mobile': customer.mobile})
         else:
             return Response({'result': 'yes'})
 
@@ -381,6 +392,20 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user.save()
         except:
             return Response({"result": "5"})
+        return Response({"result": "0"})
+
+    @list_route(methods=['post'])
+    def passwd_set(self, request):
+        """绑定手机,并初始化密码"""
+        passwd1 = request.data['password1']
+        passwd2 = request.data['password2']
+        if not passwd1 and not passwd2 and len(passwd1) < 6 and len(passwd2) < 6 and passwd2 != passwd1:
+            return Response({"result": "1"})
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        log_action(request.user.id, customer, CHANGE, u'第一次设置密码成功')
+        django_user.set_password(passwd1)
+        django_user.save()
         return Response({"result": "0"})
 
     @list_route(methods=['post'])
