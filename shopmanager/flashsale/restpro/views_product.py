@@ -233,12 +233,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             if k in key_vals and v.strip():
                 key_maps[k] = v
                 
-        return u'.'.join([
+        return hashlib.sha256(u'.'.join([
                 view_instance.__module__,
                 view_instance.__class__.__name__,
                 view_method.__name__,
-                hashlib.sha256(json.dumps(key_maps, sort_keys=True).encode('utf-8')).hexdigest()
-            ])
+                json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            ])).hexdigest()
     
     @cache_response(key_func='calc_items_cache_key')
     @list_route(methods=['get'])

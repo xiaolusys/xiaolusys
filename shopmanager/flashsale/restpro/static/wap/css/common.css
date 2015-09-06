@@ -117,7 +117,6 @@ html, body {
 	*/
 }
 
-
 #loading {
     position: fixed;
     top: 50%;
@@ -129,4 +128,21 @@ html, body {
     width: 60px;
     height: 60px;
     display: none;
+}
+
+.clearfix {
+    zoom: 1;
+    clear: both;
+}
+
+.footer {
+    padding: 0 0 60px;
+    background-color: #fff;
+}
+
+.copyright {
+    font-size: 12px;
+    color: #8e8e8e;
+    text-align: center;
+    padding: 10px 0 0;
 }
