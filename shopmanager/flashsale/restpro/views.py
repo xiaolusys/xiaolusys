@@ -17,6 +17,8 @@ from . import permissions as perms
 from . import serializers 
 
 from flashsale.pay.models import SaleRefund,District,UserAddress
+from django.forms import model_to_dict
+
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
@@ -48,6 +50,16 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         """
         res = refund_Handler(request)
         return Response(data=res)
+
+    @detail_route(methods=["get"])
+    def get_by_order_id(self, request, pk=None):
+        order_id = pk  # 获取order_id
+        queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(order_id=order_id)
+        refund_dic = {}
+        if queryset.exists():
+            sale_refund = queryset[0]
+            refund_dic = model_to_dict(sale_refund, fields=["id", "feedback", "buyer_id"])
+        return Response(refund_dic)
 
 
 class UserAddressViewSet(viewsets.ModelViewSet):

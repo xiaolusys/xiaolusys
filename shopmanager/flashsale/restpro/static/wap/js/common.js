@@ -136,7 +136,8 @@ var GLConfig = {
     change_user_coupon_used:"/mycoupon/{{ coupon_id}}/pass_user_coupon",//修改自己的指定优惠券状态到使用过的状态
 	user_logout:'/users/customer_logout',//用户注销
 	user_islogin:'/users/islogin.json',//用户是否登录
-    refunds:'/refunds'//退款
+    refunds:'/refunds',//退款
+    refunds_by_order_id:"/refunds/{{order_id}}/get_by_order_id"
 };
 
 // using jQuery
