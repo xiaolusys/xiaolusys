@@ -107,7 +107,7 @@ function confirm_change() {
      */
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
-    var valid_code = $("#valid_code").val();
+    var valid_code = $("#valid_code").val().trim();
     var password1 = $("#password1").val();
     var password2 = $("#password2").val();
 
@@ -176,7 +176,7 @@ function confirm_bang() {
      */
     var mobile = $("#mobile_username").val();
     var phone_exist_error = $("#phone_exist_error");
-    var valid_code = $("#valid_code").val();
+    var valid_code = $("#valid_code").val().trim();
     var password1 = $("#password1").val();
     var password2 = $("#password2").val();
 
@@ -202,7 +202,7 @@ function confirm_bang() {
             phone_exist_error.text("验证码不对~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "5") {
-            phone_exist_error.text("请联系客服~").show();
+            phone_exist_error.text("系统繁忙，可联系客服~").show();
             setTimeout("error_hide()", 1000);
         } else if (result == "4") {
             phone_exist_error.text("验证码过期～").show();
@@ -238,6 +238,50 @@ function confirm_bang() {
 }
 
 
+function confirm_set() {
+    /*
+     * 设置手机密码
+     * auther:yann
+     * date:2015/6/9
+     */
+    var phone_exist_error = $("#phone_exist_error");
+    var password1 = $("#password1").val();
+    var password2 = $("#password2").val();
+    var requestUrl = "/rest/v1/users/passwd_set";
+    var requestCallBack = function (res) {
+        var result = res.result;
+        if (result == "1") {
+            phone_exist_error.text("填写有误~").show();
+            setTimeout("error_hide()", 1000);
+        } else if (result == "0") {
+            drawToast("设置成功～<br>3秒后跳转到个人中心");
+            setTimeout(function () {
+                window.location = "gerenzhongxin.html";
+            },
+            3000);
+        }
+    };
+    if ((password1 != password2) || !execReg(regCheck(2), password1) || !execReg(regCheck(2), password2)) {
+        var password_error = $("#password_error");
+        password_error.show();
+        setTimeout("error_hide()", 2000);
+    } else {
+        // 发送请求
+        $.ajax({
+            type: 'post',
+            url: requestUrl,
+            data: {
+                "password1": password1,
+                "password2": password2,
+                "csrfmiddlewaretoken": csrftoken
+            },
+            success: requestCallBack,
+            error: function (res) {
+                console.log("error",res);
+            }
+        });
+    }
+}
 function regCheck(type) {
     /*
      * 正则表达式匹配

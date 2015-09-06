@@ -237,9 +237,7 @@
         <p class="main">拒绝原因：</p>
 
         <p class="no_main">您好,您的申请被拒绝,可能是您提交的申请金额或者原因不合申请要求导致的,麻烦您修改下，申请内容,谢谢！</p>
-        <p class="main">客服建议：</p>
 
-        <p class="no_main">{{ feedback }}</p>
     </div>
 
     <div class="buy_kefu">
@@ -424,12 +422,17 @@
         </div>
     </div>
 </script>
+
+<script type="text/html" id="feedback_info">
+    <div style="color:#a94442; background-color:#f2dede; border-color: #ebccd1">
+        <p class="main">卖家留言：</p>
+        <p class="no_main" style="color:#a94442;">{{ feedback }}</p>
+    </div>
+</script>
+
 <script src="../js/sweet-alert.min.js"></script>
 
 <script src="../js/tmtuihuo-detail.js"></script>
 
 </body>
 </html>
-
-
-

@@ -64,7 +64,7 @@ function need_set_info(){
 
 	var requestCallBack = function(res){
         var result = res.result;
-        if(result=="yes"){
+        if(result=="yes" || result == "1"){
             $(".p-center").append('<span class="center-red-dot"></span>');
         }
 
