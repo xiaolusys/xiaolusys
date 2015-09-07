@@ -21,11 +21,11 @@ from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
 from shopapp.smsmgr.tasks import task_register_code
-
+from django.contrib.auth.models import User as DjangoUser
 import re
 PHONE_NUM_RE = re.compile(r'1[34578][0-9]{9}', re.IGNORECASE)
 TIME_LIMIT = 360
-
+DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
 
 def check_day_limit(reg_bean):
     if reg_bean.code_time and datetime.datetime.now().strftime('%Y-%m-%d') == reg_bean.code_time.strftime('%Y-%m-%d'):
@@ -59,7 +59,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         mobile = request.data['vmobile']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             raise exceptions.APIException(u'手机号码有误')
         reg = Register.objects.filter(vmobile=mobile)
         already_exist = Customer.objects.filter(mobile=mobile)
@@ -78,6 +78,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.code_time = current_time
                 temp_reg.save()
+                log_action(DJUSER.id, temp_reg, CHANGE, u'修改，注册手机验证码')
                 task_register_code.s(mobile, "1")()
                 return Response({"result": "OK"})
 
@@ -86,6 +87,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         new_reg.verify_count = 0
         new_reg.code_time = current_time
         new_reg.save()
+        log_action(DJUSER.id, new_reg, ADDITION, u'新建，注册手机验证码')
         task_register_code.s(mobile, "1")()
         return Response({"result": "OK"})
 
@@ -141,7 +143,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if already_exist.count() == 0:
             return Response({"result": "1"})  # 尚无用户或者手机未绑定
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
@@ -151,6 +153,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.mobile_pass = True
             new_reg.code_time = current_time
             new_reg.save()
+            log_action(DJUSER.id, new_reg, ADDITION, u'新建，忘记密码验证码')
             task_register_code.s(mobile, "2")()
             return Response({"result": "0"})
         else:
@@ -162,6 +165,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
+            log_action(DJUSER.id, reg_temp, CHANGE, u'修改，忘记密码验证码')
             task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
 
@@ -197,6 +201,10 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             system_user = already_exist[0].user
             system_user.set_password(passwd1)
             system_user.save()
+            reg_temp.cus_uid = already_exist[0].id
+            reg_temp.save()
+            log_action(DJUSER.id, already_exist[0], CHANGE, u'忘记密码，修改成功')
+            log_action(DJUSER.id, reg_temp, CHANGE, u'忘记密码，修改成功')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
@@ -288,8 +296,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def need_set_info(self, request):
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
+        has_set_passwd = True
+        try:
+            user = customer.user
+            authenticate(username=user.username, password=u"testxiaolummpasswd")
+            # authenticate(username="testxiaolu", password=u"testxiaolummpasswd")
+        except ValueError, exc:
+            has_set_passwd = False
+
         if customer.mobile and len(customer.mobile) == 11:
-            return Response({'result': 'no', 'mobile': customer.mobile})
+            if has_set_passwd:
+                return Response({'result': 'no', 'mobile': customer.mobile})
+            else:
+                return Response({'result': '1', 'mobile': customer.mobile})
         else:
             return Response({'result': 'yes'})
 
@@ -304,7 +323,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if len(customer.mobile) != 0:
             raise exceptions.APIException(u'账户异常，请联系客服～')
         mobile = request.data['vmobile']
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"result": "false"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
@@ -346,7 +365,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 \
                 and len(passwd1) == 0 and len(passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
             return Response({"result": "2"})
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"result": "false"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
@@ -381,6 +400,20 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user.save()
         except:
             return Response({"result": "5"})
+        return Response({"result": "0"})
+
+    @list_route(methods=['post'])
+    def passwd_set(self, request):
+        """绑定手机,并初始化密码"""
+        passwd1 = request.data['password1']
+        passwd2 = request.data['password2']
+        if not passwd1 and not passwd2 and len(passwd1) < 6 and len(passwd2) < 6 and passwd2 != passwd1:
+            return Response({"result": "1"})
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        log_action(request.user.id, customer, CHANGE, u'第一次设置密码成功')
+        django_user.set_password(passwd1)
+        django_user.save()
         return Response({"result": "0"})
 
     @list_route(methods=['post'])

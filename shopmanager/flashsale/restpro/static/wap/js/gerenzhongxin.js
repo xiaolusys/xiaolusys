@@ -11,7 +11,11 @@ function get_user_profile() {
     //请求成功回调函数
     var requestCallBack = function (obj) {
     	GLConfig.user_profile = obj;
-    	$('.userinfo .nickname span').html(obj.nick!=''?obj.nick:obj.mobile);
+    	if (isNone(obj.mobile) || obj.mobile==""){
+
+    	}
+    	var name = obj.nick!=''?obj.nick:(obj.mobile!=""?obj.mobile:'[无名]');
+    	$('.userinfo .nickname span').html(name);
     	$('.userinfo .score span').html(obj.score);
     };
     // 发送请求
@@ -61,15 +65,41 @@ function logout() {
     });
 }
 
-
+function show_grumble(location_item, text) {
+    var interval;
+    location_item.grumble({
+        text: text,
+        angle: 100,
+        onShow: function () {
+            var angle = 130, dir = 1;
+            interval = setInterval(function () {
+                (angle > 180 ? (dir = -1, angle--) : ( angle < 130 ? (dir = 1, angle++) : angle += dir));
+                location_item.grumble('adjust', {angle: angle});
+            }, 25);
+        },
+        type: 'alt-',
+        hideAfter: 10000
+    });
+}
 function need_set_info(){
 	//获取设置帐号的信息
 	var requestUrl = GLConfig.baseApiUrl + "/users/need_set_info";
-
+    var pass_word =  $(".text-mimaxiugai");
+    var grumble_text =  $(".text-tuihuanhuo");
 	var requestCallBack = function(res){
         var result = res.result;
-        if(result=="yes"){
-            $('<div class="text">NEW</div>').insertAfter(".icon-mimaxiugai");
+        if(result=="yes" || result == "1"){
+            if(result=="yes"){
+                pass_word.html("绑定手机");
+                show_grumble(grumble_text,"您还未绑定手机哦");
+            }else if(result=="1"){
+                pass_word.html("设置密码");
+                show_grumble(grumble_text,"您还未设置密码哦");
+            }
+            $(".grumble-text").click(function(){
+                    window.location = "bangding.html";
+                });
+            //$('<div class="text">NEW</div>').insertAfter(".icon-mimaxiugai");
         }
 
 	};
