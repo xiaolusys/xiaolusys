@@ -100,7 +100,7 @@ def check_aggregate_error(product):
     p_outer_id = product.outer_id
     outer_jie = p_outer_id[0:len(p_outer_id) - 1]
     p_model_id = product.model_id
-    agg_products = Product.objects.filter(outer_id__contains=outer_jie)
+    agg_products = Product.objects.filter(outer_id__contains=outer_jie, status=Product.NORMAL)
     for agg_product in agg_products:
         if agg_product.model_id != p_model_id:
             return True
@@ -110,7 +110,7 @@ def check_aggregate_error(product):
 def check_one_model(product):
     p_outer_id = product.outer_id
     outer_jie = p_outer_id[0:len(p_outer_id) - 1]
-    agg_products = Product.objects.filter(outer_id__contains=outer_jie)
+    agg_products = Product.objects.filter(outer_id__contains=outer_jie, status=Product.NORMAL)
     return agg_products.count() == 1
 
 
