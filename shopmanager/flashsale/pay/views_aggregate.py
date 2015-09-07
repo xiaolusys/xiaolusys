@@ -107,6 +107,13 @@ def check_aggregate_error(product):
     return False
 
 
+def check_one_model(product):
+    p_outer_id = product.outer_id
+    outer_jie = p_outer_id[0:len(p_outer_id) - 1]
+    agg_products = Product.objects.filter(outer_id__contains=outer_jie)
+    return agg_products.count() == 1
+
+
 class AggregateProductCheckView(View):
     @staticmethod
     def get(request):
@@ -126,7 +133,9 @@ class AggregateProductCheckView(View):
                 else:
                     product_dict['model_product'] = "0"
             product_res.append(product_dict)
-        return render_to_response("pay/check_product.html", {"all_product": product_res, "sale_time": sale_time}, context_instance=RequestContext(request))
+            product_res.sort()
+        return render_to_response("pay/check_product.html", {"all_product": product_res, "sale_time": sale_time},
+                                  context_instance=RequestContext(request))
 
     @staticmethod
     def post(request):
