@@ -20,8 +20,9 @@ from flashsale.pay.models import (
     Customer,
     ShoppingCart,
     UserAddress,
-    Coupon,
-    CouponPool,
+    UserCoupon,
+    CouponsPool,
+    CouponTemplate,
     genTradeUniqueid
 )
 
@@ -286,15 +287,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_id      = content.get('coupon_id','')
         coupon_ticket  = None
         if coupon_id:
-            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
-            if coupon.status != Coupon.RECEIVE:
+            coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id))
+            if coupon.status is UserCoupon.USED:  # 使用的
                 raise exceptions.APIException(u'该优惠券已使用')
-            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
-            discount_fee += coupon_pool.coupon_value
-            coupon_ticket = serializers.UserCouponPoolSerializer(coupon_pool).data
+            coupon_pool  = coupon.cp_id
+            if coupon_pool.status != CouponsPool.RELEASE:   # 没有发放
+                raise exceptions.APIException(u"优惠券池状态错误")
+
+            discount_fee += coupon_pool.template.value
+            coupon_ticket = serializers.UsersCouponSerializer(coupon).data
             coupon_ticket['receive_date'] = coupon.created
             coupon_ticket['coupon_id'] = coupon_id
-            
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -360,12 +363,16 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_id      = content.get('coupon_id','')
         coupon_ticket  = None
         if coupon_id:
-            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
-            if coupon.status != Coupon.RECEIVE:
+            coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
+                                             status=UserCoupon.UNUSED)
+            if coupon.status is UserCoupon.USED:
                 raise exceptions.APIException(u'该优惠券已使用')
-            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
-            discount_fee    += coupon_pool.coupon_value
-            coupon_ticket   = serializers.UserCouponPoolSerializer(coupon_pool).data
+            coupon_pool  = coupon.cp_id
+            if coupon_pool.status != CouponsPool.RELEASE:
+                raise exceptions.APIException(u"优惠券池状态错误")
+
+            discount_fee    += coupon_pool.template.value
+            coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
             coupon_ticket['receive_date'] = coupon.created
             coupon_ticket['coupon_id'] = coupon_id
             
@@ -597,7 +604,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self,sale_trade):
         """ pingpp支付实现 """
-        payment       = int(sale_trade.payment * 100) 
+        payment       = int(sale_trade.payment * 100)
         buyer_openid  = sale_trade.openid
         order_no      = sale_trade.tid
         channel       = sale_trade.channel
@@ -606,14 +613,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
-            
+
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
                      "cancel_url":cancel_url}
-            
+
         elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":payback_url}
-        
+
         params ={ 'order_no':'%s'%order_no,
                   'app':dict(id=settings.PINGPP_APPID),
                   'channel':channel,
@@ -742,9 +749,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         coupon_id = CONTENT.get('coupon_id','')
         if coupon_id:
-            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
-            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
-            cart_discount    += int(coupon_pool.coupon_value * 100)
+            # 对应用户的未使用的优惠券
+            coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
+                                             status=UserCoupon.UNUSED)
+            coupon_pool  = coupon.cp_id
+            if coupon_pool.status != CouponsPool.RELEASE:
+                raise exceptions.APIException(u"优惠券池状态异常")
+
+            cart_discount    += int(coupon_pool.template.value * 100)
         
         if discount_fee > cart_discount:
             raise exceptions.ParseError(u'优惠金额异常')
@@ -764,17 +776,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         #使用优惠券，并修改状态
         if coupon_id and coupon:
-            coupon.status = Coupon.USED
-            coupon.trade_id = sale_trade.id
+            coupon.status = UserCoupon.USED
+            coupon.sale_trade = sale_trade.id
             coupon.save()
-            
         if channel == SaleTrade.WALLET:
             #小鹿钱包支付
             response_charge = self.wallet_charge(sale_trade)
         else:
-            #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
-        
+
         return Response(response_charge)
     
     @list_route(methods=['post'])
@@ -800,10 +810,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         coupon_id = CONTENT.get('coupon_id','')
         if coupon_id:
-            coupon       = get_object_or_404(Coupon,id=coupon_id,coupon_user=str(customer.id))
-            coupon_pool  = get_object_or_404(CouponPool,coupon_no=coupon.coupon_no)
-            bn_discount    += int(coupon_pool.coupon_value * 100)
-        
+            # 对应用户的未使用的优惠券
+            coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
+                                             status=UserCoupon.UNUSED)
+            coupon_pool  = coupon.cp_id
+            if coupon_pool.status != CouponsPool.RELEASE:
+                raise exceptions.APIException(u"优惠券池状态异常")
+            bn_discount    += int(coupon_pool.template.value * 100)
+
         if discount_fee > bn_discount:
             raise exceptions.ParseError(u'优惠金额异常')
         
@@ -832,8 +846,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u'订单生成异常')
         #使用优惠券，并修改状态
         if coupon_id and coupon:
-            coupon.status = Coupon.USED
-            coupon.trade_id = sale_trade.id
+            coupon.status = UserCoupon.USED
+            coupon.sale_trade = sale_trade.id
             coupon.save()
         
         if channel == SaleTrade.WALLET:
@@ -842,6 +856,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
+
         return Response(response_charge)
     
     @detail_route(methods=['post'])

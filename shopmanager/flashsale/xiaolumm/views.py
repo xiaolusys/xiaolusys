@@ -52,7 +52,7 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
 
     payment = consume_value - refund_value
     x_choice = cash_outable and xlmm.get_Mama_Deposite() or xlmm.get_Mama_Deposite_Amount()
-    
+
     mony_without_pay = cash + payment # 从未消费情况下的金额
     leave_cash_out = mony_without_pay - x_choice   # 可提现金额
     could_cash_out = cash
@@ -789,19 +789,17 @@ def get_Deposit_Trade(openid, mobile):
         return None
 
 
-from flashsale.pay.models_coupon import Coupon
+from flashsale.pay.models_coupon_new import UserCoupon
 
 
 def create_coupon(sale_orders):
     # 创建优惠券
     buyer_id = sale_orders[0].sale_trade.buyer_id
     trade_id = sale_orders[0].sale_trade.id
-    customer = Customer.objects.get(id=buyer_id)
-    mobile = customer.mobile
-    cou = Coupon()
-    cou.lmi118_Xlmm_Coupon(buyer_id, trade_id, mobile)
+    cou = UserCoupon()
+    kwargs = {"buyer_id": buyer_id, "trade_id": trade_id}
+    cou.release_deposit_coupon(**kwargs)
     return cou
-
 
 
 @csrf_exempt
@@ -819,7 +817,6 @@ def mama_Verify_Action(request):
     sale_orders = get_Deposit_Trade(openid, mobile)  # 调用函数 传入参数（妈妈的openid，mobile）
     if sale_orders is None:
         return HttpResponse('reject')
-    
     referal_mama = None
     if referal_mobile:
         try:

@@ -25,39 +25,35 @@ function create_yhq_dom_post_fee_used(obj) {
 }
 
 $(document).ready(function () {
-    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon;
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
+        console.log("new debug:", res);
         if (res.length > 0) {
             $.each(res, function (i, val) {
-                var coupon_status = val.coupon_status;
-                var coupon_type = val.coupon_type;
-                var coupon_value = val.coupon_value;
-                var deadline = val.deadline;
-                var created = val.created;
                 //默认对象
-                console.log("devug val:", val);// status 0:已领取 1:已使用  2:已过期
-                var yhq_obj = {"created": created, "deadline": deadline};
-                if (coupon_value == 30 && coupon_status == 0 && coupon_type == 4) {
+                var yhq_obj = {"created": val.created, "deadline": val.deadline};
+
+                if (val.coupon_value == 30 && val.status == 0 && val.coupon_type == 0) {
                     //满30返30  代理 coupon_type 4
                     var yhq_tree1 = create_yhq_dom(yhq_obj);
                     $(".youxiao").append(yhq_tree1);
                 }
-                if (coupon_value == 30 && coupon_status == 2 && coupon_type == 4) {
+                if (val.coupon_value == 30 && val.poll_status == 2 && val.coupon_type == 0) {
                     //满30返30  代理 coupon_type 4 过期
                     var yhq_tree2 = create_yhq_dom(yhq_obj);
                     $(".youxiao").append(yhq_tree2);
                 }
-                if (coupon_value == 30 && coupon_status == 1 && coupon_type == 4) {
+                if (val.coupon_value == 30 && val.status == 1 && val.coupon_type == 0) {
                     //满30返30  代理 coupon_type 4 已使用
                     var yhq_tree3 = create_yhq_dom_used(yhq_obj);
                     $(".youxiao").append(yhq_tree3);
                 }
-                if (coupon_value == 10 && coupon_status == 0 && coupon_type == 5) {
+                if (val.coupon_value == 10 && val.status == 0 && val.coupon_type == 1) {
                     //10元现金券   coupon_type 5
                     var yhq_tree5 = create_yhq_dom_post_fee(yhq_obj);
                     $(".youxiao").append(yhq_tree5);
                 }
-                if (coupon_value == 10 && coupon_status == 1 && coupon_type == 5) {
+                if (val.coupon_value == 10 && val.status == 1 && val.coupon_type == 1) {
                     //10元现金券   coupon_type 5 已使用
                     var yhq_tree6 = create_yhq_dom_post_fee_used(yhq_obj);
                     $(".youxiao").append(yhq_tree6);
