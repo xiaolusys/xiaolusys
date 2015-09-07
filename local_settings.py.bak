@@ -18,7 +18,7 @@ DATABASES = {
         'PASSWORD': '123123',  # Not used with sqlite3.
         'HOST': '192.168.1.101',  # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
         'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
-        'OPTIONS':  {'init_command': 'SET storage_engine=MyISAM;',
+        'OPTIONS':  {'init_command': 'SET storage_engine=Innodb;',
                      'charset': 'utf8'},  # storage_engine need mysql>5.4,and table_type need mysql<5.4
     }
 }
@@ -34,6 +34,7 @@ else :
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
     'middleware.middleware.SecureRequiredMiddleware',
+    'middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,8 +60,9 @@ RAVEN_CONFIG = {
     'register_signals': True,
 }
 
-
+#################### change this site to yourself test domain #######################
 SITE_URL = 'http://mytest.huyi.so:8089/' 
+M_SITE_URL = 'http://localhost:8000/' 
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
@@ -107,6 +109,13 @@ SECURE_REQUIRED_PATHS = (
     '/admin/',
 )
 
+REST_FRAMEWORK_EXTENSIONS = {
+    'DEFAULT_USE_CACHE':'default',
+    'DEFAULT_CACHE_ERRORS': False,
+    'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 0,
+    'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
+}
+
 ################### WEIXIN SETTINGS ##################
 
 WEIXIN_API_HOST = "https://api.weixin.qq.com"
@@ -129,4 +138,4 @@ JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
 ################### PING++ SETTINGS ##################
 PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
 PINGPP_APPKEY          = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT" #TEST KEY
-
+PINGPP_CLENTIP         = "127.0.0.1"

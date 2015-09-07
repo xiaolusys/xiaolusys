@@ -170,7 +170,7 @@
 			<td >{% for ware in trade.ware_list %}{% if ware.0 == order.ware_by %}<span class="label label-info">{{ ware.1 }}</span>{% endif %}{% endfor %}</td>
 			<td><button class="change-order btn-warning" idx="{{ forloop.counter }}"  oid="{{ order.id }}"   onclick="changeOrder(this)"     >修改</button>
 			    <button class="delete-order btn-danger" oid="{{ order.id }}"       onclick="deleteOrder(this)">删除</button>
-			    <button class="delete-order btn-info" oid="{{ order.id }}"       onclick="addorderto(this)">加入拆单</button>
+			    <button class="delete-order btn-info" oid="{{ order.id }}"       onclick="addorderto(this)">拆单</button>
 			</td>
 		</tr>
 		{% endfor %}

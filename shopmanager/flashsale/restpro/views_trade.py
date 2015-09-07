@@ -592,7 +592,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                 carry_type=CarryLog.CARRY_OUT)
         #确认付款后保存
         confirmTradeChargeTask.s(strade_id)()
-        
         return {'channel':channel,'success':True,'id':sale_trade.id}
     
     @rest_exception(errmsg=u'订单支付异常')
@@ -867,6 +866,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(instance)
+
         return Response(response_charge)
     
     def perform_destroy(self, instance):
