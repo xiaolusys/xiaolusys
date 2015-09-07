@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    {% block meta %} {% endblock %}
+    <title> 校验聚合 </title>
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <!-- js -->
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.zclip.js"></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+    <!--datepicker -->
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <form method="get" action="/mm/check_product/">
+            <div class="col-xs-3">
+                <label class="control-label" for="sale_time">上架日期:</label>
+                <input type="text" id="f_datepicker" readonly name="sale_time"
+                       class="form-control datepicker" value="{{ sale_time }}"/>
+            </div>
+            <div class="col-xs-3"><input type="submit" class="btn btn-primary" value="查询"
+                                         style="margin-top: 20px"/></div>
+        </form>
+    </div>
+    <div class="row" style="margin-top: 20px">
+        <table class="table table-bordered">
+            <thead>
+            <th>图片</th>
+            <th>商品id</th>
+            <th>商品名字</th>
+            <th>聚合的商品</th>
+            </thead>
+            <tbody>
+            {% for product in all_product %}
+                <tr {% if product.error_tip %}style="background-color: #f353a1"{% endif %}>
+                    <td>
+                        <img src="{{ product.pic_path }}" width="50px" class="img-circle">
+                    </td>
+                    <td>
+                        {{ product.outer_id }}
+                    </td>
+                    <td>
+                        {{ product.name }}
+                    </td>
+                    <td>
+                        {% ifequal product.model_product "0" %}单款{% endifequal %}
+                        {{ product.model_product.name }}
+                    </td>
+                </tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% block tail_script %}
+    <script type="text/javascript">
+        $(function () {
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+        });
+
+    </script>
+
+{% endblock %}
+
+</body>
+</html>

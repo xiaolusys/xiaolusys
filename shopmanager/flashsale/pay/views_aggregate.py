@@ -91,3 +91,53 @@ class CheckModelExistView(View):
             result_str = """{"result":false}"""
         return HttpResponse(result_str)
 
+import datetime
+from django.forms.models import model_to_dict
+from flashsale.pay.models_custom import ModelProduct
+
+
+def check_aggregate_error(product):
+    p_outer_id = product.outer_id
+    outer_jie = p_outer_id[0:len(p_outer_id) - 1]
+    p_model_id = product.model_id
+    agg_products = Product.objects.filter(outer_id__contains=outer_jie, status=Product.NORMAL)
+    for agg_product in agg_products:
+        if agg_product.model_id != p_model_id:
+            return True
+    return False
+
+
+def check_one_model(product):
+    p_outer_id = product.outer_id
+    outer_jie = p_outer_id[0:len(p_outer_id) - 1]
+    agg_products = Product.objects.filter(outer_id__contains=outer_jie, status=Product.NORMAL)
+    return agg_products.count() == 1
+
+
+class AggregateProductCheckView(View):
+    @staticmethod
+    def get(request):
+        product_res = []
+        sale_time = request.GET.get("sale_time", datetime.date.today())
+        all_prodcut = Product.objects.filter(sale_time=sale_time, status=Product.NORMAL)
+        for product in all_prodcut:
+            product_dict = model_to_dict(product)
+            product_dict['error_tip'] = check_aggregate_error(product)
+            if product.model_id == 0:
+                product_dict['model_product'] = "0"
+            else:
+                m_product = ModelProduct.objects.filter(id=product.model_id)
+
+                if m_product.count() > 0:
+                    product_dict['model_product'] = model_to_dict(m_product[0])
+                else:
+                    product_dict['model_product'] = "0"
+            product_res.append(product_dict)
+            product_res.sort()
+        return render_to_response("pay/check_product.html", {"all_product": product_res, "sale_time": sale_time},
+                                  context_instance=RequestContext(request))
+
+    @staticmethod
+    def post(request):
+        post = request.POST
+        return render_to_response("pay/check_product.html", context_instance=RequestContext(request))

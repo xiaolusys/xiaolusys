@@ -195,3 +195,7 @@
     bottom: -10px;
     border-color: #E4007F transparent transparent;
 }
+
+.outer .inner{
+    font-size: 20px;
+}
