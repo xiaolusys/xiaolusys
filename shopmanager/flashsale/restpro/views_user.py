@@ -63,9 +63,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             raise exceptions.APIException(u'手机号码有误')
         reg = Register.objects.filter(vmobile=mobile)
         already_exist = Customer.objects.filter(mobile=mobile)
-        print already_exist.count(),"eeee",mobile,reg.count()
         if already_exist.count() > 0:
-            print "ffff"
             return Response({"result": "0"})  # 已经有用户了
         if reg.count() > 0:
             temp_reg = reg[0]
@@ -80,7 +78,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.code_time = current_time
                 temp_reg.save()
-                # task_register_code.s(mobile, "1")()
+                task_register_code.s(mobile, "1")()
                 return Response({"result": "OK"})
 
         new_reg = Register(vmobile=mobile)
@@ -88,7 +86,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         new_reg.verify_count = 0
         new_reg.code_time = current_time
         new_reg.save()
-        # task_register_code.s(mobile, "1")()
+        task_register_code.s(mobile, "1")()
         return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
