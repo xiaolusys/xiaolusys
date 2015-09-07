@@ -59,7 +59,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         mobile = request.data['vmobile']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             raise exceptions.APIException(u'手机号码有误')
         reg = Register.objects.filter(vmobile=mobile)
         already_exist = Customer.objects.filter(mobile=mobile)
@@ -141,7 +141,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if already_exist.count() == 0:
             return Response({"result": "1"})  # 尚无用户或者手机未绑定
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
@@ -315,7 +315,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if len(customer.mobile) != 0:
             raise exceptions.APIException(u'账户异常，请联系客服～')
         mobile = request.data['vmobile']
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"result": "false"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
@@ -357,7 +357,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 \
                 and len(passwd1) == 0 and len(passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
             return Response({"result": "2"})
-        if mobile == "" and re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"result": "false"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
