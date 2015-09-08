@@ -52,10 +52,8 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             continue
         
         mtrade = mtrades[0]
-        
         if (mtrade.status == MergeTrade.TRADE_CLOSED or 
             mtrade.sys_status in (MergeTrade.INVALID_STATUS,MergeTrade.EMPTY_STATUS)):
-            
             strade.status =  SaleTrade.TRADE_CLOSED
             strade.save()
         
