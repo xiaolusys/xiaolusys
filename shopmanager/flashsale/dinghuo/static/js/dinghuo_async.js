@@ -42,50 +42,49 @@ function get_data() {
             console.log("1", res.task.status);
             if (res.task.status == "SUCCESS") {
                 $("#loading").hide();
-                var result_data = res.task.result;
+                var result_data = res.task.result.trade_dict;
+                var total_more_num = res.task.result.total_more_num;
+                var total_less_num = res.task.result.total_less_num;
+                $("#total_more_num").html(total_more_num);
+                $("#total_less_num").html(total_less_num);
                 var tb = $('#resultTable tbody');
                 $.each(result_data, function (index, product) {
-                    console.log(product[1][0]);
-
                     var result_dom;
-
                     var sku_info = product[1];
-
-
+                    var sku_length = sku_info.length;
                     var data = {
-                        "sku_len": sku_info.length,
+                        "sku_len": sku_length,
                         "outer_id": product[0],
                         "name": product[1][0].product_name,
                         "pic_path": product[1][0].pic_path
                     }
+                    var first_dom = create_first_normal_dom(data);
+                    result_dom = first_dom;
 
+                    $.each(sku_info, function (sku_index, sku) {
+                        var sku_data = {
+                            "sku_name": sku.sku_name,
+                            "ding_huo_status": sku.ding_huo_status,
+                            "sale_num": sku.sale_num,
+                            "product_id": sku.product_id,
+                            "sku_id": sku.sku_id,
+                            "ding_huo_num": sku.ding_huo_num,
+                            "arrival_num": sku.arrival_num,
+                            "sample_num": sku.sample_num,
+                            "ku_cun_num": sku.ku_cun_num
+                        }
+                        if(sku.flag_of_more){
+                            var second_dom = create_second_blue_dom(sku_data);
+                        }else{
+                            var second_dom = create_second_red_dom(sku_data);
+                        }
 
-
-                        var first_dom = create_first_normal_dom(data);
-
-                        result_dom = first_dom;
-
-                        $.each(sku_info, function (sku_index, sku) {
-                            var sku_data = {
-                                "sku_name": sku.sku_name,
-                                "ding_huo_status":sku.ding_huo_status,
-                                "sale_num": sku.sale_num,
-                                "product_id":sku.product_id,
-                                "sku_id":sku.sku_id,
-                                "ding_huo_num":sku.ding_huo_num,
-                                "arrival_num": sku.arrival_num,
-                                "sample_num": sku.sample_num,
-                                "ku_cun_num": sku.ku_cun_num
-                            }
-
-                            var second_dom = create_second_normal_dom(sku_data);
-                            var last_dom = create_last_dom();
-
-                            result_dom = result_dom + second_dom + last_dom;
-                            console.log(result_dom);
-
-
-                        });
+                        var last_dom = create_last_dom();
+                        result_dom = result_dom + second_dom + last_dom;
+                    });
+                    if (sku_length == 0){
+                        result_dom = result_dom + "<td colspan='7'></tr>"
+                    }
                     tb.append(result_dom);
 
                 });
@@ -104,8 +103,8 @@ function create_first_normal_dom(obj) {
          <a href="/sale/dinghuo/adddetail/{{ outer_id }}" target="_blank">编码:{{ outer_id }}</a>
          </td>
          <td rowspan="{{ sku_len }}">
-                <div class="portfolio-box"><img src="{{ pic_path }}" width="100px"
-                                                                        class="img-circle"></div>
+         <div class="portfolio-box"><div class="portfolio-box"><img src="{{ pic_path }}" width="100px"
+         class="img-circle"></div></td>
          */
 
     };
@@ -113,14 +112,14 @@ function create_first_normal_dom(obj) {
     return hereDoc(first_normal_dom).template(obj)
 }
 
-function create_second_normal_dom(obj) {
-    function second_normal_dom() {
+function create_second_red_dom(obj) {
+    function second_red_dom() {
         /*
          <td>{{ sku_name }}</td>
-         <td>{{ ding_huo_status }}</td>
+         <td><span style="color: red;font-size: 20px">{{ ding_huo_status }}</span></td>
          <td>{{ sale_num }}</td>
          <td><a href="/sale/dinghuo/statsbypid/{{ product_id }}" target="_blank"
-                                       id="ding_huo_num_{{ sku_id }}">{{ ding_huo_num }}</a></td>
+         id="ding_huo_num_{{ sku_id }}">{{ ding_huo_num }}</a></td>
          <td>{{ arrival_num }}</td>
          <td>{{ sample_num }}</td>
          <td>{{ ku_cun_num }}</td>
@@ -128,8 +127,27 @@ function create_second_normal_dom(obj) {
 
     };
 
-    return hereDoc(second_normal_dom).template(obj)
+    return hereDoc(second_red_dom).template(obj)
 }
+
+function create_second_blue_dom(obj) {
+    function second_blue_dom() {
+        /*
+         <td>{{ sku_name }}</td>
+         <td><span style="color: blue;font-size: 20px">{{ ding_huo_status }}</span></td>
+         <td>{{ sale_num }}</td>
+         <td><a href="/sale/dinghuo/statsbypid/{{ product_id }}" target="_blank"
+         id="ding_huo_num_{{ sku_id }}">{{ ding_huo_num }}</a></td>
+         <td>{{ arrival_num }}</td>
+         <td>{{ sample_num }}</td>
+         <td>{{ ku_cun_num }}</td>
+         */
+
+    };
+
+    return hereDoc(second_blue_dom).template(obj)
+}
+
 function create_last_dom() {
     function last_dom() {
         /*
