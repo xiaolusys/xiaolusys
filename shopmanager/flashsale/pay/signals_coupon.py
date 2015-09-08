@@ -97,8 +97,8 @@ def release_sale_refund(sender, instance, created, **kwargs):
         return
     if instance.has_good_change:  # 换货不发
         return
-    if instance.status == SaleRefund.REFUND_SUCCESS:  # 退款成功
-        # 调用类方法　生成邮费优惠券
+    if instance.status == SaleRefund.REFUND_SUCCESS and instance.reason == u'开线/脱色/脱毛/有色差/有虫洞':  # 退款成功
+        # 调用类方法　生成邮费优惠券 并且退货原因是因为质量问题　才发放
         buyer_id = instance.buyer_id
         trade_id = instance.trade_id
         kwargs = {"buyer_id": buyer_id, "trade_id": trade_id}
