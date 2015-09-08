@@ -403,7 +403,6 @@ class ProductView(APIView):
         #return  Response({'object':serializers.ProductSerializer(product).data}) 
 
     def post(self, request, id, *args, **kwargs):
-       
         try:
             product = Product.objects.get(id=id)
             print product
@@ -1072,7 +1071,7 @@ class StatProductSaleView(APIView):
         total_stock_cost  = 0
         product_list = Product.objects.filter(status=pcfg.NORMAL)
         if p_outer_id:
-            product_list = product_list.filter(outer_id=p_outer_id)
+            product_list = product_list.filter(outer_id__startswith=p_outer_id)
             
         ps_tuple     = set(queryset.values_list('product_id','sku_id').distinct())
         productid_set      = set(s[0] for s in ps_tuple)
@@ -1184,9 +1183,7 @@ class StatProductSaleView(APIView):
             params.update(user_id=shop_id)
          
         if p_outer_id:
-            product = self.getProductByOuterId(p_outer_id)
-            if product:
-                params.update(product_id=product.id)
+            params.update(outer_id__startswith=p_outer_id)
         
         sale_qs  = ProductDaySale.objects.filter(**params)
         sale_items   = self.calcSaleItems(sale_qs,p_outer_id=p_outer_id,show_sale=show_sale)
