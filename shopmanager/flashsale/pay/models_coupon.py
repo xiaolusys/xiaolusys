@@ -200,7 +200,10 @@ from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate, CouponsP
 
 
 def coupon_migration_handler():
-    coupons = Coupon.objects.all()  # 获取原来旧表中的数据
+    # coupons = Coupon.objects.all()  # 获取原来旧表中的数据
+    time_from = datetime.datetime(2015, 9, 8, 9, 0, 0)
+    time_to = datetime.datetime(2015, 9, 8, 10, 42, 0, 0)
+    coupons = Coupon.objects.filter(created__gte=time_from, created__lte=time_to)  # 获取原来旧表中的数据
     items = 0
     for coupon in coupons:
         customer = coupon.coupon_user
@@ -228,4 +231,4 @@ def coupon_migration_handler():
                     cou.save()
                     items += 1
                     print "id:", usercou.id, "customer:", customer, "trade_id:", trade_id
-    print "共保存{0}条记录".format(items)
+    print "共10个保存{0}条记录".format(items)
