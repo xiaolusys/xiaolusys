@@ -89,7 +89,7 @@ function get_data() {
 
                 });
             } else {
-                setTimeout(get_data, 1000);
+                setTimeout(get_data, 2000);
             }
         }
     });
