@@ -169,9 +169,7 @@
 (function ($) {
     //返回顶部
     $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
-
     var startY;
-
     document.addEventListener('touchstart', function (ev) {
         startY = ev.touches[0].pageY;
     }, false);
