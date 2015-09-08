@@ -136,9 +136,13 @@ $(document).ready(function(){
   var urlParams = window.location.href.split('?')[1];
   Set_user_orderinfo(GLConfig.get_now_payinfo_url+'?'+urlParams);
   
-  //优惠券显示
+  //显示优惠券并绑定付款事件
   get_Coupon_On_Buy();
-  $(document).on({tap:Confirm_charge},'.buy .btn-buy');
+  $(document).on({
+  	//tap:Confirm_charge,
+  	touchend:Confirm_charge,
+  	click:Confirm_charge
+  },'.buy .btn-buy');
     
 });
 
