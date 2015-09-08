@@ -222,14 +222,14 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not username or not password:
             return Response({"result": "null"})
         try:
-            customer = Customer.objects.get(models.Q(email=username) | models.Q(mobile=username))
-            user = customer.user
-            user1 = authenticate(username=user.username, password=password)
+            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username))
+            if customers.count() > 0:
+                username = customers[0].user.username
+            user1 = authenticate(username=username, password=password)
             if user1 is not None:
                 login(request, user1)
-                return Response({"result": "login","next":next_url})   # 登录成功
-            if not user.check_password(password):
-                return Response({"result": "p_error"})  # 密码错误
+                return Response({"result": "login", "next": next_url})   # 登录成功
+            return Response({"result": "u_error"})  # 密码错误
         except Customer.DoesNotExist:
             return Response({"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
