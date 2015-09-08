@@ -12,16 +12,15 @@
     <style type="text/css">
 
         #loading {
-            position: absolute;
-            margin: 0;
-            padding: 0;
+            position: fixed;
+            top: 0;
             left: 0;
             bottom: 0;
             right: 0;
-            z-index: 10000000;
+            z-index: 9999;
             background: white;
             color: #74b936;
-            text-align: center;
+            text-align: center
         }
 
         #loading .loading-container {
@@ -29,7 +28,7 @@
             margin: auto;
             left: 0;
             right: 0;
-            top: 30%;
+            top: 20%;
             bottom: 0
         }
 
@@ -47,12 +46,6 @@
             text-align: center
         }
 
-        #loading .reverse {
-            color: white !important;
-            background: #74b936 !important;
-            padding: 4px;
-            border-radius: 4px
-        }
 
         #loading #loading-app-name {
             text-align: center;
@@ -102,36 +95,6 @@
             transform: scale(1) rotate(20deg);
         }
 
-        #loading input[type="text"] {
-            position: fixed;
-            border: 1px solid #ddd;
-            padding: 6px;
-            font-size: 18px;
-            width: 200px;
-            text-transform: uppercase;
-            bottom: 10%;
-            left: 40%;
-        }
-
-        #loading input[type="submit"] {
-            position: fixed;
-            display: inline;
-            width: 100px;
-            border: 0;
-            line-height: 35px;
-            height: 35px;
-            color: #fff;
-            background: mediumpurple;
-            font-size: 18px;
-            bottom: 10%;
-            left: 55%;
-            cursor: pointer;
-        }
-
-        #loading form {
-            width: 600px;
-            height: 100px;
-        }
     </style>
 
     <style>
@@ -285,16 +248,12 @@
     </div>
 
     <input id="task_id" style="display: none" value="{{ task_id }}">
-    <div id="loading">
-        <canvas id="text" width="600" height="100" style="z-index: 999"></canvas>
-        <canvas id="stage" width="600" height="1000" style="z-index: 999"></canvas>
+    <div id="loading" class="slide-content">
         <div class='loading-container'>
             <h1 id='loading-app-name'>小鹿美美</h1>
-
-            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进度查询系统</span></h3>
-
-
-
+            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进度查询系统<br><br>请耐心等候……<br></span>
+                <div id="canvas_loading"></div>
+            </h3>
             <div id='loading-text'>
                 <figure>
                     <section>
@@ -320,10 +279,6 @@
                     </section>
                 </figure>
             </div>
-        <form id="form">
-            <input type="text" id="inputText" value="耐心等候"/>
-            <input type="submit" value="试一试"/>
-        </form>
         </div>
 
     </div>
@@ -332,6 +287,7 @@
 
 {% block tail_script %}
     <script type="text/javascript" src="{{ STATIC_URL }}js/dinghuo_async.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jindutiao_script.js"></script>
     <script type="text/javascript">
         $(function () {
             $("#f_datepicker").datepicker({
@@ -362,10 +318,4 @@
             get_data();
         });
     </script>
-
-    <script src='{{ STATIC_URL }}js/EasePack.min.js'></script>
-    <script src='{{ STATIC_URL }}js/TweenLite.min.js'></script>
-    <script src='{{ STATIC_URL }}js/easeljs-0.7.1.min.js'></script>
-    <script src='{{ STATIC_URL }}js/requestAnimationFrame.js'></script>
-    <script src="{{ STATIC_URL }}js/point_index.js"></script>
 {% endblock %}
