@@ -266,7 +266,8 @@ class CalcProductSaleTask(Task):
                                              day_date=yest_date,
                                              user_id=user.id,
                                              product_id=product.id,
-                                             sku_id=sku and sku.id)
+                                             sku_id=sku and sku.id or 0,
+                                             outer_id=product.outer_id)
             
             pds.sale_num = sale_dict['sale_num'] or 0
             pds.sale_payment = sale_dict['sale_payment'] or 0

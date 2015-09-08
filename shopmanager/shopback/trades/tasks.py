@@ -425,7 +425,6 @@ def task_Gen_Order_Report_File(date_from,date_to,file_dir=None):
 @task()
 def task_Gen_Logistic_Report_File(date_from,date_to,file_dir=None):
     
-    
     un_maps = get_User_Key_Name_Map()
     lc_maps = get_Logistic_Company_Key_Name_Map()
     

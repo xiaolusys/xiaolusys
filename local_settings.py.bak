@@ -62,7 +62,7 @@ RAVEN_CONFIG = {
 
 #################### change this site to yourself test domain #######################
 SITE_URL = 'http://mytest.huyi.so:8089/' 
-M_SITE_URL = 'http://localhost:8000/' 
+M_SITE_URL = 'http://127.0.0.1:8000/' 
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
@@ -139,3 +139,81 @@ JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
 PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
 PINGPP_APPKEY          = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT" #TEST KEY
 PINGPP_CLENTIP         = "127.0.0.1"
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/django-debug.log',
+            'formatter': 'simple'
+        },
+        'sentry': {
+            'level': 'ERROR',
+            'class': 'raven.contrib.django.handlers.SentryHandler'
+        },
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'mail_admins': {
+            'level': 'INFO',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['sentry'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'sentry.errors': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'celery.handler': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'notifyserver.handler':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'yunda.handler':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'mail.handler':{
+            'handlers': ['mail_admins','sentry'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'xhtml2pdf':{
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'restapi.errors': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
+    }
+}

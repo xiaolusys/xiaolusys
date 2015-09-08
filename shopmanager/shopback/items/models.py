@@ -931,7 +931,8 @@ class ProductDaySale(models.Model):
     user_id  = models.BigIntegerField(null=False,verbose_name=u'店铺用户ID')
     product_id  = models.IntegerField(null=False,verbose_name='商品ID')
     sku_id      = models.IntegerField(null=True,verbose_name='规格ID')
-
+    outer_id    = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='商品编码')
+    
     sale_num     = models.IntegerField(default=0,verbose_name='销售数量')
     sale_payment = models.FloatField(default=0.0,verbose_name='销售金额')
     sale_refund  = models.FloatField(default=0.0,verbose_name='退款金额')
