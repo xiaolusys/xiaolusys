@@ -470,4 +470,5 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, que
             else:
                 trade_dict[product[0]].append(temp_dict)
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
-    return trade_dict
+    result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
+    return result_dict

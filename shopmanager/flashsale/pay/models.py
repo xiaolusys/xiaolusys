@@ -13,7 +13,8 @@ from .models_addr import District,UserAddress
 from .models_custom import Productdetail,GoodShelf,ModelProduct
 from .models_refund import SaleRefund
 from .models_envelope import Envelop
-from .models_coupon import Integral,IntegralLog,Coupon,CouponPool
+from .models_coupon import Integral,IntegralLog
+from .models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 from .managers import SaleTradeManager
 
 from .signals import signal_saletrade_pay_confirm
@@ -245,7 +246,7 @@ class SaleTrade(models.Model):
         
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
-        Coupon.objects.filter(trade_id=self.id,status=Coupon.USED).update(status=Coupon.RECEIVE)
+        UserCoupon.objects.filter(sale_trade=self.id, status=UserCoupon.USED).update(status=UserCoupon.UNUSED)
     
     @property
     def can_sign_order(self):

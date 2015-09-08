@@ -571,7 +571,7 @@ class DailyWorkView(View):
         if groupname == 0:
             group_sql = ""
         else:
-            group_sql = " where group_id = " + str(groupname)
+            group_sql = "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id =" + str(groupname)+"))"
         if len(search_text) > 0:
             search_text = str(search_text)
             product_sql = "select id,name as product_name,outer_id,pic_path from " \
@@ -579,8 +579,7 @@ class DailyWorkView(View):
                 search_text)
         else:
             product_sql = "select id,name as product_name,outer_id,pic_path from " \
-                          "shop_items_product where  sale_time='{0}' and status!='delete' " \
-                          "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser {1}))".format(
+                          "shop_items_product where  sale_time='{0}' and status!='delete' {1}".format(
                 target_date, group_sql)
         sql = "select product.outer_id,product.product_name,product.pic_path," \
               "order_info.sale_num,product.id " \

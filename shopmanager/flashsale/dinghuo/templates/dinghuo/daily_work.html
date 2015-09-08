@@ -82,6 +82,22 @@
             right: 20px;
             position: absolute;
         }
+
+        .portfolio-box img {
+            box-shadow: 2px 2px 5px rgba(187, 187, 187, 0.5);
+            -webkit-transition: -webkit-transform 0.2s ease-out;
+            -moz-transition: -moz-transform 0.2s ease-out;
+            -o-transition: -o-transform 0.2s ease-out;
+            transition: transform 0.2s ease-out;
+        }
+
+        .portfolio-box img:hover {
+            -webkit-transform: scale(1) rotate(20deg);
+            -moz-transform: scale(1) rotate(20deg);
+            -o-transform: scale(1) rotate(20deg);
+            -ms-transform: scale(1) rotate(20deg);
+            transform: scale(1) rotate(20deg);
+        }
     </style>
 
     <style>
@@ -223,13 +239,8 @@
         </table>
     </div>
     <div class="floatButton" style="z-index: 9999;">
-
-        {% if total_more_num %}
-            <span style="font-size: 20px">共多了{{ total_more_num }}件</span><br>
-        {% endif %}
-        {% if total_less_num %}
-            <span style="font-size: 20px">少了{{ total_less_num }}件</span>
-        {% endif %}
+            <span style="font-size: 20px">共多了<span  id="total_more_num">0</span>件</span><br>
+            <span style="font-size: 20px">少了<span id="total_less_num">0</span>件</span>
         <span id="test_gru"></span>
     </div>
     <div class="btn-group-vertical floatview">
