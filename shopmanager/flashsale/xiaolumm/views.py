@@ -801,85 +801,18 @@ def create_coupon(sale_orders):
     cou.release_deposit_coupon(**kwargs)
     return cou
 
+from tasks import task_mama_Verify_Action
+
 
 @csrf_exempt
 @transaction.commit_on_success
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
-    referal_mobile = request.GET.get('tuijianren','').strip()
+    referal_mobile = request.GET.get('tuijianren', '').strip()
     weikefu = request.GET.get('weikefu')
-
-    xlmm = XiaoluMama.objects.get(id=mama_id)
-    openid = xlmm.openid
-    mobile = xlmm.mobile
-    if xlmm.manager != 0:
-        return HttpResponse('already')
-    sale_orders = get_Deposit_Trade(openid, mobile)  # 调用函数 传入参数（妈妈的openid，mobile）
-    if sale_orders is None:
-        return HttpResponse('reject')
-    referal_mama = None
-    if referal_mobile:
-        try:
-            referal_mama = XiaoluMama.objects.normal_queryset.get(mobile=referal_mobile)
-            if referal_mama.referal_from == xlmm.mobile or referal_mobile == xlmm.mobile:
-                return HttpResponse('cross')
-            if referal_mama.agencylevel not in (2, 3):
-                return HttpResponse("l_error")
-        except XiaoluMama.DoesNotExist:
-            return HttpResponse('unfound')
-        except XiaoluMama.MultipleObjectsReturned:
-            return HttpResponse('multiple')
-    # 创建优惠券
-    cou = create_coupon(sale_orders)
-    log_action(request.user.id, cou, CHANGE, u'妈妈审核过程中,添加专属优惠券！')
-
-    order = sale_orders[0]
-    order.status = SaleOrder.TRADE_FINISHED # 改写订单明细状态
-    order.save()
-    log_action(request.user.id, order, CHANGE, u'妈妈审核过程中修改订单明细状态为 交易成功')
-
-    trade = order.sale_trade
-    trade.status = SaleTrade.TRADE_FINISHED  # 改写 订单状态
-    trade.save()
-    log_action(request.user.id, trade, CHANGE, u'妈妈审核过程中修改订单交易状态为 交易成功')
-
-    # diposit_cash = 13000  2015-08-21 第二期代理招募　修改　充１１８　写cash１１８
-    diposit_cash = 11800
-    recruit_rebeta = 5000
-    # 修改小鹿妈妈的记录
-    log_tp = CarryLog.objects.get_or_create(xlmm=xlmm.id,
-                                   order_num=trade.id,
-                                   log_type=CarryLog.DEPOSIT,
-                                   value=diposit_cash,
-                                   buyer_nick= weikefu,
-                                   carry_type=CarryLog.CARRY_IN,
-                                   status=CarryLog.CONFIRMED)
-    if not log_tp[1]:  # 如果存在押金记录则返回拒绝
-        return HttpResponse('reject')
-    else:
-        log_action(request.user.id, log_tp[0], ADDITION, u'妈妈审核过程中创建妈妈首个收支记录')
-    xlmm.cash = F('cash') + diposit_cash # 分单位
-    xlmm.referal_from = referal_mobile
-    xlmm.agencylevel = 3  # 2015-08-24 第二期代理招募　代理级别为 3
-    xlmm.charge_status = XiaoluMama.CHARGED
-    xlmm.manager = request.user.id
-    xlmm.weikefu = weikefu
-    xlmm.progress = XiaoluMama.PASS
-    xlmm.charge_time = datetime.datetime.now()
-    xlmm.save()
-    log_action(request.user.id, xlmm, CHANGE, u'妈妈审核过程中修改该妈妈的信息以及可用现金')
-    
-    if referal_mama:  # 给推荐人添加招募奖金的收支记录，状态为pending
-        carry, state = CarryLog.objects.get_or_create(xlmm=referal_mama.id,
-                                       order_num=xlmm.id,
-                                        log_type=CarryLog.MAMA_RECRUIT,
-                                        value=recruit_rebeta,
-                                        buyer_nick=referal_mama.weikefu,
-                                        carry_type=CarryLog.CARRY_IN,
-                                        status=CarryLog.PENDING)
-        log_action(request.user.id, carry, ADDITION, u'妈妈审核过程中 添加妈妈推荐人的收支记录（招募奖金）')
-        
-    return HttpResponse('ok')
+    user_id = request.user.id
+    res = task_mama_Verify_Action.s(user_id, mama_id, referal_mobile, weikefu)()
+    return HttpResponse(res)
 
 
 
