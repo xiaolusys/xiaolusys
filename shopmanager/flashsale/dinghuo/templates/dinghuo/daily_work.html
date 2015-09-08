@@ -10,9 +10,11 @@
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
     <style type="text/css">
+
         #loading {
-            position: fixed;
-            top: 0;
+            position: absolute;
+            margin: 0;
+            padding: 0;
             left: 0;
             bottom: 0;
             right: 0;
@@ -64,9 +66,10 @@
         }
 
         #loading #loading-text {
-            margin: 80px auto;
+            position: fixed;
+            left: 47%;
             text-align: center;
-            margin-bottom: 40px
+            bottom: 30%;
         }
 
         .floatButton {
@@ -97,6 +100,37 @@
             -o-transform: scale(1) rotate(20deg);
             -ms-transform: scale(1) rotate(20deg);
             transform: scale(1) rotate(20deg);
+        }
+
+        #loading input[type="text"] {
+            position: fixed;
+            border: 1px solid #ddd;
+            padding: 6px;
+            font-size: 18px;
+            width: 200px;
+            text-transform: uppercase;
+            bottom: 10%;
+            left: 40%;
+        }
+
+        #loading input[type="submit"] {
+            position: fixed;
+            display: inline;
+            width: 100px;
+            border: 0;
+            line-height: 35px;
+            height: 35px;
+            color: #fff;
+            background: mediumpurple;
+            font-size: 18px;
+            bottom: 10%;
+            left: 55%;
+            cursor: pointer;
+        }
+
+        #loading form {
+            width: 600px;
+            height: 100px;
         }
     </style>
 
@@ -252,12 +286,14 @@
 
     <input id="task_id" style="display: none" value="{{ task_id }}">
     <div id="loading">
+        <canvas id="text" width="600" height="100" style="z-index: 999"></canvas>
+        <canvas id="stage" width="600" height="1000" style="z-index: 999"></canvas>
         <div class='loading-container'>
             <h1 id='loading-app-name'>小鹿美美</h1>
 
             <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进度查询系统</span></h3>
 
-            <p id='loading-text'></p>
+
 
             <div id='loading-text'>
                 <figure>
@@ -284,8 +320,12 @@
                     </section>
                 </figure>
             </div>
-
+        <form id="form">
+            <input type="text" id="inputText" value="耐心等候"/>
+            <input type="submit" value="试一试"/>
+        </form>
         </div>
+
     </div>
     <div id="main"></div>
 {% endblock %}
@@ -323,4 +363,9 @@
         });
     </script>
 
+    <script src='{{ STATIC_URL }}js/EasePack.min.js'></script>
+    <script src='{{ STATIC_URL }}js/TweenLite.min.js'></script>
+    <script src='{{ STATIC_URL }}js/easeljs-0.7.1.min.js'></script>
+    <script src='{{ STATIC_URL }}js/requestAnimationFrame.js'></script>
+    <script src="{{ STATIC_URL }}js/point_index.js"></script>
 {% endblock %}
