@@ -21,6 +21,7 @@ from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
 import uuid
 from shopback.base import log_action, ADDITION, CHANGE
+from common.utils import update_model_fields
 
 FLASH_SELLER_ID = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
@@ -219,7 +220,7 @@ class SaleTrade(models.Model):
         trade_close = self.status == self.TRADE_CLOSED_BY_SYS
         self.status = self.WAIT_SELLER_SEND_GOODS
         self.pay_time = charge_time or datetime.datetime.now()
-        self.save()
+        update_model_fields(self,update_fields=['status','pay_time'])
         
         for order in self.sale_orders.all():
             order.status = order.WAIT_SELLER_SEND_GOODS

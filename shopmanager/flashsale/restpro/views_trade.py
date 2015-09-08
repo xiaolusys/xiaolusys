@@ -34,6 +34,7 @@ from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from django.forms.models import model_to_dict
 from shopback.items.models import Product, ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
+from common.utils import update_model_fields
 import logging
 
 logger = logging.getLogger('restapi.errors')
@@ -633,7 +634,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                   'extra':extra}
         charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
         sale_trade.charge = charge.id
-        sale_trade.save()
+        update_model_fields(sale_trade,update_fields=['charge'])
         return charge
     
     @rest_exception(errmsg=u'特卖订单创建异常')
@@ -872,7 +873,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))
         
-        if instance.created <= deadline:
+        if not instance.created or instance.created <= deadline:
             raise exceptions.APIException(_errmsg.get(SaleTrade.TRADE_CLOSED_BY_SYS))   
         
         if instance.channel == SaleTrade.WALLET:
@@ -881,7 +882,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(instance)
-
+        log_action(request.user.id, instance, CHANGE, u'重新支付')
         return Response(response_charge)
     
     def perform_destroy(self, instance):
