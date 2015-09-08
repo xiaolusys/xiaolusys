@@ -108,25 +108,25 @@
   <a class="btn-buy" name="btn-buy">购&nbsp;&nbsp;买</a>
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
-<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.js"></script>
+<!--<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.js"></script>-->
 <script src="../js/pingpp_pay.js"></script>
 <script src="../js/pingpp_ap.js"></script>
 <script src="../js/tmpay.js"></script>
 <script src="../js/tmyhquse.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
-  $('.ui-loader').remove();
+  //$('.ui-loader').remove();
   //地址切换
   $(document).on({
-  	//touchend:change_address,
-  	tap:change_address,
-  	//click:change_address
+    //tap:change_address,
+  	touchend:change_address,
+  	click:change_address
   },'#js-addr li');
   //支付方式切换
   $(document).on({
-  	//touchend:change_paytype,
-  	tap:change_paytype,
-  	//click:change_paytype
+    //tap:change_paytype,
+  	touchend:change_paytype,
+  	click:change_paytype
   },'#js-pay-type li');
   //获取用户地址
   Set_user_address(GLConfig.get_user_address);
