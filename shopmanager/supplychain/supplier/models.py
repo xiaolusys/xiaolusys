@@ -6,6 +6,7 @@ from .managers import SaleSupplierManager
 from .models_buyer_group import BuyerGroup
 from shopback.base.fields import BigIntegerForeignKey
 
+
 class SaleCategory(models.Model):
     NORMAL = 'normal'
     DELETE = 'delete'
@@ -98,8 +99,8 @@ class SaleSupplier(models.Model):
     platform = models.CharField(max_length=16, blank=True, choices=PLATFORM_CHOICE,
                                 default=MANUAL, verbose_name=u'来自平台')
 
-    category = models.ForeignKey(SaleCategory, null=True,
-                                 related_name='category_suppliers', verbose_name=u'类别')
+    category = BigIntegerForeignKey(SaleCategory, null=True,
+                                    related_name='category_suppliers', verbose_name=u'类别')
 
     contact = models.CharField(max_length=32, blank=True, verbose_name=u'联系人')
     phone = models.CharField(max_length=32, blank=True, verbose_name=u'电话')
@@ -147,7 +148,7 @@ class SupplierCharge(models.Model):
 
     supplier_id = models.IntegerField(default=0, verbose_name=u'供应商ID')
     employee = BigIntegerForeignKey(User,
-                                 related_name='employee_suppliers', verbose_name=u'接管人')
+                                    related_name='employee_suppliers', verbose_name=u'接管人')
 
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES,
                               default=EFFECT, verbose_name=u'状态')
