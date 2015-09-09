@@ -227,20 +227,18 @@ class SaleTrade(models.Model):
             order.save()
         if not trade_close:
             self.release_lock_skunum()    
-                
         self.confirm_payment()
     
     def close_trade(self):
         """ 关闭待付款订单 """
-        try:
-            SaleTrade.objects.get(id=self.id,status=SaleTrade.WAIT_BUYER_PAY)
-        except:
+
+        urows = SaleTrade.objects.filter(id=self.id,status=SaleTrade.WAIT_BUYER_PAY).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
+        if urows == 0:
             return
+        self.status = SaleTrade.TRADE_CLOSED_BY_SYS
+        
         for order in self.normal_orders:
             order.close_order()
-            
-        self.status = SaleTrade.TRADE_CLOSED_BY_SYS
-        self.save()
         #释放被当前订单使用的优惠券
         self.release_coupon()
         
