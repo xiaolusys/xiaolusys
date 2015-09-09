@@ -193,7 +193,7 @@ from .filters import Filte_By_Reason
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = (
-    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status','')
+    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status')
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason)
 
