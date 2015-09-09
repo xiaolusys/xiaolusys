@@ -83,7 +83,7 @@
 			    <tr class="{% if trade.has_refund_prod %}label-warning{% endif %}">
 			    	<td>{{ forloop.counter }}</td>
 			    	<td><a href="javascript:void(0);" class="check-refund-order" style="cursor:pointer;" title="{{ trade.tid }}" seller_id="{{ trade.seller_id }}" tid="{{ trade.tid }}">
-			    		{% if trade.buyer_nick %}{{ trade.buyer_nick }}{% else %}{{ trade.mobile }}{% endif %}</a></td>
+			    		{% if trade.buyer_nick %}{{ trade.buyer_nick }}{% else %}****{% endif %}</a></td>
 			    	<td>{{ trade.seller_nick }}</td>
 			    	<td>{{ trade.receiver_name }}</td>
 			    	<td>{{ trade.order_num }}<a></a></td>

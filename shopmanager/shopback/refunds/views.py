@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from auth import staff_requried
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
@@ -115,8 +116,9 @@ class RefundManagerView(APIView):
         if not tid :
             return Response(u'请输入交易ID')
         
+        trade = get_object_or_404(MergeTrade,tid=tid,user=seller_id)
         try:
-            merge_trade = serializers.MergeTradeSerializer(MergeTrade.objects.all()[0]).data
+            merge_trade = serializers.MergeTradeSerializer(trade).data
         except MergeTrade.DoesNotExist:
             return Response(u'订单未找到')
         
@@ -145,7 +147,7 @@ class RefundProductView(APIView):
         return Response({})
 
     def post(self, request, *args, **kwargs):
-        print       ProductSku.objects.all()[0].outer_id,ProductSku.objects.all()[0].product.outer_id
+        
         content    = request.REQUEST
         outer_id   = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
