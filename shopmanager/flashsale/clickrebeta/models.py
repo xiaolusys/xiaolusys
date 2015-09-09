@@ -154,7 +154,8 @@ def tongji_wxorder(sender, obj, **kwargs):
     mm_rebeta_amount = 0
     mm_order_rebeta = 0
     wx_unionid = get_Unionid(obj.buyer_openid,settings.WEIXIN_APPID)
-    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,agencylevel=2,
+    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,
+                                             charge_status=XiaoluMama.CHARGED,
                                              charge_time__lte=ordertime)
     
     if isinxiaolumm.count() > 0:
@@ -290,7 +291,8 @@ def tongji_saleorder(sender, obj, **kwargs):
                            tichengcount=mm_order_rebeta).save()
         return
     
-    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,agencylevel=2,
+    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,
+                                             charge_status=XiaoluMama.CHARGED,
                                              charge_time__lte=ordertime)
     
     if isinxiaolumm.count() > 0:
