@@ -156,6 +156,8 @@ INSTALLED_APPS = (
     
     #'shopapp.second_time_sort',
     'supplychain.wavepick',
+    'supplychain.supplier',
+    'supplychain.category',
     #'supplychain.temai',
     'games.paint',
     'games.bomb',

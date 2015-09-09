@@ -9,7 +9,8 @@
 
     <!-- Bootstrap -->
     <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link href="{{ STATIC_URL }}css/common.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css" />
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -29,8 +30,10 @@
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="http://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.min.js"></script>
     <script src="{{ STATIC_URL }}admin/js/admin/RelatedObjectLookups.js" type="text/javascript"></script>
     {% block tail_script %}
     {% endblock %}
