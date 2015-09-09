@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from .managers import SaleSupplierManager
 from .models_buyer_group import BuyerGroup
-
+from shopback.base.fields import BigIntegerForeignKey
 
 class SaleCategory(models.Model):
     NORMAL = 'normal'
@@ -146,7 +146,7 @@ class SupplierCharge(models.Model):
     )
 
     supplier_id = models.IntegerField(default=0, verbose_name=u'供应商ID')
-    employee = models.ForeignKey(User,
+    employee = BigIntegerForeignKey(User,
                                  related_name='employee_suppliers', verbose_name=u'接管人')
 
     status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES,
