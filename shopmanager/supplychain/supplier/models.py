@@ -210,8 +210,8 @@ class SaleProduct(models.Model):
     pic_url = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
     product_link = models.CharField(max_length=512, blank=True, verbose_name=u'商品外部链接')
 
-    sale_supplier = models.ForeignKey(SaleSupplier, null=True, related_name='supplier_products', verbose_name=u'供货商')
-    sale_category = models.ForeignKey(SaleCategory, null=True, related_name='category_products', verbose_name=u'类别')
+    sale_supplier = BigIntegerForeignKey(SaleSupplier, null=True, related_name='supplier_products', verbose_name=u'供货商')
+    sale_category = BigIntegerForeignKey(SaleCategory, null=True, related_name='category_products', verbose_name=u'类别')
     platform = models.CharField(max_length=16, blank=True, default=MANUAL,
                                 choices=PLATFORM_CHOICE, verbose_name=u'来自平台')
 
@@ -225,7 +225,7 @@ class SaleProduct(models.Model):
     status = models.CharField(max_length=16, blank=True,
                               choices=STATUS_CHOICES, default=WAIT, verbose_name=u'状态')
 
-    contactor = models.ForeignKey(User, null=True, related_name='sale_products', verbose_name=u'接洽人')
+    contactor = BigIntegerForeignKey(User, null=True, related_name='sale_products', verbose_name=u'接洽人')
 
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
@@ -253,7 +253,7 @@ class SaleProductSku(models.Model):
     properties_name = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'规格')
     price = models.FloatField(default=0, verbose_name=u'价格')
 
-    sale_product = models.ForeignKey(SaleProduct, null=True, related_name='product_skus', verbose_name=u'商品规格')
+    sale_product = BigIntegerForeignKey(SaleProduct, null=True, related_name='product_skus', verbose_name=u'商品规格')
     sale_price = models.FloatField(default=0, verbose_name=u'采购价')
     spot_num = models.IntegerField(default=0, verbose_name=u'现货数量')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
