@@ -49,7 +49,7 @@ def update_Unrelate_Prods_Product(pro, req, trade_id=''):
                 refund.user = merge_trade.user                   # 店铺
                 # refund.seller_id =                                            # 卖家ID
                 refund.buyer_nick = merge_trade.buyer_nick                   # 买家昵称
-                refund.seller_nick = merge_trade.seller_nick                 # 卖家昵称
+                refund.seller_nick = merge_trade.user.nick                   # 卖家昵称
 
                 refund.mobile = merge_trade.receiver_mobile      # 收件人手机  （这里不使用退货物流的手机号码）
                 refund.phone  = merge_trade.receiver_phone        # 电话
