@@ -189,13 +189,13 @@ class SaleRefundChangeList(ChangeList):
 
 
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
-
+from .filters import Filte_By_Reason
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = (
-    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status')
+    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status','reason')
 
-    list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change')
+    list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason)
 
     search_fields = ['=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20

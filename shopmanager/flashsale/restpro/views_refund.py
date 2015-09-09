@@ -107,7 +107,8 @@ def modify_Sale_Refund_Status(sale_refund_id=None, status=None):
         return False
 
 
-def save_Other_Atriibut(trade=None, order=None, sale_refund=None, refund_num=None, reason=None, feedback=None):
+def save_Other_Atriibut(trade=None, order=None, sale_refund=None, refund_num=None, reason=None, feedback=None,
+                        good_status=None):
     sale_refund.buyer_id = trade.buyer_id
     sale_refund.title = order.title
     sale_refund.charge = trade.charge
@@ -123,7 +124,7 @@ def save_Other_Atriibut(trade=None, order=None, sale_refund=None, refund_num=Non
     sale_refund.refund_fee = order.refund_fee
     sale_refund.reason = REFUND_REASON[reason][1]  # 填写原因
     sale_refund.desc = feedback  # 填写审核建议2015-09-06　修改此前字段填写出错
-    sale_refund.good_status = SaleRefund.BUYER_NOT_RECEIVED
+    sale_refund.good_status = good_status  # 退货状态
     sale_refund.status = SaleRefund.REFUND_WAIT_SELLER_AGREE
     sale_refund.save()
 
@@ -162,7 +163,7 @@ def common_Handler(request, oid, reason, num, shenqingjine, feedback, good_statu
         order.save()
         log_action(request.user.id, order, CHANGE, u'用户售后修改申请信息！')
         # 保存其他信息到sale_refund
-        save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num,
+        save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num, good_status=good_status,
                             reason=reason, feedback=feedback)
         pushTradeRefundTask(sale_refund.id)
         return {"res": "ok"}
@@ -175,7 +176,7 @@ def common_Handler(request, oid, reason, num, shenqingjine, feedback, good_statu
         order.save()
         log_action(request.user.id, order, CHANGE, u'用户售后提交申请时修改order信息！')
         # 保存其他信息到sale_refund
-        save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num,
+        save_Other_Atriibut(trade=trade, order=order, sale_refund=sale_refund, refund_num=num, good_status=good_status,
                             reason=reason, feedback=feedback)
         log_action(request.user.id, sale_refund, ADDITION, u'用户售后增加退货款单信息！')
         pushTradeRefundTask(sale_refund.id)
