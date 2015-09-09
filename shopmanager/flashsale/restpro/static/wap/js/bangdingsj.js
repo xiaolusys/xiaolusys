@@ -78,6 +78,9 @@ function bang_get_code() {
         } else if (result == "2") {
             phone_exist_error.text("亲，今日验证码获取次数已到上限～").show();
             setTimeout("error_hide()", 1000);
+        } else if (result == "false") {
+            phone_exist_error.text("填写有误~").show();
+            setTimeout("error_hide()", 1000);
         }
     };
     if (!execReg(regCheck(4), mobile)) {

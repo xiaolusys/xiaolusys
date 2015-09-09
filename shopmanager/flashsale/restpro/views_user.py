@@ -23,9 +23,10 @@ from . import serializers
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
 import re
-PHONE_NUM_RE = re.compile(r'1[34578][0-9]{9}', re.IGNORECASE)
+PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
 DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+
 
 def check_day_limit(reg_bean):
     if reg_bean.code_time and datetime.datetime.now().strftime('%Y-%m-%d') == reg_bean.code_time.strftime('%Y-%m-%d'):
@@ -59,7 +60,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         mobile = request.data['vmobile']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             raise exceptions.APIException(u'手机号码有误')
         reg = Register.objects.filter(vmobile=mobile)
         already_exist = Customer.objects.filter(mobile=mobile)
@@ -143,7 +144,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if already_exist.count() == 0:
             return Response({"result": "1"})  # 尚无用户或者手机未绑定
-        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
@@ -179,9 +180,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
 
-        if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(
-                passwd1) == 0 and len(
-                passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
+        if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
+                or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
             return Response({"result": "2"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() == 0:
@@ -323,7 +323,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if len(customer.mobile) != 0:
             raise exceptions.APIException(u'账户异常，请联系客服～')
         mobile = request.data['vmobile']
-        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             return Response({"result": "false"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
@@ -361,12 +361,12 @@ class CustomerViewSet(viewsets.ModelViewSet):
         verify_code = request.data['valid_code']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-
-        if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 \
-                and len(passwd1) == 0 and len(passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
+        if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
+                or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
             return Response({"result": "2"})
-        if mobile == "" or not re.findall(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
-            return Response({"result": "false"})
+        print not re.match(PHONE_NUM_RE, mobile),re.match(PHONE_NUM_RE, mobile)
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+            return Response({"result": "2"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
             return Response({"result": "1"})  # 手机已经绑定
@@ -423,7 +423,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
-        if customer.mobile == "" and re.findall(PHONE_NUM_RE, customer.mobile):  # 进行正则判断，待写
+        if customer.mobile == "" or not re.match(PHONE_NUM_RE, customer.mobile):  # 进行正则判断，待写
             return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=customer.mobile)
         if reg.count() == 0:
@@ -459,9 +459,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         passwd2 = request.data['password2']
         verify_code = request.data['valid_code']
 
-        if not mobile and not passwd1 and not passwd2 and not verify_code and len(mobile) == 0 and len(
-                passwd1) == 0 and len(
-                passwd2) and len(verify_code) == 0 and passwd2 != passwd1:
+        if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
+                or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
             return Response({"result": "2"})
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
