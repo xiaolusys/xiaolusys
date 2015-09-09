@@ -20,6 +20,7 @@ from flashsale.pay.models_custom import Productdetail
 
 from . import permissions as perms
 from . import serializers 
+from shopback.base import log_action, ADDITION, CHANGE
 
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
@@ -216,10 +217,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         previous_dt = self.get_priview_date(request)
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
-        
+
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
-        
+
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
                          'child_list':self.get_serializer(child_qs, many=True).data}
         
@@ -329,3 +330,16 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @detail_route(methods=['post'])
+    def verify_product(self, request, pk, *args, **kwargs):
+        pro = get_object_or_404(Product, id=pk)
+        if pro.is_verify:  # 如果已经审核　修改成未审核
+            pro.is_verify = False
+            pro.save()
+            log_action(request.user.id, pro, CHANGE, u'预览时修改产品为未审核！')
+        else:  # 如果未审核　修改该为已经审核
+            pro.is_verify = True
+            pro.save()
+            log_action(request.user.id, pro, CHANGE, u'预览时修改产品为已审核！')
+        return Response('ok')

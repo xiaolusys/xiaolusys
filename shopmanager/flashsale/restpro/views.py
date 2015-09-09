@@ -49,7 +49,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             创建退款单 根据退款状态的不同 创建不同的状态的退款/退款单
         """
         res = refund_Handler(request)
-        return Response(data=res)
+        return Response(res)
 
     @detail_route(methods=["get"])
     def get_by_order_id(self, request, pk=None):
