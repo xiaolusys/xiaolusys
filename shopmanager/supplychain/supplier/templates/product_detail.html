@@ -1,0 +1,113 @@
+{% load mathfilters %}
+
+<li id="id-item-{% if record %}{{ record.id }}{% endif %}" class="list-group-item">
+    <div class="row">
+        {% if code %}
+            <div class="col-xs-12">
+                <div class="well well-sm label-danger">{{ error_response }}</div>
+            </div>
+        {% else %}
+            {% if record %}
+                <div class="col-xs-4">
+                    <div class="thumbnail">
+                        <a href="{{ record.product_link }}}" target="_blank">
+                            <img src="{{ record.pic_url }}" width="340px" height="340px">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-xs-4">
+                    <p>{{ record.title }}</p>
+
+                    <p>售价: <font style="color:red" id="id-price-{{ record.id }}">{{ record.price }}</font></p>
+
+                    <p>商家: {{ record.sale_supplier.supplier_name }}</p>
+
+                    <p>平台: {{ record.platform }}</p>
+
+                    <p>类别: {{ record.sale_category.name }}</p>
+
+                    <p>热卖指数：{{ record.hot_value }}</p>
+
+                    <p>创建时间: {{ record.created }}</p>
+
+                    <p>状态: <label class="label label-danger">{{ record.status }}</label></p>
+                </div>
+                <div class="col-xs-4">
+                    <p>指导价: <font style="color:red;font-size:20px"
+                                  id="id-target-price-{{ record.id }}">{{ record.price|mul:1.5 }}</font></p>
+
+                    <p id="id-msg">进货价：<input id="id-buy-price-{{ record.id }}" class="form-control"
+                                              placeholder="进货价(必须)" value="{{ record.sale_price }}"></p>
+
+                    <p style="margin-top:10px">选择 洽谈结果：</p>
+
+                    <p><select class="form-control input" id="id-select-{{ record.id }}">
+                        {% ifequal record.status '入围' %}
+                            <option value="purchase">取样</option>
+                        {% endifequal %}
+                        {% ifequal record.status '取样' %}
+                            <option value="passed">通过</option>
+                        {% endifequal %}
+                        {% ifequal record.status '通过' %}
+                            <option value="passed">通过</option>
+                        {% endifequal %}
+                        <option value="rejected">拒绝</option>
+                    </select></p>
+                    <p style="margin-top:10px">备注：</p><textarea rows="1" cols="20" class="form-control"
+                                                                id="id-memo-{{ record.id }}}">{{ record.memo }}</textarea>
+                    <button type="button" class="btn btn-primary" style="margin-top:20px"
+                            onclick="screen({{ record.id }}, '{{ record.id }}')" ;>确定
+                    </button>
+                </div>
+            {% else %}
+                <form id="fetch-form" method="POST" action="/supplychain/supplier/brand/fetch/{{ supplier.id }}/">
+                    {% csrf_token %}
+                    <input type="hidden" name="pic_url" value="{{ pic_url }}"/>
+                    <input type="hidden" name="product_link" value="{{ fetch_url }}"/>
+                    <input type="hidden" name="status" value="{{ status }}"/>
+                    <input type="hidden" name="memo" value="{{ memo }}"/>
+
+                    <div class="col-xs-4">
+                        <div class="thumbnail">
+                            <a href="{{ fetch_url }}" target="_blank">
+                                <img src="{{ pic_url }}" style="width:340px; height:340px;">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <p><textarea rows="3" cols="20" name="title" class="form-control">{{ title }}</textarea></p>
+
+                        <p>售价:<input name="price" placeholder="价格*必填" class="form-control" value="{{ price }}"/></p>
+
+                        <p>类别:
+                            <select class="form-control input" name="sale_category">
+                                {% for cat in categorys %}
+                                    <option value="{{ cat.id }}">{{ cat.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </p>
+                    </div>
+                    <div class="col-xs-4">
+                        <p id="id-msg">进货价：<input name="sale_price" class="form-control" value="0.0"></p>
+                        {% if request_data.status %}
+                            <p style="margin-top:10px">选择 接洽结果：</p>
+                            <select class="form-control input" name="status">
+                                <option value="purchase">取样</option>
+                                <option value="passed">通过</option>
+                            </select>
+                        {% endif %}
+                        <p style="margin-top:10px">备注：</p><textarea rows="3" cols="20" name="memo"
+                                                                    class="form-control"></textarea>
+                        <button type="submit" class="btn btn-primary" style="margin-top:20px">创建商品</button>
+                    </div>
+                </form>
+                <script type="text/javascript">
+                    $('#fetch-form').ajaxForm(function (res) {
+                        $("#items-group li:first").after(res);
+                        $("#items-group li:first").remove();
+                    })
+                </script>
+            {% endif %}
+        {% endif %}
+    </div>
+</li>
