@@ -85,6 +85,8 @@ class RefundManagerView(APIView):
                                            'seller_id':refund.user.id,
                                            'seller_nick':refund.user.nick,
                                            'receiver_name':receiver_name,
+                                           'mobile':refund.mobile,
+                                           'phone':refund.phone,
                                            'order_num':1,
                                            'created':refund.created.strftime('%Y.%m.%d'),
                                            'reason':refund.reason,
