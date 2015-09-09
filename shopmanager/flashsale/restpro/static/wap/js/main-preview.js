@@ -196,21 +196,67 @@ function Set_posters(suffix) {
         success: posterCallBack
     });
 }
+
 function preview_verify(verify, id, dom, model_id) {
-    console.log("预览审核产品id:", id);
-    console.log("预览审核产品款式:", model_id);
-    if (verify == false)//如果审核状态不是true,即没有审核，或者被修改状态
-    {
-        var redom = $(dom).append('<img id="previev_vierify_'+id+'" src="images/tuihuo-jujue.png" width="32px" onclick="verify_categray(' + id + ',' + model_id +')"/>');
+    var not_verify_icon = "images/tuihuo-jujue.png";
+    var already_verify_icon = "images/icon-ok.png";
+    var multi_icon = "images/preview-duokuan.png";
+    //如果是同款页面则不显示多款的icon
+    var current_url = window.location.href.split('?')[0].split("/");
+    var redom = "";
+    if (current_url[current_url.length - 1] == "tongkuan-preview.html") {
+        if (verify == false)//如果审核状态不是true,即没有审核，或者被修改状态
+        {
+            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + not_verify_icon + '" ' +
+            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+        }
+        else {
+            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + already_verify_icon + '" ' +
+            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+        }
     }
-    else {
-        redom = $(dom).append('<img id="previev_vierify_'+id+'" src="images/icon-ok.png" width="32px" onclick="verify_categray(' + id + ',' + model_id +')"/>');
+    else {//不是同款页面
+        if (verify == false && model_id == null)//如果审核状态不是true,即没有审核，或者被修改状态
+        {
+            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + not_verify_icon + '" ' +
+            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+        }
+        else if (verify == true && model_id == null) {
+            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + already_verify_icon + '" ' +
+            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+        }
+        else {
+            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + multi_icon + '" ' +
+            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+        }
+        //如果同款多个产品的话查看是否所有产品都审核通过　如果所有的都通过了审核则显示对应图片
+        if (model_id != null) {
+            var modelUrl = GLConfig.baseApiUrl + GLConfig.get_modellist_url.template({'model_id': model_id});
+            $.ajax({
+                type: 'get',
+                url: modelUrl,
+                data: {},
+                dataType: 'json',
+                success: modelCallBack
+            });
+            var flag = 1;
+
+            function modelCallBack(res) {
+                $.each(res, function (index, obj) {
+                    if (obj.is_verify == false) {
+                        flag = 0;
+                    }
+                });
+                if (flag) {
+                    $("#previev_vierify_" + id).attr("src", "images/icon-ok.png");
+                }
+            }
+        }
     }
     return redom
 }
 
 function verify_categray(id, model_id) {
-    console.log("product id:", id, "model_id",model_id);
     //判断是否存在多款，model_id
     // 如果在同款页面则不去判断是否跳转
     var current_url = window.location.href.split('?')[0].split("/");
@@ -227,35 +273,44 @@ function verify_categray(id, model_id) {
     }
 }
 function verify_action(id) {
-    console.log("action id: ",id);
     var data = {'csrfmiddlewaretoken': getCSRF()};
-    console.log(id);
     var verifyurl = GLConfig.baseApiUrl + GLConfig.verify_product.template({"id": id});
-    console.log("verifyurl:", verifyurl);
-    $.ajax({
-        "url": verifyurl,
-        "data": data,
-        "type": "post",
-        dataType: 'json',
-        success: requetCall,
-        error: function (resp) {
-            if (resp.status == 403) {
-                // 跳转到登陆
-                var redirectUrl = window.location.href;
-                window.location = GLConfig.login_url + '?next=' + encodeURIComponent(redirectUrl);
-            }
+    swal({
+            title: "",
+            text: '你确定修改该预览审核状态吗？',
+            type: "",
+            showCancelButton: true,
+            imageUrl: "http://image.xiaolu.so/logo.png",
+            confirmButtonColor: '#DD6B55',
+            confirmButtonText: "确定",
+            cancelButtonText: "取消"
+        },
+        function modify_is_verify() {//确定　则跳转
+            $.ajax({
+                "url": verifyurl,
+                "data": data,
+                "type": "post",
+                dataType: 'json',
+                success: requetCall,
+                error: function (resp) {
+                    if (resp.status == 403) {
+                        // 跳转到登陆
+                        var redirectUrl = window.location.href;
+                        window.location = GLConfig.login_url + '?next=' + encodeURIComponent(redirectUrl);
+                    }
+                }
+            });
         }
-    });
-    function requetCall(res) {
-        console.log("debug preview :", res);
-        var png = $("#previev_vierify_"+id).attr("src").split("/")[1];
-        if(png=="icon-ok.png"){//切换图标
-            $("#previev_vierify_"+id).attr("src","images/tuihuo-jujue.png");
-        }
-        else if(png=="tuihuo-jujue.png"){
-            $("#previev_vierify_"+id).attr("src","images/icon-ok.png");
-        }
+    );
 
+    function requetCall(res) {
+        var png = $("#previev_vierify_" + id).attr("src").split("/")[1];
+        if (png == "icon-ok.png") {//切换图标
+            $("#previev_vierify_" + id).attr("src", "images/tuihuo-jujue.png");
+        }
+        else if (png == "tuihuo-jujue.png") {
+            $("#previev_vierify_" + id).attr("src", "images/icon-ok.png");
+        }
     }
 }
 
@@ -330,7 +385,6 @@ function Set_promotes_product(suffix) {
     var promoteUrl = GLConfig.baseApiUrl + suffix;
 
     var promoteCallBack = function (data) {
-        console.log("debug data :", data);
         $("#loading").hide();
         if (!isNone(data.female_list)) {
 
@@ -403,7 +457,6 @@ function Set_category_product(suffix) {
 
 function Set_model_product(suffix) {
     //获取同款式商品列表
-    console.log("同款商品");
     var promoteUrl = GLConfig.baseApiUrl + suffix;
 
     var promoteCallBack = function (data) {
