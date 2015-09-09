@@ -193,7 +193,7 @@ from .filters import Filte_By_Reason
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = (
-    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status','reason')
+    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status','')
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason)
 
@@ -286,7 +286,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                                                         log_type=CarryLog.REFUND_RETURN)
                         assert clogs.count() == 0, u'订单已经退款！'
                         CarryLog.objects.create(xlmm=xlmm.id,
-                                                order_num=strade.id,
+                                                order_num=obj.order_id,
                                                 buyer_nick=strade.buyer_nick,
                                                 value=payment,
                                                 log_type=CarryLog.REFUND_RETURN,
