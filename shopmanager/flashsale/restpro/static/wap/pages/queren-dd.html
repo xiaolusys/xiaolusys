@@ -129,11 +129,12 @@ $(document).ready(function(){
   get_Coupon_On_Buy();  //获取优惠券数量
 
 });
-function jump_shouhuodz() { //跳转地址页面
-    console.log('kkkkkkkkkkkkk');
+
+//页面只显示一个地址，点击跳转到地址管理页面
+function jump_shouhuodz() { //跳转地址管理页面
     window.location = "shouhuodz.html";
 }
-function modify_current_addr(id) {
+function modify_current_addr(id) {//修改该当前地址页面
     window.location = "shouhuodz-edit.html?id=" + id;
 }
 
