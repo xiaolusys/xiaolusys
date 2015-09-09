@@ -84,12 +84,9 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
     
     try:
         strade = SaleTrade.objects.get(id=sale_trade_id)
-        
         strade.charge_confirm(charge_time=charge_time)
-        
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
-            
     except Exception,exc:
         raise confirmTradeChargeTask.retry(exc=exc)
             
