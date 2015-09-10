@@ -14,14 +14,14 @@
 <body>
 <div class="header">
     <a class="back" href="javascript:history.go(-1)"></a>
-    <a class="user" href="gerenzhongxin.html"></a>
+    <a class="user" href="gerenzhongxin.html" target="_parent"></a>
     <h1>购物车</h1>
 </div>
 
 <div class="cart-list"></div>
 <script id="item_template" type="text/html">
     <div class="item" id="item_{{ id }}" cartid="{{ id }}">
-        <div class="gpic"><a href="shangpinxq.html?id={{ item_id }}"><img src="{{ pic_path }}"></a></div>
+        <div class="gpic"><a href="shangpinxq.html?id={{ item_id }}" target="_parent"><img src="{{ pic_path }}"></a></div>
         <div class="gname">{{ title }}</div>
         <div class="gprice">¥ <span class="item_price" id="itemprice_{{ id }}">{{ price }}</span></div>
         <div class="gsize">尺码：{{ sku_name }}</div>
@@ -43,16 +43,21 @@
     <a class="btn-buy" name="btn-buy">购&nbsp;&nbsp;买&nbsp;&nbsp;<span id="remain_time"></span></a>
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.min.js"></script>
 <script src="../js/template.js"></script>
 <script src="../js/sweet-alert.min.js"></script>
 <script src="../js/tmsc.js"></script>
 <script type="text/javascript">
-(function ($) {
+$(document).ready(function () {
+  $('.ui-loader').remove();
   //获取
   get_shop_carts(GLConfig.get_cart_url);
-  
-  $(document).on({click:Ctrl_sure_pay,touchend:Ctrl_sure_pay},'.btn-buy');
-})(jQuery);
+  $(document).on({
+  	tap:Ctrl_sure_pay,
+  	touchstart:btnPresse,
+  	touchend:btnUnpresse,
+  	},'.buy .btn-buy');
+});
   
 function Ctrl_sure_pay(){
   /*去付款*/	
