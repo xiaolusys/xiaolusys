@@ -128,10 +128,10 @@
   //获取待支付订单列表
   Set_order_detail(order_url);
   //确认支付事件响应
-  $(document).on({click:Confirm_charge,touchend:Confirm_charge},'.buy_button .btn-buy');
-  
-  
-  
+  $(document).on({
+  	click:Confirm_charge,
+  	touchend:Confirm_charge,
+  },'.buy_button .btn-buy');
   //  fang  2015-8-20
   //var status=$("#status_display").innerHTML;
   Wuliu();
