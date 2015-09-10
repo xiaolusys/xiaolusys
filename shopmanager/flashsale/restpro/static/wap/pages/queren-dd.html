@@ -15,21 +15,21 @@
 <div class="header">
   <h1>确认订单</h1>
   <a class="back" href="javascript:history.go(-1)"></a>
-  <a class="user" href="gerenzhongxin.html"></a>
+  <a class="user" href="gerenzhongxin.html" target="_parent"></a>
 </div>
 
 <ul id="js-addr" class="addr">
   <li>
     <div class="h2 label2">
       <div class="title">新增收货地址</div>
-	  <a class="add" href="shouhuodz-add.html"><div style="width:100%;height:30px;"></div></a>
+	  <a class="add" href="shouhuodz-add.html" target="_parent"><div style="width:100%;height:30px;"></div></a>
     </div>
   </li>
   <script id="addr-template" type="text/html">
   <li class="{{ addr_class }}" name="select-addr">
     <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
     <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
-    <a class="icon-edit" href="shouhuodz-edit.html?id={{ id }}"></a>
+    <a class="icon-edit" href="shouhuodz-edit.html?id={{ id }}" target="_parent"></a>
     <i class="icon-radio" addrid={{ id }}></i>
   </li>
   </script>
