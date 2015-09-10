@@ -31,6 +31,37 @@
 
 
 {% block after_field_sets %}{{ block.super }}
+
+{% if original.reason == "开线/脱色/脱毛/有色差/有虫洞" and original.has_good_return and original.good_status%}
+    <script>
+        function release_coupon_action(trade_id,buyer_id) {
+            event.preventDefault();//阻止提交
+            console.log("trade_id:",trade_id,"buyer_id:",buyer_id);
+            console.log("{{ original.reason }}");
+            var coupon_url = "/mm/rsrc/";
+            $.ajax({
+                url:coupon_url,
+                type:"post",
+                data:{"buyer_id":buyer_id,"trade_id":trade_id},
+                success:couponCallBack
+            });
+            function couponCallBack(res){
+                console.log("debug res:",res);
+                if(res=="arg_error"){
+                    alert("参数错误");
+                }
+                else if(res=="already"){
+                    alert("已经发过了");
+                }
+                else if(res=="ok"){
+                    alert("发送成功");
+                }
+            }
+        }
+    </script>
+    <button id="release_coupon" style="font-size: 15px;" onclick="release_coupon_action({{ original.trade_id }},{{ original.buyer_id }})">发邮费优惠券</button>
+{% endif %}
+
 {% if original.refund_no %}
 {% if  original.status == 3 or original.status == 4 or original.status == 5 %}
 <input id="refund_confirm_id" type="submit" value="同意退款" class="default"  name="_refund_confirm" style="margin-right: 40px;margin-left: 40px;" >
