@@ -8,7 +8,6 @@ from django.db import models
 import datetime
 from options import uniqid
 
-print 'debug: init coupon new',datetime.datetime.now()
 class CouponTemplate(models.Model):
     RMB118 = 0
     POST_FEE = 1

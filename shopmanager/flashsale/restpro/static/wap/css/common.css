@@ -160,3 +160,7 @@ html, body {
     text-align: center;
     padding: 10px 0 0;
 }
+
+.buy .pressed {
+  background-color: #f75d00;
+}

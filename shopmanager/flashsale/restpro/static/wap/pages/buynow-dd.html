@@ -126,8 +126,6 @@ $(document).ready(function(){
   //支付方式切换
   $(document).on({
     tap:change_paytype,
-  	//touchend:change_paytype,
-  	//click:change_paytype
   },'#js-pay-type li');
   //获取用户地址
   Set_user_address(GLConfig.get_user_address);
@@ -141,10 +139,9 @@ $(document).ready(function(){
   get_Coupon_On_Buy();
   $(document).on({
   	tap:Confirm_charge,
-  	//touchend:Confirm_charge,
-  	//click:Confirm_charge
+  	touchstart:btnPresse,
+  	touchend:btnUnpresse,
   },'.buy .btn-buy');
-    
 });
 //页面只显示一个地址，点击跳转到地址管理页面
 function jump_shouhuodz() { //跳转地址管理页面
@@ -157,10 +154,11 @@ function change_paytype(){
     $('#js-pay-type li.active').removeClass('active').addClass('normal');
     $(this).removeClass('normal').addClass('active');
 };
-function Confirm_charge(){
+function Confirm_charge(e){
+	e.stopImmediatePropagation();
+    e.preventDefault();
     Ctrl_sure_charge(GLConfig.get_buynow_url);
 };
-
 </script>
 </body>
 </html>
