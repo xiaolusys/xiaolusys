@@ -177,19 +177,16 @@ def pushTradeRefundTask(refund_id):
         sorder = SaleOrder.objects.get(id=sale_refund.order_id)
         refund,state  = Refund.objects.get_or_create(tid=strade.tid,
                                                      oid=sorder.oid)
-        
         refund.user = seller
         refund.title = sorder.title
         refund.payment = sale_refund.payment
         refund.buyer_nick = strade.buyer_nick or strade.receiver_name
         refund.mobile     = strade.receiver_mobile
-        
         if sale_refund.has_good_return:
             refund.status = Refund.REFUND_WAIT_RETURN_GOODS
             refund.has_good_return = sale_refund.has_good_return
         else:
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
-        
         refund.save()
         
     except Exception,exc:
