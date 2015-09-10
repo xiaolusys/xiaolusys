@@ -8,9 +8,6 @@
             $.ajax({
                 url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
                 method: "GET", //静态页用get方法，否则服务器会抛出405错误
-                {#                beforeSend: function () {#}
-                {#                    $("#mytable").html("<img src=/static/img/loading.gif /><font color=red>正在加載數據...</font>");#}
-                {#                },#}
                 success: function (res) {
                     console.log(res.task.status);
                     if (res.task.status == "SUCCESS") {
@@ -19,16 +16,18 @@
                         var result_data = eval(res.task.result);
                         $("#data-table-people thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
-                            tb.append("<tr><td>" + dd.p_outer + "</td><td>" + dd.p_name + "</td><td>" + dd.sale_time + "</td><td>" + dd.p_sales + "</td><td>" + dd.suppliers + "</td></tr>");
+                            tb.append("<tr><td><a href='/admin/items/product/?q="+dd.p_outer+"' target='_blank'>" + dd.p_outer + "</a></td><td>" + dd.p_name + "</td><td><img src='" + dd.pic_path + "' width='50px'/></td><td>" + dd.sale_time + "</td><td>" + dd.p_sales + "</td><td>" + dd.suppliers + "</td></tr>");
                         });
 
-                    } else {
-                        setTimeout(get_data, 4000);
+                    } else if(res.task.status == "PENDING") {
+                        setTimeout(get_data, 2000);
+                    }else if(res.task.status == "FAILURE"){
+                        alert("error");
                     }
                 }
             });
         }
-        setTimeout(get_data, 4000);
+        get_data();
     </script>
 {% endblock %}
 {% block container %}
@@ -41,11 +40,12 @@
             </div>
             <table class="table table-bordered" id="data-table-product">
                 <thead>
-                <th width="20%">商品编码</th>
+                <th width="10%">商品编码</th>
                 <th width="20%">商品名称</th>
+                <th width="20%">商品图片</th>
                 <th width="20%">上架时间</th>
-                <th width="20%">销售数</th>
-                <th width="20%">供应商</th>
+                <th width="10%">销售数</th>
+                <th width="10%">供应商</th>
                 </thead>
                 <tbody>
 

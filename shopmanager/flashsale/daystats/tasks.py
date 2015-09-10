@@ -273,7 +273,7 @@ from flashsale.dinghuo.models import OrderList, OrderDetail
 
 
 @task(max_retry=3, default_retry_delay=5)
-def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
+def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
     """计算热销商品"""
     try:
         today = datetime.date.today()
@@ -305,7 +305,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
             p_outer = p_t[0].strip()
             p_sales = int(p_t[1])
             p_products = Product.objects.filter(outer_id__startswith=p_outer, status='normal')
-            if p_products.count() > 0:
+            if p_products.count() > 0 and True if not category else p_outer.startswith(category):
                 product_item = p_products[0]
                 suppliers = OrderDetail.objects.values('orderlist__supplier_shop').filter(
                     product_id=product_item.id).exclude(orderlist__status=u'作废').exclude(
@@ -313,7 +313,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, limit=100):
                 supplier_list = [s['orderlist__supplier_shop'] for s in suppliers]
                 p_dict = {"p_outer": p_outer, "p_name": product_item.name,
                           "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
-                          "p_sales": p_sales, "suppliers": supplier_list}
+                          "p_sales": p_sales, "suppliers": supplier_list, "pic_path": product_item.pic_path}
                 result_list.append(p_dict)
         return result_list
 
