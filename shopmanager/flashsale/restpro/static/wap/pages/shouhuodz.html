@@ -1,72 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>小鹿美美</title>
-<meta charset="UTF-8">
-<meta name="format-detection" content="telephone=no">
-<meta id="viewport" name="viewport" />
-<script src="../js/common.js"></script>
-<link rel="stylesheet" href="../css/common.css">
-<link rel="stylesheet" href="../css/shouhuodz.css">
+    <title>小鹿美美</title>
+    <meta charset="UTF-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta id="viewport" name="viewport"/>
+    <script src="../js/common.js"></script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/shouhuodz.css">
 </head>
 <body>
 <div class="header">
-  <a class="back" href="javascript:history.go(-1)"></a>
-  <h1>收货地址</h1>
+    <a class="back" href="javascript:history.go(-1)"></a>
+    <h1>收货地址</h1>
 </div>
 <div class="add">
-  <a href="shouhuodz-add.html">
-    <i></i>
-    <p class="p1">收货地址</p>
-    <p class="p2">新增收货地址</p>
-  </a>
+    <a href="shouhuodz-add.html">
+        <i></i>
+        <p class="p2">新增收货地址</p>
+    </a>
 </div>
 
 <ul class="list">
-	 <!--
-  <li>
-    <p class="p1">美美 138 4956 4385</p>
-    <p class="p2">上海市 - 杨浦区 - 国定东路200号 - 1号楼201</p>
-    <a class="close"></a>
-    <i class="radio radio-select"></i>
-  </li>
- 
-  <li>
-    <p class="p1">美美 138 4956 4385</p>
-    <p class="p2">上海市 - 杨浦区 - 国定东路200号 - 1号楼201</p>
-    <a class="close"></a>
-    <i class="radio"></i>
-  </li>
-  <li>
-    <p class="p1">美美 138 4956 4385</p>
-    <p class="p2">上海市 - 杨浦区 - 国定东路200号 - 1号楼201</p>
-    <a class="close"></a>
-    <i class="radio"></i>
-  </li>
-  <li>
-    <p class="p1">美美 138 4956 4385</p>
-    <p class="p2">上海市 - 杨浦区 - 国定东路200号 - 1号楼201</p>
-    <a class="close"></a>
-    <i class="radio"></i>
-  </li>
-  <li>
-    <p class="p1">美美 138 4956 4385</p>
-    <p class="p2">上海市 - 杨浦区 - 国定东路200号 - 1号楼201</p>
-    <a class="close"></a>
-    <i class="radio"></i>
-  </li>
-  
-  -->
+
 </ul>
-<!--<script src="http://cdn.bootcss.com/jquery/1.7.1/jquery.min.js"></script>  -->
-    <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+
+<script type="text/html" id="default_address">
+    <li id="{{ id }}"><p class="p1">收货人:{{ receiver_name }}-{{ receiver_mobile }}</p>
+
+        <p class="p2">{{ receiver_state }}-{{ receiver_city }}-{{ receiver_district }}-{{ receiver_address }}</p>
+        <a class="close"></a>
+        <a class="icon-edit"></a>
+        <i class="radio  radio-select"></i>
+    </li>
+</script>
+<script type="text/html" id="usually_address">
+
+    <li id="{{ id }}">
+        <p class="p1">收货人：{{ receiver_name }}-{{ receiver_mobile }}</p>
+
+        <p class="p2">{{ receiver_state }}-{{ receiver_city }}-{{ receiver_district }}-{{ receiver_address }}</p>
+
+        <a class="close"></a>
+        <a class="icon-edit"></a>
+        <i class="radio"></i>
+    </li>
+</script>
+
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/all_dizhi.js"></script>
 <script type="text/javascript">
     var referrer = document.referrer;
     var hashes = referrer.split("?")[0].split('/');
-    //console.log(hashes);
-    if(hashes && hashes[hashes.length-1] == "shouhuodz-add.html" || hashes[hashes.length-1] == "shouhuodz-edit.html"){
-        $(".back").attr("href","gerenzhongxin.html");
+    if (hashes && hashes[hashes.length - 1] == "shouhuodz-add.html" || hashes[hashes.length - 1] == "shouhuodz-edit.html") {
+        $(".back").attr("href", "gerenzhongxin.html");
     }
 </script>
 </body>

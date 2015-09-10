@@ -4,85 +4,58 @@
  * 用于取到用户的所有收获地址
  * 
  * */
-
-
 $(document).ready(function () {
     init();
 });
-
+function Create_address_dom(is_default, obj) {
+    var html = "";
+    if (is_default) {
+        html = $("#default_address").html();//默认地址显示
+    }
+    else {
+        html = $("#usually_address").html();//普通地址显示
+    }
+    return hereDoc(html).template(obj);
+}
 
 function init() {
-    //var requestUrl = GLConfig.baseApiUrl + suffix;
-    //var requestUrl = "http://127.0.0.1:8000/rest/v1/address/add/";
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.get_all_address;
     var requestCallBack = function (data) {
         for (var i = 0; i < data.length; i++) {
-            if (data[i].default == true) {
-                var address = "<li   id=" + data[i].id + "> <p class='p1'>" + data[i].receiver_name + data[i].receiver_mobile +
-                    "</p><p class='p2'>" + data[i].receiver_state + "-" + data[i].receiver_city + "-" + data[i].receiver_district + "-" + data[i].receiver_address + "</p><a class='close'  ></a><a class='icon-edit'></a><i class='radio  radio-select'  ></i></li>"
-            }
-            else {
-
-                var address = "<li   id=" + data[i].id + "> <p class='p1'>" + data[i].receiver_name + data[i].receiver_mobile +
-                    "</p><p class='p2'>" + data[i].receiver_state + "-" + data[i].receiver_city + "-" + data[i].receiver_district + "-" + data[i].receiver_address + "</p><a class='close'  ></a><a class='icon-edit'></a><i class='radio '  ></i></li>"
-
-            }
-            $("ul").append(address)
+            var address_dom = Create_address_dom(data[i].default, data[i]);
+            $(".list").append(address_dom);
         }
-
+        //删除地址
         $(" .close").each(function () {
             $(this).click(function () {
-                //console.info($(this).parent().attr('id'));
-                delete_id = $(this).parent().attr('id');
-                obj = $(this).parent();
-                //console.log("delete_id", delete_id);
+                var delete_id = $(this).parent().attr('id');
+                var obj = $(this).parent();
                 delete_address(obj, delete_id);
-                //$(this).parent().remove()
-                //$(this).parent().css({"color":"red","border":"2px solid red"});  //增加颜色
             });
         });
-
-       //修改地址
+        //修改地址
         $(".icon-edit").each(function () {
             $(this).click(function () {
-                up_id = $(this).parent().attr('id');
-                window.location.href="shouhuodz-edit.html?id=" + up_id;
+                var up_id = $(this).parent().attr('id');
+                window.location.href = "shouhuodz-edit.html?id=" + up_id;
             });
         });
-
         $("ul li  i").each(function () {
             $(this).click(function () {
-                $("ul li  i").removeClass("radio-select")//去掉之前选中的
-                $(this).addClass("radio-select")//选中
-                $(this).parent().css({"color": "red", "border": "2px solid red"});  //增加框
+                $("ul li  i").removeClass("radio-select");//去掉之前选中的
+                $(this).addClass("radio-select");//选中
+                $(this).parent().css({"color": "orange", "border": "2px solid orange"});  //增加框
                 $(this).parent().siblings().css({"color": "", "border": ""});  //取消框
-                default_id = $(this).parent().attr('id');
-                obj = $(this).parent();
+                var default_id = $(this).parent().attr('id');
+                var obj = $(this).parent();
                 change_default(obj, default_id);
             });
-        })
-
-      //点击li也可以
-      //点击li也可以
-     $("ul li p").click(function () {
-
-//console.log($(this).children());
-                 $(this).parent().children("i")[0].click();
-            });
-       
-
-
-
-
-  
-
-     };
-    
-
-
-
-
+        });
+        $("ul li p").click(function () {
+            $(this).parent().children("i")[0].click();
+        });
+    };
 
     // 发送请求
     $.ajax({
@@ -92,9 +65,7 @@ function init() {
         dataType: 'json',
         success: requestCallBack
     });
-
 }
-
 
 function delete_address(obj, id) {
     //请求成功回调函数
@@ -118,10 +89,7 @@ function delete_address(obj, id) {
         dataType: 'json',
         success: requestCallBack
     });
-
-
 }
-
 
 function change_default(obj, id) {
     //删除地址
@@ -129,11 +97,18 @@ function change_default(obj, id) {
     var requestUrl = GLConfig.baseApiUrl + "/address/" + id + "/change_default";
     var requestCallBack = function (data) {
         if (data.ret == true) {
-              drawToast("设置默认地址成功");
+            //判断是否是从购买页面来的如果是的则跳回去
+            var source = document.referrer.split("/");
+            var from_page = source[source.length-1];
+            var referrer = document.referrer.split(".html")[0].split("/");
+            var page = referrer[referrer.length-1];
+            if(page=="buynow-dd"||page=="queren-dd"){
+               window.location = from_page;
+            }
+            drawToast("设置默认地址成功");
         }
         else {
-            //alert("默认地址修改失败")
-              drawToast("设置默认地址失败");
+            drawToast("设置默认地址失败");
         }
     };
     // 发送请求
@@ -144,8 +119,7 @@ function change_default(obj, id) {
         dataType: 'json',
         success: requestCallBack
     });
-
-
 }
+
 
 
