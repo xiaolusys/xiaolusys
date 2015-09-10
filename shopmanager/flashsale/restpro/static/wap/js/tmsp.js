@@ -27,9 +27,12 @@ function Create_product_detailsku_dom(obj) {
     //设置规格列表
     var sku_list = [];
     $.each(obj.normal_skus, function (index, sku) {
-    	sku.sku_class = "normal";
     	if (sku.is_saleout === true || !obj.is_saleopen ){
     		sku.sku_class="disable";
+    	}else if(obj.normal_skus.length == 1){
+    		sku.sku_class = "active";
+    	}else{
+    		sku.sku_class = "normal";
     	}
         sku_list[sku_list.length] = '<li class="{{sku_class}}" name="select-sku" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
     });

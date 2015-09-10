@@ -176,9 +176,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_name = content.get('receiver_name', None)
         receiver_mobile = content.get('receiver_mobile', None)
         try:
-            UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, receiver_state=receiver_state,
-                                   receiver_city=receiver_city, receiver_district=receiver_district,
-                                   receiver_address=receiver_address, receiver_mobile=receiver_mobile)
+            UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, 
+                                       receiver_state=receiver_state,default=True,
+                                       receiver_city=receiver_city, receiver_district=receiver_district,
+                                       receiver_address=receiver_address, receiver_mobile=receiver_mobile)
             result['ret'] = True
         except:
             result['ret'] = False

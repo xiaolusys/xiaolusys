@@ -797,9 +797,12 @@ class MergeOrder(models.Model):
             
     
 def refresh_trade_status(sender,instance,*args,**kwargs):
-    #更新主订单的状态
+    """ 订单明细及交易状态更新：
+        １，如果订单明细创建时间和付款时间空则使用该笔交易的时间;
+        ２，更新有变动交易的字段：[order_num,prod_num,has_refund,has_out_stock,has_rule_match,sys_status];
+    """
     merge_trade   = instance.merge_trade
-    
+    update_parmas = {}
     if not (instance.pay_time and instance.created):
         instance.created     = instance.created or merge_trade.created
         instance.pay_time    = instance.pay_time or merge_trade.pay_time
@@ -808,20 +811,16 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
                                                     'pay_time'])
     
     effect_orders         = merge_trade.inuse_orders
-    merge_trade.order_num = effect_orders.aggregate(
-                        total_num=Sum('num'))['total_num'] or 0
-    
-    prod_num      = effect_orders.values_list('outer_id').distinct().count()
-    merge_trade.prod_num = prod_num
-    
+    update_parmas['order_num']     = effect_orders.aggregate(total_num=Sum('num'))['total_num'] or 0
+    update_parmas['prod_num']      = effect_orders.values_list('outer_id').distinct().count()
     if merge_trade.status in (pcfg.WAIT_SELLER_SEND_GOODS,
                               pcfg.WAIT_BUYER_CONFIRM_GOODS):
         
-        merge_trade.has_refund     = MergeTrade.objects.isTradeRefunding(merge_trade)
-        merge_trade.has_out_stock  = effect_orders.filter(out_stock=True).count()>0
-        merge_trade.has_rule_match = effect_orders.filter(is_rule_match=True).count()>0
+        update_parmas['has_refund']     = MergeTrade.objects.isTradeRefunding(merge_trade)
+        update_parmas['has_out_stock']  = effect_orders.filter(out_stock=True).count()>0
+        update_parmas['has_rule_match'] = effect_orders.filter(is_rule_match=True).count()>0
         
-        if not merge_trade.has_out_stock:
+        if merge_trade.has_out_stock and not update_parmas['has_out_stock']:
             merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
     
     if (not merge_trade.reason_code and 
@@ -832,14 +831,16 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
                                  pcfg.REISSUE_TYPE,
                                  pcfg.EXCHANGE_TYPE)):
         
-        merge_trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-        
-    update_model_fields(merge_trade,update_fields=['order_num',
-                                                   'prod_num',
-                                                   'has_refund',
-                                                   'has_out_stock',
-                                                   'has_rule_match',
-                                                   'sys_status'])
+        update_parmas['sys_status'] = pcfg.WAIT_PREPARE_SEND_STATUS
+    
+    update_fields = []
+    for k,v in update_parmas.iteritems():
+        if getattr(merge_trade,k) != v:
+            setattr(merge_trade,k,v)
+            update_fields.append(k)
+
+    if update_fields:
+        update_model_fields(merge_trade,update_fields=update_fields)
 
 post_save.connect(refresh_trade_status, sender=MergeOrder)
 

@@ -3,7 +3,7 @@
 {% block head_script %}
     <script>
         $(function () {
-            var my_data = {"df": $("#f_datepicker").val(), "dt": $("#t_datepicker").val()}
+            var my_data = {"df": $("#f_datepicker").val(), "dt": $("#t_datepicker").val(),"category": $("#category_id").val()}
             $.ajax({
                 url: "/sale/dinghuo/sale_hot/", //这里是静态页的地址
                 method: "GET", //静态页用get方法，否则服务器会抛出405错误
@@ -29,6 +29,13 @@
                 <input type="text" id="t_datepicker" name="dt" class="form-control datepicker"
                        value="{{ end_date }}"/>
             </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="category">类别:</label>
+                <select name="category" class="form-control" id="category_id">
+                    <option value="8" {% ifequal category "8" %}selected="selected" {% endifequal %}>女装</option>
+                    <option value="9" {% ifequal category "9" %}selected="selected" {% endifequal %}>童装</option>
+                </select>
+            </div>
             <div class="col-xs-1">
                 <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
@@ -37,7 +44,6 @@
     </div>
     <div class="row">
         <div id="sale_hot" class="col-xs-6"></div>
-
     </div>
 {% endblock %}
 

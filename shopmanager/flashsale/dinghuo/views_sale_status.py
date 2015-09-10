@@ -21,6 +21,8 @@ class EntranceView(View):
         today = datetime.date.today()
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
+        category = content.get("category", None)
+
         if start_time_str:
             year, month, day = start_time_str.split('-')
             start_date = datetime.date(int(year), int(month), int(day))
@@ -34,7 +36,7 @@ class EntranceView(View):
         else:
             end_date = today
         return render_to_response("dinghuo/sale_status_entrance.html",
-                                  {"start_date": start_date, "end_date": end_date},
+                                  {"start_date": start_date, "end_date": end_date, "category": category},
                                   context_instance=RequestContext(request))
 
 
@@ -44,7 +46,8 @@ class SaleHotView(View):
         content = request.REQUEST
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
-        send_tasks = task_calc_hot_sale.delay(start_time_str, end_time_str)
+        category = content.get("category", None)
+        send_tasks = task_calc_hot_sale.delay(start_time_str, end_time_str, category)
         return render_to_response("dinghuo/data2hotsale.html",
                                   {"task_id": send_tasks},
                                   context_instance=RequestContext(request))

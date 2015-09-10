@@ -16,7 +16,7 @@
 <div class="header">
   <h1>确认订单</h1>
   <a class="back" href="javascript:history.go(-1)"></a>
-  <a class="user" href="gerenzhongxin.html"></a>
+  <a class="user" href="gerenzhongxin.html" target="_parent"></a>
 </div>
 <div class="add">
     <a >
@@ -25,17 +25,18 @@
     </a>
 </div>
 <ul id="js-addr" class="addr">
-    <script id="addr-template" type="text/html">
-        <a onclick="jump_shouhuodz()">
-            <li class="{{ addr_class }}" name="select-addr">
-                <p class="label3">收货人：{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
-
-                <p class="label4">收货地址：{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
-                <a class="icon-edit" onclick="modify_current_addr({{ id }})"></a>
-                <i class="icon-radio" addrid={{ id }}></i>
-            </li>
-        </a>
-    </script>
+<script id="addr-template" type="text/html">
+<li class="{{ addr_class }}" name="select-addr">
+	<a onclick="jump_shouhuodz()" target="_parent">
+	<div class="">
+    <p class="label3">收货人：{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
+    <p class="label4">收货地址：{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
+    <i class="icon-radio" addrid={{ id }}></i>
+    </div class="">
+    <div><a class="icon-edit" onclick="modify_current_addr({{ id }})"></a></div>
+    </a>
+</li>
+</script>
 </ul>
 
 <div class="cost">
@@ -115,7 +116,6 @@
 <script type="text/javascript">
 $(document).ready(function(){
   $('.ui-loader').remove();
-
   //支付方式切换
   $(document).on({
   	//touchend:change_paytype,
