@@ -83,26 +83,3 @@ def add_Order_Integral(sender, instance, created, **kwargs):
                 user_interal.integral_value = int(instance.payment)
                 user_interal.save()
 post_save.connect(add_Order_Integral, sender=SaleOrder)
-
-
-# 信号触发　发放　退货　优惠券发放
-from .models_refund import SaleRefund
-from .models_coupon_new import UserCoupon
-
-
-def release_sale_refund(sender, instance, created, **kwargs):
-    if created:
-        return
-    if not instance.has_good_return:  # 不是退货不发
-        return
-    if instance.has_good_change:  # 换货不发
-        return
-    if instance.status == SaleRefund.REFUND_SUCCESS and instance.reason == u'开线/脱色/脱毛/有色差/有虫洞':  # 退款成功
-        # 调用类方法　生成邮费优惠券 并且退货原因是因为质量问题　才发放
-        buyer_id = instance.buyer_id
-        trade_id = instance.trade_id
-        kwargs = {"buyer_id": buyer_id, "trade_id": trade_id}
-        uc = UserCoupon()
-        uc.release_refund_post_fee(**kwargs)
-
-post_save.connect(release_sale_refund, sender=SaleRefund)

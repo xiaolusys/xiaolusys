@@ -642,29 +642,33 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
-        sale_trade = SaleTrade.objects.create(
-             tid=tuuid,
-             buyer_id=customer.id,
-             buyer_nick=customer.nick,
-             channel=form.get('channel'),
-             receiver_name=address.receiver_name,
-             receiver_state=address.receiver_state,
-             receiver_city=address.receiver_city,
-             receiver_district=address.receiver_district,
-             receiver_address=address.receiver_address,
-             receiver_zip=address.receiver_zip,
-             receiver_phone=address.receiver_phone,
-             receiver_mobile=address.receiver_mobile,
-             buyer_message=form.get('buyer_message',''),
-             payment=float(form.get('payment')),
-             total_fee=float(form.get('total_fee')),
-             post_fee=float(form.get('post_fee')),
-             discount_fee=float(form.get('discount_fee')),
-             charge='',
-             status=SaleTrade.WAIT_BUYER_PAY,
-             openid=customer.openid
-        )
-        return sale_trade
+        params = {
+            'buyer_nick':customer.nick,
+            'channel':form.get('channel'),
+            'receiver_name':address.receiver_name,
+            'receiver_state':address.receiver_state,
+            'receiver_city':address.receiver_city,
+            'receiver_district':address.receiver_district,
+            'receiver_address':address.receiver_address,
+            'receiver_zip':address.receiver_zip,
+            'receiver_phone':address.receiver_phone,
+            'receiver_mobile':address.receiver_mobile,
+            'buyer_message':form.get('buyer_message',''),
+            'payment':float(form.get('payment')),
+            'total_fee':float(form.get('total_fee')),
+            'post_fee':float(form.get('post_fee')),
+            'discount_fee':float(form.get('discount_fee')),
+            'charge':'',
+            'status':SaleTrade.WAIT_BUYER_PAY,
+            'openid':customer.openid
+      }
+        sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
+                                                           buyer_id=customer.id)
+        for k,v in params.iteritems():
+            hasattr(sale_trade,k) and setattr(sale_trade,k,v)
+        sale_trade.save()
+            
+        return sale_trade,state
     
     @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
@@ -773,8 +777,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
         
-        sale_trade = self.create_Saletrade(CONTENT, address, customer)
-        self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
+        sale_trade,state = self.create_Saletrade(CONTENT, address, customer)
+        if state:
+            self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
         #使用优惠券，并修改状态
         if coupon_id and coupon:
             coupon.status = UserCoupon.USED
@@ -837,8 +842,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             lock_success =  Product.objects.lockQuantity(product_sku,sku_num)
             if not lock_success:
                 raise exceptions.APIException(u'商品库存不足')
-            sale_trade = self.create_Saletrade(CONTENT, address, customer)
-            self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
+            sale_trade,state = self.create_Saletrade(CONTENT, address, customer)
+            if state:
+                self.create_SaleOrder_By_Productsku(sale_trade, product, product_sku, sku_num)
         except exceptions.APIException,exc:
             raise exc
         except Exception,exc:
@@ -857,7 +863,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
-
         return Response(response_charge)
     
     @detail_route(methods=['post'])
