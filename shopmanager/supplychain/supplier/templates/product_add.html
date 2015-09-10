@@ -1,0 +1,508 @@
+{% extends "supplier_base.html" %}
+
+{% load mathfilters %}
+
+{% block title %}
+品牌供应商
+{% endblock %}
+{% block head_script %}
+
+{% endblock %}
+{% block container %}
+
+<div class="container">
+{{ data }}
+  {% csrf_token %}
+  <input id="supplier_id" type="hidden" value="{{ supplier.id }}" />
+  <input id="status_id" type="hidden" value="{{ request_data.status }}" />
+  <div class="row">
+  	<div class="col-md-5" style=";margin: 53px 0px 0px;">
+    <ul class="nav nav-tabs nav-justified" role="tablist" data-tabs="tabs">
+	  <li role="presentation" {% if not request_data.status %}class="active" {% endif %}><a href="/supplychain/supplier/line_product/?sale_supplier={{ request_data.sale_supplier }}" >全部</a></li>
+	  <li role="presentation" {% ifequal request_data.status 'wait' %} class="active" {% endifequal %}>
+        <a href="/supplychain/supplier/line_product/?status=wait&sale_supplier={{ request_data.sale_supplier }}" >待选</a>
+        </li>
+	  <li role="presentation" {% ifequal request_data.status 'selected' %} class="active" {% endifequal %}>
+        <a href="/supplychain/supplier/line_product/?status=selected&sale_supplier={{ request_data.sale_supplier }}" >入围</a>
+        </li>
+	  <li role="presentation" {% ifequal request_data.status 'purchase' %} class="active" {% endifequal %}>
+        <a href="/supplychain/supplier/line_product/?status=purchase&sale_supplier={{ request_data.sale_supplier }}" >取样</a>
+        </li>
+	  <li role="presentation" {% ifequal request_data.status 'passed' %} class="active" {% endifequal %}>
+        <a href="/supplychain/supplier/line_product/?status=passed&sale_supplier={{ request_data.sale_supplier }}" >通过</a>
+        </li>
+	  <li role="presentation" {% ifequal request_data.status 'scheduling' %} class="active" {% endifequal %}>
+        <a href="/supplychain/supplier/line_product/?status=scheduling&sale_supplier={{ request_data.sale_supplier }}" >排期</a>
+        </li>
+	</ul>
+    </div>
+      <div class="col-md-3" style="float:right;">
+          <div class="page-header" style="text-align:right;">
+              <h3>{{ supplier.supplier_name }}
+                  <a href="javascript:void(0);" onclick="slideToggle()" class="glyphicon glyphicon-pushpin"></a>
+              </h3>
+          </div>
+      </div>
+      <div class="col-md-3" style="float:right;">
+  		<div class="page-header" style="text-align:right;" >
+  		<h3>手动录入商品
+  		  <a href="javascript:void(0);" onclick="slideProdcutToggle()" class="glyphicon glyphicon-plus"></a>
+	      </h3>
+  		</div>
+  	</div>
+  </div>
+  <div class="row" style="margin-bottom:16px;">
+  <div class="col-md-6" ></div>
+    <div class="col-md-2" >
+    	<div class="btn-group">
+		  <button type="button" class="btn btn-warning">{{ supplier.progress }}</button>
+		  <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown">
+		    <span class="caret"></span>
+		    <span class="sr-only">Toggle Dropdown</span>
+		  </button>
+		  <ul id="progress" class="dropdown-menu" role="menu">
+		    <li><a href="/supplychain/supplier/line_product/?status={{ request_data.status }}&sale_supplier={{ request_data.sale_supplier }}&progress=selected">待洽谈</a></li>
+		    <li><a href="/supplychain/supplier/line_product/?status={{ request_data.status }}&sale_supplier={{ request_data.sale_supplier }}&progress=pricing">锁定价格</a></li>
+		    <li><a href="/supplychain/supplier/line_product/?status={{ request_data.status }}&sale_supplier={{ request_data.sale_supplier }}&progress=storaged">锁定库存</a></li>
+		    <li><a href="/supplychain/supplier/line_product/?status={{ request_data.status }}&sale_supplier={{ request_data.sale_supplier }}&progress=passed">已签合同</a></li>
+		    <li class="divider"></li>
+		    <li><a href="/supplychain/supplier/line_product/?status={{ request_data.status }}&sale_supplier={{ request_data.sale_supplier }}&progress=rejected">淘汰</a></li>
+		  </ul>
+		</div>
+    </div>
+    <div class="col-md-3" style="text-align:right;">
+	<ul class="nav nav-pills pagination pagination-lg" style="margin:0px;">
+	  {% if previous %}
+	  <li><a href="{{ previous }}">&lt;&lt; 上一页</a></li>
+          {% endif %}
+	  {% if next %}
+	  <li><a href="{{ next }}">下一页 &gt;&gt;</a></li>
+	  {% endif %}
+	</ul>
+  </div>
+</div>
+
+
+
+
+<div style="display:none" id="success" class="col-md-12">
+    <div class="alert-success">
+        队列全部文件处理完毕
+    </div>
+</div>
+<div class="col-md-12 ">
+    <table class="table table-striped table-hover text-left" style="margin-top:40px;display:none">
+        <thead>
+        <tr>
+            <th class="col-md-4">Filename</th>
+            <th class="col-md-2">Size</th>
+            <th class="col-md-6">Detail</th>
+        </tr>
+        </thead>
+        <tbody id="fsUploadProgress">
+        </tbody>
+    </table>
+</div>
+
+<div class="panel panel-default product_add">
+    <form action="/supplychain/supplier/line_product/" method="post">
+    {% csrf_token %}
+    <input value="{{supplier.id}}" hidden="hidden" name="supplier">
+    <input hidden="" id="domain" value="http://7xkyoy.com1.z0.glb.clouddn.com/">
+    <input hidden=""  id="uptoken_url" value="/supplychain/supplier/qiniu/?format=json">
+
+        <!-- Default panel contents -->
+        <div class="panel-heading">新建商品</div>
+        <div class="panel-body">
+
+            <!-- List group -->
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;"><label>商品名称：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" name="title">
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>进货价：</label>
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <input class="form-control" name="sale_price">
+                        </div>
+                    </div>
+
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>商品图片:</label>
+                        </div>
+                        <div class="col-md-3" style="text-align:left;display:inline;">
+                            <input class="form-control" name="pic_url" id="pic_path">
+
+                        </div>
+                        <div id="container" class="col-md-1">
+                                <a class="btn btn-default" id="pickfiles" href="javascript:void(0)" >
+                                    <i class="glyphicon glyphicon-plus"></i>
+                                </a>
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>类别：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <select class="form-control" name="sale_category">
+                                {% for category in sale_category %}
+                                <option value="{{category.id}}">{{ category.full_name }}</option>
+                                {%endfor%}
+                            </select>
+                        </div>
+
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>商品材质：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" name="product_material">
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>商品预留时间：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" id="reserve_time_id" name="reserve_time">
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>备注：</label>
+                        </div>
+                        <div class="col-md-8" style="text-align:left;display:inline;">
+                            <textarea rows="3" cols="20" class="form-control"></textarea>
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;float: right">
+                            <input class="btn btn-primary" type="submit" value="确认新建">
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+        </div>
+
+    </form>
+</div>
+    <div class="panel panel-default supplier-info" style="display:none;">
+        <!-- Default panel contents -->
+        <div class="panel-heading"> 商家信息</div>
+        <div class="panel-body">
+            <label>说明：</label>
+
+            <p>{{ supplier.memo }}
+                <a href="/admin/supplier/salesupplier/{{  supplier.id }}/" class="btn btn-primary"
+                   style="display:inline;float:right;" onclick="return showAddAnotherPopup(this);">修改</a></p>
+        </div>
+        <!-- List group -->
+        <ul class="list-group">
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-md-12" style="text-align:left;display:inline;">
+                        <label>品牌主页：</label>
+                        <a href="{{ supplier.main_page }}">{{ supplier.main_page }} </a></div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-md-6" style="text-align:left;display:inline;"><label>联系人：</label><span>{{ supplier.contact }}</span>
+                    </div>
+                    <div class="col-md-5" style="text-align:left;display:inline;"><label>传真：</label><span>{{ supplier.fax }}</span>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-md-6" style="text-align:left;display:inline;"><label>固话：</label><span>{{ supplier.phone }}</span>
+                    </div>
+                    <div class="col-md-5" style="text-align:left;display:inline;"><label>手机：</label><span>{{ supplier.mobile }}</span>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-md-6" style="text-align:left;display:inline;"><label>邮编：</label><span>{{ supplier.zip_code }}</span>
+                    </div>
+                    <div class="col-md-5" style="text-align:left;display:inline;"><label>邮箱：</label><span>{{ supplier.email }}</span>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-md-12"><label>地址：</label><span>{{ supplier.address }}</span></div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <ul id="items-group" class="list-group">
+        {% for record in results %}
+        <li class="list-group-item" id="id-item-{{ record.id }}">
+            <div class="row">
+                <div class="col-xs-4">
+                    <div class="thumbnail">
+                        <a href="{{ record.product_link }}" target="_blank">
+                            <img src="{{ record.pic_url }}">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-xs-4">
+                    <p>{{ record.title }}</p>
+                    <p>售价: <font style="color:red" id="id-price-{{ forloop.counter }}">{{ record.price }}</font></p>
+                    <p>商家: {{ record.sale_supplier.supplier_name }}</p>
+                    <p>平台: {{ record.platform }}</p>
+                    <p>类别: {{ record.sale_category.name }}</p>
+                    <p>热卖指数：{{ record.hot_value }}</p>
+                    <p>预留时间：{{ record.reserve_time }}</p>
+                    <p>状态: <label class="label label-danger">{{ record.status }}</label></p>
+                </div>
+                <div class="col-xs-4">
+                     {{ record.status }}
+                    <p>指导价: <font style="color:red;font-size:20px" id="id-target-price-{{ forloop.counter }}">
+                        {{record.price|mul:1.5}}</font></p>
+
+                    <p>进货价：<input id="id-buy-price-{{ forloop.counter }}" class="form-control" placeholder="进货价(必须)"
+                                  value="{{ record.sale_price }}"></p>
+                    {% if request_data.status %}
+                    {% ifequal record.status '待选' %}
+                    <p style="margin-top:10px">选择 初选结果：</p>
+                    {% else %}
+                    <p style="margin-top:10px">选择 接洽结果：</p>
+                    {% endifequal %}
+                    <p><select class="form-control input" id="id-select-{{ forloop.counter}}">
+                        {% ifequal record.status '待选' %}
+                        <option value="selected">入围</option>
+                        {% endifequal %}
+                        {% ifequal record.status '入围' %}
+                        <option value="purchase">取样</option>
+                        {% endifequal %}
+                        {% ifequal record.status '取样' %}
+                        <option value="passed">通过</option>
+                        {% endifequal %}
+                        {% ifequal record.status '通过' %}
+                        <option value="scheduling">排期</option>
+                        {% endifequal %}
+                        {% ifequal record.status '排期' %}
+                        <option value="scheduling">排期</option>
+                        {% endifequal %}
+                        {% ifequal record.status '待选' %}
+                        <option value="ignored">忽略</option>
+                        {% else %}
+                        <option value="rejected">淘汰</option>
+                        {% endifequal %}
+                    </select></p>
+
+                    {% ifequal record.status '通过' %}
+                    <p><label class="label label-success">上架时间:</label>
+                        <input type="text" id="id-sale-time-{{ forloop.counter }}" class="datepicker "
+                               value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/></p>
+
+                    <p><label class="label  label-success">吊牌价:</label>
+                        <input type="text" id="id-std-sale-price-{{ forloop.counter }}"
+                               value="{{ record.std_sale_price }}" style="width:30%;"/>
+                        <label class="label  label-success">出售价:</label>
+                        <input type="text" id="id-on-sale-price-{{ forloop.counter }}"
+                               value="{{ record.on_sale_price }}" style="width:30%;"/>
+                    </p>
+                    {% endifequal %}
+                    {% ifequal record.status '排期' %}
+                    <p><label class="label label-success">上架时间:</label>
+                        <input type="text" id="id-sale-time-{{ forloop.counter }}" name="dt" class="datepicker "
+                               value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/></p>
+
+                    <p><label class="label  label-success">吊牌价:</label>
+                        <input type="text" id="id-std-sale-price-{{ forloop.counter }}"
+                               value="{{ record.std_sale_price }}" style="width:30%;"/>
+                        <label class="label  label-success">出售价:</label>
+                        <input type="text" id="id-on-sale-price-{{ forloop.counter }}"
+                               value="{{ record.on_sale_price }}" style="width:30%;"/>
+                    </p>
+                    {% endifequal %}
+                    {% endif %}
+                    <p style="margin-top:10px">备注：</p><textarea rows="1" cols="20" class="form-control"
+                                                                id="id-memo-{{ forloop.counter}}">{{ record.memo }}</textarea>
+
+                    <p>
+                        {% ifequal record.status '入围' %}
+                        <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supplychain/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
+          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=selected&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
+          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
+                        {% if request_data.status %}
+                        <button type="button" class="btn btn-primary" style="margin-top:20px"
+                                onclick="screen('{{ record.id }}', '{{ forloop.counter }}')" ;>确定
+                        </button>
+                        {% endif %}
+                        {% endifequal %}
+                        {% ifequal record.status '取样' %}
+                        <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supplychain/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
+          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=purchase&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
+          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
+                        {% if request_data.status %}
+                        <button type="button" class="btn btn-primary" style="margin-top:20px"
+                                onclick="screen('{{ record.id }}', '{{ forloop.counter }}')" ;>确定
+                        </button>
+                        {% endif %}
+                        {% endifequal %}
+                        {% ifequal record.status '通过' %}
+                        <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supplychain/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
+          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=passed&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
+          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
+                        {% if request_data.status %}
+                        <button type="button" class="btn btn-primary" style="margin-top:20px"
+                                onclick="screen('{{ record.id }}', '{{ forloop.counter }}')" ;>确定
+                        </button>
+                        {% endif %}
+                        {% endifequal %}
+                        {% ifequal record.status '排期' %}
+                        <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supplychain/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
+          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=scheduling&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
+          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
+                        {% if request_data.status %}
+                        <button type="button" class="btn btn-primary" style="margin-top:20px"
+                                onclick="screen('{{ record.id }}', '{{ forloop.counter }}')" ;>确定
+                        </button>
+                        {% endif %}
+                        {% endifequal %}
+                        {% ifequal record.status '待选' %}
+                        {% if request_data.status %}
+                        <button type="button" class="btn btn-primary" style="margin-top:20px"
+                                onclick="screen('{{ record.id }}', '{{ forloop.counter }}')" ;>确定
+                        </button>
+                        {% endif %}
+                        {% endifequal %}
+                        <!--{% if request_data.status %}-->
+                        <!--<button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>-->
+                        <!--{% endif %}-->
+                        <a href="/admin/supplier/saleproduct/{{ record.id }}/" class="glyphicon glyphicon-edit"
+                           style="display:inline;float:right;margin-top:20px;"
+                           onclick="return showAddAnotherPopup(this);">修改</a></p>
+                    </p>
+
+                    <p id="id-msg-{{ forloop.counter }}"></p>
+
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="footer">
+        <p>© Uni Littles 2015</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block tail_script %}
+<script type="text/javascript">
+
+    function screen(id, counter) {
+
+        var buyPrice = parseFloat($("#id-buy-price-" + counter).val());
+        var stdSalePrice = parseFloat($("#id-std-sale-price-" + counter).val());
+        var onSalePrice = parseFloat($("#id-on-sale-price-" + counter).val());
+
+        if (isNaN(buyPrice) || buyPrice < 0) {
+            $("#id-msg-" + counter)[0].innerHTML = "请输入进货价：";
+            $("#id-msg-" + counter).css("color", "red");
+            return;
+        }
+        if (!isNaN(onSalePrice) && !isNaN(stdSalePrice) && (stdSalePrice <= 0 || onSalePrice <= 0)) {
+            $("#id-msg-" + counter)[0].innerHTML = "请输入吊牌价和售价：";
+            $("#id-msg-" + counter).css("color", "red");
+            return;
+        }
+        if (isNaN(onSalePrice) || isNaN(stdSalePrice)) {
+            stdSalePrice = onSalePrice = '0';
+        }
+        var url = "/supplychain/supplier/product/" + id + "/";
+        var callback = function (res) {
+            if (res["status"]) {
+                $("#id-item-" + id).slideUp();
+            }
+        };
+        var sale_time = "";
+        var sale_time_sct = $("#id-sale-time-" + counter);
+        if (sale_time_sct) {
+            sale_time = sale_time_sct.val();
+        }
+        if (sale_time_sct && sale_time == "") {
+            $("#id-msg-" + counter)[0].innerHTML = "请选择上架日期";
+            $("#id-msg-" + counter).css("color", "red");
+            return;
+        }
+        var memo = $("#id-memo-" + counter).val();
+        var selection = $("#id-select-" + counter).val();
+        var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        var data = {
+            "status": selection,
+            "csrfmiddlewaretoken": csrf_token,
+            "sale_price": buyPrice,
+            "std_sale_price": stdSalePrice,
+            "on_sale_price": onSalePrice,
+            "sale_time": sale_time,
+            "memo": memo
+        };
+        var headers = {
+            'X-HTTP-Method-Override': 'PATCH'
+        };
+        $.ajax({url: url, data: data, success: callback, method: "post", headers: headers});
+    }
+    ;
+
+    function slideToggle() {
+        $(".supplier-info").slideToggle(1000);
+    }
+    function slideProdcutToggle() {
+        $(".product_add").slideToggle(300);
+    }
+    $("#query_create").click(function () {
+
+        var fetch_url = $("#query_input").val();
+        if (!fetch_url) {
+            return;
+        }
+
+        if ($("#fetch-form").length > 0) {
+            $("#fetch-form").css("border", "1px solid #5BC0DE")
+            return;
+        }
+        var supplier_id = $("#supplier_id").val();
+        var url = "/supplychain/supplier/brand/fetch/" + supplier_id + "/";
+        var status = $("#status_id").val();
+
+        var callback = function (res) {
+            if ($("#items-group li").length == 0) {
+                $("#items-group").append(res);
+            } else {
+                $("#items-group li:first").before(res);
+            }
+        };
+
+        var data = {"fetch_url": fetch_url, 'status': status};
+
+        $.ajax({url: url, data: data, success: callback, method: "GET"});
+    });
+    $(function () {
+        $(".datepicker").datepicker({dateFormat: "yy-mm-dd 00:00:00"});
+        $("#reserve_time_id").datepicker({dateFormat: "yy-mm-dd 00:00:00"});
+    });
+</script>
+<script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_ui.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_qiniu.js"></script>
+
+<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_main.js"></script>
+{% endblock %}

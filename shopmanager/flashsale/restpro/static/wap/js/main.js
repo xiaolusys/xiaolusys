@@ -194,7 +194,9 @@ function Set_posters(suffix){
 }
 
 function Create_item_dom(p_obj,close_model){
-	
+	/*
+	 * close_model:取消款式首图展示.
+	 */
 	//创建商品DOM
 	function Item_dom(){
 	/* 
@@ -250,7 +252,8 @@ function Create_item_dom(p_obj,close_model){
         } else {
             p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
         }
-    } else if (p_obj.is_saleout) {
+    // 商品售光，并且单款或者同款页展示为true
+    } else if (p_obj.is_saleout && (!isNone(p_obj.product_model) || close_model)) {
         p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
     }
     if (close_model && true){

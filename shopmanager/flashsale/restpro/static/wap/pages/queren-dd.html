@@ -15,24 +15,20 @@
 <div class="header">
   <h1>确认订单</h1>
   <a class="back" href="javascript:history.go(-1)"></a>
-  <a class="user" href="gerenzhongxin.html"></a>
+  <a class="user" href="gerenzhongxin.html" target="_parent"></a>
 </div>
 
 <ul id="js-addr" class="addr">
-  <li>
-    <div class="h2 label2">
-      <div class="title">新增收货地址</div>
-	  <a class="add" href="shouhuodz-add.html"><div style="width:100%;height:30px;"></div></a>
-    </div>
-  </li>
-  <script id="addr-template" type="text/html">
-  <li class="{{ addr_class }}" name="select-addr">
-    <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
-    <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
-    <a class="icon-edit" href="shouhuodz-edit.html?id={{ id }}"></a>
-    <i class="icon-radio" addrid={{ id }}></i>
-  </li>
-  </script>
+<script id="addr-template" type="text/html">
+    <a onclick="jump_shouhuodz()" target="_parent">
+        <li class="{{ addr_class }}" name="select-addr">
+            <p class="label3">收货人：{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
+            <p class="label4">收货地址：{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
+            <a class="icon-edit" onclick="modify_current_addr({{ id }})"></a>
+            <i class="icon-radio" addrid={{ id }}></i>
+        </li>
+    </a>
+</script>
 </ul>
 
 <div class="cost">
@@ -112,12 +108,7 @@
 <script type="text/javascript">
 $(document).ready(function(){
   $('.ui-loader').remove();
-  //地址切换
-  $(document).on({
-  	//touchend:change_address,
-  	tap:change_address,
-  	//click:change_address
-  },'#js-addr li');
+
   //支付方式切换
   $(document).on({
   	//touchend:change_paytype,
@@ -137,10 +128,14 @@ $(document).ready(function(){
 
 });
 
-function change_address(){
-    $('#js-addr li.active').removeClass('active').addClass('normal');
-    $(this).removeClass('normal').addClass('active');
-};
+//页面只显示一个地址，点击跳转到地址管理页面
+function jump_shouhuodz() { //跳转地址管理页面
+    window.location = "shouhuodz.html";
+}
+function modify_current_addr(id) {//修改该当前地址页面
+    window.location = "shouhuodz-edit.html?id=" + id;
+}
+
 function change_paytype(){
     $('#js-pay-type li.active').removeClass('active').addClass('normal');
     $(this).removeClass('normal').addClass('active');

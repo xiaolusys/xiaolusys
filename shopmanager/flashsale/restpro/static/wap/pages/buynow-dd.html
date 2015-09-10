@@ -15,23 +15,19 @@
 <div class="header">
   <h1>确认订单</h1>
   <a class="back" href="javascript:history.go(-1)"></a>
-  <a class="user" href="gerenzhongxin.html"></a>
+  <a class="user" href="gerenzhongxin.html" target="_parent"></a>
 </div>
 
 <ul id="js-addr" class="addr">
-  <li>
-    <div class="h2 label2">
-      <div class="title">新增收货地址</div>
-	  <a class="add" href="shouhuodz-add.html"><div style="width:100%;height:30px;"></div></a>
-    </div>
-  </li>
   <script id="addr-template" type="text/html">
-  <li class="{{ addr_class }}" name="select-addr">
-    <p class="label3">{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
-    <p class="label4">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}-{{receiver_address}}</p>
-    <a class="icon-edit" href="shouhuodz-edit.html?id={{ id }}"></a>
-    <i class="icon-radio" addrid={{ id }}></i>
-  </li>
+      <li class="{{ addr_class }}" name="select-addr">
+          <a href="shouhuodz.html" target="_parent">
+            <p class="label3">收货人：{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
+            <p class="label4">收货地址：{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}-{{receiver_address}}</p>
+            <a class="icon-edit" href="shouhuodz-edit.html?id={{ id }}" target="_parent"></a>
+            <i class="icon-radio" addrid={{ id }}></i>
+      	  </a>
+      </li>
   </script>
 </ul>
 
@@ -108,25 +104,25 @@
   <a class="btn-buy" name="btn-buy">购&nbsp;&nbsp;买</a>
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
-<!--<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.js"></script>-->
+<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.js"></script>
 <script src="../js/pingpp_pay.js"></script>
 <script src="../js/pingpp_ap.js"></script>
 <script src="../js/tmpay.js"></script>
 <script src="../js/tmyhquse.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
-  //$('.ui-loader').remove();
+  $('.ui-loader').remove();
   //地址切换
   $(document).on({
-    //tap:change_address,
-  	touchend:change_address,
-  	click:change_address
+    tap:change_address,
+  	//touchend:change_address,
+  	//click:change_address
   },'#js-addr li');
   //支付方式切换
   $(document).on({
-    //tap:change_paytype,
-  	touchend:change_paytype,
-  	click:change_paytype
+    tap:change_paytype,
+  	//touchend:change_paytype,
+  	//click:change_paytype
   },'#js-pay-type li');
   //获取用户地址
   Set_user_address(GLConfig.get_user_address);
@@ -139,17 +135,13 @@ $(document).ready(function(){
   //显示优惠券并绑定付款事件
   get_Coupon_On_Buy();
   $(document).on({
-  	//tap:Confirm_charge,
-  	touchend:Confirm_charge,
-  	click:Confirm_charge
+  	tap:Confirm_charge,
+  	//touchend:Confirm_charge,
+  	//click:Confirm_charge
   },'.buy .btn-buy');
     
 });
 
-function change_address(){
-    $('#js-addr li.active').removeClass('active').addClass('normal');
-    $(this).removeClass('normal').addClass('active');
-};
 function change_paytype(){
     $('#js-pay-type li.active').removeClass('active').addClass('normal');
     $(this).removeClass('normal').addClass('active');
