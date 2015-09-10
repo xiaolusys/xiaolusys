@@ -17,7 +17,7 @@ class Register(models.Model):
     vmobile      = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
     verify_code  = models.CharField(max_length=8,blank=True,verbose_name=u"验证码")
     
-    vemail       = models.CharField(max_length=8,blank=True,verbose_name=u"待验证手机")
+    vemail       = models.CharField(max_length=8,blank=True,verbose_name=u"待验证邮箱")
     mail_code     = models.CharField(max_length=128,blank=True,verbose_name=u"邮箱验证码")
     
     verify_count  = models.IntegerField(default=0,verbose_name=u'验证次数')
