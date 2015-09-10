@@ -113,11 +113,11 @@ admin.site.register(TradeCharge, TradeChargeAdmin)
 
 
 class RegisterAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cus_uid', 'vmobile', 'vemail', 'created')
+    list_display = ('id', 'cus_uid', 'vmobile', 'created', 'modified')
     list_display_links = ('id', 'cus_uid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = (('created', DateFieldListFilter),)
+    list_filter = (('code_time', DateFieldListFilter), ('created', DateFieldListFilter),)
     search_fields = ['id', 'cus_uid', 'vmobile', 'vemail']
 
 
