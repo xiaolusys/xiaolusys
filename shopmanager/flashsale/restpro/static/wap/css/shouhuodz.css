@@ -14,16 +14,18 @@
   padding: 20px 0 0 42px;  
 }
 .add .p2{
-  padding: 11px 0 20px 42px;  
+  padding: 20px 0 20px 42px;  
 }
 .add i{
   display: block;
   position:absolute;
-  right: 42px;
-  bottom:28px;
-  width: 23px;
-  height: 23px;
+  right: 10px;
+  top:20px;
+  width: 85px;
+  height: 85px;
   background-image: url(../images/icon-jia2.png);
+  background-repeat: no-repeat;
+  background-size: 50% 50%;
 }
 .list{
   width:640px;
