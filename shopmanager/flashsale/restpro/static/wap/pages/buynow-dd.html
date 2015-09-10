@@ -21,7 +21,7 @@
 
 <div class="add">
     <a>
-        <i onclick=" jump_shouhuodz()" ></i>
+        <i onclick=" jump_add_address()" ></i>
         <p class="p2">新增收货地址</p>
     </a>
 </div>
@@ -147,6 +147,9 @@ $(document).ready(function(){
 //页面只显示一个地址，点击跳转到地址管理页面
 function jump_shouhuodz() { //跳转地址管理页面
     window.location = "shouhuodz.html";
+}
+function jump_add_address(){
+    window.location = "shouhuodz-add.html";
 }
 function change_paytype(){
     $('#js-pay-type li.active').removeClass('active').addClass('normal');
