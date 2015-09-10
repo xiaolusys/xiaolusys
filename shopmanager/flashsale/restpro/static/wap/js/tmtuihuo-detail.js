@@ -15,6 +15,8 @@ var REFUND_APPROVE = 6;             //确认退款，等待返款
 var REFUND_SUCCESS = 7;             //退款成功
 var REFUND = 2;  // 仅仅退款　订单状态
 var REFUND_PRO = 3; // 退货　订单状态
+var TRADE_FINISHED = 5;
+var TRADE_BUYER_SIGNED = 4;
 
 
 function Create_warring_Info() { // 创建　状态　信息
@@ -307,7 +309,8 @@ function get_ware_by(item_id, order_status) {
             var success_yifuk = Create_Info_Show8();
             $(".jifen-list").append(success_yifuk);
         }
-        if (order_status == REFUND_PRO) {//退货　已经发货
+        if (order_status == REFUND_PRO|| order_status==TRADE_FINISHED|| order_status==TRADE_BUYER_SIGNED) {
+            //退货　已经发货 或者交易成功 或者是货到付款签收　　都显示退货地址
             var w_info2 = Create_warring_Info2();//创建退货成功的显示信息
             $(".warring_info").append(w_info2);
 
