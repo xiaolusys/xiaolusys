@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="../css/common.css">
 <link rel="stylesheet" href="../css/gouwuche.css">
 <link rel="stylesheet" href="../css/queren-dd.css">
+<link rel="stylesheet" href="../css/shouhuodz.css">
 </head>
 <body>
 <div class="header">
@@ -17,9 +18,13 @@
   <a class="back" href="javascript:history.go(-1)"></a>
   <a class="user" href="gerenzhongxin.html"></a>
 </div>
-
+<div class="add">
+    <a >
+        <i onclick="jump_shouhuodz()"></i>
+        <p class="p2">新增收货地址</p>
+    </a>
+</div>
 <ul id="js-addr" class="addr">
-
     <script id="addr-template" type="text/html">
         <a onclick="jump_shouhuodz()">
             <li class="{{ addr_class }}" name="select-addr">
@@ -124,7 +129,7 @@ $(document).ready(function(){
   //获取购买信息
   var urlParams = window.location.href.split('?')[1];
   Set_user_orderinfo(GLConfig.get_cart_payinfo_url+'?'+urlParams);
-  
+
   $(document).on({tap:Confirm_charge},'.buy .btn-buy');
   get_Coupon_On_Buy();  //获取优惠券数量
 
