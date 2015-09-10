@@ -19,13 +19,13 @@
 .add i{
   display: block;
   position:absolute;
-  right: 10px;
+  right: 0px;
   top:20px;
   width: 85px;
   height: 85px;
   background-image: url(../images/icon-jia2.png);
   background-repeat: no-repeat;
-  background-size: 50% 50%;
+  background-size: 40% 40%;
 }
 .list{
   width:640px;

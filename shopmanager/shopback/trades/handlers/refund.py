@@ -24,12 +24,10 @@ class RefundHandler(BaseHandler):
             main_trade = MergeTrade.objects.get(id=main_tid)
             main_order = None
             for order in merge_trade.merge_orders.all():
-                
                 main_order = main_trade.merge_orders.get(oid=order.oid)
                 main_order.status = order.status
                 main_order.refund_status = order.refund_status
                 main_order.sys_status = order.sys_status
-                
                 update_model_fields(main_order,update_fields=['status',
                                                               'refund_status',
                                                               'sys_status'])
@@ -65,7 +63,6 @@ class RefundHandler(BaseHandler):
         if (merge_type == pcfg.NO_MERGE_TYPE):   
             if (not merge_trade.is_locked and 
                 merge_trade.sys_status == pcfg.WAIT_PREPARE_SEND_STATUS):
-                
                 merge_trade.sys_status=pcfg.WAIT_AUDIT_STATUS
              
         elif merge_type == pcfg.SUB_MERGE_TYPE:
@@ -74,32 +71,39 @@ class RefundHandler(BaseHandler):
             remove_succes = MergeTrade.objects.mergeRemover(main_tid)
             if remove_succes:
                 merge_trade.sys_status = pcfg.WAIT_AUDIT_STATUS
-            
         else:
             MergeTrade.objects.mergeRemover(merge_trade.id)
             
-        
-    def process(self,merge_trade,*args,**kwargs):
-        
-        if settings.DEBUG:
-            print 'DEBUG REFUND:',merge_trade
+    def update_trade_refund_status(self, merge_trade):
         
         merge_trade.has_refund = True
         merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
+        if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS:
+            self.atWAIT_SELLER_SEND_GOODS(merge_trade)
+        elif merge_trade.sys_status == pcfg.INVALID_STATUS:
+            self.atTRADE_CLOSED(merge_trade)
+        elif merge_trade.sys_status in pcfg.HAS_DELIVERY_STATUS:
+            self.atWAIT_BUYER_CONFIRM_GOODS(merge_trade)
+        update_model_fields(merge_trade,update_fields=['has_refund'])
+            
+    def process(self,merge_trade,*args,**kwargs):
+        """ １，如果初次入库退款，并且有待退款订单，则追加问题编号;
+            ２，如果没有无效的退款明细或未分单，正常退款单处理;
+            ３，否则按分单发货处理;
+        """
+        if settings.DEBUG:
+            print 'DEBUG REFUND:',merge_trade
         
         if (kwargs.get('first_pay_load',None) and 
             MergeTrade.objects.isTradeRefunding(merge_trade)):
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
         
-        if merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS:
-            self.atWAIT_SELLER_SEND_GOODS(merge_trade)
+        #invalid_refund_orders = merge_trade.merge_orders.filter()
+        #if not merge_trade.is_part_consign　or not :
+        self.update_trade_refund_status(merge_trade)
         
-        elif merge_trade.sys_status == pcfg.INVALID_STATUS:
-            self.atTRADE_CLOSED(merge_trade)
+        #TODO:处理拆单发货退款单
+        
             
-        elif merge_trade.sys_status in pcfg.HAS_DELIVERY_STATUS:
-            self.atWAIT_BUYER_CONFIRM_GOODS(merge_trade)
-            
-        update_model_fields(merge_trade,update_fields=['has_refund'])
         
     
