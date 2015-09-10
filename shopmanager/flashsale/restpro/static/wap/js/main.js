@@ -36,7 +36,6 @@ function today_timer() {
     hh = checkTime(hh);
     mm = checkTime(mm);
     ss = checkTime(ss);
-
     if (ts > 100800000 && ts < 136800000) {
         $(".poster_timer.tm2").text("敬请期待");
     } else if (ts < 100800000 && ts >= 86400000) {
@@ -70,7 +69,6 @@ function yesterday_timer() {
     hh = checkTime(hh);
     mm = checkTime(mm);
     ss = checkTime(ss);
-    console.log(dd, hh, mm, ss);
     if (ts > 0) {
         $(".poster_timer.tm2").text(hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {

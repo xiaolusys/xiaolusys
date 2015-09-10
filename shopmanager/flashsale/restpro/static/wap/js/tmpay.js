@@ -4,13 +4,14 @@ function Set_user_address(suffix){
 	var reqUrl = GLConfig.baseApiUrl + suffix;
 	var callBack = function(data){
 		//回调处理
-		$.each(data,function(index,obj){
-            if(obj.default==true){
-                obj.addr_class = obj.default==true?'active':'normal';
-                var addr_dom = $('#addr-template').html().template(obj);
-                $('.addr').append(addr_dom);
-            }
-		});
+		if (data.length == 0){
+			drawToast('请添加收货地址');
+			return
+		}
+		var defaultAddr = data[0];
+        defaultAddr.addr_class = defaultAddr.default==true?'active':'normal';
+        var addr_dom = $('#addr-template').html().template(defaultAddr);
+        $('.addr').append(addr_dom);
 	};
 	// 调用接口
 	$.ajax({ 
