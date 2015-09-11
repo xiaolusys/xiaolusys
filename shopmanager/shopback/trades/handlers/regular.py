@@ -41,7 +41,7 @@ class RegularSaleHandler(BaseHandler):
         for order in merge_trade.normal_orders:
             try:
                 product = Product.objects.get(outer_id=order.outer_id)
-                if product.category__cid <= MAX_YOUNI_CAT:
+                if product.category.cid <= MAX_YOUNI_CAT:
                     return
             except Product.DoesNotExist: 
                 continue
