@@ -254,7 +254,7 @@ class SaleProductSku(models.Model):
     properties_name = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u'规格')
     price = models.FloatField(default=0, verbose_name=u'价格')
 
-    sale_product = BigIntegerForeignKey(SaleProduct, null=True, related_name='product_skus', verbose_name=u'商品规格')
+    sale_product = models.ForeignKey(SaleProduct, null=True, related_name='product_skus', verbose_name=u'商品规格')
     sale_price = models.FloatField(default=0, verbose_name=u'采购价')
     spot_num = models.IntegerField(default=0, verbose_name=u'现货数量')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')

@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import hashlib
 import datetime
 from django.shortcuts import get_object_or_404
 
@@ -193,6 +194,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+from rest_framework_extensions.cache.decorators import cache_response
 
 class DistrictViewSet(viewsets.ModelViewSet):
     """
@@ -209,6 +211,22 @@ class DistrictViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
+    def calc_distirct_cache_key(self, view_instance, view_method,
+                            request, args, kwargs):
+        key_vals = ['id']
+        key_maps = kwargs or {}
+        for k,v in request.GET.copy().iteritems():
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+                
+        return hashlib.sha256(u'.'.join([
+                view_instance.__module__,
+                view_instance.__class__.__name__,
+                view_method.__name__,
+                json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            ])).hexdigest()
+    
+    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -219,13 +237,15 @@ class DistrictViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)   
-     
+    
+    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def province_list(self, request, *args, **kwargs):
         queryset = District.objects.filter(grade=1)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
         content = request.REQUEST
@@ -237,6 +257,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             return Response({"result":True,"data":serializer.data})  
     
+    @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
         content = request.REQUEST
