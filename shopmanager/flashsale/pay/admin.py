@@ -21,6 +21,11 @@ from .models import (SaleTrade,
 
 import logging
 
+import cStringIO as StringIO
+from common.utils import gen_cvs_tuple, CSVUnicodeWriter
+from django.http import HttpResponse
+import datetime, time
+
 logger = logging.getLogger('django.request')
 
 
@@ -358,6 +363,26 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
         return super(SaleRefundAdmin, self).response_change(request, obj, *args, **kwargs)
 
+    # 添加导出退款单功能
+    def export_Refund_Product_Action(self, request, queryset):
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') > -1
+        pcsv = []
+        pcsv.append((u'退款编号', u'交易编号', u'出售标题', u'退款费用', u'是否退货'))
+
+        for rf in queryset:
+            strade = SaleTrade.objects.get(id=rf.trade_id)
+            pcsv.append((rf.refund_no, strade.tid, rf.title, str(rf.refund_fee), str(rf.has_good_return)))
+
+        pcsv.append(['', '', '', '', ''])
+        tmpfile = StringIO.StringIO()
+        writer = CSVUnicodeWriter(tmpfile, encoding=is_windows and "gbk" or 'utf8')
+        writer.writerows(pcsv)
+        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        tmpfile.close()
+        response['Content-Disposition'] = 'attachment; filename=sale_refund-info-%s.csv' % str(int(time.time()))
+        return response
+    export_Refund_Product_Action.short_description = u"导出订单信息"
+    actions = ['export_Refund_Product_Action', ]
 
 admin.site.register(SaleRefund, SaleRefundAdmin)
 

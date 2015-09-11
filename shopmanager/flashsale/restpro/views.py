@@ -198,17 +198,16 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 class DistrictViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
-    author:kaineng.fang
-    方法名及其目的：
-    province_list（）：省列表
-    city_list：根据省获得市
-    country_list:根据市获得区或者县
+    地理区域信息接口及参数：
+    －　/province_list：省列表
+    －　/city_list：根据省获得市
+    > id:即province ID
+    －　/country_list:根据市获得区或者县
+    > id:即country ID
     """
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer# Create your views here.
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
     def calc_distirct_cache_key(self, view_instance, view_method,
@@ -271,8 +270,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
             queryset = District.objects.filter(parent_id=city_id)
             serializer = self.get_serializer(queryset, many=True)
             return Response({"result":True,"data":serializer.data})   
-       
-        
+
 
 from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
 

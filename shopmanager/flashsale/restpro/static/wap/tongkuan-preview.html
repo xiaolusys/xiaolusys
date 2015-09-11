@@ -27,6 +27,14 @@
 <div class="footer clearfix">
 <p class="copyright">Copyright © 2008-2015 小鹿美美，All Rights Reserved 沪ICP备15013901号-1</p>
 </div>
+
+<script type="text/html" id="verify_icon">
+    <div>
+        <img id="previev_vierify_{{ id }}" src="{{ icon }}" width="32px" onclick="verify_categray({{ id }},{{ model_id }})">
+        <span>{{ sale_charger }}</span>
+    </div>
+</script>
+
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="js/jquery-shopping.js"></script>
 <script src="js/main-preview.js"></script>
@@ -38,7 +46,7 @@
   //获取同款聚合商品列表
   var urlParams = parseUrlParams(window.location.href);
   var urlConf = {'model_id':urlParams['id']};
-  Set_model_product(GLConfig.get_modellist_url.template(urlConf));
+  Set_model_product(GLConfig.get_modellist_preview_url.template(urlConf));
   Set_shopcarts_num();
   need_set_info();
 })(jQuery);  
