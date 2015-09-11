@@ -104,6 +104,7 @@ var GLConfig = {
 	get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
 	get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
 	get_modellist_url:'/products/modellist/{{model_id}}.json', //获取同款商品列表
+	get_modellist_preview_url:'/products/preview_modellist/{{model_id}}.json', //获取同款商品列表(同款预览页面)
 	get_product_detail_url:'/products/{{product_id}}/details.json', //获取商品明细
     verify_product:"/products/{{id}}/verify_product",//审核产品
 	get_trade_all_url:'/trades.json', //获取用户所有订单

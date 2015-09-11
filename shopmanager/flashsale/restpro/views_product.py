@@ -284,6 +284,16 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def preview_modellist(self, request, *args, **kwargs):
+        """ 获取款式商品列表-同款预览页面 """
+        model_id = kwargs.get('model_id', None)
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(model_id=model_id)
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
     
     @cache_response(timeout=10*60,key_func='calc_items_cache_key')
     @detail_route(methods=['get'])
@@ -339,4 +349,5 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             pro.is_verify = True
             pro.save()
             log_action(request.user.id, pro, CHANGE, u'预览时修改产品为已审核！')
-        return Response('ok')
+        res = {"is_verify": pro.is_verify, "id": pro.id}
+        return Response(res)
