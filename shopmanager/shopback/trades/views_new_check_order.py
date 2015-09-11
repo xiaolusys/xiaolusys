@@ -51,7 +51,7 @@ def split_merge_trade(merger_order_id, modify_user):
         批量拆单功能实现
         参数为order_id 以逗号拼接的字串
     """
-
+    from shopback.trades.handlers import trade_handler
 
     order_list = merger_order_id.split(",")
     if len(order_list) == 0:
@@ -103,6 +103,7 @@ def split_merge_trade(merger_order_id, modify_user):
                 hasattr(new_trade, k) and setattr(new_trade, k, v)
 
     new_trade.save()
+
     log_action(modify_user.id, new_trade, ADDITION, u'从订单{0}拆过来'.format(parent_trade.id))
     # 将新的order合入新的订单
     for order_id in order_list:
@@ -124,5 +125,8 @@ def split_merge_trade(merger_order_id, modify_user):
         log_action(modify_user.id, mergeorder, CHANGE, u'被拆单')
     parent_trade.sys_memo += u"拆单到{0}".format(new_trade.id)
     parent_trade.save()
+
+    trade_handler.proccess(parent_trade, **{"update_logistic": True})
+    trade_handler.proccess(new_trade, **{"update_logistic": True})
     log_action(modify_user.id, parent_trade, CHANGE, u'拆到订单{0}'.format(new_trade.id))
     return "OK"

@@ -9,10 +9,9 @@ from shopback.logistics.models import (LogisticsCompany,
                                        DestCompany)
 
 class LogisticsHandler(BaseHandler):
-    
-    def handleable(self,merge_trade,*args,**kwargs):
-        return (kwargs.get('first_pay_load',None) or 
-                not merge_trade.logistics_company)
+    def handleable(self, merge_trade, *args, **kwargs):
+        return (kwargs.get('first_pay_load', None) or
+                not merge_trade.logistics_company or kwargs.get('update_logistic', None))
             
     def getYundaLGC(self):
         return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
