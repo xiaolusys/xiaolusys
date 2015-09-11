@@ -197,37 +197,50 @@ function Set_posters(suffix) {
     });
 }
 
-function preview_verify(verify, id, dom, model_id) {
-    var not_verify_icon = "images/tuihuo-jujue.png";
-    var already_verify_icon = "images/icon-ok.png";
-    var multi_icon = "images/preview-duokuan.png";
-    //如果是同款页面则不显示多款的icon
+function Create_verify_icon(obj){
+    var html = $("#verify_icon").html();
+    return hereDoc(html).template(obj);
+}
+
+function preview_verify(verify, id, dom, model_id, sale_charger) {
+    var not_verify_icon = "images/tuihuo-jujue.png";//没有审核图标
+    var already_verify_icon = "images/icon-ok.png";//已经审核图标
+    var multi_icon = "images/preview-duokuan.png";//多款图标
+    //如果是同款页面则不显示多款的icon // sale_charger  归属采购员
     var current_url = window.location.href.split('?')[0].split("/");
     var redom = "";
+    var icon = "";
+    var obj = {"id":id,"model_id":model_id,"sale_charger":sale_charger};
     if (current_url[current_url.length - 1] == "tongkuan-preview.html") {
         if (verify == false)//如果审核状态不是true,即没有审核，或者被修改状态
-        {
-            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + not_verify_icon + '" ' +
-            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+        {   obj.icon = not_verify_icon;
+            icon = Create_verify_icon(obj);
+            redom = $(dom).append(icon);
         }
-        else {
-            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + already_verify_icon + '" ' +
-            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+        else if(verify == true){
+            obj.icon = already_verify_icon;
+            icon = Create_verify_icon(obj);
+            redom = $(dom).append(icon);
         }
     }
     else {//不是同款页面
         if (verify == false && model_id == null)//如果审核状态不是true,即没有审核，或者被修改状态
         {
-            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + not_verify_icon + '" ' +
-            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+            obj.model_id = 0;
+            obj.icon = not_verify_icon;
+            icon = Create_verify_icon(obj);
+            redom = $(dom).append(icon);
         }
         else if (verify == true && model_id == null) {
-            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + already_verify_icon + '" ' +
-            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+            obj.model_id = 0;
+            obj.icon = already_verify_icon;
+            icon = Create_verify_icon(obj);
+            redom = $(dom).append(icon);
         }
         else {
-            redom = $(dom).append('<img id="previev_vierify_' + id + '" src="' + multi_icon + '" ' +
-            'width="32px" onclick="verify_categray(' + id + ',' + model_id + ')"/>');
+            obj.icon = multi_icon;
+            icon = Create_verify_icon(obj);
+            redom = $(dom).append(icon);
         }
         //如果同款多个产品的话查看是否所有产品都审核通过　如果所有的都通过了审核则显示对应图片
         if (model_id != null) {
@@ -240,7 +253,6 @@ function preview_verify(verify, id, dom, model_id) {
                 success: modelCallBack
             });
             var flag = 1;
-
             function modelCallBack(res) {
                 $.each(res, function (index, obj) {
                     if (obj.is_verify == false) {
@@ -259,16 +271,16 @@ function preview_verify(verify, id, dom, model_id) {
 function verify_categray(id, model_id) {
     //判断是否存在多款，model_id
     // 如果在同款页面则不去判断是否跳转
+    console.log("商品id:",id,"款式id:",model_id);
     var current_url = window.location.href.split('?')[0].split("/");
     if (current_url[current_url.length - 1] == "tongkuan-preview.html") {
         verify_action(id); //直接审核
     }
-    else if (model_id != null) {//如果不是单款
+    else if (model_id != 0) {//如果不是单款
         //跳转到同款页面
         window.location = "/static/wap/tongkuan-preview.html?id=" + model_id;
     }
     else {//是单款情况下则在当前页面去修改is_verify状态
-        //调用接口
         verify_action(id);
     }
 }
@@ -304,12 +316,12 @@ function verify_action(id) {
     );
 
     function requetCall(res) {
-        var png = $("#previev_vierify_" + id).attr("src").split("/")[1];
-        if (png == "icon-ok.png") {//切换图标
-            $("#previev_vierify_" + id).attr("src", "images/tuihuo-jujue.png");
-        }
-        else if (png == "tuihuo-jujue.png") {
+        console.log("debug verify res:", res);
+        if (res.is_verify == true) {//切换图标
             $("#previev_vierify_" + id).attr("src", "images/icon-ok.png");
+        }
+        else if (res.is_verify == false) {
+            $("#previev_vierify_" + id).attr("src", "images/tuihuo-jujue.png");
         }
     }
 }
@@ -393,7 +405,7 @@ function Set_promotes_product(suffix) {
             $.each(data.female_list,
                 function (index, p_obj) {
                     var item_dom = Create_item_dom(p_obj);
-                    item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id);
+                    item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id,p_obj.sale_charger);
                     $('.glist .nvzhuang').append(item_dom);
                 }
             );
@@ -405,7 +417,7 @@ function Set_promotes_product(suffix) {
             $.each(data.child_list,
                 function (index, p_obj) {
                     var item_dom = Create_item_dom(p_obj);
-                    item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id);
+                    item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id,p_obj.sale_charger);
                     $('.glist .chaotong').append(item_dom);
                 }
             );
@@ -466,7 +478,7 @@ function Set_model_product(suffix) {
         $.each(data,
             function (index, p_obj) {
                 var item_dom = Create_item_dom(p_obj, true);
-                item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id);
+                item_dom = preview_verify(p_obj.is_verify, p_obj.id, item_dom, p_obj.model_id,p_obj.sale_charger);
                 $('.glist').append(item_dom);
             }
         );
