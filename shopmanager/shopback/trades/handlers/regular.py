@@ -7,8 +7,10 @@ from django.db.models import Q
 from .handler import BaseHandler
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
+from shopback.items.models import Product
 from common.modelutils import  update_model_fields
 
+MAX_YOUNI_CAT = 3
 
 class RegularSaleHandler(BaseHandler):
     
@@ -36,6 +38,14 @@ class RegularSaleHandler(BaseHandler):
         if merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             return 
         
+        for order in merge_trade.normal_orders:
+            try:
+                product = Product.objects.get(outer_id=order.outer_id)
+                if product.category__cid <= MAX_YOUNI_CAT:
+                    return
+            except Product.DoesNotExist: 
+                continue
+            
         remind_time = datetime.datetime.now() + datetime.timedelta(days=settings.REGULAR_DAYS)
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         
