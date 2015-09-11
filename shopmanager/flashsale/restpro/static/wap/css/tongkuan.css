@@ -41,6 +41,7 @@ body{
 }  
 .glist{
   width: 640px;
+  min-height:805px;
   margin: 0 auto;
   overflow: hidden;
   padding-bottom: 18px;
