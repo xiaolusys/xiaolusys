@@ -642,8 +642,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
         assert UUID_RE.match(tuuid), u'订单UUID异常'
+        sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
+                                                           buyer_id=customer.id)
         params = {
-            'buyer_nick':customer.nick,
             'channel':form.get('channel'),
             'receiver_name':address.receiver_name,
             'receiver_state':address.receiver_state,
@@ -653,21 +654,23 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_zip':address.receiver_zip,
             'receiver_phone':address.receiver_phone,
             'receiver_mobile':address.receiver_mobile,
-            'buyer_message':form.get('buyer_message',''),
-            'payment':float(form.get('payment')),
-            'total_fee':float(form.get('total_fee')),
-            'post_fee':float(form.get('post_fee')),
-            'discount_fee':float(form.get('discount_fee')),
-            'charge':'',
-            'status':SaleTrade.WAIT_BUYER_PAY,
-            'openid':customer.openid
-      }
-        sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
-                                                           buyer_id=customer.id)
+            }
+        if state:
+            params.update({
+                'buyer_nick':customer.nick,
+                'buyer_message':form.get('buyer_message',''),
+                'payment':float(form.get('payment')),
+                'total_fee':float(form.get('total_fee')),
+                'post_fee':float(form.get('post_fee')),
+                'discount_fee':float(form.get('discount_fee')),
+                'charge':'',
+                'status':SaleTrade.WAIT_BUYER_PAY,
+                'openid':customer.openid
+                })
+        
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
         sale_trade.save()
-            
         return sale_trade,state
     
     @rest_exception(errmsg=u'特卖订单明细创建异常')
@@ -699,8 +702,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  status=SaleTrade.WAIT_BUYER_PAY
             )
         #清除购物车
-        if not settings.DEBUG:
-            cart_qs.delete()
+#         if not settings.DEBUG:
+        cart_qs.delete()
             
     @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
@@ -730,45 +733,48 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
         CONTENT  = request.POST
-        cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
+        tuuid    = CONTENT.get('uuid')
+        coupon_id, coupon= CONTENT.get('coupon_id',''), None
         customer = get_object_or_404(Customer,user=request.user)
-        cart_qs = ShoppingCart.objects.filter(
-            id__in=[i for i in cart_ids if i.isdigit()], 
-            buyer_id=customer.id
-        )
-        #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
-        if cart_qs.count() != len(cart_ids):
-            raise exceptions.ParseError(u'购物车信息异常')
-        
-        xlmm            = self.get_xlmm(request)
-        payment         = int(float(CONTENT.get('payment','0')) * 100)
-        post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
-        discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
-        cart_total_fee  = 0 
-        cart_discount   = 0
-        for cart in cart_qs:
-            if not cart.is_good_enough():
-                raise exceptions.ParseError(u'抱歉,商品已被抢光')
-            cart_total_fee += cart.price * cart.num * 100
-            cart_discount += cart.calc_discount_fee(xlmm=xlmm) * 100
-        
-        coupon_id = CONTENT.get('coupon_id','')
-        if coupon_id:
-            # 对应用户的未使用的优惠券
-            coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
-                                             status=UserCoupon.UNUSED)
-            coupon_pool  = coupon.cp_id
-            if coupon_pool.status != CouponsPool.RELEASE:
-                raise exceptions.APIException(u"优惠券池状态异常")
-
-            cart_discount    += int(coupon_pool.template.value * 100)
-        
-        if discount_fee > cart_discount:
-            raise exceptions.ParseError(u'优惠金额异常')
-        
-        cart_payment = cart_total_fee + post_fee - cart_discount
-        if post_fee < 0 or payment < 0  or payment < cart_payment:
-            raise exceptions.ParseError(u'付款金额异常')
+        try:
+            SaleTrade.objects.get(tid=tuuid,buyer_id=customer.id)
+        except SaleTrade.DoesNotExist:
+            cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
+            cart_qs = ShoppingCart.objects.filter(
+                id__in=[i for i in cart_ids if i.isdigit()], 
+                buyer_id=customer.id
+            )
+            #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
+            if cart_qs.count() != len(cart_ids):
+                raise exceptions.ParseError(u'购物车已结算待支付')
+            xlmm            = self.get_xlmm(request)
+            payment         = int(float(CONTENT.get('payment','0')) * 100)
+            post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
+            discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
+            cart_total_fee  = 0 
+            cart_discount   = 0
+            for cart in cart_qs:
+                if not cart.is_good_enough():
+                    raise exceptions.ParseError(u'抱歉,商品已被抢光')
+                cart_total_fee += cart.price * cart.num * 100
+                cart_discount += cart.calc_discount_fee(xlmm=xlmm) * 100
+            
+            if coupon_id:
+                # 对应用户的未使用的优惠券
+                coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
+                                                 status=UserCoupon.UNUSED)
+                coupon_pool  = coupon.cp_id
+                if coupon_pool.status != CouponsPool.RELEASE:
+                    raise exceptions.APIException(u"优惠券池状态异常")
+    
+                cart_discount    += int(coupon_pool.template.value * 100)
+            
+            if discount_fee > cart_discount:
+                raise exceptions.ParseError(u'优惠金额异常')
+            
+            cart_payment = cart_total_fee + post_fee - cart_discount
+            if post_fee < 0 or payment < 0  or payment < cart_payment:
+                raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
         address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
