@@ -5,6 +5,7 @@ from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 
 from shopback.base import log_action, ADDITION, CHANGE
+from shopback.base.admin import MyAdmin
 from .models import (
     SaleProduct,
     SaleSupplier,
@@ -15,7 +16,7 @@ from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter
 from . import permissions as perms
 
 
-class SaleSupplierAdmin(admin.ModelAdmin):
+class SaleSupplierAdmin(MyAdmin):
     list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform',
                     'charge_link', 'category_select', 'progress', 'created', 'modified')
     list_display_links = ('id',)
@@ -182,7 +183,7 @@ class SaleCategoryAdmin(admin.ModelAdmin):
 admin.site.register(SaleCategory, SaleCategoryAdmin)
 
 
-class SaleProductAdmin(admin.ModelAdmin):
+class SaleProductAdmin(MyAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link',
                     'category_select', 'hot_value', 'sale_price', 'sale_time', 'select_Contactor', 'modified', 'status')
@@ -258,12 +259,13 @@ class SaleProductAdmin(admin.ModelAdmin):
 
         rset.add('sale_supplier')
         contactor_name = 'contactor'
-        if not perms.has_sale_product_mgr_permission(request.user):
-            rset.add(contactor_name)
-
-        if perms.has_sale_product_mgr_permission(request.user):
-            if contactor_name in rset:
-                rset.remove(contactor_name)
+        rset.add(contactor_name)
+#         if not perms.has_sale_product_mgr_permission(request.user):
+#             rset.add(contactor_name)
+# 
+#         if perms.has_sale_product_mgr_permission(request.user):
+#             if contactor_name in rset:
+#                 rset.remove(contactor_name)
 
         return rset
 
