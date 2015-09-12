@@ -36,7 +36,7 @@ class InitHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
         return kwargs.get('first_pay_load',None)
-        
+    
     def process(self,merge_trade,*args,**kwargs):
         
         if settings.DEBUG:
@@ -45,9 +45,10 @@ class InitHandler(BaseHandler):
         log_action(merge_trade.user.user.id,
                    merge_trade,ADDITION,
                    u'订单入库')
-            
+        
+        merge_trade.ware_by = merge_trade.get_trade_assign_ware()
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
-        update_model_fields(merge_trade,update_fields=['sys_status'])
+        update_model_fields(merge_trade,update_fields=['sys_status','ware_by'])
 
 
 class StockOutHandler(BaseHandler):   
