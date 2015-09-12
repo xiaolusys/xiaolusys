@@ -190,7 +190,7 @@ class SaleProductAdmin(MyAdmin):
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    ordering = ('-hot_value',)
+#     ordering = ('-hot_value',)
     date_hierarchy = 'sale_time'
     list_filter = ('status', ('sale_time', DateScheduleFilter),
                    CategoryFilter, 'platform', BuyerGroupFilter)
