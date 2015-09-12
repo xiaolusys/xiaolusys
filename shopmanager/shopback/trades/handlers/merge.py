@@ -51,6 +51,7 @@ class MergeHandler(BaseHandler):
                                             merge_trade.receiver_name,
                                             merge_trade.receiver_mobile,
                                             merge_trade.receiver_phone,
+                                            ware_by=merge_trade.ware_by,
                                             latest_paytime=latest_paytime)
             
             if merge_queryset.count() == 1:

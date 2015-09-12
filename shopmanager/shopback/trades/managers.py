@@ -25,6 +25,7 @@ class MergeTradeManager(models.Manager):
                           receiver_phone,
                           state='',
                           city='',
+                          ware_by=None,
                           latest_paytime=None):
         q = None
         if receiver_mobile :
@@ -46,6 +47,8 @@ class MergeTradeManager(models.Manager):
         
         if state and city:
             queryset = queryset.filter(receiver_state=state,receiver_city=city)
+        if ware_by:
+            queryset = queryset.filter(ware_by=ware_by)
         if latest_paytime:
             queryset = queryset.filter(pay_time__gte=latest_paytime)
             
@@ -210,7 +213,10 @@ class MergeTradeManager(models.Manager):
         
         if not isinstance(trade,self.model):
             trade = self.get(id=trade) 
-            
+        
+        if trade.ware_by == self.model.WARE_NONE:
+            return False
+        
         queryset = self.getMergeQueryset(trade.buyer_nick,
                                          trade.receiver_name,
                                          trade.receiver_mobile,
@@ -224,7 +230,7 @@ class MergeTradeManager(models.Manager):
         
         if order_count == 1:
             return queryset[0].id != trade.id
-  
+        
         return True
     
     def diffTradeAddress(self,trade,sub_trade):

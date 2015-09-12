@@ -59,7 +59,7 @@ def weixin_xlmm_auth(redirecto=None):
     """
     def _decorator(view_func):
         
-        assert redirecto is not None,u'redirecto 参数必须'
+        assert redirecto ,u'redirecto 参数必须'
         def _checklogin(request, *args, **kwargs):
             if request.user.is_active :
                 # The user is valid. Continue to the admin page.
