@@ -377,6 +377,20 @@ class MergeTrade(models.Model):
         return self.status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                pcfg.WAIT_SCAN_WEIGHT_STATUS)
     
+    def get_trade_assign_ware(self):
+        """ 获取订单关联仓库 """
+        
+        pre_ware    = MergeTrade.WARE_NONE
+        for order in self.normal_orders:
+            try:
+                cur_ware =  Product.objects.get(outer_id=order.outer_id).ware_by
+                if pre_ware and  pre_ware != cur_ware:
+                    return MergeTrade.WARE_NONE
+                pre_ware = cur_ware
+            except:
+                return MergeTrade.WARE_NONE
+        return pre_ware
+    
     def update_inventory(self, update_returns=True, update_changes=True):
         #自提直接更新订单库存信息
         

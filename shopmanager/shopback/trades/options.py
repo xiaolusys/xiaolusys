@@ -221,6 +221,7 @@ def driveMergeTrade(trade,latest_paytime=None):
                             receiver_name, 
                             receiver_mobile, 
                             receiver_phone,
+                            ware_by=trade.ware_by,
                             latest_paytime=latest_paytime)
         
         scan_merge_trades = merge_queryset.filter(sys_status__in=(

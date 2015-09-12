@@ -50,26 +50,12 @@ class LogisticsHandler(BaseHandler):
             return LogisticsCompany.objects.get_or_create(
                                         code=shipping_type)[0]
         
-    def getTradeWare(self,trade):
-        """ 获取订单关联仓库 """
-        pre_ware    = MergeTrade.WARE_NONE
-        for order in trade.normal_orders:
-            try:
-                cur_ware =  Product.objects.get(outer_id=order.outer_id).ware_by
-                if pre_ware and  pre_ware != cur_ware:
-                    return MergeTrade.WARE_NONE
-                pre_ware = cur_ware
-            except:
-                return MergeTrade.WARE_NONE
-        return pre_ware
-    
     def process(self,merge_trade,*args,**kwargs):
         
         if settings.DEBUG:
             print 'DEBUG LOGISTIC:',merge_trade
         
         try:
-            merge_trade.ware_by = self.getTradeWare(merge_trade)
             if merge_trade.is_force_wlb:
                 merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
             #如果订单属于广州仓，则默认发韵达
