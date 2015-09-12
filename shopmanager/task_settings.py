@@ -202,7 +202,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时同步京东商品库存':{
         'task':'shopapp.jingdong.tasks.syncAllJDUserWareNumTask',
-        'schedule':crontab(minute="20",hour='*/6'),
+        'schedule':crontab(minute="20",hour='6'),
         'args':()
     },
     u'定时更新特卖订单订单列表':{

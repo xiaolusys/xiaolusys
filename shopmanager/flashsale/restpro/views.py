@@ -66,31 +66,30 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
 class UserAddressViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be   viewed or edited.
-    author： kaineng .fang  2015-8--
-    方法及其目的
-    detail  （）：获得用户所有收获地址  (使用 get 方法）    /address.json
-    delete（）：删除某个地址 （post  方法)      /address/" + id + "/delete_address
-    change_default：选择收获地址  (post方法）    /address/" + id + "/change_default",更改默认地址
-    create_address：创建新的收获地址（post方法）  /address/create_address?format=json'   data: {
-          
-            "receiver_state": receiver_state,
-            "receiver_city": receiver_city,
-            "receiver_district": receiver_district,
-            "receiver_address": receiver_address,
-            "receiver_name": receiver_name,
-            "receiver_mobile": receiver_mobile,
-        }
-        
-        get_one_addres： 得到要修改的那一个地址的信息（get请求）        /address/  get_one_address       data{"id":}         
-         update:        "/address/" + id + "/update";  :修改地址    （post）      data: {
-             “id”：
-            "receiver_state": receiver_state,
-            "receiver_city": receiver_city,
-            "receiver_district": receiver_district,
-            "receiver_address": receiver_address,
-            "receiver_name": receiver_name,
-            "receiver_mobile": receiver_mobile,
-        }
+    - author： kaineng .fang  2015-8--
+    - 方法及其目的
+    - /{id}/delete（）：删除某个地址 （post  方法)
+    - /{id}/change_default：选择收获地址  (post方法）   更改默认地址
+    - /create_address：创建新的收获地址（post方法）  
+        > data: {    
+        >     "receiver_state": receiver_state,
+        >     "receiver_city": receiver_city,
+        >     "receiver_district": receiver_district,
+        >     "receiver_address": receiver_address,
+        >     "receiver_name": receiver_name,
+        >     "receiver_mobile": receiver_mobile,
+        > }
+    - /get_one_addres： 得到要修改的那一个地址的信息（get请求） data{"id":}         
+    - /{id}/update: 修改地址（post）      
+        > data: {
+        >     id：地址ＩＤ
+        >     "receiver_state": receiver_state,
+        >     "receiver_city": receiver_city,
+        >     "receiver_district": receiver_district,
+        >     "receiver_address": receiver_address,
+        >     "receiver_name": receiver_name,
+        >     "receiver_mobile": receiver_mobile,
+        > }
     """
     queryset = UserAddress.normal_objects.order_by('-default')
     serializer_class = serializers.UserAddressSerializer# Create your views here.
@@ -198,12 +197,14 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 class DistrictViewSet(viewsets.ModelViewSet):
     """
-    地理区域信息接口及参数：
+    ###地理区域信息接口及参数：
+    
     －　/province_list：省列表
     －　/city_list：根据省获得市
-    > id:即province ID
+    > 　id:即province ID
+     
     －　/country_list:根据市获得区或者县
-    > id:即country ID
+    > 　id:即country ID
     """
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer# Create your views here.

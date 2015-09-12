@@ -24,29 +24,32 @@ from shopback.items.models import Product
 from flashsale.pay.models import  SaleTrade,SaleOrder
 # BADU_KD100_URL = "http://baidu.kuaidi100.com/query"
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"
-BAIDU_POST_CODE_EXCHANGE={
-                         'YUNDA':'yunda',
-                         'STO':'shentong',
-                         'EMS':'ems',
-                         'ZTO':'zhongtong',
-                         'ZJS':'zhaijisong',
-                         'SF':'shunfeng',
-                         'YTO':'yuantong',
-                         'HTKY':'huitongkuaidi',
-                         'TTKDEX':'tiantian',
-                         'QFKD':'quanfengkuaidi',
-                         }
-POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
-                      'STO':u'申通快递',
-                      'EMS':u'邮政EMS',
-                      'ZTO':u'中通快递',
-                      'ZJS':u'宅急送',
-                      'SF':u'顺丰速运',
-                      'YTO':u'圆通',
-                      'HTKY':u'汇通快递',
-                      'TTKDEX':u'天天快递',
-                      'QFKD':u'全峰快递',
-                      }
+BAIDU_POST_CODE_EXCHANGE ={
+    'YUNDA':'yunda',
+    'YUNDA_QR':'yunda',
+    'STO':'shentong',
+    'EMS':'ems',
+    'ZTO':'zhongtong',
+    'ZJS':'zhaijisong',
+    'SF':'shunfeng',
+    'YTO':'yuantong',
+    'HTKY':'huitongkuaidi',
+    'TTKDEX':'tiantian',
+    'QFKD':'quanfengkuaidi',
+}
+POST_CODE_NAME_MAP = {
+    'YUNDA':u'韵达快递',
+    'YUNDA_QR':u'韵达快递',
+    'STO':u'申通快递',
+    'EMS':u'邮政EMS',
+    'ZTO':u'中通快递',
+    'ZJS':u'宅急送',
+    'SF':u'顺丰速运',
+    'YTO':u'圆通',
+    'HTKY':u'汇通快递',
+    'TTKDEX':u'天天快递',
+    'QFKD':u'全峰快递',
+}
 
 # def getLogisticTrace22(out_sid,exType):
 #     
@@ -78,34 +81,31 @@ from shopback.trades.models import MergeTrade
 class WuliuView01(APIView):
     """ 物流地址api     方凯能         2015-8-13 
      /rest/wuliu/      传递参数tid
-     
-         id          快递代号、点击 代码对照 查看所有快递对应代号
-         name        快递名称
-         order          快递单号、注意区分大小写
+     id          快递代号、点击 代码对照 查看所有快递对应代号
+     name        快递名称
+     order          快递单号、注意区分大小写
     快递API单号状态（status）
-    -1     待查询、在批量查询中才会出现的状态,指提交后还没有进行任何更新的单号
-0     查询异常
-1     暂无记录、单号没有任何跟踪记录
-2     在途中
-3     派送中
-4     已签收
-5     拒收、用户拒签
-6     疑难件、以为某些原因无法进行派送
-7     无效单
-8     超时单
-9     签收失败
-    
+        -1     待查询、在批量查询中才会出现的状态,指提交后还没有进行任何更新的单号
+    0     查询异常
+    1     暂无记录、单号没有任何跟踪记录
+    2     在途中
+    3     派送中
+    4     已签收
+    5     拒收、用户拒签
+    6     疑难件、以为某些原因无法进行派送
+    7     无效单
+    8     超时单
+    9     签收失败
+        
     快递API错误代号（errcode）
     0000     接口调用正常,无任何错误
-0001     传输参数格式有误
-0002     用户编号(uid)无效
-0003     用户被禁用
-0004     key无效
-0005     快递代号(id)无效
-0006     访问次数达到最大额度
-0007     查询服务器返回错误
-    
-    
+    0001     传输参数格式有误
+    0002     用户编号(uid)无效
+    0003     用户被禁用
+    0004     key无效
+    0005     快递代号(id)无效
+    0006     访问次数达到最大额度
+    0007     查询服务器返回错误
     '""" 
     #print '这里是地址api'
     permission_classes = (permissions.IsAuthenticated,)
@@ -273,15 +273,10 @@ def  SaveWuliu01(tid):
             wuliu.save()
             
             
-            
-            
-            
-            
-            
-            
  ##fang 2015-8-20  version      就是边查边存      
 class WuliuView02(APIView):
-    """ 物流地址api     方凯能         2015-8-20
+    """ 
+    物流地址api     方凯能         2015-8-20
      /rest/wuliu/      传递参数tid
      
          id          快递代号、点击 代码对照 查看所有快递对应代号
@@ -289,29 +284,29 @@ class WuliuView02(APIView):
          order          快递单号、注意区分大小写
     快递API单号状态（status）
     -1     待查询、在批量查询中才会出现的状态,指提交后还没有进行任何更新的单号
-0     查询异常
-1     暂无记录、单号没有任何跟踪记录
-2     在途中
-3     派送中
-4     已签收
-5     拒收、用户拒签
-6     疑难件、以为某些原因无法进行派送
-7     无效单
-8     超时单
-9     签收失败
+    0     查询异常
+    1     暂无记录、单号没有任何跟踪记录
+    2     在途中
+    3     派送中
+    4     已签收
+    5     拒收、用户拒签
+    6     疑难件、以为某些原因无法进行派送
+    7     无效单
+    8     超时单
+    9     签收失败
+        
+        快递API错误代号（errcode）
+        0000     接口调用正常,无任何错误
+    0001     传输参数格式有误
+    0002     用户编号(uid)无效
+    0003     用户被禁用
+    0004     key无效
+    0005     快递代号(id)无效
+    0006     访问次数达到最大额度
+    0007     查询服务器返回错误
     
-    快递API错误代号（errcode）
-    0000     接口调用正常,无任何错误
-0001     传输参数格式有误
-0002     用户编号(uid)无效
-0003     用户被禁用
-0004     key无效
-0005     快递代号(id)无效
-0006     访问次数达到最大额度
-0007     查询服务器返回错误
     
-    
-    '""" 
+    """ 
     #print '这里是地址api'
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
@@ -396,26 +391,26 @@ class WuliuView03(APIView):
          order          快递单号、注意区分大小写
     快递API单号状态（status）
     -1     待查询、在批量查询中才会出现的状态,指提交后还没有进行任何更新的单号
-0     查询异常
-1     暂无记录、单号没有任何跟踪记录
-2     在途中
-3     派送中
-4     已签收
-5     拒收、用户拒签
-6     疑难件、以为某些原因无法进行派送
-7     无效单
-8     超时单
-9     签收失败
-    
-    快递API错误代号（errcode）
-    0000     接口调用正常,无任何错误
-0001     传输参数格式有误
-0002     用户编号(uid)无效
-0003     用户被禁用
-0004     key无效
-0005     快递代号(id)无效
-0006     访问次数达到最大额度
-0007     查询服务器返回错误
+    0     查询异常
+    1     暂无记录、单号没有任何跟踪记录
+    2     在途中
+    3     派送中
+    4     已签收
+    5     拒收、用户拒签
+    6     疑难件、以为某些原因无法进行派送
+    7     无效单
+    8     超时单
+    9     签收失败
+        
+        快递API错误代号（errcode）
+        0000     接口调用正常,无任何错误
+    0001     传输参数格式有误
+    0002     用户编号(uid)无效
+    0003     用户被禁用
+    0004     key无效
+    0005     快递代号(id)无效
+    0006     访问次数达到最大额度
+    0007     查询服务器返回错误
     '""" 
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
@@ -448,7 +443,7 @@ class WuliuView03(APIView):
                 return    Response({"result":False, "message":"交易关闭","time":trade_info.created }) 
             return    Response({"result":False,"message":"订单创建完成","time":trade_info.created }) 
         if exType not in POST_CODE_NAME_MAP.keys():
-            return Response({"result":False,"message":"亲，您的包裹已经在路上啦!暂时不支持此快递公司物流信息哦！","time":trade_info.consign_time})   
+            return Response({"result":False,"message":"亲，包裹已经发出，物流信息暂未更新","time":trade_info.consign_time})   
         
         tid=trade_info.tid
         data = {'id':BAIDU_POST_CODE_EXCHANGE.get(exType),'order':out_sid,'key': apikey,'uid': uid}
@@ -470,26 +465,26 @@ class WuliuView(APIView):
          order          快递单号、注意区分大小写
     快递API单号状态（status）
     -1     待查询、在批量查询中才会出现的状态,指提交后还没有进行任何更新的单号
-0     查询异常
-1     暂无记录、单号没有任何跟踪记录
-2     在途中
-3     派送中
-4     已签收
-5     拒收、用户拒签
-6     疑难件、以为某些原因无法进行派送
-7     无效单
-8     超时单
-9     签收失败
-    
-    快递API错误代号（errcode）
-    0000     接口调用正常,无任何错误
-0001     传输参数格式有误
-0002     用户编号(uid)无效
-0003     用户被禁用
-0004     key无效
-0005     快递代号(id)无效
-0006     访问次数达到最大额度
-0007     查询服务器返回错误
+    0     查询异常
+    1     暂无记录、单号没有任何跟踪记录
+    2     在途中
+    3     派送中
+    4     已签收
+    5     拒收、用户拒签
+    6     疑难件、以为某些原因无法进行派送
+    7     无效单
+    8     超时单
+    9     签收失败
+        
+        快递API错误代号（errcode）
+        0000     接口调用正常,无任何错误
+    0001     传输参数格式有误
+    0002     用户编号(uid)无效
+    0003     用户被禁用
+    0004     key无效
+    0005     快递代号(id)无效
+    0006     访问次数达到最大额度
+    0007     查询服务器返回错误
     '""" 
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
@@ -497,9 +492,8 @@ class WuliuView(APIView):
     def get(self, request, *args, **kwargs):
         apikey = '47deda738666430bab15306c2878dd3a'     
         #apikey='ebd77d3a6ef243c4bf1b1f8610443e27'
-    #访问的API代码  
+        #访问的API代码  
         uid = '39400'
-       # uid='40340'
         try :            
             number=request.GET['tid']
         except:
@@ -535,10 +529,8 @@ class WuliuView(APIView):
             
             return    Response({"result":False,"message":"订单创建完成","time":trade_info.created }) 
         if exType not in POST_CODE_NAME_MAP.keys():
-            return Response({"result":False,"message":"亲，您的包裹已经在路上啦!暂时不支持此快递公司物流信息哦！","time":trade_info.consign_time})   
-        
-        
-        
+            return Response({"result":False,"message":"亲，包裹已经发出，物流信息暂未更新","time":trade_info.consign_time})   
+
         count=TradeWuliu.objects.filter(tid=trade_info.tid).count()
         print "数目",count
         if (count==0  or count==1):
