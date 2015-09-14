@@ -3,6 +3,18 @@
  *@date:2015-07-25
  */
 //创建图片滑动插件
+
+var settings = {
+    trigger: 'click',
+    title: '',
+    content: '',
+    width:600,
+    multi: false,
+    closeable: true,
+    style: '',
+    padding: true
+};
+
 var swiper = new Swiper('.swiper-container', {
     pagination: '.swiper-pagination',
     paginationClickable: true,
@@ -34,7 +46,7 @@ function Create_product_detailsku_dom(obj) {
     	}else{
     		sku.sku_class = "normal";
     	}
-        sku_list[sku_list.length] = '<li class="{{sku_class}}" name="select-sku" sku_id="{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
+        sku_list[sku_list.length] = '<li class="{{sku_class}}" name="select-sku" sku_id="{{id}}" id="skusize_{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
     });
 
     obj.sku_list = sku_list.join('');
@@ -60,7 +72,31 @@ function Create_product_detailsku_dom(obj) {
 
     return hereDoc(Content_dom).template(obj);
 }
+function link_sku_size(obj){
+    $.each(obj.normal_skus, function (index, sku) {
+        if(sku.is_saleout){
+            return
+        }
+        var tableContent = "<div class='remain-num' style='font-size:20px'><h3>还剩下<span style='color:#f9339b'>"+ sku.size_of_sku.free_num+"</span>件,不要错过哦～</h3></div>";
+        if (sku.size_of_sku.result != "None") {
+            tableContent += "<table class='pop-class table-bordered'><tr>";
+            for (var p in sku.size_of_sku.result) {
+                tableContent += "<th>" + p + "</th>";
+            }
+            tableContent += "</tr><tr>"
+            for (var p in sku.size_of_sku.result) {
+                tableContent += "<td>" + sku.size_of_sku.result[p] + "</td>";
+            }
+            tableContent += "</tr></table>";
+        }
 
+        var tableSettings = {
+                content: tableContent
+
+            };
+        $('#skusize_'+sku.id).webuiPopover('destroy').webuiPopover($.extend({}, settings, tableSettings));
+    });
+}
 function Create_product_bottomslide_dom(obj_list) {
     //创建内容图Slide
     var slides = [];
@@ -94,12 +130,16 @@ function Set_product_detail(suffix) {
         var detail_dom = Create_product_detailsku_dom(data);
         var params = template('params', data);
         $('.goods-content').html(detail_dom+params);
+
         //设置商品内容图列表
         var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
         $('.goods-img .list').html(bottom_dom);
         if(data.sale_time){
             var shelf_time = new Date(data.sale_time);
             product_timer(shelf_time);
+        }
+        if(data.is_saleopen){
+            link_sku_size(data);
         }
     };
     // 发送请求

@@ -80,7 +80,6 @@ from rest_framework_extensions.cache.decorators import cache_response
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     特卖商品API：
-    
     - {prefix}/promote_today[.format]: 获取今日推荐商品列表;
     - {prefix}/promote_previous[.format]: 获取昨日推荐商品列表;
     - {prefix}/childlist[.format]: 获取童装专区商品列表;
@@ -96,7 +95,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
     paginate_by = 100
-    page_query_param = 'page_size'
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
     max_paginate_by = 100
     
     def get_today_date(self):

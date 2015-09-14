@@ -507,7 +507,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
     paginate_by = 25
-    page_query_param = 'page_size'
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
     max_paginate_by = 100
     
     def get_owner_queryset(self,request):

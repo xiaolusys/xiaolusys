@@ -3,6 +3,14 @@ $(function () {
     $(".sku-choose").click(dynamic_generate_sku);
     $(".sku-choose").click(dynamic_generate_chi);
     $(".chima-choose").click(dynamic_generate_chi);
+    $("#chima-add").click(function(){
+        var colortext = $(".chima-add").val();
+        $(".chima-content").append(template("chima-one",{"chima": colortext}))
+    });
+    $("#color-add").click(function(){
+        var colortext = $(".color-add").val();
+        $(".color-content").append(template("color-one",{"color": colortext}))
+    });
 })
 function dynamic_generate_sku() {
     var all_color = $(".color-choose");
@@ -34,6 +42,18 @@ function dynamic_generate_sku() {
         var html = template('tr-template', result);
         $('#table-id tbody').html(html);
     }
+    $(".c_remainnum").change(function(){
+        $('input[id$=remainnum]').val($(this).val());
+    });
+    $(".c_cost").change(function(){
+        $('input[id$=cost]').val($(this).val());
+    });
+    $(".c_pricestd").change(function(){
+        $('input[id$=pricestd]').val($(this).val());
+    });
+    $(".c_agentprice").change(function(){
+        $('input[id$=agentprice]').val($(this).val());
+    });
 
 }
 
