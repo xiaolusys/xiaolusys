@@ -39,7 +39,7 @@ from shopback.items.views import (ProductListView,
 from shopback.base.authentication import login_required_ajax
 from shopback.items.views_rest import ProductInvalidConfirmView
 from .select_sale_time import change_Sale_Time
-from .views_add import AddItemView, GetCategory
+from .views_add import AddItemView, GetCategory, GetSupplier, GetSkuDetail
 
 urlpatterns = patterns('shopback.items.views',
 
@@ -143,5 +143,7 @@ urlpatterns = patterns('shopback.items.views',
     url(r'^select_sale_time/$', change_Sale_Time, name='select_sale_time'),
     url(r'^add_item/$', AddItemView.as_view(), name='select_sale_time'),
     url(r'^get_category/$', GetCategory.as_view(), name='get_category'),
+    url(r'^get_supplier/$', GetSupplier.as_view(), name='get_supplier'),
+    url(r'^get_sku/$', GetSkuDetail.as_view(), name='get_sku'),
 )
 
