@@ -336,7 +336,6 @@ function Set_category_product(suffix){
 function Set_model_product(suffix){
 	//获取同款式商品列表
 	var promoteUrl = GLConfig.baseApiUrl + suffix;
-	
 	var promoteCallBack = function(data){
         $("#loading").hide();
 		//设置女装推荐链接及图片

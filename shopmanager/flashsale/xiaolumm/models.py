@@ -226,7 +226,6 @@ class XiaoluMama(models.Model):
             order_price = int(order.payment * 100)
         return order_price
 
-
     def get_Mama_Trade_Rebeta(self,trade):
         """ 获取妈妈交易返利提成 """
         if hasattr(trade,'normal_orders'):
