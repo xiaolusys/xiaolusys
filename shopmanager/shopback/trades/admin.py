@@ -129,7 +129,7 @@ class MergeTradeChangeList(ChangeList):
 
 class MergeTradeAdmin(MyAdmin):
     list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
-                    'payment','pay_time','consign_time','status','sys_status',
+                    'payment','pay_time','consign_time','trade_ding_huo','status','sys_status',
                     'reason_code','is_picking_print','is_express_print'#
                     ,'can_review','ware_by','weight_time','charge_time')
     #list_display_links = ('trade_id_link','popup_tid_link')
@@ -186,6 +186,19 @@ class MergeTradeAdmin(MyAdmin):
         return content
     has_out_stock_fun.allow_tags = True
     has_out_stock_fun.short_description = "是否缺货"
+
+
+    def trade_ding_huo(self, obj):
+        orders = obj.merge_orders.all()
+        link_content = ""
+        if orders.count() > 0:
+            for one_order in orders:
+                if one_order.sys_status==pcfg.IN_EFFECT:
+                    link_content += "<a href='/admin/items/product/?q="+one_order.outer_id+"' target='_blank'>" + one_order.outer_id + "</a><br>"
+        return link_content
+
+    trade_ding_huo.allow_tags = True
+    trade_ding_huo.short_description = "订货表"
 
     inlines = [MergeOrderInline]
     
