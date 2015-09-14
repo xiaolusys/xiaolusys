@@ -104,7 +104,7 @@ class AddItemView(generics.ListCreateAPIView):
                                                wash_instructions=wash_instroduce, note=note)
             one_product_detail.save()
             log_action(user.id, one_product, ADDITION, u'新建一个detail_new')
-            chima_model = ProductSkuContrast(product_id=one_product, contrast_detail=chi_ma_result)
+            chima_model = ProductSkuContrast(product=one_product, contrast_detail=chi_ma_result)
             chima_model.save()
             count = 1
             for sku in all_sku:
