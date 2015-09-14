@@ -93,7 +93,6 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
-
         return Response("not open")
 
     @list_route(methods=['post'])
@@ -215,7 +214,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         # 获取用户名和密码
         # 判断网址的结尾是不是登录请求网址(ajax url请求)
         if not request.path.endswith("customer_login"):
-            return None
+            return Response({"result": "fail"})
         username = request.POST.get('username')
         password = request.POST.get('password')
         next_url = request.POST.get('next','/index.html')
@@ -257,18 +256,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-
+        
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-
+        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
     @list_route(methods=['get'])
     def profile(self,request, *args, **kwargs):
-        
         customer = get_object_or_404(Customer,user=request.user)
         serializer = self.get_serializer(customer)
         user_info  = serializer.data

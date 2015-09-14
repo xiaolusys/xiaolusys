@@ -11,8 +11,11 @@ function get_user_profile() {
     //请求成功回调函数
     var requestCallBack = function (obj) {
     	GLConfig.user_profile = obj;
-    	if (isNone(obj.mobile) || obj.mobile==""){
-
+    	if (!isNone(obj.xiaolumm) && !isNone(obj.xiaolumm.id)){
+			$('.userinfo-list').append(
+				'<li><i class="icon icon-qiehuanzhanghao"></i>'+
+				'<a href="http://xiaolu.so/m/m/">小鹿妈妈入口</a>'.template(obj.xiaolumm)+
+				'<i class="icon-jiantouyou"></i></li>')
     	}
     	var name = obj.nick!=''?obj.nick:(obj.mobile!=""?obj.mobile:'[无名]');
     	$('.userinfo .nickname span').html(name);
@@ -81,6 +84,7 @@ function show_grumble(location_item, text) {
         hideAfter: 10000
     });
 }
+
 function need_set_info(){
 	//获取设置帐号的信息
 	var requestUrl = GLConfig.baseApiUrl + "/users/need_set_info";
@@ -101,7 +105,6 @@ function need_set_info(){
                 });
             //$('<div class="text">NEW</div>').insertAfter(".icon-mimaxiugai");
         }
-
 	};
 	// 请求推荐数据
 	$.ajax({

@@ -567,9 +567,6 @@ def task_Gen_Logistic_Report_File_By_Month(pre_month=1):
     task_Gen_Logistic_Report_File(date_from,date_to)
    
 
-
-
-
 from . import serializers
 from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime, format_date, format_datetime)
 from shopback.refunds.models import REFUND_STATUS, Refund
@@ -638,7 +635,7 @@ def getSourceOrders(shop_id=None, is_sale=None,
         order_qs = order_qs.filter(merge_trade__status__in=pcfg.ORDER_SUCCESS_STATUS)\
             .exclude(merge_trade__sys_status__in=(pcfg.INVALID_STATUS, pcfg.ON_THE_FLY_STATUS))\
             .exclude(merge_trade__sys_status=pcfg.FINISHED_STATUS, merge_trade__is_express_print=False)
-
+    
     if empty_code:
         order_qs = order_qs.filter(outer_id='')
         return order_qs

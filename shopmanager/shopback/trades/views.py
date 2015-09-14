@@ -450,8 +450,8 @@ class StatisticMergeOrderAsyncView(APIView):
             return datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59)
         if len(end_dt) > 10:
             return parse_datetime(end_dt)
-
         return parse_date(end_dt)
+    
     def get(self, request, *args, **kwargs):
         content = request.REQUEST
         start_dt = content.get('df', '').strip()
@@ -688,17 +688,17 @@ class OrderPlusView(APIView):
         CONTENT    = request.REQUEST
         #print "post搜索条件",CONTENT.get('trade_id')
         user_id  = request.user.id
-      #  trade_id = request.POST.get('trade_id')
+        #  trade_id = request.POST.get('trade_id')
         trade_id = CONTENT.get('trade_id')
         #outer_id = request.POST.get('outer_id')
         outer_id=CONTENT.get('outer_id')
-       # outer_sku_id = request.POST.get('outer_sku_id')
+        # outer_sku_id = request.POST.get('outer_sku_id')
         outer_sku_id=CONTENT.get('outer_sku_id')
-       # num      = int(request.POST.get('num',1))   
+        # num      = int(request.POST.get('num',1))   
         num=int(CONTENT.get('num',1))  
-       # type     = request.POST.get('type',pcfg.CS_PERMI_GIT_TYPE) 
+        # type     = request.POST.get('type',pcfg.CS_PERMI_GIT_TYPE) 
         type=CONTENT.get('type',pcfg.CS_PERMI_GIT_TYPE) 
-       # print "你好"
+        # print "你好"
         try:
             merge_trade = MergeTrade.objects.get(id=trade_id)
         except MergeTrade.DoesNotExist:
@@ -1018,7 +1018,6 @@ def change_logistic_and_outsid(request):
                         and (not out_sid or not logistic_code)):
         ret_params = {'code':1,'response_error':u'请填写快递名称及单号'}
         return HttpResponse(json.dumps(ret_params),mimetype="application/json")
-    
     try:
         merge_trade = MergeTrade.objects.get(id=trade_id)
     except:    
@@ -1112,6 +1111,7 @@ class ExchangeOrderView(APIView):
           
         merge_trade.type = pcfg.EXCHANGE_TYPE
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
+        merge_trade.status     = pcfg.WAIT_SELLER_SEND_GOODS
         merge_trade.sys_status =  merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
         merge_trade.created    = dt
         merge_trade.pay_time   = dt
@@ -1153,6 +1153,7 @@ class ExchangeOrderInstanceView(APIView):
         
         merge_trade.type = pcfg.EXCHANGE_TYPE
         merge_trade.user_id =  content.get('sellerId')
+        merge_trade.status  = pcfg.WAIT_SELLER_SEND_GOODS
         merge_trade.sys_status =  merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
         merge_trade.save()
         
@@ -1202,6 +1203,7 @@ class DirectOrderView(APIView):
         
         merge_trade.type = trade_type
         merge_trade.shipping_type = pcfg.EXPRESS_SHIPPING_TYPE
+        merge_trade.status     = pcfg.WAIT_SELLER_SEND_GOODS
         merge_trade.sys_status = merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
         merge_trade.created    = dt
         merge_trade.pay_time   = dt
@@ -1245,7 +1247,8 @@ class DirectOrderInstanceView(APIView):
         for key,val in content.iteritems():
             hasattr(merge_trade,key) and setattr(merge_trade,key,val)  
         
-        merge_trade.user_id =  content.get('sellerId')
+        merge_trade.user_id    =  content.get('sellerId')
+        merge_trade.status     = pcfg.WAIT_SELLER_SEND_GOODS
         merge_trade.sys_status = merge_trade.sys_status or pcfg.WAIT_AUDIT_STATUS
         merge_trade.save()
         
