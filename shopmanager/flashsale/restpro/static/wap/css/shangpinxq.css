@@ -399,3 +399,41 @@ body{font:12px Arial, Helvetica, sans-serif}
 .service_box .tab_plan p {
     color: #333;
 }
+
+.pop-class {
+    max-width: 100%;
+    background-color: transparent;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 8px;
+    font-size: 20px;
+    width: 100%;
+}
+.remain-num{
+    margin: 10px;
+}
+.pop-class th {
+    width: 100px;
+    font-size: 20px;
+}
+
+.table-bordered {
+    border: 1px solid #ddd;
+    border-collapse: separate;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+.table-bordered th,.table-bordered td
+{
+    border-right: 1px solid #ddd;
+    padding: 5px 0;
+    line-height: 20px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    height: 40px;
+}
+.table-bordered tr:first-child{
+    border-top: 0;
+    background-color: #f0f0f0;
+}

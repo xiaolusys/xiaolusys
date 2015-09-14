@@ -52,10 +52,11 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 class ProductSkuSerializer(serializers.ModelSerializer):
     
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
-    
+
+
     class Meta:
         model = ProductSku
-        fields = ('id', 'outer_id', 'name', 'remain_num', 'is_saleout', 'std_sale_price', 'agent_price')
+        fields = ('id', 'outer_id', 'name', 'remain_num', 'size_of_sku', 'is_saleout', 'std_sale_price', 'agent_price')
 
 class JsonListField(serializers.Field):
     

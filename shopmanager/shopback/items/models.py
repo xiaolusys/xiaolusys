@@ -506,7 +506,16 @@ class ProductSku(models.Model):
     @property
     def sale_out(self):
         return self.free_num <= 0
-    
+
+    @property
+    def size_of_sku(self):
+        try:
+            contrast = self.product.contrast.get_correspond_content
+            sku_name = self.properties_alias or self.properties_name
+            return {"result": contrast[sku_name], "free_num": self.free_num}
+        except:
+            return {"result": "None", "free_num": self.free_num}
+
     def calc_discount_fee(self,xlmm=None):
         """ 优惠折扣 """
         if not xlmm or xlmm.agencylevel != 2:
@@ -991,3 +1000,65 @@ class ProductScanStorage(models.Model):
         return '<%s,%s,%d>'%(self.id,
                              self.barcode,
                              self.scan_num)
+
+
+from shopback.base.models import JSONCharMyField
+
+SKU_DEFAULT = (
+    '''
+      {
+        "L":{
+            "1":1,
+            "2":"2",
+            "3":"3"
+            },
+        "M":{
+            "1":1,
+            "2":"2",
+            "3":"3"
+            }
+    }
+    ''')
+
+
+class ProductSkuContrast(models.Model):
+    product = models.OneToOneField(Product, primary_key=True, related_name='contrast',
+                                      verbose_name=u'商品ID')
+    contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=SKU_DEFAULT, verbose_name=u'对照表详情')
+    created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
+    modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
+
+    class Meta:
+        db_table = 'shop_items_productskucontrast'
+        verbose_name = u'对照内容表'
+        verbose_name_plural = u'对照内容表'
+
+    @property
+    def get_correspond_content(self):
+        result_data = {}
+        for k1, v1 in self.contrast_detail.items():
+            temp_dict = {}
+            for k2, v2 in v1.items():
+                content = ContrastContent.objects.get(cid=k2)
+                temp_dict[content.name] = v2
+            result_data[k1] = temp_dict
+        return result_data
+
+    def __unicode__(self):
+        return '<%s,%s>' % (self.product_id, self.contrast_detail)
+
+
+class ContrastContent(models.Model):
+    cid = models.CharField(max_length=32, db_index=True, verbose_name=u'对照表内容ID')
+    name = models.CharField(max_length=32, verbose_name=u'对照表内容')
+    created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
+    modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
+
+    class Meta:
+        db_table = 'shop_items_contrastcontent'
+        unique_together = ("cid", "name")
+        verbose_name = u'对照内容字典'
+        verbose_name_plural = u'对照内容字典'
+
+    def __unicode__(self):
+        return '<%s,%s>' % (self.cid, self.name)
