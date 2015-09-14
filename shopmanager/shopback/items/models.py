@@ -1022,7 +1022,7 @@ SKU_DEFAULT = (
 
 
 class ProductSkuContrast(models.Model):
-    product_id = models.OneToOneField(Product, primary_key=True, related_name='contrast', db_index=True,
+    product = models.OneToOneField(Product, primary_key=True, related_name='contrast',
                                       verbose_name=u'商品ID')
     contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=SKU_DEFAULT, verbose_name=u'对照表详情')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
