@@ -218,11 +218,13 @@ class SaleProductAdmin(MyAdmin):
 
         if obj.status in (SaleProduct.SELECTED, SaleProduct.PASSED, SaleProduct.PURCHASE,
                           SaleProduct.SCHEDULE) and obj.outer_id:
-            test_link += u'<br><br><a href="/supplychain/supply/sample/add_sample/?outer_id={0}&title={1}&pic_url={2}&sale_supplier={3}&sale_price={4}&std_sale_price={5}" class="btn" target="_blank" >{6}</a>'
-
-            test_link = test_link.format(obj.outer_id, obj.title, obj.pic_url, obj.sale_supplier, obj.sale_price,
-                                         obj.std_sale_price,
-                                         u'加入样品库')
+            # test_link += u'<br><br><a href="/supplychain/supply/sample/add_sample/?outer_id={0}&title={1}&pic_url={2}&sale_supplier={3}&sale_price={4}&std_sale_price={5}" class="btn" target="_blank" >{6}</a>'
+            #
+            # test_link = test_link.format(obj.outer_id, obj.title, obj.pic_url, obj.sale_supplier, obj.sale_price,
+            #                              obj.std_sale_price,
+            #                              u'加入样品库')
+            test_link += u'<br><br><a href="/static/add_item.html?supplier_id={0}" class="btn" target="_blank" >{1}</a>'
+            test_link = test_link.format(obj.sale_supplier.id, u'加入库存商品')
         test_link += u'</div>'
 
         return test_link
