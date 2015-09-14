@@ -980,3 +980,12 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
     
 
 admin.site.register(ProductScanStorage, ProductScanStorageAdmin)
+
+from shopback.items.models import ProductSkuContrast, ContrastContent
+class ProductSkuContrastAdmin(admin.ModelAdmin):
+    list_display = ('product_id', 'contrast_detail')
+admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
+
+class ContrastContentAdmin(admin.ModelAdmin):
+    list_display = ('cid', 'name')
+admin.site.register(ContrastContent, ContrastContentAdmin)

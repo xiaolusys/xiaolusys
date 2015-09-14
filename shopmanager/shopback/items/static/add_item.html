@@ -6,15 +6,16 @@
     <link href="http://cdn.bootcss.com/select2/3.5.2/select2.min.css" rel="stylesheet"/>
     <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
 
-    <script src="http://youni.huyi.so/static/jquery/jquery-1.8.13.min.js"></script>
+    <script src="/static/jquery/jquery-1.8.13.min.js"></script>
     <script type="text/javascript" src="js/main_category.js"></script>
     <script type="text/javascript" src="js/get_category.js"></script>
+    <script type="text/javascript" src="js/supplier_model.js"></script>
     <script type="text/javascript" src="http://cdn.bootcss.com/select2/3.5.1/select2.min.js"></script>
     <script type="text/javascript" src="http://cdn.bootcss.com/select2/3.5.1/select2_locale_zh-CN.js"></script>
     <script type="text/javascript" src="http://cdn.bootcss.com/select2/3.5.1/select2_locale_zh-CN.min.js"></script>
     <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="http://youni.huyi.so/static/jquery/jquery-ui-1.10.1.css"/>
-
+    <link rel="stylesheet" href="/static/jquery/jquery-ui-1.10.1.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
     <link href="/static/jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <script src="/static/jquery/jquery-ui-1.8.13.min.js"></script>
     <script src="/static/jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
@@ -25,9 +26,10 @@
         .row {
             margin-top: 20px;
         }
-
+        .row.slight{
+            margin-top: 0px;
+        }
         .category {
-
             width: 150px;
         }
 
@@ -47,28 +49,31 @@
 
         <div class="panel-body">
             <div class="row">
-                <div class="col-xs-1">
+                <div class="col-md-1">
                     <input type="button" class="btn btn-warning" value="选择类型:"/>
                 </div>
-                <div class="col-xs-2">
+                <div class="col-md-2">
                     <select id="first_category" class="category"></select>
                 </div>
-                <div class="col-xs-2">
+                <div class="col-md-2">
                     <select id="second_category" class="category"></select>
                 </div>
-                <div class="col-xs-2">
+                <div class="col-md-2">
                     <select id="third_category" class="category"></select>
                 </div>
+                <div class="col-md-3"><select id="supplier" style="width: 200px"></select></div>
+                <!--<div class="col-md-1"><input type="button" class="btn" value="款式编码:"/></div>
+                <div class="col-md-3"><input type="text" id="outer_id" class="form-control"/></div>-->
             </div>
-            <div class="row">
 
+            <div class="row">
                 <div class="col-md-1"><input type="button" class="btn" value="款式名称:"/></div>
-                <div class="col-md-3"><input type="text" class="form-control"/></div>
+                <div class="col-md-3"><input type="text" id="product_name" class="form-control"/></div>
                 <div class="col-md-1"><input type="button" class="btn" value="上架时间:"/></div>
                 <div class="col-md-2">
-                    <input type="text" id="f_datepicker" readonly class="form-control datepicker"/>
+                    <input type="text" id="shelf_time" readonly class="form-control datepicker"/>
                 </div>
-                <div class="col-md-1"><input type="button" class="btn" value="头图:"/></div>
+                <div class="col-md-1"><input type="button" class="btn" value="商品图片:"/></div>
                 <div class="col-md-3"><input name="head_img" id="header_img_content" class="form-control"></div>
                 <div class="col-md-1" style="margin-left: 0px;">
                     <div id="container" class="col-md-1">
@@ -80,11 +85,18 @@
             </div>
             <div class="row">
                 <div class="col-md-1"><input type="button" class="btn" value="商品材质:"/></div>
-                <div class="col-md-3"><input type="text" class="form-control"/></div>
-                <div class="col-md-1"><input type="button" class="btn" value="可选颜色:"/></div>
-                <div class="col-md-3"><input type="text" class="form-control"/></div>
+                <div class="col-md-3"><input type="text" id="material_id" class="form-control"/></div>
                 <div class="col-md-1"><input type="button" class="btn" value="备注:"/></div>
-                <div class="col-md-3"><input type="text" class="form-control"/></div>
+                <div class="col-md-3"><input type="text" id="note_id" class="form-control"/></div>
+            </div>
+            <div class="row">
+                <div class="col-md-1"><input type="button" class="btn" value="洗涤说明:"/></div>
+                <div class="col-md-8"><input type="text" id="wash_instroduce" class="form-control"/></div>
+                <div class="col-md-1"><input type="button" class="btn" value="所属仓库:"/></div>
+                <div class="col-md-2"><select id="ware_by" class="form-control">
+                    <option value="1">上海仓</option>
+                    <option value="2">广州仓</option>
+                </select></div>
             </div>
         </div>
     </div>
@@ -96,86 +108,130 @@
         </div>
         <div class="panel-body">
             <div class="row">
-                <div class="col-md-1"><label>颜色</label></div>
+                <div class="col-md-1">
+                    <div class="row slight"><label>颜色</label></div>
+                    <div class="row slight">
+                        <input type="text" class="form-control color-add"  placeholder="添加颜色">
+                    </div>
+                    <div class="row slight">
+                        <button class="btn btn-primary"  id="color-add">OK</button>
+                    </div>
+                </div>
 
-                <div class="col-md-10">
+                <div class="col-md-10 color-content">
                     &nbsp;
                     <label class="checkbox-inline">
                         <input type="checkbox" class="color-choose" value="白色">白色</label>
                     <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="黑色">黑色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="灰色">灰色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="红色">红色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="粉色">粉色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="绿色">绿色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="蓝色">蓝色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="黄色">黄色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="紫色">紫色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="橙色">橙色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="米色">米色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="杏色">杏色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="金色">金色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="花色">花色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="浅灰色">浅灰色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="深灰色">深灰色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="玫红色">玫红色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="西瓜红">西瓜红</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="浅绿色">浅绿色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="浅蓝色">浅蓝色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="深蓝色">深蓝色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="天蓝色">天蓝色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="橘色">橘色</label>
+                    <label class="checkbox-inline">
                         <input type="checkbox" class="color-choose" value="宝蓝色">宝蓝色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙红色"> 橙红色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="墨绿色">墨绿色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙黄色"> 橙黄色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="军绿色">军绿色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙色"> 橙色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="浅紫色">浅紫色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="淡黄色"> 淡黄色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="咖啡色">咖啡色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="粉红"> 粉红
-                    </label>
+                        <input type="checkbox" class="color-choose" value="卡其色">卡其色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="白色">白色</label>
+                        <input type="checkbox" class="color-choose" value="酒红色">酒红色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="宝蓝色">宝蓝色</label>
+                        <input type="checkbox" class="color-choose" value="蔵蓝色">蔵蓝色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙红色"> 橙红色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="蔵青色">蔵青色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙黄色"> 橙黄色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="牛仔蓝">牛仔蓝</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙色"> 橙色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="荧光绿">荧光绿</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="淡黄色"> 淡黄色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="银色">银色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="粉红"> 粉红
-                    </label>
+                        <input type="checkbox" class="color-choose" value="荧光黄">荧光黄</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="白色">白色</label>
+                        <input type="checkbox" class="color-choose" value="紫罗兰色">紫罗兰色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="宝蓝色">宝蓝色</label>
+                        <input type="checkbox" class="color-choose" value="象牙白色">象牙白色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙红色"> 橙红色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="巧克力色">巧克力色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙黄色"> 橙黄色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="肉粉色">肉粉色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="橙色"> 橙色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="驼色">驼色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="淡黄色"> 淡黄色
-                    </label>
+                        <input type="checkbox" class="color-choose" value="棕色">棕色</label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="color-choose" value="粉红"> 粉红
-                    </label>
-
-
+                        <input type="checkbox" class="color-choose" value="抹绿色">抹绿色</label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="color-choose" value="图片色">图片色</label>
                 </div>
             </div>
-
+            <hr>
             <div class="row">
+                <div class="col-md-1">
+                    <div class="row slight"><label>尺码</label></div>
+                    <div class="row slight">
+                        <input type="text" class="form-control chima-add" placeholder="添加尺码">
+                    </div>
+                    <div class="row slight">
+                        <button class="btn btn-primary"  id="chima-add">OK</button>
+                    </div>
+                </div>
 
-                <div class="col-md-1"><label>尺码</label></div>
-
-                <div class="col-md-10">
+                <div class="col-md-10 chima-content">
                     &nbsp;
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="sku-choose" value="L">L
+                        <input type="checkbox" class="sku-choose" value="S">S
                     </label>
                     <label class="checkbox-inline">
                         <input type="checkbox" class="sku-choose" value="M">M
                     </label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="sku-choose" value="S">S
+                        <input type="checkbox" class="sku-choose" value="L">L
                     </label>
                     <label class="checkbox-inline">
                         <input type="checkbox" class="sku-choose" value="XL">XL
@@ -187,25 +243,65 @@
                         <input type="checkbox" class="sku-choose" value="XXL">XXL
                     </label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="sku-choose" value="XXXL">XXXL
+                        <input type="checkbox" class="sku-choose" value="80">80
                     </label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="sku-choose" value="4XL">4XL
+                        <input type="checkbox" class="sku-choose" value="90">90
                     </label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="sku-choose" value="5XL">5XL
+                        <input type="checkbox" class="sku-choose" value="100">100
                     </label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="sku-choose" value="XXS">XXS
+                        <input type="checkbox" class="sku-choose" value="110">110
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="120">120
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="130">130
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="140">140
                     </label>
                     <label class="checkbox-inline">
                         <input type="checkbox" class="sku-choose" value="均码">均码
                     </label>
                     <label class="checkbox-inline">
-                        <input type="checkbox" class="sku-choose" value="其他">其他
+                        <input type="checkbox" class="sku-choose" value="爸爸L">爸爸L
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="爸爸M">爸爸M
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="爸爸S">爸爸S
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="爸爸XL">爸爸XL
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="爸爸XXL">爸爸XXL
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="爸爸均码">爸爸均码
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="妈妈L">妈妈L
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="妈妈M">妈妈M
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="妈妈S">妈妈S
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="妈妈XL">妈妈XL
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class="sku-choose" value="新生儿">新生儿
                     </label>
                 </div>
             </div>
+            <hr>
             <div class="row">
 
                 <div class="col-md-1"><label>尺码对照</label></div>
@@ -245,7 +341,6 @@
                     <label class="checkbox-inline">
                         <input type="checkbox" class="chima-choose" value="建议身高">建议身高
                     </label>
-
                 </div>
             </div>
         </div>
@@ -280,79 +375,89 @@
         </table>
     </div>
 
-    <script id="thead-template" type="text/html">
-        <th></th>
-        {{ each sku as one_sku k}}
-        <th>{{ one_sku }}</th>
-        {{/each}}
-    </script>
-    <script id="chi-template" type="text/html">
-        {{ each chi_ma as one_chi i}}
-        <tr>
-            <td>{{ one_chi }}</td>
-            {{ each sku as one_sku j}}
-            <td><input type="text" class="form-control"/></td>
-            {{/each}}
-        </tr>
-        {{/each}}
-    </script>
-    <script id="tr-template" type="text/html">
-        {{ each color as one_color i}}
-        <tr>
-            <td rowspan="{{ sku_size }}"><span class="color-name">{{ one_color }}</span></td>
-            {{ each sku as one_sku j}}
-            {{ if j==0 }}
-            <td><span class="color-name">{{ one_sku }}</span></td>
+    <input type="button" id="new-product" class="btn btn-danger" value="生成新款"/>
 
-            <td><input type="text" class="form-control"/></td>
-            <td><input type="text" class="form-control"/></td>
-            <td><input type="text" class="form-control"/></td>
-            <td><input type="text" class="form-control"/></td>
-            {{ else }}
-        <tr>
-            <td><span class="color-name">{{ one_sku }}</span></td>
-
-            <td><input type="text" class="form-control"/></td>
-            <td><input type="text" class="form-control"/></td>
-            <td><input type="text" class="form-control"/></td>
-            <td><input type="text" class="form-control"/></td>
-        </tr>
-        {{ /if }}
-        {{/each}}
-        </tr>
-        {{/each}}
-
-    </script>
-
-
-</div>
-
-
-<div style="display:none" id="success" class="col-md-12">
-    <div class="alert-success">
-        队列全部文件处理完毕
+    <div style="display:none" id="success" class="col-md-12">
+        <div class="alert-success">
+            队列全部文件处理完毕
+        </div>
     </div>
+    <div class="col-md-12 ">
+        <table class="table table-striped table-hover text-left" style="margin-top:40px;display:none">
+            <thead>
+            <tr>
+                <th class="col-md-4">Filename</th>
+                <th class="col-md-2">Size</th>
+                <th class="col-md-6">Detail</th>
+            </tr>
+            </thead>
+            <tbody id="fsUploadProgress">
+            </tbody>
+        </table>
+    </div>
+    <input hidden="" id="domain" value="http://image.xiaolu.so/">
+    <input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
+
 </div>
-<div class="col-md-12 ">
-    <table class="table table-striped table-hover text-left" style="margin-top:40px;display:none">
-        <thead>
-        <tr>
-            <th class="col-md-4">Filename</th>
-            <th class="col-md-2">Size</th>
-            <th class="col-md-6">Detail</th>
-        </tr>
-        </thead>
-        <tbody id="fsUploadProgress">
-        </tbody>
-    </table>
-</div>
-<input hidden="" id="domain" value="http://image.xiaolu.so/">
-<input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
-<script src="http://youni.huyi.so/static/wap/js/template.js"></script>
+
+<script id="thead-template" type="text/html">
+    <th></th>
+    {{ each sku as one_sku k}}
+    <th>{{ one_sku }}</th>
+    {{/each}}
+</script>
+<script id="chi-template" type="text/html">
+    {{ each chi_ma as one_chi i}}
+    <tr>
+        <td>{{ one_chi }}</td>
+        {{ each sku as one_sku j}}
+        <td><input type="text" id="{{ one_sku }}_{{ one_chi }}_size" class="form-control"/></td>
+        {{/each}}
+    </tr>
+    {{/each}}
+</script>
+<script id="tr-template" type="text/html">
+    {{ each color as one_color i}}
+    <tr>
+        <td rowspan="{{ sku_size }}"><span class="color-name">{{ one_color }}</span></td>
+        {{ each sku as one_sku j}}
+        {{ if j==0 }}
+        <td><span class="color-name">{{ one_sku }}</span></td>
+
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control c_remainnum"/></td>
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control c_cost"/></td>
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_pricestd" class="form-control c_pricestd"/></td>
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_agentprice" class="form-control c_agentprice"/></td>
+        {{ else }}
+    <tr>
+        <td><span class="color-name">{{ one_sku }}</span></td>
+
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control"/></td>
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control"/></td>
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_pricestd" class="form-control"/></td>
+        <td><input type="text" id="{{ one_color }}_{{ one_sku }}_agentprice" class="form-control"/></td>
+    </tr>
+    {{ /if }}
+    {{/each}}
+    </tr>
+    {{/each}}
+
+</script>
+<script id="color-one" type="text/html">
+    <label class="checkbox-inline">
+        <input type="checkbox" class="color-choose" value="{{ color }}">{{ color }}</label>
+</script>
+<script id="chima-one" type="text/html">
+    <label class="checkbox-inline">
+        <input type="checkbox" class="sku-choose" value="{{ chima }}">{{ chima }}
+    </label>
+</script>
+<script src="/static/wap/js/template.js"></script>
+<script src="/static/wap/js/sweet-alert.min.js"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
 <script type="text/javascript" src="js/ui.js"></script>
-<script type="text/javascript" src="http://youni.huyi.so/static/script/qiniu.js"></script>
+<script type="text/javascript" src="/static/script/qiniu.js"></script>
 <script type="text/javascript" src="js/sku_choose.js"></script>
 
 <script type="text/javascript" src="js/main.js"></script>
