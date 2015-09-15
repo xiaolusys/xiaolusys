@@ -186,7 +186,7 @@ admin.site.register(SaleCategory, SaleCategoryAdmin)
 class SaleProductAdmin(MyAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link',
-                    'category_select', 'hot_value', 'sale_price', 'sale_time', 'select_Contactor', 'modified', 'status')
+                    'category_select', 'hot_value', 'sale_price', 'sale_time_select', 'select_Contactor', 'modified', 'status')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -342,12 +342,22 @@ class SaleProductAdmin(MyAdmin):
     supplier_link.allow_tags = True
     supplier_link.short_description = u"供应商"
 
+    # 选择上架时间
+    def sale_time_select(self, obj):
+        sale_time = obj.sale_time.strftime("%y-%m-%d")
+        s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
+        return s
+    sale_time_select.allow_tags = True
+    sale_time_select.short_description = u"上架时间"
+
     class Media:
         css = {
             "all": (
-                "admin/css/forms.css", "css/admin/dialog.css", "css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
+                "admin/css/forms.css", "css/admin/dialog.css", "css/admin/common.css", "jquery/jquery-ui-1.10.1.css",
+             "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")}
         js = ("jquery/jquery-1.8.13.min.js", "js/admin/adminpopup.js", "js/supplier_change_list.js",
-              "js/select_buyer_group.js")
+              "js/select_buyer_group.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
+              "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js")
 
     def get_changelist(self, request, **kwargs):
         """
