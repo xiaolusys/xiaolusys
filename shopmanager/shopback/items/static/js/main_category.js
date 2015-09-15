@@ -248,7 +248,7 @@ function submit_data() {
         swal("tips", "请填写完整的基本信息(^_^)", "error");
         return
     }
-    var all_input = $("table input");
+    var all_input = $("#table-id input");
     for (var i = 0; i < all_input.length; i++) {
         if (all_input.eq(i).val().trim() == "") {
             swal("tips", "请填写完整的商品数据(^_^)", "error");

@@ -76,10 +76,12 @@ class AddItemView(generics.ListCreateAPIView):
         for sku in all_sku:
             for chi_ma in all_chi_ma:
                 temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
-                if sku in chi_ma_result:
-                    chi_ma_result[sku][temp_chi_ma.id] = content.get(sku + "_" + chi_ma + "_size")
-                else:
-                    chi_ma_result[sku] = {temp_chi_ma.id: content.get(sku + "_" + chi_ma + "_size")}
+                chi_ma_content = content.get(sku + "_" + chi_ma + "_size")
+                if chi_ma_content and len(chi_ma_content) > 0:
+                    if sku in chi_ma_result:
+                        chi_ma_result[sku][temp_chi_ma.id] = chi_ma_content
+                    else:
+                        chi_ma_result[sku] = {temp_chi_ma.id: chi_ma_content}
         pro_count = 1
         for color in all_colors:
             total_remain_num = 0
