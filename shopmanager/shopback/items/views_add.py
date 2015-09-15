@@ -168,17 +168,46 @@ class GetSupplier(generics.ListCreateAPIView):
 
 class GetSkuDetail(generics.ListCreateAPIView):
     queryset = ProductSkuContrast.objects.all()
-    renderer_classes = (JSONRenderer,)
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
+    template_name = "items/change_chima.html"
 
     def get(self, request, *args, **kwargs):
+        print request,"fsdafaf"
+        content = request.GET
+        searchtext = content.get("search_input", "")
         result_data = {}
-        # product_id = "14036"
-        # a = Product.objects.get(id=14036)
-        # s = ProductSku.objects.get(id=54392)
-        # all_sku = self.queryset.filter(product_id=product_id)
-        # print all_sku[0].contrast_detail[s.properties_alias], type(all_sku[0].contrast_detail)
-        #
-        # if all_sku.count() > 0:
-        #     return Response({"result": all_sku[0].contrast_detail})
-        return Response({"0": result_data})
+
+        product_bean = Product.objects.filter(outer_id=searchtext)
+        if product_bean.count() > 0:
+            chima_content = product_bean[0].contrast.get_correspond_content
+            chima_content = sorted(chima_content.items(), key=lambda d: d[1], reverse=False)
+            return Response({"result": chima_content, "product_id": product_bean[0].id, "searchtext": searchtext})
+        else:
+            return Response({"result": "NOTFOUND"})
+
+    def post(self, request, *args, **kwargs):
+        content = request.POST
+        product = content.get("product")
+        product_bean = Product.objects.filter(id=product)
+        if product_bean.count() == 0:
+            return Response({"result": "error"})
+        product_model = product_bean[0]
+        all_sku = [key.properties_alias for key in product_model.normal_skus]
+        all_chi_ma = set()
+        for k, v in content.items():
+            if len(k.split("_")) == 3:
+                all_chi_ma.add(k.split("_")[2])
+        chi_ma_result = {}
+        for sku in all_sku:
+            for chi_ma in all_chi_ma:
+                temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
+                chi_ma_content = content.get(str(product_model.id) + "_" + sku + "_" + chi_ma)
+                if chi_ma_content and len(chi_ma_content) > 0:
+                    if sku in chi_ma_result:
+                        chi_ma_result[sku][temp_chi_ma.id] = chi_ma_content
+                    else:
+                        chi_ma_result[sku] = {temp_chi_ma.id: chi_ma_content}
+        product_model.contrast.contrast_detail = chi_ma_result
+        product_model.contrast.save()
+        return Response({"result": "OK"})
