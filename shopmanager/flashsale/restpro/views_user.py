@@ -1,8 +1,13 @@
 # -*- coding:utf-8 -*-
+import os
+import re
+import urllib
 import datetime
+
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.forms import UserCreationForm
+from django.conf import settings
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -22,10 +27,10 @@ from . import permissions as perms
 from . import serializers
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
-import re
+
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
-DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+
 
 
 def check_day_limit(reg_bean):
@@ -79,6 +84,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.code_time = current_time
                 temp_reg.save()
+                DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
                 log_action(DJUSER.id, temp_reg, CHANGE, u'修改，注册手机验证码')
                 task_register_code.s(mobile, "1")()
                 return Response({"result": "OK"})
@@ -88,12 +94,12 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         new_reg.verify_count = 0
         new_reg.code_time = current_time
         new_reg.save()
+        DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
         log_action(DJUSER.id, new_reg, ADDITION, u'新建，注册手机验证码')
         task_register_code.s(mobile, "1")()
         return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
-
         return Response("not open")
 
     @list_route(methods=['post'])
@@ -147,6 +153,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=mobile)
+        DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
         if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
             new_reg.verify_code = new_reg.genValidCode()
@@ -203,6 +210,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             system_user.save()
             reg_temp.cus_uid = already_exist[0].id
             reg_temp.save()
+            DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
             log_action(DJUSER.id, already_exist[0], CHANGE, u'忘记密码，修改成功')
             log_action(DJUSER.id, reg_temp, CHANGE, u'忘记密码，修改成功')
         except:
@@ -215,21 +223,37 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         # 获取用户名和密码
         # 判断网址的结尾是不是登录请求网址(ajax url请求)
         if not request.path.endswith("customer_login"):
-            return None
+            return Response({"result": "fail"})
         username = request.POST.get('username')
         password = request.POST.get('password')
         next_url = request.POST.get('next','/index.html')
         if not username or not password:
             return Response({"result": "null"})
         try:
-            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username))
+            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username),status=Customer.NORMAL)
             if customers.count() > 0:
                 username = customers[0].user.username
             user1 = authenticate(username=username, password=password)
-            if user1 is not None:
-                login(request, user1)
-                return Response({"result": "login", "next": next_url})   # 登录成功
-            return Response({"result": "u_error"})  # 密码错误
+            if not user1 or user1.is_anonymous():
+                return Response({"result": "p_error"})  # 密码错误
+            login(request, user1)
+            
+            user_agent = request.META.get('HTTP_USER_AGENT')
+            if not user_agent or user_agent.find('MicroMessenger') < 0:
+                return Response({"result": "login", "next": next_url})   #登录不是来自微信，直接返回登录成功
+             
+            customers = Customer.objects.filter(user=user1)
+            if customers.count() == 0 or customers[0].is_wxauth():
+                return Response({"result": "login", "next": next_url})  #如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
+            
+            params = {'appid':settings.WXPAY_APPID,
+              'redirect_uri':('{0}{1}?next={2}').format(settings.M_SITE_URL,reverse('v1:xlmm-wxauth').lstrip('/'),next_url),
+              'response_type':'code',
+              'scope':'snsapi_base',
+              'state':'135'}
+            redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+            return Response({"result": "login", "next": redirect_url})  #如果用户没有微信授权则直接微信授权后跳转
+            
         except Customer.DoesNotExist:
             return Response({"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
@@ -257,18 +281,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-
+        
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-
+        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
     @list_route(methods=['get'])
     def profile(self,request, *args, **kwargs):
-        
         customer = get_object_or_404(Customer,user=request.user)
         serializer = self.get_serializer(customer)
         user_info  = serializer.data

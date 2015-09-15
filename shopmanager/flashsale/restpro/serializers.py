@@ -12,6 +12,7 @@ from flashsale.pay.models import (
     GoodShelf
     )
 from shopback.trades.models import TradeWuliu
+from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
 
 
@@ -22,17 +23,24 @@ class RegisterSerializer(serializers.HyperlinkedModelSerializer):
         model = Register
         fields = ('id','vmobile')
         
+class XiaoluMamaSerializer(serializers.HyperlinkedModelSerializer):
+    
+    class Meta:
+        model  = XiaoluMama
+        fields = ('id','cash','agencylevel','created','status')
+        
 
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     
     url = serializers.HyperlinkedIdentityField(view_name='v1:customer-detail')
-    user_id = serializers.CharField(source='user.id', read_only=True)
+    user_id  = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
+    xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
     
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone', 
-                  'status', 'created', 'modified')
+                  'status', 'created', 'modified','xiaolumm')
 
 
 #####################################################################################

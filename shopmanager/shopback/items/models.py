@@ -517,7 +517,8 @@ class ProductSku(models.Model):
                 display_num = self.free_num
             contrast = self.product.contrast.get_correspond_content
             sku_name = self.properties_alias or self.properties_name
-            return {"result": contrast[sku_name], "free_num": display_num}
+            display_sku = contrast[sku_name]
+            return {"result": display_sku, "free_num": display_num}
         except:
             return {"result": "None", "free_num": display_num}
 

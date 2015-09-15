@@ -248,7 +248,7 @@ function submit_data() {
         swal("tips", "请填写完整的基本信息(^_^)", "error");
         return
     }
-    var all_input = $("table input");
+    var all_input = $("#table-id input");
     for (var i = 0; i < all_input.length; i++) {
         if (all_input.eq(i).val().trim() == "") {
             swal("tips", "请填写完整的商品数据(^_^)", "error");
@@ -272,17 +272,19 @@ function submit_data() {
     for (var i = 0; i < all_color.length; i++) {
         var one_color = all_color[i].replace("+","\\+");
         for (var j = 0; j < all_sku.length; j++) {
-            result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + all_sku[j] + "_remainnum").val();
-            result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + one_color + "_" + all_sku[j] + "_cost").val();
-            result_data[all_color[i] + "_" + all_sku[j] + "_pricestd"] = $("#" + one_color + "_" + all_sku[j] + "_pricestd").val();
-            result_data[all_color[i] + "_" + all_sku[j] + "_agentprice"] = $("#" + one_color + "_" + all_sku[j] + "_agentprice").val();
+            var one_sku = all_sku[j].replace("/","\\/");
+            result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + one_sku + "_remainnum").val();
+            result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + one_color + "_" + one_sku + "_cost").val();
+            result_data[all_color[i] + "_" + all_sku[j] + "_pricestd"] = $("#" + one_color + "_" + one_sku + "_pricestd").val();
+            result_data[all_color[i] + "_" + all_sku[j] + "_agentprice"] = $("#" + one_color + "_" + one_sku + "_agentprice").val();
         }
 
     }
 
     for (var k = 0; k < all_sku.length; k++) {
+        var one_sku = all_sku[k].replace("/","\\/");
         for (var h = 0; h < all_chi_ma.length; h++) {
-            result_data[all_sku[k] + "_" + all_chi_ma[h] + "_size"] = $("#" + all_sku[k] + "_" + all_chi_ma[h] + "_size").val();
+            result_data[all_sku[k] + "_" + all_chi_ma[h] + "_size"] = $("#" + one_sku + "_" + all_chi_ma[h] + "_size").val();
         }
     }
     //请求成功回调函数
