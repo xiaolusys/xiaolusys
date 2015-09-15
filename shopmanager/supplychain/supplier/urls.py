@@ -17,7 +17,8 @@ urlpatterns = [
     url(r'^product/(?P<pk>[0-9]+)/$', views.SaleProductDetail.as_view()),
     url(r'^buyer_group/$', csrf_exempt(views_buyer_group.BuyerGroupSave.as_view())),
     url(r'^qiniu/$', views.QiniuApi.as_view()),
-
+    # select sale_time
+    url(r'^select_sale_time/$', views.change_Sale_Time),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

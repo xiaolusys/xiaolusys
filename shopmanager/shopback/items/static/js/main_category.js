@@ -80,7 +80,22 @@ function get_category() {
         url: requestUrl,
         data: {},
         dataType: 'json',
-        success: requestCallBack
+        success: requestCallBack,
+        error: function (data) {
+            if (data.status == 403) {
+                swal({
+                    title: "Tips",
+                    text: "请先登录一下(^_^)",
+                    type: "warning",
+                    showCancelButton: false,
+                    confirmButtonText: "确定"
+                }, function () {
+                    window.location = "/admin";
+                });
+            } else {
+                swal("Tips", "有错误，请联系技术人员(^_^)", "warning")
+            }
+        }
     });
 }
 function get_supplier() {
@@ -105,7 +120,22 @@ function get_supplier() {
         url: requestUrl,
         data: {"supplier_id": supplier_id},
         dataType: 'json',
-        success: requestCallBack
+        success: requestCallBack,
+        error: function (data) {
+                    if (data.status == 403) {
+                        swal({
+                            title: "Tips",
+                            text: "请先登录一下(^_^)",
+                            type: "warning",
+                            showCancelButton: false,
+                            confirmButtonText: "确定"
+                        }, function () {
+                            window.location = "/admin";
+                        });
+                    } else {
+                        swal("Tips", "有错误，请联系技术人员(^_^)", "warning")
+                    }
+                }
     });
 }
 function get_all_check_color() {
@@ -167,7 +197,7 @@ function submit_data() {
     } else if (first_category.length > 0) {
         category = first_category;
     } else {
-        swal("warning", "please select category", "error");
+        swal("warning", "please select category(^_^)", "error");
         return
     }
     var supplier = $('#supplier').val();
@@ -215,13 +245,13 @@ function submit_data() {
         || all_sku_str == "" || all_chima_str == ""
         || shelf_time == "" || header_img_content == ""
         || wash_instroduce == "") {
-        swal("tips", "请填写完整的基本信息!", "error");
+        swal("tips", "请填写完整的基本信息(^_^)", "error");
         return
     }
-    var all_input = $("table input");
+    var all_input = $("#table-id input");
     for (var i = 0; i < all_input.length; i++) {
         if (all_input.eq(i).val().trim() == "") {
-            swal("tips", "请填写完整的商品数据!", "error");
+            swal("tips", "请填写完整的商品数据(^_^)", "error");
             return;
         }
     }
@@ -240,29 +270,30 @@ function submit_data() {
         ware_by: ware_by
     };
     for (var i = 0; i < all_color.length; i++) {
+        var one_color = all_color[i].replace("+","\\+");
         for (var j = 0; j < all_sku.length; j++) {
-            result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + all_color[i] + "_" + all_sku[j] + "_remainnum").val();
-            result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + all_color[i] + "_" + all_sku[j] + "_cost").val();
-            result_data[all_color[i] + "_" + all_sku[j] + "_pricestd"] = $("#" + all_color[i] + "_" + all_sku[j] + "_pricestd").val();
-            result_data[all_color[i] + "_" + all_sku[j] + "_agentprice"] = $("#" + all_color[i] + "_" + all_sku[j] + "_agentprice").val();
+            var one_sku = all_sku[j].replace("/","\\/");
+            result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + one_sku + "_remainnum").val();
+            result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + one_color + "_" + one_sku + "_cost").val();
+            result_data[all_color[i] + "_" + all_sku[j] + "_pricestd"] = $("#" + one_color + "_" + one_sku + "_pricestd").val();
+            result_data[all_color[i] + "_" + all_sku[j] + "_agentprice"] = $("#" + one_color + "_" + one_sku + "_agentprice").val();
         }
 
     }
 
     for (var k = 0; k < all_sku.length; k++) {
+        var one_sku = all_sku[k].replace("/","\\/");
         for (var h = 0; h < all_chi_ma.length; h++) {
-            result_data[all_sku[k] + "_" + all_chi_ma[h] + "_size"] = $("#" + all_sku[k] + "_" + all_chi_ma[h] + "_size").val();
+            result_data[all_sku[k] + "_" + all_chi_ma[h] + "_size"] = $("#" + one_sku + "_" + all_chi_ma[h] + "_size").val();
         }
     }
-
-
     //请求成功回调函数
     var requestCallBack = function (data) {
         console.log(data);
         if (data.result == "OK") {
             swal({
                 title: "恭喜",
-                text: "添加成功",
+                text: "添加成功(^_^)",
                 type: "success",
                 showCancelButton: false,
                 confirmButtonColor: "#DD6B55",
@@ -272,7 +303,7 @@ function submit_data() {
                 window.location = "/admin/items/product/?q=" + data.outer_id;
             });
         } else {
-            swal("内部错误", data.result, "error");
+            swal("内部错误(^_^)", data.result, "error");
             $('#new-product').bind("click", submit_data);
         }
     };
@@ -296,11 +327,19 @@ function submit_data() {
                 data: result_data,
                 dataType: 'json',
                 success: requestCallBack,
-                error: function () {
+                error: function (data) {
                     if (data.status == 403) {
-                        swal("Tips","请先登录一下～～", "warning");
+                        swal({
+                            title: "Tips",
+                            text: "请先登录一下(^_^)",
+                            type: "warning",
+                            showCancelButton: false,
+                            confirmButtonText: "确定"
+                        }, function () {
+                            window.location = "/admin";
+                        });
                     } else {
-                        swal("Tips", "有错误，请联系技术人员！！！", "warning")
+                        swal("Tips", "有错误，请联系技术人员(^_^)", "warning")
                     }
                 }
             });

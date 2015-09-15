@@ -5,6 +5,8 @@ from shopapp.weixin.models import WXOrder
 from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel,CarryLog
 import datetime
 
+CLICK_VALID_DAYS = 2
+
 class NormalShopingManager(models.Manager):
 
     def get_queryset(self):
@@ -147,7 +149,7 @@ def tongji_wxorder(sender, obj, **kwargs):
         target_time = today
 
     ordertime = obj.order_create_time
-    order_stat_from = ordertime - datetime.timedelta(days=1)
+    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS)
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     mm_order_amount = obj.order_total_price
@@ -268,8 +270,8 @@ def tongji_saleorder(sender, obj, **kwargs):
     mm_rebeta_amount  = 0
     order_id          = obj.tid
     order_buyer_nick  = obj.buyer_nick or '%s(%s)'%(obj.receiver_name[0:24],obj.receiver_mobile[8:11])
-    ordertime    = obj.pay_time
-    order_stat_from = ordertime - datetime.timedelta(days=1)
+    ordertime       = obj.pay_time
+    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS)
     time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
     time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     
