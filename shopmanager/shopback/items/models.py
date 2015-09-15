@@ -510,11 +510,16 @@ class ProductSku(models.Model):
     @property
     def size_of_sku(self):
         try:
+            display_num = ""
+            if self.free_num > 10:
+                display_num = "NO"
+            else:
+                display_num = self.free_num
             contrast = self.product.contrast.get_correspond_content
             sku_name = self.properties_alias or self.properties_name
-            return {"result": contrast[sku_name], "free_num": self.free_num}
+            return {"result": contrast[sku_name], "free_num": display_num}
         except:
-            return {"result": "None", "free_num": self.free_num}
+            return {"result": "None", "free_num": display_num}
 
     def calc_discount_fee(self,xlmm=None):
         """ 优惠折扣 """
