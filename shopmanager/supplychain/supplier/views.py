@@ -320,8 +320,9 @@ def change_Sale_Time(request):
     if pro.exists():
         p = pro[0]
         p.sale_time = date
+        p.status = SaleProduct.SCHEDULE
         p.save()
-        log_action(request.user.id, p, CHANGE, u'修改商品的上架日期')
+        log_action(request.user.id, p, CHANGE, u'修改商品的上架日期和状态')
         return HttpResponse('OK')
     else:
         return HttpResponse('false')
