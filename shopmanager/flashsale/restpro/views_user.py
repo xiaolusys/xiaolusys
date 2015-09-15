@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
+import os
+import re
 import urllib
 import datetime
+
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.forms import UserCreationForm
@@ -24,7 +27,7 @@ from . import permissions as perms
 from . import serializers
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
-import re
+
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
 DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
@@ -234,13 +237,13 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             user_agent = request.META.get('HTTP_USER_AGENT')
             if not user_agent or user_agent.find('MicroMessenger') < 0:
                 return Response({"result": "login", "next": next_url})   #登录不是来自微信，直接返回登录成功
-            
+             
             customers = Customer.objects.filter(user=user1)
             if customers.count() == 0 or customers[0].is_wxauth():
                 return Response({"result": "login", "next": next_url})  #如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
             
             params = {'appid':settings.WXPAY_APPID,
-              'redirect_uri':('{0}?next={1}').format(reverse('v1:xlmm-wxauth'),next_url),
+              'redirect_uri':('{0}{1}?next={2}').format(settings.M_SITE_URL,reverse('v1:xlmm-wxauth').lstrip('/'),next_url),
               'response_type':'code',
               'scope':'snsapi_base',
               'state':'135'}
