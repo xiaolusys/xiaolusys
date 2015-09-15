@@ -16,7 +16,7 @@
                         var result_data = eval(res.task.result);
                         $("#data-table-people thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
-                            tb.append("<tr><td><a href='/admin/items/product/?q="+dd.p_outer+"' target='_blank'>" + dd.p_outer + "</a></td><td>" + dd.p_name + "</td><td><img src='" + dd.pic_path + "' width='50px'/></td><td>" + dd.sale_time + "</td><td>" + dd.p_sales + "</td><td>" + dd.suppliers + "</td></tr>");
+                            tb.append("<tr><td><a href='/admin/items/product/?q="+dd.p_outer+"' target='_blank'>" + dd.p_outer + "</a></td><td>" + dd.p_name + "</td><td><img src='" + dd.pic_path + "' width='100px' class='img-circle'/></td><td>" + dd.sale_time + "</td><td>" + dd.p_sales + "</td><td>" + dd.cost + "</td><td>" + dd.p_cost + "</td><td>" + dd.agent_price + "</td><td>" + dd.p_agent_price + "</td><td>" + dd.suppliers + "</td></tr>");
                         });
 
                     } else if(res.task.status == "PENDING") {
@@ -41,10 +41,14 @@
             <table class="table table-bordered" id="data-table-product">
                 <thead>
                 <th width="10%">商品编码</th>
-                <th width="20%">商品名称</th>
-                <th width="20%">商品图片</th>
-                <th width="20%">上架时间</th>
-                <th width="10%">销售数</th>
+                <th width="15%">商品名称</th>
+                <th width="10%">商品图片</th>
+                <th width="12%">上架时间</th>
+                <th width="8%">销售数</th>
+                <th width="8%">成本</th>
+                <th width="8%">成交成本</th>
+                <th width="8%">销售价</th>
+                <th width="8%">成交额</th>
                 <th width="10%">供应商</th>
                 </thead>
                 <tbody>
