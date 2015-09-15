@@ -5,11 +5,14 @@ $(function () {
     $(".chima-choose").click(dynamic_generate_chi);
     $("#chima-add").click(function(){
         var colortext = $(".chima-add").val();
-        $(".chima-content").append(template("chima-one",{"chima": colortext}))
+        $(".chima-content").append(template("chima-one",{"chima": colortext}));
+        $(".sku-choose").click(dynamic_generate_chi);
+        $(".sku-choose").click(dynamic_generate_sku);
     });
     $("#color-add").click(function(){
         var colortext = $(".color-add").val();
-        $(".color-content").append(template("color-one",{"color": colortext}))
+        $(".color-content").append(template("color-one",{"color": colortext}));
+        $(".color-choose").click(dynamic_generate_sku);
     });
 })
 function dynamic_generate_sku() {

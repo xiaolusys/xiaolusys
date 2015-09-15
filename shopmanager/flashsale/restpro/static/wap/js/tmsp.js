@@ -77,24 +77,28 @@ function link_sku_size(obj){
         if(sku.is_saleout){
             return
         }
-        var tableContent = "<div class='remain-num' style='font-size:20px'><h3>还剩下<span style='color:#f9339b'>"+ sku.size_of_sku.free_num+"</span>件,不要错过哦～</h3></div>";
+        var tableContent = "";
+        if (sku.size_of_sku.free_num != "NO") {
+            tableContent = "<div class='remain-num' style='font-size:20px;text-align:center'><h3>仅剩下<span style='color:#f9339b'>" + sku.size_of_sku.free_num + "</span>件,不要错过哦(^_^)</h3></div>";
+        }
         if (sku.size_of_sku.result != "None") {
             tableContent += "<table class='pop-class table-bordered'><tr>";
             for (var p in sku.size_of_sku.result) {
                 tableContent += "<th>" + p + "</th>";
             }
-            tableContent += "</tr><tr>"
+            tableContent += "</tr><tr>";
             for (var p in sku.size_of_sku.result) {
                 tableContent += "<td>" + sku.size_of_sku.result[p] + "</td>";
             }
             tableContent += "</tr></table>";
         }
-
-        var tableSettings = {
+        if (tableContent.length > 0) {
+            var tableSettings = {
                 content: tableContent
-
             };
-        $('#skusize_'+sku.id).webuiPopover('destroy').webuiPopover($.extend({}, settings, tableSettings));
+            $('#skusize_' + sku.id).webuiPopover('destroy').webuiPopover($.extend({}, settings, tableSettings));
+        }
+
     });
 }
 function Create_product_bottomslide_dom(obj_list) {
