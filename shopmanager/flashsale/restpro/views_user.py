@@ -235,7 +235,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 username = customers[0].user.username
             user1 = authenticate(username=username, password=password)
             if not user1 or user1.is_anonymous():
-                return Response({"result": "u_error"})  # 密码错误
+                return Response({"result": "p_error"})  # 密码错误
             login(request, user1)
             
             user_agent = request.META.get('HTTP_USER_AGENT')
