@@ -511,7 +511,7 @@ class ProductSku(models.Model):
     def size_of_sku(self):
         try:
             display_num = ""
-            if self.free_num > 10:
+            if self.free_num > 3:
                 display_num = "NO"
             else:
                 display_num = self.free_num
