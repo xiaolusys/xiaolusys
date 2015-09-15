@@ -8,7 +8,7 @@ from . import views
 from . import views_user
 from . import views_product 
 from . import views_trade 
-from flashsale.pay.views_login import weixin_login
+from flashsale.pay.views_login import weixin_login,weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 #from flashsale.pay.views_coupon import Coupon_Check
 
@@ -37,6 +37,7 @@ router_urls = router.urls
 
 router_urls += format_suffix_patterns([  
         url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),    
+        url(r'^users/weixin_auth/$',weixin_auth_and_redirect,name='xlmm-wxauth'), 
         url(r'^products/modellist/(?P<model_id>[0-9]+)$',
             views_product.ProductViewSet.as_view({'get': 'modellist'}),
             name='product-model-list'),
