@@ -302,5 +302,26 @@ class QiniuApi(APIView):
         token = q.upload_token(bucket_name, expires=3600)
         return Response({'uptoken': token})
     
-    
-    
+
+import datetime
+
+
+def change_Sale_Time(request):
+    # sale_time 上架日期
+    content = request.POST
+    slae_product = content.get('slae_product')
+    sale_time = content.get('sale_time')
+    if sale_time:
+        year, month, day = sale_time.split('-')
+        date = datetime.date(int(year), int(month), int(day))
+    else:
+        return HttpResponse('false')
+    pro = SaleProduct.objects.filter(id=slae_product)
+    if pro.exists():
+        p = pro[0]
+        p.sale_time = date
+        p.save()
+        log_action(request.user.id, p, CHANGE, u'修改商品的上架日期')
+        return HttpResponse('OK')
+    else:
+        return HttpResponse('false')
