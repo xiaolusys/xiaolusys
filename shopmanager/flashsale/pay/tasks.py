@@ -12,6 +12,7 @@ from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser,WeixinUnionID
 from flashsale.pay.models import TradeCharge,SaleTrade,SaleOrder,SaleRefund,Customer
 from .service import FlashSaleService
+from .options import get_user_unionid
 import logging
 
 __author__ = 'meixqhi'
@@ -21,7 +22,7 @@ logger = logging.getLogger('celery.handler')
 
 @task()
 def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
-    
+    """ 更新特卖用户　微信授权信息 """
     if openid and app_key:
         WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
         
@@ -29,17 +30,50 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         profile, state = Customer.objects.get_or_create(unionid=unionid)
         
         wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
-        profile.nick   = wxuser.nickname
-        profile.mobile = wxuser.mobile
-        profile.openid = openid or profile.openid 
+        profile.nick   = profile.nick.strip() or wxuser.nickname
+        profile.mobile = profile.mobile.strip() or wxuser.mobile
+        profile.openid = profile.openid or openid  
         profile.save()
             
     except Exception,exc:
         logger.debug(exc.message,exc_info=True)
+        
+
+@task()
+def task_Merge_Sale_Customer(user, code):
+    """ 根据当前登录用户，更新微信授权信息 """
+    
+    app_key     = settings.WXPAY_APPID
+    app_secret  = settings.WXPAY_SECRET
+    
+    openid,unionid = get_user_unionid(code,appid=app_key,secret=app_secret)
+    if not openid:
+        return 
+    
+    WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
+    
+    customers = Customer.objects.filter(unionid=unionid)    
+    for customer in customers:
+        if customers[0].user == user:
+            continue
+        customer.status = Customer.DELETE
+        customer.save()
+    
+    try:
+        profile, state = Customer.objects.get_or_create(user=user)
+        wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
+        profile.nick   = wxuser.nickname
+        profile.mobile = profile.mobile or wxuser.mobile
+        profile.openid = profile.openid.strip() or openid
+        profile.unionid = profile.unionid.strip() or unionid
+        profile.save()
+        
+    except Exception,exc:
+        logger.debug(exc.message,exc_info=True)
+
     
 from shopback.trades.models import MergeTrade,MergeBuyerTrade
 
-  
 @task()
 def task_Push_SaleTrade_Finished(pre_days=10):
     """ 定时将待确认状态小鹿特卖订单更新成已完成 """

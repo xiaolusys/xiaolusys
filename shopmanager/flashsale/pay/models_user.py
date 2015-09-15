@@ -99,6 +99,12 @@ class Customer(models.Model):
     def __unicode__(self):
         return '%s(%s)'%(self.nick,self.id) 
     
+    def is_wxauth(self):
+        """ 是否微信授权 """
+        if self.unionid.strip():
+            return True
+        return False
+    
     @classmethod
     def getCustomerByUser(cls,user):
         

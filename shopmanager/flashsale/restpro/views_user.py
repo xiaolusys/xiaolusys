@@ -1,8 +1,10 @@
 # -*- coding:utf-8 -*-
+import urllib
 import datetime
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.forms import UserCreationForm
+from django.conf import settings
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -221,14 +223,30 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not username or not password:
             return Response({"result": "null"})
         try:
-            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username))
+            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username),status=Customer.NORMAL)
             if customers.count() > 0:
                 username = customers[0].user.username
             user1 = authenticate(username=username, password=password)
-            if user1 is not None:
-                login(request, user1)
-                return Response({"result": "login", "next": next_url})   # 登录成功
-            return Response({"result": "u_error"})  # 密码错误
+            if not user1 or user1.is_anonymous():
+                return Response({"result": "u_error"})  # 密码错误
+            login(request, user1)
+            
+            user_agent = request.META.get('HTTP_USER_AGENT')
+            if not user_agent or user_agent.find('MicroMessenger') < 0:
+                return Response({"result": "login", "next": next_url})   #登录不是来自微信，直接返回登录成功
+            
+            customers = Customer.objects.filter(user=user1)
+            if customers.count() == 0 or customers[0].is_wxauth():
+                return Response({"result": "login", "next": next_url})  #如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
+            
+            params = {'appid':settings.WXPAY_APPID,
+              'redirect_uri':('{0}?next={1}').format(reverse('v1:xlmm-wxauth'),next_url),
+              'response_type':'code',
+              'scope':'snsapi_base',
+              'state':'135'}
+            redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+            return Response({"result": "login", "next": redirect_url})  #如果用户没有微信授权则直接微信授权后跳转
+            
         except Customer.DoesNotExist:
             return Response({"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
