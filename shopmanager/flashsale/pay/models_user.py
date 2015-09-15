@@ -4,7 +4,6 @@ from django.db import models
 from django.contrib.auth.models import User as DjangoUser
     
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
-    
 
     
 class Register(models.Model):
@@ -100,6 +99,12 @@ class Customer(models.Model):
     def __unicode__(self):
         return '%s(%s)'%(self.nick,self.id) 
     
+    def is_wxauth(self):
+        """ 是否微信授权 """
+        if self.unionid.strip():
+            return True
+        return False
+    
     @classmethod
     def getCustomerByUser(cls,user):
         
@@ -107,5 +112,18 @@ class Customer(models.Model):
         if customers.count() > 0:
             return customers[0]
         return None
+    
+    def getXiaolumm(self):
+        
+        if not self.unionid:
+            return None
+        from flashsale.xiaolumm.models import XiaoluMama
+        try:
+            return XiaoluMama.objects.get(openid=self.unionid)
+        except XiaoluMama.DoesNotExist:
+            return None
+        
+    
+    
         
     
