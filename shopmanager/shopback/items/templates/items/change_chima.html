@@ -18,7 +18,8 @@
     <div class="row">
         <form method="get" action="/items/get_sku/">
             <div class="col-xs-4 input-group">
-                <input type="text" class="form-control" name="search_input" value="{{ searchtext }}" id="searchtext" placeholder="请输入商品编码">
+                <input type="text" class="form-control" name="search_input" value="{{ searchtext }}" id="searchtext"
+                       placeholder="请输入商品编码">
                 <label id="searchbutton" type="button" class="input-group-addon" for="searchtext">搜索</label>
             </div>
         </form>
@@ -28,14 +29,16 @@
             <h3 class="panel-title">修改尺码</h3>
         </div>
         <div class="panel-body">
-            <table class="table table-striped table-bordered">
-                {% ifequal result "NOTFOUND" %}
-                    NOT FOUND
-                {% else %}
+            {% ifequal result "NOTFOUND" %}
+                NOT FOUND
+                {% if product_id %}该商品还没有尺码表{% endif %}
+            {% else %}
+                <table class="table table-striped table-bordered">
                     {% for one_chima in result %}
                         <tr>
                             <td>{{ one_chima.0 }}</td>
                             {% for k1,v1 in one_chima.1.items %}
+
                                 <td>
                                     <div class="input-group">
                                         <div class="input-group-addon">{{ k1 }}</div>
@@ -43,14 +46,23 @@
                                                id="{{ product_id }}_{{ one_chima.0 }}_{{ k1 }}" value="{{ v1 }}">
                                     </div>
                                 </td>
+                                {% ifequal forloop.counter 4 %}
+                                    </tr><tr><td></td>
+                                {% endifequal%}
+                                {% ifequal forloop.counter 8 %}
+                                    </tr><tr><td></td>
+                                {% endifequal%}
+                                {% ifequal forloop.counter 12 %}
+                                    </tr><tr><td></td>
+                                {% endifequal%}
                             {% endfor %}
                         </tr>
                     {% endfor %}
-                {% endifequal %}
-            </table>
-            <input type="button" id="product" value="{{ product_id }}" hidden=""/>
-            <input type="button" id="begin_change" class="btn btn-danger" value="开始修改"/>
-            <input type="button" id="submit_change" class="btn btn-danger" value="提交修改"/>
+                </table>
+                <input type="button" id="product" value="{{ product_id }}" hidden=""/>
+                <input type="button" id="begin_change" class="btn btn-danger" value="开始修改"/>
+                <input type="button" id="submit_change" class="btn btn-danger" value="提交修改"/>
+            {% endifequal %}
         </div>
     </div>
 
