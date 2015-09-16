@@ -140,7 +140,116 @@ class RefundConfirm(APIView):
     def post(self, request, pk, format=None):
         
         return Response({})
-    
-    
-    
-    
+
+from shopback.base import log_action, User, ADDITION, CHANGE
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog
+from django.db import models
+
+class RefundPopPageView(APIView):
+    queryset = SaleRefund.objects.all()
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    template_name = "salerefund/pop_page.html"
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, format=None):
+        content = request.REQUEST
+        pk = int(content.get('pk', None))
+        sale_refund = get_object_or_404(SaleRefund, pk=pk)
+        strade = get_object_or_404(SaleTrade, pk=sale_refund.trade_id)
+        sale_order = get_object_or_404(SaleOrder, pk=sale_refund.order_id)
+        refund_dict = model_to_dict(sale_refund)
+        refund_dict['channel'] = strade.get_channel_display()
+        refund_dict['pic'] = sale_order.pic_path
+        refund_dict['status'] = sale_refund.get_status_display()
+        refund_dict['order_status'] = sale_order.get_status_display()
+        refund_dict['payment'] = sale_order.payment
+        return Response({'refund': refund_dict})
+
+    def post(self, request, format=None):
+        content = request.REQUEST
+        pk = int(content.get('pk', None))
+        obj = get_object_or_404(SaleRefund, pk=pk)  # 退款单
+
+        method = content.get('method', None)
+        refund_feedback = content.get('refund_feedback', None)
+        if method == "save":  # 保存退款状态　和　审核意见
+            refund_status = content.get('refund_status', None)
+            if refund_status:
+                obj.status = refund_status
+            if refund_feedback:
+                obj.feedback = refund_feedback
+            obj.save()
+            log_action(request.user.id, obj, CHANGE, '保存状态信息')
+        if method == "agree":  # 同意退款
+            try:
+                if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,
+                                  SaleRefund.REFUND_WAIT_RETURN_GOODS,
+                                  SaleRefund.REFUND_CONFIRM_GOODS):
+                    strade = SaleTrade.objects.get(id=obj.trade_id)
+                    customer = Customer.objects.get(id=strade.buyer_id)
+                    if strade.channel == SaleTrade.WALLET:  # 如果是小鹿钱包付款
+                        payment = int(obj.refund_fee * 100)
+                        xlmm_queryset = XiaoluMama.objects.filter(openid=customer.unionid)
+                        if xlmm_queryset.count() == 0:
+                            raise Exception(u'妈妈unoind:%s' % customer.unionid)
+                        xlmm = xlmm_queryset[0]
+                        clogs = CarryLog.objects.filter(xlmm=xlmm.id,
+                                                        order_num=obj.order_id,
+                                                        log_type=CarryLog.REFUND_RETURN)
+                        assert clogs.count() == 0, u'订单已经退款！'
+                        CarryLog.objects.create(xlmm=xlmm.id,
+                                                order_num=obj.order_id,
+                                                buyer_nick=strade.buyer_nick,
+                                                value=payment,
+                                                log_type=CarryLog.REFUND_RETURN,
+                                                carry_type=CarryLog.CARRY_IN,
+                                                status=CarryLog.CONFIRMED)
+                        xlmm_queryset.update(cash=models.F('cash') + payment)
+                        obj.status = SaleRefund.REFUND_SUCCESS
+                        obj.save()
+                        obj.refund_Confirm()    # 直接退款成功
+
+                    elif obj.refund_fee > 0 and obj.charge:  # 有支付编号
+                        import pingpp
+                        pingpp.api_key = settings.PINGPP_APPKEY
+                        ch = pingpp.Charge.retrieve(obj.charge)
+                        re = ch.refunds.create(description=obj.refund_desc,
+                                               amount=int(obj.refund_fee * 100))
+                        obj.refund_id = re.id
+                        obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款
+                        obj.save()
+                    log_action(request.user.id, obj, CHANGE, '退款审核通过:%s' % obj.refund_id)
+                else:  # 退款单状态不可审核
+                    Response({"res": "not_in_status"})
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
+                return Response({"res": "sys_error"})
+
+        if method == "reject":  # 驳回
+            try:
+                if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,  # 买家已经申请退款
+                                  SaleRefund.REFUND_WAIT_RETURN_GOODS,  # 卖家已经同意退款
+                                  SaleRefund.REFUND_CONFIRM_GOODS):  # 买家已经退货
+                    if refund_feedback:  # 驳回意见
+                        obj.feedback = refund_feedback
+                    obj.status = SaleRefund.REFUND_REFUSE_BUYER  # 修改该退款单为拒绝状态
+                    obj.save()
+                    log_action(request.user.id, obj, CHANGE, '驳回重申')
+                else:  # 退款单状态不可驳回
+                    Response({"res": "not_in_status"})
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
+                return Response({"res": "sys_error"})
+
+        if method == "confirm":  # 确认
+            try:
+                if obj.status == SaleRefund.REFUND_APPROVE:
+                    obj.refund_Confirm()
+                    log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
+                else:
+                    Response({"res": "no_complete"})
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
+                return Response({"res": "sys_error"})
+        return Response({"res": True})
+
