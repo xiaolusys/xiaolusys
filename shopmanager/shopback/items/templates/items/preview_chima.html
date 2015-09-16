@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>修改尺码</title>
+    <title>预览尺码</title>
     <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="http://youni.huyi.so/static/jquery/jquery-1.8.13.min.js"></script>
     <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
@@ -13,12 +13,12 @@
     <script src="/static/jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
-<script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+
 </head>
 <body>
 <div class="container" style="margin-top: 30px">
     <div class="row">
-        <form method="get" action="/items/get_sku/">
+        <form method="get" action="/items/preview_sku/">
             <div class="col-xs-4 input-group">
                 <input type="text" class="form-control" name="search_input" value="{{ searchtext }}" id="searchtext"
                        placeholder="请输入商品编码">
@@ -28,7 +28,7 @@
     </div>
     <div class="row panel panel-success" style="margin-top: 20px">
         <div class="panel-heading">
-            <h3 class="panel-title">修改尺码</h3>
+            <h3 class="panel-title">预览尺码</h3>
         </div>
         <div class="panel-body">
             {% ifequal result "NOTFOUND" %}
@@ -40,7 +40,6 @@
                         <tr>
                             <td>{{ one_chima.0 }}</td>
                             {% for k1,v1 in one_chima.1.items %}
-
                                 <td>
                                     <div class="input-group">
                                         <div class="input-group-addon">{{ k1 }}</div>
@@ -48,29 +47,16 @@
                                                id="{{ product_id }}_{{ one_chima.0 }}_{{ k1 }}" value="{{ v1 }}">
                                     </div>
                                 </td>
-                                {% ifequal forloop.counter 4 %}
-                                    </tr><tr><td></td>
-                                {% endifequal%}
-                                {% ifequal forloop.counter 8 %}
-                                    </tr><tr><td></td>
-                                {% endifequal%}
-                                {% ifequal forloop.counter 12 %}
-                                    </tr><tr><td></td>
-                                {% endifequal%}
                             {% endfor %}
                         </tr>
                     {% endfor %}
                 </table>
-                <input type="button" id="product" value="{{ product_id }}" hidden=""/>
-                <input type="button" id="begin_change" class="btn btn-danger" value="开始修改"/>
-                <input type="button" id="submit_change" class="btn btn-danger" value="提交修改"/>
-                <input type="button" id="preview_button" class="btn btn-info" value="预览一下"/>
+
             {% endifequal %}
         </div>
     </div>
 
 </div>
-<script type="text/javascript" src="/static/js/change_chima.js"></script>
 <script src="/static/wap/js/sweet-alert.min.js"></script>
 </body>
 </html>
