@@ -105,7 +105,6 @@ class AddItemView(generics.ListCreateAPIView):
                                                color=content.get("all_colors", ""),
                                                wash_instructions=wash_instroduce, note=note)
             one_product_detail.save()
-            log_action(user.id, one_product_detail, ADDITION, u'新建一个detail_new')
             chima_model = ProductSkuContrast(product=one_product, contrast_detail=chi_ma_result)
             chima_model.save()
             count = 1
@@ -205,6 +204,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         content = request.POST
+        user = request.user
         product = content.get("product")
         product_bean = Product.objects.filter(id=product, status=Product.NORMAL)
         if product_bean.count() == 0:
@@ -225,6 +225,35 @@ class GetSkuDetail(generics.ListCreateAPIView):
                         chi_ma_result[sku][temp_chi_ma.id] = chi_ma_content
                     else:
                         chi_ma_result[sku] = {temp_chi_ma.id: chi_ma_content}
-        product_model.contrast.contrast_detail = chi_ma_result
-        product_model.contrast.save()
+        try:
+            product_model.contrast.contrast_detail = chi_ma_result
+            product_model.contrast.save()
+            log_action(user.id, product_model, CHANGE, u'修改尺码表内容')
+        except:
+            chima_model = ProductSkuContrast(product=product_model, contrast_detail=chi_ma_result)
+            chima_model.save()
+            log_action(user.id, product_model, ADDITION, u'新建尺码表内容')
         return Response({"result": "OK"})
+
+class PreviewSkuDetail(generics.ListCreateAPIView):
+    queryset = ProductSkuContrast.objects.all()
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "items/preview_chima.html"
+
+    def get(self, request, *args, **kwargs):
+        content = request.GET
+        searchtext = content.get("search_input")
+        if not searchtext or len(searchtext.strip()) == 0:
+            return Response({"result": "NOTFOUND"})
+        product_bean = Product.objects.filter(outer_id=searchtext, status=Product.NORMAL)
+        try:
+            if product_bean.count() > 0:
+                chima_content = product_bean[0].contrast.get_correspond_content
+                chima_content = sorted(chima_content.items(), key=lambda d: d[1], reverse=False)
+                return Response({"result": chima_content, "product_id": product_bean[0].id, "searchtext": searchtext})
+            else:
+                return Response({"result": "NOTFOUND", "searchtext": searchtext})
+        except:
+            return Response({"result": "NOTFOUND", "product_id": product_bean[0].id, "searchtext": searchtext})
+
