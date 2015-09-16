@@ -190,6 +190,12 @@ class SaleTrade(models.Model):
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
     
+    def get_buyer_openid(self):
+        """ 获取订单用户openid """
+        if self.openid:
+            return self.openid
+        return self.order_buyer.openid
+    
     @classmethod
     def mapTradeStatus(cls,index):
         from shopback.trades.models import MergeTrade
@@ -261,6 +267,7 @@ class SaleTrade(models.Model):
             order.confirm_sign_order()  # 同时修改正常订单到交易完成
         self.status = SaleTrade.TRADE_FINISHED
         self.save()
+
 
 class SaleOrder(models.Model):
     
