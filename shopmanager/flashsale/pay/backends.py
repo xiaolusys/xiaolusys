@@ -77,7 +77,8 @@ class WeixinPubBackend(RemoteUserBackend):
             return None
         
         code = request.GET.get('code')
-        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,secret=settings.WXPAY_SECRET,request=request)
+        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,
+                                          secret=settings.WXPAY_SECRET,request=request)
         
         if not valid_openid(openid) or not valid_openid(unionid):
             return AnonymousUser()
