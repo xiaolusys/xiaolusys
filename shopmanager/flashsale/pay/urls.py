@@ -9,7 +9,7 @@ from .decorators import sale_buyer_required,weixin_xlmm_auth
 from . import views
 from .views_login import flashsale_login,productlist_redirect
 from .views_address import AddressList,UserAddressDetail,DistrictList
-from .views_refund import RefundApply,RefundConfirm
+from .views_refund import RefundApply,RefundConfirm, RefundPopPageView
 from .views_product import productsku_quantity_view
 from .views_order import order_flashsale,time_rank,sale_state,refund_state,refunding_state,preorder_flashsale,nextorder_flashsale,search_flashsale
 
@@ -83,4 +83,5 @@ urlpatterns = (
     url(r'^zone_analysis/city/$', csrf_exempt(by_zone_City), name="by_zone_City"),
     url(r'^qiniu/$', views.QiniuApi.as_view()),
     url(r'^rsrc/$', csrf_exempt(rsrc)),
+    url(r'^refund_pop_page/$', csrf_exempt(RefundPopPageView.as_view())),
 )

@@ -207,7 +207,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     def order_no(self, obj):
         strade = SaleTrade.objects.get(id=obj.trade_id)
-        return strade.tid
+        html = '<a onclick="show_page({1})">{0}</a>'.format(strade.tid, obj.id)
+        return html
 
     order_no.allow_tags = True
     order_no.short_description = "交易编号"
@@ -384,6 +385,10 @@ class SaleRefundAdmin(admin.ModelAdmin):
     export_Refund_Product_Action.short_description = u"导出订单信息"
     actions = ['export_Refund_Product_Action', ]
 
+    class Media:
+        css = {"all": ()}
+        js = ("script/slaerefund_poppage.js", "layer-v1.9.2/layer/layer.js")
+
 admin.site.register(SaleRefund, SaleRefundAdmin)
 
 from django.db.models import Sum
@@ -551,9 +556,9 @@ admin.site.register(CouponsPool, CouponPoolAdmin)
 
 
 class UserCouponAdmin(admin.ModelAdmin):
-    list_display = ("id", "cp_id", "customer", "status", "created", "modified")
+    list_display = ("id", "cp_id", "customer","sale_trade", "status", "created", "modified")
     list_filter = ("status", "created")
-    search_fields = ['=id',]
+    search_fields = ['=id', "=customer","=sale_trade"]
 
 admin.site.register(UserCoupon, UserCouponAdmin)
 
