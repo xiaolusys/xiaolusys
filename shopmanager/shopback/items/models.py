@@ -23,6 +23,8 @@ from auth import apis
 from common.utils import update_model_fields
 from flashsale.dinghuo.models_user import MyUser
 import logging
+import collections
+
 
 logger  = logging.getLogger('django.request')
 
@@ -405,7 +407,13 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 
-    
+
+def custom_sort(a, b):
+    c = ContrastContent.objects.get(name=a[0])
+    d = ContrastContent.objects.get(name=b[0])
+    return int(c.cid) - int(d.cid)
+
+
 class ProductSku(models.Model):
     
     """ 
@@ -518,7 +526,12 @@ class ProductSku(models.Model):
             contrast = self.product.contrast.get_correspond_content
             sku_name = self.properties_alias or self.properties_name
             display_sku = contrast[sku_name]
-            return {"result": display_sku, "free_num": display_num}
+            display_sku = display_sku.items()
+            display_sku.sort(cmp=custom_sort)
+            result_data = collections.OrderedDict()
+            for p in display_sku:
+                result_data[p[0]] = p[1]
+            return {"result": result_data, "free_num": display_num}
         except:
             return {"result": "None", "free_num": display_num}
 

@@ -163,6 +163,7 @@ class RefundPopPageView(APIView):
         refund_dict['status'] = sale_refund.get_status_display()
         refund_dict['order_status'] = sale_order.get_status_display()
         refund_dict['payment'] = sale_order.payment
+        refund_dict['pay_time'] = strade.pay_time
         return Response({'refund': refund_dict})
 
     def post(self, request, format=None):
@@ -218,6 +219,9 @@ class RefundPopPageView(APIView):
                         obj.refund_id = re.id
                         obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款
                         obj.save()
+                if refund_feedback:
+                    obj.feedback = refund_feedback
+                    obj.save()
                     log_action(request.user.id, obj, CHANGE, '退款审核通过:%s' % obj.refund_id)
                 else:  # 退款单状态不可审核
                     Response({"res": "not_in_status"})
@@ -245,6 +249,9 @@ class RefundPopPageView(APIView):
             try:
                 if obj.status == SaleRefund.REFUND_APPROVE:
                     obj.refund_Confirm()
+                    if refund_feedback:
+                        obj.feedback = refund_feedback
+                        obj.save()
                     log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
                 else:
                     Response({"res": "no_complete"})
