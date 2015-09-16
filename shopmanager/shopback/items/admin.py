@@ -158,11 +158,13 @@ class ProductAdmin(MyAdmin):
         if len(a) > 0:
             return u'<a href="/items/product/district/{0}/"' \
                    u' target="_blank" style="display: block;">货位 &gt;&gt;</a>' \
-                   u'<br><a href="/sale/dinghuo/statsbypid/{1}" target="_blank" style="display: block;">订货单&gt;&gt;</a>'.format(
-                obj.id, obj.id)
+                   u'<br><a href="/sale/dinghuo/statsbypid/{1}" target="_blank" style="display: block;">订货单&gt;&gt;</a>' \
+                   u'<br><a href="/items/get_sku/?search_input={2}" target="_blank" style="display: block;">尺码表&gt;&gt;</a>'.format(
+                obj.id, obj.id, obj.outer_id)
         else:
-            return u'<a href="/items/product/district/{0}/" target="_blank" style="display: block;">货位 &gt;&gt;</a>'.format(
-                obj.id)
+            return u'<a href="/items/product/district/{0}/" target="_blank" style="display: block;">货位 &gt;&gt;</a>' \
+                   u'<br><a href="/items/get_sku/?search_input={1}" target="_blank" style="display: block;">尺码表&gt;&gt;</a>'.format(
+                obj.id, obj.outer_id)
     district_link.allow_tags = True
     district_link.short_description = u"附加信息>>"
     

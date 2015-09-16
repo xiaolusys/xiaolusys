@@ -9,6 +9,7 @@ from flashsale.pay.models_custom import ModelProduct, Productdetail
 from django.db import transaction
 from supplychain.supplier.models import SaleSupplier
 from shopback.base import log_action, ADDITION, CHANGE
+from django.db.models import F, Q
 
 
 class AddItemView(generics.ListCreateAPIView):
@@ -49,7 +50,7 @@ class AddItemView(generics.ListCreateAPIView):
         count = 1
         while True:
             inner_outer_id = outer_id + "%03d" % count
-            test_pro = Product.objects.filter(outer_id=(inner_outer_id + "1"))
+            test_pro = Product.objects.filter(outer_id=(inner_outer_id + "1"), status=Product.NORMAL)
             if test_pro.count() == 0:
                 break
             count += 1
@@ -177,7 +178,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
         searchtext = content.get("search_input")
         if not searchtext or len(searchtext.strip()) == 0:
             return Response({"result": "NOTFOUND"})
-        product_bean = Product.objects.filter(outer_id=searchtext, status=Product.NORMAL)
+        product_bean = Product.objects.filter(Q(outer_id=searchtext) | Q(id=searchtext)).filter(status=Product.NORMAL)
         all_chima_content = ContrastContent.objects.all()
 
         try:
@@ -195,7 +196,8 @@ class GetSkuDetail(generics.ListCreateAPIView):
                         else:
                             result_data[one_sku] = {one_chima.name: chi_ma_size}
                 # chima_content = product_bean[0].contrast.get_correspond_content
-                chima_content = sorted(result_data.items(), key=lambda d: d[1], reverse=False)
+                chima_content = result_data.items()
+                chima_content.sort(cmp=custom_sort)
                 return Response({"result": chima_content, "product_id": product_bean[0].id, "searchtext": searchtext})
             else:
                 return Response({"result": "NOTFOUND", "searchtext": searchtext})
@@ -235,6 +237,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
             log_action(user.id, product_model, ADDITION, u'新建尺码表内容')
         return Response({"result": "OK"})
 
+
 class PreviewSkuDetail(generics.ListCreateAPIView):
     queryset = ProductSkuContrast.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
@@ -246,14 +249,28 @@ class PreviewSkuDetail(generics.ListCreateAPIView):
         searchtext = content.get("search_input")
         if not searchtext or len(searchtext.strip()) == 0:
             return Response({"result": "NOTFOUND"})
-        product_bean = Product.objects.filter(outer_id=searchtext, status=Product.NORMAL)
+        product_bean = Product.objects.filter(Q(outer_id=searchtext) | Q(id=searchtext)).filter(status=Product.NORMAL)
         try:
             if product_bean.count() > 0:
                 chima_content = product_bean[0].contrast.get_correspond_content
-                chima_content = sorted(chima_content.items(), key=lambda d: d[1], reverse=False)
+                chima_content = chima_content.items()
+                chima_content.sort(cmp=custom_sort)
                 return Response({"result": chima_content, "product_id": product_bean[0].id, "searchtext": searchtext})
             else:
                 return Response({"result": "NOTFOUND", "searchtext": searchtext})
         except:
             return Response({"result": "NOTFOUND", "product_id": product_bean[0].id, "searchtext": searchtext})
 
+
+def custom_sort(a, b):
+    print a[0], b[0]
+    if a[0].isdigit() and b[0].isdigit():
+        return int(a[0])-int(b[0])
+
+    if a[0].isdigit() and not b[0].isdigit():
+        return True
+
+    if not a[0].isdigit() and b[0].isdigit():
+        return False
+
+    return len(a[0])-len(b[0]) or a[0] > b[0]
