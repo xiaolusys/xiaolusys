@@ -168,6 +168,9 @@ class GetSupplier(generics.ListCreateAPIView):
 
 
 class GetSkuDetail(generics.ListCreateAPIView):
+    """
+        展示某个商品的所有的sku详情尺码
+    """
     queryset = ProductSkuContrast.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
