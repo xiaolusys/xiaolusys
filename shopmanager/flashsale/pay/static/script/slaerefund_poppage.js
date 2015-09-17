@@ -4,7 +4,7 @@
 
 // 售后退款页面　弹出页面　操作等js代码
 function show_page(refund_id) {
-    $(".click_row_"+refund_id).parent().css('color','red');//隐藏掉要操作的行
+    $(".click_row_"+refund_id).parent().parent().hide();//隐藏掉要操作的行
     console.log("debug refund id :", refund_id);
     layer.open({
         type: 2,
@@ -16,6 +16,13 @@ function show_page(refund_id) {
     });
 }
 
+function input_feedback(s) {
+    console.log($(s));
+    // 清空输入框的内容
+    $("#ref_feedback").val('');
+    var a_content = $(s)[0].innerHTML;
+    $("#ref_feedback").val(a_content);
+}
 
 function Create_btn(status) {
     function Btn_Dom1() {
@@ -46,8 +53,6 @@ function save_info(refund_id) {
     var requestUrl = "/mm/refund_pop_page/";
     var refund_status = $("#ref_status").val();
     var refund_feedback = $("#ref_feedback").val();
-    var add_content = $("#add_content").val();
-    refund_feedback = refund_feedback + add_content;  //追加审核意见内容
     console.log(refund_status, refund_feedback);
     layer.confirm("确定保存？", {btn: ["确定", '取消']},
         function () {
@@ -82,8 +87,6 @@ function dnt_agree_refund(refund_id) {
     console.log(refund_id);
     var requestUrl = "/mm/refund_pop_page/";
     var refund_feedback = $("#ref_feedback").val();
-    var add_content = $("#add_content").val();
-    refund_feedback = refund_feedback + add_content;  //追加审核意见内容
     layer.confirm('请确定填写审核意见，要驳回申请么？', {
         btn: ['确定', '取消'] //按钮
     }, function () {
@@ -120,8 +123,6 @@ function agree_refund(refund_id) {
     console.log(refund_id);
     var requestUrl = "/mm/refund_pop_page/";
     var refund_feedback = $("#ref_feedback").val();
-    var add_content = $("#add_content").val();
-    refund_feedback = refund_feedback + add_content;  //追加审核意见内容
     layer.confirm("请确定退款金额，同意退款么？", {btn: ["确定", "取消"]},
         function () {
             if ($(".layui-layer-btn0").hasClass('loading')) {
@@ -164,8 +165,6 @@ function confirm_refund(refund_id) {
     console.log(refund_id);
     var requestUrl = "/mm/refund_pop_page/";
     var refund_feedback = $("#ref_feedback").val();
-    var add_content = $("#add_content").val();
-    refund_feedback = refund_feedback + add_content;  //追加审核意见内容
     layer.confirm('确定退款成功么？', {btn: ["确定", "取消"]}, function () {
         $.ajax({
             type: 'post',
