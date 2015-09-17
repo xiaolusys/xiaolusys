@@ -171,6 +171,9 @@ class RefundPopPageView(APIView):
         merge_order = get_object_or_404(MergeOrder, oid=sale_order.oid, sys_status=pcfg.IN_EFFECT)
         refund_dict['merge_trade_status'] = merge_order.get_status_display()
         refund_dict['merge_sys_status'] = merge_order.get_sys_status_display()
+        refund_dict['logistics_company'] = strade.logistics_company
+        refund_dict['out_sid'] = strade.out_sid
+        refund_dict['logistics_time'] = strade.consign_time
         return Response({'refund': refund_dict})
 
     def post(self, request, format=None):

@@ -1,3 +1,6 @@
+########### 2015-9-17 #################
+alter table shop_items_contrastcontent add column status varchar(32) default 'normal';
+alter table shop_items_contrastcontent add column sid int(11) default 0;
 ########### 2015-9-6 #################
 alter table flashsale_productdetail modify column note varchar(256);
 ########### 2015-8-26 #################

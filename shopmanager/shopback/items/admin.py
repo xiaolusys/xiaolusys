@@ -989,5 +989,5 @@ class ProductSkuContrastAdmin(admin.ModelAdmin):
 admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ContrastContentAdmin(admin.ModelAdmin):
-    list_display = ('cid', 'name')
+    list_display = ('cid', 'name', 'sid', 'status')
 admin.site.register(ContrastContent, ContrastContentAdmin)
