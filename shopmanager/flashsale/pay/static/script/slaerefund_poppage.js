@@ -4,7 +4,7 @@
 
 // 售后退款页面　弹出页面　操作等js代码
 function show_page(refund_id) {
-    $(".click_row_"+refund_id).parent().parent().hide();//隐藏掉要操作的行
+    $(".click_row_"+refund_id).parent().css('color','red');//隐藏掉要操作的行
     console.log("debug refund id :", refund_id);
     layer.open({
         type: 2,

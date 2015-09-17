@@ -144,6 +144,7 @@ class RefundConfirm(APIView):
 from shopback.base import log_action, User, ADDITION, CHANGE
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from django.db import models
+from shopback.trades.models import MergeOrder
 
 class RefundPopPageView(APIView):
     queryset = SaleRefund.objects.all()
@@ -165,6 +166,9 @@ class RefundPopPageView(APIView):
         refund_dict['order_status'] = sale_order.get_status_display()
         refund_dict['payment'] = sale_order.payment
         refund_dict['pay_time'] = strade.pay_time
+        merge_order = get_object_or_404(MergeOrder, oid=sale_order.oid)
+        refund_dict['merge_trade_status'] = merge_order.get_status_display()
+        refund_dict['merge_sys_status'] = merge_order.get_sys_status_display()
         return Response({'refund': refund_dict})
 
     def post(self, request, format=None):
