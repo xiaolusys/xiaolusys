@@ -208,7 +208,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     def order_no(self, obj):
         strade = SaleTrade.objects.get(id=obj.trade_id)
-        html = '<a onclick="show_page({1})">{0}</a>'.format(strade.tid, obj.id)
+        html = '<a onclick="show_page({1})" class="click_row_{1}">{0}</a>'.format(strade.tid, obj.id)
         return html
 
     order_no.allow_tags = True

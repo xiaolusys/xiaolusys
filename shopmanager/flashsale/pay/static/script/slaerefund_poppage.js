@@ -4,15 +4,24 @@
 
 // 售后退款页面　弹出页面　操作等js代码
 function show_page(refund_id) {
+    $(".click_row_"+refund_id).parent().parent().hide();//隐藏掉要操作的行
     console.log("debug refund id :", refund_id);
     layer.open({
         type: 2,
         title: '退款审核页面',
         shadeClose: true,
         shade: 0.6,
-        area: ['1100px', '62%'],
+        area: ['950px', '70%'],
         content: '/mm/refund_pop_page/?pk=' + refund_id // 弹出的url页面
     });
+}
+
+function input_feedback(s) {
+    console.log($(s));
+    // 清空输入框的内容
+    $("#ref_feedback").val('');
+    var a_content = $(s)[0].innerHTML;
+    $("#ref_feedback").val(a_content);
 }
 
 function Create_btn(status) {
@@ -67,7 +76,8 @@ function save_info(refund_id) {
         console.log(res);
         if (res.res == true) {
             layer.msg('操作成功！');
-            location.reload();
+            var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+            parent.layer.close(index); //执行关闭
         }
     }
 }
@@ -112,16 +122,17 @@ function dnt_agree_refund(refund_id) {
 function agree_refund(refund_id) {
     console.log(refund_id);
     var requestUrl = "/mm/refund_pop_page/";
+    var refund_feedback = $("#ref_feedback").val();
     layer.confirm("请确定退款金额，同意退款么？", {btn: ["确定", "取消"]},
         function () {
-            if($(".layui-layer-btn0").hasClass('loading')){
+            if ($(".layui-layer-btn0").hasClass('loading')) {
                 return
             }
             $(".layui-layer-btn0").addClass("loading");
             $.ajax({
                 type: 'post',
                 url: requestUrl,
-                data: {"pk": refund_id, "method": "agree"},
+                data: {"pk": refund_id, "method": "agree", "refund_feedback": refund_feedback},
                 dataType: 'json',
                 success: requestCallBack
             });
@@ -141,6 +152,9 @@ function agree_refund(refund_id) {
         }
         else if (res.res == true) {
             layer.msg('操作成功！');
+            //关闭当前页面
+            var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+            parent.layer.close(index); //执行关闭
         }
     }
 }
@@ -150,11 +164,12 @@ function confirm_refund(refund_id) {
     //
     console.log(refund_id);
     var requestUrl = "/mm/refund_pop_page/";
+    var refund_feedback = $("#ref_feedback").val();
     layer.confirm('确定退款成功么？', {btn: ["确定", "取消"]}, function () {
         $.ajax({
             type: 'post',
             url: requestUrl,
-            data: {"pk": refund_id, "method": "confirm"},
+            data: {"pk": refund_id, "method": "confirm", "refund_feedback": refund_feedback},
             dataType: 'json',
             success: requestCallBack
         });
@@ -172,7 +187,9 @@ function confirm_refund(refund_id) {
         }
         else if (res.res == true) {
             layer.msg('操作成功！');
-            location.reload();
+            //关闭当前页面
+            var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+            parent.layer.close(index); //执行关闭
         }
     }
 }
