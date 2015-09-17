@@ -411,7 +411,7 @@ pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 def custom_sort(a, b):
     c = ContrastContent.objects.get(name=a[0])
     d = ContrastContent.objects.get(name=b[0])
-    return int(c.cid) - int(d.cid)
+    return int(c.sid) - int(d.sid)
 
 
 class ProductSku(models.Model):
@@ -1068,8 +1068,17 @@ class ProductSkuContrast(models.Model):
 
 
 class ContrastContent(models.Model):
+    NORMAL = 'normal'
+    DELETE = 'delete'
+    PRODUCT_CONTRAST_STATUS = (
+        (NORMAL, u'使用'),
+        (DELETE, u'作废')
+    )
     cid = models.CharField(max_length=32, db_index=True, verbose_name=u'对照表内容ID')
     name = models.CharField(max_length=32, verbose_name=u'对照表内容')
+    sid = models.IntegerField(default=0, verbose_name=u'排列顺序')
+    status = models.CharField(max_length=32, choices=PRODUCT_CONTRAST_STATUS,
+                              db_index=True, default=NORMAL, verbose_name=u'状态')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
 

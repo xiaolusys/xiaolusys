@@ -31,7 +31,11 @@
     </div>
     <div class="col-xs-3">
         <h5>订单物流信息：</h5>
-        <span class="label label-info" style="padding: 1px">发货时间：</span>&nbsp&nbsp{{ refund.consign_time }}<br>
+        <span class="label label-info" style="padding: 1px">发货时间：</span>&nbsp&nbsp{{ refund.logistics_time }}<br>
+        <span class="label label-info" style="padding: 1px">物流公司：</span>&nbsp&nbsp{{ refund.logistics_company }}<br>
+        <span class="label label-info" style="padding: 1px">快递单号：</span>&nbsp&nbsp{{ refund.out_sid }}<br>
+
+
         <h5>退款物流信息：</h5>
         <span class="label label-info" style="padding: 1px">物流公司：</span>&nbsp&nbsp{{ refund.company_name }}<br>
         <span class="label label-info" style="padding: 1px">快递单号：</span>&nbsp&nbsp{{ refund.sid }}<br>
