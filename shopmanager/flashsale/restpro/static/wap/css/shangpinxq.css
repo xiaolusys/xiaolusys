@@ -172,8 +172,9 @@
     width: 90%;
     margin: 25px auto 0 28px;
     color: #868484;
-    font-size: 22px;
+    border-spacing:0px;
     height: 60px;
+    line-height: 40px;
     vertical-align: text-top;
     text-align: center;
 }
@@ -190,21 +191,22 @@
 
 .chi-ma-biao table th {
     padding: 0 5px;
-    border: solid #cccacc;
-    border-width:1px 1px 1px 0px;
+    border: solid indianred;
+    border-width:0px 0px 2px 0px;
     height: 22px;
     line-height: 22px;
     text-align: center;
-    color: #807e80;
-    background-color: #f8f8f8;
+    color: #fff;
+    background-color: #9E9A9E;
 }
 .chi-ma-biao table tr td:nth-child(1) {
-    width: 140px;
-    background-color: #f8f8f8;
-    border-left:  1px solid #cccacc;
+    width: 100px;
+    color: #fff;
+    background-color: #9E9A9E;
+    border-right:  2px solid indianred;
 }
 .chi-ma-biao table th:nth-child(1){
-    border-left:  1px solid #cccacc;
+    border-right:  1px solid indianred;
 }
 
 .goods-img{
