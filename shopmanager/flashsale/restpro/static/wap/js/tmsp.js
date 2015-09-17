@@ -73,6 +73,7 @@ function Create_product_detailsku_dom(obj) {
     return hereDoc(Content_dom).template(obj);
 }
 function link_sku_size(obj){
+    var insertable = "";
     $.each(obj.normal_skus, function (index, sku) {
         if(sku.is_saleout){
             return
@@ -82,6 +83,7 @@ function link_sku_size(obj){
             tableContent = "<div class='remain-num' style='font-size:20px;text-align:center'><h3>仅剩下<span style='color:#f9339b'>" + sku.size_of_sku.free_num + "</span>件,不要错过哦(^_^)</h3></div>";
         }
         if (sku.size_of_sku.result != "None") {
+
             tableContent += "<table class='pop-class table-bordered'><tr>";
             for (var p in sku.size_of_sku.result) {
                 tableContent += "<th>" + p + "</th>";
@@ -91,6 +93,24 @@ function link_sku_size(obj){
                 tableContent += "<td>" + sku.size_of_sku.result[p] + "</td>";
             }
             tableContent += "</tr></table>";
+            console.log(index);
+            if (index == 0) {
+                insertable = "<table><th>尺码</th>";
+                for (var p in sku.size_of_sku.result) {
+                    insertable += "<th>" + p + "</th>";
+                }
+                insertable += "</tr><tr><td>" + sku.name + "</td>";
+                for (var p in sku.size_of_sku.result) {
+                    insertable += "<td>" + sku.size_of_sku.result[p] + "</td>";
+                }
+                insertable += "</tr>"
+            } else {
+                insertable += "<tr><td>" + sku.name + "</td>";
+                for (var p in sku.size_of_sku.result) {
+                    insertable += "<td>" + sku.size_of_sku.result[p] + "</td>";
+                }
+                insertable += "</tr>"
+            }
         }
         if (tableContent.length > 0) {
             var tableSettings = {
@@ -98,8 +118,11 @@ function link_sku_size(obj){
             };
             $('#skusize_' + sku.id).webuiPopover('destroy').webuiPopover($.extend({}, settings, tableSettings));
         }
-
     });
+    if (insertable.length > 0) {
+        insertable += "</table>";
+        $(".chi-ma-biao").append(insertable);
+    }
 }
 function Create_product_bottomslide_dom(obj_list) {
     //创建内容图Slide
