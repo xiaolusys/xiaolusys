@@ -23,13 +23,11 @@ import logging
 from rest_framework import authentication
 from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 from rest_framework.views import APIView
 from rest_framework import filters
-from rest_framework import authentication
 from . import serializers 
 from rest_framework import status
 
@@ -63,9 +61,10 @@ class RefundManagerView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (RefundManagerRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
     def get(self, request, *args, **kwargs):
-        
         handling_refunds = Refund.objects.filter(has_good_return=True,is_reissue=False,
-                                status__in=(pcfg.REFUND_WAIT_RETURN_GOODS,pcfg.REFUND_CONFIRM_GOODS))
+                                status__in=(pcfg.REFUND_WAIT_SELLER_AGREE,
+                                            pcfg.REFUND_WAIT_RETURN_GOODS,
+                                            pcfg.REFUND_CONFIRM_GOODS))
         handling_tids = set()
         refund_dict   = {}
         for refund in handling_refunds:
