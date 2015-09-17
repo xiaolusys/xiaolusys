@@ -83,9 +83,16 @@
             <option value='0' select="selected">其他</option>
             <option value='1'>错拍</option>
             <option value='2'>缺货</option>
+            <option value='5'>没有发货</option>
+            <option value='7'>与描述不符</option>
+            <option value='10'>七天无理由退换货</option>
+        </script>
+
+        <script type="text/html" id="refund_pro_reason">
+            <option value='0' select="selected">其他</option>
+            <option value='1'>错拍</option>
             <option value='3'>开线/脱色/脱毛/有色差/有虫洞</option>
             <option value='4'>发错货/漏发</option>
-            <option value='5'>没有发货</option>
             <option value='6'>未收到货</option>
             <option value='7'>与描述不符</option>
             <option value='8'>退运费</option>
@@ -162,7 +169,6 @@
         console.log(order_url, "order_url order_url order_url");
         //获取待支付订单列表
         Set_order_detail(order_url);
-        Create_refun_reason();
     })(jQuery);
 </script>
 </body>

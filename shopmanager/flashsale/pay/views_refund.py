@@ -144,6 +144,9 @@ class RefundConfirm(APIView):
 from shopback.base import log_action, User, ADDITION, CHANGE
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from django.db import models
+from shopback.trades.models import MergeOrder
+from shopback import paramconfig as pcfg
+
 
 class RefundPopPageView(APIView):
     queryset = SaleRefund.objects.all()
@@ -158,11 +161,19 @@ class RefundPopPageView(APIView):
         strade = get_object_or_404(SaleTrade, pk=sale_refund.trade_id)
         sale_order = get_object_or_404(SaleOrder, pk=sale_refund.order_id)
         refund_dict = model_to_dict(sale_refund)
+        refund_dict['tid'] = strade.tid
         refund_dict['channel'] = strade.get_channel_display()
         refund_dict['pic'] = sale_order.pic_path
         refund_dict['status'] = sale_refund.get_status_display()
         refund_dict['order_status'] = sale_order.get_status_display()
         refund_dict['payment'] = sale_order.payment
+        refund_dict['pay_time'] = strade.pay_time
+        merge_order = get_object_or_404(MergeOrder, oid=sale_order.oid, sys_status=pcfg.IN_EFFECT)
+        refund_dict['merge_trade_status'] = merge_order.get_status_display()
+        refund_dict['merge_sys_status'] = merge_order.get_sys_status_display()
+        refund_dict['logistics_company'] = strade.logistics_company
+        refund_dict['out_sid'] = strade.out_sid
+        refund_dict['logistics_time'] = strade.consign_time
         return Response({'refund': refund_dict})
 
     def post(self, request, format=None):
@@ -218,6 +229,9 @@ class RefundPopPageView(APIView):
                         obj.refund_id = re.id
                         obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款
                         obj.save()
+                if refund_feedback:
+                    obj.feedback = refund_feedback
+                    obj.save()
                     log_action(request.user.id, obj, CHANGE, '退款审核通过:%s' % obj.refund_id)
                 else:  # 退款单状态不可审核
                     Response({"res": "not_in_status"})
@@ -245,6 +259,9 @@ class RefundPopPageView(APIView):
             try:
                 if obj.status == SaleRefund.REFUND_APPROVE:
                     obj.refund_Confirm()
+                    if refund_feedback:
+                        obj.feedback = refund_feedback
+                        obj.save()
                     log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
                 else:
                     Response({"res": "no_complete"})

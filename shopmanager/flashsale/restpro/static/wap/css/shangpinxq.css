@@ -162,6 +162,53 @@
 .goods-param .space{
   padding-right: 44px;
 }
+
+/*chi-ma-biao*/
+
+.chi-ma-biao{
+    margin-bottom: 25px;
+}
+.chi-ma-biao table {
+    width: 90%;
+    margin: 25px auto 0 28px;
+    color: #868484;
+    border-spacing:0px;
+    height: 60px;
+    line-height: 40px;
+    vertical-align: text-top;
+    text-align: center;
+}
+
+.chi-ma-biao table td {
+    padding: 0 5px;
+    border: solid #cccacc;
+    border-width:0px 1px 1px 0px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    color: #807e80;
+}
+
+.chi-ma-biao table th {
+    padding: 0 5px;
+    border: solid indianred;
+    border-width:0px 0px 2px 0px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    color: #fff;
+    background-color: #9E9A9E;
+}
+.chi-ma-biao table tr td:nth-child(1) {
+    width: 100px;
+    color: #fff;
+    background-color: #9E9A9E;
+    border-right:  2px solid indianred;
+}
+.chi-ma-biao table th:nth-child(1){
+    border-right:  1px solid indianred;
+}
+
 .goods-img{
   padding-top: 20px;
   width: 640px;

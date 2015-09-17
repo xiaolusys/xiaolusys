@@ -31,8 +31,14 @@ function Create_detail_dom(obj) {
 }
 
 
-function Create_refun_reason() {
-    var html = $("#refund_reason").html();
+function Create_refun_reason(status) {
+    var html = "";
+    if (status==2){//退款
+        html = $("#refund_reason").html();
+    }
+    if (status==3){//退货
+        html = $("#refund_pro_reason").html();
+    }
     $(html).appendTo("#selec_resason");
 }
 
@@ -58,12 +64,14 @@ function Set_order_detail(suffix) {
                 console.log(data.status, '订单状态');
                 var header = Create_tuikuan_header();
                 $('body').before(header);  //在body 的最前面添加
+                Create_refun_reason(data.status);//创建退款原因选择
 
             }
             else if (data.status == 3) {//显示申请退货标题
                 console.log(data.status, '订单状态');
                 var header = Create_tuihuo_header();
                 $('body').before(header);  //在body 的最前面添加
+                Create_refun_reason(data.status);//创建退货原因选择
             }
             //设置订单基本信息
             var top_dom = Create_order_top_dom(data);
