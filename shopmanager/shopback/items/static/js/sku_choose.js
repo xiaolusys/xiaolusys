@@ -3,16 +3,26 @@ $(function () {
     $(".sku-choose").click(dynamic_generate_sku);
     $(".sku-choose").click(dynamic_generate_chi);
     $(".chima-choose").click(dynamic_generate_chi);
-    $("#chima-add").click(function(){
-        var colortext = $(".chima-add").val();
-        $(".chima-content").append(template("chima-one",{"chima": colortext}));
-        $(".sku-choose").click(dynamic_generate_chi);
-        $(".sku-choose").click(dynamic_generate_sku);
+    $("#chima-add").click(function () {
+        var chimatext = $(".chima-add").val().trim();
+        if (chimatext.length > 0) {
+            $(".chima-content").append(template("chima-one", {"chima": chimatext}));
+            $(".sku-choose").click(dynamic_generate_chi);
+            $(".sku-choose").click(dynamic_generate_sku);
+        }else{
+             swal("填写空白", "(^_^)", "warning");
+        }
+
     });
-    $("#color-add").click(function(){
-        var colortext = $(".color-add").val();
-        $(".color-content").append(template("color-one",{"color": colortext}));
-        $(".color-choose").click(dynamic_generate_sku);
+    $("#color-add").click(function () {
+        var colortext = $(".color-add").val().trim();
+        console.log(colortext.length)
+        if (colortext.length > 0) {
+            $(".color-content").append(template("color-one", {"color": colortext}));
+            $(".color-choose").click(dynamic_generate_sku);
+        }else{
+            swal("填写空白", "(^_^)", "warning");
+        }
     });
 })
 function dynamic_generate_sku() {
