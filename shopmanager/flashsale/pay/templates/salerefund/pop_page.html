@@ -16,6 +16,7 @@
 
     <div class="col-xs-4">
         <h5>订单信息：</h5>
+        <span class="label label-info" style="padding: 1px">交易编号：</span>&nbsp&nbsp{{ refund.tid }}<br>
         <span class="label label-info" style="padding: 1px">名称：</span>&nbsp&nbsp{{ refund.title }}<br>
         <span class="label label-info" style="padding: 1px">买家：</span>&nbsp&nbsp{{ refund.buyer_nick }}<br>
         <span class="label label-info" style="padding: 1px">规格：</span>&nbsp&nbsp{{ refund.sku_name }}<br>
@@ -23,6 +24,9 @@
         <span class="label label-info" style="padding: 1px">支付方式：</span>&nbsp&nbsp{{ refund.channel }}<br>
         <span class="label label-info" style="padding: 1px">付款时间：</span>&nbsp&nbsp{{ refund.pay_time }}<br>
         <span class="label label-info" style="padding: 1px">订单状态：</span>&nbsp&nbsp{{ refund.order_status }}<br>
+
+        <span class="label label-info" style="padding: 1px">Merge订单状态：</span>&nbsp&nbsp{{ refund.merge_trade_status }}<br>
+        <span class="label label-info" style="padding: 1px">Merge系统状态：</span>&nbsp&nbsp{{ refund.merge_sys_status }}<br>
     </div>
     <div class="col-xs-3">
         <h5>订单物流信息：</h5>
@@ -47,6 +51,30 @@
 
 <div class="col-xs-12">
     <div class="col-xs-6">
+
+        <div class="row">
+            <div class="col-xs-10">
+                <h5>审核意见：</h5>
+
+                <div class="form-control" style="height: 50px">
+                    <select name="status" id="ref_feedback" style="width: 300px;font-size: 20px">
+                        <option value="{{ refund.feedback }}" select="selected">{{ refund.feedback }}</option>
+                        <option value="">---------</option>
+                        <option value="亲,货已发出,可以收到货不合适再退。">亲,货已发出,可以收到货不合适再退。</option>
+                        <option value="非常抱歉,因为厂家发货延迟了,货到就会立即安排哦。">非常抱歉,因为厂家发货延迟了,货到就会立即安排哦。</option>
+                        <option value="亲有质量问题请先联系微信客户提供图片哦。">亲有质量问题请先联系微信客户提供图片哦。</option>
+                        <option value="没有质量问题,退回的运费需要亲个人承担哦。">没有质量问题,退回的运费需要亲个人承担哦。</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-7">
+                <h5>添加意见内容：</h5>
+                <textarea id="add_content" style="height: 75px;width: 350px;font-size: 15px"></textarea>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-xs-7">
                 <h5>退款状态：</h5>
@@ -67,21 +95,9 @@
 
             </div>
         </div>
-        <div class="row">
-            <div class="col-xs-10">
-                <h5>审核意见：</h5>
 
-                <div class="form-control" style="height: 50px">
-                    <select name="status" id="ref_feedback" style="width: 300px;font-size: 20px">
-                        <option value="" select="selected">{{ refund.feedback }}</option>
-                        <option value="亲,货已发出,可以收到货不合适再退。">亲,货已发出,可以收到货不合适再退。</option>
-                        <option value="非常抱歉,因为厂家发货延迟了,货到就会立即安排哦。">非常抱歉,因为厂家发货延迟了,货到就会立即安排哦。</option>
-                        <option value="亲有质量问题请先联系微信客户提供图片哦。">亲有质量问题请先联系微信客户提供图片哦。</option>
-                        <option value="没有质量问题,退回的运费需要亲个人承担哦。">没有质量问题,退回的运费需要亲个人承担哦。</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+
+
     </div>
     <div class="col-xs-6 btn_refund_action">
         <h5>退款操作：</h5>
