@@ -4,6 +4,7 @@
 
 // 售后退款页面　弹出页面　操作等js代码
 function show_page(refund_id) {
+    $(".click_row_"+refund_id).parent().parent().hide();//隐藏掉要操作的行
     console.log("debug refund id :", refund_id);
     layer.open({
         type: 2,
@@ -14,6 +15,7 @@ function show_page(refund_id) {
         content: '/mm/refund_pop_page/?pk=' + refund_id // 弹出的url页面
     });
 }
+
 
 function Create_btn(status) {
     function Btn_Dom1() {
@@ -67,7 +69,6 @@ function save_info(refund_id) {
         console.log(res);
         if (res.res == true) {
             layer.msg('操作成功！');
-            window.parent.location.reload();//刷新父页面
             var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
             parent.layer.close(index); //执行关闭
         }
@@ -104,7 +105,6 @@ function dnt_agree_refund(refund_id) {
         else if (res.res == true) {
             layer.msg('操作成功！');
             //关闭当前页面
-            window.parent.location.reload();//刷新父页面
             var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
             parent.layer.close(index); //执行关闭
         }
@@ -146,7 +146,6 @@ function agree_refund(refund_id) {
         else if (res.res == true) {
             layer.msg('操作成功！');
             //关闭当前页面
-            window.parent.location.reload();//刷新父页面
             var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
             parent.layer.close(index); //执行关闭
         }
@@ -182,7 +181,6 @@ function confirm_refund(refund_id) {
         else if (res.res == true) {
             layer.msg('操作成功！');
             //关闭当前页面
-            window.parent.location.reload();//刷新父页面
             var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
             parent.layer.close(index); //执行关闭
         }
