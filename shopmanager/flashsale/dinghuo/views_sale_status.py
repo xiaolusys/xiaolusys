@@ -1,7 +1,7 @@
 # coding:utf-8
 __author__ = 'yann'
 from django.views.generic import View
-from django.shortcuts import HttpResponse, render_to_response
+from django.shortcuts import HttpResponse, render_to_response, HttpResponseRedirect
 from flashsale.dinghuo.tasks import task_stats_product, task_stats_daily_product, task_stats_daily_order_by_group, \
     task_send_daily_message, task_write_supply_name
 from django.template import RequestContext
@@ -11,7 +11,7 @@ from shopback.items.models import Product
 from django.db import connection
 import datetime
 from calendar import monthrange
-from flashsale.daystats.tasks import task_calc_hot_sale, task_calc_stock_top
+from flashsale.daystats.tasks import task_calc_hot_sale, task_calc_stock_top, task_calc_sale_bad
 
 
 class EntranceView(View):
@@ -35,23 +35,37 @@ class EntranceView(View):
             end_date = datetime.date(int(year), int(month), int(day))
         else:
             end_date = today
-        return render_to_response("dinghuo/sale_status_entrance.html",
-                                  {"start_date": start_date, "end_date": end_date, "category": category},
-                                  context_instance=RequestContext(request))
+        # return render_to_response("dinghuo/sale_status_entrance.html",
+        #                           {"start_date": start_date, "end_date": end_date, "category": category},
+        #                           context_instance=RequestContext(request))
+        return HttpResponseRedirect("/sale/dinghuo/sale_hot")
 
 
 class SaleHotView(View):
     @staticmethod
     def get(request):
         content = request.REQUEST
-        start_time_str = content.get("df", None)
-        end_time_str = content.get("dt", None)
+        start_time_str = content.get("df", datetime.date.today().strftime('%Y-%m-%d'))
+        end_time_str = content.get("dt",  datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
         send_tasks = task_calc_hot_sale.delay(start_time_str, end_time_str, category)
         return render_to_response("dinghuo/data2hotsale.html",
-                                  {"task_id": send_tasks},
+                                  {"task_id": send_tasks, "start_date": start_time_str,
+                                   "end_date": end_time_str, "category": category},
                                   context_instance=RequestContext(request))
 
+class SaleBadView(View):
+    @staticmethod
+    def get(request):
+        content = request.REQUEST
+        start_time_str = content.get("df", datetime.date.today().strftime('%Y-%m-%d'))
+        end_time_str = content.get("dt",  datetime.date.today().strftime('%Y-%m-%d'))
+        category = content.get("category", None)
+        send_tasks = task_calc_sale_bad.delay(start_time_str, end_time_str, category)
+        return render_to_response("dinghuo/data2hotsale.html",
+                                  {"task_id": send_tasks, "start_date": start_time_str,
+                                   "end_date": end_time_str, "category": category},
+                                  context_instance=RequestContext(request))
 
 from django.db.models import Q
 from shopback.categorys.models import ProductCategory
