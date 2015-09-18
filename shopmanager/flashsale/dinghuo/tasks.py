@@ -11,6 +11,7 @@ import function_of_task
 import urllib2
 import re
 from django.db import connection
+import sys
 
 
 @task(max_retry=3, default_retry_delay=5)
@@ -151,10 +152,47 @@ def get_supply_name(name):
         if result:
             return result[0].split("//")[1].split(".")[0]
         else:
+            content2 = urllib2.urlopen(url_str).read()
+            type = sys.getfilesystemencoding()   # 关键
+            content2 = content2.decode("UTF-8").encode(type)  # 关键
+            reg5 = r'class="main-news-dangkou-name">.*</a>'
+            re5 = re.compile(reg5)
+            result2 = re.findall(re5, content2)
+            if result2:
+                return result2[0].split('">')[1].split("</a>")[0]
             return ""
     except Exception, ex:
         return ""
+from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
 
+@task()
+def task_write_supply_name2():
+    try:
+        all_data = OrderList.objects.exclude(status=u'作废').filter(supplier_shop="")
+        for data in all_data:
+            if len(data.supplier_name) > 0:
+                supplier_name = get_supply_name2(data.supplier_name)
+                if supplier_name != "":
+                    data.supplier_shop = supplier_name
+                    data.save()
+    except Exception, exc:
+        raise task_write_supply_name.retry(exc=exc)
+
+
+def get_supply_name2(name):
+    try:
+        if len(name) > 0:
+            url_str = str(name)
+        else:
+            return ""
+        tsoup, response = getBeaSoupByCrawUrl(url_str)
+        result = tsoup.findAll(attrs={'class': 'main-news-dangkou-name'})
+        if result:
+            return result[0].string
+        else:
+            return ""
+    except:
+        return ""
 
 from flashsale.dinghuo.models_stats import RecordGroupPoint
 from flashsale.dinghuo.models_user import MyUser, MyGroup
