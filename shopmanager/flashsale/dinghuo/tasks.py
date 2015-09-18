@@ -92,6 +92,8 @@ def task_stats_daily_product(pre_day=1):
         function_of_task.get_daily_ding_huo_stats(pre_day)
         function_of_task.get_daily_goods_arrival_stats(pre_day)
         function_of_task.get_daily_out_order_stats(pre_day)
+        # 计算仓库退货已经退款的对应数量
+        function_of_task.get_daily_refund_num(pre_day)
     except Exception, exc:
         raise task_stats_daily_order_by_group.retry(exc=exc)
 
@@ -122,7 +124,7 @@ def task_write_supply_name():
     try:
         all_data = OrderList.objects.exclude(status=u'作废').filter(supplier_shop="")
         for data in all_data:
-            if len(data.supplier_name) > 0 and len(data.supplier_shop) == 0:
+            if len(data.supplier_name) > 0:
                 data.supplier_shop = get_supply_name(data.supplier_name)
                 data.save()
     except Exception, exc:
@@ -161,7 +163,36 @@ def get_supply_name(name):
             return ""
     except Exception, ex:
         return ""
+from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
 
+@task()
+def task_write_supply_name2():
+    try:
+        all_data = OrderList.objects.exclude(status=u'作废').filter(supplier_shop="")
+        for data in all_data:
+            if len(data.supplier_name) > 0:
+                supplier_name = get_supply_name2(data.supplier_name)
+                if supplier_name != "":
+                    data.supplier_shop = supplier_name
+                    data.save()
+    except Exception, exc:
+        raise task_write_supply_name.retry(exc=exc)
+
+
+def get_supply_name2(name):
+    try:
+        if len(name) > 0:
+            url_str = str(name)
+        else:
+            return ""
+        tsoup, response = getBeaSoupByCrawUrl(url_str)
+        result = tsoup.findAll(attrs={'class': 'main-news-dangkou-name'})
+        if result:
+            return result[0].string
+        else:
+            return ""
+    except:
+        return ""
 
 from flashsale.dinghuo.models_stats import RecordGroupPoint
 from flashsale.dinghuo.models_user import MyUser, MyGroup
