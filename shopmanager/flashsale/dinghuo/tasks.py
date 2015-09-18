@@ -11,6 +11,7 @@ import function_of_task
 import urllib2
 import re
 from django.db import connection
+import sys
 
 
 @task(max_retry=3, default_retry_delay=5)
@@ -149,6 +150,14 @@ def get_supply_name(name):
         if result:
             return result[0].split("//")[1].split(".")[0]
         else:
+            content2 = urllib2.urlopen(url_str).read()
+            type = sys.getfilesystemencoding()   # 关键
+            content2 = content2.decode("UTF-8").encode(type)  # 关键
+            reg5 = r'class="main-news-dangkou-name">.*</a>'
+            re5 = re.compile(reg5)
+            result2 = re.findall(re5, content2)
+            if result2:
+                return result2[0].split('">')[1].split("</a>")[0]
             return ""
     except Exception, ex:
         return ""
