@@ -2,6 +2,9 @@
 alter table shop_items_product add column sale_product bigint(20) NOT NULL DEFAULT 0;
 CREATE INDEX `shop_items_product_bdef1e5a` ON `shop_items_product` (`sale_product`);
 ########### 2015-9-17 #################
+alter table supply_chain_stats_order add refund_num int(11) default 0;
+alter table supply_chain_stats_order add refund_amount_num int(11) default 0;
+########### 2015-9-17 #################
 alter table shop_items_contrastcontent add column status varchar(32) default 'normal';
 alter table shop_items_contrastcontent add column sid int(11) default 0;
 ########### 2015-9-6 #################
