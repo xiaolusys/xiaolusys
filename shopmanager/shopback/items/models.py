@@ -411,7 +411,7 @@ pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 def custom_sort(a, b):
     c = ContrastContent.objects.get(name=a[0])
     d = ContrastContent.objects.get(name=b[0])
-    return int(c.cid) - int(d.cid)
+    return int(c.sid) - int(d.sid)
 
 
 class ProductSku(models.Model):
