@@ -322,10 +322,59 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
     except Exception, exc:
         raise task_calc_hot_sale.retry(exc=exc)
 
+@task(max_retry=3, default_retry_delay=5)
+def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
+    """计算滞销商品"""
+    try:
+        today = datetime.date.today()
+        if start_time_str:
+            year, month, day = start_time_str.split('-')
+            start_date = datetime.date(int(year), int(month), int(day))
+            if start_date > today:
+                start_date = today
+        else:
+            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        if end_time_str:
+            year, month, day = end_time_str.split('-')
+            end_date = datetime.date(int(year), int(month), int(day))
+        else:
+            end_date = today
+        """找出选择的开始月份和结束月份"""
+
+        sql = '''select substring(outer_id, 1, CHAR_LENGTH(outer_id) -1) as souter_id,sum(num) as cnum from shop_trades_mergeorder
+        where sys_status= 'IN_EFFECT' and pay_time between %s and %s and is_merge= 0 and CHAR_LENGTH(outer_id)>= 9
+        group by souter_id
+        order by cnum asc
+        limit %s'''
+        cursor = connection.cursor()
+        cursor.execute(sql, [start_date, end_date, limit])
+        plist = cursor.fetchall()
+        cursor.close()
+        result_list = []
+        for p_t in plist:
+            p_outer = p_t[0].strip()
+            p_sales = int(p_t[1])
+            p_products = Product.objects.filter(outer_id__startswith=p_outer, status='normal')
+            if p_products.count() > 0 and True if not category else p_outer.startswith(category):
+                product_item = p_products[0]
+                cost = product_item.cost
+                agent_price = product_item.agent_price
+                suppliers = OrderDetail.objects.values('orderlist__supplier_shop').filter(
+                    product_id=product_item.id).exclude(orderlist__status=u'作废').exclude(
+                    orderlist__supplier_shop='').distinct()
+                supplier_list = [s['orderlist__supplier_shop'] for s in suppliers]
+                p_dict = {"p_outer": p_outer, "p_name": product_item.name,
+                          "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
+                          "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales), "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list, "pic_path": product_item.pic_path}
+                result_list.append(p_dict)
+        return result_list
+
+    except Exception, exc:
+        raise task_calc_sale_bad.retry(exc=exc)
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_stock_top(start_time_str, end_time_str, limit=100):
-    """计算滞销商品"""
+    """计算库存多的商品"""
     try:
         today = datetime.date.today()
         if start_time_str:
