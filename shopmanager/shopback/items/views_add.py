@@ -10,6 +10,7 @@ from django.db import transaction
 from supplychain.supplier.models import SaleSupplier
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
+from supplychain.supplier.models import SaleProduct
 
 
 class AddItemView(generics.ListCreateAPIView):
@@ -35,6 +36,10 @@ class AddItemView(generics.ListCreateAPIView):
         header_img = content.get("header_img", "")
         ware_by = content.get("ware_by", "")
         supplier = content.get("supplier", "")
+        saleproduct = content.get("saleproduct", "")
+        sale_product = SaleProduct.objects.filter(id=saleproduct)
+        if sale_product.count() == 0 or str(sale_product[0].sale_supplier.id) != supplier:
+            return Response({"result": "选品ID错误"})
         if product_name == "" or category == "" or wash_instroduce == "" \
                 or shelf_time == "" or material == "" or supplier == ""\
                 or header_img == "" or ware_by == "":
@@ -98,7 +103,7 @@ class AddItemView(generics.ListCreateAPIView):
                                   model_id=model_pro.id, sale_charger=user.username,
                                   category=category_item, remain_num=total_remain_num, cost=cost,
                                   agent_price=agentprice, std_sale_price=price, ware_by=int(ware_by),
-                                  sale_time=shelf_time, pic_path=header_img)
+                                  sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct)
             one_product.save()
             log_action(user.id, one_product, ADDITION, u'新建一个product_new')
             pro_count += 1

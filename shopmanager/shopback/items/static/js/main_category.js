@@ -1,13 +1,35 @@
 var items;
 var suppliers;
+var supplier_id;
+var saleproduct;
 $(function () {
-    get_category();
-    get_supplier();
+
     $("#shelf_time").datepicker({
         dateFormat: "yy-mm-dd"
     });
+
+    var urlParams = parseUrlParams(window.location.href);
+    supplier_id = urlParams["supplier_id"];
+    saleproduct = urlParams["saleproduct"];
+    if(!supplier_id || !saleproduct){
+        alert("请从选品列表进来");
+        return
+    }
+    get_category();
+    get_supplier();
     $('#new-product').bind("click", submit_data);
 })
+
+function parseUrlParams(myUrl) {
+    var vars = [], hash;
+    var hashes = window.location.href.slice(myUrl.indexOf('?') + 1).split('&');
+    for (var i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+}
 function showCategory(first_cate, second_cate, third_cate) {
 
     var loc = new Category();
@@ -93,7 +115,7 @@ function get_category() {
                     window.location = "/admin";
                 });
             } else {
-                swal("Tips", "有错误，请联系技术人员(^_^)", "warning")
+                swal("Tips", "有错误，请联系技术人员(^_^)", "warning");
             }
         }
     });
@@ -101,13 +123,6 @@ function get_category() {
 function get_supplier() {
     //获取所有的供应商
     var requestUrl = "/items/get_supplier/";
-    var urlParams = window.location.href.split('?');
-    var supplier_id;
-    if (urlParams.length < 2) {
-        supplier_id = 0;
-    } else {
-        supplier_id = urlParams[1].split('=').length >= 1 ? urlParams[1].split('=')[1] : 0;
-    }
 
     //请求成功回调函数
     var requestCallBack = function (all_supplier) {
@@ -267,7 +282,8 @@ function submit_data() {
         header_img: header_img_content,
         wash_instroduce: wash_instroduce,
         shelf_time: shelf_time,
-        ware_by: ware_by
+        ware_by: ware_by,
+        saleproduct: saleproduct
     };
     for (var i = 0; i < all_color.length; i++) {
         var one_color = all_color[i].replace("+","\\+").replace("[","\\[").replace("]","\\]");
@@ -305,6 +321,7 @@ function submit_data() {
         } else {
             swal("内部错误(^_^)", data.result, "error");
             $('#new-product').bind("click", submit_data);
+            alert(data.result);
         }
     };
 
