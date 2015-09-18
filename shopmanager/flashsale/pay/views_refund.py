@@ -171,6 +171,8 @@ class RefundPopPageView(APIView):
         refund_dict['pay_time'] = strade.pay_time
         refund_dict['merge_trade_status'] = merge_trade.get_status_display()
         refund_dict['merge_sys_status'] = merge_trade.get_sys_status_display()
+        refund_dict['sys_memo'] = merge_trade.sys_memo
+
         refund_dict['logistics_company'] = strade.logistics_company
         refund_dict['out_sid'] = strade.out_sid
         refund_dict['logistics_time'] = strade.consign_time

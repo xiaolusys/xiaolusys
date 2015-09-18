@@ -249,7 +249,7 @@ def daily_data_stats():
                 sale_price = pro_bean[0].agent_price * data['sale_num']
             if product.count() > 0:
                 daily_order = product[0]
-                daily_order.return_num = get_return_num_by_product_id(pro_id)
+                # daily_order.return_num = get_return_num_by_product_id(pro_id)
                 daily_order.inferior_num = get_inferior_num_by_product_id(pro_id)
                 daily_order.sale_num = data['sale_num']
                 daily_order.ding_huo_num = data['ding_huo_num']
@@ -264,7 +264,7 @@ def daily_data_stats():
                 temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time, sale_num=data['sale_num'],
                                                   ding_huo_num=data['ding_huo_num'],
                                                   cost_of_product=cost, sale_cost_of_product=sale_price,
-                                                  return_num=get_return_num_by_product_id(pro_id),
+                                                  # return_num=get_return_num_by_product_id(pro_id),
                                                   inferior_num=get_inferior_num_by_product_id(pro_id),
                                                   trade_general_time=data['trade_general_time'],
                                                   order_deal_time=data['order_deal_time'],
@@ -278,6 +278,28 @@ from django.db.models import Sum, F
 from shopback.trades.models import MergeTrade, MergeOrder
 
 
+def daily_refund_summary(target_day=None):
+    if target_day is None:
+        return
+    from shopback import paramconfig as pcfg
+    # 付款时间是昨天　是退款状态的订单　
+    target_d = target_day - datetime.timedelta(days=10)  # 售后10天的稳定退款状态
+    start_dt = datetime.datetime(target_d.year, target_d.month, target_d.day)
+    end_dt = datetime.datetime(target_d.year, target_d.month, target_d.day, 23, 59, 59)
+    refunds = Refund.objects.filter(modified__gte=start_dt, modified__lte=end_dt,
+                                    status__in=(pcfg.REFUND_SUCCESS,  # 退款成功
+                                                pcfg.REFUND_CONFIRM_GOODS,  # 买家已经退货
+                                                pcfg.REFUND_WAIT_SELLER_AGREE))  # 卖家同意退款
+    for refund in refunds:
+        try:
+            mo = MergeOrder.objects.get(oid=refund.oid)
+            d = DailySupplyChainStatsOrder.objects.get(product_id=mo.outer_id)
+            d.return_num = F("return_num") + 1
+            d.save()
+        except DailySupplyChainStatsOrder.DoesNotExist:
+            return
+
+
 def get_daily_refund_num(pre_day=None):
     if pre_day is None:
         return
@@ -287,7 +309,7 @@ def get_daily_refund_num(pre_day=None):
     end_dt = datetime.datetime(target_day.year, target_day.month, target_day.day, 23, 59, 59)
     ref_pros = RefundProduct.objects.filter(created__gte=start_dt, created__lte=end_dt)
     # SupplyChainStatsOrder 记录创建
-    for pro in ref_pros:    # 退货数量计算
+    for pro in ref_pros:  # 退货数量计算
         products = Product.objects.filter(outer_id=pro.outer_id)
         if products.exists() and products[0].sale_time:
             scso, state = SupplyChainStatsOrder.objects.get_or_create(product_id=pro.outer_id,
@@ -318,6 +340,7 @@ def get_daily_refund_num(pre_day=None):
                                                                           sale_time=target_day)
                 scso.refund_amount_num = F("refund_amount_num") + 1
                 scso.save()
+            daily_refund_summary(target_day)
         except MergeOrder.DoesNotExist:
             return
 
