@@ -122,7 +122,7 @@ def task_write_supply_name():
     try:
         all_data = OrderList.objects.exclude(status=u'作废').filter(supplier_shop="")
         for data in all_data:
-            if len(data.supplier_name) > 0:
+            if len(data.supplier_name) > 0 and len(data.supplier_shop) == 0:
                 data.supplier_shop = get_supply_name(data.supplier_name)
                 data.save()
     except Exception, exc:
