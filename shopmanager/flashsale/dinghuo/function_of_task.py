@@ -292,10 +292,11 @@ def daily_refund_summary(target_day=None):
                                                 pcfg.REFUND_WAIT_SELLER_AGREE))  # 卖家同意退款
     for refund in refunds:
         try:
-            mo = MergeOrder.objects.get(oid=refund.oid)
-            d = DailySupplyChainStatsOrder.objects.get(product_id=mo.outer_id)
-            d.return_num = F("return_num") + 1
-            d.save()
+            mo = MergeOrder.objects.filter(oid=refund.oid)
+            if mo.exists():
+                d = DailySupplyChainStatsOrder.objects.get(product_id=mo[0].outer_id)
+                d.return_num = F("return_num") + 1
+                d.save()
         except DailySupplyChainStatsOrder.DoesNotExist:
             return
 
