@@ -120,7 +120,7 @@ class Product(models.Model):
                                     verbose_name=u'归属采购员')
     storage_charger = models.CharField(max_length=32,db_index=True,blank=True,
                                     verbose_name=u'归属仓管员')
-    
+    sale_product = models.BigIntegerField(db_index=True, default=0, verbose_name='选品ID')
     is_verify    = models.BooleanField(default=False,verbose_name=u'是否校对')
     shelf_status = models.IntegerField(choices=SHELF_CHOICES,db_index=True,
                                        default=DOWN_SHELF,verbose_name=u'上架状态')
