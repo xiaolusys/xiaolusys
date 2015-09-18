@@ -178,15 +178,18 @@ def task_write_supply_name2():
 
 
 def get_supply_name2(name):
-    if len(name) > 0:
-        url_str = str(name)
-    else:
-        return ""
-    tsoup, response = getBeaSoupByCrawUrl(url_str)
-    result = tsoup.findAll(attrs={'class': 'main-news-dangkou-name'})
-    if result:
-        return result[0].string
-    else:
+    try:
+        if len(name) > 0:
+            url_str = str(name)
+        else:
+            return ""
+        tsoup, response = getBeaSoupByCrawUrl(url_str)
+        result = tsoup.findAll(attrs={'class': 'main-news-dangkou-name'})
+        if result:
+            return result[0].string
+        else:
+            return ""
+    except:
         return ""
 
 from flashsale.dinghuo.models_stats import RecordGroupPoint
