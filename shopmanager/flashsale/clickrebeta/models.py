@@ -244,13 +244,13 @@ def tongji_wxorder(sender, obj, **kwargs):
         tongjiorder.tichengcount=mm_order_rebeta
         tongjiorder.save()
 
-    
-
 signals.signal_wxorder_pay_confirm.connect(tongji_wxorder, sender=WXOrder)
 
 from flashsale.pay.models import SaleTrade
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.pay.signals import signal_saletrade_pay_confirm
+
+
 
 def tongji_saleorder(sender, obj, **kwargs):
     """ 统计特卖订单提成 """
@@ -264,7 +264,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     if target_time > today:
         target_time = today
 
-    buyer_openid = obj.openid
+    buyer_openid = obj.get_buyer_openid() 
     mm_order_amount   = int(obj.payment * 100)
     mm_order_rebeta	  = 0
     mm_rebeta_amount  = 0

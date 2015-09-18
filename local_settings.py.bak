@@ -62,7 +62,7 @@ RAVEN_CONFIG = {
 
 #################### change this site to yourself test domain #######################
 SITE_URL = 'http://mytest.huyi.so:8089/' 
-M_SITE_URL = 'http://127.0.0.1:8000/' 
+M_SITE_URL = 'http://127.0.0.1:8000' 
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
@@ -120,8 +120,9 @@ REST_FRAMEWORK_EXTENSIONS = {
 
 WEIXIN_API_HOST = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST = "http://file.api.weixin.qq.com"
+WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
-WEIXIN_APPID = 'wxc2848fa1e1aa94b5'
+WEIXIN_APPID  = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
 
 ################### JINGDONG SETTINGS #################
@@ -136,6 +137,9 @@ JD_REDIRECT_URI = '/app/jd/login/auth/'
 JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
 
 ################### PING++ SETTINGS ##################
+WXPAY_APPID    = "wx3f91056a2928ad2d"
+WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
+
 PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
 PINGPP_APPKEY          = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT" #TEST KEY
 PINGPP_CLENTIP         = "127.0.0.1"

@@ -247,7 +247,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 return Response({"result": "login", "next": next_url})  #如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
             
             params = {'appid':settings.WXPAY_APPID,
-              'redirect_uri':('{0}{1}?next={2}').format(settings.M_SITE_URL,reverse('v1:xlmm-wxauth').lstrip('/'),next_url),
+              'redirect_uri':('{0}{1}?next={2}').format(settings.M_SITE_URL,reverse('v1:xlmm-wxauth'),next_url),
               'response_type':'code',
               'scope':'snsapi_base',
               'state':'135'}

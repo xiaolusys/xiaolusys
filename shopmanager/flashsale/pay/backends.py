@@ -35,7 +35,8 @@ class FlashSaleBackend(RemoteUserBackend):
             return AnonymousUser()
         
         try:
-            customer = Customer.objects.get(models.Q(email=username)|models.Q(mobile=username))
+            customer = Customer.objects.get(models.Q(email=username)|models.Q(mobile=username)
+                                            ,status=Customer.NORMAL)
             user = customer.user 
             
             if not user.check_password(password):
@@ -77,13 +78,14 @@ class WeixinPubBackend(RemoteUserBackend):
             return None
         
         code = request.GET.get('code')
-        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,secret=settings.WXPAY_SECRET,request=request)
+        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,
+                                          secret=settings.WXPAY_SECRET,request=request)
         
         if not valid_openid(openid) or not valid_openid(unionid):
             return AnonymousUser()
         
         try:
-            profile = Customer.objects.get(unionid=unionid)
+            profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if profile.openid != openid:
                 task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
