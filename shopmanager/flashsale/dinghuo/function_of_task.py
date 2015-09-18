@@ -342,7 +342,7 @@ def get_daily_refund_num(pre_day=None):
             if products.exists() and products[0].sale_time:
                 scso, state = SupplyChainStatsOrder.objects.get_or_create(product_id=mo.outer_id,
                                                                           outer_sku_id=mo.outer_sku_id,
-                                                                          shelve_time=products.sale_time,
+                                                                          shelve_time=products[0].sale_time,
                                                                           sale_time=target_day)
                 scso.refund_amount_num = F("refund_amount_num") + 1
                 scso.save()
