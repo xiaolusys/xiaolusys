@@ -17,7 +17,6 @@ class AggregateProductView(View):
     @transaction.commit_on_success
     def post(request):
         post = request.POST
-        print post
         m = ModelProduct()
         buy_limit = post.get("buy_limit", 0)
 

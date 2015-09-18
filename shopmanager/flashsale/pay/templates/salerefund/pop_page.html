@@ -28,6 +28,9 @@
         <span class="label label-info"
               style="padding: 1px">Merge订单状态：</span>&nbsp&nbsp{{ refund.merge_trade_status }}<br>
         <span class="label label-info" style="padding: 1px">Merge系统状态：</span>&nbsp&nbsp{{ refund.merge_sys_status }}<br>
+
+        <span class="label label-info" style="padding: 1px">系统备注：</span>&nbsp&nbsp{{ refund.sys_memo }}<br>
+
     </div>
     <div class="col-xs-3">
         <h5>订单物流信息：</h5>
@@ -58,14 +61,14 @@
     <div class="col-xs-6">
 
         <div class="row">
-            <div class="col-lg-10">
+            <div class="col-lg-6">
                 <h5>审核意见：</h5>
 
                 <div class="input-group">
                     <div class="input-group-btn">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false">选择<span class="caret"></span></button>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu" style="font-size: 20px">
                             <li><a onclick="input_feedback(this)">亲,货已发出,可以收到货不合适再退。</a></li>
                             <li><a onclick="input_feedback(this)">非常抱歉,因为厂家发货延迟了,货到就会立即安排哦。</a></li>
                             <li><a onclick="input_feedback(this)">亲有质量问题请先联系微信客户提供图片哦。</a></li>

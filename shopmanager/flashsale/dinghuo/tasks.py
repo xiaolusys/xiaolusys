@@ -92,6 +92,8 @@ def task_stats_daily_product(pre_day=1):
         function_of_task.get_daily_ding_huo_stats(pre_day)
         function_of_task.get_daily_goods_arrival_stats(pre_day)
         function_of_task.get_daily_out_order_stats(pre_day)
+        # 计算仓库退货已经退款的对应数量
+        function_of_task.get_daily_refund_num(pre_day)
     except Exception, exc:
         raise task_stats_daily_order_by_group.retry(exc=exc)
 
