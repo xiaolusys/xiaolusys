@@ -260,7 +260,7 @@ class RefundView(APIView):
         rf.save()
         # 创建一条退货款单记录
         log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')
-        update_Unrelate_Prods_Product(pro=rf, req=request, trade_id=rf.trade_id)        # 关联退货
+        update_Unrelate_Prods_Product(pro=rf, req=request)        # 关联退货
 
         #return rf  
         return Response(serializers.RefundProductSerializer(rf).data)
