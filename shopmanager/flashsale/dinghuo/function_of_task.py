@@ -278,28 +278,33 @@ from django.db.models import Sum, F
 from shopback.trades.models import MergeTrade, MergeOrder
 
 
-def daily_refund_summary(target_day=None):
-    if target_day is None:
-        return
-    from shopback import paramconfig as pcfg
-    # 付款时间是昨天　是退款状态的订单　
-    target_d = target_day - datetime.timedelta(days=10)  # 售后10天的稳定退款状态
-    start_dt = datetime.datetime(target_d.year, target_d.month, target_d.day)
-    end_dt = datetime.datetime(target_d.year, target_d.month, target_d.day, 23, 59, 59)
-    refunds = Refund.objects.filter(modified__gte=start_dt, modified__lte=end_dt,
-                                    status__in=(pcfg.REFUND_SUCCESS,  # 退款成功
-                                                pcfg.REFUND_CONFIRM_GOODS,  # 买家已经退货
-                                                pcfg.REFUND_WAIT_SELLER_AGREE))  # 卖家同意退款
-    for refund in refunds:
-        try:
-            mo = MergeOrder.objects.filter(oid=refund.oid)
-            if mo.exists():
-                d = DailySupplyChainStatsOrder.objects.filter(product_id=mo[0].outer_id)
-                if d.exists():
-                    d[0].return_num = F("return_num") + 1
-                    d[0].save()
-        except DailySupplyChainStatsOrder.DoesNotExist:
-            return
+def handler_refund():
+    # 过滤今天生成的　原始数据表
+    today = datetime.date.today() - datetime.timedelta(days=1)
+    ori_datas = SupplyChainStatsOrder.objects.filter(sale_time=today, refund_amount_num__gt=0)  # 退款数量大于0的记录
+    # 取出今天统计出来的所有产品的编码
+    product_id_vls = ori_datas.values('product_id')
+    # 去重处理
+    set_p = set()
+    for i in product_id_vls:
+        set_p.add(i['product_id'])
+    # 对编码进行循环
+    for i in set_p:
+        pro_ds = ori_datas.filter(product_id=i)  # 找出同一个编码的记录
+        # 计算退款数量
+        refund_amount_nums = pro_ds.aggregate(total_num=Sum('refund_amount_num')).get('total_num') or 0
+        # 将退款数量写入　供应链数据统计表　表中
+        if refund_amount_nums > 0:
+            dsos = DailySupplyChainStatsOrder.objects.filter(product_id=i)
+            if dsos.exists():
+                dsos[0].return_num = F("return_num") + refund_amount_nums  # 累加同款商品的退款数量
+                dsos[0].save()
+            else:
+                products = Product.objects.filter(outer_id=i)
+                if products.exists():
+                    DailySupplyChainStatsOrder.objects.create(product_id=i,
+                                                              sale_time=products[0].sale_time,
+                                                              return_num=refund_amount_nums)
 
 
 def get_daily_refund_num(pre_day=None):
@@ -322,7 +327,6 @@ def get_daily_refund_num(pre_day=None):
             ref = ref_pros.filter(outer_id=pro.outer_id, outer_sku_id=pro.outer_sku_id)
             # 计算同款集合中的　数量和
             refund_num = ref.aggregate(total_num=Sum('num')).get('total_num') or 0
-            print "debug refund_num ", refund_num
             scso.refund_num = refund_num  # 保存退货数量
             scso.save()
             # 过滤订单中一款产品的集合 付款时间是昨天的
@@ -333,10 +337,9 @@ def get_daily_refund_num(pre_day=None):
                                                 pcfg.REFUND_CONFIRM_GOODS,  # 买家已经退货
                                                 pcfg.REFUND_WAIT_SELLER_AGREE))  # 卖家同意退款
     for refund in refunds:
-        try:
-            mo = MergeOrder.objects.filter(oid=refund.oid)
-            if mo.exists():
-                products = Product.objects.filter(outer_id=mo[0].outer_id)
+        mo = MergeOrder.objects.filter(oid=refund.oid)
+        if mo.exists():
+            products = Product.objects.filter(outer_id=mo[0].outer_id)
             if products.exists() and products[0].sale_time:
                 scso, state = SupplyChainStatsOrder.objects.get_or_create(product_id=mo[0].outer_id,
                                                                           outer_sku_id=mo[0].outer_sku_id,
@@ -344,9 +347,7 @@ def get_daily_refund_num(pre_day=None):
                                                                           sale_time=target_day)
                 scso.refund_amount_num = F("refund_amount_num") + 1
                 scso.save()
-        except MergeOrder.DoesNotExist:
-            return
-    daily_refund_summary(target_day)
+    handler_refund()
 
 
 from django.db import connection
