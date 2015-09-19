@@ -55,6 +55,27 @@
                 tr.remove();
             }
         </script>
+
+        <style>
+            .pro_pic {
+                transform: translate(-900px);
+                -moz-transform: translate(-900px);/* Firefox 4 */
+                -webkit-transform: translate(-900px);/* Safari and Chrome */
+                -o-transform: translate(-900px); /* Opera */
+                transition: all 2s;
+                -moz-transition: width 2s, height 2s, -moz-transform 2s; /* Firefox 4 */
+                -webkit-transition: width 2s, height 2s, -webkit-transform 2s; /* Safari and Chrome */
+                -o-transition: width 2s, height 2s, -o-transform 2s; /* Opera */
+
+            }
+
+            .pro_pic:hover {
+                transform: scale3d(1.4,1.4,1.4);
+                -moz-transform: scale3d(1.4,1.4,1.4);/* Firefox 4 */
+                -webkit-transform: scale3d(2,2,2);/* Safari and Chrome */
+                -o-transform: scale3d(1.4,1.4,1.4);/* Opera */
+            }
+        </style>
     {% endblock %}
 </head>
 <body>
@@ -75,8 +96,7 @@
                     </div>
                     <div class="panel-body">
                         商品id: <span>{{ sale_product.id }}</span>
-                        款式名称: {{ sale_product.title }}
-                        图片:<img src=" {{ sale_product.pic_url }}" width="50px">
+                        款式名称: {{ sale_product.title }}<img class="pro_pic" src="{{ sale_product.pic_url }}" width="100px">
                     </div>
                 </div>
             </div>
