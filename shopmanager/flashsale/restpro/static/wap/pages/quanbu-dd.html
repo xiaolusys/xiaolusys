@@ -6,7 +6,8 @@
 <meta name="format-detection" content="telephone=no" />
 <meta id="viewport" name="viewport" />
 <script src="../js/common.js"></script>
-<link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
+<link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<link rel="stylesheet" href="../css/sweet-alert.css">
 <link rel="stylesheet" href="../css/common.css">
 <link rel="stylesheet" href="../css/tmdd.css">
 </head>
@@ -20,20 +21,158 @@
 <!-- 这里填写订单列表 -->
 </ul>
 
+<script id="form-template" type="text/html">
+  <li>
+	 <div class="top clear">
+	 <div class="xiadan">下单时间：{{ created }}</div>
+	 <div class="{{btn_class}}" xl_created="{{created}}" cid="{{cid}}" onclick="Confirm_Sign_For(this)">{{btn_content}}</div>
+	 </div>
+	 <a href="./dd-detail.html?id={{ id }}" class="info clear">
+	 <div class="left"><img src="{{ order_pic }}" /></div>
+	 <div class="right">
+	 <p>订单编号：<span class="caaaaaa orderno">{{ tid }}</span></p>
+	 <p>订单状态：<span class="caaaaaa">{{ status_display }}</span></p>
+	 <p>订单金额：<span class="cf353a0"><em>¥</em>{{ payment }}</span></p>
+	 </div>
+	 </a>
+  </li>
+</script>
+
+<script id="hty-form-template" type="text/html">
+  <li>
+	 <div class="top clear">
+	 <div class="xiadan">下单时间：{{ order_create_time }}</div>
+	 <div class="{{btn_class}}" ></div>
+	 </div>
+	 <a href="./wxorder-detail.html?id={{ order_id }}" class="info clear">
+	 <div class="left"><img src="{{ product_img }}" /></div>
+	 <div class="right">
+	 <p>订单编号：<span class="caaaaaa orderno">{{ order_id }}</span></p>
+	 <p>订单状态：<span class="caaaaaa">{{ order_status_display }}</span></p>
+	 <p>订单金额：<span class="cf353a0"><em>¥</em>{{ order_total_price }}</span></p>
+	 </div>
+	 </a>
+  </li>
+</script>
+
+<div class="footer clearfix">
+<div class="history">
+	<a class="btn btn-warning" data-href=""　>查看更多历史订单</a>
+</div>
+</div>
+<div class="scroll-top" id="js-scroll-top"></div>
+<div id="loading"><span class="dots-loader"></span></div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/tmdd.js"></script>
 <script src="../js/sweet-alert.min.js"></script>
 <script>
-(function($){
+var loadingPage = false;
+
+$(document).ready(function(){
   //返回顶部
   $('#js-scroll-top').on('touchend',function(e){
     e.preventDefault();
     $('body').animate({scrollTop:0},400);  
   });
-   //获取全部订单列表
-  Set_orders(GLConfig.get_trade_all_url);
+ 
+  $('.history a').attr('data-state','init');
+  var winH = $(window).height(); //页面可视区域高度 
+  Load_orders();
+  $(window).scroll(function () { 
+    var pageH 	= $(document).height(); 
+    var scrollT = $(window).scrollTop(); //滚动条top 
+    var aa = (pageH	- winH - scrollT) / winH; 
+    if(scrollT + winH >= pageH ){ 
+    	Load_orders();
+    } 
+  }); 
+  
+  $(document).on({
+  	click:Show_history_order,
+  	touchend:Show_history_order,
+  },'.history .btn');
+});
 
-})(jQuery);  
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}
+
+function Show_history_order(e){
+	e.stopImmediatePropagation();
+    e.preventDefault();
+	if (loadingPage){
+		drawToast('正在加载中...');
+		return;
+	}
+	var next_url = GLConfig.baseApiUrl + GLConfig.get_wxorder_all_url;
+	$('.history a').attr('data-href',next_url);
+	$('.history').hide();
+	Load_orders();
+}
+
+function Load_orders(){
+	//加载订单数据
+	var next_url = $('.history a').attr('data-href'); 
+	var state    = $('.history a').attr('data-state');
+	if (loadingPage){
+		drawToast('正在加载中...');
+		return
+	}else if (isNone(state) || state == 'init' && (isNone(next_url) || next_url == '')){
+		next_url = GLConfig.baseApiUrl + GLConfig.get_trade_all_url;
+	}else if(isNone(next_url) || next_url == ''){
+		drawToast('没有更多数据了');
+		return
+	}
+	loadingPage = true;
+	//更新请求状态
+	$.ajax({ 
+		type:'get', 
+		url:next_url, 
+		data:{}, 
+		dataType:'json', 
+		beforeSend: function () {
+            $("#loading").show();
+        },
+		success:Handle_order,
+		error: function (data) {
+            if(data.status >= 300){
+            	var errmsg = $.parseJSON(data.responseText).detail;
+            	drawToast(errmsg);
+            }
+        },
+        complete:function(){
+        	loadingPage = false;
+        }
+	}); 
+}
+
+//请求成功回调函数
+function Handle_order(data) {
+	$("#loading").hide();
+   if (!isNone(data.count) && data.count > 0) {
+     $.each(data.results,function (index, order) {
+     	var order_template = '';
+        //处理特卖订单列表
+      	if (!isNone(order.tid)){
+          order_template = $('#form-template').html();
+        }
+        //处理微信订单列表
+        if (!isNone(order.order_id)){
+          order_template = $('#hty-form-template').html();
+        }
+        $('.order_ul').append(order_template.template(order));
+     });
+   }
+  　//保存下一页的链接
+  　var next_page_url = '';
+   if(!isNone(data.next)){
+   		next_page_url = data.next;
+   }
+   $('.history a').attr('data-href',next_page_url);
+   $('.history a').attr('data-state','next');
+};
+  
 </script>
 </body>
 </html>

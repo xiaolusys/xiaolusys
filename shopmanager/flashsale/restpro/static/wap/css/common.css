@@ -135,6 +135,10 @@ html, body {
     clear: both;
 }
 
+.hide{
+	display: none;
+}
+
 .footer {
     padding: 0 0 60px;
 }
@@ -164,4 +168,17 @@ html, body {
 
 .buy .pressed {
   background-color: #f75d00;
+}
+
+.scroll-top {
+    right: 20px;
+    background-image: url(../images/icon-fanhuidingbu.png);
+}
+
+.cart, .scroll-top {
+    position: fixed;
+    bottom: 20px;
+    width: 80px;
+    height: 80px;
+    z-index: 999;
 }

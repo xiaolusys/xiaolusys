@@ -74,12 +74,10 @@ function Create_order_dom(obj) {
 function Set_orders(suffix) {
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + suffix;
-
     //请求成功回调函数
     var requestCallBack = function (data) {
-        if (typeof(data.count) != 'undifined' && data.count != null) {
-            $.each(data.results,
-                function (index, order) {
+        if (!isNone(data.count) && data.count > 0) {
+            $.each(data.results,function (index, order) {
                     var order_dom = Create_order_dom(order);
                     $('.order_ul').append(order_dom);
                 }
