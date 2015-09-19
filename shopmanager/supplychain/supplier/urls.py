@@ -19,7 +19,7 @@ urlpatterns = [
     url(r'^qiniu/$', views.QiniuApi.as_view()),
     # select sale_time
     url(r'^select_sale_time/$', views.change_Sale_Time),
-    url(r'^bdproduct/(?P<pk>[0-9])+/$', views_aggregate.AggregateProductView.as_view()),
+    url(r'^bdproduct/(?P<pk>[0-9]+)/$', views_aggregate.AggregateProductView.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
