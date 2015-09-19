@@ -1768,7 +1768,7 @@ class InstanceModelView_new(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,)
     def get (self, request, id,*args, **kwargs):
-      # print "zheli44",id
+        # print "zheli44",id
         trade=MergeTrade.objects.get(id=id)
         serializer=serializers.MergeTradeSerializer(trade).data
         #return Response({"example":"get__function"})
@@ -2232,44 +2232,44 @@ def detail(request):
         return render(request, 'trades/order_detail.html')
     
     
-       # return render(request, 'trades/order_detail.html')
+    # return render(request, 'trades/order_detail.html')
 def detail22(request):
-        today=datetime.datetime.utcnow()
-        #startcount=MergeTrade.objects.all().count()
-        #startcount=
-        print '开始'
-        #trade_info=MergeTrade.objects.raw('SELECT id,tid FROM shop_trades_mergetrade where id=75225 ')
-        trade_info=MergeTrade.objects.raw('SELECT id,count(*) as nuee  from shop_trades_mergetrade')
-        print trade_info[0].tid
-        #endcount=startcount-10
-       # print endcount
-        #trade_info=MergeTrade.objects.filter(id__gte=endcount)
-        #trade_info=MergeTrade.objects.all().order_by('-created')[0:100]
-        rec1=[]  
-        for item in trade_info:
-            info={}
-            try: 
-                a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+    today=datetime.datetime.utcnow()
+    #startcount=MergeTrade.objects.all().count()
+    #startcount=
+    print '开始'
+    #trade_info=MergeTrade.objects.raw('SELECT id,tid FROM shop_trades_mergetrade where id=75225 ')
+    trade_info=MergeTrade.objects.raw('SELECT id,count(*) as nuee  from shop_trades_mergetrade')
+    print trade_info[0].tid
+    #endcount=startcount-10
+    # print endcount
+    #trade_info=MergeTrade.objects.filter(id__gte=endcount)
+    #trade_info=MergeTrade.objects.all().order_by('-created')[0:100]
+    rec1=[]  
+    for item in trade_info:
+        info={}
+        try: 
+            a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        except:
+            a= []
+        #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+        #print ' 物流信息',a
+        info['trans']=a  
+        info['trade']=item
+        info['detail']=[]
+        for order_info in item.merge_orders.all():
+            sum={}
+            sum['order']=order_info
+            try:
+                product_info=Product.objects.get(outer_id=order_info.outer_id) 
             except:
-                a= []
-            #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
-            #print ' 物流信息',a
-            info['trans']=a  
-            info['trade']=item
-            info['detail']=[]
-            for order_info in item.merge_orders.all():
-                    sum={}
-                    sum['order']=order_info
-                    try:
-                      product_info=Product.objects.get(outer_id=order_info.outer_id) 
-                    except:
-                      product_info=[]
-                    #product_info=Product.objects.get(outer_id=order_info.outer_id) 
-                    sum['product']=product_info
-                    info['detail'].append(sum)
-            rec1.append(info)
-            #print rec1
-        return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+                product_info=[]
+            #product_info=Product.objects.get(outer_id=order_info.outer_id) 
+            sum['product']=product_info
+            info['detail'].append(sum)
+        rec1.append(info)
+        #print rec1
+    return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
     
     
 
@@ -2277,43 +2277,43 @@ def detail22(request):
 
    
 def search_trade(request):
-  today=datetime.datetime.utcnow()
-  print '数字是',555 
-  if request.method == "POST":
-    rec1=[]  
-    number1=request.POST.get('condition')
-    number=number1.strip()
-    print '数字是',number
-    if number=="":
-        rec1=[]
-    else:
-        trade_info=MergeTrade.objects.filter(Q(receiver_mobile=number)  | Q(tid=number) | Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
-        for item in trade_info:
-            info={}
-            try: 
-                a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
-            except:
-                a= []
-            #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
-            print '全部信息是',a
-            info['trans']=a  
-            info['trade']=item
-            info['detail']=[]
-            for order_info in item.merge_orders.all():
+    today=datetime.datetime.utcnow()
+    print '数字是',555 
+    if request.method == "POST":
+        rec1=[]  
+        number1=request.POST.get('condition')
+        number=number1.strip()
+        print '数字是',number
+        if number=="":
+            rec1=[]
+        else:
+            trade_info = MergeTrade.objects.filter(Q(receiver_mobile=number)  | Q(tid=number) | 
+                                                   Q(buyer_nick=number) | Q(receiver_phone=number) | Q(out_sid=number))
+            for item in trade_info:
+                info={}
+                try: 
+                    a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+                except:
+                    a= []
+                #a=  getLogisticTrace(item.out_sid,item.logistics_company.code)
+                print '全部信息是',a
+                info['trans']=a  
+                info['trade']=item
+                info['detail']=[]
+                for order_info in item.merge_orders.all():
                     sum={}
                     sum['order']=order_info
                     try:
-                      product_info=Product.objects.get(outer_id=order_info.outer_id) 
+                        product_info=Product.objects.get(outer_id=order_info.outer_id) 
                     except:
-                      product_info=[]
+                        product_info=[]
                     #product_info=Product.objects.get(outer_id=order_info.outer_id) 
                     sum['product']=product_info
                     info['detail'].append(sum)
-            rec1.append(info)
-            print rec1
-    return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
-  else:
-    rec1=[] 
+                rec1.append(info)
+            return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
+    else:
+        rec1=[] 
   
     return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
 
@@ -2348,36 +2348,28 @@ def  view_beizhu(request):
 
 def beizhu(request):
     user_id  = request.user.id
-    print "开始"
     a = request.GET['a'].strip()
     c=request.GET['b']
     am=a.split()
-    print "a是",a
-    print "个数是",len(am)
     for i  in range(0,len(am),1):
         print "第",am[i]
-        try:
-           merge_trade = MergeTrade.objects.get(tid=am[i])
-           print "sss",merge_trade
-        except:
-           return HttpResponse(json.dumps({'code':1,'tid':am[i],'num':i+1,'response_error':u'订单未找到'}),mimetype="application/json")
-           print "sss","订单没有找到"
-        else:
-           print "sss","最后"
-           merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-           merge_trade.sys_memo   = merge_trade.sys_memo+c
-           merge_trade.save()
-           MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
-            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
-           log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%c)
-           print "sss","最后444444"
+    try:
+        merge_trade = MergeTrade.objects.get(tid=am[i])
+    except:
+        return HttpResponse(json.dumps({'code':1,'tid':am[i],'num':i+1,'response_error':u'订单未找到'}),mimetype="application/json")
+    else:
+        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+        merge_trade.sys_memo   = merge_trade.sys_memo   +   c
+        merge_trade.save()
+        MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
+         .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
+        log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%c)
     return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),content_type="application/json")
     
     
     
 def test(request):
-
-     return render(request, 'trades/test.html')
+    return render(request, 'trades/test.html') 
 
 
 from django.views.decorators.csrf import csrf_exempt
