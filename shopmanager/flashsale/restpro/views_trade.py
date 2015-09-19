@@ -913,3 +913,34 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         instance.confirm_sign_trade()
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
         return Response(data={"ok": True})
+
+from shopapp.weixin.models import WXOrder
+
+class WXOrderViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ###历史微信订单REST API接口：
+    """
+    queryset = WXOrder.objects.all()
+    serializer_class = serializers.WXOrderSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    
+    paginate_by = 25
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
+    max_paginate_by = 100
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+

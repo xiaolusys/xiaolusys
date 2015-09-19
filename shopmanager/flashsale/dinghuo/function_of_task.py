@@ -337,16 +337,19 @@ def get_daily_refund_num(pre_day=None):
                                                 pcfg.REFUND_CONFIRM_GOODS,  # 买家已经退货
                                                 pcfg.REFUND_WAIT_SELLER_AGREE))  # 卖家同意退款
     for refund in refunds:
-        mo = MergeOrder.objects.filter(oid=refund.oid)
-        if mo.exists():
-            products = Product.objects.filter(outer_id=mo[0].outer_id)
-            if products.exists() and products[0].sale_time:
-                scso, state = SupplyChainStatsOrder.objects.get_or_create(product_id=mo[0].outer_id,
-                                                                          outer_sku_id=mo[0].outer_sku_id,
-                                                                          shelve_time=products[0].sale_time,
-                                                                          sale_time=target_day)
-                scso.refund_amount_num = F("refund_amount_num") + 1
-                scso.save()
+        mos = MergeOrder.objects.filter(oid=refund.oid)
+        if not mos.exists():
+            continue
+        mo = mos[0]
+        products = Product.objects.filter(outer_id=mo.outer_id)
+        if products.exists() and products[0].sale_time:
+            scso, state = SupplyChainStatsOrder.objects.get_or_create(product_id=mo.outer_id,
+                                                                      outer_sku_id=mo.outer_sku_id,
+                                                                      shelve_time=products[0].sale_time,
+                                                                      sale_time=target_day)
+            scso.refund_amount_num = F("refund_amount_num") + 1
+            scso.save()
+            
     handler_refund()
 
 

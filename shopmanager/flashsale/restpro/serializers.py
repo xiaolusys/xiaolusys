@@ -170,11 +170,12 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
         model = SaleTrade
         fields = ( 'id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                     'post_fee', 'total_fee', 'discount_fee', 'status','status_display','order_pic',
-                    'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 'logistics_company',
-                   'receiver_name', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address','receiver_mobile', 'receiver_phone')
+                    'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 
+                   'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city', 
+                   'receiver_district', 'receiver_address','receiver_mobile', 'receiver_phone')
         
  
-from flashsale.pay.models import SaleRefund,District,UserAddress
+from flashsale.pay.models import District,UserAddress
        
 
 class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
@@ -260,3 +261,18 @@ class UsersCouponSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserCoupon
         fields = ("id", "cp_id", "type",'title', "customer", "deadline", "sale_trade", "status", "created", "modified")
+
+from shopapp.weixin.models import WXOrder
+
+
+class WXOrderSerializer(serializers.HyperlinkedModelSerializer):
+    
+    url = serializers.HyperlinkedIdentityField(view_name='v1:wxorder-detail')
+    order_status_display  = serializers.CharField(source='get_order_status_display', read_only=True)
+    
+    class Meta:
+        model = WXOrder
+        fields = ( 'url','order_id', 'buyer_nick', 'order_total_price', 'order_express_price', 'order_create_time', 'order_status',
+                    'receiver_name', 'receiver_province', 'receiver_city', 'receiver_zone','receiver_address','receiver_mobile',
+                    'receiver_phone', 'product_id', 'product_name', 'product_price', 'product_sku', 'product_count', 
+                   'order_status_display', 'product_img', 'delivery_id', 'delivery_company')

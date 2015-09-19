@@ -25,6 +25,8 @@
     </a>
 </div>
 <ul id="js-addr" class="addr">
+<!-- 地址列表 -->
+</ul>
 <script id="addr-template" type="text/html">
 <li class="{{ addr_class }}" name="select-addr">
 	<a onclick="jump_shouhuodz()" target="_parent">
@@ -37,12 +39,17 @@
     </a>
 </li>
 </script>
-</ul>
-
 <div class="cost">
   <h2>商品支付详情</h2>
   <div id="item-list" class="cart-list">
-    <script id="item-template" type="text/html">
+    <!-- 商品明细 -->
+  </div>
+  <div>
+    <p class="label1">商品总金额<span id="total_money">¥ 0</span></p>
+    <p class="label2">小鹿美美运费<span>¥ 0</span></p>
+  </div>
+</div>
+<script id="item-template" type="text/html">
 	<div class="item" >
 	  <div class="gpic"><img src="{{ pic_path }}"></div>
 	  <div class="gname">{{ title }}</div>
@@ -53,24 +60,17 @@
 	    <span>{{ num }}</span>
 	  </div>
 	</div>
-    </script>
-    <script id="form-template" type="text/html">
-      <form id="pay-form" action="#" method="POST">
-		<input type="hidden" name="uuid" value="{{uuid}}" />
-		<input type="hidden" name="cart_ids" value="{{cart_ids}}" />
-		<input type="hidden" name="payment" value="{{ total_payment }}" />
-		<input type="hidden" name="post_fee" value="{{ post_fee }}" />
-		<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
-		<input type="hidden" name="total_fee" value="{{ total_fee }}" />
-      </form>
-    </script>
-  </div>
-  <div>
-    <p class="label1">商品总金额<span id="total_money">¥ 0</span></p>
-    <p class="label2">小鹿美美运费<span>¥ 0</span></p>
-  </div>
-</div>
-
+</script>
+<script id="form-template" type="text/html">
+  <form id="pay-form" action="#" method="POST">
+	<input type="hidden" name="uuid" value="{{uuid}}" />
+	<input type="hidden" name="cart_ids" value="{{cart_ids}}" />
+	<input type="hidden" name="payment" value="{{ total_payment }}" />
+	<input type="hidden" name="post_fee" value="{{ post_fee }}" />
+	<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
+	<input type="hidden" name="total_fee" value="{{ total_fee }}" />
+  </form>
+</script>
 <div class="coupons">
   <div class="title">
     <div class="inner" id="coupon_nums">可用优惠券（0）</div>

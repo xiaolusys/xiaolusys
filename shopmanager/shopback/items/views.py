@@ -405,8 +405,8 @@ class ProductView(APIView):
     def post(self, request, id, *args, **kwargs):
         try:
             product = Product.objects.get(id=id)
-            print product
             content = request.REQUEST
+            update_fields = []
             fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost','ware_by',
                       'std_purchase_price','std_sale_price','agent_price','staff_price','is_split',
                       'sync_stock','post_check','is_match','match_reason','buyer_prompt','memo','storage_charger']
@@ -416,18 +416,21 @@ class ProductView(APIView):
             for k,v in content.iteritems():
                 if k not in fields:continue
                 if k in check_fields:
-                    check_fields.remove(k)
+                    v = (True,False)[v == '' and 1 or 0]
                 if k in ('wait_post_num','remain_num'):
                     v = int(v)
-                setattr(product,k,v)
-            for k in check_fields:
-                setattr(product,k,False)
-            product.save()
+                if hasattr(product,k) and getattr(product,k) != v:
+                    setattr(product,k,v)
+                    update_fields.append(k)
+            update_model_fields(product,update_fields=update_fields)
         except Product.DoesNotExist:
             return Response(u'商品未找到')
         except Exception,exc:
             raise exceptions.APIException(u'填写信息不规则:%s'%exc.message)
-        log_action(request.user.id,product,CHANGE,u'更新商品基本信息')
+        update_field_labels = []
+        for field in update_fields:
+            update_field_labels.append(Product._meta.get_field(field).verbose_name.title())
+        log_action(request.user.id,product,CHANGE,u'更新[%s]信息'%(','.join(update_field_labels)))
         prod_serializer     = serializers.ProductSerializer(product).data
         prod_serializer['skus'] = serializers.ProductSkuSerializer(product.pskus,many=True).data
         return  Response(prod_serializer) 
