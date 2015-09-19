@@ -223,8 +223,9 @@ class SaleProductAdmin(MyAdmin):
             # test_link = test_link.format(obj.outer_id, obj.title, obj.pic_url, obj.sale_supplier, obj.sale_price,
             #                              obj.std_sale_price,
             #                              u'加入样品库')
-            test_link += u'<br><br><a href="/static/add_item.html?supplier_id={0}&saleproduct={1}" class="btn" target="_blank" >{2}</a>'
-            test_link = test_link.format(obj.sale_supplier.id, obj.id, u'加入库存商品')
+            test_link += u'<br><br><a href="/static/add_item.html?supplier_id={0}&saleproduct={1}" class="btn" target="_blank" >{2}</a>' \
+                         u'<a href="/supplychain/supplier/bdproduct/{1}/" class="btn" target="_blank" >{3}</a>'
+            test_link = test_link.format(obj.sale_supplier.id, obj.id, u'加入库存商品', u'关联库存商品')
         test_link += u'</div>'
 
         return test_link
