@@ -1,5 +1,6 @@
 .list{
   width: 640px;
+  min-height:900px;
   margin: 0 auto;
 }
 .list li{
@@ -190,13 +191,13 @@
 .refund_status_6:after{content: "等待返款";font-size: 22px;  color: #b7b7b7;border: solid #fff;}     /*确认退款，等待返款*/
 .refund_status_7:after{content: "退款成功";font-size: 22px;  clear:both;color: #b7b7b7;border: solid #fff;}             /*退款成功*/
 
-.refund_status_1{border:  #ffffff;}
-.refund_status_2{border:  #ffffff;}
-.refund_status_3{border:  #ffffff;}
-.refund_status_4{border:  #ffffff;}
-.refund_status_5{border:  #ffffff;}
-.refund_status_6{border:  #ffffff;}
-.refund_status_7{border:  #ffffff;}
+.refund_status_1{border:#ffffff;}
+.refund_status_2{border:#ffffff;}
+.refund_status_3{border:#ffffff;}
+.refund_status_4{border:#ffffff;}
+.refund_status_5{border:#ffffff;}
+.refund_status_6{border:#ffffff;}
+.refund_status_7{border:#ffffff;}
 
 
 .fl{ float: left;}
@@ -273,8 +274,8 @@
 .btn-wrap{
   width: 600px;
   margin: 0 auto;
- 	background-color:#fff;
-	padding:20px;
+　　background-color:#fff;
+　　padding:20px;
 }
 .btn-buy{
   display: block;
@@ -291,8 +292,16 @@
 	color:#f353a0;
 }
 
+.footer .history{
+	padding:10px;
+    text-align: center;
+}
 
-
+.history a{
+	height: 40px;
+    font-size:20px;
+	width:640px;
+}
 
 .wuliu{
   color: #5f5f5e;

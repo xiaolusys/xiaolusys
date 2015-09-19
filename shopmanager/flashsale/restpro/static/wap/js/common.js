@@ -107,7 +107,8 @@ var GLConfig = {
 	get_modellist_preview_url:'/products/preview_modellist/{{model_id}}.json', //获取同款商品列表(同款预览页面)
 	get_product_detail_url:'/products/{{product_id}}/details.json', //获取商品明细
     verify_product:"/products/{{id}}/verify_product",//审核产品
-	get_trade_all_url:'/trades.json', //获取用户所有订单
+	get_trade_all_url:'/trades.json', //获取用户特卖订单
+	get_wxorder_all_url:'/wxorders.json', //获取用户历史订单
 	get_trade_waitpay_url:'/trades/waitpay.json', //获取用户待付款订单
 	get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
 	get_trade_details_url:'/trades/{{trade_id}}/details.json', //获取订单明细
