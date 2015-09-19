@@ -275,4 +275,4 @@ class WXOrderSerializer(serializers.HyperlinkedModelSerializer):
         fields = ( 'url','order_id', 'buyer_nick', 'order_total_price', 'order_express_price', 'order_create_time', 'order_status',
                     'receiver_name', 'receiver_province', 'receiver_city', 'receiver_zone','receiver_address','receiver_mobile',
                     'receiver_phone', 'product_id', 'product_name', 'product_price', 'product_sku', 'product_count', 
-                   'order_status_display', 'product_img', 'delivery_id', 'delivery_company')
+                    'order_status_display', 'product_img', 'delivery_id', 'delivery_company')

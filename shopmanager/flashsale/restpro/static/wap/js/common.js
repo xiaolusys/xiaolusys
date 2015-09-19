@@ -113,6 +113,7 @@ var GLConfig = {
 	get_trade_waitsend_url:'/trades/waitsend.json', //获取用户待发货订单
 	get_trade_details_url:'/trades/{{trade_id}}/details.json', //获取订单明细
     get_order_detail_url:'/trades/{{ tid }}/orders/{{ oid　}}',//获取单个SaleOrder明细
+    get_wxorder_detail_url:'/wxorders/{{ trade_id }}.json',//获取单个Wxorder明细
 	get_trade_charge_url:'/trades/shoppingcart_create.json', //购物车结算订单接口
 	get_buynow_url:'/trades/buynow_create.json', //立即购物订单创建接口
 	waitpay_charge:'/trades/{{trade_id}}/charge.json', //待支付订单结算接口
