@@ -1024,8 +1024,10 @@ class StatProductSaleView(APIView):
         sale_stat_list = self.getSaleSortedItems(queryset)
         
         for product_id,sale_stat in sale_stat_list:
-            
-            product = Product.objects.get(id=product_id)
+            try:
+                product = Product.objects.get(id=product_id)
+            except Product.DoesNotExist:
+                continue
             has_sku = sale_stat['skus'] and True or False
             sale_stat['name']     = product.name
             sale_stat['outer_id'] = product.outer_id
@@ -1034,8 +1036,10 @@ class StatProductSaleView(APIView):
             sale_stat['stock_cost']  = not has_sku and product.cost * product.collect_num or 0 
 
             for sku_id,sku_stat in sale_stat['skus'].iteritems():
-                
-                sku = ProductSku.objects.get(id=sku_id)
+                try:
+                    sku = ProductSku.objects.get(id=sku_id)
+                except ProductSku.DoesNotExist:
+                    continue
                 sku_stat['name']      = sku.name 
                 sku_stat['outer_id']  = sku.outer_id
                 sku_stat['quantity']  = sku.quantity
@@ -1172,14 +1176,14 @@ class StatProductSaleView(APIView):
         return self.calcUnSaleSortedItems(queryset,p_outer_id=p_outer_id)
     
     def get(self, request, *args, **kwargs):
-        
-        content   = request.REQUEST
-        start_dt  = content.get('df','').strip()
-        end_dt    = content.get('dt','').strip()
-        shop_id   = content.get('shop_id')
-        p_outer_id   = content.get('outer_id','')
-        show_sale    = not content.has_key('_unsaleable') 
         try:
+            content   = request.REQUEST
+            start_dt  = content.get('df','').strip()
+            end_dt    = content.get('dt','').strip()
+            shop_id   = content.get('shop_id')
+            p_outer_id   = content.get('outer_id','')
+            show_sale    = not content.has_key('_unsaleable') 
+            sale_items = {}
             params = {'day_date__gte':self.parseDate(start_dt),
                               'day_date__lte':self.parseDate(end_dt)}
             if shop_id:
@@ -1198,8 +1202,9 @@ class StatProductSaleView(APIView):
                     'shop_id':shop_id and int(shop_id) or '',
                     })
         except Exception,exc:
-            logger.error(exc.message,exc_info=True)
-            raise exceptions.APIException(exc.message)
+            exc_msg = exc.message or 'calc sale product error'
+            logger.error(exc_msg,exc_info=True)
+            raise exceptions.APIException(exc_msg)
         return   Response({'object':{'sale_stats':sale_items}})
         
     post = get                
