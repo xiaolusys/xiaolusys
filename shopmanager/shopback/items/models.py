@@ -272,6 +272,16 @@ class Product(models.Model):
     
     def title(self):
         return self.name
+
+    def get_supplier_contactor(self):
+        from supplychain.supplier.models import SaleProduct
+        try:
+            sal_p = SaleProduct.objects.get(pk=self.sale_product)
+            if sal_p.contactor.first_name and sal_p.contactor.last_name:
+                return sal_p.contactor.last_name + sal_p.contactor.first_name
+            return sal_p.contactor  # 返回接洽人
+        except SaleProduct.DoesNotExist:
+            return self.sale_charger + "未关联"
     
     def update_collect_num(self,num,full_update=False,dec_update=False):
         """
