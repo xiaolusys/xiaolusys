@@ -144,7 +144,7 @@ function Set_product_detail(suffix) {
     //请求成功回调函数
     var requestCallBack = function (data) {
     	$("#loading").hide();
-        if (data.id == 'undifine' && data.id == null) {
+        if (isNone(data.id)) {
             return
         }
         product_model = data.product_model;

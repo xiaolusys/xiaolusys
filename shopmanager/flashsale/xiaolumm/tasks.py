@@ -319,9 +319,7 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
                                                 shoptime__range=(time_from,time_to))
         
         rebeta_fee = shopings.aggregate(total_rebeta=Sum('tichengcount')).get('total_rebeta') or 0
-        
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
-        
         clog = CarryLog.objects.get(id=cl.id)
         if clog.status != CarryLog.PENDING:
             continue
