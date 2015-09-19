@@ -15,7 +15,7 @@ from rest_framework import permissions
 from rest_framework import authentication
 from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
 from rest_framework.response import Response
-
+from shopback import paramconfig as pcfg
 
 def check_order(request, trade_id):
     info = MergeTrade.objects.get(id=trade_id)
@@ -55,31 +55,31 @@ def split_merge_trade(merger_order_id, modify_user):
 
     order_list = merger_order_id.split(",")
     if len(order_list) == 0:
-        return "error"
+        return u"error"
 
     m = MergeOrder.objects.filter(Q(id=order_list[0], sys_status=IN_EFFECT))
     if m.count() == 0:
-        return "no IN_EFFECT order"
+        return u"没有有效的订单"
     parent_trade = m[0].merge_trade
-    if parent_trade.has_merge:
-        return "has merge"
+    if parent_trade.has_merge and parent_trade.sys_status != pcfg.WAIT_CHECK_BARCODE_STATUS:
+        return u"有合单"
     parent_trade_tid = parent_trade.tid.split("-")[0]
     first_p = Product.objects.filter(outer_id=m[0].outer_id)
     if first_p.count() == 0:
-        return "product not found"
+        return u"未发现商品"
     payment = 0
     for order_id in order_list:
         m = MergeOrder.objects.filter(Q(id=order_id, sys_status=IN_EFFECT))
         if m.count() == 0:
-            return "no IN_EFFECT order"
+            return u"没有有效的订单"
         if parent_trade.id != m[0].merge_trade.id:
-            return "no the one trade"
+            return u"不在一个父订单"
 
         p = Product.objects.filter(outer_id=m[0].outer_id)
         if p.count() == 0:
-            return "product not found"
+            return u"未发现商品"
         if first_p[0].ware_by != p[0].ware_by:
-            return "not same ware"
+            return u"不在一个仓库"
         payment += m[0].payment
 
     count = 1
