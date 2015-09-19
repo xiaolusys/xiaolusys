@@ -19,15 +19,7 @@
 <!-- 订单信息 start -->
 <div class="panel basic">
   <div class="panel-top">
-      <script id="top_template" type="text/html">
-        <ul class="u1">
-          <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa" id="status_display">{{ status_display }}</span></li>
-          <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">{{ tid }}</span></li>
-          <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">{{ created }}</span></li>
-          <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
-        </ul>
-        <a  class="btn_top_{{ status }} btn_top_style btn_interactive " cid="{{ status }}" href="tuikuan.html?id={{ id }}"></a>
-      </script>
+      
   </div>
   <div class="panel-bottom">
 
@@ -65,7 +57,6 @@
     <h2>收货信息</h2>
   </div>
   <div class="panel-bottom">
-   
   </div>
 </div>
 <!-- 收货信息 end -->
@@ -80,13 +71,24 @@
   </div>
 </div>
 <!-- 费用详情 end -->
+<div class="buy_button">
+
+</div>
+<div class="template">
+<script id="top_template" type="text/html">
+    <ul class="u1">
+      <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa" id="status_display">{{ status_display }}</span></li>
+      <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">{{ tid }}</span></li>
+      <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">{{ created }}</span></li>
+      <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
+    </ul>
+    <a  class="btn_top_{{ status }} btn_top_style btn_interactive " cid="{{ status }}" href="tuikuan.html?id={{ id }}"></a>
+</script>
 <script id="button_buy" type="text/html">
     <div class="btn-wrap">
         <a class="btn-buy">购&nbsp;&nbsp;买</a>
     </div>
 </script>
-<div class="buy_button">
-
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="../js/pingpp_pay.js"></script>
