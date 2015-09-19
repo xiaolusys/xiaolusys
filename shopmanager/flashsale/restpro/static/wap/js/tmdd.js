@@ -128,16 +128,7 @@ function Set_order_detail(suffix) {
     var requestUrl = GLConfig.baseApiUrl + suffix;
     //请求成功回调函数
     var requestCallBack = function (data) {
-        //设置订单基本信息
-        var top_dom = Create_order_top_dom(data);
-        $('.basic .panel-top').append(top_dom);
-        //设置订单收货信息
-        var shouhuo_dom = Create_detail_shouhuo_dom(data);
-        $('.shouhuo .panel-bottom').append(shouhuo_dom);
-        //设置订单费用信息
-        var feiyong_dom = Create_detail_feiyong_dom(data);
-        $('.feiyong .panel-bottom').append(feiyong_dom);
-        //设置订单商品明细
+    	//设置订单商品明细
         if (!isNone(data.orders)){
 	        $.each(data.orders,function (index, order) {
 	                order.trade_id = suffix.split("/")[2];//赋值交易id
@@ -150,6 +141,16 @@ function Set_order_detail(suffix) {
 	    	var detail_dom = Create_detail_dom(data);
 	        $('.basic .panel-bottom').append(detail_dom);
 	    }
+        //设置订单基本信息
+        var top_dom = Create_order_top_dom(data);
+        $('.basic .panel-top').append(top_dom);
+        //设置订单收货信息
+        var shouhuo_dom = Create_detail_shouhuo_dom(data);
+        $('.shouhuo .panel-bottom').append(shouhuo_dom);
+        //设置订单费用信息
+        var feiyong_dom = Create_detail_feiyong_dom(data);
+        $('.feiyong .panel-bottom').append(feiyong_dom);
+        
         Cancel_order(suffix);//页面加载完成  调用 取消订单功能
         Handler_Refund_Bth();
     };
