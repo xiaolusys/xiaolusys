@@ -139,14 +139,14 @@ function Set_order_detail(suffix) {
         $('.feiyong .panel-bottom').append(feiyong_dom);
         //设置订单商品明细
         if (!isNone(data.orders)){
-	        $.each(data.orders,
-	            function (index, order) {
+	        $.each(data.orders,function (index, order) {
 	                order.trade_id = suffix.split("/")[2];//赋值交易id
 	                var detail_dom = Create_detail_dom(order);
 	                $('.basic .panel-bottom').append(detail_dom);
-	            }
-	        );
+	        });
 	    }else{
+	    	data.order_total_price = data.order_total_price / 100;
+	    	data.order_express_price = data.order_express_price / 100;
 	    	var detail_dom = Create_detail_dom(data);
 	        $('.basic .panel-bottom').append(detail_dom);
 	    }
