@@ -1179,25 +1179,27 @@ class StatProductSaleView(APIView):
         shop_id   = content.get('shop_id')
         p_outer_id   = content.get('outer_id','')
         show_sale    = not content.has_key('_unsaleable') 
-        
-        params = {'day_date__gte':self.parseDate(start_dt),
-                          'day_date__lte':self.parseDate(end_dt)}
-        if shop_id:
-            params.update(user_id=shop_id)
-         
-        if p_outer_id:
-            params.update(outer_id__startswith=p_outer_id)
-        
-        sale_qs  = ProductDaySale.objects.filter(**params)
-        sale_items   = self.calcSaleItems(sale_qs,p_outer_id=p_outer_id,show_sale=show_sale)
-        sale_items.update({
-                'df':format_date(self.parseDate(start_dt)),
-                'dt':format_date(self.parseDate(end_dt)),
-                'outer_id':p_outer_id,
-                'shops':     serializers.UserSerializer( User.effect_users.all(),many=True).data,
-                'shop_id':shop_id and int(shop_id) or '',
-                })
-        
+        try:
+            params = {'day_date__gte':self.parseDate(start_dt),
+                              'day_date__lte':self.parseDate(end_dt)}
+            if shop_id:
+                params.update(user_id=shop_id)
+             
+            if p_outer_id:
+                params.update(outer_id__startswith=p_outer_id)
+            
+            sale_qs  = ProductDaySale.objects.filter(**params)
+            sale_items   = self.calcSaleItems(sale_qs,p_outer_id=p_outer_id,show_sale=show_sale)
+            sale_items.update({
+                    'df':format_date(self.parseDate(start_dt)),
+                    'dt':format_date(self.parseDate(end_dt)),
+                    'outer_id':p_outer_id,
+                    'shops':     serializers.UserSerializer( User.effect_users.all(),many=True).data,
+                    'shop_id':shop_id and int(shop_id) or '',
+                    })
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            raise exceptions.APIException(exc.message)
         return   Response({'object':{'sale_stats':sale_items}})
         
     post = get                
