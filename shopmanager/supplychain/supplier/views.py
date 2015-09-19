@@ -255,7 +255,6 @@ class FetchAndCreateProduct(APIView):
             'categorys': sale_category,
             'supplier': SaleSupplierSerializer(supplier, context={'request': request}).data
         }
-        print data
         return Response(data)
 
     def post(self, request, pk, format=None):
