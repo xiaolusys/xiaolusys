@@ -17,7 +17,10 @@ logger = logging.getLogger('smsmgr.handler')
 
 POST_NOTIFY_TITLE = '订单发货客户提示'
 
-POST_CONTENT_SEND_LATER = "亲爱的小鹿美美用户您好:亲在{0}购买的{1}产品,因供应商换季非常时期未按时发货给亲带来不便,小鹿美美深表歉意,请耐心等待,如有疑问请联系(优尼世界公众号-我的--我的客服)会为您解答疑问,小鹿美美在此祝您生活愉快."
+#POST_CONTENT_SEND_LATER = "亲爱的小鹿美美用户您好:亲在{0}购买的{1}产品,因供应商换季非常时期未按时发货给亲带来不便,小鹿美美深表歉意,请耐心等待,如有疑问请联系(优尼世界公众号-我的--我的客服)会为您解答疑问,小鹿美美在此祝您生活愉快."
+POST_CONTENT_SEND_LATER1 = "尊敬的大人，您订购的{0}在入库检查时发现略有瑕疵，小的正在联系工厂紧急调货 ！望大人息怒，如有疑问请联系客服，么么哒~"
+POST_CONTENT_SEND_LATER2 = "阁下所购宝物{0}由于成色原因暂未通过质检要求，本府已连夜派兵紧急调货！未能如期交货，望阁下海涵，如有疑问请联系客服，么么哒~"
+POST_CONTENT_SEND_LATER3 = "启奏圣上：您所托宝贝{0}在入库检查时发现尺码略有偏差，本店已联系厂家换货，还望圣上饶恕！如有疑问请联系小鹿客服，么么哒~"
 
 def get_smsg_from_trade(trade):
     """ 获取商品客户提示 """
@@ -251,7 +254,7 @@ def task_deliver_goods_later():
     except Exception, exc:
         logger.error(exc.message or 'empty error', exc_info=True)
 
-
+import random
 def func2send_message(trade):
     #选择默认短信平台商，如果没有，任务退出
     try:
@@ -266,9 +269,10 @@ def func2send_message(trade):
         all_order = trade.merge_orders.all()
         if all_order.count() == 0:
             return
-        title = all_order[0].title[6:]
+        title = all_order[0].title.split("/")[0]
 
-        content = POST_CONTENT_SEND_LATER.format(trade.pay_time.strftime('%m月%d号'), title.encode('utf-8'))
+        content = random.choice([POST_CONTENT_SEND_LATER1, POST_CONTENT_SEND_LATER2, POST_CONTENT_SEND_LATER3]).format(
+            title.encode('utf-8'))
         if not content:
             return
         params = {}
