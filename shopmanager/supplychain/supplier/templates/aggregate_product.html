@@ -118,7 +118,7 @@
                             <tbody>
                             {% for product in all_product %}
                                 <tr>
-                                    <td>{{ product.outer_id }}</td>
+                                    <td><a href="/admin/items/product/?q={{ product.outer_id }}" target="_blank">{{ product.outer_id }}</a></td>
                                     <td>{{ product.name }}</td>
                                     <td><img width="80px" src="{{ product.pic_path }}"></td>
                                 </tr>
