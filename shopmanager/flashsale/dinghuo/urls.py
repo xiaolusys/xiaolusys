@@ -50,6 +50,6 @@ urlpatterns = [
     url(r'^sale_hot/$', staff_member_required(SaleHotView.as_view()), name="sale_hot"),          #热销的商品
     url(r'^sale_bad/$', staff_member_required(SaleBadView.as_view()), name="sale_bad"),          #热销的商品
     url(r'^top_stock/$', staff_member_required(TopStockView.as_view()), name="top_stock"),          #库存最多的
-    url(r'^daystats_ding_huo/$', StatsDinghuoView.as_view(), name="stat+ding_huo"),      #每日订货统计
+    url(r'^daystats_ding_huo/$', StatsDinghuoView.as_view(), name="start_ding_huo"),      #每日订货统计
     url(r'^tuihuo/$', StatisRefundSupView.as_view(), name="tuihuo"),      # 退货统计　
 ]
