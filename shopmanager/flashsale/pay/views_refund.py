@@ -168,11 +168,11 @@ class RefundPopPageView(APIView):
         refund_dict['status'] = sale_refund.get_status_display()
         refund_dict['order_status'] = sale_order.get_status_display()
         refund_dict['payment'] = sale_order.payment
+        refund_dict['order_s'] = sale_order.status
         refund_dict['pay_time'] = strade.pay_time
         refund_dict['merge_trade_status'] = merge_trade.get_status_display()
         refund_dict['merge_sys_status'] = merge_trade.get_sys_status_display()
         refund_dict['sys_memo'] = merge_trade.sys_memo
-
         refund_dict['logistics_company'] = strade.logistics_company
         refund_dict['out_sid'] = strade.out_sid
         refund_dict['logistics_time'] = strade.consign_time
@@ -193,6 +193,14 @@ class RefundPopPageView(APIView):
                 obj.feedback = refund_feedback
             obj.save()
             log_action(request.user.id, obj, CHANGE, '保存状态信息')
+        if method == "agree_product":  # 同意退货
+            # 将状态修改成卖家同意退款(退货)
+            if refund_feedback:
+                obj.feedback = refund_feedback
+            obj.status = SaleRefund.REFUND_WAIT_RETURN_GOODS
+            obj.save()
+            log_action(request.user.id, obj, CHANGE, '保存状态信息到－退货状态')
+
         if method == "agree":  # 同意退款
             try:
                 if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,

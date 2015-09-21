@@ -85,11 +85,12 @@
         </div>
         <div class="row">
             <div class="col-xs-7">
+                <!--
                 <h5>退款状态：</h5>
 
                 <div class="form-control" style="height: 50px">
                     <select id="ref_status" style="width: 200px;font-size: 20px">
-                        <option value="" select="selected">{{ refund.status }}</option>
+                        <option value="" select="selected"></option>
                         <option value="0">没有退款</option>
                         <option value="3">买家已经申请退款</option>
                         <option value="4" style="color: red">卖家已经同意退货</option>
@@ -100,7 +101,7 @@
                         <option value="7">退款成功</option>
                     </select>
                 </div>
-
+-->
             </div>
         </div>
 
@@ -108,13 +109,15 @@
     </div>
     <div class="col-xs-6 btn_refund_action">
         <h5>退款操作：</h5>
-        <button type="button" class="btn btn-info save_info_btn  btn-lg" cid="{{ refund.id }}"
-                style="margin-right: 30px">保存
-        </button>
+    <!-- 只有SaleOrder订单在已经发货，签收，交易成功　状态才会显示　同意退货按钮　-->
+        {% if refund.order_s == 3 or refund.order_s == 4 or refund.order_s == 5 %}
+            <button type="button" class="btn btn-info save_info_btn btn_agree_product btn-lg" cid="{{ refund.id }}"
+                    style="margin-right: 30px">同意退货
+            </button>
+        {% endif %}
     </div>
 
 </div>
-
 </body>
 
 <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
@@ -135,6 +138,9 @@
         });
         $(".btn_confirm").click(function () {
             confirm_refund({{ refund.id }});
+        });
+        $(".btn_agree_product").click(function () {
+            agree_product({{ refund.id }});
         });
     });
 </script>

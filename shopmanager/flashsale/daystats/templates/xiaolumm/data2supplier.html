@@ -1,0 +1,116 @@
+{% extends "xiaolumm/daystats_base.html" %}
+{% block title %}绩效统计{% endblock %}
+{% block head_script %}
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <script>
+        function get_data() {
+            var task_id = $("#task_id").val();
+            $.ajax({
+                url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
+                method: "GET", //静态页用get方法，否则服务器会抛出405错误
+                success: function (res) {
+                    console.log(res.task.status);
+                    console.log(res.task.result);
+                    if (res.task.status == "SUCCESS") {
+                        var tb = $('#data-table-result');
+                        var result_data = eval(res.task.result);
+                        $("#data-table-people thead").eq(0).nextAll().remove();
+                        $.each(result_data, function (index, dd) {
+                            tb.append("<tr><td>" + dd['supplier_name'] + "</td><td>" + dd["choose_sale_num"] + "</td><td>" + dd["shelf_sale_num"] + "</td>" +
+                            "<td>" + dd["shelf_percent"] + "</td><td>" + dd["all_sale_num"] + "</td>" +
+                            "<td>" + dd["all_sale_cost"] + "</td><td>" + dd["all_sale_money"] + "</td></tr>");
+                        });
+                        var oHead = document.getElementsByTagName('HEAD').item(0);
+                        var oScript = document.createElement("script");
+                        oScript.type = "text/javascript";
+                        oScript.src = "/static/daystat_js/stat_performance.js";
+                        oHead.appendChild(oScript);
+                    } else {
+                        setTimeout(get_data, 2000);
+                    }
+                }
+            });
+        }
+        get_data()
+    </script>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+{% endblock %}
+{% block container %}
+    <div class="row" style="margin-top: 40px">
+        <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/stats_performance/">
+
+            <div class="col-xs-4">
+                <label class="control-label" for="df">开始日期:</label>
+                <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
+                       value="{{ start_date }}"/>
+            </div>
+            <div class="col-xs-4">
+                <label class="control-label" for="dt">结束日期:</label>
+                <input type="text" id="t_datepicker" name="dt" class="form-control datepicker"
+                       value="{{ end_date }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="category">类别:</label>
+                <select name="category" class="form-control" id="category_id">
+
+                    <option value="0" {% ifequal category "0" %}selected="selected" {% endifequal %}>所有</option>
+                    <option value="8" {% ifequal category "8" %}selected="selected" {% endifequal %}>女装</option>
+                    <option value="9" {% ifequal category "9" %}selected="selected" {% endifequal %}>童装</option>
+                </select>
+            </div>
+            <div class="col-xs-1">
+                <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+
+        </form>
+    </div>
+
+
+    <div class="row panel panel-success" style="margin-top: 20px">
+        <div class="panel-heading">
+            <h3 class="panel-title">供应商统计</h3>
+        </div>
+        <div class="panel-body">
+            <input id="task_id" value="{{ task_id }}" hidden="hidden">
+            <table class="table table-bordered" id="data-table-result">
+                <thead>
+                <th>供应商名字</th>
+                <th>选款数量</th>
+                <th>上架数量</th>
+                <th>选款上架率</th>
+                <th>销售数量</th>
+                <th>销售成本</th>
+                <th>销售额</th>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block tail_script %}
+    <script type="text/javascript">
+        $(function () {
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+            $("#t_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+        });
+    </script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+{% endblock %}
