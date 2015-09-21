@@ -914,7 +914,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
         return Response(data={"ok": True})
 
+from django.conf import settings
 from shopapp.weixin.models import WXOrder
+from shopapp.weixin.models import WeixinUnionID
 
 class WXOrderViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -930,9 +932,19 @@ class WXOrderViewSet(viewsets.ReadOnlyModelViewSet):
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
-
+    
+    def get_owner_queryset(self,request):
+        try:
+            customer = Customer.objects.get(user=request.user)
+            wxunion  = WeixinUnionID.objects.get(unionid=customer.unionid,app_key=settings.WEIXIN_APPID)
+        except Customer.DoesNotExist:
+            raise exceptions.APIException('用户不存在')
+        except WeixinUnionID.DoesNotExist:
+            raise exceptions.APIException('未找到订单')
+        return self.queryset.filter(buyer_openid=wxunion.openid).order_by('-order_create_time')
+    
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
 
         page = self.paginate_queryset(queryset)
         if page is not None:

@@ -159,6 +159,8 @@ function Handle_order(data) {
         }
         //处理微信订单列表
         if (!isNone(order.order_id)){
+          order.order_total_price   = order.order_total_price / 100;
+	      order.order_express_price = order.order_express_price / 100;
           order_template = $('#hty-form-template').html();
         }
         $('.order_ul').append(order_template.template(order));

@@ -106,109 +106,53 @@ function Create_button_buy_dom() {
     return hereDoc(html);
 }
 function Create_detail_dom(obj) {
-    //创建订单基本信息DOM
-    function Detail_topdom() {
-        /*
-         <div class="goods clear">
-         <div class="fl goods-img">
-         <img src="{{ pic_path }}">
-         </div>
-         <div class="fr goods-info">
-         <p>{{ title }}</p>
-         <p>
-         <span class="size">尺码：{{ sku_name }}</span>
-         <span class="count">数量：{{ num }}</span>
-         </p>
-         <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span>
-         <a id="btn_refund" class="btn_order_status_{{ status }}  refund_status_{{ refund_status }} refund_btn_show" cid="{{ refund_status }}" href="tuikuan.html?oid={{id}}&tid={{trade_id}}" cid={{ id }}></a></p>
-         </div>
-         </div>
-         */
-    };
-    return hereDoc(Detail_topdom).template(obj);
+    var html = $('#top_detail_template').html();
+    return hereDoc(html).template(obj);
 }
 
 function Create_detail_shouhuo_dom(obj) {
     //创建订单收货信息DOM
-    function Shouhuo_dom() {
-        /*
-         <div class="info">
-         <p class="clear">
-         <span class="label">收货人：</span>
-         <span class="value">{{ receiver_name }}</span>
-         </p>
-         <p class="clear">
-         <span class="label">手机号码：</span>
-         <span class="value">{{ receiver_mobile }}</span>
-         </p>
-         <p class="clear">
-         <span class="label">收货地址：</span>
-         <span class="value">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }} - {{ receiver_address }}</span>
-         </p>
-         </div>
-         */
-    };
-    return hereDoc(Shouhuo_dom).template(obj);
+    var html = $('#shouhuo_template').html();
+    return hereDoc(html).template(obj);
 }
 
 function Create_detail_feiyong_dom(obj) {
     //创建订单费用信息DOM
-    function Feiyong_dom() {
-        /*
-         <div class="info">
-         <p class="clear">
-         <span class="label">商品总金额：</span>
-         <span class="value"><em>¥</em> {{ total_fee }}</span>
-         </p>
-         <p class="clear">
-         <span class="label">运费：</span>
-         <span class="value"><em>¥</em> {{ post_fee }}</span>
-         </p>
-         <p class="clear">
-         <span class="label">优惠金额：</span>
-         <span class="value"><em>¥</em> -{{ discount_fee }}</span>
-         </p>
-         <p class="clear">
-         <span class="label">应付金额：</span>
-         <span class="value total"><em>¥</em> {{ payment }}</span>
-         </p>
-         </div>
-         */
-    };
-    return hereDoc(Feiyong_dom).template(obj);
+    var html = $('#shoufei_template').html();
+    return hereDoc(html).template(obj);
 }
 
 
 function Set_order_detail(suffix) {
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + suffix;
-
     //请求成功回调函数
     var requestCallBack = function (data) {
-        if (typeof(data.id) != 'undifined' && data.id != null) {
-            //设置订单基本信息
-            var top_dom = Create_order_top_dom(data);
-            $('.basic .panel-top').append(top_dom);
-            //设置订单收货信息
-            var shouhuo_dom = Create_detail_shouhuo_dom(data);
-            $('.shouhuo .panel-bottom').append(shouhuo_dom);
-            //设置订单费用信息
-            var feiyong_dom = Create_detail_feiyong_dom(data);
-            $('.feiyong .panel-bottom').append(feiyong_dom);
-            //设置订单商品明细
-            $.each(data.orders,
-                function (index, order) {
-                    order.trade_id = suffix.split("/")[2];//赋值交易id
-                    var detail_dom = Create_detail_dom(order);
-                    $('.basic .panel-bottom').append(detail_dom);
-                }
-            );
-
-            Cancel_order(suffix);//页面加载完成  调用 取消订单功能
-            Handler_Refund_Bth();
-
-
-        }
+    	//设置订单商品明细
+        if (!isNone(data.orders)){
+	        $.each(data.orders,function (index, order) {
+	                order.trade_id = suffix.split("/")[2];//赋值交易id
+	                var detail_dom = Create_detail_dom(order);
+	                $('.basic .panel-bottom').append(detail_dom);
+	        });
+	    }else{
+	    	data.order_total_price = data.order_total_price / 100;
+	    	data.order_express_price = data.order_express_price / 100;
+	    	var detail_dom = Create_detail_dom(data);
+	        $('.basic .panel-bottom').append(detail_dom);
+	    }
+        //设置订单基本信息
+        var top_dom = Create_order_top_dom(data);
+        $('.basic .panel-top').append(top_dom);
+        //设置订单收货信息
+        var shouhuo_dom = Create_detail_shouhuo_dom(data);
+        $('.shouhuo .panel-bottom').append(shouhuo_dom);
+        //设置订单费用信息
+        var feiyong_dom = Create_detail_feiyong_dom(data);
+        $('.feiyong .panel-bottom').append(feiyong_dom);
+        
+        Cancel_order(suffix);//页面加载完成  调用 取消订单功能
+        Handler_Refund_Bth();
     };
     // 发送请求
     $.ajax({
@@ -221,7 +165,6 @@ function Set_order_detail(suffix) {
 }
 
 function Handler_Refund_Bth(){
-
     for(var i= 1;i<=7;i++){
         $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
     }
@@ -336,3 +279,78 @@ function Confirm_Sign_For(dom) {
     }
 }
 
+
+function Wuliu(tid) {
+    //获取物流信息
+    //alert(urlParams['id'])
+    var requestUrl = "/rest/wuliu/";
+    var requestCallBack = function(info) {
+        //alert(ret);
+        if (info.response_content.result) {
+
+            if (parseInt(info.response_content.ret.status) > 1) {
+                var data1 = info.response_content.ret.data;
+                if (data1.length > 2) {
+                    for (var i = data1.length - 2; i < data1.length; i++) {
+                        if (i > data1.length - 2) {
+                            var address = "<li> <p class='text'>" + data1[i].content + "</p><p class='time'>" + data1[i].time + "</p><div class='dotted'></div></li><li></li>";
+                            $(".step-list").append(address);
+                        } else {
+                            var address = "<li> <p class='text'>" + data1[i].content + "</p><p class='time'>" + data1[i].time + "</p><div class='dotted'></div></li>";
+                            $(".step-list").append(address);
+                        }
+                    }
+                } else {
+                    for (var i = 0; i < data1.length; i++) {
+                        var address = "<li> <p class='text'>" + data1[i].content + "</p><p class='time'>" + data1[i].time + "</p><div class='dotted'></div></li><li></li>";
+                        $(".step-list").append(address);
+                    }
+                }
+            }
+            //针对有物流单，暂时没有数据
+            else if (parseInt(info.response_content.ret.status) == 1) {
+                //加上前一个状态，就是配货
+                var address = " <li><p class='text'>您的商品配货完成</p><p class='time'>" + info.response_content.create_time + "</p><div class='dotted'></div> </li>";
+                $(".step-list").append(address);
+                var address = " <li><p class='text'>您的商品已出库</p><p class='time'>" + info.response_content.time + "</p><div class='dotted'></div> </li><li></li>";
+                $(".step-list").append(address);
+            }
+            //根据从数据库来查询的数据的格式
+            else {
+                var data1 = info.response_content.ret;
+                if (data1.length > 2) {
+                    for (var i = data1.length - 2; i < data1.length; i++) {
+                        if (i > data1.length - 2) {
+
+                            var address = "<li> <p class='text'>" + data1[i].content + "</p><p class='time'>" + data1[i].time + "</p><div class='dotted'></div></li><li></li>";
+                            $(".step-list").append(address);
+                        } else {
+                            var address = "<li> <p class='text'>" + data1[i].content + "</p><p class='time'>" + data1[i].time + "</p><div class='dotted'></div></li>";
+                            $(".step-list").append(address);
+                        }
+                    }
+                } else {
+                    for (var i = 0; i < data1.length; i++) {
+                        var address = "<li> <p class='text'>" + data1[i].content + "</p><p class='time'>" + data1[i].time + "</p><div class='dotted'></div></li><li></li>";
+                        $(".step-list").append(address);
+                    }
+                }
+            }
+        }
+
+        else {
+            var address = " <li><p class='text'>" + info.response_content.message + "</p><p class='time'>" + info.response_content.time + "</p><div class='dotted'></div> </li><li></li>";
+            $(".step-list").append(address);
+        }
+    }
+    // 发送请求
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: {
+            'tid': tid
+        },
+        dataType: 'json',
+        success: requestCallBack
+    });
+}

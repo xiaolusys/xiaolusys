@@ -78,27 +78,25 @@
 <!-- 订单明细基本信息模板 -->
 <script id="top_template" type="text/html">
     <ul class="u1">
-      <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa" id="status_display">{{ status_display }}</span></li>
-      <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">{{ tid }}</span></li>
-      <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">{{ created }}</span></li>
-      <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
+      <li><label class="c5f5f5e">订单状态：</label><span class="caaaaaa" id="status_display">{{ order_status_display }}</span></li>
+      <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">{{ order_id }}</span></li>
+      <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">{{ order_create_time }}</span></li>
+      <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ order_total_price }}</span></li>
     </ul>
-    <a  class="btn_top_{{ status }} btn_top_style btn_interactive " cid="{{ status }}" href="tuikuan.html?id={{ id }}"></a>
 </script>
 <!-- 订单明细尺码模板 -->
 <script id="top_detail_template" type="text/html">
 <div class="goods clear">
 	<div class="fl goods-img">
-	 <img src="{{ pic_path }}">
+	 <img src="{{ product_img }}">
 	</div>
 	<div class="fr goods-info">
-	 <p>{{ title }}</p>
+	 <p>{{ product_name }}</p>
 	 <p>
 	 <span class="size">尺码：{{ sku_name }}</span>
-	 <span class="count">数量：{{ num }}</span>
+	 <span class="count">数量：{{ product_count }}</span>
 	 </p>
-	 <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span>
-	 <a id="btn_refund" class="btn_order_status_{{ status }}  refund_status_{{ refund_status }} refund_btn_show" cid="{{ refund_status }}" href="tuikuan.html?oid={{id}}&tid={{trade_id}}" cid={{ id }}></a></p>
+	 <p class="price">单价：<span class="gprice"><em>¥</em>{{ order_total_price }}</span>
 	</div>
 </div>
 </script>
@@ -115,7 +113,7 @@
  </p>
  <p class="clear">
  <span class="label">收货地址：</span>
- <span class="value">{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }} - {{ receiver_address }}</span>
+ <span class="value">{{ receiver_province }} - {{ receiver_city }} - {{ receiver_zone }} - {{ receiver_address }}</span>
  </p>
 </div>
 </script>
@@ -124,19 +122,19 @@
 <div class="info">
  <p class="clear">
  <span class="label">商品总金额：</span>
- <span class="value"><em>¥</em> {{ total_fee }}</span>
+ <span class="value"><em>¥</em> {{ order_total_price }}</span>
  </p>
  <p class="clear">
  <span class="label">运费：</span>
- <span class="value"><em>¥</em> {{ post_fee }}</span>
+ <span class="value"><em>¥</em> {{ order_express_price }}</span>
  </p>
  <p class="clear">
  <span class="label">优惠金额：</span>
- <span class="value"><em>¥</em> -{{ discount_fee }}</span>
+ <span class="value"><em>¥</em> -0</span>
  </p>
  <p class="clear">
  <span class="label">应付金额：</span>
- <span class="value total"><em>¥</em> {{ payment }}</span>
+ <span class="value total"><em>¥</em> {{ order_total_price }}</span>
  </p>
 </div>
 </script>
@@ -155,9 +153,6 @@
 <script src="../js/sweet-alert.min.js"></script>
 <script type="text/javascript">
 (function($){
-	
-	
-	
   //返回顶部
   $('#js-scroll-top').on('touchend',function(e){
     e.preventDefault();
@@ -165,7 +160,6 @@
   });
 
   var startY;
-
   document.addEventListener('touchstart',function (ev) {
     startY = ev.touches[0].pageY;
   }, false);
@@ -182,8 +176,7 @@
   
   var urlParams = parseUrlParams(window.location.href);
   var urlConf = {'trade_id':urlParams['id']};
-  var order_url = GLConfig.get_trade_details_url.template(urlConf);
-
+  var order_url = GLConfig.get_wxorder_detail_url.template(urlConf);
   //获取待支付订单列表
   Set_order_detail(order_url);
   //确认支付事件响应
@@ -193,8 +186,8 @@
   },'.buy_button .btn-buy');
   //  fang  2015-8-20
   //var status=$("#status_display").innerHTML;
-  var urlParams = parseUrlParams(window.location.href);
-  Wuliu(urlParams['id']);
+  //var urlParams = parseUrlParams(window.location.href);
+  //Wuliu(urlParams['id']);
 })(jQuery);
 
 function Confirm_charge(){
