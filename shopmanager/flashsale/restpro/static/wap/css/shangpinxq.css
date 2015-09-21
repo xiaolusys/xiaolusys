@@ -191,22 +191,27 @@
 
 .chi-ma-biao table th {
     padding: 0 5px;
-    border: solid indianred;
-    border-width:0px 0px 2px 0px;
+    border-right:1px solid #cccacc;
+    border-bottom: 2px solid indianred;
     height: 22px;
     line-height: 22px;
     text-align: center;
-    color: #fff;
-    background-color: #9E9A9E;
+    color: #868484;
+    font-weight: normal;
+    font-size: 15px;
+    background-color: #d9d9d9;
 }
 .chi-ma-biao table tr td:nth-child(1) {
     width: 100px;
-    color: #fff;
-    background-color: #9E9A9E;
+    color: #868484;
+    font-weight: lighter;
+    background-color: #d9d9d9;
+    font-size: 15px;
     border-right:  2px solid indianred;
 }
+
 .chi-ma-biao table th:nth-child(1){
-    border-right:  1px solid indianred;
+    border-right:  2px solid indianred;
 }
 
 .goods-img{
