@@ -178,7 +178,6 @@ urlpatterns = patterns('shopback.trades.views',
 
     (r'^detail/$', csrf_exempt(login_required_ajax(detail))),
     (r'^manybeizhu/$', csrf_exempt(login_required_ajax(manybeizhu))),
-    # (r'^beizhu/$',csrf_exempt(login_required_ajax(view_beizhu))),
     (r'^search_trade/$', csrf_exempt(login_required_ajax(search_trade))),
     (r'^chai_trade/$', views_new_check_order.ChaiTradeView.as_view()),
    #url (r'^check_order/(?P<trade_id>\d+)$',views_new_check_order.check_order,name="check_order"),
