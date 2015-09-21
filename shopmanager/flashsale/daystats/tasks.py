@@ -568,7 +568,7 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
             charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_temp["shelf_sale_num"] = shelf_sale_num
-            one_temp["shelf_percent"] = shelf_sale_num/choose_sale_num
+            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else shelf_sale_num/choose_sale_num
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
