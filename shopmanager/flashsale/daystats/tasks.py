@@ -1,3 +1,4 @@
+from __future__ import division
 # -*- encoding:utf8 -*-
 import datetime
 from django.db.models import F, Sum
@@ -544,3 +545,46 @@ def task_calc_package(start_date, end_date, old=True):
             return result_list
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
+from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
+from supplychain.supplier.models import SaleProduct
+
+
+@task(max_retry=1, default_retry_delay=5)
+def task_calc_performance_by_user(start_date, end_date, category="0"):
+    try:
+        year, month, day = start_date.split('-')
+        start_date_time = datetime.datetime(int(year), int(month), int(day))
+        year, month, day = end_date.split('-')
+        end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
+
+        all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+        all_contactors = SaleProduct.objects.values("contactor__username").distinct()
+        result_data = []
+        for contactor in all_contactors:
+            one_temp = {"username": contactor['contactor__username']}
+            charger_product = all_sale_product.filter(contactor__username=contactor['contactor__username'])
+            choose_sale_num = charger_product.count()
+            one_temp["choose_sale_num"] = choose_sale_num
+            charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
+            shelf_sale_num = charger_product_shelf.count()
+            one_temp["shelf_sale_num"] = shelf_sale_num
+            one_temp["shelf_percent"] = shelf_sale_num/choose_sale_num
+            all_sale_num = 0
+            all_sale_cost = 0
+            all_sale_money = 0
+            for one_sale_product in charger_product_shelf:
+                kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
+
+                for one_kucun_product in kucun_product:
+                    one_product_data = DailySupplyChainStatsOrder.objects.filter(product_id=one_kucun_product.outer_id)
+                    if one_product_data.count() > 0:
+                        all_sale_num += one_product_data[0].sale_num
+                        all_sale_cost += one_product_data[0].cost_of_product
+                        all_sale_money += one_product_data[0].sale_cost_of_product
+            one_temp["all_sale_num"] = all_sale_num
+            one_temp["all_sale_cost"] = all_sale_cost
+            one_temp["all_sale_money"] = all_sale_money
+            result_data.append(one_temp)
+    except Exception, exc:
+        raise task_calc_package.retry(exc=exc)
+    return result_data
