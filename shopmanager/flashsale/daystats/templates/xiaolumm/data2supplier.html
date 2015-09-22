@@ -1,5 +1,5 @@
 {% extends "xiaolumm/daystats_base.html" %}
-{% block title %}绩效统计{% endblock %}
+{% block title %}供应商统计{% endblock %}
 {% block head_script %}
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
@@ -19,7 +19,7 @@
                         var result_data = eval(res.task.result);
                         $("#data-table-people thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
-                            tb.append("<tr><td>" + dd['username'] + "</td><td>" + dd["choose_sale_num"] + "</td><td>" + dd["shelf_sale_num"] + "</td>" +
+                            tb.append("<tr><td>" + dd['supplier_name'] + "</td><td>" + dd["choose_sale_num"] + "</td><td>" + dd["shelf_sale_num"] + "</td>" +
                             "<td>" + dd["shelf_percent"] + "</td><td>" + dd["all_sale_num"] + "</td>" +
                             "<td>" + dd["all_sale_cost"] + "</td><td>" + dd["all_sale_money"] + "</td></tr>");
                         });
@@ -45,7 +45,7 @@
 {% endblock %}
 {% block container %}
     <div class="row" style="margin-top: 40px">
-        <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/stats_performance/">
+        <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/stats_supplier/">
 
             <div class="col-xs-4">
                 <label class="control-label" for="df">开始日期:</label>
@@ -60,7 +60,8 @@
             <div class="col-xs-2">
                 <label class="control-label" for="category">类别:</label>
                 <select name="category" class="form-control" id="category_id">
-                    <option value="0" {% ifequal category 0 %}selected="selected" {% endifequal %}>所有</option>
+
+                    <option value="0" {% ifequal category "0" %}selected="selected" {% endifequal %}>所有</option>
                     {% for one_category in all_category %}
                         <option value="{{ one_category.id }}"
                                 {% ifequal category one_category.id %}selected="selected" {% endifequal %}>{{ one_category.name }}</option>
@@ -77,13 +78,13 @@
 
     <div class="row panel panel-success" style="margin-top: 20px">
         <div class="panel-heading">
-            <h3 class="panel-title">绩效统计</h3>
+            <h3 class="panel-title">供应商统计</h3>
         </div>
         <div class="panel-body">
             <input id="task_id" value="{{ task_id }}" hidden="hidden">
             <table class="table table-bordered" id="data-table-result">
                 <thead>
-                <th>买手名字</th>
+                <th>供应商名字</th>
                 <th>选款数量</th>
                 <th>上架数量</th>
                 <th>选款上架率</th>

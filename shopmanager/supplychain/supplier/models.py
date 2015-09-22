@@ -89,7 +89,7 @@ class SaleSupplier(models.Model):
         (REJECTED, u'淘汰'),
         (IGNORED, u'忽略'),)
 
-    supplier_name = models.CharField(max_length=64, unique=True, blank=True, verbose_name=u'店铺名称')
+    supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'店铺名称')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
 
     description = models.CharField(max_length=1024, blank=True, verbose_name=u'品牌简介')
@@ -102,14 +102,14 @@ class SaleSupplier(models.Model):
     category = BigIntegerForeignKey(SaleCategory, null=True,
                                     related_name='category_suppliers', verbose_name=u'类别')
 
-    contact = models.CharField(max_length=32, blank=True, verbose_name=u'联系人')
+    contact = models.CharField(max_length=32, blank=False, verbose_name=u'联系人')
     phone = models.CharField(max_length=32, blank=True, verbose_name=u'电话')
-    mobile = models.CharField(max_length=16, blank=True, verbose_name=u'手机')
+    mobile = models.CharField(max_length=16, blank=False, verbose_name=u'手机')
     fax = models.CharField(max_length=16, blank=True, verbose_name=u'传真')
     zip_code = models.CharField(max_length=16, blank=True, verbose_name=u'邮编')
     email = models.CharField(max_length=64, blank=True, verbose_name=u'邮箱')
 
-    address = models.CharField(max_length=64, blank=True, verbose_name=u'地址')
+    address = models.CharField(max_length=64, blank=False, verbose_name=u'地址')
     account_bank = models.CharField(max_length=32, blank=True, verbose_name=u'汇款银行')
     account_no = models.CharField(max_length=32, blank=True, verbose_name=u'汇款帐号')
 

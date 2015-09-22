@@ -546,18 +546,22 @@ def task_calc_package(start_date, end_date, old=True):
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
-from supplychain.supplier.models import SaleProduct
+from supplychain.supplier.models import SaleProduct, SaleSupplier
 
 
 @task(max_retry=1, default_retry_delay=5)
 def task_calc_performance_by_user(start_date, end_date, category="0"):
+    """计算买手绩效"""
     try:
         year, month, day = start_date.split('-')
         start_date_time = datetime.datetime(int(year), int(month), int(day))
         year, month, day = end_date.split('-')
         end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
-
-        all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+        if category == "0":
+            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+        else:
+            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
+                                                          sale_category__id=category)
         all_contactors = SaleProduct.objects.values("contactor__username").distinct()
         result_data = []
         for contactor in all_contactors:
@@ -568,7 +572,7 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
             charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_temp["shelf_sale_num"] = shelf_sale_num
-            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else shelf_sale_num/choose_sale_num
+            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
@@ -577,10 +581,57 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
 
                 for one_kucun_product in kucun_product:
                     one_product_data = DailySupplyChainStatsOrder.objects.filter(product_id=one_kucun_product.outer_id)
-                    if one_product_data.count() > 0:
-                        all_sale_num += one_product_data[0].sale_num
-                        all_sale_cost += one_product_data[0].cost_of_product
-                        all_sale_money += one_product_data[0].sale_cost_of_product
+                    for stat_data in one_product_data:
+                        all_sale_num += stat_data.sale_num
+                        all_sale_cost += stat_data.cost_of_product
+                        all_sale_money += stat_data.sale_cost_of_product
+            one_temp["all_sale_num"] = all_sale_num
+            one_temp["all_sale_cost"] = all_sale_cost
+            one_temp["all_sale_money"] = all_sale_money
+            result_data.append(one_temp)
+    except Exception, exc:
+        raise task_calc_package.retry(exc=exc)
+    return result_data
+
+@task(max_retry=1, default_retry_delay=5)
+def task_calc_performance_by_supplier(start_date, end_date, category="0"):
+    """计算供应商"""
+    try:
+        year, month, day = start_date.split('-')
+        start_date_time = datetime.datetime(int(year), int(month), int(day))
+        year, month, day = end_date.split('-')
+        end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
+        if category == "0":
+            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+        else:
+            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
+                                                          sale_supplier__category_id=category)
+        all_suppliers = all_sale_product.values("sale_supplier__id").distinct()
+        result_data = []
+        for supplier in all_suppliers:
+            supplier_bean = SaleSupplier.objects.filter(id=supplier['sale_supplier__id'])
+            if supplier_bean.count() == 0:
+                continue
+            one_temp = {"supplier_name": supplier_bean[0].supplier_name}
+            charger_product = all_sale_product.filter(sale_supplier__id=supplier['sale_supplier__id'])
+            choose_sale_num = charger_product.count()
+            one_temp["choose_sale_num"] = choose_sale_num
+            charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
+            shelf_sale_num = charger_product_shelf.count()
+            one_temp["shelf_sale_num"] = shelf_sale_num
+            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
+            all_sale_num = 0
+            all_sale_cost = 0
+            all_sale_money = 0
+            for one_sale_product in charger_product_shelf:
+                kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
+
+                for one_kucun_product in kucun_product:
+                    one_product_data = DailySupplyChainStatsOrder.objects.filter(product_id=one_kucun_product.outer_id)
+                    for stat_data in one_product_data:
+                        all_sale_num += stat_data.sale_num
+                        all_sale_cost += stat_data.cost_of_product
+                        all_sale_money += stat_data.sale_cost_of_product
             one_temp["all_sale_num"] = all_sale_num
             one_temp["all_sale_cost"] = all_sale_cost
             one_temp["all_sale_money"] = all_sale_money
