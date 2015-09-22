@@ -4,14 +4,14 @@
 
 // 售后退款页面　弹出页面　操作等js代码
 function show_page(refund_id) {
-    $(".click_row_"+refund_id).parent().parent().hide();//隐藏掉要操作的行
+    $(".click_row_" + refund_id).parent().parent().hide();//隐藏掉要操作的行
     console.log("debug refund id :", refund_id);
     layer.open({
         type: 2,
         title: '退款审核页面',
         shadeClose: true,
         shade: 0.6,
-        area: ['950px', '70%'],
+        area: ['950px', '62%'],
         content: '/mm/refund_pop_page/?pk=' + refund_id // 弹出的url页面
     });
 }
@@ -28,7 +28,7 @@ function Create_btn(status) {
     function Btn_Dom1() {
         /*
          <button type="button" class="btn btn-danger btn_dnt_agree"　style="margin-left: 30px">驳回申请</button>
-         <button type="button" class="btn btn-success btn_agree" style="margin-left :30px">同意退款</button>
+         <button type="button" class="btn btn-success btn_agree" style="margin-left :30px">退款给买家</button>
          */
     }
 
@@ -44,8 +44,8 @@ function Create_btn(status) {
     else if (status == "确认退款，等待返款") {
         return hereDoc(Btn_Dom2);
     }
-}
 
+}
 
 //　保存
 function save_info(refund_id) {
@@ -56,18 +56,18 @@ function save_info(refund_id) {
     console.log(refund_status, refund_feedback);
     layer.confirm("确定保存？", {btn: ["确定", '取消']},
         function () {
-            $.ajax({
-                type: 'post',
-                url: requestUrl,
-                data: {
-                    "pk": refund_id,
-                    "refund_status": refund_status,
-                    "refund_feedback": refund_feedback,
-                    "method": "save"
-                },
-                dataType: 'json',
-                success: requestCallBack
-            });
+            //$.ajax({
+            //    type: 'post',
+            //    url: requestUrl,
+            //    data: {
+            //        "pk": refund_id,
+            //        "refund_status": refund_status,
+            //        "refund_feedback": refund_feedback,
+            //        "method": "save"
+            //    },
+            //    dataType: 'json',
+            //    success: requestCallBack
+            //});
         }, function () {
             console.log("cancel save");
         }
@@ -118,6 +118,37 @@ function dnt_agree_refund(refund_id) {
     }
 }
 
+function agree_product(refund_id) {//同意退货
+    console.log(refund_id);
+    var requestUrl = "/mm/refund_pop_page/";
+    var refund_feedback = $("#ref_feedback").val();
+    console.log(refund_feedback);
+    layer.confirm("同意退货？", {btn: ["确定", '取消']},
+        function () {
+            $.ajax({
+                type: 'post',
+                url: requestUrl,
+                data: {
+                    "pk": refund_id,
+                    "refund_feedback": refund_feedback,
+                    "method": "agree_product"
+                },
+                dataType: 'json',
+                success: requestCallBack
+            });
+        }, function () {
+            console.log("cancel agree_product");
+        }
+    );
+    function requestCallBack(res) {
+        console.log(res);
+        if (res.res == true) {
+            layer.msg('操作成功！');
+            var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+            parent.layer.close(index); //执行关闭
+        }
+    }
+}
 //　同意退款　　　状态改为　确认退款等待返款　
 function agree_refund(refund_id) {
     console.log(refund_id);

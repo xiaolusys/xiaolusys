@@ -2318,55 +2318,35 @@ def search_trade(request):
     return render(request, 'trades/order_detail.html',{'info': rec1,'time':today})
 
 
-
-
 def manybeizhu(request):
-        
-        return render(request, 'trades/manybeizhu.html')
-    
-    
-    
-def  view_beizhu(request):  
-    user_id  = request.user.id
-    content  = request.REQUEST
-
-    trade_id = content.get('trade_id','')
-    sys_memo = content.get('sys_memo','')
-    try:
-        merge_trade = MergeTrade.objects.get(id=trade_id)
-    except:
-        return HttpResponse(json.dumps({'code':1,'response_error':u'订单未找到'}),mimetype="application/json")
-    else:
-        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-        merge_trade.sys_memo   = sys_memo
-        merge_trade.save()
-        MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
-            .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
-        log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%sys_memo)
-        return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
+    return render(request, 'trades/manybeizhu.html')
 
 
 def beizhu(request):
-    user_id  = request.user.id
-    a = request.GET['a'].strip()
-    c=request.GET['b']
-    am=a.split()
-    for i  in range(0,len(am),1):
-        print "第",am[i]
-    try:
-        merge_trade = MergeTrade.objects.get(tid=am[i])
-    except:
-        return HttpResponse(json.dumps({'code':1,'tid':am[i],'num':i+1,'response_error':u'订单未找到'}),mimetype="application/json")
-    else:
-        merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
-        merge_trade.sys_memo   = merge_trade.sys_memo   +   c
-        merge_trade.save()
-        MergeTrade.objects.filter(id=merge_trade.id,sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,out_sid='')\
-         .update(sys_status = pcfg.WAIT_AUDIT_STATUS)
-        log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%c)
-    return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),content_type="application/json")
-    
-    
+    user_id = request.user.id
+    content = request.REQUEST
+    a = content.get("a", None)
+    c = content.get("b", None)
+    tid_list = a.split('\n')
+    tids = []
+    for i in tid_list:
+        tids.append(i.strip())
+    not_handler = []
+    for tid in tids:
+        try:
+            merge_trade = MergeTrade.objects.get(tid=tid)
+        except MergeTrade.DoesNotExist:
+            not_handler.append(tid)
+            continue
+        else:
+            merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+            merge_trade.sys_memo = merge_trade.sys_memo+c
+            merge_trade.save()
+            MergeTrade.objects.filter(id=merge_trade.id, sys_status=pcfg.WAIT_PREPARE_SEND_STATUS, out_sid='') \
+                .update(sys_status=pcfg.WAIT_AUDIT_STATUS)  # 切换到＂等待人工审核状态＂
+            log_action(user_id, merge_trade, CHANGE, u'系统备注:%s' % c)
+    return HttpResponse(json.dumps({'code': 0, 'not_handler': not_handler}), content_type="application/json")
+
     
 def test(request):
     return render(request, 'trades/test.html') 
