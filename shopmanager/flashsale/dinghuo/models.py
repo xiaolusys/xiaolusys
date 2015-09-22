@@ -7,7 +7,7 @@ from shopback.items.models import ProductSku, Product
 
 
 class OrderList(models.Model):
-    
+
     #订单状态
     SUBMITTING = u'草稿'  #提交中
     APPROVAL = u'审核'  #审核
@@ -38,7 +38,7 @@ class OrderList(models.Model):
         (SHANGDONG, u'山东'),
         (GUANGDONG, u'广东福建'),
     )
-    
+
     id = BigIntegerAutoField(primary_key=True)
     buyer_name = models.CharField(default="",max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
@@ -71,9 +71,9 @@ class OrderList(models.Model):
 
 
 class OrderDetail(models.Model):
-    
+
     id = BigIntegerAutoField(primary_key=True)
-    
+
     orderlist = BigIntegerForeignKey(OrderList, related_name='order_list', verbose_name=u'订单编号')
     product_id = models.CharField(db_index=True,max_length=32, verbose_name=u'商品id')
     outer_id = models.CharField(max_length=32, verbose_name=u'产品外部编码')
@@ -136,10 +136,10 @@ class ProductSkuDetail(models.Model):
     def __unicode__(self):
         return u'<%s>'%(self.product_sku)
 
-from shopback import signals 
+from shopback import signals
 
 def init_stock_func(sender,product_list,*args,**kwargs):
-    
+
     for pro_bean in product_list:
         sku_qs = pro_bean.prod_skus.all()
         for sku_bean in sku_qs:
@@ -149,6 +149,35 @@ def init_stock_func(sender,product_list,*args,**kwargs):
             sku_bean.memo=""
             sku_bean.save()
             pro_sku_bean[0].save()
-            
+
 signals.signal_product_upshelf.connect(init_stock_func, sender=Product)
+
+
+class ReturnGoods(models.Model):
+    product_id = models.BigIntegerField(db_index=True, verbose_name=u"退货商品id")
+    supplier_id = models.IntegerField(db_index=True, verbose_name=u"供应商id")
+    return_num = models.IntegerField(default=0, verbose_name=u"退货数量")
+    sum_amount = models.FloatField(default=0.0, verbose_name=u"退货总金额")
+    noter = models.CharField(max_length=32, verbose_name=u"退货单录入人")
+    consigner = models.CharField(max_length=32, blank=True, verbose_name=u"发货人")
+    consign_time = models.DateTimeField(blank=True, null=True, verbose_name=u'发货时间')
+    sid = models.CharField(max_length=64, blank=True, verbose_name=u"发货物流单号")
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
+    modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
+    memo = models.TextField(max_length=512, blank=True, verbose_name=u"退货备注")
+
+    class Meta:
+        db_table = 'flashsale_dinghuo_returngoods'
+        verbose_name = u'商品库存退货表'
+        verbose_name_plural = u'商品库存退货列表'
+
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.supplier_id, self.product_id)
+
+
+
+
+
+
+
 

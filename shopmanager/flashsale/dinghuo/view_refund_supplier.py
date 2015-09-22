@@ -13,12 +13,14 @@ from django.forms import model_to_dict
 from django.db.models import Sum
 import logging
 import datetime
+from shopback.base import log_action, ADDITION, CHANGE
 
 logger = logging.getLogger('django.request')
 
 from shopback.items.models import Product
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder, SupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct
+from .models import ReturnGoods
 
 
 def time_zone_handler(date_from=None, date_to=None):
@@ -40,7 +42,8 @@ def get_sale_product(sale_product):
     """　找到库存商品对应的选品信息　"""
     try:
         sal_p = SaleProduct.objects.get(id=sale_product)
-        return sal_p.sale_supplier
+        return sal_p.sale_supplier.supplier_name, sal_p.sale_supplier.pk, \
+               sal_p.sale_supplier.contact, sal_p.sale_supplier.mobile
     except SaleProduct.DoesNotExist:
         return None
 
@@ -65,12 +68,16 @@ class StatisRefundSupView(APIView):
                     s = SupplyChainStatsOrder.objects.filter(product_id=i.outer_id)
                     refund_num = s.aggregate(total_num=Sum('refund_num')).get('total_num') or 0
                     # 找出供应商和买手
-                    sale_supplier = get_sale_product(i.sale_product)
+                    sale_supplier_name, sale_supplier_pk, \
+                    sale_supplier_contact, sale_supplier_mobile = get_sale_product(i.sale_product)
 
                     prod = model_to_dict(i)
                     prod['return_num'] = return_num  # 退款数量
                     prod['refund_num'] = refund_num  # 退货数量
-                    prod['sale_supplier'] = sale_supplier  # 退款数量
+                    prod['sale_supplier_name'] = sale_supplier_name  # 供应商名称
+                    prod['sale_supplier_pk'] = sale_supplier_pk
+                    prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
+                    prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
                     data.append(prod)
                 return Response({"pro": data})
         date_from = (content.get('date_from', None))
@@ -88,13 +95,28 @@ class StatisRefundSupView(APIView):
             # 退货数量 refund_num
             s = SupplyChainStatsOrder.objects.filter(product_id=i.outer_id)
             refund_num = s.aggregate(total_num=Sum('refund_num')).get('total_num') or 0
+            sale_supplier_name, sale_supplier_pk, \
+            sale_supplier_contact, sale_supplier_mobile = get_sale_product(i.sale_product)
             prod = model_to_dict(i)
             prod['return_num'] = return_num  # 退款数量
             prod['refund_num'] = refund_num  # 退货数量
+            prod['sale_supplier_name'] = sale_supplier_name  # 供应商名称
+            prod['sale_supplier_pk'] = sale_supplier_pk
+            prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
+            prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
             tz_data.append(prod)
         return Response({"pro": tz_data})
 
     def post(self, request, format=None):
         content = request.REQUEST
-        outer_id = int(content.get('outer_id', None))
-        pro = get_object_or_404(Product, outer_id=outer_id)  # 退款单
+        pro_id = content.get("pro_id", None)
+        suppleier_id = content.get("suppleier_id", None)
+        return_num = content.get("return_num", None)
+        sum_amount = content.get("sum_amount", None)
+        return_memo = content.get("return_memo", None)
+        return_good = ReturnGoods.objects.create(noter=request.user.username,
+                                                 product_id=pro_id, supplier_id=suppleier_id,
+                                                 return_num=return_num, sum_amount=sum_amount,
+                                                 memo=return_memo)
+        log_action(request.user.id, return_good, CHANGE, u'创建退货单')
+        return Response({"res": True})
