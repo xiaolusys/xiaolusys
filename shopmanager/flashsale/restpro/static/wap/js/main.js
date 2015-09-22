@@ -229,9 +229,9 @@ function Create_item_dom(p_obj,close_model){
 
     p_obj.saleout_dom = '';
     var today = new Date().Format("yyyy-MM-dd");
-
-    //如果没有close model,并且model_product存在
-    if (!close_model && !isNone(p_obj.product_model)) {
+	var is_single_spec = isNone(p_obj.product_model) || p_obj.product_model.is_single_spec　== true;
+    //如果没有close model,并且model_product存在并且是多规格
+    if (!close_model && is_single_spec == false) {
         if (!p_obj.is_saleopen) {
             if (p_obj.sale_time >= today) {
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">即将开售</div>';
@@ -251,7 +251,7 @@ function Create_item_dom(p_obj,close_model){
             p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
         }
     // 商品售光，并且单款或者同款页展示为true
-    } else if (p_obj.is_saleout && (!isNone(p_obj.product_model) || close_model)) {
+    } else if (p_obj.is_saleout && (is_single_spec == true || close_model)) {
         p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
     }
     if (close_model && true){

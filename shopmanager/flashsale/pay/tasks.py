@@ -11,6 +11,7 @@ from django.conf import settings
 from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser,WeixinUnionID
 from flashsale.pay.models import TradeCharge,SaleTrade,SaleOrder,SaleRefund,Customer
+from common.utils import update_model_fields
 from .service import FlashSaleService
 from .options import get_user_unionid
 import logging
@@ -52,13 +53,6 @@ def task_Merge_Sale_Customer(user, code):
     
     WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
     
-    customers = Customer.objects.filter(unionid=unionid)    
-    for customer in customers:
-        if customers[0].user == user:
-            continue
-        customer.status = Customer.DELETE
-        customer.save()
-    
     try:
         profile, state = Customer.objects.get_or_create(user=user)
         wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
@@ -68,8 +62,23 @@ def task_Merge_Sale_Customer(user, code):
         profile.unionid = profile.unionid.strip() or unionid
         profile.save()
         
+        customers = Customer.objects.filter(unionid=unionid)    
+        for customer in customers:
+            if customer.id == profile.id:
+                continue
+            customer.status = Customer.DELETE
+            customer.save()
+            
+            strades = SaleTrade.objects.filter(buyer_id=customer)
+            for strade in strades:
+                log_action(user.id,  strade, CHANGE, u'用户订单转移至:%s'%user.id) 
+                strade.buyer_id = profile.id
+                update_model_fields(strade,update_fields=['buyer_id'])
+            
     except Exception,exc:
         logger.debug(exc.message,exc_info=True)
+        
+    
 
     
 from shopback.trades.models import MergeTrade,MergeBuyerTrade
