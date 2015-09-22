@@ -74,10 +74,13 @@ class WeixinPubBackend(RemoteUserBackend):
 
     def authenticate(self, request, **kwargs):
         
-        if not request.path.startswith(("/mm/","/rest/")) or kwargs.get('username'):
+        content = request.REQUEST
+        if (not request.path.startswith(("/mm/","/rest/")) 
+            or kwargs.get('username') 
+            or content.get('unionid')):
             return None
         
-        code = request.GET.get('code')
+        code = content.get('code')
         openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,
                                           secret=settings.WXPAY_SECRET,request=request)
         
@@ -108,7 +111,60 @@ class WeixinPubBackend(RemoteUserBackend):
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             
         task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
+        return user
+    
+
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except:
+            return None
         
+class WeixinAppBackend(RemoteUserBackend):
+    
+    create_unknown_user = True
+    upports_inactive_user = False
+    supports_object_permissions = False
+
+    def authenticate(self, request, **kwargs):
+        
+        content = request.REQUEST
+        if not (request.path.startswith("/rest/") and content.get('unionid')):
+            return None
+        
+        openid  = content.get('openid')
+        unionid = content.get('unionid')
+        nickname = content.get('nickname')
+        if not valid_openid(openid) or not valid_openid(unionid):
+            return AnonymousUser()
+        
+        try:
+            profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
+            #如果openid有误，则重新更新openid
+            if profile.openid != openid:
+                task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXAPP_ID)()
+                
+            if profile.user:
+                if not profile.user.is_active:
+                    profile.user.is_active = True
+                    profile.user.save()
+                return profile.user
+            else:
+                user,state = User.objects.get_or_create(username=unionid,is_active=True)
+                profile.user = user
+                profile.save()
+            
+        except Customer.DoesNotExist:
+            if not self.create_unknown_user:
+                return AnonymousUser()
+            
+            user,state = User.objects.get_or_create(username=unionid,is_active=True)
+            profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
+            if not profile.nick.strip():
+                profile.nick = nickname
+                profile.save()
+                
+        task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXAPP_ID)()
         return user
     
 

@@ -2,7 +2,6 @@
  * Created by yann on 15-7-29.
  */
 
-
 (function ($) {
     $.extend($.fn, {
     	//监听购物车点击事件
