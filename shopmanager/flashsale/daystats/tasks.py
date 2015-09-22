@@ -569,7 +569,7 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
             charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_temp["shelf_sale_num"] = shelf_sale_num
-            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else shelf_sale_num/choose_sale_num
+            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
@@ -598,9 +598,8 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
         start_date_time = datetime.datetime(int(year), int(month), int(day))
         year, month, day = end_date.split('-')
         end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
-
         all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
-        all_suppliers = SaleProduct.objects.values("sale_supplier__id").distinct()
+        all_suppliers = all_sale_product.values("sale_supplier__id").distinct()
         result_data = []
         for supplier in all_suppliers:
             one_temp = {"supplier_name": supplier['sale_supplier__id']}
@@ -610,7 +609,7 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
             charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_temp["shelf_sale_num"] = shelf_sale_num
-            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else shelf_sale_num/choose_sale_num
+            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
