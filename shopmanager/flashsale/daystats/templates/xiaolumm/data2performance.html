@@ -60,10 +60,11 @@
             <div class="col-xs-2">
                 <label class="control-label" for="category">类别:</label>
                 <select name="category" class="form-control" id="category_id">
-
-                    <option value="0" {% ifequal category "0" %}selected="selected" {% endifequal %}>所有</option>
-                    <option value="8" {% ifequal category "8" %}selected="selected" {% endifequal %}>女装</option>
-                    <option value="9" {% ifequal category "9" %}selected="selected" {% endifequal %}>童装</option>
+                    <option value="0" {% ifequal category 0 %}selected="selected" {% endifequal %}>所有</option>
+                    {% for one_category in all_category %}
+                        <option value="{{ one_category.id }}"
+                                {% ifequal category one_category.id %}selected="selected" {% endifequal %}>{{ one_category.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-xs-1">
