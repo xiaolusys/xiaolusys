@@ -105,6 +105,12 @@ WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
 WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET      = 'bc41b3a535b095afc55cd40d2e808d9c'
 
+WXPAY_APPID    = "wx3f91056a2928ad2d"
+WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
+
+WXAPP_ID       = "wx25fcb32689872499"
+WXAPP_SECRET   = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
+
 ################### JINGDONG SETTINGS #################
 
 JD_APP_KEY = 'F9653439C316A32BF49DFFDE8381CBC9'
@@ -117,8 +123,6 @@ JD_REDIRECT_URI    = '/app/jd/login/auth/'
 JD_API_ENDPOINT = 'http://%s/routerjson'%JD_API_HOSTNAME
 
 ################### PING++ SETTINGS ##################
-WXPAY_APPID    = "wx3f91056a2928ad2d"
-WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
 
 PINGPP_CLENTIP = "121.199.168.159"
 PINGPP_APPID   = "app_LOOajDn9u9WDjfHa"
