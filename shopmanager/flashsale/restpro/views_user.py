@@ -53,6 +53,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     - {prefix}/check_code_user: params={username,valid_code,password1,password2} 注册新用户;
     - {prefix}/change_pwd_code: params={vmobile} 修改密码时，获取验证码api;
     - {prefix}/change_user_pwd: params={username,valid_code,password1,password2} 提交修改密码api;
+    - {prefix}/wxapp_login: params= {headimgurl = "";nickname = "\U5f71\U5b50";openid = oLcb0waCcJLw9yREz5gNI0MlT2D4;unionid = "o29cQs0fsIy3k7f6s7_mS8qSRSUo";} 
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -230,7 +231,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not username or not password:
             return Response({"result": "null"})
         try:
-            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username),status=Customer.NORMAL)
+            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username)
+                                                ,status=Customer.NORMAL)
             if customers.count() > 0:
                 username = customers[0].user.username
             user1 = authenticate(username=username, password=password)
@@ -261,6 +263,26 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         except ValueError, exc:
             return Response({"result": "no_pwd"})
         return Response({"result": "fail"})
+    
+    @list_route(methods=['get','post'])
+    def wxapp_login(self, request):
+        """微信app 登录接口"""
+        req_params = request.POST
+        user1 = authenticate(request=request,**req_params)
+        if not user1 or user1.is_anonymous():
+            return Response({"ｉs_login":False, "info":"fail"})  
+        login(request, user1)
+        
+        customer = get_object_or_404(Customer,user=request.user)
+        serializer = serializers.CustomerSerializer(customer,context={'request': request})
+        user_info  = serializer.data
+        user_scores = Integral.objects.filter(integral_user=customer.id)
+        user_score = 0
+        if user_scores.count() > 0:
+            user_score = user_scores[0].integral_value
+        user_info['score'] = user_score
+        
+        return Response({"ｉs_login":True, "info":user_info})
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
