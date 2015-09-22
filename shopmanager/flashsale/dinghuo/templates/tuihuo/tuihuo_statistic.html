@@ -83,16 +83,20 @@
                 <td>{{ i.memo }}</td>
                 <td>{{ i.return_num }}</td>
                 <td>{{ i.refund_num }}</td>
-                <td>{{ i.sale_supplier }}</td>
+                <td id="td_supplier">
+                    <a onclick="connect_supplier({{ i.sale_supplier_pk }},{{ i.id }})">{{ i.sale_supplier_name }}</a><br>
+                    <span class="label label-info">联系人：</span>{{ i.sale_supplier_contact }}
+                    <span class="label label-info">手机：</span>{{ i.sale_supplier_mobile }}
+                </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 </div>
-
 </body>
 
-
+<script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/extend/layer.ext.js"></script>
 <script type="text/javascript">
     $(function () {
         $("#left_date_pic").datepicker({
@@ -102,6 +106,69 @@
             dateFormat: "yy-mm-dd"
         });
     });
+    function connect_supplier(suppleier_id, pro_id) {
+        var html = '<div>' +
+                '<div class="input-group" style="margin-top: 20px">' +
+                '<span class="input-group-btn">' +
+                '<button class="btn btn-default" type="button">退货数量</button>' +
+                '</span><input type="text" class="form-control" id="return_num">' +
+                '<span class="input-group-btn">' +
+                '<button class="btn btn-default" type="button">退货总金额</button>' +
+                '</span><input type="text" class="form-control" id="sum_amount">' +
+                '<span class="input-group-btn"><button class="btn btn-default" type="button">备注</button>' +
+                '</span></div><textarea id="return_memo" class="form-control" rows="5" style="margin-top: 20px"></textarea>' +
+                '<button type="button" class="btn btn-warning return_supplier"  style="margin-top: 20px">确定</button>' +
+                '</div>';
+        layer.tab({
+            area: ['600px', '300px'],
+            tab: [{
+                title: '退货给供应商',
+                content: html
+            }]
+        });
+        $(".layui-layer-page").removeClass("layui-layer-tab");//这句只是删除样式没有其他作用
+        console.log("supplier", suppleier_id, pro_id);
+        $(".return_supplier").click(function () {
+
+            if ($(".return_supplier").hasClass("loading")) {
+                return
+            }
+            var return_num = $("#return_num").val();
+            var sum_amount = $("#sum_amount").val();
+            var return_memo = $("#return_memo").val();
+            console.log("return_num", return_num, "sum_amount", sum_amount, "return_memo", return_memo);
+            var reqUrl = "/sale/dinghuo/tuihuo/";
+            $(".return_supplier").addClass("loading");
+            $.ajax({
+                url: reqUrl,
+                data: {
+                    "pro_id": pro_id,
+                    "suppleier_id": suppleier_id,
+                    "return_num": return_num,
+                    "sum_amount": sum_amount,
+                    "return_memo": return_memo
+                },
+                type: "post",
+                dataType: "json",
+                success: requestCallBack
+            });
+            function requestCallBack(res) {
+                $(".return_supplier").removeClass("loading");
+                console.log(res);
+                if (res.res == true) {
+                    layer.confirm('退货单创建成功！关闭小窗口？', {
+                        btn: ['确定'] //按钮
+                    }, function () {
+                        var already = '<h3><span class="label label-danger">已经处理</span></h3>';
+                        $("#td_supplier").append(already);
+                        layer.closeAll();
+                    });
+                }
+                else{
+                    layer.msg('创建出问题，请尝试刷新页面，不要重复提交！！！');
+                }
+            }
+        });
+    }
 </script>
-<script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
 </html>

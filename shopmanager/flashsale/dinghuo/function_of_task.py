@@ -278,35 +278,6 @@ from django.db.models import Sum, F
 from shopback.trades.models import MergeTrade, MergeOrder
 
 
-def handler_refund():
-    # 过滤今天生成的　原始数据表
-    today = datetime.date.today() - datetime.timedelta(days=1)
-    ori_datas = SupplyChainStatsOrder.objects.filter(sale_time=today, refund_amount_num__gt=0)  # 退款数量大于0的记录
-    # 取出今天统计出来的所有产品的编码
-    product_id_vls = ori_datas.values('product_id')
-    # 去重处理
-    set_p = set()
-    for i in product_id_vls:
-        set_p.add(i['product_id'])
-    # 对编码进行循环
-    for i in set_p:
-        pro_ds = ori_datas.filter(product_id=i)  # 找出同一个编码的记录
-        # 计算退款数量
-        refund_amount_nums = pro_ds.aggregate(total_num=Sum('refund_amount_num')).get('total_num') or 0
-        # 将退款数量写入　供应链数据统计表　表中
-        if refund_amount_nums > 0:
-            dsos = DailySupplyChainStatsOrder.objects.filter(product_id=i)
-            if dsos.exists():
-                dsos[0].return_num = F("return_num") + refund_amount_nums  # 累加同款商品的退款数量
-                dsos[0].save()
-            else:
-                products = Product.objects.filter(outer_id=i)
-                if products.exists():
-                    DailySupplyChainStatsOrder.objects.create(product_id=i,
-                                                              sale_time=products[0].sale_time,
-                                                              return_num=refund_amount_nums)
-
-
 def get_daily_refund_num(pre_day=None):
     if pre_day is None:
         return
@@ -329,28 +300,55 @@ def get_daily_refund_num(pre_day=None):
             refund_num = ref.aggregate(total_num=Sum('num')).get('total_num') or 0
             scso.refund_num = refund_num  # 保存退货数量
             scso.save()
-            # 过滤订单中一款产品的集合 付款时间是昨天的
+    refund_handdler_return_num()
+
+
+def refund_handdler_return_num(ref_days=20, pro_days=15):
+    """ 计算退款数量　"""
+    # 过滤过去１５天的上架产品
+    today = datetime.date.today()
+    target_ref_day = today - datetime.timedelta(days=ref_days)
+    target_pro_day = today - datetime.timedelta(days=pro_days)
+    # 过去３０天
+    start_ref_dt = datetime.datetime(target_ref_day.year, target_ref_day.month, target_ref_day.day)
+    # 过去１５天
+    start_pro_dt = datetime.datetime(target_pro_day.year, target_pro_day.month, target_pro_day.day)
+    end_dt = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+    products = Product.objects.filter(sale_time__gte=start_pro_dt, sale_time__lte=end_dt)
     from shopback import paramconfig as pcfg
-    # 付款时间是昨天　是退款状态的订单　
-    refunds = Refund.objects.filter(modified__gte=start_dt, modified__lte=end_dt,
+    refunds = Refund.objects.filter(created__gte=start_ref_dt, created__lte=end_dt,
                                     status__in=(pcfg.REFUND_SUCCESS,  # 退款成功
                                                 pcfg.REFUND_CONFIRM_GOODS,  # 买家已经退货
                                                 pcfg.REFUND_WAIT_SELLER_AGREE))  # 卖家同意退款
-    for refund in refunds:
-        mos = MergeOrder.objects.filter(oid=refund.oid)
-        if not mos.exists():
+    # 1 对照退货款单计算退款数量
+    ref_pro_nums = {}
+    for ref in refunds:
+        mero = MergeOrder.objects.filter(oid=ref.oid)  # 找到订单　这里的一个oid 一一对应　一个订单
+        # 找到订单，判断订单的产品是否是　上文的上架产品
+        if not mero.exists():
             continue
-        mo = mos[0]
-        products = Product.objects.filter(outer_id=mo.outer_id)
-        if products.exists() and products[0].sale_time:
-            scso, state = SupplyChainStatsOrder.objects.get_or_create(product_id=mo.outer_id,
-                                                                      outer_sku_id=mo.outer_sku_id,
-                                                                      shelve_time=products[0].sale_time,
-                                                                      sale_time=target_day)
-            scso.refund_amount_num = F("refund_amount_num") + 1
-            scso.save()
-            
-    handler_refund()
+        else:
+            if mero[0].outer_id not in ref_pro_nums:
+                ref_pro_nums[mero[0].outer_id] = 1
+            else:
+                ref_pro_nums[mero[0].outer_id] += 1
+    for prod in products:
+        # 如果上架商品在过滤的退款单中
+        if prod.outer_id in ref_pro_nums:
+            ref_num = ref_pro_nums[prod.outer_id]
+            # 写退款单数到统计中
+            try:
+                dscso = DailySupplyChainStatsOrder.objects.get(product_id=prod.outer_id)
+                dscso.return_num = ref_num
+                dscso.save()
+            except DailySupplyChainStatsOrder.DoesNotExist:
+                # 没有找到记录，表示没有卖掉　没有退款记录
+                continue  # 退出本次循环　　进入下次循环
+            except DailySupplyChainStatsOrder.MultipleObjectsReturned:
+                # 找到多个记录　（可能有重复上架的产品）
+                dscso = DailySupplyChainStatsOrder.objects.filter(product_id=prod.outer_id)[0]
+                dscso.return_num = ref_num
+                dscso.save()
 
 
 from django.db import connection
