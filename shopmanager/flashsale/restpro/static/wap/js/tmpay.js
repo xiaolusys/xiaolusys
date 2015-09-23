@@ -87,6 +87,9 @@ function Set_user_orderinfo(suffix){
             if(data.coupon_ticket.type==1){
                 coupon_template = $('#coupon_post_fee').html();
             }
+            if(data.coupon_ticket.type==2){//满150减10
+                coupon_template = $('#coupon_post_fee').html();
+            }
 			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
 		}
 	};
