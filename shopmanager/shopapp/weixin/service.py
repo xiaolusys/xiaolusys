@@ -476,9 +476,9 @@ class WeixinUserService():
                     return ret_params
                  
             elif msgtype == WeiXinAutoResponse.WX_IMAGE:
-                from shopapp.weixin_sales.service import WeixinSaleService
-                WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
-                 
+                #保存微信用户上传图片
+                # from shopapp.weixin_sales.service import WeixinSaleService
+                # WeixinSaleService(self._wx_user).downloadPicture(params['MediaId'])
                 ret_params.update(WeiXinAutoResponse.respDKF())
                 return ret_params
                  
