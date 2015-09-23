@@ -28,10 +28,11 @@ from . import serializers
 from . import options 
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
+import logging
+logger = logging.getLogger('django.request')
 
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
-
 
 
 def check_day_limit(reg_bean):
@@ -274,6 +275,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         new_sign = options.gen_wxlogin_sha1_sign(params,settings.WXAPP_SECRET)
         if origin_sign and origin_sign == new_sign:
             return True
+        logger.warn('%s'%params.update({'sign':origin_sign}))
         return False
     
     @list_route(methods=['GET','post'])
@@ -296,12 +298,12 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
            POST: 'a=1&b=3&c=2&noncestr=1442995986abcdef&sign=366a83819b064149a7f4e9f6c06f1e60eaeb02f7'
         """
         if not self.check_sign(request):
-            return Response({"ｉs_login":False, "info":"fail"}) 
+            return Response({"ｉs_login":False, "info":"invalid sign"}) 
         
         req_params = request.POST
         user1 = authenticate(request=request,**req_params)
         if not user1 or user1.is_anonymous():
-            return Response({"ｉs_login":False, "info":"fail"})  
+            return Response({"ｉs_login":False, "info":"invalid user"})  
         login(request, user1)
         
         customer = get_object_or_404(Customer,user=request.user)
