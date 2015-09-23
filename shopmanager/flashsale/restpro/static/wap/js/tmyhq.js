@@ -23,6 +23,14 @@ function create_yhq_dom_post_fee_used(obj) {
     var xlmm_118_used = $("#post_fee_used").html();
     return hereDoc(xlmm_118_used).template(obj)
 }
+function create_c150_10(obj){
+    var c150_10 = $("#c150_10").html();
+    return hereDoc(c150_10).template(obj)
+}
+function create_c150_10_used(obj){
+    var c150_10_used = $("#c150_10_used").html();
+    return hereDoc(c150_10_used).template(obj)
+}
 
 $(document).ready(function () {
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
@@ -57,6 +65,16 @@ $(document).ready(function () {
                     //10元现金券   coupon_type 5 已使用
                     var yhq_tree6 = create_yhq_dom_post_fee_used(yhq_obj);
                     $(".youxiao").append(yhq_tree6);
+                }
+                if (val.coupon_value == 10 && val.status == 0 && val.coupon_type == 2) {
+                    //150-10   满150－10
+                    var yhq_tree7 = create_c150_10(yhq_obj);
+                    $(".youxiao").append(yhq_tree7);
+                }
+                if (val.coupon_value == 10 && val.status == 1 && val.coupon_type == 2) {
+                    //10元现金券   满150－10
+                    var yhq_tree8 = create_c150_10_used(yhq_obj);
+                    $(".youxiao").append(yhq_tree8);
                 }
             });
         }
