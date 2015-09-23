@@ -71,6 +71,10 @@
 .list .caaaaaa{
   color:#aaaaaa;
 }
+.list p{
+	margin:0px;
+}
+
 
 .orderno {
   font-size:20px;
@@ -198,7 +202,6 @@
 .refund_status_5{border:#ffffff;}
 .refund_status_6{border:#ffffff;}
 .refund_status_7{border:#ffffff;}
-
 
 .fl{ float: left;}
 .fr{ float: right;}
