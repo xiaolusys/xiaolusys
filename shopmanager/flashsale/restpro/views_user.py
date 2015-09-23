@@ -53,7 +53,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     - {prefix}/check_code_user: params={username,valid_code,password1,password2} 注册新用户;
     - {prefix}/change_pwd_code: params={vmobile} 修改密码时，获取验证码api;
     - {prefix}/change_user_pwd: params={username,valid_code,password1,password2} 提交修改密码api;
-    - {prefix}/wxapp_login: params= {headimgurl = "";nickname = "\U5f71\U5b50";openid = oLcb0waCcJLw9yREz5gNI0MlT2D4;unionid = "o29cQs0fsIy3k7f6s7_mS8qSRSUo";} 
+    - {prefix}/wxapp_login: params= {headimgurl,nickname,openid,unionid} 
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -264,7 +264,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "no_pwd"})
         return Response({"result": "fail"})
     
-    @list_route(methods=['get','post'])
+    @list_route(methods=['post'])
     def wxapp_login(self, request):
         """微信app 登录接口"""
         req_params = request.POST

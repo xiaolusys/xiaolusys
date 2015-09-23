@@ -88,6 +88,13 @@ class ModelProduct(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.name)
     
+    @property
+    def is_single_spec(self):
+        products = Product.objects.filter(model_id=self.id,status=Product.NORMAL)
+        if products.counts() > 1:
+            return False
+        return True
+    
 from shopback.base.models import JSONCharMyField
 
 POSTER_DEFAULT =(
