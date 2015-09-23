@@ -25,6 +25,7 @@ from rest_framework import exceptions
 from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
+from . import options 
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
 
@@ -264,9 +265,39 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "no_pwd"})
         return Response({"result": "fail"})
     
-    @list_route(methods=['post'])
-    def wxapp_login(self, request):
-        """微信app 登录接口"""
+    def check_sign(self,request):
+        CONTENT = request.REQUEST
+        params  = {}
+        for k,v in CONTENT.iteritems():
+            params[k] = v
+        origin_sign   = params.pop('sign')
+        new_sign = options.gen_wxlogin_sha1_sign(params,settings.WXAPP_SECRET)
+        if origin_sign and origin_sign == new_sign:
+            return True
+        return False
+    
+    @list_route(methods=['GET','post'])
+    def wxapp_login(self, request, *args, **kwargs):
+        """微信app 登录接口数据校验算法:
+            　参数：params = {'a':1,'c':2,'b':3}
+         随机字符串：noncestr = [timestamp 10位]+[6位随机字符串]，如1442995986abcdef
+        　 　secret : 3c7b4e3eb5ae4c (测试值)
+           签名步骤:
+           1，获得所有签名参数：
+           　sign_params = {a:1,c:2,b:3,noncestr:随机值,secret:密钥值}
+           如　{'a':1,'c':2,'b':3,'noncestr':'1442995986abcdef',secret:'3c7b4e3eb5ae4c'}
+           2,根据参数的字符串key，进行升序排列,并组装成新的字符串，如：
+            sign_string = '&'.join(sort([k=v for k,v in sign_params],asc=true))
+           如　'a=1&b=3&c=2&noncestr=1442995986abcdef&secret=3c7b4e3eb5ae4c'
+           3,签名算法
+            sign = hash.sha1(sign_string).hexdigest()
+            如　签名值＝'366a83819b064149a7f4e9f6c06f1e60eaeb02f7'
+           4,最后传递给服务器的参数：
+           POST: 'a=1&b=3&c=2&noncestr=1442995986abcdef&sign=366a83819b064149a7f4e9f6c06f1e60eaeb02f7'
+        """
+        if not self.check_sign(request):
+            return Response({"ｉs_login":False, "info":"fail"}) 
+        
         req_params = request.POST
         user1 = authenticate(request=request,**req_params)
         if not user1 or user1.is_anonymous():
