@@ -69,7 +69,7 @@ def task_Merge_Sale_Customer(user, code):
             customer.status = Customer.DELETE
             customer.save()
             
-            strades = SaleTrade.objects.filter(buyer_id=customer)
+            strades = SaleTrade.objects.filter(buyer_id=customer.id)
             for strade in strades:
                 log_action(user.id,  strade, CHANGE, u'用户订单转移至:%s'%user.id) 
                 strade.buyer_id = profile.id
