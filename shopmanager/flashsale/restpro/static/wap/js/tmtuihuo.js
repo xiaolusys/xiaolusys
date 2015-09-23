@@ -31,11 +31,11 @@ function Set_order_detail() {
                 });
                 function callBackOrder(res) {
                     for (var i = 0; i < res.count; i++) {
-                        console.log("trade res debug:",res);
                         res.results[i].create = da.pay_time;
                         res.results[i].t_id = da.id;
                         if (res.results[i].refund_status != 0) {
-                            console.log(da.id);
+                            res.results[i].tid = da.tid;
+                            console.log("debug tid:",res.results[i]);
                             var detail_dom = Create_tuihuo_dom(res.results[i]);
                             $('.jifen-list').append(detail_dom);
                         }
