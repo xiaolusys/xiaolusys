@@ -81,8 +81,7 @@ $(document).ready(function(){
   $(window).scroll(function () { 
     var pageH 	= $(document).height(); 
     var scrollT = $(window).scrollTop(); //滚动条top 
-    var aa = (pageH	- winH - scrollT) / winH; 
-    if(scrollT + winH >= pageH ){ 
+	if(scrollT + winH >= pageH - 50  ){ 
     	Load_orders();
     } 
   }); 
