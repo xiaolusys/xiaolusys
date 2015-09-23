@@ -45,7 +45,7 @@ def get_sale_product(sale_product):
         return sal_p.sale_supplier.supplier_name, sal_p.sale_supplier.pk, \
                sal_p.sale_supplier.contact, sal_p.sale_supplier.mobile
     except SaleProduct.DoesNotExist:
-        return None
+        return "", 0, "", ""
 
 
 class StatisRefundSupView(APIView):
