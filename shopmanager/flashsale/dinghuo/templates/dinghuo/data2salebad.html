@@ -1,5 +1,5 @@
 {% extends "xiaolumm/daystats_base.html" %}
-{% block title %}热销统计{% endblock %}
+{% block title %}滞销统计{% endblock %}
 {% block head_script %}
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
@@ -43,7 +43,8 @@
                          var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
                         oScript.type = "text/javascript";
-                        oScript.src = "/static/daystat_js/stat_performance.js";
+                        oScript.src = "/static/js/sale_bad.js";
+
                         oHead.appendChild(oScript);
                     } else if (res.task.status == "PENDING") {
                         setTimeout(get_data, 2000);
@@ -58,7 +59,7 @@
 {% endblock %}
 {% block container %}
     <div class="row" style="margin-top: 40px">
-        <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/sale_hot/">
+        <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/sale_bad/">
 
             <div class="col-xs-4">
                 <label class="control-label" for="df">开始日期:</label>
@@ -114,6 +115,7 @@
             </table>
         </div>
     </div>
+
 {% endblock %}
 {% block tail_script %}
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
