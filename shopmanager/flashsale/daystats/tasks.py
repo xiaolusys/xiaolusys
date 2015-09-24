@@ -16,7 +16,7 @@ from django.conf import settings
 from shopapp.weixin.models import get_Unionid
 from calendar import monthrange
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
-from supplychain.supplier.models import SaleProduct, SaleSupplier
+from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge
 
 
 logger = logging.getLogger('celery.handler')
@@ -270,7 +270,7 @@ def task_calc_xlmm(start_time_str, end_time_str, old=True):
 from django.db import connection
 from shopback.items.models import Product
 from django.db.models import Q
-from flashsale.dinghuo.models import OrderList, OrderDetail
+
 
 
 @task(max_retry=3, default_retry_delay=5)
@@ -599,6 +599,8 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
+            all_tui_kuan = 0
+            tui_kuan_money = 0
             for one_sale_product in charger_product_shelf:
                 kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
 
@@ -608,9 +610,13 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                         all_sale_num += stat_data.sale_num
                         all_sale_cost += stat_data.cost_of_product
                         all_sale_money += stat_data.sale_cost_of_product
+                        all_tui_kuan += stat_data.return_num
+                        tui_kuan_money += stat_data.return_num * one_kucun_product.agent_price
             one_temp["all_sale_num"] = all_sale_num
             one_temp["all_sale_cost"] = all_sale_cost
             one_temp["all_sale_money"] = all_sale_money
+            one_temp["all_tui_kuan"] = all_tui_kuan
+            one_temp["tui_kuan_money"] = tui_kuan_money
             result_data.append(one_temp)
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
@@ -631,6 +637,7 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                                                           sale_supplier__category_id=category)
         all_suppliers = all_sale_product.values("sale_supplier__id").distinct()
         result_data = []
+
         for supplier in all_suppliers:
             supplier_bean = SaleSupplier.objects.filter(id=supplier['sale_supplier__id'])
             if supplier_bean.count() == 0:
@@ -639,6 +646,10 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
             charger_product = all_sale_product.filter(sale_supplier__id=supplier['sale_supplier__id'])
             choose_sale_num = charger_product.count()
             one_temp["choose_sale_num"] = choose_sale_num
+            try:
+                one_temp["category"] = supplier_bean[0].category.__unicode__()
+            except:
+                one_temp["category"] = ""
             charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_temp["shelf_sale_num"] = shelf_sale_num
@@ -646,6 +657,10 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
+            all_tui_kuan = 0
+            tui_kuan_money = 0
+            fa_huo_time = 0
+            fa_huo_num = 0
             for one_sale_product in charger_product_shelf:
                 kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
 
@@ -655,10 +670,38 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                         all_sale_num += stat_data.sale_num
                         all_sale_cost += stat_data.cost_of_product
                         all_sale_money += stat_data.sale_cost_of_product
+                        all_tui_kuan += stat_data.return_num
+                        tui_kuan_money += stat_data.return_num * one_kucun_product.agent_price
+                        if stat_data.order_deal_time > 0 and stat_data.goods_arrival_time > 0:
+                            fa_huo_num += stat_data.sale_num
+                            fa_huo_time += (stat_data.goods_arrival_time - stat_data.order_deal_time)\
+                                                                                * stat_data.sale_num
+            fa_huo_time = fa_huo_time/fa_huo_num if fa_huo_num != 0 else 0
+            fa_huo_time = format_time(fa_huo_time)
+            one_temp["fa_huo_time"] = fa_huo_time
             one_temp["all_sale_num"] = all_sale_num
             one_temp["all_sale_cost"] = all_sale_cost
             one_temp["all_sale_money"] = all_sale_money
+            one_temp["all_tui_kuan"] = all_tui_kuan
+            one_temp["tui_kuan_money"] = tui_kuan_money
+            charge_info = SupplierCharge.objects.filter(supplier_id=supplier_bean[0].id)
+            one_temp["buyer_name"] = ""
+            try:
+                one_temp["buyer_name"] = charge_info[0].employee.username
+            except:
+                one_temp["buyer_name"] = ""
             result_data.append(one_temp)
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
     return result_data
+
+def format_time(time_of_long):
+    days = 0
+    tm_hours = 0
+    if time_of_long > 0:
+        days = time_of_long // 86400
+        tm_hours = time_of_long % 86400 / 3600
+    if days > 0 or tm_hours > 0:
+        return str(int(days)) + "天" + str(round(tm_hours, 1)) + "小时"
+    else:
+        return ""
