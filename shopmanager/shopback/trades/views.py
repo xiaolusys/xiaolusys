@@ -1284,7 +1284,7 @@ def update_sys_memo(request):
         
 def regular_trade(request,id):
     
-    regular_days = request.REQUEST.get('days',1)
+    regular_days = request.REQUEST.get('days','1')
     if not regular_days.isdigit() or int(regular_days) <= 0:
         return HttpResponse(json.dumps({'code':1,'response_error':u'定时时间不合法'}),mimetype="application/json")
     
