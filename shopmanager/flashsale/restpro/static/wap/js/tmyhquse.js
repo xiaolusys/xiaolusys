@@ -35,7 +35,7 @@ function Coupon_Nums_Show(nums) {
 function get_Coupon_On_Choose() {
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
-        console.log("debug choose coupon:",res);
+        console.log("debug choose coupon:", res);
         if (res.length > 0) {
             $.each(res, function (i, val) {
                 var id = val.id;
@@ -48,7 +48,8 @@ function get_Coupon_On_Choose() {
                     "id": id,
                     "created": created,
                     "deadline": deadline,
-                    "coupon_value": coupon_value
+                    "coupon_value": coupon_value,
+                    "coupon_type": coupon_type
                 };
                 if (coupon_value == 30 && coupon_status == 0 && coupon_type == 0) {
                     //满30返30　　代理审核生成的优惠券
@@ -69,6 +70,16 @@ function get_Coupon_On_Choose() {
                     //满30返30　　代理审核生成的优惠券
                     var yhq_tree6 = Create_coupon_post_fee_used(yhq_obj);
                     $('.coupons').append(yhq_tree6);
+                }
+                if (coupon_value == 10 && coupon_status == 0 && coupon_type == 2) {
+                    //满30返30　　代理审核生成的优惠券
+                    var yhq_tree7 = Create_coupon_c150_10(yhq_obj);
+                    $('.coupons').append(yhq_tree7);
+                }
+                if (coupon_value == 10 && coupon_status == 1 && coupon_type == 2) {
+                    //满30返30　　代理审核生成的优惠券
+                    var yhq_tree8 = Create_coupon_c150_10_used(yhq_obj);
+                    $('.coupons').append(yhq_tree8);
                 }
             });
         }
@@ -100,11 +111,40 @@ function Create_coupon_post_fee_used(obj) {
     return hereDoc(html).template(obj)
 }
 
+//满１５０减１０　优惠券
+function Create_coupon_c150_10(obj) {
+    var html = $("#coupon_c150_10").html();
+    return hereDoc(html).template(obj)
+}
 
-function choose_Coupon(coupon_id) {
+function Create_coupon_c150_10_used(obj) {
+    var html = $("#coupon_c150_10_used").html();
+    return hereDoc(html).template(obj)
+}
+
+
+function choose_Coupon(coupon_id, coupon_type) {
     var price = parseFloat(getUrlParam('price'));
-    if (price >= 30) {
+    if (coupon_type == 0 && price >= 30) {
 
+        swal({
+                title: "",
+                text: '确定选择这张优惠券吗？',
+                type: "",
+                showCancelButton: true,
+                imageUrl: "http://image.xiaolu.so/logo.png",
+                confirmButtonColor: '#DD6B55',
+                confirmButtonText: "确定",
+                cancelButtonText: "取消"
+            },
+            function () {//确定　则跳转
+                console.log(document.referrer);
+                var buy_nuw_url = document.referrer.split("&")[0] + "&" + document.referrer.split("&")[1];
+                var include_coupon = buy_nuw_url + "&coupon_id=" + coupon_id;
+                location.href = include_coupon;
+            });
+    }
+    else if (coupon_type == 2 && price >= 150) {//这里判断要满150　注意添加
         swal({
                 title: "",
                 text: '确定选择这张优惠券吗？',
