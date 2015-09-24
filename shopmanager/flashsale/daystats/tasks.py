@@ -599,6 +599,8 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
             all_sale_num = 0
             all_sale_cost = 0
             all_sale_money = 0
+            all_tui_kuan = 0
+            tui_kuan_money = 0
             for one_sale_product in charger_product_shelf:
                 kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
 
@@ -608,9 +610,13 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                         all_sale_num += stat_data.sale_num
                         all_sale_cost += stat_data.cost_of_product
                         all_sale_money += stat_data.sale_cost_of_product
+                        all_tui_kuan += stat_data.return_num
+                        tui_kuan_money += stat_data.return_num * one_kucun_product.agent_price
             one_temp["all_sale_num"] = all_sale_num
             one_temp["all_sale_cost"] = all_sale_cost
             one_temp["all_sale_money"] = all_sale_money
+            one_temp["all_tui_kuan"] = all_tui_kuan
+            one_temp["tui_kuan_money"] = tui_kuan_money
             result_data.append(one_temp)
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
