@@ -1,9 +1,14 @@
 {% extends "xiaolumm/daystats_base.html" %}
-{% block title %}绩效统计{% endblock %}
+{% block title %}买手销量{% endblock %}
 {% block head_script %}
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+    <style>
+    .container{
+        width: 95%;
+    }
     </style>
     <script>
         function get_data() {
@@ -19,9 +24,17 @@
                         var result_data = eval(res.task.result);
                         $("#data-table-people thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
-                            tb.append("<tr><td>" + dd['username'] + "</td><td>" + dd["choose_sale_num"] + "</td><td>" + dd["shelf_sale_num"] + "</td>" +
-                            "<td>" + dd["shelf_percent"] + "</td><td>" + dd["all_sale_num"] + "</td>" +
-                            "<td>" + dd["all_sale_cost"] + "</td><td>" + dd["all_sale_money"] + "</td></tr>");
+                            tb.append("<tr><td>" + dd['username'] + "</td>" +
+                            "<td>" + dd["choose_sale_num"] + "</td>" +
+                            "<td>" + dd["shelf_sale_num"] + "</td>" +
+                            "<td>" + dd["shelf_percent"] + "</td>" +
+                            "<td>" + dd["all_sale_num"] + "</td>" +
+                            "<td>" + dd["all_sale_cost"] + "</td>" +
+                            "<td>" + dd["all_sale_money"] + "</td>" +
+                            "<td>" + dd["all_tui_kuan"] + "</td>" +
+                            "<td>" + dd["tui_kuan_money"] + "</td>" +
+                            "<td>" + (parseFloat(dd.all_sale_money)-parseFloat(dd.all_sale_cost)-parseFloat(dd.tui_kuan_money)).toFixed(2) + "</td>" +
+                            "</tr>");
                         });
                         var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
@@ -90,6 +103,9 @@
                 <th>销售数量</th>
                 <th>销售成本</th>
                 <th>销售额</th>
+                <th>退款数</th>
+                <th>退款额</th>
+                <th>毛利润</th>
                 </thead>
                 <tbody>
 

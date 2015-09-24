@@ -150,7 +150,7 @@ class MergeTradeAdmin(MyAdmin):
         卖家留言：%s                                                             
         系统备注：%s          ">备注</a>'''  %(obj.id,obj.id,obj.id,obj.buyer_nick,obj. buyer_message,obj.seller_memo,obj.sys_memo)
         if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
-            link_content +=  '<a href="javascript:void(0);" class="trade-regular"  style="display:block" trade_id="%d"    >延一周</a>'%obj.id
+            link_content +=  '<a href="javascript:void(0);" class="trade-regular" style="display:block" trade_id="%d" days="3" >延三天</a>'%obj.id
         return link_content
                
     trade_id_link.allow_tags = True

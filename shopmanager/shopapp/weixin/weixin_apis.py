@@ -85,9 +85,6 @@ class WeiXinAPI(object):
         
     def checkSignature(self,signature,timestamp,nonce):
         
-        import time
-        import hashlib
-        
         if time.time() - int(timestamp) > 300:
             return False
         

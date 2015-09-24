@@ -2,6 +2,7 @@
 import os
 import re
 import urllib
+import time
 import datetime
 
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
@@ -25,12 +26,14 @@ from rest_framework import exceptions
 from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
+from . import options 
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
+import logging
+logger = logging.getLogger('django.request')
 
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
-
 
 
 def check_day_limit(reg_bean):
@@ -264,13 +267,50 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "no_pwd"})
         return Response({"result": "fail"})
     
-    @list_route(methods=['post'])
-    def wxapp_login(self, request):
-        """微信app 登录接口"""
+    def check_sign(self,request):
+        CONTENT = request.GET
+        params  = {}
+        for k,v in CONTENT.iteritems():
+            params[k] = v
+        timestamp     = params.get('timestamp')
+        if not timestamp or time.time() - int(timestamp) > 30:
+            return False
+        origin_sign   = params.pop('sign')
+        new_sign = options.gen_wxlogin_sha1_sign(params,settings.WXAPP_SECRET)
+        if origin_sign and origin_sign == new_sign:
+            return True
+        params.update({'sign':origin_sign})
+        logger.error('%s'%params)
+        return False
+    
+    @list_route(methods=['GET','post'])
+    def wxapp_login(self, request, *args, **kwargs):
+        """微信app 登录接口数据校验算法:
+            　参数：params = {'a':1,'c':2,'b':3}
+            时间戳：timestamp = 1442995986
+         随机字符串：noncestr = 8位随机字符串，如abcdef45
+        　 　secret : 3c7b4e3eb5ae4c (测试值)
+           签名步骤:
+           1，获得所有签名参数：
+           　sign_params = {timestamp:时间戳,noncestr:随机值,secret:密钥值}
+           如　{'timestamp':'1442995986','noncestr':'1442995986abcdef','secret':'3c7b4e3eb5ae4c'}
+           2,根据参数的字符串key，进行升序排列,并组装成新的字符串，如：
+            sign_string = '&'.join(sort([k=v for k,v in sign_params],asc=true))
+           如　'noncestr=1442995986abcdef&secret=3c7b4e3eb5ae4c&timestamp=1442995986'
+           3,签名算法
+            sign = hash.sha1(sign_string).hexdigest()
+            如　签名值＝'39ae931c59394c9b4b0973b3902956f63a35c21e'
+           4,最后传递给服务器的参数：
+           URL:~?noncestr=1442995986abcdef&timestamp=1442995986&sign=366a83819b064149a7f4e9f6c06f1e60eaeb02f7
+           POST: 'a=1&b=3&c=2'
+        """
+        if not self.check_sign(request):
+            return Response({"is_login":False, "info":"invalid sign"}) 
+        
         req_params = request.POST
         user1 = authenticate(request=request,**req_params)
         if not user1 or user1.is_anonymous():
-            return Response({"ｉs_login":False, "info":"fail"})  
+            return Response({"is_login":False, "info":"invalid user"})  
         login(request, user1)
         
         customer = get_object_or_404(Customer,user=request.user)
