@@ -965,6 +965,7 @@ class ProductDaySale(models.Model):
     id       = BigIntegerAutoField(primary_key=True)
     
     day_date = models.DateField(verbose_name=u'销售日期')
+    sale_time = models.DateField(null=True,verbose_name=u'上架日期')
     
     user_id  = models.BigIntegerField(null=False,verbose_name=u'店铺用户ID')
     product_id  = models.IntegerField(null=False,verbose_name='商品ID')
