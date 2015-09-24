@@ -59,7 +59,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         refund_dic = {}
         if queryset.exists():
             sale_refund = queryset[0]
-            refund_dic = model_to_dict(sale_refund, fields=["id", "feedback", "buyer_id"])
+            refund_dic = model_to_dict(sale_refund, fields=["id", "feedback", "buyer_id", "reason"])
         return Response(refund_dic)
 
 

@@ -2,7 +2,7 @@ $('#data-table-result').dataTable({
     //"bJQueryUI": true,
     "bAutoWidth": false, //自适应宽度
     "aaSorting": [[6, "asc"]],
-    "iDisplayLength": 30,
+    "iDisplayLength": -1,
     "aLengthMenu": [[30, 50, 100, -1], [30, 50, 100, "All"]],
     //"bInfo":true,
     //"sPaginationType": "full_numbers",
