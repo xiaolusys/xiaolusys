@@ -79,17 +79,7 @@ function Set_user_orderinfo(suffix){
 		}
 		console.log('debug coupon ticket:',data.coupon_ticket);
 		if (!isNone(data.coupon_ticket)){
-            var coupon_template = "";
-            if(data.coupon_ticket.type==0){
-                console.log("debug data.coupon_ticket.coupon_type",data.coupon_ticket.type);
-                coupon_template = $('#coupon-template').html();
-            }
-            if(data.coupon_ticket.type==1){
-                coupon_template = $('#coupon_post_fee').html();
-            }
-            if(data.coupon_ticket.type==2){//满150减10
-                coupon_template = $('#coupon_post_fee').html();
-            }
+            var coupon_template = $('#coupon_c_valid').html();
 			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
 		}
 	};
