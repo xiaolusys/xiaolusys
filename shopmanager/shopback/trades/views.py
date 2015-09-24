@@ -1281,10 +1281,14 @@ def update_sys_memo(request):
         log_action(user_id,merge_trade,CHANGE,u'系统备注:%s'%sys_memo)
         return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
 
-
         
 def regular_trade(request,id):
-        
+    
+    regular_days = request.REQUEST.get('days',1)
+    if not regular_days.isdigit() or int(regular_days) <= 0:
+        return HttpResponse(json.dumps({'code':1,'response_error':u'定时时间不合法'}),mimetype="application/json")
+    
+    regular_days = int(regular_days)
     user_id  = request.user.id
     try:
         merge_trade = MergeTrade.objects.get(id=id,
@@ -1292,7 +1296,7 @@ def regular_trade(request,id):
     except:
         return HttpResponse(json.dumps({'code':1,'response_error':u'订单不在问题单'}),mimetype="application/json")
     else:
-        dt = datetime.datetime.now()+datetime.timedelta(7,0,0)
+        dt = datetime.datetime.now()+datetime.timedelta(regular_days,0,0)
         merge_trade.sys_status   = pcfg.REGULAR_REMAIN_STATUS
         merge_trade.remind_time  = dt
         merge_trade.save()

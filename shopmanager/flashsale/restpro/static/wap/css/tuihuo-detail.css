@@ -57,15 +57,16 @@ p {
 
 div .buy_kefu {
     width: 100px;
-    margin-left: 20%;
-    font-size: 15px;
-    line-height: 60px;
-    background-color: #fcb916;
-    border-radius: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    /*line-height: 60px;*/
+    /*background:url(../images/gongzhonghao.jpg) no-repeat rgba(0,0,0,0.6);*/
+    /*background-color: #fcb916;*/
+    /*border-radius: 10px;*/
     color: #fff;
-    text-align: center;
+    /*text-align: center;*/
     position: relative;
-    left: 30%;
+    /*left: 30%;*/
 }
 div .buy_kefu a{
     color: #fff;
