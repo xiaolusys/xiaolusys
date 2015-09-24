@@ -62,7 +62,7 @@ class SaleBadView(View):
         end_time_str = content.get("dt",  datetime.date.today().strftime('%Y-%m-%d'))
         category = content.get("category", None)
         send_tasks = task_calc_sale_bad.delay(start_time_str, end_time_str, category)
-        return render_to_response("dinghuo/data2hotsale.html",
+        return render_to_response("dinghuo/data2salebad.html",
                                   {"task_id": send_tasks, "start_date": start_time_str,
                                    "end_date": end_time_str, "category": category},
                                   context_instance=RequestContext(request))

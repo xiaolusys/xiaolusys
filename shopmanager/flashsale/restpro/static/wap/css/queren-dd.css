@@ -173,6 +173,15 @@
   background: url(../images/youhuiquan6.png) no-repeat center center;
 }
 
+/*满150-10未使用*/
+.coupons-list li.type7{
+  background: url(../images/youhuiquan5.png) no-repeat center center;
+}
+/*满150-10已经使用的*/
+.coupons-list li.type8{
+  background: url(../images/youhuiquan6.png) no-repeat center center;
+}
+
 
 .coupons-list .name{
   font-size: 24px;

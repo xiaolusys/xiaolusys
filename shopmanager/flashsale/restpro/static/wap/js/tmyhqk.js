@@ -3,9 +3,12 @@
  */
 
 $(document).ready(function () {
-    var url = GLConfig.baseApiUrl + GLConfig.user_own_coupon ;
-     var nums = 0;
+
+
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
+    var nums = 0;
     $.get(url, function (res) {
+        console.log(res);
         if (res.length > 0) {
 
             $.each(res, function (i, val) {
@@ -13,15 +16,15 @@ $(document).ready(function () {
                     nums = nums + 1;//有效可用的优惠券数量
                 }
             });
-            if(nums==0){
-                $(".tips").empty().append("亲，暂无优惠券派发，敬请期待吧~");
+            if (nums == 0) {
+                //$(".tips").empty().append("亲，暂无优惠券派发，敬请期待吧~");
             }
-            else{
+            else {
                 var tips_content = '您已经有' + nums + '张有效优惠券咯，赶紧去花吧！';
                 $(".tips").empty().append(tips_content);//后添加
-                }
+            }
         } else {
-            $(".tips").empty().append("亲，暂无优惠券派发哦，敬请期待吧~");
+            //$(".tips").empty().append("亲，暂无优惠券派发哦，敬请期待吧~");
         }
     });
 
@@ -66,7 +69,7 @@ $(document).ready(function () {
                 var warring4 = "未发放优惠券~";
                 $(".error-tips").empty().append(warring4);////先清理后添加
             }
-            else if(res =="save error"){
+            else if (res == "save error") {
                 var warring6 = "保存失败~";
                 $(".error-tips").empty().append(warring6);////先清理后添加
             }
@@ -75,5 +78,60 @@ $(document).ready(function () {
         $.ajax({"url": url, "data": data, "success": callback, "csrfmiddlewaretoken": csrftoken});
 
     });
+
 });
+
+
+function couponget_150_10() {
+    //领取优惠券
+    console.log("150-10");
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
+    var data = {"coupon_type": "C150_10"};
+    if($(".youxiao").hasClass('loading')){
+        return
+    }
+    $(".youxiao").addClass("loading");
+    $.ajax({
+        "url": url,
+        "data": data,
+        "success": callback,
+        "type": "post",
+        "csrfmiddlewaretoken": csrftoken
+    });
+    function callback(res) {
+        $(".youxiao").removeClass("loading");
+        console.log("debug 150 c :", res);
+        if (res.res == "success") {
+            drawToast("领取成功，赶紧去使用吧，不要过期哦！");
+            //等待3秒跳转到优惠券页面
+            setTimeout(function(){window.location = "youhuiquan.html";}, 3000);
+        }
+        if (res.res == "already") {
+            drawToast("您已经领取过该优惠券啦！");
+            setTimeout(function(){window.location = "youhuiquan.html";}, 3000);
+        }
+        if (res.res == "no_type") {
+            drawToast("优惠券类型不正确呢！");
+            setTimeout(function(){window.location = "youhuiquan.html";}, 3000);
+        }
+        if (res.res == "not_release") {
+            drawToast("还没有开放该优惠券哦，敬请期待！");
+            setTimeout(function(){window.location = "youhuiquan.html";}, 3000);
+        }
+        if (res.res == "cu_not_fund") {
+            drawToast("用户未找到！尝试重新登陆");
+            setTimeout(function(){window.location = "gerenzhongxin.html";}, 3000);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
 

@@ -31,7 +31,7 @@ router.register(r'districts', views.DistrictViewSet)
 router.register(r'integral', views.UserIntegralViewSet)
 router.register(r'integrallog', views.UserIntegralLogViewSet)
 router.register(r'couponpool', views.UserCouponPoolViewSet)
-router.register(r'mycoupon', views.UserCouponViewSet)
+#router.register(r'mycoupon', views.UserCouponViewSet)
 router.register(r'usercoupons', views.UserCouponsViewSet)
 
 router_urls = router.urls
