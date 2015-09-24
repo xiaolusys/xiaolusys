@@ -152,7 +152,7 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
         model = SaleOrder
         fields = ( 'id', 'oid', 'item_id', 'title', 'sku_id' , 'num', 'outer_id', 
                    'total_fee' , 'payment', 'sku_name', 'pic_path', 'status' ,'status_display',
-                   'refund_status', 'refund_status_display')
+                   'refund_status', 'refund_status_display',"refund_id")
         
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
