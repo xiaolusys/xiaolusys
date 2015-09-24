@@ -462,4 +462,21 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     def create(self, request, *args, **kwargs):
-        return Response("error")
+        """　根据参数生成不同类型的优惠券　"""
+        content = request.REQUEST
+        coupon_type = content.get("coupon_type", None)
+        print "coupon_type : ", coupon_type
+        if coupon_type is None:
+            return Response({"res": "no_type"})
+        if coupon_type == "C150_10":
+            try:
+                customer = Customer.objects.get(user=request.user)
+                uc = UserCoupon()
+                cus = {"buyer_id": customer.id}
+                release_res = uc.release_150_10(**cus)
+                return Response({"res": release_res})
+            except Customer.DoesNotExist:
+                return Response({"res": "cu_not_fund"})
+        else:
+            return Response({"res": "not_release"})
+
