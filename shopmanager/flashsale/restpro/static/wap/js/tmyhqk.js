@@ -87,6 +87,10 @@ function couponget_150_10() {
     console.log("150-10");
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     var data = {"coupon_type": "C150_10"};
+    if($(".youxiao").hasClass('loading')){
+        return
+    }
+    $(".youxiao").addClass("loading");
     $.ajax({
         "url": url,
         "data": data,
@@ -95,6 +99,7 @@ function couponget_150_10() {
         "csrfmiddlewaretoken": csrftoken
     });
     function callback(res) {
+        $(".youxiao").removeClass("loading");
         console.log("debug 150 c :", res);
         if (res.res == "success") {
             drawToast("领取成功，赶紧去使用吧，不要过期哦！");
