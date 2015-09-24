@@ -275,7 +275,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         new_sign = options.gen_wxlogin_sha1_sign(params,settings.WXAPP_SECRET)
         if origin_sign and origin_sign == new_sign:
             return True
-        logger.warn('%s'%params.update({'sign':origin_sign}))
+        params.update({'sign':origin_sign})
+        logger.error('%s'%params)
         return False
     
     @list_route(methods=['GET','post'])
@@ -298,12 +299,12 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
            POST: 'a=1&b=3&c=2&noncestr=1442995986abcdef&sign=366a83819b064149a7f4e9f6c06f1e60eaeb02f7'
         """
         if not self.check_sign(request):
-            return Response({"ｉs_login":False, "info":"invalid sign"}) 
+            return Response({"is_login":False, "info":"invalid sign"}) 
         
         req_params = request.POST
         user1 = authenticate(request=request,**req_params)
         if not user1 or user1.is_anonymous():
-            return Response({"ｉs_login":False, "info":"invalid user"})  
+            return Response({"is_login":False, "info":"invalid user"})  
         login(request, user1)
         
         customer = get_object_or_404(Customer,user=request.user)
