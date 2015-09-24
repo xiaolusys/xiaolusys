@@ -57,13 +57,13 @@ tradetag.Manager.prototype.showDialog = function(e) {
 
 
 tradetag.Manager.prototype.regularTrade = function(e) {
-	  var that     = this;
-    var target   = e.target;
-    var row      = target.parentElement.parentElement;
-		 var rowIndex = row.rowIndex;
-		 var table    = row.parentElement.parentElement;
+	var that     = this;
+	var target   = e.target;
+	var row      = target.parentElement.parentElement;
+	var rowIndex = row.rowIndex;
+	var table    = row.parentElement.parentElement;
     this.tag_tid = target.getAttribute('trade_id');
-
+	this.days    = target.getAttribute('days');
     var callback = function(e){
     	var xhr = e.target;
         try {
@@ -77,7 +77,7 @@ tradetag.Manager.prototype.regularTrade = function(e) {
           console.log('Error: (ajax callback) - ', err);
         } 
     };
-	goog.net.XhrIo.send('/trades/regular/'+this.tag_tid+'/?format=json',callback,'GET'); 
+	goog.net.XhrIo.send('/trades/regular/'+this.tag_tid+'/?format=json&days='+this.days,callback,'GET'); 
 }
 
 

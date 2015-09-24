@@ -291,8 +291,7 @@ class ProductAdmin(MyAdmin):
                     'fields': (('weight','sync_stock','is_assign','is_split','is_match','post_check')
                                ,('barcode','match_reason')
                                ,('sale_charger','storage_charger')
-                               ,('buyer_prompt','memo')
-                               )
+                               ,('buyer_prompt','memo'))
                 }),)
     
     formfield_overrides = {
