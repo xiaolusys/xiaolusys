@@ -15,9 +15,9 @@ from flashsale.xiaolumm.models import XiaoluMama
 from django.conf import settings
 from shopapp.weixin.models import get_Unionid
 from calendar import monthrange
+from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
+from supplychain.supplier.models import SaleProduct, SaleSupplier
 
-
-__author__ = 'yann'
 
 logger = logging.getLogger('celery.handler')
 
@@ -271,7 +271,7 @@ from django.db import connection
 from shopback.items.models import Product
 from django.db.models import Q
 from flashsale.dinghuo.models import OrderList, OrderDetail
-from supplychain.supplier.models import SaleProduct
+
 
 @task(max_retry=3, default_retry_delay=5)
 def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
@@ -311,6 +311,12 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                 cost = product_item.cost
                 agent_price = product_item.agent_price
                 sale_product_id = p_products[0].sale_product
+                product_category = p_products[0].category.__unicode__() if p_products[0].category else ""
+                print dir(p_products[0].category)
+                tui_huo = 0
+                daily_data = DailySupplyChainStatsOrder.objects.filter(product_id__startswith=p_outer)
+                for one_data in daily_data:
+                    tui_huo += one_data.return_num
                 supplier_list = ""
                 sale_contactor = ""
                 if sale_product_id != 0:
@@ -322,7 +328,8 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                           "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
                           "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales),
                           "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list,
-                          "pic_path": product_item.pic_path, "sale_contactor": sale_contactor}
+                          "pic_path": product_item.pic_path, "sale_contactor": sale_contactor,
+                          "tui_huo": tui_huo, "product_category": product_category}
                 result_list.append(p_dict)
         return result_list
 
@@ -551,8 +558,7 @@ def task_calc_package(start_date, end_date, old=True):
             return result_list
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
-from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
-from supplychain.supplier.models import SaleProduct, SaleSupplier
+
 
 
 @task(max_retry=1, default_retry_delay=5)
