@@ -312,7 +312,6 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                 agent_price = product_item.agent_price
                 sale_product_id = p_products[0].sale_product
                 product_category = p_products[0].category.__unicode__() if p_products[0].category else ""
-                print dir(p_products[0].category)
                 tui_huo = 0
                 daily_data = DailySupplyChainStatsOrder.objects.filter(product_id__startswith=p_outer)
                 for one_data in daily_data:
@@ -369,17 +368,29 @@ def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
             p_outer = p_t[0].strip()
             p_sales = int(p_t[1])
             p_products = Product.objects.filter(outer_id__startswith=p_outer, status='normal')
-            if p_products.count() > 0 and True if not category else p_outer.startswith(category):
+            if p_products.count() > 0 and (True if not category else p_outer.startswith(category)):
                 product_item = p_products[0]
                 cost = product_item.cost
                 agent_price = product_item.agent_price
-                suppliers = OrderDetail.objects.values('orderlist__supplier_shop').filter(
-                    product_id=product_item.id).exclude(orderlist__status=u'作废').exclude(
-                    orderlist__supplier_shop='').distinct()
-                supplier_list = [s['orderlist__supplier_shop'] for s in suppliers]
+                sale_product_id = p_products[0].sale_product
+                product_category = p_products[0].category.__unicode__() if p_products[0].category else ""
+                tui_huo = 0
+                daily_data = DailySupplyChainStatsOrder.objects.filter(product_id__startswith=p_outer)
+                for one_data in daily_data:
+                    tui_huo += one_data.return_num
+                supplier_list = ""
+                sale_contactor = ""
+                if sale_product_id != 0:
+                    one_sale_product = SaleProduct.objects.filter(id=sale_product_id)
+                    if one_sale_product.count() > 0:
+                        supplier_list = one_sale_product[0].sale_supplier.supplier_name
+                        sale_contactor = one_sale_product[0].contactor.username if one_sale_product[0].contactor else ""
                 p_dict = {"p_outer": p_outer, "p_name": product_item.name,
                           "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
-                          "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales), "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list, "pic_path": product_item.pic_path}
+                          "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales),
+                          "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list,
+                          "pic_path": product_item.pic_path, "sale_contactor": sale_contactor,
+                          "tui_huo": tui_huo, "product_category": product_category}
                 result_list.append(p_dict)
         return result_list
 
