@@ -128,7 +128,7 @@ class WeixinAppBackend(RemoteUserBackend):
 
     def authenticate(self, request, **kwargs):
         
-        content = request.REQUEST
+        content = request.POST
         if not (request.path.startswith("/rest/") and content.get('unionid')):
             return None
         

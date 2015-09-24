@@ -227,7 +227,7 @@ class WeixinUserManager(models.Manager):
         wx_user.save()
         return True
         
-    
+NUM_CHAR_LIST = list('1234567890')
     
 class VipCodeManager(models.Manager):   
     
@@ -239,6 +239,8 @@ class VipCodeManager(models.Manager):
             return super_tm.get_query_set()
         return super_tm.get_queryset()
     
+    def genCode(self):
+        return ''.join(random.sample(NUM_CHAR_LIST,7))
     
     def genVipCodeByWXUser(self,wx_user):
         
@@ -251,7 +253,7 @@ class VipCodeManager(models.Manager):
         code_rule = u'免费试用'
         max_usage = 10000
     
-        new_code = str(random.randint(1000000,9999999))
+        new_code = self.genCode()
         cnt = 0
         while True:
             cnt += 1
@@ -262,7 +264,7 @@ class VipCodeManager(models.Manager):
                     self.create(owner_openid=wx_user,code=new_code,expiry=expiry,
                             code_type=code_type,code_rule=code_rule,max_usage=max_usage)
                 except:
-                    new_code = str(random.randint(1000000,9999999))
+                    new_code = self.genCode()
                 else:
                     return new_code
             else:
