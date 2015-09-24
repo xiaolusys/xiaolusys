@@ -111,7 +111,7 @@ function Create_Logistics_Dom() {//创建　退货的　输入框
     return hereDoc(html);
 }
 
-function Create_Feedback_Dom(obj){
+function Create_Feedback_Dom(obj) {
     var html = $("#feedback_info").html();
     return hereDoc(html).template(obj);
 }
@@ -128,50 +128,71 @@ function set_Order_Detail() {
     });
     function requestCallBack(res) {
         console.log("debug order res:", res);
-        if (res.refund_status == 3) {  //买家申请退款
-            var status1 = Create_Info_Show();
-            $(".jifen-list").append(status1);
-            var w_info = Create_warring_Info();
-            $(".warring_info").append(w_info);
-        }
-        if (res.refund_status == REFUND_WAIT_RETURN_GOODS) {  //卖家同意申请
+        var order_id = res.id;
+        var refuUrl = GLConfig.baseApiUrl + GLConfig.refunds_by_order_id.template({"order_id": order_id});
+        $.ajax({
+            type: 'get',
+            url: refuUrl,
+            data: {},
+            dataType: 'json',
+            success: refundCallBack
+        });
 
-            //　处理下　看发货仓　是哪里　显示对应退货地址
-            // 这里判断下订单状态是不是已付款　　　如果是已付款不是已发货　则不显示　退货地址以及
-            console.log(res.item_id, res.status);
-            get_ware_by(res.item_id, res.status);
-            get_refund(REFUND_WAIT_RETURN_GOODS);// 同意申请　显示feedback内容
-        }
-        if (res.refund_status == 5) {// REFUND_CONFIRM_GOODS = 5  买家已经退货
-            var w_info3 = Create_warring_Info3();
-            $(".warring_info").append(w_info3);
-            // 添加物流信息到页面
-            // refunds
-            var success = 0; //　仅仅表示暂时没有成功给退款
-            Set_Logistic_Info(success);
-        }
-        if (res.refund_status == REFUND_REFUSE_BUYER) { //卖家拒绝申请
-            console.log("debug status", "卖家拒绝申请");
-            //　显示 拒绝原因 显示 feedback
-            get_refund(REFUND_REFUSE_BUYER);
-        }
-        if (res.refund_status == REFUND_APPROVE) { //等待返款
-            var w_info5 = Create_warring_Info5;
-            $(".warring_info").append(w_info5);
-            var approve = Create_Info_Show5();
-            $(".jifen-list").append(approve);
-        }
-        if (res.refund_status == REFUND_SUCCESS) {//　退款成功
-            var w_info6 = Create_warring_Info6;
-            $(".warring_info").append(w_info6);
-            var success1 = 1;//表是退款成功
-            Set_Logistic_Info(success1);// 设置物流信息
-        }
-        if (res.refund_status == REFUND_CLOSED) {// 退款关闭
-            var w_info7 = Create_warring_Info7;
-            $(".warring_info").append(w_info7);
-            var success2 = 2;//表是退款成功
-            Set_Logistic_Info(success2);// 设置页面等信息
+        function refundCallBack(refund) {
+            console.log("debug refund: ", refund);
+            console.log("debug order res refund_id:", res.refund_id);
+            //
+            if (res.refund_status == 3 ) {  //买家申请退款
+                console.log("kkkk");
+                if (res.status == 3 && refund.reason != "开线/脱色/脱毛/有色差/有虫洞") {
+                    //已经发货 显示退货地址　如果不是质量问题　才显示
+                    get_ware_by(res.item_id, res.status);//显示退货地址
+                    return
+                }
+                var status1 = Create_Info_Show();
+                $(".jifen-list").append(status1);
+                var w_info = Create_warring_Info();
+                $(".warring_info").append(w_info);
+            }
+            if (res.refund_status == REFUND_WAIT_RETURN_GOODS) {  //卖家同意申请
+
+                //　处理下　看发货仓　是哪里　显示对应退货地址
+                // 这里判断下订单状态是不是已付款　　　如果是已付款不是已发货　则不显示　退货地址以及
+                console.log(res.item_id, res.status);
+                get_ware_by(res.item_id, res.status);
+                get_refund(REFUND_WAIT_RETURN_GOODS);// 同意申请　显示feedback内容
+            }
+            if (res.refund_status == 5) {// REFUND_CONFIRM_GOODS = 5  买家已经退货
+                var w_info3 = Create_warring_Info3();
+                $(".warring_info").append(w_info3);
+                // 添加物流信息到页面
+                // refunds
+                var success = 0; //　仅仅表示暂时没有成功给退款
+                Set_Logistic_Info(success);
+            }
+            if (res.refund_status == REFUND_REFUSE_BUYER) { //卖家拒绝申请
+                console.log("debug status", "卖家拒绝申请");
+                //　显示 拒绝原因 显示 feedback
+                get_refund(REFUND_REFUSE_BUYER);
+            }
+            if (res.refund_status == REFUND_APPROVE) { //等待返款
+                var w_info5 = Create_warring_Info5;
+                $(".warring_info").append(w_info5);
+                var approve = Create_Info_Show5();
+                $(".jifen-list").append(approve);
+            }
+            if (res.refund_status == REFUND_SUCCESS) {//　退款成功
+                var w_info6 = Create_warring_Info6;
+                $(".warring_info").append(w_info6);
+                var success1 = 1;//表是退款成功
+                Set_Logistic_Info(success1);// 设置物流信息
+            }
+            if (res.refund_status == REFUND_CLOSED) {// 退款关闭
+                var w_info7 = Create_warring_Info7;
+                $(".warring_info").append(w_info7);
+                var success2 = 2;//表是退款成功
+                Set_Logistic_Info(success2);// 设置页面等信息
+            }
         }
     }
 }
@@ -198,7 +219,7 @@ function get_refund(state) {
             $(".content").append(btn_modify);  // 加入修改申请button
         }
     }
-    if(state==REFUND_WAIT_RETURN_GOODS){
+    if (state == REFUND_WAIT_RETURN_GOODS) {
         var requestUrl2 = GLConfig.baseApiUrl + GLConfig.refunds_by_order_id.template({"order_id": oid});
         $.ajax({
             type: 'get',
@@ -207,7 +228,7 @@ function get_refund(state) {
             dataType: 'json',
             success: callback
         });
-        function callback(res){
+        function callback(res) {
             var feed_dom = Create_Feedback_Dom(res);
             $(".jifen-list").append(feed_dom);
             $(".buy_kefu").before(feed_dom);
@@ -248,8 +269,10 @@ function Confirm_Refund() { //确认提交 物流信息  到　服务器
         drawToast("物流信息不正确哦~");
         return
     }
-    var data = {"tid": tid, "id": oid, "modify": modify, "company": company,
-        "sid": sid,'csrfmiddlewaretoken': csrftoken};
+    var data = {
+        "tid": tid, "id": oid, "modify": modify, "company": company,
+        "sid": sid, 'csrfmiddlewaretoken': csrftoken
+    };
     swal({
             title: "",
             text: "确定提交物流信息么？",
@@ -309,7 +332,7 @@ function get_ware_by(item_id, order_status) {
             var success_yifuk = Create_Info_Show8();
             $(".jifen-list").append(success_yifuk);
         }
-        if (order_status == REFUND_PRO|| order_status==TRADE_FINISHED|| order_status==TRADE_BUYER_SIGNED) {
+        if (order_status == REFUND_PRO || order_status == TRADE_FINISHED || order_status == TRADE_BUYER_SIGNED) {
             //退货　已经发货 或者交易成功 或者是货到付款签收　　都显示退货地址
             var w_info2 = Create_warring_Info2();//创建退货成功的显示信息
             $(".warring_info").append(w_info2);

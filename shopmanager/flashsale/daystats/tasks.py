@@ -659,6 +659,8 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
             all_sale_money = 0
             all_tui_kuan = 0
             tui_kuan_money = 0
+            fa_huo_time = 0
+            fa_huo_num = 0
             for one_sale_product in charger_product_shelf:
                 kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
 
@@ -670,6 +672,13 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                         all_sale_money += stat_data.sale_cost_of_product
                         all_tui_kuan += stat_data.return_num
                         tui_kuan_money += stat_data.return_num * one_kucun_product.agent_price
+                        if stat_data.order_deal_time > 0 and stat_data.goods_arrival_time > 0:
+                            fa_huo_num += stat_data.sale_num
+                            fa_huo_time += (stat_data.goods_arrival_time - stat_data.order_deal_time)\
+                                                                                * stat_data.sale_num
+            fa_huo_time = fa_huo_time/fa_huo_num if fa_huo_num != 0 else 0
+            fa_huo_time = format_time(fa_huo_time)
+            one_temp["fa_huo_time"] = fa_huo_time
             one_temp["all_sale_num"] = all_sale_num
             one_temp["all_sale_cost"] = all_sale_cost
             one_temp["all_sale_money"] = all_sale_money
@@ -685,3 +694,14 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
     return result_data
+
+def format_time(time_of_long):
+    days = 0
+    tm_hours = 0
+    if time_of_long > 0:
+        days = time_of_long // 86400
+        tm_hours = time_of_long % 86400 / 3600
+    if days > 0 or tm_hours > 0:
+        return str(int(days)) + "天" + str(round(tm_hours, 1)) + "小时"
+    else:
+        return ""
