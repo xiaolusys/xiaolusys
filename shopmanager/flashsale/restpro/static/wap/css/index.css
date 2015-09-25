@@ -274,6 +274,28 @@ nav a:active,
     color: #c1c0bf;
     padding-left: 46px;
 }
+/*　　　优惠券　显示　*/
+.glist_cou {
+    width: 640px;
+    min-height: 60px;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    background: url("../images/coupon_index.png");
+}
+.glist_cou .glist_cou_left {
+    float: left;
+    width: 320px;
+    min-height: 60px;
+    z-index: 999;
+}
+.glist_cou .glist_cou_right {
+    width: 320px;
+    min-height: 60px;
+    z-index: 999;
+    float: right;
+}
+
 
 .p-center{
     position: fixed;

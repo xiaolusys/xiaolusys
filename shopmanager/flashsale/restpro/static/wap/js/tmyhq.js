@@ -5,31 +5,13 @@ function create_yhqk_dom() {
     var html = $("#youhuiquan_kong").html();
     return hereDoc(html);
 }
-
-function create_yhq_dom(obj) {
-    var xlmm_118 = $("#xlmm_118").html();
-    return hereDoc(xlmm_118).template(obj)
+function create_valid(obj){
+    var c_valid = $("#c_valid").html();
+    return hereDoc(c_valid).template(obj)
 }
-
-function create_yhq_dom_used(obj) {
-    var xlmm_118_used = $("#xlmm_118_used").html();
-    return hereDoc(xlmm_118_used).template(obj)
-}
-function create_yhq_dom_post_fee(obj) {
-    var xlmm_118_used = $("#post_fee").html();
-    return hereDoc(xlmm_118_used).template(obj)
-}
-function create_yhq_dom_post_fee_used(obj) {
-    var xlmm_118_used = $("#post_fee_used").html();
-    return hereDoc(xlmm_118_used).template(obj)
-}
-function create_c150_10(obj){
-    var c150_10 = $("#c150_10").html();
-    return hereDoc(c150_10).template(obj)
-}
-function create_c150_10_used(obj){
-    var c150_10_used = $("#c150_10_used").html();
-    return hereDoc(c150_10_used).template(obj)
+function create_not_valid(obj){
+    var c_not_valid = $("#c_not_valid").html();
+    return hereDoc(c_not_valid).template(obj)
 }
 
 $(document).ready(function () {
@@ -39,41 +21,12 @@ $(document).ready(function () {
         if (res.length > 0) {
             $.each(res, function (i, val) {
                 //默认对象
-                var yhq_obj = {"created": val.created, "deadline": val.deadline};
-
-                if (val.coupon_value == 30 && val.status == 0 && val.coupon_type == 0) {
-                    //满30返30  代理 coupon_type 4
-                    var yhq_tree1 = create_yhq_dom(yhq_obj);
-                    $(".youxiao").append(yhq_tree1);
-                }
-                if (val.coupon_value == 30 && val.poll_status == 2 && val.coupon_type == 0) {
-                    //满30返30  代理 coupon_type 4 过期
-                    var yhq_tree2 = create_yhq_dom(yhq_obj);
-                    $(".youxiao").append(yhq_tree2);
-                }
-                if (val.coupon_value == 30 && val.status == 1 && val.coupon_type == 0) {
-                    //满30返30  代理 coupon_type 4 已使用
-                    var yhq_tree3 = create_yhq_dom_used(yhq_obj);
-                    $(".youxiao").append(yhq_tree3);
-                }
-                if (val.coupon_value == 10 && val.status == 0 && val.coupon_type == 1) {
-                    //10元现金券   coupon_type 5
-                    var yhq_tree5 = create_yhq_dom_post_fee(yhq_obj);
-                    $(".youxiao").append(yhq_tree5);
-                }
-                if (val.coupon_value == 10 && val.status == 1 && val.coupon_type == 1) {
-                    //10元现金券   coupon_type 5 已使用
-                    var yhq_tree6 = create_yhq_dom_post_fee_used(yhq_obj);
-                    $(".youxiao").append(yhq_tree6);
-                }
-                if (val.coupon_value == 10 && val.status == 0 && val.coupon_type == 2) {
-                    //150-10   满150－10
-                    var yhq_tree7 = create_c150_10(yhq_obj);
+                if (val.status == 0) {
+                    var yhq_tree7 = create_valid(val);
                     $(".youxiao").append(yhq_tree7);
                 }
-                if (val.coupon_value == 10 && val.status == 1 && val.coupon_type == 2) {
-                    //10元现金券   满150－10
-                    var yhq_tree8 = create_c150_10_used(yhq_obj);
+                if (val.status == 1) {
+                    var yhq_tree8 = create_not_valid(val);
                     $(".youxiao").append(yhq_tree8);
                 }
             });

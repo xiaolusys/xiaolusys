@@ -468,15 +468,20 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         print "coupon_type : ", coupon_type
         if coupon_type is None:
             return Response({"res": "no_type"})
-        if coupon_type == "C150_10":
-            try:
-                customer = Customer.objects.get(user=request.user)
+        try:
+            customer = Customer.objects.get(user=request.user)
+            if coupon_type == "C150_10":
                 uc = UserCoupon()
                 cus = {"buyer_id": customer.id}
                 release_res = uc.release_150_10(**cus)
                 return Response({"res": release_res})
-            except Customer.DoesNotExist:
-                return Response({"res": "cu_not_fund"})
+            if coupon_type == "C259_20":
+                uc = UserCoupon()
+                cus = {"buyer_id": customer.id}
+                release_res = uc.release_259_20(**cus)
+                return Response({"res": release_res})
+        except Customer.DoesNotExist:
+            return Response({"res": "cu_not_fund"})
         else:
             return Response({"res": "not_release"})
 
