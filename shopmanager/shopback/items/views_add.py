@@ -61,17 +61,6 @@ class AddItemView(generics.ListCreateAPIView):
             count += 1
         if len(inner_outer_id) > 12:
             return Response({"result": "编码生成错误"})
-        print "product_name:", product_name
-        print "category:", category
-        print "outer_id:", inner_outer_id
-        print "material:", material
-        print "note:", note
-        print "wash_instroduce:", wash_instroduce
-        print "header_img", header_img
-        print "shelf_time:", shelf_time
-        print "ware_by:", ware_by
-        print "supplier", "%05d" % int(supplier)
-        # return Response({"result": "temp"})
         model_pro = ModelProduct(name=product_name, head_imgs=header_img, sale_time=shelf_time)
         model_pro.save()
         log_action(user.id, model_pro, ADDITION, u'新建一个modelproduct new')
