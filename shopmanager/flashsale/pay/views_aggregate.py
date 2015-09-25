@@ -53,7 +53,7 @@ class ModelProductView(View):
         target_model = None
         if model_change.count() > 0:
             target_model = model_change[0]
-            all_product = Product.objects.filter(model_id=model_change[0].id)
+            all_product = Product.objects.filter(model_id=model_change[0].id, status=Product.NORMAL)
         return render_to_response("pay/aggregate_product2already.html",
                                   {"target_model": target_model, "all_product": all_product,
                                    "all_model_product": all_model_product},
