@@ -27,6 +27,7 @@ function Coupon_Nums_Show(nums) {
     if (nums > 0) {
         $("#coupon_nums").click(function () {
             var total_money = ($("#total_money").html().split(">")[2]);
+            console.log("total_money :", total_money);
             location.href = "./choose-coupon.html?price=" + total_money;
         });
     }
