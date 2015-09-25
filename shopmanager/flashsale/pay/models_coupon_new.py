@@ -13,8 +13,9 @@ class CouponTemplate(models.Model):
     RMB118 = 0
     POST_FEE = 1
     C150_10 = 2
-    COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE, u"退货补邮费"), (C150_10, u"满150减10"))
-
+    C259_20 = 3
+    COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE, u"退货补邮费"), (C150_10, u"满150减10"), (C259_20, u"满259减20"))
+    
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
     valid = models.BooleanField(default=False, verbose_name=u"是否有效")
