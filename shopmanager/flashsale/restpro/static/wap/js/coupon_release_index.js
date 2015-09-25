@@ -56,5 +56,8 @@ function Action_release(data, d) {
         if (res.res == "cu_not_fund") {
             drawToast("用户未找到！尝试重新登陆");
         }
+        if (res.res == "limit") {
+            drawToast("超过领取限制哦~");
+        }
     }
 }

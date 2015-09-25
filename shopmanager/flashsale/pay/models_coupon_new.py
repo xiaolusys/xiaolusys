@@ -14,13 +14,14 @@ class CouponTemplate(models.Model):
     POST_FEE = 1
     C150_10 = 2
     C259_20 = 3
-    COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE, u"退货补邮费"), (C150_10, u"满150减10"),(C259_20, u"满259减20"))
+    COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE, u"退货补邮费"), (C150_10, u"满150减10"), (C259_20, u"满259减20"))
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
     valid = models.BooleanField(default=False, verbose_name=u"是否有效")
     type = models.IntegerField(choices=COUPON_TYPE, verbose_name=u"优惠券类型")
     nums = models.IntegerField(default=0, verbose_name=u"发放数量")
+    limit_num = models.IntegerField(default=1, verbose_name=u"每人领取数量")
     preset_days = models.IntegerField(default=0, verbose_name=u"预置天数")
     active_days = models.IntegerField(default=0, verbose_name=u"有效天数")
     deadline = models.DateTimeField(blank=True, verbose_name=u'截止日期')
@@ -139,11 +140,12 @@ class UserCoupon(models.Model):
         trade_id = "0"
         if buyer_id and trade_id:
             tpl = CouponTemplate.objects.get(type=CouponTemplate.C150_10, valid=True)  # 获取满150减10优惠券
-            try:
-                # 每个人只能领取一张
-                UserCoupon.objects.get(customer=buyer_id, cp_id__template__type=CouponTemplate.C150_10)
-                return "already"
-            except UserCoupon.DoesNotExist:
+            # 每个人只能领取一张
+            uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__type=CouponTemplate.C150_10)
+            if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
+                return "limit"
+            else:
+                # 发放优惠券
                 cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
                 if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
                     cou.delete()  # 删除create 防止产生脏数据
@@ -157,8 +159,6 @@ class UserCoupon(models.Model):
                     cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
                     cou.save()
                     return "success"
-            except UserCoupon.MultipleObjectsReturned:
-                return "multi"
         return None
 
     def release_259_20(self, **kwargs):
@@ -167,24 +167,21 @@ class UserCoupon(models.Model):
         trade_id = "0"
         if buyer_id and trade_id:
             tpl = CouponTemplate.objects.get(type=CouponTemplate.C259_20, valid=True)  # 获取满150减10优惠券
-            try:
-                # 每个人只能领取一张
-                UserCoupon.objects.get(customer=buyer_id, cp_id__template__type=CouponTemplate.C259_20)
-                return "already"
-            except UserCoupon.DoesNotExist:
-                cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
-                if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
-                    cou.delete()  # 删除create 防止产生脏数据
-                    message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
-                    raise Exception(message)
-                else:
-                    self.cp_id = cou
-                    self.customer = buyer_id
-                    self.sale_trade = trade_id
-                    self.save()
-                    cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
-                    cou.save()
-                    return "success"
-            except UserCoupon.MultipleObjectsReturned:
-                return "multi"
+            # 每个人只能领取一张
+            uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__type=CouponTemplate.C259_20)
+            if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
+                return "limit"
+            cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
+            if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
+                cou.delete()  # 删除create 防止产生脏数据
+                message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
+                raise Exception(message)
+            else:
+                self.cp_id = cou
+                self.customer = buyer_id
+                self.sale_trade = trade_id
+                self.save()
+                cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
+                cou.save()
+                return "success"
         return None
