@@ -229,7 +229,7 @@ function Create_item_dom(p_obj,close_model){
 
     p_obj.saleout_dom = '';
     var today = new Date().Format("yyyy-MM-dd");
-	var is_single_spec = isNone(p_obj.product_model) || p_obj.product_model.is_single_spec　== true;
+	var is_single_spec = isNone(p_obj.product_model) || p_obj.product_model.is_single_spec == true;
     //如果没有close model,并且model_product存在并且是多规格
     if (!close_model && is_single_spec == false) {
         if (!p_obj.is_saleopen) {

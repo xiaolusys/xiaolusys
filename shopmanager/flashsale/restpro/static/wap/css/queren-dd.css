@@ -150,38 +150,13 @@
 .coupons-list li:last-child{
   margin-bottom: 0;
 }
-.coupons-list li.type1{
-  background: url(../images/youhuiquan1.png) no-repeat center center;
-}
-/*type2 30元　有效优惠券　*/
-.coupons-list li.type2{
-  background: url(../images/youhuiquan2.png) no-repeat center center;
-}
-.coupons-list li.type3{
-  background: url(../images/youhuiquan3.png) no-repeat center center;
-}
-/*type4 30元　使用过的优惠券　*/
-.coupons-list li.type4{
-  background: url(../images/youhuiquan4.png) no-repeat center center;
-}
-/*退运费返10元现金券*/
-.coupons-list li.type5{
-  background: url(../images/youhuiquan5.png) no-repeat center center;
-}
-/*退运费返10元现金券　　已经使用的*/
-.coupons-list li.type6{
-  background: url(../images/youhuiquan6.png) no-repeat center center;
-}
 
-/*满150-10未使用*/
-.coupons-list li.type7{
-  background: url(../images/youhuiquan5.png) no-repeat center center;
+.coupons-list li.c_valid{
+  background: url(../images/yhq_valid.jpg) no-repeat center center;
 }
-/*满150-10已经使用的*/
-.coupons-list li.type8{
-  background: url(../images/youhuiquan6.png) no-repeat center center;
+.coupons-list li.c_not_valid{
+  background: url(../images/yhq_not_valid.jpg) no-repeat center center;
 }
-
 
 .coupons-list .name{
   font-size: 24px;

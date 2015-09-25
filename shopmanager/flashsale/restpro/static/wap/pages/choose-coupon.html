@@ -63,7 +63,7 @@
     <script id="coupon_c150_10" type="text/html">
         <ul class="coupons-list">
             <li class="type7">
-                <p class="name">优惠券</p>
+                <p class="name">优惠券 {{ title }}</p>
 
                 <p class="date">{{ created }} - {{ deadline }}</p>
                 <i class="icon-radio" onclick="choose_Coupon({{ id }},{{ coupon_type }});"></i>
@@ -80,6 +80,26 @@
         </ul>
     </script>
 
+    <script type="text/html" id="c_valid">
+        <ul class="coupons-list">
+            <li class="c_valid">
+                <p class="name">{{ title }}</p>
+
+                <p class="date">{{ created }} － {{ deadline }}</p>
+                <i class="icon-radio" onclick="choose_Coupon({{ id }},{{ coupon_type }});"></i>
+            </li>
+        </ul>
+    </script>
+
+    <script type="text/html" id="c_not_valid">
+        <ul class="coupons-list">
+            <li class="c_not_valid">
+                <p class="name">{{ title }}　已经使~</p>
+
+                <p class="date">{{ created }} － {{ deadline }}</p>
+            </li>
+        </ul>
+    </script>
 
 </div>
 
