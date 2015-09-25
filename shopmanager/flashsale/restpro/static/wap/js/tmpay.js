@@ -82,6 +82,8 @@ function Set_user_orderinfo(suffix){
             var coupon_template = $('#coupon_c_valid').html();
 			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
 		}
+        set_pro_num();
+        update_total_price();
 	};
 	// 调用接口
 	$.ajax({ 

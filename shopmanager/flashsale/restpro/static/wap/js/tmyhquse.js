@@ -27,8 +27,9 @@ function Coupon_Nums_Show(nums) {
     if (nums > 0) {
         $("#coupon_nums").click(function () {
             var total_money = ($("#total_money").html().split(">")[2]);
-            console.log("total_money :", total_money);
-            location.href = "./choose-coupon.html?price=" + total_money;
+            var pro_num = document.getElementsByName("num")[0].value;
+            console.log("pro_num :", pro_num);
+            location.href = "./choose-coupon.html?price=" + total_money+"&pro_num=" + pro_num;
         });
     }
 }
@@ -65,7 +66,7 @@ function create_not_valid(obj) {
     return hereDoc(c_not_valid).template(obj)
 }
 
-function copon_judeg(coupon_id) {
+function copon_judeg(coupon_id, pro_num) {
     swal({
             title: "",
             text: '确定选择这张优惠券吗？',
@@ -79,26 +80,36 @@ function copon_judeg(coupon_id) {
         function () {//确定　则跳转
             console.log(document.referrer);
             var buy_nuw_url = document.referrer.split("&")[0] + "&" + document.referrer.split("&")[1];
-            var include_coupon = buy_nuw_url + "&coupon_id=" + coupon_id;
+            var include_coupon = buy_nuw_url + "&coupon_id=" + coupon_id + "&pro_num=" + pro_num;
             location.href = include_coupon;
         });
 }
 function choose_Coupon(coupon_id, coupon_type) {
     var price = parseFloat(getUrlParam('price'));
+    var pro_num = parseFloat(getUrlParam('pro_num'));
     if (coupon_type == 0 && price >= 30) {
-        copon_judeg(coupon_id)
+        copon_judeg(coupon_id, pro_num)
     }
     else if (coupon_type == 2 && price >= 150) {//这里判断要满150
-        copon_judeg(coupon_id)
+        copon_judeg(coupon_id, pro_num)
     }
     else if (coupon_type == 3 && price >= 259) {//这里判断要满259
-        copon_judeg(coupon_id)
+        copon_judeg(coupon_id, pro_num)
     }
     else {
         drawToast("商品价格不足优惠券使用金额哦~");
     }
 }
-
+function set_pro_num(){
+    var pro_num_s = getUrlParam('pro_num');
+    if (pro_num_s == null) {
+        pro_num_s = 1;
+    }
+    var pro_num = parseFloat(pro_num_s);
+    var sku_id = parseFloat(getUrlParam('sku_id'));
+    var num_d = $("#num_"+sku_id);
+    num_d.val(pro_num);
+}
 
 function getUrlParam(name) {
     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
