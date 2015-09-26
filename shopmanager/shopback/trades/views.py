@@ -2297,7 +2297,8 @@ def search_trade(request):
                     all_trade_id.add(one_order.merge_trade_id)
                 info = {}
                 try:
-                    a = getLogisticTrace(one_trade.out_sid, one_trade.logistics_company.code)
+                    # a = getLogisticTrace(one_trade.out_sid, one_trade.logistics_company.code)
+                    a =[]
                 except:
                     a = []
                 info['trans'] = a
@@ -2320,13 +2321,13 @@ def search_trade(request):
         if number == "":
             rec1 = []
         else:
-            trade_info = MergeTrade.objects.filter(Q(receiver_mobile=number) | Q(tid=number) |
-                                                   Q(buyer_nick=number) | Q(receiver_phone=number)
-                                                   | Q(out_sid=number) | Q())
+            trade_info = MergeTrade.objects.filter(Q(receiver_mobile=number) | Q(tid=number)
+                                                   | Q(out_sid=number))
             for item in trade_info:
                 info = {}
                 try:
-                    a = getLogisticTrace(item.out_sid, item.logistics_company.code)
+                    #a = getLogisticTrace(item.out_sid, item.logistics_company.code)
+                    a = []
                 except:
                     a = []
                 info['trans'] = a
