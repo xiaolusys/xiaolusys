@@ -82,6 +82,8 @@ function Set_user_orderinfo(suffix){
             var coupon_template = $('#coupon_c_valid').html();
 			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
 		}
+        set_pro_num();
+        update_total_price();
 	};
 	// 调用接口
 	$.ajax({ 
@@ -221,7 +223,7 @@ function update_total_price(){
 	var post_fee   = parseFloat($('input[name="post_fee"]').val());
 	var total_fee = sku_price * sku_num;
 	var total_payment = total_fee + post_fee - discount_fee;
-	$('.cost .label1 span').html('¥ ' + total_fee);
+	$('.cost .label1 span').html('<em>￥</em>' + total_fee);
 	$('.buy .total span').html('¥ ' + total_payment);
 	$('input[name="total_fee"]').val(total_fee);
 	$('input[name="payment"]').val(total_payment);

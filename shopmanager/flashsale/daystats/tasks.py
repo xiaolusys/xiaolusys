@@ -8,6 +8,7 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models import Clicks, CarryLog
 from flashsale.pay.models import Customer
+from  flashsale.pay.models_refund import SaleRefund
 from .models import DailyStat, PopularizeCost
 
 import logging
@@ -622,6 +623,10 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
         raise task_calc_package.retry(exc=exc)
     return result_data
 
+
+REFUND_REASON = (u'其他', u'错拍', u'缺货', u'开线/脱色/脱毛/有色差/有虫洞',
+                 u'发错货/漏发', u'没有发货', u'未收到货', u'与描述不符', u'退运费', u'发票问题', u'七天无理由退换货')
+
 @task(max_retry=1, default_retry_delay=5)
 def task_calc_performance_by_supplier(start_date, end_date, category="0"):
     """计算供应商"""
@@ -658,9 +663,12 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
             all_sale_cost = 0
             all_sale_money = 0
             all_tui_kuan = 0
+            all_tui_kuan_ceshi = 0
             tui_kuan_money = 0
             fa_huo_time = 0
             fa_huo_num = 0
+            one_temp["tuo_kuan"] = {u"七天无理由退换货": 0, u"与描述不符": 0, u"其他": 0, u"发票问题": 0, u"发错货/漏发": 0,
+                                    u"开线/脱色/脱毛/有色差/有虫洞": 0, u"未收到货": 0, u"没有发货": 0, u"缺货": 0, u"退运费": 0, u"错拍": 0}
             for one_sale_product in charger_product_shelf:
                 kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
 
@@ -676,9 +684,17 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                             fa_huo_num += stat_data.sale_num
                             fa_huo_time += (stat_data.goods_arrival_time - stat_data.order_deal_time)\
                                                                                 * stat_data.sale_num
+                    all_refund = SaleRefund.objects.filter(item_id=one_kucun_product.id, created__gte=start_date_time)
+                    all_tui_kuan_ceshi += all_refund.count()
+                    for one_reason in REFUND_REASON:
+                        if one_reason in one_temp["tuo_kuan"]:
+                            one_temp["tuo_kuan"][one_reason] += all_refund.filter(reason=one_reason).count()
+                        else:
+                            one_temp["tuo_kuan"][one_reason] = all_refund.filter(reason=one_reason).count()
             fa_huo_time = fa_huo_time/fa_huo_num if fa_huo_num != 0 else 0
             fa_huo_time = format_time(fa_huo_time)
             one_temp["fa_huo_time"] = fa_huo_time
+            one_temp["all_tui_kuan_ceshi"] = all_tui_kuan_ceshi
             one_temp["all_sale_num"] = all_sale_num
             one_temp["all_sale_cost"] = all_sale_cost
             one_temp["all_sale_money"] = all_sale_money
