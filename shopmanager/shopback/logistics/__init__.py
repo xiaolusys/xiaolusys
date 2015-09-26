@@ -53,36 +53,32 @@ POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
 #     
 #     return post_array    
 #     
-    
- 
-def getLogisticTrace(out_sid,exType):
-    
-    
-    apikey = '47deda738666430bab15306c2878dd3a'     
-    #apikey='6a214a769ab8426da93445e9d2078cc8'
+
+
+def getLogisticTrace(out_sid, exType):
+    apikey = '47deda738666430bab15306c2878dd3a'
+    # apikey='6a214a769ab8426da93445e9d2078cc8'
     #访问的API代码  
     uid = '39400'
     #uid='39500'
     post_array = []
-    post_array.append((u'快递公司', POST_CODE_NAME_MAP.get(exType,'other')))
+    post_array.append((u'快递公司', POST_CODE_NAME_MAP.get(exType, 'other')))
     post_array.append((u'快递单号', out_sid))
-    
+
     if exType not in POST_CODE_NAME_MAP.keys():
-        post_array.append(('运输信息',[('','暂时无法查询该快递公司')]))
+        post_array.append(('运输信息', [('', '暂时无法查询该快递公司')]))
         return post_array
-   # paramsData = {'key': apikey, 'uid': uid, 'order':order, 'id':id}  
-    data = {'id':BAIDU_POST_CODE_EXCHANGE.get(exType),'order':out_sid,'key': apikey,'uid': uid}
-    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data),timeout=30)
+        # paramsData = {'key': apikey, 'uid': uid, 'order':order, 'id':id}
+    data = {'id': BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': out_sid, 'key': apikey, 'uid': uid}
+    req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data), timeout=30)
     content = json.loads(req.read())
-    
+
     if content.get('message') != '':
-        post_array.append(('运输信息',[('','暂未查询到快递信息')]))
+        post_array.append(('运输信息', [('', '暂未查询到快递信息')]))
         return post_array
-    
-    traces  = []
+
+    traces = []
     for t in content['data']:
-        traces.append((t['time'],t['content']))
+        traces.append((t['time'], t['content']))
     post_array.append(('运输信息', traces))
-    print  "信息",post_array
-    return post_array    
-     
+    return post_array
