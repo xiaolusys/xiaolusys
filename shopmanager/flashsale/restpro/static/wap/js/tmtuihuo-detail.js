@@ -66,8 +66,6 @@ function Create_Info_Show2(obj) {//创建　内容　信息　卖家同意
 }
 
 function Create_Info_Show3(obj) {// 创建退货中　内容　信息
-    //var html = $("#info_3").html();
-    //return hereDoc(html).template(obj);
     var htmlx = template("info_3", obj);// 此处使用template.js的使用方法（模板中使用if  for 等等）
     return htmlx;
 

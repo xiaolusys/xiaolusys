@@ -6,6 +6,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="viewport" id="viewport">
 <script src="../js/common.js"></script>
+    <script src="../js/template.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
 <link rel="stylesheet" href="../css/common.css">
 <link rel="stylesheet" href="../css/tmdd.css">
@@ -64,6 +65,9 @@
       <li><label class="c5f5f5e">订单编号：</label><span class="caaaaaa">{{ tid }}</span></li>
       <li><label class="c5f5f5e">订单时间：</label><span class="caaaaaa">{{ created }}</span></li>
       <li><label class="c5f5f5e">订单金额：</label><span class="cf353a0"><em>¥</em>{{ payment }}</span></li>
+        {{ if  out_sid }}
+      <li><label class="c5f5f5e">物流单号：</label><span class="caaaaaa">{{ out_sid }}</span></li>
+        {{ /if }}
     </ul>
     <a  class="btn_top_{{ status }} btn_top_style btn_interactive " cid="{{ status }}" href="tuikuan.html?id={{ id }}"></a>
 </script>

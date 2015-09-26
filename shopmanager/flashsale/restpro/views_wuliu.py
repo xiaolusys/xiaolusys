@@ -89,8 +89,6 @@ class WuliuView(APIView):
     renderer_classes = (new_BaseJSONRenderer, BrowsableAPIRenderer,)
 
     def get(self, request, *args, **kwargs):
-        print request.data
-        print "------------------"
         apikey = '47deda738666430bab15306c2878dd3a'
         # 访问的API代码
         uid = '39400'
