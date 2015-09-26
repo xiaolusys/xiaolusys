@@ -286,6 +286,7 @@ function Wuliu(tid) {
     var requestUrl = "/rest/wuliu/";
     var requestCallBack = function(info) {
         //alert(ret);
+        console.log("debug wuliu:",info);
         if (info.response_content.result) {
 
             if (parseInt(info.response_content.ret.status) > 1) {

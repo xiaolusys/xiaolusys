@@ -83,7 +83,10 @@ function Set_user_orderinfo(suffix){
 			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
 		}
         set_pro_num();
-        update_total_price();
+        var cart_ids = getUrlParam('cart_ids');
+        if(cart_ids==null){//表示
+            update_total_price();
+        }
 	};
 	// 调用接口
 	$.ajax({ 

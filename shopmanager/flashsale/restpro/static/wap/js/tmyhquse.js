@@ -26,10 +26,22 @@ function Coupon_Nums_Show(nums) {
     $("#coupon_nums").text("可用优惠券（" + nums + "）");
     if (nums > 0) {
         $("#coupon_nums").click(function () {
-            var total_money = ($("#total_money").html().split(">")[2]);
-            var pro_num = document.getElementsByName("num")[0].value;
-            console.log("pro_num :", pro_num);
-            location.href = "./choose-coupon.html?price=" + total_money+"&pro_num=" + pro_num;
+            //判断是否是确认页面
+
+            var cart_ids = getUrlParam('cart_ids');
+            console.log(cart_ids);
+            if (cart_ids) {
+                var total_money = ($("#total_money").html().split(">")[2]);
+                var pro_num = $(".pro_num").html();
+                console.log("pro_num :", pro_num,total_money);
+                location.href = "./choose-coupon.html?price=" + total_money+"&pro_num=" + pro_num;
+            }
+            else {
+                var total_money = ($("#total_money").html().split(">")[2]);
+                var pro_num = document.getElementsByName("num")[0].value;
+                console.log("pro_num :", pro_num);
+                location.href = "./choose-coupon.html?price=" + total_money + "&pro_num=" + pro_num;
+            }
         });
     }
 }
@@ -100,14 +112,14 @@ function choose_Coupon(coupon_id, coupon_type) {
         drawToast("商品价格不足优惠券使用金额哦~");
     }
 }
-function set_pro_num(){
+function set_pro_num() {
     var pro_num_s = getUrlParam('pro_num');
     if (pro_num_s == null) {
         pro_num_s = 1;
     }
     var pro_num = parseFloat(pro_num_s);
     var sku_id = parseFloat(getUrlParam('sku_id'));
-    var num_d = $("#num_"+sku_id);
+    var num_d = $("#num_" + sku_id);
     num_d.val(pro_num);
 }
 
