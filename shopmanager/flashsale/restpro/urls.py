@@ -10,7 +10,6 @@ from . import views_product
 from . import views_trade 
 from flashsale.pay.views_login import weixin_login,weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
-#from flashsale.pay.views_coupon import Coupon_Check
 
 from . import views_wuliu
 
@@ -31,7 +30,6 @@ router.register(r'districts', views.DistrictViewSet)
 router.register(r'integral', views.UserIntegralViewSet)
 router.register(r'integrallog', views.UserIntegralLogViewSet)
 router.register(r'couponpool', views.UserCouponPoolViewSet)
-#router.register(r'mycoupon', views.UserCouponViewSet)
 router.register(r'usercoupons', views.UserCouponsViewSet)
 
 router_urls = router.urls
@@ -60,7 +58,6 @@ router_urls += format_suffix_patterns([
         url(r'^user/integrallog/',
             views.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
-        #url(r'^user/couponcheck/$', Coupon_Check, name="coupon_check")
     ])
 
 urlpatterns = patterns('',

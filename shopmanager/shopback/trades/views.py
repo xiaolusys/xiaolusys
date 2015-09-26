@@ -2285,9 +2285,8 @@ def search_trade(request):
             rec1 = []
         else:
             all_trade_id = set()
-            all_order = MergeOrder.objects.filter(Q(outer_id=product, sys_status=pcfg.IN_EFFECT) |
-                                                  Q(title__contains=product, sys_status=pcfg.IN_EFFECT)).filter(
-                created__gte=datetime.datetime.now() - datetime.timedelta(30))
+            all_order = MergeOrder.objects.filter(Q(outer_id=product, sys_status=pcfg.IN_EFFECT)).filter(
+                pay_time__gte=datetime.datetime.now() - datetime.timedelta(30))
             for one_order in all_order:
                 trade_id = one_order.merge_trade_id
                 one_trade = one_order.merge_trade

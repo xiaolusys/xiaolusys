@@ -33,7 +33,8 @@ ALTER TABLE shop_refunds_product ADD reason INT(11) DEFAULT 0;
 
 """
 
-
+from shopback.items.models import Product
+from supplychain.supplier.models import SaleProduct
 @csrf_exempt
 def refund_Analysis(request):
     content = request.REQUEST
@@ -90,6 +91,17 @@ def refund_Analysis(request):
     if len(top_re) > 50:
         top_re = sorted(top_re, key=operator.itemgetter('t_num'))  # 排序
         top_re = top_re[len(top_re) - 50:]
+    top_re1 = []
+    for one_re in top_re:
+        try:
+            one_prodcut = Product.objects.get(outer_id=one_re['outer_id'])
+            sale_product = SaleProduct.objects.get(id=one_prodcut.sale_product)
+            one_re["contactor"] = sale_product.contactor
+            one_re["supplier"] = sale_product.sale_supplier.supplier_name
+        except:
+            one_re["contactor"] = ""
+            one_re["supplier"] = ""
+        top_re1.append(one_re)
 
     # 有时间的情况 输出总的 对应时间的退货产品统计内容
     reason_count_total = refund_pros.values('reason').annotate(t_count=Count('num'))
@@ -121,7 +133,7 @@ def refund_Analysis(request):
                                "reason_count_total": reason_count_total,
                                "reason_count": reason_count,
                                "sev_day": date_time_from.strftime("%Y-%m-%d"),
-                               "today": date_time_to.strftime("%Y-%m-%d"), "sear_pro": sear_pro, "top_re": top_re,
+                               "today": date_time_to.strftime("%Y-%m-%d"), "sear_pro": sear_pro, "top_re": top_re1,
 
                                'pros_co': pros_co, 'reason': reason},
                               context_instance=RequestContext(request))
