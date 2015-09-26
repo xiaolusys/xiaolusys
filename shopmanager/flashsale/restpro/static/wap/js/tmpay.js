@@ -83,8 +83,8 @@ function Set_user_orderinfo(suffix){
 			$('.coupons-list').append(coupon_template.template(data.coupon_ticket));
 		}
         set_pro_num();
-        var cur_url = window.location.href.split('/')[6].split('?')[0];
-        if(cur_url!="queren-dd.html"){
+        var cart_ids = getUrlParam('cart_ids');
+        if(cart_ids==null){//表示
             update_total_price();
         }
 	};
