@@ -35,10 +35,12 @@
                             "<td>" + dd.all_sale_cost + "</td>" +
                             "<td>" + dd["all_sale_money"] + "</td>" +
                             "<td>" + (parseFloat(dd.all_sale_money)-parseFloat(dd.all_sale_cost)-parseFloat(dd.tui_kuan_money)).toFixed(2) + "</td>" +
-                            "<td>" + dd.all_tui_kuan + "</td>" +
+                            "<td>" + dd.all_tui_kuan +"("+ dd.all_tui_kuan_ceshi + ")</td>" +
                             "<td>" + dd.tui_kuan_money + "</td>" +
+                            "<td>" + dd.tuo_kuan["开线/脱色/脱毛/有色差/有虫洞"] + "</td>" +
                             "<td>" + dd.fa_huo_time + "</td>" +
                             "</tr>");
+
                         });
                         var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
@@ -113,6 +115,7 @@
                 <th>毛利润</th>
                 <th>退款数</th>
                 <th>退款额</th>
+                <th>质量问题退</th>
                 <th>平均发货</th>
                 </thead>
                 <tbody>
