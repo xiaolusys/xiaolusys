@@ -98,8 +98,8 @@ function Set_orders(suffix) {
 }
 
 function Create_order_top_dom(obj) {
-    var html = $('#top_template').html();
-    return hereDoc(html).template(obj);
+    var html = template("top_template", obj);
+    return html;
 }
 function Create_button_buy_dom() {
     var html = $('#button_buy').html();

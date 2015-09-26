@@ -153,6 +153,8 @@
             <table class="table table-condensed">
                 <thead>
                 <th>名称</th>
+                <th>买手</th>
+                <th>供应商</th>
                 <th>外部编码</th>
                 <th>数量</th>
 
@@ -161,6 +163,8 @@
                 {% for i in top_re %}
                     <tr>
                         <td>{{ i.title }}</td>
+                        <td>{{ i.contactor }}</td>
+                        <td>{{ i.supplier }}</td>
                         <td>{{ i.outer_id }}</td>
                         <td>{{ i.t_num }}</td>
                     </tr>
