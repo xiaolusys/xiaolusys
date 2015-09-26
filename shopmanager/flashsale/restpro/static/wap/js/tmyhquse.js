@@ -27,10 +27,10 @@ function Coupon_Nums_Show(nums) {
     if (nums > 0) {
         $("#coupon_nums").click(function () {
             //判断是否是确认页面
-            var cur_url = window.location.href.split('/')[6].split('?')[0];
-            console.log(cur_url);
-            if (cur_url == "queren-dd.html") {
-                console.log("dddd");
+
+            var cart_ids = getUrlParam('cart_ids');
+            console.log(cart_ids);
+            if (cart_ids) {
                 var total_money = ($("#total_money").html().split(">")[2]);
                 var pro_num = $(".pro_num").html();
                 console.log("pro_num :", pro_num,total_money);
