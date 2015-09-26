@@ -17,7 +17,7 @@ from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
-from shopback.users.models import User
+from shopback.users.models import DjangoUser,User
 from .managers import ProductManager
 from auth import apis
 from common.utils import update_model_fields
@@ -282,7 +282,9 @@ class Product(models.Model):
             return sal_p.contactor  # 返回接洽人
         except SaleProduct.DoesNotExist:
             return self.sale_charger + "未关联"
-    
+        except DjangoUser.DoesNotExist:
+            return self.sale_charger + "空买手"
+        
     def update_collect_num(self,num,full_update=False,dec_update=False):
         """
             更新商品库存:
