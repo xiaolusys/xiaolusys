@@ -2273,7 +2273,8 @@ def detail22(request):
 
 def search_trade(request):
     """搜索订单 根据商品编码 订单内容"""
-    today = datetime.datetime.utcnow()
+    today = datetime.datetime.today()
+
     if request.method == "POST":
         rec1 = []
         number1 = request.POST.get('condition')
@@ -2284,8 +2285,9 @@ def search_trade(request):
             rec1 = []
         else:
             all_trade_id = set()
-            all_order = MergeOrder.objects.filter(outer_id=product, sys_status=pcfg.IN_EFFECT)
-            print all_order.count(),"fdfd"
+            all_order = MergeOrder.objects.filter(Q(outer_id=product, sys_status=pcfg.IN_EFFECT) |
+                                                  Q(title__contains=product, sys_status=pcfg.IN_EFFECT)).filter(
+                created__gte=datetime.datetime.now() - datetime.timedelta(30))
             for one_order in all_order:
                 trade_id = one_order.merge_trade_id
                 one_trade = one_order.merge_trade
@@ -2301,7 +2303,7 @@ def search_trade(request):
                 info['trans'] = a
                 info['trade'] = one_trade
                 info['detail'] = []
-                for order_info in one_trade.merge_orders.all():
+                for order_info in one_trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
                     sum = {}
                     sum['order'] = order_info
                     try:
@@ -2312,7 +2314,8 @@ def search_trade(request):
                     info['detail'].append(sum)
                 rec1.append(info)
             if len(rec1) > 0:
-                return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today})
+                return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today,
+                                                                    'number': number, 'product': product})
 
         if number == "":
             rec1 = []
@@ -2329,7 +2332,7 @@ def search_trade(request):
                 info['trans'] = a
                 info['trade'] = item
                 info['detail'] = []
-                for order_info in item.merge_orders.all():
+                for order_info in item.merge_orders.filter(sys_status=pcfg.IN_EFFECT):
                     sum = {}
                     sum['order'] = order_info
                     try:
@@ -2339,7 +2342,8 @@ def search_trade(request):
                     sum['product'] = product_info
                     info['detail'].append(sum)
                 rec1.append(info)
-            return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today})
+            return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today,
+                                                                'number': number, 'product': product})
     else:
         rec1 = []
 
