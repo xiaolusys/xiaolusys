@@ -22,6 +22,7 @@ CELERY_QUEUES = (
     Queue('trade_notify', routing_key='trade.#'),
     Queue('refund_notify', routing_key='refund.#'),
     Queue('peroid', routing_key='peroid.#'),
+    Queue('print', routing_key='print.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'peroid'
@@ -57,6 +58,10 @@ CELERY_ROUTES = {
             'queue': 'default',
             'routing_key': 'tasks.update_weixin_userinfo',
         }, 
+        'shopapp.asynctask.tasks.PrintAsyncTask': {
+            'queue': 'print',
+            'routing_key': 'print.async_invoice_print',
+        },
 }
 
 
