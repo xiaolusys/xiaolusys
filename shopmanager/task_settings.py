@@ -18,9 +18,9 @@ from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
 CELERY_QUEUES = (
     Queue('default', routing_key='tasks.#'),
-    Queue('notify', routing_key='item.#'),
+    Queue('notify', routing_key='notify.#'),
     Queue('peroid', routing_key='peroid.#'),
-    Queue('print', routing_key='print.#'),
+    Queue('async', routing_key='async.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'peroid'
@@ -29,36 +29,42 @@ CELERY_DEFAULT_ROUTING_KEY = 'peroid.default'
 
 CELERY_ROUTES = {
         'shopapp.notify.tasks.process_trade_notify_task': {
-            'queue': 'trade_notify',
+            'queue': 'notify',
             'routing_key': 'notify.process_trade_notify',
         },
         'flashsale.pay.tasks.notifyTradePayTask': {
-            'queue': 'trade_notify',
+            'queue': 'notify',
             'routing_key': 'notify.pingpp_paycallback',
         },
         'flashsale.pay.tasks.notifyTradeRefundTask': {
-            'queue': 'trade_notify',
+            'queue': 'notify',
             'routing_key': 'notify.ping_refundcallback',
         },
         'flashsale.pay.tasks.pushTradeRefundTask': {
-            'queue': 'trade_notify',
+            'queue': 'notify',
             'routing_key': 'noitfy.push_refund',
         },
+        #######################################################
+        'flashsale.xiaolumm.tasks.task_Create_Click_Record': {
+            'queue': 'notify',
+            'routing_key': 'notify.push_xlmm_pending_cash',
+        },
         'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
-            'queue': 'default',
-            'routing_key': 'tasks.push_xlmm_pending_cash',
+            'queue': 'notify',
+            'routing_key': 'notify.push_xlmm_pending_cash',
         },
         'flashsale.pay.tasks.task_Update_Sale_Customer': {
-            'queue': 'default',
-            'routing_key': 'tasks.update_sale_customer',
+            'queue': 'notify',
+            'routing_key': 'notify.update_sale_customer',
         },
         'shopapp.weixin.tasks.task_Update_Weixin_UserInfo': {
-            'queue': 'default',
-            'routing_key': 'tasks.update_weixin_userinfo',
+            'queue': 'notify',
+            'routing_key': 'notify.update_weixin_userinfo',
         }, 
+        #######################################################
         'shopapp.asynctask.tasks.PrintAsyncTask': {
-            'queue': 'print',
-            'routing_key': 'print.async_invoice_print',
+            'queue': 'async',
+            'routing_key': 'async.async_invoice_print',
         },
 }
 
