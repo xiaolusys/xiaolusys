@@ -179,7 +179,6 @@ class WeixinAcceptView(View):
                                          content.get('timestamp',0),
                                          content.get('nonce','')):
             return HttpResponse(u'非法请求')
-        logger
         content  = request.body
         params   = parseXML2Param(content)
         ret_params = wx_service.handleRequest(params)
