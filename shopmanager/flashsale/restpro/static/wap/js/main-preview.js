@@ -395,8 +395,8 @@ function Create_item_dom(p_obj, close_model) {
 function Set_promotes_product(suffix) {
     //获取今日推荐商品
     var promoteUrl = GLConfig.baseApiUrl + suffix;
-
     var promoteCallBack = function (data) {
+        console.log("data:",data);
         $("#loading").hide();
         if (!isNone(data.female_list)) {
 
