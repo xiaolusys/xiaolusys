@@ -18,41 +18,12 @@ $(function () {
     }
     get_category();
     get_supplier();
-    get_sale_product();
+    //get_sale_product();
     $('#new-product').bind("click", submit_data);
 })
 function get_sale_product(){
     //获取选品信息
-    var requestUrl = "/items/get_category/";
 
-    //请求成功回调函数
-    var requestCallBack = function (data) {
-        items = data;
-        showCategory();
-    };
-    // 发送请求
-    $.ajax({
-        type: 'get',
-        url: requestUrl,
-        data: {},
-        dataType: 'json',
-        success: requestCallBack,
-        error: function (data) {
-            if (data.status == 403) {
-                swal({
-                    title: "Tips",
-                    text: "请先登录一下(^_^)",
-                    type: "warning",
-                    showCancelButton: false,
-                    confirmButtonText: "确定"
-                }, function () {
-                    window.location = "/admin";
-                });
-            } else {
-                swal("Tips", "有错误，请联系技术人员(^_^)", "warning");
-            }
-        }
-    });
 }
 function parseUrlParams(myUrl) {
     var vars = [], hash;
