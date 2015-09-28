@@ -18,9 +18,7 @@ from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
 CELERY_QUEUES = (
     Queue('default', routing_key='tasks.#'),
-    Queue('item_notify', routing_key='item.#'),
-    Queue('trade_notify', routing_key='trade.#'),
-    Queue('refund_notify', routing_key='refund.#'),
+    Queue('notify', routing_key='item.#'),
     Queue('peroid', routing_key='peroid.#'),
     Queue('print', routing_key='print.#'),
 )
@@ -32,19 +30,19 @@ CELERY_DEFAULT_ROUTING_KEY = 'peroid.default'
 CELERY_ROUTES = {
         'shopapp.notify.tasks.process_trade_notify_task': {
             'queue': 'trade_notify',
-            'routing_key': 'trade.process_trade_notify',
+            'routing_key': 'notify.process_trade_notify',
         },
         'flashsale.pay.tasks.notifyTradePayTask': {
             'queue': 'trade_notify',
-            'routing_key': 'trade.pingpp_paycallback',
+            'routing_key': 'notify.pingpp_paycallback',
         },
         'flashsale.pay.tasks.notifyTradeRefundTask': {
             'queue': 'trade_notify',
-            'routing_key': 'trade.ping_refundcallback',
+            'routing_key': 'notify.ping_refundcallback',
         },
         'flashsale.pay.tasks.pushTradeRefundTask': {
             'queue': 'trade_notify',
-            'routing_key': 'trade.push_refund',
+            'routing_key': 'noitfy.push_refund',
         },
         'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
             'queue': 'default',
