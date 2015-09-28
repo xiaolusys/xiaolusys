@@ -46,6 +46,16 @@ class XiaoluMama(models.Model):
         (CHARGED,u'已接管'),
         )
 
+    INNER_LEVEL = 1
+    VIP_LEVEL = 2
+    A_LEVEL = 3
+
+    AGENCY_LEVEL = (
+        (INNER_LEVEL, u"内部"),
+        (VIP_LEVEL, u"VIP类"),
+        (A_LEVEL, u"A类"),
+    )
+
     mobile = models.CharField(max_length=11,db_index=True,blank=False,verbose_name=u"手机")
     openid = models.CharField(max_length=64,blank=True,unique=True,verbose_name=u"UnionID")    
     province = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
@@ -61,7 +71,8 @@ class XiaoluMama(models.Model):
     
     hasale  = models.BooleanField(default=False,verbose_name=u"有购买")
     
-    agencylevel = models.IntegerField(default=1,verbose_name=u"代理类别")
+    agencylevel = models.IntegerField(default=1, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
+    target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
     user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")
     
     charge_time = models.DateTimeField(default=datetime.datetime.now,

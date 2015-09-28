@@ -3,7 +3,7 @@
 import multiprocessing
 
 workers=multiprocessing.cpu_count() * 2 + 1
-bind="127.0.0.1:9000"
+bind="0.0.0.0:9000"
 
 timeout=20
 worker_connections=multiprocessing.cpu_count() * 200

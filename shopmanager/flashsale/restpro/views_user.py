@@ -449,7 +449,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
                 or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
             return Response({"result": "2"})
-        print not re.match(PHONE_NUM_RE, mobile),re.match(PHONE_NUM_RE, mobile)
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"result": "2"})
         already_exist = Customer.objects.filter(mobile=mobile)
