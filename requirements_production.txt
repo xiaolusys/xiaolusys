@@ -30,6 +30,7 @@ html5lib==0.90
 pyPdf2==1.19
 reportlab==2.5
 pingpp==2.0.1
+qiniu==7.0.5
 
 #geraldo
 #reportlab==2.5
