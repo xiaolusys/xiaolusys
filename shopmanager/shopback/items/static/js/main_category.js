@@ -2,6 +2,7 @@ var items;
 var suppliers;
 var supplier_id;
 var saleproduct;
+var wash_tip = "洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。";
 $(function () {
 
     $("#shelf_time").datepicker({
@@ -17,9 +18,42 @@ $(function () {
     }
     get_category();
     get_supplier();
+    get_sale_product();
     $('#new-product').bind("click", submit_data);
 })
+function get_sale_product(){
+    //获取选品信息
+    var requestUrl = "/items/get_category/";
 
+    //请求成功回调函数
+    var requestCallBack = function (data) {
+        items = data;
+        showCategory();
+    };
+    // 发送请求
+    $.ajax({
+        type: 'get',
+        url: requestUrl,
+        data: {},
+        dataType: 'json',
+        success: requestCallBack,
+        error: function (data) {
+            if (data.status == 403) {
+                swal({
+                    title: "Tips",
+                    text: "请先登录一下(^_^)",
+                    type: "warning",
+                    showCancelButton: false,
+                    confirmButtonText: "确定"
+                }, function () {
+                    window.location = "/admin";
+                });
+            } else {
+                swal("Tips", "有错误，请联系技术人员(^_^)", "warning");
+            }
+        }
+    });
+}
 function parseUrlParams(myUrl) {
     var vars = [], hash;
     var hashes = window.location.href.slice(myUrl.indexOf('?') + 1).split('&');
@@ -54,6 +88,11 @@ function showCategory(first_cate, second_cate, third_cate) {
     })
 
     $('#second_category').change(function () {
+        if(this.value==5){
+            $("#wash_instroduce").val(wash_tip);
+        }else{
+            $("#wash_instroduce").val("");
+        }
         $('#third_category').empty();
         $('#third_category').append(title[2]);
         loc.fillOption('third_category', '0,' + $('#first_category').val() + ',' + $('#second_category').val());
@@ -230,6 +269,13 @@ function submit_data() {
     var all_color_str = "";
     var all_sku_str = "";
     var all_chima_str = "";
+    var need_chima = true;
+    if ($("#no-chima").attr("checked")) {
+        need_chima = false
+    } else {
+        need_chima = true
+    }
+
     for (var i = 0; i < all_color.length; i++) {
         if (i == all_color.length - 1) {
             all_color_str += all_color[i];
@@ -257,7 +303,7 @@ function submit_data() {
     }
     if (product_name == "" || supplier == ""
         || material == "" || all_color_str == ""
-        || all_sku_str == "" || all_chima_str == ""
+        || all_sku_str == "" || (all_chima_str == "" && need_chima)
         || shelf_time == "" || header_img_content == ""
         || wash_instroduce == "") {
         swal("tips", "请填写完整的基本信息(^_^)", "error");
@@ -286,7 +332,7 @@ function submit_data() {
         saleproduct: saleproduct
     };
     for (var i = 0; i < all_color.length; i++) {
-        var one_color = all_color[i].replace("+","\\+").replace("[","\\[").replace("]","\\]");
+        var one_color = all_color[i].replace("+","\\+").replace("[","\\[").replace("]","\\]").replace("*","\\*");
         for (var j = 0; j < all_sku.length; j++) {
             var one_sku = all_sku[j].replace("/","\\/");
             result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + one_sku + "_remainnum").val().trim();
@@ -305,7 +351,7 @@ function submit_data() {
     }
     //请求成功回调函数
     var requestCallBack = function (data) {
-        console.log(data);
+
         if (data.result == "OK") {
             swal({
                 title: "恭喜",
@@ -346,15 +392,8 @@ function submit_data() {
                 success: requestCallBack,
                 error: function (data) {
                     if (data.status == 403) {
-                        swal({
-                            title: "Tips",
-                            text: "请先登录一下(^_^)",
-                            type: "warning",
-                            showCancelButton: false,
-                            confirmButtonText: "确定"
-                        }, function () {
-                            window.location = "/admin";
-                        });
+                        $('#new-product').bind("click", submit_data);
+                        swal("Tips", "请先登录一下(^_^)", "warning");
                     } else {
                         swal("Tips", "有错误，请联系技术人员(^_^)", "warning")
                     }

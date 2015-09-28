@@ -70,8 +70,10 @@ class AddItemView(generics.ListCreateAPIView):
         log_action(user.id, model_pro, ADDITION, u'新建一个modelproduct new')
         all_colors = content.get("all_colors", "").split(",")
         all_sku = content.get("all_sku", "").split(",")
-        all_chi_ma = content.get("all_chima", "").split(",")
+        chi_ma_str = content.get("all_chima", "")
+        all_chi_ma = [] if content.get("all_chima", "") == "" else chi_ma_str.split(",")
         chi_ma_result = {}
+        print all_chi_ma,"fdsf",len(all_chi_ma)
         for sku in all_sku:
             for chi_ma in all_chi_ma:
                 temp_chi_ma = ContrastContent.objects.get(name=chi_ma)

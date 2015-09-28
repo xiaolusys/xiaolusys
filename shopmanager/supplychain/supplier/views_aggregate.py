@@ -32,3 +32,14 @@ class AggregateProductView(View):
                 log_action(request.user.id, temp_pro, CHANGE, u'修改选品ID为{0}'.format(str(pk)))
         return redirect("/supplychain/supplier/bdproduct/" + str(pk))
 
+
+
+class GetProductView(View):
+    def get(self, request):
+        product_id = request.GET.get("product")
+        s = SaleProduct.objects.filter(id=product_id)
+
+        return render_to_response("aggregate_product.html",
+                                  {"sale_product": s[0] if s.count() > 0 else None},
+                                  context_instance=RequestContext(request))
+
