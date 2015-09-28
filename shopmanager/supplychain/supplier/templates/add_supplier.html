@@ -11,7 +11,7 @@
 
     <!-- CSS -->
     <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ STATIC_URL }}/css/supersized.css">
+    <!-- <link rel="stylesheet" href="{{ STATIC_URL }}/css/supersized.css"> -->
     <link rel="stylesheet" href="{{ STATIC_URL }}/css/add_supplier.css">
     <link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
 
@@ -25,16 +25,16 @@
 
     <div class="row">
         <div class="col-md-3">
-            <input type="text" name="supplier_name" class="supplier_name" placeholder="请输入店铺名称">
+            <input type="text" name="supplier_name" class="supplier_name form-control" placeholder="请输入店铺名称">
         </div>
         <div class="col-md-1">
             <label class="form-control check_button">检测</label>
         </div>
         <div class="col-md-4">
-            <input type="text" name="supplier_code" class="supplier_code" placeholder="品牌缩写">
+            <input type="text" name="supplier_code" class="supplier_code form-control" placeholder="品牌缩写">
         </div>
         <div class="col-md-4">
-            <input type="text" class="main_page" name="main_page" placeholder="品牌主页">
+            <input type="text" class="main_page form-control" name="main_page" placeholder="品牌主页">
         </div>
     </div>
     <div class="row">
@@ -74,19 +74,19 @@
             <label class="form-control">联系人</label>
         </div>
         <div class="col-md-3">
-            <input type="text" id="contact_name" placeholder="联系人">
+            <input type="text" id="contact_name" placeholder="联系人" class="form-control">
         </div>
         <div class="col-md-1">
             <label class="form-control">手机</label>
         </div>
         <div class="col-md-3">
-            <input type="text" id="mobile" placeholder="手机">
+            <input type="text" id="mobile" placeholder="手机" class="form-control">
         </div>
         <div class="col-md-1">
             <label class="form-control">地址</label>
         </div>
         <div class="col-md-3">
-            <input type="text" id="contact_address" placeholder="地址">
+            <input type="text" id="contact_address" placeholder="地址" class="form-control">
         </div>
     </div>
     <div class="row">
@@ -94,7 +94,7 @@
             <label class="form-control">备注</label>
         </div>
         <div class="col-md-10">
-            <textarea class="form-control" id="note" style="background: transparent;color: #fff;"></textarea>
+            <textarea class="form-control" id="note" ></textarea>
         </div>
     </div>
     <button type="button" class="submit_button">新建</button>
@@ -103,8 +103,8 @@
     </div>
 </div>
 <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
-<script src="{{ STATIC_URL }}/js/supersized.3.2.7.min.js"></script>
-<script src="{{ STATIC_URL }}/js/supersized-init.js"></script>
+<!-- <script src="{{ STATIC_URL }}/js/supersized.3.2.7.min.js"></script>-->
+<!-- <script src="{{ STATIC_URL }}/js/supersized-init.js"></script>-->
 <script src="{{ STATIC_URL }}/js/add_supplier.js"></script>
 <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script src="/static/wap/js/sweet-alert.min.js"></script>

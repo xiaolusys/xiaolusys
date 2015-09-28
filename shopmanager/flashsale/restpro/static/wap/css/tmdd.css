@@ -157,7 +157,7 @@
 
 .btn_order_status_2:after{content: "我要退";}/*已付款 显示*/
 .btn_order_status_3:after{content: "我要退";}/*已发货 显示*/
-.btn_order_status_4:after{content: "我要退";}/*已签收 显示*/
+/*.btn_order_status_4:after{content: "我要退";}*//*已签收 显示*/
 
 
 .btn_order_status_2:active{
@@ -177,10 +177,10 @@
 .btn_order_status_4:active{
   background-color: #7d7d7d;  color: #fff;
 }
-.btn_order_status_4{  width: auto;  height: 44px;  line-height: 44px;
-  border: 1px solid #7d7d7d;  color: #7d7d7d;  text-align: center;
-  border-radius: 10px;
-}
+/*.btn_order_status_4{  width: auto;  height: 44px;  line-height: 44px;*/
+  /*border: 1px solid #7d7d7d;  color: #7d7d7d;  text-align: center;*/
+  /*border-radius: 10px;*/
+/*}*/
 
 .btn_order_status_5{display: none;}/*交易成功 不显示*/
 .btn_order_status_6{display: none;}/*退款关闭 不显示*/

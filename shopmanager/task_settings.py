@@ -313,6 +313,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="45", hour="6"),
         'args': ()
     },
+    u'定时升级代理级别为A类到VIP类任务':{
+        'task':'flashsale.xiaolumm.tasks.xlmm_upgrade_A_to_VIP',
+        'schedule':crontab(minute="50", hour="4"),
+        'args':()
+    },
     u'定时更新用户优惠券状态':{
         'task':'flashsale.pay.tasks.task_Update_CouponPoll_Status',
         'schedule': crontab(minute="15", hour="2"),

@@ -61,7 +61,7 @@ class ProductSkuInline(admin.TabularInline):
         if not perms.has_change_product_skunum_permission(request.user):
             return self.readonly_fields + ('quantity','warn_num','lock_num','wait_post_num','is_split')
         return self.readonly_fields
-    
+
 class ProductdetailInline(admin.StackedInline):
     
     model = Productdetail
@@ -988,6 +988,13 @@ admin.site.register(ProductScanStorage, ProductScanStorageAdmin)
 from shopback.items.models import ProductSkuContrast, ContrastContent
 class ProductSkuContrastAdmin(admin.ModelAdmin):
     list_display = ('product', 'contrast_detail')
+
+    def get_readonly_fields(self, request, obj=None):
+        rset = set([])
+        if self.readonly_fields:
+            rset = set(self.readonly_fields)
+        rset.add('product')
+        return rset
 admin.site.register(ProductSkuContrast, ProductSkuContrastAdmin)
 
 class ContrastContentAdmin(admin.ModelAdmin):
