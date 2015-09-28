@@ -231,8 +231,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         child_qs  = self.get_child_qs(queryset)
         # response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
         #                  'child_list':self.get_serializer(child_qs, many=True).data}
-        response_date = {'female_list': serializers.ProductPreviewSerializer(female_qs, many=True).data,
-                         'child_list': serializers.ProductPreviewSerializer(child_qs, many=True).data}
+        response_date = {'female_list': serializers.ProductPreviewSerializer(female_qs, many=True,
+                                                                             context={'request': request}).data,
+                         'child_list': serializers.ProductPreviewSerializer(child_qs, many=True,
+                                                                            context={'request': request}).data}
         return Response(response_date)
     
     def calc_items_cache_key(self, view_instance, view_method,
@@ -300,7 +302,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         model_id = kwargs.get('model_id', None)
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(model_id=model_id)
-        serializer = serializers.ProductPreviewSerializer(queryset, many=True)
+        serializer = serializers.ProductPreviewSerializer(queryset, many=True, context={'request': request})
         # serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
