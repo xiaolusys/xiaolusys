@@ -753,3 +753,26 @@ def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, wei
         log_action(user_id, carry, ADDITION, u'妈妈审核过程中 添加妈妈推荐人的收支记录（招募奖金）')
     return 'ok'
 
+
+# 代理升级问题
+# １　小鹿妈妈交易确认完成金额满5000元　可代理升级为二级代理　升级后，将待结算的订单提成按２级代理返利20%来重新计算
+# ２　添加一个保存每天判断是计算的代理的确认金额，方便推广查看并告诉妈妈
+
+
+@task()
+def xlmm_upgrade_A_to_VIP():
+    from shopback.base import log_action, CHANGE
+    from django.contrib.auth.models import User
+    systemoa = User.objects.get(username="systemoa")
+    # 找出所有代理级别为３ 已经接管　的代理
+    level3_xlmms = XiaoluMama.objects.filter(agencylevel=XiaoluMama.A_LEVEL, charge_status=XiaoluMama.CHARGED)
+    for l3 in level3_xlmms:
+        # 该代理已经完成的订单
+        shoppings = StatisticsShopping.objects.filter(linkid=l3.id, status=StatisticsShopping.FINISHED)
+        # 计算总的订单额(已经完成)　sum_wxorderamount
+        sum_wxorderamount = shoppings.aggregate(total_wxorderamount=Sum('wxorderamount')).get('total_wxorderamount') or 0
+        if sum_wxorderamount/100.0 >= 5000:
+            l3.agencylevel = XiaoluMama.VIP_LEVEL
+            l3.save()  # 将代理级别修改为 VIP代理
+            # 并做记录
+            log_action(systemoa.id, l3, CHANGE, u'A类代理满5000元升级过程修改该代理的级别到VIP类')
