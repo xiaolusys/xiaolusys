@@ -556,10 +556,81 @@ class CouponPoolAdmin(admin.ModelAdmin):
 admin.site.register(CouponsPool, CouponPoolAdmin)
 
 
+def add_coupon_for_user(action_user=None, coup_type=None, customer=None):
+    if coup_type == "RMB118":
+        payment = 118
+        sale_orders = SaleOrder.objects.filter(outer_id=coup_type, payment=payment, refund_status=SaleRefund.NO_REFUND,
+                                               status=SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                               sale_trade__buyer_id=customer,
+                                               sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
+        if sale_orders.exists():
+            trade_id = sale_orders[0].sale_trade    # 绑定交易到优惠券
+            buyer_id = customer
+            kwargs = {"trade_id": trade_id, "buyer_id": buyer_id}
+            us = UserCoupon()
+            us.release_deposit_coupon(**kwargs)     # 发放代理优惠券
+            mess = "添加成功！　请及时修改该订单的状态到　交易成功　！"
+            # 写操作日志
+            log_action(action_user, us, ADDITION, u'用户优惠券search中，添加专属优惠券！')
+            return mess
+        else:
+            return "没有找到押金订单 或者订单状态不正确"
+    return "没有找到类型"
+
+from django.contrib import messages
+
+
+class UserCouponChangeList(ChangeList):
+
+    def get_query_set(self, request):
+        search_q = request.GET.get('q', '').strip()
+        print "search_q: ", search_q
+        # add_RMB118?customer=123
+        if search_q:
+            try:
+                coup_type = search_q.split("_")[1].split("?")[0]
+                customer = int(search_q.split("?")[1].split("=")[1])
+                mess = add_coupon_for_user(action_user=request.user.id, coup_type=coup_type, customer=customer)
+                messages.info(request, mess)
+            except IndexError:
+                return super(UserCouponChangeList, self).get_query_set(request)
+        return super(UserCouponChangeList, self).get_query_set(request)
+
+
 class UserCouponAdmin(admin.ModelAdmin):
-    list_display = ("id", "cp_id", "customer","sale_trade", "status", "created", "modified")
+    list_display = ("id", "cp_id", "customer", "sale_trade", "status", "created", "modified")
     list_filter = ("status", "created")
-    search_fields = ['=id', "=customer","=sale_trade"]
+    search_fields = ['=id', "=customer", "=sale_trade"]
+
+    def change_coupon_status_to_unuse(self, request, queryset):
+        if queryset.count() > 1:
+            self.message_user(request, '不能修改超过一个选择的状态')
+        else:
+            a = queryset[0]
+            a.status = UserCoupon.UNUSED
+            a.save()
+            log_action(request.user.id, a, ADDITION, u'修改该优惠券到　未经使用状态　！')
+            mes = "{0},已经修改到　　未使用".format(queryset[0])
+            self.message_user(request, mes)
+
+    def change_coupon_status_to_use(self, request, queryset):
+        if queryset.count() > 1:
+            self.message_user(request, '不能修改超过一个选择的状态')
+        else:
+            a = queryset[0]
+            a.status = UserCoupon.USED
+            a.save()
+            log_action(request.user.id, a, ADDITION, u'修改该优惠券到　已经使用状态　！')
+            mes = "{0},已经修改到　　已经使用".format(queryset[0])
+            self.message_user(request, mes)
+
+    def get_changelist(self, request, **kwargs):
+        return UserCouponChangeList
+
+    change_coupon_status_to_unuse.short_description = u"修改选中的优惠券状态到　　未使用"
+    change_coupon_status_to_use.short_description = u"修改选中的优惠券状态到　　已经使用"
+    actions = ['change_coupon_status_to_unuse', "change_coupon_status_to_use"]
+
 
 admin.site.register(UserCoupon, UserCouponAdmin)
 
