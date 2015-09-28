@@ -96,6 +96,22 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     is_saleout    = serializers.BooleanField(source='sale_out', read_only=True)
     is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
     is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
+                  'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo',
+                   'product_model','ware_by','is_verify',"model_id")
+
+
+class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
+
+    url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
+    category = ProductCategorySerializer(read_only=True)
+    product_model = ModelProductSerializer(read_only=True)
+    is_saleout    = serializers.BooleanField(source='sale_out', read_only=True)
+    is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
+    is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
     sale_charger = serializers.CharField(source="get_supplier_contactor", read_only=True)
 
     class Meta:
