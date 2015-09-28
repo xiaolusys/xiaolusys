@@ -99,27 +99,37 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     paginate_by_param = 'page_size'
     max_paginate_by = 100
     
+    def get_latest_right_date(self,dt):
+        ldate = dt
+        model_qs = self.get_queryset()
+        for i in xrange(0,30):
+            ldate = dt - datetime.timedelta(days=i)
+            product_qs = model_qs.filter(sale_time=ldate)
+            if product_qs.count() > 0:
+                break
+        return ldate
+    
     def get_today_date(self):
         """ 获取今日上架日期 """
         tnow  = datetime.datetime.now()
         if tnow.hour < 10:
-            return (tnow - datetime.timedelta(days=1)).date()
-        return tnow.date()
+            return self.get_latest_right_date((tnow - datetime.timedelta(days=1)).date())
+        return self.get_latest_right_date(tnow.date())
     
     def get_previous_date(self):
         """ 获取昨日上架日期 """
         tnow  = datetime.datetime.now()
         tlast = tnow - datetime.timedelta(days=1)
         if tnow.hour < 10:
-            return (tnow - datetime.timedelta(days=2)).date()
-        return tlast.date()
+            return self.get_latest_right_date((tnow - datetime.timedelta(days=2)).date())
+        return self.get_latest_right_date(tlast.date())
     
     def get_priview_date(self,request):
         """ 获取明日上架日期 """
         tdays  = int(request.GET.get('days','1'))
         tnow   = datetime.datetime.now() 
         tlast  = tnow + datetime.timedelta(days=tdays)
-        return tlast.date()
+        return self.get_latest_right_date(tlast.date())
     
     @cache_response()
     def list(self, request, *args, **kwargs):
@@ -175,10 +185,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
     
     def get_female_qs(self,queryset):
-        return queryset.filter(outer_id__startswith='8',outer_id__endswith='1',details__is_seckill=False)
+        return queryset.filter(outer_id__startswith='8',outer_id__endswith='1').exclude(details__is_seckill=True)
     
     def get_child_qs(self,queryset):
-        return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1',details__is_seckill=False)
+        return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1').exclude(details__is_seckill=True)
     
     @cache_response()
     @list_route(methods=['get'])
@@ -192,7 +202,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
                          'child_list':self.get_serializer(child_qs, many=True).data}
-        
         return Response(response_date)
     
     @cache_response()

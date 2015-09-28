@@ -47,11 +47,15 @@ class AddItemView(generics.ListCreateAPIView):
         category_item = ProductCategory.objects.get(cid=category)
         if category_item.parent_cid == 5:
             first_outer_id = u"9"
+            outer_id = first_outer_id + str(category_item.cid) + "%05d" % int(supplier)
         elif category_item.parent_cid == 8:
             first_outer_id = u"8"
+            outer_id = first_outer_id + str(category_item.cid) + "%05d" % int(supplier)
+        elif category_item.cid == 9:
+            outer_id = "100" + "%05d" % int(supplier)
         else:
             return Response({"result": "类别错误"})
-        outer_id = first_outer_id + str(category_item.cid) + "%05d" % int(supplier)
+
         count = 1
         while True:
             inner_outer_id = outer_id + "%03d" % count
