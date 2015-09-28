@@ -89,6 +89,8 @@ class ModelProduct(models.Model):
         return '<%s,%s>'%(self.id,self.name)
     
     def is_single_spec(self):
+        if self.id <= 0:
+            return True
         products = Product.objects.filter(model_id=self.id,status=Product.NORMAL)
         if products.count() > 1:
             return False

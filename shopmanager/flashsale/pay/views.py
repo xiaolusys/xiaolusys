@@ -247,8 +247,6 @@ class PayResultView(View):
         content = request.REQUEST
         logger.info('pay result:%s'%content )
         
-        print 'debug orderlist:',reverse('user_orderlist')
-        
         return HttpResponseRedirect(reverse('user_orderlist'))
     
     

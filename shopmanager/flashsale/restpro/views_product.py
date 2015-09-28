@@ -51,7 +51,6 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     def get_future_poster(self,request):
         view_days   = int(request.GET.get('days','1'))
         target_date = datetime.date.today() + datetime.timedelta(days=view_days)
-        print target_date
         posters = self.queryset.filter(active_time__year=target_date.year,
                                    active_time__month=target_date.month,
                                    active_time__day=target_date.day)
