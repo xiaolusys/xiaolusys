@@ -72,6 +72,7 @@ class XiaoluMama(models.Model):
     hasale  = models.BooleanField(default=False,verbose_name=u"有购买")
     
     agencylevel = models.IntegerField(default=1, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
+    target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
     user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")
     
     charge_time = models.DateTimeField(default=datetime.datetime.now,

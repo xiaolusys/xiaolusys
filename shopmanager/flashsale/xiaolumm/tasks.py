@@ -765,14 +765,17 @@ def xlmm_upgrade_A_to_VIP():
     from django.contrib.auth.models import User
     systemoa = User.objects.get(username="systemoa")
     # 找出所有代理级别为３ 已经接管　的代理
-    level3_xlmms = XiaoluMama.objects.filter(agencylevel=XiaoluMama.A_LEVEL, charge_status=XiaoluMama.CHARGED)
-    for l3 in level3_xlmms:
+    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED).exclude(agencylevel=XiaoluMama.INNER_LEVEL)
+    for xlmm in xlmms:
         # 该代理已经完成的订单
-        shoppings = StatisticsShopping.objects.filter(linkid=l3.id, status=StatisticsShopping.FINISHED)
+        shoppings = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
         # 计算总的订单额(已经完成)　sum_wxorderamount
         sum_wxorderamount = shoppings.aggregate(total_wxorderamount=Sum('wxorderamount')).get('total_wxorderamount') or 0
-        if sum_wxorderamount/100.0 >= 5000:
-            l3.agencylevel = XiaoluMama.VIP_LEVEL
-            l3.save()  # 将代理级别修改为 VIP代理
-            # 并做记录
-            log_action(systemoa.id, l3, CHANGE, u'A类代理满5000元升级过程修改该代理的级别到VIP类')
+        sum_amount = sum_wxorderamount/100.0
+        xlmm.target_complete = sum_amount
+        xlmm.save()
+        log_action(systemoa.id, xlmm, CHANGE, u'修改该代理的升级完成额') # 并做记录
+        if sum_amount >= 5000 and xlmm.agencylevel == XiaoluMama.A_LEVEL:
+            xlmm.agencylevel = XiaoluMama.VIP_LEVEL
+            xlmm.save()  # 将代理级别修改为 VIP代理
+            log_action(systemoa.id, xlmm, CHANGE, u'A类代理满5000元升级过程升级该代理的级别到VIP类')
