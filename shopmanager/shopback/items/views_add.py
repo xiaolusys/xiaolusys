@@ -179,7 +179,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
         searchtext = content.get("search_input")
         if not searchtext or len(searchtext.strip()) == 0:
             return Response({"result": "NOTFOUND"})
-        product_bean = Product.objects.filter(Q(outer_id=searchtext) | Q(id=searchtext)).filter(status=Product.NORMAL)
+        product_bean = Product.objects.filter(Q(outer_id=searchtext)).filter(status=Product.NORMAL)
         all_chima_content = ContrastContent.objects.all()
 
         try:
