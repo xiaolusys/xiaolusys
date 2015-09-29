@@ -95,6 +95,7 @@ def refund_Analysis(request):
     for one_re in top_re:
         try:
             one_prodcut = Product.objects.get(outer_id=one_re['outer_id'])
+            one_re['pic_path'] = one_prodcut.PIC_PATH
             sale_product = SaleProduct.objects.get(id=one_prodcut.sale_product)
             one_re["contactor"] = sale_product.contactor
             one_re["supplier"] = sale_product.sale_supplier.supplier_name
