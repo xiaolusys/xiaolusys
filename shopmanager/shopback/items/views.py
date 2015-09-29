@@ -1207,9 +1207,45 @@ class StatProductSaleView(APIView):
             raise exceptions.APIException(exc_msg)
         return   Response({'object':{'sale_stats':sale_items}})
         
-    post = get                
-            
+    post = get
 
+from shopback.items.tasks import CalcProductSaleAsyncTask
+class StatProductSaleAsyncView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+    renderer_classes = (ProductSaleAsyncHtmlRenderer, new_BaseJSONRenderer, )
+    def parseDate(self,start_dt):
+
+        if not start_dt:
+            dt = datetime.datetime.now()
+            return (dt-datetime.timedelta(days=1)).date()
+
+        return parse_date(start_dt)
+    def get(self, request, *args, **kwargs):
+        content = request.REQUEST
+        start_dt = content.get('df', '').strip()
+        end_dt = content.get('dt', '').strip()
+        shop_id = content.get('shop_id')
+        p_outer_id = content.get('outer_id', '')
+        show_sale = '_unsaleable' not in content
+        params = {'day_date__gte': self.parseDate(start_dt),
+                  'day_date__lte': self.parseDate(end_dt)}
+        if shop_id:
+            params.update(user_id=shop_id)
+
+        if p_outer_id:
+            params.update(outer_id__startswith=p_outer_id)
+
+        task_id = CalcProductSaleAsyncTask().delay(params, p_outer_id=p_outer_id, show_sale=show_sale)
+        sale_items = {
+            'df': format_date(self.parseDate(start_dt)),
+            'dt': format_date(self.parseDate(end_dt)),
+            'outer_id': p_outer_id,
+            'shops': serializers.UserSerializer(User.effect_users.all(), many=True).data,
+            'shop_id': shop_id and int(shop_id) or '',
+            'task_id': task_id
+        }
+        return Response(sale_items)
 class ProductScanView(APIView):
     #serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
