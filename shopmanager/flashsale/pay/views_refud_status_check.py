@@ -26,7 +26,7 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
         for orde in orders:
             if orde.status == SaleOrder.TRADE_CLOSED:
                 flag_re += 1
-            if orde.status == SaleOrder.TRADE_CLOSED_BY_SYS:
+            if orde.status == SaleOrder.TRADE_CLOSED:
                 flag_sys_cls += 1
         if flag_re == orders.count():  # 所有订单都退款成功
             # 这笔交易 退款 关闭
@@ -34,7 +34,7 @@ def check_SaleRefund_Status(sender, instance, created, **kwargs):
             trade.save()
         if flag_sys_cls == orders.count() or flag_sys_cls + flag_re == orders.count():
             # 如果有系统关闭订单 并且 数量等于 订单数量 则交易关闭
-            trade.status = SaleTrade.TRADE_CLOSED_BY_SYS
+            trade.status = SaleTrade.TRADE_CLOSED
             trade.save()
 
     """ 同步退款状态到订单，这里至更新 退款的状态到订单的 退款状态字段 """
