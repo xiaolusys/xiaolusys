@@ -140,10 +140,11 @@ def notifyTradePayTask(notify):
     try:
         order_no = notify['order_no'].split('_')[0]
         charge   = notify['id']
+        paid     = notify['paid']
         
         tcharge,state = TradeCharge.objects.get_or_create(order_no=order_no,charge=charge)
         
-        if tcharge.paid == True:
+        if not paid or tcharge.paid == True :
             return
          
         update_fields = set(['paid','refunded','channel','amount','currency','transaction_no',
@@ -160,11 +161,11 @@ def notifyTradePayTask(notify):
                 v = v or ''
             
             hasattr(tcharge,k) and setattr(tcharge,k,v)
-            
         tcharge.save()
         
+        charge_time = tcharge.time_paid
         strade = SaleTrade.objects.get(tid=order_no)
-        confirmTradeChargeTask(strade.id)
+        confirmTradeChargeTask(strade.id,charge_time=charge_time)
     
     except Exception,exc:
         raise notifyTradePayTask.retry(exc=exc)
