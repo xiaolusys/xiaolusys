@@ -426,6 +426,31 @@ from flashsale.pay.models_coupon_new import UserCoupon
 
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
+    """
+    - {prefix}/method: get 获取用户优惠券
+    ->return:
+        -->id:          优惠券id
+        -->coupon_no:   优惠券券池号码
+        -->status:      优惠券状态　0：未使用，１:已经使用
+        -->poll_status: 券池发放状态：１:已经发放，0：未发放，2:已经过期
+        -->coupon_type: 优惠券类型：RMB118:"二期代理优惠券" ,POST_FEE:"退货补邮费", C150_10:"满150减10", C259_20:"满259减20"
+        -->sale_trade:  绑定交易id：购买交易的id
+        -->customer:    对应的客户id
+        -->coupon_value: 优惠券对应的面值
+        -->valid:       优惠券的有效性（ttur or false）
+        -->title:       优惠券标题
+        -->created:     创建时间
+        -->deadline:    截止时间
+    
+    - {prefix}/method: post 创建用户优惠券
+    ->arg: coupon_type  优惠券类型
+    -->C150_10:满150减10
+    -->C259_20:满259减20
+    :return
+    {'res':'limit'}         ->: 创建受限
+    {'res':'success'}       ->: 创建成功
+    {'res':'not_release'}   ->: 暂未发放
+    """
 
     queryset = UserCoupon.objects.filter()
     serializer_class = serializers.UsersCouponSerializer
