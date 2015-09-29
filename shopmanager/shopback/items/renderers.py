@@ -83,7 +83,6 @@ class ProductWarnHtmlRenderer(TemplateHTMLRenderer):
     template_name = 'items/product_stock_warn.html'
     
 
-    
 class ProductSaleHtmlRenderer(TemplateHTMLRenderer):
     """
     Renderer which serializes to JSON
@@ -93,6 +92,15 @@ class ProductSaleHtmlRenderer(TemplateHTMLRenderer):
     format = 'html'
     template_name = 'items/product_sale_stat.html'
 
+
+class ProductSaleAsyncHtmlRenderer(TemplateHTMLRenderer):
+    """
+    Renderer which serializes to JSON
+    """
+
+    media_type = 'text/html'
+    format = 'html'
+    template_name = 'items/product_sale_stat_async.html'
 
 class ProductScanRenderer(TemplateHTMLRenderer):
     """
