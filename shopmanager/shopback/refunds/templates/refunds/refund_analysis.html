@@ -152,7 +152,8 @@
         <div class="panel-body">
             <table class="table table-condensed">
                 <thead>
-                <th>名称</th>
+                <th width="200px">名称</th>
+                <th>图片</th>
                 <th>买手</th>
                 <th>供应商</th>
                 <th>外部编码</th>
@@ -163,6 +164,7 @@
                 {% for i in top_re %}
                     <tr>
                         <td>{{ i.title }}</td>
+                        <td><img src="{{ i.pic_path }}" width="60px"></td>
                         <td>{{ i.contactor }}</td>
                         <td>{{ i.supplier }}</td>
                         <td>{{ i.outer_id }}</td>

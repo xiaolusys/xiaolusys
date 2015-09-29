@@ -691,5 +691,251 @@ from shopback.items.service import releaseProductTrades
 def releaseProductTradesTask(outer_ids):
     for outer_id in outer_ids:
         releaseProductTrades(outer_id)
-        
-        
+
+from supplychain.supplier.models import SaleProduct
+class CalcProductSaleAsyncTask(Task):
+    def getProductByOuterId(self, outer_id):
+        try:
+            return Product.objects.get(outer_id=outer_id)
+        except:
+            return None
+
+    def getSaleSortedItems(self, queryset):
+
+        sale_items = {}
+        for sale in queryset:
+            product_id = sale.product_id
+            sku_id = sale.sku_id
+
+            if product_id in sale_items:
+                sale_items[product_id]['sale_num'] += sale.sale_num
+                sale_items[product_id]['sale_payment'] += sale.sale_payment
+                sale_items[product_id]['sale_refund'] += sale.sale_refund
+                sale_items[product_id]['confirm_num'] += sale.confirm_num
+                sale_items[product_id]['confirm_payment'] += sale.confirm_payment
+
+                if not sku_id:
+                    continue
+                skus = sale_items[product_id]['skus']
+                if sku_id in skus:
+                    skus[sku_id]['sale_num'] += sale.sale_num
+                    skus[sku_id]['sale_payment'] += sale.sale_payment
+                    skus[sku_id]['sale_refund'] += sale.sale_refund
+                    skus[sku_id]['confirm_num'] += sale.confirm_num
+                    skus[sku_id]['confirm_payment'] += sale.confirm_payment
+                else:
+                    skus[sku_id] = {
+                        'sale_num': sale.sale_num,
+                        'sale_payment': sale.sale_payment,
+                        'sale_refund': sale.sale_refund,
+                        'confirm_num': sale.confirm_num,
+                        'confirm_payment': sale.confirm_payment}
+            else:
+                product = Product.objects.get(id=product_id)
+                pic_path = product.pic_path
+                if pic_path.startswith('http://img02.taobaocdn'):
+                    pic_path = pic_path.rstrip('_80x80.jpg') + '.jpg_80x80.jpg'
+                sale_items[product_id] = {
+                    'pic_path': pic_path,
+                    'title': product.title(),
+                    'sale_num': sale.sale_num,
+                    'sale_payment': sale.sale_payment,
+                    'sale_refund': sale.sale_refund,
+                    'confirm_num': sale.confirm_num,
+                    'confirm_payment': sale.confirm_payment,
+                    'skus': {}}
+                if sku_id:
+                    sale_items[product_id]['skus'][sku_id] = {
+                        'sale_num': sale.sale_num,
+                        'sale_payment': sale.sale_payment,
+                        'sale_refund': sale.sale_refund,
+                        'confirm_num': sale.confirm_num,
+                        'confirm_payment': sale.confirm_payment,
+                    }
+        return sorted(sale_items.items(), key=lambda d: d[1]['sale_num'], reverse=True)
+
+    def calcSaleSortedItems(self, queryset):
+
+        total_stock_num = 0
+        total_sale_num = 0
+        total_sale_payment = 0
+        total_confirm_num = 0
+        total_confirm_payment = 0
+        total_confirm_cost = 0
+        total_sale_refund = 0
+        total_stock_cost = 0
+        sale_stat_list = self.getSaleSortedItems(queryset)
+        for product_id, sale_stat in sale_stat_list:
+            try:
+                product = Product.objects.get(id=product_id)
+            except Product.DoesNotExist:
+                continue
+            try:
+                sale_product = SaleProduct.objects.get(id=product.sale_product)
+                sale_stat["contactor"] = sale_product.contactor.username
+                sale_stat["supplier"] = sale_product.sale_supplier.supplier_name
+            except:
+                sale_stat["contactor"] = ""
+                sale_stat["supplier"] = ""
+            has_sku = sale_stat['skus'] and True or False
+            sale_stat['name'] = product.name
+            sale_stat['outer_id'] = product.outer_id
+            sale_stat['confirm_cost'] = not has_sku and product.cost * sale_stat['confirm_num'] or 0
+            sale_stat['collect_num'] = not has_sku and product.collect_num or 0
+            sale_stat['stock_cost'] = not has_sku and product.cost * product.collect_num or 0
+
+            for sku_id, sku_stat in sale_stat['skus'].iteritems():
+                try:
+                    sku = ProductSku.objects.get(id=sku_id)
+                except ProductSku.DoesNotExist:
+                    continue
+                sku_stat['name'] = sku.name
+                sku_stat['outer_id'] = sku.outer_id
+                sku_stat['quantity'] = sku.quantity
+                sku_stat['confirm_cost'] = sku.cost * sku_stat['confirm_num']
+                sku_stat['stock_cost'] = sku.cost * sku.quantity
+                sale_stat['confirm_cost'] += sku_stat['confirm_cost']
+                sale_stat['collect_num'] += sku.quantity
+                sale_stat['stock_cost'] += sku_stat['stock_cost']
+
+            sale_stat['skus'] = sorted(sale_stat['skus'].items(), key=lambda d: d[1]['sale_num'], reverse=True)
+            total_stock_num += sale_stat['collect_num']
+            total_sale_num += sale_stat['sale_num']
+            total_confirm_num += sale_stat['confirm_num']
+            total_confirm_payment += sale_stat['confirm_payment']
+            total_confirm_cost += sale_stat['confirm_cost']
+            total_sale_payment += sale_stat['sale_payment']
+            total_sale_refund += sale_stat['sale_refund']
+            total_stock_cost += sale_stat['stock_cost']
+
+        return {'sale_items': sale_stat_list,
+                'total_confirm_cost': total_confirm_cost,
+                'total_confirm_num': total_confirm_num,
+                'total_confirm_payment': total_confirm_payment,
+                'total_sale_num': total_sale_num,
+                'total_sale_refund': total_sale_refund,
+                'total_sale_payment': total_sale_payment,
+                'total_stock_num': total_stock_num,
+                'total_stock_cost': total_stock_cost}
+
+    def calcUnSaleSortedItems(self, queryset, p_outer_id=None):
+
+        total_stock_num = 0
+        total_stock_cost = 0
+        product_list = Product.objects.filter(status=pcfg.NORMAL)
+        if p_outer_id:
+            product_list = product_list.filter(outer_id__startswith=p_outer_id)
+
+        ps_tuple = set(queryset.values_list('product_id', 'sku_id').distinct())
+        productid_set = set(s[0] for s in ps_tuple)
+        sale_items = {}
+        for product in product_list:
+            product_id = product.id
+
+            if product.collect_num <= 0:
+                continue
+            try:
+                sale_product = SaleProduct.objects.get(id=product.sale_product)
+                contactor = sale_product.contactor.username
+                supplier = sale_product.sale_supplier.supplier_name
+            except:
+                contactor = ""
+                supplier = ""
+            for sku in product.pskus:
+                sku_id = sku.id
+
+                if (product_id, sku_id) in ps_tuple or sku.quantity <= 0:
+                    continue
+
+                if product_id not in sale_items:
+                    sale_items[product_id] = {
+                        'sale_num': 0,
+                        'sale_payment': 0,
+                        'sale_refund': 0,
+                        'confirm_num': 0,
+                        'confirm_payment': 0,
+                        'confirm_cost': 0,
+                        'name': product.name,
+                        'outer_id': product.outer_id,
+                        'sale_cost': 0,
+                        'stock_cost': 0,
+                        'collect_num': 0,
+                        'contactor': contactor,
+                        'supplier': supplier,
+                        'skus': {}}
+
+
+                sale_items[product_id]['skus'][sku_id] = {
+                    'name': sku.name,
+                    'outer_id': sku.outer_id,
+                    'quantity': sku.quantity,
+                    'sale_cost': 0,
+                    'sale_num': 0,
+                    'sale_payment': 0,
+                    'sale_refund': 0,
+                    'confirm_num': 0,
+                    'confirm_payment': 0,
+                    'confirm_cost': 0,
+                    'stock_cost': sku.quantity * sku.cost
+                }
+                sale_items[product_id]['collect_num'] += sku.quantity
+                sale_items[product_id]['stock_cost'] += sku.quantity * sku.cost
+
+            if product_id not in productid_set and not sale_items.has_key(product_id):
+                product = Product.objects.get(id=product_id)
+                try:
+                    sale_product = SaleProduct.objects.get(id=product.sale_product)
+                    contactor = sale_product.contactor.username
+                    supplier = sale_product.sale_supplier.supplier_name
+                except:
+                    contactor = ""
+                    supplier = ""
+                pic_path = product.pic_path
+                if pic_path.startswith('http://img02.taobaocdn'):
+                    pic_path = pic_path.rstrip('_80x80.jpg') + '.jpg_80x80.jpg'
+
+                sale_items[product_id] = {'pic_path': pic_path,
+                                          'title': product.title(),
+                                          'sale_num': 0,
+                                          'sale_payment': 0,
+                                          'sale_refund': 0,
+                                          'confirm_num': 0,
+                                          'confirm_payment': 0,
+                                          'confirm_cost': 0,
+                                          'name': product.name,
+                                          'outer_id': product.outer_id,
+                                          'collect_num': product.collect_num,
+                                          'sale_cost': 0,
+                                          'contactor': contactor,
+                                          'supplier': supplier,
+                                          'stock_cost': product.collect_num * product.cost,
+                                          'skus': {}}
+
+            if sale_items.has_key(product_id):
+                sale_items[product_id]['skus'] = sorted(sale_items[product_id]['skus'].items(),
+                    key=lambda d: d[1]['quantity'],
+                    reverse=True)
+
+                total_stock_num += sale_items[product_id]['collect_num']
+                total_stock_cost += sale_items[product_id]['stock_cost']
+
+        return {'sale_items': sorted(sale_items.items(),
+            key=lambda d: d[1]['collect_num'],
+            reverse=True),
+                'total_confirm_cost': 0,
+                'total_confirm_num': 0,
+                'total_confirm_payment': 0,
+                'total_sale_num': 0,
+                'total_sale_refund': 0,
+                'total_sale_payment': 0,
+                'total_stock_num': total_stock_num,
+                'total_stock_cost': total_stock_cost}
+    def calcSaleItems(self, queryset, p_outer_id=None, show_sale=True):
+        if show_sale:
+            return self.calcSaleSortedItems(queryset)
+
+        return self.calcUnSaleSortedItems(queryset, p_outer_id=p_outer_id)
+    def run(self, params=None, p_outer_id="", show_sale=True, *args, **kwargs):
+        sale_qs = ProductDaySale.objects.filter(**params)
+        sale_items = self.calcSaleItems(queryset=sale_qs, p_outer_id=p_outer_id, show_sale=show_sale)
+        return sale_items
