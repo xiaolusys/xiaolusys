@@ -15,6 +15,7 @@ from shopback.items.views import (ProductListView,
                                   ProductView,
                                   ProductSkuView,
                                   StatProductSaleView,
+                                  StatProductSaleAsyncView,
                                   ProductScanView)
 # from shopback.items.resources import (ProductListResource,
 #                                       ProductItemResource,
@@ -130,6 +131,7 @@ urlpatterns = patterns('shopback.items.views',
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
+    (r'^product/sale_async/$', StatProductSaleAsyncView.as_view()),
      (r'^product/scan/$',ProductScanView.as_view(
 #         resource=ProductScanResource,
 #         renderers=(BaseJsonRenderer,ProductScanRenderer),
