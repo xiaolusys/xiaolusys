@@ -36,7 +36,6 @@ def get_smsg_from_trade(trade):
     
     ms  = set()
     for o in trade.inuse_orders:
-        
         outer_sku_id = o.outer_sku_id
         outer_id     = o.outer_id
         prod_sku = None
@@ -55,9 +54,14 @@ def get_smsg_from_trade(trade):
             ms.add(prod.buyer_prompt.strip())
 
     dt   = datetime.datetime.now()
-    
     tmpl = Template(sms_tmpl[0].text_tmpl)
-    c    = Context({'trade':trade,'prompt_msg':','.join(ms),'today_date':dt})
+    trade_dict = {'tid':trade.tid,
+                  'buyer_nick':trade.buyer_nick,
+                  'seller_nick':trade.user.nick,
+                  'weight':trade.weight,
+                  'logistic_name':trade.logistics_company.name.replace(u'热敏',u'快递'),
+                  'out_sid':trade.out_sid}
+    c    = Context({'trade':trade_dict,'prompt_msg':','.join(ms),'today_date':dt})
     
     return tmpl.render(c)
 
