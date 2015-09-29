@@ -305,7 +305,7 @@ function submit_data() {
     for (var i = 0; i < all_color.length; i++) {
         var one_color = all_color[i].replace("+","\\+").replace("[","\\[").replace("]","\\]").replace("*","\\*");
         for (var j = 0; j < all_sku.length; j++) {
-            var one_sku = all_sku[j].replace("/","\\/");
+            var one_sku = all_sku[j].replace("/","\\/").replace("*","\\*");
             result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + one_sku + "_remainnum").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + one_color + "_" + one_sku + "_cost").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_pricestd"] = $("#" + one_color + "_" + one_sku + "_pricestd").val().trim();
