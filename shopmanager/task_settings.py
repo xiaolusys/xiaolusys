@@ -312,7 +312,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时升级代理级别为A类到VIP类任务':{
         'task':'flashsale.xiaolumm.tasks.xlmm_upgrade_A_to_VIP',
-        'schedule':crontab(minute="50", hour="4"),
+        'schedule':crontab(minute="50", hour="5"),
         'args':()
     },
     u'定时更新用户优惠券状态':{
