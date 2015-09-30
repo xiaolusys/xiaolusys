@@ -1225,6 +1225,8 @@ class StatProductSaleAsyncView(APIView):
         content = request.REQUEST
         start_dt = content.get('df', '').strip()
         end_dt = content.get('dt', '').strip()
+        buyer_name = content.get('buyer_name', '').strip()
+        supplier = content.get('supplier', '').strip()
         shop_id = content.get('shop_id')
         p_outer_id = content.get('outer_id', '')
         show_sale = '_unsaleable' not in content
@@ -1236,14 +1238,17 @@ class StatProductSaleAsyncView(APIView):
         if p_outer_id:
             params.update(outer_id__startswith=p_outer_id)
 
-        task_id = CalcProductSaleAsyncTask().delay(params, p_outer_id=p_outer_id, show_sale=show_sale)
+        task_id = CalcProductSaleAsyncTask().delay(params, buyer_name=buyer_name, supplier=supplier,
+                                                   p_outer_id=p_outer_id, show_sale=show_sale)
         sale_items = {
             'df': format_date(self.parseDate(start_dt)),
             'dt': format_date(self.parseDate(end_dt)),
             'outer_id': p_outer_id,
             'shops': serializers.UserSerializer(User.effect_users.all(), many=True).data,
             'shop_id': shop_id and int(shop_id) or '',
-            'task_id': task_id
+            'task_id': task_id,
+            'buyer_name': buyer_name,
+            'supplier': supplier
         }
         return Response(sale_items)
 class ProductScanView(APIView):

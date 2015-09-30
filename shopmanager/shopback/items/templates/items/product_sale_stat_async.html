@@ -31,7 +31,7 @@
 
         .head-inner-filter {
             margin: 10px auto 0px;
-            width: 60%;
+            width: 80%;
         }
 
         .div-inline {
@@ -294,7 +294,7 @@
     <div class="head-inner-filter">
         <form class="form-horizontal" role="form" method="GET" action="/items/product/sale_async/">
             <div class="row form-group">
-                <div class="col-xs-4">
+                <div class="col-xs-2">
                     <label class="control-label" for="shop_id">选择店铺:</label>
                     <select name="shop_id" class="form-control">
                         <option value="">全部</option>
@@ -304,16 +304,27 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-xs-4">
+                <div class="col-xs-2">
                     <label class="control-label" for="df">起始日期:</label>
                     <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
                            value="{{ df }}"/>
                 </div>
-                <div class="col-xs-4">
+                <div class="col-xs-2">
                     <label class="control-label" for="dt">结束日期:</label>
                     <input type="text" id="t_datepicker" name="dt" class="form-control datepicker"
                            value="{{ dt }}"/>
                 </div>
+            <div class="col-xs-2">
+                    <label class="control-label" for="buyer_name">买手名字:</label>
+                    <input type="text" name="buyer_name" class="form-control" value="{{ buyer_name }}"/>
+                </div>
+                <div class="col-xs-2">
+                    <label class="control-label" for="supplier">供应商:</label>
+                    <input type="text" name="supplier" class="form-control" value="{{ supplier }}"/>
+                </div>
+            </div>
+            <div class="row form-group">
+
             </div>
             <div class="row form-group">
                 <div class="col-xs-6">
