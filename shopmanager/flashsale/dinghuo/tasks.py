@@ -512,3 +512,63 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, que
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
     result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
     return result_dict
+
+
+from supplychain.supplier.models import SaleProduct
+from flashsale.pay.models_refund import SaleRefund
+from shopback.refunds.models import RefundProduct
+
+
+def get_sale_product(sale_product):
+    """　找到库存商品对应的选品信息　"""
+    try:
+        sal_p = SaleProduct.objects.get(id=sale_product)
+        return sal_p.sale_supplier.supplier_name, sal_p.sale_supplier.pk, \
+               sal_p.sale_supplier.contact, sal_p.sale_supplier.mobile
+    except SaleProduct.DoesNotExist:
+        return "", 0, "", ""
+
+
+@task()
+def calcu_refund_info_by_pro(pro_queryset=None):
+    from django.forms import model_to_dict
+    data = []
+    for i in pro_queryset:
+        # # 退款数量 return_num
+        #  实时过滤退款单中的状态 2015-09-30
+        sale_refunds = SaleRefund.objects.filter(item_id=i.id)
+
+        # 申请退货数量（已经发货生成的退货申请）
+        sended_refunds = sale_refunds.filter(good_status=SaleRefund.BUYER_RECEIVED)
+
+        # 退货途中数量(已经到货，填写了退货物流信息的退货申请) 排除　退款关闭，退款成功，等待返款的状态
+        backing_refunds = sale_refunds.filter(good_status=SaleRefund.BUYER_RETURNED_GOODS).exclude\
+            (status__in=(SaleRefund.REFUND_CLOSED, SaleRefund.REFUND_SUCCESS, SaleRefund.REFUND_APPROVE))
+
+        # 退货到仓库的数量
+        backed_refunds = RefundProduct.objects.filter(outer_id=i.outer_id)
+
+        return_num = sale_refunds.count()  # 退款数量
+
+        sended_refund_num = sended_refunds.count()  # 申请退货数量
+        backing_refund_num = backing_refunds.count()  # 退货途中数量
+        backed_refund = backed_refunds.count()  # 退货到仓库数量
+        if return_num == 0 and sended_refund_num == 0 and backed_refund == 0:
+            continue
+        # 找出供应商和买手
+        sale_supplier_name, sale_supplier_pk, \
+        sale_supplier_contact, sale_supplier_mobile = get_sale_product(i.sale_product)
+
+        prod = model_to_dict(i, exclude=("created", "modified", "sale_time"))
+        prod['return_num'] = return_num  # 退款数量
+        prod['sended_refund_num'] = sended_refund_num  # 申请退货数量
+        prod['backing_refund_num'] = backing_refund_num  # 退货途中数量
+        prod['backed_refund'] = backed_refund  # 退货到仓库数量
+
+        prod['sale_supplier_name'] = sale_supplier_name  # 供应商名称
+        prod['sale_supplier_pk'] = sale_supplier_pk
+        prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
+        prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
+
+        data.append(prod)
+    return data

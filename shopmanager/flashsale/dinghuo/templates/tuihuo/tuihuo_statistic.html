@@ -49,7 +49,7 @@
 </div>
 
 <div style="margin-top: 30px">
-
+    <span id="task_id" style="display: none">{{ task_id }}</span>
     <table class="table table-bordered">
         <thead>
         <tr>
@@ -64,32 +64,15 @@
             <th>上架状态</th>
             <th>商品备注</th>
             <th>退款数量</th>
-            <th>退货数量</th>
+
+            <th>申请退货数量</th>
+            <th>退货途中数量</th>
+            <th>退货到仓库数量</th>
+
             <th>供应商</th>
         </tr>
         </thead>
-        <tbody>
-        {% for i in pro %}
-            <tr>
-                <td><img src="{{ i.pic_path }}" style="height: 200px;width: 120px;"></td>
-                <td>{{ i.outer_id }}</td>
-                <td>{{ i.name }}</td>
-                <td>{{ i.collect_num }}</td>
-                <td>{{ i.wait_post_num }}</td>
-
-                <td>{{ i.sync_stock }}</td>
-                <td>{{ i.ware_by }}</td>
-                <td>{{ i.shelf_status }}</td>
-                <td>{{ i.memo }}</td>
-                <td>{{ i.return_num }}</td>
-                <td>{{ i.refund_num }}</td>
-                <td id="td_supplier">
-                    <a onclick="connect_supplier({{ i.sale_supplier_pk }},{{ i.id }})">{{ i.sale_supplier_name }}</a><br>
-                    <span class="label label-info">联系人：</span>{{ i.sale_supplier_contact }}
-                    <span class="label label-info">手机：</span>{{ i.sale_supplier_mobile }}
-                </td>
-            </tr>
-        {% endfor %}
+        <tbody id="pro_info_tr">
         </tbody>
     </table>
 </div>
@@ -164,11 +147,85 @@
                         layer.closeAll();
                     });
                 }
-                else{
+                else {
                     layer.msg('创建出问题，请尝试刷新页面，不要重复提交！！！');
                 }
             }
         });
     }
 </script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var task_id = $("#task_id").html();
+        console.log(task_id);
+        // 访问任务
+        aj_task(task_id);
+    });
+</script>
+<script style="text/javascript">
+    function aj_task(task_id) {
+        var task_url = "/djcelery/" + task_id + "/status";
+        $.ajax({
+            url: task_url,
+            data: {},
+            type: "get",
+            dataType: "json",
+            success: taskCallBack
+        });
+        function taskCallBack(res) {
+            console.log(res.task.status);
+            if (res.task.status == "PENDING") {
+                console.log("稍等1秒再检查");
+                setTimeout(function () {
+                    aj_task(task_id)
+                }, 3000);
+            }
+            if (res.task.status == "SUCCESS") {
+                console.log(res.task.result);
+                var pro_res = res.task.result;
+                $(pro_res).each(function (index, pro) {
+                    console.log(index, "-", pro);
+                    var html = '<tr>' +
+                            '<td><img src="{0}" style="height: 200px;width: 120px;"></td>' +
+                            '<td>{1}</td><td>{2}</td><td>{3}</td>' +
+                            '<td>{4}</td><td>{5}</td>' +
+                            '<td>{6}</td><td>{7}</td><td>{8}</td>' +
+                            '<td>{9}</td><td>{10}</td><td>{11}</td>' +
+                            '<td>{12}</td><td id="td_supplier">' +
+                            '<a onclick="connect_supplier({13},{14})">{15}</a><br>' +
+                            '<span class="label label-info">联系人：</span>{16}' +
+                            '<span class="label label-info">手机：</span>{17}' +
+                            '</td>' +
+                            '</tr>';
+                    var format_html = String.format(html,
+                            pro.pic_path,
+                            pro.outer_id,           pro.name,               pro.collect_num,
+                            pro.wait_post_num,      pro.sync_stock,
+                            pro.ware_by,            pro.shelf_status,       pro.memo,
+                            pro.return_num,         pro.sended_refund_num,  pro.backing_refund_num,
+                            pro.backed_refund,
+                            pro.sale_supplier_pk,   pro.id,                 pro.sale_supplier_name,
+                            pro.sale_supplier_contact,
+                            pro.sale_supplier_mobile);
+
+                    $("#pro_info_tr").append(format_html);
+                });
+            }
+        }
+    }
+</script>
+<script type="text/javascript">
+    String.format = function () {
+        if (arguments.length == 0)
+            return null;
+        var str = arguments[0];
+        for (var i = 1; i < arguments.length; i++) {
+            var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+            str = str.replace(re, arguments[i]);
+        }
+        return str;
+    };
+</script>
 </html>
+
+
