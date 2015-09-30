@@ -749,7 +749,7 @@ class CalcProductSaleAsyncTask(Task):
                 if supplier:
                     if supplier_name != supplier:
                         continue
-                        
+
                 sale_items[product_id] = {
                     'pic_path': pic_path,
                     'title': product.title(),
