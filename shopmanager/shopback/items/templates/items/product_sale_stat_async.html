@@ -223,13 +223,13 @@
                         $("#loading").hide();
                         var result = res.task.result;
                         $("#total_sale_num").text(result.total_sale_num);
-                        $("#total_sale_payment").text(result.total_sale_payment.toFixed(2));
+                        $("#total_sale_payment").text(result.total_sale_payment.toString().toFixed(2));
                         $("#total_confirm_num").text(result.total_confirm_num);
-                        $("#total_confirm_payment").text(result.total_confirm_payment.toFixed(2));
-                        $("#total_sale_refund").text(result.total_sale_refund.toFixed(2));
-                        $("#total_confirm_cost").text(result.total_confirm_cost.toFixed(2));
+                        $("#total_confirm_payment").text(result.total_confirm_payment.toString().toFixed(2));
+                        $("#total_sale_refund").text(result.total_sale_refund.toString().toFixed(2));
+                        $("#total_confirm_cost").text(result.total_confirm_cost.toString().toFixed(2));
                         $("#total_stock_num").text(result.total_stock_num);
-                        $("#total_stock_cost").text(result.total_stock_cost.toFixed(2));
+                        $("#total_stock_cost").text(result.total_stock_cost.toString().toFixed(2));
 
 
                         var content_result = $('#content_result');
@@ -246,13 +246,13 @@
                             '<a href="/admin/items/product/?q=' + dd[1].outer_id + '" target="_blank">' + dd[1].name + '</a>' +
                             '<br>'+dd[1].supplier +'</td>' +
                             '<td class="col-xs-1">' + dd[1].sale_num + '</td>' +
-                            '<td class="col-xs-1">' + dd[1].sale_payment.toFixed(2) + '</td>' +
+                            '<td class="col-xs-1">' + dd[1].sale_payment.toString().toFixed(2) + '</td>' +
                             '<td class="col-xs-1">' + dd[1].confirm_num + '</td>' +
-                            '<td class="col-xs-1">' + dd[1].confirm_payment.toFixed(2) + '</td>' +
-                            '<td class="col-xs-1">' + dd[1].confirm_cost.toFixed(2) + '</td>' +
-                            '<td class="col-xs-1">' + dd[1].sale_refund.toFixed(2) + '</td>' +
+                            '<td class="col-xs-1">' + dd[1].confirm_payment.toString().toFixed(2) + '</td>' +
+                            '<td class="col-xs-1">' + dd[1].confirm_cost.toString().toFixed(2) + '</td>' +
+                            '<td class="col-xs-1">' + dd[1].sale_refund.toString().toFixed(2) + '</td>' +
                             '<td class="col-xs-1">' + dd[1].collect_num + '</td>' +
-                            '<td class="col-xs-1">' + dd[1].stock_cost.toFixed(2) + '</td></tr></table>' +
+                            '<td class="col-xs-1">' + dd[1].stock_cost.toString().toFixed(2) + '</td></tr></table>' +
                             '</div>' +
                             '<div class="list-table-content">' +
                             '<table class="table table-bordered  table-condensed">';
@@ -262,13 +262,13 @@
                                 '<td class="col-xs-1">' + sku[1].outer_id + '</td>' +
                                 '<td class="col-xs-2">' + sku[1].name + '</td>' +
                                 '<td class="col-xs-1">' + sku[1].sale_num + '</td>' +
-                                '<td class="col-xs-1">' + sku[1].sale_payment.toFixed(2) + '</td>' +
+                                '<td class="col-xs-1">' + sku[1].sale_payment.toString().toFixed(2) + '</td>' +
                                 '<td class="col-xs-1">' + sku[1].confirm_num + '</td>' +
-                                '<td class="col-xs-1">' + sku[1].confirm_payment.toFixed(2) + '</td>' +
-                                '<td class="col-xs-1">' + sku[1].confirm_cost.toFixed(2) + '</td>' +
-                                '<td class="col-xs-1">' + sku[1].sale_refund.toFixed(2) + '</td>' +
+                                '<td class="col-xs-1">' + sku[1].confirm_payment.toString().toFixed(2) + '</td>' +
+                                '<td class="col-xs-1">' + sku[1].confirm_cost.toString().toFixed(2) + '</td>' +
+                                '<td class="col-xs-1">' + sku[1].sale_refund.toString().toFixed(2) + '</td>' +
                                 '<td class="col-xs-1">' + sku[1].quantity + '</td>' +
-                                '<td class="col-xs-1">' + sku[1].stock_cost.toFixed(2) + '</td></tr>';
+                                '<td class="col-xs-1">' + sku[1].stock_cost.toString().toFixed(2) + '</td></tr>';
                             });
                             content += '</table></div></div>';
 
