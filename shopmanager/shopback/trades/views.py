@@ -2284,9 +2284,13 @@ def search_trade(request):
         if product == "":
             rec1 = []
         else:
+            product_split = product.split(" ")
+            if len(product_split) > 1:
+                all_order = MergeOrder.objects.filter(
+                    Q(outer_id=product_split[0], outer_sku_id=product_split[1], sys_status=pcfg.IN_EFFECT))
+            else:
+                all_order = MergeOrder.objects.filter(Q(outer_id=product, sys_status=pcfg.IN_EFFECT))
             all_trade_id = set()
-            all_order = MergeOrder.objects.filter(Q(outer_id=product, sys_status=pcfg.IN_EFFECT)).filter(
-                pay_time__gte=datetime.datetime.now() - datetime.timedelta(30))
             for one_order in all_order:
                 trade_id = one_order.merge_trade_id
                 one_trade = one_order.merge_trade
