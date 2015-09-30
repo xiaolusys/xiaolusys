@@ -16,9 +16,14 @@
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}fixed-header-table-master/jquery.fixedheadertable.min.js"
+            type="text/javascript"></script>
+
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+
+        @import "{{ STATIC_URL }}fixed-header-table-master/css/defaultTheme.css";
     </style>
 </head>
 
@@ -63,22 +68,24 @@
             <th>库存</th>
             <th>待发数</th>
 
-            <th>库存同步</th>
-            <th>归属仓库</th>
+            <th>同步</th>
+            <th>发货仓</th>
             <th>上架状态</th>
             <th>商品备注</th>
-            <th>退款数量</th>
+            <th>退款数</th>
 
-            <th>申请退货数量</th>
-            <th>退货途中数量</th>
-            <th>退货到仓库数量</th>
+            <th>申请退货数</th>
+            <th>退货途中数</th>
+            <th>退货到仓数</th>
 
             <th>供应商</th>
+            <th>已退数</th>
         </tr>
         </thead>
         <tbody id="pro_info_tr">
         </tbody>
     </table>
+
 </div>
 </body>
 
@@ -190,7 +197,7 @@
                 $(pro_res).each(function (index, pro) {
                     console.log(index, "-", pro);
                     var html = '<tr>' +
-                            '<td><img src="{0}" style="height: 200px;width: 120px;"></td>' +
+                            '<td><img src="{0}" style="height: 100px;width: 62px;"></td>' +
                             '<td>{1}</td><td>{2}</td><td>{3}</td>' +
                             '<td>{4}</td><td>{5}</td>' +
                             '<td>{6}</td><td>{7}</td><td>{8}</td>' +
@@ -199,7 +206,7 @@
                             '<a onclick="connect_supplier({13},{14})">{15}</a><br>' +
                             '<span class="label label-info">联系人：</span>{16}' +
                             '<span class="label label-info">手机：</span>{17}' +
-                            '</td>' +
+                            '</td><td>{18}</td>' +
                             '</tr>';
                     var format_html = String.format(html,
                             pro.pic_path,
@@ -210,14 +217,24 @@
                             pro.backed_refund,
                             pro.sale_supplier_pk, pro.id, pro.sale_supplier_name,
                             pro.sale_supplier_contact,
-                            pro.sale_supplier_mobile);
+                            pro.sale_supplier_mobile,
+                            pro.already_num
+                    );
 
                     $("#pro_info_tr").append(format_html);
+                });
+
+
+                $('#mytable').fixedHeaderTable({
+                    footer: false,
+                    cloneHeadToFoot: true,
+                    altClass: 'odd',
+                    autoShow: true
                 });
                 $('#mytable').dataTable({
                     //"bJQueryUI": true,
                     "bAutoWidth": false, //自适应宽度
-                    "aaSorting": [[1, "asc"]],
+                    "aaSorting": [[9, "asc"]],
                     "iDisplayLength": 50,
                     "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
                     //"bInfo":true,

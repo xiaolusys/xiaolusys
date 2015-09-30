@@ -517,7 +517,7 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, que
 from supplychain.supplier.models import SaleProduct
 from flashsale.pay.models_refund import SaleRefund
 from shopback.refunds.models import RefundProduct
-
+from .models import ReturnGoods
 
 def get_sale_product(sale_product):
     """　找到库存商品对应的选品信息　"""
@@ -532,6 +532,7 @@ def get_sale_product(sale_product):
 @task()
 def calcu_refund_info_by_pro(pro_queryset=None):
     from django.forms import model_to_dict
+    from django.db.models import Sum
     data = []
     for i in pro_queryset:
         # # 退款数量 return_num
@@ -548,11 +549,16 @@ def calcu_refund_info_by_pro(pro_queryset=None):
         # 退货到仓库的数量
         backed_refunds = RefundProduct.objects.filter(outer_id=i.outer_id)
 
-        return_num = sale_refunds.count()  # 退款数量
+        # 已经退货数量
+        already_return_goods = ReturnGoods.objects.filter(product_id=i.id)
+        already_return_goods_num = already_return_goods.aggregate(total_al=Sum("return_num")).get("total_al") or 0
 
-        sended_refund_num = sended_refunds.count()  # 申请退货数量
-        backing_refund_num = backing_refunds.count()  # 退货途中数量
-        backed_refund = backed_refunds.count()  # 退货到仓库数量
+        return_num = sale_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 退款数量
+
+        sended_refund_num = sended_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 申请退货数量
+        backing_refund_num = backing_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 退货途中数量
+        backed_refund = backed_refunds.aggregate(total_num=Sum("num")).get("total_num") or 0  # 退货到仓库数量
+
         if return_num == 0 and sended_refund_num == 0 and backed_refund == 0:
             continue
         # 找出供应商和买手
@@ -569,6 +575,7 @@ def calcu_refund_info_by_pro(pro_queryset=None):
         prod['sale_supplier_pk'] = sale_supplier_pk
         prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
         prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
+        prod['already_num'] = already_return_goods_num  # 已退数量
 
         data.append(prod)
     return data
