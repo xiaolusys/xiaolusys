@@ -71,11 +71,7 @@ class StatisRefundSupView(APIView):
 
         date_from, date_to = time_zone_handler(date_from, date_to)
         # 过滤 时间段中　上架时间　　的所有产品
-        #tz_pros = Product.objects.filter(sale_time__gte=date_from, sale_time__lte=date_to)
-        t = datetime.date(2015,9,24)
-        tz_pros = Product.objects.filter(sale_time=t)[:5]
-
-        print "tz_pros:", tz_pros.count()
+        tz_pros = Product.objects.filter(sale_time__gte=date_from, sale_time__lte=date_to)
         task_id = calcu_refund_info_by_pro.s(pro_queryset=tz_pros)()
         return Response({"task_id":task_id})
 
