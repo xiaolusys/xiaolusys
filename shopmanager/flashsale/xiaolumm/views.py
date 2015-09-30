@@ -125,7 +125,6 @@ class CashoutView(View):
             cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm[0], cash_outable=cash_outable)
         v = content.get("v")
         m = re.match(r'^\d+$', v)
-        print("v is here ",v)
         status = {"code":0, "status":"ok"}
         if m:
             value = int(m.group()) * 100

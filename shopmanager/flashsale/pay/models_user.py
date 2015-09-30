@@ -1,5 +1,6 @@
 #-*- coding:utf-8 -*-
 import random
+import datetime
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
     
@@ -101,7 +102,8 @@ class Customer(models.Model):
     
     def is_wxauth(self):
         """ 是否微信授权 """
-        if self.unionid.strip():
+        if (self.unionid.strip() and 
+            datetime.datetime.now() > datetime.datetime(2015,10,30)): #关联用户订单未转移过渡期
             return True
         return False
     
