@@ -258,6 +258,12 @@
                             '<div class="list-table-content">' +
                             '<table class="table table-bordered  table-condensed">';
                             $.each(dd[1].skus, function (index1, sku) {
+                                if(!sku[1].confirm_cost){
+                                    sku[1].confirm_cost = 0;
+                                }
+                                if(!sku[1].stock_cost){
+                                    sku[1].stock_cost = 0;
+                                }
                                 console.log(sku[1].sale_payment,sku[1].confirm_payment,sku[1].confirm_cost,sku[1].sale_refund,sku[1].stock_cost,"sku")
                                 content += '<tr>' +
                                 '<td class="col-xs-1">' + (index1+1).toString() + '&nbsp;&gt;</td>' +
