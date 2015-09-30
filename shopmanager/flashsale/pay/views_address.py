@@ -125,7 +125,6 @@ class UserAddressDetail(APIView):
         for k,v in content.iteritems():
             if k == 'default':
                 v = v and True or False 
-            print 'k,v',k,v,hasattr(uaddr,k),setattr(uaddr,k,v)
             hasattr(uaddr,k) and setattr(uaddr,k,v)
         
         uaddr.save()

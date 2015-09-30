@@ -230,5 +230,3 @@ def coupon_migration_handler():
                     cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
                     cou.save()
                     items += 1
-                    print "id:", usercou.id, "customer:", customer, "trade_id:", trade_id
-    print "共10个保存{0}条记录".format(items)

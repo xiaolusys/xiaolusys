@@ -36,7 +36,6 @@ def get_smsg_from_trade(trade):
     
     ms  = set()
     for o in trade.inuse_orders:
-        
         outer_sku_id = o.outer_sku_id
         outer_id     = o.outer_id
         prod_sku = None
@@ -55,9 +54,14 @@ def get_smsg_from_trade(trade):
             ms.add(prod.buyer_prompt.strip())
 
     dt   = datetime.datetime.now()
-    
     tmpl = Template(sms_tmpl[0].text_tmpl)
-    c    = Context({'trade':trade,'prompt_msg':','.join(ms),'today_date':dt})
+    trade_dict = {'tid':trade.tid,
+                  'buyer_nick':trade.buyer_nick,
+                  'seller_nick':trade.user.nick,
+                  'weight':trade.weight,
+                  'logistic_name':trade.logistics_company.name.replace(u'热敏',u'快递'),
+                  'out_sid':trade.out_sid}
+    c    = Context({'trade':trade_dict,'prompt_msg':','.join(ms),'today_date':dt})
     
     return tmpl.render(c)
 
@@ -131,13 +135,16 @@ def notifyPacketPostTask(days):
         return 
     
     dt  = datetime.datetime.now()
-    df  = dt - datetime.timedelta(0,60*60*13*days,0)
-    wait_sms_trades = MergeTrade.objects.filter(type__in=(pcfg.FENXIAO_TYPE,pcfg.TAOBAO_TYPE,pcfg.COD_TYPE),
+    df  = dt - datetime.timedelta(days=days)
+    wait_sms_trades = MergeTrade.objects.filter(type__in=(pcfg.FENXIAO_TYPE,
+                                                          pcfg.TAOBAO_TYPE,
+                                                          pcfg.COD_TYPE,
+                                                          pcfg.WX_TYPE,
+                                                          pcfg.SALE_TYPE),
         sys_status=pcfg.FINISHED_STATUS,is_send_sms=False,weight_time__gte=df, weight_time__lte=dt,
         is_express_print=True).exclude(receiver_mobile='')#
 
     for trade in wait_sms_trades:
-        
         subtask(notifyBuyerPacketPostTask).delay(trade.id,platform.code)
 
 @task

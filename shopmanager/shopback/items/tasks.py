@@ -700,7 +700,7 @@ class CalcProductSaleAsyncTask(Task):
         except:
             return None
 
-    def getSaleSortedItems(self, queryset):
+    def getSaleSortedItems(self, queryset, buyer_name, supplier):
 
         sale_items = {}
         for sale in queryset:
@@ -735,6 +735,21 @@ class CalcProductSaleAsyncTask(Task):
                 pic_path = product.pic_path
                 if pic_path.startswith('http://img02.taobaocdn'):
                     pic_path = pic_path.rstrip('_80x80.jpg') + '.jpg_80x80.jpg'
+                try:
+                    sale_product = SaleProduct.objects.get(id=product.sale_product)
+                    contactor = sale_product.contactor.username
+                    supplier_name = sale_product.sale_supplier.supplier_name
+                except:
+                    contactor = ""
+                    supplier_name = ""
+                if buyer_name:
+                    if contactor != buyer_name:
+                        continue
+
+                if supplier:
+                    if supplier_name != supplier:
+                        continue
+
                 sale_items[product_id] = {
                     'pic_path': pic_path,
                     'title': product.title(),
@@ -743,6 +758,8 @@ class CalcProductSaleAsyncTask(Task):
                     'sale_refund': sale.sale_refund,
                     'confirm_num': sale.confirm_num,
                     'confirm_payment': sale.confirm_payment,
+                    'contactor': contactor,
+                    'supplier': supplier_name,
                     'skus': {}}
                 if sku_id:
                     sale_items[product_id]['skus'][sku_id] = {
@@ -754,8 +771,7 @@ class CalcProductSaleAsyncTask(Task):
                     }
         return sorted(sale_items.items(), key=lambda d: d[1]['sale_num'], reverse=True)
 
-    def calcSaleSortedItems(self, queryset):
-
+    def calcSaleSortedItems(self, queryset, buyer_name, supplier):
         total_stock_num = 0
         total_sale_num = 0
         total_sale_payment = 0
@@ -764,19 +780,16 @@ class CalcProductSaleAsyncTask(Task):
         total_confirm_cost = 0
         total_sale_refund = 0
         total_stock_cost = 0
-        sale_stat_list = self.getSaleSortedItems(queryset)
+        sale_stat_list = self.getSaleSortedItems(queryset, buyer_name, supplier)
+
         for product_id, sale_stat in sale_stat_list:
             try:
                 product = Product.objects.get(id=product_id)
             except Product.DoesNotExist:
                 continue
-            try:
-                sale_product = SaleProduct.objects.get(id=product.sale_product)
-                sale_stat["contactor"] = sale_product.contactor.username
-                sale_stat["supplier"] = sale_product.sale_supplier.supplier_name
-            except:
-                sale_stat["contactor"] = ""
-                sale_stat["supplier"] = ""
+
+
+
             has_sku = sale_stat['skus'] and True or False
             sale_stat['name'] = product.name
             sale_stat['outer_id'] = product.outer_id
@@ -930,12 +943,12 @@ class CalcProductSaleAsyncTask(Task):
                 'total_sale_payment': 0,
                 'total_stock_num': total_stock_num,
                 'total_stock_cost': total_stock_cost}
-    def calcSaleItems(self, queryset, p_outer_id=None, show_sale=True):
+    def calcSaleItems(self, queryset, buyer_name="", supplier="", p_outer_id=None, show_sale=True):
         if show_sale:
-            return self.calcSaleSortedItems(queryset)
+            return self.calcSaleSortedItems(queryset, buyer_name, supplier)
 
         return self.calcUnSaleSortedItems(queryset, p_outer_id=p_outer_id)
-    def run(self, params=None, p_outer_id="", show_sale=True, *args, **kwargs):
+    def run(self, params=None, buyer_name="", supplier="", p_outer_id="", show_sale=True, *args, **kwargs):
         sale_qs = ProductDaySale.objects.filter(**params)
-        sale_items = self.calcSaleItems(queryset=sale_qs, p_outer_id=p_outer_id, show_sale=show_sale)
+        sale_items = self.calcSaleItems(queryset=sale_qs, buyer_name=buyer_name, supplier=supplier, p_outer_id=p_outer_id, show_sale=show_sale)
         return sale_items

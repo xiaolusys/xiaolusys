@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css" type="text/css" />
     <script src="{{ STATIC_URL }}jquery/jquery-1.9.1.min.js"></script>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.min.js"></script>
+
 	<!-- <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery.ui.datepicker-zh-CN.js.js" type="text/javascript" charset="gb2312"></script> -->
     <style type="text/css">
         * {
@@ -30,7 +31,7 @@
 
         .head-inner-filter {
             margin: 10px auto 0px;
-            width: 60%;
+            width: 80%;
         }
 
         .div-inline {
@@ -90,16 +91,136 @@
             background-color: #3299CC;
         }
     </style>
+
+    <style type="text/css">
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 9999;
+            background: white;
+            color: #74b936;
+            text-align: center
+        }
+
+        #loading .loading-container {
+            position: absolute;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 20%;
+            bottom: 0
+        }
+
+        #loading b {
+            color: white;
+            background: #74b936;
+            font-weight: normal;
+            padding: 5px 5px;
+            margin: 10px;
+            font-size: 50px
+        }
+
+        #loading h1, #loading h2, #loading h3, #loading h4 {
+            font-family: "Helvetica Neue", Arial, "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
+            text-align: center
+        }
+
+        #loading #loading-app-name {
+            text-align: center;
+            font-size: 54px;
+            margin-top: 0;
+            margin-bottom: .8em
+        }
+
+        #loading #loading-slogan {
+            font-weight: normal
+        }
+
+        #loading #loading-text {
+            position: fixed;
+            left: 47%;
+            text-align: center;
+            bottom: 30%;
+        }
+    </style>
+    <style>
+        @keyframes move {
+            from {
+                transform: translate(0, 50%);
+            }
+            to {
+                transform: translate(0, 850%);
+            }
+        }
+
+        figure {
+            margin: 0 auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            background: #1c1c1c;
+        }
+
+        section {
+            width: 10%;
+            height: 100%;
+            position: absolute;
+            left: 45%;
+        }
+
+        section:nth-child(2) {
+            transform: rotate(22.5deg);
+        }
+
+        section:nth-child(3) {
+            transform: rotate(45deg);
+        }
+
+        section:nth-child(4) {
+            transform: rotate(67.5deg);
+        }
+
+        figure div {
+            height: 10%;
+            border-radius: 50%;
+            background: dodgerblue;
+            animation: move 1s ease-in-out infinite alternate;
+        }
+
+        figure:nth-child(1) > section:nth-child(1) > div {
+            animation-delay: -0.1875s;
+        }
+
+        figure:nth-child(1) > section:nth-child(2) > div {
+            animation-delay: -0.15s;
+        }
+
+        figure:nth-child(1) > section:nth-child(3) > div {
+            animation-delay: -0.9375s;
+        }
+
+
+    </style>
+
     <script>
         function get_data() {
             var task_id = $("#task_id").val();
             $.ajax({
                 url: "/djcelery/" + task_id + "/status/", //这里是静态页的地址
-                method: "GET", //静态页用get方法，否则服务器会抛出405错误
+                method: "GET",
+                error: function(){
+                    $("#loading").hide();
+                },
                 success: function (res) {
                     console.log(res.task.status);
                     console.log(res.task.result);
                     if (res.task.status == "SUCCESS") {
+                        $("#loading").hide();
                         var result = res.task.result;
                         $("#total_sale_num").text(result.total_sale_num);
                         $("#total_sale_payment").text(result.total_sale_payment.toFixed(2));
@@ -173,7 +294,7 @@
     <div class="head-inner-filter">
         <form class="form-horizontal" role="form" method="GET" action="/items/product/sale_async/">
             <div class="row form-group">
-                <div class="col-xs-4">
+                <div class="col-xs-2">
                     <label class="control-label" for="shop_id">选择店铺:</label>
                     <select name="shop_id" class="form-control">
                         <option value="">全部</option>
@@ -183,16 +304,27 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-xs-4">
+                <div class="col-xs-2">
                     <label class="control-label" for="df">起始日期:</label>
                     <input type="text" id="f_datepicker" name="df" class="form-control datepicker"
                            value="{{ df }}"/>
                 </div>
-                <div class="col-xs-4">
+                <div class="col-xs-2">
                     <label class="control-label" for="dt">结束日期:</label>
                     <input type="text" id="t_datepicker" name="dt" class="form-control datepicker"
                            value="{{ dt }}"/>
                 </div>
+            <div class="col-xs-2">
+                    <label class="control-label" for="buyer_name">买手名字:</label>
+                    <input type="text" name="buyer_name" class="form-control" value="{{ buyer_name }}"/>
+                </div>
+                <div class="col-xs-2">
+                    <label class="control-label" for="supplier">供应商:</label>
+                    <input type="text" name="supplier" class="form-control" value="{{ supplier }}"/>
+                </div>
+            </div>
+            <div class="row form-group">
+
             </div>
             <div class="row form-group">
                 <div class="col-xs-6">
@@ -265,6 +397,43 @@
 
     </div>
 </div>
+
+<div id="loading" class="slide-content">
+    <div class='loading-container'>
+        <h1 id='loading-app-name'>小鹿美美</h1>
+
+        <h3><span id='loading-slogan'>专为小鹿美美打造的 销售查询系统<br><br>请耐心等候……<br></span>
+
+            <div id="canvas_loading"></div>
+        </h3>
+        <div id='loading-text'>
+            <figure>
+                <section>
+                    <div></div>
+                </section>
+                <section>
+                    <div></div>
+                </section>
+                <section>
+                    <div></div>
+                </section>
+                <section>
+                    <div></div>
+                </section>
+                <section>
+                    <div></div>
+                </section>
+                <section>
+                    <div></div>
+                </section>
+                <section>
+                    <div></div>
+                </section>
+            </figure>
+        </div>
+    </div>
+
+</div>
 </body>
 <script type="text/javascript">
     $(function () {
@@ -291,4 +460,5 @@
         });
     });
 </script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jindutiao_script.js"></script>
 </html>
