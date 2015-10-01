@@ -1,5 +1,8 @@
 #encoding:utf-8
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 import re
 import hashlib
 import inspect
