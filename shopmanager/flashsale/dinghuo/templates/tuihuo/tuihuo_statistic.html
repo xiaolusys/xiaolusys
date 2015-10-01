@@ -16,6 +16,15 @@
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}fixed-header-table-master/jquery.fixedheadertable.min.js"
+            type="text/javascript"></script>
+
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+
+        @import "{{ STATIC_URL }}fixed-header-table-master/css/defaultTheme.css";
+    </style>
 </head>
 
 <body class="container">
@@ -49,8 +58,8 @@
 </div>
 
 <div style="margin-top: 30px">
-
-    <table class="table table-bordered">
+    <span id="task_id" style="display: none">{{ task_id }}</span>
+    <table class="table table-bordered" id="mytable">
         <thead>
         <tr>
             <th>图片</th>
@@ -59,39 +68,24 @@
             <th>库存</th>
             <th>待发数</th>
 
-            <th>库存同步</th>
-            <th>归属仓库</th>
+            <th>同步</th>
+            <th>发货仓</th>
             <th>上架状态</th>
             <th>商品备注</th>
-            <th>退款数量</th>
-            <th>退货数量</th>
+            <th>退款数</th>
+
+            <th>申请退货数</th>
+            <th>退货途中数</th>
+            <th>退货到仓数</th>
+
             <th>供应商</th>
+            <th>已退数</th>
         </tr>
         </thead>
-        <tbody>
-        {% for i in pro %}
-            <tr>
-                <td><img src="{{ i.pic_path }}" style="height: 200px;width: 120px;"></td>
-                <td>{{ i.outer_id }}</td>
-                <td>{{ i.name }}</td>
-                <td>{{ i.collect_num }}</td>
-                <td>{{ i.wait_post_num }}</td>
-
-                <td>{{ i.sync_stock }}</td>
-                <td>{{ i.ware_by }}</td>
-                <td>{{ i.shelf_status }}</td>
-                <td>{{ i.memo }}</td>
-                <td>{{ i.return_num }}</td>
-                <td>{{ i.refund_num }}</td>
-                <td id="td_supplier">
-                    <a onclick="connect_supplier({{ i.sale_supplier_pk }},{{ i.id }})">{{ i.sale_supplier_name }}</a><br>
-                    <span class="label label-info">联系人：</span>{{ i.sale_supplier_contact }}
-                    <span class="label label-info">手机：</span>{{ i.sale_supplier_mobile }}
-                </td>
-            </tr>
-        {% endfor %}
+        <tbody id="pro_info_tr">
         </tbody>
     </table>
+
 </div>
 </body>
 
@@ -164,11 +158,124 @@
                         layer.closeAll();
                     });
                 }
-                else{
+                else {
                     layer.msg('创建出问题，请尝试刷新页面，不要重复提交！！！');
                 }
             }
         });
     }
 </script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var task_id = $("#task_id").html();
+        console.log(task_id);
+        // 访问任务
+        aj_task(task_id);
+    });
+</script>
+<script style="text/javascript">
+    function aj_task(task_id) {
+        var task_url = "/djcelery/" + task_id + "/status";
+        $.ajax({
+            url: task_url,
+            data: {},
+            type: "get",
+            dataType: "json",
+            success: taskCallBack
+        });
+        function taskCallBack(res) {
+            console.log(res.task.status);
+            if (res.task.status == "PENDING") {
+                console.log("稍等3秒再检查");
+                setTimeout(function () {
+                    aj_task(task_id)
+                }, 3000);
+            }
+            if (res.task.status == "SUCCESS") {
+                console.log(res.task.result);
+                var pro_res = res.task.result;
+                $(pro_res).each(function (index, pro) {
+                    console.log(index, "-", pro);
+                    var html = '<tr>' +
+                            '<td><img src="{0}" style="height: 100px;width: 62px;"></td>' +
+                            '<td>{1}</td><td>{2}</td><td>{3}</td>' +
+                            '<td>{4}</td><td>{5}</td>' +
+                            '<td>{6}</td><td>{7}</td><td>{8}</td>' +
+                            '<td>{9}</td><td>{10}</td><td>{11}</td>' +
+                            '<td>{12}</td><td id="td_supplier">' +
+                            '<a onclick="connect_supplier({13},{14})">{15}</a><br>' +
+                            '<span class="label label-info">联系人：</span>{16}' +
+                            '<span class="label label-info">手机：</span>{17}' +
+                            '</td><td>{18}</td>' +
+                            '</tr>';
+                    var format_html = String.format(html,
+                            pro.pic_path,
+                            pro.outer_id, pro.name, pro.collect_num,
+                            pro.wait_post_num, pro.sync_stock,
+                            pro.ware_by, pro.shelf_status, pro.memo,
+                            pro.return_num, pro.sended_refund_num, pro.backing_refund_num,
+                            pro.backed_refund,
+                            pro.sale_supplier_pk, pro.id, pro.sale_supplier_name,
+                            pro.sale_supplier_contact,
+                            pro.sale_supplier_mobile,
+                            pro.already_num
+                    );
+
+                    $("#pro_info_tr").append(format_html);
+                });
+
+
+                $('#mytable').fixedHeaderTable({
+                    footer: false,
+                    cloneHeadToFoot: true,
+                    altClass: 'odd',
+                    autoShow: true
+                });
+                $('#mytable').dataTable({
+                    //"bJQueryUI": true,
+                    "bAutoWidth": false, //自适应宽度
+                    "aaSorting": [[9, "asc"]],
+                    "iDisplayLength": 50,
+                    "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+                    //"bInfo":true,
+                    //"sPaginationType": "full_numbers",
+                    //"sDom": '<"H"Tfr>t<"F"ip>',
+                    "oLanguage": {
+                        "sLengthMenu": "_MENU_ 条",
+                        "sZeroRecords": "抱歉， 没有找到",
+                        "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                        "sInfoEmpty": "没有数据",
+                        "sSearch": "搜索",
+                        "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                        "oPaginate": {
+                            "sFirst": "首页",
+                            "sPrevious": "前一页",
+                            "sNext": "后一页",
+                            "sLast": "尾页"
+                        },
+                        "sZeroRecords": "没有检索到数据",
+                        "sProcessing": "<img src='/static/img/loading.gif' />"
+                    }
+                });
+            }
+        }
+    }
+</script>
+<script type="text/javascript">
+    String.format = function () {
+        if (arguments.length == 0)
+            return null;
+        var str = arguments[0];
+        for (var i = 1; i < arguments.length; i++) {
+            var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+            str = str.replace(re, arguments[i]);
+        }
+        return str;
+    };
+</script>
+<script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+</script>
 </html>
+
+

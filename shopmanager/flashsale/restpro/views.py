@@ -452,7 +452,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     {'res':'not_release'}   ->: 暂未发放
     """
 
-    queryset = UserCoupon.objects.filter()
+    queryset = UserCoupon.objects.all()
     serializer_class = serializers.UsersCouponSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )

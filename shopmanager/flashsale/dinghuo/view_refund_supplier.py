@@ -14,6 +14,9 @@ from django.db.models import Sum
 import logging
 import datetime
 from shopback.base import log_action, ADDITION, CHANGE
+from shopback.refunds.models import RefundProduct
+from tasks import calcu_refund_info_by_pro
+
 
 logger = logging.getLogger('django.request')
 
@@ -21,6 +24,7 @@ from shopback.items.models import Product
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder, SupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct
 from .models import ReturnGoods
+from flashsale.pay.models_refund import SaleRefund
 
 
 def time_zone_handler(date_from=None, date_to=None):
@@ -59,53 +63,17 @@ class StatisRefundSupView(APIView):
         if outer_id:
             pro = Product.objects.filter(outer_id=outer_id)
             if pro.exists():
-                data = []
-                for i in pro:
-                    # 退款数量 return_num
-                    d = DailySupplyChainStatsOrder.objects.filter(product_id=i.outer_id)
-                    return_num = d.aggregate(total_num=Sum('return_num')).get('total_num') or 0
-                    # 退货数量 refund_num
-                    s = SupplyChainStatsOrder.objects.filter(product_id=i.outer_id)
-                    refund_num = s.aggregate(total_num=Sum('refund_num')).get('total_num') or 0
-                    # 找出供应商和买手
-                    sale_supplier_name, sale_supplier_pk, \
-                    sale_supplier_contact, sale_supplier_mobile = get_sale_product(i.sale_product)
+                task_id = calcu_refund_info_by_pro.s(pro_queryset=pro)()
+                return Response({"task_id": task_id})
 
-                    prod = model_to_dict(i)
-                    prod['return_num'] = return_num  # 退款数量
-                    prod['refund_num'] = refund_num  # 退货数量
-                    prod['sale_supplier_name'] = sale_supplier_name  # 供应商名称
-                    prod['sale_supplier_pk'] = sale_supplier_pk
-                    prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
-                    prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
-                    data.append(prod)
-                return Response({"pro": data})
         date_from = (content.get('date_from', None))
         date_to = (content.get('date_to', None))
+
         date_from, date_to = time_zone_handler(date_from, date_to)
         # 过滤 时间段中　上架时间　　的所有产品
         tz_pros = Product.objects.filter(sale_time__gte=date_from, sale_time__lte=date_to)
-        tz_data = []
-        for i in tz_pros:
-            # 退款数量 return_num
-            d = DailySupplyChainStatsOrder.objects.filter(product_id=i.outer_id)
-            return_num = d.aggregate(total_num=Sum('return_num')).get('total_num') or 0
-            if return_num == 0:  # 退款数量为0　的不做退货处理
-                continue
-            # 退货数量 refund_num
-            s = SupplyChainStatsOrder.objects.filter(product_id=i.outer_id)
-            refund_num = s.aggregate(total_num=Sum('refund_num')).get('total_num') or 0
-            sale_supplier_name, sale_supplier_pk, \
-            sale_supplier_contact, sale_supplier_mobile = get_sale_product(i.sale_product)
-            prod = model_to_dict(i)
-            prod['return_num'] = return_num  # 退款数量
-            prod['refund_num'] = refund_num  # 退货数量
-            prod['sale_supplier_name'] = sale_supplier_name  # 供应商名称
-            prod['sale_supplier_pk'] = sale_supplier_pk
-            prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
-            prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
-            tz_data.append(prod)
-        return Response({"pro": tz_data})
+        task_id = calcu_refund_info_by_pro.s(pro_queryset=tz_pros)()
+        return Response({"task_id":task_id})
 
     def post(self, request, format=None):
         content = request.REQUEST

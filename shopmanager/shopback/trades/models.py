@@ -585,7 +585,7 @@ def recalc_trade_fee(sender,trade_id,*args,**kwargs):
 
 recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 # 
-# class MergeController(models.Model):
+# class MergeCtrl(models.Model):
 #     
 #     WARE_SH  = 0
 #     WARE_GZ  = 1
@@ -625,7 +625,7 @@ recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 #                                          index=True,verbose_name=u'所属仓库') 
 #     reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
 #     class Meta:
-#         db_table = 'shop_trades_controller'
+#         db_table = 'shop_trades_ctrl'
 #         verbose_name=u'订单操作状态'
 #         verbose_name_plural = u'订单操作状态列表'
 #         

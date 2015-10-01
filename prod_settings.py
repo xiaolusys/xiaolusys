@@ -128,8 +128,15 @@ JD_API_ENDPOINT = 'http://%s/routerjson'%JD_API_HOSTNAME
 PINGPP_CLENTIP = "121.199.168.159"
 PINGPP_APPID   = "app_LOOajDn9u9WDjfHa"
 #PINGPP_APPKEY = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT"
-PINGPP_APPKEY  = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC" 
+PINGPP_APPKEY  = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
 
+################### Ntalker SETTINGS ##################
+
+NTALKER_NOTIFY_URL = 'http://wx.ntalker.com/agent/weixin'
+
+WX_MESSAGE_URL = 'https://api.weixin.qq.com/cgi-bin/message/custom/send'
+WX_MEDIA_UPLOAD_URL = 'https://api.weixin.qq.com/cgi-bin/media/upload'
+WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 
 LOGGING = {
     'version': 1,
@@ -178,6 +185,11 @@ LOGGING = {
         'celery.handler': {
             'handlers': ['sentry'],
             'level': 'ERROR',
+            'propagate': True,
+        },
+        'weixin.proxy': {
+            'handlers': ['sentry'],
+            'level': 'DEBUG',
             'propagate': True,
         },
         'notifyserver.handler':{

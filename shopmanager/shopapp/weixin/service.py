@@ -31,7 +31,7 @@ import logging
 
 logger = logging.getLogger('django.request')
 VALID_MOBILE_REGEX = '^1[34578][0-9]{9}$'
-VALID_CODE_REGEX = '^[0-9]{6}$'
+VALID_CODE_REGEX = '^[0-9]{6,7}$'
 VALID_EVENT_CODE = '^[qwertyuiopknQWERTYUIOPKN]$'
 WX_MESSAGE_TIMEOUT = 30
 
@@ -78,7 +78,6 @@ def buildDomByJson(parentDom, djson, arrayTag='', rootTag=''):
         
     json_type = type(djson)
     if json_type == dict:
-        
         for k, v in djson.iteritems():
             if type(v) in (list, tuple):
                 buildDomByJson(pdom, v, arrayTag=k)
@@ -89,7 +88,6 @@ def buildDomByJson(parentDom, djson, arrayTag='', rootTag=''):
         return
         
     if json_type in (list, tuple):
-        
         if not arrayTag:
             raise Exception(u'数组类型需要指定父标签')
         
@@ -98,12 +96,10 @@ def buildDomByJson(parentDom, djson, arrayTag='', rootTag=''):
         return 
     
     if json_type in (str, unicode):
-        
         pdom.appendChild(doc.createCDATASection(djson))
         return 
     
     if json_type in (int, float):
-        
         pdom.appendChild(doc.createTextNode(str(djson)))
         return
     
@@ -147,9 +143,7 @@ class WeixinUserService():
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId) 
         if state or force_update or not wx_user.unionid:
             from .tasks import task_Update_Weixin_Userinfo
-            
             task_Update_Weixin_Userinfo.s(openId,unionId=unionId)()
-                
         return wx_user
     
     def setOpenId(self, openId):
@@ -186,7 +180,6 @@ class WeixinUserService():
             raise MessageException(u'请%d秒后重新发送' % (wx_user.get_wait_time()))
         
         if wx_user.mobile == mobile:
-            
             wx_user.vmobile = mobile
             wx_user.isvalid = True
             wx_user.save()

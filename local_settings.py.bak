@@ -115,15 +115,24 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 0,
     'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
 }
+################### SALEORDER CONFIG ##################
+#sale order regular days
+REGULAR_DAYS = 20
 
 ################### WEIXIN SETTINGS ##################
-
+#for weixin pub younishijie
 WEIXIN_API_HOST = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST = "http://file.api.weixin.qq.com"
 WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
 WEIXIN_APPID  = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+#for weixin pub xiaolumm,just for pay
+WXPAY_APPID    = "wx3f91056a2928ad2d"
+WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
+#for weixin app
+WXAPP_ID       = "wx25fcb32689872499"
+WXAPP_SECRET   = "3c7b4e3eb5ae4cmeixqhisok060a872ee"
 
 ################### JINGDONG SETTINGS #################
 
@@ -137,13 +146,18 @@ JD_REDIRECT_URI = '/app/jd/login/auth/'
 JD_API_ENDPOINT = 'http://%s/routerjson' % JD_API_HOSTNAME
 
 ################### PING++ SETTINGS ##################
-WXPAY_APPID    = "wx3f91056a2928ad2d"
-WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
 
 PINGPP_APPID           = "app_qPCaj95Serj5PKOq"
 PINGPP_APPKEY          = "sk_test_8y58u9zbPWTKTGGa1GrTi1mT" #TEST KEY
 PINGPP_CLENTIP         = "127.0.0.1"
 
+################### Ntalker SETTINGS ##################
+
+NTALKER_NOTIFY_URL = 'http://wx.ntalker.com/agent/weixin'
+
+WX_MESSAGE_URL = 'https://api.weixin.qq.com/cgi-bin/message/custom/send'
+WX_MEDIA_UPLOAD_URL = 'https://api.weixin.qq.com/cgi-bin/media/upload'
+WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 
 LOGGING = {
     'version': 1,
