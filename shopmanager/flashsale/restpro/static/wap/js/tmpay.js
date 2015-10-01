@@ -104,9 +104,11 @@ function Set_user_orderinfo(suffix){
 	}); 
 }
 
+var click_paybtn = click_paybtn || false;
+
 function Ctrl_sure_charge(pay_url){
 	//确认支付
-	if ($('.btn-buy').hasClass('charged')){return;}       
+	   
 	var WALLET_PAY = 'wallet';	
     var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
 	var channel     = $('.pay-type .pay-list li.active i').attr('id');
@@ -136,10 +138,13 @@ function Ctrl_sure_charge(pay_url){
 	if(!isNone(couponid)){
 		params.coupon_id = couponid;
 	}
-    $('.btn-buy').addClass('charged');
-    $('.btn-buy').addClass('pressed');
-
+	if (click_paybtn == true){
+		return;
+	}else{    
+    	click_paybtn = true;
+    }
     var callBack = function(data){
+    	click_paybtn = false;
 	  	if (data.channel == WALLET_PAY){//使用钱包支付
 	  		window.location.href = GLConfig.zhifucg_url;
 	  	}else{
@@ -163,6 +168,7 @@ function Ctrl_sure_charge(pay_url){
 		dataType:'json', 
 		success:callBack,
 		error:function(err){
+			click_paybtn = false;
             console.log("err is here ", err);
 			$('.btn-buy').removeClass('charged').removeClass('pressed');
 			var resp = JSON.parse(err.responseText);
@@ -183,7 +189,13 @@ function Ctrl_order_charge(pay_url){
 	$('.btn-buy').addClass('charged');
     $('.btn-buy').addClass('pressed');
 	var params = {};
+	if (click_paybtn == true){
+		return;
+	}else{    
+    	click_paybtn = true;
+    }
     var callBack = function(data){
+    	click_paybtn = false;
 	  	if (data.channel == WALLET_PAY){//使用钱包支付
 	  		window.location.href = GLConfig.zhifucg_url;
 	  	}else{
@@ -207,6 +219,7 @@ function Ctrl_order_charge(pay_url){
 		dataType:'json', 
 		success:callBack,
 		error:function(err){
+			click_paybtn = false;
 			$('.btn-buy').removeClass('charged').removeClass('pressed');
 			var resp = JSON.parse(err.responseText);
 			if (!isNone(resp.detail)){

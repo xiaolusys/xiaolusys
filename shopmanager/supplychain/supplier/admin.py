@@ -28,7 +28,6 @@ class SaleSupplierAdmin(MyAdmin):
 
     search_fields = ['supplier_name', 'supplier_code']
 
-
     def charge_link(self, obj):
 
         if obj.status == SaleSupplier.CHARGED:
