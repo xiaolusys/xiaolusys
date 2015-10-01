@@ -143,14 +143,10 @@ class MergeTradeAdmin(MyAdmin):
     
     def trade_id_link(self, obj):
        
-        link_content = '''<a href="%d/">%d</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="%d" data-toggle="tooltip" data-placement="right" 
-        title="  
-        买家昵称:%s                                                                
-        买家留言：%s                                                    
-        卖家留言：%s                                                             
-        系统备注：%s          ">备注</a>'''  %(obj.id,obj.id,obj.id,obj.buyer_nick,obj. buyer_message,obj.seller_memo,obj.sys_memo)
+        link_content = u'''<a href="{0}/">{1}</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="{2}" data-toggle="tooltip" data-placement="right" 
+        '''.format(obj.id,obj.id,obj.id)
         if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
-            link_content +=  '<a href="javascript:void(0);" class="trade-regular" style="display:block" trade_id="%d" days="3" >延三天</a>'%obj.id
+            link_content +=  u'<a href="javascript:void(0);" class="trade-regular" style="display:block" trade_id="%d" days="3" >延三天</a>'%obj.id
         return link_content
                
     trade_id_link.allow_tags = True
@@ -159,16 +155,16 @@ class MergeTradeAdmin(MyAdmin):
     def popup_tid_link(self, obj):
         return u'<a href="%d/" onclick="return showTradePopup(this);"    >%s</a>' %(obj.id,obj.tid and str(obj.tid) or '--' )
     popup_tid_link.allow_tags = True
-    popup_tid_link.short_description = "原单ID" 
+    popup_tid_link.short_description = u"原单ID" 
     
     def buyer_nick_link(self, obj):
         symbol_link = obj.buyer_nick
 
         if  obj.can_change_order:
-            symbol_link = '<a href="javascript:void(0);" onclick=" showlayer(%d)">%s</a> ' %(obj.id,obj.buyer_nick)
+            symbol_link = u'<a href="javascript:void(0);" onclick=" showlayer(%d)">%s</a> ' %(obj.id,obj.buyer_nick)
         return symbol_link
     buyer_nick_link.allow_tags = True
-    buyer_nick_link.short_description = "买家昵称" 
+    buyer_nick_link.short_description = u"买家昵称" 
 
     def has_out_stock_fun(self, obj):
         has_out_stock = obj.has_out_stock # 退货状态
@@ -185,7 +181,7 @@ class MergeTradeAdmin(MyAdmin):
             pass
         return content
     has_out_stock_fun.allow_tags = True
-    has_out_stock_fun.short_description = "是否缺货"
+    has_out_stock_fun.short_description = u"是否缺货"
 
 
     def trade_ding_huo(self, obj):
@@ -198,7 +194,7 @@ class MergeTradeAdmin(MyAdmin):
         return link_content
 
     trade_ding_huo.allow_tags = True
-    trade_ding_huo.short_description = "订货表"
+    trade_ding_huo.short_description = u"订货表"
 
     inlines = [MergeOrderInline]
     
