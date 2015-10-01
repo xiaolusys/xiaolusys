@@ -143,8 +143,8 @@ class MergeTradeAdmin(MyAdmin):
     
     def trade_id_link(self, obj):
        
-        link_content = u'''<a href="{0}/">{1}</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="{2}" data-toggle="tooltip" data-placement="right" 
-        '''.format(obj.id,obj.id,obj.id)
+        link_content = u'''<a href="{0}/">{1}</a><a href="javascript:void(0);" class="trade-tag" style="display:block" trade_id="{2}" data-toggle="tooltip" data-placement="right" >
+        备注</a>'''.format(obj.id,obj.id,obj.id)
         if obj.sys_status == pcfg.WAIT_AUDIT_STATUS:
             link_content +=  u'<a href="javascript:void(0);" class="trade-regular" style="display:block" trade_id="%d" days="3" >延三天</a>'%obj.id
         return link_content
