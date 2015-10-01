@@ -168,6 +168,7 @@ class WeixinAcceptView(View):
                                      content.get('nonce','')):
             wx_service.activeAccount()
             return HttpResponse(content['echostr'])
+        logger.debug('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
 
     
@@ -178,6 +179,7 @@ class WeixinAcceptView(View):
         if not wx_service.checkSignature(content.get('signature',''),
                                          content.get('timestamp',0),
                                          content.get('nonce','')):
+            logger.debug('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
         content  = request.body
         params   = parseXML2Param(content)

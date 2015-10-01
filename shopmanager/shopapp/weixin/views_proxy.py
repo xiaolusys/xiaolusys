@@ -6,7 +6,7 @@ from httpproxy.views import HttpProxy
 
 import logging
 from . import service
-logger = logging.getLogger('django.request')
+logger = logging.getLogger('weixin.proxy')
 
 class WXMessageHttpProxy(HttpProxy):
     
@@ -32,6 +32,7 @@ class WXMessageHttpProxy(HttpProxy):
                                      content.get('nonce','')):
             wx_service.activeAccount()
             return HttpResponse(content['echostr'])
+        logger.debug('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
 
     def post(self, request, *args, **kwargs):
@@ -40,6 +41,7 @@ class WXMessageHttpProxy(HttpProxy):
         if not wx_service.checkSignature(content.get('signature',''),
                                          content.get('timestamp',0),
                                          content.get('nonce','')):
+            logger.debug('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
         
 #         content  = request.body

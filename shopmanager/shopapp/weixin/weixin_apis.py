@@ -1,8 +1,5 @@
-#-*- coding:utf8 -*-
+#encoding:utf-8
 import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
 import re
 import hashlib
 import inspect
@@ -85,15 +82,12 @@ class WeiXinAPI(object):
         
     def checkSignature(self,signature,timestamp,nonce):
         
-#         if time.time() - int(timestamp) > 300:
-#             return False
-        
-        sign_array = [self._wx_account.token,timestamp,nonce]
+        if time.time() - int(timestamp) > 60:
+            return False
+        sign_array = ['%s'%i for i in [self._wx_account.token,timestamp,nonce]]
         sign_array.sort()
-        
-        sha1_value = hashlib.sha1(''.join(sign_array))
-
-        return sha1_value.hexdigest() == signature
+        sha1_value = hashlib.sha1(''.join(sign_array)).hexdigest() 
+        return sha1_value == signature
         
     def handleRequest(self,uri,params={},method="GET",token=True):
         
