@@ -165,6 +165,7 @@ from flashsale.pay.options import get_user_unionid
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 from flashsale.mmexam.models import Result
+from common.modelutils import update_model_fields
 
 from flashsale.clickcount.tasks import CLICK_ACTIVE_START_TIME, CLICK_MAX_LIMIT_DATE  
 
@@ -203,7 +204,7 @@ class MamaStatsView(View):
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
                 xlmm.weikefu = xlmm.weikefu or wx_user.nickname
-                xlmm.save()
+                update_model_fields(xlmm,update_fields=['mobile','weikefu'])
             
             if xlmm.status == XiaoluMama.FROZEN:
                 return render_to_response("mama_404.html")

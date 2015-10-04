@@ -1,3 +1,5 @@
+############2015-10-04######################
+alter table xiaolumm_xiaolumama add column modified datetime NOT NULL;
 ############2015-09-28######################
 alter table xiaolumm_xiaolumama add target_complete double Not null;
 ########### 2015-9-25################
