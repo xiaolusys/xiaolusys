@@ -193,9 +193,11 @@ class SaleRefundChangeList(ChangeList):
 
         return super(SaleRefundChangeList, self).get_query_set(request)
 
+import pingpp
 
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from .filters import Filte_By_Reason
+from .tasks import notifyTradeRefundTask
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = (
@@ -325,7 +327,6 @@ class SaleRefundAdmin(admin.ModelAdmin):
                         obj.refund_Confirm()
 
                     elif obj.refund_fee > 0 and obj.charge:
-                        import pingpp
 
                         pingpp.api_key = settings.PINGPP_APPKEY
                         ch = pingpp.Charge.retrieve(obj.charge)
@@ -350,7 +351,6 @@ class SaleRefundAdmin(admin.ModelAdmin):
                 if obj.status in (SaleRefund.REFUND_WAIT_SELLER_AGREE,
                                   SaleRefund.REFUND_WAIT_RETURN_GOODS,
                                   SaleRefund.REFUND_CONFIRM_GOODS):
-
                     obj.status = SaleRefund.REFUND_REFUSE_BUYER
                     obj.save()
                     log_action(request.user.id, obj, CHANGE, '驳回重申')
@@ -360,9 +360,35 @@ class SaleRefundAdmin(admin.ModelAdmin):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, '系统出错:%s' % exc.message)
+            return HttpResponseRedirect("../%s/" % pk_value)
+        
+        elif request.POST.has_key("_refund_invoke"):
+            try:
+                strade = SaleTrade.objects.get(id=obj.trade_id)
+                sorder = SaleOrder.objects.get(id=obj.order_id)
+                if (obj.status == SaleRefund.REFUND_APPROVE and 
+                    strade.channel != SaleTrade.WALLET and
+                    obj.refund_id.strip()):
+                    pingpp.api_key = settings.PINGPP_APPKEY
+                    ch = pingpp.Charge.retrieve(strade.charge)
+                    rf = ch.refunds.retrieve(obj.refund_id)
+                    if rf.status == 'failed':
+                        rf = ch.refunds.create(description=obj.refund_desc, 
+                                               amount=int(obj.refund_fee * 100))
+                        obj.refund_id = rf.id
+                        obj.save()
+                    else:
+                        notifyTradeRefundTask(rf)
+                    log_action(request.user.id, obj, CHANGE, '重新退款:refund=%s'%rf.id)
+                    self.message_user(request, '退款申请成功，等待返款。')
+                else:
+                    self.message_user(request, '订单退款状态异常')
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
+                self.message_user(request, '系统出错:%s' % exc.message)
 
             return HttpResponseRedirect("../%s/" % pk_value)
-
+        
         elif request.POST.has_key("_refund_complete"):
             try:
 
@@ -370,7 +396,6 @@ class SaleRefundAdmin(admin.ModelAdmin):
                     # obj.status = SaleRefund.REFUND_SUCCESS
                     # obj.save()
                     obj.refund_Confirm()
-
                     log_action(request.user.id, obj, CHANGE, '确认退款完成:%s' % obj.refund_id)
                     self.message_user(request, '确认退款已完成')
                 else:
@@ -378,9 +403,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, '系统出错:%s' % exc.message)
-
             return HttpResponseRedirect("../%s/" % pk_value)
-
 
         return super(SaleRefundAdmin, self).response_change(request, obj, *args, **kwargs)
 

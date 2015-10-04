@@ -8,6 +8,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
+from common.modelutils import update_model_fields
 import logging
 
 logger = logging.getLogger('django.request')
@@ -312,7 +313,7 @@ class XiaoluMama(models.Model):
             self.pending = models.F('pending') - clog.value
         else:
             self.cash = models.F('cash') - clog.value
-        self.save()
+        update_model_fields(self,update_fields=['cash','pending'])
         
         
 # from .clickprice import CLICK_TIME_PRICE

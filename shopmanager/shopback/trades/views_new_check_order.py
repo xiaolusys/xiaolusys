@@ -101,7 +101,7 @@ def split_merge_trade(merger_order_id, modify_user):
                 new_trade.ware_by = p[0].ware_by
             else:
                 hasattr(new_trade, k) and setattr(new_trade, k, v)
-
+    new_trade.is_part_consign = True
     new_trade.save()
 
     log_action(modify_user.id, new_trade, ADDITION, u'从订单{0}拆过来'.format(parent_trade.id))
@@ -117,13 +117,13 @@ def split_merge_trade(merger_order_id, modify_user):
                     new_order.merge_trade_id = new_trade.id
                 else:
                     hasattr(new_order, k1) and setattr(new_order, k1, v1)
-
         new_order.save()
 
         mergeorder.sys_status = INVALID_STATUS
         mergeorder.save()
         log_action(modify_user.id, mergeorder, CHANGE, u'被拆单')
     parent_trade.sys_memo += u"拆单到{0}".format(new_trade.id)
+    parent_trade.is_part_consign = True
     parent_trade.save()
 
     trade_handler.proccess(parent_trade, **{"update_logistic": True})
