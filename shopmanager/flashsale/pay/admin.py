@@ -373,7 +373,8 @@ class SaleRefundAdmin(admin.ModelAdmin):
                     ch = pingpp.Charge.retrieve(strade.charge)
                     rf = ch.refunds.retrieve(obj.refund_id)
                     if rf.status == 'failed':
-                        rf = ch.refunds.create(description=obj.refund_desc, amount=obj.refund_fee)
+                        rf = ch.refunds.create(description=obj.refund_desc, 
+                                               amount=int(obj.refund_fee * 100))
                         obj.refund_id = rf.id
                         obj.save()
                     else:
