@@ -187,7 +187,7 @@ def notifyTradeRefundTask(notify):
                    u'%s(金额:%s)'%([u'退款失败',u'退款成功'][notify['succeed'] and 1 or 0],notify['amount']))
         
         if not notify['succeed']:
-            srefund.feedback += notify.get('failure_msg','')
+            srefund.feedback += notify.get('failure_msg','') or ''
             srefund.save()
             logger.error('refund error:%s'%notify)
             return 

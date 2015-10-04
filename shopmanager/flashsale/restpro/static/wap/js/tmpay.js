@@ -183,10 +183,8 @@ function Ctrl_sure_charge(pay_url){
 
 function Ctrl_order_charge(pay_url){
 	//待支付订单确认支付
-	if ($('.btn-buy').hasClass('charged')){return;}   
 	var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
 	var WALLET_PAY  = 'wallet';
-	$('.btn-buy').addClass('charged');
     $('.btn-buy').addClass('pressed');
 	var params = {};
 	if (click_paybtn == true){
@@ -220,7 +218,7 @@ function Ctrl_order_charge(pay_url){
 		success:callBack,
 		error:function(err){
 			click_paybtn = false;
-			$('.btn-buy').removeClass('charged').removeClass('pressed');
+			$('.btn-buy').removeClass('pressed');
 			var resp = JSON.parse(err.responseText);
 			if (!isNone(resp.detail)){
 				drawToast(resp.detail);
