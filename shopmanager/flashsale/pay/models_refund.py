@@ -111,7 +111,7 @@ class SaleRefund(models.Model):
         return '<%s>'%(self.id)
     
     def refund_desc(self):
-        return u'退款不退货(oid:%s),%s'%(self.order_id,self.reason)
+        return u'退款(oid:%s),%s'%(self.order_id,self.reason)
     
     def refund_Confirm(self):
         

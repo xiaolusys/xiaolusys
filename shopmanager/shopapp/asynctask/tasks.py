@@ -366,10 +366,15 @@ class PrintAsyncTask(Task):
                                            'num':order.num,
                                            'location':product_location,
                                            'title': product.name if product else order.title,
-                                           'skus':{outer_sku_id:{'sku_name':prod_sku_name,
-                                                                 'num':order.num,
-                                                                 'location':product_sku_location}}
+                                           'skus':{outer_sku_id:{
+                                                 'sku_name':prod_sku_name,
+                                                 'num':order.num,
+                                                 'location':product_sku_location}
+                                                }
                                            }
+            if trade.is_part_consign:
+                prompt_set.add(u'客官，您的订单已拆单分批发货，其它宝贝正在陆续赶来，请您耐心等候')
+                
             trade_data['buyer_prompt'] = prompt_set and ','.join(list(prompt_set)) or ''   
             order_list = sorted(order_items.items(),key=lambda d:d[1]['location'])
             for trade in order_list:
