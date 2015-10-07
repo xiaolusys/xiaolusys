@@ -1,7 +1,10 @@
 /**
  * Created by jishu_linjie on 8/17/15.
  */
-
+var RELEASE = 1;
+var PAST = 2;
+var USED = 1;
+var UNUSED = 0;
 function get_Coupon_On_Buy() {
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
@@ -9,7 +12,7 @@ function get_Coupon_On_Buy() {
             var nums = 0;
             $.each(res, function (i, val) {
                 console.log("debug coupon status:", val.status);
-                if (val.status == 0) {
+                if (val.status == UNUSED && val.poll_status == RELEASE) {
                     nums = nums + 1;//有效可用的优惠券数量
                 }
             });
@@ -52,13 +55,17 @@ function get_Coupon_On_Choose() {
         console.log("debug choose coupon:", res);
         if (res.length > 0) {
             $.each(res, function (i, val) {
-                if (val.status == 0) {
+                if (val.status == UNUSED && val.poll_status == RELEASE) {
                     var c_valid = create_valid(val);
-                    $('.coupons').append(c_valid);
+                    $('.youxiao').append(c_valid);
                 }
-                if (val.status == 1) {
+                else if (val.poll_status == RELEASE && val.status == USED) {
                     var c_not_valid = create_not_valid(val);
-                    $('.coupons').append(c_not_valid);
+                    $('.shixiao').append(c_not_valid);
+                }
+                else if (val.poll_status == PAST) {
+                    var c_past = create_past(val);
+                    $('.shixiao').append(c_past);
                 }
             });
         }
@@ -76,6 +83,10 @@ function create_valid(obj) {
 function create_not_valid(obj) {
     var c_not_valid = $("#c_not_valid").html();
     return hereDoc(c_not_valid).template(obj)
+}
+function create_past(obj) {
+    var c_past = $("#c_past").html();
+    return hereDoc(c_past).template(obj)
 }
 
 function copon_judeg(coupon_id, pro_num) {

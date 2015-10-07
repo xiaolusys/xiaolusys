@@ -19,7 +19,7 @@
     <a class="user" href="gerenzhongxin.html"></a>
 </div>
 
-<div class="coupons">
+<div class="coupons youxiao">
     <script id="coupon_template_xlmm" type="text/html">
         <ul class="coupons-list">
             <li class="type2">
@@ -94,12 +94,25 @@
     <script type="text/html" id="c_not_valid">
         <ul class="coupons-list">
             <li class="c_not_valid">
-                <p class="name">{{ title }}　已经使~</p>
+                <p class="name">{{ title }}　已使用~</p>
 
                 <p class="date">{{ created }} － {{ deadline }}</p>
             </li>
         </ul>
     </script>
+
+    <script type="text/html" id="c_past">
+        <ul class="coupons-list">
+            <li class="c_not_valid">
+                <p class="name">{{ title }}　已过期~</p>
+
+                <p class="date">{{ created }} － {{ deadline }}</p>
+            </li>
+        </ul>
+    </script>
+
+</div>
+<div class="coupons shixiao">
 
 </div>
 

@@ -40,17 +40,21 @@
 </div>-->
 
     <h1><span class="label label-success">订单明细查询页面</span></h1>
-
     <div class="row" style="margin-top:50px;">
         <div class="col-xd-5">
             <div class="container">
                 <form class="form-horizontal" role="form" action="/trades/search_trade/" method="post">
                     {% csrf_token %}
-                    <input type="text" style="width: 500px;display: inline" class="form-control" id="condition"
-                           name="condition" value="{{ number }}" placeholder="查询条件（订单号，手机号码，电话号码，用户昵称,物流编号）">
-                    <input type="text" style="width: 500px;display: inline" class="form-control" id="product"
+                    <input type="text" style="width: 300px;display: inline" class="form-control" id="condition"
+                           name="condition" value="{{ number }}" placeholder="查询条件（订单号，手机号码,物流编号）">
+                    <input type="text" style="width: 300px;display: inline" class="form-control" id="product"
                            name="product" value="{{ product }}"
-                           placeholder="查询条件（商品编码，商品名称）">
+                           placeholder="查询条件（商品编码）">
+                    <select  style="width: 300px;display: inline" class="form-control" name="status">
+                        <option value="0" {% ifequal status '0' %}selected="selected" {% endifequal %}>全部订单</option>
+                        <option value="1" {% ifequal status '1' %}selected="selected" {% endifequal %}>待发货</option>
+                        <option value="2" {% ifequal status '2' %}selected="selected" {% endifequal %}>已发货</option>
+                    </select>
                     <button type="submit" class="btn btn-warning">点击查询
                         <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
                     </button>

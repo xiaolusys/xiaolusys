@@ -582,18 +582,21 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
         year, month, day = end_date.split('-')
         end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
         if category == "0":
-            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+            all_created_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+            all_sale_product = SaleProduct.objects.filter(sale_time__range=(start_date_time, end_date_time))
         else:
-            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
-                                                          sale_category__id=category)
+            all_created_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
+                                                             sale_category__parent_cid=category)
+            all_sale_product = SaleProduct.objects.filter(sale_time__range=(start_date_time, end_date_time),
+                                                          sale_category__parent_cid=category, status=SaleProduct.SCHEDULE)
         all_contactors = SaleProduct.objects.values("contactor__username").distinct()
         result_data = []
         for contactor in all_contactors:
             one_temp = {"username": contactor['contactor__username']}
-            charger_product = all_sale_product.filter(contactor__username=contactor['contactor__username'])
+            charger_product = all_created_product.filter(contactor__username=contactor['contactor__username'])
             choose_sale_num = charger_product.count()
             one_temp["choose_sale_num"] = choose_sale_num
-            charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
+            charger_product_shelf = all_sale_product.filter(contactor__username=contactor['contactor__username'])
             shelf_sale_num = charger_product_shelf.count()
             one_temp["shelf_sale_num"] = shelf_sale_num
             one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)

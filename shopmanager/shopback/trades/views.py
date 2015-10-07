@@ -2262,6 +2262,13 @@ def detail22(request):
     return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today})
 
 
+ORDER_NOT_SEND_STATUS = (pcfg.TRADE_NO_CREATE_PAY,
+                         pcfg.WAIT_BUYER_PAY,
+                         pcfg.WAIT_SELLER_SEND_GOODS,
+                         pcfg.TRADE_CLOSED_BY_TAOBAO)
+ORDER_SEND_STATUS = (pcfg.WAIT_BUYER_CONFIRM_GOODS,
+                     pcfg.TRADE_BUYER_SIGNED,
+                     pcfg.TRADE_FINISHED, pcfg.TRADE_CLOSED)
 def search_trade(request):
     """搜索订单 根据商品编码 订单内容"""
     today = datetime.datetime.today()
@@ -2269,18 +2276,24 @@ def search_trade(request):
     if request.method == "POST":
         rec1 = []
         number1 = request.POST.get('condition')
+        status = request.POST.get('status')
         product = request.POST.get('product').strip()
         number = number1.strip()
-
+        moqs = MergeOrder.objects.all().order_by("pay_time")
+        if status:
+            if status == u'1':
+                moqs = moqs.filter(merge_trade__status__in=ORDER_NOT_SEND_STATUS)
+            elif status == u'2':
+                moqs = moqs.filter(merge_trade__status__in=ORDER_SEND_STATUS)
         if product == "":
             rec1 = []
         else:
             product_split = product.split(" ")
             if len(product_split) > 1:
-                all_order = MergeOrder.objects.filter(
+                all_order = moqs.filter(
                     Q(outer_id=product_split[0], outer_sku_id=product_split[1], sys_status=pcfg.IN_EFFECT))
             else:
-                all_order = MergeOrder.objects.filter(Q(outer_id=product, sys_status=pcfg.IN_EFFECT))
+                all_order = moqs.filter(Q(outer_id=product, sys_status=pcfg.IN_EFFECT))
             all_trade_id = set()
             for one_order in all_order:
                 trade_id = one_order.merge_trade_id
@@ -2310,13 +2323,19 @@ def search_trade(request):
                 rec1.append(info)
             if len(rec1) > 0:
                 return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today,
-                                                                    'number': number, 'product': product})
+                                                                    'number': number, 'product': product,
+                                                                    'status': status})
 
         if number == "":
             rec1 = []
         else:
             trade_info = MergeTrade.objects.filter(Q(receiver_mobile=number) | Q(tid=number)
-                                                   | Q(out_sid=number))
+                                                   | Q(out_sid=number)).order_by("pay_time")
+            if status:
+                if status == u'1':
+                    trade_info = trade_info.filter(status__in=ORDER_NOT_SEND_STATUS)
+                elif status == u'2':
+                    trade_info = trade_info.filter(status__in=ORDER_SEND_STATUS)
             for item in trade_info:
                 info = {}
                 try:
@@ -2338,7 +2357,8 @@ def search_trade(request):
                     info['detail'].append(sum)
                 rec1.append(info)
             return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today,
-                                                                'number': number, 'product': product})
+                                                                'number': number, 'product': product,
+                                                                'status': status})
     else:
         rec1 = []
 
