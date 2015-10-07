@@ -2271,6 +2271,13 @@ def detail22(request):
     return render(request, 'trades/order_detail.html', {'info': rec1, 'time': today})
 
 
+ORDER_NOT_SEND_STATUS = (pcfg.TRADE_NO_CREATE_PAY,
+                         pcfg.WAIT_BUYER_PAY,
+                         pcfg.WAIT_SELLER_SEND_GOODS,
+                         pcfg.TRADE_CLOSED_BY_TAOBAO)
+ORDER_SEND_STATUS = (pcfg.WAIT_BUYER_CONFIRM_GOODS,
+                     pcfg.TRADE_BUYER_SIGNED,
+                     pcfg.TRADE_FINISHED, pcfg.TRADE_CLOSED)
 def search_trade(request):
     """搜索订单 根据商品编码 订单内容"""
     today = datetime.datetime.today()
@@ -2284,9 +2291,9 @@ def search_trade(request):
         moqs = MergeOrder.objects.all()
         if status:
             if status == u'1':
-                moqs = moqs.filter(merge_trade__status__in=pcfg.ORDER_UNFINISH_STATUS)
+                moqs = moqs.filter(merge_trade__status__in=ORDER_NOT_SEND_STATUS)
             elif status == u'2':
-                moqs = moqs.filter(merge_trade__status__in=pcfg.ORDER_POST_STATUS)
+                moqs = moqs.filter(merge_trade__status__in=ORDER_SEND_STATUS)
         if product == "":
             rec1 = []
         else:
@@ -2335,9 +2342,9 @@ def search_trade(request):
                                                    | Q(out_sid=number))
             if status:
                 if status == u'1':
-                    trade_info = trade_info.filter(status__in=pcfg.ORDER_UNFINISH_STATUS)
+                    trade_info = trade_info.filter(status__in=ORDER_NOT_SEND_STATUS)
                 elif status == u'2':
-                    trade_info = trade_info.filter(status__in=pcfg.ORDER_POST_STATUS)
+                    trade_info = trade_info.filter(status__in=ORDER_SEND_STATUS)
             for item in trade_info:
                 info = {}
                 try:
