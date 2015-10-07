@@ -142,26 +142,29 @@ $(".sale_category_select").live("change",function(e){
     $.ajax({"url":url,"data":data,"success":callback,"type":"POST", "headers":headers});
 });
 
-$(".select_saletime").datepicker({
-    dateFormat: "yy-mm-dd"
-}).change(function (e) {
-    var slae_product = this.id;
-    var sale_time = this.value;
-    var sale_time_old = this.name;
-    var target = e.target;
-    var url = "/supplychain/supplier/select_sale_time/";
-    var callback = function (res) {
-        if (res == "OK") {
-            $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
-        }
-    };
-    var data = {"slae_product": slae_product, "sale_time": sale_time};
-    console.log("deebug data:",data);
-    $.ajax({"url": url, 
-    		"data": data, 
-    		"success": callback, 
-    		"type": "POST",
-    		"error":function(){
-    			alert('上架日期修改失败');
-    		}});
+
+$(function () {
+	$(".select_saletime").datepicker({
+	    dateFormat: "yy-mm-dd"
+	}).change(function (e) {
+	    var slae_product = this.id;
+	    var sale_time = this.value;
+	    var sale_time_old = this.name;
+	    var target = e.target;
+	    var url = "/supplychain/supplier/select_sale_time/";
+	    var callback = function (res) {
+	        if (res == "OK") {
+	            $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+	        }
+	    };
+	    var data = {"slae_product": slae_product, "sale_time": sale_time};
+	    console.log("deebug data:",data);
+	    $.ajax({"url": url, 
+	    		"data": data, 
+	    		"success": callback, 
+	    		"type": "POST",
+	    		"error":function(){
+	    			alert('上架日期修改失败');
+	    		}});
+	});
 });
