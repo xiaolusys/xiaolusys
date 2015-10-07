@@ -102,3 +102,15 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^wxorder_detail/$','weixinorder_detail',name='weixinorder_detail'),
 
 )
+
+from . import views_proxy
+
+urlpatterns += patterns('',
+    (r'^proxy/$',views_proxy.WXMessageHttpProxy.as_view(base_url=settings.NTALKER_NOTIFY_URL),{'url':'' }),
+    (r'^proxy/ntalker/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MESSAGE_URL),{'url':'' }),
+    (r'^proxy/upload/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_UPLOAD_URL),{'url':'' }),
+    (r'^proxy/down/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_GET_URL),{'url':'' }),
+)
+
+
+

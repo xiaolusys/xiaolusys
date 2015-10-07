@@ -112,6 +112,7 @@ INSTALLED_APPS = (
     'djcelery',
     'djkombu',
     'deamon',
+    'httpproxy',
     'deamon.celery_sentry',
     
     'common',

@@ -14,6 +14,24 @@ from .models import (
 )
 from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter
 from . import permissions as perms
+from django.contrib.admin.views.main import ChangeList
+
+
+class SaleSupplierChangeList(ChangeList):
+
+    def get_query_set(self,request):
+        qs = self.root_query_set
+
+        search_q = request.GET.get('q', '').strip()
+        print len(search_q.split(" ")) > 1
+        if len(search_q.split(" ")) > 1 and search_q.split(" ")[1] == 'u':
+            (self.filter_specs, self.has_filters, remaining_lookup_params,
+             use_distinct) = self.get_filters(request)
+            scharge = SupplierCharge.objects.filter(employee__username=search_q.split(" ")[0], status=SupplierCharge.EFFECT)
+            sc = [s.supplier_id for s in scharge]
+            suppliers = qs.filter(id__in=sc)
+            return suppliers
+        return super(SaleSupplierChangeList, self).get_query_set(request)
 
 
 class SaleSupplierAdmin(MyAdmin):
@@ -65,6 +83,8 @@ class SaleSupplierAdmin(MyAdmin):
         self.categorys = SaleCategory.objects.all()
         return self.categorys
 
+    def get_changelist(self, request, **kwargs):
+        return SaleSupplierChangeList
 
     def category_select(self, obj):
 

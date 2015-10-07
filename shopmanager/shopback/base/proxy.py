@@ -40,3 +40,5 @@ class ProxyView(View):
         return content
 
     get = post = put = request_handler
+    
+    
