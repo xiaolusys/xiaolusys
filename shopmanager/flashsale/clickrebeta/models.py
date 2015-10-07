@@ -373,7 +373,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     else:
         tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=order_id)
         tongjiorder.openid = xd_openid
-        tongjiorder.wxordernick=order_buyer_nick,
+        tongjiorder.wxordernick=order_buyer_nick
         tongjiorder.wxorderamount = mm_order_amount
         tongjiorder.shoptime = ordertime
         tongjiorder.tichengcount=mm_order_rebeta
