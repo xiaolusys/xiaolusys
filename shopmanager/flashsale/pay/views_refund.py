@@ -254,7 +254,7 @@ class RefundPopPageView(APIView):
                         import pingpp
                         pingpp.api_key = settings.PINGPP_APPKEY
                         ch = pingpp.Charge.retrieve(obj.charge)
-                        re = ch.refunds.create(description=obj.refund_desc,
+                        re = ch.refunds.create(description=obj.refund_desc(),
                                                amount=int(obj.refund_fee * 100))
                         obj.refund_id = re.id
                         obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款

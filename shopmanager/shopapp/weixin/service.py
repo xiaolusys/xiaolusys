@@ -688,7 +688,6 @@ class WxShopService(LocalService):
             lg_code       = ''
             out_sid       = ''
             need_delivery = 0
-        
         try:
             self.wx_api.deliveryOrder(self.order.order_id,
                                      lg_code,

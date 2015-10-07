@@ -205,7 +205,7 @@ admin.site.register(SaleCategory, SaleCategoryAdmin)
 class SaleProductAdmin(MyAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link',
-                    'category_select', 'hot_value', 'sale_price', 'sale_time_select', 'select_Contactor', 'modified', 'status')
+                    'category_select', 'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor', 'modified')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -255,18 +255,14 @@ class SaleProductAdmin(MyAdmin):
     def category_select(self, obj):
 
         categorys = self.category_list
-
         cat_list = ["<select class='sale_category_select' spid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:
-
             if obj and obj.sale_category == cat:
                 cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
                 continue
-
             cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat))
         cat_list.append("</select>")
-
         return "".join(cat_list)
 
     category_select.allow_tags = True
@@ -343,8 +339,8 @@ class SaleProductAdmin(MyAdmin):
     title_link.short_description = u"标题"
 
     def supplier_link(self, obj):
-        base_link = u'<div  style="width:150px;font-size:20px;"><label>{0}</lable>'.format(
-            obj.sale_supplier and obj.sale_supplier.supplier_name or '')
+        base_link = u'<div style="width:150px;font-size:20px;"><a href="/admin/supplier/saleproduct/?sale_supplier={0}"><label>{1} &gt;&gt;</label></a>'.format(
+            obj.sale_supplier.id,obj.sale_supplier and obj.sale_supplier.supplier_name or '')
         if obj.status in (SaleProduct.SELECTED, SaleProduct.PURCHASE, SaleProduct.WAIT, SaleProduct.PASSED,
                           SaleProduct.SCHEDULE) and obj.sale_supplier:
             if obj.platform == u'manualinput':
@@ -365,22 +361,32 @@ class SaleProductAdmin(MyAdmin):
     # 选择上架时间
     def sale_time_select(self, obj):
         # 只有通过　和排期状态的才可以修改该时间
-        if obj.status == SaleProduct.PASSED or obj.status == SaleProduct.SCHEDULE:
+        if obj.status in (SaleProduct.PASSED,SaleProduct.SCHEDULE):
             if obj.sale_time is None:
                 s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
             else:
                 sale_time = obj.sale_time.strftime("%y-%m-%d")
                 s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
         else:
-            s = "非通过或排期状态"
+            s = "非可排期状态"
         return s
     sale_time_select.allow_tags = True
     sale_time_select.short_description = u"上架时间"
-
+    
+    
+    def status_link(self, obj):
+        s = u'<strong>{0}</strong>'
+        if obj.status in (SaleProduct.PASSED,SaleProduct.SCHEDULE):
+            s += u'<a href="javascript:void(0);" class="btn btn-info btn-return" pid="{1}" status="{2}">返回取样</a>'
+        return s.format(obj.get_status_display(),obj.id,SaleProduct.PURCHASE)
+        
+    status_link.allow_tags = True
+    status_link.short_description = u"状态／操作"
+    
     class Media:
         css = {
             "all": (
-                "admin/css/forms.css", "css/admin/dialog.css", "css/admin/common.css", "jquery/jquery-ui-1.10.1.css",
+                "admin/css/forms.css", "css/admin/dialog.css", "css/admin/common.css", "css/common.css", "jquery/jquery-ui-1.10.1.css",
              "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")}
         js = ("jquery/jquery-1.8.13.min.js", "js/admin/adminpopup.js", "js/supplier_change_list.js",
               "js/select_buyer_group.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
