@@ -391,9 +391,12 @@ class MergeTrade(models.Model):
                 return MergeTrade.WARE_NONE
         return pre_ware
     
-    def update_inventory(self, update_returns=True, update_changes=True):
-        #自提直接更新订单库存信息
-        
+    def update_inventory(self, update_returns=False, update_changes=True):
+        """
+            根据订单商品更新库存信息：
+            update_returns:是否更新退货单上库存(默认不更新,因为在退货商品入库是已经更新);
+            update_changes:是否更新换货商品库存信息;
+        """
         post_orders = self.inuse_orders     
         if not update_returns:
             post_orders.exclude(gift_type = pcfg.RETURN_GOODS_GIT_TYPE)
@@ -401,15 +404,13 @@ class MergeTrade(models.Model):
         if not update_changes:
             post_orders.exclude(gift_type = pcfg.CHANGE_GOODS_GIT_TYPE)
 
-        for order in post_orders:   
+        for order in post_orders:
             outer_sku_id = order.outer_sku_id
             outer_id  = order.outer_id
             order_num = order.num
-
             prod     = None
             prod_sku = None
             is_reverse = order.gift_type != pcfg.RETURN_GOODS_GIT_TYPE 
-            
             if outer_sku_id and outer_id:
                 prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product__outer_id=outer_id)
                 prod_sku.update_quantity(order_num,dec_update=is_reverse)
@@ -423,7 +424,6 @@ class MergeTrade(models.Model):
                     prod_sku.update_wait_post_num(order_num,dec_update=True)
                 else:
                     prod.update_wait_post_num(order_num,dec_update=True)
-            
         return True            
     
     def append_reason_code(self,code):  
@@ -816,7 +816,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         ２，更新有变动交易的字段：[order_num,prod_num,has_refund,has_out_stock,has_rule_match,sys_status];
     """
     merge_trade   = instance.merge_trade
-    update_parmas = {}
+    update_params = {}
     if not (instance.pay_time and instance.created):
         instance.created     = instance.created or merge_trade.created
         instance.pay_time    = instance.pay_time or merge_trade.pay_time
@@ -825,16 +825,16 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
                                                     'pay_time'])
     
     effect_orders         = merge_trade.inuse_orders
-    update_parmas['order_num']     = effect_orders.aggregate(total_num=Sum('num'))['total_num'] or 0
-    update_parmas['prod_num']      = effect_orders.values_list('outer_id').distinct().count()
+    update_params['order_num']     = effect_orders.aggregate(total_num=Sum('num'))['total_num'] or 0
+    update_params['prod_num']      = effect_orders.values_list('outer_id').distinct().count()
     if merge_trade.status in (pcfg.WAIT_SELLER_SEND_GOODS,
                               pcfg.WAIT_BUYER_CONFIRM_GOODS):
         
-        update_parmas['has_refund']     = MergeTrade.objects.isTradeRefunding(merge_trade)
-        update_parmas['has_out_stock']  = effect_orders.filter(out_stock=True).count()>0
-        update_parmas['has_rule_match'] = effect_orders.filter(is_rule_match=True).count()>0
+        update_params['has_refund']     = MergeTrade.objects.isTradeRefunding(merge_trade)
+        update_params['has_out_stock']  = effect_orders.filter(out_stock=True).count()>0
+        update_params['has_rule_match'] = effect_orders.filter(is_rule_match=True).count()>0
         
-        if merge_trade.has_out_stock and not update_parmas['has_out_stock']:
+        if merge_trade.has_out_stock and not update_params['has_out_stock']:
             merge_trade.remove_reason_code(pcfg.OUT_GOOD_CODE)    
     
     if (not merge_trade.reason_code and 
@@ -844,11 +844,10 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         merge_trade.type not in (pcfg.DIRECT_TYPE,
                                  pcfg.REISSUE_TYPE,
                                  pcfg.EXCHANGE_TYPE)):
-        
-        update_parmas['sys_status'] = pcfg.WAIT_PREPARE_SEND_STATUS
+        update_params['sys_status'] = pcfg.WAIT_PREPARE_SEND_STATUS
     
     update_fields = []
-    for k,v in update_parmas.iteritems():
+    for k,v in update_params.iteritems():
         if getattr(merge_trade,k) != v:
             setattr(merge_trade,k,v)
             update_fields.append(k)

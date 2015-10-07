@@ -235,18 +235,14 @@ class SaleProductAdmin(MyAdmin):
     def category_select(self, obj):
 
         categorys = self.category_list
-
         cat_list = ["<select class='sale_category_select' spid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:
-
             if obj and obj.sale_category == cat:
                 cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
                 continue
-
             cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat))
         cat_list.append("</select>")
-
         return "".join(cat_list)
 
     category_select.allow_tags = True
@@ -352,7 +348,7 @@ class SaleProductAdmin(MyAdmin):
                 sale_time = obj.sale_time.strftime("%y-%m-%d")
                 s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
         else:
-            s = "非通过或排期状态"
+            s = "非可排期状态"
         return s
     sale_time_select.allow_tags = True
     sale_time_select.short_description = u"上架时间"

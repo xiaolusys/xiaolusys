@@ -139,12 +139,12 @@ $(function () {
         };
         var data = {"slae_product": slae_product, "sale_time": sale_time};
         console.log("deebug data:",data);
-        if (confirm("确定要修改日期吗？")) {
-            $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
-        } else {
-            this.value = sale_time_old;
-        }
-
-
+        $.ajax({"url": url, 
+        		"data": data, 
+        		"success": callback, 
+        		"type": "POST",
+        		"error":function(){
+        			alert('上架日期修改失败');
+        		}});
     });
 });

@@ -277,8 +277,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     
     wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
     if not wx_unionid:
-        return
-    
+        wx_unionid = obj.receiver_mobile or str(obj.buyer_id)
     xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
     xd_openid  = wx_unionid
     if xd_unoins.count() > 0:

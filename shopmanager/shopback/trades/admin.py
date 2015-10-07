@@ -570,14 +570,11 @@ class MergeTradeAdmin(MyAdmin):
                 for trade in sub_trades:
                     if trade.id in merge_trade_ids:
                         continue
-                    
                     if trade.buyer_full_address != main_full_addr:
                         is_merge_success = False
                         fail_reason      = (u'订单地址不同:%s'%MergeTrade.objects.diffTradeAddress(trade,main_trade))
                         break
-                    
                     if trade.has_merge and trade.sys_status == pcfg.WAIT_AUDIT_STATUS:
-                        
                         sub_tids = MergeBuyerTrade.objects.filter(
                                         main_tid=trade.id).values_list('sub_tid')
                         MergeTrade.objects.mergeRemover(trade)
