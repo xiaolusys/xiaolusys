@@ -2288,7 +2288,7 @@ def search_trade(request):
         status = request.POST.get('status')
         product = request.POST.get('product').strip()
         number = number1.strip()
-        moqs = MergeOrder.objects.all()
+        moqs = MergeOrder.objects.all().order_by("pay_time")
         if status:
             if status == u'1':
                 moqs = moqs.filter(merge_trade__status__in=ORDER_NOT_SEND_STATUS)
@@ -2339,7 +2339,7 @@ def search_trade(request):
             rec1 = []
         else:
             trade_info = MergeTrade.objects.filter(Q(receiver_mobile=number) | Q(tid=number)
-                                                   | Q(out_sid=number))
+                                                   | Q(out_sid=number)).order_by("pay_time")
             if status:
                 if status == u'1':
                     trade_info = trade_info.filter(status__in=ORDER_NOT_SEND_STATUS)
