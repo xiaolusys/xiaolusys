@@ -46,7 +46,14 @@
 
 <script type="text/html" id="c_not_valid">
     <li class="c_not_valid">
-        <p class="name">{{ title }}　已经使~</p>
+        <p class="name">{{ title }}　已使用~</p>
+        <p class="date">{{ created }} － {{ deadline }}</p>
+    </li>
+</script>
+
+<script type="text/html" id="c_past">
+    <li class="c_not_valid">
+        <p class="name">{{ title }}　已过期~</p>
         <p class="date">{{ created }} － {{ deadline }}</p>
     </li>
 </script>
