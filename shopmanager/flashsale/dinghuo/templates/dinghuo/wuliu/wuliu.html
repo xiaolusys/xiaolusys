@@ -1,0 +1,39 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}供应商统计{% endblock %}
+{% block head_script %}
+    <style type="text/css">
+        .yanse {
+            color: red;
+        }
+    </style>
+{% endblock %}
+{% block container %}
+
+    <table class="table table-striped">
+        <tr>
+            <td>快递公司：</td>
+            <td>{{ result.0.1 }}</td>
+        </tr>
+        <tr>
+            <td>快递单号：</td>
+            <td>{{ result.1.1 }}</td>
+        </tr>
+        <tr>
+            <td colspan="2">物流信息:</td>
+        </tr>
+
+        {% for trace in result.2.1 reversed %}
+            {% if  forloop.first %}
+                <tr>
+                    <td class="yanse">{{ trace.0 }}：</td>
+                    <td class="yanse">{{ trace.1 }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td>{{ trace.0 }}：</td>
+                    <td>{{ trace.1 }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+{% endblock %}
