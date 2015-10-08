@@ -11,7 +11,7 @@ from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
 from .view_refund_supplier import StatisRefundSupView
-
+import views_wuliu
 urlpatterns = [
 
     url(r'^searchproduct/$', views.search_product, name='searchProduct'),                       #搜索所有的商品 ajax
@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^minusquantity/$', views.minusquantity, name="minusquantity"),                        #减少草稿里面的一个商品的数量
     url(r'^removedraft/$', views.removedraft, name="removedraft"),                              #删除草稿里面的一个商品
     url(r'^detail/(?P<orderdetail_id>\d+)/$', views.viewdetail, name="mydetail"),
+    url(r'^wuliu/(?P<orderdetail_id>\d+)/$', views_wuliu.view_wuliu, name="wuliu"),
     url(r'^detaillayer/(?P<orderdetail_id>\d+)/$', views.detaillayer, name="detaillayer"),
     url(r'^changestatus/$', views.changestatus, name="changestatus"),
     url(r'^changedetail/(?P<order_detail_id>\d+)/$',csrf_exempt(staff_member_required(ChangeDetailView.as_view())), name="changedetail"),

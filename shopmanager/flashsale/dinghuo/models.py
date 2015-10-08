@@ -21,7 +21,10 @@ class OrderList(models.Model):
     NEAR = u'1'         #江浙沪皖
     SHANGDONG = u'2'    #山东
     GUANGDONG = u'3'    #广东
-
+    YUNDA = u'YUNDA'
+    STO = u'STO'
+    ZTO = u'ZTO'
+    EMS = u'EMS'
     ORDER_PRODUCT_STATUS = (
         (SUBMITTING, u'草稿'),
         (APPROVAL, u'审核'),
@@ -38,14 +41,22 @@ class OrderList(models.Model):
         (SHANGDONG, u'山东'),
         (GUANGDONG, u'广东福建'),
     )
+    EXPRESS_CONPANYS = (
+        (YUNDA, u'韵达速递'),
+        (STO, u'申通快递'),
+        (ZTO, u'中通快递'),
+        (EMS, u'邮政'),
+    )
 
     id = BigIntegerAutoField(primary_key=True)
     buyer_name = models.CharField(default="",max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
     supplier_name = models.CharField(default="", blank=True, max_length=128, verbose_name=u'商品链接')
     supplier_shop = models.CharField(default="", blank=True, max_length=32, verbose_name=u'供应商店铺名')
-    express_company = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递公司')
-    express_no = models.CharField(default="",blank=True, max_length=32, verbose_name=u'快递单号')
+
+    express_company = models.CharField(choices=EXPRESS_CONPANYS, max_length=32, verbose_name=u'快递公司')
+    express_no = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递单号')
+
     receiver = models.CharField(default="", max_length=32, verbose_name=u'负责人')
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)

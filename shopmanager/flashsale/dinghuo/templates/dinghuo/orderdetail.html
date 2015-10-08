@@ -73,14 +73,17 @@
                value="{{ orderlist.receiver }}">
     </div>
     <div class="input-group span9" style="margin-top: 20px">
-        <span class="input-group-addon"><strong>供 应 商:</strong></span>
+        <span class="input-group-addon"><strong>商品链接:</strong></span>
         <input type="text" id="supplier_name_id" class="form-control"
                value="{{ orderlist.supplier_name }}">
     </div>
     <div class="input-group span9" style="margin-top: 20px">
         <span class="input-group-addon"><strong>快递公司:</strong></span>
-        <input type="text" id="express_company_id" class="form-control"
-               value="{{ orderlist.express_company }}">
+        <select class="form-control" id="express_company_id" >
+            <option value="">--</option>
+            {% for e in express %}<option value="{{ e.0 }}" {% ifequal orderlist.express_company e.0 %}selected="selected" {% endifequal %}>{{ e.1 }}</option>{% endfor %}
+            </select>
+
     </div>
     <div class="input-group span9" style="margin-top: 20px">
         <span class="input-group-addon"><strong>快递单号:</strong></span>
