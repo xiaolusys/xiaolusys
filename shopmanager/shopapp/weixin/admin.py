@@ -122,7 +122,6 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
         if obj.jmenu:
             try:
                 jmenu = obj.jmenu.copy()
-               
                 #self.unicode2Utf8(jmenu)
                 from .weixin_apis import WeiXinAPI
                 wx_api = WeiXinAPI()

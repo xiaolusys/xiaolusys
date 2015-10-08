@@ -134,7 +134,6 @@ class WeixinUserService():
             self._wx_user = WeiXinUser.getAnonymousWeixinUser()
         
     def getOrCreateUser(self, openId, unionId=None, force_update=False):
-        
         if unionId:
             try:
                 return WeiXinUser.objects.get(unionid=unionId)
