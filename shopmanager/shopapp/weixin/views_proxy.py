@@ -22,6 +22,8 @@ class WXMessageHttpProxy(HttpProxy):
         param_str = self.request.GET.urlencode()
         request_url = self.base_url
         if url:
+            request_url = request_url.rstrip('/')
+            url = url.lstrip('/')
             request_url = u'%s/%s' % (self.base_url, url)
         request_url += '?%s' % param_str if param_str else ''
         return request_url
@@ -32,6 +34,7 @@ class WXMessageHttpProxy(HttpProxy):
         if wx_api.checkSignature(content.get('signature',''),
                                  content.get('timestamp',0),
                                  content.get('nonce','')):
+            wx_api._wx_account.activeAccount()
             return HttpResponse(content['echostr'])
         logger.debug('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
@@ -79,8 +82,7 @@ class WXCustomAndMediaProxy(HttpProxy):
         """
         Constructs the full URL to be requested.
         """
-        param_str = urllib.urlencode(self.get_extra_request_params())
-        param_str = '%s&%s'%(self.request.GET.urlencode(),param_str)
+        param_str = self.request.GET.urlencode()
         request_url = self.base_url
         if url:
             request_url = u'%s/%s' % (self.base_url, url)
