@@ -87,7 +87,7 @@ class WeiXinAPI(object):
     
     def getAccount(self):
         if not self._wxpub_id:
-            return WeiXinAccount.getAnonymousAccount()
+            self.setAccountId(appKey=settings.WEIXIN_APPID)
         if hasattr(self,'_account') and self._account.account_id == self._wxpub_id:
             return self._account
         self._account = WeiXinAccount.objects.get(account_id=self._wxpub_id)
