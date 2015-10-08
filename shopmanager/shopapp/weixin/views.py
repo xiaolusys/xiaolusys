@@ -158,7 +158,7 @@ class WeixinAcceptView(View):
     """ 微信接收消息接口 """
     
     def get_wx_service(self):
-        return WeixinUserService()
+        return WeixinUserService(settings.WEIXIN_APPID)
     
     def get(self, request):
         content    = request.REQUEST
@@ -244,7 +244,7 @@ class RequestCodeView(View):
             response = {"code":"dup", "message":"duplication phone"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
         
-        wx_user_service = WeixinUserService(openId=openid)
+        wx_user_service = WeixinUserService(settings.WEIXIN_APPID,openId=openid)
         if wx_user_service._wx_user.isNone():
             response = {"code":"anony", "message":"anonymous user"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
@@ -469,7 +469,7 @@ class BabyInfoView(View):
         streetaddr = content.get("streetaddr")
         openid = content.get('openid')
 
-        wx_user_service = WeixinUserService(openId=openid)
+        wx_user_service = WeixinUserService(settings.WEIXIN_APPID,openId=openid)
         wx_user = wx_user_service._wx_user
 
         wx_user.birth_year = int(year)
@@ -1241,7 +1241,7 @@ class VipCouponView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
         
-        weixin_user_service = WeixinUserService(user_openid)
+        weixin_user_service = WeixinUserService(settings.WEIXIN_APPID,openId=user_openid)
         wx_user = weixin_user_service._wx_user
         
         title = u'VIP优惠券'

@@ -184,7 +184,7 @@ class MamaStatsView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
-        service = WeixinUserService(openid,unionId=unionid)
+        service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
         wx_user = service._wx_user
         
         if not wx_user.isValid():
@@ -278,7 +278,7 @@ class MamaIncomeDetailView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
-        service = WeixinUserService(openid,unionId=unionid)
+        service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
         wx_user = service._wx_user
         
         if not wx_user.isValid():

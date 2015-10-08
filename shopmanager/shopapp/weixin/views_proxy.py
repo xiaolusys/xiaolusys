@@ -10,8 +10,10 @@ logger = logging.getLogger('weixin.proxy')
 
 class WXMessageHttpProxy(HttpProxy):
     
-    def get_wx_service(self):
-        return service.WeixinUserService()
+    def get_wx_api(self,pub_id):
+        wx_api =service.WeiXinAPI()
+        wx_api.setAccountId(wxpubId=pub_id)
+        return wx_api
     
     def get_full_url(self, url):
         """
@@ -24,23 +26,22 @@ class WXMessageHttpProxy(HttpProxy):
         request_url += '?%s' % param_str if param_str else ''
         return request_url
     
-    def get(self, request):
-        content    = request.REQUEST
-        wx_service = self.get_wx_service()
-        if wx_service.checkSignature(content.get('signature',''),
-                                     content.get('timestamp',0),
-                                     content.get('nonce','')):
-            wx_service.activeAccount()
+    def get(self, request, pub_id):
+        content  = request.REQUEST
+        wx_api   = self.get_wx_api(pub_id)
+        if wx_api.checkSignature(content.get('signature',''),
+                                 content.get('timestamp',0),
+                                 content.get('nonce','')):
             return HttpResponse(content['echostr'])
         logger.debug('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, pub_id, *args, **kwargs):
         content    = request.REQUEST
-        wx_service = self.get_wx_service()
-        if not wx_service.checkSignature(content.get('signature',''),
-                                         content.get('timestamp',0),
-                                         content.get('nonce','')):
+        wx_api   = self.get_wx_api(pub_id)
+        if not wx_api.checkSignature(content.get('signature',''),
+                                     content.get('timestamp',0),
+                                     content.get('nonce','')):
             logger.debug('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
         
@@ -67,11 +68,11 @@ class WXMessageHttpProxy(HttpProxy):
     
 class WXCustomAndMediaProxy(HttpProxy):
     
-    def get_wx_service(self):
-        return service.WeixinUserService()
+    def get_wx_api(self):
+        return service.WeiXinAPI()
     
     def get_extra_request_params(self):
-        wx_serv = self.get_wx_service()
+        wx_serv = self.get_wx_api()
         return {'access_token':wx_serv.getAccessToken()}
         
     def get_full_url(self, url):

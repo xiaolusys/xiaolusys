@@ -3,17 +3,13 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-import re
 import hashlib
-import inspect
-import copy
 import time
 import datetime
 import json
 import urllib
 import urllib2
 from django.conf import settings
-from django.core.cache import cache
 
 from shopapp.weixin.models import WeiXinAccount
 from common.utils import (randomString,
@@ -67,18 +63,38 @@ class WeiXinAPI(object):
     #微信原生支付URL
     _native_url   = "weixin://wxpay/bizpayurl"
     _deliver_notify_url = "/pay/delivernotify"
-    
+    _wxpub_id     = None
     
     def __init__(self):
-        self._wx_account = WeiXinAccount.getAccountInstance()
+        pass
         
+    def setAccountId(self,wxpubId=None,appKey=None):
+        
+        assert wxpubId or appKey ,'wxpub_id or appKey need one'
+        if wxpubId:
+            self._wxpub_id = wxpubId
+        else:
+            wx = WeiXinAccount.objects.filter(app_id=appKey)
+            if not wx.exists():
+                raise Exception('not found appkey(%S) account'%appKey)
+            self._account  = wx[0]
+            self._wxpub_id = self._account.account_id
+
     def getAccountId(self):
-        
         if self._wx_account.isNone():
             return None
-        
         return self._wx_account.account_id
-        
+    
+    def getAccount(self):
+        if not self._wxpub_id:
+            return WeiXinAccount.getAnonymousAccount()
+        if hasattr(self,'_account') and self._account.account_id == self._wxpub_id:
+            return self._account
+        self._account = WeiXinAccount.objects.get(account_id=self._wxpub_id)
+        return self._account
+    
+    _wx_account = property(getAccount)
+    
     def getAbsoluteUrl(self,uri,token):
         url = settings.WEIXIN_API_HOST + uri
         return token and '%s?access_token=%s'%(url,self.getAccessToken()) or url+'?'
