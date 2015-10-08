@@ -154,6 +154,16 @@ signals.signal_product_upshelf.connect(init_stock_func, sender=Product)
 
 
 class ReturnGoods(models.Model):
+    CREATE_RG = 0
+    VERIFY_RG = 1
+    OBSOLETE_RG = 2
+    DELIVER_RG = 3
+    SUCCEED_RG = 4
+    FAILED_RG = 5
+
+    RG_STATUS = ((CREATE_RG, u"创建退货单"), (VERIFY_RG, u"审核通过"), (OBSOLETE_RG, u"作废退货单")
+                 , (DELIVER_RG, u"已发货退货单"), (SUCCEED_RG, u"退货成功"), (FAILED_RG, u"退货失败"))
+
     product_id = models.BigIntegerField(db_index=True, verbose_name=u"退货商品id")
     supplier_id = models.IntegerField(db_index=True, verbose_name=u"供应商id")
     return_num = models.IntegerField(default=0, verbose_name=u"退货数量")
@@ -162,6 +172,7 @@ class ReturnGoods(models.Model):
     consigner = models.CharField(max_length=32, blank=True, verbose_name=u"发货人")
     consign_time = models.DateTimeField(blank=True, null=True, verbose_name=u'发货时间')
     sid = models.CharField(max_length=64, blank=True, verbose_name=u"发货物流单号")
+    status = models.IntegerField(default=0, choices=RG_STATUS, db_index=True, verbose_name=u"退货状态")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
     modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     memo = models.TextField(max_length=512, blank=True, verbose_name=u"退货备注")
@@ -175,9 +186,23 @@ class ReturnGoods(models.Model):
         return u'<%s,%s>' % (self.supplier_id, self.product_id)
 
 
+class RGDetail(models.Model):
 
+    skuid = models.BigIntegerField(db_index=True, verbose_name=u"退货商品skuid")
+    return_goods = models.ForeignKey(ReturnGoods, related_name='rg_details', verbose_name=u'退货单信息')
+    num = models.IntegerField(default=0, verbose_name=u"正品退货数量")
+    inferior_num = models.IntegerField(default=0, verbose_name=u"次品退货数量")
+    price = models.FloatField(default=0.0, verbose_name=u"退回价格")
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
+    modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
 
+    class Meta:
+        db_table = 'flashsale_dinghuo_rg_detail'
+        verbose_name = u'商品库存退货明细表'
+        verbose_name_plural = u'商品库存退货明细列表'
 
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.skuid, self.return_goods)
 
 
 
