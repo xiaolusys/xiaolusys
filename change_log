@@ -1,6 +1,10 @@
+############2015-10-8#####################
+alter table flashsale_dinghuo_returngoods add status int(11) default 0;
+############2015-10-07#####################
+alter table shop_items_productsku add sku_inferior_num int(11) default 0;
 ############2015-10-04######################
 alter table xiaolumm_xiaolumama add column modified datetime NOT NULL;
-############2015-09-28######################
+############2015-9-28######################
 alter table xiaolumm_xiaolumama add target_complete double Not null;
 ########### 2015-9-25################
 alter table pay_coupon_template add column limit_num int(11) default 1;

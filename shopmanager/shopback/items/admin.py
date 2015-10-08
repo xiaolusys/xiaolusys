@@ -49,7 +49,8 @@ class ProductSkuInline(admin.TabularInline):
     model = ProductSku
     fields = ('outer_id','properties_name','properties_alias','quantity','warn_num',
               'remain_num','wait_post_num','reduce_num','lock_num','cost','std_sale_price','agent_price',
-              'sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt')
+              'sync_stock','is_assign','is_split','is_match','post_check','barcode','status','buyer_prompt'
+              , "sku_inferior_num")
     
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'10'})},
@@ -748,7 +749,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
                     'fields': (('outer_id','properties_name','properties_alias','status')
                                ,('quantity','warn_num','remain_num','wait_post_num','weight')
                                ,('cost','std_purchase_price','std_sale_price','agent_price','staff_price')
-                               ,('sync_stock','is_assign','is_split','is_match','memo','buyer_prompt'))
+                               ,('sync_stock','is_assign','is_split','is_match','memo','buyer_prompt', "sku_inferior_num"))
                 }),)
     
     #取消该商品缺货订单

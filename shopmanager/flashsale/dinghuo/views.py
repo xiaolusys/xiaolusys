@@ -76,6 +76,7 @@ def new_order(request):
     """从购物车生成订单"""
     username = request.user
     all_drafts = orderdraft.objects.all().filter(buyer_name=username)
+    express = OrderList.EXPRESS_CONPANYS
     if request.method == 'POST':
         post = request.POST
         type_of_order = post['type_of_order']
@@ -144,7 +145,7 @@ def new_order(request):
         log_action(request.user.id, orderlist, CHANGE, u'新建订货单')
         return HttpResponseRedirect("/sale/dinghuo/changedetail/" + str(orderlist.id))
 
-    return render_to_response('dinghuo/shengchengorder.html', {"orderdraft": all_drafts},
+    return render_to_response('dinghuo/shengchengorder.html', {"orderdraft": all_drafts, "express": express},
                               context_instance=RequestContext(request))
 
 
@@ -298,8 +299,10 @@ def removedraft(req):
 def viewdetail(req, orderdetail_id):
     orderlist = OrderList.objects.get(id=orderdetail_id)
     orderdetail = OrderDetail.objects.filter(orderlist_id=orderdetail_id)
+    express = OrderList.EXPRESS_CONPANYS
     return render_to_response("dinghuo/orderdetail.html", {"orderlist": orderlist,
-                                                           "orderdetails": orderdetail},
+                                                           "orderdetails": orderdetail,
+                                                           "express": express},
                               context_instance=RequestContext(req))
 
 

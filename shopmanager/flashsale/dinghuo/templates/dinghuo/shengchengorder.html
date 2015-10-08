@@ -144,9 +144,13 @@
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-addon">快递公司</span>
-                                    <input id="express_company" name="express_company" type="text"
-                                           class="form-control"
-                                           placeholder="快递公司" aria-describedby="sizing-addon2">
+                                    <select class="form-control" id="express_company" name="express_company">
+                                    <option value="">---</option>
+                                        {% for e in express %}
+                                            <option value="{{ e.0 }}"
+                                                    {% ifequal orderlist.express_company e.0 %}selected="selected" {% endifequal %}>{{ e.1 }}</option>{% endfor %}
+                                    </select>
+
                                 </div>
                             </td>
                             <td>

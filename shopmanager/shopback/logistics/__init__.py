@@ -15,6 +15,7 @@ BAIDU_POST_CODE_EXCHANGE={
                          'HTKY':'huitongkuaidi',
                          'TTKDEX':'tiantian',
                          'QFKD':'quanfengkuaidi',
+                         'DBKD':'debang',
                          }
 POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
                       'STO':u'申通快递',
@@ -22,10 +23,11 @@ POST_CODE_NAME_MAP = {'YUNDA':u'韵达快递',
                       'ZTO':u'中通快递',
                       'ZJS':u'宅急送',
                       'SF':u'顺丰速运',
-                      'YTO':u'圆通',
+                      'YTO':u'圆通快递',
                       'HTKY':u'汇通快递',
                       'TTKDEX':u'天天快递',
                       'QFKD':u'全峰快递',
+                      'DBKD':u'德邦快递',
                       }
 
 # def getLogisticTrace22(out_sid,exType):

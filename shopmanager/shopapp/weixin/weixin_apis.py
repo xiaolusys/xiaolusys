@@ -133,9 +133,6 @@ class WeiXinAPI(object):
     @process_lock
     def refresh_token(self):
         
-        if not self._wx_account.isExpired():
-            return self._wx_account.access_token
-        
         params = {'grant_type':'client_credential',
                   'appid':self._wx_account.app_id,
                   'secret':self._wx_account.app_secret}
@@ -150,9 +147,9 @@ class WeiXinAPI(object):
         
         return content['access_token']
     
-    def getAccessToken(self):
+    def getAccessToken(self,force_update=False):
         
-        if not self._wx_account.isExpired():
+        if not force_update and not self._wx_account.isExpired():
             return self._wx_account.access_token
         
         return self.refresh_token()

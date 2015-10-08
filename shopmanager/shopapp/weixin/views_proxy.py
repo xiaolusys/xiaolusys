@@ -105,7 +105,34 @@ class WXCustomAndMediaProxy(HttpProxy):
                 content_type=response.headers['content-type'])
         
     get = post
-    
 
-                
+import json
+from django.views.generic import View
+
+class WXTokenProxy(View):
+    
+    def get_wx_api(self,app_key):
+        wx_api = service.WeiXinAPI()
+        wx_api.setAccountId(appKey=app_key)
+        return wx_api
+    
+    def get(self, request):
+        
+        content = request.GET
+        appid   = content.get('appid')
+        secret  = content.get('secret')
+        error_resp = HttpResponse(json.dumps({"errcode":40013,"errmsg":"invalid appid"}), 
+                                  content_type='application/json')
+        if not appid or not secret:
+            return error_resp
+        
+        wx_api = self.get_wx_api(appid)
+        if wx_api._wx_account.app_secret != secret:
+            return error_resp
+        
+        access_token = wx_api.getAccessToken(force_update=True)
+        resp = {"access_token":access_token,"expires_in":55*60}
+        
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+        
         
