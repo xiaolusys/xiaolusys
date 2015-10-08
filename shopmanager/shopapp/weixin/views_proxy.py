@@ -21,9 +21,9 @@ class WXMessageHttpProxy(HttpProxy):
         """
         param_str = self.request.GET.urlencode()
         request_url = self.base_url
+        url     = url.lstrip('/')
         if url:
             request_url = request_url.rstrip('/')
-            url = url.lstrip('/')
             request_url = u'%s/%s' % (self.base_url, url)
         request_url += '?%s' % param_str if param_str else ''
         return request_url
