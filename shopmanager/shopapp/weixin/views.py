@@ -965,14 +965,11 @@ class SampleAdsView(View):
                 vipcode = users[0].vipcodes.all()[0].code
             else:
                 vipcode = VipCode.objects.genVipCodeByWXUser(users[0])
-            
             if users[0].openid == openid:
                 identical = True
-            
             share_url = request.build_absolute_uri().split('#')[0]
             wx_api = WeiXinAPI()
             signparams = wx_api.getShareSignParams(share_url)
-
             response = render_to_response('weixin/sampleads1.html', 
                                           {"identical":identical,"vipcode":vipcode, 
                                            "pk":wx_user_pk, 'wx_user':users[0],

@@ -96,7 +96,7 @@ class WeiXinAccount(models.Model):
         
         if not self.expired:
             return True
-        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=1200)
+        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=3600)
     
     def isJSTicketExpired(self):
         

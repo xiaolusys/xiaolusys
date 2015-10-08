@@ -127,7 +127,7 @@ function Ctrl_sure_charge(pay_url){
 	var params = {};
 	var form_array = $('#pay-form').serializeArray();
 	$.map(form_array,function(n, i){
-	        params[n['name']] = n['value'];
+		params[n['name']] = n['value'];
 	});
 	if(channel == WALLET_PAY && !confirm("确认使用小鹿钱包支付金额（￥"+params.payment+'元)吗？')){
 		return 
