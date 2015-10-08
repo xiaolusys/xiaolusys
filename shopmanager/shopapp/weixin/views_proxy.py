@@ -30,7 +30,7 @@ class WXMessageHttpProxy(HttpProxy):
         content  = request.REQUEST
         wx_api   = self.get_wx_api(pub_id)
         if wx_api.checkSignature(content.get('signature',''),
-                                 content.get('timestamp','0'),
+                                 content.get('timestamp',0),
                                  content.get('nonce','')):
             return HttpResponse(content['echostr'])
         logger.debug('sign fail:{0}'.format(content))
@@ -40,7 +40,7 @@ class WXMessageHttpProxy(HttpProxy):
         content    = request.REQUEST
         wx_api   = self.get_wx_api(pub_id)
         if not wx_api.checkSignature(content.get('signature',''),
-                                     content.get('timestamp','0'),
+                                     content.get('timestamp',0),
                                      content.get('nonce','')):
             logger.debug('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
