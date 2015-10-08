@@ -5,15 +5,19 @@
 $("#coupon_release_left").click(function () {
     //领取优惠券
     console.log("150-10");
-    var data = {"coupon_type": "C150_10"};
+    //var data = {"coupon_type": "C150_10"};
+    //2015-10-8 修改按照优惠券模板来发放
+    var data = {"template_id": 5};
     var d = $("#coupon_release_left");
     Action_release(data, d);
 });
 
 $("#coupon_release_right").click(function () {
     //领取优惠券
-    console.log("259-10");
-    var data = {"coupon_type": "C259_20"};
+    console.log("259-20");
+    //var data = {"coupon_type": "C259_20"};
+    //2015-10-8 修改按照优惠券模板来发放
+    var data = {"template_id": 6};
     var d = $("#coupon_release_right");
     Action_release(data, d);
 });
