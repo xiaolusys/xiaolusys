@@ -106,8 +106,8 @@ urlpatterns = patterns('shopapp.weixin.views',
 from . import views_proxy
 
 urlpatterns += patterns('',
-    (r'^proxy/u/(?P<pub_id>\w+)/$',views_proxy.WXMessageHttpProxy.as_view(base_url=settings.NTALKER_NOTIFY_URL),{'url':'' }),
     (r'^proxy/token/$',views_proxy.WXTokenProxy.as_view()),
+    (r'^proxy/u/(?P<pub_id>\w+)/$',views_proxy.WXMessageHttpProxy.as_view(base_url=settings.NTALKER_NOTIFY_URL),{'url':'' }),
     (r'^proxy/ntalker/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MESSAGE_URL),{'url':'' }),
     (r'^proxy/upload/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_UPLOAD_URL),{'url':'' }),
     (r'^proxy/down/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_GET_URL),{'url':'' }),

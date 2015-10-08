@@ -1,5 +1,5 @@
 #encoding:utf-8
-import urllib
+import time
 import urllib2
 from django.http import HttpResponse
 from httpproxy.views import HttpProxy
@@ -21,7 +21,9 @@ class WXMessageHttpProxy(HttpProxy):
         """
         param_str = self.request.GET.urlencode()
         request_url = self.base_url
+        url     = url.lstrip('/')
         if url:
+            request_url = request_url.rstrip('/')
             request_url = u'%s/%s' % (self.base_url, url)
         request_url += '?%s' % param_str if param_str else ''
         return request_url
@@ -32,6 +34,7 @@ class WXMessageHttpProxy(HttpProxy):
         if wx_api.checkSignature(content.get('signature',''),
                                  content.get('timestamp',0),
                                  content.get('nonce','')):
+            wx_api._wx_account.activeAccount()
             return HttpResponse(content['echostr'])
         logger.debug('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
@@ -53,15 +56,17 @@ class WXMessageHttpProxy(HttpProxy):
         request_url = self.get_full_url(self.url)
         request = self.create_request(request_url)
         response = urllib2.urlopen(request)
+        start = time.time()
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % response_body)
+            logger.debug(self._msg % ('%s\n%s'%(request_url,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % response_body)
+            logger.error(self._msg % ('%s\n%s'%(request_url,response_body)))
             status = e.code
-        
+        end = time.time()
+        logger.debug('\nconsume seconds：%.2f'%(end - start))
         return HttpResponse(response_body, status=status,
                 content_type=response.headers['content-type'])
         
@@ -79,10 +84,11 @@ class WXCustomAndMediaProxy(HttpProxy):
         """
         Constructs the full URL to be requested.
         """
-        param_str = urllib.urlencode(self.get_extra_request_params())
-        param_str = '%s&%s'%(self.request.GET.urlencode(),param_str)
+        param_str = self.request.GET.urlencode()
         request_url = self.base_url
+        url     = url.lstrip('/')
         if url:
+            request_url = request_url.rstrip('/')
             request_url = u'%s/%s' % (self.base_url, url)
         request_url += '?%s' % param_str if param_str else ''
         return request_url
@@ -92,21 +98,24 @@ class WXCustomAndMediaProxy(HttpProxy):
         request_url = self.get_full_url(self.url)
         request = self.create_request(request_url)
         response = urllib2.urlopen(request)
+        start = time.time()
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % response_body)
+            logger.debug(self._msg % ('%s\n%s'%(request_url,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % response_body)
+            logger.error(self._msg % ('%s\n%s'%(request_url,response_body)))
             status = e.code
-        
+        end = time.time()
+        logger.debug('\nconsume seconds：%.2f'%(end - start))
         return HttpResponse(response_body, status=status,
                 content_type=response.headers['content-type'])
         
     get = post
 
 import json
+import datetime
 from django.views.generic import View
 
 class WXTokenProxy(View):
@@ -125,14 +134,12 @@ class WXTokenProxy(View):
                                   content_type='application/json')
         if not appid or not secret:
             return error_resp
-        
         wx_api = self.get_wx_api(appid)
         if wx_api._wx_account.app_secret != secret:
             return error_resp
-        
         access_token = wx_api.getAccessToken(force_update=True)
         resp = {"access_token":access_token,"expires_in":55*60}
-        
+        logger.debug('refresh token:[%s]%s'%(datetime.datetime.now(),resp))
         return HttpResponse(json.dumps(resp), content_type='application/json')
         
         
