@@ -24,6 +24,7 @@ from common.utils import update_model_fields
 from flashsale.dinghuo.models_user import MyUser
 import logging
 import collections
+from common.modelutils import update_model_fields
 
 
 logger  = logging.getLogger('django.request')
@@ -450,6 +451,7 @@ class ProductSku(models.Model):
     sale_num      = models.IntegerField(default=0,verbose_name=u'日出库数') #日出库
     reduce_num    = models.IntegerField(default=0,verbose_name='预减数')    #下次入库减掉这部分库存
     lock_num      = models.IntegerField(default=0,verbose_name='锁定数')    #特卖平台待付款数量
+    sku_inferior_num = models.IntegerField(default=0, verbose_name=u"规格次品数") #　保存对应sku的次品数量
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
@@ -710,7 +712,12 @@ class ProductSku(models.Model):
             ds.append('%s-[%s]'%(k,','.join(v)))
         return ','.join(ds)
     
-    
+    def get_sum_sku_inferior_num(self):
+        same_pro_skus = ProductSku.objects.filter(product_id=self.product_id)
+        sum_inferior_num = same_pro_skus.aggregate(total_inferior=Sum("sku_inferior_num")).get("total_inferior") or 0
+        return sum_inferior_num
+
+
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
     product = instance.product
@@ -742,8 +749,10 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         product.std_sale_price     = "{0:.2f}".format(product_dict.get('avg_sale_price') or 0)
         product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
         product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
-    
-    product.save()
+
+        update_model_fields(product, ["collect_num", "warn_num", "remain_num", "wait_post_num", "reduce_num",
+                                      "cost", "std_purchase_price", "std_sale_price", "agent_price", "staff_price"])
+        # product.save()
         
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')

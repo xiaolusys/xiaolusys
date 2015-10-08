@@ -8,23 +8,16 @@ from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework import permissions
-from django.shortcuts import redirect, get_object_or_404
-from django.forms import model_to_dict
-from django.db.models import Sum
 import logging
 import datetime
 from shopback.base import log_action, ADDITION, CHANGE
-from shopback.refunds.models import RefundProduct
 from tasks import calcu_refund_info_by_pro
-
 
 logger = logging.getLogger('django.request')
 
 from shopback.items.models import Product
-from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder, SupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct
-from .models import ReturnGoods
-from flashsale.pay.models_refund import SaleRefund
+from flashsale.dinghuo.models import RGDetail, ReturnGoods
 
 
 def time_zone_handler(date_from=None, date_to=None):
@@ -73,18 +66,36 @@ class StatisRefundSupView(APIView):
         # 过滤 时间段中　上架时间　　的所有产品
         tz_pros = Product.objects.filter(sale_time__gte=date_from, sale_time__lte=date_to)
         task_id = calcu_refund_info_by_pro.s(pro_queryset=tz_pros)()
-        return Response({"task_id":task_id})
+        return Response({"task_id": task_id})
 
     def post(self, request, format=None):
         content = request.REQUEST
-        pro_id = content.get("pro_id", None)
-        suppleier_id = content.get("suppleier_id", None)
-        return_num = content.get("return_num", None)
-        sum_amount = content.get("sum_amount", None)
-        return_memo = content.get("return_memo", None)
-        return_good = ReturnGoods.objects.create(noter=request.user.username,
-                                                 product_id=pro_id, supplier_id=suppleier_id,
-                                                 return_num=return_num, sum_amount=sum_amount,
-                                                 memo=return_memo)
-        log_action(request.user.id, return_good, CHANGE, u'创建退货单')
+        arr = content.get("arr", None)
+        data = eval(arr)  # json字符串转化
+        print data
+        return_num = 0
+        sum_amount = 0.0
+        rg = ReturnGoods()
+        supplier = data[0]['supplier']
+        pro_id = data[0]['pro_id']
+        rg.product_id = pro_id
+        rg.supplier_id = supplier
+        rg.save()
+        for i in data:
+            sku_return_num = int(i['return_num'])
+            price = float(i['price'])
+            sku_id = int(i['sku_id'])
+            inferior_num = int(i['sku_inferior_num'])
+            return_num = return_num + sku_return_num  # 累计产品的退货数量
+            sum_amount = sum_amount + price * sku_return_num
+            rg_d = RGDetail.objects.create(skuid=sku_id, return_goods_id=rg.id, num=sku_return_num,
+                                           inferior_num=inferior_num, price=price)
+            log_action(request.user.id, rg_d, ADDITION, u'创建退货单')
+
+        rg.return_num = return_num
+        rg.sum_amount = sum_amount
+        rg.noter = request.user.username
+        rg.save()
+        log_action(request.user.id, rg, ADDITION, u'创建退货单')
+
         return Response({"res": True})

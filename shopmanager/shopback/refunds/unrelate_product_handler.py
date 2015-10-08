@@ -100,3 +100,73 @@ def update_Unrelate_Prods_Product(pro, req):
             log_action(req.user.id, refund, ADDITION, action_desc)                  # 创建操作日志
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
+
+
+from shopback.items.models import Product, ProductSku
+from django.db.models import F
+from common.modelutils import update_model_fields
+
+
+def update_Product_Collect_Num(pro, req):
+    """
+    仓库拆包的时候更新库存数量
+    """
+    try:
+        product = Product.objects.get(outer_id=pro.outer_id)
+        psk = ProductSku.objects.get(product_id=product.id, outer_id=pro.outer_sku_id)
+        if pro.can_reuse:  # 判断是二次销售　　则　添加库存数
+            # 添加sku的库存数量
+            psk_quantity = psk.quantity
+            psk.quantity = F("quantity") + pro.num
+            update_model_fields(psk, update_fields=['quantity'])    # 更新字段方法
+            action_desc = u"拆包退货商品添加->将原来库存{0}更新为{1}".format(psk_quantity, psk.quantity)
+            log_action(req.user.id, psk, CHANGE, action_desc)
+
+            # 添加库存商品的数量
+            pro_collect_num = product.collect_num   # 原来的库存数量
+            product.collect_num = F("collect_num") + pro.num
+            update_model_fields(product, update_fields=['collect_num'])    # 更新字段方法
+            pro_action_desc = u"拆包退货商品添加->将原来库存{0}更新为{1}".format(pro_collect_num, product.collect_num)
+            log_action(req.user.id, product, CHANGE, pro_action_desc)
+        else:  # 如果不能二次销售　则　添加次品数　
+            sku_inferior_num = psk.sku_inferior_num
+            psk.sku_inferior_num = F("sku_inferior_num") + pro.num
+            update_model_fields(psk, update_fields=['sku_inferior_num'])    # 更新字段方法
+            action_desc = u"拆包退货商品添加->将原来次品数量{0}更新为{1}".format(sku_inferior_num, psk.sku_inferior_num)
+            log_action(req.user.id, psk, CHANGE, action_desc)
+    except Product.DoesNotExist or ProductSku.DoesNotExist:
+        return
+
+
+
+def update_Product_Collect_Num_By_Delete(pro, req):
+    """
+    拆包的时候出错要删除退货商品　，　同时更新库存的数量
+    """
+    try:
+        product = Product.objects.get(outer_id=pro.outer_id)
+        psk = ProductSku.objects.get(product_id=product.id, outer_id=pro.outer_sku_id)
+        if pro.can_reuse:  # 判断是二次销售　　则　减去库存数
+            # 删除库存sku的数量
+            psk_quantity = psk.quantity
+            psk.quantity = F("quantity") - pro.num
+            if psk.quantity < 0:
+                psk.quantity = 0
+            update_model_fields(psk, update_fields=['quantity'])    # 更新字段方法
+            action_desc = u"拆包退货商品删除->将原来库存{0}更新为{1}".format(psk_quantity, psk.quantity)
+            log_action(req.user.id, psk, CHANGE, action_desc)
+
+            # 删除库存商品的数量
+            pro_collect_num = product.collect_num   # 原来的库存数量
+            product.collect_num = F("collect_num") - pro.num
+            update_model_fields(product, update_fields=['collect_num'])    # 更新字段方法
+            pro_action_desc = u"拆包退货商品删除->将原来库存{0}更新为{1}".format(pro_collect_num, product.collect_num)
+            log_action(req.user.id, product, CHANGE, pro_action_desc)
+        else:  # 如果不能二次销售　则　减去次品数　
+            sku_inferior_num = psk.sku_inferior_num
+            psk.sku_inferior_num = F("sku_inferior_num") - pro.num
+            update_model_fields(psk, update_fields=['sku_inferior_num'])    # 更新字段方法
+            action_desc = u"拆包退货商品删除->将原来次品数量{0}更新为{1}".format(sku_inferior_num, psk.sku_inferior_num)
+            log_action(req.user.id, psk, CHANGE, action_desc)
+    except Product.DoesNotExist or ProductSku.DoesNotExist:
+        return
