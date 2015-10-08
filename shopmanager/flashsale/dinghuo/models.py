@@ -21,10 +21,10 @@ class OrderList(models.Model):
     NEAR = u'1'         #江浙沪皖
     SHANGDONG = u'2'    #山东
     GUANGDONG = u'3'    #广东
-    YUNDA = u'yunda'
-    STO = u'sto'
-    ZTO = u'zto'
-    EMS = u'ems'
+    YUNDA = u'YUNDA'
+    STO = u'STO'
+    ZTO = u'ZTO'
+    EMS = u'EMS'
     ORDER_PRODUCT_STATUS = (
         (SUBMITTING, u'草稿'),
         (APPROVAL, u'审核'),
