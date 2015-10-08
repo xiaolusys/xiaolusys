@@ -40,7 +40,7 @@ class StatisticsShopping(models.Model):
     rebetamount   = models.IntegerField(default=0, verbose_name=u'有效金额')
     tichengcount  = models.IntegerField(default=0, verbose_name=u'订单提成')
     shoptime = models.DateTimeField(default=datetime.datetime.now, db_index=True, verbose_name=u'提成时间')
-    status   = models.IntegerField(default=0, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
+    status   = models.IntegerField(default=WAIT_SEND, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
     
     objects = models.Manager()
     normal_objects = NormalShopingManager()

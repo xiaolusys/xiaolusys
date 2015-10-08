@@ -85,6 +85,10 @@ class WeiXinAccount(models.Model):
         except:
             return AnonymousWeixinAccount()
     
+    @classmethod
+    def getAnonymousAccount(self):
+        return AnonymousWeixinAccount()
+        
     def isNone(self):
         return False
     

@@ -124,11 +124,12 @@ class WeixinUserService():
     _wx_api = None
     _wx_user = None
     
-    def __init__(self, openId=None, unionId=None):
+    def __init__(self, appKey, openId=None, unionId=None ):
+        
         self._wx_api = WeiXinAPI()
+        self._wx_api.setAccountId(appKey=appKey)
         if openId:
             self._wx_user = self.getOrCreateUser(openId,unionId=unionId)
-        
         if not self._wx_user:
             self._wx_user = WeiXinUser.getAnonymousWeixinUser()
         
@@ -139,7 +140,6 @@ class WeixinUserService():
                 return WeiXinUser.objects.get(unionid=unionId)
             except:
                 pass
-            
         wx_user, state = WeiXinUser.objects.get_or_create(openid=openId) 
         if state or force_update or not wx_user.unionid:
             from .tasks import task_Update_Weixin_Userinfo
@@ -155,14 +155,10 @@ class WeixinUserService():
     def activeAccount(self):
         self._wx_api._wx_account.activeAccount()
     
-    
     def genValidCode(self,force_update=False):
-        
         if not force_update and self._wx_user.validcode:
             return self._wx_user.validcode
-        
         return str(random.randint(100000, 999999))
-        
         
     def getValidCode(self, mobile, openId):
         

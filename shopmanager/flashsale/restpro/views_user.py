@@ -328,6 +328,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 class CustomerViewSet(viewsets.ModelViewSet):
     """
     特卖平台 用户操作API：
+    - {prefix}/profile:获取用户信息
     - {prefix}/customer_logout:用户注销api;
     """
     queryset = Customer.objects.all()
