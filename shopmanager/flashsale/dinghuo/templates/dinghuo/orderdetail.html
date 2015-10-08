@@ -80,6 +80,7 @@
     <div class="input-group span9" style="margin-top: 20px">
         <span class="input-group-addon"><strong>快递公司:</strong></span>
         <select class="form-control" id="express_company_id" >
+            <option value="">--</option>
             {% for e in express %}<option value="{{ e.0 }}" {% ifequal orderlist.express_company e.0 %}selected="selected" {% endifequal %}>{{ e.1 }}</option>{% endfor %}
             </select>
 

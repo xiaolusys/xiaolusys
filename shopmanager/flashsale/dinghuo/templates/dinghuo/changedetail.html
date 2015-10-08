@@ -245,12 +245,12 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-2">
             <div class="alert alert-success" role="alert">
                 <strong>大货负责人:</strong>{{ orderlist.receiver }}
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="alert alert-success" role="alert">
                 <strong>商品链接:</strong>{{ orderlist.supplier_name }}
             </div>
@@ -259,10 +259,12 @@
     <div class="row">
         <div class="col-lg-4">
             <div class="alert alert-success" role="alert">
+                <strong>快递公司:</strong>{{ orderlist.get_express_company_display }}
+            </div>
+            <div class="alert alert-success" role="alert" style="margin-top: -15px">
                 <strong>快递单号:</strong>{{ orderlist.express_no }}
             </div>
-
-            <div class="alert alert-success" role="alert">
+            <div class="alert alert-success" role="alert" style="margin-top: -15px">
                 <strong>金额:</strong> {{ orderlist.order_amount }}
             </div>
 
