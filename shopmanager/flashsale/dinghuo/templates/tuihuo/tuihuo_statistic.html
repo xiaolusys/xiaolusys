@@ -22,7 +22,6 @@
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
-
         @import "{{ STATIC_URL }}fixed-header-table-master/css/defaultTheme.css";
     </style>
 </head>
@@ -56,12 +55,38 @@
         </div>
     </form>
 </div>
+<div>
+    <h3>商品库存退货单</h3>
 
+    <div>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>SKU</th>
+                <th>sku库存</th>
+                <th>产品库存</th>
+                <th>申请退货数</th>
+                <th>退货途中数</th>
+                <th>退货到仓数</th>
+                <th>退货数</th>
+                <th>退货价格</th>
+                <th style="display: none">产品ID</th>
+                <th>次品数</th>
+            </tr>
+            </thead>
+            <tbody id="return_good_list">
+            </tbody>
+        </table>
+        <div id="create_return_good"></div>
+
+    </div>
+</div>
 <div style="margin-top: 30px">
     <span id="task_id" style="display: none">{{ task_id }}</span>
     <table class="table table-bordered" id="mytable">
         <thead>
         <tr>
+            <th>SKUID</th>
             <th>图片</th>
             <th>商品编码</th>
             <th>名称</th>
@@ -80,15 +105,19 @@
 
             <th>供应商</th>
             <th>已退数</th>
+            <th style="display: none">产品ID</th>
+            <th>次品数</th>
         </tr>
         </thead>
         <tbody id="pro_info_tr">
+
         </tbody>
     </table>
-
+    <button onclick="create_preview_good()">生成退货单预览</button>
 </div>
 </body>
 
+<script type="text/javascript" src="{{ STATIC_URL }}jquery-json/jquery.json.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/extend/layer.ext.js"></script>
 <script type="text/javascript">
@@ -166,11 +195,103 @@
     }
 </script>
 <script type="text/javascript">
+    function create_preview_good() {
+        console.log("create_return_good");
+        var trs = $("#pro_info_tr tr");
+        $("#return_good_list").empty();
+        var supplier = "";
+        $(trs).each(function (index, tr) {
+            console.log("supplier", supplier);
+            var before_supplier = supplier;
+            supplier = tr.children[14].children[0].innerHTML;
+            if (before_supplier != "" && before_supplier != supplier) {//
+                $("#return_good_list").empty();//不是同一个供应商不能一批次退货
+                alert("预览不是同一个供应商不能生成预览");
+                return
+            }
+            var sku_id = tr.children[0].innerHTML;
+            var quantity = tr.children[4].innerHTML.split('/')[0];
+            var colec_num = tr.children[4].innerHTML.split('/')[1];
+            var cost = tr.children[4].innerHTML.split('/')[2];
+            var sended_refund_num = tr.children[11].innerHTML;
+            var backing_refund_num = tr.children[12].innerHTML;
+            var backed_refund = tr.children[13].innerHTML;
+            var pro_id = tr.children[16].innerHTML;
+            var sku_inferior_num = tr.children[17].innerHTML;
+            var ret_num = parseInt(quantity)  + parseInt(sku_inferior_num);//退货数量默认为sku的库存数量
+            var html = '<tr>' +
+                    '<td>' + sku_id + '</td>' +
+                    '<td>' + quantity + '</td>' +
+                    '<td>' + colec_num + '</td>' +
+                    '<td>' + sended_refund_num + '</td>' +
+                    '<td>' + backing_refund_num + '</td>' +
+                    '<td>' + backed_refund + '</td>' +
+                    '<td><input type="number" value="' + ret_num + '" id="searchbar"></td>' +
+                    '<td><input type="number" value="' + cost + '" id="searchbar"></td>' +
+                    '<td style="display:none">' + pro_id + '</td>' +
+                            '<td>' + sku_inferior_num + '</td>' +
+                    '</tr>';
+            $("#return_good_list").append(html);
+            //$("#pro_info_tr tr").remove();
+            var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database(' + before_supplier + ')">生成退货单</button>';
+            $("#create_return_good").empty().append(create_buyyton);
+        });
+
+    }
+    function create_record_to_database(supplier) {
+        console.log("supplier: ", supplier);//生成退货单
+        //删除　预览
+        //$("#return_good_list").empty();
+        //获取预览表中的数据　
+        var trs = $("#return_good_list tr");
+        var arr = new Array();
+        $(trs).each(function (index, tr) {
+            var sku_id = tr.children[0].innerHTML;
+            var return_num = tr.children[6].children[0].value;
+            var price = tr.children[7].children[0].value;
+            var pro_id = tr.children[8].innerHTML;
+            var sku_inferior_num = tr.children[9].innerHTML;
+            var sku_return = {
+                "supplier": supplier, "sku_id": sku_id, "return_num": return_num, "price": price,
+                "pro_id": pro_id, "sku_inferior_num":sku_inferior_num
+            };
+            console.log(sku_return);
+            arr[index] = sku_return;
+        });
+        console.log("arr: ", arr, $.type(arr));
+
+        var json_arr = $.toJSON(arr);
+        if ($(".create_buyyton").hasClass("loading")) {
+            return
+        }
+        var reqUrl = "/sale/dinghuo/tuihuo/";
+        $(".create_buyyton").addClass("loading");
+        $.ajax({
+            url: reqUrl,
+            data: {"arr": json_arr},
+            type: "post",
+            dataType: "json",
+            success: requestCallBack
+        });
+        function requestCallBack(res) {
+            $(".create_buyyton").removeClass("loading");
+            console.log(res);
+            if (res.res == true) {
+                layer.msg('创建成功！！！');
+            }
+            else {
+                layer.msg('创建出问题，不要重复提交，联系技术！！！');
+            }
+        }
+    }
+</script>
+<script type="text/javascript">
     $(document).ready(function () {
         var task_id = $("#task_id").html();
         console.log(task_id);
         // 访问任务
         aj_task(task_id);
+        //生成退货单
     });
 </script>
 <script style="text/javascript">
@@ -196,29 +317,35 @@
                 var pro_res = res.task.result;
                 $(pro_res).each(function (index, pro) {
                     console.log(index, "-", pro);
-                    var html = '<tr>' +
+                    var html = '<tr><td id="sku_id_{14}" name="sku_id">{14}</td>' +
                             '<td><img src="{0}" style="height: 100px;width: 62px;"></td>' +
-                            '<td>{1}</td><td>{2}</td><td>{3}</td>' +
+                            '<td>{1}</td><td>{2}</td><td name="sku_quantity">{3}/{19}/{20}</td>' +
                             '<td>{4}</td><td>{5}</td>' +
                             '<td>{6}</td><td>{7}</td><td>{8}</td>' +
-                            '<td>{9}</td><td>{10}</td><td>{11}</td>' +
-                            '<td>{12}</td><td id="td_supplier">' +
-                            '<a onclick="connect_supplier({13},{14})">{15}</a><br>' +
-                            '<span class="label label-info">联系人：</span>{16}' +
-                            '<span class="label label-info">手机：</span>{17}' +
+                            '<td>{9}</td><td name="sended_refund_num">{10}</td><td name="backing_refund_num">{11}</td>' +
+                            '<td name="backed_refund">{12}</td><td id="td_supplier">' +
+                            '<a style="display: none">{13}</a><a>{15}</a><br>' +
+                            '<span class="label label-info">联系人：</span>{16}<br>' +
+                            '<span class="label label-info">手机：</span>{17}<br>' +
                             '</td><td>{18}</td>' +
+                            '<td style="display: none">{21}</td>' +
+                            '<td>{22}</td>' +
                             '</tr>';
                     var format_html = String.format(html,
                             pro.pic_path,
-                            pro.outer_id, pro.name, pro.collect_num,
-                            pro.wait_post_num, pro.sync_stock,
+                            pro.outer_id, pro.name, pro.sku_quantity,
+                            pro.sku_wait_post_num, pro.sync_stock,
                             pro.ware_by, pro.shelf_status, pro.memo,
                             pro.return_num, pro.sended_refund_num, pro.backing_refund_num,
                             pro.backed_refund,
-                            pro.sale_supplier_pk, pro.id, pro.sale_supplier_name,
+                            pro.sale_supplier_pk, pro.s_id, pro.sale_supplier_name,
                             pro.sale_supplier_contact,
                             pro.sale_supplier_mobile,
-                            pro.already_num
+                            pro.already_num,
+                            pro.collect_num,
+                            pro.s_cost,
+                            pro.id,
+                            pro.sku_inferior_num//sku拆包次品数量
                     );
 
                     $("#pro_info_tr").append(format_html);

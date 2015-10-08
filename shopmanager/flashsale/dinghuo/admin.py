@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
-from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods
+from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail
 from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.filters import DateFieldListFilter
@@ -302,6 +302,11 @@ class RecordGroupPointAdmin(admin.ModelAdmin):
 
 admin.site.register(RecordGroupPoint, RecordGroupPointAdmin)
 
+class RGDetailInline(admin.TabularInline):
+    model = RGDetail
+    fields = ("skuid", "return_goods", "num", "inferior_num", "price")
+
+
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
     list_display = ("product_id", "supplier_id", "return_num", "sum_amount",
@@ -309,6 +314,8 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     search_fields = ["product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify"]
-
+    inlines = [RGDetailInline, ]
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
+
+

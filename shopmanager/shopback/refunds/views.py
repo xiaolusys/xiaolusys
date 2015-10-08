@@ -34,7 +34,7 @@ from rest_framework import status
 
     
 from renderers import *
-from unrelate_product_handler import update_Unrelate_Prods_Product
+from unrelate_product_handler import update_Unrelate_Prods_Product, update_Product_Collect_Num
 
 logger = logging.getLogger('django.request')
 __author__ = 'meixqhi'
@@ -261,6 +261,7 @@ class RefundView(APIView):
         # 创建一条退货款单记录
         log_action(request.user.id,rf,CHANGE,u'创建退货商品记录')
         update_Unrelate_Prods_Product(pro=rf, req=request)        # 关联退货
+        update_Product_Collect_Num(pro=rf, req=request)  # 更新产品库存
 
         #return rf  
         return Response(serializers.RefundProductSerializer(rf).data)
@@ -328,7 +329,7 @@ def create_refund_exchange_trade(request,seller_id,tid):
     return HttpResponseRedirect('/admin/trades/mergetrade/?type__exact=exchange'
                                 '&sys_status=WAIT_AUDIT&q=%s'%str(merge_trade.id))  
    
-
+from unrelate_product_handler import update_Product_Collect_Num_By_Delete
 @csrf_exempt
 @staff_member_required   
 def delete_trade_order(request,id):
@@ -340,7 +341,10 @@ def delete_trade_order(request,id):
         return HttpResponse(json.dumps({'code':1,'response_error':u'订单不存在'}),
                      mimetype="application/json")
     
-    refund_prod.delete()    
+    refund_prod.delete()
+    # 删除的时候更新商品库存
+    update_Product_Collect_Num_By_Delete(refund_prod, request)
+
     ret_params = {'code':0,'response_content':{'success':True}}
 
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")    
