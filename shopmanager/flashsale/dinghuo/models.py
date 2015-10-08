@@ -25,6 +25,14 @@ class OrderList(models.Model):
     STO = u'STO'
     ZTO = u'ZTO'
     EMS = u'EMS'
+    ZJS = u'ZJS'
+    SF = u'SF'
+    YTO = u'YTO'
+    HTKY = u'HTKY'
+    TTKDEX = u'TTKDEX'
+    QFKD = u'QFKD'
+    DBKD = u'DBKD'
+
     ORDER_PRODUCT_STATUS = (
         (SUBMITTING, u'草稿'),
         (APPROVAL, u'审核'),
@@ -46,8 +54,14 @@ class OrderList(models.Model):
         (STO, u'申通快递'),
         (ZTO, u'中通快递'),
         (EMS, u'邮政'),
+        (ZJS, u'宅急送'),
+        (SF, u'顺丰速运'),
+        (YTO, u'圆通'),
+        (HTKY, u'汇通快递'),
+        (TTKDEX, u'天天快递'),
+        (QFKD, u'全峰快递'),
+        (DBKD, u'德邦快递'),
     )
-
     id = BigIntegerAutoField(primary_key=True)
     buyer_name = models.CharField(default="",max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
