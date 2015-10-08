@@ -101,7 +101,7 @@ class WeiXinAPI(object):
         
     def checkSignature(self,signature,timestamp,nonce):
         
-        if time.time() - timestamp > 60:
+        if time.time() - int(timestamp) > 60:
             return False
         sign_array = ['%s'%i for i in [self._wx_account.token,timestamp,nonce]]
         sign_array.sort()
