@@ -406,7 +406,7 @@ class StatisticMergeOrderView(APIView):
         if action =="download":
             return self.responseCSVFile(request, trade_list)
         
-       # shopers = User.objects.filter(status=User.NORMAL)
+        # shopers = User.objects.filter(status=User.NORMAL)
         shopers = serializers.UserSerializer(User.objects.filter(status=User.NORMAL),many=True).data
         
         return  Response({"object":{'df':format_datetime(start_dt),
@@ -544,7 +544,7 @@ class CheckOrderView(APIView):
         trade.shipping_type = shipping_type
         trade.ware_by  = ware_by
         trade.save()
-            
+        
         if action_code == 'check':
             check_msg = []
             if trade.has_refund:
@@ -556,8 +556,8 @@ class CheckOrderView(APIView):
                 check_msg.append(u"订单商品编码与库存商品编码不一致")
             if trade.is_force_wlb:
                 check_msg.append(u"订单由物流宝发货")
-            if trade.sys_status != pcfg.WAIT_AUDIT_STATUS:
-                check_msg.append(u"订单不在问题单")
+            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS):
+                check_msg.append(u"订单不在审单状态")
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
                 check_msg.append(u"需手动合单")
             if trade.has_sys_err:
@@ -568,7 +568,9 @@ class CheckOrderView(APIView):
                 check_msg.append(u"订单没有商品信息")
             if check_msg:
                 return Response( ','.join(check_msg))
-            if trade.type == pcfg.EXCHANGE_TYPE:
+            if trade.status == pcfg.WAIT_PREPARE_SEND_STATUS:
+                pass 
+            elif trade.type == pcfg.EXCHANGE_TYPE:
                 change_orders = trade.merge_orders.filter(
                     gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,
                     sys_status=pcfg.IN_EFFECT)
@@ -820,21 +822,21 @@ def change_trade_order(request,id):
                             ,mimetype="application/json")
     
     old_sku_id = order.outer_sku_id
-
     order.outer_sku_id  = prod_sku.outer_id
     order.sku_properties_name = prod_sku.name
     order.is_rule_match = False
     order.out_stock     = False
     order.is_reverse_order    = False
-    if merge_trade.can_reverse_order:
-        merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
+    
+    if merge_trade.can_reverse_order :
+        if order.outer_sku_id != old_sku_id or order.num != order_num:
+            merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
         order.is_reverse_order = True
     else:
         order.out_stock = not Product.objects.isProductOutingStockEnough(
                                                          order.outer_id, 
                                                          order.outer_sku_id,
                                                          order_num)
-        
     order.num           = order_num
     order.save()
     merge_trade.remove_reason_code(pcfg.RULE_MATCH_CODE)
@@ -852,16 +854,17 @@ def change_trade_order(request,id):
     log_action(user_id,merge_trade,CHANGE,u'修改子订单(%d)'%order.id)
     
     ret_params = {'code':0,
-                'response_content':{
-                               'id':order.id,
-                               'outer_id':order.outer_id,
-                               'title':prod.name,
-                               'sku_properties_name':order.sku_properties_name,
-                               'num':order.num,
-                               'out_stock':order.out_stock,
-                               'price':order.price,
-                               'gift_type':order.gift_type,
-                               }}
+                  'response_content':{
+                       'id':order.id,
+                       'outer_id':order.outer_id,
+                       'title':prod.name,
+                       'sku_properties_name':order.sku_properties_name,
+                       'num':order.num,
+                       'out_stock':order.out_stock,
+                       'price':order.price,
+                       'gift_type':order.gift_type,
+                       }
+                  }
     
     return HttpResponse(json.dumps(ret_params),mimetype="application/json")
 
