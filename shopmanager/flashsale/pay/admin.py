@@ -122,7 +122,7 @@ class RegisterAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'cus_uid')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = (('code_time', DateFieldListFilter), ('created', DateFieldListFilter),)
+    list_filter = (('code_time', DateFieldListFilter), ('created', DateFieldListFilter), 'initialize_pwd')
     search_fields = ['id', 'cus_uid', 'vmobile', 'vemail']
 
 
