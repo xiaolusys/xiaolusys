@@ -28,7 +28,8 @@ class Register(models.Model):
     
     code_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')
     mail_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'邮件发送时间')
-    
+
+    initialize_pwd = models.BooleanField(default=False, verbose_name=u"初始化密码")
     created     = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     

@@ -1,3 +1,5 @@
+############2015-10-9#####################
+alter table flashsale_register  add initialize_pwd tinyint(1) default 0 NOT NULL;
 ############2015-10-8#####################
 alter table flashsale_dinghuo_returngoods add status int(11) default 0;
 ############2015-10-07#####################
