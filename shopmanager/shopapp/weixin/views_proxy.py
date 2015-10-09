@@ -52,7 +52,6 @@ class WXMessageHttpProxy(HttpProxy):
 #         params   = parseXML2Param(content)
 #         ret_params = wx_service.handleRequest(params)
 #         response = formatParam2XML(ret_params)
-        
         request_url = self.get_full_url(self.url)
         request = self.create_request(request_url,body=request.body)
         response = urllib2.urlopen(request)
@@ -98,7 +97,9 @@ class WXCustomAndMediaProxy(HttpProxy):
         Proxy for the Request
         """
         request_url = self.get_full_url(self.url)
-        request = self.create_request(request_url,body=request.body)
+        request_header = {'Content-type': request.Meta.get('CONTENT_TYPE'),
+                          'Content-length': request.Meta.get('CONTENT_LENGTH')}
+        request = self.create_request(request_url,body=request.body,headers=request_header)
         response = urllib2.urlopen(request)
         start = time.time()
         try:
@@ -128,7 +129,6 @@ class WXTokenProxy(View):
         return wx_api
     
     def get(self, request):
-        
         content = request.GET
         appid   = content.get('appid')
         secret  = content.get('secret')
