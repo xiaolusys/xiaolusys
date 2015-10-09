@@ -125,7 +125,6 @@ class PINGPPChargeView(View):
                     raise Exception(u'小鹿妈妈未找到')
                 
                 strade = self.createSaleTrade(customer,form)
-                
                 urows = XiaoluMama.objects.filter(openid=customer.unionid,
                                                  cash__gte=payment).update(cash=models.F('cash')-payment)
                 

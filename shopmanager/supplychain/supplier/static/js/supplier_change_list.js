@@ -95,6 +95,26 @@ $('.btn-selected').live('click',function(e){
     $.ajax({"url":url,"data":data,"success":callback, "type":"POST","headers":headers });
 });
 
+$('.btn-return').live('click',function(e){
+	e.preventDefault();
+	var target = e.target;
+	var pid = target.getAttribute('pid');
+	var status = target.getAttribute('status');
+	
+	var url = "/supplychain/supplier/product/"+pid+"/";
+    var callback = function (res) {
+        $(target.parentElement.parentElement).slideUp();
+    };
+	var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var data = {"status": status, 
+				"csrfmiddlewaretoken":csrf_token,
+				"format":"json"};
+    var headers = {
+	    'X-HTTP-Method-Override': 'PATCH'
+	};
+    $.ajax({"url":url,"data":data,"success":callback,"type":"POST","headers":headers });
+});
+
 $(".sale_category_select").live("change",function(e){
     e.preventDefault();
 
@@ -122,29 +142,29 @@ $(".sale_category_select").live("change",function(e){
     $.ajax({"url":url,"data":data,"success":callback,"type":"POST", "headers":headers});
 });
 
+
 $(function () {
-
-    $(".select_saletime").datepicker({
-        dateFormat: "yy-mm-dd"
-    }).change(function (e) {
-        var slae_product = this.id;
-        var sale_time = this.value;
-        var sale_time_old = this.name;
-        var target = e.target;
-        var url = "/supplychain/supplier/select_sale_time/";
-        var callback = function (res) {
-            if (res == "OK") {
-                $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
-            }
-        };
-        var data = {"slae_product": slae_product, "sale_time": sale_time};
-        console.log("deebug data:",data);
-        if (confirm("确定要修改日期吗？")) {
-            $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
-        } else {
-            this.value = sale_time_old;
-        }
-
-
-    });
+	$(".select_saletime").datepicker({
+	    dateFormat: "yy-mm-dd"
+	}).change(function (e) {
+	    var slae_product = this.id;
+	    var sale_time = this.value;
+	    var sale_time_old = this.name;
+	    var target = e.target;
+	    var url = "/supplychain/supplier/select_sale_time/";
+	    var callback = function (res) {
+	        if (res == "OK") {
+	            $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+	        }
+	    };
+	    var data = {"slae_product": slae_product, "sale_time": sale_time};
+	    console.log("deebug data:",data);
+	    $.ajax({"url": url, 
+	    		"data": data, 
+	    		"success": callback, 
+	    		"type": "POST",
+	    		"error":function(){
+	    			alert('上架日期修改失败');
+	    		}});
+	});
 });

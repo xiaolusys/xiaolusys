@@ -8,6 +8,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
+from common.modelutils import update_model_fields
 import logging
 
 logger = logging.getLogger('django.request')
@@ -78,8 +79,9 @@ class XiaoluMama(models.Model):
     charge_time = models.DateTimeField(default=datetime.datetime.now,
                                        db_index=True,blank=True,null=True,verbose_name=u'接管时间')
     
-    created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-    status  = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
+    created  = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+    modified = models.DateTimeField(auto_now=True,verbose_name=u'修改时间')
+    status   = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,
                                default=EFFECT,verbose_name=u'状态')
     
     charge_status = models.CharField(max_length=16,blank=True,db_index=True,
@@ -312,7 +314,7 @@ class XiaoluMama(models.Model):
             self.pending = models.F('pending') - clog.value
         else:
             self.cash = models.F('cash') - clog.value
-        self.save()
+        update_model_fields(self,update_fields=['cash','pending'])
         
         
 # from .clickprice import CLICK_TIME_PRICE
@@ -581,7 +583,7 @@ def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
         if xlmms.count() > 0 :
             xlmm = xlmms[0]
             xlmm.progress = XiaoluMama.PAY
-            xlmm.save()
+            update_model_fields(xlmm,update_fields=['progress'])
             
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
 

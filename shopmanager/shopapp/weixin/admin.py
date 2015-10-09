@@ -116,16 +116,14 @@ class WeiXinAccountAdmin(admin.ModelAdmin):
         if obj._deferred:
             opts_ = opts.proxy_for_model._meta
             verbose_name = opts_.verbose_name
-
         pk_value = obj._get_pk_val()
-        
         if obj.jmenu:
             try:
                 jmenu = obj.jmenu.copy()
-               
                 #self.unicode2Utf8(jmenu)
                 from .weixin_apis import WeiXinAPI
                 wx_api = WeiXinAPI()
+                wx_api.setAccountId(wxpubId=obj.account_id)
                 wx_api.createMenu(jmenu)
             except Exception,exc:
                 self.message_user(request, u"微信菜单创建失败：%s"%(exc.message or u'请求错误'))

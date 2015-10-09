@@ -165,6 +165,7 @@ from flashsale.pay.options import get_user_unionid
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 from flashsale.mmexam.models import Result
+from common.modelutils import update_model_fields
 
 from flashsale.clickcount.tasks import CLICK_ACTIVE_START_TIME, CLICK_MAX_LIMIT_DATE  
 
@@ -183,7 +184,7 @@ class MamaStatsView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
-        service = WeixinUserService(openid,unionId=unionid)
+        service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
         wx_user = service._wx_user
         
         if not wx_user.isValid():
@@ -203,7 +204,7 @@ class MamaStatsView(View):
             if xlmm.mobile  != mobile:
                 xlmm.mobile  = mobile
                 xlmm.weikefu = xlmm.weikefu or wx_user.nickname
-                xlmm.save()
+                update_model_fields(xlmm,update_fields=['mobile','weikefu'])
             
             if xlmm.status == XiaoluMama.FROZEN:
                 return render_to_response("mama_404.html")
@@ -277,7 +278,7 @@ class MamaIncomeDetailView(View):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
-        service = WeixinUserService(openid,unionId=unionid)
+        service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
         wx_user = service._wx_user
         
         if not wx_user.isValid():

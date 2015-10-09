@@ -244,9 +244,9 @@ class ProductAdmin(MyAdmin):
     # 选择上架时间
     def sale_time_select(self, obj):
         sale_time = obj.sale_time
-        display_text = '<input type="text" id="{0}" readonly="true" style="display: block;" class="select_saletime form-control datepicker" name={1} value="{1}"/>'
+        display_text = u'<input type="text" id="{0}" readonly="true" style="display: block;" class="select_saletime form-control datepicker" name={1} value="{1}"/>'
         if obj.sale_product != 0:
-            display_text += '<br><a href="/admin/supplier/saleproduct/?id={2}" target="_blank" style="display: block;">选品列表&gt;&gt;</a>'
+            display_text += u'<br><a href="/admin/supplier/saleproduct/?id={2}" target="_blank" style="display: block;">选品列表&gt;&gt;</a>'
         s = display_text.format(obj.id, sale_time, obj.sale_product)
         return s
     sale_time_select.allow_tags = True

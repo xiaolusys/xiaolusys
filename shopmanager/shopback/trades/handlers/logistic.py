@@ -8,6 +8,8 @@ from common.modelutils import  update_model_fields
 from shopback.logistics.models import (LogisticsCompany,
                                        DestCompany)
 
+POST_STATE = (u'甘肃',u'青海',u'陕西',u'广西',u'宁夏',u'贵州',u'内蒙',u'西藏',u'新疆',u'云南')
+
 class LogisticsHandler(BaseHandler):
     def handleable(self, merge_trade, *args, **kwargs):
         return (kwargs.get('first_pay_load', None) or
@@ -16,7 +18,29 @@ class LogisticsHandler(BaseHandler):
     def getYundaLGC(self):
         return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
     
-    def getLogisticCompany(self,merge_trade):
+    def getGZLogisticCompany(self,merge_trade):
+        state          = merge_trade.receiver_state
+        city           = merge_trade.receiver_city
+        district       = merge_trade.receiver_district
+        shipping_type  = merge_trade.shipping_type.upper()
+                    
+        if not state or not city or not district:
+            raise Exception(u"地址不全(请精确到省市区（县）)")
+                    
+        if shipping_type == pcfg.EXPRESS_SHIPPING_TYPE.upper():
+            #定制订单快递分配
+            if (merge_trade.receiver_address.find(u'镇') >= 0 
+                and merge_trade.receiver_address.find(u'村') >= 0):
+                if state.startswith(POST_STATE):
+                    return LogisticsCompany.objects.get_or_create(code='POSTB')[0]
+            
+            return self.getYundaLGC()
+            
+        elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
+                               pcfg.EMS_SHIPPING_TYPE.upper()):
+            return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]
+    
+    def getSHLogisticCompany(self,merge_trade):
         
         if merge_trade.is_force_wlb:
             return LogisticsCompany.objects.get_or_create(
@@ -34,8 +58,7 @@ class LogisticsHandler(BaseHandler):
             #定制订单快递分配
             if (merge_trade.receiver_address.find(u'镇') >= 0 
                 and merge_trade.receiver_address.find(u'村') >= 0):
-                states = (u'甘肃',u'青海',u'陕西',u'广西',u'宁夏',u'贵州',u'内蒙',u'西藏',u'新疆')
-                if state.startswith(states):
+                if state.startswith(POST_STATE):
                     return LogisticsCompany.objects.get_or_create(
                                         code='POSTB')[0]
                 return LogisticsCompany.objects.get_or_create(
@@ -60,9 +83,9 @@ class LogisticsHandler(BaseHandler):
                 merge_trade.append_reason_code(pcfg.TRADE_BY_WLB_CODE)
             #如果订单属于广州仓，则默认发韵达
             if merge_trade.ware_by == MergeTrade.WARE_GZ:
-                merge_trade.logistics_company = self.getYundaLGC()
+                merge_trade.logistics_company = self.getGZLogisticCompany(merge_trade)
             else:
-                merge_trade.logistics_company = self.getLogisticCompany(merge_trade)
+                merge_trade.logistics_company = self.getSHLogisticCompany(merge_trade)
             update_model_fields(merge_trade,update_fields=['logistics_company','ware_by'])
             
             if merge_trade.ware_by == MergeTrade.WARE_NONE:

@@ -3,3 +3,8 @@
 	background-color: #5BC0DE;
 	border-color: #46B8DA;
 }
+td a.btn-return {
+	font-size:16px;
+	padding:2px;
+	color:white;
+}

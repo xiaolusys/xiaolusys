@@ -68,12 +68,12 @@ class ProductCategory(models.Model):
     def __unicode__(self):
         
         if not self.parent_cid:
-            return self.name
+            return unicode(self.name)
         try:
             p_cat = self.__class__.objects.get(cid=self.parent_cid)
         except:
             p_cat = u'--'
-        return '%s / %s'%(p_cat,self.name)
+        return u'%s / %s'%(p_cat,self.name)
         
     
     

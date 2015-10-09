@@ -187,6 +187,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'weixin.proxy': {
+            'handlers': ['sentry'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         'notifyserver.handler':{
             'handlers': ['sentry'],
             'level': 'ERROR',

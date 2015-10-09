@@ -1,19 +1,15 @@
-#-*- coding:utf8 -*-
+#encoding:utf-8
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-import re
 import hashlib
-import inspect
-import copy
 import time
 import datetime
 import json
 import urllib
 import urllib2
 from django.conf import settings
-from django.core.cache import cache
 
 from shopapp.weixin.models import WeiXinAccount
 from common.utils import (randomString,
@@ -67,33 +63,50 @@ class WeiXinAPI(object):
     #微信原生支付URL
     _native_url   = "weixin://wxpay/bizpayurl"
     _deliver_notify_url = "/pay/delivernotify"
-    
+    _wxpub_id     = None
     
     def __init__(self):
-        self._wx_account = WeiXinAccount.getAccountInstance()
+        pass
         
+    def setAccountId(self,wxpubId=None,appKey=None):
+        
+        assert wxpubId or appKey ,'wxpub_id or appKey need one'
+        if wxpubId:
+            self._wxpub_id = wxpubId
+        else:
+            wx = WeiXinAccount.objects.filter(app_id=appKey)
+            if not wx.exists():
+                raise Exception('not found appkey(%S) account'%appKey)
+            self._account  = wx[0]
+            self._wxpub_id = self._account.account_id
+
     def getAccountId(self):
-        
         if self._wx_account.isNone():
             return None
-        
         return self._wx_account.account_id
-        
+    
+    def getAccount(self):
+        if not self._wxpub_id:
+            self.setAccountId(appKey=settings.WEIXIN_APPID)
+        if hasattr(self,'_account') and self._account.account_id == self._wxpub_id:
+            return self._account
+        self._account = WeiXinAccount.objects.get(account_id=self._wxpub_id)
+        return self._account
+    
+    _wx_account = property(getAccount)
+    
     def getAbsoluteUrl(self,uri,token):
         url = settings.WEIXIN_API_HOST + uri
         return token and '%s?access_token=%s'%(url,self.getAccessToken()) or url+'?'
         
     def checkSignature(self,signature,timestamp,nonce):
         
-#         if time.time() - int(timestamp) > 300:
-#             return False
-        
-        sign_array = [self._wx_account.token,timestamp,nonce]
+        if time.time() - int(timestamp) > 60:
+            return False
+        sign_array = ['%s'%i for i in [self._wx_account.token,timestamp,nonce]]
         sign_array.sort()
-        
-        sha1_value = hashlib.sha1(''.join(sign_array))
-
-        return sha1_value.hexdigest() == signature
+        sha1_value = hashlib.sha1(''.join(sign_array)).hexdigest() 
+        return sha1_value == signature
         
     def handleRequest(self,uri,params={},method="GET",token=True):
         
@@ -120,9 +133,6 @@ class WeiXinAPI(object):
     @process_lock
     def refresh_token(self):
         
-        if not self._wx_account.isExpired():
-            return self._wx_account.access_token
-        
         params = {'grant_type':'client_credential',
                   'appid':self._wx_account.app_id,
                   'secret':self._wx_account.app_secret}
@@ -137,9 +147,9 @@ class WeiXinAPI(object):
         
         return content['access_token']
     
-    def getAccessToken(self):
+    def getAccessToken(self,force_update=False):
         
-        if not self._wx_account.isExpired():
+        if not force_update and not self._wx_account.isExpired():
             return self._wx_account.access_token
         
         return self.refresh_token()

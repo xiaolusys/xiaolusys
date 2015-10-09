@@ -6,12 +6,14 @@ from httpproxy.views import HttpProxy
 
 import logging
 from . import service
-logger = logging.getLogger('django.request')
+logger = logging.getLogger('weixin.proxy')
 
 class WXMessageHttpProxy(HttpProxy):
     
-    def get_wx_service(self):
-        return service.WeixinUserService()
+    def get_wx_api(self,pub_id):
+        wx_api =service.WeiXinAPI()
+        wx_api.setAccountId(wxpubId=pub_id)
+        return wx_api
     
     def get_full_url(self, url):
         """
@@ -20,26 +22,30 @@ class WXMessageHttpProxy(HttpProxy):
         param_str = self.request.GET.urlencode()
         request_url = self.base_url
         if url:
+            request_url = request_url.rstrip('/')
+            url = url.lstrip('/')
             request_url = u'%s/%s' % (self.base_url, url)
         request_url += '?%s' % param_str if param_str else ''
         return request_url
     
-    def get(self, request):
-        content    = request.REQUEST
-        wx_service = self.get_wx_service()
-        if wx_service.checkSignature(content.get('signature',''),
-                                     content.get('timestamp',0),
-                                     content.get('nonce','')):
-            wx_service.activeAccount()
+    def get(self, request, pub_id):
+        content  = request.REQUEST
+        wx_api   = self.get_wx_api(pub_id)
+        if wx_api.checkSignature(content.get('signature',''),
+                                 content.get('timestamp',0),
+                                 content.get('nonce','')):
+            wx_api._wx_account.activeAccount()
             return HttpResponse(content['echostr'])
+        logger.debug('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, pub_id, *args, **kwargs):
         content    = request.REQUEST
-        wx_service = self.get_wx_service()
-        if not wx_service.checkSignature(content.get('signature',''),
-                                         content.get('timestamp',0),
-                                         content.get('nonce','')):
+        wx_api   = self.get_wx_api(pub_id)
+        if not wx_api.checkSignature(content.get('signature',''),
+                                     content.get('timestamp',0),
+                                     content.get('nonce','')):
+            logger.debug('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
         
 #         content  = request.body
@@ -65,19 +71,18 @@ class WXMessageHttpProxy(HttpProxy):
     
 class WXCustomAndMediaProxy(HttpProxy):
     
-    def get_wx_service(self):
-        return service.WeixinUserService()
+    def get_wx_api(self):
+        return service.WeiXinAPI()
     
     def get_extra_request_params(self):
-        wx_serv = self.get_wx_service()
+        wx_serv = self.get_wx_api()
         return {'access_token':wx_serv.getAccessToken()}
         
     def get_full_url(self, url):
         """
         Constructs the full URL to be requested.
         """
-        param_str = urllib.urlencode(self.get_extra_request_params())
-        param_str = '%s&%s'%(self.request.GET.urlencode(),param_str)
+        param_str = self.request.GET.urlencode()
         request_url = self.base_url
         if url:
             request_url = u'%s/%s' % (self.base_url, url)
@@ -102,7 +107,34 @@ class WXCustomAndMediaProxy(HttpProxy):
                 content_type=response.headers['content-type'])
         
     get = post
-    
 
-                
+import json
+from django.views.generic import View
+
+class WXTokenProxy(View):
+    
+    def get_wx_api(self,app_key):
+        wx_api = service.WeiXinAPI()
+        wx_api.setAccountId(appKey=app_key)
+        return wx_api
+    
+    def get(self, request):
+        
+        content = request.GET
+        appid   = content.get('appid')
+        secret  = content.get('secret')
+        error_resp = HttpResponse(json.dumps({"errcode":40013,"errmsg":"invalid appid"}), 
+                                  content_type='application/json')
+        if not appid or not secret:
+            return error_resp
+        
+        wx_api = self.get_wx_api(appid)
+        if wx_api._wx_account.app_secret != secret:
+            return error_resp
+        
+        access_token = wx_api.getAccessToken(force_update=True)
+        resp = {"access_token":access_token,"expires_in":55*60}
+        
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+        
         

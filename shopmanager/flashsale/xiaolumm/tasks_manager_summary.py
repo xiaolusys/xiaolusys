@@ -36,3 +36,6 @@ def task_make_Manager_Summary_Cvs(file_dir=None):
         for i in data:
             ivalues = [str(i[k[1]]) for k in field_name_list]
             writer.writerow(ivalues)
+            
+            
+            

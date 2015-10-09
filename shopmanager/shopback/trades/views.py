@@ -518,9 +518,8 @@ class CheckOrderView(APIView):
                 #'shippings33':dict(SHIPPING_TYPE_CHOICE)  }    
      
     def post(self, request, id, *args, **kwargs):
-       # print "进入post"
+        # print "进入post"
         user_id = request.user.id
-        print 'debug checkorder:',user_id
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
@@ -568,14 +567,11 @@ class CheckOrderView(APIView):
             if orders.count()==0:
                 check_msg.append(u"订单没有商品信息")
             if check_msg:
-                #print  "8888888"
                 return Response( ','.join(check_msg))
-            #print "9999"
             if trade.type == pcfg.EXCHANGE_TYPE:
                 change_orders = trade.merge_orders.filter(
                     gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,
                     sys_status=pcfg.IN_EFFECT)
-
                 if change_orders.count()>0:
                     #订单为自提
                     if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
@@ -593,11 +589,9 @@ class CheckOrderView(APIView):
                 else:
                     #更新退货库存
                     trade.update_inventory()
-                    
                     trade.sys_status = pcfg.FINISHED_STATUS
                     trade.status     = pcfg.TRADE_FINISHED
                     trade.save()
-                
             elif trade.type in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):   
                 #订单为自提
                 if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
@@ -641,7 +635,6 @@ class CheckOrderView(APIView):
                     MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
                         .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='',out_sid='')
             log_action(user_id,trade,CHANGE,u'审核成功')
-            
         elif action_code == 'review':
             if trade.sys_status not in pcfg.WAIT_SCAN_CHECK_WEIGHT:
                 return Response(u'订单不在待扫描状态')
@@ -651,9 +644,7 @@ class CheckOrderView(APIView):
             
             MergeTrade.objects.filter(id=id).update(can_review=True)
             log_action(user_id,trade,CHANGE,u'订单复审')
-        
-        
-        print "444"    
+         
         return Response({'success':True})
       
 import re
@@ -1923,7 +1914,7 @@ class PackageScanWeightView(APIView):
         except MergeTrade.MultipleObjectsReturned:
             return   Response(u'运单号返回多个订单')
 
-        return     Response( {'package_no':package_id,
+        return Response({'package_no':package_id,
                 'trade_id':mt.id,
                 'seller_nick':mt.user.nick,
                 'trade_type':mt.get_type_display(),

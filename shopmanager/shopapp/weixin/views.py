@@ -158,7 +158,7 @@ class WeixinAcceptView(View):
     """ 微信接收消息接口 """
     
     def get_wx_service(self):
-        return WeixinUserService()
+        return WeixinUserService(settings.WEIXIN_APPID)
     
     def get(self, request):
         content    = request.REQUEST
@@ -168,6 +168,7 @@ class WeixinAcceptView(View):
                                      content.get('nonce','')):
             wx_service.activeAccount()
             return HttpResponse(content['echostr'])
+        logger.debug('sign fail:{0}'.format(content))
         return HttpResponse(u'微信接口验证失败')
 
     
@@ -178,6 +179,7 @@ class WeixinAcceptView(View):
         if not wx_service.checkSignature(content.get('signature',''),
                                          content.get('timestamp',0),
                                          content.get('nonce','')):
+            logger.debug('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
         content  = request.body
         params   = parseXML2Param(content)
@@ -242,7 +244,7 @@ class RequestCodeView(View):
             response = {"code":"dup", "message":"duplication phone"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
         
-        wx_user_service = WeixinUserService(openId=openid)
+        wx_user_service = WeixinUserService(settings.WEIXIN_APPID,openId=openid)
         if wx_user_service._wx_user.isNone():
             response = {"code":"anony", "message":"anonymous user"}
             return HttpResponse(json.dumps(response),mimetype='application/json')
@@ -467,7 +469,7 @@ class BabyInfoView(View):
         streetaddr = content.get("streetaddr")
         openid = content.get('openid')
 
-        wx_user_service = WeixinUserService(openId=openid)
+        wx_user_service = WeixinUserService(settings.WEIXIN_APPID,openId=openid)
         wx_user = wx_user_service._wx_user
 
         wx_user.birth_year = int(year)
@@ -963,14 +965,11 @@ class SampleAdsView(View):
                 vipcode = users[0].vipcodes.all()[0].code
             else:
                 vipcode = VipCode.objects.genVipCodeByWXUser(users[0])
-            
             if users[0].openid == openid:
                 identical = True
-            
             share_url = request.build_absolute_uri().split('#')[0]
             wx_api = WeiXinAPI()
             signparams = wx_api.getShareSignParams(share_url)
-
             response = render_to_response('weixin/sampleads1.html', 
                                           {"identical":identical,"vipcode":vipcode, 
                                            "pk":wx_user_pk, 'wx_user':users[0],
@@ -1239,7 +1238,7 @@ class VipCouponView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
         
-        weixin_user_service = WeixinUserService(user_openid)
+        weixin_user_service = WeixinUserService(settings.WEIXIN_APPID,openId=user_openid)
         wx_user = weixin_user_service._wx_user
         
         title = u'VIP优惠券'
