@@ -306,8 +306,6 @@ class SaleProductAdmin(MyAdmin):
             ignore_status = SaleProduct.IGNORED
         elif obj.status in (SaleProduct.IGNORED, SaleProduct.REJECTED):
             ignore_val = u'已忽略'
-        elif obj.status == SaleProduct.SCHEDULE:
-            ignore_val = ''
         else:
             ignore_style = 'btn-info btn-ignore'
             ignore_val = u'淘汰'
