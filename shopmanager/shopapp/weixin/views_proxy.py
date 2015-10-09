@@ -139,8 +139,8 @@ class WXTokenProxy(View):
         wx_api = self.get_wx_api(appid)
         if wx_api._wx_account.app_secret != secret:
             return error_resp
-        access_token = wx_api.getAccessToken(force_update=True)
-        resp = {"access_token":access_token,"expires_in":55*60}
+        access_token = wx_api.getAccessToken()
+        resp = {"access_token":access_token,"expires_in":5*60}
         logger.debug('refresh token:[%s]%s'%(datetime.datetime.now(),resp))
         return HttpResponse(json.dumps(resp), content_type='application/json')
         
