@@ -54,7 +54,7 @@ class WXMessageHttpProxy(HttpProxy):
 #         response = formatParam2XML(ret_params)
         
         request_url = self.get_full_url(self.url)
-        request = self.create_request(request_url)
+        request = self.create_request(request_url,body=request.body)
         response = urllib2.urlopen(request)
         start = time.time()
         try:
@@ -94,9 +94,11 @@ class WXCustomAndMediaProxy(HttpProxy):
         return request_url
 
     def post(self, request, *args, **kwargs):
-        
+        """
+        Proxy for the Request
+        """
         request_url = self.get_full_url(self.url)
-        request = self.create_request(request_url)
+        request = self.create_request(request_url,body=request.body)
         response = urllib2.urlopen(request)
         start = time.time()
         try:
