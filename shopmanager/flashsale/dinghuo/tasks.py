@@ -632,7 +632,7 @@ def get_args_by_re_product(outer_id, outer_sku_id):
         inferior_num = psk.sku_inferior_num
         return name, cost, quantity, wait_post_num, inferior_num, pro.id, psk.id
     except:
-        return u"异常商品", 0, 0, 0, 0, 0
+        return u"异常商品", 0, 0, 0, 0, 0, 0
 
 
 def get_sale_product_supplier(sale_product):
