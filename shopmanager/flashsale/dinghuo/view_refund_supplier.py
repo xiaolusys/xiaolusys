@@ -50,32 +50,40 @@ class StatisRefundSupView(APIView):
         content = request.REQUEST
         arr = content.get("arr", None)
         data = eval(arr)  # json字符串转化
-        print data
-        return_num = 0
-        sum_amount = 0.0
-        rg = ReturnGoods()
-        supplier = data[0]['supplier']
-        pro_id = data[0]['pro_id']
-        rg.product_id = pro_id
-        rg.supplier_id = supplier
-        rg.save()
+        supplier_set = set()
+        pro_id_set = set()
         for i in data:
-            sku_return_num = int(i['return_num'])
-            price = float(i['price'])
-            sku_id = int(i['sku_id'])
-            inferior_num = int(i['sku_inferior_num'])
-            return_num = return_num + sku_return_num  # 累计产品的退货数量
-            sum_amount = sum_amount + price * sku_return_num
-            rg_d = RGDetail.objects.create(skuid=sku_id, return_goods_id=rg.id, num=sku_return_num,
-                                           inferior_num=inferior_num, price=price)
-            log_action(request.user.id, rg_d, ADDITION, u'创建退货单')
+            supplier_set.add(i['supplier'])
+        if supplier_set.__len__() != 1:
+            return Response({"res": "multi_supplier"})
+        supplier = supplier_set.pop()   # 唯一供应商
 
-        rg.return_num = return_num
-        rg.sum_amount = sum_amount
-        rg.noter = request.user.username
-        rg.save()
-        log_action(request.user.id, rg, ADDITION, u'创建退货单')
+        for i in data:
+            pro_id_set.add(i['pro_id'])
 
+        for pro_id in pro_id_set:
+            return_num = 0
+            sum_amount = 0.0
+            rg = ReturnGoods()
+            rg.product_id = pro_id
+            rg.supplier_id = supplier
+            rg.save()
+            for da in data:
+                if da['pro_id'] == pro_id:   # 是当前的商品
+                    sku_return_num = int(da['return_num'])
+                    price = float(da['price'])
+                    sku_id = int(da['sku_id'])
+                    inferior_num = int(da['sku_inferior_num'])
+                    return_num = return_num + sku_return_num  # 累计产品的退货数量
+                    sum_amount = sum_amount + price * sku_return_num
+                    rg_d = RGDetail.objects.create(skuid=sku_id, return_goods_id=rg.id, num=sku_return_num,
+                                                   inferior_num=inferior_num, price=price)
+                    log_action(request.user.id, rg_d, ADDITION, u'创建退货单')
+            rg.return_num = return_num
+            rg.sum_amount = sum_amount
+            rg.noter = request.user.username
+            rg.save()
+            log_action(request.user.id, rg, ADDITION, u'创建退货单')
         return Response({"res": True})
 
 

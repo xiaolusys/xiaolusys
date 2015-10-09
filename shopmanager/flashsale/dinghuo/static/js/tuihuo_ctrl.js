@@ -10,14 +10,26 @@ function verify_ok(dom) {
     console.log("ok running");
     var id = $(dom).attr('cid');
     console.log(id, "id");
-    post_data_to_server("ok", dom, id);
+    layer.confirm('您确定审核通过？　通过将减去对应商品的库存数量', {
+        btn: ['确定', '取消'] //按钮
+    }, function () {
+        post_data_to_server("ok", dom, id);
+    }, function () {
+    });
+
 }
 function verify_no(dom) {
     var dom = $(dom);
     console.log("no running");
     var id = $(dom).attr('cid');
     console.log(id, "id");
-    post_data_to_server("no", dom, id);
+
+    layer.confirm('您确定作废退货单？', {
+        btn: ['确定', '取消'] //按钮
+    }, function () {
+        post_data_to_server("no", dom, id);
+    }, function () {
+    });
 }
 
 function already_send(dom) {
@@ -25,7 +37,12 @@ function already_send(dom) {
     console.log("already send running");
     var id = $(dom).attr('cid');
     console.log(id, "id");
-    post_data_to_server("send", dom, id);
+    layer.confirm('您确定已经将该退货单核实　并　发货给供应商？', {
+        btn: ['确定', '取消'] //按钮
+    }, function () {
+        post_data_to_server("send", dom, id);
+    }, function () {
+    });
 }
 
 
@@ -34,14 +51,24 @@ function send_ok(dom) {
     console.log("already send running");
     var id = $(dom).attr('cid');
     console.log(id, "id");
-    post_data_to_server("send_ok", dom, id);
+    layer.confirm('您确定　供应商　已经收到退货产品了吗？', {
+        btn: ['确定', '取消'] //按钮
+    }, function () {
+        post_data_to_server("send_ok", dom, id);
+    }, function () {
+    });
 }
 function send_fail(dom) {
     var dom = $(dom);
     console.log("already send running");
     var id = $(dom).attr('cid');
     console.log(id, "id");
-    post_data_to_server("send_fail", dom, id);
+    layer.confirm('退货失败了吗？', {
+        btn: ['确定', '取消'] //按钮
+    }, function () {
+        post_data_to_server("send_fail", dom, id);
+    }, function () {
+    });
 }
 
 

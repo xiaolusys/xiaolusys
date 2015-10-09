@@ -314,7 +314,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     search_fields = ["product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
-    readonly_fields = ('status',)
+    # readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
 
     def status_contrl(self, obj):
@@ -339,8 +339,10 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     status_contrl.short_description = u"退货状态控制"
 
     class Media:
-        css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
-        js = ("js/tuihuo_ctrl.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
+        css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
+                       )}
+        js = ("js/tuihuo_ctrl.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
+              "layer-v1.9.2/layer/layer.js")
 
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
