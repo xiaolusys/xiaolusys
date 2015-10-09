@@ -489,7 +489,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def passwd_set(self, request):
-        """绑定手机,并初始化密码"""
+        """初始化密码"""
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
         if not passwd1 and not passwd2 and len(passwd1) < 6 and len(passwd2) < 6 and passwd2 != passwd1:
@@ -499,6 +499,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, customer, CHANGE, u'第一次设置密码成功')
         django_user.set_password(passwd1)
         django_user.save()
+        register_qs = Register.objects.filter(vmobile=customer.mobile)
+        if register_qs.count() == 0:
+            new_register = Register(vmobile=customer.mobile, cus_uid=customer.id, initialize_pwd=True, mobile_pass=True)
+            new_register.verify_code = new_register.genValidCode()
+            new_register.save()
+            log_action(request.user.id, new_register, ADDITION, u'初始化密码')
+        else:
+            temp_register = register_qs[0]
+            temp_register.initialize_pwd = True
+            temp_register.mobile_pass = True
+            temp_register.verify_code = temp_register.genValidCode()
+            temp_register.save()
+            log_action(request.user.id, temp_register, CHANGE, u'已有，初始化密码')
         return Response({"result": "0"})
 
     @list_route(methods=['post'])
