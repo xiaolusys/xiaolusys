@@ -438,7 +438,7 @@ def task_supplier_stat(start_date, end_date, group_name):
 def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, query_time, dhstatus):
 
     order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
-                "shop_trades_mergeorder where sys_status='IN_EFFECT' " \
+                "shop_trades_mergeorder where refund_status='NO_REFUND' and sys_status='IN_EFFECT' " \
                 "and merge_trade_id in (select id from shop_trades_mergetrade where type not in ('reissue','exchange') " \
                 "and status in ('WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED') " \
                 "and sys_status not in('INVALID','ON_THE_FLY') " \
