@@ -20,7 +20,8 @@
             type="text/javascript"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery-json/jquery.json.js"></script>
     <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
-
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/extend/layer.ext.js"></script>
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
@@ -114,19 +115,12 @@
 <script type="text/javascript">
     //生成退货单预览
     function create_preview_good() {
+        layer.msg('预览创建中...');
         console.log("create_return_good");
         var trs = $("#pro_info_tr tr");
         $("#return_good_list").empty();
-        var supplier = "";
         $(trs).each(function (index, tr) {
-            console.log("supplier", supplier);
-            var before_supplier = supplier;
-            supplier = tr.children[10].innerHTML;
-            if (before_supplier != "" && before_supplier != supplier) {//
-                $("#return_good_list").empty();//不是同一个供应商不能一批次退货
-                alert("预览不是同一个供应商不能生成预览");
-                return
-            }
+            var supplier = tr.children[10].innerHTML;
             var pro_id = tr.children[0].innerHTML;
             var sku_id = tr.children[1].innerHTML;
             var price = tr.children[3].innerHTML;
@@ -143,16 +137,24 @@
                     '<td>' + supplier + '</td>' +
                     '</tr>';
             $("#return_good_list").append(html);
-            //$("#pro_info_tr tr").remove();
-            var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database(' + before_supplier + ')">生成退货单</button>';
+            var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database(' + supplier + ')">生成退货单</button>';
             $("#create_return_good").empty().append(create_buyyton);
         });
     }
     // 生成退货单信息
     function create_record_to_database(supplier) {
+        layer.confirm('您确定创建退货单？　确定将有仓库审核，如通过将减去库存，并发货给供应商', {
+            btn: ['确定', '取消'] //按钮
+        }, function () {
+            create_record_to_database_func(supplier);
+            layer.closeAll();
+            $("#return_good_list").empty();//删除　预览
+        }, function () {
+            layer.msg("您取消了该预览退货单");
+        });
+    }
+    function create_record_to_database_func(supplier) {
         console.log("supplier: ", supplier);//生成退货单
-        //删除　预览
-        //$("#return_good_list").empty();
         //获取预览表中的数据　
         var trs = $("#return_good_list tr");
         var arr = new Array();
@@ -188,10 +190,13 @@
             $(".create_buyyton").removeClass("loading");
             console.log(res);
             if (res.res == true) {
-                alert('创建成功！！！');
+                layer.msg("创建成功！！！");
+            }
+            else if(res.res =="multi_supplier"){
+                layer.msg("不能为多个供应商创建退货单！！！");
             }
             else {
-                alert('创建出问题，不要重复提交，联系技术！！！');
+                layer.msg("创建出问题，不要重复提交，联系技术！！！");
             }
         }
     }

@@ -150,8 +150,6 @@ def update_Product_Collect_Num_By_Delete(pro, req):
             # 删除库存sku的数量
             psk_quantity = psk.quantity
             psk.quantity = F("quantity") - pro.num
-            if psk.quantity < 0:
-                psk.quantity = 0
             update_model_fields(psk, update_fields=['quantity'])    # 更新字段方法
             action_desc = u"拆包退货商品删除->将原来库存{0}更新为{1}".format(psk_quantity, psk.quantity)
             log_action(req.user.id, psk, CHANGE, action_desc)
