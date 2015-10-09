@@ -630,7 +630,7 @@ def get_args_by_re_product(outer_id, outer_sku_id):
         quantity = psk.quantity
         wait_post_num = psk.wait_post_num
         inferior_num = psk.sku_inferior_num
-        return name, cost, quantity, wait_post_num, inferior_num, pro.id
+        return name, cost, quantity, wait_post_num, inferior_num, pro.id, psk.id
     except:
         return u"异常商品", 0, 0, 0, 0, 0
 
@@ -687,11 +687,11 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
                                    }
 
     for re_pro in backed_refunds:
-        name, cost, quantity, wait_post_num, inferior_num, pro_id = get_args_by_re_product(re_pro.outer_id,
+        name, cost, quantity, wait_post_num, inferior_num, pro_id, sku_id = get_args_by_re_product(re_pro.outer_id,
                                                                                            re_pro.outer_sku_id)
         sale_supplier_pk = get_sale_product_supplier(pro_id)
-        if info.has_key(sal_re.sku_id):  # 如果字典中存在该sku的信息
-            info[sal_re.sku_id]['backed_num'] += re_pro.num
+        if info.has_key(sku_id):  # 如果字典中存在该sku的信息
+            info[sku_id]['backed_num'] += re_pro.num
         else:  # 没有就加入
             # 退款数量
             return_num = re_pro.num
@@ -699,7 +699,7 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
             return_pro_num = re_pro.num
             # 退货到仓库的数量　在sale 中统计不到　置0
             backed_num = re_pro.num
-            info[sal_re.sku_id] = {"pro_id": pro_id,
+            info[sku_id] = {"pro_id": pro_id,
                                    "name": name, "cost": cost, "quantity": quantity,
                                    "wait_post_num": wait_post_num, "inferior_num": inferior_num,
                                    "return_num": return_num, "return_pro_num": return_pro_num,
