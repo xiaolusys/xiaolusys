@@ -107,6 +107,7 @@ from . import views_proxy
 
 urlpatterns += patterns('',
     (r'^proxy/token/$',views_proxy.WXTokenProxy.as_view()),
+    (r'^proxy/item/$',views_proxy.SaleProductSearch.as_view()),
     (r'^proxy/u/(?P<pub_id>\w+)/$',views_proxy.WXMessageHttpProxy.as_view(base_url=settings.NTALKER_NOTIFY_URL),{'url':'' }),
     (r'^proxy/ntalker/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MESSAGE_URL),{'url':'' }),
     (r'^proxy/upload/$',views_proxy.WXCustomAndMediaProxy.as_view(base_url=settings.WX_MEDIA_UPLOAD_URL),{'url':'' }),
