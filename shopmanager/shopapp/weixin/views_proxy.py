@@ -97,8 +97,8 @@ class WXCustomAndMediaProxy(HttpProxy):
         Proxy for the Request
         """
         request_url = self.get_full_url(self.url)
-        request_header = {'Content-type': request.Meta.get('CONTENT_TYPE'),
-                          'Content-length': request.Meta.get('CONTENT_LENGTH')}
+        request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
+                          'Content-length': request.META.get('CONTENT_LENGTH')}
         request = self.create_request(request_url,body=request.body,headers=request_header)
         response = urllib2.urlopen(request)
         start = time.time()

@@ -438,7 +438,7 @@ def task_supplier_stat(start_date, end_date, group_name):
 def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, query_time, dhstatus):
 
     order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
-                "shop_trades_mergeorder where sys_status='IN_EFFECT' " \
+                "shop_trades_mergeorder where refund_status='NO_REFUND' and sys_status='IN_EFFECT' " \
                 "and merge_trade_id in (select id from shop_trades_mergetrade where type not in ('reissue','exchange') " \
                 "and status in ('WAIT_SELLER_SEND_GOODS','WAIT_BUYER_CONFIRM_GOODS','TRADE_BUYER_SIGNED','TRADE_FINISHED') " \
                 "and sys_status not in('INVALID','ON_THE_FLY') " \
@@ -616,9 +616,9 @@ def get_other_field(product_id, sku_id):
         quantity = psk.quantity
         wait_post_num = psk.wait_post_num
         inferior_num = psk.sku_inferior_num
-        return name, cost, quantity, wait_post_num, inferior_num
+        return name, cost, quantity, wait_post_num, inferior_num, pro.sale_product
     except:
-        return u"异常商品", 0, 0, 0, 0
+        return u"异常商品", 0, 0, 0, 0, 0
 
 
 def get_args_by_re_product(outer_id, outer_sku_id):
@@ -630,9 +630,9 @@ def get_args_by_re_product(outer_id, outer_sku_id):
         quantity = psk.quantity
         wait_post_num = psk.wait_post_num
         inferior_num = psk.sku_inferior_num
-        return name, cost, quantity, wait_post_num, inferior_num, pro.id, psk.id
+        return name, cost, quantity, wait_post_num, inferior_num, pro.id, psk.id, pro.sale_product
     except:
-        return u"异常商品", 0, 0, 0, 0, 0, 0
+        return u"异常商品", 0, 0, 0, 0, 0, 0, 0
 
 
 def get_sale_product_supplier(sale_product):
@@ -664,8 +664,8 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
     info = {}
 
     for sal_re in sale_refunds:
-        name, cost, quantity, wait_post_num, inferior_num = get_other_field(sal_re.item_id, sal_re.sku_id)
-        sale_supplier_pk = get_sale_product_supplier(sal_re.item_id)
+        name, cost, quantity, wait_post_num, inferior_num, sale_product = get_other_field(sal_re.item_id, sal_re.sku_id)
+        sale_supplier_pk = get_sale_product_supplier(sale_product)
         # 退款数量
         return_num = 1
         # 申请退货的数量（　包含：买家已经收到货　买家已经退货　两个状态　）
@@ -687,9 +687,9 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
                                    }
 
     for re_pro in backed_refunds:
-        name, cost, quantity, wait_post_num, inferior_num, pro_id, sku_id = get_args_by_re_product(re_pro.outer_id,
+        name, cost, quantity, wait_post_num, inferior_num, pro_id, sku_id, sale_product = get_args_by_re_product(re_pro.outer_id,
                                                                                            re_pro.outer_sku_id)
-        sale_supplier_pk = get_sale_product_supplier(pro_id)
+        sale_supplier_pk = get_sale_product_supplier(sale_product)
         if info.has_key(sku_id):  # 如果字典中存在该sku的信息
             info[sku_id]['backed_num'] += re_pro.num
         else:  # 没有就加入
