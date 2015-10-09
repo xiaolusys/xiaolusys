@@ -33,10 +33,10 @@ function Create_detail_dom(obj) {
 
 function Create_refun_reason(status) {
     var html = "";
-    if (status==2){//退款
+    if (status == 2) {//退款
         html = $("#refund_reason").html();
     }
-    if (status==3){//退货
+    if (status == 3) {//退货
         html = $("#refund_pro_reason").html();
     }
     $(html).appendTo("#selec_resason");
@@ -177,7 +177,6 @@ function Button_tijiao() {
 
         var url = GLConfig.baseApiUrl + GLConfig.refunds;
         var requetCall = function callback(res) {
-            drawToast("您已经提交了申请,耐心等待售后处理！");
             console.log(",res.res", res.res);
             if (res.res == "already_refund") {
                 drawToast("您已经提交了申请,耐心等待售后处理！");
@@ -198,8 +197,11 @@ function Button_tijiao() {
             else if (res.res == "ok") {
                 window.location.href = "../pages/wodetuihuo.html";
             }
-            else if(res.res == "reject"){
+            else if (res.res == "reject") {
                 drawToast("您申请的金额，超出了实际付款，请重新填写！");
+            }
+            else {
+                drawToast("您的订单状态异常，请联系客服人员协助处理！");
             }
         };
         if (swal_flag == 1) {

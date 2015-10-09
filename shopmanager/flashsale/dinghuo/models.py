@@ -68,7 +68,7 @@ class OrderList(models.Model):
     supplier_name = models.CharField(default="", blank=True, max_length=128, verbose_name=u'商品链接')
     supplier_shop = models.CharField(default="", blank=True, max_length=32, verbose_name=u'供应商店铺名')
 
-    express_company = models.CharField(choices=EXPRESS_CONPANYS, max_length=32, verbose_name=u'快递公司')
+    express_company = models.CharField(choices=EXPRESS_CONPANYS, blank=True, max_length=32, verbose_name=u'快递公司')
     express_no = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递单号')
 
     receiver = models.CharField(default="", max_length=32, verbose_name=u'负责人')
