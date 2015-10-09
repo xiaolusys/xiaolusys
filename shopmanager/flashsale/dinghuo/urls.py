@@ -10,7 +10,7 @@ from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierVie
 from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
-from .view_refund_supplier import StatisRefundSupView
+from .view_refund_supplier import StatisRefundSupView, change_duihuo_status
 import views_wuliu
 urlpatterns = [
 
@@ -53,4 +53,5 @@ urlpatterns = [
     url(r'^top_stock/$', staff_member_required(TopStockView.as_view()), name="top_stock"),          #库存最多的
     url(r'^daystats_ding_huo/$', StatsDinghuoView.as_view(), name="start_ding_huo"),      #每日订货统计
     url(r'^tuihuo/$', StatisRefundSupView.as_view(), name="tuihuo"),      # 退货统计　
+    url(r'^tuihuo/change_status/$', staff_member_required(change_duihuo_status), name="change_tuihuo_status"), # 退货状态修改　
 ]
