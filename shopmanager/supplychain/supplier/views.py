@@ -195,7 +195,6 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                     )[index_map.get(instance.status, 0)])
         return Response(serializer.data)
 
-
 from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
 
 
