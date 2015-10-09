@@ -11,7 +11,7 @@ from rest_framework import permissions
 import logging
 import datetime
 from shopback.base import log_action, ADDITION, CHANGE
-from tasks import calcu_refund_info_by_pro
+from tasks import calcu_refund_info_by_pro_v2
 
 logger = logging.getLogger('django.request')
 
@@ -20,19 +20,6 @@ from supplychain.supplier.models import SaleProduct
 from flashsale.dinghuo.models import RGDetail, ReturnGoods
 
 
-def time_zone_handler(date_from=None, date_to=None):
-    if date_to is None or date_to == "":
-        date_to = datetime.datetime.today()
-    if date_from is None or date_from == "":
-        date_from = datetime.datetime.today() - datetime.timedelta(days=7)
-    if type(date_to) is str and type(date_from) is str:
-        time_t = date_to.split('-')
-        time_f = date_from.split('-')
-        tyear, tmonth, tday = time_t
-        fyear, fmonth, fday = time_f
-        date_from = datetime.datetime(int(tyear), int(tmonth), int(tday), 0, 0, 0)
-        date_to = datetime.datetime(int(fyear), int(fmonth), int(fday), 23, 59, 59)
-    return date_from, date_to
 
 
 def get_sale_product(sale_product):
@@ -45,27 +32,20 @@ def get_sale_product(sale_product):
         return "", 0, "", ""
 
 
+def modify_sku_quantity(sku_id=None):
+    pass
+
+
 class StatisRefundSupView(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    template_name = "tuihuo/tuihuo_statistic.html"
+    template_name = "tuihuo/tuihuo_statistic_page.html"
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, format=None):
         content = request.REQUEST
-        outer_id = (content.get('outer_id', None))
-        if outer_id:
-            pro = Product.objects.filter(outer_id=outer_id)
-            if pro.exists():
-                task_id = calcu_refund_info_by_pro.s(pro_queryset=pro)()
-                return Response({"task_id": task_id})
-
         date_from = (content.get('date_from', None))
         date_to = (content.get('date_to', None))
-
-        date_from, date_to = time_zone_handler(date_from, date_to)
-        # 过滤 时间段中　上架时间　　的所有产品
-        tz_pros = Product.objects.filter(sale_time__gte=date_from, sale_time__lte=date_to)
-        task_id = calcu_refund_info_by_pro.s(pro_queryset=tz_pros)()
+        task_id = calcu_refund_info_by_pro_v2.s(date_from, date_to)()
         return Response({"task_id": task_id})
 
     def post(self, request, format=None):
@@ -91,6 +71,7 @@ class StatisRefundSupView(APIView):
             rg_d = RGDetail.objects.create(skuid=sku_id, return_goods_id=rg.id, num=sku_return_num,
                                            inferior_num=inferior_num, price=price)
             log_action(request.user.id, rg_d, ADDITION, u'创建退货单')
+            # 针对对应的sku减库存和次品数量
 
         rg.return_num = return_num
         rg.sum_amount = sum_amount

@@ -517,7 +517,8 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, que
 from supplychain.supplier.models import SaleProduct
 from flashsale.pay.models_refund import SaleRefund
 from shopback.refunds.models import RefundProduct
-from .models import ReturnGoods
+from .models import ReturnGoods, RGDetail
+
 
 def get_sale_product(sale_product):
     """　找到库存商品对应的选品信息　"""
@@ -527,6 +528,21 @@ def get_sale_product(sale_product):
                sal_p.sale_supplier.contact, sal_p.sale_supplier.mobile
     except SaleProduct.DoesNotExist:
         return "", 0, "", ""
+
+
+def time_zone_handler(date_from=None, date_to=None):
+    if date_to is None or date_to == "":
+        date_to = datetime.datetime.today()
+    if date_from is None or date_from == "":
+        date_from = datetime.datetime.today() - datetime.timedelta(days=7)
+    if type(date_to) is str and type(date_from) is str:
+        time_t = date_to.split('-')
+        time_f = date_from.split('-')
+        tyear, tmonth, tday = time_t
+        fyear, fmonth, fday = time_f
+        date_from = datetime.datetime(int(tyear), int(tmonth), int(tday), 0, 0, 0)
+        date_to = datetime.datetime(int(fyear), int(fmonth), int(fday), 23, 59, 59)
+    return date_from, date_to
 
 
 @task()
@@ -552,9 +568,11 @@ def calcu_refund_info_by_pro(pro_queryset=None):
             backed_refunds = RefundProduct.objects.filter(outer_id=i.outer_id, outer_sku_id=sku.outer_id)
 
             # 已经退货数量
-            already_return_goods = ReturnGoods.objects.filter(product_id=i.id)  # 过滤出审核通过的退货单
+            already_return_goods = RGDetail.objects.filter(skuid=sku.id)  # 过滤出审核通过的退货单
 
-            already_return_goods_num = already_return_goods.aggregate(total_al=Sum("return_num")).get("total_al") or 0
+            already_num = already_return_goods.aggregate(total_al=Sum("num")).get("total_al") or 0
+            already_inferior_num_num = already_return_goods.aggregate(total_al=Sum("inferior_num")).get("total_al") or 0
+            already_return_goods_num = already_num + already_inferior_num_num
 
             return_num = sale_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 退款数量
 
@@ -586,4 +604,107 @@ def calcu_refund_info_by_pro(pro_queryset=None):
             prod['already_num'] = already_return_goods_num  # 已退数量
 
             data.append(prod)
+    return data
+
+
+def get_other_field(product_id, sku_id):
+    try:
+        pro = Product.objects.get(id=product_id)
+        name = pro.name
+        psk = ProductSku.objects.get(id=sku_id)
+        cost = psk.cost
+        quantity = psk.quantity
+        wait_post_num = psk.wait_post_num
+        inferior_num = psk.sku_inferior_num
+        return name, cost, quantity, wait_post_num, inferior_num
+    except:
+        return u"异常商品", 0, 0, 0, 0
+
+
+def get_args_by_re_product(outer_id, outer_sku_id):
+    try:
+        pro = Product.objects.get(outer_id=outer_id)
+        name = pro.name
+        psk = ProductSku.objects.get(product_id=pro.id, outer_id=outer_sku_id)
+        cost = psk.cost
+        quantity = psk.quantity
+        wait_post_num = psk.wait_post_num
+        inferior_num = psk.sku_inferior_num
+        return name, cost, quantity, wait_post_num, inferior_num, pro.id
+    except:
+        return u"异常商品", 0, 0, 0, 0, 0
+
+
+def get_sale_product_supplier(sale_product):
+    """　找到库存商品对应的选品信息　"""
+    try:
+        sal_p = SaleProduct.objects.get(id=sale_product)
+        return sal_p.sale_supplier.pk
+    except SaleProduct.DoesNotExist:
+        return 0
+
+
+@task()
+def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
+    # SKUID   sku_id
+        # 产品ID   pro_id
+        # 名称　   name
+        # 成本    cost
+        # 库存    quantity
+        # 待发数   wait_post_num
+        # 次品数   inferior_num
+
+        # 退款数
+        # 申请退货数
+        # 退货到仓数
+        # 供应商
+    date_from, date_to = time_zone_handler(date_from, date_to)
+    sale_refunds = SaleRefund.objects.filter(created__gte=date_from, created__lte=date_to)
+    backed_refunds = RefundProduct.objects.filter(created__gte=date_from, created__lte=date_to)
+    info = {}
+
+    for sal_re in sale_refunds:
+        name, cost, quantity, wait_post_num, inferior_num = get_other_field(sal_re.item_id, sal_re.sku_id)
+        sale_supplier_pk = get_sale_product_supplier(sal_re.item_id)
+        # 退款数量
+        return_num = 1
+        # 申请退货的数量（　包含：买家已经收到货　买家已经退货　两个状态　）
+        return_pro_num = sal_re.refund_num if sal_re.good_status in (
+            SaleRefund.BUYER_NOT_RECEIVED, SaleRefund.BUYER_RECEIVED) else 0
+        # 退货到仓库的数量　在sale 中统计不到　置0
+        backed_num = 0
+
+        if info.has_key(sal_re.sku_id):  # 如果字典中存在该sku的信息
+            # 叠加数量
+            info[sal_re.sku_id]['return_num'] += return_num
+            info[sal_re.sku_id]['return_pro_num'] += return_pro_num
+        else:  # 没有就加入
+            info[sal_re.sku_id] = {"pro_id": sal_re.item_id,
+                                   "name": name, "cost": cost, "quantity": quantity,
+                                   "wait_post_num": wait_post_num, "inferior_num": inferior_num,
+                                   "return_num": return_num, "return_pro_num": return_pro_num,
+                                   "backed_num": backed_num, "sale_supplier_pk": sale_supplier_pk
+                                   }
+
+    for re_pro in backed_refunds:
+        name, cost, quantity, wait_post_num, inferior_num, pro_id = get_args_by_re_product(re_pro.outer_id,
+                                                                                           re_pro.outer_sku_id)
+        sale_supplier_pk = get_sale_product_supplier(pro_id)
+        if info.has_key(sal_re.sku_id):  # 如果字典中存在该sku的信息
+            info[sal_re.sku_id]['backed_num'] += re_pro.num
+        else:  # 没有就加入
+            # 退款数量
+            return_num = re_pro.num
+            # 申请退货的数量
+            return_pro_num = re_pro.num
+            # 退货到仓库的数量　在sale 中统计不到　置0
+            backed_num = re_pro.num
+            info[sal_re.sku_id] = {"pro_id": pro_id,
+                                   "name": name, "cost": cost, "quantity": quantity,
+                                   "wait_post_num": wait_post_num, "inferior_num": inferior_num,
+                                   "return_num": return_num, "return_pro_num": return_pro_num,
+                                   "backed_num": backed_num, "sale_supplier_pk": sale_supplier_pk
+                                   }
+
+    data = [info]
     return data
