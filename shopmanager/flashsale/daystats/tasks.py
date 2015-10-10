@@ -589,39 +589,86 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                                                              sale_category__parent_cid=category)
             all_sale_product = SaleProduct.objects.filter(sale_time__range=(start_date_time, end_date_time),
                                                           sale_category__parent_cid=category, status=SaleProduct.SCHEDULE)
-        all_contactors = SaleProduct.objects.values("contactor__username").distinct()
-        result_data = []
-        for contactor in all_contactors:
-            one_temp = {"username": contactor['contactor__username']}
-            charger_product = all_created_product.filter(contactor__username=contactor['contactor__username'])
-            choose_sale_num = charger_product.count()
-            one_temp["choose_sale_num"] = choose_sale_num
-            charger_product_shelf = all_sale_product.filter(contactor__username=contactor['contactor__username'])
-            shelf_sale_num = charger_product_shelf.count()
-            one_temp["shelf_sale_num"] = shelf_sale_num
-            one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
-            all_sale_num = 0
-            all_sale_cost = 0
-            all_sale_money = 0
-            all_tui_kuan = 0
-            tui_kuan_money = 0
-            for one_sale_product in charger_product_shelf:
-                kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
 
-                for one_kucun_product in kucun_product:
-                    one_product_data = DailySupplyChainStatsOrder.objects.filter(product_id=one_kucun_product.outer_id)
-                    for stat_data in one_product_data:
-                        all_sale_num += stat_data.sale_num
-                        all_sale_cost += stat_data.cost_of_product
-                        all_sale_money += stat_data.sale_cost_of_product
-                        all_tui_kuan += stat_data.return_num
-                        tui_kuan_money += stat_data.return_num * one_kucun_product.agent_price
-            one_temp["all_sale_num"] = all_sale_num
-            one_temp["all_sale_cost"] = all_sale_cost
-            one_temp["all_sale_money"] = all_sale_money
-            one_temp["all_tui_kuan"] = all_tui_kuan
-            one_temp["tui_kuan_money"] = tui_kuan_money
-            result_data.append(one_temp)
+        result_data = []
+        result_contactors = set()
+        all_order_data = DailySupplyChainStatsOrder.objects.filter(sale_time__range=(start_date_time, end_date_time))
+        if category == "1":
+            all_order_data = DailySupplyChainStatsOrder.objects.filter(
+                sale_time__range=(start_date_time, end_date_time)).filter(product_id__startswith='9')
+        elif category == "2":
+            all_order_data = DailySupplyChainStatsOrder.objects.filter(
+                sale_time__range=(start_date_time, end_date_time)).filter(product_id__startswith='8')
+        #获取商品的销售情况
+        for one_order_data in all_order_data:
+            try:
+                one_product = Product.objects.get(outer_id=one_order_data.product_id)
+                sale_product_bean = SaleProduct.objects.get(id=one_product.sale_product)
+                one_contactor = sale_product_bean.contactor.username
+                if one_contactor in result_contactors:
+                    for one_data in result_data:
+                        if one_data["username"] == one_contactor:
+                            one_data["all_sale_num"] += one_order_data.sale_num
+                            one_data["all_sale_cost"] += one_order_data.cost_of_product
+                            one_data["all_sale_money"] += one_order_data.sale_cost_of_product
+                            one_data["all_tui_kuan"] += one_order_data.return_num
+                            one_data["tui_kuan_money"] += one_order_data.return_num * one_product.agent_price
+                else:
+                    result_contactors.add(one_contactor)
+                    
+                    one_temp_data = {"username": one_contactor,
+                                     "all_sale_num": one_order_data.sale_num,
+                                     "all_sale_cost": one_order_data.cost_of_product,
+                                     "all_sale_money": one_order_data.sale_cost_of_product,
+                                     "all_tui_kuan": one_order_data.return_num,
+                                     "tui_kuan_money": one_order_data.return_num * one_product.agent_price}
+                    result_data.append(one_temp_data)
+            except:
+                continue
+        for contactor in result_contactors:
+            charger_product = all_created_product.filter(contactor__username=contactor)
+            choose_sale_num = charger_product.count()
+            charger_product_shelf = all_sale_product.filter(contactor__username=contactor)
+            shelf_sale_num = charger_product_shelf.count()
+            shelf_percent = 0 if choose_sale_num == 0 else round(shelf_sale_num / choose_sale_num, 2)
+            for one_data in result_data:
+                if one_data["username"] == contactor:
+                    one_data["choose_sale_num"] = choose_sale_num
+                    one_data["shelf_sale_num"] = shelf_sale_num
+                    one_data["shelf_percent"] = shelf_percent
+        # all_contactors = SaleProduct.objects.values("contactor__username").distinct()
+        #
+        # for contactor in all_contactors:
+        #     one_temp = {"username": contactor['contactor__username']}
+        #     charger_product = all_created_product.filter(contactor__username=contactor['contactor__username'])
+        #     choose_sale_num = charger_product.count()
+        #     one_temp["choose_sale_num"] = choose_sale_num
+        #     charger_product_shelf = all_sale_product.filter(contactor__username=contactor['contactor__username'])
+        #     shelf_sale_num = charger_product_shelf.count()
+        #     one_temp["shelf_sale_num"] = shelf_sale_num
+        #     one_temp["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
+        #     all_sale_num = 0
+        #     all_sale_cost = 0
+        #     all_sale_money = 0
+        #     all_tui_kuan = 0
+        #     tui_kuan_money = 0
+        #     for one_sale_product in charger_product_shelf:
+        #         kucun_product = Product.objects.filter(sale_product=one_sale_product.id)
+        #
+        #         for one_kucun_product in kucun_product:
+        #             one_product_data = DailySupplyChainStatsOrder.objects.filter(product_id=one_kucun_product.outer_id)
+        #             for stat_data in one_product_data:
+        #                 all_sale_num += stat_data.sale_num
+        #                 all_sale_cost += stat_data.cost_of_product
+        #                 all_sale_money += stat_data.sale_cost_of_product
+        #                 all_tui_kuan += stat_data.return_num
+        #                 tui_kuan_money += stat_data.return_num * one_kucun_product.agent_price
+        #     one_temp["all_sale_num"] = all_sale_num
+        #     one_temp["all_sale_cost"] = all_sale_cost
+        #     one_temp["all_sale_money"] = all_sale_money
+        #     one_temp["all_tui_kuan"] = all_tui_kuan
+        #     one_temp["tui_kuan_money"] = tui_kuan_money
+        #     result_data.append(one_temp)
     except Exception, exc:
         raise task_calc_package.retry(exc=exc)
     return result_data
