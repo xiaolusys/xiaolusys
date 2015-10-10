@@ -90,3 +90,7 @@ function post_data_to_server(act, dom, id) {
     }
 
 }
+function supplier_admin(supplier_name, mobile, address) {
+    var mes = '供应商名:' + supplier_name + "电话：" + mobile + "地址：" + address;
+    layer.msg(mes);
+}

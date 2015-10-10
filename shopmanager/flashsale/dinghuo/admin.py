@@ -307,18 +307,60 @@ class RGDetailInline(admin.TabularInline):
     fields = ("skuid", "return_goods", "num", "inferior_num", "price")
 
 
+from shopback.items.models import Product
+from supplychain.supplier.models import SaleSupplier
+
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
-    list_display = ("product_id", "supplier_id", "return_num", "sum_amount",
-                    "noter", "consigner", "consign_time", "sid", "memo", "status_contrl")
+    list_display = ("show_pic", "show_detail_num", "sum_amount", "status_contrl",
+                     "consign_time", "sid", "noter", "consigner", "memo")
     search_fields = ["product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
     # readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
+    list_display_links = ['sum_amount', ]
+    list_per_page = 10
+
+    def show_pic(self, obj):
+        product_id = obj.product_id
+        pro = Product.objects.get(id=product_id)
+        try:
+            suplier = SaleSupplier.objects.get(id=obj.supplier_id)
+            supplier_name = suplier.supplier_name
+            mobile = suplier.mobile
+            address = suplier.address
+        except SaleSupplier.DoesNotExist:
+            supplier_name = u"none"
+            mobile = u"none"
+            address = u"none"
+        js_str = u"'%s','%s','%s'" % (
+            supplier_name or u"none", mobile or u"none", address or u"none")
+        html = u'<img src="{0}" style="width:62px;height:100px"><a style="display:inline" onclick="supplier_admin({4})">供应商：{3}</a>' \
+               u'<br><a href="/admin/items/product/{2}/">{1}</a>'.format(pro.pic_path, pro.name, product_id,
+                                                                         obj.supplier_id, js_str)
+        return html
+    show_pic.allow_tags = True
+    show_pic.short_description = u"产品图/名"
+
+    def show_detail_num(self, obj):
+        dts = obj.rg_details.all()
+        html = u'总：{0}<br><br>'.format(obj.return_num)
+        print obj.id, dts
+        for dt in dts:
+            print dt
+            skuid = dt.skuid
+            num = dt.num
+            inferior_num = dt.inferior_num
+            sub_html = u'{0} :{1} / {2}<br>'.format(skuid, num, inferior_num)
+            html = html + sub_html
+        return html
+    show_detail_num.allow_tags = True
+    show_detail_num.short_description = u"数量信息"
+
 
     def status_contrl(self, obj):
-        cu_status =  obj.get_status_display()
+        cu_status = obj.get_status_display()
         if obj.status == ReturnGoods.CREATE_RG:
             # 如果是创建状态则　显示　审核通过　作废退货　两个按钮
             html = u'{1}-点击-><a cid="{0}" onclick="verify_ok(this)" style="margin-right:20px;">审核通过</a>　或　' \

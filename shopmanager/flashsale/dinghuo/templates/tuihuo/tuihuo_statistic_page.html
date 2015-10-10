@@ -119,20 +119,22 @@
         var trs = $("#pro_info_tr tr");
         $("#return_good_list").empty();
         var suppliers = new Array();
+
         function isOneSupplier(element, index, array) {
             return (element == array[0]);//如果存在不相同的供应商返回false
-         }
+        }
+
         $(trs).each(function (index, tr) {
             var supplier = tr.children[10].innerHTML;
             suppliers.push(supplier);
         });
         //判断所有的供应商都相等
         var supplier_is_one = suppliers.every(isOneSupplier);
-        if(supplier_is_one==false){
+        if (supplier_is_one == false) {
             layer.msg("供应商不一致，无法创建预览");
             return
         }
-         var oTable = $('#mytable').dataTable();
+        var oTable = $('#mytable').dataTable();
         $(trs).each(function (index, tr) {
             var supplier = tr.children[10].innerHTML;
             var pro_id = tr.children[0].innerHTML;
@@ -208,7 +210,7 @@
             if (res.res == true) {
                 layer.msg("创建成功！！！");
             }
-            else if(res.res =="multi_supplier"){
+            else if (res.res == "multi_supplier") {
                 layer.msg("不能为多个供应商创建退货单！！！");
             }
             else {
@@ -299,7 +301,7 @@
                     "aaSorting": [[9, "asc"]],
                     "iDisplayLength": 50,
                     "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
-                    "bInfo":true,
+                    "bInfo": true,
                     "sPaginationType": "full_numbers",
                     //"sDom": '<"H"Tfr>t<"F"ip>',
                     "oLanguage": {
