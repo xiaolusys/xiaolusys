@@ -75,7 +75,8 @@
 })(jQuery);
 function loginclick(e){
 	e.stopPropagation();
-	if (isNone(GLConfig.user_profile) || 
+	var profile = getCookie(PROFILE_COOKIE_NAME);
+	if (isNone(profile) || 
 		($(e.target).tagName == 'A' && isNone($(e.target).attr('href')))){
 		e.preventDefault();
 		var next = window.location.href;

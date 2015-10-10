@@ -13,24 +13,20 @@
 	<link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/shangpinxq.css">
     <link rel="stylesheet" href="../css/jquery.webui-popover.min.css">
-    <script language="javascript" type="text/javascript">
-	var item_id = parseUrlParams(window.location.href)['id'];
-	var profile_str = getCookie(PROFILE_COOKIE_NAME) || '{}';
-	var profile = JSON.parse(profile_str);
+    <script id="ntkf_template" type="text/html">
 	NTKF_PARAM = {
 		siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
 		settingid:"kf_9645_1443490112178",		//缺省客服配置ID，必填，取值参见文档开始表
-		uid:profile.id,		//用户ID,未登录可以为空
-		uname:profile.nick,		//用户名，未登录可以为空
+		uid:"{{profile.id}}",		//用户ID,未登录可以为空
+		uname:"{{profile.nick}}",		//用户名，未登录可以为空
 		isvip:"0" ,         //是否为vip用户
 		userlevel:"1" ,    //网站自定义会员级别
 		ntalkerparam:{
 	　　		item:{		//注意：详情页这里是item，其它地方是items
-	　　			id:item_id 		//商品ID
+	　　			id:"{{item_id}}" 		//商品ID
 	　　		}
 		}
 	};
-	console.log('debug ntkf:',profile,NTKF_PARAM);
 	</script>
 </head>
 <body>
@@ -212,6 +208,7 @@
     $(".service_box").on("tap", function () {
     	DoIfLogin({
     		callback:function(){
+    			loadNTalker();
     			//对应手机WAP端组代码
     			NTKF.im_openInPageChat("kf_9645_1444459002183")
     		},
@@ -239,10 +236,27 @@ function buynow(){
     var sku_id = $('#js-goods-size li.active').attr('sku_id');
     window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
 }
-
+//加载小能客服插件
+function loadNTalker(){
+	var params = {
+		'item_id':parseUrlParams(window.location.href)['id'],
+		'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}')
+	};
+	var ntkf_template = $('#ntkf_template').html();
+	var ntkf_dom	  = document.createElement("script");
+	ntkf_dom.type 	  = "text/javascript";
+	ntkf_dom.innerHTML = ntkf_template.template(params);
+	
+	var ntkf_sc = document.createElement("script");
+	ntkf_sc.src = "http://dl.ntalker.com/js/xn6/ntkfstat.js?siteid=kf_9645";
+	ntkf_sc.charset = 'utf-8';
+	
+	console.log('debug ntkf dom:',ntkf_dom,ntkf_sc);
+	$(document.body).append(ntkf_dom);
+	$(document.body).append(ntkf_sc);
+}
 </script>
 <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
 <script src="../js/sweet-alert.min.js"></script>
-<script type="text/javascript" src="http://dl.ntalker.com/js/xn6/ntkfstat.js?siteid=kf_9645"charset="utf-8"></script>
 </body>
 </html>
