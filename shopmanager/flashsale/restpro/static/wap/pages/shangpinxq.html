@@ -13,6 +13,25 @@
 	<link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/shangpinxq.css">
     <link rel="stylesheet" href="../css/jquery.webui-popover.min.css">
+    <script language="javascript" type="text/javascript">
+	var item_id = parseUrlParams(window.location.href)['id'];
+	var profile_str = getCookie(PROFILE_COOKIE_NAME) || '{}';
+	var profile = JSON.parse(profile_str);
+	NTKF_PARAM = {
+		siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
+		settingid:"kf_9645_1443490112178",		//缺省客服配置ID，必填，取值参见文档开始表
+		uid:profile.id,		//用户ID,未登录可以为空
+		uname:profile.nick,		//用户名，未登录可以为空
+		isvip:"0" ,         //是否为vip用户
+		userlevel:"1" ,    //网站自定义会员级别
+		ntalkerparam:{
+	　　		item:{		//注意：详情页这里是item，其它地方是items
+	　　			id:item_id 		//商品ID
+	　　		}
+		}
+	};
+	console.log('debug ntkf:',profile,NTKF_PARAM);
+	</script>
 </head>
 <body>
 <div class="goods-slide">
@@ -92,13 +111,8 @@
 <div id="loading"><span class="dots-loader"></span></div>
 <div class="service_box">
 	<ul class="tab_nav">
-		<li><a href="javascript:void(0);"><i class="icon icon_1"></i>在线客服</a></li>
+		<li><a href="javascript:void(0);"><i class="icon icon_1"></i>联系客服</a></li>
 	</ul>
-	<div class="tab_content">
-		<div class="tab_plan" style="display: none;"><img src="http://image.xiaolu.so/gongzhonghao.jpg" alt="官方微信自助客服" width="130" height="130">
-			<p>扫一扫,进公众号</p>
-		</div>
-	</div>
 </div>
 <div class="footer clearfix">
 <div class="link">
@@ -195,16 +209,14 @@
     		redirecto:window.location.href
     	});
     });
-
-    $(".service_box").on("swipeleft tap", function () {
-        $(".service_box .tab_plan").show().siblings().hide();
-        $(".service_box").animate({right: 0}, 800);
-    });
-    $(".service_box").on("swiperight", function () {
-        $(".service_box").animate({right: "-146px"}, 800);
-    });
-    $(document).on("scrollstart", function () {
-        $(".service_box").animate({right: "-146px"}, 800);
+    $(".service_box").on("tap", function () {
+    	DoIfLogin({
+    		callback:function(){
+    			//对应手机WAP端组代码
+    			NTKF.im_openInPageChat("kf_9645_1444459002183")
+    		},
+    		redirecto:window.location.href
+    	});
     });
 })(jQuery);
 function change_goodsize() {
@@ -231,21 +243,6 @@ function buynow(){
 </script>
 <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
 <script src="../js/sweet-alert.min.js"></script>
-<script language="javascript" type="text/javascript">
-NTKF_PARAM = {
-	siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
-	settingid:"kf_9645_1443490112178",		//缺省客服配置ID，必填，取值参见文档开始表
-	uid:"12323",		//用户ID,未登录可以为空
-	uname:"eminyli@163.com",		//用户名，未登录可以为空
-	isvip:          "0|1" ,         //是否为vip用户
-	userlevel:	"钻石会员"      //网站自定义会员级别
-	ntalkerparam:{
-　　		item:	{		//注意：详情页这里是item，其它地方是items
-　　			id: "1234"		//商品ID
-　　		}
-	}
-} 
-</script>
 <script type="text/javascript" src="http://dl.ntalker.com/js/xn6/ntkfstat.js?siteid=kf_9645"charset="utf-8"></script>
 </body>
 </html>

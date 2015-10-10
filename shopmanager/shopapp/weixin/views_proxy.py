@@ -1,5 +1,5 @@
 #encoding:utf-8
-import urllib
+import time
 import urllib2
 from django.http import HttpResponse
 from httpproxy.views import HttpProxy
@@ -21,9 +21,9 @@ class WXMessageHttpProxy(HttpProxy):
         """
         param_str = self.request.GET.urlencode()
         request_url = self.base_url
+        url     = url.lstrip('/')
         if url:
             request_url = request_url.rstrip('/')
-            url = url.lstrip('/')
             request_url = u'%s/%s' % (self.base_url, url)
         request_url += '?%s' % param_str if param_str else ''
         return request_url
@@ -52,19 +52,20 @@ class WXMessageHttpProxy(HttpProxy):
 #         params   = parseXML2Param(content)
 #         ret_params = wx_service.handleRequest(params)
 #         response = formatParam2XML(ret_params)
-        
         request_url = self.get_full_url(self.url)
-        request = self.create_request(request_url)
+        request = self.create_request(request_url,body=request.body)
         response = urllib2.urlopen(request)
+        start = time.time()
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % response_body)
+            logger.debug(self._msg % ('%s\n%s'%(request_url,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % response_body)
+            logger.error(self._msg % ('%s\n%s'%(request_url,response_body)))
             status = e.code
-        
+        end = time.time()
+        logger.debug('\nconsume seconds：%.2f'%(end - start))
         return HttpResponse(response_body, status=status,
                 content_type=response.headers['content-type'])
         
@@ -84,31 +85,40 @@ class WXCustomAndMediaProxy(HttpProxy):
         """
         param_str = self.request.GET.urlencode()
         request_url = self.base_url
+        url     = url.lstrip('/')
         if url:
+            request_url = request_url.rstrip('/')
             request_url = u'%s/%s' % (self.base_url, url)
         request_url += '?%s' % param_str if param_str else ''
         return request_url
 
     def post(self, request, *args, **kwargs):
-        
+        """
+        Proxy for the Request
+        """
         request_url = self.get_full_url(self.url)
-        request = self.create_request(request_url)
+        request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
+                          'Content-length': request.META.get('CONTENT_LENGTH')}
+        request = self.create_request(request_url,body=request.body,headers=request_header)
         response = urllib2.urlopen(request)
+        start = time.time()
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % response_body)
+            logger.debug(self._msg % ('%s\n%s'%(request_url,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % response_body)
+            logger.error(self._msg % ('%s\n%s'%(request_url,response_body)))
             status = e.code
-        
+        end = time.time()
+        logger.debug('\nconsume seconds：%.2f'%(end - start))
         return HttpResponse(response_body, status=status,
                 content_type=response.headers['content-type'])
         
     get = post
 
 import json
+import datetime
 from django.views.generic import View
 
 class WXTokenProxy(View):
@@ -119,7 +129,6 @@ class WXTokenProxy(View):
         return wx_api
     
     def get(self, request):
-        
         content = request.GET
         appid   = content.get('appid')
         secret  = content.get('secret')
@@ -127,14 +136,51 @@ class WXTokenProxy(View):
                                   content_type='application/json')
         if not appid or not secret:
             return error_resp
-        
         wx_api = self.get_wx_api(appid)
         if wx_api._wx_account.app_secret != secret:
             return error_resp
-        
-        access_token = wx_api.getAccessToken(force_update=True)
-        resp = {"access_token":access_token,"expires_in":55*60}
-        
+        access_token = wx_api.getAccessToken()
+        resp = {"access_token":access_token,"expires_in":5*60}
+        logger.debug('refresh token:[%s]%s'%(datetime.datetime.now(),resp))
         return HttpResponse(json.dumps(resp), content_type='application/json')
+    
+import urlparse
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from shopback.items.models import Product
+    
+class SaleProductSearch(View):
+    """
+        特卖商品查询接口，提供
+    """
+    def get(self, request):
+        content = request.GET
+        itemid  = content.get('itemid')
+        user_id = content.get('user_id','')
+        
+        product = get_object_or_404(Product,id=itemid)
+        product_detail = product.detail
+        resp_params = {
+            "items": {  
+                "id":product.id,
+                "name":product.name,
+                "imageurl":product.pic_path,
+                "url":urlparse.urljoin(settings.M_SITE_URL, '/pages/shangpinxq.html?id=%s'%product.id),
+                "currency":"￥",
+                "siteprice":'%.2f'%product.agent_price,
+                "marketprice":'%.2f'%product.std_sale_price,
+                "category":str(product.category),
+                "brand":"小鹿美美",
+                "custom1":["可选颜色", product_detail and product_detail.color or ''],
+                "custom2":["可选尺码", ','.join([s.name for s in product.normal_skus])],
+                "custom3":["材质", product_detail and product_detail.material or ''],
+                "custom4":["洗涤说明", product_detail and product_detail.wash_instructions or ''],
+                "custom5":["备注", product_detail and product_detail.note or '']
+            }
+        }
+        
+        return HttpResponse(json.dumps(resp_params), content_type='application/json')
+    
+    
         
         

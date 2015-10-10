@@ -161,12 +161,17 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
+function setCookie(c_name,value,expiredays)
+{
+	var exdate=new Date();
+	exdate.setDate(exdate.getDate()+expiredays);
+	document.cookie=c_name+ "=" +encodeURIComponent(value)+
+	((expiredays==null) ? "" : "; expires="+exdate.toGMTString());
+}
 function getCSRF(){
 	return getCookie('csrftoken');
 }
 var csrftoken = getCSRF();
-
 
 /*
  * 模拟toast
@@ -196,14 +201,25 @@ function drawToast(message) {
     intervalCounter = setInterval("hideToast()", 2000);
 }
 
+var PROFILE_COOKIE_NAME = 'Xl_profile';
+var EXPIRED_DAYS = 1;
 function DoIfLogin(cfg){
+	var profile = getCookie(PROFILE_COOKIE_NAME);
+	if (!isNone(profile)){
+		cfg.callback();
+		return;
+	};
+	function cookieProfile(data){
+		var profile_str = JSON.stringify(data);
+		setCookie(PROFILE_COOKIE_NAME,profile_str,EXPIRED_DAYS);
+		cfg.callback();
+	};
 	$.ajax({
         type: 'get',
-        url: GLConfig.baseApiUrl + GLConfig.user_islogin,
+        url: GLConfig.baseApiUrl + GLConfig.get_user_profile,
         data: "",
-        success: cfg.callback,
+        success: cookieProfile,
         error: function (data) {
-        	console.log('debug login:',data);
             if (data.status == 403) {
                 window.location = GLConfig.login_url+'?next='+encodeURIComponent(cfg.redirecto);
             }
