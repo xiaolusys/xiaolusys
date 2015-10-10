@@ -115,10 +115,24 @@
 <script type="text/javascript">
     //生成退货单预览
     function create_preview_good() {
-        layer.msg('预览创建中...');
         console.log("create_return_good");
         var trs = $("#pro_info_tr tr");
         $("#return_good_list").empty();
+        var suppliers = new Array();
+        function isOneSupplier(element, index, array) {
+            return (element == array[0]);//如果存在不相同的供应商返回false
+         }
+        $(trs).each(function (index, tr) {
+            var supplier = tr.children[10].innerHTML;
+            suppliers.push(supplier);
+        });
+        //判断所有的供应商都相等
+        var supplier_is_one = suppliers.every(isOneSupplier);
+        if(supplier_is_one==false){
+            layer.msg("供应商不一致，无法创建预览");
+            return
+        }
+
         $(trs).each(function (index, tr) {
             var supplier = tr.children[10].innerHTML;
             var pro_id = tr.children[0].innerHTML;
@@ -137,24 +151,23 @@
                     '<td>' + supplier + '</td>' +
                     '</tr>';
             $("#return_good_list").append(html);
-            var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database(' + supplier + ')">生成退货单</button>';
+            var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database()">生成退货单</button>';
             $("#create_return_good").empty().append(create_buyyton);
         });
     }
     // 生成退货单信息
-    function create_record_to_database(supplier) {
+    function create_record_to_database() {
         layer.confirm('您确定创建退货单？　确定将有仓库审核，如通过将减去库存，并发货给供应商', {
             btn: ['确定', '取消'] //按钮
         }, function () {
-            create_record_to_database_func(supplier);
+            create_record_to_database_func();
             layer.closeAll();
             $("#return_good_list").empty();//删除　预览
         }, function () {
             layer.msg("您取消了该预览退货单");
         });
     }
-    function create_record_to_database_func(supplier) {
-        console.log("supplier: ", supplier);//生成退货单
+    function create_record_to_database_func() {
         //获取预览表中的数据　
         var trs = $("#return_good_list tr");
         var arr = new Array();
@@ -164,6 +177,7 @@
             var price = tr.children[3].innerHTML;
             var return_num = tr.children[4].children[0].value;
             var sku_inferior_num = tr.children[5].innerHTML;
+            var supplier = tr.children[6].innerHTML;
             var sku_return = {
                 "supplier": supplier, "sku_id": sku_id, "return_num": return_num, "price": price,
                 "pro_id": pro_id, "sku_inferior_num": sku_inferior_num

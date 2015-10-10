@@ -149,10 +149,11 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
         return   # 开始时间之前 不执行订单红包
     # 2015-07-04 上午  要求修改为pending状态
     # 2015-07-04 要求 修改不使用红包（Envelop）， 使用CarryLog
-   
+    endtime = datetime.datetime(2015, 8, 25, 0, 0, 0)
 
     mama = XiaoluMama.objects.get(id=xlmm)
-    if mama.agencylevel != 2:
+    # 第二批代理升级后是不发首单和十单红包　　这里要判断　接管时间　8月25　之后的妈妈　不去发放红包
+    if mama.agencylevel != 2 or mama.charge_time > endtime:
         return
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     # 据要求2015-07-11 修改为 按照人数来发放红包
