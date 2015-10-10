@@ -10,7 +10,7 @@ function get_user_profile() {
 
     //请求成功回调函数
     var requestCallBack = function (obj) {
-    	GLConfig.user_profile = obj;
+    	setCookie(PROFILE_COOKIE_NAME,JSON.stringify(obj),1);
     	if (!isNone(obj.xiaolumm) && !isNone(obj.xiaolumm.id)){
 			$('.userinfo-list').append(
 				'<li><i class="icon icon-qiehuanzhanghao"></i>'+
@@ -29,8 +29,8 @@ function get_user_profile() {
         dataType: 'json',
         success: requestCallBack,
         error: function (data) {
-        	console.log('debug profile:',data)
             if (data.status == 403) {
+            	delCookie(PROFILE_COOKIE_NAME);
                 drawToast('当前用户为游客身份');
             }
         }
@@ -45,7 +45,6 @@ function logout() {
      */
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + GLConfig.user_logout;
-
     //请求成功回调函数
     var requestCallBack = function (res) {
         if (res && res.result == "logout") {
@@ -66,6 +65,8 @@ function logout() {
             }
         }
     });
+    delCookie(PROFILE_COOKIE_NAME);
+    console.log('debug cookie:',getCookie(PROFILE_COOKIE_NAME));
 }
 
 function show_grumble(location_item, text) {
