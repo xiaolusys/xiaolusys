@@ -87,6 +87,7 @@ def task_stats_daily_order_by_group(pre_day=1):
 
 @task(max_retry=3, default_retry_delay=5)
 def task_stats_daily_product(pre_day=1):
+    """计算原始数据表"""
     try:
         function_of_task.get_daily_order_stats(pre_day)
         function_of_task.get_daily_ding_huo_stats(pre_day)
@@ -95,16 +96,17 @@ def task_stats_daily_product(pre_day=1):
         # 计算仓库退货已经退款的对应数量
         function_of_task.get_daily_refund_num(pre_day)
     except Exception, exc:
-        raise task_stats_daily_order_by_group.retry(exc=exc)
+        raise task_stats_daily_product.retry(exc=exc)
 
 
 @task(max_retry=3, default_retry_delay=5)
 def task_stats_product():
+    """计算汇总的表"""
     try:
         function_of_task.daily_data_stats()
 
     except Exception, exc:
-        raise task_stats_daily_order_by_group.retry(exc=exc)
+        raise task_stats_product.retry(exc=exc)
 
 
 @task(max_retry=3, default_retry_delay=5)
