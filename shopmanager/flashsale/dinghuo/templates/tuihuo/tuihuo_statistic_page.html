@@ -132,7 +132,7 @@
             layer.msg("供应商不一致，无法创建预览");
             return
         }
-
+         var oTable = $('#mytable').dataTable();
         $(trs).each(function (index, tr) {
             var supplier = tr.children[10].innerHTML;
             var pro_id = tr.children[0].innerHTML;
@@ -153,6 +153,8 @@
             $("#return_good_list").append(html);
             var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database()">生成退货单</button>';
             $("#create_return_good").empty().append(create_buyyton);
+            // 删除要添加过的行
+            oTable.fnDeleteRow(tr);
         });
     }
     // 生成退货单信息
@@ -297,8 +299,8 @@
                     "aaSorting": [[9, "asc"]],
                     "iDisplayLength": 50,
                     "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
-                    //"bInfo":true,
-                    //"sPaginationType": "full_numbers",
+                    "bInfo":true,
+                    "sPaginationType": "full_numbers",
                     //"sDom": '<"H"Tfr>t<"F"ip>',
                     "oLanguage": {
                         "sLengthMenu": "_MENU_ 条",
