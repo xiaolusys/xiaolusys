@@ -487,6 +487,7 @@ class CarryLog(models.Model):
     AGENCY_SUBSIDY  = 'subsidy'
     MAMA_RECRUIT   = 'recruit'
     ORDER_RED_PAC = 'ordred'
+    COST_FLUSH    = 'flush'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
@@ -498,7 +499,8 @@ class CarryLog(models.Model):
         (THOUSAND_REBETA,u'千元提成'),
         (AGENCY_SUBSIDY,u'代理补贴'),
         (MAMA_RECRUIT,u'招募奖金'),
-        (ORDER_RED_PAC,u'订单红包')
+        (ORDER_RED_PAC,u'订单红包'),
+        (COST_FLUSH,u'冲正差额')
     )
     
     CARRY_OUT = 'out'

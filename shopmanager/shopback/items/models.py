@@ -145,6 +145,12 @@ class Product(models.Model):
         return '%s'%self.id
         #return '<%s,%s>'%(self.outer_id,self.name)
     
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+
+    
     def product_model(self):
         """ 获取商品款式 """
         if self.model_id == 0:
@@ -156,11 +162,13 @@ class Product(models.Model):
             return None
         return pmodel
     
-    def clean(self):
-        for field in self._meta.fields:
-            if isinstance(field, (models.CharField, models.TextField)):
-                setattr(self, field.name, getattr(self, field.name).strip())
-
+    @property
+    def detail(self):
+        try:
+            return self.details
+        except:
+            return None
+    
     @property
     def sale_group(self):
         myuser = MyUser.objects.filter(user__username=self.sale_charger)
