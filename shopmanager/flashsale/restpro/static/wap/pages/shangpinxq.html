@@ -176,16 +176,15 @@
 <script src="../js/jquery.webui-popover.min.js"></script>
 <script src="../js/tmsp.js"></script>
 <script src="../js/jquery-shopping.js"></script>
-
 <script>
-(function ($) {
+$(document).ready(function(){
+	$('.ui-loader').remove();
 	 //商品尺寸切换,动态加载内容需事件委托
     $(document).on({
-    	touchend:change_goodsize,
-    	click:change_goodsize
+    	tap:change_goodsize,
     },'#js-goods-size li');
     //返回顶部
-    $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
+    $(document).on({tap:scroll_top},'#js-scroll-top');
     //设置商品详情
     var item_id = parseUrlParams(window.location.href)['id'];
     var urlConf = {'product_id': item_id};
@@ -205,15 +204,17 @@
     		redirecto:window.location.href
     	});
     });
-    $(".service_box").on("tap", function () {
-    	DoIfLogin({
-    		callback:function(){
-    			loadNTalker();
-    		},
-    		redirecto:window.location.href
-    	});
-    });
-})(jQuery);
+    $(document).on({
+    	tap:function () {
+	    	DoIfLogin({
+	    		callback:function(){
+	    			loadNTalker();
+	    		},
+	    		redirecto:window.location.href
+	    	});
+	    }
+	},'.service_box');
+});
 function change_goodsize() {
     $('#js-goods-size li.active').removeClass('active').addClass('normal');
     if ($(this).hasClass('disable'))return;
@@ -237,7 +238,6 @@ function buynow(){
 
 function callNTKFChatPage(){
 	//对应手机WAP端组代码
-	console.log('debug call chat:kf_9645_1444459002183');
 	NTKF.im_openInPageChat("kf_9645_1444459002183");
 }
 //加载小能客服插件
