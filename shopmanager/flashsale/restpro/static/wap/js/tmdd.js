@@ -106,8 +106,9 @@ function Create_button_buy_dom() {
     return hereDoc(html);
 }
 function Create_detail_dom(obj) {
-    var html = $('#top_detail_template').html();
-    return hereDoc(html).template(obj);
+    var html = template('top_detail_template',obj);//.html();
+    //return hereDoc(html).template(obj);
+    return html
 }
 
 function Create_detail_shouhuo_dom(obj) {
@@ -168,6 +169,9 @@ function Handler_Refund_Bth(){
     for(var i= 1;i<=7;i++){
         $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
     }
+    $(".btn_order_success_status_0").click(function (){//如果是交易成功点击　"我要退" 的情况　提示　去　联系客服修改订单状态
+        drawToast("您的订单已经交易成功,如需申请退货请联系客服！");
+    });
 }
 
 

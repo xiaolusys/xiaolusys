@@ -625,17 +625,33 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                     result_data.append(one_temp_data)
             except:
                 continue
-        for contactor in result_contactors:
+        all_contactors = (e['contactor__username'] for e in all_created_product.values("contactor__username").distinct())
+        all_contactors = set(all_contactors)
+        contactors = result_contactors | all_contactors
+        for contactor in contactors:
             charger_product = all_created_product.filter(contactor__username=contactor)
             choose_sale_num = charger_product.count()
             charger_product_shelf = all_sale_product.filter(contactor__username=contactor)
             shelf_sale_num = charger_product_shelf.count()
             shelf_percent = 0 if choose_sale_num == 0 else round(shelf_sale_num / choose_sale_num, 2)
+            is_in = False
             for one_data in result_data:
                 if one_data["username"] == contactor:
+                    is_in = True
                     one_data["choose_sale_num"] = choose_sale_num
                     one_data["shelf_sale_num"] = shelf_sale_num
                     one_data["shelf_percent"] = shelf_percent
+                    break
+            if not is_in:
+                result_data.append({"username": contactor,
+                                    "choose_sale_num": choose_sale_num,
+                                    "shelf_sale_num": shelf_sale_num,
+                                    "shelf_percent": shelf_percent,
+                                    "all_sale_num": 0,
+                                    "all_sale_cost": 0,
+                                    "all_sale_money": 0,
+                                    "all_tui_kuan": 0,
+                                    "tui_kuan_money": 0})
         # all_contactors = SaleProduct.objects.values("contactor__username").distinct()
         #
         # for contactor in all_contactors:
