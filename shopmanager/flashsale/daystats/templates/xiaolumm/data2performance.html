@@ -41,11 +41,85 @@
                         oScript.type = "text/javascript";
                         oScript.src = "/static/daystat_js/stat_performance.js";
                         oHead.appendChild(oScript);
+                        Calc_buyer_data();
                     } else {
                         setTimeout(get_data, 2000);
                     }
                 }
             });
+        }
+        var Calc_buyer_data = function () {
+            var total_choose_num = 0;
+            var total_shelve_num = 0;
+            var total_sale_num = 0;
+            var total_sale_cost = 0;
+            var total_sale_money = 0;
+            var total_tui_num = 0;
+            var total_tui_money = 0;
+            var total_gain_money = 0;
+
+            var choose_num = 0;
+            var shelve_num = 0;
+            var sale_num = 0;
+            var sale_cost = 0;
+            var sale_money = 0;
+            var tui_num = 0;
+            var tui_money = 0;
+            var gain_money = 0;
+
+
+            var rows = $("#data-table-result > tbody > tr");
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                if (row.cells.length < 9) {
+                    continue;
+                }
+
+                choose_num = row.cells[1].innerText;
+                shelve_num = row.cells[2].innerText;
+                sale_num = row.cells[4].innerText;
+                sale_cost = row.cells[5].innerText;
+                sale_money = row.cells[6].innerText;
+                tui_num = row.cells[7].innerText;
+                tui_money = row.cells[8].innerText;
+                gain_money = row.cells[9].innerText;
+
+
+                if (parseInt(choose_num)) {
+                    total_choose_num += parseInt(choose_num);
+                }
+                if (parseInt(shelve_num)) {
+                    total_shelve_num += parseInt(shelve_num);
+                }
+                if (parseInt(sale_num)) {
+                    total_sale_num += parseInt(sale_num);
+                }
+                if (parseFloat(sale_cost)) {
+                    total_sale_cost += parseFloat(sale_cost);
+                }
+                if (parseFloat(sale_money)) {
+                    total_sale_money += parseFloat(sale_money);
+                }
+                if (parseInt(tui_num)) {
+                    total_tui_num += parseInt(tui_num);
+                }
+                if (parseFloat(tui_money)) {
+                    total_tui_money += parseFloat(tui_money);
+                }
+                if (parseFloat(gain_money)) {
+                    total_gain_money += parseFloat(gain_money);
+                }
+
+            }
+
+            $('#total_choose_num').val(total_choose_num.toString());
+            $('#total_shelve_num').val(total_shelve_num.toString());
+            $('#total_sale_num').val(total_sale_num.toString());
+            $('#total_sale_cost').val(total_sale_cost.toFixed(2).toString());
+            $('#total_sale_money').val(total_sale_money.toFixed(2).toString());
+            $('#total_tui_num').val(total_tui_num.toString());
+            $('#total_tui_money').val(total_tui_money.toFixed(2).toString());
+            $('#total_gain_money').val(total_gain_money.toFixed(2).toString());
         }
         get_data()
     </script>
@@ -55,6 +129,7 @@
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
+
 {% endblock %}
 {% block container %}
     <div class="row" style="margin-top: 40px">
@@ -110,6 +185,20 @@
                 <tbody>
 
                 </tbody>
+                <tfoot>
+                <tr>
+                    <td></td>
+                    <td width="100px"><input id="total_choose_num" type="text" value="0" readonly/></td>
+                    <td width="100px"><input id="total_shelve_num" type="text" value="0" readonly/></td>
+                    <td></td>
+                    <td width="100px"><input id="total_sale_num" type="text" value="0" readonly/></td>
+                    <td width="100px"><input id="total_sale_cost" type="text" value="0" readonly/></td>
+                    <td width="100px"><input id="total_sale_money" type="text" value="0" readonly/></td>
+                    <td width="100px"><input id="total_tui_num" type="text" value="0" readonly/></td>
+                    <td width="100px"><input id="total_tui_money" type="text" value="0" readonly/></td>
+                    <td width="100px"><input id="total_gain_money" type="text" value="0" readonly/></td>
+                </tr>
+                </tfoot>
             </table>
         </div>
     </div>
