@@ -16,7 +16,7 @@
     <script id="ntkf_template" type="text/html">
 	NTKF_PARAM = {
 		siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
-		settingid:"kf_9645_1443490112178",		//缺省客服配置ID，必填，取值参见文档开始表
+		settingid:"kf_9645_1444459002183",		//缺省客服配置ID，必填，取值参见文档开始表
 		uid:"{{profile.id}}",		//用户ID,未登录可以为空
 		uname:"{{profile.nick}}",		//用户名，未登录可以为空
 		isvip:"0" ,         //是否为vip用户
@@ -242,6 +242,11 @@ function callNTKFChatPage(){
 }
 //加载小能客服插件
 function loadNTalker(){
+	var NTKF = NTKF || null;
+	if (NTKF){
+		callNTKFChatPage();
+		return
+	};
 	var params = {
 		'item_id':parseUrlParams(window.location.href)['id'],
 		'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}')

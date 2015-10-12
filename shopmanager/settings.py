@@ -1,4 +1,7 @@
 # Django settings for shopmanager project.
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 import os.path
 import posixpath
