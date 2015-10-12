@@ -52,14 +52,17 @@ def split_merge_trade(merger_order_id, modify_user):
         参数为order_id 以逗号拼接的字串
     """
     from shopback.trades.handlers import trade_handler
-
     order_list = merger_order_id.split(",")
+    len_of_chai = len(order_list)
     if len(order_list) == 0:
         return u"error"
 
     m = MergeOrder.objects.filter(Q(id=order_list[0], sys_status=IN_EFFECT))
     if m.count() == 0:
-        return u"没有有效的订单"
+        return u"有无效的订单"
+    m_trade = MergeOrder.objects.filter(merge_trade=m[0].merge_trade, sys_status=IN_EFFECT)
+    if m_trade.count() == len_of_chai:
+        return u"至少留一个有效的订单"
     parent_trade = m[0].merge_trade
     if parent_trade.has_merge and parent_trade.sys_status != pcfg.WAIT_CHECK_BARCODE_STATUS:
         return u"有合单"

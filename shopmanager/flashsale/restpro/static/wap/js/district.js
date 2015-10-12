@@ -135,20 +135,15 @@ function setThird(obj) {
 
 //保存事件
 
-$(".btn-save").click(function () {
-
+$(".btn-save").bind("click", btn_save_func);
+function btn_save_func () {
     //alert("保存");
     var receiver_name = $('#inputReceiverName').val();
     var receiver_mobile = $('#inputReceiverMobile').val();
     var receiver_state = $('#s_province  option:selected').text();//省
-    //alert(receiver_state);
     var receiver_city = $('#s_city  option:selected ').text()
-    //alert(receiver_city);
     var receiver_district = $('#s_country  option:selected  ').text();//区
-    //alert(receiver_district)
     var receiver_address = $('#inputReceiverAddress').val(); //街道详细地址
-    //var receiver_zip      = $('#inputReceiverZipCode').val();
-    //var checkboxDefault	  = $('#checkboxDefault').val();
 
     if (receiver_state == '请选择省' || receiver_state == '') {
         $('p').html('请选择省份');
@@ -158,8 +153,7 @@ $(".btn-save").click(function () {
         $('p').html('请选择城市');
         return false
     }
-    //var district_options = $('#inputReceiverDistrict option');
-    //if (receiver_district == '请选择区/县' && district_options.length != 0){
+
     if (receiver_district == '请选择区/县' || receiver_district == '') {
         $('p').html('请选择区/县');
         return false
@@ -179,9 +173,6 @@ $(".btn-save").click(function () {
     //请求成功回调函数
     var requestUrl = GLConfig.baseApiUrl + GLConfig.create_address
     var requestCallBack = function (data) {
-        //alert(data)
-        //alert(typeof(data))
-        //console.info(data)
         var referrer = document.referrer;
         var hashes = referrer.split("?")[0].split('/');
         if (hashes && (hashes[hashes.length - 1] == "buynow-dd.html" || hashes[hashes.length - 1] == "queren-dd.html")) {
@@ -190,6 +181,13 @@ $(".btn-save").click(function () {
             window.location.href = "shouhuodz.html"
         }
     };
+    $(".btn-save").unbind("click");
+    $(".btn-save").css("background-color","#898383");
+    setTimeout(function () {
+            $(".btn-save").bind("click", btn_save_func);
+            $(".btn-save").css("background-color","#fcb916");
+        },
+        5000);
     // 发送请求
     $.ajax({
         type: 'post',
@@ -208,7 +206,7 @@ $(".btn-save").click(function () {
     });
 
 
-})
+}
 
 
 
