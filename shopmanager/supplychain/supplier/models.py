@@ -222,7 +222,7 @@ class SaleProduct(models.Model):
     std_sale_price = models.FloatField(default=0, verbose_name=u'吊牌价')
     product_material = models.CharField(max_length=16, blank=True, verbose_name=u'商品材质')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
-    is_change = models.BooleanField(default=False,db_index=True, verbose_name=u'排期改动')
+    is_changed = models.BooleanField(default=False,db_index=True, verbose_name=u'排期改动')
     
     status = models.CharField(max_length=16, blank=True,
                               choices=STATUS_CHOICES, default=WAIT, verbose_name=u'状态')
@@ -254,8 +254,8 @@ def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
     #如果上架时间修改，则重置is_verify
     if (product.status == SaleProduct.SCHEDULE and 
         (product.sale_time != instance.sale_time or product.status != instance.status)):
-        instance.is_change = True
-        update_model_fields(instance,update_fields=['is_change'])
+        instance.is_changed = True
+        update_model_fields(instance,update_fields=['is_changed'])
     
 pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
 

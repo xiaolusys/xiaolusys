@@ -205,14 +205,14 @@ admin.site.register(SaleCategory, SaleCategoryAdmin)
 
 class SaleProductAdmin(MyAdmin):
     category_list = []
-    list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link',
-                    'category_select', 'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor', 'modified')
+    list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link','category_select', 
+                    'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'modified')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
 #     ordering = ('-hot_value',)
     date_hierarchy = 'sale_time'
-    list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_change',
+    list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter)
     search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
     list_per_page = 40
@@ -225,7 +225,7 @@ class SaleProductAdmin(MyAdmin):
                    , ('price', 'sale_price')
                    , ('on_sale_price', 'std_sale_price')
                    , ('sale_supplier', 'sale_category')
-                   , ('platform', 'hot_value', 'status', 'is_change')
+                   , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
                    , ('memo',)
                    )}),)
@@ -279,8 +279,8 @@ class SaleProductAdmin(MyAdmin):
         rset.add('sale_supplier')
         contactor_name = 'contactor'
         rset.add(contactor_name)
-#         if not perms.has_sale_product_mgr_permission(request.user):
-#             rset.add(contactor_name)
+        if not perms.has_sale_product_mgr_permission(request.user):
+            rset.add('is_changed')
 # 
 #         if perms.has_sale_product_mgr_permission(request.user):
 #             if contactor_name in rset:
@@ -350,14 +350,15 @@ class SaleProductAdmin(MyAdmin):
                           SaleProduct.PASSED,
                           SaleProduct.REJECTED])
         elif obj.status == SaleProduct.PASSED:
-            slist.extend([SaleProduct.PASSED,
+            slist.extend([SaleProduct.PURCHASE,
+                          SaleProduct.PASSED,
                           SaleProduct.SCHEDULE,
                           SaleProduct.REJECTED])
         elif obj.status == SaleProduct.SCHEDULE:
             slist.extend([SaleProduct.PURCHASE,
                           SaleProduct.PASSED,
                           SaleProduct.SCHEDULE,
-                          SaleProduct.PASSED])
+                          SaleProduct.REJECTED])
         else:
             slist.append(obj.status)
         return slist
