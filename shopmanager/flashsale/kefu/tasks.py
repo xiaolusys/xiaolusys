@@ -46,7 +46,7 @@ def task_record_kefu_performance(start_date, end_date, record_type="0"):
                 if one_record.operation == KefuPerformance.DELAY:
                     summary_data[one_record.kefu_name][2] += 1
             else:
-                summary_data[one_record.kefu_name] = (1, 1, 1)
+                summary_data[one_record.kefu_name] = [1, 1, 1]
     except Exception, exc:
         raise task_record_kefu_performance.retry(exc=exc)
     return {"result_data": result_data, "summary_data": summary_data}
