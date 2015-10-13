@@ -176,7 +176,7 @@ INSTALLED_APPS = (
     'flashsale.mmexam',
     'flashsale.daystats',
     'flashsale.restpro',
-
+    'flashsale.kefu',
     'mathfilters',
 
     #'test.celery',

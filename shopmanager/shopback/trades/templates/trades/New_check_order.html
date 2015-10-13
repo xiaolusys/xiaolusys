@@ -126,127 +126,134 @@
 <div class="accordion-group1">
 <div class="accordion-heading1" style="margin: 5px 0px">
 <a id="collapseTwo" class="goog-zippy-header goog-zippy-expanded" style="padding: 0px 15px"    onclick="show2()"   >商品列表››</a></div>
-<div id="orderContent" class="accordion-inner1"     style="display: none"  >
-<div>
-<table id="id_trade_order" class="table table-bordered">
-	<thead>
-		<tr>
-			<th>编号</th>
-			<th>商家编码</th>
-			<th>商品简称</th>
-			<th>规格</th>
-			<th>数量</th>
-			<th>单价</th>
-			<th>缺货</th>
-			<th>类型</th>
-			<th>所属仓库</th>
-			<th>操作</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for order in trade.used_orders %}
-		<tr id="tr_{{ order.id }}">
-			<td>{{ order.id }}</td>
-			<td><span id="outer_id_{{ order.id }}">{{ order.outer_id }}</span></td>
-			<td><span id="pro_name_{{ order.id }}">{{ order|prod_name }}</span></td>
-			<td>
-				<select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku" >
-					<option value="">---------</option>
-					{% for sku in order|prod_skus %}
-					<option value="{{ sku.outer_id }}" {% if order.outer_sku_id == sku.outer_id %}selected{% endif %}>{{ sku.name }}</option>
-					{% endfor %}
-				</select> 
-			</td>
-			<td ><input id="id-change-order-num-{{ forloop.counter }}" class="order_num" type="text" value="{{ order.num }}" size="8"  /></td>
-			<td>{{ order.price }}</td>
-			<td>{% if order.out_stock %}
-				<img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
-			    {% else %}
-			    <img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">
-			    {% endif%}
-			</td>
-			<td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}赠送{% elif order.gift_type == 2 %}
-				满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}退货{% elif order.gift_type == 5 %}换货{% else %}其他{% endif %}</td>
-			<td >{% for ware in trade.ware_list %}{% if ware.0 == order.ware_by %}<span class="label label-info">{{ ware.1 }}</span>{% endif %}{% endfor %}</td>
-			<td><button class="change-order btn-warning" idx="{{ forloop.counter }}"  oid="{{ order.id }}"   onclick="changeOrder(this)"     >修改</button>
-			    <button class="delete-order btn-danger" oid="{{ order.id }}"       onclick="deleteOrder(this)">删除</button>
-			    <button class="delete-order btn-info" oid="{{ order.id }}"       onclick="addorderto(this)">拆单</button>
-			</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-	<tfoot id ="order-foot">
-		<tr>
-			<th colspan="4"></th>
-			<th><input type="text" id="total_num" value="{{ trade.total_num }}"/></th>
-			<th colspan="4"></th>
-		</tr>
-	</tfoot>
-</table>
+    <div id="orderContent" class="accordion-inner1" style="display: block">
+        <div>
+            <table id="id_trade_order" class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>编号</th>
+                    <th>商家编码</th>
+                    <th>商品简称</th>
+                    <th>规格</th>
+                    <th>数量</th>
+                    <th>单价</th>
+                    <th>缺货</th>
+                    <th>类型</th>
+                    <th>所属仓库</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for order in trade.used_orders %}
+                    <tr id="tr_{{ order.id }}">
+                        <td>{{ order.id }}</td>
+                        <td><span id="outer_id_{{ order.id }}">{{ order.outer_id }}</span></td>
+                        <td><span id="pro_name_{{ order.id }}">{{ order|prod_name }}</span></td>
+                        <td>
+                            <select id="id-select-ordersku-{{ forloop.counter }}" name="id_order_sku">
+                                <option value="">---------</option>
+                                {% for sku in order|prod_skus %}
+                                    <option value="{{ sku.outer_id }}"
+                                            {% if order.outer_sku_id == sku.outer_id %}selected{% endif %}>{{ sku.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input id="id-change-order-num-{{ forloop.counter }}" class="order_num" type="text"
+                                   value="{{ order.num }}" size="8"/></td>
+                        <td>{{ order.price }}</td>
+                        <td>{% if order.out_stock %}
+                            <img src="{{ STATIC_URL }}admin/img/icon-yes.gif" alt="yes">
+                        {% else %}
+                            <img src="{{ STATIC_URL }}admin/img/icon-no.gif" alt="no">
+                        {% endif %}
+                        </td>
+                        <td>{% if order.gift_type == 0 %}实付{% elif order.gift_type == 1 %}
+                            赠送{% elif order.gift_type == 2 %}
+                            满就送{% elif order.gift_type == 3 %}拆分{% elif order.gift_type == 4 %}
+                            退货{% elif order.gift_type == 5 %}换货{% else %}其他{% endif %}</td>
+                        <td>{% for ware in trade.ware_list %}{% if ware.0 == order.ware_by %}
+                            <span class="label label-info">{{ ware.1 }}</span>{% endif %}{% endfor %}</td>
+                        <td>
+                            <button class="change-order btn-warning" idx="{{ forloop.counter }}" oid="{{ order.id }}"
+                                    onclick="changeOrder(this)">修改
+                            </button>
+                            <button class="delete-order btn-danger" oid="{{ order.id }}" onclick="deleteOrder(this)">删除
+                            </button>
+                            <button class="delete-order btn-info" oid="{{ order.id }}" onclick="addorderto(this)">拆单
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot id="order-foot">
+                <tr>
+                    <th colspan="4"></th>
+                    <th><input type="text" id="total_num" value="{{ trade.total_num }}"/></th>
+                    <th colspan="4"></th>
+                </tr>
+                </tfoot>
+            </table>
 
-</div>
-    <div class="row">
-        <table id="chai_dan_table" class="table table-bordered">
-            <thead>
-            <tr>
-                <th>编号</th>
-                <th>商家编码</th>
-                <th>商品简称</th>
-                <th>规格</th>
-                <th>数量</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-    <div class="row">
-        <div class="col-md-2">
-            <button class="delete-order btn-danger" onclick="begin_chai()" style="float: right">开始拆单</button>
+        </div>
+        <div class="row">
+            <table id="chai_dan_table" class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>编号</th>
+                    <th>商家编码</th>
+                    <th>商品简称</th>
+                    <th>规格</th>
+                    <th>数量</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <button class="delete-order btn-danger" onclick="begin_chai()" style="float: right">开始拆单</button>
+            </div>
+        </div>
+
+        <div>
+            <input type="text" id="id-search-q" class="input-medium search-query">
+            <button id="id-search-prod" class="btn" onclick="searchProd()">商品搜索</button>
+            <div style="height: 10px"></div>
+            <table id="id-search-table" class="table table-bordered" style="display:none;">
+                <thead>
+                <tr>
+                    <td>编号</td>
+                    <td>商家编码</td>
+                    <td>商品简称</td>
+                    <td>规格</td>
+                    <td>数量</td>
+                    <td>单价</td>
+                    <td>操作</td>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
     </div>
-
-<div>
-	<input type="text" id="id-search-q" class="input-medium search-query" >
-	<button id="id-search-prod" class="btn"   onclick="searchProd()">商品搜索</button>
-	<div style="height: 10px"></div>
-	<table id="id-search-table" class="table table-bordered"  style="display:none;">
-		<thead>
-			<tr>
-				<td>编号</td>
-				<td>商家编码</td>
-				<td>商品简称</td>
-				<td>规格</td>
-				<td>数量</td>
-				<td>单价</td>
-				<td>操作</td>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-</div>
-</div>
 </div>
 
-<div id="add">
-{% if  trade.sys_status == "WAIT_AUDIT" %}
-
-<button type="button" class="btn btn-primary"  id="CHECK"  key='CHECK'
-   data-toggle="button"    onclick="ordercheck(this)  "> 审核订单
-</button>
-
-{% else          %}
-<button type="button" class="btn btn-primary"  id="CHECK"  key='REVIEW'
-   data-toggle="button"   onclick=" ordercheck(this)  "  >重审订单
-</button>
-
-{%endif%}
-</div>
-
-
+    <div id="add">
+        {% if  trade.sys_status == "WAIT_AUDIT" %}
+            <button type="button" class="btn btn-primary" id="CHECK" key='CHECK'
+                    data-toggle="button" style="display: inline" onclick="ordercheck(this)"> 审核订单
+            </button>
+            <button type="button" class="btn btn-info trade-regular" onclick="delay_days(this)" style="margin-left: 40px" trade_id="%d" days="3">
+                延三天
+            </button>
+        {% else %}
+            <button type="button" class="btn btn-primary" id="CHECK" key='REVIEW'
+                    data-toggle="button" onclick="ordercheck(this)">重审订单
+            </button>
+        {% endif %}
+    </div>
 </div>
 	<script type="text/javascript">
-	
 		var change_logistic = function(evt){
 			var trade_id      = $('#id_review_trade').val();
 			var logistic_code = $('#id_logistics').val();

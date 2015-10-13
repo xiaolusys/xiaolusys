@@ -479,175 +479,180 @@ class StatisticMergeOrderAsyncView(APIView):
 
 from django.forms.models import model_to_dict
 from shopback.trades.service import TradeService
+from flashsale.signals import signal_kefu_operate_record
+from flashsale.kefu.models import KefuPerformance
+
 
 class CheckOrderView(APIView):
-   # serializer_class = serializers. ItemListTaskSerializer
+    # serializer_class = serializers. ItemListTaskSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)   #  
-    renderer_classes = (CheckOrderRenderer,new_BaseJSONRenderer,BrowsableAPIRenderer)
-    
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)  #
+    renderer_classes = (CheckOrderRenderer, new_BaseJSONRenderer, BrowsableAPIRenderer)
+
     def get(self, request, id, *args):
-        #print "进入get"
+        # print "进入get"
         try:
             trade = MergeTrade.objects.get(id=id)
             #print trade.inuse_orders
         except MergeTrade.DoesNotExist:
             return Response('该订单不存在'.decode('utf8'))
-        
+
         #rule_signal.send(sender='payment_rule',trade_id=trade.id)
         #logistics = LogisticsCompany.objects.filter(status=True)
-        logistics  = serializers.LogisticsCompanySerializer(LogisticsCompany.objects.filter(status=True),many=True).data
+        logistics = serializers.LogisticsCompanySerializer(LogisticsCompany.objects.filter(status=True), many=True).data
         order_nums = trade.inuse_orders.aggregate(total_num=Sum('num')).get('total_num')
         trade_dict = model_to_dict(trade)
-        trade_dict.update({'id':trade.id,
-                           'seller_nick':trade.user.nick,
+        trade_dict.update({'id': trade.id,
+                           'seller_nick': trade.user.nick,
                            #'used_orders':trade.inuse_orders,   2015-7-25
-                           'used_orders':serializers.MergeOrderSerializer(trade.inuse_orders,many=True).data,  
-                           'total_num':order_nums,
-                           'logistics_company':serializers.LogisticsCompanySerializer(trade.logistics_company).data,
-                           'out_of_logistic':trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
-                           'has_rule_match':(trade.has_rule_match and 
-                                             trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
-                           'is_product_defect':(trade.has_rule_match and 
-                                                trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
-                           'need_manual_merge':trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
-                           'shippings':dict(SHIPPING_TYPE_CHOICE),
-                           'ware_list':MergeTrade.WARE_CHOICES
+                           'used_orders': serializers.MergeOrderSerializer(trade.inuse_orders, many=True).data,
+                           'total_num': order_nums,
+                           'logistics_company': serializers.LogisticsCompanySerializer(trade.logistics_company).data,
+                           'out_of_logistic': trade.has_reason_code(pcfg.LOGISTIC_ERROR_CODE),
+                           'has_rule_match': (trade.has_rule_match and
+                                              trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
+                           'is_product_defect': (trade.has_rule_match and
+                                                 trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
+                           'need_manual_merge': trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
+                           'shippings': dict(SHIPPING_TYPE_CHOICE),
+                           'ware_list': MergeTrade.WARE_CHOICES
                            })
-        return Response({"object":{'trade':trade_dict,  'logistics':logistics } })
-                #'shippings33':dict(SHIPPING_TYPE_CHOICE)  }    
-     
+        return Response({"object": {'trade': trade_dict, 'logistics': logistics}})
+        #'shippings33':dict(SHIPPING_TYPE_CHOICE)  }
+
     def post(self, request, id, *args, **kwargs):
-        # print "进入post"
         user_id = request.user.id
         try:
             trade = MergeTrade.objects.get(id=id)
         except MergeTrade.DoesNotExist:
             return Response(u'该订单不存在')
-        content       = request.REQUEST
-        priority      = content.get('priority')
+        content = request.REQUEST
+        priority = content.get('priority')
         logistic_code = content.get('logistic_code')
         shipping_type = content.get('shipping_type')
-        action_code   = content.get('action')
-        ware_by       = content.get('ware_by')
+        action_code = content.get('action')
+        ware_by = content.get('ware_by')
         logistics_company = None
-           
+
         if logistic_code:
             logistics_company = LogisticsCompany.objects.get(code=logistic_code)
         elif shipping_type != pcfg.EXTRACT_SHIPPING_TYPE:
-            #如果没有选择物流也非自提订单，则提示
+            # 如果没有选择物流也非自提订单，则提示
             return Response(u'请选择物流公司')
-        
+
         is_logistic_change = trade.logistics_company != logistics_company
         trade.logistics_company = logistics_company
         trade.priority = priority
         trade.shipping_type = shipping_type
-        trade.ware_by  = ware_by
+        trade.ware_by = ware_by
         trade.save()
-        
+
         if action_code == 'check':
             check_msg = []
             if trade.has_refund:
                 check_msg.append(u"有待退款")
             if trade.has_out_stock:
                 check_msg.append(u"有缺货")
-            if (trade.has_rule_match or 
-                MergeTrade.objects.isTradeDefect(trade)):
+            if (trade.has_rule_match or
+                    MergeTrade.objects.isTradeDefect(trade)):
                 check_msg.append(u"订单商品编码与库存商品编码不一致")
             if trade.is_force_wlb:
                 check_msg.append(u"订单由物流宝发货")
-            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS):
+            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS):
                 check_msg.append(u"订单不在审单状态")
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
                 check_msg.append(u"需手动合单")
             if trade.has_sys_err:
                 check_msg.append(u"订单需管理员审核")
             orders = trade.inuse_orders.exclude(refund_status__in=
-                                                pcfg.REFUND_APPROVAL_STATUS) 
-            if orders.count()==0:
+                                                pcfg.REFUND_APPROVAL_STATUS)
+            if orders.count() == 0:
                 check_msg.append(u"订单没有商品信息")
             if check_msg:
-                return Response( ','.join(check_msg))
+                return Response(','.join(check_msg))
             if trade.status == pcfg.WAIT_PREPARE_SEND_STATUS:
-                pass 
+                pass
             elif trade.type == pcfg.EXCHANGE_TYPE:
                 change_orders = trade.merge_orders.filter(
                     gift_type=pcfg.CHANGE_GOODS_GIT_TYPE,
                     sys_status=pcfg.IN_EFFECT)
-                if change_orders.count()>0:
-                    #订单为自提
+                if change_orders.count() > 0:
+                    # 订单为自提
                     if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
                         trade.sys_status = pcfg.FINISHED_STATUS
-                        trade.status     = pcfg.TRADE_FINISHED
+                        trade.status = pcfg.TRADE_FINISHED
                         trade.consign_time = datetime.datetime.now()
                         #更新退换货库存
                         trade.update_inventory()
                     #订单需物流
-                    else:    
+                    else:
                         trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
                         trade.status = pcfg.WAIT_SELLER_SEND_GOODS
                     trade.reason_code = ''
                     trade.save()
                 else:
-                    #更新退货库存
+                    # 更新退货库存
                     trade.update_inventory()
                     trade.sys_status = pcfg.FINISHED_STATUS
-                    trade.status     = pcfg.TRADE_FINISHED
+                    trade.status = pcfg.TRADE_FINISHED
                     trade.save()
-            elif trade.type in (pcfg.DIRECT_TYPE,pcfg.REISSUE_TYPE):   
-                #订单为自提
-                if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
+            elif trade.type in (pcfg.DIRECT_TYPE, pcfg.REISSUE_TYPE):
+                # 订单为自提
+                if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
                     trade.sys_status = pcfg.FINISHED_STATUS
-                    trade.status     = pcfg.TRADE_FINISHED
+                    trade.status = pcfg.TRADE_FINISHED
                     trade.consign_time = datetime.datetime.now()
                     #更新库存
                     trade.update_inventory()
                 #订单需物流
                 else:
                     trade.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-                    trade.status     = pcfg.WAIT_SELLER_SEND_GOODS
+                    trade.status = pcfg.WAIT_SELLER_SEND_GOODS
                 trade.reason_code = ''
                 trade.save()
             else:
-                if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE: 
+                if shipping_type == pcfg.EXTRACT_SHIPPING_TYPE:
                     try:
-                        trade.out_sid   = '1111111111'
+                        trade.out_sid = '1111111111'
                         trade.is_picking_print = True
                         trade.is_express_print = True
                         trade.company_code = pcfg.EXTRACT_COMPANEY_CODE
                         trade.logistics_company = LogisticsCompany.getNoPostCompany()
                         trade.save()
-                        
-                        ts = TradeService(trade.user.id,trade)
+
+                        ts = TradeService(trade.user.id, trade)
                         ts.sendTrade()
-                    except Exception,exc:
+                    except Exception, exc:
                         trade.append_reason_code(pcfg.POST_MODIFY_CODE)
-                        trade.sys_status=pcfg.WAIT_AUDIT_STATUS
-                        trade.sys_memo=exc.message
+                        trade.sys_status = pcfg.WAIT_AUDIT_STATUS
+                        trade.sys_memo = exc.message
                         trade.save()
-                        log_action(request.user.id,trade,CHANGE,u'订单发货失败')
+                        log_action(request.user.id, trade, CHANGE, u'订单发货失败')
                     else:
-                        trade.sys_status=pcfg.FINISHED_STATUS
-                        trade.consign_time=datetime.datetime.now()
+                        trade.sys_status = pcfg.FINISHED_STATUS
+                        trade.consign_time = datetime.datetime.now()
                         trade.save()
-                        log_action(request.user.id,trade,CHANGE,u'订单发货成功')
-                    #更新库存
+                        log_action(request.user.id, trade, CHANGE, u'订单发货成功')
+                    # 更新库存
                     trade.update_inventory()
                 else:
-                    MergeTrade.objects.filter(id=id,sys_status = pcfg.WAIT_AUDIT_STATUS)\
-                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS,reason_code='',out_sid='')
-            log_action(user_id,trade,CHANGE,u'审核成功')
+                    MergeTrade.objects.filter(id=id, sys_status=pcfg.WAIT_AUDIT_STATUS) \
+                        .update(sys_status=pcfg.WAIT_PREPARE_SEND_STATUS, reason_code='', out_sid='')
+            log_action(user_id, trade, CHANGE, u'审核成功')
+
+            signal_kefu_operate_record.send(sender=KefuPerformance, kefu_id=user_id, trade_id=id, operation="check")
         elif action_code == 'review':
             if trade.sys_status not in pcfg.WAIT_SCAN_CHECK_WEIGHT:
                 return Response(u'订单不在待扫描状态')
-            
+
             if is_logistic_change:
                 trade.append_reason_code(pcfg.ADDR_CHANGE_CODE)
-            
+
             MergeTrade.objects.filter(id=id).update(can_review=True)
-            log_action(user_id,trade,CHANGE,u'订单复审')
-         
-        return Response({'success':True})
+            log_action(user_id, trade, CHANGE, u'订单复审')
+            signal_kefu_operate_record.send(sender=KefuPerformance, kefu_id=user_id, trade_id=id, operation="review")
+
+        return Response({'success': True})
       
 import re
        
@@ -1295,6 +1300,7 @@ def regular_trade(request,id):
         merge_trade.remind_time  = dt
         merge_trade.save()
         log_action(user_id,merge_trade,CHANGE,u'定时(%s)提醒'%dt.strftime('%Y-%m-%d %H:%M'))
+        signal_kefu_operate_record.send(sender=KefuPerformance, kefu_id=user_id, trade_id=id, operation="delay")
         return HttpResponse(json.dumps({'code':0,'response_content':{'success':True}}),mimetype="application/json")
 
 
