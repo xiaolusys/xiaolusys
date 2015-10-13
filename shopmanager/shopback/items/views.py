@@ -571,8 +571,6 @@ class ProductBarCodeView(APIView):
             else:
                 product.barcode  =  barcode.strip()
                 product.save()
-                
-        
         except Product.DoesNotExist:
             return Response(u'未找到商品')
         except ProductSku.DoesNotExist:

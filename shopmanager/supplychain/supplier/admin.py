@@ -13,6 +13,7 @@ from .models import (
     SupplierCharge
 )
 from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter
+from shopback.base.options import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 
@@ -204,15 +205,15 @@ admin.site.register(SaleCategory, SaleCategoryAdmin)
 
 class SaleProductAdmin(MyAdmin):
     category_list = []
-    list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link',
-                    'category_select', 'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor', 'modified')
+    list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link','category_select', 
+                    'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'modified')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
 #     ordering = ('-hot_value',)
     date_hierarchy = 'sale_time'
-    list_filter = ('status', ('sale_time', DateScheduleFilter),
-                   CategoryFilter, 'platform', BuyerGroupFilter)
+    list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
+                   ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter)
     search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
     list_per_page = 40
 
@@ -224,7 +225,7 @@ class SaleProductAdmin(MyAdmin):
                    , ('price', 'sale_price')
                    , ('on_sale_price', 'std_sale_price')
                    , ('sale_supplier', 'sale_category')
-                   , ('platform', 'hot_value', 'status')
+                   , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
                    , ('memo',)
                    )}),)
@@ -278,8 +279,8 @@ class SaleProductAdmin(MyAdmin):
         rset.add('sale_supplier')
         contactor_name = 'contactor'
         rset.add(contactor_name)
-#         if not perms.has_sale_product_mgr_permission(request.user):
-#             rset.add(contactor_name)
+        if not perms.has_sale_product_mgr_permission(request.user):
+            rset.add('is_changed')
 # 
 #         if perms.has_sale_product_mgr_permission(request.user):
 #             if contactor_name in rset:
@@ -296,42 +297,7 @@ class SaleProductAdmin(MyAdmin):
     pic_link.short_description = u"商品图片"
 
     def title_link(self, obj):
-        #         abs_pic_url = '%s%s'%(settings.MEDIA_URL,obj.pic_url)
-        ignore_style = ''
-        ignore_val = ''
-        ignore_status = ''
-        if obj.status == SaleProduct.WAIT:
-            ignore_style = 'btn-info btn-ignore'
-            ignore_val = u'忽略'
-            ignore_status = SaleProduct.IGNORED
-        elif obj.status in (SaleProduct.IGNORED, SaleProduct.REJECTED):
-            ignore_val = u'已忽略'
-        else:
-            ignore_style = 'btn-info btn-ignore'
-            ignore_val = u'淘汰'
-            ignore_status = SaleProduct.REJECTED
-
-        select_style = ''
-        select_val = ''
-        if obj.status == SaleProduct.WAIT:
-            select_style = 'btn-success btn-selected'
-            select_val = u'入围'
-        elif obj.status in (SaleProduct.SELECTED, SaleProduct.PURCHASE, SaleProduct.PASSED, SaleProduct.SCHEDULE):
-            select_val = u'已入围'
-        else:
-            select_val = u'已淘汰'
-
-        return (u'<div style="width:350px;">'
-                + u'<a href="javascript:void(0);" class="btn {0}" pid="{1}" status="{7}">{2}</a>'
-                + u'<div  class="well well-content">{3}</div>'
-                + u'<a href="javascript:void(0);" class="btn {4}" pid="{5}" >{6}</a></div>').format(ignore_style,
-                                                                                                    obj.id,
-                                                                                                    ignore_val,
-                                                                                                    obj.title,
-                                                                                                    select_style,
-                                                                                                    obj.id,
-                                                                                                    select_val,
-                                                                                                    ignore_status)
+        return (u'<div style="width:350px;"><div class="well well-content">{0}</div></div>').format(obj.title)
 
     title_link.allow_tags = True
     title_link.short_description = u"标题"
@@ -359,7 +325,7 @@ class SaleProductAdmin(MyAdmin):
     # 选择上架时间
     def sale_time_select(self, obj):
         # 只有通过　和排期状态的才可以修改该时间
-        if obj.status in (SaleProduct.PASSED,SaleProduct.SCHEDULE):
+        if obj.status in (SaleProduct.PURCHASE,SaleProduct.PASSED,SaleProduct.SCHEDULE):
             if obj.sale_time is None:
                 s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
             else:
@@ -371,12 +337,44 @@ class SaleProductAdmin(MyAdmin):
     sale_time_select.allow_tags = True
     sale_time_select.short_description = u"上架时间"
     
-    
+    def get_select_list(self,obj):
+        slist = []
+        if obj.status == SaleProduct.WAIT:
+            slist.extend([SaleProduct.SELECTED,
+                          SaleProduct.PURCHASE,
+                          SaleProduct.IGNORED])
+        elif obj.status in (SaleProduct.SELECTED,
+                            SaleProduct.PURCHASE):
+            slist.extend([SaleProduct.SELECTED,
+                          SaleProduct.PURCHASE,
+                          SaleProduct.PASSED,
+                          SaleProduct.REJECTED])
+        elif obj.status == SaleProduct.PASSED:
+            slist.extend([SaleProduct.PURCHASE,
+                          SaleProduct.PASSED,
+                          SaleProduct.SCHEDULE,
+                          SaleProduct.REJECTED])
+        elif obj.status == SaleProduct.SCHEDULE:
+            slist.extend([SaleProduct.PURCHASE,
+                          SaleProduct.PASSED,
+                          SaleProduct.SCHEDULE,
+                          SaleProduct.REJECTED])
+        else:
+            slist.append(obj.status)
+        return slist
+        
     def status_link(self, obj):
-        s = u'<strong>{0}</strong>'
-        if obj.status in (SaleProduct.PASSED,SaleProduct.SCHEDULE):
-            s += u'<a href="javascript:void(0);" class="btn btn-info btn-return" pid="{1}" status="{2}">返回取样</a>'
-        return s.format(obj.get_status_display(),obj.id,SaleProduct.PURCHASE)
+        s = []
+        sel_list = self.get_select_list(obj)
+        SDM = dict(SaleProduct.STATUS_CHOICES)
+        s.append(u'<select class="status_select" pid={0}>')
+        for sel in sel_list:
+            selected = ''
+            if sel == obj.status:
+                selected = 'selected'
+            s.append(u'<option value="%s" %s>%s</option>'%(sel,selected,SDM.get(sel)))
+        s.append(u'</select>')
+        return ''.join(s).format(obj.id)
         
     status_link.allow_tags = True
     status_link.short_description = u"状态／操作"
@@ -398,6 +396,16 @@ class SaleProductAdmin(MyAdmin):
 
         return super(SaleProductAdmin, self).get_changelist(request, **kwargs)
 
+    def delete_model(self, request, obj):
+        """
+        Given a model instance delete it from the database.
+        """
+        if obj.status == SaleProduct.WAIT:
+            obj.status = SaleProduct.IGNORED
+        else:
+            obj.status = SaleProduct.REJECTED
+        obj.save()
+    
     def response_add(self, request, obj, post_url_continue='../%s/'):
 
         if not obj.contactor:
@@ -405,7 +413,7 @@ class SaleProductAdmin(MyAdmin):
             obj.save()
 
         return super(SaleProductAdmin, self).response_add(request, obj, post_url_continue=post_url_continue)
-
+    
     def select_Contactor(self, obj):
         from models_buyer_group import BuyerGroup
 

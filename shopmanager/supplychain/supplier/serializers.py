@@ -74,9 +74,8 @@ class SaleProductSerializer(serializers.ModelSerializer):
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
-            'sale_category',
-            'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo', 'status',
-            'sale_time', 'created', 'modified', 'reserve_time')
+            'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 
+            'memo', 'status','sale_time', 'created', 'modified', 'reserve_time')
 
 
 class SaleProductSampleSerializer(serializers.ModelSerializer):
