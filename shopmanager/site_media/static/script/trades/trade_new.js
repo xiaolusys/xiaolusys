@@ -41,7 +41,7 @@ function show() {
 function show2() {
 
     //alert("44");
-    document.getElementById("orderContent").style.display = "block";
+    //document.getElementById("orderContent").style.display = "block";
     //document.getElementById("anotherDiv").style.display="none";
     return false
 }
@@ -512,7 +512,35 @@ function ordercheck(info) {
         'json');
 
 }
+function delay_days(info) {
 
+    var days = info.getAttribute('days');
+    var trade_id = $('#id_check_trade').val();
+    console.log(trade_id, days);
+    var request_url = "/trades/regular/" + trade_id + "/?format=json&days=" + days;
+    var request_callback = function (data) {
+        if (data.code == 1) {
+            alert(data.response_error);
+        } else {
+            var result_table = parent.document.getElementById('result_list');
+            var trs = result_table.getElementsByTagName("tr");
+            for (var i = 1; i < trs.length; i++) {
+                if (trs[i].childNodes[0].childNodes[0].getAttribute("value") == trade_id) {
+                    trs[i].remove();
+                }
+            }
+            var index = parent.layer.getFrameIndex(window.name); //获取当前窗体索引
+            parent.layer.close(index); //执行关闭
+        }
+    };
+    $.ajax({
+        type: 'get',
+        url: request_url,
+        data: {},
+        dataType: 'json',
+        success: request_callback
+    });
+}
 function getCookie(sName) {
     var aCookie = document.cookie.split("; ");
     for (var i = 0; i < aCookie.length; i++) {
