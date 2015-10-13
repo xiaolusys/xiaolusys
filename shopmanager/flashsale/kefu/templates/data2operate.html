@@ -32,12 +32,11 @@
                             "<td>" + obj.operate + "</td>" +
                             "<td>" + obj.operate_time + "</td>"+
                             "</tr>");
-
                         });
                         var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
                         oScript.type = "text/javascript";
-                        oScript.src = "/static/daystat_js/stat_performance.js";
+                        oScript.src = "/static/kefu/stat_kefu.js";
                         oHead.appendChild(oScript);
                     } else {
                         setTimeout(get_data, 2000);
