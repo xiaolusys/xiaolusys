@@ -660,7 +660,7 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                                     "tui_kuan_money": 0})
 
     except Exception, exc:
-        raise task_calc_package.retry(exc=exc)
+        raise task_calc_performance_by_user.retry(exc=exc)
     return result_data
 
 
@@ -748,7 +748,7 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                 one_temp["buyer_name"] = ""
             result_data.append(one_temp)
     except Exception, exc:
-        raise task_calc_package.retry(exc=exc)
+        raise task_calc_performance_by_supplier.retry(exc=exc)
     return result_data
 
 def format_time(time_of_long):

@@ -5,6 +5,6 @@ from flashsale.kefu import views
 
 
 urlpatterns = [
-    url(r'^add_record/$', views.AddRecordView.as_view(), name='searchProduct'),  # 搜索所有的商品 ajax
+    url(r'^kefu_record/$', views.KefuRecordView.as_view(), name='searchProduct'),  # 搜索所有的商品 ajax
 
 ]
