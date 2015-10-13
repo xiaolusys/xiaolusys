@@ -325,7 +325,7 @@ class SaleProductAdmin(MyAdmin):
     # 选择上架时间
     def sale_time_select(self, obj):
         # 只有通过　和排期状态的才可以修改该时间
-        if obj.status in (SaleProduct.PASSED,SaleProduct.SCHEDULE):
+        if obj.status in (SaleProduct.PURCHASE,SaleProduct.PASSED,SaleProduct.SCHEDULE):
             if obj.sale_time is None:
                 s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
             else:
@@ -374,7 +374,6 @@ class SaleProductAdmin(MyAdmin):
                 selected = 'selected'
             s.append(u'<option value="%s" %s>%s</option>'%(sel,selected,SDM.get(sel)))
         s.append(u'</select>')
-        
         return ''.join(s).format(obj.id)
         
     status_link.allow_tags = True
