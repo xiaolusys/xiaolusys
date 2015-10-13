@@ -173,26 +173,31 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def update(self, request, *args, **kwargs):
-        print request.data
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         if not instance.contactor:
             instance.contactor = self.request.user
+        
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        print serializer
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         index_map = {SaleProduct.SELECTED: 1,
                      SaleProduct.PURCHASE: 2,
                      SaleProduct.PASSED: 3,
                      SaleProduct.SCHEDULE: 4}
-        log_action(request.user.id, instance, CHANGE,
-                   (u'淘汰',
-                    u'初选入围',
-                    u'洽谈通过',
-                    u'审核通过',
-                    u'排期'
-                    )[index_map.get(instance.status, 0)])
+        
+        update_field_labels = []
+        for k,v in request.data.iteritems():
+            if not hasattr(instance,k):continue
+            update_field_labels.append('%s:%s'%(SaleProduct._meta.get_field(k).verbose_name.title(),v))
+            
+        status_label = (u'淘汰',
+                        u'初选入围',
+                        u'洽谈通过',
+                        u'审核通过',
+                        u'排期'
+                        )[index_map.get(instance.status, 0)]
+        log_action(request.user.id, instance, CHANGE,'%s(%s)'%(status_label,','.join(update_field_labels)))
         return Response(serializer.data)
 
 from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl

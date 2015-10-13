@@ -46,18 +46,22 @@ $('.btn-charge').live('click',function(e){
     $.ajax({"url":url,"data":data,"success":callback,"type":"POST" });
 });
 
-$('.btn-ignore').live('click',function(e){
+$('.status_select').live("change",function(e){
 	e.preventDefault();
 	var target = e.target;
 	var pid = target.getAttribute('pid');
-	var status = target.getAttribute('status');
+	var status = target.value;
 	
 	var url = "/supplychain/supplier/product/"+pid+"/";
-        var callback = function (res) {
-          if (res["status"] != "ignored") {
-            $(target.parentElement.parentElement.parentElement).slideUp();
-          }
-        };
+    var callback = function (res) {
+      if (res["status"] != "ignored") {
+      	if (res["status"]=='淘汰' || res["status"]=='忽略'){
+      		$(target.parentElement.parentElement).slideUp();
+      	}else{
+        	$(target).after("<img src='/static/admin/img/icon-yes.gif '>");
+        }
+      }
+    };
 	
 	var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
     var data = {"status": status, 
@@ -71,49 +75,6 @@ $('.btn-ignore').live('click',function(e){
     $.ajax({"url":url,"data":data,"success":callback,"type":"POST","headers":headers });
 });
 
-$('.btn-selected').live('click',function(e){
-	e.preventDefault();
-	var target = e.target;
-	var pid = target.getAttribute('pid');
-	
-	var url = "/supplychain/supplier/product/"+pid+"/";
-    var callback = function (res) {
-      if (res["status"] != "selected") {
-        $(target.parentElement.parentElement.parentElement).slideUp();
-      }
-    };
-	
-	var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-    var data = {"status": "selected",
-    					"csrfmiddlewaretoken":csrf_token,
-    					 "format":"json"};
-    					 
-    var headers = {
-	    'X-HTTP-Method-Override': 'PATCH'
-	   };
-
-    $.ajax({"url":url,"data":data,"success":callback, "type":"POST","headers":headers });
-});
-
-$('.btn-return').live('click',function(e){
-	e.preventDefault();
-	var target = e.target;
-	var pid = target.getAttribute('pid');
-	var status = target.getAttribute('status');
-	
-	var url = "/supplychain/supplier/product/"+pid+"/";
-    var callback = function (res) {
-        $(target.parentElement.parentElement).slideUp();
-    };
-	var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-    var data = {"status": status, 
-				"csrfmiddlewaretoken":csrf_token,
-				"format":"json"};
-    var headers = {
-	    'X-HTTP-Method-Override': 'PATCH'
-	};
-    $.ajax({"url":url,"data":data,"success":callback,"type":"POST","headers":headers });
-});
 
 $(".sale_category_select").live("change",function(e){
     e.preventDefault();
@@ -145,26 +106,29 @@ $(".sale_category_select").live("change",function(e){
 
 $(function () {
 	$(".select_saletime").datepicker({
-	    dateFormat: "yy-mm-dd"
+	    dateFormat: "yy-mm-dd 00:00:00"
 	}).change(function (e) {
-	    var slae_product = this.id;
+	    var pid = this.id;
 	    var sale_time = this.value;
-	    var sale_time_old = this.name;
-	    var target = e.target;
-	    var url = "/supplychain/supplier/select_sale_time/";
-	    var callback = function (res) {
-	        if (res == "OK") {
-	            $(target).after("<img src='/static/admin/img/icon-yes.gif '>");
-	        }
-	    };
-	    var data = {"slae_product": slae_product, "sale_time": sale_time};
-	    console.log("deebug data:",data);
-	    $.ajax({"url": url, 
-	    		"data": data, 
-	    		"success": callback, 
-	    		"type": "POST",
-	    		"error":function(){
-	    			alert('上架日期修改失败');
-	    		}});
+		var url = "/supplychain/supplier/product/"+pid+"/";
+	        var callback = function (res) {
+	        	console.log('debug sale time:',res,sale_time);
+	           if (res['sale_time'] == '' || res['sale_time'] == null){
+	           		alert('上架排期失败');
+	           		return
+	           }
+	           $(e.target).after("<img src='/static/admin/img/icon-yes.gif '>");
+	        };
+		
+		var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+	    var data = {"sale_time": sale_time, 
+					"csrfmiddlewaretoken":csrf_token,
+					"format":"json"};
+	    
+	    var headers = {
+		    'X-HTTP-Method-Override': 'PATCH'
+		   };
+	
+	    $.ajax({"url":url,"data":data,"success":callback,"type":"POST","headers":headers });
 	});
 });

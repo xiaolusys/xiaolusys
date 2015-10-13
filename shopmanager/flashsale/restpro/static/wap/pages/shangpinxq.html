@@ -243,7 +243,8 @@ function callNTKFChatPage(){
 //加载小能客服插件
 function loadNTalker(){
 	var NTKF = NTKF || null;
-	if (NTKF){
+	console.log('debug NTKF:',NTKF);
+	if (!isNone(NTKF)){
 		callNTKFChatPage();
 		return
 	};
