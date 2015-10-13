@@ -38,15 +38,16 @@ def task_record_kefu_performance(start_date, end_date, record_type="0"):
                          "operate_time": one_record.operate_time}
             temp_dict = json.dumps(temp_dict, cls=DjangoJSONEncoder)
             result_data.append(temp_dict)
-            if one_record.kefu_name in summary_data:
-                if one_record.operation == KefuPerformance.CHECK:
-                    summary_data[one_record.kefu_name][0] += 1
-                if one_record.operation == KefuPerformance.REVIEW:
-                    summary_data[one_record.kefu_name][1] += 1
-                if one_record.operation == KefuPerformance.DELAY:
-                    summary_data[one_record.kefu_name][2] += 1
-            else:
-                summary_data[one_record.kefu_name] = [1, 1, 1]
+            if one_record.kefu_name not in summary_data:
+                summary_data[one_record.kefu_name] = [0, 0, 0]
+            if one_record.operation == KefuPerformance.CHECK:
+                summary_data[one_record.kefu_name][0] += 1
+            if one_record.operation == KefuPerformance.REVIEW:
+                summary_data[one_record.kefu_name][1] += 1
+            if one_record.operation == KefuPerformance.DELAY:
+                summary_data[one_record.kefu_name][2] += 1
+
+
     except Exception, exc:
         raise task_record_kefu_performance.retry(exc=exc)
     return {"result_data": result_data, "summary_data": summary_data}

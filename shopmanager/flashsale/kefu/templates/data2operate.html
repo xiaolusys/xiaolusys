@@ -38,6 +38,17 @@
                         oScript.type = "text/javascript";
                         oScript.src = "/static/kefu/stat_kefu.js";
                         oHead.appendChild(oScript);
+
+                        var summary_data = res.task.result.summary_data;
+                        var total_result = $("#total-result");
+                        $.each(summary_data, function (index, dd) {
+                            total_result.append("<tr>" +
+                            "<td>" + index + "</td>" +
+                            "<td>" + dd[0] + "</td>" +
+                            "<td>" + dd[1] + "</td>" +
+                            "<td>" + dd[2] + "</td>" +
+                            "</tr>");
+                        });
                     } else {
                         setTimeout(get_data, 2000);
                     }
@@ -85,10 +96,28 @@
         </form>
     </div>
 
-
     <div class="row panel panel-success" style="margin-top: 20px">
         <div class="panel-heading">
             <h3 class="panel-title">客服统计</h3>
+        </div>
+        <div class="panel-body">
+
+            <table class="table table-bordered" id="total-result">
+                <thead>
+                <th>客服</th>
+                <th>审核</th>
+                <th>重审</th>
+                <th>延三天</th>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row panel panel-success" style="margin-top: 20px">
+        <div class="panel-heading">
+            <h3 class="panel-title">客服统计明细</h3>
         </div>
         <div class="panel-body">
             <input id="task_id" value="{{ task_id }}" hidden="hidden">
