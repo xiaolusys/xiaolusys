@@ -5,11 +5,11 @@ from flashsale.signals import signal_kefu_operate_record
 
 
 class KefuPerformance(models.Model):
-    APPROVE = u'approve'
+    CHECK = u'check'
     REVIEW = u'review'
     DELAY = u'delay'
     OPERATE_TYPE = (
-        (APPROVE, u'审核订单'),
+        (CHECK, u'审核订单'),
         (REVIEW, u'重审订单'),
         (DELAY, u'延时'),
     )
