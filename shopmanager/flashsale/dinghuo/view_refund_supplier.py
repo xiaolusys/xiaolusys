@@ -56,7 +56,7 @@ class StatisRefundSupView(APIView):
             supplier_set.add(i['supplier'])
         if supplier_set.__len__() != 1:
             return Response({"res": "multi_supplier"})
-        supplier = supplier_set.pop()   # 唯一供应商
+        supplier = supplier_set.pop()  # 唯一供应商
 
         for i in data:
             pro_id_set.add(i['pro_id'])
@@ -69,7 +69,7 @@ class StatisRefundSupView(APIView):
             rg.supplier_id = supplier
             rg.save()
             for da in data:
-                if da['pro_id'] == pro_id:   # 是当前的商品
+                if da['pro_id'] == pro_id:  # 是当前的商品
                     sku_return_num = int(da['return_num'])
                     price = float(da['price'])
                     sku_id = int(da['sku_id'])
@@ -182,3 +182,68 @@ def acrion_invenctory_num(product, psk, rd, actor_id):
         update_model_fields(psk, update_fields=['sku_inferior_num'])  # 更新字段方法
     action_desc = u"仓库审核退货单通过->将原来次品数量{0}更新为{1}".format(sku_inferior_num, psk.sku_inferior_num)
     log_action(actor_id, psk, CHANGE, action_desc)
+
+
+from shopback.refunds.models import RefundProduct
+
+
+def acrion_product_num(outer_id, sku_out_id, num, can_reuse):
+    try:
+        actioner = 19  # 操作用户的id
+        pro = Product.objects.get(outer_id=outer_id)
+        psk = ProductSku.objects.get(product=pro.id, outer_id=sku_out_id)
+        if can_reuse:  # 可以二次销售　正品　更新 quantity
+            before_num = psk.quantity
+            psk.quantity = F('quantity') + num  # 增加历史库存数
+            update_model_fields(psk, update_fields=['quantity'])  # 更新字段方法
+            log_action(actioner, psk, CHANGE, u"更新历史{0}+{1}退货商品到产品库存中".format(before_num, psk.quantity))
+            before_pro_num = pro.collect_num
+            pro.collect_num = F('collect_num') + num
+            update_model_fields(pro, update_fields=['collect_num'])  # 更新字段方法
+            log_action(actioner, pro, CHANGE, u"更新历史{0}+{1}退货商品到产品库存中".format(before_pro_num, psk.quantity))
+        else:
+            before_num = psk.sku_inferior_num
+            psk.sku_inferior_num = F('sku_inferior_num') + num  # 增加历史库存数
+            update_model_fields(psk, update_fields=['sku_inferior_num'])  # 更新字段方法
+            log_action(actioner, psk, CHANGE, u"更新历史{0}+{1}退货次品到产品库存次品中".format(before_num, psk.sku_inferior_num))
+        print "usual :", outer_id, sku_out_id, num
+    except ProductSku.DoesNotExist:
+        print "exption :ProductSku mutil", outer_id, sku_out_id, num
+    except Product.DoesNotExist:
+        print "exption :ProductSku mutil", outer_id, sku_out_id, num
+    except Product.MultipleObjectsReturned:
+        print "exption :ProductSku mutil", outer_id, sku_out_id, num
+    except ProductSku.MultipleObjectsReturned:
+        print "exption :ProductSku mutil", outer_id, sku_out_id, num
+    except:
+        print "未知异常", outer_id, sku_out_id, num
+
+
+def update_refundpro_to_product(can_reuse=False):
+    endtime = datetime.datetime(2015, 10, 8, 17, 20, 0)
+    actioner = 19  # 操作用户的id
+    rep_dic = {}
+    # can_reuse=False　不可以二次销售的　次品       #　can_reuse=True 可以二次销售的　正品
+    re_prods = RefundProduct.objects.filter(is_finish=False, can_reuse=can_reuse, created__lte=endtime)
+    print "handler count is :", re_prods.count()
+
+    for rp in re_prods:
+        if rep_dic.has_key(rp.outer_id):
+            if rep_dic[rp.outer_id].has_key(rp.outer_sku_id):
+                rep_dic[rp.outer_id][rp.outer_sku_id] += rp.num
+            else:
+                rep_dic[rp.outer_id][rp.outer_sku_id] = rp.num
+        else:
+            rep_dic[rp.outer_id] = {rp.outer_sku_id: rp.num}
+        rp.is_finish = True
+        update_model_fields(rp, update_fields=['is_finish'])  # 更新字段方法
+        log_action(actioner, rp, CHANGE, u"更新历史退货商品到产品库存时　修改成处理完成")  # systemoa 添加log action
+
+    for pr in rep_dic.items():
+        outer_id = pr[0]
+        for sku in pr[1].items():
+            sku_out_id = sku[0]
+            num = sku[1]
+            # 修改该商品的该sku库存
+            acrion_product_num(outer_id, sku_out_id, num, can_reuse)
+
