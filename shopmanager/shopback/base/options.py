@@ -132,8 +132,8 @@ class DateFieldListFilter(FieldListFilter):
                 self.lookup_kwarg_until: str(tomorrow),
             }),
             (_(u'过去一月'), {
-                self.lookup_kwarg_since: str(datetime.datetime(last_month and today.year or today.year -1,last_month or 12,1)),
-                self.lookup_kwarg_until: str(datetime.datetime(today.year ,today.month ,1)),
+                self.lookup_kwarg_since: str(datetime.date(last_month and today.year or today.year -1,last_month or 12,1)),
+                self.lookup_kwarg_until: str(datetime.date(today.year ,today.month ,1)),
             }),
             (_(u'本年'), {
                 self.lookup_kwarg_since: str(today.replace(month=1, day=1)),
