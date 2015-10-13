@@ -121,7 +121,7 @@ class MergeTradeChangeList(ChangeList):
             return qs.filter(tid=tid)
 
         if search_q:
-            trades = qs.filter(models.Q(buyer_nick=search_q)|models.Q(tid__startswith=search_q)|models.Q(out_sid=search_q))
+            trades = qs.filter(models.Q(tid__startswith=search_q)|models.Q(out_sid=search_q))
             return trades
         
         return super(MergeTradeChangeList,self).get_query_set(request)

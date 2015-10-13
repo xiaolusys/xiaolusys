@@ -249,13 +249,15 @@ class SaleProduct(models.Model):
 from django.db.models.signals import pre_save
 from common.modelutils import update_model_fields
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
-    
-    product = SaleProduct.objects.get(id=instance.id)
-    #如果上架时间修改，则重置is_verify
-    if (product.status == SaleProduct.SCHEDULE and 
-        (product.sale_time != instance.sale_time or product.status != instance.status)):
-        instance.is_changed = True
-        update_model_fields(instance,update_fields=['is_changed'])
+    try:
+        product = SaleProduct.objects.get(id=instance.id)
+        #如果上架时间修改，则重置is_verify
+        if (product.status == SaleProduct.SCHEDULE and 
+            (product.sale_time != instance.sale_time or product.status != instance.status)):
+            instance.is_changed = True
+            update_model_fields(instance,update_fields=['is_changed'])
+    except SaleProduct.DoesNotExist:
+        pass
     
 pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
 
