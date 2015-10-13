@@ -660,7 +660,7 @@ def task_calc_performance_by_user(start_date, end_date, category="0"):
                                     "tui_kuan_money": 0})
 
     except Exception, exc:
-        raise task_calc_package.retry(exc=exc)
+        raise task_calc_performance_by_user.retry(exc=exc)
     return result_data
 
 
@@ -748,7 +748,7 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                 one_temp["buyer_name"] = ""
             result_data.append(one_temp)
     except Exception, exc:
-        raise task_calc_package.retry(exc=exc)
+        raise task_calc_performance_by_supplier.retry(exc=exc)
     return result_data
 
 def format_time(time_of_long):
@@ -761,3 +761,31 @@ def format_time(time_of_long):
         return str(int(days)) + "天" + str(round(tm_hours, 1)) + "小时"
     else:
         return ""
+
+
+
+@task(max_retry=1, default_retry_delay=5)
+def task_calc_sale_product(start_date, end_date, category="0"):
+    """计算选品情况"""
+    try:
+        from supplychain.supplier.models import SaleCategory
+        year, month, day = start_date.split('-')
+        start_date_time = datetime.datetime(int(year), int(month), int(day))
+        year, month, day = end_date.split('-')
+        end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
+        all_sale_product = SaleProduct.objects.filter(sale_time__range=(start_date_time, end_date_time),
+                                                      status=SaleProduct.SCHEDULE)
+        all_contactors = (e.contactor.username if e.contactor else "" for e in all_sale_product)
+        all_contactors = set(all_contactors)
+        all_category = SaleCategory.objects.filter(is_parent=False, status=SaleCategory.NORMAL)
+
+        result_data = {}
+        for contactor in all_contactors:
+            temp_list = []
+            if contactor != "":
+                for one_category in all_category:
+                    temp_list.append(all_sale_product.filter(contactor__username=contactor, sale_category=one_category).count())
+                result_data[contactor] = temp_list
+    except Exception, exc:
+        raise task_calc_sale_product.retry(exc=exc)
+    return result_data
