@@ -396,6 +396,16 @@ class SaleProductAdmin(MyAdmin):
 
         return super(SaleProductAdmin, self).get_changelist(request, **kwargs)
 
+    def delete_model(self, request, obj):
+        """
+        Given a model instance delete it from the database.
+        """
+        if obj.status == SaleProduct.WAIT:
+            obj.status = SaleProduct.IGNORED
+        else:
+            obj.status = SaleProduct.REJECTED
+        obj.save()
+    
     def response_add(self, request, obj, post_url_continue='../%s/'):
 
         if not obj.contactor:
@@ -403,7 +413,7 @@ class SaleProductAdmin(MyAdmin):
             obj.save()
 
         return super(SaleProductAdmin, self).response_add(request, obj, post_url_continue=post_url_continue)
-
+    
     def select_Contactor(self, obj):
         from models_buyer_group import BuyerGroup
 
