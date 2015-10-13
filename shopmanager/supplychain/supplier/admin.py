@@ -134,7 +134,7 @@ class SaleSupplierAdmin(MyAdmin):
             return qs
         scharges = SupplierCharge.objects.filter(employee=request.user, status=SupplierCharge.EFFECT)
         supplier_ids = [s.supplier_id for s in scharges]
-
+        
         return qs.filter(
             models.Q(status=SaleSupplier.UNCHARGE) | models.Q(id__in=supplier_ids, status=SaleSupplier.CHARGED))
 
@@ -206,14 +206,15 @@ admin.site.register(SaleCategory, SaleCategoryAdmin)
 class SaleProductAdmin(MyAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link','category_select', 
-                    'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'modified')
+                    'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'created')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-#     ordering = ('-hot_value',)
+    # ordering = ('-hot_value',)
     date_hierarchy = 'sale_time'
     list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
-                   ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter)
+                   ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
+                   ('created', DateFieldListFilter))
     search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
     list_per_page = 40
 

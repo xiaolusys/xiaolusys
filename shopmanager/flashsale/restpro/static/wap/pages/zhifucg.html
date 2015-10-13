@@ -7,6 +7,17 @@
 <script src="../js/common.js"></script>
 <link rel="stylesheet" href="../css/common.css">
 <link rel="stylesheet" href="../css/zhifucg.css">
+<script id="ntkf_template" type="text/html">
+var NTKF_PARAM = {
+		siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
+		settingid:"kf_9645_1444459002183",		//缺省客服配置ID，必填，取值参见文档开始表
+		uid:"{{profile.id}}",		//用户ID,未登录可以为空
+		uname:"{{profile.nick}}",		//用户名，未登录可以为空
+		isvip:"0" ,         //是否为vip用户
+		userlevel:"1" ,    //网站自定义会员级别
+		orderid:"{{tid}}",		//订单ID,
+	};
+</script>
 </head>
 <body>
 <div class="header">
@@ -14,13 +25,22 @@
   <a class="user" href="gerenzhongxin.html"></a>
   <h1>支付成功</h1>
 </div>
-
 <div class="kv"></div>
-
 <div class="tips1">恭喜您，支付成功！</div>
-
 <div class="tips2">您可点击“查看”，进入到详细的<br>订单页面</div>
-
 <a href="daishouhuo-dd.html" class="btn">查看</a>
+<script type="text/javascript">
+window.onload = function(){
+	//$('.ui-loader').remove();
+	var trade_no = parseUrlParams(window.location.href)['out_trade_no'];
+	var profile  = JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}');
+	var params = {
+		'tid':trade_no,
+		'profile':profile
+	};
+	console.log('debug:',params);
+	loadNTalker(params,function(){});
+};
+</script>
 </body>
 </html>
