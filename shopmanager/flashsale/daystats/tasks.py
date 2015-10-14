@@ -773,7 +773,8 @@ def task_calc_sale_product(start_date, end_date, category="0"):
         start_date_time = datetime.datetime(int(year), int(month), int(day))
         year, month, day = end_date.split('-')
         end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
-        all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+        all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time)).exclude(
+            status=SaleProduct.IGNORED)
         all_contactors = (e.contactor.username if e.contactor else "" for e in all_sale_product)
         all_contactors = set(all_contactors)
         all_category = SaleCategory.objects.filter(is_parent=False, status=SaleCategory.NORMAL)
