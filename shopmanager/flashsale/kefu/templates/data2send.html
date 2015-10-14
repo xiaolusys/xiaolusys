@@ -1,0 +1,36 @@
+{% extends "kefu_base.html" %}
+{% block title %}发送短信接口{% endblock %}
+{% block head_script %}
+    <style>
+        .container {
+            margin-top: 40px;
+        }
+    </style>
+{% endblock %}
+{% block container %}
+    {% if send_result %}
+        {% ifequal send_result "OK" %}
+            <h2 style="color: #97eeff">发送成功</h2>
+        {% else %}
+            <h2 style="color: red">发送失败</h2>
+        {% endifequal %}
+    {% else %}
+        <form action="/sale/kefu/send_message/{{ trade_id }}/{{ order_id }}/" method="post">
+            <div class="row">
+                <div class="col-lg-6">
+                    <textarea name="content" class="form-control" cols="5" rows="5">{{ content }}</textarea>
+                </div>
+                <div class="col-lg-3">
+                    <label>接收短信手机：</label>
+                    <input value="{{ mobile }}" name="mobile" class="form-control">
+                </div>
+                <div class="col-lg-3">
+                    <input type="submit" class="btn btn-info form-control" value="发送">
+                </div>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}
+{% block tail_script %}
+
+{% endblock %}

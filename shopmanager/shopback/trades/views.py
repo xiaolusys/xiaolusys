@@ -2388,11 +2388,15 @@ def beizhu(request):
     for i in tid_list:
         tids.append(i.strip())
     not_handler = []
+    muti_handler = []
     for tid in tids:
         try:
             merge_trade = MergeTrade.objects.get(tid=tid)
         except MergeTrade.DoesNotExist:
             not_handler.append(tid)
+            continue
+        except MergeOrder.MultipleObjectsReturned:
+            muti_handler.append(tid)
             continue
         else:
             merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
@@ -2401,7 +2405,8 @@ def beizhu(request):
             MergeTrade.objects.filter(id=merge_trade.id, sys_status=pcfg.WAIT_PREPARE_SEND_STATUS, out_sid='') \
                 .update(sys_status=pcfg.WAIT_AUDIT_STATUS)  # 切换到＂等待人工审核状态＂
             log_action(user_id, merge_trade, CHANGE, u'系统备注:%s' % c)
-    return HttpResponse(json.dumps({'code': 0, 'not_handler': not_handler}), content_type="application/json")
+    return HttpResponse(json.dumps({'code': 0, 'not_handler': not_handler, "muti_handler": muti_handler}),
+                        content_type="application/json")
 
     
 def test(request):
