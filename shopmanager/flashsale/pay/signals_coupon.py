@@ -96,7 +96,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 def xlmm_Recharge(sender, instance, created, **kwargs):
     order_id = instance.id
     payment = instance.payment
-    systemoa = 19  # 系统操作的id
+    systemoa = 641  # 系统操作的id 641
     sku_id = int(instance.sku_id)  # 上架商品的id
 
     # 上架商品的id 注意在服务器上要修改
@@ -110,9 +110,10 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
 
     if sku_id not in SKU_IDS.keys():
         return  # 不是充值商品不处理
-
-    if instance.status != SaleOrder.WAIT_SELLER_SEND_GOODS and instance.refund_status != SaleRefund.NO_REFUND:
-        return  # 不是已经付款不处理 有退款操作不处理
+    if instance.status != SaleOrder.WAIT_SELLER_SEND_GOODS:
+        return  # 不是已经付款不处理
+    if instance.refund_status != SaleRefund.NO_REFUND:
+        return  # 有退款操作不处理
     # 计算　附加值
     if sku_id == sku_id_100_10:
         payment_value = (payment + SKU_IDS[sku_id_100_10]) * 100  # 充值100送10元
@@ -147,7 +148,7 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
 
         # 修改xlmm lowest_uncoushout
         before_lowest_uncoushout = xlmm.lowest_uncoushout
-        xlmm.lowest_uncoushout = F('lowest_uncoushout') + payment_value/100.0
+        xlmm.lowest_uncoushout = F('lowest_uncoushout') + payment_value / 100.0
         update_model_fields(xlmm, update_fields=['lowest_uncoushout'])
         action_desc_lowest = u"代理充值修改lowest_uncoushout:{0}金额{1}".format(before_lowest_uncoushout,
                                                                         xlmm.lowest_uncoushout)
@@ -156,8 +157,10 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
         # 交易状态修改　交易成功
         instance.status = SaleOrder.TRADE_FINISHED
         update_model_fields(instance, update_fields=['status'])
+        log_action(systemoa, instance, CHANGE, u"充值修改该订单明细状态")
         instance.sale_trade.status = SaleTrade.TRADE_FINISHED
         update_model_fields(instance.sale_trade, update_fields=['status'])
+        log_action(systemoa, instance.sale_trade, CHANGE, u"充值修改该订单交易状态")
 
 
 post_save.connect(xlmm_Recharge, sender=SaleOrder)
