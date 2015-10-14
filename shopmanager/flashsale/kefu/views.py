@@ -69,7 +69,7 @@ class SendMessageView(generics.ListCreateAPIView):
             if not content and not mobile or len(mobile) != 11:
                 return Response({"send_result": "error"})
             log_action(request.user.id, m_trade, CHANGE, u'{0}缺货短信{1}'.format(m_order.id, mobile))
-            #task_send_message.s(content, mobile)()
+            task_send_message.s(content, mobile)()
         except:
-             return Response({"send_result": "error"})
+            return Response({"send_result": "error"})
         return Response({"send_result": "OK"})
