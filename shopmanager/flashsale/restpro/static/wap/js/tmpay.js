@@ -87,12 +87,12 @@ function Set_user_orderinfo(suffix){
         if(cart_ids==null){//表示
             update_total_price();
         }
-        //小能客服订单转化对接
-        var params = {
-        	'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}'),
-        	'trade':data
-        }
-        loadNTalker(params,function(){});
+//		小能客服订单转化对接
+//		var params = {
+//        	'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}'),
+//        	'trade':data
+//        }
+//        loadNTalker(params,function(){});
 	};
 	// 调用接口
 	$.ajax({ 
