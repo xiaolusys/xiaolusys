@@ -12,6 +12,7 @@ from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
+TOKEN_EXPIRED_IN  = 15 * 60
 
 def get_Unionid(openid, appid):
     
@@ -96,13 +97,13 @@ class WeiXinAccount(models.Model):
         
         if not self.expired:
             return True
-        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=3600)
+        return datetime.datetime.now() > self.expired + datetime.timedelta(seconds=TOKEN_EXPIRED_IN)
     
     def isJSTicketExpired(self):
         
         if not self.js_expired:
             return True
-        return datetime.datetime.now() > self.js_expired + datetime.timedelta(seconds=3600)
+        return datetime.datetime.now() > self.js_expired + datetime.timedelta(seconds=TOKEN_EXPIRED_IN)
     
     def activeAccount(self):
         self.is_active = True
