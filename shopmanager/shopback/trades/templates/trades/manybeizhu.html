@@ -25,7 +25,7 @@
         <div class="form-group">
             <div class="col-sm-4">
                 <span class="label label-success">备注的订单编号:</span>
-                <textarea class="form-control" rows="30" id="a"></textarea>
+                <textarea class="form-control" rows="36" id="a"></textarea>
             </div>
             <div class="col-sm-4">
                 <span class="label label-success">填写备注内容:</span>
@@ -33,7 +33,11 @@
                 <br>
                 <br>
                 <span class="label label-success">未找到的订单:</span>
-                <textarea class="form-control" id="not_handler" rows="11"></textarea>
+                <textarea class="form-control" id="not_handler" rows="8"></textarea>
+                <br>
+                <br>
+                <span class="label label-success">找到多个的订单:</span>
+                <textarea class="form-control" id="mu_handler" rows="4"></textarea>
 
             </div>
         </div>
@@ -77,6 +81,9 @@
                 if (res.code == 0) {
                     $(res.not_handler).each(function (i,no_handler) {
                         $("#not_handler").append(no_handler+"\n");
+                    });
+                    $(res.muti_handler).each(function (i,mu_handler) {
+                        $("#mu_handler").append(mu_handler+"\n");
                     });
                     alert("成功");
                 }

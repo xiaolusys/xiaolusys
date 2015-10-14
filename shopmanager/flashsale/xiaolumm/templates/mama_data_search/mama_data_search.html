@@ -70,6 +70,7 @@
                 <th>接管时间</th>
 
                 <th>接管状态</th>
+                <th>升级完成额</th>
                 </thead>
                 <tbody>
                 {% for xlmm in xlmms %}
@@ -85,6 +86,7 @@
                         <td>{{ xlmm.referal_from }}</td>
                         <td>{{ xlmm.charge_time }}</td>
                         <td>{{ xlmm.get_charge_status_display }}</td>
+                        <td>{{ xlmm.target_complete }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

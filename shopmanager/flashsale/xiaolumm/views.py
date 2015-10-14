@@ -54,7 +54,7 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
     x_choice = cash_outable and xlmm.get_Mama_Deposite() or xlmm.get_Mama_Deposite_Amount()
 
     mony_without_pay = cash + payment # 从未消费情况下的金额
-    leave_cash_out = mony_without_pay - x_choice   # 可提现金额
+    leave_cash_out = mony_without_pay - x_choice - xlmm.lowest_uncoushout   # 减去代理的最低不可提现金额(充值) = 可提现金额
     could_cash_out = cash
     if leave_cash_out < cash:
         could_cash_out = leave_cash_out
