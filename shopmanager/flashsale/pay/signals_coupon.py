@@ -132,7 +132,8 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
         return  # 没有找到代理　不做处理
     # 捕捉已付款　　判断carrylog中的记录是否存在　　
     try:
-        clog = CarryLog.objects.get(order_num=order_id)
+        clog = CarryLog.objects.get(xlmm=xlmm.id, order_num=order_id, log_type=CarryLog.RECHARGE,
+                                    carry_type=CarryLog.CARRY_IN)
         return  # 存在　则不做处理
     except CarryLog.DoesNotExist:
         # 创建钱包记录
