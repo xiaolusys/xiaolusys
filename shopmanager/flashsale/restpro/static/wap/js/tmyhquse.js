@@ -5,7 +5,22 @@ var RELEASE = 1;
 var PAST = 2;
 var USED = 1;
 var UNUSED = 0;
+function checkout_Recharge_Product() {
+    var sku_id = getUrlParam("sku_id");//商品id
+    var array = ["86345", "86346","86347"];
+    var isin = $.inArray(sku_id, array);
+    if (isin!=-1) {// 如果检测到是充值产品的页面　直接删除　dom 返回
+        $(".coupons").remove();
+        return true
+    }
+}
+
 function get_Coupon_On_Buy() {
+    var judge = checkout_Recharge_Product();
+    if (judge == true) {
+        return
+    }
+
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
         if (res.length > 0) {
@@ -36,8 +51,8 @@ function Coupon_Nums_Show(nums) {
             if (cart_ids) {
                 var total_money = ($("#total_money").html().split(">")[2]);
                 var pro_num = $(".pro_num").html();
-                console.log("pro_num :", pro_num,total_money);
-                location.href = "./choose-coupon.html?price=" + total_money+"&pro_num=" + pro_num;
+                console.log("pro_num :", pro_num, total_money);
+                location.href = "./choose-coupon.html?price=" + total_money + "&pro_num=" + pro_num;
             }
             else {
                 var total_money = ($("#total_money").html().split(">")[2]);

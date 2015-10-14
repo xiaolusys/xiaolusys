@@ -74,6 +74,7 @@ class XiaoluMama(models.Model):
     
     agencylevel = models.IntegerField(default=1, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
+    lowest_uncoushout = models.FloatField(default=0.0, verbose_name=u"最低不可提金额")
     user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")
     
     charge_time = models.DateTimeField(default=datetime.datetime.now,
@@ -488,6 +489,7 @@ class CarryLog(models.Model):
     MAMA_RECRUIT   = 'recruit'
     ORDER_RED_PAC = 'ordred'
     COST_FLUSH    = 'flush'
+    RECHARGE = 'recharge'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
@@ -500,7 +502,8 @@ class CarryLog(models.Model):
         (AGENCY_SUBSIDY,u'代理补贴'),
         (MAMA_RECRUIT,u'招募奖金'),
         (ORDER_RED_PAC,u'订单红包'),
-        (COST_FLUSH,u'冲正差额')
+        (COST_FLUSH,u'冲正差额'),
+        (RECHARGE, u'充值')
     )
     
     CARRY_OUT = 'out'
@@ -574,7 +577,7 @@ signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash,sen
 
 
 from flashsale.pay.signals import signal_saletrade_pay_confirm
-from flashsale.pay.models import SaleTrade
+from flashsale.pay.models import SaleTrade, SaleOrder
 
 def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
     
