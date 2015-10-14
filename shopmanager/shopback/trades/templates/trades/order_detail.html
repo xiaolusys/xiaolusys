@@ -70,11 +70,12 @@
                 <tr bgcolor="green">
                     <th>订单ID</th>
                     <th>原单id</th>
-                    <th>买家昵称</th>
+                    <th width="15%">买家昵称</th>
                     <th>收货人信息</th>
                     <th>实付款</th>
                     <th>生成日期</th>
-                    <th>交易状态</th>
+                    <th>订单状态</th>
+                    <th>系统状态</th>
                     <th>操作</th>
                 </tr>
                 </thead>
@@ -129,6 +130,9 @@
                                             <p style="font-family:bold;font-size:15px;" class="yanse">
                                                 金额：{{ item1.order.refund_fee }}
                                             </p>
+                                            <p style="font-family:bold;font-size:15px;" class="yanse">
+                                                <a href="/sale/kefu/send_message/{{ item.trade.id }}/{{ item1.order.id }}/" target="_blank">发送缺货短信</a>
+                                            </p>
                                         </div>
                                     </div>
 
@@ -141,6 +145,11 @@
 
                         <td>
                             {{ item.trade.buyer_nick }}
+                            <br><br>
+
+                                <span style="font-family:arial;font-size:15px;font-weight:bold;">备注：</span>
+                                <pre>{{ item.trade.sys_memo }}</pre>
+
                         </td>
                         <td>
                             <p style="font-family:arial;font-size:15px;font-weight:bold;">
@@ -235,6 +244,10 @@
                                     </div>
                                 </div>
                             </div>
+                        </td>
+                        <td>
+                            <h5 style="color:red ">{{ item.trade.get_sys_status_display }}</h5>
+
                         </td>
                         <td>
                             <a href="/admin/trades/mergetrade/?q={{ item.trade.id }}" target="_blank">
