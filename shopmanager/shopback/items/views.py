@@ -854,7 +854,7 @@ class ProductNumAssignView(APIView):
             self.assign_num_action(item_list)
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
-            return exc.message
+            return Response(exc.message)
         
         product = Product.objects.get(outer_id=outer_id)
         

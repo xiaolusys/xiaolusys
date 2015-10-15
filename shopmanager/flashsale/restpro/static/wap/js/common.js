@@ -2,6 +2,9 @@
  *@author: imeron
  *@date: 2015-07-22
  */
+var PROFILE_COOKIE_NAME = 'Xl_profile';
+var EXPIRED_DAYS = 1;
+ 
 //字符串模板
 String.prototype.template = function (data) {
     var str = this;
@@ -53,28 +56,6 @@ function parseUrlParams(myUrl) {
 function hereDoc(f) {
     return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
 }
-
-//设置初始页面VIEWPORT
-(function () {
-    var oViewport = document.getElementById('viewport');
-    var phoneWidth = parseInt(window.screen.width);
-    var phoneScale = phoneWidth / 640;
-    var ua = navigator.userAgent;
-    if (/Android (\d+\.\d+)/.test(ua)) {
-        var version = parseFloat(RegExp.$1);
-        if (version > 2.3) {
-            oViewport.setAttribute('content', 'width=640, minimum-scale = ' + phoneScale + ', maximum-scale = ' + phoneScale + ', target-densitydpi=device-dpi')
-        } else {
-            oViewport.setAttribute('content', 'width=640, target-densitydpi=device-dpi');
-        }
-    } else {
-        oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
-    }
-    window.onload = function () {
-        document.body.addEventListener('touchstart', function () {});
-        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
-    }
-})();
 
 //全局配置
 var GLConfig = {
@@ -195,8 +176,6 @@ function drawToast(message) {
     intervalCounter = setInterval("hideToast()", 2000);
 }
 
-var PROFILE_COOKIE_NAME = 'Xl_profile';
-var EXPIRED_DAYS = 1;
 function DoIfLogin(cfg){
 	var profile = getCookie(PROFILE_COOKIE_NAME);
 	if (!isNone(profile)){
@@ -327,7 +306,6 @@ function checkTime(i) {
     return i;
 }
 
-//加载百度统计插件
 function loadBaiduStat(){
 	var _hmt = _hmt || [];
 	(function() {
@@ -337,8 +315,6 @@ function loadBaiduStat(){
 	  s.parentNode.insertBefore(hm, s);
 	})();
 }
-
-loadBaiduStat();
 
 //加载小能客服插件
 function loadNTalker(params,callback){
@@ -368,3 +344,27 @@ function loadNTalker(params,callback){
 	document.body.appendChild(ntkf_dom);
 	document.body.appendChild(ntkf_sc);
 }
+
+//设置初始页面VIEWPORT
+(function () {
+    var oViewport = document.getElementById('viewport');
+    var phoneWidth = parseInt(window.screen.width);
+    var phoneScale = phoneWidth / 640;
+    var ua = navigator.userAgent;
+    if (/Android (\d+\.\d+)/.test(ua)) {
+        var version = parseFloat(RegExp.$1);
+        if (version > 2.3) {
+            oViewport.setAttribute('content', 'width=640, minimum-scale = ' + phoneScale + ', maximum-scale = ' + phoneScale + ', target-densitydpi=device-dpi')
+        } else {
+            oViewport.setAttribute('content', 'width=640, target-densitydpi=device-dpi');
+        }
+    } else {
+        oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
+    }
+    window.onload = function () {
+        document.body.addEventListener('touchstart', function () {});
+        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
+    }
+})();
+//加载百度统计插件
+loadBaiduStat();

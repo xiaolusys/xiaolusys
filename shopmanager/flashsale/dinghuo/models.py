@@ -168,12 +168,13 @@ def init_stock_func(sender,product_list,*args,**kwargs):
     for pro_bean in product_list:
         sku_qs = pro_bean.prod_skus.all()
         for sku_bean in sku_qs:
-            pro_sku_bean = ProductSkuDetail.objects.get_or_create(product_sku=sku_bean.id)
-            pro_sku_bean[0].exist_stock_num = sku_bean.quantity
-            pro_sku_bean[0].sample_num = 0
+            pro_sku_beans = ProductSkuDetail.objects.get_or_create(product_sku=sku_bean.id)
+            pro_sku_bean = pro_sku_beans[0]
+            pro_sku_bean.exist_stock_num = sku_bean.quantity
+            pro_sku_bean.sample_num = 0
             sku_bean.memo=""
             sku_bean.save()
-            pro_sku_bean[0].save()
+            pro_sku_bean.save()
 
 signals.signal_product_upshelf.connect(init_stock_func, sender=Product)
 
