@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 <meta content="yes" name="apple-mobile-web-app-capable">
 <meta content="black" name="apple-mobile-web-app-status-bar-style">
 <meta content="telephone=no" name="format-detection">
@@ -14,6 +14,16 @@
 <link rel="stylesheet" type="text/css" href="css/common.css">
 <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
 <noscript><div class="ui-top-note">您的浏览器已禁用javascript,为了您能正常浏览网站,请在浏览器里面启用javascript!</div></noscript>
+<script id="ntkf_template" type="text/html">
+var NTKF_PARAM = {
+	siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
+	settingid:"kf_9645_1444459002183",		//缺省客服配置ID，必填，取值参见文档开始表
+	uid:"{{profile.id}}",		//用户ID,未登录可以为空
+	uname:"{{profile.nick}}",		//用户名，未登录可以为空
+	isvip:"0" ,         //是否为vip用户
+	userlevel:"1" ,    //网站自定义会员级别
+};
+</script>
 <style>
 .container{
 	padding-top:68px;
@@ -65,7 +75,10 @@
 <div class="panel panel-default">
 <div class="panel-heading">欢迎光临小鹿美美!</div>
 <div class="panel-body">
-<p><a class="btn btn-warning col-xs-12" href="mailto:kefu@xiaolu.so">邮箱：kefu@xiaolu.so</a></p>
+<p>
+	<a class="btn btn-danger col-xs-5 kefu-sq pull-left" href="javascript:void(0);"><i class="glyphicon glyphicon-hand-right"></i>产品咨询</a>
+	<a class="btn btn-danger col-xs-5 kefu-sh pull-right" href="javascript:void(0);"><i class="glyphicon glyphicon-hand-right"></i>订单售后</a>
+</p>
 <p></p>
 <p><a class="btn btn-warning col-xs-12" href="tel:021-50939326">联系电话：021-50939326</a></p>
 <label><h4>售前／售后咨询(识别图中二维码联系微信客服)：</h4></label>
@@ -132,5 +145,54 @@
 <p >Copyright © 2014-2015 小鹿美美，All Rights Reserved 沪ICP备15013901号-1</p>
 </div>
 </div>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+	//$('.ui-loader').remove();
+    $(document).on({
+    	click:clickSQBtn,
+    	touchend:clickSQBtn
+    },'.kefu-sq');
+    //返回顶部
+    $(document).on({
+    	click:clickSHBtn,
+    	touchend:clickSHBtn
+    },'.kefu-sh');
+});
+
+function callNTKFSQChatPage(){
+	//对应手机WAP端组代码
+	NTKF.im_openInPageChat("kf_9645_1444459002183");
+}
+
+function callNTKFSHChatPage(){
+	//对应手机WAP端组代码
+	NTKF.im_openInPageChat("kf_9645_1443600732956");
+}
+
+function clickSQBtn(){
+	DoIfLogin({
+		callback:function(){
+			var params = {
+				'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}')
+			};
+			loadNTalker(params,callNTKFSQChatPage);
+		},
+		redirecto:window.location.href
+	});
+}
+
+function clickSHBtn(){
+	DoIfLogin({
+		callback:function(){
+			var params = {
+				'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}')
+			};
+			loadNTalker(params,callNTKFSHChatPage);
+		},
+		redirecto:window.location.href
+	});
+}
+</script>
 </body>
 </html>
