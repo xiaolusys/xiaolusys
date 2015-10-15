@@ -15,28 +15,24 @@
     	height:67px;
     	line-height:67px;
     }
+    .pagination-nav{
+		margin-left: -320px;
+	    left: 50%;
+	    position: fixed;
+	    bottom: 40px;
+	    width: 640px;
+	    height: 80px;
+	    z-index: 999;
+	}
+	.pagination-nav li.next a{
+		color: #777;
+	}
     </style>
 </head>
 <body>
 <div class="top">
 	<p class="bg-primary">现在是预览模式 </p>
-	<!--<p>
-    <a class="user" href="pages/gerenzhongxin.html"></a>
-    <a class="home"></a>
-    </p>-->
 </div>
-<!--<nav>
-    <a href="javascript:void(0)" class="active">今日上新</a>
-    <a href="zuoritemai.html">昨日特卖</a>
-    <a href="chaotong.html">潮童专区</a>
-    <a href="nvzhuang.html">时尚女装</a>
-</nav>
-<div class="fixed-nav" id="js-fixed-nav">
-    <a href="javascript:void(0)" class="active">今日上新</a>
-    <a href="zuoritemai.html">昨日特卖</a>
-    <a href="chaotong.html">潮童专区</a>
-    <a href="nvzhuang.html">时尚女装</a>
-</div>-->
 <div class="poster new">
     <dl>
         <dt>每日10:00 新品上线</dt>
@@ -157,11 +153,21 @@
 </div>
 
 <div id="loading"><span class="dots-loader"></span></div>
+<!--
 <div class="cart-container">
     <a class="p-center" href="pages/gerenzhongxin.html"></a>
     <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
 </div>
 <div class="scroll-top" id="js-scroll-top"></div>
+-->
+<nav class="pagination-nav">
+  <ul class="pager">
+    <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span>前一天</a></li>
+    <li class="date">2015-10-01</li>
+    <li class="next"><a href="http://m.xiaolu.so">后一天<span aria-hidden="true">&rarr;</span></a></li>
+  </ul>
+</nav>
+
 <div class="footer clearfix">
 <div class="link">
 <a href="/index.html">首页</a>
@@ -208,11 +214,29 @@
     Set_promotes_product('/products/promote_preview.json?' + urlparams);
     //获取购物车商品数
     Set_shopcarts_num();
-
+	//设置分页
+	change_pagination();
 })(jQuery);
 function scroll_top(e){
     e.preventDefault();
     $('body').animate({scrollTop: 0}, 400);
+}
+function change_pagination(){
+	var now_day = parseUrlParams(window.location.href)['days'] || '0';
+	if (isNaN(now_day)){
+		drawToast('日期参数错误：'+now_day);
+		return;
+	}
+	now_day  = parseInt(now_day);
+	var now	 = new Date();
+	var cur_date = new Date(now.valueOf() + now_day *  24 * 60 * 60 * 1000);
+	$('.pager .date').html(cur_date.getFullYear()+'-'+(cur_date.getMonth() + 1) +'-'+cur_date.getDate());
+	
+	var previous = now_day - 1;
+	var next     = now_day + 1;
+	var base_url = window.location.href.replace('#','').split('?')[0];
+	$('.pager .previous a').attr('href',base_url + '?days=' + previous);
+	$('.pager .next a').attr('href',base_url + '?days=' + next);
 }
 </script>
 </body>

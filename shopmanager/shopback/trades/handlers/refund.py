@@ -1,10 +1,13 @@
 #-*- coding:utf8 -*-
 from django.conf import settings
 from .handler import BaseHandler
-from shopback.trades.models import MergeTrade,MergeBuyerTrade
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 from shopapp.memorule import ruleMatchPayment,ruleMatchSplit
 from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
+
+import logging
+logger = logging.getLogger('celery.handler')
 
 class RefundHandler(BaseHandler):
     
@@ -91,19 +94,33 @@ class RefundHandler(BaseHandler):
             ２，如果没有无效的退款明细或未分单，正常退款单处理;
             ３，否则按分单发货处理;
         """
-        if settings.DEBUG:
-            print 'DEBUG REFUND:',merge_trade
+        logger.debug('DEBUG REFUND:%s'%merge_trade)
         
         if (kwargs.get('first_pay_load',None) and 
             MergeTrade.objects.isTradeRefunding(merge_trade)):
             merge_trade.append_reason_code(pcfg.WAITING_REFUND_CODE)
         
-        #invalid_refund_orders = merge_trade.merge_orders.filter()
-        #if not merge_trade.is_part_consign　or not :
+        if merge_trade.is_part_consign:
+            refund_orders = merge_trade.merge_orders.exclude(
+                                    refund_status=pcfg.NO_REFUND)
+            for order in refund_orders:
+                match_orders = (MergeOrder.objects.filter(oid=order.oid,
+                                                          merge_trade__user=merge_trade.user,
+                                                          sys_status=pcfg.IN_EFFECT)
+                                .exclude(merge_trade=merge_trade))
+                for mo in match_orders:
+                    if mo.refund_status == order.refund_status:
+                        continue
+                    mo.refund_status = order.refund_status
+                    mo.save()
+                    
+                    mt = order.merge_trade
+                    mt.append_reason_code(pcfg.WAITING_REFUND_CODE)
+            
         self.update_trade_refund_status(merge_trade)
         
-        #TODO:处理拆单发货退款单
         
-            
+        
+        
         
     
