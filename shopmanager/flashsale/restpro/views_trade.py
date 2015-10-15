@@ -506,6 +506,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
+    filter_fields = ('tid',)
     paginate_by = 25
     page_query_param = 'page'
     paginate_by_param = 'page_size'
