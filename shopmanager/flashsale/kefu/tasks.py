@@ -35,7 +35,7 @@ def task_record_kefu_performance(start_date, end_date, record_type="0"):
         summary_data = {}
         for one_record in all_record:
             temp_dict = {"kefu": one_record.kefu_name, "operate": one_record.get_operation_display(),
-                         "operate_time": one_record.operate_time}
+                         "operate_time": one_record.operate_time, "trade_id": one_record.trade_id}
             temp_dict = json.dumps(temp_dict, cls=DjangoJSONEncoder)
             result_data.append(temp_dict)
             if one_record.kefu_name not in summary_data:
