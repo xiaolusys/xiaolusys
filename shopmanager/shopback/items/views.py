@@ -571,8 +571,6 @@ class ProductBarCodeView(APIView):
             else:
                 product.barcode  =  barcode.strip()
                 product.save()
-                
-        
         except Product.DoesNotExist:
             return Response(u'未找到商品')
         except ProductSku.DoesNotExist:
@@ -856,7 +854,7 @@ class ProductNumAssignView(APIView):
             self.assign_num_action(item_list)
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
-            return exc.message
+            return Response(exc.message)
         
         product = Product.objects.get(outer_id=outer_id)
         

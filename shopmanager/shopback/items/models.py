@@ -423,9 +423,12 @@ def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
         #如果上架时间修改，则重置is_verify
         if product.sale_time != instance.sale_time:
             instance.is_verify = False
-        if product.shelf_status != instance.shelf_status and product.shelf_status == 0:
+        if (product.shelf_status != instance.shelf_status and
+            instance.shelf_status == Product.UP_SHELF):
+            #通知其它程序商品上架状态发生变化
             signal_product_upshelf.send(sender=Product, product_list=[product])
-    
+        
+        
 pre_save.connect(change_obj_state_by_pre_save, sender=Product)
 
 
@@ -733,7 +736,6 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         return
     
     product_skus = product.pskus
-    
     if product_skus.count()>0:
         product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
                                                total_warn_num=Sum('warn_num'),
@@ -761,10 +763,16 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         update_model_fields(product, ["collect_num", "warn_num", "remain_num", "wait_post_num", "reduce_num",
                                       "cost", "std_purchase_price", "std_sale_price", "agent_price", "staff_price"])
         # product.save()
-        
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
+
+def upshelf_product_clear_locknum(sender, product_list, *args, **kwargs):
+    """ 商品上架规格锁定数清零 """
+    for product in product_list:
+        product.prod_skus.update(lock_num=0)
+
+signal_product_upshelf.connect(upshelf_product_clear_locknum, sender=Product)
 
 class Item(models.Model):
     """ 淘宝线上商品 """

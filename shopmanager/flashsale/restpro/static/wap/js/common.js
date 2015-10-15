@@ -2,6 +2,9 @@
  *@author: imeron
  *@date: 2015-07-22
  */
+var PROFILE_COOKIE_NAME = 'Xl_profile';
+var EXPIRED_DAYS = 1;
+ 
 //字符串模板
 String.prototype.template = function (data) {
     var str = this;
@@ -53,41 +56,6 @@ function parseUrlParams(myUrl) {
 function hereDoc(f) {
     return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
 }
-
-//设置初始页面VIEWPORT
-(function () {
-    var oViewport = document.getElementById('viewport');
-    var phoneWidth = parseInt(window.screen.width);
-    var phoneScale = phoneWidth / 640;
-    var ua = navigator.userAgent;
-    if (/Android (\d+\.\d+)/.test(ua)) {
-        var version = parseFloat(RegExp.$1);
-        if (version > 2.3) {
-            oViewport.setAttribute('content', 'width=640, minimum-scale = ' + phoneScale + ', maximum-scale = ' + phoneScale + ', target-densitydpi=device-dpi')
-        } else {
-            oViewport.setAttribute('content', 'width=640, target-densitydpi=device-dpi');
-        }
-    } else {
-        oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
-    }
-    window.onload = function () {
-        document.body.addEventListener('touchstart', function () {});
-        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
-    }
-})();
-
-//加载百度统计插件
-function loadBaiduStat(){
-	var _hmt = _hmt || [];
-	(function() {
-	  var hm = document.createElement("script");
-	  hm.src = "//hm.baidu.com/hm.js?f8a445bf4aa2309eb173c6ad194dd6e7";
-	  var s = document.getElementsByTagName("script")[0]; 
-	  s.parentNode.insertBefore(hm, s);
-	})();
-}
-
-loadBaiduStat();
 
 //全局配置
 var GLConfig = {
@@ -208,8 +176,6 @@ function drawToast(message) {
     intervalCounter = setInterval("hideToast()", 2000);
 }
 
-var PROFILE_COOKIE_NAME = 'Xl_profile';
-var EXPIRED_DAYS = 1;
 function DoIfLogin(cfg){
 	var profile = getCookie(PROFILE_COOKIE_NAME);
 	if (!isNone(profile)){
@@ -340,3 +306,65 @@ function checkTime(i) {
     return i;
 }
 
+function loadBaiduStat(){
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "//hm.baidu.com/hm.js?f8a445bf4aa2309eb173c6ad194dd6e7";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+}
+
+//加载小能客服插件
+function loadNTalker(params,callback){
+	var NTKF_PARAM = NTKF_PARAM || null;
+	console.log('debug NTKF_PARAM:',NTKF_PARAM);
+	if (!isNone(NTKF_PARAM)){
+		callback();
+		return
+	};
+	var ntkf_template = document.getElementById('ntkf_template').innerHTML;
+	var ntkf_dom	  = document.createElement("script");
+	ntkf_dom.type 	  = "text/javascript";
+	ntkf_dom.innerHTML = ntkf_template.template(params);
+	
+	var ntkf_sc = document.createElement("script");
+	ntkf_sc.type 	= "text/javascript";
+	ntkf_sc.src 	= "http://dl.ntalker.com/js/xn6/ntkfstat.js?siteid=kf_9645";
+	ntkf_sc.charset = 'utf-8';
+	ntkf_sc.onload  = callback;
+	// IE 6 & 7
+	ntkf_sc.onreadystatechange = function() {
+		if (this.readyState == 'loaded' || this.readyState == 'complete') {
+			callback();
+		}
+	}
+	console.log('debug ntkf dom:',ntkf_dom,ntkf_sc);
+	document.body.appendChild(ntkf_dom);
+	document.body.appendChild(ntkf_sc);
+}
+
+//设置初始页面VIEWPORT
+(function () {
+    var oViewport = document.getElementById('viewport');
+    var phoneWidth = parseInt(window.screen.width);
+    var phoneScale = phoneWidth / 640;
+    var ua = navigator.userAgent;
+    if (/Android (\d+\.\d+)/.test(ua)) {
+        var version = parseFloat(RegExp.$1);
+        if (version > 2.3) {
+            oViewport.setAttribute('content', 'width=640, minimum-scale = ' + phoneScale + ', maximum-scale = ' + phoneScale + ', target-densitydpi=device-dpi')
+        } else {
+            oViewport.setAttribute('content', 'width=640, target-densitydpi=device-dpi');
+        }
+    } else {
+        oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
+    }
+    window.onload = function () {
+        document.body.addEventListener('touchstart', function () {});
+        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
+    }
+})();
+//加载百度统计插件
+loadBaiduStat();

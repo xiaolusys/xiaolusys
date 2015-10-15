@@ -87,6 +87,12 @@ function Set_user_orderinfo(suffix){
         if(cart_ids==null){//表示
             update_total_price();
         }
+//		小能客服订单转化对接
+//		var params = {
+//        	'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}'),
+//        	'trade':data
+//        }
+//        loadNTalker(params,function(){});
 	};
 	// 调用接口
 	$.ajax({ 
@@ -146,11 +152,11 @@ function Ctrl_sure_charge(pay_url){
     var callBack = function(data){
     	click_paybtn = false;
 	  	if (data.channel == WALLET_PAY){//使用钱包支付
-	  		window.location.href = GLConfig.zhifucg_url;
+	  		window.location.href = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
 	  	}else{
 	      pingpp.createPayment(data, function(result, err) {
 	      	if (result == "success") {
-		        window.location.href =  GLConfig.zhifucg_url;
+		        window.location.href =  GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
 		    } else if (result == "fail") {
 		        window.location.href =  GLConfig.daizhifu_url;
 		    } else if (result == "cancel") {

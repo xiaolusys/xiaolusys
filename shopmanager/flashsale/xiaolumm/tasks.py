@@ -371,7 +371,7 @@ def task_Push_Pending_AgencyRebeta_Cash(day_ago=AGENCY_SUBSIDY_DAYS, xlmm_id=Non
         agency_rebeta       = calc_fee * agency_rebeta_rate
         
         clog = CarryLog.objects.get(id=cl.id)
-        if clog.status != CarryLog.PENDING or agency_rebeta > clog.value:
+        if clog.status != CarryLog.PENDING :
             continue
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         
@@ -491,7 +491,7 @@ def task_Push_Pending_ThousRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         #将carrylog里的金额更新到最新，然后将金额写入mm的钱包帐户
         
         clog = CarryLog.objects.get(id=cl.id)
-        if clog.status != CarryLog.PENDING or commission_fee > clog.value:
+        if clog.status != CarryLog.PENDING :
             continue
         
         clog.value     = commission_fee

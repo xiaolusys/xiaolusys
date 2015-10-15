@@ -42,7 +42,7 @@ class PopularizeCostAdmin(admin.ModelAdmin):
                     'carrylog_order_buy','carrylog_cash_out','carrylog_deposit','carrylog_refund_return', 'carrylog_red_packet',
                     'total_carry_in',
                     'total_carry_out')
-    # list_filter = (DateFieldListFilter,)
+    list_filter = (('date',DateFieldListFilter),)
     search_fields = ['=date']
     ordering = ('-date',)
     
