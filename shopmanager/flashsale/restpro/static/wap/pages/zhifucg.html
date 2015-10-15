@@ -15,7 +15,8 @@ var NTKF_PARAM = {
 		uname:"{{profile.nick}}",		//用户名，未登录可以为空
 		isvip:"0" ,         //是否为vip用户
 		userlevel:"1" ,    //网站自定义会员级别
-		orderid:"{{tid}}",		//订单ID,
+		orderid:"{{trade.tid}}",		//订单ID,
+		orderprice:"{{trade.payment}}"
 	};
 </script>
 </head>
@@ -29,18 +30,36 @@ var NTKF_PARAM = {
 <div class="tips1">恭喜您，支付成功！</div>
 <div class="tips2">您可点击“查看”，进入到详细的<br>订单页面</div>
 <a href="daishouhuo-dd.html" class="btn">查看</a>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script type="text/javascript">
 window.onload = function(){
 	//$('.ui-loader').remove();
 	var trade_no = parseUrlParams(window.location.href)['out_trade_no'];
+	if (!isNone(trade_no)){
+		// 获取订单信息
+		var requestUrl = GLConfig.baseApiUrl + GLConfig.get_trade_all_url;
+	    $.ajax({
+	        type: 'get',
+	        url: requestUrl,
+	        data: {'tid':trade_no},
+	        dataType: 'json',
+	        success: zhifucgCallback
+	    });
+	}
+};
+function zhifucgCallback(data){
+	if (isNone(data.results)){
+		console.log('debug trade:',data);
+		return;
+	}
 	var profile  = JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}');
 	var params = {
-		'tid':trade_no,
+		'trade':data.results[0],
 		'profile':profile
 	};
 	console.log('debug:',params);
 	loadNTalker(params,function(){});
-};
+}
 </script>
 </body>
 </html>
