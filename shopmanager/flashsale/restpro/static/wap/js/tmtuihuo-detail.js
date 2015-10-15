@@ -154,7 +154,7 @@ function set_Order_Detail() {
                 $(".warring_info").append(w_info);
                 bindServiceBox();
             }
-            if (res.refund_status == REFUND_WAIT_RETURN_GOODS) {  //卖家同意申请
+            else if (res.refund_status == REFUND_WAIT_RETURN_GOODS) {  //卖家同意申请
 
                 //　处理下　看发货仓　是哪里　显示对应退货地址
                 // 这里判断下订单状态是不是已付款　　　如果是已付款不是已发货　则不显示　退货地址以及
@@ -162,7 +162,7 @@ function set_Order_Detail() {
                 get_ware_by(res.item_id, res.status);
                 get_refund(REFUND_WAIT_RETURN_GOODS);// 同意申请　显示feedback内容
             }
-            if (res.refund_status == 5) {// REFUND_CONFIRM_GOODS = 5  买家已经退货
+            else if (res.refund_status == 5) {// REFUND_CONFIRM_GOODS = 5  买家已经退货
                 var w_info3 = Create_warring_Info3();
                 $(".warring_info").append(w_info3);
                 // 添加物流信息到页面
@@ -170,29 +170,32 @@ function set_Order_Detail() {
                 var success = 0; //　仅仅表示暂时没有成功给退款
                 Set_Logistic_Info(success);
             }
-            if (res.refund_status == REFUND_REFUSE_BUYER) { //卖家拒绝申请
+            else if (res.refund_status == REFUND_REFUSE_BUYER) { //卖家拒绝申请
                 console.log("debug status", "卖家拒绝申请");
                 //　显示 拒绝原因 显示 feedback
                 get_refund(REFUND_REFUSE_BUYER);
             }
-            if (res.refund_status == REFUND_APPROVE) { //等待返款
+            else if (res.refund_status == REFUND_APPROVE) { //等待返款
                 var w_info5 = Create_warring_Info5;
                 $(".warring_info").append(w_info5);
                 var approve = Create_Info_Show5();
                 $(".jifen-list").append(approve);
                 bindServiceBox();
             }
-            if (res.refund_status == REFUND_SUCCESS) {//　退款成功
+            else if (res.refund_status == REFUND_SUCCESS) {//　退款成功
                 var w_info6 = Create_warring_Info6;
                 $(".warring_info").append(w_info6);
                 var success1 = 1;//表是退款成功
                 Set_Logistic_Info(success1);// 设置物流信息
             }
-            if (res.refund_status == REFUND_CLOSED) {// 退款关闭
+            else if (res.refund_status == REFUND_CLOSED) {// 退款关闭
                 var w_info7 = Create_warring_Info7;
                 $(".warring_info").append(w_info7);
                 var success2 = 2;//表是退款成功
                 Set_Logistic_Info(success2);// 设置页面等信息
+            }
+            else{//异常状态页面
+                console.log('000000000000000000000');
             }
         }
     }
