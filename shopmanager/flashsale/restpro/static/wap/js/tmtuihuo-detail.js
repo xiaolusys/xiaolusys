@@ -140,8 +140,9 @@ function set_Order_Detail() {
             console.log("debug refund: ", refund);
             console.log("debug order res refund_id:", res.refund_id);
             //
-            if (res.refund_status == 3 ) {  //买家申请退款
-                console.log("kkkk");
+            console.log("res.refund_status:", res.refund_status);
+            if (res.refund_status == 3) {  //买家申请退款
+                console.log("kkk");
                 if (res.status == 3 && refund.reason != "开线/脱色/脱毛/有色差/有虫洞") {
                     //已经发货 显示退货地址　如果不是质量问题　才显示
                     get_ware_by(res.item_id, res.status);//显示退货地址
@@ -151,6 +152,7 @@ function set_Order_Detail() {
                 $(".jifen-list").append(status1);
                 var w_info = Create_warring_Info();
                 $(".warring_info").append(w_info);
+                bindServiceBox();
             }
             if (res.refund_status == REFUND_WAIT_RETURN_GOODS) {  //卖家同意申请
 
@@ -178,6 +180,7 @@ function set_Order_Detail() {
                 $(".warring_info").append(w_info5);
                 var approve = Create_Info_Show5();
                 $(".jifen-list").append(approve);
+                bindServiceBox();
             }
             if (res.refund_status == REFUND_SUCCESS) {//　退款成功
                 var w_info6 = Create_warring_Info6;
@@ -215,6 +218,7 @@ function get_refund(state) {
             $(".jifen-list").append(content);
             $(".buy_kefu").before(feed_dom);
             $(".content").append(btn_modify);  // 加入修改申请button
+            bindServiceBox();
         }
     }
     if (state == REFUND_WAIT_RETURN_GOODS) {
@@ -329,6 +333,7 @@ function get_ware_by(item_id, order_status) {
             $(".warring_info").append(w_info8);
             var success_yifuk = Create_Info_Show8();
             $(".jifen-list").append(success_yifuk);
+            bindServiceBox();
         }
         if (order_status == REFUND_PRO || order_status == TRADE_FINISHED || order_status == TRADE_BUYER_SIGNED) {
             //退货　已经发货 或者交易成功 或者是货到付款签收　　都显示退货地址
@@ -376,6 +381,7 @@ function Create_ware_by_address(address) {
     }
     var status2 = Create_Info_Show2(html);
     $(".jifen-list").append(status2);
+    bindServiceBox();
 }
 
 function Set_Logistic_Info(success) {
@@ -419,6 +425,7 @@ function Set_Logistic_Info(success) {
                     };
                     var info6 = Create_Info_Show6(obj);
                     $(".jifen-list").append(info6);
+                    bindServiceBox();
                 }
                 else if (success == 2) {
                     obj = {
@@ -426,6 +433,7 @@ function Set_Logistic_Info(success) {
                     };
                     var info7 = Create_Info_Show7(obj);
                     $(".jifen-list").append(info7);
+                    bindServiceBox();
                 }
                 else {
                     obj = {
@@ -434,8 +442,41 @@ function Set_Logistic_Info(success) {
                     };
                     var info3 = Create_Info_Show3(obj);
                     $(".jifen-list").append(info3);
+                    bindServiceBox();
                 }
             }
         }
     }
+}
+
+
+function bindServiceBox() {
+    $('.service_box').click(function () {
+        DoIfLogin({
+            callback: function () {
+                var trade_id = parseUrlParams(window.location.href)['tid'];
+                var requestUrl = GLConfig.baseApiUrl + GLConfig.get_trade_details_url.template({"trade_id": trade_id});
+                $.ajax({
+                    type: 'get',
+                    url: requestUrl,
+                    data: {},
+                    dataType: 'json',
+                    success: requestCallBack
+                });
+                function requestCallBack(res) {
+                    var params = {
+                        'orderid': res.tid,
+                        'profile': JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}')
+                    };
+                    loadNTalker(params, callNTKFChatPage);
+                }
+            },
+            redirecto: window.location.href
+        });
+    });
+}
+
+function callNTKFChatPage() {
+    //对应手机WAP端组代码
+    NTKF.im_openInPageChat("kf_9645_1444459002183");
 }
