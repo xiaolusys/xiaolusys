@@ -14,6 +14,7 @@
         .container{
             width: 90%;
         }
+
     </style>
 </head>
 <body>
@@ -146,9 +147,9 @@
                         <td>
                             {{ item.trade.buyer_nick }}
                             <br><br>
-
                                 <span style="font-family:arial;font-size:15px;font-weight:bold;">备注：</span>
-                                <pre>{{ item.trade.sys_memo }}</pre>
+
+                            <pre style="width:200px;white-space: pre-wrap;word-break:break-all; color: #008000">{{ item.trade.sys_memo }}</pre>
 
                         </td>
                         <td>
