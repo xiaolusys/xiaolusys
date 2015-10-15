@@ -17,7 +17,7 @@ from django.conf import settings
 from shopapp.weixin.models import get_Unionid
 from calendar import monthrange
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
-from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge
+from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
 
 
 logger = logging.getLogger('celery.handler')
@@ -768,7 +768,6 @@ def format_time(time_of_long):
 def task_calc_sale_product(start_date, end_date, category="0"):
     """计算选品情况"""
     try:
-        from supplychain.supplier.models import SaleCategory
         year, month, day = start_date.split('-')
         start_date_time = datetime.datetime(int(year), int(month), int(day))
         year, month, day = end_date.split('-')
@@ -789,3 +788,71 @@ def task_calc_sale_product(start_date, end_date, category="0"):
     except Exception, exc:
         raise task_calc_sale_product.retry(exc=exc)
     return result_data
+
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+@task(max_retry=1, default_retry_delay=5)
+def task_calc_operate_data(start_date, end_date, category="0"):
+    """计算运营数据"""
+    try:
+
+        year, month, day = start_date.split('-')
+        start_date = datetime.date(int(year), int(month), int(day))
+        year, month, day = end_date.split('-')
+        end_date = datetime.date(int(year), int(month), int(day))
+
+        all_data = DailySupplyChainStatsOrder.objects.filter(sale_time__range=(start_date, end_date))
+        for one_data in all_data:
+            print one_data
+        interval_day = (end_date - start_date).days
+        if interval_day <= 0:
+            return []
+        result_data = []
+        child_result_data = []
+        for i in range(interval_day + 1):
+            target_date = start_date+datetime.timedelta(days=i)
+            daily_data = all_data.filter(sale_time=target_date)
+            temp_data = []
+            for one_data in daily_data:
+                try:
+                    one_product = Product.objects.get(outer_id=one_data.product_id)
+                    product_category = get_category(one_product.category)
+                except:
+                    continue
+                product_outer_id = one_data.product_id[0:len(one_data.product_id) - 1]
+                is_already_in, temp_dict = judge_already(product_outer_id, temp_data)
+                if is_already_in:
+                    temp_dict['sale_num'] += one_data.sale_num
+                else:
+                    temp_data.append(
+                        {"outer_id": product_outer_id,
+                         "cost": one_product.cost,
+                         "sale_num": one_data.sale_num,
+                         "sale_time": target_date.strftime("%Y-%m-%d"),
+                         "title": one_product.name.split("/"),
+                         "group": product_category,
+                         "category": product_category,
+                         "agent_price": one_product.agent_price,
+                         "total_cost": one_product.cost * one_data.sale_num,
+                         "total_sale_money": one_product.agent_price * one_data.sale_num,
+                         "stock_num": one_product.collect_num,
+                         "stock_cost": one_product.cost * one_product.collect_num})
+            result_data.extend(temp_data)
+    except Exception, exc:
+        raise task_calc_operate_data.retry(exc=exc)
+    return {"table_list": result_data}
+
+
+def judge_already(p_id, p_list):
+    for one_dict in p_list:
+        if p_id in one_dict:
+            return True, one_dict
+    return False, []
+def get_category(category):
+    if not category.parent_cid:
+        return unicode(category.name)
+    try:
+        p_cat = category.__class__.objects.get(cid=category.parent_cid).name
+    except:
+        p_cat = u'--'
+    return p_cat
