@@ -5,7 +5,7 @@ from .view import popularize_Cost
 from django.contrib.admin.views.decorators import staff_member_required
 from view_repeat_stats import StatsRepeatView, StatsSaleView, StatsSalePeopleView
 from views_stats_performance import StatsPerformanceView, StatsSupplierView, StatsSaleProdcutView
-
+import views_operate
 
 urlpatterns = patterns('',
                        url(r'^popu_cost/', popularize_Cost, name="popularize_Cost"),
@@ -18,5 +18,6 @@ urlpatterns = patterns('',
                        url(r'^stats_supplier/$', staff_member_required(StatsSupplierView.as_view()),
                            name="stats_supplier"),
                        url(r'^stats_sale_product/$', staff_member_required(StatsSaleProdcutView.as_view()),
-                           name="stats_supplier")
+                           name="stats_supplier"),
+                       url(r'^operate_sale/$', staff_member_required(views_operate.StatsDataView.as_view())),
                        )

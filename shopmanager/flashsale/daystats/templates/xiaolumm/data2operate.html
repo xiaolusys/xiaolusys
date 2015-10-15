@@ -1,14 +1,14 @@
-{% extends "kefu_base.html" %}
-{% block title %}客服绩效{% endblock %}
+{% extends "xiaolumm/daystats_base.html" %}
+{% block title %}运营数据统计{% endblock %}
 {% block head_script %}
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
     </style>
     <style>
-        .container {
-            width: 95%;
-        }
+    .container{
+        width: 95%;
+    }
     </style>
     <script>
         function get_data() {
@@ -21,35 +21,29 @@
                     console.log(res.task.result);
                     if (res.task.status == "SUCCESS") {
                         var tb = $('#data-table-result');
-                        var result_data = eval(res.task.result.result_data);
-
+                        var result_data = eval(res.task.result.table_list);
                         $("#data-table-people thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
-                            var obj = eval('(' + dd + ')');
-                            console.log(obj)
                             tb.append("<tr>" +
-                            "<td>" + obj["kefu"] + "</td>" +
-                            "<td>" + obj.operate + "</td>" +
-                            "<td><a href='/admin/trades/mergetrade/?q=" + obj.trade_id + "' target='_blank'>" + obj.trade_id + "</a></td>" +
-                            "<td>" + obj.operate_time + "</td>"+
+                            "<td>" + dd['sale_time'] + "</td>" +
+                            "<td><a href='/admin/items/product/?q="+dd.outer_id+"' target='_blank'>" + dd.title + "</a></td>" +
+                            "<td>" + dd["group"] + "</td>" +
+                            "<td>" + dd["category"] + "</td>" +
+                            "<td>" + dd["cost"] + "</td>" +
+                            "<td>" + dd["agent_price"] + "</td>" +
+                            "<td>" + dd["sale_num"] + "</td>" +
+                            "<td>" + dd.total_cost + "</td>" +
+                            "<td>" + dd["stock_num"] + "</td>" +
+                            "<td>" + dd.total_sale_money + "</td>" +
+                            "<td>" + dd.stock_cost + "</td>" +
                             "</tr>");
+
                         });
                         var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
                         oScript.type = "text/javascript";
-                        oScript.src = "/static/kefu/stat_kefu.js";
+                        oScript.src = "/static/daystat_js/stat_performance.js";
                         oHead.appendChild(oScript);
-
-                        var summary_data = res.task.result.summary_data;
-                        var total_result = $("#total-result");
-                        $.each(summary_data, function (index, dd) {
-                            total_result.append("<tr>" +
-                            "<td>" + index + "</td>" +
-                            "<td>" + dd[0] + "</td>" +
-                            "<td>" + dd[1] + "</td>" +
-                            "<td>" + dd[2] + "</td>" +
-                            "</tr>");
-                        });
                     } else {
                         setTimeout(get_data, 2000);
                     }
@@ -67,7 +61,7 @@
 {% endblock %}
 {% block container %}
     <div class="row" style="margin-top: 40px">
-        <form class="form-horizontal" role="form" method="GET" action="/sale/kefu/kefu_record/">
+        <form class="form-horizontal" role="form" method="GET" action="/sale/daystats/operate_sale/">
 
             <div class="col-xs-4">
                 <label class="control-label" for="df">开始日期:</label>
@@ -79,17 +73,6 @@
                 <input type="text" id="t_datepicker" name="dt" class="form-control datepicker"
                        value="{{ end_date }}"/>
             </div>
-            <div class="col-xs-2">
-                <label class="control-label" for="category">操作类型:</label>
-                <select name="record_type" class="form-control" id="record_type">
-
-                    <option value="0" {% ifequal category "0" %}selected="selected" {% endifequal %}>所有</option>
-                    {% for one_type in all_type %}
-                        <option value="{{ one_type.0 }}"
-                                {% ifequal record_type one_type.0 %}selected="selected" {% endifequal %}>{{ one_type.1 }}</option>
-                    {% endfor %}
-                </select>
-            </div>
             <div class="col-xs-1">
                 <input type="submit" value="查询" class="btn btn-primary" style="margin-top:27px;"/>
             </div>
@@ -97,37 +80,26 @@
         </form>
     </div>
 
+
     <div class="row panel panel-success" style="margin-top: 20px">
         <div class="panel-heading">
-            <h3 class="panel-title">客服统计</h3>
-        </div>
-        <div class="panel-body">
-
-            <table class="table table-bordered" id="total-result">
-                <thead>
-                <th>客服</th>
-                <th>审核</th>
-                <th>重审</th>
-                <th>延三天</th>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="row panel panel-success" style="margin-top: 20px">
-        <div class="panel-heading">
-            <h3 class="panel-title">客服统计明细</h3>
+            <h3 class="panel-title">运营商统计</h3>
         </div>
         <div class="panel-body">
             <input id="task_id" value="{{ task_id }}" hidden="hidden">
             <table class="table table-bordered" id="data-table-result">
                 <thead>
-                <th>客服</th>
-                <th>操作内容</th>
-                <th>操作订单</th>
-                <th>操作时间</th>
+                <th width="10%">日期</th>
+                <th>标题</th>
+                <th>分组</th>
+                <th>属性</th>
+                <th>成本单价</th>
+                <th>售价</th>
+                <th>销量</th>
+                <th>销售成本</th>
+                <th>库存</th>
+                <th>销售额</th>
+                <th>库存成本</th>
                 </thead>
                 <tbody>
 
