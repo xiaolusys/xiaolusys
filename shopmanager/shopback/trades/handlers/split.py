@@ -6,6 +6,9 @@ from shopapp.memorule import ruleMatchPayment,ruleMatchSplit,ruleMatchGifts
 from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
 
+import logging
+logger = logging.getLogger('celery.handler')
+
 class SplitHandler(BaseHandler):
     """
         线上商品编码，内部商品编码映射,拆分，附赠品
@@ -15,8 +18,7 @@ class SplitHandler(BaseHandler):
         
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG SPLIT:',merge_trade
+        logger.debug('DEBUG SPLIT:%s'%merge_trade)
             
         #组合拆分
         ruleMatchSplit(merge_trade)
