@@ -8,7 +8,9 @@ from shopback.items.models import Product
 from shopback.signals import confirm_trade_signal
 from shopback import paramconfig as pcfg
 from common.utils import update_model_fields
+import logging
 
+logger = logging.getLogger("celery.handler")
 OUT_STOCK_KEYWORD = [u'到',u'预售']
 
 class BaseHandler(object):
@@ -39,9 +41,7 @@ class InitHandler(BaseHandler):
     
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG INIT:',merge_trade
-            
+        logger.debug('DEBUG INIT:%s'%merge_trade)
         log_action(merge_trade.user.user.id,
                    merge_trade,ADDITION,
                    u'订单入库')
@@ -70,8 +70,7 @@ class StockOutHandler(BaseHandler):
     
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG STOCKOUT:',merge_trade
+        logger.debug('DEBUG STOCKOUT:%s'%merge_trade)
             
         merge_trade.append_reason_code(pcfg.OUT_GOOD_CODE)
         for order in merge_trade.inuse_orders:
@@ -93,8 +92,7 @@ class DefectHandler(BaseHandler):
         
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG DEFECT:',merge_trade
+        logger.debug('DEBUG DEFECT:%s'%merge_trade)
             
         merge_trade.append_reason_code(pcfg.TRADE_DEFECT_CODE)
         
@@ -115,8 +113,7 @@ class RuleMatchHandler(BaseHandler):
         
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG RULE MATCH:',merge_trade
+        logger.debug('DEBUG RULE MATCH:%s'%merge_trade)
             
         merge_trade.append_reason_code(pcfg.RULE_MATCH_CODE)
         match_reason_list = []
@@ -145,8 +142,7 @@ class FinalHandler(BaseHandler):
     
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG FINAL:',merge_trade
+        logger.debug('DEBUG FINAL:%s'%merge_trade)
         
         if (merge_trade.sys_status != pcfg.EMPTY_STATUS and 
             not merge_trade.logistics_company):

@@ -9,6 +9,8 @@ from shopback.base import log_action,User, ADDITION, CHANGE
 from common.modelutils import  update_model_fields
 
 from shopapp.intercept.models import InterceptTrade
+import logging
+logger = logging.getLogger('celery.handler')
 
 class InterceptHandler(BaseHandler):
     
@@ -26,8 +28,7 @@ class InterceptHandler(BaseHandler):
             
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG INTERCEPT:',merge_trade
+        logger.debug('DEBUG INTERCEPT:%s'%merge_trade)
         
         itrades = InterceptTrade.objects.getInterceptTradeByBuyerInfo(
                                                                       merge_trade.buyer_nick.strip(),

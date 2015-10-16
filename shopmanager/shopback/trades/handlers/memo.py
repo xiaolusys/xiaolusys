@@ -6,6 +6,9 @@ from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
 from common.modelutils import  update_model_fields
 
+import logging
+logger = logging.getLogger('celery.handler')
+
 class MemoHandler(BaseHandler):
     
     def getOriginMemo(self,merge_trade,origin_trade):
@@ -46,8 +49,7 @@ class MemoHandler(BaseHandler):
             
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG MEMO:',merge_trade
+        logger.debug('DEBUG MEMO:%s'%merge_trade)
         
         origin_trade = kwargs.get('origin_trade',None)
         
