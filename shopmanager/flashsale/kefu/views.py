@@ -50,7 +50,7 @@ class SendMessageView(generics.ListCreateAPIView):
             m_order = MergeOrder.objects.get(id=order_id)
             product = Product.objects.get(outer_id=m_order.outer_id)
             product_name = product.name
-            content = SEND_TEMPLATE.format(product_name[0], m_order.sku_properties_name)
+            content = SEND_TEMPLATE.format(product_name, m_order.sku_properties_name)
             mobile = m_trade.receiver_mobile
             return Response({"content": content, "mobile": mobile, "trade_id": trade_id, "order_id": order_id})
         except:
