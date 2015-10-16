@@ -336,7 +336,7 @@ SHOP_APP_SCHEDULE = {
     },
     u'定时发送发货超过五天订单':{
         'task':'shopapp.smsmgr.tasks.task_deliver_goods_later',
-        'schedule': crontab(minute="40", hour="19"),
+        'schedule': crontab(minute="30", hour="13"),
         'args': ()
     },
     u'定时清理购物车和待支付订单任务':{
