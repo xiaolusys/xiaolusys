@@ -34,7 +34,7 @@ class KefuRecordView(generics.ListCreateAPIView):
 from shopback.trades.models import MergeTrade, MergeOrder
 from shopback.items.models import Product
 from .tasks import task_send_message
-SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您买的{0}因销售火爆断货了。由于我们是按照下单的先后顺序发货的，到您这里很不巧缺货了。要麻烦亲申请一下退款我们会及时处理。给您带来不便非常抱歉！么么哒～"
+SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您买的{0}{1}码 因销售火爆断货了。由于我们是按照下单的先后顺序发货的，到您这里很不巧缺货了。要麻烦亲申请一下退款我们会及时处理。给您带来不便非常抱歉！么么哒～"
 class SendMessageView(generics.ListCreateAPIView):
     """
         客服发送短信
@@ -49,21 +49,19 @@ class SendMessageView(generics.ListCreateAPIView):
             m_trade = MergeTrade.objects.get(id=trade_id)
             m_order = MergeOrder.objects.get(id=order_id)
             product = Product.objects.get(outer_id=m_order.outer_id)
-            product_name = product.name.split("/")
-            content = SEND_TEMPLATE.format(product_name[0])
+            product_name = product.name
+            content = SEND_TEMPLATE.format(product_name[0], m_order.sku_properties_name)
             mobile = m_trade.receiver_mobile
             return Response({"content": content, "mobile": mobile, "trade_id": trade_id, "order_id": order_id})
         except:
             pass
             return Response({"trade_id": trade_id, "order_id": order_id})
 
-
     def post(self, request, trade_id, order_id, *args, **kwargs):
-        POST = request.POST
-
+        post = request.POST
         try:
-            content = POST.get("content")
-            mobile = POST.get("mobile")
+            content = post.get("content")
+            mobile = post.get("mobile")
             m_trade = MergeTrade.objects.get(id=trade_id)
             m_order = MergeOrder.objects.get(id=order_id)
             if not content and not mobile or len(mobile) != 11:
