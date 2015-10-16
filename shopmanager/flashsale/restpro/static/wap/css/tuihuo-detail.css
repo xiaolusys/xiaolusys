@@ -20,17 +20,18 @@ p {
     position: relative;
 }
 
-
 .warring_info_x {
     display: inline;
     color: #3c3c3c;
 }
+
 .warring .icon {
     position: relative;
-    top:10px;
+    top: 10px;
     width: 48px;
     height: 48px;
 }
+
 .main {
     margin-bottom: 20px;
     margin-top: 10px;
@@ -54,21 +55,21 @@ p {
     color: #fff;
     text-align: center;
 }
-
 div .buy_kefu {
     width: 100px;
     margin-left: auto;
+    font-size: 17px;
     margin-right: auto;
-    /*line-height: 60px;*/
-    /*background:url(../images/gongzhonghao.jpg) no-repeat rgba(0,0,0,0.6);*/
-    /*background-color: #fcb916;*/
-    /*border-radius: 10px;*/
+    line-height: 60px;
+    background-color: #fcb916;
+    border-radius: 10px;
     color: #fff;
-    /*text-align: center;*/
+    text-align: center;
     position: relative;
-    /*left: 30%;*/
+    left: 30%;
 }
-div .buy_kefu a{
+
+div .buy_kefu a {
     color: #fff;
 }
 
