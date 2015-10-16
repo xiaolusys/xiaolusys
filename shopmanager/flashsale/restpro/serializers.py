@@ -9,8 +9,9 @@ from flashsale.pay.models import (
     ShoppingCart,
     Customer,
     Register,
-    GoodShelf
-    )
+    GoodShelf,
+    CustomShare
+)
 from shopback.trades.models import TradeWuliu
 from flashsale.xiaolumm.models import XiaoluMama
 from rest_framework import serializers
@@ -294,3 +295,17 @@ class WXOrderSerializer(serializers.HyperlinkedModelSerializer):
                     'receiver_name', 'receiver_province', 'receiver_city', 'receiver_zone','receiver_address','receiver_mobile',
                     'receiver_phone', 'product_id', 'product_name', 'product_price', 'product_sku', 'product_count', 
                     'order_status_display', 'product_img', 'delivery_id', 'delivery_company')
+
+
+##################################################################################
+
+class CustomShareSerializer(serializers.HyperlinkedModelSerializer):
+    
+    url = serializers.HyperlinkedIdentityField(view_name='v1:customshare-detail')
+
+    class Meta:
+        model = CustomShare
+        fields = ('url','id','title', 'desc', 'share_url', 'share_img', 'active_at', 'created', 'status')
+        
+        
+        

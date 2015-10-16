@@ -437,7 +437,7 @@ admin.site.register(SaleRefund, SaleRefundAdmin)
 from django.db.models import Sum
 from django.shortcuts import redirect, render_to_response, RequestContext
 from .models_envelope import Envelop
-from .forms import EnvelopForm
+from .forms import EnvelopForm, CustomShareForm
 
 
 class EnvelopAdmin(admin.ModelAdmin):
@@ -681,7 +681,6 @@ admin.site.register(UserCoupon, UserCouponAdmin)
 
 from flashsale.pay.models import ShoppingCart
 
-
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('id','buyer_id', 'buyer_nick', 'item_id',
                     'title', 'price', 'sku_id', 'num',
@@ -689,4 +688,22 @@ class ShoppingCartAdmin(admin.ModelAdmin):
                     'created', 'remain_time', 'status')
     list_filter = ('created', 'status')
     search_fields = ['=item_id', '=buyer_id', ]
+    
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
+
+########################################################################
+
+from .models import CustomShare
+
+class CustomShareAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'share_img', 'status', 'active_at', 'created')
+    list_display_links = ('id', 'title',)
+    
+    list_filter = ('status',)
+    search_fields = ['=id', 'title']
+    form = CustomShareForm
+    
+admin.site.register(CustomShare, CustomShareAdmin)
+
+
+

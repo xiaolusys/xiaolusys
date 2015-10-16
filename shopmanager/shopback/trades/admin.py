@@ -63,13 +63,13 @@ class MergeOrderInline(admin.TabularInline):
     model = MergeOrder
     fields = ('oid','outer_id','outer_sku_id','title','price','payment','num',
               'sku_properties_name','out_stock','is_merge','is_rule_match',
-              'is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
+              'is_reverse_order','gift_type','refund_id','refund_status','sys_status')
     
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields + ('tid','oid'))
         if not perms.has_modify_trade_permission(request.user):
             readonly_fields.update(('outer_id','outer_sku_id','is_merge',
-                                           'is_reverse_order','operator','gift_type','status'))
+                                           'is_reverse_order','operator','gift_type'))
             return tuple(readonly_fields)
 
         return tuple(readonly_fields)

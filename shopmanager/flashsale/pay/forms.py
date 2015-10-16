@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 from django import forms
-from .models import Envelop
+from .models import Envelop,CustomShare
 
 class EnvelopForm( forms.ModelForm ):
     
@@ -16,4 +16,11 @@ class EnvelopForm( forms.ModelForm ):
     def  clean_amount(self):
         amount = self.cleaned_data['amount']
         return int(amount * 100)
+    
+    
+class CustomShareForm( forms.ModelForm ):
+    
+    desc = forms.CharField( widget=forms.Textarea )
+    class Meta:
+        model = CustomShare
     
