@@ -778,5 +778,68 @@ def xlmm_upgrade_A_to_VIP():
             xlmm.agencylevel = XiaoluMama.VIP_LEVEL
             log_action(systemoa.id, xlmm, CHANGE, u'A类代理满5000元升级过程升级该代理的级别到VIP类')
         update_model_fields(xlmm,update_fields=['target_complete','agencylevel'])
-        
-        
+
+
+@task()
+def xlmmClickTop(time_from, time_to):
+    # 妈妈编号 点击数量 订单数量 购买人数 转化率（百分比） 管理员
+    clics = ClickCount.objects.filter(write_time__gte=time_from, write_time__lte=time_to)
+    dic = {}
+    for clik in clics:
+        if dic.has_key(clik.linkid):
+            dic[clik.linkid] += clik.valid_num  # 有则叠加
+        else:
+            dic[clik.linkid] = clik.valid_num
+    source_data = sorted(dic.items(), key=lambda asd: asd[1], reverse=True)
+    cuttop50 = source_data[:50] if len(source_data) >= 50 else source_data
+    data = []
+    for cut in cuttop50:
+        link_id = cut[0]
+        valid_num = cut[1]
+        # 订单数量
+        stps = StatisticsShopping.objects.filter(linkid=link_id, status__in=(StatisticsShopping.FINISHED,
+                                                                             StatisticsShopping.WAIT_SEND),
+                                                 shoptime__gte=time_from, shoptime__lte=time_to)
+        shop_num = stps.count()  # 订单数量
+        customet_num = len(stps.values("openid").distinct())  # 购买人数
+        conver_rate = customet_num / valid_num if valid_num != 0 else 0  # 转化率　＝　购买人数／有效点击
+        try:
+            adm = XiaoluMama.objects.get(id=link_id).manager
+        except XiaoluMama.DoesNotExist:
+            adm = 0
+        atm_dic = {link_id: {"valid_num": valid_num, "shop_num": shop_num, "customet_num": customet_num,
+                             "conver_rate": conver_rate, "adm": adm}}
+        data.append(atm_dic)
+    return data
+
+
+@task()
+def xlmmOrderTop(time_from, time_to):
+    stps = StatisticsShopping.objects.filter(status__in=(StatisticsShopping.FINISHED,
+                                                         StatisticsShopping.WAIT_SEND),
+                                             shoptime__gte=time_from, shoptime__lte=time_to)
+    dic = {}
+    for stp in stps:
+        if dic.has_key(stp.linkid):
+            dic[stp.linkid] += 1  # 订单加１
+        else:
+            dic[stp.linkid] = 1
+
+    source_data = sorted(dic.items(), key=lambda asd: asd[1], reverse=True)
+    cuttop50 = source_data[:50] if len(source_data) >= 50 else source_data
+    data = []
+    for cut in cuttop50:
+        link_id = cut[0]
+        shop_num = cut[1]
+        clics = ClickCount.objects.filter(linkid=link_id, write_time__gte=time_from, write_time__lte=time_to)
+        valid_num = clics.aggregate(total_valid=Sum("valid_num")).get("total_valid") or 0
+        customet_num = len(stps.filter(linkid=link_id).values("openid").distinct())
+        conver_rate = customet_num / valid_num if valid_num != 0 else 0  # 转化率　＝　购买人数／有效点击
+        try:
+            adm = XiaoluMama.objects.get(id=link_id).manager
+        except XiaoluMama.DoesNotExist:
+            adm = 0
+        atm_dic = {link_id: {"valid_num": valid_num, "shop_num": shop_num, "customet_num": customet_num,
+                             "conver_rate": conver_rate, "adm": adm}}
+        data.append(atm_dic)
+    return data

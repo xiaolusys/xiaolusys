@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>TOP-DATA-API</title>
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+
+
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}fixed-header-table-master/jquery.fixedheadertable.min.js"
+            type="text/javascript"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery-json/jquery.json.js"></script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/extend/layer.ext.js"></script>
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+        @import "{{ STATIC_URL }}fixed-header-table-master/css/defaultTheme.css";
+    </style>
+</head>
+<script type="text/javascript">
+    $(function () {
+        $(".select_saletime").datepicker({
+            dateFormat: "yy-mm-dd"
+        });
+    });
+</script>
+<body class="container">
+<div>
+    <h3>TOP-DATA</h3>
+</div>
+
+
+<div>
+    <div class="input-group">
+        <span class="input-group-addon" id="date_from">开始时间</span>
+        <input type="text" class="form-control select_saletime  datepicker" placeholder=""
+               aria-describedby="basic-addon1">
+
+        <span class="input-group-addon" id="date_to">结束时间</span>
+        <input type="text" class="form-control select_saletime  datepicker" placeholder=""
+               aria-describedby="basic-addon2">
+        <span class="input-group-btn">
+            <button class="btn btn-default btn_search">click_top</button>
+            <button class="btn btn-default btn_search">order_top</button>
+        </span>
+    </div>
+</div>
+
+
+<div style="margin-top: 30px">
+    <span id="task_id" style="display: none">{{ task_id }}</span>
+    <table class="table table-bordered" id="mytable">
+        <thead>
+        <tr>
+            <th>妈妈编号</th>
+            <th>点击数量</th>
+            <th>订单数量</th>
+            <th>购买人数</th>
+            <th>转化率</th>
+            <th>管理员</th>
+        </tr>
+        </thead>
+        <tbody id="pro_info_tr">
+        </tbody>
+    </table>
+
+</div>
+</body>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var task_id = $("#task_id").html();
+        console.log(task_id);
+        // 访问任务 //aj_task(task_id);
+        $(".btn_search").click(function () {
+            var dom = $(this).parent().parent();
+            getTimeZoneExchangeTaskID(dom)
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    function getTimeZoneExchangeTaskID(dom) {
+        console.log(dom);
+        var time_from = $(dom).find("input")[0].value;
+        var time_to = $(dom).find("input")[1].value;
+        var func = $(dom).find("button").html();
+        var obj = {"time_from": time_from, "time_to": time_to, "func": func};
+        console.log(obj);
+        getTaskID(obj);
+    }
+    function getTaskID(obj) {
+        var task_url = "/m/tp5/";
+        $.ajax({
+            url: task_url,
+            data: obj,
+            type: "get",
+            dataType: "json",
+            success: taskCallBack
+        });
+        function taskCallBack(res) {
+            console.log(res.task_id);
+            //　调用访问任务的
+            aj_task(res.task_id);
+        }
+    }
+</script>
+
+<!--访问任务，生成退货统计数据-->
+<script style="text/javascript">
+    function aj_task(task_id) {
+        var task_url = "/djcelery/" + task_id + "/status";
+        $.ajax({
+            url: task_url,
+            data: {},
+            type: "get",
+            dataType: "json",
+            success: taskCallBack
+        });
+        function taskCallBack(res) {
+            console.log(res.task.status);
+            if (res.task.status == "PENDING") {
+                console.log("稍等3秒再检查");
+                setTimeout(function () {
+                    aj_task(task_id)
+                }, 3000);
+            }
+            if (res.task.status == "SUCCESS") {
+                console.log(res.task.result);
+                var data = res.task.result;
+                var table_id = "mytable";
+                setPageData(data);//填充数据到表中
+                dataTableSort(table_id);//套用datatable控件
+            }
+        }
+    }
+</script>
+<script type="text/javascript">
+    function setPageData(data) {
+        $("#mytable").dataTable.destroy;//清空原表
+        console.log("data:--->", data);
+        $.each(data, function (ind, da) {
+            $.each(da, function (i, pro) {
+                console.log(i, "-", pro);
+                var html = '<tr>' +
+                        '<td>{0}</td>' +
+                        '<td>{1}</td>' +
+                        '<td>{2}</td>' +
+                        '<td>{3}</td>' +
+                        '<td>{4}</td>' +
+                        '<td>{5}</td>' +
+                        '</tr>';
+                var format_html = String.format(html,
+                        i,
+                        pro.valid_num,
+                        pro.shop_num,
+                        pro.customet_num,
+                        pro.conver_rate,
+                        pro.adm
+                );
+                $("#pro_info_tr").append(format_html);
+            });
+        });
+    }
+</script>
+
+<!--datatable 插件函数-->
+<script type="text/javascript">
+    function dataTableSort(table_id) {
+        $("#" + table_id).dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": false, //自适应宽度
+            "aaSorting": [[1, "desc"]],
+            "iDisplayLength": 20,
+            "aLengthMenu": [[20, 50, -1], [20, 50, "All"]],
+            "bInfo": true,
+            "bRetrieve": true,// 重新刷数据到同一个table中要置为true
+            "sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "_MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
+        });
+    }
+</script>
+
+<!--字符串format函数-->
+<script type="text/javascript">
+    String.format = function () {
+        if (arguments.length == 0)
+            return null;
+        var str = arguments[0];
+        for (var i = 1; i < arguments.length; i++) {
+            var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+            str = str.replace(re, arguments[i]);
+        }
+        return str;
+    };
+</script>
+</html>
+
+
