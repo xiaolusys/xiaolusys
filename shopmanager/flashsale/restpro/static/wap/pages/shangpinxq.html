@@ -223,6 +223,9 @@ function change_goodsize() {
     $('#js-goods-size li.active').removeClass('active').addClass('normal');
     if ($(this).hasClass('disable'))return;
     $(this).removeClass('normal').addClass('active');
+    // 将价格显示到主图下方
+    var sku_price = $($(this)[0]).attr("sku_price");
+    $(".goods-info .price").find('span').html('¥ ' + sku_price);
 }
 function scroll_top(e){
     e.preventDefault();
