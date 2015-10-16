@@ -12,6 +12,17 @@
     <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
     <link rel="stylesheet" href="../css/tuihuo-detail.css">
     <link rel="stylesheet" href="../css/wodetuihuo-kong.css">
+    <script id="ntkf_template" type="text/html">
+        var NTKF_PARAM = {
+        siteid:"kf_9645",        //企业ID，必填，取值参见文档开始表
+        settingid:"kf_9645_1444459002183",        //缺省客服配置ID，必填，取值参见文档开始表
+        uid:"{{ profile.id }}",        //用户ID,未登录可以为空
+        uname:"{{ profile.nick }}",        //用户名，未登录可以为空
+        isvip:"0" ,         //是否为vip用户
+        userlevel:"1" ,    //网站自定义会员级别
+        orderid:"201210232322",//订单ID,
+        };
+    </script>
 </head>
 <body>
 <div class="header">
@@ -134,8 +145,8 @@
             超过5天,合理申请将默认达成,如需要退货,届时您需要将商品寄送到仓库;或者您可以联系客服人员为您服务~
         </p>
     </div>
-    <div class="buy_kefu">
-        <a class="kefu" ><img src="../images/gongzhonghao.jpg"></a>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
     </div>
 
 </script>
@@ -153,9 +164,10 @@
 
         {{ ware_by_address }}
     </div>
-    <div class="buy_kefu">
-        <a class="kefu" ><img src="../images/gongzhonghao.jpg"></a>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
     </div>
+
 </script>
 
 <!-- 提交申请：卖家同意（已付款）提供仓库地址提示信息 -->
@@ -172,10 +184,9 @@
         <p class="no_main">
             如果使用的是微信支付或者支付宝,您的退款将在5个工作日内返还到您的账户,如果没有转入您的微信账户,请联系(优尼世界)微信公众号在线客服<br>
         </p>
-
-    <div class="buy_kefu">
-        <a class="kefu" ><img src="../images/gongzhonghao.jpg"></a>
     </div>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
     </div>
 </script>
 
@@ -227,8 +238,8 @@
         </p>
         {{ /if }}
     </div>
-    <div class="buy_kefu">
-        <a class="kefu" ><img src="../images/gongzhonghao.jpg"></a>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
     </div>
 </script>
 
@@ -240,9 +251,8 @@
         <p class="no_main">您好,您的申请被拒绝,可能是您提交的申请金额或者原因不合申请要求导致的,麻烦您修改下，申请内容,谢谢！</p>
 
     </div>
-
-    <div class="buy_kefu">
-        <a class="kefu" ><img src="../images/gongzhonghao.jpg"></a>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
     </div>
 </script>
 
@@ -259,9 +269,9 @@
 
         <p class="no_main">如果使用的是微信支付或者支付宝,您的退款将在5个工作日内返还到您的账户,如果没有转入您的微信账户,请联系(优尼世界)微信公众号在线客服人员,祝您购物愉快!<br></p>
 
-    <div class="buy_kefu">
-        <a class="kefu" ><img src="../images/gongzhonghao.jpg"></a>
     </div>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
     </div>
 </script>
 <!-- 退款成功　提示信息 -->
@@ -317,6 +327,9 @@
             {{ sid }}
         </p>
     </div>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
+    </div>
 </script>
 
 <script type="text/html" id="info_7">
@@ -344,6 +357,9 @@
         <p class="no_main">
             {{ desc }}
         </p>
+    </div>
+    <div class="buy_kefu service_box">
+        <a class="kefu">联系客服</a>
     </div>
 </script>
 
@@ -425,7 +441,8 @@
 
             <p class="no_main">请将包裹里原发货单一并寄回或者写张纸条，注明您的微信昵称、联系电话和退换货的原因，方便我们售后收到及时为您处理哦，谢谢！　^_^</p><br>
 
-            <p class="no_main">没有质量问题的退货运费需要亲自理哦。到货验收确实是发货产品的质量问题我们会把货款和运费分开退还给您的！发普通的快递即可！请勿发顺丰或EMS等高邮费的快递，拒收到付件，请保持衣服吊牌完整；不影响二次销售</p>
+            <p class="no_main">
+                没有质量问题的退货运费需要亲自理哦。到货验收确实是发货产品的质量问题我们会把货款和运费分开退还给您的！发普通的快递即可！请勿发顺丰或EMS等高邮费的快递，拒收到付件，请保持衣服吊牌完整；不影响二次销售</p>
         </div>
     </div>
 </script>
@@ -441,6 +458,8 @@
 <script src="../js/sweet-alert.min.js"></script>
 
 <script src="../js/tmtuihuo-detail.js"></script>
+<script type="text/javascript">
 
+</script>
 </body>
 </html>
