@@ -680,6 +680,112 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
         else:
             all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
                                                           sale_supplier__category_id=category)
+        result_data = []
+        result_suppliers = set()
+        all_order_data = DailySupplyChainStatsOrder.objects.filter(sale_time__range=(start_date_time, end_date_time))
+        if category == "1":
+            all_order_data = DailySupplyChainStatsOrder.objects.filter(
+                sale_time__range=(start_date_time, end_date_time)).filter(product_id__startswith='9')
+        elif category == "2":
+            all_order_data = DailySupplyChainStatsOrder.objects.filter(
+                sale_time__range=(start_date_time, end_date_time)).filter(product_id__startswith='8')
+        #获取商品的销售情况
+        print all_order_data
+        for one_order_data in all_order_data:
+            try:
+                one_product = Product.objects.get(outer_id=one_order_data.product_id)
+                sale_product_bean = SaleProduct.objects.get(id=one_product.sale_product)
+                one_supplier = sale_product_bean.sale_supplier
+                supplier_name = one_supplier.supplier_name
+                try:
+                    category = one_supplier.category.__unicode__()
+                except:
+                    category = ""
+                charge_info = SupplierCharge.objects.filter(supplier_id=one_supplier.id)
+                try:
+                    buyer_name = charge_info[0].employee.username
+                except:
+                    buyer_name = ""
+                fa_huo_num = 0
+                fa_huo_time = 0
+                tuo_kuan = {u"七天无理由退换货": 0, u"与描述不符": 0, u"其他": 0,
+                            u"发票问题": 0, u"发错货/漏发": 0, u"开线/脱色/脱毛/有色差/有虫洞": 0,
+                            u"未收到货": 0, u"没有发货": 0, u"缺货": 0, u"退运费": 0, u"错拍": 0}
+                all_refund = SaleRefund.objects.filter(item_id=one_product.id, created__gte=start_date_time)
+                all_tui_kuan_ceshi = all_refund.count()
+                if one_order_data.order_deal_time > 0 and one_order_data.goods_arrival_time > 0:
+                            fa_huo_num = one_order_data.sale_num
+                            fa_huo_time = (one_order_data.goods_arrival_time - one_order_data.order_deal_time)\
+                                                                                * one_order_data.sale_num
+                if one_supplier in result_suppliers:
+                    for one_data in result_data:
+                        if one_data["supplier_id"] == supplier_name:
+                            one_data["all_sale_num"] += one_order_data.sale_num  #销售数量
+                            one_data["all_sale_cost"] += one_order_data.cost_of_product #销售成本
+                            one_data["all_sale_money"] += one_order_data.sale_cost_of_product #销售额
+                            one_data["all_tui_kuan"] += one_order_data.return_num #退款数
+                            one_data["tui_kuan_money"] += one_order_data.return_num * one_product.agent_price #退款钱
+                            one_data["fa_huo_num"] += fa_huo_num
+                            one_data["fa_huo_time"] += fa_huo_time
+                            one_data["all_tui_kuan_ceshi"] += all_tui_kuan_ceshi
+                            for k, v in one_data['tuo_kuan'].items():
+                                one_data['tuo_kuan'][k] += all_refund.filter(reason=k).count()
+                else:
+                    result_suppliers.add(sale_product_bean.sale_supplier_id)
+                    for one_reason in REFUND_REASON:
+                        if one_reason in tuo_kuan:
+                            tuo_kuan[one_reason] += all_refund.filter(reason=one_reason).count()
+                        else:
+                            tuo_kuan[one_reason] = all_refund.filter(reason=one_reason).count()
+                    one_temp_data = {"supplier_id": sale_product_bean.sale_supplier_id,
+                                     "supplier_name": supplier_name,
+                                     "buyer_name": buyer_name,
+                                     "category": category,
+                                     "all_sale_num": one_order_data.sale_num,
+                                     "all_sale_cost": one_order_data.cost_of_product,
+                                     "all_sale_money": one_order_data.sale_cost_of_product,
+                                     "all_tui_kuan": one_order_data.return_num,
+                                     "tui_kuan_money": one_order_data.return_num * one_product.agent_price,
+                                     "fa_huo_num": fa_huo_num,
+                                     "fa_huo_time": fa_huo_time,
+                                     "tuo_kuan": tuo_kuan,
+                                     "all_tui_kuan_ceshi": all_tui_kuan_ceshi}
+                    result_data.append(one_temp_data)
+            except:
+                continue
+
+        for one_data in result_data:
+            supplier_bean = SaleSupplier.objects.filter(id=one_data['supplier_id'])
+            if supplier_bean.count() == 0:
+                continue
+            charger_product = all_sale_product.filter(sale_supplier__id=one_data['supplier_id'])
+            choose_sale_num = charger_product.count()
+            one_data["choose_sale_num"] = choose_sale_num
+
+            charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
+            shelf_sale_num = charger_product_shelf.count()
+            one_data["shelf_sale_num"] = shelf_sale_num
+            one_data["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)
+            fa_huo_time = one_data["fa_huo_time"]/one_data["fa_huo_num"] if one_data["fa_huo_num"] != 0 else 0
+            one_data["fa_huo_time"] = format_time(fa_huo_time)
+
+    except Exception, exc:
+        raise task_calc_performance_by_supplier.retry(exc=exc)
+    return result_data
+
+
+def task_calc_performance_by_supplier_back(start_date, end_date, category="0"):
+    """计算供应商_back"""
+    try:
+        year, month, day = start_date.split('-')
+        start_date_time = datetime.datetime(int(year), int(month), int(day))
+        year, month, day = end_date.split('-')
+        end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
+        if category == "0":
+            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+        else:
+            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
+                                                          sale_supplier__category_id=category)
         all_suppliers = all_sale_product.values("sale_supplier__id").distinct()
         result_data = []
 
@@ -750,6 +856,7 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
     except Exception, exc:
         raise task_calc_performance_by_supplier.retry(exc=exc)
     return result_data
+
 
 def format_time(time_of_long):
     days = 0
