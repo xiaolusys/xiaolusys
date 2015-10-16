@@ -17,7 +17,7 @@ def get_lack_num_by_product(product, sku):
 
 def get_sale_num(product, sku):
     """获取上架后商品的销售,不包括退款"""
-    order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT, refund_status=pcfg.NO_REFUND) \
+    order_qs = MergeOrder.objects.filter(sys_status=pcfg.IN_EFFECT, refund_status__in=(pcfg.NO_REFUND, pcfg.REFUND_REFUSE_BUYER)) \
         .exclude(merge_trade__type=pcfg.REISSUE_TYPE) \
         .exclude(merge_trade__type=pcfg.EXCHANGE_TYPE) \
         .exclude(gift_type=pcfg.RETURN_GOODS_GIT_TYPE)
