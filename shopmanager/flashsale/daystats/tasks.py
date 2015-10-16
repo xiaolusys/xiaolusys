@@ -802,8 +802,6 @@ def task_calc_operate_data(start_date, end_date, category="0"):
         end_date = datetime.date(int(year), int(month), int(day))
 
         all_data = DailySupplyChainStatsOrder.objects.filter(sale_time__range=(start_date, end_date))
-        for one_data in all_data:
-            print one_data
         interval_day = (end_date - start_date).days
         if interval_day <= 0:
             return []
@@ -823,13 +821,17 @@ def task_calc_operate_data(start_date, end_date, category="0"):
                 is_already_in, temp_dict = judge_already(product_outer_id, temp_data)
                 if is_already_in:
                     temp_dict['sale_num'] += one_data.sale_num
+                    temp_dict['total_cost'] += one_product.cost * one_data.sale_num
+                    temp_dict['total_sale_money'] += one_product.agent_price * one_data.sale_num
+                    temp_dict['stock_num'] += one_product.collect_num
+                    temp_dict['stock_cost'] += one_product.cost * one_product.collect_num
                 else:
                     temp_data.append(
                         {"outer_id": product_outer_id,
                          "cost": one_product.cost,
                          "sale_num": one_data.sale_num,
                          "sale_time": target_date.strftime("%Y-%m-%d"),
-                         "title": one_product.name.split("/"),
+                         "title": one_product.name.split("/")[0],
                          "group": product_category,
                          "category": product_category,
                          "agent_price": one_product.agent_price,
@@ -845,7 +847,7 @@ def task_calc_operate_data(start_date, end_date, category="0"):
 
 def judge_already(p_id, p_list):
     for one_dict in p_list:
-        if p_id in one_dict:
+        if p_id == one_dict["outer_id"]:
             return True, one_dict
     return False, []
 def get_category(category):
