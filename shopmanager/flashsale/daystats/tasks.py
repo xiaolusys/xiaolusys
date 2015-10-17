@@ -671,15 +671,22 @@ REFUND_REASON = (u'其他', u'错拍', u'缺货', u'开线/脱色/脱毛/有色�
 def task_calc_performance_by_supplier(start_date, end_date, category="0"):
     """计算供应商"""
     try:
+        #获取开始和结束时间
         year, month, day = start_date.split('-')
         start_date_time = datetime.datetime(int(year), int(month), int(day))
         year, month, day = end_date.split('-')
         end_date_time = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
+
         if category == "0":
-            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+            all_created_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time))
+            all_sale_product = SaleProduct.objects.filter(sale_time__range=(start_date_time, end_date_time),
+                                                          status=SaleProduct.SCHEDULE)
         else:
-            all_sale_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
-                                                          sale_supplier__category_id=category)
+            all_created_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
+                                                             sale_supplier__parent_cid=category)
+            all_sale_product = SaleProduct.objects.filter(sale_time__range=(start_date_time, end_date_time),
+                                                          sale_category__parent_cid=category,
+                                                          status=SaleProduct.SCHEDULE)
         result_data = []
         result_suppliers = set()
         all_order_data = DailySupplyChainStatsOrder.objects.filter(sale_time__range=(start_date_time, end_date_time))
@@ -690,7 +697,6 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
             all_order_data = DailySupplyChainStatsOrder.objects.filter(
                 sale_time__range=(start_date_time, end_date_time)).filter(product_id__startswith='8')
         #获取商品的销售情况
-        print all_order_data
         for one_order_data in all_order_data:
             try:
                 one_product = Product.objects.get(outer_id=one_order_data.product_id)
@@ -758,11 +764,12 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
             supplier_bean = SaleSupplier.objects.filter(id=one_data['supplier_id'])
             if supplier_bean.count() == 0:
                 continue
-            charger_product = all_sale_product.filter(sale_supplier__id=one_data['supplier_id'])
+            charger_product = all_created_product.filter(sale_supplier__id=one_data['supplier_id'])
             choose_sale_num = charger_product.count()
             one_data["choose_sale_num"] = choose_sale_num
 
-            charger_product_shelf = charger_product.filter(status=SaleProduct.SCHEDULE)
+            charger_product_shelf = all_sale_product.filter(sale_supplier__id=one_data['supplier_id'],
+                                                            status=SaleProduct.SCHEDULE)
             shelf_sale_num = charger_product_shelf.count()
             one_data["shelf_sale_num"] = shelf_sale_num
             one_data["shelf_percent"] = 0 if choose_sale_num == 0 else round(shelf_sale_num/choose_sale_num, 2)

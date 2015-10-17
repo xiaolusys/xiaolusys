@@ -24,6 +24,14 @@
                         var result_data = eval(res.task.result);
                         $("#data-table-people thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
+                            var money_lirun = 0;
+                            var all_sale_num  = parseInt(dd.all_sale_num);
+                            var all_tui_kuan  = parseInt(dd.all_tui_kuan);
+
+                            var sale_num = all_sale_num - all_tui_kuan;
+                            if (sale_num > 0 && all_sale_num > 0){
+                                money_lirun = (dd.all_sale_money - parseFloat(dd.tui_kuan_money)) - parseFloat(dd.all_sale_cost)*(sale_num/all_sale_num)
+                            }
                             tb.append("<tr>" +
                             "<td>" + dd['supplier_name'] + "</td>" +
                             "<td>" + dd.category + "</td>" +
@@ -34,7 +42,7 @@
                             "<td>" + dd["all_sale_num"] + "</td>" +
                             "<td>" + dd.all_sale_cost + "</td>" +
                             "<td>" + dd["all_sale_money"] + "</td>" +
-                            "<td>" + (parseFloat(dd.all_sale_money)-parseFloat(dd.all_sale_cost)-parseFloat(dd.tui_kuan_money)).toFixed(2) + "</td>" +
+                            "<td>" + money_lirun.toFixed(2) + "</td>" +
                             "<td>" + dd.all_tui_kuan +"("+ dd.all_tui_kuan_ceshi + ")</td>" +
                             "<td>" + dd.tui_kuan_money + "</td>" +
                             "<td>" + dd.tuo_kuan["开线/脱色/脱毛/有色差/有虫洞"] + "</td>" +
