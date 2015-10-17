@@ -335,7 +335,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                         obj.refund_id = re.id
                         obj.status = SaleRefund.REFUND_APPROVE
                         obj.save()
-
+                        
                     log_action(request.user.id, obj, CHANGE, '退款审核通过:%s' % obj.refund_id)
                     self.message_user(request, '退款单审核通过')
                 else:
@@ -391,7 +391,6 @@ class SaleRefundAdmin(admin.ModelAdmin):
         
         elif request.POST.has_key("_refund_complete"):
             try:
-
                 if obj.status == SaleRefund.REFUND_APPROVE:
                     # obj.status = SaleRefund.REFUND_SUCCESS
                     # obj.save()
