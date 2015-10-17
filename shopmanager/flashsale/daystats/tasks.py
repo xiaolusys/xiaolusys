@@ -723,9 +723,9 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                             fa_huo_num = one_order_data.sale_num
                             fa_huo_time = (one_order_data.goods_arrival_time - one_order_data.order_deal_time)\
                                                                                 * one_order_data.sale_num
-                if one_supplier in result_suppliers:
+                if one_supplier.id in result_suppliers:
                     for one_data in result_data:
-                        if one_data["supplier_id"] == supplier_name:
+                        if one_data["supplier_id"] == one_supplier.id:
                             one_data["all_sale_num"] += one_order_data.sale_num  #销售数量
                             one_data["all_sale_cost"] += one_order_data.cost_of_product #销售成本
                             one_data["all_sale_money"] += one_order_data.sale_cost_of_product #销售额
