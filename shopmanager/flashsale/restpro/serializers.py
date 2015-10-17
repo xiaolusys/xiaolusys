@@ -294,3 +294,10 @@ class WXOrderSerializer(serializers.HyperlinkedModelSerializer):
                     'receiver_name', 'receiver_province', 'receiver_city', 'receiver_zone','receiver_address','receiver_mobile',
                     'receiver_phone', 'product_id', 'product_name', 'product_price', 'product_sku', 'product_count', 
                     'order_status_display', 'product_img', 'delivery_id', 'delivery_company')
+
+from supplychain.supplier.models import SaleProduct
+
+
+class SaleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleProduct

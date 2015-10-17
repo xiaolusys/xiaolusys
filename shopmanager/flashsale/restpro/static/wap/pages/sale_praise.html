@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>小鹿美美 - 外贸原单，天天惊喜！</title>
+    <meta id="viewport" name="viewport"/>
+    <script src="../js/common.js"></script>
+    <script src="../js/slae_praise.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dots-loading.css">
+    <link rel="stylesheet" type="text/css" href="../css/common.css">
+    <link rel="stylesheet" type="text/css" href="../css/index.css">
+    <link rel="stylesheet" type="text/css" href="../css/praise.css">
+</head>
+
+<body>
+<!-- 页首、导航栏 -->
+<div class="heart_keleyi_com"></div>
+<div class="top">
+    <a class="user" href="gerenzhongxin.html"></a>
+    <a class="home"></a>
+</div>
+
+<!-- 女装专区 -->
+<div class="glist " style="position:relative;">
+    <div class="nvzhuang" style="position:relative;">
+        <ul id="list" style="position:relative;">
+
+        </ul>
+    </div>
+</div>
+
+<script type="text/html" id="nvzhuang_li">
+    <li>
+        <a>
+            <img src="{{ pic_url }}">
+
+            <p class="gname">{{ title }}</p>
+
+            <p class="gprice">
+                <span class="nprice">¥ {{ sale_price }} </span>
+                <span class="nprice hot_val"></span>
+
+                <span class="love_icon unpraise" id="{{ id }}" praise="0"></span>
+            </p>
+        </a>
+    </li>
+</script>
+
+<!-- 潮童专区 -->
+<div class="glist ">
+    <ul class="chaotong">
+    </ul>
+
+</div>
+<script type="text/html" id="chaotong_li">
+    <li>
+        <a href="#">
+            <img src="{{ pic_url }}">
+
+            <p class="gname"></p>
+
+            <p class="gprice">
+                <span class="nprice">¥ {{ nprice }} </span>
+                <s class="oprice">¥ {{ oprice }}</s>
+            </p>
+        </a>
+    </li>
+</script>
+<div id="loading"><span class="dots-loader"></span></div>
+<div class="scroll-top" id="js-scroll-top"></div>
+
+
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+
+<script type="text/javascript">
+    (function ($) {
+        //返回顶部
+        $(document).on({touchend: scroll_top, click: scroll_top}, '#js-scroll-top');
+        var startY;
+        document.addEventListener('touchstart', function (ev) {
+            startY = ev.touches[0].pageY;
+        }, false);
+
+        document.addEventListener('touchend', function (ev) {
+            var endY = ev.changedTouches[0].pageY;
+            var dir = startY - endY;
+            if (dir > 0) {
+                $('#js-fixed-nav').hide();
+            } else {
+                $('#js-fixed-nav').show();
+            }
+        }, false);
+
+        getSaleProduct();
+
+        $(window).scroll(function () {
+            loadData();// 更具页面下拉情况来加载数据
+        });
+
+    })(jQuery);
+    function scroll_top(e) {
+        e.preventDefault();
+        $('body').animate({scrollTop: 0}, 400);
+    }
+
+</script>
+<link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
+<script src="../js/sweet-alert.min.js"></script>
+</body>
+</html>
