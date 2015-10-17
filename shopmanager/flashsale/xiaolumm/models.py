@@ -482,6 +482,7 @@ class CarryLog(models.Model):
     ORDER_BUY     = 'buy'
     CLICK_REBETA  = 'click'
     REFUND_RETURN = 'refund'
+    REFUND_OFF    = 'reoff'
     CASH_OUT      = 'cashout'
     DEPOSIT       = 'deposit'
     THOUSAND_REBETA = 'thousand'
@@ -495,6 +496,7 @@ class CarryLog(models.Model):
         (ORDER_REBETA,u'订单返利'),
         (ORDER_BUY,u'消费支出'),
         (REFUND_RETURN,u'退款返现'),
+        (REFUND_OFF,u'退款扣除'),
         (CLICK_REBETA,u'点击兑现'),
         (CASH_OUT,u'钱包提现'),
         (DEPOSIT,u'押金'),
@@ -502,7 +504,7 @@ class CarryLog(models.Model):
         (AGENCY_SUBSIDY,u'代理补贴'),
         (MAMA_RECRUIT,u'招募奖金'),
         (ORDER_RED_PAC,u'订单红包'),
-        (COST_FLUSH,u'冲正差额'),
+        (COST_FLUSH,u'补差额'),
         (RECHARGE, u'充值')
     )
     

@@ -51,6 +51,6 @@ class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
         resp     = serializer.data
         xlmm     = self.get_xlmm(request)
         xlmm_id  = xlmm and xlmm.id or 0
-        resp['share_link'] = resp['share_url'].format(xlmm = xlmm_id)
+        resp['share_link'] = cshare.share_link({'xlmm':xlmm_id})
         return Response(resp)
     

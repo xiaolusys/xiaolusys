@@ -8,6 +8,7 @@ from django.db import IntegrityError, transaction
 
 from shopback import paramconfig as pcfg
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from .signals import signal_saletrade_refund_confirm
 from .options import uniqid
 
 class SaleRefund(models.Model):
@@ -115,8 +116,13 @@ class SaleRefund(models.Model):
     
     def refund_Confirm(self):
         
-        self.status = SaleRefund.REFUND_SUCCESS
-        self.save()
+        try:
+            SaleRefund.objects.get(id=self.id,status=SaleRefund.REFUND_APPROVE)
+        except Exception,exc:
+            raise Exception('%s is not in approve status'%self)
+        else:
+            self.status = SaleRefund.REFUND_SUCCESS
+            self.save()
         
         from flashsale.pay.models import SaleOrder,SaleTrade
         
@@ -130,8 +136,9 @@ class SaleRefund(models.Model):
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save()
-
-
+        
+        signal_saletrade_refund_confirm.send(sender=SaleRefund,obj=self)
+            
 
 def buyeridPatch():
     

@@ -8,8 +8,6 @@
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
     <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
     <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
-
-
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
@@ -41,7 +39,7 @@
 </div>
 
 
-<div>
+<div id="time_zone_pic">
     <div class="input-group">
         <span class="input-group-addon" id="date_from">开始时间</span>
         <input type="text" class="form-control select_saletime  datepicker" placeholder=""
@@ -51,29 +49,14 @@
         <input type="text" class="form-control select_saletime  datepicker" placeholder=""
                aria-describedby="basic-addon2">
         <span class="input-group-btn">
-            <button class="btn btn-default btn_search">click_top</button>
-            <button class="btn btn-default btn_search">order_top</button>
+            <button class="btn btn-default btn_search" func="click_top">点击TOP</button>
+            <button class="btn btn-default btn_search" func="order_top">订单TOP</button>
         </span>
     </div>
 </div>
 
 
-<div style="margin-top: 30px">
-    <span id="task_id" style="display: none">{{ task_id }}</span>
-    <table class="table table-bordered" id="mytable">
-        <thead>
-        <tr>
-            <th>妈妈编号</th>
-            <th>点击数量</th>
-            <th>订单数量</th>
-            <th>购买人数</th>
-            <th>转化率</th>
-            <th>管理员</th>
-        </tr>
-        </thead>
-        <tbody id="pro_info_tr">
-        </tbody>
-    </table>
+<div style="margin-top: 30px" id="table_div">
 
 </div>
 </body>
@@ -85,24 +68,32 @@
         console.log(task_id);
         // 访问任务 //aj_task(task_id);
         $(".btn_search").click(function () {
-            var dom = $(this).parent().parent();
-            getTimeZoneExchangeTaskID(dom)
+            var func = $(this).attr("func");
+            var btn = $(this);
+            getTimeZoneExchangeTaskID(func, btn);
         });
     });
 </script>
 
 <script type="text/javascript">
-    function getTimeZoneExchangeTaskID(dom) {
-        console.log(dom);
+    function getTimeZoneExchangeTaskID(func, btn) {
+        var dom = $("#time_zone_pic");
         var time_from = $(dom).find("input")[0].value;
         var time_to = $(dom).find("input")[1].value;
-        var func = $(dom).find("button").html();
+        if(time_from==""||time_to==""){
+            layer.msg("所选时间不能为空");
+            return
+        }
         var obj = {"time_from": time_from, "time_to": time_to, "func": func};
         console.log(obj);
-        getTaskID(obj);
+        getTaskID(obj, btn);
     }
-    function getTaskID(obj) {
+    function getTaskID(obj, btn) {
         var task_url = "/m/top/";
+        if ($(btn).hasClass("loading")) {
+            return
+        }
+        $(btn).addClass("loading");
         $.ajax({
             url: task_url,
             data: obj,
@@ -113,14 +104,14 @@
         function taskCallBack(res) {
             console.log(res.task_id);
             //　调用访问任务的
-            aj_task(res.task_id);
+            aj_task(res.task_id, btn);
         }
     }
 </script>
 
 <!--访问任务，生成退货统计数据-->
 <script style="text/javascript">
-    function aj_task(task_id) {
+    function aj_task(task_id, btn) {
         var task_url = "/djcelery/" + task_id + "/status";
         $.ajax({
             url: task_url,
@@ -130,6 +121,7 @@
             success: taskCallBack
         });
         function taskCallBack(res) {
+            $(btn).removeClass("loading");
             console.log(res.task.status);
             if (res.task.status == "PENDING") {
                 console.log("稍等3秒再检查");
@@ -137,20 +129,38 @@
                     aj_task(task_id)
                 }, 3000);
             }
-            if (res.task.status == "SUCCESS") {
+            else if (res.task.status == "SUCCESS") {
                 console.log(res.task.result);
                 var data = res.task.result;
                 var table_id = "mytable";
                 setPageData(data);//填充数据到表中
                 dataTableSort(table_id);//套用datatable控件
             }
+            else {
+                alert("失败");
+            }
         }
     }
 </script>
 <script type="text/javascript">
     function setPageData(data) {
-        $("#mytable").dataTable.destroy;//清空原表
         console.log("data:--->", data);
+        $("#table_div").empty();
+        var table = '<table class="table table-bordered" id="mytable">' +
+                '<thead>' +
+                '<tr>' +
+                '<th>妈妈编号</th>' +
+                '<th>点击数量</th>' +
+                '<th>订单数量</th>' +
+                '<th>购买人数</th>' +
+                '<th>转化率</th>' +
+                '<th>管理员</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody id="pro_info_tr">' +
+                '</tbody>' +
+                '</table>';
+        $("#table_div").append(table);
         $.each(data, function (ind, da) {
             $.each(da, function (i, pro) {
                 console.log(i, "-", pro);
