@@ -195,7 +195,7 @@ admin.site.register(Clicks, ClicksAdmin)
 class CashOutAdmin(admin.ModelAdmin):
     
     form = forms.CashOutForm
-    list_display = ('xlmm','get_value_display','get_xlmm_history_cashin','get_xlmm_history_cashout','get_xlmm_history_cashout_record','get_xlmm_total_click','get_xlmm_total_order','status','approve_time','created','get_cashout_verify','get_cash_out_xlmm_manager')
+    list_display = ('xlmm','get_cashout_verify','get_value_display','get_xlmm_history_cashin','get_xlmm_history_cashout','get_xlmm_history_cashout_record','get_xlmm_total_click','get_xlmm_total_order','status','approve_time','created','get_cash_out_xlmm_manager')
     list_filter  = ('status',('approve_time',DateFieldListFilter),('created',DateFieldListFilter), UserNameFilter)
     search_fields = ['=xlmm']
 
