@@ -116,13 +116,12 @@ class SaleRefund(models.Model):
     
     def refund_Confirm(self):
         
-        try:
-            SaleRefund.objects.get(id=self.id,status=SaleRefund.REFUND_APPROVE)
-        except Exception,exc:
-            raise Exception('%s is not in approve status'%self)
-        else:
-            self.status = SaleRefund.REFUND_SUCCESS
-            self.save()
+        srefund = SaleRefund.objects.get(id=self.id)
+        if srefund.status == SaleRefund.REFUND_SUCCESS:
+            raise Exception('%s has already refund success'%self)
+
+        self.status = SaleRefund.REFUND_SUCCESS
+        self.save()
         
         from flashsale.pay.models import SaleOrder,SaleTrade
         
