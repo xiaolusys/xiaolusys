@@ -838,7 +838,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if ((coupon_pool.template.type == CouponTemplate.C150_10 and bn_totalfee < 15000) or
                 (coupon_pool.template.type == CouponTemplate.C259_20 and bn_totalfee < 25900)):
                 raise exceptions.APIException(u"订单金额不满足优惠券使用条件")
-            
             bn_discount    += int(coupon_pool.template.value * 100)
 
         if discount_fee > bn_discount:
