@@ -683,7 +683,7 @@ def task_calc_performance_by_supplier(start_date, end_date, category="0"):
                                                           status=SaleProduct.SCHEDULE)
         else:
             all_created_product = SaleProduct.objects.filter(created__range=(start_date_time, end_date_time),
-                                                             sale_supplier__parent_cid=category)
+                                                             sale_category__parent_cid=category)
             all_sale_product = SaleProduct.objects.filter(sale_time__range=(start_date_time, end_date_time),
                                                           sale_category__parent_cid=category,
                                                           status=SaleProduct.SCHEDULE)
