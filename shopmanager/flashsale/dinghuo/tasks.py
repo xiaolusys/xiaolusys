@@ -437,7 +437,7 @@ def task_supplier_stat(start_date, end_date, group_name):
 
 
 @task()
-def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, query_time, dhstatus):
+def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
 
     order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
                 "shop_trades_mergeorder where refund_status='NO_REFUND' and sys_status='IN_EFFECT' " \
@@ -476,7 +476,7 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, que
                    " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created between '{0}' and '{1}') as A " \
                    "left join (select orderlist_id,outer_id,chichu_id,buy_quantity,arrival_quantity,(buy_quantity-inferior_quantity-non_arrival_quantity) as effect_quantity " \
                    "from suplychain_flashsale_orderdetail) as B on A.id=B.orderlist_id group by outer_id,chichu_id".format(
-        shelve_from, query_time)
+        dinghuo_begin, query_time)
     sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
           "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.sku_id,product.exist_stock_num," \
           "product.id,ding_huo_info.arrival_quantity,ding_huo_info.sample_quantity " \

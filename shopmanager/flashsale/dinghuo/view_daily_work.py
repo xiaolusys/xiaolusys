@@ -136,6 +136,7 @@ class DailyDingHuoView2(View):
         shelve_fromstr = content.get("df", None)
         shelve_to_str = content.get("dt", None)
         query_time_str = content.get("showt", None)
+        dinghuo_begin_str = content.get("showt_begin", None)
         groupname = content.get("groupname", 0)
         dhstatus = content.get("dhstatus", '1')
         groupname = int(groupname)
@@ -152,12 +153,12 @@ class DailyDingHuoView2(View):
         if time_to - shelve_from < datetime.timedelta(0):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
-
-        task_id = task_ding_huo.s(shelve_from, time_to, groupname, search_text, target_date, query_time, dhstatus)()
+        dinghuo_begin = self.parseEndDt(dinghuo_begin_str)
+        task_id = task_ding_huo.s(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus)()
         return render_to_response("dinghuo/daily_work.html",
                                   {"task_id": task_id, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "search_text": search_text},
+                                   "searchDinghuo_end": query_time, 'groupname': groupname, "dhstatus": dhstatus,
+                                   "search_text": search_text, "searchDinghuo_begin": dinghuo_begin},
 
                                   context_instance=RequestContext(request))
 
