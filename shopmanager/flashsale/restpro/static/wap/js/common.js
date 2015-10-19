@@ -185,6 +185,7 @@ function DoIfLogin(cfg){
 		return;
 	};
 	function cookieProfile(data){
+		data.nick_alias = data.nick==''?'无名':data.nick;
 		var profile_str = JSON.stringify(data);
 		setCookie(PROFILE_COOKIE_NAME,profile_str,EXPIRED_DAYS);
 		cfg.callback();

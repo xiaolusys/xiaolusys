@@ -26,7 +26,7 @@ class Complain(models.Model):
                       (SI, U'其他'),)
 
     com_type = models.IntegerField(choices=TYPE_CHOICES, default=SI, verbose_name=u'类型')
-    insider_phone = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'投诉人ID')
+    insider_phone = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'投诉人ID')
     com_title = models.CharField(max_length=64, db_index=True, blank=True, default=u'问题反馈', verbose_name=u'标题')
     com_content = models.TextField(max_length=1024, blank=True, verbose_name=u'内容')
     contact_way = models.CharField(max_length=128, blank=True, verbose_name=u'联系方式')

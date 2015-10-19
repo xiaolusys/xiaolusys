@@ -22,8 +22,7 @@ class FlashSaleHandler(BaseHandler):
     
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG FlashSale:',merge_trade
+        logger.debug('DEBUG FlashSale:%s'%merge_trade)
         
         if not kwargs.get('first_pay_load',None) :
             return 

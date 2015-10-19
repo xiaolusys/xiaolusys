@@ -8,6 +8,7 @@ from . import views
 from . import views_user
 from . import views_product 
 from . import views_trade 
+from . import views_share
 from flashsale.pay.views_login import weixin_login,weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 
@@ -33,6 +34,7 @@ router.register(r'integrallog', views.UserIntegralLogViewSet)
 router.register(r'couponpool', views.UserCouponPoolViewSet)
 router.register(r'usercoupons', views.UserCouponsViewSet)
 
+router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)
 
 

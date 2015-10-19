@@ -9,7 +9,9 @@ from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
 from shopback.items.models import Product
 from common.modelutils import  update_model_fields
+import logging
 
+logger = logging.getLogger("celery.handler")
 MAX_YOUNI_CAT = 3
 
 class RegularSaleHandler(BaseHandler):
@@ -32,8 +34,7 @@ class RegularSaleHandler(BaseHandler):
             
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG REGULARSALE:',merge_trade
+        logger.debug('DEBUG REGULARSALE:%s'%merge_trade)
         
         if merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             return 
