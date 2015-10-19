@@ -72,7 +72,7 @@ def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
     click_num    = xlmm_cc.valid_num
     
     #设置最高有效最高点击上限
-    max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount)
+    max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(buyercount,day_date=day_date)
 #         click_rebeta = click_num  * click_price
     
     ten_click_num   = 0
