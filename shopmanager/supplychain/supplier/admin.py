@@ -440,7 +440,6 @@ class SaleProductAdmin(MyAdmin):
     def voting_action(self, request, queryset):
         """  设置选品投票  取样通过　的产品可以设置参与投票　"""
         no_votigs = queryset.filter(voting=False, status__in=(SaleProduct.PURCHASE, SaleProduct.PASSED))
-        no_votigs_c = no_votigs
         no_votigs.update(voting=True)
         mes = u"设置选品参与投票完成"
         self.message_user(request, mes)

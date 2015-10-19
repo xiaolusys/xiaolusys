@@ -6,6 +6,7 @@ from .managers import SaleSupplierManager
 from .models_buyer_group import BuyerGroup
 from shopback.base.fields import BigIntegerForeignKey
 from models_praise import SalePraise
+from models_hots import HotProduct
 
 
 class SaleCategory(models.Model):

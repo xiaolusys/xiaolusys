@@ -1,4 +1,5 @@
 ########### 2015-10-19 #################
+alter table supplier_sale_product_praise add column pro_from int(11) default 0;
 alter table supplychain_supply_product add voting boolean NOT NULL default False;
 ############2015-10-13######################
 alter table xiaolumm_xiaolumama add lowest_uncoushout double Not null;

@@ -310,7 +310,15 @@ class CustomShareSerializer(serializers.HyperlinkedModelSerializer):
 
 from supplychain.supplier.models import SaleProduct
 
+
 class SaleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleProduct
 
+
+from supplychain.supplier.models_hots import HotProduct
+
+
+class HotProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HotProduct

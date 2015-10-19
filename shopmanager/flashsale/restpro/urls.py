@@ -36,6 +36,7 @@ router.register(r'usercoupons', views.UserCouponsViewSet)
 
 router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)
+router.register(r'hotproduct', views_praise.HotProductViewSet)
 
 
 router_urls = router.urls
