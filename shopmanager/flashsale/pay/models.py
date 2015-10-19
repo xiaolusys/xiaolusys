@@ -15,6 +15,7 @@ from .models_refund import SaleRefund
 from .models_envelope import Envelop
 from .models_coupon import Integral,IntegralLog
 from .models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
+from .models_share import CustomShare
 from .managers import SaleTradeManager
 
 from .signals import signal_saletrade_pay_confirm

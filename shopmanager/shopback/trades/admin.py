@@ -63,13 +63,13 @@ class MergeOrderInline(admin.TabularInline):
     model = MergeOrder
     fields = ('oid','outer_id','outer_sku_id','title','price','payment','num',
               'sku_properties_name','out_stock','is_merge','is_rule_match',
-              'is_reverse_order','gift_type','refund_id','refund_status','status','sys_status')
+              'is_reverse_order','gift_type','refund_id','refund_status','sys_status')
     
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields + ('tid','oid'))
         if not perms.has_modify_trade_permission(request.user):
             readonly_fields.update(('outer_id','outer_sku_id','is_merge',
-                                           'is_reverse_order','operator','gift_type','status'))
+                                           'is_reverse_order','operator','gift_type'))
             return tuple(readonly_fields)
 
         return tuple(readonly_fields)
@@ -671,16 +671,13 @@ class MergeTradeAdmin(MyAdmin):
         
         queryset = queryset.filter(sys_status__in=(
                                     pcfg.WAIT_AUDIT_STATUS,
+                                    pcfg.REGULAR_REMAIN_STATUS,
                                     pcfg.EMPTY_STATUS))
         pull_success_ids = []
         pull_fail_ids    = []
         
         for trade in queryset:
             #如果有合单，则取消合并
-            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,
-                                        pcfg.EMPTY_STATUS):
-                continue
-            
             if trade.has_merge:
                 pull_fail_ids.append(trade.id)
                 continue

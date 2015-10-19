@@ -148,7 +148,7 @@ class MergeTradeManager(models.Manager):
     def isTradeFullRefund(self,trade):
         
         if not isinstance(trade,self.model):
-            trade = self.get(id=trade)  
+            trade = self.get(id=trade)
 
         refund_approval_num = trade.merge_orders.filter(
                             refund_status__in=pcfg.REFUND_APPROVAL_STATUS,
@@ -160,7 +160,7 @@ class MergeTradeManager(models.Manager):
                             gift_type=pcfg.REAL_ORDER_GIT_TYPE,
                             is_merge=False).count()
 
-        if refund_approval_num == total_orders_num:
+        if refund_approval_num > 0 and refund_approval_num == total_orders_num:
             return True
         return False
 

@@ -74,7 +74,16 @@ class StatisticsShopping(models.Model):
     @property
     def status_name(self):
         return self.get_status_display()
-
+    
+    def is_balanced(self):
+        clogs = CarryLog.objects.filter(xlmm=self.linkid,
+                                       log_type=CarryLog.ORDER_REBETA,
+                                       carry_date=self.shoptime.date())
+        if clogs.count() == 0:
+            return False
+        clog = clogs[0]
+        return clog.status != CarryLog.PENDING
+        
 
 class StatisticsShoppingByDay(models.Model):
     
@@ -246,7 +255,7 @@ def tongji_wxorder(sender, obj, **kwargs):
 
 signals.signal_wxorder_pay_confirm.connect(tongji_wxorder, sender=WXOrder)
 
-from flashsale.pay.models import SaleTrade
+from flashsale.pay.models import SaleTrade,SaleOrder
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
@@ -381,4 +390,87 @@ def tongji_saleorder(sender, obj, **kwargs):
     
 signal_saletrade_pay_confirm.connect(tongji_saleorder, sender=SaleTrade)
 
+from flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.signals import signal_saletrade_refund_confirm
 
+
+def get_strade_wxid_iter(strade):
+    
+    buyer_openid = strade.get_buyer_openid()
+    ordertime    = strade.pay_time
+    wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
+    if not wx_unionid:
+        wx_unionid = strade.receiver_mobile or str(strade.buyer_id)
+    xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
+    xd_openid  = wx_unionid
+    if xd_unoins.count() > 0:
+        xd_openid = xd_unoins[0].openid
+    
+    isinxiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,
+                                             charge_status=XiaoluMama.CHARGED,
+                                             charge_time__lte=ordertime)
+    if isinxiaolumms.count() > 0:
+        return isinxiaolumms[0], xd_openid, wx_unionid
+    return None, xd_openid, wx_unionid
+
+def refund_rebeta_takeoff(sender, obj, **kwargs):
+    """ 退款取消或扣除订单提成 """
+    sorder = SaleOrder.objects.get(id=obj.order_id)
+    strade = sorder.sale_trade
+    #押金，充值,钱包支付没有提成
+    if strade.is_Deposite_Order() or strade.channel == SaleTrade.WALLET:
+        return 
+    
+    today = datetime.date.today()
+    target_date = obj.pay_time.date()
+    if target_date > today:
+        target_date = today
+
+    order_id          = strade.tid
+    order_time        = strade.pay_time
+    xlmm, openid, unionid = get_strade_wxid_iter(strade)
+    if not xlmm:
+        return 
+    
+    shoppings = StatisticsShopping.objects.filter(wxorderid=order_id)\
+        .exclude(status=StatisticsShopping.REFUNDED)
+    if shoppings.count() == 0:
+        return
+    shopping  = shoppings[0]
+    daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xlmm.id,
+                                                      tongjidate=order_time.date())
+    
+    #订单返利是否结算
+    is_balanced = shopping.is_balanced()
+    mm_rebeta_amount    = xlmm.get_Mama_Trade_Amount(strade) 
+    mm_order_rebeta     = xlmm.get_Mama_Trade_Rebeta(strade)
+    
+    delta_amount  = shopping.rebetamount  - mm_rebeta_amount
+    delta_rebeta  = shopping.tichengcount - mm_order_rebeta
+    shopping_status = shopping.status
+    if mm_rebeta_amount == 0 :
+        shopping_status = StatisticsShopping.REFUNDED 
+        
+    if is_balanced:
+        clog,state = CarryLog.objects.get_or_create(
+            xlmm=xlmm.id,
+            order_num=obj.id,
+            log_type=CarryLog.REFUND_OFF
+        )
+        if not state:
+            return
+        clog.buyer_nick=xlmm.weikefu,
+        clog.value=delta_rebeta,
+        clog.carry_type=CarryLog.CARRY_OUT,
+        clog.status=CarryLog.PENDING,
+        clog.carry_date=obj.modified
+        clog.save()
+    else:
+        shopping.rebetamount  = delta_amount 
+        shopping.tichengcount = delta_rebeta
+        shopping.status = shopping_status
+        shopping.save()
+    
+    
+
+signal_saletrade_refund_confirm.connect(refund_rebeta_takeoff, sender=SaleRefund)

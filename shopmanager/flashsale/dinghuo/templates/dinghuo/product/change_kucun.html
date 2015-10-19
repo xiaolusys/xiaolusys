@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>修改上架前库存</title>
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+
+    <!-- js -->
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
+
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+
+
+</head>
+<body>
+<div class="container" style="margin-top: 20px">
+    <form action="/sale/dinghuo/change_kucun/" method="get">
+        <div class="row">
+            <div class="col-xs-4">
+                <input type="text" class="form-control" name="search_input" value="{{ product_outer_id }}"
+                       id="searchtext"/>
+            </div>
+            <div class="col-xs-4">
+                <input type="submit" class="btn btn-info" value="搜索"></div>
+        </div>
+
+    </form>
+
+    <div class="panel panel-info row" id="searchfield" style="margin-top: 20px">
+        <div class="panel-heading">
+            <h3 class="panel-title">详细信息</h3>
+        </div>
+        <div class="panel-body">
+            {% if product %}
+                <div class="row">
+                    <div class="col-xs-4">
+                        <img src="{{ product.PIC_PATH }}" width="150px"><br>
+                        {{ product.name }}
+                    </div>
+                    <div class="col-xs-4">
+                        <table class="table tab-content table-bordered">
+                            <thead>
+                            <th>规格名称</th>
+                            <th>上架前库存</th>
+                            </thead>
+                            <tbody>
+                            {% for sku in normal_skus %}
+                                <tr>
+                                    <td>{{ sku.sku_name }}</td>
+                                    <td>
+                                        <input type="number" class="form-control my_sku"
+                                               value="{{ sku.exist_stock_num }}"
+                                               id="{{ sku.sku_id }}"/>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="submit" class="btn btn-danger" style="margin: 20%" value="提交修改" id="tijiao"/>
+                    </div>
+                </div>
+            {% else %}
+                未找到商品
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+    $('#tijiao').bind("click", submit_data);
+    function submit_data() {
+        //请求URL
+        var requestUrl = "/sale/dinghuo/change_kucun/";
+        var my_sku = $(".my_sku");
+        var sku_list = "";
+        var result_data = {}
+        $.each(my_sku, function (index, one_sku) {
+            var sku_id = my_sku.eq(index).attr("id");
+            sku_list += sku_id + ",";
+            result_data[sku_id] = my_sku.eq(index).val().trim();
+        });
+        result_data["sku_list"] = sku_list;
+        console.log(result_data)
+
+        //请求成功回调函数
+        var requestCallBack = function (data) {
+            if (data.result == "OK") {
+                alert("OK")
+            } else {
+                alert("error")
+            }
+        };
+
+        //发送请求
+        $.ajax({
+            type: 'post',
+            url: requestUrl,
+            data: result_data,
+            dataType: 'json',
+            success: requestCallBack,
+            error: function (data) {
+
+            }
+
+        });
+
+
+    }
+</script>
+</body>
+</html>

@@ -8,6 +8,9 @@ from shopback import paramconfig as pcfg
 from shopapp.memorule import ruleMatchPayment
 from common.modelutils import  update_model_fields
 
+import logging
+logger = logging.getLogger('celery.handler')
+
 class MergeHandler(BaseHandler):
     
     def handleable(self,merge_trade,*args,**kwargs):
@@ -38,8 +41,7 @@ class MergeHandler(BaseHandler):
         
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG MERGE:',merge_trade
+        logger.debug('DEBUG MERGE:%s'%merge_trade)
             
         if merge_trade.type in (MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE):
             latest_paytime = datetime.datetime(merge_trade.pay_time.year

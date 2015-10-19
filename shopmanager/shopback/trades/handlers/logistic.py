@@ -7,7 +7,9 @@ from shopback import paramconfig as pcfg
 from common.modelutils import  update_model_fields
 from shopback.logistics.models import (LogisticsCompany,
                                        DestCompany)
+import logging
 
+logger = logging.getLogger('celery.handler')
 POST_STATE = (u'甘肃',u'青海',u'陕西',u'广西',u'宁夏',u'贵州',u'内蒙',u'西藏',u'新疆',u'云南')
 
 class LogisticsHandler(BaseHandler):
@@ -75,8 +77,7 @@ class LogisticsHandler(BaseHandler):
         
     def process(self,merge_trade,*args,**kwargs):
         
-        if settings.DEBUG:
-            print 'DEBUG LOGISTIC:',merge_trade
+        logger.debug('DEBUG LOGISTIC:%s'%merge_trade)
         
         try:
             if merge_trade.is_force_wlb:

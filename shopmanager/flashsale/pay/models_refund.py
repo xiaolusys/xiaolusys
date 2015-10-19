@@ -8,6 +8,7 @@ from django.db import IntegrityError, transaction
 
 from shopback import paramconfig as pcfg
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from .signals import signal_saletrade_refund_confirm
 from .options import uniqid
 
 class SaleRefund(models.Model):
@@ -115,6 +116,10 @@ class SaleRefund(models.Model):
     
     def refund_Confirm(self):
         
+        srefund = SaleRefund.objects.get(id=self.id)
+        if srefund.status == SaleRefund.REFUND_SUCCESS:
+            raise Exception('%s has already refund success'%self)
+
         self.status = SaleRefund.REFUND_SUCCESS
         self.save()
         
@@ -130,8 +135,9 @@ class SaleRefund(models.Model):
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save()
-
-
+        
+        signal_saletrade_refund_confirm.send(sender=SaleRefund,obj=self)
+            
 
 def buyeridPatch():
     

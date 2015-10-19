@@ -287,15 +287,16 @@ class XiaoluMama(models.Model):
 #         
 #         return base_price + agency_level.get_Click_Price(ordernum)
     
-        
-    def get_Mama_Max_Valid_Clickcount(self,ordernum):
-        """ 获取小鹿妈妈最大有效点击数 """
+    def get_Mama_Max_Valid_Clickcount(self, ordernum, day_date):
+        """ 获取小鹿妈妈最大有效点击数  """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
         agency_level = agency_levels[0]
-        return agency_level.get_Max_Valid_Clickcount(ordernum)
-    
+        click_num = agency_level.get_Max_Valid_Clickcount(ordernum)
+        if day_date and (datetime.date(2015,10,18) < day_date < datetime.date(2015,10,22)):
+            click_num += 20
+        return click_num
     
     def push_carrylog_to_cash(self,clog):
         
@@ -482,6 +483,7 @@ class CarryLog(models.Model):
     ORDER_BUY     = 'buy'
     CLICK_REBETA  = 'click'
     REFUND_RETURN = 'refund'
+    REFUND_OFF    = 'reoff'
     CASH_OUT      = 'cashout'
     DEPOSIT       = 'deposit'
     THOUSAND_REBETA = 'thousand'
@@ -495,6 +497,7 @@ class CarryLog(models.Model):
         (ORDER_REBETA,u'订单返利'),
         (ORDER_BUY,u'消费支出'),
         (REFUND_RETURN,u'退款返现'),
+        (REFUND_OFF,u'退款扣除'),
         (CLICK_REBETA,u'点击兑现'),
         (CASH_OUT,u'钱包提现'),
         (DEPOSIT,u'押金'),
@@ -502,7 +505,7 @@ class CarryLog(models.Model):
         (AGENCY_SUBSIDY,u'代理补贴'),
         (MAMA_RECRUIT,u'招募奖金'),
         (ORDER_RED_PAC,u'订单红包'),
-        (COST_FLUSH,u'冲正差额'),
+        (COST_FLUSH,u'补差额'),
         (RECHARGE, u'充值')
     )
     

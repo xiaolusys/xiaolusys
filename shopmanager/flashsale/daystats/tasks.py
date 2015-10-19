@@ -288,7 +288,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
             start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
         if end_time_str:
             year, month, day = end_time_str.split('-')
-            end_date = datetime.date(int(year), int(month), int(day), 23, 59, 59)
+            end_date = datetime.datetime(int(year), int(month), int(day), 23, 59, 59)
         else:
             end_date = today
         """找出选择的开始月份和结束月份"""
