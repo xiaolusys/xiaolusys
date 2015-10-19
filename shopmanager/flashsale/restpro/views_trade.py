@@ -779,7 +779,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError(u'优惠金额异常')
             
             cart_payment = cart_total_fee + post_fee - cart_discount
-            if post_fee < 0 or payment < 0  or payment < cart_payment:
+            if post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10:
                 raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
@@ -845,7 +845,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError(u'优惠金额异常')
         
         bn_payment      = bn_totalfee + post_fee - bn_discount
-        if post_fee < 0 or payment <= 0 or payment < bn_payment:
+        if post_fee < 0 or payment <= 0 or abs(payment - bn_payment) > 10 :
             raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
