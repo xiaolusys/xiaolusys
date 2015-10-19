@@ -127,9 +127,9 @@ def xlmm_Recharge(sender, instance, created, **kwargs):
     customer = Customer.objects.get(id=buyer_id)
 
     try:
-        xlmm = XiaoluMama.objects.get(openid=customer.unionid)
+        xlmm = XiaoluMama.objects.get(openid=customer.unionid, charge_status=XiaoluMama.CHARGED)
     except XiaoluMama.DoesNotExist:
-        return  # 没有找到代理　不做处理
+        return  # 没有找到代理　不做处理 没有接管处理
     # 捕捉已付款　　判断carrylog中的记录是否存在　　
     try:
         clog = CarryLog.objects.get(xlmm=xlmm.id, order_num=order_id, log_type=CarryLog.RECHARGE,

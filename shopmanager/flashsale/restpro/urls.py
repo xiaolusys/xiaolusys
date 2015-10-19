@@ -13,6 +13,7 @@ from flashsale.pay.views_login import weixin_login,weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 
 from . import views_wuliu
+from . import views_praise
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
@@ -34,6 +35,8 @@ router.register(r'couponpool', views.UserCouponPoolViewSet)
 router.register(r'usercoupons', views.UserCouponsViewSet)
 
 router.register(r'share', views_share.CustomShareViewSet)
+router.register(r'saleproduct', views_praise.SaleProductViewSet)
+
 
 router_urls = router.urls
 

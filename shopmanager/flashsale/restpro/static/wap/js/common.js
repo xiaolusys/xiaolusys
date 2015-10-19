@@ -110,7 +110,9 @@ var GLConfig = {
 	user_logout:'/users/customer_logout',//用户注销
 	user_islogin:'/users/islogin.json',//用户是否登录
     refunds:'/refunds',//退款
-    refunds_by_order_id:"/refunds/{{order_id}}/get_by_order_id"
+    refunds_by_order_id:"/refunds/{{order_id}}/get_by_order_id",
+    sale_product: "/saleproduct",   //获取特卖选品列表
+    change_hot_val: "/saleproduct/{{ id }}/change_hot_val"   //添加热度值
 };
 
 // using jQuery
