@@ -228,7 +228,7 @@ class SaleProductAdmin(MyAdmin):
                    , ('sale_supplier', 'sale_category')
                    , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
-                   , ('memo',)
+                   , ('memo',), ('voting',)
                    )}),)
 
     #
@@ -437,6 +437,24 @@ class SaleProductAdmin(MyAdmin):
     select_Contactor.allow_tags = True
     select_Contactor.short_description = u"接洽人"
 
+    def voting_action(self, request, queryset):
+        """  设置选品投票  取样通过　的产品可以设置参与投票　"""
+        no_votigs = queryset.filter(voting=False, status__in=(SaleProduct.PURCHASE, SaleProduct.PASSED))
+        no_votigs_c = no_votigs
+        no_votigs.update(voting=True)
+        mes = u"设置选品参与投票完成"
+        self.message_user(request, mes)
+
+    def cancel_voting_action(self, request, queryset):
+        """  取消选品投票  """
+        votigs = queryset.filter(voting=True)
+        votigs.update(voting=False)
+        mes = u"取消选品投票设置完成"
+        self.message_user(request, mes)
+
+    voting_action.short_description = u"设置选品投票"
+    cancel_voting_action.short_description = u"取消选品投票"
+    actions = ['voting_action', 'cancel_voting_action']
 
 admin.site.register(SaleProduct, SaleProductAdmin)
 
@@ -451,3 +469,15 @@ class BuyerGroupAdmin(admin.ModelAdmin):
 
 
 admin.site.register(BuyerGroup, BuyerGroupAdmin)
+
+from models_praise import SalePraise
+
+
+class SalePraiseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'sale_id', 'cus_id', 'praise', 'created')
+    list_display_links = ('id', )
+    list_filter = ('id', 'praise')
+    search_fields = ['=id', '=sale_id']
+
+
+admin.site.register(SalePraise, SalePraiseAdmin)

@@ -40,8 +40,14 @@ class SaleProductViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_wanter_queryset(self, request):
-        """ 选择通过和排期状态的选品　"""
-        return self.queryset.filter(status__in=(SaleProduct.PASSED, SaleProduct.SCHEDULE))
+        """ 选择通过和取样状态的选品　上架时间在未来?天"""
+        today = datetime.datetime.today()
+        t_day = today - datetime.timedelta(days=150)
+        time_to = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
+        time_from = datetime.datetime(t_day.year, t_day.month, t_day.day, 23, 59, 59)
+        print "tf-to", time_from, time_to
+        return self.queryset.filter(created__gte=time_from, created__lte=time_to, voting=True,
+                                    status__in=(SaleProduct.PASSED, SaleProduct.PURCHASE))
 
     def get_own_today_queryset(self, cus_id):
         today = datetime.datetime.today()

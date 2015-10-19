@@ -41,7 +41,23 @@ function setSaleProduct(res) {
     console.log("上一页：", res.previous);
     console.log("当前页数据：", res.results);
     var sale_pros = res.results;
-
+    //如果没有产品　提示跳转到　主页
+    if (res.count == 0) {
+        swal({
+                title: "",
+                text: '暂无投票产品,去首页看看~',
+                type: "",
+                showCancelButton: false,
+                imageUrl: "http://image.xiaolu.so/logo.png",
+                confirmButtonColor: '#DD6B55',
+                confirmButtonText: "确定",
+                cancelButtonText: ""
+            },
+            function () {//确定　则跳转
+                var include_coupon = '/static/wap/index.html';
+                location.href = include_coupon;
+            });
+    }
     $(sale_pros).each(function (index, pro) {
         var dom = Create_Nvzhuang_Dom(pro);
         $("#list").append(dom);

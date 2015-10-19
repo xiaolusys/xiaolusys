@@ -1,3 +1,5 @@
+########### 2015-10-19 #################
+alter table supplychain_supply_product add voting boolean NOT NULL default False;
 ############2015-10-13######################
 alter table xiaolumm_xiaolumama add lowest_uncoushout double Not null;
 ############2015-10-9#####################
