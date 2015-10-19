@@ -172,9 +172,14 @@
                        value="{{ time_to }}"/>
             </div>
             <div class="col-xs-2">
-                <label class="control-label" for="showt">查看订货日期:</label>
+                <label class="control-label" for="showt">订货开始日期:</label>
+                <input type="text" id="show_datepicker_begin" readonly name="showt_begin" class="form-control datepicker"
+                       value="{{ searchDinghuo_begin }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="showt">订货结束日期:</label>
                 <input type="text" id="show_datepicker" readonly name="showt" class="form-control datepicker"
-                       value="{{ searchDinghuo }}"/>
+                       value="{{ searchDinghuo_end }}"/>
             </div>
             <div class="col-xs-2">
                 <label class="control-label" for="groupname">查看分组:</label>
@@ -295,6 +300,10 @@
             });
 
             $("#t_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            $("#show_datepicker_begin").datetimepicker({
                 timeFormat: "HH:mm:ss",
                 dateFormat: "yy-mm-dd"
             });
