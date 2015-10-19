@@ -457,12 +457,13 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
             order_num=obj.id,
             log_type=CarryLog.REFUND_OFF
         )
-        if not state:
+        if not state and clog.status != CarryLog.PENDING:
             return
-        clog.buyer_nick=xlmm.weikefu,
-        clog.value=delta_rebeta,
-        clog.carry_type=CarryLog.CARRY_OUT,
-        clog.status=CarryLog.PENDING,
+        delta_rebeta = (obj.refund_fee / strade.payment) * shopping.tichengcount
+        clog.buyer_nick=xlmm.weikefu
+        clog.value=delta_rebeta
+        clog.carry_type=CarryLog.CARRY_OUT
+        clog.status=CarryLog.PENDING
         clog.carry_date=obj.modified
         clog.save()
     else:
