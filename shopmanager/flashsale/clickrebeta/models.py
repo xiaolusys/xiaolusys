@@ -421,13 +421,13 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     if strade.is_Deposite_Order() or strade.channel == SaleTrade.WALLET:
         return 
     
-    today = datetime.date.today()
-    target_date = obj.pay_time.date()
+    order_id          = strade.tid
+    order_time        = strade.pay_time
+    today       = datetime.date.today()
+    target_date = order_time.date()
     if target_date > today:
         target_date = today
 
-    order_id          = strade.tid
-    order_time        = strade.pay_time
     xlmm, openid, unionid = get_strade_wxid_iter(strade)
     if not xlmm:
         return 

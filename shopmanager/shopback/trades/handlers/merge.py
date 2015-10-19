@@ -42,7 +42,8 @@ class MergeHandler(BaseHandler):
     def process(self,merge_trade,*args,**kwargs):
         
         logger.debug('DEBUG MERGE:%s'%merge_trade)
-            
+        
+        main_trade = None
         if merge_trade.type in (MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE):
             latest_paytime = datetime.datetime(merge_trade.pay_time.year
                                                ,merge_trade.pay_time.month
@@ -61,13 +62,13 @@ class MergeHandler(BaseHandler):
             merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
             main_trade = MergeTrade.objects.driveMergeTrade(merge_trade,
                                                             latest_paytime=latest_paytime)
-            if main_trade:
-                ruleMatchPayment(main_trade)
+            
         else:
             merge_trade.append_reason_code(pcfg.MULTIPLE_ORDERS_CODE)
             main_trade = MergeTrade.objects.driveMergeTrade(merge_trade)
-            if main_trade:
-                ruleMatchPayment(main_trade)
+                
+        if main_trade:
+            ruleMatchPayment(main_trade)
                 
         
         
