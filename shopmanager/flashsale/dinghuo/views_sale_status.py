@@ -128,5 +128,60 @@ class TopStockView(View):
                                   {"sale_list": sale_list[0:200], "start_date": start_date, "end_date": end_date},
                                   context_instance=RequestContext(request))
 
+from rest_framework import generics
+from shopback.categorys.models import ProductCategory
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework import permissions
+from rest_framework.response import Response
+from shopback.base import log_action, CHANGE
+from shopback.items.models import Product
+from flashsale.dinghuo.models import ProductSkuDetail
+from django.db import transaction
+
+
+class ChangeKunView(generics.ListCreateAPIView):
+    """
+        修改上架前库存
+    """
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    template_name = "dinghuo/product/change_kucun.html"
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        product_outer_id = request.GET.get("search_input", "")
+        if not product_outer_id:
+            return Response({"product_outer_id": product_outer_id})
+        try:
+            product = Product.objects.get(outer_id=product_outer_id, status=Product.NORMAL)
+            all_skus = product.normal_skus
+            normal_skus = []
+            for one_sku in all_skus:
+                before_shelf = ProductSkuDetail.objects.filter(product_sku=one_sku.id)
+                exist_stock_num = 0
+                if before_shelf.count() > 0:
+                    exist_stock_num = before_shelf[0].exist_stock_num
+                normal_skus.append(
+                    {"sku_id": one_sku.id, "exist_stock_num": exist_stock_num, "sku_name": one_sku.properties_alias})
+            return Response({"product_outer_id": product_outer_id, "product": product, "normal_skus": normal_skus})
+        except:
+            return Response({"product_outer_id": product_outer_id})
+
+    @transaction.commit_on_success
+    def post(self, request, *args, **kwargs):
+        post = request.POST
+        sku_list_str = post.get("sku_list", "")
+        sku_list_str = sku_list_str[0: len(sku_list_str) - 1]
+        sku_list = sku_list_str.split(",")
+        try:
+            for one_sku in sku_list:
+                detail, status = ProductSkuDetail.objects.get_or_create(product_sku=one_sku)
+                detail.exist_stock_num = post.get(one_sku, 0)
+                detail.save()
+                log_action(request.user.id, detail, CHANGE, u'修改上架前库存')
+            return Response({"result": "OK"})
+        except:
+            return Response({"result": "error"})
+
+
 
 

@@ -12,6 +12,7 @@ from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
 from .view_refund_supplier import StatisRefundSupView, change_duihuo_status
 import views_wuliu
+import views_sale_status
 urlpatterns = [
 
     url(r'^searchproduct/$', views.search_product, name='searchProduct'),                       #搜索所有的商品 ajax
@@ -54,4 +55,5 @@ urlpatterns = [
     url(r'^daystats_ding_huo/$', StatsDinghuoView.as_view(), name="start_ding_huo"),      #每日订货统计
     url(r'^tuihuo/$', StatisRefundSupView.as_view(), name="tuihuo"),      # 退货统计　
     url(r'^tuihuo/change_status/$', staff_member_required(change_duihuo_status), name="change_tuihuo_status"), # 退货状态修改　
+    url(r'^change_kucun/$', staff_member_required(views_sale_status.ChangeKunView.as_view()), name="change_kucun"), #修改上架前库存
 ]
