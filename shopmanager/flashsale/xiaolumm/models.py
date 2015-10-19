@@ -287,14 +287,14 @@ class XiaoluMama(models.Model):
 #         
 #         return base_price + agency_level.get_Click_Price(ordernum)
     
-    def get_Mama_Max_Valid_Clickcount(self,ordernum,day_date=None):
+    def get_Mama_Max_Valid_Clickcount(self, ordernum, day_date):
         """ 获取小鹿妈妈最大有效点击数  """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
         if agency_levels.count() == 0:
             return 0
         agency_level = agency_levels[0]
         click_num = agency_level.get_Max_Valid_Clickcount(ordernum)
-        if day_date and datetime.date(2015,10,19,0) < day_date < datetime.date(2015,10,22):
+        if day_date and (datetime.date(2015,10,19) < day_date < datetime.date(2015,10,22)):
             click_num += 20
         return click_num
     

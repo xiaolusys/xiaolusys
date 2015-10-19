@@ -236,7 +236,7 @@ class MamaStatsView(View):
             click_num  = click_list.values('openid').distinct().count()
                     
             #设置最高有效最高点击上限
-            max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num,day_date=target_date)
+            max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num, day_date=target_date)
             if time_from.date() >= CLICK_MAX_LIMIT_DATE:
                 click_num = min(max_click_count,click_num)
                 
