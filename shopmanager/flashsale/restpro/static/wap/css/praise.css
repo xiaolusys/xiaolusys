@@ -4,7 +4,8 @@
     height: 32px;
     float: right;
     margin-right: 10px;
-    background: #fff url(../images/love_wait_praise.ico) no-repeat center center;
+    background: #EEF0F3 url(../images/love_wait_praise.ico) no-repeat center center;
+
 }
 
 .glist .gprice .praise {
@@ -12,7 +13,7 @@
     height: 32px;
     float: right;
     margin-right: 10px;
-    background: #fff url(../images/love_praise.ico) no-repeat center center;
+    background: #EEF0F3 url(../images/love_praise.ico) no-repeat center center;
 }
 
 .glist .gprice .hot_val {

@@ -21,7 +21,12 @@ function getSaleProduct() {
         url: saleprourl,
         data: {},
         dataType: 'json',
-        success: refundCallBack
+        success: refundCallBack,
+        error: function (data) {
+            if (data.status == 403) {
+                window.location = GLConfig.login_url + '?next=' + "/static/wap/pages/sale_praise.html";
+            }
+        }
     });
     function refundCallBack(res) {
         setSaleProduct(res);
@@ -78,8 +83,8 @@ function changeHotVal(data, dom) {
         if (res.today_count >= 10) {
             drawToast("您已经超过了十次点赞了，太感谢您了！")
         }
-        console.log("dom",dom);
-        $(dom.parent().children()[1]).html('+'+ res.hot_val);
+        console.log("dom", dom);
+        $(dom.parent().children()[1]).html('+' + res.hot_val);
     }
 }
 
