@@ -8,10 +8,10 @@ function update_total_price() {
     $.each(prices, function (index, price) {
             price_id = prices.eq(index).attr("id");
             item_id = price_id.split("_")[1];
-            total_price += parseInt(prices.eq(index).html()) * parseInt($("#num_" + item_id).val());
+            total_price += parseFloat(prices.eq(index).html()) * parseInt($("#num_" + item_id).val());
         }
     );
-    $("#total_price").html(total_price);
+    $("#total_price").html(total_price.toFixed(2));
 }
 function get_shop_carts(suffix) {
     /*
@@ -39,7 +39,7 @@ function get_shop_carts(suffix) {
         } else {
             window.location = "gouwuche-kong.html";
         }
-        $("#total_price").html(total_price);
+        $("#total_price").html(total_price.toFixed(2));
     };
     // 发送请求
     $.ajax({
