@@ -294,7 +294,7 @@ class XiaoluMama(models.Model):
             return 0
         agency_level = agency_levels[0]
         click_num = agency_level.get_Max_Valid_Clickcount(ordernum)
-        if day_date and (datetime.date(2015,10,19) < day_date < datetime.date(2015,10,22)):
+        if day_date and (datetime.date(2015,10,18) < day_date < datetime.date(2015,10,22)):
             click_num += 20
         return click_num
     
