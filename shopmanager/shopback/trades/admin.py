@@ -671,16 +671,13 @@ class MergeTradeAdmin(MyAdmin):
         
         queryset = queryset.filter(sys_status__in=(
                                     pcfg.WAIT_AUDIT_STATUS,
+                                    pcfg.REGULAR_REMAIN_STATUS,
                                     pcfg.EMPTY_STATUS))
         pull_success_ids = []
         pull_fail_ids    = []
         
         for trade in queryset:
             #如果有合单，则取消合并
-            if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS,
-                                        pcfg.EMPTY_STATUS):
-                continue
-            
             if trade.has_merge:
                 pull_fail_ids.append(trade.id)
                 continue
