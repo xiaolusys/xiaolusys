@@ -42,6 +42,7 @@ class EntranceView(View):
 
 
 class SaleHotView(View):
+    """热销产品统计"""
     @staticmethod
     def get(request):
         content = request.REQUEST
@@ -54,7 +55,9 @@ class SaleHotView(View):
                                    "end_date": end_time_str, "category": category},
                                   context_instance=RequestContext(request))
 
+
 class SaleBadView(View):
+    """滞销产品统计"""
     @staticmethod
     def get(request):
         content = request.REQUEST
@@ -181,6 +184,43 @@ class ChangeKunView(generics.ListCreateAPIView):
             return Response({"result": "OK"})
         except:
             return Response({"result": "error"})
+
+from django.db.models import F, Q, Sum
+class SaleStatusView(generics.ListCreateAPIView):
+    """
+        销售情况预览（预留和待发）
+    """
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    template_name = "dinghuo/product/sale_warning.html"
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        content = request.REQUEST
+        target_date_str = content.get("target_date", None)
+        warn_num = content.get("warn_num", 3)
+        try:
+            warn_num = int(warn_num)
+        except:
+            warn_num = 3
+        today = datetime.date.today()
+        if target_date_str:
+            year, month, day = target_date_str.split('-')
+            target_date = datetime.date(int(year), int(month), int(day))
+        else:
+            target_date = today
+        all_product = Product.objects.filter(status=Product.NORMAL).filter(
+            Q(sale_time=target_date) | Q(sale_time=target_date - - datetime.timedelta(days=1)))
+        result_data = []
+        for one_product in all_product:
+            all_skus = one_product.normal_skus
+            warning = False
+            for one_sku in all_skus:
+                if one_sku.remain_num - one_sku.wait_post_num < warn_num:
+                    warning = True
+            result_data.append({"outer_id": one_product.outer_id, "warning": warning,
+                                "name": one_product.name, "pic_path": one_product.PIC_PATH})
+        return Response({"warn_num": warn_num, "target_date": target_date, "result_data": result_data})
+
 
 
 
