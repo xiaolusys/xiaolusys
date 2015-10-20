@@ -956,6 +956,7 @@ def task_calc_operate_data(start_date, end_date, category="0"):
                          "total_sale_money": one_product.agent_price * one_data.sale_num,
                          "stock_num": one_product.collect_num,
                          "stock_cost": one_product.cost * one_product.collect_num})
+            child_result_data.extend(temp_data)
             result_data.extend(temp_data)
     except Exception, exc:
         raise task_calc_operate_data.retry(exc=exc)

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>销售预警</title>
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <!-- js -->
+    <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+</head>
+<body>
+<div class="container" style="margin-top: 20px">
+    <form action="/sale/dinghuo/sale_warning/" method="get">
+        <div class="row">
+            <div class="col-xs-2">
+                <label class="control-label" for="target_date">查询日期:</label>
+                <input type="text" readonly name="target_date" class="form-control datepicker"
+                       value="{{ target_date }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="warn_num">预警数设置:</label>
+
+                <input type="number" class="form-control" name="warn_num" value="{{ warn_num }}">
+            </div>
+            <div class="col-xs-4">
+                <input type="submit" class="btn btn-info" style="margin-top: 22px" value="查询"></div>
+        </div>
+    </form>
+    <table class="table">
+        <thead>
+        <th>编码</th>
+        <th>图片</th>
+        <th>名称</th>
+        <th>警告</th>
+        </thead>
+        <tbody>
+        {% for one_data in result_data %}
+            {% if one_data.warning %}
+                <tr style="color: red">
+                    <td><a href="/admin/items/product/?q={{ one_data.outer_id }}" target="_blank">{{ one_data.outer_id }}</a></td>
+                    <td><img src="{{ one_data.pic_path }}" width="100px"></td>
+                    <td>{{ one_data.name }}</td>
+                    <td>{{ one_data.warning }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td><a href="/admin/items/product/?q={{ one_data.outer_id }}" target="_blank">{{ one_data.outer_id }}</a></td>
+                    <td><img src="{{ one_data.pic_path }}" width="100px"></td>
+                    <td>{{ one_data.name }}</td>
+                    <td>{{ one_data.warning }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+<script>
+    $(function () {
+        $(".datepicker").datepicker({
+            dateFormat: "yy-mm-dd"
+        });
+    });
+</script>
+</body>
+</html>
