@@ -6,6 +6,7 @@ from .managers import SaleSupplierManager
 from .models_buyer_group import BuyerGroup
 from shopback.base.fields import BigIntegerForeignKey
 from models_praise import SalePraise
+from models_hots import HotProduct
 
 
 class SaleCategory(models.Model):
@@ -218,6 +219,7 @@ class SaleProduct(models.Model):
                                 choices=PLATFORM_CHOICE, verbose_name=u'来自平台')
 
     hot_value = models.IntegerField(default=0, verbose_name=u'热度值')
+    voting = models.BooleanField(default=False, verbose_name=u'参与投票')
     sale_price = models.FloatField(default=0, verbose_name=u'采购价')
     on_sale_price = models.FloatField(default=0, verbose_name=u'售价')
     std_sale_price = models.FloatField(default=0, verbose_name=u'吊牌价')

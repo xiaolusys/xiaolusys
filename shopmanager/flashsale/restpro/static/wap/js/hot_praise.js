@@ -1,4 +1,7 @@
 /**
+ * Created by jishu_linjie on 10/19/15.
+ */
+/**
  * Created by jishu_linjie on 10/17/15.
  */
 
@@ -7,15 +10,10 @@ function Create_Nvzhuang_Dom(obj) {
     return hereDoc(html).template(obj);
 }
 
-function Create_Chaotong_Dom(obj) {
-    var html = $("#chaotong_li").html();
-    return hereDoc(html).template(obj);
-}
-
 var pageNumber = 1;
 
 function getSaleProduct() {
-    var saleprourl = GLConfig.baseApiUrl + GLConfig.sale_product + "?page=" + pageNumber;
+    var saleprourl = GLConfig.baseApiUrl + GLConfig.hot_product + "?page=" + pageNumber;
     $.ajax({
         type: 'get',
         url: saleprourl,
@@ -24,7 +22,10 @@ function getSaleProduct() {
         success: refundCallBack,
         error: function (data) {
             if (data.status == 403) {
-                window.location = GLConfig.login_url + '?next=' + "/static/wap/pages/sale_praise.html";
+                window.location = GLConfig.login_url + '?next=' + "/static/wap/pages/hot_product_praise.html";
+            }
+            else if (data.status == 404){
+                drawToast("已经到最底了哟~");
             }
         }
     });
@@ -80,7 +81,7 @@ function praiseClick() {
 
 function changeHotVal(data, dom) {
     var id = data.id;
-    var hotUrl = GLConfig.baseApiUrl + GLConfig.change_hot_val.template({"id": id});
+    var hotUrl = GLConfig.baseApiUrl + GLConfig.change_hot_pro_hot_val.template({"id": id});
     console.log("hotUrl: ", hotUrl);
     $.ajax({
         type: 'post',
@@ -94,7 +95,6 @@ function changeHotVal(data, dom) {
         if (res.today_count < 10) {
             drawToast("感谢您的点赞！" + "目前已经有" + res.hot_val + "人点赞，感谢您的参与！");
         }
-        // 修改该页面的praise值 为１
         $(dom).addClass("praise");
         if (res.today_count >= 10) {
             drawToast("您已经超过了十次点赞了，太感谢您了！")
@@ -106,12 +106,7 @@ function changeHotVal(data, dom) {
 
 
 function loadData() {//动态加载数据
-    //console.log("滚动条到顶部的垂直高度: " + $(document).scrollTop());//1402
-    //console.log("页面的文档高度 ：" + $(document).height());//2541
-    //console.log('浏览器的高度：' + $(window).height());//1138
     var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
-    //console.log("totalheight:", totalheight);//2540
-
     if ($(document).height() - 5 <= totalheight)//当文档的高度小于或者等于总的高度的时候，开始动态加载数据
     {
         //加载数据
