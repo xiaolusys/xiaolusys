@@ -508,6 +508,9 @@ class DailyDingHuoStatsView(View):
                                   context_instance=RequestContext(request))
 
 
+import flashsale.dinghuo.utils as tools
+
+
 class StatsByProductIdView(View):
     def getUserName(self, uid):
         try:
@@ -516,12 +519,21 @@ class StatsByProductIdView(View):
             return 'none'
 
     def get(self, request, product_id):
-        pro_bean = Product.objects.filter(id=product_id)
+        pro_bean = Product.objects.filter(id=product_id, status=Product.NORMAL)
+        dinghuo_begin_str = request.GET.get("showt_begin")
+        dinghuo_begin = ""
         if pro_bean.count() > 0:
+            if not dinghuo_begin_str:
+                dinghuo_begin = pro_bean[0].sale_time
+            else:
+                dinghuo_begin = tools.parse_date(dinghuo_begin_str)
+
             order_details = OrderDetail.objects.exclude(orderlist__status=u'作废').filter(product_id=product_id).filter(
-                orderlist__created__gte=pro_bean[0].sale_time)
+                orderlist__created__gte=dinghuo_begin)
+
         return render_to_response("dinghuo/productstats.html",
-                                  {"orderdetails": order_details},
+                                  {"orderdetails": order_details, "dinghuo_begin": dinghuo_begin,
+                                   "product_id": product_id},
                                   context_instance=RequestContext(request))
 
 

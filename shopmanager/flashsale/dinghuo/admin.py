@@ -178,12 +178,21 @@ class orderdetailAdmin(admin.ModelAdmin):
     }),)
 
     list_display = (
-        'id', 'orderlist', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
+        'id', 'link_order', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
         'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated'
     )
     list_filter = (('created', DateFieldListFilter),)
     search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id']
     date_hierarchy = 'created'
+
+    def link_order(self, obj):
+        order_list = obj.orderlist.id
+        link_str = u"<a href='/sale/dinghuo/changedetail/{0}/' target='_blank'>{1}</a>".format(order_list,
+                                                                                               obj.orderlist.__unicode__())
+        return link_str
+
+    link_order.allow_tags = True
+    link_order.short_description = "订货单"
 
     def queryset(self, request):
         qs = super(orderdetailAdmin, self).queryset(request)
