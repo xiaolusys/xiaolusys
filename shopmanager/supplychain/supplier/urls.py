@@ -2,7 +2,7 @@ from django.conf.urls import patterns, include, url
 from rest_framework.urlpatterns import format_suffix_patterns
 from django.views.decorators.csrf import csrf_exempt
 
-from . import views, views_buyer_group, views_aggregate, views_addsupplier
+from . import views, views_buyer_group, views_aggregate, views_addsupplier, views_hot
 
 
 urlpatterns = [
@@ -21,7 +21,8 @@ urlpatterns = [
     url(r'^select_sale_time/$', views.change_Sale_Time),
     url(r'^bdproduct/(?P<pk>[0-9]+)/$', views_aggregate.AggregateProductView.as_view()),
     url(r'^addsupplier/$', views_addsupplier.AddSupplierView.as_view()),
-    url(r'^checksupplier/$', views_addsupplier.CheckSupplierView.as_view())
+    url(r'^checksupplier/$', views_addsupplier.CheckSupplierView.as_view()),
+    url(r'^hotpro/$', views_hot.HotProductView.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

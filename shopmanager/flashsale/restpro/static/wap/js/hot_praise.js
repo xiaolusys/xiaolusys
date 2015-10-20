@@ -24,6 +24,9 @@ function getSaleProduct() {
             if (data.status == 403) {
                 window.location = GLConfig.login_url + '?next=' + "/static/wap/pages/hot_product_praise.html";
             }
+            else if (data.status == 404){
+                drawToast("已经到最底了哟~");
+            }
         }
     });
     function refundCallBack(res) {

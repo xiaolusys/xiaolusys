@@ -16,7 +16,7 @@ from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter
 from shopback.base.options import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
-
+from models_hots import HotProduct
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -134,7 +134,7 @@ class SaleSupplierAdmin(MyAdmin):
             return qs
         scharges = SupplierCharge.objects.filter(employee=request.user, status=SupplierCharge.EFFECT)
         supplier_ids = [s.supplier_id for s in scharges]
-        
+
         return qs.filter(
             models.Q(status=SaleSupplier.UNCHARGE) | models.Q(id__in=supplier_ids, status=SaleSupplier.CHARGED))
 
@@ -205,7 +205,7 @@ admin.site.register(SaleCategory, SaleCategoryAdmin)
 
 class SaleProductAdmin(MyAdmin):
     category_list = []
-    list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link','category_select', 
+    list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link','category_select',
                     'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'created')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
@@ -282,7 +282,7 @@ class SaleProductAdmin(MyAdmin):
         rset.add(contactor_name)
         if not perms.has_sale_product_mgr_permission(request.user):
             rset.add('is_changed')
-# 
+#
 #         if perms.has_sale_product_mgr_permission(request.user):
 #             if contactor_name in rset:
 #                 rset.remove(contactor_name)
@@ -298,7 +298,17 @@ class SaleProductAdmin(MyAdmin):
     pic_link.short_description = u"商品图片"
 
     def title_link(self, obj):
-        return (u'<div style="width:350px;"><div class="well well-content">{0}</div></div>').format(obj.title)
+        try:
+            HotProduct.objects.get(proid=obj.id)
+            html = u'<br><br><a class="btn" target="_blank" href="/admin/supplier/hotproduct/?proid={0}">查看爆款</a>'.format(obj.id)
+        except HotProduct.DoesNotExist:
+            if obj.status == SaleProduct.WAIT:
+                html = u'<br><br><a class="btn" target="_blank" cid="{0}" onclick="toMakeHot(this)">生成爆款</a>'.format(obj.id)
+            else:
+                html = u''
+        except HotProduct.MultipleObjectsReturned:
+            html = u'<br><br><a class="btn" target="_blank" href="/admin/supplier/hotproduct/?proid={0}">查看爆款</a>'.format(obj.id)
+        return (u'<div style="width:350px;"><div class="well well-content">{0}</div></div>{1}').format(obj.title,html)
 
     title_link.allow_tags = True
     title_link.short_description = u"标题"
@@ -337,7 +347,7 @@ class SaleProductAdmin(MyAdmin):
         return s
     sale_time_select.allow_tags = True
     sale_time_select.short_description = u"上架时间"
-    
+
     def get_select_list(self,obj):
         slist = []
         if obj.status == SaleProduct.WAIT:
@@ -363,7 +373,7 @@ class SaleProductAdmin(MyAdmin):
         else:
             slist.append(obj.status)
         return slist
-        
+
     def status_link(self, obj):
         s = []
         sel_list = self.get_select_list(obj)
@@ -376,10 +386,10 @@ class SaleProductAdmin(MyAdmin):
             s.append(u'<option value="%s" %s>%s</option>'%(sel,selected,SDM.get(sel)))
         s.append(u'</select>')
         return ''.join(s).format(obj.id)
-        
+
     status_link.allow_tags = True
     status_link.short_description = u"状态／操作"
-    
+
     class Media:
         css = {
             "all": (
@@ -387,7 +397,7 @@ class SaleProductAdmin(MyAdmin):
              "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")}
         js = ("jquery/jquery-1.8.13.min.js", "js/admin/adminpopup.js", "js/supplier_change_list.js",
               "js/select_buyer_group.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
-              "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js")
+              "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js","js/make_hot.js")
 
     def get_changelist(self, request, **kwargs):
         """
@@ -406,7 +416,7 @@ class SaleProductAdmin(MyAdmin):
         else:
             obj.status = SaleProduct.REJECTED
         obj.save()
-    
+
     def response_add(self, request, obj, post_url_continue='../%s/'):
 
         if not obj.contactor:
@@ -414,7 +424,7 @@ class SaleProductAdmin(MyAdmin):
             obj.save()
 
         return super(SaleProductAdmin, self).response_add(request, obj, post_url_continue=post_url_continue)
-    
+
     def select_Contactor(self, obj):
         from models_buyer_group import BuyerGroup
 
@@ -473,10 +483,62 @@ from models_praise import SalePraise
 
 
 class SalePraiseAdmin(admin.ModelAdmin):
-    list_display = ('id', 'sale_id', 'cus_id', 'praise', 'created')
+    list_display = ('id', 'sale_id', 'cus_id', 'praise', 'created', 'pro_from')
     list_display_links = ('id', )
-    list_filter = ('id', 'praise')
+    list_filter = ('pro_from', 'praise')
     search_fields = ['=id', '=sale_id']
 
 
 admin.site.register(SalePraise, SalePraiseAdmin)
+
+from models_hots import HotProduct
+
+
+class HotProductAdmin(admin.ModelAdmin):
+    list_display = ('pro_pic', 'name', 'sale_pro', 'price', 'hot_value', 'voting', 'status')
+    list_display_links = ('name', )
+    list_filter = ('voting', 'created')
+    search_fields = ['=id', '=name']
+
+    def voting_action(self, request, queryset):
+        """  设置爆款投票  取样通过　的产品可以设置参与投票　"""
+        no_votigs = queryset.filter(voting=False, status__in=(HotProduct.SELECTED,))
+        no_votigs.update(voting=True)
+        mes = u"设置选品参与投票完成"
+        self.message_user(request, mes)
+
+    def cancel_voting_action(self, request, queryset):
+        """  取消爆款投票  """
+        votigs = queryset.filter(voting=True)
+        votigs.update(voting=False)
+        mes = u"取消选品投票设置完成"
+        self.message_user(request, mes)
+
+
+    def pro_pic(self, obj):
+        html = u'<img src="{0}" style="height:100px;width=62px">'.format(obj.pic_pth)
+        return html
+
+    def sale_pro(self, obj):
+        sal_p = obj.proid
+        sale_html = u'<a class="btn" target="_blank" href="/admin/supplier/saleproduct/?id={0}">查看选品</a>'.format(sal_p)
+        site_url = u'<br><br><a class="btn" target="_blank" href="{0}">查看站点</a>'.format(obj.site_url)
+        return sale_html + site_url
+
+    pro_pic.allow_tags = True
+    pro_pic.short_description = u"爆款图片"
+
+    sale_pro.allow_tags = True
+    sale_pro.short_description = u"特卖选品"
+
+
+    voting_action.short_description = u"设置爆款投票"
+    cancel_voting_action.short_description = u"取消爆款投票"
+    actions = ['voting_action', 'cancel_voting_action']
+
+    class Media:
+        css = {"all": ("css/hot_pro.css",)}
+        js = ("jquery/jquery-1.8.13.min.js",)
+
+
+admin.site.register(HotProduct, HotProductAdmin)

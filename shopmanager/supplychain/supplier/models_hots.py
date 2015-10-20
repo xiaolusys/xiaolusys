@@ -22,6 +22,7 @@ class HotProduct(models.Model):
                       (CANCEL, u'作废'))  # 中断
 
     name = models.CharField(max_length=128, verbose_name=u'名称')
+    proid = models.IntegerField(default=0, verbose_name=u'产品ID')
     pic_pth = models.CharField(max_length=512, verbose_name=u'图片链接')
     site_url = models.CharField(max_length=512, verbose_name=u'站点链接')
     price = models.FloatField(default=0.0, verbose_name=u'预售价格')
