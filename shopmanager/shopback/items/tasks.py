@@ -269,8 +269,8 @@ class CalcProductSaleTask(Task):
                                              sku_id=sku and sku.id or 0,
                                              outer_id=product.outer_id)
             
-            pds.sale_time = product.sale_time or yest_date
-            pds.sale_num  = sale_dict['sale_num'] or 0
+            pds.sale_time    = product.sale_time or yest_date
+            pds.sale_num     = sale_dict['sale_num'] or 0
             pds.sale_payment = sale_dict['sale_payment'] or 0
             pds.sale_refund  = sale_dict['sale_payment'] - (real_sale_dict['sale_payment'] or 0) + refund_fee
             pds.confirm_num  = real_sale_dict['sale_num'] or 0
@@ -364,19 +364,21 @@ def updateUserItemSkuFenxiaoProductTask(user_id):
 def gradCalcProductSaleTask():
     """  计算商品销售 """
     
-    dt = datetime.datetime.now() 
-    #更新一个月以前的账单
-    if settings.DEBUG:
-        CalcProductSaleTask()(yest_date = dt - datetime.timedelta(days=30))
-    else:
-        subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=30))
-    
+    dt = datetime.datetime.now()
+    gradSaleTask = CalcProductSaleTask()
+    for day in (10,20,30): #分别间隔10,20,30天
+        delta_days = dt - datetime.timedelta(days=day)
+        if settings.DEBUG:
+            gradSaleTask(yest_date = delta_days)
+        else:
+            gradSaleTask.s(yest_date = delta_days)()
+        
+    yest_date = dt - datetime.timedelta(days=1)
     #更新昨日的账单
     if settings.DEBUG:
-        CalcProductSaleTask()(yest_date = dt - datetime.timedelta(days=1),update_warn_num = True)
+        CalcProductSaleTask()(yest_date = yest_date, update_warn_num = True)
     else:
-        subtask(CalcProductSaleTask()).delay(yest_date = dt - datetime.timedelta(days=1),
-                                           update_warn_num = True)
+        subtask(CalcProductSaleTask()).delay(yest_date = yest_date,update_warn_num = True)
 
 
 ###########################################################  商品库存管理  ########################################################
