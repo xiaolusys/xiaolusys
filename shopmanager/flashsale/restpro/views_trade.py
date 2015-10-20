@@ -848,7 +848,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         addr_id  = CONTENT.get('addr_id')
         address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
-        
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')

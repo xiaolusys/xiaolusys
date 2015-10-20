@@ -268,7 +268,6 @@ class CalcProductSaleTask(Task):
                                              product_id=product.id,
                                              sku_id=sku and sku.id or 0,
                                              outer_id=product.outer_id)
-            
             pds.sale_time    = product.sale_time or yest_date
             pds.sale_num     = sale_dict['sale_num'] or 0
             pds.sale_payment = sale_dict['sale_payment'] or 0
