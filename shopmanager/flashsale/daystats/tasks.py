@@ -929,6 +929,9 @@ def task_calc_operate_data(start_date, end_date, category="0"):
                 try:
                     one_product = Product.objects.get(outer_id=one_data.product_id)
                     product_category = get_category(one_product.category)
+                    category_name = one_product.category.__unicode__()
+                    if u"秒杀" in one_product.name:
+                        continue
                 except:
                     continue
                 product_outer_id = one_data.product_id[0:len(one_data.product_id) - 1]
@@ -947,7 +950,7 @@ def task_calc_operate_data(start_date, end_date, category="0"):
                          "sale_time": target_date.strftime("%Y-%m-%d"),
                          "title": one_product.name.split("/")[0],
                          "group": product_category,
-                         "category": product_category,
+                         "category": category_name,
                          "agent_price": one_product.agent_price,
                          "total_cost": one_product.cost * one_data.sale_num,
                          "total_sale_money": one_product.agent_price * one_data.sale_num,

@@ -195,7 +195,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取今日推荐商品列表 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=today_dt).order_by('-wait_post_num')
+        queryset = queryset.filter(sale_time=today_dt).order_by('-details__is_recommend','-wait_post_num')
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
         
@@ -209,7 +209,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取历史推荐商品列表 """
         previous_dt = self.get_previous_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
+        queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend','-wait_post_num')
         
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
@@ -224,7 +224,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取历史推荐商品列表 预览页面"""
         previous_dt = self.get_priview_date(request)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
+        queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend','-wait_post_num')
 
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
