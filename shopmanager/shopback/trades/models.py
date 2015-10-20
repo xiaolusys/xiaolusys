@@ -377,6 +377,10 @@ class MergeTrade(models.Model):
         return self.status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                pcfg.WAIT_SCAN_WEIGHT_STATUS)
     
+    def isSplit(self):
+        """ 是否分拆过后的订单 """
+        return self.is_part_consign
+    
     def get_trade_assign_ware(self):
         """ 获取订单关联仓库 """
         

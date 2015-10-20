@@ -118,7 +118,7 @@ class SaleRefund(models.Model):
         
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
-            raise Exception('%s has already refund success'%self)
+            return
 
         self.status = SaleRefund.REFUND_SUCCESS
         self.save()
