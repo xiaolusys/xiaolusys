@@ -203,6 +203,12 @@ class SaleTrade(models.Model):
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
     
+    def is_closed(self):
+        return self.status == self.TRADE_CLOSED_BY_SYS
+    
+    def is_refunded(self):
+        return self.status == self.TRADE_CLOSED
+    
     def is_Deposite_Order(self):
         
         for order in self.sale_orders.all():
@@ -224,7 +230,6 @@ class SaleTrade(models.Model):
             
     def charge_confirm(self,charge_time=None):
         """ 如果付款期间，订单被订单号任务关闭则不减锁定数量 """
-        trade_close = self.status == self.TRADE_CLOSED_BY_SYS
         self.status = self.WAIT_SELLER_SEND_GOODS
         self.pay_time = charge_time or datetime.datetime.now()
         update_model_fields(self,update_fields=['status','pay_time'])
@@ -232,8 +237,9 @@ class SaleTrade(models.Model):
         for order in self.sale_orders.all():
             order.status = order.WAIT_SELLER_SEND_GOODS
             order.save()
-        if not trade_close:
-            self.release_lock_skunum()    
+#       付款后减掉锁定库存，现取消 meron-20151020
+#         if not self.is_closed():
+#             self.release_lock_skunum()    
         self.confirm_payment()
     
     def close_trade(self):

@@ -214,7 +214,10 @@ class Product(models.Model):
     
     def is_deposite(self):
         return self.outer_id.startswith(DIPOSITE_CODE_PREFIX)
-
+    
+    def is_onshelf(self):
+        return self.shelf_status == self.UP_SHELF
+        
     @property
     def is_out_stock(self):
         if self.collect_num<0 or self.wait_post_num <0 :
@@ -530,8 +533,7 @@ class ProductSku(models.Model):
     @property
     def free_num(self):
         lock_num = max(self.lock_num,0)
-        wait_post_num = max(self.wait_post_num,0)
-        rnum = self.remain_num - wait_post_num - lock_num
+        rnum = self.remain_num - lock_num
         if rnum < 0:
             return 0
         return rnum 
@@ -760,17 +762,18 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
         product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
 
-        update_model_fields(product, ["collect_num", "warn_num", "remain_num", "wait_post_num", "reduce_num",
-                                      "cost", "std_purchase_price", "std_sale_price", "agent_price", "staff_price"])
+        update_model_fields(product, ["collect_num", "warn_num", "remain_num", 
+                                      "wait_post_num", "reduce_num", "std_purchase_price",
+                                      "cost", "std_sale_price", "agent_price", "staff_price"])
         # product.save()
     
 post_save.connect(calculate_product_stock_num, sender=ProductSku, dispatch_uid='calculate_product_num')
 
 
 def upshelf_product_clear_locknum(sender, product_list, *args, **kwargs):
-    """ 商品上架规格锁定数清零 """
+    """ 商品上架时将商品规格待发数更新为锁定库存数 """
     for product in product_list:
-        product.prod_skus.update(lock_num=0)
+        product.prod_skus.update(lock_num=F('wait_post_num'))
 
 signal_product_upshelf.connect(upshelf_product_clear_locknum, sender=Product)
 
