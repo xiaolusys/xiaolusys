@@ -37,7 +37,6 @@ def ruleMatchPayment(trade):
                 continue
             
             for item in rule.compose_items.all():
-                
                 MergeOrder.gen_new_order(trade.id,
                                          item.outer_id,
                                          item.outer_sku_id,
