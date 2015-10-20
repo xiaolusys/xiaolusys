@@ -35,7 +35,7 @@ urlpatterns = [
     url(r'^daily/', staff_member_required(DailyDingHuoStatsView.as_view()), name="daily_ding_huo_stats"),  #大货每天统计
     url(r'^changearrivalquantity/$', views.changearrivalquantity, name="changearrivalquantity"),
     url(r'^statsbypid/(?P<product_id>\d+)/$', staff_member_required(StatsByProductIdView.as_view()), name="statsbypid"),  #根据商品id统计大货
-    url(r'^dailywork/', staff_member_required(DailyWorkView.as_view()), name="dailywork"),      #大货任务
+    url(r'^dailywork/', staff_member_required(DailyWorkView.as_view()), name="dailywork"),      #爆款
     url(r'^setusertogroup/$', views.setusertogroup, name="setusertogroup"),                     #分配用户到组
     url(r'^adddetailtodinghuo/$', views.add_detail_to_ding_huo, name="add_detail_to_ding_huo"), #增加订货详情
     url(r'^changeorderlist/$', views.modify_order_list, name="modify_order_list"),
@@ -56,4 +56,5 @@ urlpatterns = [
     url(r'^tuihuo/$', StatisRefundSupView.as_view(), name="tuihuo"),      # 退货统计　
     url(r'^tuihuo/change_status/$', staff_member_required(change_duihuo_status), name="change_tuihuo_status"), # 退货状态修改　
     url(r'^change_kucun/$', staff_member_required(views_sale_status.ChangeKunView.as_view()), name="change_kucun"), #修改上架前库存
+    url(r'^sale_warning/$', staff_member_required(views_sale_status.SaleStatusView.as_view()), name="change_kucun"), #修改上架前库存
 ]

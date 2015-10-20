@@ -22,16 +22,17 @@ def ruleMatchPayment(trade):
         3，该规则执行前，应先将所以满就送的订单删除；
     """
     try:
-        trade.merge_orders.filter(gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
+        if trade.isSplit(): #如果订单属于拆分后的订单，则不进行金额规则匹配
+            return
         
-        real_payment = trade.inuse_orders.aggregate(
+        trade.merge_orders.filter(is_merge=False,gift_type=pcfg.OVER_PAYMENT_GIT_TYPE).delete()
+        real_payment = trade.merge_orders.filter(sys_status=pcfg.IN_EFFECT,is_merge=False).aggregate(
                         total_payment=Sum('payment'))['total_payment'] or 0
-    
+        
         payment_rules = ComposeRule.objects.filter(type=pcfg.RULE_PAYMENT_TYPE,status=True)\
                         .order_by('-payment')
         
         for rule in payment_rules:
-            
             if real_payment < rule.payment or rule.gif_count <= 0:
                 continue
             
@@ -61,7 +62,6 @@ def ruleMatchSplit(trade):
      
     try:
         trade.merge_orders.filter(gift_type=pcfg.COMBOSE_SPLIT_GIT_TYPE).delete()
-        
         for order in trade.split_orders:
 
             try:
@@ -113,7 +113,6 @@ def ruleMatchGifts(trade):
      
     try:
         trade.merge_orders.filter(gift_type=pcfg.ITEM_GIFT_TYPE).delete()
-  
         orders = trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
                         ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
                                      pcfg.WAIT_BUYER_CONFIRM_GOODS)

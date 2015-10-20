@@ -306,10 +306,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               not has_deposite)
             wallet_cash    = xlmm.cash / 100.0
         response = {'uuid':genTradeUniqueid(),
-                    'total_fee':total_fee,
-                    'post_fee':post_fee,
-                    'discount_fee':discount_fee,
-                    'total_payment':total_payment,
+                    'total_fee':round(total_fee,2),
+                    'post_fee':round(post_fee,2),
+                    'discount_fee':round(discount_fee,2),
+                    'total_payment':round(total_payment,2),
                     'wallet_cash':wallet_cash,
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
@@ -389,10 +389,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_sku_dict['product'] = serializers.ProductSerializer(product,
                                          context={'request': request}).data
         response = {'uuid':genTradeUniqueid(),
-                    'total_fee':total_fee,
-                    'post_fee':post_fee,
-                    'discount_fee':discount_fee,
-                    'total_payment':total_payment,
+                    'total_fee':round(total_fee,2),
+                    'post_fee':round(post_fee,2),
+                    'discount_fee':round(discount_fee,2),
+                    'total_payment':round(total_payment,2),
                     'wallet_cash':wallet_cash,
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
@@ -779,7 +779,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError(u'优惠金额异常')
             
             cart_payment = cart_total_fee + post_fee - cart_discount
-            if post_fee < 0 or payment < 0  or payment < cart_payment:
+            if post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10:
                 raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')
@@ -838,14 +838,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if ((coupon_pool.template.type == CouponTemplate.C150_10 and bn_totalfee < 15000) or
                 (coupon_pool.template.type == CouponTemplate.C259_20 and bn_totalfee < 25900)):
                 raise exceptions.APIException(u"订单金额不满足优惠券使用条件")
-            
             bn_discount    += int(coupon_pool.template.value * 100)
 
         if discount_fee > bn_discount:
             raise exceptions.ParseError(u'优惠金额异常')
         
         bn_payment      = bn_totalfee + post_fee - bn_discount
-        if post_fee < 0 or payment <= 0 or payment < bn_payment:
+        if post_fee < 0 or payment <= 0 or abs(payment - bn_payment) > 10 :
             raise exceptions.ParseError(u'付款金额异常')
         
         addr_id  = CONTENT.get('addr_id')

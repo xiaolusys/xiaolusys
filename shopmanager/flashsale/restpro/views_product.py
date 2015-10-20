@@ -180,7 +180,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if order_by == 'price':
             queryset = queryset.order_by('agent_price')
         else:
-            queryset = queryset.order_by('-wait_post_num')
+            queryset = queryset.order_by('-details__is_recommend','-wait_post_num')
         return queryset
     
     def get_female_qs(self,queryset):
@@ -195,7 +195,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取今日推荐商品列表 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=today_dt).order_by('-wait_post_num')
+        queryset = queryset.filter(sale_time=today_dt).order_by('-details__is_recommend','-wait_post_num')
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
         
@@ -209,7 +209,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取历史推荐商品列表 """
         previous_dt = self.get_previous_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
+        queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend','-wait_post_num')
         
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
@@ -224,7 +224,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取历史推荐商品列表 预览页面"""
         previous_dt = self.get_priview_date(request)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=previous_dt).order_by('-wait_post_num')
+        queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend','-wait_post_num')
 
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
@@ -257,13 +257,13 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取特卖童装列表 """
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(shelf_status=Product.UP_SHELF)
-   
+        
         child_qs = self.order_queryset(request, self.get_child_qs(queryset))
         page = self.paginate_queryset(child_qs)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-
+        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
@@ -303,7 +303,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.filter(model_id=model_id)
         serializer = serializers.ProductPreviewSerializer(queryset, many=True, context={'request': request})
         # serializer = self.get_serializer(queryset, many=True)
-
+        
         return Response(serializer.data)
     
     @cache_response(timeout=10*60,key_func='calc_items_cache_key')

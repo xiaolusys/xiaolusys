@@ -421,13 +421,13 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     if strade.is_Deposite_Order() or strade.channel == SaleTrade.WALLET:
         return 
     
-    today = datetime.date.today()
-    target_date = obj.pay_time.date()
+    order_id          = strade.tid
+    order_time        = strade.pay_time
+    today       = datetime.date.today()
+    target_date = order_time.date()
     if target_date > today:
         target_date = today
 
-    order_id          = strade.tid
-    order_time        = strade.pay_time
     xlmm, openid, unionid = get_strade_wxid_iter(strade)
     if not xlmm:
         return 
@@ -457,12 +457,13 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
             order_num=obj.id,
             log_type=CarryLog.REFUND_OFF
         )
-        if not state:
+        if not state and clog.status != CarryLog.PENDING:
             return
-        clog.buyer_nick=xlmm.weikefu,
-        clog.value=delta_rebeta,
-        clog.carry_type=CarryLog.CARRY_OUT,
-        clog.status=CarryLog.PENDING,
+        delta_rebeta = (obj.refund_fee / strade.payment) * shopping.tichengcount
+        clog.buyer_nick=xlmm.weikefu
+        clog.value=delta_rebeta
+        clog.carry_type=CarryLog.CARRY_OUT
+        clog.status=CarryLog.PENDING
         clog.carry_date=obj.modified
         clog.save()
     else:
