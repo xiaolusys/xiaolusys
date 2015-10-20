@@ -92,7 +92,7 @@ class OrderList(models.Model):
     costofems_cash.short_description = u"快递费用"
 
     def __unicode__(self):
-        return '<%s,%s,%s>' % (str(self.id or ''), self.id, self.buyer_name)
+        return '<%s,%s>' % (str(self.id or ''), self.buyer_name)
 
 
 class OrderDetail(models.Model):
