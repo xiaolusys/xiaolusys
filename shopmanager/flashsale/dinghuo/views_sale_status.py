@@ -215,7 +215,7 @@ class SaleStatusView(generics.ListCreateAPIView):
             all_skus = one_product.normal_skus
             warning = False
             for one_sku in all_skus:
-                if one_sku.remain_num - one_sku.wait_post_num < warn_num:
+                if one_sku.remain_num - one_sku.lock_num < warn_num:
                     warning = True
             result_data.append({"outer_id": one_product.outer_id, "warning": warning,
                                 "name": one_product.name, "pic_path": one_product.PIC_PATH})
