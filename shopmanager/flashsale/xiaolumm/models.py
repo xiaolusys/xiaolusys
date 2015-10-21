@@ -491,7 +491,7 @@ class CarryLog(models.Model):
     MAMA_RECRUIT   = 'recruit'
     ORDER_RED_PAC = 'ordred'
     COST_FLUSH    = 'flush'
-    RECHARGE = 'recharge'
+    RECHARGE      = 'recharge'
     
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),

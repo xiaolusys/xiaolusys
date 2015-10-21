@@ -862,7 +862,6 @@ class Item(models.Model):
                 logger.error('商品更新出错(num_iid:%s)'%str(num_iid),exc_info=True)
         return item
 
-
     @classmethod
     def save_item_through_dict(cls,user_id,item_dict):
         
@@ -932,16 +931,12 @@ class SkuProperty(models.Model):
         
         sku,state = cls.objects.get_or_create(num_iid=sku_dict.pop('num_iid'),
                                               sku_id=sku_dict.pop('sku_id'))
-        
         for k,v in sku_dict.iteritems():
             if k == 'outer_id' and not v :continue
             hasattr(sku,k) and setattr(sku,k,v)
-            
         sku.save()
-        
         return sku
     
-        
 
 class ProductLocation(models.Model):
     """ 库存商品库位信息 """
