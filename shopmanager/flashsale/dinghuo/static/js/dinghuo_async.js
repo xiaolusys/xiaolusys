@@ -100,7 +100,8 @@ function create_first_normal_dom(obj) {
         /*
          <tr>
          <td rowspan="{{ sku_len }}">{{ name }}<br>
-         <a href="/sale/dinghuo/adddetail/{{ outer_id }}" target="_blank">编码:{{ outer_id }}</a>
+         <a href="/sale/dinghuo/adddetail/{{ outer_id }}" target="_blank">编码:{{ outer_id }}</a><br>
+         <a href="/sale/dinghuo/change_kucun/?search_input={{ outer_id }}" target="_blank">修改上架前库存</a>
          </td>
          <td rowspan="{{ sku_len }}">
          <div class="portfolio-box"><div class="portfolio-box"><img src="{{ pic_path }}" width="100px"
