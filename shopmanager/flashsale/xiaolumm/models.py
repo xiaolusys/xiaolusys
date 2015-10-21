@@ -314,8 +314,10 @@ class XiaoluMama(models.Model):
         if clog.carry_type == CarryLog.CARRY_IN:
             self.cash = models.F('cash') + clog.value
             self.pending = models.F('pending') - clog.value
-        else:
+        elif self.cash >= clog.value:
             self.cash = models.F('cash') - clog.value
+        else:
+            return 
         update_model_fields(self,update_fields=['cash','pending'])
         
         

@@ -18,7 +18,7 @@ __author__ = 'meixqhi'
 CLICK_REBETA_DAYS = 11
 ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
-AGENCY_RECRUIT_DAYS = 3
+AGENCY_RECRUIT_DAYS = 1
 
 @task()
 def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
@@ -44,7 +44,6 @@ def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
         isvalid = True
         
     Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
-    
     WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
     
 
@@ -66,9 +65,9 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
     c_logs = CarryLog.objects.filter(log_type__in=(#CarryLog.CLICK_REBETA,
                                                    #CarryLog.THOUSAND_REBETA,
                                                    CarryLog.MAMA_RECRUIT,
+                                                   CarryLog.REFUND_OFF,
                                                    ),
-                                     carry_date__lt=recruit_date,
-                                     carry_type=CarryLog.CARRY_IN,
+                                     carry_date__lte=recruit_date,
                                      status=CarryLog.PENDING)
     
     if xlmm_id:
@@ -76,7 +75,6 @@ def task_Push_Pending_Carry_Cash(xlmm_id=None):
         c_logs = c_logs.filter(xlmm=xlmm.id)
         
     for cl in c_logs:
-        
         xlmms = XiaoluMama.objects.filter(id=cl.xlmm)
         if xlmms.count() == 0:
             continue
