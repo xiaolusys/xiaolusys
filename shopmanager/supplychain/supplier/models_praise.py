@@ -8,9 +8,9 @@ class SalePraise(models.Model):
     FROM_CHOICES = ((SALE_PRODUCT, u'特卖选品'),
                     (Hot_Product, u'爆款产品'))
 
-    sale_id = models.BigIntegerField(verbose_name=u"选品ID")
+    sale_id = models.BigIntegerField(db_index=True, verbose_name=u"选品ID")
     pro_from = models.IntegerField(default=0, choices=FROM_CHOICES, verbose_name=u'产品来源选择')
-    cus_id = models.BigIntegerField(default=0, verbose_name=u"客户ID")
+    cus_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u"客户ID")
     praise = models.BooleanField(default=False, verbose_name=u"是否点赞")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')

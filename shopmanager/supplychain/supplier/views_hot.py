@@ -2,7 +2,6 @@
 from django.views.generic import View
 from django.http import HttpResponse
 import json
-from django.contrib.auth.models import User
 from supplychain.supplier.models import SaleProduct
 from models_hots import HotProduct
 
@@ -18,7 +17,7 @@ class HotProductView(View):
         pic_url = sale_pro.pic_url or ' '
         product_link = sale_pro.product_link or ' '
         price = sale_pro.on_sale_price  # 售价
-        user = User.objects.get(id=request.user.id)
+        user = request.user.id
 
         try:
             hot_pro = HotProduct.objects.get(proid=sale_id)
