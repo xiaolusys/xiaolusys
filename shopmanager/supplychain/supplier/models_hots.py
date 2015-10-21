@@ -22,7 +22,7 @@ class HotProduct(models.Model):
                       (CANCEL, u'作废'))  # 中断
 
     name = models.CharField(max_length=128, verbose_name=u'名称')
-    proid = models.IntegerField(default=0, verbose_name=u'产品ID')
+    proid = models.IntegerField(default=0, db_index=True, verbose_name=u'产品ID')
     pic_pth = models.CharField(max_length=512, verbose_name=u'图片链接')
     site_url = models.CharField(max_length=512, verbose_name=u'站点链接')
     price = models.FloatField(default=0.0, verbose_name=u'预售价格')
@@ -30,7 +30,7 @@ class HotProduct(models.Model):
     voting = models.BooleanField(default=False, verbose_name=u'参与投票')
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
     status = models.IntegerField(default=0, choices=STATUS_CHOICES, verbose_name=u'爆款状态')
-    contactor = BigIntegerForeignKey(User, null=True, related_name='hot_products', verbose_name=u'接洽人')
+    contactor = models.BigIntegerField(null=True, db_index=True, verbose_name=u'接洽人')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
