@@ -112,7 +112,7 @@ SYNC_MODEL_SCHEDULE = {
      },
      u'定时更新商品待发数':{     #更新库存
         'task':'shopback.items.tasks.updateProductWaitPostNumTask',
-        'schedule':crontab(minute="0",hour="5,14"),#
+        'schedule':crontab(minute="0",hour="5"),#
         'args':()
      },
      u'定时更新淘宝商品库存':{     #更新库存
@@ -149,11 +149,11 @@ SYNC_MODEL_SCHEDULE = {
 
 
 SHOP_APP_SCHEDULE = {
-#     u'定时抓取商品评价':{
-#         'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
-#         'schedule':crontab(minute="0",hour="8,10,12,14,16,18,20,22"),
-#         'args':()
-#     },
+    u'定时抓取商品评价':{
+        'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
+        'schedule':crontab(minute="0",hour="8,10,12,14,16,18,20,22"),
+        'args':()
+    },
     u'定时上架任务':{  #定时上架任务
         'task':'shopapp.autolist.tasks.updateAllItemListTask',
         'schedule':crontab(minute='*/10',hour=','.join([str(i) for i in range(7,24)])),

@@ -20,7 +20,6 @@ class DailyStatForm(forms.ModelForm):
         return int(total_payment * 100)
 
 
-
 class DailyStatAdmin(admin.ModelAdmin):
     
     form = DailyStatForm

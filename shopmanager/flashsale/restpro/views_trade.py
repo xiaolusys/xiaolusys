@@ -762,7 +762,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 if not cart.is_good_enough():
                     raise exceptions.ParseError(u'抱歉,商品已被抢光')
                 cart_total_fee += cart.price * cart.num * 100
-                cart_discount += cart.calc_discount_fee(xlmm=xlmm) * 100
+                cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * 100
             
             if coupon_id:
                 # 对应用户的未使用的优惠券
