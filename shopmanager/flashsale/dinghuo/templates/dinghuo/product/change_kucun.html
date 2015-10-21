@@ -63,7 +63,10 @@
                         </table>
                     </div>
                     <div class="col-xs-4">
-                        <input type="submit" class="btn btn-danger" style="margin: 20%" value="提交修改" id="tijiao"/>
+                        <input type="button" class="btn btn-info" style="margin-top: 20%;margin-left: 20%" value="一键清零"
+                               id="clear_num"/><br>
+                        <input type="submit" class="btn btn-danger" style="margin-top: 10px;margin-left: 20%"
+                               value="提交修改" id="tijiao"/>
                     </div>
                 </div>
             {% else %}
@@ -74,6 +77,10 @@
 </div>
 <script>
     $('#tijiao').bind("click", submit_data);
+    $('#clear_num').bind("click", clear_data);
+    function clear_data() {
+        $(".my_sku").val(0);
+    }
     function submit_data() {
         //请求URL
         var requestUrl = "/sale/dinghuo/change_kucun/";
