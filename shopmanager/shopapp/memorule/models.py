@@ -69,8 +69,6 @@ class RuleFieldType(models.Model):
         return self.field_name+self.field_type
 
 
-
-
 class ProductRuleField(models.Model):
 
     outer_id    = models.CharField(max_length=64,db_index=True)
@@ -156,7 +154,6 @@ class ComposeRule(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
-    
     
     
 class ComposeItem(models.Model):

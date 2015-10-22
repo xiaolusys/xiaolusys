@@ -121,7 +121,9 @@ class MergeTradeChangeList(ChangeList):
             return qs.filter(tid=tid)
 
         if search_q:
-            trades = qs.filter(models.Q(tid__startswith=search_q)|models.Q(out_sid=search_q))
+            tid_list = ['%s-%s'%(search_q,i) for i in range(1,6)]
+            tid_list.append(search_q)
+            trades = qs.filter(models.Q(tid__in=tid_list)|models.Q(out_sid=search_q))
             return trades
         
         return super(MergeTradeChangeList,self).get_query_set(request)
@@ -625,16 +627,13 @@ class MergeTradeAdmin(MyAdmin):
                             break
                         
                         if trade.has_merge and trade.sys_status == pcfg.WAIT_AUDIT_STATUS:
-                        
                             sub_tids = MergeBuyerTrade.objects.filter(
                                             main_tid=trade.id).values_list('sub_tid')
                             MergeTrade.objects.mergeRemover(trade)
                             
                             for strade in MergeTrade.objects.filter(id__in=[t[0] for t in sub_tids]):
-                                
                                 if strade.id in merge_trade_ids:
                                     continue
-                                
                                 is_merge_success = self._handle_merge(request.user.id,
                                                                       strade,main_trade)
                                 if is_merge_success:
@@ -1223,11 +1222,6 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
     actions = ['replay_post','check_post','merge_post_result','split_post_result']
 
 admin.site.register(ReplayPostTrade,ReplayPostTradeAdmin)
-
-
-
-
-
 
 
 class  WuliuAdmin(admin.ModelAdmin):

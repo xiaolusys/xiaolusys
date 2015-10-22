@@ -359,7 +359,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             weixin_payable = isFromWeixin(request)
             xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
-            
         alipay_payable = True
         wallet_payable = False
         discount_fee = product_sku.calc_discount_fee(xlmm=xlmm)
@@ -649,6 +648,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         assert UUID_RE.match(tuuid), u'订单UUID异常'
         sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
                                                            buyer_id=customer.id)
+        assert sale_trade.status == SaleTrade.WAIT_BUYER_PAY, u'订单不可支付'
         params = {
             'channel':form.get('channel'),
             'receiver_name':address.receiver_name,

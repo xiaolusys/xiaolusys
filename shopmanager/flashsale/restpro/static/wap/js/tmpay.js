@@ -114,7 +114,6 @@ var click_paybtn = click_paybtn || false;
 
 function Ctrl_sure_charge(pay_url){
 	//确认支付
-	   
 	var WALLET_PAY = 'wallet';	
     var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
 	var channel     = $('.pay-type .pay-list li.active i').attr('id');
@@ -135,7 +134,14 @@ function Ctrl_sure_charge(pay_url){
 	$.map(form_array,function(n, i){
 		params[n['name']] = n['value'];
 	});
+	//防止重复点击
+	if (click_paybtn == true){
+		console.log('点击重复提交：'+new Date());
+		return;
+	}
+    click_paybtn = true;
 	if(channel == WALLET_PAY && !confirm("确认使用小鹿钱包支付金额（￥"+params.payment+'元)吗？')){
+		click_paybtn = false;
 		return 
 	}
 	params.addr_id = addrid;
@@ -144,11 +150,6 @@ function Ctrl_sure_charge(pay_url){
 	if(!isNone(couponid)){
 		params.coupon_id = couponid;
 	}
-	if (click_paybtn == true){
-		return;
-	}else{    
-    	click_paybtn = true;
-    }
     var callBack = function(data){
     	click_paybtn = false;
 	  	if (data.channel == WALLET_PAY){//使用钱包支付
@@ -165,7 +166,6 @@ function Ctrl_sure_charge(pay_url){
 	      });
 	    }
     }
-    
     // 调用接口
 	$.ajax({ 
 		type:'post', 
@@ -176,7 +176,6 @@ function Ctrl_sure_charge(pay_url){
 		error:function(err){
 			click_paybtn = false;
             console.log("err is here ", err);
-			$('.btn-buy').removeClass('charged').removeClass('pressed');
 			var resp = JSON.parse(err.responseText);
 			if (!isNone(resp.detail)){
 				drawToast(resp.detail);

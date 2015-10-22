@@ -161,8 +161,6 @@ function change_paytype(){
     $(this).removeClass('normal').addClass('active');
 };
 function Confirm_charge(e){
-	e.stopImmediatePropagation();
-    e.preventDefault();
     Ctrl_sure_charge(GLConfig.get_buynow_url);
 };
 </script>

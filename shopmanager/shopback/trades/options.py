@@ -227,7 +227,6 @@ def driveMergeTrade(trade,latest_paytime=None):
         scan_merge_trades = merge_queryset.filter(sys_status__in=(
                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
                                     pcfg.WAIT_SCAN_WEIGHT_STATUS))
-        
         if scan_merge_trades.count()>0:
             return
         
@@ -248,7 +247,6 @@ def driveMergeTrade(trade,latest_paytime=None):
         if trades.count() > 0:
             if not main_trade:
                 for t in trades:
-                    
                     if (not MergeTrade.objects.isTradeFullRefund(t.id) and 
                         not t.has_refund and 
                         t.buyer_full_address == full_address):
@@ -258,10 +256,8 @@ def driveMergeTrade(trade,latest_paytime=None):
                     if t.has_refund:
                         main_trade = None
                         break
-                        
             if main_trade and mergeMaker(main_trade,trade):  
                 return main_trade
-        
     except Exception,exc:        
         logger.error('Merge Trade Error:%s'%exc.message,exc_info=True)
         
