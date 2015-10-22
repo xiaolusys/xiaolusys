@@ -648,7 +648,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         assert UUID_RE.match(tuuid), u'订单UUID异常'
         sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
                                                            buyer_id=customer.id)
-        assert sale_trade.status == SaleTrade.WAIT_BUYER_PAY, u'订单不可支付'
+        assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         params = {
             'channel':form.get('channel'),
             'receiver_name':address.receiver_name,
