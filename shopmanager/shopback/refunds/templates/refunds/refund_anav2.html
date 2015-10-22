@@ -25,6 +25,7 @@
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
         @import "{{ STATIC_URL }}fixed-header-table-master/css/defaultTheme.css";
     </style>
+    <script src="{{ STATIC_URL }}Chart-js/Chart.min.js"></script>
 </head>
 
 <body class="container">
@@ -47,6 +48,13 @@
                 <button class="btn btn-default" id="go_search" type="submit">Go!</button>
             </span>
     </div>
+</div>
+
+<div>
+    <canvas id="myChart" width="1200" height="200"></canvas>
+</div>
+<div>
+    <canvas id="myChart_rate" width="1200" height="400"></canvas>
 </div>
 
 <div style="margin-top: 30px">
@@ -76,12 +84,72 @@
         //});
     });
 </script>
-
 <script type="text/javascript">
+    function reversArray(arr) {
+        var x = [];
+        $.each(arr, function (i, re) {
+            x[i] = arr.pop();
+        });
+        return x
+    }
+
+    function chartShow(X_axis, Y_axis1, Y_axis2, Y_axis3) {
+        // X_axis : 日期
+        // Y_axis1　: 退款率
+        // Y_axis2　: 退款数
+        // Y_axis3　: 付款数
+        X_axis= reversArray(X_axis);
+        Y_axis1= reversArray(Y_axis1);
+        Y_axis2= reversArray(Y_axis2);
+        Y_axis3= reversArray(Y_axis3);
+
+        var ctx = $("#myChart").get(0).getContext("2d");
+        var ctx_rate = $("#myChart_rate").get(0).getContext('2d');
+        var data = {
+            labels: X_axis,//日期数组
+            datasets: [
+                {
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "rgba(220,220,220,1)",
+                    pointColor: "rgba(80%,10%,10%,1)",
+                    pointStrokeColor: "#fff",
+                    data: Y_axis1//退款数数组
+                },
+                {
+                    fillColor: "rgba(151,187,205,0.5)",
+                    strokeColor: "rgba(151,187,205,1)",
+                    pointColor: "rgba(151,187,205,1)",
+                    pointStrokeColor: "#fff",
+                    data: Y_axis2//付款数数组
+                }
+            ]
+        };
+        var rate_data = {
+            labels: X_axis,//日期数组
+            datasets: [
+                {
+                    fillColor: "rgba(151,187,205,0.5)",
+                    strokeColor: "rgba(80%,10%,10%,1)",
+                    pointColor: "rgba(255,255,100,1)",
+                    pointStrokeColor: "#fff",
+                    data: Y_axis3//退款率数组
+                }
+            ]
+        };
+        new Chart(ctx).Line(data);
+        new Chart(ctx_rate).Line(rate_data);
+    }
+    var X_axis = []; // X_axis : 日期
+    var Y_axis1 = []; // Y_axis1　: 退款率
+    var Y_axis2 = []; // Y_axis2　: 退款数
+    var Y_axis3 = []; // Y_axis3　: 付款数
+
     $(document).ready(function () {
         $("#go_search").click(function () {
             var time_from = $("#left_date_pic").val();
             var days = $("#right_date_pic").val();
+
+
             if (time_from == '' || days == '') {
                 layer.msg('时间不能为空');
                 return
@@ -90,16 +158,13 @@
                 var dateArray = dateSegSplit(time_from);
                 var sdArray = dateToStr(dateArray);
                 getTskID(sdArray);
-
             }
         });
         // 访问任务
         // aj_task();
         //生成退货单
     });
-</script>
 
-<script type="text/javascript">
     function dateToStr(dateArray) {
         var dsArray = new Array();
         for (var i = 0; i < dateArray.length; i++) {
@@ -109,12 +174,10 @@
         }
         return dsArray
     }
-</script>
 
-<!-- 获取taskid -->
-<script type="text/javascript">
+    <!-- 获取taskid -->
     function getTskID(sdArray) {
-        console.log("sdArray:",sdArray);
+        console.log("sdArray:", sdArray);
         var date = sdArray.pop();
         var task_url = '/refunds/refund_ana/';
         var data = {"date": date};
@@ -132,13 +195,12 @@
             }
             else {
                 dataTbleFnc();// 所有数据获取完成　调用 datatable
+                chartShow(X_axis, Y_axis1, Y_axis2, Y_axis3);// 调用图标处理
             }
         }
     }
 
-</script>
 
-<script type="text/javascript">
     function dateSegSplit(strf) {
         var fyear_s = parseInt(strf.split('-')[0]);
         var fmonth_s = parseInt(strf.split('-')[1]) - 1;// 月份0-11
@@ -157,10 +219,8 @@
         return dateArray
     }
 
-</script>
 
-<!--字符串format函数-->
-<script type="text/javascript">
+    <!--字符串format函数-->
     String.format = function () {
         if (arguments.length == 0)
             return null;
@@ -171,10 +231,8 @@
         }
         return str;
     };
-</script>
 
-<!--访问任务，生成退货统计数据-->
-<script style="text/javascript">
+    <!--访问任务，生成退货统计数据-->
     function aj_task(task_id, sdtArray) {
         var task_url = "/djcelery/" + task_id + "/status";
         $.ajax({
@@ -189,7 +247,7 @@
             if (res.task.status == "PENDING") {
                 console.log("稍等3秒再检查");
                 setTimeout(function () {
-                    aj_task(task_id,sdtArray);
+                    aj_task(task_id, sdtArray);
                 }, 3000);
             }
             else if (res.task.status == "SUCCESS") {
@@ -212,13 +270,16 @@
                         ref.pay_num,
                         ref.ref_rate
                 );
+                X_axis.push(ref.dat);
+                Y_axis1.push(ref.ref_num);
+                Y_axis2.push(ref.pay_num);
+                Y_axis3.push(ref.ref_rate);
+
                 $("#pro_info_tr").append(format_html);
                 getTskID(sdtArray);
             }
         }
     }
-</script>
-<script type="text/javascript">
     function dataTbleFnc() {
         $('#mytable').dataTable({
             //"bJQueryUI": true,
@@ -249,8 +310,6 @@
     }
 </script>
 
-<script type="text/javascript">
-</script>
 </html>
 
 
