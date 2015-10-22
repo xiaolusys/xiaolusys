@@ -40,12 +40,12 @@
             <span class="input-group-addon" id="date_from">开始时间</span>
             <input type="text" name="date_from" id="left_date_pic"
                    class="form-control select_saletime  datepicker" placeholder=""
-                   value=""
+                   value="{{ date_from }}"
                    aria-describedby="basic-addon1">
 
             <span class="input-group-addon" id="date_to">结束时间</span>
             <input type="text" name="date_to" id="right_date_pic"
-                   class="form-control select_saletime  datepicker" placeholder="" value=""
+                   class="form-control select_saletime  datepicker" placeholder="" {% if date_to  %} value="{{ date_to }}" {% endif %}
                    aria-describedby="basic-addon2">
             <span class="input-group-btn">
                 <button class="btn btn-default" id="go_search" type="submit">Go!</button>

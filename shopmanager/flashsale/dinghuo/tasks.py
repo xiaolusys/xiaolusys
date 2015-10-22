@@ -538,12 +538,11 @@ def time_zone_handler(date_from=None, date_to=None):
     if date_from is None or date_from == "":
         date_from = datetime.datetime.today() - datetime.timedelta(days=7)
     if type(date_to) is str and type(date_from) is str:
-        time_t = date_to.split('-')
-        time_f = date_from.split('-')
-        tyear, tmonth, tday = time_t
-        fyear, fmonth, fday = time_f
-        date_from = datetime.datetime(int(tyear), int(tmonth), int(tday), 0, 0, 0)
-        date_to = datetime.datetime(int(fyear), int(fmonth), int(fday), 23, 59, 59)
+        tyear, tmonth, tday = map(int, date_to.split('-'))
+        fyear, fmonth, fday = map(int, date_from.split('-'))
+
+        date_from = datetime.datetime(tyear, tmonth, tday, 0, 0, 0)
+        date_to = datetime.datetime(fyear, fmonth, fday, 23, 59, 59)
     return date_from, date_to
 
 
