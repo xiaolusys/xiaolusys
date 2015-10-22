@@ -671,6 +671,8 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
             continue
         if wait_post_num > 0:  # 有待发的不纳入退货范畴
             continue
+        if quantity <= 0:  # 库存数为０　不纳入退货范畴
+            continue
         # 申请退货的数量（　包含：买家已经收到货　买家已经退货　两个状态　）
         return_pro_num = sal_re.refund_num if sal_re.good_status in (
             SaleRefund.BUYER_NOT_RECEIVED, SaleRefund.BUYER_RECEIVED) and sal_re.status in (
@@ -698,6 +700,8 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
         if sale_supplier_pk == 0:  # 没有供应商的不纳入退货范畴
             continue
         if wait_post_num > 0:  # 有待发的不纳入退货范畴
+            continue
+        if quantity <= 0:  # 库存数为０　不纳入退货范畴
             continue
         if info.has_key(sku_id):  # 如果字典中存在该sku的信息
             info[sku_id]['backed_num'] += re_pro.num
