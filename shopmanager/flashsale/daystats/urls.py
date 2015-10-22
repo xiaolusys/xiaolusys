@@ -20,4 +20,5 @@ urlpatterns = patterns('',
                        url(r'^stats_sale_product/$', staff_member_required(StatsSaleProdcutView.as_view()),
                            name="stats_supplier"),
                        url(r'^operate_sale/$', staff_member_required(views_operate.StatsDataView.as_view())),
+                       url(r'^daily_check/$', staff_member_required(views_operate.DailyCheckView.as_view())),
                        )
