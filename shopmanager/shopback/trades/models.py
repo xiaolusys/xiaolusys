@@ -748,9 +748,10 @@ class MergeOrder(models.Model):
     @classmethod
     @transaction.commit_on_success
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,
-                      gift_type=pcfg.REAL_ORDER_GIT_TYPE
-                      ,status=pcfg.WAIT_SELLER_SEND_GOODS,
-                      is_reverse=False,payment='0',
+                      gift_type=pcfg.REAL_ORDER_GIT_TYPE,
+                      status=pcfg.WAIT_SELLER_SEND_GOODS,
+                      is_reverse=False,
+                      payment='0',
                       created=None,
                       pay_time=None):
         
@@ -783,9 +784,7 @@ class MergeOrder(models.Model):
             created = created or datetime.datetime.now(),
             pay_time = pay_time or datetime.datetime.now(),
             consign_time = merge_trade.consign_time,
-            #fang  2015-7-2
-            gift_type = pcfg.CS_PERMI_GIT_TYPE ,#  现在全部默认赠送
-            #
+            gift_type = gift_type,
             is_reverse_order = is_reverse,
             out_stock = (productsku.is_out_stock if productsku else product.is_out_stock),
             status = status,

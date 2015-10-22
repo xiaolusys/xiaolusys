@@ -110,10 +110,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(exc.message)
         except Exception:
             pass
+        if not product.is_onshelf():
+            raise exceptions.APIException(u'商品已下架')
+        
         cart_id = data.get("cart_id", None)
         if cart_id:
-            s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id, status=ShoppingCart.CANCEL,
-                                                 buyer_id=customer.id)
+            s_temp = ShoppingCart.objects.filter(item_id=product_id, sku_id=sku_id, 
+                                                 status=ShoppingCart.CANCEL,buyer_id=customer.id)
             s_temp.delete()
         sku_num = 1
         sku = get_object_or_404(ProductSku, pk=sku_id)
@@ -124,7 +127,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
         if not Product.objects.lockQuantity(sku, sku_num):
             raise exceptions.APIException(u'商品库存不足')
-        
+
         if product_id and buyer_id and sku_id:
             shop_cart = ShoppingCart.objects.filter(item_id=product_id, buyer_id=buyer_id, sku_id=sku_id,
                                                     status=ShoppingCart.NORMAL)
@@ -772,7 +775,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 if ((coupon_pool.template.type == CouponTemplate.C150_10 and cart_total_fee < 15000) or
                     (coupon_pool.template.type == CouponTemplate.C259_20 and cart_total_fee < 25900)):
                     raise exceptions.APIException(u"订单金额不满足优惠券使用条件")
-                
                 cart_discount    += int(coupon_pool.template.value * 100)
             
             if discount_fee > cart_discount:
@@ -849,7 +851,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         addr_id  = CONTENT.get('addr_id')
         address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
-        
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
             raise exceptions.ParseError(u'付款方式有误')
@@ -889,7 +890,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                    'default':u'订单不在可支付状态'}
          
         deadline = datetime.datetime.now() - datetime.timedelta(seconds=1500)
-        
         instance = self.get_object()
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))

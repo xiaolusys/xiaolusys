@@ -407,11 +407,11 @@ function addOrder(info) {
     var order_type = null;
     //alert("进入idx"+action);
     if (action == "return") {
-        order_type = "RETURN_GOODS_TYPE";
+        order_type = "4";
     } else if (action == "change") {
-        order_type = "CHANGE_GOODS_TYPE";
+        order_type = "5";
     } else {
-        order_type = "HANDSEL_TYPE";
+        order_type = "1";
     }
 
     var params = {
@@ -423,24 +423,14 @@ function addOrder(info) {
     }
     //alert("函数开始");
 
-    $.post('/trades/orderplus/', {
-            'trade_id': trade_id,
-            'outer_id': outer_id,
-            'outer_sku_id': sku_outer_id,
-            'num': num,
-            'type': order_type
-        }, function (res) {
-            // alert("编码");
-            // console.info(res.response_content);
-
+    $.post('/trades/orderplus/', 
+    		params, function (res) {
             try {
                 if (res.code == 0) {
                     //alert("增加行数");
                     addOrderRow('id_trade_order', res.response_content);
                     // alert("成功");
                     updateTotalNum();
-
-
                 }
                 else {
                     alert("添加失败:" + res.response_error);

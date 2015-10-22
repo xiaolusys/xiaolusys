@@ -13,7 +13,7 @@
 
   </head>
 {% load trade_tags %} 
-{% with trade=object.trade     logistics=object.logistics %}
+{% with trade=object.trade  logistics=object.logistics %}
 <body>
 <div class="container">
   {% if  trade.sys_status == "WAIT_AUDIT" %}

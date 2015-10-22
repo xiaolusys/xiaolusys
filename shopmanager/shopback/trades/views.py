@@ -664,7 +664,6 @@ class OrderPlusView(APIView):
     def get(self, request, *args, **kwargs):
         
         q  = request.GET.get('q').strip()
-        print "搜索条件",q
         if not q:
             return Response( '没有输入查询关键字'.decode('utf8'))
         
@@ -678,11 +677,9 @@ class OrderPlusView(APIView):
         
         prod_list = [(prod.outer_id,prod.name,prod.std_sale_price,
                       [(sku.outer_id,sku.name,sku.quantity) for sku in prod.pskus]) for prod in product_set]
-        print prod_list
         return Response(prod_list)
         
     def post(self, request, *args, **kwargs):
-        #print "post88888888888888888"
         CONTENT    = request.REQUEST
         #print "post搜索条件",CONTENT.get('trade_id')
         user_id  = request.user.id
@@ -711,34 +708,24 @@ class OrderPlusView(APIView):
                 ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
             except ProductSku.DoesNotExist:
                 return Response('该商品规格不存在'.decode('utf8'))
-        
         if not merge_trade.can_change_order:
             return HttpResponse(json.dumps({'code':1,"response_error":"订单不能修改！"})
                                 ,mimetype="application/json")
-       
+        
         is_reverse_order = False
         if merge_trade.can_reverse_order:
             merge_trade.append_reason_code(pcfg.ORDER_ADD_REMOVE_CODE)
             is_reverse_order = True    
-        #print "你好299888882"
-        try:
-            merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
+        
+        merge_order = MergeOrder.gen_new_order(trade_id,outer_id,outer_sku_id,num,gift_type=type,
                                                status=pcfg.WAIT_BUYER_CONFIRM_GOODS,
                                                is_reverse=is_reverse_order)
-            print "正确"
-        except:
-            print  "有错"
-            
-        #print "33333332992"
         #组合拆分
         ruleMatchSplit(merge_trade)
-        
         Product.objects.updateWaitPostNumByCode(merge_order.outer_id,
                                                     merge_order.outer_sku_id,
                                                     merge_order.num)
-        
         log_action(user_id,merge_trade,ADDITION,u'添加子订单(%d)'%merge_order.id)
-        
         #print merge_order
         return Response(serializers.MergeOrderSerializer(merge_order).data)
     
