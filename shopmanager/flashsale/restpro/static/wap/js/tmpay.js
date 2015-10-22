@@ -142,7 +142,7 @@ function Ctrl_sure_charge(pay_url){
     click_paybtn = true;
 	if(channel == WALLET_PAY && !confirm("确认使用小鹿钱包支付金额（￥"+params.payment+'元)吗？')){
 		click_paybtn = false;
-		return 
+		return;
 	}
 	params.addr_id = addrid;
 	params.channel = channel;
