@@ -538,12 +538,11 @@ def time_zone_handler(date_from=None, date_to=None):
     if date_from is None or date_from == "":
         date_from = datetime.datetime.today() - datetime.timedelta(days=7)
     if type(date_to) is str and type(date_from) is str:
-        time_t = date_to.split('-')
-        time_f = date_from.split('-')
-        tyear, tmonth, tday = time_t
-        fyear, fmonth, fday = time_f
-        date_from = datetime.datetime(int(tyear), int(tmonth), int(tday), 0, 0, 0)
-        date_to = datetime.datetime(int(fyear), int(fmonth), int(fday), 23, 59, 59)
+        tyear, tmonth, tday = map(int, date_to.split('-'))
+        fyear, fmonth, fday = map(int, date_from.split('-'))
+
+        date_from = datetime.datetime(tyear, tmonth, tday, 0, 0, 0)
+        date_to = datetime.datetime(fyear, fmonth, fday, 23, 59, 59)
     return date_from, date_to
 
 
@@ -668,23 +667,27 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
     for sal_re in sale_refunds:
         name, cost, quantity, wait_post_num, inferior_num, sale_product = get_other_field(sal_re.item_id, sal_re.sku_id)
         sale_supplier_pk = get_sale_product_supplier(sale_product)
-        # 退款数量
-        return_num = 1
+        if sale_supplier_pk == 0:  # 没有供应商的不纳入退货范畴
+            continue
+        if wait_post_num > 0:  # 有待发的不纳入退货范畴
+            continue
         # 申请退货的数量（　包含：买家已经收到货　买家已经退货　两个状态　）
         return_pro_num = sal_re.refund_num if sal_re.good_status in (
-            SaleRefund.BUYER_NOT_RECEIVED, SaleRefund.BUYER_RECEIVED) else 0
+            SaleRefund.BUYER_NOT_RECEIVED, SaleRefund.BUYER_RECEIVED) and sal_re.status in (
+            SaleRefund.REFUND_WAIT_SELLER_AGREE, SaleRefund.REFUND_CONFIRM_GOODS) else 0
+        # 这里要屏蔽退款成功的（货已经到仓库了的）
         # 退货到仓库的数量　在sale 中统计不到　置0
         backed_num = 0
 
         if info.has_key(sal_re.sku_id):  # 如果字典中存在该sku的信息
             # 叠加数量
-            info[sal_re.sku_id]['return_num'] += return_num
+            info[sal_re.sku_id]['return_num'] += sal_re.refund_num
             info[sal_re.sku_id]['return_pro_num'] += return_pro_num
         else:  # 没有就加入
             info[sal_re.sku_id] = {"pro_id": sal_re.item_id,
                                    "name": name, "cost": cost, "quantity": quantity,
                                    "wait_post_num": wait_post_num, "inferior_num": inferior_num,
-                                   "return_num": return_num, "return_pro_num": return_pro_num,
+                                   "return_num": sal_re.refund_num, "return_pro_num": return_pro_num,
                                    "backed_num": backed_num, "sale_supplier_pk": sale_supplier_pk
                                    }
 
@@ -692,6 +695,10 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
         name, cost, quantity, wait_post_num, inferior_num, pro_id, sku_id, sale_product = get_args_by_re_product(re_pro.outer_id,
                                                                                            re_pro.outer_sku_id)
         sale_supplier_pk = get_sale_product_supplier(sale_product)
+        if sale_supplier_pk == 0:  # 没有供应商的不纳入退货范畴
+            continue
+        if wait_post_num > 0:  # 有待发的不纳入退货范畴
+            continue
         if info.has_key(sku_id):  # 如果字典中存在该sku的信息
             info[sku_id]['backed_num'] += re_pro.num
         else:  # 没有就加入

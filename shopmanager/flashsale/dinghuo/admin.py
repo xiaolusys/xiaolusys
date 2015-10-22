@@ -346,7 +346,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
         js_str = u"'%s','%s','%s'" % (
             supplier_name or u"none", mobile or u"none", address or u"none")
         html = u'<img src="{0}" style="width:62px;height:100px"><a style="display:inline" onclick="supplier_admin({4})">供应商：{3}</a>' \
-               u'<br><a href="/admin/items/product/{2}/">{1}</a>'.format(pro.pic_path, pro.name, product_id,
+               u'<br><a href="/admin/items/product/?id={2}">{1}</a>'.format(pro.pic_path, pro.name, product_id,
                                                                          obj.supplier_id, js_str)
         return html
     show_pic.allow_tags = True
