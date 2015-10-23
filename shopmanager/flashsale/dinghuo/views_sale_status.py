@@ -119,14 +119,16 @@ class TopStockView(View):
                 else:
                     category_name = ""
                 sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num,
+                                       "left_num": product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0,
                                        'sale_time': str(product.sale_time) if product.sale_time else "",
                                        "category": category_name}
             else:
                 sale_top[router_id]['collect_num'] += product.collect_num
+                sale_top[router_id]['left_num'] += (
+                    product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0)
 
         sale_list = sorted(sale_top.items(), key=lambda d: d[1]['collect_num'], reverse=True)
-        print sale_list, "eeee"
-        # send_tasks = task_calc_stock_top.delay(start_time_str, end_time_str)
+        #send_tasks = task_calc_stock_top.delay(start_time_str, end_time_str)
         return render_to_response("dinghuo/data2stock.html",
                                   {"sale_list": sale_list[0:200], "start_date": start_date, "end_date": end_date},
                                   context_instance=RequestContext(request))

@@ -66,11 +66,12 @@
             </div>
             <table class="table table-bordered" id="data-table-stock">
                 <thead>
-                <th width="20%">商品编码</th>
-                <th width="20%">商品名称</th>
-                <th width="20%">上架时间</th>
-                <th width="20%">分类</th>
-                <th width="20%">库存数</th>
+                <th width="15%">商品编码</th>
+                <th width="15%">商品名称</th>
+                <th width="15%">上架时间</th>
+                <th width="15%">分类</th>
+                <th width="15%">库存数</th>
+                <th width="15%">减去待发后库存</th>
                 </thead>
                 <tbody>
                 {% for pro in sale_list %}
@@ -81,6 +82,7 @@
                         <td>{{ pro.1.sale_time }}</td>
                         <td>{{ pro.1.category }}</td>
                         <td>{{ pro.1.collect_num }}</td>
+                        <td>{{ pro.1.left_num }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
