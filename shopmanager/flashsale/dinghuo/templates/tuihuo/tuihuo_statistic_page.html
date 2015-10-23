@@ -140,9 +140,10 @@
             var pro_id = tr.children[0].innerHTML;
             var sku_id = tr.children[1].innerHTML;
             var price = tr.children[3].innerHTML;
-            var quantity = tr.children[4].innerHTML;
+            var quantity = parseInt(tr.children[4].innerHTML);
+            var tuihuo = parseInt(tr.children[8].innerHTML);
             var sku_inferior_num = tr.children[6].innerHTML;
-            var ret_num = parseInt(quantity);
+            var ret_num = quantity + tuihuo;
             var html = '<tr>' +
                     '<td>' + pro_id + '</td>' +
                     '<td>' + sku_id + '</td>' +
