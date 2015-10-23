@@ -111,6 +111,10 @@ class LogisticsCompany(models.Model):
         return '<%s,%s>'%(self.code,self.name)
     
     @classmethod
+    def normal_companys(cls):
+        return cls.objects.filter(status=True)
+    
+    @classmethod
     def getNoPostCompany(cls):
         
         company,state = cls.objects.get_or_create(code=cls.NOPOST)

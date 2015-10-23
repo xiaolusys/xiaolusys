@@ -115,16 +115,13 @@ class SaleRefund(models.Model):
         return u'退款(oid:%s),%s'%(self.order_id,self.reason)
     
     def refund_Confirm(self):
-        
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
             return
 
         self.status = SaleRefund.REFUND_SUCCESS
         self.save()
-        
         from flashsale.pay.models import SaleOrder,SaleTrade
-        
         sorder = SaleOrder.objects.get(id=self.order_id)
         sorder.refund_status = SaleRefund.REFUND_SUCCESS
         if sorder.sale_trade.status == SaleTrade.WAIT_SELLER_SEND_GOODS:

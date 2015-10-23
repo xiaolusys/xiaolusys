@@ -103,10 +103,12 @@ class YundaCustomer(models.Model):
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
+    ware_by   = models.IntegerField(verbose_name=u'修改日期')
+    
     memo      =  models.CharField(max_length=100,blank=True,verbose_name=u'备注')  
     reserveo  =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义1')       
     reservet  =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义2') 
-
+    
     status     = models.CharField(max_length=10,default=NORMAL,
                                   choices=ORDER_STATUS_CHOICES,verbose_name=u'状态')
     class Meta:

@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
 from django.db import models
 from django.views.decorators.csrf import csrf_protect
-from django.forms import TextInput, Textarea
+from django.forms import TextInput, Textarea ,Select
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -30,6 +30,8 @@ from shopback import paramconfig as pcfg
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
+from .forms import YundaCustomerForm
+from shopback.logistics.models import LogisticsCompany
 from shopback.trades.filters import (DateFieldListFilter,
                                      BitFieldListFilter,
                                      TradeStatusFilter)
@@ -214,7 +216,8 @@ class MergeTradeAdmin(MyAdmin):
         js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js",
               "script/trades/checkorder.js","script/trades/tradetags.js","script/trades/new_checkTrade.js",
               "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","jquery/jquery-1.8.13.min.js","script/trades/select_stock.js")
-        
+    
+    form = YundaCustomerForm
     #--------设置页面布局----------------
     fieldsets =(('订单基本信息:', {
                     'classes': ('collapse',),
@@ -223,7 +226,7 @@ class MergeTradeAdmin(MyAdmin):
                                ,('total_fee','payment','discount_fee','adjust_fee','post_fee')
                                ,('is_cod','seller_cod_fee','buyer_cod_fee','cod_fee','cod_status')
                                ,('is_brand_sale','is_force_wlb','buyer_rate','seller_rate','seller_can_rate'
-                                 ,'is_part_consign','is_lgtype','lg_aging_type')
+                                 ,'is_lgtype','lg_aging_type')
                                ,('send_time','lg_aging','step_paid_fee','step_trade_status')
                                ,('created','modified','pay_time','consign_time')
                                ,('buyer_message','seller_memo','sys_memo')
@@ -239,7 +242,7 @@ class MergeTradeAdmin(MyAdmin):
                     'classes': ('collapse',),
                     'fields': (('has_sys_err','has_memo','has_refund','has_out_stock','has_rule_match','has_merge'
                                 ,'is_send_sms','is_picking_print','is_express_print','can_review','is_qrcode')
-                               ,('is_locked','is_charged','priority','reason_code','refund_num')
+                               ,('is_locked','is_charged','is_part_consign','priority','reason_code','refund_num')
                                ,('remind_time','weight_time','charge_time')
                                ,('ware_by','operator','scanner','weighter','weight')
                                ,('reserveo','reservet','reserveh','sys_status'))
@@ -252,6 +255,11 @@ class MergeTradeAdmin(MyAdmin):
         BitField: {'widget': BitFieldCheckboxSelectMultiple},
     }
     
+    def formfield_for_dbfield(self, db_field, **kwargs):  
+#         if db_field.name == 'logistics_company':  
+#             logistic_list = LogisticsCompany.normal_companys().values_list('id','name')
+#             return db_field.formfield(widget = Select(choices=logistic_list))  
+        return super(MergeTradeAdmin, self).formfield_for_dbfield(db_field, **kwargs)  
     
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = self.readonly_fields

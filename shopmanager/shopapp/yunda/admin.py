@@ -13,6 +13,8 @@ from shopapp.yunda.models import (ClassifyZone,
                                   TodayParentPackageWeight)
 from shopback.base.options import DateFieldListFilter
 from django.contrib import messages
+
+from .forms import YundaCustomerForm
 from .service import YundaService,YundaPackageService,WEIGHT_UPLOAD_LIMIT
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 
@@ -77,20 +79,20 @@ admin.site.register(BranchZone,BranchZoneAdmin)
 
 class YundaCustomerAdmin(admin.ModelAdmin):
     
-    list_display = ('cus_id','name','code','company_name','qr_id','lanjian_id','ludan_id','sn_code','device_code',
+    list_display = ('cus_id','name','ware_by','code','company_name','qr_id','lanjian_id','ludan_id','sn_code','device_code',
                     'contacter','mobile','on_qrcode','on_lanjian','on_ludan','on_bpkg','status','memo')
     list_display_links = ('name','company_name',)
 
     #date_hierarchy = 'created'
     #ordering = ['created_at']
-    
+    form = YundaCustomerForm
     list_filter = ('status',)
     search_fields = ['cus_id','name','code','sync_addr','company_name','contacter']
     
     #--------设置页面布局----------------
     fieldsets =((u'客户基本信息:', {
                     'classes': ('expand',),
-                    'fields': (('name','code','company_name')
+                    'fields': (('name','code','ware_by','company_name')
                                ,('company_trade','cus_id','contacter',)
                                ,('state','city','district')
                                ,('address','zip','mobile',)

@@ -1,6 +1,14 @@
+#-*- coding:utf8 -*-
 import sys
 from django import forms
+from .models import MergeTrade,LogisticsCompany
 
+class YundaCustomerForm(forms.ModelForm):
+    
+    logistics_company = forms.ModelChoiceField(label='物流名称',queryset=LogisticsCompany.normal_companys())
+    
+    class Meta:
+        model = MergeTrade
 
 class ExchangeTradeForm(forms.Form):
 

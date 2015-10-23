@@ -131,6 +131,7 @@ INSTALLED_APPS = (
     'shopback.users',
     'shopback.archives',
     'shopback.purchases',
+    'shopback.warehouse',
     #'shopback.aftersale',
     
     'shopapp.autolist',
