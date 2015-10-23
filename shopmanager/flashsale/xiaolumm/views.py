@@ -250,7 +250,11 @@ class MamaStatsView(View):
 #                     referal_mm = 1
             try:
                 adver = XlmmAdvertis.objects.get(show_people=xlmm.agencylevel, is_valid=True)
-                adv_cntnt = adver
+                now = datetime.datetime.now()
+                if now>=adver.start_time and now <=adver.end_time:
+                    adv_cntnt = adver
+                else:
+                    adv_cntnt = None
             except XlmmAdvertis.DoesNotExist:
                 adv_cntnt = None
 
