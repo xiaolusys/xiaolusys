@@ -27,6 +27,14 @@ jQuery(document).ready(function () {
             showtip("Tips", "地址没有填写", "warning");
             return false;
         }
+        if($("#check_flag").hasClass("need_check")){
+            showtip("Tips", "请先检测", "warning");
+            return false;
+        }
+        if($("#check_flag").hasClass("can_not_add")){
+            showtip("Tips", "已经存在同名供应商", "warning");
+            return false;
+        }
         $.ajax({
             type: 'post',
             url: "/supplychain/supplier/addsupplier/",
@@ -87,14 +95,17 @@ jQuery(document).ready(function () {
                 $(".result-table tr").remove();
                 if (data.result == "0") {
                     tb.append("<tr><td>可以创建</td></tr>");
+                    $("#check_flag").removeClass("need_check").removeClass("can_not_add").addClass("can_add");
                 }
                 if (data.result == "10") {
                     $.each(data.supplier, function (index, dd) {
                         tb.append("<tr><td>" + dd + "</td></tr>");
                     });
+                    $("#check_flag").removeClass("need_check").removeClass("can_add").addClass("can_not_add");
                 }
                 if (data.result == "more") {
                     tb.append("<tr><td>超过10个包含关键字的供应商</td></tr>");
+                    $("#check_flag").removeClass("need_check").removeClass("can_add").addClass("can_not_add");
                 }
             },
             error: function (data) {
