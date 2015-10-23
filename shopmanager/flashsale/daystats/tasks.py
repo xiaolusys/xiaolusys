@@ -877,7 +877,7 @@ def format_time(time_of_long):
         return ""
 
 
-
+import collections
 @task(max_retry=1, default_retry_delay=5)
 def task_calc_sale_product(start_date, end_date, category="0"):
     """计算选品情况"""
@@ -890,18 +890,51 @@ def task_calc_sale_product(start_date, end_date, category="0"):
             status=SaleProduct.IGNORED)
         all_contactors = (e.contactor.username if e.contactor else "" for e in all_sale_product)
         all_contactors = set(all_contactors)
-        all_category = SaleCategory.objects.filter(is_parent=False, status=SaleCategory.NORMAL)
+        print all_contactors
+        nv_category = SaleCategory.objects.filter(is_parent=False, status=SaleCategory.NORMAL, parent_cid=2)
+        child_category = SaleCategory.objects.filter(is_parent=False, status=SaleCategory.NORMAL, parent_cid=1)
 
-        result_data = {}
+        nv_data = []
+        child_data = []
         for contactor in all_contactors:
-            temp_list = []
+
             if contactor != "":
-                for one_category in all_category:
-                    temp_list.append(all_sale_product.filter(contactor__username=contactor, sale_category=one_category).count())
-                result_data[contactor] = temp_list
+                temp_nv_dict = {}
+                temp_child_dict = {}
+                nv_num = 0
+                child_num = 0
+                for one_category in nv_category:
+                    category_num = all_sale_product.filter(contactor__username=contactor,
+                                                           sale_category=one_category).count()
+                    nv_num += category_num
+                    if len(temp_nv_dict) > 0:
+                        temp_nv_dict[contactor][one_category.name] = category_num
+                    else:
+                        temp_nv_dict[contactor] = collections.OrderedDict({one_category.name: category_num})
+                if nv_num != 0:
+                    temp_nv_dict[contactor]["选款"] = nv_num
+                    temp_nv_dict[contactor]["排期"] = SaleProduct.objects.filter(
+                        sale_time__range=(start_date_time, end_date_time), contactor__username=contactor,
+                        status=SaleProduct.SCHEDULE).count()
+                    nv_data.append(temp_nv_dict)
+
+                for one_category in child_category:
+                    category_num = all_sale_product.filter(contactor__username=contactor,
+                                                           sale_category=one_category).count()
+                    child_num += category_num
+                    if len(temp_child_dict) > 0:
+                        temp_child_dict[contactor][one_category.name] = category_num
+                    else:
+                        temp_child_dict[contactor] = collections.OrderedDict({one_category.name: category_num})
+                if child_num != 0:
+                    temp_child_dict[contactor]["选款"] = child_num
+                    temp_child_dict[contactor]["排期"] = SaleProduct.objects.filter(
+                        sale_time__range=(start_date_time, end_date_time), contactor__username=contactor,
+                        status=SaleProduct.SCHEDULE).count()
+                    child_data.append(temp_child_dict)
     except Exception, exc:
         raise task_calc_sale_product.retry(exc=exc)
-    return result_data
+    return {"nv_data": nv_data, "child_data": child_data}
 
 from django.core.serializers.json import DjangoJSONEncoder
 import json
