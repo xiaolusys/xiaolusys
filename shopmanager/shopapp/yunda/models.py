@@ -72,6 +72,7 @@ class YundaCustomer(models.Model):
     cus_id  = models.CharField(max_length=32,blank=True,verbose_name=u'网点ID') 
     company_name = models.CharField(max_length=32,blank=True,verbose_name=u'客户公司名')   
     company_trade = models.CharField(max_length=32,blank=True,verbose_name=u'客户经营范围') 
+    ware_by   = models.IntegerField(default=0,verbose_name=u'所属仓库')
     
     qr_id   = models.CharField(max_length=32,blank=True,verbose_name=u'二维码接口ID')   
     qr_code  = models.CharField(max_length=32,blank=True,verbose_name=u'二维码接口码')   
@@ -102,8 +103,6 @@ class YundaCustomer(models.Model):
     
     created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
     modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
-    
-    ware_by   = models.IntegerField(verbose_name=u'修改日期')
     
     memo      =  models.CharField(max_length=100,blank=True,verbose_name=u'备注')  
     reserveo  =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义1')       

@@ -13,7 +13,7 @@ else:
 
 class YundaCustomerForm(forms.ModelForm):
     
-    ware_by = forms.ChoiceField()
+    ware_by = forms.ChoiceField(label='所属仓库')
 #     ware_by = forms.ModelChoiceField(queryset=func_ware_list())
     def __init__(self, *args, **kwargs):
         super(YundaCustomerForm, self).__init__(*args, **kwargs)
