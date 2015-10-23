@@ -318,11 +318,11 @@ class RGDetailInline(admin.TabularInline):
 
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleSupplier
-
+from flashsale.pay.models import  SaleRefund
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
     list_display = ("show_pic", "show_detail_num", "sum_amount", "status_contrl",
-                     "consign_time", "sid", "noter", "consigner", "memo")
+                     "consign_time", "sid", "noter", "consigner", 'show_reason',"memo")
     search_fields = ["product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
@@ -346,18 +346,28 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
         js_str = u"'%s','%s','%s'" % (
             supplier_name or u"none", mobile or u"none", address or u"none")
         html = u'<img src="{0}" style="width:62px;height:100px"><a style="display:inline" onclick="supplier_admin({4})">供应商：{3}</a>' \
-               u'<br><a href="/admin/items/product/?id={2}">{1}</a>'.format(pro.pic_path, pro.name, product_id,
+               u'<br><a target="_blank" href="/admin/items/product/?id={2}">{1}</a>'.format(pro.pic_path, pro.name, product_id,
                                                                          obj.supplier_id, js_str)
         return html
     show_pic.allow_tags = True
     show_pic.short_description = u"产品图/名"
 
+    def show_reason(self, obj):
+        html = u''
+        refs = SaleRefund.objects.filter(item_id=obj.product_id, good_status__in=(SaleRefund.BUYER_RECEIVED,
+                                                                                  SaleRefund.BUYER_RETURNED_GOODS))
+        if refs.count() >= 10:  # 最多显示10 个退货描述
+            refs = refs[:10]
+        for ref in refs:
+            html += u'<br>' + ref.desc
+        return html
+    show_reason.allow_tags = True
+    show_reason.short_description = u"原因"
+
     def show_detail_num(self, obj):
         dts = obj.rg_details.all()
         html = u'总：{0}<br><br>'.format(obj.return_num)
-        print obj.id, dts
         for dt in dts:
-            print dt
             skuid = dt.skuid
             num = dt.num
             inferior_num = dt.inferior_num

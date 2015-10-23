@@ -63,7 +63,6 @@ class StatsSaleProdcutView(generics.ListCreateAPIView):
         content = request.GET
         start_date = content.get("df", datetime.date.today().strftime("%Y-%m-%d"))
         end_date = content.get("dt", datetime.date.today().strftime("%Y-%m-%d"))
-        all_category = SaleCategory.objects.filter(is_parent=False, status=SaleCategory.NORMAL)
         start_task = task_calc_sale_product.s(start_date, end_date)()
         return Response(
-            {"task_id": start_task, "start_date": start_date, "end_date": end_date, "all_category": all_category})
+            {"task_id": start_task, "start_date": start_date, "end_date": end_date})
