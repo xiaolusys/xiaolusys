@@ -18,20 +18,15 @@
                 method: "GET", //静态页用get方法，否则服务器会抛出405错误
                 success: function (res) {
                     console.log(res.task.status);
-                    console.log(res.task.result);
+                    console.log(res.task.result)
                     if (res.task.status == "SUCCESS") {
                         var tb = $('#data-table-result');
-                        var result_data = eval(res.task.result);
-                        $("#data-table-people thead").eq(0).nextAll().remove();
-                        $.each(result_data, function (index, dd) {
-                            var result_str = "<tr><td>"+index+"</td>"
-                            $.each(dd, function (i, d) {
-                                console.log("test")
-                                result_str += "<td>" + d + "</td>";
-                            });
-                            result_str += "</tr>";
-                            tb.append(result_str);
-                        });
+                        var child_tb = $('#data-table-child-result');
+                        var nv_data = eval(res.task.result.nv_data);
+                        var child_data = eval(res.task.result.child_data);
+                        set_table(nv_data,tb);
+                        set_table(child_data,child_tb);
+
                         var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
                         oScript.type = "text/javascript";
@@ -44,6 +39,35 @@
             });
         }
         get_data()
+        function set_table(nv_data,target_table) {
+            console.log("begfin");
+            var result_str = "<thead><th>买手名字</th>";
+            var first_data = nv_data[0];
+            var loop_count = 0
+            for (var key in first_data) {
+                if (loop_count == 0) {
+                    for (var key1 in first_data[key]) {
+                        result_str += "<th>" + key1 + "</th>";
+                    }
+                    loop_count = 1;
+                    break;
+                }
+
+            }
+            result_str += "</thead>";
+            $.each(nv_data, function (index, dd) {
+
+                for (var key in dd) {
+                    result_str += "<tr><td>" + key + "</td>";
+                    var category_num = dd[key];
+                    for (var key1 in category_num) {
+                        result_str += "<td>" + category_num[key1] + "</td>";
+                    }
+                }
+                result_str += "</tr>";
+            });
+            target_table.append(result_str);
+        }
     </script>
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
@@ -77,20 +101,20 @@
 
     <div class="row panel panel-success" style="margin-top: 20px">
         <div class="panel-heading">
-            <h3 class="panel-title">选款情况</h3>
+            <h3 class="panel-title">女装选款情况</h3>
         </div>
         <div class="panel-body">
             <input id="task_id" value="{{ task_id }}" hidden="hidden">
             <table class="table table-bordered" id="data-table-result">
-                <thead>
-                <th>买手名字</th>
-                {% for catetory in all_category %}
-                    <th>{{ catetory }}</th>
-                {% endfor %}
-                </thead>
-                <tbody>
-
-                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row panel panel-info" style="margin-top: 20px">
+        <div class="panel-heading">
+            <h3 class="panel-title">童装选款情况</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table table-bordered" id="data-table-child-result">
             </table>
         </div>
     </div>
