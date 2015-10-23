@@ -20,7 +20,7 @@ from serializers import CashOutSerializer,CarryLogSerializer
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-
+from models_advertis import XlmmAdvertis
 
 import logging
 logger = logging.getLogger('django.request')
@@ -182,7 +182,7 @@ class MamaStatsView(View):
                                           appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET,
                                           request=request)
-        
+
         if not valid_openid(openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
@@ -191,9 +191,9 @@ class MamaStatsView(View):
         wx_user = service._wx_user
         
         if not wx_user.isValid():
-            return render_to_response("remind.html",{"openid":openid}, 
+            return render_to_response("remind.html",{"openid":openid},
                                       context_instance=RequestContext(request))
-        
+
         target_date = datetime.date.today()
         yesterday   = target_date - datetime.timedelta(days=1)
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
@@ -251,8 +251,17 @@ class MamaStatsView(View):
 #                         referal_mm = referal_mamas[0].id
 #                 else:
 #                     referal_mm = 1
-                
-            data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,
+            try:
+                adver = XlmmAdvertis.objects.get(show_people=xlmm.agencylevel, is_valid=True)
+                now = datetime.datetime.now()
+                if now>=adver.start_time and now <=adver.end_time:
+                    adv_cntnt = adver
+                else:
+                    adv_cntnt = None
+            except XlmmAdvertis.DoesNotExist:
+                adv_cntnt = None
+
+            data = {"mobile":mobile_revised, "click_num":click_num, "xlmm":xlmm,"advertise":adv_cntnt,
                     'referal_mmid':referal_mm,"order_num":order_num,  "pk":xlmm.pk,
                     'pending_value':pending_value,"referal_num":referal_num,
                     'total_income':total_income,'total_pay':total_pay,'abnormal_cash':abnormal_cash,

@@ -60,6 +60,15 @@
   </small>
   </h3>
 </div>
+
+    {% if advertise %}
+
+        <div class="alert alert-danger" role="alert">
+            <span class="label label-danger">公告:</span>
+            {{ advertise.cntnt }}
+        </div>
+    {% endif %}
+
 <div class="main-page" style="margin-top:20px">
   <div class="panel panel-default" >
 	  <div class="panel-body">
