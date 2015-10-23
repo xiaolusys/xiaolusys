@@ -310,3 +310,16 @@ class MamaDayStatsAdmin(admin.ModelAdmin):
     
 
 admin.site.register(MamaDayStats, MamaDayStatsAdmin)
+
+
+from models_advertis import XlmmAdvertis
+
+
+class XlmmAdvertisAdmin(admin.ModelAdmin):
+
+    list_display = ('id', 'title', 'show_people','is_valid', 'start_time', 'end_time', 'created')
+    search_fields = ['title', 'id']
+    list_filter = ('end_time', 'created', 'is_valid')
+
+
+admin.site.register(XlmmAdvertis, XlmmAdvertisAdmin)

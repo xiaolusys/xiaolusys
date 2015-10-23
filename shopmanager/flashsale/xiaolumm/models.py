@@ -10,6 +10,7 @@ from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
 import logging
+from models_advertis import XlmmAdvertis
 
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,8,25)
