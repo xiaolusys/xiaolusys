@@ -26,7 +26,6 @@ class RefundAnaView(APIView):
         task = refund_analysis.s(date)()
         return Response({"task_id": task.task_id})
 
-
     def post(self, request, format=None):
         content = request.REQUEST
         arr = content.get("arr", None)
