@@ -71,6 +71,36 @@
         </script>
     </div>
 </div>
+<!-- 质量原因说明-->
+<div class="description">
+    <div class="basicc show_claps">
+        小鹿美美平台商品均支持7天无理由退货(查看详细)
+    </div>
+    <div class="claps">
+        <div class="basicc quality">
+            <span>质量问题定义标准如下:</span>
+            <ul>
+                <li>1.面料有明显破洞(非人为剪破直径>=1cm)</li>
+                <li>2.明显破损洗不掉的污渍(非运输造成)(一分钱硬币大小以上)属清洗不去的污渍(流水线造成的轻微脏污不属其中)</li>
+                <li>3.产品严重掉色(轻微浮色不算在此类)</li>
+            </ul>
+        </div>
+        <div class="basicc quality">
+            <span>不属于质量问题如下:</span>
+            <ul>
+                <li>1.线头,褶皱,色差问题:因光线,角度不同而导致的轻微视觉色差</li>
+                <li>2.不影响整体穿着的瑕疵,如:轻微钩针里、衬、边角、扣子销松等不明显处开线,左右轻微缝制不齐,左右花色不同</li>
+                <li>3.小污点(可自行清理者)淡色衣服微小暇斑等,布料中小于1cm的杂色不属于质量问题</li>
+                <li>4.实物与图片略有差别，如:纽扣、边角、吊牌</li>
+                <li>
+                    5.主观问题("颜色、款式不喜欢","穿着不舒服","手感不好","做工质量不好","没有吊牌","没有图片中的漂亮","不是我的风格","不是我想象的","太露太薄","扣子没订好","衣服有皱褶","太大或者太少"等)一律不以有争议的理由进行退货
+                </li>
+                <li>6.免责条款:已拆牌、使用或洗涤过的商品无论任何原因均不退货</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <!-- 订单信息 end -->
 
 <div class="panel shouhuo">
@@ -95,7 +125,6 @@
             <option value='4'>发错货/漏发</option>
             <option value='6'>未收到货</option>
             <option value='7'>与描述不符</option>
-            <option value='8'>退运费</option>
             <option value='9'>发票问题</option>
             <option value='10'>七天无理由退换货</option>
         </script>
@@ -107,11 +136,7 @@
                 <input type="text" id="shenqingjine" class="shenqingjine" />
 
                 <div class="ipt-wrap">
-                    <textarea class="content_feedback" id="feedback" placeholder="亲~请写下您的审核意见，以便我们更好地为您服务~
-
-注意：亲特卖商品都是外贸原单。衣服收到有线头，尺码不合适，面料不喜欢，轻微掉色，轻微色差，无吊牌均不属于质量问题，退货不承担运费的哟。
-
-支持七天无理由退货。您在收到货后请及时检查产品质量,七天之内有质量问题请及时联系客服协商退换。" maxlength="500"></textarea>
+                    <textarea class="content_feedback" id="feedback" placeholder="亲~请写下您的审核意见，以便我们更好地为您服务~" maxlength="500"></textarea>
                 </div>
 
                 <script type="text/html" id="sid_company">
@@ -173,6 +198,16 @@
         console.log(order_url, "order_url order_url order_url");
         //获取待支付订单列表
         Set_order_detail(order_url);
+
+
+        $(".claps").hide();
+        $(".show_claps").click(function(){
+            //点击查看按钮 显示详细内容
+            setTimeout(function () {
+            $(".claps").fadeToggle("slow");
+        }, "500");
+        });
+
     })(jQuery);
 </script>
 </body>

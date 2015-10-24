@@ -72,6 +72,20 @@ function Set_order_detail(suffix) {
                 var header = Create_tuihuo_header();
                 $('body').before(header);  //在body 的最前面添加
                 Create_refun_reason(data.status);//创建退货原因选择
+                // 这里绑定下 选择 质量问题的时候 弹出 详细
+                $("#selec_resason").change(function () {
+                    if ($("#selec_resason option:selected").val() == '3') {
+                        setTimeout(function () {
+                            $(".claps").fadeIn("slow");
+                        }, "500");
+                    }
+                    else {
+                        setTimeout(function () {
+                            $(".claps").fadeOut("slow");
+                        }, "500");
+                    }
+                });
+
             }
             //设置订单基本信息
             var top_dom = Create_order_top_dom(data);
