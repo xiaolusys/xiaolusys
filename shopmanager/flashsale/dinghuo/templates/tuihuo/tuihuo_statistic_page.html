@@ -26,6 +26,10 @@
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
         @import "{{ STATIC_URL }}fixed-header-table-master/css/defaultTheme.css";
+
+        input {
+            width: 70px;
+        }
     </style>
 </head>
 
@@ -45,10 +49,11 @@
 
             <span class="input-group-addon" id="date_to">结束时间</span>
             <input type="text" name="date_to" id="right_date_pic"
-                   class="form-control select_saletime  datepicker" placeholder="" {% if date_to  %} value="{{ date_to }}" {% endif %}
+                   class="form-control select_saletime  datepicker" placeholder="" {% if date_to %}
+                   value="{{ date_to }}" {% endif %}
                    aria-describedby="basic-addon2">
             <span class="input-group-btn">
-                <button class="btn btn-default" id="go_search" type="submit">Go!</button>
+                <button class="btn btn-success" id="go_search" type="submit">Go!</button>
             </span>
         </div>
     </form>
@@ -99,7 +104,7 @@
         <tbody id="pro_info_tr">
         </tbody>
     </table>
-    <button onclick="create_preview_good()">生成退货单预览</button>
+    <button onclick="create_preview_good()" type="button" class="btn btn-danger">生成退货单预览</button>
 </div>
 </body>
 <script type="text/javascript">
@@ -145,21 +150,56 @@
             var sku_inferior_num = tr.children[6].innerHTML;
             var ret_num = quantity + tuihuo;
             var html = '<tr>' +
-                    '<td>' + pro_id + '</td>' +
-                    '<td>' + sku_id + '</td>' +
+                    '<td><input type="number" class="product_id" readonly="readonly" value="' + pro_id + '" ></td>' +
+                    '<td><input type="number" class="prosku_id" readonly="readonly" value="' + sku_id + '" ></td>' +
                     '<td>' + quantity + '</td>' +
-                    '<td>' + price + '</td>' +
-                    '<td><input type="number" value="' + ret_num + '" id="searchbar"></td>' +
-                    '<td>' + sku_inferior_num + '</td>' +
-                    '<td>' + supplier + '</td>' +
+                    '<td><input type="number" class="return_price" value="' + price + '" onchange="change_price(this)"></td>' +
+                    '<td><input type="number" value="' + ret_num + '" ></td>' +
+                    '<td><input type="number" readonly="readonly" value="' + sku_inferior_num + '" ></td>' +
+                    '<td><input type="number" readonly="readonly" value="' + supplier + '" class="supplier_id" ></td>' +
                     '</tr>';
             $("#return_good_list").append(html);
-            var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database()">生成退货单</button>';
+            var create_buyyton = '<button id="create_buyyton" onclick="create_record_to_database()" type="button" class="btn btn-warning">生成退货单</button>';
             $("#create_return_good").empty().append(create_buyyton);
             // 删除要添加过的行
             oTable.fnDeleteRow(tr);
         });
+        var create_tr_for_new = '<button style="float:right" id="create_buyyton" onclick="create_new_line()"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>';
+        $("#create_return_good").append(create_tr_for_new);
     }
+    // 生成 create_new_line
+    function create_new_line() {
+        // 自动填写 一些数据到
+        // 供应商
+
+        var product_id = $(".product_id")[0].value;
+        var prosku_id = $(".prosku_id")[0].value;
+        var supplier_id = $(".supplier_id")[0].value;
+
+        var tr_html = '<tr>' +
+                '<td><input type="number" value="{0}" style="color:green" ></td>' +
+                '<td><input type="number" value="{1}" style="color:red" ></td>' +
+                '<td></td>' +
+                '<td><input type="number"  class="return_price"  value="0" ></td>' +
+                '<td><input type="number" value="0" ></td>' +
+                '<td><input type="number" value="0" ></td>' +
+                '<td><input type="number" value="{2}" style="color:green" ></td>' +//supplier
+                '<td><span class="glyphicon glyphicon-remove"></span></td></tr>';
+        var dom = String.format(tr_html, product_id, prosku_id, supplier_id);
+        $("#return_good_list").append(dom);
+        console.log("tr_html:", tr_html);
+        $(".glyphicon-remove").click(function () {
+            $($(this).parent().parent()).remove();
+        });
+    }
+    //
+    function change_price(dom) {
+        var va = $(dom).val();
+        $.each($(".return_price"), function (i, pric_dom) {
+            $(pric_dom).val(va);
+        });
+    }
+
     // 生成退货单信息
     function create_record_to_database() {
         layer.confirm('您确定创建退货单？　确定将有仓库审核，如通过将减去库存，并发货给供应商', {
@@ -167,7 +207,7 @@
         }, function () {
             create_record_to_database_func();
             layer.closeAll();
-            $("#return_good_list").empty();//删除　预览
+
         }, function () {
             layer.msg("您取消了该预览退货单");
         });
@@ -177,12 +217,12 @@
         var trs = $("#return_good_list tr");
         var arr = new Array();
         $(trs).each(function (index, tr) {
-            var pro_id = tr.children[0].innerHTML;
-            var sku_id = tr.children[1].innerHTML;
-            var price = tr.children[3].innerHTML;
+            var pro_id = tr.children[0].children[0].value;
+            var sku_id = tr.children[1].children[0].value;
+            var price = tr.children[3].children[0].value;
             var return_num = tr.children[4].children[0].value;
-            var sku_inferior_num = tr.children[5].innerHTML;
-            var supplier = tr.children[6].innerHTML;
+            var sku_inferior_num = tr.children[5].children[0].value;
+            var supplier = tr.children[6].children[0].value;
             var sku_return = {
                 "supplier": supplier, "sku_id": sku_id, "return_num": return_num, "price": price,
                 "pro_id": pro_id, "sku_inferior_num": sku_inferior_num
@@ -210,6 +250,8 @@
             console.log(res);
             if (res.res == true) {
                 layer.msg("创建成功！！！");
+                //创建成功后才删除预览内容
+                $("#return_good_list").empty();//删除　预览
             }
             else if (res.res == "multi_supplier") {
                 layer.msg("不能为多个供应商创建退货单！！！");
