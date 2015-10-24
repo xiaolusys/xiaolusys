@@ -326,6 +326,7 @@ class ProductAdmin(MyAdmin):
             valid_actions.add('weixin_product_action')
             valid_actions.add('upshelf_product_action')
             valid_actions.add('downshelf_product_action')
+            valid_actions.add('update_quantity2remain_action')
             
         if user.has_perm('items.sync_product_stock'):
             valid_actions.add('sync_items_stock')
@@ -482,6 +483,22 @@ class ProductAdmin(MyAdmin):
     
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
     
+    
+    #更新商品库存数至预留数
+    def update_quantity2remain_action(self,request,queryset):
+         
+        downshelfs = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        upshelfs   = queryset.filter(shelf_status=Product.UP_SHELF)
+        
+        for product in downshelfs:
+            product.normal_skus.update(remain_num=models.F('quantity'))
+            log_action(request.user.id,product,CHANGE,u'更新商品库存数至预留数')
+            
+        self.message_user(request,u"已成功更新%s个商品的预留数!"%downshelfs.count())
+        self.message_user(request,u"有%s个商品因已上架没有更新预留数!"%upshelfs.count())
+        return HttpResponseRedirect(request.get_full_path())
+        
+    update_quantity2remain_action.short_description = u"更新商品库存为预留数"
     
     #取消该商品缺货订单
     def cancle_orders_out_stock(self,request,queryset):
@@ -716,6 +733,7 @@ class ProductAdmin(MyAdmin):
                'regular_saleorder_action',
                'deliver_saleorder_action',
                'export_prodsku_info_action',
+               'update_quantity2remain_action',
                'create_saleproduct_order']
 
 admin.site.register(Product, ProductAdmin)
