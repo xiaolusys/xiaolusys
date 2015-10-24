@@ -39,8 +39,8 @@ class CacheLock:
 
 def get_func_cache_key(*args, **kwargs):
     return hashlib.sha256(u'.'.join([
-            json.dumps(sorted(args)).encode('utf-8'),
-            json.dumps(kwargs, sort_keys=True).encode('utf-8')
+            json.dumps(sorted([str(s) for s in args])).encode('utf-8'),
+            json.dumps(sorted(['%s=%s'%(k,v) for k,v in kwargs])).encode('utf-8')
         ])).hexdigest()
 
     
@@ -65,3 +65,9 @@ def test_lock(a,b=None):
     time.sleep(10)
     return a + b
 
+class TestLock():
+    @cache_lock(cache_time=10*60)
+    def lock(self ,a, b=None):
+        return a + b
+    
+    

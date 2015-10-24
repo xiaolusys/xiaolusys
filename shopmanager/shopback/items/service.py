@@ -60,7 +60,7 @@ from common.cachelock import cache_lock
 def releaseProductTrades(outer_id):
     """ 释放特卖到货商品订单 """
     products = Product.objects.filter(outer_id=outer_id)
-    if not products.exsites() or not products[0].has_quantity():
+    if not products.exists() or not products[0].has_quantity():
         return
     
     mos = (MergeOrder.objects.filter(
