@@ -314,7 +314,7 @@ def task_Push_Pending_OrderRebeta_Cash(day_ago=ORDER_REBETA_DAYS, xlmm_id=None):
         time_from = datetime.datetime(carry_date.year, carry_date.month, carry_date.day)
         time_to = datetime.datetime(carry_date.year, carry_date.month, carry_date.day, 23, 59, 59)
         shopings = StatisticsShopping.objects.filter(linkid=xlmm.id,
-                                                 status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED),
+                                                status__in=(StatisticsShopping.WAIT_SEND,StatisticsShopping.FINISHED),
                                                 shoptime__range=(time_from,time_to))
         
         rebeta_fee = shopings.aggregate(total_rebeta=Sum('tichengcount')).get('total_rebeta') or 0

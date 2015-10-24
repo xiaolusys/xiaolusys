@@ -688,10 +688,13 @@ def updateAllUserPurchaseItemNumTask():
 
 
 from shopback.items.service import releaseProductTrades
+
 @task
 def releaseProductTradesTask(outer_ids):
     for outer_id in outer_ids:
         releaseProductTrades(outer_id)
+        
+
 
 from supplychain.supplier.models import SaleProduct
 class CalcProductSaleAsyncTask(Task):

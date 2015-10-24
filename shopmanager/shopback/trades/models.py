@@ -651,6 +651,13 @@ class MergeOrder(models.Model):
     TAOBAO_ORDER_STATUS = TAOBAO_ORDER_STATUS
     GIFT_TYPE           = GIFT_TYPE
     
+    NORMAL = pcfg.IN_EFFECT 
+    DELETE = pcfg.INVALID_STATUS
+    SYS_ORDER_STATUS = (
+        (NORMAL ,u'有效'),
+        (DELETE,u'无效'),
+    )
+    
     id    = BigIntegerAutoField(primary_key=True)
     oid   = models.CharField(max_length=32,
                              default=lambda:'DO%d'%int(time.time()*10**5),

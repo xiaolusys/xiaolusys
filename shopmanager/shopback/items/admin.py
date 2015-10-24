@@ -564,14 +564,15 @@ class ProductAdmin(MyAdmin):
         remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
         outer_ids = [p.outer_id for p in queryset]
         mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
-                                    merge_trade__sys_status__in=("WAIT_PREPARE_SEND","WAIT_AUDIT"))
+                                    merge_trade__sys_status__in=(MergeTrade.WAIT_PREPARE_SEND_STATUS,
+                                                                 MergeTrade.WAIT_AUDIT_STATUS))
         
         merge_trades = set([o.merge_trade for o in mos])
         effect_num = 0
         for t in merge_trades:
             if (t.status == pcfg.WAIT_SELLER_SEND_GOODS
                 and not t.out_sid and t.prod_num == 1):
-                t.sys_status="REGULAR_REMAIN"
+                t.sys_status=MergeTrade.REGULAR_REMAIN_STATUS
                 t.remind_time=remind_time
                 t.save()
                 effect_num += 1

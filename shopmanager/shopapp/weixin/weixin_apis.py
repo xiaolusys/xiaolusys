@@ -12,7 +12,7 @@ from common.utils import (randomString,
                           update_model_fields,
                           randomString,
                           getSignatureWeixin,
-                          process_lock)
+                          cache_lock)
 
 REFRESH_WX_TOKEN_CACHE_KEY = 'REFRESH_WX_TOKEN_KEY'
 
@@ -126,7 +126,7 @@ class WeiXinAPI(object):
         
         return content
     
-    @process_lock
+    @cache_lock(cache_time=60 * 60)
     def refresh_token(self):
         
         params = {'grant_type':'client_credential',

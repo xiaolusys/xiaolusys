@@ -135,7 +135,8 @@ class LogisticsCompany(models.Model):
             return company
         #根据系统规则选择快递
         logistics = cls.objects.filter(status=True).order_by('-priority')
-        total_priority  = logistics.aggregate(total_priority=Sum('priority')).get('total_priority')
+        total_priority  = logistics.aggregate(total_priority=Sum('priority')).get('total_priority') 
+        total_priority  = max(total_priority,1)
         priority_ranges = []
         cur_range       = 0
         for logistic in logistics:

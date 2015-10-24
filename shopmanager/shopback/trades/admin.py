@@ -883,7 +883,6 @@ class MergeTradeAdmin(MyAdmin):
     def export_yunda_action(self, request, queryset):
         """ 导出订单快递信息 """
         dt  = datetime.datetime.now()
-        
         yundaset = queryset.filter(logistics_company__code__in=('YUNDA','YUNDA_QR'))
         yunda_tuple = []
         

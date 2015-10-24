@@ -9,7 +9,7 @@ from shopback import paramconfig as pcfg
 from django.db import transaction
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.signals import recalc_fee_signal
-from common.utils import update_model_fields,process_lock
+from common.utils import update_model_fields,cache_lock
 import logging
 
 logger = logging.getLogger('django.request')
@@ -59,7 +59,7 @@ def _createAndCalcOrderFee(trade,sub_trade):
                                               'adjust_fee',
                                               'post_fee'])
         
-@process_lock
+@cache_lock(cache_time=12*60*60)
 @transaction.commit_on_success
 def mergeMaker(trade,sub_trade):
     
@@ -143,7 +143,8 @@ def mergeMaker(trade,sub_trade):
     update_model_fields(trade,update_fields=['has_merge','sys_status'])
         
     return True
-    
+
+@cache_lock(cache_time=12*60*60)    
 @transaction.commit_on_success    
 def mergeRemover(trade):
     

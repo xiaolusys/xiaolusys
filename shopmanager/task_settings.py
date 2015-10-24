@@ -2,6 +2,9 @@
 import djcelery
 djcelery.setup_loader()
 
+CELERY_IMPORTS = (
+    'shopback.trades.tasks_release',
+)
 #CELERY_RESULT_BACKEND = 'database'
 #BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
@@ -66,6 +69,11 @@ CELERY_ROUTES = {
             'queue': 'async',
             'routing_key': 'async.async_invoice_print',
         },
+        #######################################################
+        'shopback.trades.tasks_release.CancelMergeOrderStockOutTask': {
+            'queue': 'peroid',
+            'routing_key': 'peroid.release_regular_order',
+        },
 }
 
 
@@ -128,6 +136,11 @@ SYNC_MODEL_SCHEDULE = {
     u'定时生成每月物流信息报表':{     #更新库存
         'task':'shopback.trades.tasks.task_Gen_Logistic_Report_File_By_Month',
         'schedule':crontab(minute="0",hour="4", day_of_month='10'),#
+        'args':()
+    },
+    u'定时释放定时提醒订单':{
+        'task':'shopback.trades.tasks_release.CancelMergeOrderStockOutTask',
+        'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,20,2)])),
         'args':()
     },
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周

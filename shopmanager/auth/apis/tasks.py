@@ -176,7 +176,7 @@ def apis(api_method,method='GET',max_retry=3,limit_rate=0.5):
                 params.update(dict(zip(reversed(func_args), reversed(list(func_defaults)))))
             params.update(dict(zip(func_args, args)))
             params.update(kwargs)
-
+            
             from shopback.users.models import User
             #refresh user taobao session
             tb_user_id = params.pop('tb_user_id')
