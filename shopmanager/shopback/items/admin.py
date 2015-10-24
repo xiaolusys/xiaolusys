@@ -283,7 +283,7 @@ class ProductAdmin(MyAdmin):
                     'fields': (('outer_id','category')
                                ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
-                               ,('std_purchase_price','staff_price','sale_time')
+                               ,('std_purchase_price','staff_price','sale_time','offshelf_time')
                                ,('cost','std_sale_price','agent_price')
                                ,('status','shelf_status','model_id','sale_product','ware_by'))
                 }),
