@@ -11,6 +11,8 @@ from shopback.users.models import User
 from django.db.models.signals import post_save
 from auth import apis
 import logging
+from models_refund_rate import PayRefundRate
+
 
 logger = logging.getLogger('django.request')
 

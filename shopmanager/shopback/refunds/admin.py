@@ -176,3 +176,14 @@ class RefundProductAdmin(admin.ModelAdmin):
 
 admin.site.register(RefundProduct,RefundProductAdmin)
 
+from models_refund_rate import PayRefundRate
+
+
+class PayRefundRateAdmin(admin.ModelAdmin):
+    list_display = ('id', 'date_cal', 'ref_num', 'pay_num', 'ref_rate', 'created')
+    list_display_links = ('id', 'date_cal')
+    list_filter = ('date_cal', 'created')
+    search_fields = ['=id', '=date_cal']
+
+
+admin.site.register(PayRefundRate, PayRefundRateAdmin)

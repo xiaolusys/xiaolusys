@@ -370,6 +370,11 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="*/5"),
         'args':()
     },
+    u'定时统计特卖平台退款率任务':{
+        'task':'shopback.refunds.tasks.fifDaysRateFlush',
+        'schedule':crontab(minute="10", hour="3"),
+        'args':()
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

@@ -82,3 +82,52 @@ def refund_analysis(dat):
     dic_ref = {"dat": dat, "ref_num": rfs_cnt, "pay_num": sds_cut, "ref_rate": ref_rate}
     data.append(dic_ref)
     return data
+
+from models_refund_rate import PayRefundRate
+
+
+def refDataToMol(target_day=None):
+    """ 写入特卖的退款率 数据到数据库中
+    target_date: 日期时间类型
+    """
+    time_from = datetime.datetime(target_day.year, target_day.month, target_day.day, 0, 0, 0)
+    time_to = datetime.datetime(target_day.year, target_day.month, target_day.day, 23, 59, 59)
+
+    sodrs = SaleOrder.objects.filter(created__gte=time_from,
+                                     created__lte=time_to).exclude(sale_trade__pay_time=None)  # 支付的订单
+    # 支付的订单的退款数量（）　
+    refs = sodrs.exclude(refund_status__in=(SaleRefund.NO_REFUND, SaleRefund.REFUND_CLOSED,
+                                            SaleRefund.REFUND_REFUSE_BUYER))  # 排除　没有退款，　退款关闭，　拒绝退款
+
+    sds_cut = sodrs.count()  # 付款数量
+    rfs_cnt = refs.count()  # 退款数量
+    ref_rate = "%0.4f" % (float(rfs_cnt) / sds_cut) if rfs_cnt > 0 else 0
+    date_cal = target_day.date()
+    prfr, state = PayRefundRate.objects.get_or_create(date_cal=date_cal)
+    prfr.ref_num = rfs_cnt
+    prfr.pay_num = sds_cut
+    prfr.ref_rate = ref_rate
+    prfr.save()
+
+
+def flushHistToRefRat(bt=None):
+    """ 仅仅运行一次 """
+    if bt is None:
+        return
+    today = datetime.datetime.today()
+    while bt <= today:
+        refDataToMol(target_day=bt)
+        bt += datetime.timedelta(days=1)
+        print u"统计时间:%s" % bt
+
+
+@task()
+def fifDaysRateFlush(days=15):
+    """ 每天定时执行 刷新过去15天的数据 """
+    for i in range(days):
+        target_day = datetime.datetime.today() - datetime.timedelta(days=i)
+        print u"target_day:%s" % target_day
+        refDataToMol(target_day=target_day)
+
+
+

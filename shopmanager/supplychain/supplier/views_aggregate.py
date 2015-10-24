@@ -13,7 +13,7 @@ class AggregateProductView(View):
     def get(self, request, pk):
         s = SaleProduct.objects.filter(id=pk)
 
-        all_product = Product.objects.filter(sale_product=pk)
+        all_product = Product.objects.filter(sale_product=pk, status=Product.NORMAL)
         return render_to_response("aggregate_product.html",
                                   {"sale_product": s[0] if s.count() > 0 else None, "all_product": all_product},
                                   context_instance=RequestContext(request))
