@@ -1,5 +1,5 @@
-from __future__ import division
 # -*- coding:utf-8 -*-
+from __future__ import division
 __author__ = 'yann'
 from celery.task import task
 from shopback.items.models import Product, ProductSku

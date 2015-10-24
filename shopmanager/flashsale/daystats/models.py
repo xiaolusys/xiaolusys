@@ -1,4 +1,3 @@
-__author__ = 'yann'
 # -*- coding:utf-8 -*-
 from django.db import models
 from shopapp.weixin.models import WXOrder

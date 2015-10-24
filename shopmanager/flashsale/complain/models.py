@@ -1,5 +1,5 @@
-__author__ = 'timi06'
 # -*- coding:utf-8 -*-
+__author__ = 'timi06'
 from django.db import models
 
 

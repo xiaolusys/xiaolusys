@@ -1,5 +1,5 @@
-from __future__ import division
 # -*- encoding:utf8 -*-
+from __future__ import division
 import datetime
 from django.db.models import F, Sum
 from celery.task import task
