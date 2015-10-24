@@ -4,7 +4,6 @@ import datetime
 from django.db import models
 from django.db.models import Q,Sum
 from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
 
 from shopback import paramconfig as pcfg
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
@@ -114,6 +113,16 @@ class SaleRefund(models.Model):
     def refund_desc(self):
         return u'退款(oid:%s),%s'%(self.order_id,self.reason)
     
+    def get_tid(self):
+        from flashsale.pay.models import SaleTrade
+        strade = SaleTrade.objects.get(id=self.trade_id)
+        return strade.tid
+    
+    def get_oid(self):
+        from flashsale.pay.models import SaleOrder
+        sorder = SaleOrder.objects.get(id=self.order_id)
+        return sorder.oid
+        
     def refund_Confirm(self):
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
@@ -146,4 +155,11 @@ def buyeridPatch():
         sf.buyer_id = st.buyer_id
         sf.save()
         
-    
+
+def handle_sale_refund_signal(sender,instance,*args,**kwargs):
+    from shopback import signals
+    if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE:
+        signals.order_refund_signal.send(sender='salerefund',obj=instance)
+
+post_save.connect(handle_sale_refund_signal, sender='salerefund')
+

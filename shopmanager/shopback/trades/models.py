@@ -14,11 +14,10 @@ from shopback.base import log_action, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.trades.managers import MergeTradeManager
 from shopback.items.models import Item,Product,ProductSku
-from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
+from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.refunds.models import Refund,REFUND_STATUS
 from shopback import paramconfig as pcfg
-from shopback.signals import merge_trade_signal,rule_signal,recalc_fee_signal
-from auth import apis
+from shopback import signals 
 from common.utils import (parse_datetime ,
                           get_yesterday_interval_time ,
                           update_model_fields)
@@ -587,7 +586,7 @@ def recalc_trade_fee(sender,trade_id,*args,**kwargs):
                                              'adjust_fee'])
 
 
-recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
+signals.recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 # 
 # class MergeCtrl(models.Model):
 #     
@@ -875,6 +874,17 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
 
 post_save.connect(refresh_trade_status, sender=MergeOrder)
 
+def refund_update_order_info(sender,instance,*args,**kwargs):
+    """ 
+    退款更新订单明细状态及对应商品的待发数
+    """
+    from flashsale.pay.models_refund import SaleRefund
+    if not isinstance(instance,SaleRefund):
+        logger.warning('refund ins(%s) not SaleRefund'%instance)
+        return 
+    logger.info('salerefund log:%s'%instance)
+    
+signals.order_refund_signal.connect(refund_update_order_info, sender='salerefund')
 
 class MergeBuyerTrade(models.Model):
     

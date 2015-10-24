@@ -12,10 +12,27 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 #BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
 BROKER_URL = 'amqp://user1:passwd1@10.132.179.237:5672/vhost1'
 
-CELERY_RESULT_BACKEND = "amqp"
-CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
+# 某个程序中出现的队列，在broker中不存在，则立刻创建它  
+CELERY_CREATE_MISSING_QUEUES = True 
+# 每个worker最多执行万100个任务就会被销毁，可防止内存泄露  
+CELERYD_MAX_TASKS_PER_CHILD = 100    
+# 单个任务的运行时间不超过此值，否则会被SIGKILL 信号杀死 
+# CELERYD_TASK_TIME_LIMIT = 60    
+# 非常重要,有些情况下可以防止死锁,如果有数量更时间限制应开启 
+CELERYD_FORCE_EXECV = True    
+#WORKER每次取任务数
+CELERYD_PREFETCH_MULTIPLIER = 4
+# BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 90}  
+# 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行  
+# CELERY_DISABLE_RATE_LIMITS = True     
+
+CELERY_TIMEZONE = 'Asia/Shanghai'  
+ 
+
+CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"
+CELERY_TASK_RESULT_EXPIRES = 7200  # 2 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
-CELERYD_CONCURRENCY = 16 # 16 processes in parallel
+CELERYD_CONCURRENCY = 16 # 16 processes in paralle
 
 from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
@@ -69,11 +86,6 @@ CELERY_ROUTES = {
             'queue': 'async',
             'routing_key': 'async.async_invoice_print',
         },
-        #######################################################
-        'shopback.trades.tasks_release.CancelMergeOrderStockOutTask': {
-            'queue': 'peroid',
-            'routing_key': 'peroid.release_regular_order',
-        },
 }
 
 
@@ -120,7 +132,7 @@ SYNC_MODEL_SCHEDULE = {
      },
      u'定时更新商品待发数':{     #更新库存
         'task':'shopback.items.tasks.updateProductWaitPostNumTask',
-        'schedule':crontab(minute="0",hour="5"),#
+        'schedule':crontab(minute="0",hour="5,13"),#
         'args':()
      },
      u'定时更新淘宝商品库存':{     #更新库存
@@ -140,8 +152,9 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时释放定时提醒订单':{
         'task':'shopback.trades.tasks_release.CancelMergeOrderStockOutTask',
-        'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,20,2)])),
-        'args':()
+        'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,22,2)])),
+        'args':(),
+        'options' : {'queue':'peroid'} 
     },
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
