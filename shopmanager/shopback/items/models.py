@@ -103,7 +103,8 @@ class Product(models.Model):
     modified     = models.DateTimeField(null=True,blank=True,
                                         auto_now=True,verbose_name=u'修改时间')
     sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
-    
+    offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
+
     is_split   = models.BooleanField(default=False,verbose_name=u'需拆分')
     is_match   = models.BooleanField(default=False,verbose_name=u'有匹配')
     sync_stock   = models.BooleanField(default=True,verbose_name=u'库存同步')

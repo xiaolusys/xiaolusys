@@ -1,5 +1,5 @@
-__author__ = 'timi06'
 # coding:utf-8
+__author__ = 'timi06'
 # from django.http import HttpResponse, Http404
 # from django.shortcuts import get_object_or_404
 # from django.views.decorators.csrf import csrf_exempt

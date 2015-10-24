@@ -1,5 +1,5 @@
-from __future__ import division
 # coding=utf-8
+from __future__ import division
 __author__ = 'yann'
 from django.views.generic import View
 from django.shortcuts import render_to_response

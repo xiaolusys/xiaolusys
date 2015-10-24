@@ -434,3 +434,35 @@ option {
 	background-color: #f2dede;
 	border-color: #ebccd1;
 }
+
+/*添加质量问题退货说明显示*/
+
+.description {
+    background-color: #fff;
+    border-top: 1px solid #d7d9db;
+    border-bottom: 1px solid #d7d9db;
+    padding: 0 20px;
+    width: 600px;
+    margin: 20px auto 0;
+    font-size: 18px;
+}
+
+
+.description .basicc {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 30px;
+}
+
+.description ul {
+    font-size: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.description li {
+    font-size: 10px;
+}
+.show_claps{
+text-align: center;
+    color: red;
+}

@@ -50,6 +50,7 @@ class StatisRefundSupView(APIView):
         content = request.REQUEST
         arr = content.get("arr", None)
         data = eval(arr)  # json字符串转化
+        print "data: ", data
         supplier_set = set()
         pro_id_set = set()
         for i in data:
@@ -189,7 +190,7 @@ from shopback.refunds.models import RefundProduct
 
 def acrion_product_num(outer_id, sku_out_id, num, can_reuse):
     try:
-        actioner = 19  # 操作用户的id
+        actioner = 19  # 操作用户的id systemoa 641
         pro = Product.objects.get(outer_id=outer_id)
         psk = ProductSku.objects.get(product=pro.id, outer_id=sku_out_id)
         if can_reuse:  # 可以二次销售　正品　更新 quantity
@@ -221,11 +222,10 @@ def acrion_product_num(outer_id, sku_out_id, num, can_reuse):
 
 def update_refundpro_to_product(can_reuse=False):
     endtime = datetime.datetime(2015, 10, 8, 17, 20, 0)
-    actioner = 19  # 操作用户的id
+    actioner = 19  # 操作用户的id systemoa 641
     rep_dic = {}
     # can_reuse=False　不可以二次销售的　次品       #　can_reuse=True 可以二次销售的　正品
     re_prods = RefundProduct.objects.filter(is_finish=False, can_reuse=can_reuse, created__lte=endtime)
-    print "handler count is :", re_prods.count()
 
     for rp in re_prods:
         if rep_dic.has_key(rp.outer_id):
