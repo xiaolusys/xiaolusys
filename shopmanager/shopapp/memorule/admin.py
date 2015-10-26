@@ -18,7 +18,7 @@ from shopapp.memorule.models import (
                                      RuleMemo,
                                      ComposeRule,
                                      ComposeItem)
-
+from . import forms
 
 
 class TradeRuleAdmin(admin.ModelAdmin):
@@ -84,6 +84,7 @@ class RuleMemoAdmin(admin.ModelAdmin):
 #admin.site.register(RuleMemo, RuleMemoAdmin)
 
 
+
 class ComposeItemInline(admin.TabularInline):
     
     model = ComposeItem
@@ -94,18 +95,18 @@ class ComposeItemInline(admin.TabularInline):
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
     
-
 class ComposeRuleAdmin(admin.ModelAdmin):
     
-    list_display = ('id','outer_id','outer_sku_id','payment','type','extra_info','status','created','modified')
+    list_display = ('id','outer_id','outer_sku_id','payment','type','extra_info','start_time','end_time','status','created')
     list_display_links = ('id','outer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
     list_filter = ('type','status')
-    search_fields = ['id','outer_id','extra_info']
+    search_fields = ['id','outer_id','seller_id','extra_info']
     
+    form = forms.UserForm
     inlines = [ComposeItemInline]
     
     class Media:

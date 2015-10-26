@@ -102,3 +102,5 @@ class RecordGroupPoint(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.point_content)
+    
+    

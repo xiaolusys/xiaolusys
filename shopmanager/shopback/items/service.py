@@ -74,3 +74,4 @@ def releaseProductTrades(outer_id):
     for trade in merge_trades:
         releaseRegularOutstockTrade(trade, num_maps)       
         
+        

@@ -120,24 +120,31 @@ class ComposeRule(models.Model):
     RULE_SPLIT_TYPE   = pcfg.RULE_SPLIT_TYPE
     RULE_GIFTS_TYPE   = pcfg.RULE_GIFTS_TYPE
     
+    DEFAULT_SELLER_CODE = 0
+    PRODUCT_ALL = 'ALL'
     #匹配规则
     outer_id = models.CharField(max_length=64,db_index=True,
                                 blank=True,verbose_name=u'商品外部编码')
     outer_sku_id = models.CharField(max_length=64,db_index=True,
                                 blank=True,verbose_name=u'商品规格编码')
     
+    seller_id   = models.IntegerField(default=DEFAULT_SELLER_CODE,verbose_name=u'卖家ID')
+    
     payment  = models.IntegerField(null=True,default=0,verbose_name=u'金额')
     type     = models.CharField(max_length=10,
                                 choices=RULE_TYPE_CHOICE,
                                 verbose_name=u'规则类型')
     
-    gif_count   = models.IntegerField(default=0,verbose_name=u'剩余名额')
+    gif_count = models.IntegerField(default=0,verbose_name=u'剩余名额')
     scb_count = models.IntegerField(default=0,verbose_name=u'已送名额')
     
     extra_info = models.TextField(blank=True,verbose_name=u'信息')
     
-    created  = models.DateTimeField(null=True,blank=True,auto_now_add=True)
-    modified = models.DateTimeField(null=True,blank=True,auto_now=True)
+    start_time = models.DateTimeField(null=True,blank=True,verbose_name=u'开始时间')
+    end_time = models.DateTimeField(null=True,blank=True,verbose_name=u'结束时间')
+    
+    created  = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name=u'创建时间')
+    modified = models.DateTimeField(null=True,blank=True,auto_now=True,verbose_name=u'修改时间')
     
     status  = models.BooleanField(default=False,verbose_name=u'生效')
     

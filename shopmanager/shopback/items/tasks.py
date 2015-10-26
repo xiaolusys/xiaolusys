@@ -25,7 +25,6 @@ import logging
 
 logger = logging.getLogger('django.request')
 
-
 PURCHASE_STOCK_PERCENT = 0.5
 
 @task()
@@ -695,7 +694,6 @@ def releaseProductTradesTask(outer_ids):
         releaseProductTrades(outer_id)
         
 
-
 from supplychain.supplier.models import SaleProduct
 class CalcProductSaleAsyncTask(Task):
     def getProductByOuterId(self, outer_id):
@@ -956,3 +954,4 @@ class CalcProductSaleAsyncTask(Task):
         sale_qs = ProductDaySale.objects.filter(**params)
         sale_items = self.calcSaleItems(queryset=sale_qs, buyer_name=buyer_name, supplier=supplier, p_outer_id=p_outer_id, show_sale=show_sale)
         return sale_items
+    
