@@ -95,7 +95,7 @@ def carry_Log_By_date(left, right, xlmm):
 
 
 @csrf_exempt
-def all_Show(request):
+def xlmmInfo(request):
     content = request.GET
     today = datetime.datetime.today()
     left = content.get('date_from') or ''
@@ -128,7 +128,7 @@ def all_Show(request):
             referals = referal_From(xlmms[0].mobile)  # 推荐代理状况
             refs_num = referals.count()
 
-        return render_to_response("mama_data_search/mama_data_search.html",
+        return render_to_response("xlmm_info/xlmm_info.html",
                                   {"xlmms": xlmms, "clickcounts": clickcounts, "carry_log_all_sum": carry_log_all_sum,
                                    "order_counts": order_counts, "referals": referals, "allcarrylogs": allcarrylogs,
                                    "xlmm": xlmm, "charge_time": charge_time.strftime("%Y-%m-%d"),
@@ -140,13 +140,13 @@ def all_Show(request):
         xlmms = XiaoluMama.objects.filter(id=xlmm)
         if xlmms.exists():
             referals = referal_From(xlmms[0].mobile)  # 推荐代理状况
-            return render_to_response("mama_data_search/mama_data_search.html",
+            return render_to_response("xlmm_info/xlmm_info.html",
                                       {"xlmms": xlmms, "referals": referals, "xlmm": xlmm,
                                        "charge_time": charge_time.strftime("%Y-%m-%d"),
                                        "today": today.strftime("%Y-%m-%d")},
                                       context_instance=RequestContext(request))
 
     else:
-        return render_to_response("mama_data_search/mama_data_search.html",
+        return render_to_response("xlmm_info/xlmm_info.html",
                                   {"xlmm": xlmm, "charge_time": charge_time.strftime("%Y-%m-%d"),
                                    "today": today.strftime("%Y-%m-%d")}, context_instance=RequestContext(request))
