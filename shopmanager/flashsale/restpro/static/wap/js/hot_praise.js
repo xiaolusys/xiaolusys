@@ -92,12 +92,12 @@ function changeHotVal(data, dom) {
     });
     function refundCallBack(res) {
         console.log("res: ", res);
-        if (res.today_count < 10) {
+        if (res.today_count < 5) {
             drawToast("感谢您的点赞！" + "目前已经有" + res.hot_val + "人点赞，感谢您的参与！");
         }
         $(dom).addClass("praise");
-        if (res.today_count >= 10) {
-            drawToast("您已经超过了十次点赞了，太感谢您了！")
+        if (res.today_count >= 5) {
+            drawToast("您已经超过了5次点赞了，太感谢您了！")
         }
         console.log("dom", dom);
         $(dom.parent().children()[1]).html('+' + res.hot_val);
