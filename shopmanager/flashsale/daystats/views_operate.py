@@ -55,3 +55,25 @@ class DailyCheckView(generics.ListCreateAPIView):
                 {"sale_time": one_sale_time["sale_time"].strftime('%Y-%m-%d') if one_sale_time["sale_time"] else "null",
                  "all_pro_num": all_pro_num, "shelf_num": shelf_num, "down_shelf_num": down_shelf_num})
         return Response({"result_data": result_data, "all_shelf_num": all_shelf_num})
+
+from supplychain.supplier.models import SaleSupplier, SaleProduct
+class SupplierPreviewView(generics.ListCreateAPIView):
+    """
+        供应商预览界面
+    """
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    template_name = "xiaolumm/data2supplier_preview.html"
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        content = request.GET
+        supplier_name = content.get("supplier", "")
+        try:
+            one_supplier = SaleSupplier.objects.get(supplier_name=supplier_name)
+            all_sale_product = SaleProduct.objects.filter(sale_supplier=one_supplier).exclude(
+                status=SaleProduct.IGNORED)
+            sale_product_ids = [one_saleproduct.id for one_saleproduct in all_sale_product]
+            all_product = Product.objects.filter(sale_product__in=sale_product_ids)
+        except:
+            return Response()
+        return Response({"all_product": all_product, "supplier_name": supplier_name})
