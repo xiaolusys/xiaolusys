@@ -72,14 +72,17 @@ class TempView(generics.ListCreateAPIView):
         all_product = OrderDetail.objects.filter(orderlist__supplier_shop=supplier_name).exclude(
             orderlist__status=OrderList.ZUOFEI).values("product_id").distinct()
         result_data = []
+        total_money = 0
         for one_product in all_product:
             temp_list = ["", 0, 0]
             temp_product = Product.objects.get(id=one_product["product_id"])
             temp_list[0] = temp_product.name
             temp_list[1] = temp_product.cost
-            temp_list[2] = OrderDetail.objects.filter(orderlist__supplier_shop=supplier_name,
-                                                      product_id=one_product["product_id"]).exclude(
+            buy_num = OrderDetail.objects.filter(orderlist__supplier_shop=supplier_name,
+                                                 product_id=one_product["product_id"]).exclude(
                 orderlist__status=OrderList.ZUOFEI).aggregate(total_num=Sum('buy_quantity')).get('total_num') or 0
+            temp_list[2] = buy_num
+            total_money += temp_product.cost * buy_num
             result_data.append(temp_list)
 
-        return Response({"result_data": result_data, "supplier_name": supplier_name})
+        return Response({"result_data": result_data, "supplier_name": supplier_name, "total_money": total_money})
