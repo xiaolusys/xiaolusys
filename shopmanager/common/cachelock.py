@@ -11,7 +11,7 @@ class CacheLockedException(BaseException):
     pass
 
 class CacheLock:
-    """进程锁
+    """内存锁
     """
     def __init__(self, cache_key, cache_time, lock_wait=True):
         self.cache_key = cache_key

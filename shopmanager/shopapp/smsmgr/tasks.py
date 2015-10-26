@@ -26,9 +26,7 @@ POST_NOTIFY_TITLE = '订单发货客户提示'
 #POST_CONTENT_SEND_LATER2 = "亲爱的顾客，您订购的{0}由于商品成色原因未通过质检要求，本店正在加紧调货，如有疑问请联系我们平台客服，么么哒～"
 #POST_CONTENT_SEND_LATER3 = "亲爱的顾客，您订购的{0}在入库检查时发现包装部分污损，本店正在加紧调货，如有疑问请联系我们平台客服，么么哒～"
 
-
 POST_CONTENT_SEND_LATER = "【小鹿美美】亲，您购买的{0}因销售火爆库存紧，我们正在紧急调货中，我们会以最快的速度帮您补发，请亲再耐心等几天哦，么么哒"
-
 
 def get_smsg_from_trade(trade):
     """ 获取商品客户提示 """
@@ -334,3 +332,4 @@ def func2send_message(trade):
             send_success.save()
     except Exception, exc:
         logger.error(exc.message or 'empty error', exc_info=True)
+        

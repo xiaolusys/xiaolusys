@@ -884,7 +884,7 @@ def refund_update_order_info(sender,instance,*args,**kwargs):
         return 
     logger.info('salerefund log:%s'%instance)
     
-signals.order_refund_signal.connect(refund_update_order_info, sender='salerefund')
+signals.order_refund_signal.connect(refund_update_order_info, sender=MergeOrder)
 
 class MergeBuyerTrade(models.Model):
     

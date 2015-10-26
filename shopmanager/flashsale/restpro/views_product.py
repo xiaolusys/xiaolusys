@@ -30,7 +30,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     - {prefix}/previous[.format]: 获取昨日特卖海报;
     """
     queryset = GoodShelf.objects.filter(is_active=True)
-    serializer_class = serializers.PosterSerializer
+    serializer_class = serializers.PosterSerializer 
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     

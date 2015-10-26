@@ -158,8 +158,9 @@ def buyeridPatch():
 
 def handle_sale_refund_signal(sender,instance,*args,**kwargs):
     from shopback import signals
+    from shopback.trades.models import MergeOrder
     if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE:
-        signals.order_refund_signal.send(sender='salerefund',obj=instance)
+        signals.order_refund_signal.send(sender=MergeOrder,obj=instance)
 
 post_save.connect(handle_sale_refund_signal, sender='salerefund')
 
