@@ -23,4 +23,5 @@ urlpatterns = patterns('',
                        url(r'^operate_sale/$', staff_member_required(views_operate.StatsDataView.as_view())),
                        url(r'^daily_check/$', staff_member_required(views_operate.DailyCheckView.as_view())),
                        url(r'^stat_input/$', staff_member_required(views_input_stat.ProductInputStatView.as_view())),
+                       url(r'^stattemp/$', staff_member_required(views_input_stat.TempView.as_view())),
                        )
