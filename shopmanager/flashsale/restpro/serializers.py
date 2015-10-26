@@ -101,7 +101,7 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
-                  'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo',
+                  'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo','lowest_price',
                    'product_model','ware_by','is_verify',"model_id")
 
 
