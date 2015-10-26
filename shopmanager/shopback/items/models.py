@@ -421,6 +421,13 @@ class Product(models.Model):
         
         return ','.join(ds)
 
+    def lowest_price(self):
+        skus = self.prod_skus.all()
+        prcs = []
+        for sku in skus:
+           prcs.append(sku.agent_price)
+        return min(prcs)
+
 from shopback.signals import signal_product_upshelf
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     

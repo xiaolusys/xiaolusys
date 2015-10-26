@@ -48,15 +48,15 @@ function Create_product_detailsku_dom(obj) {
     	}
         sku_list[sku_list.length] = '<li class="{{sku_class}}" name="select-sku" sku_id="{{id}}" id="skusize_{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
     });
-
     obj.sku_list = sku_list.join('');
+
     //创建商品详情及规格信息
     function Content_dom() {
         /*
          <div class="goods-info">
          <h3>{{name}}</h3>
          <div class="price">
-         <span>¥ {{ agent_price }}</span>
+         <span>¥ {{ lowest_price }}</span>
          <s>¥{{ std_sale_price }}</s>
          </div>
          <span id="product_id" style="display:none">{{id}}</span>
