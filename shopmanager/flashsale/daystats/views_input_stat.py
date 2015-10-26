@@ -55,3 +55,31 @@ class ProductInputStatView(generics.ListCreateAPIView):
                          u"童装/配饰", u"童装/下装", u"童装/哈衣", u"童装/外套", u"童装/套装", u"童装/连身", u"童装/上装", u"童装/亲子"]
         return Response({"result_data": result_data, "category_list": category_list,
                          "start_date_str": start_date_str, "end_date_str": end_date_str})
+
+from flashsale.dinghuo.models import OrderList, OrderDetail
+from django.db.models import Sum
+class TempView(generics.ListCreateAPIView):
+    """
+        ceshi
+    """
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    template_name = "xiaolumm/data2temp.html"
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        content = request.GET
+        supplier_name = content.get("supplier", "")
+        all_product = OrderDetail.objects.filter(orderlist__supplier_shop=supplier_name).exclude(
+            orderlist__status=OrderList.ZUOFEI).values("product_id").distinct()
+        result_data = []
+        for one_product in all_product:
+            temp_list = ["", 0, 0]
+            temp_product = Product.objects.get(id=one_product["product_id"])
+            temp_list[0] = temp_product.name
+            temp_list[1] = temp_product.cost
+            temp_list[2] = OrderDetail.objects.filter(orderlist__supplier_shop=supplier_name,
+                                                      product_id=one_product["product_id"]).exclude(
+                orderlist__status=OrderList.ZUOFEI).aggregate(total_num=Sum('buy_quantity')).get('total_num') or 0
+            result_data.append(temp_list)
+
+        return Response({"result_data": result_data, "supplier_name": supplier_name})
