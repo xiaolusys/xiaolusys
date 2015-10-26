@@ -53,8 +53,8 @@ class SupplyChainStatsOrder(models.Model):
 
 
 class DailySupplyChainStatsOrder(models.Model):
-    product_id = models.CharField(max_length=32, verbose_name=u'商品id')
-    sale_time = models.DateField(verbose_name=u'上架时间')
+    product_id = models.CharField(max_length=32, db_index=True, verbose_name=u'商品id')
+    sale_time = models.DateField(db_index=True, verbose_name=u'上架时间')
     trade_general_time = models.BigIntegerField(default=0, verbose_name=u'下单时间')
     order_deal_time = models.BigIntegerField(default=0, verbose_name=u'订货时间')
     goods_arrival_time = models.BigIntegerField(default=0, verbose_name=u'到货时间')
