@@ -1,3 +1,6 @@
+.glist {
+    margin-top: 70px;
+}
 
 .glist .gprice .unpraise {
     width: 32px;
@@ -18,4 +21,23 @@
 
 .glist .gprice .hot_val {
     margin-left: 60px;
+}
+
+.tips {
+    width: 640px;
+    left: 50%;
+    margin-top: 15px;
+    margin-left: -320px;
+    z-index: 9998;
+    font-size: 20px;
+    height: 68px;
+
+    background-color: #62cfc9;
+    position: fixed;
+    color: #fff;
+}
+
+.tips p {
+    text-align: center;
+    line-height: 30px;
 }

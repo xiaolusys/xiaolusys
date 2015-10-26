@@ -156,7 +156,7 @@ class HotProductViewSet(viewsets.ModelViewSet):
         # 查看今天点赞的个数超过10个就不允许点击
         today_queryset = self.get_own_today_queryset(customer.id)
         today_count = today_queryset.count()
-        if today_count >= 10:
+        if today_count >= 5:
             result['hot_val'] = hot_pro.hot_value
             result['today_count'] = today_count
             return Response(result)
