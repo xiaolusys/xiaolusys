@@ -27,14 +27,14 @@ def by_Linkid_Analysis(request):
     time_to = content.get("time_to", None)
 
     # 外部非专属
-    sql1 = "select count(*) from flashsale_tongji_shopping where linkid=0 and shoptime " \
-           "between '{0}' and '{1}' ".format(time_from, time_to)
+    sql1 = "select count(*),sum(wxorderamount) from flashsale_tongji_shopping where linkid=0 and shoptime " \
+           "between '{0}' and '{1}' and status in (0, 1);".format(time_from, time_to)
     # 内部专属
-    sql2 = "select count(*) from flashsale_tongji_shopping where linkid<=134 and linkid>0 and shoptime " \
-           "between '{0}' and '{1}' ;".format(time_from, time_to)
+    sql2 = "select count(*),sum(wxorderamount) from flashsale_tongji_shopping where linkid<=134 and linkid>0 and shoptime " \
+           "between '{0}' and '{1}' and status in (0, 1);".format(time_from, time_to)
     # 代理专属
-    sql3 = "select count(*) from flashsale_tongji_shopping where linkid>134 and shoptime " \
-           "between '{0}' and '{1}' ;".format(time_from, time_to)
+    sql3 = "select count(*),sum(wxorderamount) from flashsale_tongji_shopping where linkid>134 and shoptime " \
+           "between '{0}' and '{1}' and status in (0, 1);".format(time_from, time_to)
 
     outer_raw = order_num(sql1)
     inner_raw = order_num(sql2)
@@ -73,14 +73,23 @@ def raw_handler(outer_raw=None, mm_raw=None, inner_raw=None):
     mm_order_num = mm_raw[0][0]
     inner_order_num = inner_raw[0][0]
 
+    # 非专属金额
+    outer_order_amount = float(outer_raw[0][1] or 0)/100.0
+    mm_order_amount = float(mm_raw[0][1] or 0)/100.0
+    inner_order_amount = float(inner_raw[0][1] or 0)/100.0
+
+    total_amount = (outer_order_amount + mm_order_amount + inner_order_amount)
+
     sum_order = outer_order_num + mm_order_num + inner_order_num
     percent_func = lambda num, sum_order: 0 if sum_order == 0 else round(float(num) / sum_order, 3)
 
     outer_per = percent_func(outer_order_num, sum_order)
     mm_per = percent_func(mm_order_num, sum_order)
     inner_per = percent_func(inner_order_num, sum_order)
-    result_lit = [[u"非专属链接", outer_order_num, outer_per], [u"代理专属链接", mm_order_num, mm_per],
-                  [u"内部专属链接", inner_order_num, inner_per], [u"订单总数", sum_order, 1]]
+    result_lit = [[u"非专属链接", outer_order_num, outer_per, outer_order_amount],
+                  [u"代理专属链接", mm_order_num, mm_per, mm_order_amount],
+                  [u"内部专属链接", inner_order_num, inner_per, inner_order_amount],
+                  [u"订单总数", sum_order, 1, total_amount]]
     return result_lit
 
 
@@ -116,7 +125,8 @@ def xlmm_Carry_Log(request):
     log_type = judeg_Loge_Type(type_value)
 
     sql1 = "SELECT log_type ,sum(value)/100 FROM xiaolumm_carrylog WHERE created BETWEEN '{0}' AND '{1}'AND " \
-           "log_type in {2} AND status = 'confirmed' AND xlmm>134 GROUP BY log_type;".format(time_from, time_to, log_type)
+           "log_type in {2} AND status = 'confirmed' AND xlmm>134 GROUP BY log_type;".format(time_from, time_to,
+                                                                                             log_type)
 
     raw = order_num(sql1)
     result_list = carry_Raw_Hander(raw=raw)
@@ -159,7 +169,7 @@ def judeg_Loge_Type(type_value=None):
     elif type_value == 3:
         log_type = ("rebeta", "subsidy")  # 3
     elif type_value == 1:
-        log_type = ("rebeta","")  # 1
+        log_type = ("rebeta", "")  # 1
     else:
-        log_type = ("rebeta","")    # 默认返回订单返利
+        log_type = ("rebeta", "")  # 默认返回订单返利
     return log_type

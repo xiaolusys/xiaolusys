@@ -105,19 +105,18 @@
 
                 function callback(res) {
                     //生成table容器
-
                     var table_container = '<div class="panel col-md-4 panel-default container" id="createtable_' + t_id + '">' +
                             '<div class="panel-heading">' + time_from + '至' + time_to + '</div></div>';
                     $("#tab_cup").append(table_container);
                     console.log(res);
                     var rowCount = res.length;
 
-                    var table = $('<table class="table table-condensed table-hover"><thead><th>链接类型</th><th>订单数量</th><th>占比</th><thead>');
+                    var table = $('<table class="table table-condensed table-hover"><thead><th>链接类型</th><th>订单数量</th><th>占比</th><th>金额</th><thead>');
                     table.appendTo($("#createtable_" + t_id));
                     for (var i = 0; i < rowCount; i++) {
                         var tr = $("<tr></tr>");
                         tr.appendTo(table);
-                        for (var j = 0; j < 3; j++) {
+                        for (var j = 0; j < 4; j++) {
                             var td = $("<td>" + res[i][j] + "</td>");
                             td.appendTo(tr);
                         }
