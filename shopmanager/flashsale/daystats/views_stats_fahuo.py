@@ -23,8 +23,8 @@ class StatsFahuoView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
         today = datetime.date.today()
-        start_time_str = content.get("df", None)
-        end_time_str = content.get("dt", None)
+        start_time_str = content.get("date_from", None)
+        end_time_str = content.get("date_to", None)
         if start_time_str:
             year, month, day = start_time_str.split('-')
             start_date = datetime.date(int(year), int(month), int(day))
@@ -38,10 +38,9 @@ class StatsFahuoView(generics.ListCreateAPIView):
         else:
             end_date = today
 
-        all_data = DailyStatsPreview.objects.filter(sale_time__range=(start_date, end_date))
+        all_data = DailyStatsPreview.objects.filter(sale_time__range=(start_date, end_date)).order_by("sale_time")
         result_data = []
         for one_data in all_data:
-
             rate_dic = {'sale_time': one_data.sale_time, 'time_to_day': one_data.time_to_day}
             result_data.append(rate_dic)
         # result_data = [ {'sale_time': "2015-9-10", 'time_to_day': 1.2},
