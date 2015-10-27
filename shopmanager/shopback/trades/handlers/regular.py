@@ -7,6 +7,7 @@ from django.db.models import Q
 from .handler import BaseHandler
 from shopback import paramconfig as pcfg
 from shopback.base import log_action,User, ADDITION, CHANGE
+from shopback.trades.models import MergeOrder
 from shopback.items.models import Product
 from common.modelutils import  update_model_fields
 import logging
@@ -40,7 +41,7 @@ class RegularSaleHandler(BaseHandler):
             return 
         
         has_unstockout_product = False
-        for order in merge_trade.normal_orders:
+        for order in merge_trade.normal_orders.filter(gift_type=MergeOrder.REAL_ORDER_GIT_TYPE):
             has_unstockout_product |= order.out_stock
             try:
                 product = Product.objects.get(outer_id=order.outer_id)
