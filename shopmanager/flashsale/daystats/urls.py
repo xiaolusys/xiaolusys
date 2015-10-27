@@ -22,7 +22,7 @@ urlpatterns = patterns('',
                            name="stats_supplier"),
                        url(r'^operate_sale/$', staff_member_required(views_operate.StatsDataView.as_view())),
                        url(r'^daily_check/$', staff_member_required(views_operate.DailyCheckView.as_view())),
-                       url(r'^stat_input/$', staff_member_required(views_input_stat.ProductInputStatView.as_view())),
+                       url(r'^stat_input/$', staff_member_required(views_input_stat.ProductInputStatView.as_view())), #录入资料统计
                        url(r'^stattemp/$', staff_member_required(views_input_stat.TempView.as_view())),  #临时测试使用
-                       url(r'^supplier_preview/$', staff_member_required(views_operate.SupplierPreviewView.as_view())),
+                       url(r'^supplier_preview/$', staff_member_required(views_operate.SupplierPreviewView.as_view())),  #供应所预览
                        )
