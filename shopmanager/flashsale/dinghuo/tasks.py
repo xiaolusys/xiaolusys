@@ -721,3 +721,48 @@ def calcu_refund_info_by_pro_v2(date_from=None, date_to=None):
 
     data = [info]
     return data
+
+
+from flashsale.dinghuo.models_stats import DailyStatsPreview, DailySupplyChainStatsOrder
+
+
+@task()
+def task_daily_preview(default_time=15):
+    function_of_settime(default_time)
+
+
+def function_of_settime(default_time):
+    today = datetime.date.today()
+    for i in range(0, default_time):
+        target_order = DailySupplyChainStatsOrder.objects.filter(sale_time=today-datetime.timedelta(days=i))
+        total_time = 0
+        total_num = 0
+        total_return = 0
+        total_cost = 0
+        total_money = 0
+        total_return_money = 0
+        shelf_num = target_order.count()
+        for one_data in target_order:
+            try:
+                one_product = Product.objects.get(outer_id=one_data.product_id)
+            except:
+                continue
+            during_time = one_data.goods_out_time * one_data.sale_num - one_data.trade_general_time * one_data.sale_num
+            if during_time > 0:
+                total_return += one_data.return_num                                     # 退款数
+                total_cost += one_data.cost_of_product                                  # 成本
+                total_num += one_data.sale_num                                          # 销售数
+                total_money += one_data.sale_cost_of_product                            # 成本
+                total_return_money += (one_product.agent_price * one_data.return_num)   # 退款额
+                total_time += during_time                                               # 发货速度
+        if total_num != 0:
+            fahuo = total_time / total_num
+            one_preview, state = DailyStatsPreview.objects.get_or_create(sale_time=today-datetime.timedelta(days=i))
+            one_preview.sale_num = total_num
+            one_preview.goods_out_time = fahuo
+            one_preview.shelf_num = shelf_num
+            one_preview.return_num = total_return
+            one_preview.cost_of_product = total_num
+            one_preview.sale_money = total_money
+            one_preview.return_money = total_return_money
+            one_preview.save()

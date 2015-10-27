@@ -235,6 +235,15 @@ class SupplyChainDataStatsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SupplyChainDataStats, SupplyChainDataStatsAdmin)
+from flashsale.dinghuo.models_stats import DailyStatsPreview
+
+
+class DailyStatsPreviewAdmin(admin.ModelAdmin):
+    list_display = ('sale_time', 'shelf_num', 'sale_num', "time_to_day",
+                    'return_num', 'cost_of_product', 'sale_money', 'return_money')
+    list_filter = ('created',)
+
+admin.site.register(DailyStatsPreview, DailyStatsPreviewAdmin)
 
 
 class SupplyChainStatsOrderAdmin(admin.ModelAdmin):
