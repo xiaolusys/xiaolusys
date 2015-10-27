@@ -420,7 +420,7 @@ class Product(models.Model):
 
     def lowest_price(self):
         prcs = []
-        if self.model_id == 0:
+        if self.model_id == 0 or self.model_id == None:
             skus = self.prod_skus.all()
         else:
             skus = ProductSku.objects.filter(product__model_id=self.model_id)
