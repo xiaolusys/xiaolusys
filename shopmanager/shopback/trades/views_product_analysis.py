@@ -241,12 +241,12 @@ def list_trade_time(request):
 
     year, month, day = end.split('-')
     end_date = datetime.date(int(year), int(month), int(day))
-    print "test"
 
-    listTrade = MergeTrade.objects.filter(Q(weight_time__gte=start_date), Q(weight_time__lte=end_date),
-                                          Q(status=pcfg.WAIT_BUYER_CONFIRM_GOODS) | Q(status=pcfg.TRADE_BUYER_SIGNED)
-                                          | Q(status=pcfg.TRADE_FINISHED) | Q(status=pcfg.TRADE_CLOSED)
-                                          ).exclude(sys_status=pcfg.INVALID_STATUS).exclude(sys_status=pcfg.ON_THE_FLY_STATUS)
+    listTrade = MergeTrade.objects.filter(type__in=(pcfg.SALE_TYPE, pcfg.WX_TYPE)) \
+        .filter(Q(weight_time__gte=start_date), Q(weight_time__lte=end_date),
+                Q(status=pcfg.WAIT_BUYER_CONFIRM_GOODS) | Q(status=pcfg.TRADE_BUYER_SIGNED)
+                | Q(status=pcfg.TRADE_FINISHED) | Q(status=pcfg.TRADE_CLOSED)
+                ).exclude(sys_status=pcfg.INVALID_STATUS).exclude(sys_status=pcfg.ON_THE_FLY_STATUS)
     # 定义全局变量
     global c3, c5, c7, c9, c10
     c3 = 0
