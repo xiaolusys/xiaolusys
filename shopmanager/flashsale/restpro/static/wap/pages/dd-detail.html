@@ -75,10 +75,12 @@
 <script id="top_detail_template" type="text/html">
 <div class="goods clear">
 	<div class="fl goods-img">
+	<a href="/pages/shangpinxq.html?id={{ item_id }}">
 	 <img src="{{ pic_path }}">
+	</a>
 	</div>
 	<div class="fr goods-info">
-	 <p>{{ title }}</p>
+	 <p><a href="/pages/shangpinxq.html?id={{ item_id }}">{{ title }}</a></p>
 	 <p>
 	 <span class="size">尺码：{{ sku_name }}</span>
 	 <span class="count">数量：{{ num }}</span>

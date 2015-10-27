@@ -447,7 +447,7 @@ class ProductAdmin(MyAdmin):
         return render_to_response('items/product_delete.html',{'product_ids':product_ids,'products':queryset,'origin_url':origin_url},
                                   context_instance=RequestContext(request),mimetype="text/html")
         
-    invalid_product_action.short_description = u"作废库存商品（批量 ）"
+    invalid_product_action.short_description = u"作废库存商品（批量）"
     
     #更新用户线上商品入库
     def sync_purchase_items_stock(self,request,queryset):

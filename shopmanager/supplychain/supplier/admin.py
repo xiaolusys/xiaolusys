@@ -146,17 +146,14 @@ class SaleSupplierAdmin(MyAdmin):
 
     def batch_charge_action(self, request, queryset):
         """ 商家批量接管 """
-
         employee = request.user
         queryset = queryset.filter(status=SaleSupplier.UNCHARGE)
 
         for supplier in queryset:
-
             if SaleSupplier.objects.charge(supplier, employee):
                 log_action(request.user.id, supplier, CHANGE, u'接管成功')
 
         self.message_user(request, u"======= 商家批量接管成功 =======")
-
         return HttpResponseRedirect("./")
 
     batch_charge_action.short_description = "批量接管".decode('utf8')
@@ -282,11 +279,9 @@ class SaleProductAdmin(MyAdmin):
         rset.add(contactor_name)
         if not perms.has_sale_product_mgr_permission(request.user):
             rset.add('is_changed')
-#
 #         if perms.has_sale_product_mgr_permission(request.user):
 #             if contactor_name in rset:
 #                 rset.remove(contactor_name)
-
         return rset
 
     def pic_link(self, obj):
@@ -453,7 +448,9 @@ class SaleProductAdmin(MyAdmin):
         no_votigs.update(voting=True)
         mes = u"设置选品参与投票完成"
         self.message_user(request, mes)
-
+    
+    voting_action.short_description = u"设置选品投票"
+    
     def cancel_voting_action(self, request, queryset):
         """  取消选品投票  """
         votigs = queryset.filter(voting=True)
@@ -461,9 +458,21 @@ class SaleProductAdmin(MyAdmin):
         mes = u"取消选品投票设置完成"
         self.message_user(request, mes)
 
-    voting_action.short_description = u"设置选品投票"
     cancel_voting_action.short_description = u"取消选品投票"
-    actions = ['voting_action', 'cancel_voting_action']
+    
+    def rejected_action(self,request,queryset):
+        """ 批量淘汰选品 """
+        sproducts = queryset.exclude(status__in=(SaleProduct.REJECTED,SaleProduct.IGNORED))
+        for sproduct in sproducts:
+            sproduct.status = SaleProduct.REJECTED
+            sproduct.save()
+            log_action(request.user.id,sproduct,CHANGE,u'淘汰选品')
+        mes = u"已淘汰%s个选品"%sproducts.count()
+        self.message_user(request, mes)
+        
+    rejected_action.short_description = u"淘汰选品"
+    
+    actions = ['voting_action', 'cancel_voting_action', 'rejected_action']
 
 admin.site.register(SaleProduct, SaleProductAdmin)
 

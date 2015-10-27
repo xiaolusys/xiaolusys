@@ -7,6 +7,7 @@ from celery.task import task
 
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog, OrderRedPacket
+from flashsale.pay.models import SaleTrade
 from shopapp.weixin.models_base import WeixinUnionID as Base_WeixinUniID
 from shopapp.weixin.models import WeixinUnionID,WXOrder
 
@@ -116,7 +117,7 @@ def init_Data_Red_Packet():
             
 
 from django.db import transaction
-from shopback.trades.models import MergeTrade,MergeBuyerTrade
+from shopback.trades.models import MergeTrade,MergeOrder,MergeBuyerTrade
 
 def shoptime_To_DateStr(shoptime):
     return shoptime.strftime("%Y-%m-%d")
@@ -201,19 +202,28 @@ def order_Red_Packet(xlmm):
 def update_Xlmm_Shopping_OrderStatus(order_list):
     """ 更新小鹿妈妈交易订单状态 """
     for order in order_list:
-        trades = MergeTrade.objects.filter(tid=order.wxorderid,
-                                        type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
+        order_id = order.wxorderid
+        trades = MergeTrade.objects.filter(tid=order_id,
+                                           type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
         if trades.count() == 0:
             continue
-        
         trade = trades[0]
-        if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
-            order.status = StatisticsShopping.REFUNDED
-        elif trade.sys_status == MergeTrade.FINISHED_STATUS:
-            order.status = StatisticsShopping.FINISHED
-
-        order.save()
-
+        
+        if trade.type == MergeTrade.WX_TYPE:
+            if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
+                order.status = StatisticsShopping.REFUNDED
+            elif trade.sys_status == MergeTrade.FINISHED_STATUS:
+                order.status = StatisticsShopping.FINISHED
+            order.save()
+        else:
+            strade = SaleTrade.objects.get(tid=order_id)
+            if strade.status == SaleTrade.TRADE_CLOSED:
+                order.status = StatisticsShopping.REFUNDED
+            elif strade.status == SaleTrade.TRADE_FINISHED:
+                order.status = StatisticsShopping.FINISHED
+            order.save()
+            
+            
 @task()
 def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
     """
