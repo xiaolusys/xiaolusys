@@ -13,36 +13,24 @@ function create_thk_dom() {
 }
 
 $(document).ready(function () {
-    Set_order_detail();
+    Set_refund_detail();
+    $(window).scroll(function () {
+        loadData();// 更具页面下拉情况来加载数据
+    });
 });
-
-function Set_order_detail() {
+var pageNumber = 1;
+function Set_refund_detail() {
     //请求URL 获取用户的所有订单
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.get_trade_all_url;
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.refunds + "?page=" + pageNumber;
     //请求成功回调函数
     var requestCallBack = function (data) {
-        $.each(data.results, function (index, da) {
-                $.ajax({
-                    type: 'get',
-                    url: da.orders,
-                    data: {},
-                    dataType: 'json',
-                    success: callBackOrder
-                });
-                function callBackOrder(res) {
-                    for (var i = 0; i < res.count; i++) {
-                        res.results[i].create = da.pay_time;
-                        res.results[i].t_id = da.id;
-                        if (res.results[i].refund_status != 0) {
-                            res.results[i].tid = da.tid;
-                            console.log("debug tid:",res.results[i]);
-                            var detail_dom = Create_tuihuo_dom(res.results[i]);
-                            $('.jifen-list').append(detail_dom);
-                        }
-                    }
-                }
-            }
-        );
+        console.log("共", data.count, '条');
+        $.each(data.results, function (index, ref) {
+            // 获取产品图片
+            var detail_dom = Create_tuihuo_dom(ref);
+            $('.jifen-list').append(detail_dom);
+        });
+        pageNumber += 1;
     };
     // 发送请求
     $.ajax({
@@ -50,6 +38,22 @@ function Set_order_detail() {
         url: requestUrl,
         data: {},
         dataType: 'json',
-        success: requestCallBack
+        success: requestCallBack,
+        error: function (data) {
+            if (data.status == 403) {
+                window.location = GLConfig.login_url + '?next=' + "/static/wap/pages/wodetuihuo.html";
+            }
+            else if (data.status == 404) {
+                drawToast("已经到最底了哟~");
+            }
+        }
     });
+}
+
+function loadData() {//动态加载数据
+    var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
+    if ($(document).height() - 5 <= totalheight)//当文档的高度小于或者等于总的高度的时候，开始动态加载数据
+    {
+        Set_refund_detail();
+    }
 }

@@ -202,13 +202,14 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:salerefund-detail')
     good_status = serializers.ChoiceField(choices=SaleRefund.GOOD_STATUS_CHOICES)
     status      = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
         model = SaleRefund
         fields = ( 'id', 'url', 'refund_no', 'trade_id', 'order_id', 'buyer_id', 'item_id', 'title',
                    'sku_id', 'sku_name', 'refund_num','buyer_nick', 'mobile', 'phone',
-                    'total_fee', 'payment', 'created', 'company_name', 'sid', 'reason',
-                   'desc','feedback','has_good_return','has_good_change', 'good_status', 'status', 'refund_fee')
+                    'total_fee', 'payment', 'created', 'company_name', 'sid', 'reason','pic_path',
+                   'desc','feedback','has_good_return','has_good_change', 'good_status', 'status', 'refund_fee',"status_display")
         
 
 #####################################################################################
