@@ -1,0 +1,21 @@
+
+table th:nth-child(2) {
+    width: 170px;
+    color: red;
+}
+
+table th:nth-child(3) {
+    width: 150px;
+}
+
+table th:nth-child(4) {
+    width: 100px;
+}
+
+table th:nth-child(5) {
+    width: 200px;
+}
+
+table th:nth-child(10) {
+    width: 180px;
+}

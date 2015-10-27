@@ -7,7 +7,7 @@ from view_repeat_stats import StatsRepeatView, StatsSaleView, StatsSalePeopleVie
 from views_stats_performance import StatsPerformanceView, StatsSupplierView, StatsSaleProdcutView
 import views_operate
 import views_input_stat
-
+import views_stats_fahuo
 urlpatterns = patterns('',
                        url(r'^popu_cost/', popularize_Cost, name="popularize_Cost"),
                        url(r'^stats_repeat/$', staff_member_required(StatsRepeatView.as_view()), name="stats_repeat"),
@@ -25,4 +25,5 @@ urlpatterns = patterns('',
                        url(r'^stat_input/$', staff_member_required(views_input_stat.ProductInputStatView.as_view())), #录入资料统计
                        url(r'^stattemp/$', staff_member_required(views_input_stat.TempView.as_view())),  #临时测试使用
                        url(r'^supplier_preview/$', staff_member_required(views_operate.SupplierPreviewView.as_view())),  #供应所预览
+                       url(r'^daily_hui/$', staff_member_required(views_stats_fahuo.StatsFahuoView.as_view())),  #每日汇总
                        )
