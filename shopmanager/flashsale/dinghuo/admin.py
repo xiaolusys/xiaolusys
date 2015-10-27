@@ -331,7 +331,7 @@ from flashsale.pay.models import  SaleRefund
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
     list_display = ("show_pic", "show_detail_num", "sum_amount", "status_contrl",
-                     "consign_time", "sid", "noter", "consigner", 'show_reason',"memo")
+                     "consign_time", "sid", "noter", "consigner", 'show_memo','show_reason')
     search_fields = ["product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
@@ -380,7 +380,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
             skuid = dt.skuid
             num = dt.num
             inferior_num = dt.inferior_num
-            sub_html = u'{0} :{1} / {2}<br>'.format(skuid, num, inferior_num)
+            sub_html = u'{0} :{1} / {2}<br><br>'.format(skuid, num, inferior_num)
             html = html + sub_html
         return html
     show_detail_num.allow_tags = True
@@ -391,7 +391,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
         cu_status = obj.get_status_display()
         if obj.status == ReturnGoods.CREATE_RG:
             # 如果是创建状态则　显示　审核通过　作废退货　两个按钮
-            html = u'{1}-点击-><a cid="{0}" onclick="verify_ok(this)" style="margin-right:20px;">审核通过</a>　或　' \
+            html = u'{1}-点击-><a cid="{0}" onclick="verify_ok(this)" style="margin-right:20px;">审核通过</a>　<br><br>或　' \
                    u'<a cid="{0}" onclick="verify_no(this)">作废退货</a>'.format(obj.id, cu_status)
             return html
         elif obj.status == ReturnGoods.VERIFY_RG:
@@ -400,7 +400,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
             return html
         elif obj.status == ReturnGoods.DELIVER_RG:
             # 如果是已经发货　　显示　退货成功　退货失败　两个按钮
-            html = u'{1}-点击-><a cid="{0}" onclick="send_ok(this)" style="margin-right:20px;">退货成功</a>　或　' \
+            html = u'{1}-点击-><a cid="{0}" onclick="send_ok(this)" style="margin-right:20px;">退货成功</a>　<br><br>或　' \
                    u'<a cid="{0}" onclick="send_fail(this)">退货失败</a>'.format(obj.id, cu_status)
             return html
         else:
@@ -408,8 +408,14 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     status_contrl.allow_tags = True
     status_contrl.short_description = u"退货状态控制"
 
+    def show_memo(self, obj):
+        memo = u'{0}'.format(str(obj.memo).replace('\r', '<br><br>'))
+        print memo
+        return memo
+    show_memo.allow_tags = True
+    show_memo.short_description = u"备注信息"
     class Media:
-        css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
+        css = {"all": ("css/admin_css.css", "css/return_goods.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
                        )}
         js = ("js/tuihuo_ctrl.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
               "layer-v1.9.2/layer/layer.js")
