@@ -77,8 +77,6 @@ def ruleMatchSplit(trade):
                    outer_sku_id=order.outer_sku_id,
                    type=pcfg.RULE_SPLIT_TYPE,
                    seller_id__in=(ComposeRule.DEFAULT_SELLER_CODE,trade.user.id),
-                   start_time__lte=trade.pay_time,
-                   end_time__gte=trade.pay_time,
                    status=True
                 )
             except Exception,exc:

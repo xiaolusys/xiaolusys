@@ -67,7 +67,7 @@ class AnonymousYundaCustomer():
 class YundaCustomer(models.Model): 
     
     name    = models.CharField(max_length=64,blank=True,verbose_name=u'客户名')
-    code    = models.CharField(max_length=16,unique=True,verbose_name=u'客户代码')
+    code    = models.CharField(max_length=16,verbose_name=u'客户代码')
     
     cus_id  = models.CharField(max_length=32,blank=True,verbose_name=u'网点ID') 
     company_name = models.CharField(max_length=32,blank=True,verbose_name=u'客户公司名')   
@@ -112,6 +112,7 @@ class YundaCustomer(models.Model):
                                   choices=ORDER_STATUS_CHOICES,verbose_name=u'状态')
     class Meta:
         db_table = 'shop_yunda_customer'
+        unique_together = ("code","ware_by")
         verbose_name=u'韵达客户'
         verbose_name_plural = u'韵达客户列表'
    
