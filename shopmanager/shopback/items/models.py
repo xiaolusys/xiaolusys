@@ -419,10 +419,13 @@ class Product(models.Model):
         return ','.join(ds)
 
     def lowest_price(self):
-        skus = self.prod_skus.all()
         prcs = []
+        if self.model_id == 0:
+            skus = self.prod_skus.all()
+        else:
+            skus = ProductSku.objects.filter(product__model_id=self.model_id)
         for sku in skus:
-           prcs.append(sku.agent_price)
+            prcs.append(sku.agent_price)
         return min(prcs)
 
 from shopback.signals import signal_product_upshelf
