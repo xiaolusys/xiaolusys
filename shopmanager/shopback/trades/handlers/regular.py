@@ -39,14 +39,20 @@ class RegularSaleHandler(BaseHandler):
         if merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
             return 
         
+        has_unstockout_product = False
         for order in merge_trade.normal_orders:
+            has_unstockout_product |= order.out_stock
             try:
                 product = Product.objects.get(outer_id=order.outer_id)
                 if product.category.cid <= MAX_YOUNI_CAT:
                     return
             except Product.DoesNotExist: 
                 continue
-            
+        
+        #如果订单包含不缺货的订单，则不放入定时提醒
+        if has_unstockout_product:
+            return    
+        
         remind_time = datetime.datetime.now() + datetime.timedelta(days=settings.REGULAR_DAYS)
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
         

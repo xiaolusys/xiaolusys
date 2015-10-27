@@ -120,6 +120,7 @@ def ruleMatchGifts(trade):
     try:
         split_orders = trade.normal_orders.filter(
             gift_type=pcfg.ITEM_GIFT_TYPE,
+            is_merge=False,
             status=MergeOrder.NORMAL
         )
         for sorder in split_orders:
@@ -133,6 +134,7 @@ def ruleMatchGifts(trade):
         orders = trade.merge_orders.filter(gift_type=pcfg.REAL_ORDER_GIT_TYPE
                         ,status__in=(pcfg.WAIT_SELLER_SEND_GOODS,
                                      pcfg.WAIT_BUYER_CONFIRM_GOODS)
+                        ,is_merge=False
                         ).exclude(refund_status=pcfg.REFUND_SUCCESS)
         for order in orders:
             try:
