@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from __future__ import division
 __author__ = 'yann'
 from django.db import models
 
@@ -125,16 +126,25 @@ class DailyStatsPreview(models.Model):
     def __unicode__(self):
         return '<%s>' % (self.sale_time)
 
+    # @property
+    # def time_to_day(self):
+    #     time_of_long = self.goods_out_time
+    #     days = 0
+    #     tm_hours = 0
+    #     if time_of_long > 0:
+    #         days = time_of_long / 86400
+    #         tm_hours = time_of_long % 86400 / 3600
+    #     if days > 0 or tm_hours > 0:
+    #         return str(days) + "天" + str(tm_hours) + "小时"
+    #     else:
+    #         return ""
     @property
     def time_to_day(self):
-
         time_of_long = self.goods_out_time
         days = 0
-        tm_hours = 0
         if time_of_long > 0:
-            days = time_of_long / 86400
-            tm_hours = time_of_long % 86400 / 3600
-        if days > 0 or tm_hours > 0:
-            return str(days) + "天" + str(tm_hours) + "小时"
+            days = round(time_of_long / 86400, 1)
+        if days > 0:
+            return str(days)
         else:
-            return ""
+            return "0"
