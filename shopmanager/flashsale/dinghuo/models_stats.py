@@ -102,3 +102,39 @@ class RecordGroupPoint(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.point_content)
+
+
+class DailyStatsPreview(models.Model):
+    sale_time = models.DateField(db_index=True, verbose_name=u'上架时间')
+    shelf_num = models.IntegerField(default=0, verbose_name=u'日上架数量')
+    sale_num = models.IntegerField(default=0, verbose_name=u'日销售数量')
+    return_num = models.IntegerField(default=0, verbose_name=u'日退款数量')
+    goods_out_time = models.BigIntegerField(default=0, verbose_name=u'日发货速度')
+    cost_of_product = models.FloatField(default=0, verbose_name=u'日成本')
+    sale_money = models.FloatField(default=0, verbose_name=u'日销售额')
+    return_money = models.FloatField(default=0, verbose_name=u'日退款总额')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+
+    class Meta:
+        db_table = 'supply_chain_daily_summary'
+        unique_together = ('sale_time',)
+        verbose_name = u'日汇'
+        verbose_name_plural = u'供应链数据日汇表'
+
+    def __unicode__(self):
+        return '<%s>' % (self.sale_time)
+
+    @property
+    def time_to_day(self):
+
+        time_of_long = self.goods_out_time
+        days = 0
+        tm_hours = 0
+        if time_of_long > 0:
+            days = time_of_long / 86400
+            tm_hours = time_of_long % 86400 / 3600
+        if days > 0 or tm_hours > 0:
+            return str(days) + "天" + str(tm_hours) + "小时"
+        else:
+            return ""
