@@ -42,7 +42,7 @@ class RegularSaleHandler(BaseHandler):
         
         has_unstockout_product = False
         for order in merge_trade.normal_orders.filter(gift_type=MergeOrder.REAL_ORDER_GIT_TYPE):
-            has_unstockout_product |= order.out_stock
+            has_unstockout_product |= not order.out_stock
             try:
                 product = Product.objects.get(outer_id=order.outer_id)
                 if product.category.cid <= MAX_YOUNI_CAT:
