@@ -275,12 +275,18 @@ from flashsale.pay.models_coupon_new import CouponsPool, CouponTemplate, UserCou
 
 
 class UsersCouponSerializer(serializers.ModelSerializer):
-    type = serializers.IntegerField(source='cp_id.template.type', read_only=True)
-    deadline = serializers.CharField(source='cp_id.template.deadline')
-    title = serializers.CharField(source='cp_id.template.title')
+    coupon_type = serializers.IntegerField(source='cp_id.template.type', read_only=True)
+    deadline = serializers.CharField(source='cp_id.template.deadline', read_only=True)
+    title = serializers.CharField(source='cp_id.template.title', read_only=True)
+    coupon_no = serializers.CharField(source='cp_id.coupon_no', read_only=True)
+    poll_status = serializers.IntegerField(source='cp_id.status', read_only=True)
+    coupon_value = serializers.FloatField(source='cp_id.template.value', read_only=True)
+    valid = serializers.BooleanField(source='cp_id.template.valid', read_only=True)
+
     class Meta:
         model = UserCoupon
-        fields = ("id", "cp_id", "type",'title', "customer", "deadline", "sale_trade", "status", "created", "modified")
+        fields = ("id", "cp_id", "coupon_type",'title', "customer",'coupon_no','coupon_value','valid','poll_status',
+                  "deadline", "sale_trade", "status", "created", "modified")
 
 from shopapp.weixin.models import WXOrder
 

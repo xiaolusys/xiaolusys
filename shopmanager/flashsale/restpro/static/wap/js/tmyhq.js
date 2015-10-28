@@ -20,35 +20,42 @@ function create_past(obj) {
 }
 
 $(document).ready(function () {
+    set_coupon();
+    set_past_coupon();
+});
+
+function set_coupon() {
     var RELEASE = 1;
-    var PAST = 2;
     var USED = 1;
     var UNUSED = 0;
-
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
-        console.log("new debug:", res);
-        if (res.length > 0) {
-            $.each(res, function (i, val) {
-                //默认对象
-                if (val.status == UNUSED && val.poll_status == RELEASE) {//未使用　并且　券池状态为发放状态
-                    var yhq_tree7 = create_valid(val);
-                    $(".youxiao").append(yhq_tree7);
-                }
-                else if (val.poll_status == PAST) {// 券池状态为过期状态
-                    var yhq_tree9 = create_past(val);
-                    $(".shixiao_list").append(yhq_tree9);
-                }
-                else if (val.poll_status == RELEASE && val.status == USED) { //发放状态的优惠券并且已经使用过
-                    var yhq_tree8 = create_not_valid(val);
-                    $(".shixiao_list").append(yhq_tree8);
-                }
-            });
-        }
-        else {
-            var yhqk = create_yhqk_dom();
-            $("body").append(yhqk);
-        }
-
+        console.log("user_coupon:", res);
+        $.each(res.results, function (i, val) {
+            //默认对象
+            if (val.status == UNUSED && val.poll_status == RELEASE) {//未使用　并且　券池状态为发放状态
+                var yhq_tree7 = create_valid(val);
+                $(".youxiao").append(yhq_tree7);
+            }
+            else if (val.poll_status == RELEASE && val.status == USED) { //发放状态的优惠券并且已经使用过
+                var yhq_tree8 = create_not_valid(val);
+                $(".shixiao_list").append(yhq_tree8);
+            }
+        });
     });
-});
+}
+
+function set_past_coupon() {
+    var PAST = 2;
+    var pasturl = GLConfig.baseApiUrl + GLConfig.past_usercoupons;// 过期
+    $.get(pasturl, function (past) {
+        console.log("user_past_coupon:", past);
+        $.each(past.results, function (i, val) {
+            //默认对象
+            if (val.poll_status == PAST) {// 券池状态为过期状态
+                var yhq_tree9 = create_past(val);
+                $(".shixiao_list").append(yhq_tree9);
+            }
+        });
+    });
+}

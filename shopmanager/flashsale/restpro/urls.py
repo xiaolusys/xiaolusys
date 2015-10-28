@@ -9,6 +9,8 @@ from . import views_user
 from . import views_product 
 from . import views_trade 
 from . import views_share
+from . import views_coupon
+from . import views_integral
 from flashsale.pay.views_login import weixin_login,weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 
@@ -29,10 +31,9 @@ router.register(r'wxorders', views_trade.WXOrderViewSet)
 router.register(r'refunds', views.SaleRefundViewSet)
 router.register(r'address', views.UserAddressViewSet)
 router.register(r'districts', views.DistrictViewSet)
-router.register(r'integral', views.UserIntegralViewSet)
-router.register(r'integrallog', views.UserIntegralLogViewSet)
-router.register(r'couponpool', views.UserCouponPoolViewSet)
-router.register(r'usercoupons', views.UserCouponsViewSet)
+router.register(r'integral', views_integral.UserIntegralViewSet)
+router.register(r'integrallog', views_integral.UserIntegralLogViewSet)
+router.register(r'usercoupons', views_coupon.UserCouponsViewSet)
 
 router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)
@@ -60,10 +61,10 @@ router_urls += format_suffix_patterns([
             views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
             name='saleorder-detail'),
         url(r'^user/integral/',
-            views.UserIntegralViewSet.as_view({'get': 'list'}),
+            views_integral.UserIntegralViewSet.as_view({'get': 'list'}),
             name="user-intergral"),
         url(r'^user/integrallog/',
-            views.UserIntegralLogViewSet.as_view({'get': 'list'}),
+            views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
     ])
 
