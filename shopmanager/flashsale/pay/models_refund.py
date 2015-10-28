@@ -164,9 +164,10 @@ def buyeridPatch():
         sf.buyer_id = st.buyer_id
         sf.save()
         
-from flashsale.pay.models import SaleTrade
 
 def handle_sale_refund_signal(sender,instance,*args,**kwargs):
+    
+    from .models import SaleTrade
     from shopback import signals
     from shopback.trades.models import MergeOrder
     
