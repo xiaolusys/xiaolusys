@@ -883,7 +883,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
 
 post_save.connect(refresh_trade_status, sender=MergeOrder)
 
-def refund_update_order_info(sender,instance,*args,**kwargs):
+def refund_update_order_info(sender,obj,*args,**kwargs):
     """ 
     退款更新订单明细状态及对应商品的待发数
     1,找到对应的商品的有效子订单;
@@ -891,12 +891,12 @@ def refund_update_order_info(sender,instance,*args,**kwargs):
     3,减掉待发数；
     """
     from flashsale.pay.models_refund import SaleRefund
-    if not isinstance(instance,SaleRefund):
-        logger.warning('refund ins(%s) not SaleRefund'%instance)
+    if not isinstance(obj,SaleRefund):
+        logger.warning('refund ins(%s) not SaleRefund'%obj)
         return 
     try:
-        trade_tid = instance.get_tid()
-        trade_oid = instance.get_oid()
+        trade_tid = obj.get_tid()
+        trade_oid = obj.get_oid()
         mtrade  = MergeTrade.objects.get(tid=trade_tid)
         morders = MergeOrder.objects.filter(oid=trade_oid,
                                             merge_trade__user=mtrade.user,

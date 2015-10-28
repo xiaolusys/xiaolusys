@@ -170,7 +170,7 @@ def handle_sale_refund_signal(sender,instance,*args,**kwargs):
     from .models import SaleTrade
     from shopback import signals
     from shopback.trades.models import MergeOrder
-    
+
     strade = SaleTrade.objects.get(id=instance.trade_id)
     if (not strade.is_Deposite_Order() and 
         instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE):
