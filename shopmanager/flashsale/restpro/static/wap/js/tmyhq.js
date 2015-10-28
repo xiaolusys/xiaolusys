@@ -21,14 +21,19 @@ function create_past(obj) {
 
 $(document).ready(function () {
     set_coupon();
+    $(window).scroll(function () {
+        loadData(set_coupon);// 更具页面下拉情况来加载数据
+    });
     set_past_coupon();
 });
+
+var pageNumber = 1;
 
 function set_coupon() {
     var RELEASE = 1;
     var USED = 1;
     var UNUSED = 0;
-    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons + "?page=" + pageNumber;
     $.get(url, function (res) {
         console.log("user_coupon:", res);
         $.each(res.results, function (i, val) {
@@ -42,6 +47,7 @@ function set_coupon() {
                 $(".shixiao_list").append(yhq_tree8);
             }
         });
+        pageNumber += 1;
     });
 }
 
@@ -58,4 +64,12 @@ function set_past_coupon() {
             }
         });
     });
+}
+
+function loadData(func) {//动态加载数据
+    var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
+    if ($(document).height() - 5 <= totalheight)//当文档的高度小于或者等于总的高度的时候，开始动态加载数据
+    {
+        func();
+    }
 }

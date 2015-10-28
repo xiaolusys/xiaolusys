@@ -51,9 +51,9 @@ function Coupon_Nums_Show(nums) {
         });
     }
 }
-
+var pageNumber = 1;
 function get_Coupon_On_Choose() {
-    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons + "?page=" + pageNumber;
     $.get(url, function (res) {
         console.log("debug choose coupon:", res);
         if (res.count > 0) {
@@ -72,6 +72,7 @@ function get_Coupon_On_Choose() {
             // 显示提示信息　没有优惠券
             pop_info();
         }
+         pageNumber += 1;
     });
 }
 
@@ -160,4 +161,12 @@ function pop_info() {
         function () {//确定　则跳转
             location.href = document.referrer;
         });
+}
+
+function loadData(func) {//动态加载数据
+    var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
+    if ($(document).height() - 5 <= totalheight)//当文档的高度小于或者等于总的高度的时候，开始动态加载数据
+    {
+        func();
+    }
 }

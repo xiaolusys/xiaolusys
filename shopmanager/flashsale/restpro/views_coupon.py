@@ -10,9 +10,11 @@ from flashsale.pay.models import Customer
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 
+
 class UserCouponsViewSet(viewsets.ModelViewSet):
     """
-    - {prefix}/method: get 获取用户优惠券
+    - {prefix}/method: get 获取用户惠券(默认为有效且没有过期的优惠券)
+    - {prefix}/list_past_coupon method:get 获取用户已经过期的优惠券
     ->return:
         -->id:          优惠券id
         -->coupon_no:   优惠券券池号码
@@ -22,7 +24,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         -->sale_trade:  绑定交易id：购买交易的id
         -->customer:    对应的客户id
         -->coupon_value: 优惠券对应的面值
-        -->valid:       优惠券的有效性（ttur or false）
+        -->valid:       优惠券的有效性（true or false）
         -->title:       优惠券标题
         -->created:     创建时间
         -->deadline:    截止时间
