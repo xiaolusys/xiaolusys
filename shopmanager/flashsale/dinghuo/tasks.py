@@ -27,14 +27,11 @@ def task_stats_daily_product(pre_day=1):
         raise task_stats_daily_product.retry(exc=exc)
 
 
-@task(max_retry=3, default_retry_delay=5)
+@task()
 def task_stats_product():
     """计算汇总的表"""
-    try:
-        function_of_task.daily_data_stats()
+    function_of_task.daily_data_stats()
 
-    except Exception, exc:
-        raise task_stats_product.retry(exc=exc)
 
 @task(max_retry=3, default_retry_delay=5)
 def task_stats_daily_order_by_group(pre_day=1):

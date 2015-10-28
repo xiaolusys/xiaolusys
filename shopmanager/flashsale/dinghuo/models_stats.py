@@ -62,6 +62,7 @@ class DailySupplyChainStatsOrder(models.Model):
     goods_out_time = models.BigIntegerField(default=0, verbose_name=u'到货发出时间')
     ding_huo_num = models.IntegerField(default=0, verbose_name=u'订货数量')
     sale_num = models.IntegerField(default=0, verbose_name=u'销售数量')
+    fahuo_num = models.IntegerField(default=0, verbose_name=u'发货数量')
     cost_of_product = models.FloatField(default=0, verbose_name=u'成本')
     sale_cost_of_product = models.FloatField(default=0, verbose_name=u'销售额')
     return_num = models.IntegerField(default=0, verbose_name=u'退款数量')

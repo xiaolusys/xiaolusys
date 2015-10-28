@@ -123,7 +123,9 @@
     (function ($) {
         //优惠券选择
         get_Coupon_On_Choose();
-
+        $(window).scroll(function () {
+            loadData(get_Coupon_On_Choose);// 更具页面下拉情况来加载数据
+        });
     })(jQuery);
 </script>
 </body>

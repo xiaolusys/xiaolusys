@@ -4,6 +4,10 @@
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+
+        .container {
+            width: 90%;
+        }
     </style>
     {#    <script>#}
     {#        function get_data() {#}
@@ -66,12 +70,16 @@
             </div>
             <table class="table table-bordered" id="data-table-stock">
                 <thead>
-                <th width="15%">商品编码</th>
-                <th width="15%">商品名称</th>
-                <th width="15%">上架时间</th>
-                <th width="15%">分类</th>
-                <th width="15%">库存数</th>
-                <th width="15%">减去待发后库存</th>
+                <th width="10%">商品编码</th>
+                <th width="10%">商品名称</th>
+                <th width="10%">图片</th>
+                <th width="10%">买手</th>
+                <th width="10%">供应商</th>
+                <th width="10%">上架时间</th>
+                <th width="10%">分类</th>
+                <th width="10%">库存数</th>
+                <th width="10%">减去待发后库存</th>
+                <th width="10%">次品数</th>
                 </thead>
                 <tbody>
                 {% for pro in sale_list %}
@@ -79,10 +87,15 @@
 
                         <td><a href="/admin/items/product/?q={{ pro.0 }}" target="_blank">{{ pro.0 }}</a></td>
                         <td>{{ pro.1.name }}</td>
+                        <td><img src="{{ pro.1.pic_path }}" width="100px"></td>
+                        <td>{{ pro.1.sale_product_charge }}</td>
+                        <td><a href="/sale/daystats/supplier_preview/?supplier={{ pro.1.product_supplier }}"
+                               target="_blank">{{ pro.1.product_supplier }}</a></td>
                         <td>{{ pro.1.sale_time }}</td>
                         <td>{{ pro.1.category }}</td>
                         <td>{{ pro.1.collect_num }}</td>
                         <td>{{ pro.1.left_num }}</td>
+                        <td>{{ pro.1.inferior_num }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
