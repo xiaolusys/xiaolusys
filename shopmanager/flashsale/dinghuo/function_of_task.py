@@ -282,6 +282,7 @@ def daily_data_stats():
                     daily_order.order_deal_time = data['order_deal_time']
                     daily_order.goods_arrival_time = data['goods_arrival_time']
                     daily_order.goods_out_time = data['goods_out_time']
+                    daily_order.fahuo_num = data['goods_out_num']
                     daily_order.save()
                 else:
                     temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time, sale_num=data['sale_num'],
@@ -292,10 +293,112 @@ def daily_data_stats():
                                                       trade_general_time=data['trade_general_time'],
                                                       order_deal_time=data['order_deal_time'],
                                                       goods_arrival_time=data['goods_arrival_time'],
-                                                      goods_out_time=data['goods_out_time'])
+                                                      goods_out_time=data['goods_out_time'],
+                                                      fahuo_num=data['goods_out_num'])
                     temp.save()
 
+import decimal
+def daily_data_stats_update():
+    """将每日的记录内容填入汇总表"""
+    today = datetime.date.today()
+    all_data = SupplyChainStatsOrder.objects.filter(sale_time=today-datetime.timedelta(days=1))
+    all_data_dict = {}
+    #判断商品是否在字典中，不在，则初始化，在，判断这个商品的上架日期在不在list中，不在，加入list，在则相加处理
+    for data in all_data:
+        if data.product_id in all_data_dict:
+            is_exist, temp_var = check_in(data.shelve_time, all_data_dict[data.product_id])
+            if is_exist:
+                if data.ding_huo_num > 0:
+                    ding_huo_num = temp_var['ding_huo_num']
+                    ding_huo_time = temp_var['order_deal_time']
+                    ding_huo_time = (data.ding_huo_num * data.order_deal_time + ding_huo_num * ding_huo_time) / (
+                        ding_huo_num + data.ding_huo_num)
+                    temp_var['order_deal_time'] = ding_huo_time
+                    temp_var['ding_huo_num'] += data.ding_huo_num
+                if data.sale_num > 0:
+                    sale_num = temp_var['sale_num']
+                    trade_general_time = temp_var['trade_general_time']
+                    trade_general_time = (data.sale_num * data.trade_general_time + trade_general_time * sale_num) / (
+                        sale_num + data.sale_num)
+                    temp_var['trade_general_time'] = trade_general_time
+                    temp_var['sale_num'] += data.sale_num
+                if data.arrival_num > 0:
+                    arrival_num = temp_var['arrival_num']
+                    goods_arrival_time = temp_var['goods_arrival_time']
+                    goods_arrival_time = \
+                        (data.arrival_num * data.goods_arrival_time + goods_arrival_time * arrival_num) / (
+                            arrival_num + data.arrival_num)
+                    temp_var['goods_arrival_time'] = goods_arrival_time
+                    temp_var['arrival_num'] += data.arrival_num
+                if data.goods_out_num > 0:
+                    goods_out_num = temp_var['goods_out_num']
+                    goods_out_time = temp_var['goods_out_time']
+                    goods_out_time = (data.goods_out_num * data.goods_out_time + goods_out_time * goods_out_num) / (
+                        goods_out_num + data.goods_out_num)
+                    temp_var['goods_out_time'] = goods_out_time
+                    temp_var['goods_out_num'] += data.goods_out_num
+            else:
+                all_data_dict[data.product_id].append({data.shelve_time: {"sale_num": data.sale_num,
+                                                                          "trade_general_time": data.trade_general_time,
+                                                                          "ding_huo_num": data.ding_huo_num,
+                                                                          "order_deal_time": data.order_deal_time,
+                                                                          "arrival_num": data.arrival_num,
+                                                                          "goods_arrival_time": data.goods_arrival_time,
+                                                                          "goods_out_num": data.goods_out_num,
+                                                                          "goods_out_time": data.goods_out_time}})
+        else:
+            all_data_dict[data.product_id] = [{data.shelve_time: {"sale_num": data.sale_num,
+                                                                  "trade_general_time": data.trade_general_time,
+                                                                  "ding_huo_num": data.ding_huo_num,
+                                                                  "order_deal_time": data.order_deal_time,
+                                                                  "arrival_num": data.arrival_num,
+                                                                  "goods_arrival_time": data.goods_arrival_time,
+                                                                  "goods_out_num": data.goods_out_num,
+                                                                  "goods_out_time": data.goods_out_time}}]
+    #将汇总的数据写入
+    for pro_id, temp_data in all_data_dict.items():
+        for one_product_shelve in temp_data:
+            for shelve_time, data in one_product_shelve.items():
+                product = DailySupplyChainStatsOrder.objects.filter(product_id=pro_id, sale_time=shelve_time)
+                cost = 0
+                sale_price = 0
+                pro_bean = ProductSku.objects.filter(product__outer_id=pro_id)
+                if pro_bean.count() > 0:
+                    cost = pro_bean[0].cost * data['sale_num']
+                    sale_price = pro_bean[0].agent_price * data['sale_num']
 
+                if product.count() > 0:
+                    daily_order = product[0]
+                    all_sale_num = daily_order.sale_num + data['sale_num']
+                    all_fahuo_num = daily_order.fahuo_num + data['goods_out_num']
+                    if all_sale_num != 0:
+                        trade_time = (data['trade_general_time'] * data[
+                            'sale_num'] + daily_order.trade_general_time * daily_order.sale_num) / all_sale_num
+                        daily_order.sale_num = all_sale_num
+                        daily_order.trade_general_time = trade_time
+                        daily_order.cost_of_product = decimal.Decimal(daily_order.cost_of_product) + cost
+                        daily_order.sale_cost_of_product = decimal.Decimal(daily_order.sale_cost_of_product) + sale_price
+                    daily_order.inferior_num = get_inferior_num_by_product_id(pro_id)
+                    daily_order.ding_huo_num += data['ding_huo_num']
+                    daily_order.order_deal_time = data['order_deal_time']
+                    daily_order.goods_arrival_time = data['goods_arrival_time']
+                    if all_fahuo_num != 0:
+                        fahuo_time = (data['goods_out_time'] * data[
+                            'goods_out_num'] + daily_order.fahuo_num * daily_order.goods_out_time) / all_fahuo_num
+                        daily_order.goods_out_time = fahuo_time
+                        daily_order.fahuo_num = all_fahuo_num
+                    daily_order.save()
+                else:
+                    temp = DailySupplyChainStatsOrder(product_id=pro_id, sale_time=shelve_time, sale_num=data['sale_num'],
+                                                      ding_huo_num=data['ding_huo_num'],
+                                                      cost_of_product=cost, sale_cost_of_product=sale_price,
+                                                      inferior_num=get_inferior_num_by_product_id(pro_id),
+                                                      trade_general_time=data['trade_general_time'],
+                                                      order_deal_time=data['order_deal_time'],
+                                                      goods_arrival_time=data['goods_arrival_time'],
+                                                      goods_out_time=data['goods_out_time'],
+                                                      fahuo_num=data['goods_out_num'])
+                    temp.save()
 from shopback.refunds.models import RefundProduct, Refund
 from django.db.models import Sum, F
 from shopback.trades.models import MergeTrade, MergeOrder
