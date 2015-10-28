@@ -48,8 +48,8 @@
     </div>
 </div>
 
-<div class="col-lg-12" style="margin-top: 30px">
-    <canvas id="myChart" width="1100" height="200"></canvas>
+<div class="col-lg-12" style="margin-top: 30px" id="main_display">
+
 </div>
 <div class="col-lg-12">
     <canvas id="myChart_rate" width="1100" height="400"></canvas>
@@ -58,15 +58,16 @@
 </body>
 
 <script type="text/javascript">
+    var count = 1;
     $(function () {
         $(".select_saletime").datepicker({
             dateFormat: "yy-mm-dd"
         });
     });
     function chartShow(X_axis, Y_axis1, Y_axis2) {
-        var ctx = $("#myChart").get(0).getContext("2d");
-
-
+        $("#main_display").empty().append('<canvas id="myChart'+count.toString()+'" width="1100" height="200"></canvas>');
+        var ctx = $("#myChart"+count.toString()).get(0).getContext("2d");
+        count++;
         var data = {
             labels: X_axis,//日期数组
             datasets: [
@@ -75,14 +76,12 @@
                     strokeColor: "rgba(220,220,220,1)",
                     pointColor: "rgba(80%,10%,10%,1)",
                     pointStrokeColor: "#fff",
-                    data: Y_axis1//退款数数组
+                    data: Y_axis1
                 },
 
             ]
         };
-
         new Chart(ctx).Line(data);
-
     }
 
     $(document).ready(function () {
@@ -108,7 +107,6 @@
         });
     });
 
-    <!-- 获取退款率数据 -->
     function getRateData(t1, t2) {
         var task_url = '/sale/daystats/daily_hui/';
         var data = {"date_from": t1, "date_to": t2};
@@ -122,15 +120,12 @@
         function taskCallBack(res) {
             console.log(res)
             var X_axis = []; // X_axis : 日期
-            var Y_axis1 = []; //退款数数组
-
-
+            var Y_axis1 = [];
             $.each(res, function (i, rate) {
                 X_axis.push(rate.sale_time);
                 Y_axis1.push(rate.time_to_day);
 
             });
-
             chartShow(X_axis, Y_axis1);
         }
     }
