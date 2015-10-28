@@ -118,11 +118,18 @@ class TopStockView(View):
                             category_name = ""
                 else:
                     category_name = ""
-
-                sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num, "inferior_num": product.inferior_num,
+                try:
+                    sale_product = SaleProduct.objects.get(id=product.sale_product)
+                    sale_product_charge = sale_product.contactor.username
+                    product_supplier = sale_product.sale_supplier.supplier_name
+                except:
+                    sale_product_charge = ""
+                    product_supplier = ""
+                sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num,
                                        "left_num": product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0,
                                        'sale_time': str(product.sale_time) if product.sale_time else "",
-                                       "category": category_name, "pic_path": product.PIC_PATH}
+                                       "category": category_name, "pic_path": product.PIC_PATH,
+                                       "product_supplier": product_supplier, "sale_product_charge": sale_product_charge}
             else:
                 sale_top[router_id]['collect_num'] += product.collect_num
                 sale_top[router_id]['left_num'] += (
