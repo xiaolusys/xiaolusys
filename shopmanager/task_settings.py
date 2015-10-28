@@ -286,11 +286,6 @@ SHOP_APP_SCHEDULE = {
         'schedule':crontab(minute="0",hour="4", day_of_month='1'),#
         'args':()
     },
-    u'定时统计每组每天销售采购数据':{
-        'task':'flashsale.dinghuo.tasks.task_stats_daily_order_by_group',
-        'schedule': crontab(minute="0", hour="2"),
-        'args': ()
-    },
     u'定时统计每天商品数据':{
         'task':'flashsale.dinghuo.tasks.task_stats_daily_product',
         'schedule': crontab(minute="10", hour="2"),
@@ -305,19 +300,9 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="30", hour="2"),
         'args': ()
     },
-    u'定时发送每日订货数据':{
-        'task':'flashsale.dinghuo.tasks.task_send_daily_message',
-        'schedule': crontab(minute="00", hour="23"),
-        'args': ()
-    },
     u'定时每日更新红包数据':{
         'task':'flashsale.pay.tasks.task_Pull_Red_Envelope',
         'schedule': crontab(minute="10", hour="23"),
-        'args': ()
-    },
-    u'定时统计每天订货的供应商':{
-        'task':'flashsale.dinghuo.tasks.task_write_supply_name',
-        'schedule': crontab(minute="20", hour="23"),
         'args': ()
     },
     u'定时统计每天推广支出情况':{
@@ -328,16 +313,6 @@ SHOP_APP_SCHEDULE = {
     u'统计妈妈两周转化及点击基本价格':{
         'task':'flashsale.xiaolumm.tasks.task_Calc_Mama_Lasttwoweek_Stats',
         'schedule': crontab(minute="30", hour="6"),
-        'args': ()
-    },
-    u'定时统计订货达标情况':{
-        'task':'flashsale.dinghuo.tasks.task_daily_stat_ding_huo',
-        'schedule': crontab(minute="40", hour="23"),
-        'args': ()
-    },
-    u'定时统计每组得分':{
-        'task':'flashsale.dinghuo.tasks.task_daily_stat_group_point',
-        'schedule': crontab(minute="45", hour="23"),
         'args': ()
     },
     u'定时生成管理员代理状况汇总csv文件':{

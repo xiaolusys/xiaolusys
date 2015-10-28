@@ -13,9 +13,32 @@ import re
 from django.db import connection
 import sys
 
+@task(max_retry=3, default_retry_delay=5)
+def task_stats_daily_product(pre_day=1):
+    """计算原始数据表"""
+    try:
+        function_of_task.get_daily_order_stats(pre_day)
+        function_of_task.get_daily_ding_huo_stats(pre_day)
+        function_of_task.get_daily_goods_arrival_stats(pre_day)
+        function_of_task.get_daily_out_order_stats(pre_day)
+        # 计算仓库退货已经退款的对应数量
+        function_of_task.get_daily_refund_num(pre_day)
+    except Exception, exc:
+        raise task_stats_daily_product.retry(exc=exc)
+
+
+@task(max_retry=3, default_retry_delay=5)
+def task_stats_product():
+    """计算汇总的表"""
+    try:
+        function_of_task.daily_data_stats()
+
+    except Exception, exc:
+        raise task_stats_product.retry(exc=exc)
 
 @task(max_retry=3, default_retry_delay=5)
 def task_stats_daily_order_by_group(pre_day=1):
+    """每组统计，已经暂停使用"""
     try:
         today = datetime.date.today()
         target_day = today - datetime.timedelta(days=pre_day)
@@ -86,31 +109,8 @@ def task_stats_daily_order_by_group(pre_day=1):
 
 
 @task(max_retry=3, default_retry_delay=5)
-def task_stats_daily_product(pre_day=1):
-    """计算原始数据表"""
-    try:
-        function_of_task.get_daily_order_stats(pre_day)
-        function_of_task.get_daily_ding_huo_stats(pre_day)
-        function_of_task.get_daily_goods_arrival_stats(pre_day)
-        function_of_task.get_daily_out_order_stats(pre_day)
-        # 计算仓库退货已经退款的对应数量
-        function_of_task.get_daily_refund_num(pre_day)
-    except Exception, exc:
-        raise task_stats_daily_product.retry(exc=exc)
-
-
-@task(max_retry=3, default_retry_delay=5)
-def task_stats_product():
-    """计算汇总的表"""
-    try:
-        function_of_task.daily_data_stats()
-
-    except Exception, exc:
-        raise task_stats_product.retry(exc=exc)
-
-
-@task(max_retry=3, default_retry_delay=5)
 def task_send_daily_message():
+    """使用企业号发送每日订货短信，已经暂停使用"""
     try:
         corp_id = "wx1657da9bb74c42d3"
         corp_secret = "UuTTtiSINnX5X2fVEbGNXO82wHRa8mae5nhAJ1K4foLMwtGUXSRYRtgyDWPegJci"
@@ -123,6 +123,7 @@ def task_send_daily_message():
 
 @task(max_retry=3, default_retry_delay=5)
 def task_write_supply_name():
+    """根据填写的商品链接抓取供应商，已经停止使用"""
     try:
         all_data = OrderList.objects.exclude(status=u'作废').filter(supplier_shop="")
         for data in all_data:
@@ -202,6 +203,7 @@ from flashsale.dinghuo.models_user import MyUser, MyGroup
 
 @task(max_retry=3, default_retry_delay=5)
 def task_daily_stat_group_point():
+    """每组得分情况，已经作废"""
     try:
         today = datetime.date.today()
         """统计一段时间内的订货单号得分情况"""
@@ -241,6 +243,7 @@ def task_daily_stat_group_point():
 
 @task(max_retry=3, default_retry_delay=5)
 def task_daily_stat_ding_huo():
+    """订货达标任务，已经作废"""
     try:
         today = datetime.date.today()
         time_from = today - datetime.timedelta(days=14)
