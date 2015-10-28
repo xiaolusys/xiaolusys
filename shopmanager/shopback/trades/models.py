@@ -8,7 +8,7 @@ from django.db.models.signals import post_save
 from django.db import IntegrityError, transaction
 
 from bitfield import BitField
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.base import log_action, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS

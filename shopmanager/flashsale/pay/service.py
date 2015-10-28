@@ -150,25 +150,34 @@ class FlashSaleService(LocalService):
         return self.__class__.createMergeTrade(self.trade)
     
     
-    def sendTrade(self,company_code=None,out_sid=None,retry_times=3,*args,**kwargs):
+    def sendTrade(self,company_code=None,out_sid=None,merge_trade=None,retry_times=3,*args,**kwargs):
         
         from shopback.logistics.models import LogisticsCompany
+        consign_time = datetime.datetime.now()
+        buyer_id     = self.trade.buyer_id
         try:
+            for morder in merge_trade.normal_orders: #
+                sorders = SaleOrder.objects.filter(oid=morder.oid,
+                                                   sale_trade__buyer_id=buyer_id)
+                if not sorders.exists() or sorders[0].status != SaleOrder.WAIT_SELLER_SEND_GOODS:
+                    continue
+                sorder = sorders[0]
+                sorder.consign_time  = consign_time
+                sorder.status  = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+                sorder.save()
+            
             if not company_code:
                 lg =  LogisticsCompany.getNoPostCompany()
             else:
                 lg = LogisticsCompany.objects.get(code=company_code)
             self.trade.logistics_company = lg
             self.trade.out_sid = out_sid
-            self.trade.consign_time      = datetime.datetime.now()
-            self.trade.status  = SaleTrade.WAIT_BUYER_CONFIRM_GOODS
+            wait_confirm_orders = self.trade.sale_orders.filter(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+            wait_send_orders = self.trade.sale_orders.filter(status=SaleOrder.WAIT_SELLER_SEND_GOODS)
+            if wait_confirm_orders.count() > 0 and wait_send_orders.count() == 0:
+                self.trade.consign_time   = consign_time
+                self.trade.status  = SaleTrade.WAIT_BUYER_CONFIRM_GOODS
             self.trade.save()
-            
-            for order in self.trade.sale_orders.all():
-                order.consign_time  = datetime.datetime.now()
-                order.status  = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
-                order.save()
-                
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
         
