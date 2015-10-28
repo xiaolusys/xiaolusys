@@ -288,7 +288,7 @@ admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
 class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
     list_display = (
         'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time',
-        'ding_huo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num', 'inferior_num')
+        'ding_huo_num', 'fahuo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num', 'inferior_num')
     search_fields = ['product_id']
 
 

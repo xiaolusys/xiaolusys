@@ -7,9 +7,9 @@ var USED = 1;
 var UNUSED = 0;
 function checkout_Recharge_Product() {
     var sku_id = getUrlParam("sku_id");//商品id
-    var array = ["86345", "86346","86347"];
+    var array = ["86345", "86346", "86347"];
     var isin = $.inArray(sku_id, array);
-    if (isin!=-1) {// 如果检测到是充值产品的页面　直接删除　dom 返回
+    if (isin != -1) {// 如果检测到是充值产品的页面　直接删除　dom 返回
         $(".coupons").remove();
         return true
     }
@@ -20,22 +20,10 @@ function get_Coupon_On_Buy() {
     if (judge == true) {
         return
     }
-
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     $.get(url, function (res) {
-        if (res.length > 0) {
-            var nums = 0;
-            $.each(res, function (i, val) {
-                console.log("debug coupon status:", val.status);
-                if (val.status == UNUSED && val.poll_status == RELEASE) {
-                    nums = nums + 1;//有效可用的优惠券数量
-                }
-            });
-            Coupon_Nums_Show(nums);//显示优惠券数量
-        }
-        else if (res.length == 0) {
-            Coupon_Nums_Show(0);//显示优惠券数量
-        }
+        console.log("user_coupons: ", res);
+        Coupon_Nums_Show(res.count);//显示优惠券数量
     });
 }
 
@@ -63,13 +51,13 @@ function Coupon_Nums_Show(nums) {
         });
     }
 }
-
+var pageNumber = 1;
 function get_Coupon_On_Choose() {
-    var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
+    var url = GLConfig.baseApiUrl + GLConfig.usercoupons + "?page=" + pageNumber;
     $.get(url, function (res) {
         console.log("debug choose coupon:", res);
-        if (res.length > 0) {
-            $.each(res, function (i, val) {
+        if (res.count > 0) {
+            $.each(res.results, function (i, val) {
                 if (val.status == UNUSED && val.poll_status == RELEASE) {
                     var c_valid = create_valid(val);
                     $('.youxiao').append(c_valid);
@@ -78,16 +66,13 @@ function get_Coupon_On_Choose() {
                     var c_not_valid = create_not_valid(val);
                     $('.shixiao').append(c_not_valid);
                 }
-                else if (val.poll_status == PAST) {
-                    var c_past = create_past(val);
-                    $('.shixiao').append(c_past);
-                }
             });
         }
         else {
             // 显示提示信息　没有优惠券
             pop_info();
         }
+         pageNumber += 1;
     });
 }
 
@@ -125,6 +110,7 @@ function copon_judeg(coupon_id, pro_num) {
 function choose_Coupon(coupon_id, coupon_type) {
     var price = parseFloat(getUrlParam('price'));
     var pro_num = parseFloat(getUrlParam('pro_num'));
+    console.log("choose coupon_type:", coupon_type);
     if (coupon_type == 0 && price >= 30) {
         copon_judeg(coupon_id, pro_num)
     }
@@ -132,6 +118,10 @@ function choose_Coupon(coupon_id, coupon_type) {
         copon_judeg(coupon_id, pro_num)
     }
     else if (coupon_type == 3 && price >= 259) {//这里判断要满259
+        copon_judeg(coupon_id, pro_num)
+    }
+    else if (coupon_type == 1||coupon_type == 4||coupon_type == 5) {
+        // 补邮费优惠券没有门槛限制
         copon_judeg(coupon_id, pro_num)
     }
     else {
@@ -171,4 +161,12 @@ function pop_info() {
         function () {//确定　则跳转
             location.href = document.referrer;
         });
+}
+
+function loadData(func) {//动态加载数据
+    var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
+    if ($(document).height() - 5 <= totalheight)//当文档的高度小于或者等于总的高度的时候，开始动态加载数据
+    {
+        func();
+    }
 }

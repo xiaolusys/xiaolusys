@@ -164,15 +164,24 @@ class ProductSkuDetail(models.Model):
 from shopback import signals
 
 def init_stock_func(sender,product_list,*args,**kwargs):
+    import datetime
+    from django.db.models import Sum
+    today = datetime.date.today()
 
     for pro_bean in product_list:
         sku_qs = pro_bean.prod_skus.all()
         for sku_bean in sku_qs:
+            total_num = OrderDetail.objects.filter(chichu_id=sku_bean.id,
+                                                   orderlist__created__range=(
+                                                   today - datetime.timedelta(days=7), today)).exclude(
+                orderlist__status=OrderList.ZUOFEI).aggregate(total_num=Sum('arrival_quantity')).get(
+                'total_num') or 0
             pro_sku_beans = ProductSkuDetail.objects.get_or_create(product_sku=sku_bean.id)
             pro_sku_bean = pro_sku_beans[0]
-            pro_sku_bean.exist_stock_num = sku_bean.quantity
+            result_num = sku_bean.quantity - sku_bean.wait_post_num - total_num
+            pro_sku_bean.exist_stock_num = result_num if result_num > 0 else 0
             pro_sku_bean.sample_num = 0
-            sku_bean.memo=""
+            sku_bean.memo = ""
             sku_bean.save()
             pro_sku_bean.save()
 

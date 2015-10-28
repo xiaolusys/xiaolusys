@@ -105,6 +105,7 @@ var GLConfig = {
     create_user_pay_coupon:"/mycoupon/user_create_coupon",// 用户支付时候生成的优惠券
     user_own_coupon:"/mycoupon",//用户获取自己的优惠券
     usercoupons:"/usercoupons",//2015-09-04　重构后的优惠券接口
+    past_usercoupons:"/usercoupons/list_past_coupon",//2015-09-04　重构后的优惠券接口 过期的优惠券
     get_user_coupon_by_id:"/mycoupon/{{ coupon_id }}/get_user_coupon",//获取指定用户指定的优惠券
     change_user_coupon_used:"/mycoupon/{{ coupon_id}}/pass_user_coupon",//修改自己的指定优惠券状态到使用过的状态
 	user_logout:'/users/customer_logout',//用户注销
