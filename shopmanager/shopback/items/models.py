@@ -428,6 +428,16 @@ class Product(models.Model):
             prcs.append(sku.agent_price)
         return min(prcs)
 
+
+    @property
+    def inferior_num(self):
+        """商品次品数"""
+        inferior_num = 0
+        for one_sku in self.normal_skus:
+            inferior_num += one_sku.sku_inferior_num
+        return inferior_num
+
+
 from shopback.signals import signal_product_upshelf
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     
