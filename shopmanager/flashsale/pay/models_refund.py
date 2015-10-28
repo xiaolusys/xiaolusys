@@ -155,12 +155,16 @@ def buyeridPatch():
         sf.buyer_id = st.buyer_id
         sf.save()
         
+from flashsale.pay.models import SaleTrade
 
 def handle_sale_refund_signal(sender,instance,*args,**kwargs):
     from shopback import signals
     from shopback.trades.models import MergeOrder
-    if instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE:
+    
+    strade = SaleTrade.objects.get(id=instance.trade_id)
+    if (not strade.is_Deposite_Order() and 
+        instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE):
         signals.order_refund_signal.send(sender=MergeOrder,obj=instance)
 
-post_save.connect(handle_sale_refund_signal, sender='salerefund')
+post_save.connect(handle_sale_refund_signal, sender=SaleRefund)
 

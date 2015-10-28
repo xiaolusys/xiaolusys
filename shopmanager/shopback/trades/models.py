@@ -156,9 +156,10 @@ class MergeTrade(models.Model):
     TRADE_CLOSED = pcfg.TRADE_CLOSED
     TRADE_CLOSED_BY_TAOBAO = pcfg.TRADE_CLOSED_BY_TAOBAO
     
-    TRADE_REFUNDED = pcfg.TRADE_REFUNDED
+    TRADE_REFUNDED  = pcfg.TRADE_REFUNDED
     TRADE_REFUNDING = pcfg.TRADE_REFUNDING
     
+    WAIT_WEIGHT_STATUS = pcfg.WAIT_WEIGHT_STATUS
     SYS_TRADE_STATUS = SYS_TRADE_STATUS
     TAOBAO_TRADE_STATUS = TAOBAO_TRADE_STATUS
     TRADE_TYPE       = TRADE_TYPE
@@ -885,14 +886,33 @@ post_save.connect(refresh_trade_status, sender=MergeOrder)
 def refund_update_order_info(sender,instance,*args,**kwargs):
     """ 
     退款更新订单明细状态及对应商品的待发数
+    1,找到对应的商品的有效子订单;
+    2,修改对应的订单状态，该笔交易的问题编号；
+    3,减掉待发数；
     """
     from flashsale.pay.models_refund import SaleRefund
     if not isinstance(instance,SaleRefund):
         logger.warning('refund ins(%s) not SaleRefund'%instance)
         return 
-    logger.info('salerefund log:%s'%instance)
-    
+    try:
+        trade_tid = instance.get_tid()
+        trade_oid = instance.get_oid()
+        mtrade  = MergeTrade.objects.get(tid=trade_tid)
+        morders = MergeOrder.objects.filter(oid=trade_oid,
+                                            merge_trade__user=mtrade.user,
+                                            merge_trade__sys_status__in=MergeTrade.WAIT_WEIGHT_STATUS,
+                                            sys_status=MergeOrder.NORMAL)
+        for morder in morders:
+            morder.refund_status = MergeOrder.REFUND_WAIT_SELLER_AGREE
+            morder.sys_status = MergeOrder.DELETE
+            morder.save()
+            morder.merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
+            Product.objects.reduceWaitPostNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
+    except Exception,exc:
+        logger.error('order refund signal:%s'%exc.message)
+        
 signals.order_refund_signal.connect(refund_update_order_info, sender=MergeOrder)
+
 
 class MergeBuyerTrade(models.Model):
     

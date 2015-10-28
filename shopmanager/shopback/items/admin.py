@@ -321,12 +321,10 @@ class ProductAdmin(MyAdmin):
             return actions
         
         valid_actions = set([])
-        
         if user.has_perm('items.change_product_shelf'):
             valid_actions.add('weixin_product_action')
             valid_actions.add('upshelf_product_action')
             valid_actions.add('downshelf_product_action')
-            valid_actions.add('update_quantity2remain_action')
             
         if user.has_perm('items.sync_product_stock'):
             valid_actions.add('sync_items_stock')
@@ -348,7 +346,8 @@ class ProductAdmin(MyAdmin):
             
         if user.has_perm('items.invalid_product_info'):
             valid_actions.add('invalid_product_action')
-        
+            
+        valid_actions.add('update_quantity2remain_action')
         unauth_actions = []
         for action in actions.viewkeys():
             action_ss = str(action)

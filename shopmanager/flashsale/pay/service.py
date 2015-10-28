@@ -72,9 +72,9 @@ class FlashSaleService(LocalService):
         seller_type = User.SHOP_TYPE_SALE
         for order in trade.normal_orders:
             if order.title.find(u'秒杀') >= 0:
-                ###需要创建wxmiaosha 该买家才能正常工作
-                seller_id   = MIAOSHA_SELLER_ID
-                seller_type = User.SHOP_TYPE_WX
+                ###取消秒杀单独分配一个店铺, meron.2015-10-28
+#                 seller_id   = MIAOSHA_SELLER_ID
+#                 seller_type = User.SHOP_TYPE_WX
                 if trade.buyer_nick.find(u'[秒杀]') < 0:
                     trade.buyer_nick = u'[秒杀]' + trade.buyer_nick 
                 break
