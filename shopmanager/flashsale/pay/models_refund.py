@@ -9,6 +9,7 @@ from shopback import paramconfig as pcfg
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .signals import signal_saletrade_refund_confirm
 from .options import uniqid
+from shopback.items.models import Product
 
 class SaleRefund(models.Model):
     
@@ -143,6 +144,14 @@ class SaleRefund(models.Model):
             strade.save()
         
         signal_saletrade_refund_confirm.send(sender=SaleRefund,obj=self)
+
+    def pic_path(self):
+        try:
+            pro = Product.objects.get(id=self.item_id)
+            return pro.pic_path
+        except Product.DoesNotExist:
+            return None
+
             
 
 def buyeridPatch():

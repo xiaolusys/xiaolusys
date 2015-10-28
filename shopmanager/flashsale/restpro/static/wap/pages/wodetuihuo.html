@@ -32,16 +32,16 @@
 
 <script type="text/html" id="tuihuo_list">
     <li>
-        <p class="time">下单时间：{{ create }} <span style="float:right">{{ refund_status_display }}</span></p>
-        <a href="./wodetuihuo-detail.html?tid={{ t_id }}&id={{ id }}" class="info clear">
+        <p class="time">申请时间：{{ created }}</p>
+        <a href="./wodetuihuo-detail.html?tid={{ trade_id }}&id={{ order_id }}" class="info clear">
             <div class="info">
                 <div class="left">
                     <img src="{{ pic_path }}"/>
                 </div>
                 <div class="right">
-                    <p>订单编号：<span class="caaaaaa">{{ tid }}</span></p>
-                    <p>订单状态：<span class="cf353a0">{{ status_display }}</span></p>
-                    <p>订单金额：<span class="cf353a0">¥{{ total_fee }}</span></p>
+                    <p>退款编号：<span class="caaaaaa">{{ refund_no }}</span></p>
+                    <p>退款状态：<span class="cf353a0">{{ status_display }}</span></p>
+                    <p>退款金额：<span class="cf353a0">¥{{ refund_fee }}</span></p>
                 </div>
             </div>
         </a>
