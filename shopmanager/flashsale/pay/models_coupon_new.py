@@ -11,10 +11,14 @@ from options import uniqid
 
 class CouponTemplate(models.Model):
     RMB118 = 0
-    POST_FEE = 1
+    POST_FEE_5 = 1
+    POST_FEE_10 = 4
+    POST_FEE_15 = 5
     C150_10 = 2
     C259_20 = 3
-    COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE, u"退货补邮费"), (C150_10, u"满150减10"), (C259_20, u"满259减20"))
+    COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
+                   (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"),
+                   (C150_10, u"满150减10"), (C259_20, u"满259减20"))
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
@@ -113,27 +117,6 @@ class UserCoupon(models.Model):
                     cou.save()
         return
 
-    def release_refund_post_fee(self, **kwargs):
-        buyer_id = kwargs.get("buyer_id", None)
-        trade_id = kwargs.get("trade_id", None)
-        if buyer_id and trade_id:
-            tpl = CouponTemplate.objects.get(type=CouponTemplate.POST_FEE, valid=True)  # 获取：模板采用admin后台手动产生
-            try:
-                UserCoupon.objects.get(customer=buyer_id, sale_trade=str(trade_id))
-            except UserCoupon.DoesNotExist:
-                cou = CouponsPool.objects.create(template=tpl)
-                if cou.coupon_nums() > tpl.nums:
-                    message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
-                    raise Exception(message)
-                else:
-                    self.cp_id = cou
-                    self.customer = buyer_id
-                    self.sale_trade = trade_id
-                    self.save()
-                    cou.status = CouponsPool.RELEASE
-                    cou.save()
-        return
-
     def release_150_10(self, **kwargs):
         buyer_id = kwargs.get("buyer_id", None)
         # 2015-10-1前可以使用
@@ -188,11 +171,11 @@ class UserCoupon(models.Model):
 
     def release_by_template(self, **kwargs):
         """
-        发放任何类型的优惠券
+        发放不绑定交易的任何类型的优惠券
         """
         buyer_id = kwargs.get("buyer_id", None)
         template_id = kwargs.get("template_id", None)
-        trade_id = "0"
+        trade_id = kwargs.get("trade_id", '0')
         # {"buyer_id": customer.id, "template_id":template_id}
         if buyer_id and trade_id and template_id:
             try:
