@@ -18,7 +18,10 @@ class StatsFahuoView(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        return Response({})
+        today = datetime.date.today()
+        start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+        end_date = today
+        return Response({"start_date": start_date, "end_date": end_date})
 
     def post(self, request, *args, **kwargs):
         content = request.REQUEST
