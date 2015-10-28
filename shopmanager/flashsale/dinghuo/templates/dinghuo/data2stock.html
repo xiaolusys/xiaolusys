@@ -23,7 +23,6 @@
                             var result_data = eval(res.task.result);
                             $("#data-table-people thead").eq(0).nextAll().remove();
                             $.each(result_data, function (index, dd) {
-                                console.log(dd[0]);
                                 tb.append("<tr><td><a href='/admin/items/product/?q="+dd[0]+"' target='_blank'>"+dd[0]+"</a></td><td>" + dd[1].name + "</td>" +
                                 "<td><img src='" + dd[1].pic_path + "' width='100px'></td>" +
                                 "<td>" + dd[1].sale_time + "</td>" +
@@ -35,6 +34,11 @@
                                 "<td>" + dd[1].inferior_num + "</td>" +
                                 "</tr>");
                             });
+                            var oHead = document.getElementsByTagName('HEAD').item(0);
+                            var oScript = document.createElement("script");
+                            oScript.type = "text/javascript";
+                            oScript.src = "/static/js/dinghuo/stat_stock_table.js";
+                            oHead.appendChild(oScript);
 
                         } else {
                             setTimeout(get_data, 4000);
@@ -78,9 +82,9 @@
                 <th width="10%">商品编码</th>
                 <th width="10%">商品名称</th>
                 <th width="10%">图片</th>
+                <th width="10%">上架时间</th>
                 <th width="10%">供应商</th>
                 <th width="10%">买手</th>
-                <th width="10%">上架时间</th>
                 <th width="10%">分类</th>
                 <th width="10%">库存数</th>
                 <th width="10%">减去待发后库存</th>
