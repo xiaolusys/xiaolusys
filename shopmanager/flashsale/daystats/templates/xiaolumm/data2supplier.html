@@ -33,7 +33,7 @@
                                 money_lirun = (dd.all_sale_money - parseFloat(dd.tui_kuan_money)) - parseFloat(dd.all_sale_cost)*(sale_num/all_sale_num)
                             }
                             tb.append("<tr>" +
-                            "<td>" + dd['supplier_name'] + "</td>" +
+                            "<td><a href='/sale/daystats/supplier_preview/?supplier="+dd['supplier_name']+"' target='_blank'>" + dd['supplier_name'] + "</a></td>" +
                             "<td>" + dd.category + "</td>" +
                             "<td>" + dd["buyer_name"] + "</td>" +
                             "<td>" + dd["choose_sale_num"] + "</td>" +

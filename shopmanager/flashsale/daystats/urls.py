@@ -19,7 +19,7 @@ urlpatterns = patterns('',
                        url(r'^stats_supplier/$', staff_member_required(StatsSupplierView.as_view()),
                            name="stats_supplier"),
                        url(r'^stats_sale_product/$', staff_member_required(StatsSaleProdcutView.as_view()),
-                           name="stats_supplier"),
+                           name="stats_sale_product"),
                        url(r'^operate_sale/$', staff_member_required(views_operate.StatsDataView.as_view())),
                        url(r'^daily_check/$', staff_member_required(views_operate.DailyCheckView.as_view())),
                        url(r'^stat_input/$', staff_member_required(views_input_stat.ProductInputStatView.as_view())), #录入资料统计
