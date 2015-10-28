@@ -321,7 +321,6 @@ class ProductAdmin(MyAdmin):
             return actions
         
         valid_actions = set([])
-        
         if user.has_perm('items.change_product_shelf'):
             valid_actions.add('weixin_product_action')
             valid_actions.add('upshelf_product_action')
@@ -347,7 +346,8 @@ class ProductAdmin(MyAdmin):
             
         if user.has_perm('items.invalid_product_info'):
             valid_actions.add('invalid_product_action')
-        
+            
+        valid_actions.add('update_quantity2remain_action')
         unauth_actions = []
         for action in actions.viewkeys():
             action_ss = str(action)
@@ -446,7 +446,7 @@ class ProductAdmin(MyAdmin):
         return render_to_response('items/product_delete.html',{'product_ids':product_ids,'products':queryset,'origin_url':origin_url},
                                   context_instance=RequestContext(request),mimetype="text/html")
         
-    invalid_product_action.short_description = u"作废库存商品（批量 ）"
+    invalid_product_action.short_description = u"作废库存商品（批量）"
     
     #更新用户线上商品入库
     def sync_purchase_items_stock(self,request,queryset):
@@ -482,6 +482,22 @@ class ProductAdmin(MyAdmin):
     
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
     
+    
+    #更新商品库存数至预留数
+    def update_quantity2remain_action(self,request,queryset):
+         
+        downshelfs = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        upshelfs   = queryset.filter(shelf_status=Product.UP_SHELF)
+        
+        for product in downshelfs:
+            product.normal_skus.update(remain_num=models.F('quantity'))
+            log_action(request.user.id,product,CHANGE,u'更新商品库存数至预留数')
+            
+        self.message_user(request,u"已成功更新%s个商品的预留数!"%downshelfs.count())
+        self.message_user(request,u"有%s个商品因已上架没有更新预留数!"%upshelfs.count())
+        return HttpResponseRedirect(request.get_full_path())
+        
+    update_quantity2remain_action.short_description = u"更新商品库存为预留数"
     
     #取消该商品缺货订单
     def cancle_orders_out_stock(self,request,queryset):
@@ -564,14 +580,15 @@ class ProductAdmin(MyAdmin):
         remind_time = datetime.datetime.now() + datetime.timedelta(days=7)
         outer_ids = [p.outer_id for p in queryset]
         mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
-                                    merge_trade__sys_status__in=("WAIT_PREPARE_SEND","WAIT_AUDIT"))
+                                    merge_trade__sys_status__in=(MergeTrade.WAIT_PREPARE_SEND_STATUS,
+                                                                 MergeTrade.WAIT_AUDIT_STATUS))
         
         merge_trades = set([o.merge_trade for o in mos])
         effect_num = 0
         for t in merge_trades:
             if (t.status == pcfg.WAIT_SELLER_SEND_GOODS
                 and not t.out_sid and t.prod_num == 1):
-                t.sys_status="REGULAR_REMAIN"
+                t.sys_status=MergeTrade.REGULAR_REMAIN_STATUS
                 t.remind_time=remind_time
                 t.save()
                 effect_num += 1
@@ -715,6 +732,7 @@ class ProductAdmin(MyAdmin):
                'regular_saleorder_action',
                'deliver_saleorder_action',
                'export_prodsku_info_action',
+               'update_quantity2remain_action',
                'create_saleproduct_order']
 
 admin.site.register(Product, ProductAdmin)

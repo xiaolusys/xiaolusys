@@ -21,12 +21,12 @@ from shopback.users.models import User,Customer
 from auth import apis
 import logging
 
+
 logger = logging.getLogger('celery.handler')
 LOGISTIC_DIR = 'logistic'
 ORDER_DIR    = 'order'
 REPORT_DIR   = 'report'
 FINANCE_DIR  = 'finance'
-
 
 class SubTradePostException(Exception):
 
@@ -505,7 +505,8 @@ def task_Gen_XiaoluSale_Report(date_from,date_to,file_dir=''):
     dump_fields   = ','.join(fields)
     date_from_str = date_from.strftime('%Y-%m-%d %H:%M:%S')
     date_to_str   = date_to.strftime('%Y-%m-%d %H:%M:%S')
-    exec_sql = "select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}' and type in ('wx','sale');".format(dump_fields,date_from_str,date_to_str)
+    exec_sql = ("select {0} from shop_trades_mergetrade where pay_time between '{1}' and '{2}' and type in ('wx','sale');"
+                .format(dump_fields,date_from_str,date_to_str))
     
     try:
         cursor = connection.cursor()

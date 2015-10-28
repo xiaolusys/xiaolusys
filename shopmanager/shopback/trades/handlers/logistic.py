@@ -66,14 +66,10 @@ class LogisticsHandler(BaseHandler):
                 return LogisticsCompany.objects.get_or_create(
                                         code='STO')[0]
             
-            return LogisticsCompany.get_recommend_express(state,
-                                                          city,
-                                                          district)
-                
+            return LogisticsCompany.get_recommend_express(state,city,district)
         elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
                                pcfg.EMS_SHIPPING_TYPE.upper()):
-            return LogisticsCompany.objects.get_or_create(
-                                        code=shipping_type)[0]
+            return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]
         
     def process(self,merge_trade,*args,**kwargs):
         

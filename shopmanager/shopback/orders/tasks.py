@@ -82,7 +82,9 @@ def saveUserDuringOrdersTask(user_id,update_from=None,update_to=None,status=None
                                                        status=pcfg.WAIT_SELLER_SEND_GOODS)\
                                                        .exclude(tid__in=update_tids)
         for trade in wait_update_trades:
-            
+            tid = trade.tid
+            if tid.find('-') == len(tid) - 2:
+                continue
             try:
                 TradeService(user_id,trade.tid).payTrade()
             except Exception,exc:
@@ -111,15 +113,12 @@ def saveUserIncrementOrdersTask(user_id,update_from=None,update_to=None):
 
         if trade_list.has_key('trades'):
             for trade in trade_list['trades']['trade']:
-                                
                 modified = parse_datetime(trade['modified']) if trade.get('modified',None) else None
-                
                 if TradeService.isValidPubTime(user_id,trade['tid'],modified):
                     try:
                         trade_dict = OrderService.getTradeFullInfo(user_id,trade['tid'])
                         order_trade = OrderService.saveTradeByDict(user_id, trade_dict)
                         OrderService.createMergeTrade(order_trade)
-                        
                     except Exception,exc:
                         logger.error(u'淘宝订单下载失败:%s'%exc.message,exc_info=True)
 
@@ -141,17 +140,14 @@ def updateAllUserIncrementOrdersTask(update_from=None,update_to=None):
     else:
         update_to   = datetime.datetime(dt.year,dt.month,dt.day,0,0,0)
         update_days = 1
-    
     users = User.effect_users.TAOBAO
     for user in users:
-        
         for i in xrange(0,update_days):
             update_start = update_to - datetime.timedelta(i+1,0,0)
             update_end   = update_to - datetime.timedelta(i,0,0)
             year  = update_start.year
             month = update_start.month
             day   = update_start.day
-            
             monitor_status,state = (DayMonitorStatus.
                                     objects.get_or_create(user_id=user.visitor_id,
                                                           year=year,
@@ -186,7 +182,6 @@ def updateAllUserIncrementTradesTask():
     sysconf = SystemConfig.getconfig()
     users   = User.effect_users.TAOBAO
     updated = sysconf.mall_order_updated
-    
     try:
         if updated:
             bt_dt = dt-updated

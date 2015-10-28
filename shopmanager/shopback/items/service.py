@@ -2,8 +2,9 @@
 
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product
-from shopback.trades.models import MergeTrade
+from shopback.trades.models import MergeTrade,MergeOrder
 from common.utils import update_model_fields
+
 
 def releaseRegularOutstockTrade(trade,num_maps=None):
     """ 释放特卖定时订单 """
@@ -52,19 +53,25 @@ def releaseRegularOutstockTrade(trade,num_maps=None):
     
     update_model_fields(t,update_fields=['sys_status','sys_memo','ware_by'])
     return t
-    
-from common.utils import process_lock
-    
-@process_lock
+
+from common.cachelock import cache_lock
+
+@cache_lock(cache_time=6 * 60 * 60)
 def releaseProductTrades(outer_id):
     """ 释放特卖到货商品订单 """
-    from shopback.trades.models import MergeOrder
-    mos = (MergeOrder.objects.filter(outer_id=outer_id,
-            merge_trade__sys_status=pcfg.REGULAR_REMAIN_STATUS)
-           .order_by('merge_trade__prod_num','merge_trade__has_merge'))
+    products = Product.objects.filter(outer_id=outer_id)
+    if not products.exists() or not products[0].has_quantity():
+        return
+    
+    mos = (MergeOrder.objects.filter(
+                outer_id=outer_id,
+                sys_status=MergeOrder.NORMAL,
+                merge_trade__sys_status=pcfg.REGULAR_REMAIN_STATUS)
+               .order_by('merge_trade__prod_num','merge_trade__has_merge'))
     
     num_maps = {}
     merge_trades = set([o.merge_trade for o in mos])
     for trade in merge_trades:
         releaseRegularOutstockTrade(trade, num_maps)       
+        
         

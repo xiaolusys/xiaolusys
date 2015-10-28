@@ -3,7 +3,7 @@ from django.dispatch import Signal
 user_logged_in = Signal(providing_args=["user","top_session","top_parameters"])
 
 merge_trade_signal = Signal(providing_args=['trade'])
-refund_signal      = Signal(providing_args=["refund"])
+order_refund_signal  = Signal(providing_args=["obj"])
 
 rule_signal        = Signal(providing_args=["trade_id"])
 

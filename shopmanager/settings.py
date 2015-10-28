@@ -131,6 +131,7 @@ INSTALLED_APPS = (
     'shopback.users',
     'shopback.archives',
     'shopback.purchases',
+    'shopback.warehouse',
     #'shopback.aftersale',
     
     'shopapp.autolist',
@@ -217,7 +218,7 @@ except ImportError:
 from task_settings import *
 
 if DEBUG:
-    BROKER_URL = 'amqp://user2:passwd2@192.168.1.101:5672/vtest22'
+    BROKER_URL = 'amqp://usera:passwda@192.168.1.101:5672/vhosta'
     
 REST_FRAMEWORK = {
 #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),

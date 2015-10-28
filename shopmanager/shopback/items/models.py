@@ -205,6 +205,9 @@ class Product(models.Model):
 
         return sale_out
     
+    def has_quantity(self):
+        return self.collect_num > 0
+    
     def sale_open(self):
         """ 返回特卖商品是否开售 """
         return self.shelf_status == self.UP_SHELF

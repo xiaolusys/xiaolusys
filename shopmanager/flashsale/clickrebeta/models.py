@@ -444,8 +444,7 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     mm_rebeta_amount    = xlmm.get_Mama_Trade_Amount(strade) 
     mm_order_rebeta     = xlmm.get_Mama_Trade_Rebeta(strade)
     
-    delta_amount  = shopping.rebetamount  - mm_rebeta_amount
-    delta_rebeta  = shopping.tichengcount - mm_order_rebeta
+    delta_rebeta  = max(shopping.tichengcount - mm_order_rebeta,0)
     shopping_status = shopping.status
     if mm_rebeta_amount == 0 :
         shopping_status = StatisticsShopping.REFUNDED 
@@ -466,10 +465,13 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
         clog.carry_date=obj.modified
         clog.save()
     else:
-        shopping.rebetamount  = delta_amount 
-        shopping.tichengcount = delta_rebeta
+        shopping.rebetamount  = mm_rebeta_amount 
+        shopping.tichengcount = mm_order_rebeta
         shopping.status = shopping_status
         shopping.save()
+        
+        daytongji.todayamountcount = F('todayamountcount') - delta_rebeta
+        daytongji.save()
     
     
 

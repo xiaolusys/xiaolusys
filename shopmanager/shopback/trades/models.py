@@ -14,11 +14,10 @@ from shopback.base import log_action, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
 from shopback.trades.managers import MergeTradeManager
 from shopback.items.models import Item,Product,ProductSku
-from shopback.logistics.models import Logistics,LogisticsCompany,DestCompany
+from shopback.logistics.models import Logistics,LogisticsCompany
 from shopback.refunds.models import Refund,REFUND_STATUS
 from shopback import paramconfig as pcfg
-from shopback.signals import merge_trade_signal,rule_signal,recalc_fee_signal
-from auth import apis
+from shopback import signals 
 from common.utils import (parse_datetime ,
                           get_yesterday_interval_time ,
                           update_model_fields)
@@ -157,9 +156,10 @@ class MergeTrade(models.Model):
     TRADE_CLOSED = pcfg.TRADE_CLOSED
     TRADE_CLOSED_BY_TAOBAO = pcfg.TRADE_CLOSED_BY_TAOBAO
     
-    TRADE_REFUNDED = pcfg.TRADE_REFUNDED
+    TRADE_REFUNDED  = pcfg.TRADE_REFUNDED
     TRADE_REFUNDING = pcfg.TRADE_REFUNDING
     
+    WAIT_WEIGHT_STATUS = pcfg.WAIT_WEIGHT_STATUS
     SYS_TRADE_STATUS = SYS_TRADE_STATUS
     TAOBAO_TRADE_STATUS = TAOBAO_TRADE_STATUS
     TRADE_TYPE       = TRADE_TYPE
@@ -587,7 +587,7 @@ def recalc_trade_fee(sender,trade_id,*args,**kwargs):
                                              'adjust_fee'])
 
 
-recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
+signals.recalc_fee_signal.connect(recalc_trade_fee, sender=MergeTrade)
 # 
 # class MergeCtrl(models.Model):
 #     
@@ -647,9 +647,24 @@ class MergeOrder(models.Model):
     REFUND_CLOSED = pcfg.REFUND_CLOSED
     REFUND_SUCCESS = pcfg.REFUND_SUCCESS
     
+    REAL_ORDER_GIT_TYPE = pcfg.REAL_ORDER_GIT_TYPE
+    CS_PERMI_GIT_TYPE = pcfg.CS_PERMI_GIT_TYPE
+    OVER_PAYMENT_GIT_TYPE = pcfg.OVER_PAYMENT_GIT_TYPE
+    COMBOSE_SPLIT_GIT_TYPE = pcfg.COMBOSE_SPLIT_GIT_TYPE
+    RETURN_GOODS_GIT_TYPE = pcfg.RETURN_GOODS_GIT_TYPE
+    CHANGE_GOODS_GIT_TYPE = pcfg.CHANGE_GOODS_GIT_TYPE
+    ITEM_GIFT_TYPE = pcfg.ITEM_GIFT_TYPE
+    
     SYS_ORDER_STATUS    = SYS_ORDER_STATUS
     TAOBAO_ORDER_STATUS = TAOBAO_ORDER_STATUS
     GIFT_TYPE           = GIFT_TYPE
+    
+    NORMAL = pcfg.IN_EFFECT 
+    DELETE = pcfg.INVALID_STATUS
+    SYS_ORDER_STATUS = (
+        (NORMAL ,u'有效'),
+        (DELETE,u'无效'),
+    )
     
     id    = BigIntegerAutoField(primary_key=True)
     oid   = models.CharField(max_length=32,
@@ -867,6 +882,36 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
         update_model_fields(merge_trade,update_fields=update_fields)
 
 post_save.connect(refresh_trade_status, sender=MergeOrder)
+
+def refund_update_order_info(sender,instance,*args,**kwargs):
+    """ 
+    退款更新订单明细状态及对应商品的待发数
+    1,找到对应的商品的有效子订单;
+    2,修改对应的订单状态，该笔交易的问题编号；
+    3,减掉待发数；
+    """
+    from flashsale.pay.models_refund import SaleRefund
+    if not isinstance(instance,SaleRefund):
+        logger.warning('refund ins(%s) not SaleRefund'%instance)
+        return 
+    try:
+        trade_tid = instance.get_tid()
+        trade_oid = instance.get_oid()
+        mtrade  = MergeTrade.objects.get(tid=trade_tid)
+        morders = MergeOrder.objects.filter(oid=trade_oid,
+                                            merge_trade__user=mtrade.user,
+                                            merge_trade__sys_status__in=MergeTrade.WAIT_WEIGHT_STATUS,
+                                            sys_status=MergeOrder.NORMAL)
+        for morder in morders:
+            morder.refund_status = MergeOrder.REFUND_WAIT_SELLER_AGREE
+            morder.sys_status = MergeOrder.DELETE
+            morder.save()
+            morder.merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
+            Product.objects.reduceWaitPostNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
+    except Exception,exc:
+        logger.error('order refund signal:%s'%exc.message)
+        
+signals.order_refund_signal.connect(refund_update_order_info, sender=MergeOrder)
 
 
 class MergeBuyerTrade(models.Model):

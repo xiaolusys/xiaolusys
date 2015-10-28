@@ -99,8 +99,11 @@ class CashoutView(View):
         cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
         pending_cashouts = cashout_objs.filter(status=CashOut.PENDING)
-        data = {"xlmm":xlmm, "cashout": pending_cashouts.count(), 'kefu_mobile':kefu_mobile,
-                "referal_list":referal_list ,"could_cash_out":int(could_cash_out)}
+        data = {"xlmm":xlmm, 
+                "cashout": pending_cashouts.count(), 
+                'kefu_mobile':kefu_mobile,
+                "referal_list":referal_list,
+                "could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
         response.set_cookie("openid",openid)

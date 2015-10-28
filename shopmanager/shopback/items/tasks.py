@@ -25,7 +25,6 @@ import logging
 
 logger = logging.getLogger('django.request')
 
-
 PURCHASE_STOCK_PERCENT = 0.5
 
 @task()
@@ -688,10 +687,12 @@ def updateAllUserPurchaseItemNumTask():
 
 
 from shopback.items.service import releaseProductTrades
+
 @task
 def releaseProductTradesTask(outer_ids):
     for outer_id in outer_ids:
         releaseProductTrades(outer_id)
+        
 
 from supplychain.supplier.models import SaleProduct
 class CalcProductSaleAsyncTask(Task):
@@ -953,3 +954,4 @@ class CalcProductSaleAsyncTask(Task):
         sale_qs = ProductDaySale.objects.filter(**params)
         sale_items = self.calcSaleItems(queryset=sale_qs, buyer_name=buyer_name, supplier=supplier, p_outer_id=p_outer_id, show_sale=show_sale)
         return sale_items
+    

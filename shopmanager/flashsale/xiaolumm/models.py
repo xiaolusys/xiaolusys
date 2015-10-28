@@ -104,6 +104,11 @@ class XiaoluMama(models.Model):
     def __unicode__(self):
         return '%s'%self.id
     
+    def clean(self):
+        for field in self._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                setattr(self, field.name, getattr(self, field.name).strip())
+    
     def get_cash_display(self):
         return self.cash / 100.0
     
@@ -301,9 +306,12 @@ class XiaoluMama(models.Model):
     
     def push_carrylog_to_cash(self,clog):
         
-        if self.id != clog.xlmm:
-            raise Exception(u'现金日志与妈妈编号不匹配') 
+        if self.id != clog.xlmm or clog.status == CarryLog.CONFIRMED:
+            raise Exception(u'收支记录状态不可更新') 
         
+        if clog.carry_type == CarryLog.CARRY_OUT and self.cash < clog.value :
+            return
+            
         try:
             clog = CarryLog.objects.get(id=clog.id,status=CarryLog.PENDING)
         except CarryLog.DoesNotExist:
@@ -315,8 +323,9 @@ class XiaoluMama(models.Model):
         if clog.carry_type == CarryLog.CARRY_IN:
             self.cash = models.F('cash') + clog.value
             self.pending = models.F('pending') - clog.value
-        else:
+        else :
             self.cash = models.F('cash') - clog.value
+  
         update_model_fields(self,update_fields=['cash','pending'])
         
         
