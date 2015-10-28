@@ -37,11 +37,11 @@
         <span class="input-group-addon" id="date_from">开始时间</span>
         <input type="text" name="date_from" id="left_date_pic"
                class="form-control select_saletime  datepicker" placeholder=""
-               aria-describedby="basic-addon1">
+               aria-describedby="basic-addon1" value="{{ start_date }}">
         <span class="input-group-addon" id="date_to">结束时间</span>
         <input type="text" name="date_to" id="right_date_pic"
                class="form-control select_saletime  datepicker" placeholder=""
-               aria-describedby="basic-addon2">
+               aria-describedby="basic-addon2" value="{{ end_date }}">
             <span class="input-group-btn">
                 <button class="btn btn-success" id="go_search" type="submit">Go!</button>
             </span>
@@ -86,6 +86,15 @@
     }
 
     $(document).ready(function () {
+        var date_from = $("#left_date_pic").val();
+        var date_to = $("#right_date_pic").val();
+        if (date_from == '' || date_to == '') {
+            layer.msg('时间不能为空');
+            return
+        }
+        else {
+            getRateData(date_from, date_to);
+        }
         $("#go_search").click(function () {
             var date_from = $("#left_date_pic").val();
             var date_to = $("#right_date_pic").val();
