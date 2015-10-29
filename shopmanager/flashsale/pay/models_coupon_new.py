@@ -16,9 +16,10 @@ class CouponTemplate(models.Model):
     POST_FEE_15 = 5
     C150_10 = 2
     C259_20 = 3
+    DOUBLE_11 = 6
     COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"),
-                   (C150_10, u"满150减10"), (C259_20, u"满259减20"))
+                   (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"))
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
