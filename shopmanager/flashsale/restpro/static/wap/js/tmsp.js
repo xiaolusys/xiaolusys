@@ -214,7 +214,7 @@ function product_timer_new(shelf_time, is_saleopen) {
     } else if (ts > 0) {
         $(".shengyu span").text(hh + ":" + mm + ":" + ss);
         setTimeout(function () {
-                product_timer_new(shelf_time);
+                product_timer_new(shelf_time, is_saleopen);
             },
             1000);
     } else {
