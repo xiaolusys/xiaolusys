@@ -166,10 +166,13 @@ function Set_product_detail(suffix) {
         //设置商品内容图列表
         var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
         $('.goods-img .list').html(bottom_dom);
-        if(data.sale_time){
-            var shelf_time = new Date(data.sale_time);
-            product_timer(shelf_time);
-        }
+        if (data.offshelf_time) {
+                var shelf_time = new Date(data.offshelf_time.replace("T", " "));
+                product_timer_new(shelf_time, data.is_saleopen);
+            } else if (data.sale_time) {
+                var shelf_time = new Date(data.sale_time);
+                product_timer(shelf_time);
+            }
         //设置尺码表
         add_chi_ma(data);
         if(data.is_saleopen){
@@ -187,6 +190,36 @@ function Set_product_detail(suffix) {
         },
         success: requestCallBack
     });
+}
+
+
+function product_timer_new(shelf_time, is_saleopen) {
+    /*
+     * 商品倒计时NEW
+     * auther:yann
+     * date:2015/28/10
+     */
+    var ts = (new Date(shelf_time.getFullYear(), shelf_time.getMonth(), shelf_time.getDate(), shelf_time.getHours(), shelf_time.getMinutes(), shelf_time.getSeconds())) - (new Date());//计算剩余的毫秒数
+
+    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
+    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    dd = checkTime(dd);
+    hh = checkTime(hh);
+    mm = checkTime(mm);
+
+    if (!is_saleopen) {
+        $(".shengyu span").text("未上架");
+    } else if (ts > 0) {
+        $(".shengyu span").text(hh + ":" + mm + ":" + ss);
+        setTimeout(function () {
+                product_timer_new(shelf_time);
+            },
+            1000);
+    } else {
+        $(".shengyu span").text("00:00:00");
+    }
 }
 
 function product_timer(shelf_time) {

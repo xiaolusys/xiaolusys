@@ -346,9 +346,15 @@ function Set_model_product(suffix){
 				$('.glist').append(item_dom);
 			}
 		);
-        if(data && data.length > 0 && data[0].sale_time){
-            var shelf_time = new Date(data[0].sale_time);
-            product_timer(shelf_time);
+        if (data && data.length > 0) {
+            if (data[0].offshelf_time) {
+                var shelf_time = new Date(data[0].offshelf_time.replace("T", " "));
+                product_timer_new(shelf_time, data[0].is_saleopen);
+            } else if (data[0].sale_time) {
+                var shelf_time = new Date(data[0].sale_time);
+                product_timer(shelf_time);
+            }
+
         }
 	};
 	// 请求推荐数据
@@ -363,6 +369,44 @@ function Set_model_product(suffix){
 		success:promoteCallBack 
 	}); 
 	
+}
+
+
+function product_timer_new(shelf_time, is_saleopen) {
+    /*
+     * 商品倒计时NEW
+     * auther:yann
+     * date:2015/28/10
+     */
+    var ts = (new Date(shelf_time.getFullYear(), shelf_time.getMonth(), shelf_time.getDate(), shelf_time.getHours(), shelf_time.getMinutes(), shelf_time.getSeconds())) - (new Date());//计算剩余的毫秒数
+
+    var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
+    var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
+    var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数
+    var ss = parseInt(ts / 1000 % 60, 10);//计算剩余的秒数
+    dd = checkTime(dd);
+    hh = checkTime(hh);
+    mm = checkTime(mm);
+    ss = checkTime(ss);
+
+    if (!is_saleopen) {
+        $(".top p").text("");
+    } else if (ts >= 86400000) {
+        $(".top p").text("剩余" + dd + "天" + hh + "时" + mm + "分");
+        setTimeout(function () {
+                product_timer_new(shelf_time, is_saleopen);
+            },
+            2000);
+    } else if (ts < 86400000 && ts > 0) {
+        $(".top p").text("剩余" + hh + "时" + mm + "分");
+        setTimeout(function () {
+                product_timer_new(shelf_time, is_saleopen);
+            },
+            2000);
+    } else if (ts < 0) {
+        $(".top p").text("已下架");
+    }
+
 }
 
 function product_timer(shelf_time) {
@@ -381,7 +425,7 @@ function product_timer(shelf_time) {
     hh = checkTime(hh);
     mm = checkTime(mm);
     ss = checkTime(ss);
-
+    console.log(ts)
     if (ts > 100800000 && ts < 136800000) {
         $(".top p").text("敬请期待");
     } else if (ts < 100800000 && ts >= 86400000) {
