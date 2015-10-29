@@ -71,14 +71,18 @@ class SaleBadView(View):
                                   context_instance=RequestContext(request))
 
 from django.db.models import Q
-from shopback.categorys.models import ProductCategory
-from supplychain.supplier.models import SaleProduct
 class TopStockView(View):
+    """库存多的商品"""
     @staticmethod
     def get(request):
         content = request.REQUEST
         start_time_str = content.get("df", None)
         end_time_str = content.get("dt", None)
+        limit_num = content.get("limit_num", 200)
+        try:
+            limit_num = int(limit_num)
+        except:
+            limit_num = 200
         today = datetime.date.today()
         if start_time_str:
             year, month, day = start_time_str.split('-')
@@ -92,13 +96,13 @@ class TopStockView(View):
         else:
             end_date = today
         """找出选择的开始月份和结束月份"""
-        send_tasks = task_calc_stock_top.delay(start_time_str, end_time_str)
+        send_tasks = task_calc_stock_top.delay(start_time_str, end_time_str, int(limit_num))
         return render_to_response("dinghuo/data2stock.html",
-                                  {"task_id": send_tasks, "start_date": start_date, "end_date": end_date},
+                                  {"task_id": send_tasks, "start_date": start_date,
+                                   "end_date": end_date, "limit_num": limit_num},
                                   context_instance=RequestContext(request))
 
 from rest_framework import generics
-from shopback.categorys.models import ProductCategory
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -151,7 +155,7 @@ class ChangeKunView(generics.ListCreateAPIView):
         except:
             return Response({"result": "error"})
 
-from django.db.models import F, Q, Sum
+
 class SaleStatusView(generics.ListCreateAPIView):
     """
         销售情况预览（预留和待发）
