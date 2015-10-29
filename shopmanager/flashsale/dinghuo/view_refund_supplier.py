@@ -50,7 +50,6 @@ class StatisRefundSupView(APIView):
         content = request.REQUEST
         arr = content.get("arr", None)
         data = eval(arr)  # json字符串转化
-        print "data: ", data
         supplier_set = set()
         pro_id_set = set()
         for i in data:
