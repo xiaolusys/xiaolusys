@@ -73,6 +73,7 @@
                         <td>{{ one_data.1.5 }}</td>
                         <td>{{ one_data.1.6 }}</td>
                         <td>{{ one_data.1.7 }}</td>
+                        <td>{{ one_data.1.8 }}</td>
                         <td>0</td>
                     </tr>
                 {% endfor %}
@@ -103,17 +104,17 @@
             for (var i = 0; i < rows.length; i++) {
                 var row = rows[i];
                 var column_num = 0;
-                for (var j = 1; j < 15; j++) {
+                for (var j = 1; j < 16; j++) {
                     column_num += parseInt(row.cells[j].innerText);
                 }
-                row.cells[15].innerText = column_num;
+                row.cells[16].innerText = column_num;
             }
         };
         Calc_buyer_data();
         $('#data-table-result').dataTable({
             //"bJQueryUI": true,
             "bAutoWidth": false, //自适应宽度
-            "aaSorting": [[15, "desc"]],
+            "aaSorting": [[16, "desc"]],
             "iDisplayLength": -1,
             "aLengthMenu": [[30, 50, 100, -1], [30, 50, 100, "All"]],
             //"bInfo":true,

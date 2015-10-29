@@ -50,9 +50,10 @@ class ProductInputStatView(generics.ListCreateAPIView):
                                                               temp_child_product.filter(category__cid=15).count(),
                                                               temp_child_product.filter(category__cid=14).count(),
                                                               temp_child_product.filter(category__cid=13).count(),
-                                                              temp_child_product.filter(category__cid=25).count()]]
+                                                              temp_child_product.filter(category__cid=25).count(),
+                                                              temp_child_product.filter(category__cid=26).count()]]
         category_list = [u"女装/外套", u"女装/连衣", u"女装/套装", u"女装/下装", u"女装/上装", u"女装/配饰",
-                         u"童装/配饰", u"童装/下装", u"童装/哈衣", u"童装/外套", u"童装/套装", u"童装/连身", u"童装/上装", u"童装/亲子"]
+                         u"童装/配饰", u"童装/下装", u"童装/哈衣", u"童装/外套", u"童装/套装", u"童装/连身", u"童装/上装", u"童装/亲子", u"童装/内衣"]
         return Response({"result_data": result_data, "category_list": category_list,
                          "start_date_str": start_date_str, "end_date_str": end_date_str})
 
