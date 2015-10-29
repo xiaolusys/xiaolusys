@@ -410,7 +410,6 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
 
     def show_memo(self, obj):
         memo = u'{0}'.format(str(obj.memo).replace('\r', '<br><br>'))
-        print memo
         return memo
     show_memo.allow_tags = True
     show_memo.short_description = u"备注信息"
