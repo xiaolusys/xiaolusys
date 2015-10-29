@@ -49,7 +49,7 @@ def cache_lock(cache_time=0,lock_wait=False):
     def func_wraper(func):
         def wraper(*args,**kwargs):
             cache_key = get_func_cache_key(func.__name__,*args,**kwargs)
-            lock = CacheLock(cache_key, cache_time, lock_wait=True)
+            lock = CacheLock(cache_key, cache_time, lock_wait=lock_wait)
             try:
                 lock.acquire()
                 return func(*args,**kwargs)

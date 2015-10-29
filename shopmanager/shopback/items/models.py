@@ -489,7 +489,7 @@ class ProductSku(models.Model):
     sale_num      = models.IntegerField(default=0,verbose_name=u'日出库数') #日出库
     reduce_num    = models.IntegerField(default=0,verbose_name='预减数')    #下次入库减掉这部分库存
     lock_num      = models.IntegerField(default=0,verbose_name='锁定数')    #特卖平台待付款数量
-    sku_inferior_num = models.IntegerField(default=0, verbose_name=u"规格次品数") #　保存对应sku的次品数量
+    sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数") #　保存对应sku的次品数量
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name='标准进价')
