@@ -30,7 +30,7 @@ def task_stats_daily_product(pre_day=1):
 @task()
 def task_stats_product():
     """计算汇总的表"""
-    function_of_task.daily_data_stats()
+    function_of_task.daily_data_stats_update()
 
 
 @task(max_retry=3, default_retry_delay=5)
@@ -733,7 +733,7 @@ def task_daily_preview(default_time=15):
 
 def function_of_settime(default_time):
     today = datetime.date.today()
-    for i in range(0, default_time):
+    for i in range(1, default_time):
         target_order = DailySupplyChainStatsOrder.objects.filter(sale_time=today-datetime.timedelta(days=i))
         total_time = 0
         total_num = 0
