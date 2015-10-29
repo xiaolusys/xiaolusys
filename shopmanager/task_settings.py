@@ -274,6 +274,11 @@ SHOP_APP_SCHEDULE = {
         'schedule': crontab(minute="30", hour="2"),
         'args': ()
     },
+    u'定时发货速度':{
+        'task':'flashsale.dinghuo.tasks.task_daily_preview',
+        'schedule': crontab(minute="50", hour="2"),
+        'args': ()
+    },
     u'定时每日更新红包数据':{
         'task':'flashsale.pay.tasks.task_Pull_Red_Envelope',
         'schedule': crontab(minute="10", hour="23"),
