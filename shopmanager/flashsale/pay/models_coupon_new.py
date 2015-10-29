@@ -42,6 +42,13 @@ class CouponTemplate(models.Model):
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.title)
 
+    def template_check(self):
+        """ 模板检查 """
+        if self.valid != True:
+            raise AssertionError("Coupon not valid")
+        else:
+            return self
+
 
 class CouponsPool(models.Model):
     RELEASE = 1
@@ -68,6 +75,19 @@ class CouponsPool(models.Model):
         nums = CouponsPool.objects.filter(template=self.template).count()
         return nums
 
+    def poll_check(self):
+        """ 券池检查 """
+        if self.status == CouponsPool.UNRELEASE:
+            raise AssertionError("Coupon not release")
+        elif self.status == CouponsPool.PAST:
+            raise AssertionError("Coupon past")
+        return self
+
+    def past_pool(self):
+        """ 过期操作 """
+        self.status = self.PAST
+        self.save()
+
 
 class UserCoupon(models.Model):
     USED = 1
@@ -91,6 +111,38 @@ class UserCoupon(models.Model):
 
     def __unicode__(self):
         return "<%s,%s>" % (self.id, self.customer)
+
+    def coupon_check(self):
+        """ 用户优惠券检查 """
+        if self.status == self.USED:
+            raise AssertionError("Coupon used")
+        elif self.status == self.FREEZE:
+            raise AssertionError("Coupon freeze")
+        else:
+            return self
+
+    def use_coupon(self):
+        """ 使用优惠券 """
+        self.status = self.USED
+        self.save()
+
+    def freeze_coupon(self):
+        """ 冻结优惠券 """
+        self.status = self.FREEZE
+        self.save()
+
+    def unfreeze_coupon(self):
+        """ 解冻优惠券 """
+        self.status = self.UNUSED
+        self.save()
+
+    def check_usercoupon(self):
+        """  验证并检查 用户优惠券 """
+        template = self.cp_id.template.template_check()
+        self.cp_id.poll_check()
+        self.coupon_check()
+        self.use_coupon()
+        return template.value
 
     def release_deposit_coupon(self, **kwargs):
         """
