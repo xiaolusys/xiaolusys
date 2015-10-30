@@ -449,14 +449,19 @@ def task_calc_stock_top(start_time_str, end_time_str, limit=100):
             except:
                 sale_product_charge = ""
                 product_supplier = ""
-            sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num, "inferior_num": product.inferior_num,
-                                   "left_num": product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0,
+            left_num = product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0
+            sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num,
+                                   "inferior_num": product.inferior_num,
+                                   "left_num": left_num,
                                    'sale_time': str(product.sale_time) if product.sale_time else "",
                                    "category": category_name, "pic_path": product.PIC_PATH,
-                                   "sale_product_charge": sale_product_charge, "product_supplier": product_supplier}
+                                   "sale_product_charge": sale_product_charge, "product_supplier": product_supplier,
+                                   "cost": product.cost, "total_cost": product.cost * left_num}
         else:
+            left_num = product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0
             sale_top[router_id]['collect_num'] += product.collect_num
             sale_top[router_id]['inferior_num'] += product.inferior_num
+            sale_top[router_id]['total_cost'] += product.cost * left_num
             sale_top[router_id]['left_num'] += (
                 product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0)
 
