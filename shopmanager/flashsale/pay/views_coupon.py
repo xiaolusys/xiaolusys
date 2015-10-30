@@ -1,31 +1,71 @@
 # coding=utf-8
 from .models_coupon_new import UserCoupon, CouponTemplate
-from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework import permissions
+from rest_framework.response import Response
+from django.forms import model_to_dict
+from flashsale.pay.models import SaleTrade
+from rest_framework.exceptions import APIException
+from common.modelutils import update_model_fields
+from shopback.base import log_action, CHANGE
+from django.db.models import F
 
 
-def release_sale_refund_coupon(request):
-    # 调用类方法　生成邮费优惠券 并且退货原因是因为质量问题　才发放
-    content = request.REQUEST
-    buyer_id = content.get("buyer_id", None)
-    trade_id = content.get("order_id", None)
-    template_type = content.get("template", None)
-    POST_COUPON = {'POST_FEE_5': 1,
-                   'POST_FEE_10': 4,
-                   'POST_FEE_15': 5}
-    try:
-        template = CouponTemplate.objects.get(type=POST_COUPON[template_type])
-    except CouponTemplate.DoesNotExist:
-        return HttpResponse("no_template")
+class RefundCouponView(APIView):
+    queryset = SaleTrade.objects.all()
+    usercoupons = UserCoupon.objects.all()
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    template_name = "salerefund/release_post_fee.html"
+    permission_classes = (permissions.IsAuthenticated,)
 
-    if buyer_id and trade_id:
-        kwargs = {"buyer_id": buyer_id, "trade_id": trade_id, "template_id": template.id}
-        # 查看该用户该订单是否有发过邮费优惠券
-        uc = UserCoupon.objects.filter(customer=buyer_id, sale_trade=trade_id)
-        if uc.exists():
-            return HttpResponse("already")
-        else:
-            ucr = UserCoupon()
-            ucr.release_by_template(**kwargs)
-        return HttpResponse("ok")
-    else:
-        return HttpResponse("arg_error")
+    def get_trade(self, tid):
+        try:
+            trade = SaleTrade.objects.get(tid=tid)
+        except SaleTrade.DoesNotExist:
+            raise APIException(u"订单未找到")
+        return trade
+
+    def get_template(self, template_type):
+        POST_COUPON = {'POST_FEE_5': 1,
+                       'POST_FEE_10': 4,
+                       'POST_FEE_15': 5}
+        try:
+            template = CouponTemplate.objects.get(type=POST_COUPON[template_type])
+        except CouponTemplate.DoesNotExist:
+            raise APIException(u"优惠券未找到")
+        return template
+
+    def check_order_coupon(self, trade):
+        coupon = self.usercoupons.filter(sale_trade=trade.id, cp_id__template__type__in=(
+            CouponTemplate.POST_FEE_5, CouponTemplate.POST_FEE_10, CouponTemplate.POST_FEE_15))
+        if coupon.exists():
+            raise APIException(u"已经发放过优惠券")
+
+    def memo_trade(self, user, trade, memo):
+        trade.seller_memo += memo
+        update_model_fields(trade, update_fields=['seller_memo'])
+        log_action(user, trade, CHANGE, u'退货退款问题发放优惠券修改卖家备注')
+
+    def get(self, request):
+        content = request.REQUEST
+        trade_tid = content.get("trade_tid", None)
+        trade = model_to_dict(self.get_trade(trade_tid)) if trade_tid is not None else None
+        return Response({'trade': trade})
+
+    def post(self, request):
+        content = request.REQUEST
+        trade_id = content.get("trade_tid", None)
+        template_type = content.get("template", None)
+        memo = content.get("memo", None)
+        user = request.user.id
+
+        trade = self.get_trade(trade_id)
+        self.check_order_coupon(trade)
+        template = self.get_template(template_type)
+        self.memo_trade(user, trade, memo)
+
+        kwargs = {"buyer_id": trade.buyer_id, "trade_id": trade.id, "template_id": template.id}
+        ucr = UserCoupon()
+        ucr.release_by_template(**kwargs)
+        return Response({'res': "ok"})
