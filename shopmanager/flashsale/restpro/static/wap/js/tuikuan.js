@@ -135,7 +135,7 @@ function Button_tijiao() {
     var data = {};
     var refund_reason = $("#selec_resason").val();
     var shenqingjine = $.trim($("#shenqingjine").val());     //　退款的订单金额
-    var feedback = $("#feedback").val();
+    var description = $("#description").val();
     var checkNum = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;
 
     var urlParams = parseUrlParams(window.location.href);
@@ -154,11 +154,11 @@ function Button_tijiao() {
     else if (!checkNum.test(shenqingjine)) {
         drawToast("您申请金额填写的不正确哦~");
     }
-    else if (feedback == '') {
+    else if (description == '') {
         drawToast("您申请建议为空,更好的有助于售后更好的服务哦~");
     }
     else {
-        console.log(feedback, 'feedback');
+        console.log(description, 'description');
         console.log(shenqingjine, 'shenqingjine');
 
         var mess = "退款金额为：" + shenqingjine + "￥" + "\n您确定退单？";
@@ -170,7 +170,7 @@ function Button_tijiao() {
             "id": oid,
             "num": num,
             "sum_price": shenqingjine,
-            "feedback": feedback,
+            "description": description,
             "modify": modify
         };
 

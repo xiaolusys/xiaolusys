@@ -101,7 +101,7 @@ def refund_Handler(request):
     reason = int(request.data.get("reason", "0"))
     num = int(request.data.get("num", 0))
     refund_fee = float(request.data.get("sum_price", 0))
-    desc = request.data.get("feedback", '')
+    desc = request.data.get("description", '')
 
     if modify == 2:  # 修改该物流信息
         modify_refund(customer, company, oid, sid)
