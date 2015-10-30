@@ -34,7 +34,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             --description:  申请描述
         -修改退款单
             --id:   sale order id
-            --modify:   2
+            --modify:   1
             --reason:   退货原因
             --num:  退货数量
             --sum_price:    申请金额
