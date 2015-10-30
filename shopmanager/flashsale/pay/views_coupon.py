@@ -9,7 +9,6 @@ from flashsale.pay.models import SaleTrade
 from rest_framework.exceptions import APIException
 from common.modelutils import update_model_fields
 from shopback.base import log_action, CHANGE
-from django.db.models import F
 
 
 class RefundCouponView(APIView):
