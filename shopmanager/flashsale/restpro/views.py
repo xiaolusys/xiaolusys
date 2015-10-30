@@ -24,7 +24,31 @@ import json
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    - {prefix}/method: get 获取用户的退款单列表
+    - {prefix}/method: post 创建用户的退款单
+        -创建退款单
+            --id:   sale order id
+            --reason:   退货原因
+            --num:      退货数量
+            --sum_price:    申请金额
+            --description:  申请描述
+        -修改退款单
+            --id:   sale order id
+            --modify:   2
+            --reason:   退货原因
+            --num:  退货数量
+            --sum_price:    申请金额
+            --description:  申请描述
+        -添加退款单物流信息
+            --id:   sale order id
+            --modify:   2
+            --company:  物流公司
+            --sid:  物流单号
+    -{prefix}/{{ order_id }}/get_by_order_id/method:get  根据订单id 获取指定的退款单
+     返回: feedback  驳回原因
+            id: id
+            buyer_id: 用户id
+            reason: 买家申请原因
     """
     queryset = SaleRefund.objects.all()
     serializer_class = serializers.SaleRefundSerializer# Create your views here.
@@ -48,26 +72,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        """
-        -创建退款单
-            --id:   sale order id
-            --reason:   退货原因
-            --num:      退货数量
-            --sum_price:    申请金额
-            --description:  申请描述
-        -修改退款单
-            --id:   sale order id
-            --modify:   2
-            --reason:   退货原因
-            --num:  退货数量
-            --sum_price:    申请金额
-            --description:  申请描述
-        -添加退款单物流信息
-            --id:   sale order id
-            --modify:   2
-            --company:  物流公司
-            --sid:  物流单号
-        """
+
         res = refund_Handler(request)
         return Response(res)
 
