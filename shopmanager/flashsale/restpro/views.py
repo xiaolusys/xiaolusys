@@ -49,7 +49,24 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """
-            创建退款单 根据退款状态的不同 创建不同的状态的退款/退款单
+        -创建退款单
+            --id:   sale order id
+            --reason:   退货原因
+            --num:      退货数量
+            --sum_price:    申请金额
+            --description:  申请描述
+        -修改退款单
+            --id:   sale order id
+            --modify:   2
+            --reason:   退货原因
+            --num:  退货数量
+            --sum_price:    申请金额
+            --description:  申请描述
+        -添加退款单物流信息
+            --id:   sale order id
+            --modify:   2
+            --company:  物流公司
+            --sid:  物流单号
         """
         res = refund_Handler(request)
         return Response(res)
