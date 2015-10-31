@@ -175,43 +175,43 @@ def release_Coupon_11_11(sender, instance, created, **kwargs):
     """
     双十一之前 发放双十一当天专用  优惠券   捕捉在 1号到10 号的付款记录  如果是已经付款 则 发放优惠券 仅发一张
     """
+    trade = instance.sale_trade
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
     end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
-    if instance.buyer_id in (11, 6):  # 代理机测试用户id
+    if trade.buyer_id in (11, 6):  # 代理机测试用户id
         start_time = start_time - datetime.timedelta(days=3)  # 提前三天
 
     now = datetime.datetime.now()
-    logger.error(u'用户是小波测试：%s--%s' % (start_time, end_time), exc_info=True)
+    logger.error(u'用户是小波测试：%s--%s buyer_id %s' % (start_time, end_time, trade.buyer_id), exc_info=True)
     if now <= start_time or now >= end_time:
         return
     # 如果是充值产品 则不发放优惠券
-    order = instance.sale_orders.all()[0] if instance.sale_orders.exists() else False
-    if order and order.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
+    if instance.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
         return
     try:
-        coup = UserCoupon.objects.get(customer=instance.buyer_id, cp_id__template__type=CouponTemplate.DOUBLE_11)
+        coup = UserCoupon.objects.get(customer=trade.buyer_id, cp_id__template__type=CouponTemplate.DOUBLE_11)
         # 判断这个交易的创建时间
-        if instance.created <= start_time or instance.created >= end_time:
+        if trade.created <= start_time or trade.created >= end_time:
             # 不是这段时间创建的对象不去处理
             return
         # 存在则检查这个交易是否退款关闭 是则将优惠券状态 该为 冻结
-        if int(coup.sale_trade) == instance.id and instance.status == SaleTrade.TRADE_CLOSED:
+        if int(coup.sale_trade) == trade.id and trade.status == SaleTrade.TRADE_CLOSED:
             coup.status = UserCoupon.FREEZE
             coup.save()
         # 如果交易成功则将
-        elif instance.status in (
+        elif trade.status in (
                 SaleTrade.TRADE_FINISHED, SaleTrade.WAIT_SELLER_SEND_GOODS, SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
                 SaleTrade.TRADE_BUYER_SIGNED) and coup.status == UserCoupon.FREEZE:
-            coup.sale_trade = instance.id
+            coup.sale_trade = trade.id
             coup.status = UserCoupon.UNUSED  # 从冻结状态 改为 未使用
             coup.save()
     except UserCoupon.DoesNotExist:
-        logger.error(u'instance status is:%s' % instance.status, exc_info=True)
-        if instance.status != SaleTrade.WAIT_SELLER_SEND_GOODS:
+        logger.error(u'instance status is:%s' % trade.get_status_display(), exc_info=True)
+        if trade.status != SaleTrade.WAIT_SELLER_SEND_GOODS:
             return
         # 发放优惠券
-        trade_id = instance.id  # 交易id
-        buyer_id = instance.buyer_id  # 用户
+        trade_id = trade.id  # 交易id
+        buyer_id = trade.buyer_id  # 用户
         try:
             template = CouponTemplate.objects.get(type=CouponTemplate.DOUBLE_11)
             template_id = template.id
@@ -224,11 +224,11 @@ def release_Coupon_11_11(sender, instance, created, **kwargs):
         coupon = UserCoupon()
         coupon.release_by_template(**kwargs)
 
-    if instance.buyer_id in (11, 6):
-        logger.error(u'running end：%s' % instance.buyer_id, exc_info=True)
+    if trade.buyer_id in (11, 6):
+        logger.error(u'running end：%s' % trade.buyer_id, exc_info=True)
 
         # except Exception, exc:
         # logger.error(exc.message, exc_info=True)
 
 
-post_save.connect(release_Coupon_11_11, sender=SaleTrade)
+post_save.connect(release_Coupon_11_11, sender=SaleOrder)
