@@ -195,8 +195,9 @@ def release_Coupon_11_11(sender, obj, **kwargs):
     try:
         coup = UserCoupon.objects.get(customer=obj.buyer_id, cp_id__template__type=CouponTemplate.DOUBLE_11)
         coup.sale_trade = obj.id
-        coup.status = UserCoupon.UNUSED  # 从冻结状态 改为 未使用
-        coup.save()
+        if coup.status == UserCoupon.FREEZE:
+            coup.status = UserCoupon.UNUSED  # 从冻结状态 改为 未使用
+            coup.save()
     except UserCoupon.DoesNotExist:
         logger.error(u'没有优惠券创建:%s' % obj.status, exc_info=True)
         # 发放优惠券
