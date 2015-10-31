@@ -181,6 +181,7 @@ def release_Coupon_11_11(sender, instance, created, **kwargs):
         start_time = start_time - datetime.timedelta(days=3)  # 提前三天
 
     now = datetime.datetime.now()
+    logger.error(u'用户是小波测试：%s--%s' % (start_time, end_time), exc_info=True)
     if now <= start_time or now >= end_time:
         return
     # 如果是充值产品 则不发放优惠券
@@ -205,6 +206,7 @@ def release_Coupon_11_11(sender, instance, created, **kwargs):
             coup.status = UserCoupon.UNUSED  # 从冻结状态 改为 未使用
             coup.save()
     except UserCoupon.DoesNotExist:
+        logger.error(u'instance status is:%s' % instance.status, exc_info=True)
         if instance.status != SaleTrade.WAIT_SELLER_SEND_GOODS:
             return
         # 发放优惠券
@@ -218,10 +220,15 @@ def release_Coupon_11_11(sender, instance, created, **kwargs):
         except CouponTemplate.MultipleObjectsReturned:
             return
         kwargs = {"trade_id": trade_id, "buyer_id": buyer_id, "template_id": template_id}
+        logger.error(u'usercoupon kwargs is: %s' % kwargs, exc_info=True)
         coupon = UserCoupon()
         coupon.release_by_template(**kwargs)
-    # except Exception, exc:
-    #     logger.error(exc.message, exc_info=True)
+
+    if instance.buyer_id in (11, 6):
+        logger.error(u'running end：%s' % instance.buyer_id, exc_info=True)
+
+        # except Exception, exc:
+        # logger.error(exc.message, exc_info=True)
 
 
 post_save.connect(release_Coupon_11_11, sender=SaleTrade)

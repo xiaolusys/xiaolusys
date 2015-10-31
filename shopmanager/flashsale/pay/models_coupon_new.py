@@ -272,4 +272,3 @@ class UserCoupon(models.Model):
                 cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
                 cou.save()
                 return "success"
-        return None
