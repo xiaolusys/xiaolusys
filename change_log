@@ -1,4 +1,4 @@
-############2015-10-13######################
+############2015-10-30###################
 alter table pay_coupon_template add use_fee double Not null;
 ########### 2015-10-24########### 2015-10-28 ################# #################
 alter table supply_chain_stats_daily  add fahuo_num int(11) default 0;

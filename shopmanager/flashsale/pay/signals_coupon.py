@@ -175,7 +175,7 @@ def release_Coupon_11_11(sender, instance, created, **kwargs):
     """
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
     end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
-    if instance.buyer_id == 11:  # 李页楚测试号
+    if instance.buyer_id in (11, 6):  # 代理机测试用户id
         start_time = start_time - datetime.timedelta(days=3)    # 提前三天
 
     now = datetime.datetime.now()
