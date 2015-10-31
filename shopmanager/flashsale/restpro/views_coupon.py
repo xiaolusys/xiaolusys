@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from flashsale.pay.models import Customer
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import APIException
 
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
@@ -104,3 +105,17 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         else:
             return Response({"res": "not_release"})
 
+    @detail_route(methods=["post"])
+    def choose_coupon(self, request, pk=None):
+        print "request data :", request.data
+        content = request.REQUEST
+        price = float(content.get("price", 0))
+        coupon_id = pk  # 获取order_id
+        queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
+        coupon = queryset.get(id=pk)
+        try:
+            coupon.check_usercoupon()  # 验证优惠券
+            coupon.cp_id.template.usefee_check(price)
+        except Exception, exc:
+            raise APIException(u"错误:%s" % exc.message)
+        return Response({"res": "ok"})

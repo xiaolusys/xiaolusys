@@ -72,7 +72,7 @@ function get_Coupon_On_Choose() {
             // 显示提示信息　没有优惠券
             pop_info();
         }
-         pageNumber += 1;
+        pageNumber += 1;
     });
 }
 
@@ -111,21 +111,26 @@ function choose_Coupon(coupon_id, coupon_type) {
     var price = parseFloat(getUrlParam('price'));
     var pro_num = parseFloat(getUrlParam('pro_num'));
     console.log("choose coupon_type:", coupon_type);
-    if (coupon_type == 0 && price >= 30) {
-        copon_judeg(coupon_id, pro_num)
-    }
-    else if (coupon_type == 2 && price >= 150) {//这里判断要满150
-        copon_judeg(coupon_id, pro_num)
-    }
-    else if (coupon_type == 3 && price >= 259) {//这里判断要满259
-        copon_judeg(coupon_id, pro_num)
-    }
-    else if (coupon_type == 1||coupon_type == 4||coupon_type == 5) {
-        // 补邮费优惠券没有门槛限制
-        copon_judeg(coupon_id, pro_num)
-    }
-    else {
-        drawToast("商品价格不足优惠券使用金额哦~");
+    var couponUrl = GLConfig.baseApiUrl + GLConfig.choose_coupon.template({"coupon_id": coupon_id});
+    var data = {"price": price, "pro_num": pro_num};
+    $.ajax({
+        "url": couponUrl,
+        "data": data,
+        "type": "post",
+        dataType: 'json',
+        success: couponcallback,
+        error: function (err) {
+            var resp = JSON.parse(err.responseText);
+            if (!isNone(resp.detail)) {
+                drawToast(resp.detail);
+            }
+        }
+    });
+    function couponcallback(res) {
+        console.log(res);
+        if (res.res == 'ok') {
+            copon_judeg(coupon_id, pro_num)
+        }
     }
 }
 function set_pro_num() {
