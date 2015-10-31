@@ -218,17 +218,10 @@ def release_Coupon_11_11(sender, obj, **kwargs):
 
 signal_saletrade_pay_confirm.connect(release_Coupon_11_11, sender=SaleTrade)
 
-from django.shortcuts import get_object_or_404
-
 
 def freeze_coupon_11_11(sender, obj, **kwargs):
     # 判断这个交易的创建时间
     # 退款信号
-    start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
-    end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
-    trade = get_object_or_404(SaleTrade, id=obj.trade_id)
-    if trade.created <= start_time or trade.created >= end_time:
-        return  # 不是这段时间创建的交易不去处理
     try:
         coup = UserCoupon.objects.get(customer=obj.buyer_id, sale_trade=obj.trade_id,
                                       cp_id__template__type=CouponTemplate.DOUBLE_11)
