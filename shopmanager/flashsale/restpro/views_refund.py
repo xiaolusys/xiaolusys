@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import exceptions
 from common.modelutils import update_model_fields
 from flashsale.pay.tasks import pushTradeRefundTask
+from flashsale.pay.signals import signal_saletrade_refund_post
 
 
 def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None, reason=None, desc=None,
@@ -53,6 +54,8 @@ def common_Handler(customer=None, order=None, reason=None, num=None, refund_fee=
         save_Other_Atriibut(order=order, sale_refund=sale_refund, refund_num=num, good_status=refund_type,
                             reason=reason, desc=desc)
         log_action(customer, sale_refund, ADDITION, u'用户售后增加退货款单信息！')
+        # 发送信号退款
+        signal_saletrade_refund_post.send(sender=SaleRefund, obj=sale_refund)
         pushTradeRefundTask(sale_refund.id)
     elif modify == 1 and state is False:  # 有退款单
         # 修改该订单的
