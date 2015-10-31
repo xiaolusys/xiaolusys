@@ -29,6 +29,7 @@ class CouponTemplate(models.Model):
     limit_num = models.IntegerField(default=1, verbose_name=u"每人领取数量")
     preset_days = models.IntegerField(default=0, verbose_name=u"预置天数")
     active_days = models.IntegerField(default=0, verbose_name=u"有效天数")
+    use_fee = models.FloatField(default=0.0, verbose_name=u'满单额')  # 满多少可以使用
     deadline = models.DateTimeField(blank=True, verbose_name=u'截止日期')
     use_notice = models.TextField(blank=True, verbose_name=u"使用须知")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
@@ -45,9 +46,28 @@ class CouponTemplate(models.Model):
     def template_check(self):
         """ 模板检查 """
         if self.valid != True:
-            raise AssertionError("Coupon not valid")
+            raise AssertionError(u"无效优惠券")
         else:
             return self
+
+    def usefee_check(self, fee):
+        """ 满单额条件检查　"""
+        if self.use_fee == 0:
+            return
+        elif self.use_fee > fee:
+            raise AssertionError(u'满%s使用' % self.use_fee)
+
+    def check_date(self):
+        """ 检查有效天数　（匹配截止日期）"""
+        # 判断当前时间是否在　有效时间内
+        now = datetime.datetime.now()
+        if now > self.deadline:
+            raise AssertionError(u'超过截止日期%s' % self.deadline)
+        if self.active_days == 0:  # 没有设置有效时间
+            return
+        vas_t = self.deadline - datetime.timedelta(days=self.active_days)
+        if now < vas_t:
+            raise AssertionError(u'%s至%s启动使用' % (vas_t, self.deadline))
 
 
 class CouponsPool(models.Model):
@@ -78,9 +98,9 @@ class CouponsPool(models.Model):
     def poll_check(self):
         """ 券池检查 """
         if self.status == CouponsPool.UNRELEASE:
-            raise AssertionError("Coupon not release")
+            raise AssertionError(u"优惠券没有发放")
         elif self.status == CouponsPool.PAST:
-            raise AssertionError("Coupon past")
+            raise AssertionError(u"优惠券已过期")
         return self
 
     def past_pool(self):
@@ -115,9 +135,9 @@ class UserCoupon(models.Model):
     def coupon_check(self):
         """ 用户优惠券检查 """
         if self.status == self.USED:
-            raise AssertionError("Coupon used")
+            raise AssertionError(u"优惠券已使用")
         elif self.status == self.FREEZE:
-            raise AssertionError("Coupon freeze")
+            raise AssertionError(u"优惠券已冻结")
         else:
             return self
 
@@ -138,11 +158,11 @@ class UserCoupon(models.Model):
 
     def check_usercoupon(self):
         """  验证并检查 用户优惠券 """
-        template = self.cp_id.template.template_check()
+        self.cp_id.template.template_check()
         self.cp_id.poll_check()
         self.coupon_check()
-        self.use_coupon()
-        return template.value
+        self.cp_id.template.check_date()
+        return
 
     def release_deposit_coupon(self, **kwargs):
         """

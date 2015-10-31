@@ -174,7 +174,9 @@ def release_Coupon_11_11(sender, instance, created, **kwargs):
     双十一之前 发放双十一当天专用  优惠券   捕捉在 1号到10 号的付款记录  如果是已经付款 则 发放优惠券 仅发一张
     """
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
-    end_time = datetime.datetime(215, 11, 10, 23, 59, 59)
+    end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
+    if instance.buyer_id in (11, 6):  # 代理机测试用户id
+        start_time = start_time - datetime.timedelta(days=3)    # 提前三天
 
     now = datetime.datetime.now()
     if now <= start_time or now >= end_time:
