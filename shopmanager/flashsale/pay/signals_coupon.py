@@ -179,16 +179,12 @@ def release_Coupon_11_11(sender, obj, **kwargs):
     """
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
     end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
-    if obj.buyer_id in (11, 6, 1):  # 代理机测试用户id
-        start_time = start_time - datetime.timedelta(days=3)  # 提前三天
-    if obj.buyer_id not in (11, 6, 1):
-        return
+
     now = datetime.datetime.now()
     if now <= start_time or now >= end_time:
         return
     # 如果是充值产品 则不发放优惠券
     order = obj.sale_orders.all()[0] if obj.sale_orders.exists() else False
-    logger.error(u'交易参数　:%s %s' % ( order, obj.buyer_id))
 
     if order and order.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
         return
@@ -199,7 +195,6 @@ def release_Coupon_11_11(sender, obj, **kwargs):
             coup.status = UserCoupon.UNUSED  # 从冻结状态 改为 未使用
             coup.save()
     except UserCoupon.DoesNotExist:
-        logger.error(u'没有优惠券创建:%s' % obj.status, exc_info=True)
         # 发放优惠券
         trade_id = obj.id  # 交易id
         buyer_id = obj.buyer_id  # 用户
@@ -230,7 +225,7 @@ def freeze_coupon_11_11(sender, obj, **kwargs):
         coup.status = UserCoupon.FREEZE
         coup.save()
     except UserCoupon.DoesNotExist:
-        logger.error(u'用户%s，交易%s未发双十一优惠券' % (obj.buyer_id, obj.trade_id), exc_info=True)
+        return
 
 
 signal_saletrade_refund_post.connect(freeze_coupon_11_11, sender=SaleRefund)
