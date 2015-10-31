@@ -31,7 +31,7 @@ function Calc_stats_data() {
     $("#data-table-result").append(format_html);
 
     var child_num1 = 0, child_num2 = 0, child_num3 = 0, child_num4 = 0, child_num5 = 0,
-        child_num6 = 0, child_num7 = 0, child_num8 = 0, child_num9 = 0, child_num10 = 0;
+        child_num6 = 0, child_num7 = 0, child_num8 = 0, child_num9 = 0, child_num10 = 0, child_num11 = 0;
     for (var i = 0; i < child_rows.length; i++) {
         row = child_rows[i];
         child_num1 += parseInt(row.cells[1].innerText);
@@ -44,9 +44,10 @@ function Calc_stats_data() {
         child_num8 += parseInt(row.cells[8].innerText);
         child_num9 += parseInt(row.cells[9].innerText);
         child_num10 += parseInt(row.cells[10].innerText);
+        child_num11 += parseInt(row.cells[11].innerText);
     }
-    var child_html = "<tr><td>汇总</td><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td><td>{9}</td></tr>";
-    var child_format_html = String.format(child_html, child_num1, child_num2, child_num3, child_num4, child_num5, child_num6, child_num7, child_num8, child_num9, child_num10);
+    var child_html = "<tr><td>汇总</td><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td><td>{9}</td><td>{10}</td></tr>";
+    var child_format_html = String.format(child_html, child_num1, child_num2, child_num3, child_num4, child_num5, child_num6, child_num7, child_num8, child_num9, child_num10, child_num11);
     $("#data-table-child-result").append(child_format_html);
 
 }

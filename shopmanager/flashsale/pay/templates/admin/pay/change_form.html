@@ -36,58 +36,6 @@
 
 {% block after_field_sets %}{{ block.super }}
 
-{% if original.reason == "开线/脱色/脱毛/有色差/有虫洞"%}
-    <script>
-        function release_coupon_action(order_id,buyer_id,cou_type) {
-            event.preventDefault();//阻止提交
-            console.log("{{ original.reason }}");
-            var POST_COUPON = {
-                typ_5: 'POST_FEE_5',
-                typ_10: 'POST_FEE_10',
-                typ_15: 'POST_FEE_15'
-            };
-            var btn = $(".post_fee");
-            if(btn.hasClass('loading')){
-                return
-            }
-            btn.addClass('loading');
-            var coupon_type = POST_COUPON.typ_5;
-            if(cou_type==10){
-                coupon_type = POST_COUPON.typ_10;
-            }
-            else if(cou_type==15){
-                coupon_type = POST_COUPON.typ_15;
-            }
-            var coupon_url = "/mm/rsrc/";
-
-            var data = {"buyer_id":buyer_id,"order_id":order_id,"template":coupon_type};
-            console.log('data:',data);
-            $.ajax({
-                url:coupon_url,
-                type:"post",
-                data:data,
-                success:couponCallBack
-            });
-            function couponCallBack(res){
-                btn.removeClass('loading');
-                console.log("debug res:",res);
-                if(res=="arg_error"){
-                    alert("参数错误");
-                }
-                else if(res=="already"){
-                    alert("已经发过了");
-                }
-                else if(res=="ok"){
-                    alert("发送成功");
-                }
-            }
-        }
-    </script>
-    <br><br>
-    <button id="release_coupon_5" class="post_fee" style="font-size: 15px;" onclick="release_coupon_action({{ original.order_id }},{{ original.buyer_id }},5)">发邮费优惠券(￥5)</button>
-    <button id="release_coupon_10" class="post_fee"  style="font-size: 15px;margin-right: 30px;margin-left: 30px" onclick="release_coupon_action({{ original.order_id }},{{ original.buyer_id }},10)">发邮费优惠券(￥10)</button>
-    <button id="release_coupon_15" class="post_fee"   style="font-size: 15px;" onclick="release_coupon_action({{ original.order_id }},{{ original.buyer_id }},15)">发邮费优惠券(￥15)</button>
-{% endif %}
 
 {% if original.refund_no %}
 {% if  original.status == 3 or original.status == 4 or original.status == 5 %}

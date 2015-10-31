@@ -20,49 +20,49 @@ import logging
 logger = logging.getLogger('django.request')
 
 class RefundApply(APIView):
-    
+
     renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
 #     permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundapply.html"
-    
+
     def get(self, request, format=None):
-        
+
         content  = request.GET
         user     = request.user
         customer = get_object_or_404(Customer,user=request.user)
-        
+
         trade_id = content.get('trade_id')
         order_id = content.get('order_id')
-        
+
         sale_order = get_object_or_404(SaleOrder,pk=order_id,sale_trade=trade_id,sale_trade__buyer_id=customer.id)
-        
+
         if not sale_order.refundable:
             raise Http404
-        
+
         if sale_order.refund:
             return redirect('refund_confirm',pk=sale_order.refund.id)
 
         return Response({'order':model_to_dict(sale_order)})
-    
+
     def post(self, request, format=None):
-        
+
         content  = request.POST
         user     = request.user
-  
+
         trade_id = content.get('trade_id')
         order_id = content.get('order_id')
         return_good = content.get('return_good')
-        
+
         customer = get_object_or_404(Customer,user=request.user)
         sale_trade = get_object_or_404(SaleTrade,pk=trade_id,buyer_id=customer.id)
         sale_order = get_object_or_404(SaleOrder,pk=order_id,sale_trade=trade_id,sale_trade__buyer_id=customer.id)
-        
+
         if not sale_order.refundable:
             return HttpResponseForbidden('UNREFUNDABLE')
-        
+
         if sale_order.refund:
             return redirect('refund_confirm',pk=sale_order.refund.id)
-        
+
         params = {
                   'reason':content.get('reason'),
                   'refund_fee':content.get('refund_fee'),
@@ -89,18 +89,18 @@ class RefundApply(APIView):
                            'good_status':SaleRefund.BUYER_RECEIVED,
                            'status':SaleRefund.REFUND_WAIT_SELLER_AGREE
                            })
-            
+
         else:
             good_status   = SaleRefund.BUYER_NOT_RECEIVED
             good_receive  = content.get('good_receive')
             if good_receive.lower() == 'y':
                 good_status = SaleRefund.BUYER_RECEIVED
-                
+
             params.update({'has_good_return':False,
                            'good_status':good_status,
                            'status':SaleRefund.REFUND_WAIT_SELLER_AGREE
                            })
-        
+
         sale_refund = SaleRefund.objects.create(**params)
 
         sale_order.refund_id  = sale_refund.id
@@ -112,33 +112,33 @@ class RefundApply(APIView):
             tasks.pushTradeRefundTask(sale_refund.id)
         else:
             tasks.pushTradeRefundTask.s(sale_refund.id)()
-        
+
         return Response(model_to_dict(sale_refund))
-    
-    
+
+
 class RefundConfirm(APIView):
-    
+
     renderer_classes = (JSONRenderer,TemplateHTMLRenderer)
 #     permission_classes = (permissions.IsAuthenticated,)
     template_name = "pay/mrefundconfirm.html"
-    
+
     def get(self, request, pk, format=None):
-        
+
         customer = get_object_or_404(Customer,user=request.user)
         sale_refund = get_object_or_404(SaleRefund,pk=pk)
         sale_order  = get_object_or_404(SaleOrder,pk=sale_refund.order_id,
                                         sale_trade=sale_refund.trade_id,
                                         sale_trade__buyer_id=customer.id)
-        
+
         refund_dict = model_to_dict(sale_refund)
         refund_dict.update({'created':sale_refund.created,
                             'modified':sale_refund.modified})
 
         return Response({'order':model_to_dict(sale_order),
                          'refund':refund_dict})
-    
+
     def post(self, request, pk, format=None):
-        
+
         return Response({})
 
 from shopback.base import log_action, User, ADDITION, CHANGE
@@ -299,4 +299,42 @@ class RefundPopPageView(APIView):
                 logger.error(exc.message, exc_info=True)
                 return Response({"res": "sys_error"})
         return Response({"res": True})
+
+
+"""
+fix the bug problem case run onece time only
+2015-10-28 17:31:05 start
+2015-10-28 15:32:08 end
+"""
+
+import datetime
+
+
+def fix_ref_exception():
+    start_time = datetime.datetime(2015, 10, 28, 15, 32, 5)
+    end_time = datetime.datetime(2015, 10, 28, 17, 31, 8)
+    refunds = SaleRefund.objects.filter(created__gte=start_time, created__lte=end_time)
+    print "deal with refund count  is :", refunds.count()
+    for ref in refunds:
+        order_id = ref.order_id
+        print "order_id:", order_id, 'ref id:', ref.id
+        try:
+            order = SaleOrder.objects.get(id=order_id)
+            trade = order.sale_trade
+            ref.item_id = order.item_id
+            ref.sku_id = order.sku_id
+            ref.title = order.title
+            ref.buyer_id = trade.buyer_id
+            ref.charge = trade.charge
+            ref.refund_num = order.num
+            ref.mobile = trade.receiver_mobile
+            ref.payment = order.payment
+            ref.refund_fee = order.payment
+            ref.save()
+        except Exception, exc:
+            logger.error(exc.message, exc_info=True)
+            print order_id
+            continue
+
+
 

@@ -18,6 +18,7 @@ from shopapp.weixin.models import get_Unionid
 from calendar import monthrange
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
+from shopback.categorys.models import ProductCategory
 
 
 logger = logging.getLogger('celery.handler')
@@ -398,48 +399,74 @@ def task_calc_sale_bad(start_time_str, end_time_str, category, limit=100):
     except Exception, exc:
         raise task_calc_sale_bad.retry(exc=exc)
 
-@task(max_retry=3, default_retry_delay=5)
+
+@task()
 def task_calc_stock_top(start_time_str, end_time_str, limit=100):
     """计算库存多的商品"""
-    try:
-        today = datetime.date.today()
-        if start_time_str:
-            year, month, day = start_time_str.split('-')
-            start_date = datetime.date(int(year), int(month), int(day))
+    today = datetime.date.today()
+    if start_time_str:
+        year, month, day = start_time_str.split('-')
+        start_date = datetime.date(int(year), int(month), int(day))
 
-        else:
-            start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
-        if end_time_str:
-            year, month, day = end_time_str.split('-')
-            end_date = datetime.date(int(year), int(month), int(day))
-        else:
-            end_date = today
-        """找出选择的开始月份和结束月份"""
+    else:
+        start_date = today - datetime.timedelta(days=monthrange(today.year, today.month)[1])
+    if end_time_str:
+        year, month, day = end_time_str.split('-')
+        end_date = datetime.date(int(year), int(month), int(day))
+    else:
+        end_date = today
+    """找出选择的开始月份和结束月份"""
 
-        outer_idset = set([])
-        sale_top = {}
-        product_qs = Product.objects.filter(status=Product.NORMAL, collect_num__gt=0).extra(
-            where=["CHAR_LENGTH(outer_id)>=9"]) \
-            .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8")).filter(
-            sale_time__range=(start_date, end_date))
+    outer_idset = set([])
+    sale_top = {}
+    product_qs = Product.objects.filter(status=Product.NORMAL, collect_num__gt=0).extra(
+        where=["CHAR_LENGTH(outer_id)>=9"]) \
+        .filter(Q(outer_id__startswith="9") | Q(outer_id__startswith="1") | Q(outer_id__startswith="8")).filter(
+        sale_time__range=(start_date, end_date))
 
-        for product in product_qs:
-            outer_id = product.outer_id
-            router_id = outer_id[0:-1]
-            if outer_id in outer_idset:
-                continue
-            outer_idset.add(outer_id)
-            if router_id not in sale_top:
-                sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num}
+    for product in product_qs:
+        outer_id = product.outer_id
+        router_id = outer_id[0:-1]
+        if outer_id in outer_idset:
+            continue
+        outer_idset.add(outer_id)
+        if router_id not in sale_top:
+            if product.category:
+                if product.category.is_parent == 1:
+                    category_name = product.category.name
+                else:
+                    cate = ProductCategory.objects.filter(cid=product.category.parent_cid)
+                    if cate.count() > 0:
+                        category_name = cate[0].name
+                    else:
+                        category_name = ""
             else:
-                sale_top[router_id]['collect_num'] += product.collect_num
+                category_name = ""
+            try:
+                sale_product = SaleProduct.objects.get(id=product.sale_product)
+                sale_product_charge = sale_product.contactor.username
+                product_supplier = sale_product.sale_supplier.supplier_name
+            except:
+                sale_product_charge = ""
+                product_supplier = ""
+            left_num = product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0
+            sale_top[router_id] = {'name': product.name, 'collect_num': product.collect_num,
+                                   "inferior_num": product.inferior_num,
+                                   "left_num": left_num,
+                                   'sale_time': str(product.sale_time) if product.sale_time else "",
+                                   "category": category_name, "pic_path": product.PIC_PATH,
+                                   "sale_product_charge": sale_product_charge, "product_supplier": product_supplier,
+                                   "cost": product.cost, "total_cost": product.cost * left_num}
+        else:
+            left_num = product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0
+            sale_top[router_id]['collect_num'] += product.collect_num
+            sale_top[router_id]['inferior_num'] += product.inferior_num
+            sale_top[router_id]['total_cost'] += product.cost * left_num
+            sale_top[router_id]['left_num'] += (
+                product.collect_num - product.wait_post_num if product.collect_num - product.wait_post_num > 0 else 0)
 
-        sale_list = sorted(sale_top.items(), key=lambda d: d[1]['collect_num'], reverse=True)
-        return sale_list[0:limit]
-
-    except Exception, exc:
-        raise task_calc_stock_top.retry(exc=exc)
-
+    sale_list = sorted(sale_top.items(), key=lambda d: d[1]['collect_num'], reverse=True)
+    return sale_list[0:limit]
 
 def get_new_user(user_data, old_user):
     new_user = []

@@ -36,6 +36,7 @@ from shopback.items.models import Product, ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
 import logging
+import decimal
 
 logger = logging.getLogger('restapi.errors')
 
@@ -134,6 +135,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             if shop_cart.count() > 0:
                 shop_cart_temp = shop_cart[0]
                 shop_cart_temp.num += int(sku_num) if sku_num else 0
+                shop_cart_temp.total_fee = decimal.Decimal(shop_cart_temp.total_fee) + sku.agent_price
                 shop_cart_temp.save()
                 return Response({"result": "1"}) #购物车已经有了
 
