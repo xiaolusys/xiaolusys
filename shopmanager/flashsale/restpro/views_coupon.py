@@ -109,7 +109,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     def choose_coupon(self, request, pk=None):
         print "request data :", request.data
         content = request.REQUEST
-        price = int(content.get("price", 0))
+        price = float(content.get("price", 0))
         coupon_id = pk  # 获取order_id
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)
