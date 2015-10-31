@@ -333,7 +333,7 @@ class Product(models.Model):
         update_model_fields(self,update_fields=['wait_post_num'])
         
         self.wait_post_num = self.__class__.objects.get(id=self.id).wait_post_num
-    
+        
     def update_reduce_num(self,num,full_update=False,dec_update=False):
         """
             更新商品库存:
@@ -672,7 +672,20 @@ class ProductSku(models.Model):
         self.wait_post_num = psku.wait_post_num 
             
         post_save.send(sender=self.__class__,instance=self)
-         
+        
+    def update_lock_num(self,num,full_update=False,dec_update=False):
+        """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
+        if full_update:
+            self.lock_num = num
+        elif dec_update:
+            self.lock_num = models.F('lock_num') - num
+        else:
+            self.lock_num = models.F('lock_num') + num
+        update_model_fields(self,update_fields=['lock_num'])
+        
+        psku = self.__class__.objects.get(id=self.id)
+        self.lock_num = psku.lock_num 
+            
           
     def update_reduce_num(self,num,full_update=False,dec_update=False):
         """ 更新商品库存: full_update:是否全量更新 dec_update:是否减库存 """

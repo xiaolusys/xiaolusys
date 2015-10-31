@@ -278,7 +278,7 @@ class XiaoluMama(models.Model):
         if self.agencylevel < 2:
             return 0
         #2015-11-01取消点击补贴
-        if day_date >= datetime.datetime(2015,11,1):
+        if day_date >= datetime.date(2015,11,1):
             return 0
         if day_date >= ROI_CLICK_START:
             return 10

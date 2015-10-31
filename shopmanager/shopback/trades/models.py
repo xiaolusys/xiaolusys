@@ -911,6 +911,7 @@ def refund_update_order_info(sender,obj,*args,**kwargs):
             log_action(sysoa.id,mtrade,CHANGE,u'订单(oid:%s)退款自动关闭'%morder.id)
             morder.merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
             Product.objects.reduceWaitPostNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
+            Product.objects.reduceLockNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
     except Exception,exc:
         logger.error('order refund signal:%s'%exc.message)
         
