@@ -177,7 +177,6 @@ def release_Coupon_11_11(sender, obj, **kwargs):
     """
     双十一之前 发放双十一当天专用  优惠券   捕捉在 1号到10 号的付款记录  如果是已经付款 则 发放优惠券 仅发一张
     """
-    logger.error(u'交易参数　:%s %s' % ( obj.status, obj.buyer_id))
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
     end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
     if obj.buyer_id in (11, 6, 1):  # 代理机测试用户id
@@ -187,10 +186,12 @@ def release_Coupon_11_11(sender, obj, **kwargs):
     now = datetime.datetime.now()
     if now <= start_time or now >= end_time:
         return
-    # # 如果是充值产品 则不发放优惠券
-    # order = obj.sale_orders.all()[0] if obj.sale_orders.exists() else False
-    # if order and order.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
-    #     return
+    # 如果是充值产品 则不发放优惠券
+    order = obj.sale_orders.all()[0] if obj.sale_orders.exists() else False
+    logger.error(u'交易参数　:%s %s' % ( order, obj.buyer_id))
+
+    if order and order.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
+        return
     try:
         coup = UserCoupon.objects.get(customer=obj.buyer_id, cp_id__template__type=CouponTemplate.DOUBLE_11)
         coup.sale_trade = obj.id
@@ -225,8 +226,6 @@ def freeze_coupon_11_11(sender, obj, **kwargs):
     # 退款信号
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
     end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
-    if obj.buyer_id in (11, 6):  # 代理机测试用户id
-        start_time = start_time - datetime.timedelta(days=3)  # 提前三天
     trade = get_object_or_404(SaleTrade, id=obj.trade_id)
     if trade.created <= start_time or trade.created >= end_time:
         return  # 不是这段时间创建的交易不去处理
