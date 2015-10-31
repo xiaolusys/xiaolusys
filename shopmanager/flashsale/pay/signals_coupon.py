@@ -179,7 +179,7 @@ def release_Coupon_11_11(sender, obj, **kwargs):
     """
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
     end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
-    if obj.buyer_id in (19, 11, 6):  # 代理机测试用户id
+    if obj.buyer_id in (11, 6):  # 代理机测试用户id
         start_time = start_time - datetime.timedelta(days=3)  # 提前三天
     if obj.buyer_id != 6:
         return
@@ -224,7 +224,7 @@ def freeze_coupon_11_11(sender, obj, **kwargs):
     # 退款信号
     start_time = datetime.datetime(2015, 11, 1, 0, 0, 0)
     end_time = datetime.datetime(2015, 11, 10, 23, 59, 59)
-    if obj.buyer_id in (19, 11, 6):  # 代理机测试用户id
+    if obj.buyer_id in (11, 6):  # 代理机测试用户id
         start_time = start_time - datetime.timedelta(days=3)  # 提前三天
     trade = get_object_or_404(SaleTrade, id=obj.trade_id)
     if trade.created <= start_time or trade.created >= end_time:
