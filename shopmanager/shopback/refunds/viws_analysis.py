@@ -4,15 +4,16 @@
 """
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework.response import Response
 from rest_framework import permissions
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
+from django.forms import model_to_dict
+from rest_framework.response import Response
 from shopback.refunds.models_refund_rate import PayRefundRate
+
 import logging
 import datetime
-from django.http import HttpResponse
 import json
-from django.core.serializers.json import DjangoJSONEncoder
-from django.forms import model_to_dict
 
 logger = logging.getLogger('django.request')
 
@@ -23,7 +24,9 @@ class RefundRateView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
-        return Response()
+        time_from = datetime.date.today() - datetime.timedelta(days=30)
+        time_to = datetime.date.today()
+        return Response({"time_from": time_from, "time_to": time_to})
 
     def post(self, request, format=None):
         content = request.REQUEST

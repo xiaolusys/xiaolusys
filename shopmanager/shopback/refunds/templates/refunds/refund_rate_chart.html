@@ -36,11 +36,11 @@
     <div class="input-group ">
         <span class="input-group-addon" id="date_from">开始时间</span>
         <input type="text" name="date_from" id="left_date_pic"
-               class="form-control select_saletime  datepicker" placeholder=""
+               class="form-control select_saletime  datepicker" placeholder="" value="{{ time_from }}"
                aria-describedby="basic-addon1">
         <span class="input-group-addon" id="date_to">结束时间</span>
         <input type="text" name="date_to" id="right_date_pic"
-               class="form-control select_saletime  datepicker" placeholder=""
+               class="form-control select_saletime  datepicker" placeholder="" value="{{ time_to }}"
                aria-describedby="basic-addon2">
             <span class="input-group-btn">
                 <button class="btn btn-success" id="go_search" type="submit">Go!</button>
@@ -120,6 +120,11 @@
     }
 
     $(document).ready(function () {
+        // 默认加载　渲染的时间
+        var date_from = $("#left_date_pic").val();
+        var date_to = $("#right_date_pic").val();
+        getRateData(date_from, date_to);
+
         $("#go_search").click(function () {
             var date_from = $("#left_date_pic").val();
             var date_to = $("#right_date_pic").val();
