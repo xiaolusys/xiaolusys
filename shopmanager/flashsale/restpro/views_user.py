@@ -586,3 +586,35 @@ class CustomerViewSet(viewsets.ModelViewSet):
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
+
+
+    @list_route(methods=['post'])
+    def check_code(self, request):
+        """验证码判断、验证码过时功能"""
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
+        mobile = request.data['username']
+        verify_code = request.data['valid_code']
+
+        if not mobile or not verify_code or len(mobile) == 0 or len(verify_code) == 0:
+            return Response({"result": "2"})  # 输入有误
+        already_exist = Customer.objects.filter(mobile=mobile)
+        if already_exist.count() > 0:
+            return Response({"result": "0"})  # 已经绑定用户
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        reg = Register.objects.filter(vmobile=mobile)
+        if reg.count() == 0:
+            return Response({"result": "3"})  # 验证码不对
+        reg_temp = reg[0]
+        reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.cus_uid = customer.id
+        reg_temp.save()
+        log_action(request.user.id, reg_temp, CHANGE, u'验证码验证')
+        if reg_temp.code_time and reg_temp.code_time < last_send_time:
+            return Response({"result": "4"}) #验证码过期
+
+        verify_code_server = reg_temp.verify_code
+        if verify_code_server != verify_code:
+            return Response({"result": "3"})  # 验证码不对
+        return Response({"result": "OK"})
