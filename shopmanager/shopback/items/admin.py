@@ -41,7 +41,8 @@ from django.contrib.auth.models import User as DjangoUser
 from django.forms.models import model_to_dict
 from flashsale.dinghuo import functions2view
 
-
+from flashsale.dinghuo.models import ReturnGoods, RGDetail
+from supplychain.supplier.models import SaleProduct
 logger =  logging.getLogger('django.request')
 
 class ProductSkuInline(admin.TabularInline):
@@ -343,6 +344,7 @@ class ProductAdmin(MyAdmin):
             
         if user.has_perm('items.create_product_purchase'):
             valid_actions.add('create_saleproduct_order')
+            valid_actions.add('create_refund_good')
             
         if user.has_perm('items.invalid_product_info'):
             valid_actions.add('invalid_product_action')
@@ -717,8 +719,37 @@ class ProductAdmin(MyAdmin):
         response['Content-Disposition'] = 'attachment; filename=product-sku-info-%s.csv'%str(int(time.time()))
         
         return response
-        
+
     export_prodsku_info_action.short_description = u"导出商品及规格信息"
+
+    def create_refund_good(self, request, queryset):
+        for pro in queryset:
+            rg = ReturnGoods()
+            rg.product_id = pro.id
+            try:
+                sale_pro = SaleProduct.objects.get(id=pro.sale_product)
+                supplier_id = sale_pro.sale_supplier.id
+            except SaleProduct.DoesNotExist:
+                supplier_id = 0
+            rg.supplier_id = supplier_id  # 找到供应商
+            rg.noter = request.user.username
+            total_num = 0
+            total_price = 0
+            rg.save()
+            for sku in pro.normal_skus.all():
+                return_num = sku.quantity - sku.wait_post_num
+                return_num = return_num if return_num > 0 else sku.quantity
+                total_num += return_num + sku.sku_inferior_num
+                total_price += total_num * sku.cost
+                return_good_id = rg.id
+                RGDetail.objects.create(skuid=sku.id, return_goods_id=return_good_id, num=return_num,
+                                        inferior_num=sku.sku_inferior_num, price=sku.cost)
+            rg.return_num = total_num
+            rg.sum_amount = total_price
+            rg.save()
+        self.message_user(request, u'创建成功')
+
+    create_refund_good.short_description = u"生成退货商品信息"
     
     actions = ['sync_items_stock',
                'invalid_product_action',
@@ -733,7 +764,8 @@ class ProductAdmin(MyAdmin):
                'deliver_saleorder_action',
                'export_prodsku_info_action',
                'update_quantity2remain_action',
-               'create_saleproduct_order']
+               'create_saleproduct_order',
+               'create_refund_good']
 
 admin.site.register(Product, ProductAdmin)
 

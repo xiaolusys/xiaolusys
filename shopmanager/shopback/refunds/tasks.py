@@ -60,29 +60,7 @@ def updateAllUserRefundOrderTask(days=0,update_from=None,update_to=None):
         saveUserRefundOrderTask(user.visitor_id,update_from=update_from,update_to=update_to)
 
 
-from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
-
-
-@task()
-def refund_analysis(dat):
-    year, montth, day = map(int, dat.split('-'))
-    time_from = datetime.datetime(year, montth, day, 0, 0, 0)
-    time_to = datetime.datetime(year, montth, day, 23, 59, 59)
-    sodrs = SaleOrder.objects.filter(created__gte=time_from,
-                                     created__lte=time_to).exclude(sale_trade__pay_time=None)  # 支付的订单
-    # 支付的订单的退款数量（）　
-    refs = sodrs.exclude(refund_status__in=(SaleRefund.NO_REFUND, SaleRefund.REFUND_CLOSED,
-                                            SaleRefund.REFUND_REFUSE_BUYER))  # 排除　没有退款，　退款关闭，　拒绝退款
-
-    sds_cut = sodrs.count()
-    rfs_cnt = refs.count()
-    ref_rate = "%0.4f" % (float(rfs_cnt)/sds_cut) if rfs_cnt > 0 else 0
-
-    data = []
-    dic_ref = {"dat": dat, "ref_num": rfs_cnt, "pay_num": sds_cut, "ref_rate": ref_rate}
-    data.append(dic_ref)
-    return data
-
+from flashsale.pay.models import SaleOrder, SaleRefund
 from models_refund_rate import PayRefundRate
 
 

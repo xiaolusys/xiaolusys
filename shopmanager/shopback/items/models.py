@@ -430,7 +430,7 @@ class Product(models.Model):
             skus = ProductSku.objects.filter(product__model_id=self.model_id)
         for sku in skus:
             prcs.append(sku.agent_price)
-        return min(prcs)
+        return min(prcs) if prcs else 0
 
     def product_lowest_price(self):
         """同个商品最低价格"""
@@ -438,7 +438,7 @@ class Product(models.Model):
         skus = self.normal_skus.all()
         for sku in skus:
             prcs.append(sku.agent_price)
-        return min(prcs)
+        return min(prcs) if prcs else 0
 
 
     @property
