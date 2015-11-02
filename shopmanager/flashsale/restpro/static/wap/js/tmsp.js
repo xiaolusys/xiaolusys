@@ -56,7 +56,7 @@ function Create_product_detailsku_dom(obj) {
          <div class="goods-info">
          <h3>{{name}}</h3>
          <div class="price">
-         <span>¥ {{ lowest_price }}</span>
+         <span>¥ {{ product_lowest_price }}</span>
          <s>¥{{ std_sale_price }}</s>
          </div>
          <span id="product_id" style="display:none">{{id}}</span>

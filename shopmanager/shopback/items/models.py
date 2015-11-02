@@ -422,11 +422,20 @@ class Product(models.Model):
         return ','.join(ds)
 
     def lowest_price(self):
+        """同款最低价格"""
         prcs = []
         if self.model_id == 0 or self.model_id == None:
             skus = self.prod_skus.all()
         else:
             skus = ProductSku.objects.filter(product__model_id=self.model_id)
+        for sku in skus:
+            prcs.append(sku.agent_price)
+        return min(prcs)
+
+    def product_lowest_price(self):
+        """同个商品最低价格"""
+        prcs = []
+        skus = self.normal_skus.all()
         for sku in skus:
             prcs.append(sku.agent_price)
         return min(prcs)
