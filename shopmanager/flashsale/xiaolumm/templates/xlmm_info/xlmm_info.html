@@ -3,14 +3,14 @@
 {% block title %} 妈妈数据查询 {% endblock %}
 
 {% block head_script %}
-
     <link href='{{ STATIC_URL }}css/mama_profile.css' rel='stylesheet'/>
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
             type="text/javascript"></script>
-    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
-            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+
 
     <style type="text/css">
         th {
@@ -24,33 +24,26 @@
 {% endblock %}
 
 {% block container %}
-
-
-
-
     <div class="row" style="margin-top: 50px">
-        <form method="get" id="my_form">
+        <form method="post" id="my_form">
             <div class="input-group ">
                 <span class="input-group-addon" id="mm_search">代理编号</span>
-                <input type="text" name="xlmm" id="xlmm_num"
+                <input type="number" name="xlmm" id="xlmm_num"
                        class="form-control  mama_base_data_search" placeholder="妈妈编号" value="{{ xlmm }}"
                        aria-describedby="basic-addon3">
-
                 <span class="input-group-addon" id="date_from">开始时间</span>
-                <input type="text" name="date_from" id="left_date_pic"
-                       class="form-control select_saletime  datepicker" placeholder="{{ charge_time }}"
-                       value="{{ charge_time }}"
+                <input type="text" name="date_from" id="left_date_pic" readonly="readonly"
+                       class="form-control select_saletime  datepicker" placeholder="{{ left_date }}"
+                       value="{{ left_date }}"
                        aria-describedby="basic-addon1">
-
                 <span class="input-group-addon" id="date_to">结束时间</span>
-                <input type="text" name="date_to" id="right_date_pic"
-                       class="form-control select_saletime  datepicker" placeholder="{{ today }}" value="{{ today }}"
+                <input type="text" name="date_to" id="right_date_pic" readonly="readonly"
+                       class="form-control select_saletime  datepicker" placeholder="{{ right }}" value="{{ right }}"
                        aria-describedby="basic-addon2">
             <span class="input-group-btn">
                 <button class="btn btn-default" id="go_search" type="submit">Go!</button>
             </span>
             </div>
-
         </form>
 
         {############################################## 代理基本 #########################################################}
@@ -73,27 +66,27 @@
                 <th>升级完成额</th>
                 </thead>
                 <tbody>
-                {% for xlmm in xlmms %}
-                    <tr>
-                        <td>{{ xlmm.id }}</td>
-                        <td>{{ xlmm.mobile }}</td>
-                        <td>{{ xlmm.get_cash_display }}</td>
+                <tr>
+                    <td>{{ xlmm_obj.id }}</td>
+                    <td>{{ xlmm_obj.mobile }}</td>
+                    <td>{{ xlmm_obj.get_cash_display }}</td>
 
-                        <td>{{ xlmm.agencylevel }}</td>
-                        <td>{{ xlmm.weikefu }}</td>
-                        <td>{{ xlmm.manager }}</td>
+                    <td>{{ xlmm_obj.agencylevel }}</td>
+                    <td>{{ xlmm_obj.weikefu }}</td>
+                    <td>{{ xlmm_obj.manager }}</td>
 
-                        <td>{{ xlmm.referal_from }}</td>
-                        <td>{{ xlmm.charge_time }}</td>
-                        <td>{{ xlmm.get_charge_status_display }}</td>
-                        <td>{{ xlmm.target_complete }}</td>
-                    </tr>
-                {% endfor %}
+                    <td>{{ xlmm_obj.referal_from }}</td>
+                    <td>{{ xlmm_obj.charge_time }}</td>
+                    <td>{{ xlmm_obj.get_charge_status_display }}</td>
+                    <td>{{ xlmm_obj.target_complete }}</td>
+                </tr>
                 </tbody>
                 <tfoot>
                 </tfoot>
             </table>
         </div>
+        <button class="btn btn-success" id="xlmm_exit_btn">一键退出 {{ xlmm_obj.id }}</button>
+
         <hr style="height:1px;border:none;border-top:1px ridge green;"/>
         <div style="margin-bottom: 10px">
             <a class="btn btn-primary  btn-xs" role="button" data-toggle="collapse" href="#mam_carry_sum_all"
@@ -187,7 +180,8 @@
                aria-expanded="false"
                aria-controls="collapseExample">
 
-                点击:&nbsp;&nbsp;<span class="badge">{{ total_clicks }} 个</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;订单:&nbsp;&nbsp;<span class="badge">{{  total_orders }}个</span>
+                点击:&nbsp;&nbsp;<span class="badge">{{ total_clicks }} 个</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;订单:&nbsp;&nbsp;<span
+                    class="badge">{{ total_orders }}个</span>
             </a>
         </div>
         <div class="container collapse  row" id="click_order">
@@ -278,43 +272,50 @@
         <hr style="height:1px;border:none;border-top:1px ridge green;"/>
     </div>
 
-
-
 {% endblock %}
 
 {% block tail_script %}
     <script>
-        $(function () {
-            $("#left_date_pic").datepicker({
-                dateFormat: "yy-mm-dd"
+        $(document).ready(function () {
+            $("#xlmm_exit_btn").click(function () {
+                var xlmm_id ={{ xlmm }};
+                layer.confirm('您确定退出代理操作吗？', {
+                    btn: ['确定', '取消'] //按钮
+                }, function () {
+                    xlmmExit(xlmm_id);
+                }, function () {
+                    layer.msg('取消退出．．．');
+                });
             });
-            $("#right_date_pic").datepicker({
+        });
+        function xlmmExit(xlmm_id) {
+            var xlmmExitReq = "/m/xlmm_exit/";
+            $.ajax({
+                "url": xlmmExitReq,
+                "data": {"xlmm_id": xlmm_id},
+                "type": "post",
+                "dataType": 'json',
+                "success": exitCallBack,
+                error: function (err) {
+                    //statusText: "INTERNAL SERVER ERROR"
+                    layer.msg(err.statusText, {shift: 6});
+                }
+            });
+            function exitCallBack(res) {
+                console.log(res);
+                if (res.flush_cash == "mm_error_status") {
+                    layer.msg("代理状态不在退出操作状态", {shift: 6});
+                }
+                else {
+                    layer.closeAll();
+                    layer.msg("补差额为" + res.flush_cash + "请校对", {shift: 6})
+                }
+            }
+        }
+        $(function () {
+            $(".select_saletime").datepicker({
                 dateFormat: "yy-mm-dd"
             });
         });
-        {#        function action_info() {#}
-        {#            var base = "/m/mama_show_all/";#}
-        {#            var xlmm = $('#xlmm_num').val();#}
-        {#            var date_from = $('#left_date_pic').val();#}
-        {#            var date_to = $('#right_date_pic').val();#}
-        {#            var url = base + '?xlmm=' + xlmm + '&date_from=' + date_from + '&date_to=' + date_to;#}
-        {#            console.log(url);#}
-        {#            return url;#}
-        {#        }#}
-
-        {#        function open_url() {#}
-        {#            var base = "/m/mama_show_all/";#}
-        {#            var xlmm = $('#xlmm_num').val();#}
-        {#            var date_from = $('#left_date_pic').val();#}
-        {#            var date_to = $('#right_date_pic').val();#}
-        {#            var url = base + '?xlmm=' + xlmm + '&date_from=' + date_from + '&date_to=' + date_to;#}
-        {#            location.replace(url);#}
-        {#            //window.open(url);#}
-        {##}
-        {##}
-        {##}
-        {#            console.log(url);#}
-        {##}
-        {#        }#}
     </script>
 {% endblock %}
