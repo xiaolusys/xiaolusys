@@ -546,68 +546,6 @@ def time_zone_handler(date_from=None, date_to=None):
     return date_from, date_to
 
 
-@task()
-def calcu_refund_info_by_pro(pro_queryset=None):
-    from django.forms import model_to_dict
-    from django.db.models import Sum
-    data = []
-    for i in pro_queryset:
-        # # 退款数量 return_num
-        #  实时过滤退款单中的状态 2015-09-30
-        skus = i.prod_skus.all()
-        for sku in skus:
-            sale_refunds = SaleRefund.objects.filter(item_id=i.id, sku_id=sku.id)
-
-            # 申请退货数量（已经发货生成的退货申请）
-            sended_refunds = sale_refunds.filter(good_status=SaleRefund.BUYER_RECEIVED)
-
-            # 退货途中数量(已经到货，填写了退货物流信息的退货申请) 排除　退款关闭，退款成功，等待返款的状态
-            backing_refunds = sale_refunds.filter(good_status=SaleRefund.BUYER_RETURNED_GOODS).exclude\
-                (status__in=(SaleRefund.REFUND_CLOSED, SaleRefund.REFUND_SUCCESS, SaleRefund.REFUND_APPROVE))
-
-            # 退货到仓库的数量
-            backed_refunds = RefundProduct.objects.filter(outer_id=i.outer_id, outer_sku_id=sku.outer_id)
-
-            # 已经退货数量
-            already_return_goods = RGDetail.objects.filter(skuid=sku.id)  # 过滤出审核通过的退货单
-
-            already_num = already_return_goods.aggregate(total_al=Sum("num")).get("total_al") or 0
-            already_inferior_num_num = already_return_goods.aggregate(total_al=Sum("inferior_num")).get("total_al") or 0
-            already_return_goods_num = already_num + already_inferior_num_num
-
-            return_num = sale_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 退款数量
-
-            sended_refund_num = sended_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 申请退货数量
-            backing_refund_num = backing_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 退货途中数量
-            backed_refund = backed_refunds.aggregate(total_num=Sum("num")).get("total_num") or 0  # 退货到仓库数量
-
-            if return_num == 0 and sended_refund_num == 0 and backed_refund == 0:
-                continue
-            # 找出供应商和买手
-            sale_supplier_name, sale_supplier_pk, \
-            sale_supplier_contact, sale_supplier_mobile = get_sale_product(i.sale_product)
-
-            prod = model_to_dict(i, exclude=("created", "modified", "sale_time"))
-            prod['s_id'] = sku.id
-            prod['s_cost'] = sku.cost
-            prod["sku_quantity"] = sku.quantity  # 库存数
-            prod['sku_inferior_num'] = sku.sku_inferior_num  # sku的次品数量
-            prod['sku_wait_post_num'] = sku.wait_post_num  # 待发数
-            prod['return_num'] = return_num  # 退款数量
-            prod['sended_refund_num'] = sended_refund_num  # 申请退货数量
-            prod['backing_refund_num'] = backing_refund_num  # 退货途中数量
-            prod['backed_refund'] = backed_refund  # 退货到仓库数量
-
-            prod['sale_supplier_name'] = sale_supplier_name  # 供应商名称
-            prod['sale_supplier_pk'] = sale_supplier_pk
-            prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
-            prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
-            prod['already_num'] = already_return_goods_num  # 已退数量
-
-            data.append(prod)
-    return data
-
-
 def get_other_field(product_id, sku_id):
     try:
         pro = Product.objects.get(id=product_id)
