@@ -330,12 +330,12 @@ from supplychain.supplier.models import SaleSupplier
 from flashsale.pay.models import  SaleRefund
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
-    list_display = ("show_pic", "show_detail_num", "sum_amount", "status_contrl",
+    list_display = ('id', "show_pic", "show_detail_num", "sum_amount", "status_contrl",
                      "consign_time", "sid", "noter", "consigner", 'show_memo','show_reason')
     search_fields = ["product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
-    # readonly_fields = ('status',)
+    readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
     list_display_links = ['sum_amount', ]
     list_per_page = 10
