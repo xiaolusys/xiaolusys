@@ -159,8 +159,9 @@ def notifyTradePayTask(notify):
         is_post_confirm = False
         if len(order_no_tuple) > 1:
             is_post_confirm = True
+            
         charge_time = tcharge.time_paid
-        strade = SaleTrade.objects.get(tid=order_no_tuple[1])
+        strade = SaleTrade.objects.get(tid=order_no_tuple[0])
         confirmTradeChargeTask(strade.id, charge_time=charge_time, post_charge=is_post_confirm)
     
     except Exception,exc:
