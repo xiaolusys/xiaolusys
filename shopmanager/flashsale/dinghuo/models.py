@@ -195,7 +195,7 @@ class ReturnGoods(models.Model):
     DELIVER_RG = 3
     SUCCEED_RG = 4
     FAILED_RG = 5
-
+    MEMO_DEFAULT = u'\u6536\u4ef6\u4eba:\r\n\u624b\u673a/\u7535\u8bdd:\r\n\u6536\u4ef6\u5730\u5740:'
     RG_STATUS = ((CREATE_RG, u"创建退货单"), (VERIFY_RG, u"审核通过"), (OBSOLETE_RG, u"作废退货单")
                  , (DELIVER_RG, u"已发货退货单"), (SUCCEED_RG, u"退货成功"), (FAILED_RG, u"退货失败"))
 
@@ -210,7 +210,7 @@ class ReturnGoods(models.Model):
     status = models.IntegerField(default=0, choices=RG_STATUS, db_index=True, verbose_name=u"退货状态")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'生成时间')
     modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
-    memo = models.TextField(max_length=512, blank=True, verbose_name=u"退货备注")
+    memo = models.TextField(max_length=512, blank=True, default=MEMO_DEFAULT, verbose_name=u"退货备注")
 
     class Meta:
         db_table = 'flashsale_dinghuo_returngoods'
@@ -239,5 +239,24 @@ class RGDetail(models.Model):
     def __unicode__(self):
         return u'<%s,%s>' % (self.skuid, self.return_goods)
 
+    def sync_rg_field(self):
+        rgds = self.return_goods.rg_details.all()
+        total_num = 0
+        total_amount = 0
+        for rgd in rgds:
+            sum_num = rgd.num + rgd.inferior_num
+            total_num += sum_num
+            total_amount += sum_num * rgd.price
+        self.return_goods.return_num = total_num
+        self.return_goods.sum_amount = total_amount
+        self.return_goods.save()
 
+
+from django.db.models.signals import post_save
+
+
+def syncRGdTreturn(sender, instance, **kwargs):
+    instance.sync_rg_field()
+
+post_save.connect(syncRGdTreturn, sender=RGDetail)
 
