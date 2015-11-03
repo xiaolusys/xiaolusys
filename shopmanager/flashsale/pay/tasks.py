@@ -81,46 +81,42 @@ def task_Merge_Sale_Customer(user, code):
     
 
     
-from shopback.trades.models import MergeTrade,MergeBuyerTrade
+from shopback.trades.models import MergeTrade,MergeOrder
 
 @task()
 def task_Push_SaleTrade_Finished(pre_days=10):
-    """ 定时将待确认状态小鹿特卖订单更新成已完成 """
+    """ 定时将待确认状态小鹿特卖订单更新成已完成
+    1,查找明细订单对应的MergeOrder;
+    2,根据MergeOrder父订单状态更新Saleorder状态；
+    3,根据SaleTrade的所有SaleOrder状态更新SaleTrade状态;
+    """
     
     day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
-    strades = SaleTrade.objects.filter(status=SaleTrade.WAIT_BUYER_CONFIRM_GOODS)
+    strades = SaleTrade.objects.filter(
+        status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,SaleTrade.WAIT_BUYER_CONFIRM_GOODS),
+        pay_time__gte=day_date
+    )
     for strade in strades:
-        mtrades = MergeTrade.objects.filter(tid=strade.tid,type=MergeTrade.SALE_TYPE)
-        if mtrades.count() == 0:
-            continue
-        
-        mtrade = mtrades[0]
-        if (mtrade.status == MergeTrade.TRADE_CLOSED or 
-            mtrade.sys_status in (MergeTrade.INVALID_STATUS,MergeTrade.EMPTY_STATUS)):
-            strade.status =  SaleTrade.TRADE_CLOSED
+        for order in strade.normal_orders:
+            trade_oid = order.oid
+            morders = MergeOrder.objects.filter(
+                oid=trade_oid,
+                merge_trade__type=MergeTrade.SALE_TYPE,
+                merge_trade__sys_status__in=MergeTrade.WAIT_WEIGHT_STATUS,
+                sys_status=MergeOrder.NORMAL
+            )
+            if not morders.exists() and order.refund_status in SaleOrder.REFUNDABLE_STATUS :
+                order.status = SaleOrder.TRADE_CLOSED
+            else:
+                morder = morders[0]
+                mtrade = morder.merge_trade
+                if mtrade.sys_status == MergeTrade.FINISHED_STATUS:
+                    order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
+            order.save()
+        if strade.normal_orders.count() == 0 :
+            strade.status = SaleTrade.TRADE_CLOSED
             strade.save()
-        
-        elif (mtrade.sys_status == MergeTrade.FINISHED_STATUS ):
-            if mtrade.weight_time and mtrade.weight_time > day_date:
-                continue
-            
-            #如果父订单已称重，并且称重日期达到确认期，则系统自动将订单放入已完成
-            if not mtrade.weight_time :
-                merge_status = MergeBuyerTrade.getMergeType(mtrade.id)
-                if merge_status != MergeBuyerTrade.SUB_MERGE_TYPE:
-                    continue
-                smergetrade = MergeBuyerTrade.objects.get(sub_tid=mtrade.id)
-                ptrade = MergeTrade.objects.get(id=smergetrade.main_tid)
-                if not ptrade.weight_time or ptrade.weight_time > day_date:
-                    continue
-            
-            sale_refunds = SaleRefund.objects.filter(trade_id=mtrade.id,status__gt=SaleRefund.REFUND_CLOSED)
-            if sale_refunds.count() > 0:
-                continue
-            
-            strade.status =  SaleTrade.TRADE_FINISHED
-            strade.save()
-
+                    
 
 @task(max_retry=3,default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id,charge_time=None):
@@ -136,14 +132,13 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
 
 @task(max_retry=3,default_retry_delay=60)
 def notifyTradePayTask(notify):
-
+    """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
     try:
-        order_no = notify['order_no'].split('_')[0]
+        order_no = notify['order_no']
         charge   = notify['id']
         paid     = notify['paid']
         
         tcharge,state = TradeCharge.objects.get_or_create(order_no=order_no,charge=charge)
-        
         if not paid or tcharge.paid == True :
             return
          
@@ -153,19 +148,20 @@ def notifyTradePayTask(notify):
         for k,v in notify.iteritems():
             if k not in update_fields:
                 continue
-            
             if k in ('time_paid','time_expire'):
                 v = v and datetime.datetime.fromtimestamp(v)
-            
             if k in ('failure_code','failure_msg'):
                 v = v or ''
-            
             hasattr(tcharge,k) and setattr(tcharge,k,v)
         tcharge.save()
         
+        order_no_tuple  = order_no.split('-')
+        is_post_confirm = False
+        if len(order_no_tuple) > 1:
+            is_post_confirm = True
         charge_time = tcharge.time_paid
-        strade = SaleTrade.objects.get(tid=order_no)
-        confirmTradeChargeTask(strade.id,charge_time=charge_time)
+        strade = SaleTrade.objects.get(tid=order_no_tuple[1])
+        confirmTradeChargeTask(strade.id, charge_time=charge_time, post_charge=is_post_confirm)
     
     except Exception,exc:
         raise notifyTradePayTask.retry(exc=exc)

@@ -148,6 +148,14 @@ class XiaoluMama(models.Model):
 #             return True
 #         return False
     
+    def can_send_redenvelop(self):
+        """ 是否可以发送订单红包 """
+        if self.charge_time > datetime.datetime(2015,8,25):
+            return False
+        if self.agencylevel == self.VIP_LEVEL:
+            return True
+        return False
+    
     def get_Mama_Deposite(self):
         """ 获取妈妈押金金额 """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
