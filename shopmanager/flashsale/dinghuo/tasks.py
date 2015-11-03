@@ -517,7 +517,7 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
 import function_of_task_optimize
 @task()
 def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
-    """非没有退款状态的，不算作销售数"""
+    """非没有退款状态的，不算作销售数,没有之前的速度快"""
     if len(search_text) > 0:
         search_text = str(search_text)
         product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \

@@ -12,6 +12,7 @@ from django.db.models.signals import post_save
 from auth import apis
 import logging
 from models_refund_rate import PayRefundRate
+from signals_refund_rate import *
 
 
 logger = logging.getLogger('django.request')
@@ -253,5 +254,4 @@ class RefundProduct(models.Model):
                 setattr(self, field.name, getattr(self, field.name).strip())
                 
                 
-    
     
