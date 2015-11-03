@@ -438,7 +438,7 @@ def task_supplier_stat(start_date, end_date, group_name):
 
 @task()
 def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
-
+    """非没有退款状态的，不算作销售数"""
     order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
                 "shop_trades_mergeorder where refund_status='NO_REFUND' and sys_status='IN_EFFECT' " \
                 "and merge_trade_id in (select id from shop_trades_mergetrade where type not in ('reissue','exchange') " \
@@ -514,7 +514,69 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
     result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
     return result_dict
+import function_of_task_optimize
+@task()
+def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
+    """非没有退款状态的，不算作销售数"""
+    if len(search_text) > 0:
+        search_text = str(search_text)
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
+                      "(select id,name as product_name,outer_id,pic_path from " \
+                      "shop_items_product where outer_id like '%%{0}%%' or name like '%%{0}%%' ) as A " \
+                      "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+            search_text)
+    else:
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
+                      "(select id,name as product_name,outer_id,pic_path from " \
+                      "shop_items_product where  sale_time='{0}' " \
+                      "and status!='delete') as A " \
+                      "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+            target_date)
 
+    cursor = connection.cursor()
+    cursor.execute(product_sql)
+    product_raw = cursor.fetchall()
+    trade_dict = {}
+    for one_product in product_raw:
+        temp_dict = {"product_id": one_product[0], "outer_sku_id": one_product[4], "product_name": one_product[1],
+                     "pic_path": one_product[3], "sale_num": 0, "sku_name": one_product[6],
+                     "ding_huo_num": 0, "effect_num": 0, "sku_id": one_product[7],
+                     "ding_huo_status": "", "sample_num": 0,
+                     "flag_of_more": "", "flag_of_less": "", "ku_cun_num": int(one_product[8] or 0),
+                     "arrival_num": 0}
+        if one_product[2] not in trade_dict:
+            trade_dict[one_product[2]] = [temp_dict]
+        else:
+            trade_dict[one_product[2]].append(temp_dict)
+    total_more_num = 0
+    total_less_num = 0
+
+    for product_outer_id, sku_list in trade_dict.items():
+
+        for one_sku in sku_list:
+            sale_num = function_of_task_optimize.get_sale_num(shelve_from, time_to, product_outer_id,
+                                                              one_sku["outer_sku_id"])
+            ding_huo_num, sample_num, arrival_num = function_of_task_optimize.get_dinghuo_num(dinghuo_begin, query_time,
+                                                                                              product_outer_id,
+                                                                                              one_sku["sku_id"])
+            one_sku["sale_num"] = sale_num
+            one_sku["ding_huo_num"] = ding_huo_num
+            one_sku["sample_num"] = sample_num
+            one_sku["arrival_num"] = arrival_num
+            ding_huo_status, flag_of_more, flag_of_less = functions.get_ding_huo_status(
+                sale_num, ding_huo_num, one_sku["ku_cun_num"], sample_num, arrival_num)
+            one_sku["ding_huo_status"] = ding_huo_status
+            one_sku["flag_of_less"] = flag_of_less
+            one_sku["flag_of_more"] = flag_of_more
+            if flag_of_more:
+                total_more_num += (sample_num + one_sku["ku_cun_num"] + ding_huo_num + arrival_num - sale_num)
+            if flag_of_less:
+                total_less_num += (sale_num - sample_num - one_sku["ku_cun_num"] - arrival_num - ding_huo_num)
+    trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
+    result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
+    return result_dict
 
 from supplychain.supplier.models import SaleProduct
 from flashsale.pay.models_refund import SaleRefund

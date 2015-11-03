@@ -1,0 +1,330 @@
+{% extends "dinghuo/dinghuo_base.html" %}
+{% block title %}大货统计优化版{% endblock %}
+{% block head_script %}
+    <link href="{{ STATIC_URL }}css/my_css.css" type="text/css"/>
+    <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+    <link rel="stylesheet" href="http://www.bootcss.com/p/grumblejs/css/grumble.min.css">
+    <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
+            type="text/javascript"></script>
+    <style type="text/css">
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 9999;
+            background: white;
+            color: #74b936;
+            text-align: center
+        }
+
+        #loading .loading-container {
+            position: absolute;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 20%;
+            bottom: 0
+        }
+
+        #loading b {
+            color: white;
+            background: #74b936;
+            font-weight: normal;
+            padding: 5px 5px;
+            margin: 10px;
+            font-size: 50px
+        }
+
+        #loading h1, #loading h2, #loading h3, #loading h4 {
+            font-family: "Helvetica Neue", Arial, "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
+            text-align: center
+        }
+
+
+        #loading #loading-app-name {
+            text-align: center;
+            font-size: 54px;
+            margin-top: 0;
+            margin-bottom: .8em
+        }
+
+        #loading #loading-slogan {
+            font-weight: normal
+        }
+
+        #loading #loading-text {
+            position: fixed;
+            left: 47%;
+            text-align: center;
+            bottom: 30%;
+        }
+
+        .floatButton {
+            margin-right: 0px;
+            top: 50px;
+            left: 20px;
+            position: absolute;
+        }
+
+        .floatview {
+            margin-right: 0px;
+            bottom: 50px;
+            right: 20px;
+            position: absolute;
+        }
+
+        .portfolio-box img {
+            box-shadow: 2px 2px 5px rgba(187, 187, 187, 0.5);
+            -webkit-transition: -webkit-transform 0.2s ease-out;
+            -moz-transition: -moz-transform 0.2s ease-out;
+            -o-transition: -o-transform 0.2s ease-out;
+            transition: transform 0.2s ease-out;
+        }
+
+        .portfolio-box img:hover {
+            -webkit-transform: scale(1) rotate(20deg);
+            -moz-transform: scale(1) rotate(20deg);
+            -o-transform: scale(1) rotate(20deg);
+            -ms-transform: scale(1) rotate(20deg);
+            transform: scale(1) rotate(20deg);
+        }
+
+    </style>
+
+    <style>
+        @keyframes move {
+            from {
+                transform: translate(0, 50%);
+            }
+            to {
+                transform: translate(0, 850%);
+            }
+        }
+
+        figure {
+            margin: 0 auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            background: #1c1c1c;
+        }
+
+        section {
+            width: 10%;
+            height: 100%;
+            position: absolute;
+            left: 45%;
+        }
+
+        section:nth-child(2) {
+            transform: rotate(22.5deg);
+        }
+
+        section:nth-child(3) {
+            transform: rotate(45deg);
+        }
+
+        section:nth-child(4) {
+            transform: rotate(67.5deg);
+        }
+
+        figure div {
+            height: 10%;
+            border-radius: 50%;
+            background: dodgerblue;
+            animation: move 1s ease-in-out infinite alternate;
+        }
+
+        figure:nth-child(1) > section:nth-child(1) > div {
+            animation-delay: -0.1875s;
+        }
+
+        figure:nth-child(1) > section:nth-child(2) > div {
+            animation-delay: -0.15s;
+        }
+
+        figure:nth-child(1) > section:nth-child(3) > div {
+            animation-delay: -0.9375s;
+        }
+
+
+    </style>
+    <script src="{{ STATIC_URL }}js/prefixfree.min.js"></script>
+{% endblock %}
+{% block container %}
+    <form action="/sale/dinghuo/begin_ding_huo_optimize/" method="get">
+        <div class="row form-group" style="margin-top: 40px">
+            <div class="col-xs-2">
+                <label class="control-label" for="df">上架日期:</label>
+                <input type="text" id="f_datepicker" readonly name="df" class="form-control datepicker"
+                       value="{{ shelve_from }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="dt">订单结束时间:</label>
+                <input type="text" id="t_datepicker" readonly name="dt" class="form-control datepicker"
+                       value="{{ time_to }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="showt_begin">订货开始日期:</label>
+                <input type="text" id="show_datepicker_begin" readonly name="showt_begin" class="form-control datepicker"
+                       value="{{ searchDinghuo_begin }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="showt">订货结束日期:</label>
+                <input type="text" id="show_datepicker" readonly name="showt" class="form-control datepicker"
+                       value="{{ searchDinghuo_end }}"/>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="groupname">查看分组:</label>
+                <select class="form-control " name="groupname" id="groupname_id">
+                    <option value="0" {% ifequal groupname 0 %} selected="selected" {% endifequal %}>所有</option>
+                    <option class="btn-info" {% ifequal groupname 1 %} selected="selected" {% endifequal %} value="1">
+                        采购A
+                    </option>
+                    <option class="btn-warning" {% ifequal groupname 2 %} selected="selected" {% endifequal %}value="2">
+                        采购B
+                    </option>
+                    <option class="btn-success" {% ifequal groupname 3 %} selected="selected" {% endifequal %}value="3">
+                        采购C
+                    </option>
+                </select>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="dhstatus">大货状态:</label>
+                <select class="form-control" name="dhstatus" id="dhstatus_id">
+                    <option value="0" {% ifequal dhstatus '0' %} selected="selected" {% endifequal %}>所有</option>
+                    <option class="btn-danger" {% ifequal dhstatus '1' %} selected="selected" {% endifequal %}
+                            value="1">显示异常(缺货,订多)
+                    </option>
+                    <option class="btn-danger" {% ifequal dhstatus '2' %} selected="selected" {% endifequal %}
+                            value="2">只显示缺货
+                    </option>
+                    <option class="btn-danger" {% ifequal dhstatus '3' %} selected="selected" {% endifequal %}
+                            value="3">只显示订多
+                    </option>
+
+                </select>
+            </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="groupname">输入搜索:</label>
+                <input type="text" class="form-control" value="{{ search_text }}" name="search_text"/>
+            </div>
+
+            <div class="col-xs-1">
+                <input type="submit" value="查询" id="query-btn" class="btn btn-primary" style="margin-top:27px;"/>
+            </div>
+        </div>
+    </form>
+    <div class="row" style="margin-top: 20px">
+        <table class="table table-bordered" id="resultTable">
+            <thead style="background-color:#01B5A2;">
+            <th width="250px">商品信息</th>
+            <th width="100px">图片</th>
+            <th>尺寸</th>
+            <th width="150px">状态</th>
+            <th>销售数</th>
+            <th>已拍(未到)数量</th>
+            <th>已到数量</th>
+            <th>样品数量</th>
+            <th>上架前库存数</th>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+    <div class="floatButton" style="z-index: 9999;">
+            <span style="font-size: 20px">共多了<span  id="total_more_num">0</span>件</span><br>
+            <span style="font-size: 20px">少了<span id="total_less_num">0</span>件</span>
+        <span id="test_gru"></span>
+    </div>
+    <div class="btn-group-vertical floatview">
+        <button type="button" class="btn btn-default" id="goTop" title="去顶部"><span
+                class="glyphicon glyphicon-arrow-up"></span></button>
+        <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
+                class="glyphicon glyphicon-arrow-down"></span></button>
+    </div>
+
+    <input id="task_id" style="display: none" value="{{ task_id }}">
+    <div id="loading" class="slide-content">
+        <div class='loading-container'>
+            <h1 id='loading-app-name'>小鹿美美</h1>
+            <h3><span id='loading-slogan'>专为小鹿美美买手打造的 大货进度查询系统<br><br>请耐心等候……<br></span>
+                <div id="canvas_loading"></div>
+            </h3>
+            <div id='loading-text'>
+                <figure>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                    <section>
+                        <div></div>
+                    </section>
+                </figure>
+            </div>
+        </div>
+
+    </div>
+    <div id="main"></div>
+{% endblock %}
+
+{% block tail_script %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/dinghuo_async.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jindutiao_script.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#f_datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+            $("#t_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            $("#show_datepicker_begin").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            $("#show_datepicker").datetimepicker({
+                timeFormat: "HH:mm:ss",
+                dateFormat: "yy-mm-dd"
+            });
+            $('#goTop').click(function () {
+                $('html,body').animate({scrollTop: '0px'}, 800);
+            });
+            $('#goBottom').click(function () {
+                var height = document.body.scrollHeight;
+                $('html,body').animate({scrollTop: height}, 800);
+            });
+            $(window).scroll(function () {
+                var w_height = $(window).height();//浏览器高度
+                var scroll_top = $(document).scrollTop();//滚动条到顶部的垂直高度
+                $(".floatButton").css("position", "fixed");
+                $(".floatview").css("position", "fixed");
+            });
+            get_data();
+        });
+    </script>
+{% endblock %}
