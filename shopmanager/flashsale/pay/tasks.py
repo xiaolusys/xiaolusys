@@ -162,7 +162,7 @@ def notifyTradePayTask(notify):
             
         charge_time = tcharge.time_paid
         strade = SaleTrade.objects.get(tid=order_no_tuple[0])
-        confirmTradeChargeTask(strade.id, charge_time=charge_time, post_charge=is_post_confirm)
+        confirmTradeChargeTask(strade.id, charge_time=charge_time)
     
     except Exception,exc:
         logger.error('notifyTradePayTask:%s'%exc.message,exc_info=True)
