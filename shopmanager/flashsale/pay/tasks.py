@@ -165,6 +165,7 @@ def notifyTradePayTask(notify):
         confirmTradeChargeTask(strade.id, charge_time=charge_time, post_charge=is_post_confirm)
     
     except Exception,exc:
+        logger.error('notifyTradePayTask:%s'%exc.message,exc_info=True)
         raise notifyTradePayTask.retry(exc=exc)
 
 
