@@ -63,7 +63,7 @@ class OrderList(models.Model):
         (DBKD, u'德邦快递'),
     )
     id = BigIntegerAutoField(primary_key=True)
-    buyer_name = models.CharField(default="",max_length=32, verbose_name=u'买手')
+    buyer_name = models.CharField(default="", max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
     supplier_name = models.CharField(default="", blank=True, max_length=128, verbose_name=u'商品链接')
     supplier_shop = models.CharField(default="", blank=True, max_length=32, verbose_name=u'供应商店铺名')
@@ -73,10 +73,10 @@ class OrderList(models.Model):
 
     receiver = models.CharField(default="", max_length=32, verbose_name=u'负责人')
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
-    status = models.CharField(max_length=32, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
-    p_district = models.CharField(max_length=32,default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT)
+    status = models.CharField(max_length=32, db_index=True, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
+    p_district = models.CharField(max_length=32, default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT)
     reach_standard = models.BooleanField(default=False, verbose_name=u"达标")
-    created = models.DateField(auto_now_add=True, verbose_name=u'订货日期')
+    created = models.DateField(auto_now_add=True, db_index=True, verbose_name=u'订货日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
     note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
 
@@ -100,10 +100,10 @@ class OrderDetail(models.Model):
     id = BigIntegerAutoField(primary_key=True)
 
     orderlist = BigIntegerForeignKey(OrderList, related_name='order_list', verbose_name=u'订单编号')
-    product_id = models.CharField(db_index=True,max_length=32, verbose_name=u'商品id')
-    outer_id = models.CharField(max_length=32, verbose_name=u'产品外部编码')
+    product_id = models.CharField(db_index=True, max_length=32, verbose_name=u'商品id')
+    outer_id = models.CharField(max_length=32, db_index=True, verbose_name=u'产品外部编码')
     product_name = models.CharField(max_length=128, verbose_name=u'产品名称')
-    chichu_id = models.CharField(max_length=32, verbose_name=u'规格id')
+    chichu_id = models.CharField(max_length=32, db_index=True, verbose_name=u'规格id')
     product_chicun = models.CharField(max_length=100, verbose_name=u'产品尺寸')
     buy_quantity = models.IntegerField(default=0, verbose_name=u'产品数量')
     buy_unitprice = models.FloatField(default=0, verbose_name=u'买入价格')
