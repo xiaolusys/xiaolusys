@@ -325,7 +325,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                     if one_sale_product.count() > 0:
                         supplier_list = one_sale_product[0].sale_supplier.supplier_name
                         sale_contactor = one_sale_product[0].contactor.username if one_sale_product[0].contactor else ""
-                p_dict = {"p_outer": p_outer, "p_name": product_item.name,
+                p_dict = {"p_outer": p_outer, "p_name": product_item.name.split("/")[0],
                           "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
                           "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales),
                           "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list,
