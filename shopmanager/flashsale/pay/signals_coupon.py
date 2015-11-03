@@ -9,7 +9,7 @@ import datetime
 from django.db.models import ObjectDoesNotExist
 from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 
-from flashsale.xiaolumm.models import CarryLog, XiaoluMama
+
 from django.db.models import F
 from common.modelutils import update_model_fields
 from shopback.base import log_action, ADDITION, CHANGE
@@ -96,6 +96,7 @@ post_save.connect(add_Order_Integral, sender=SaleOrder)
 
 
 def xlmm_Recharge(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.models import CarryLog, XiaoluMama
     order_id = instance.id
     payment = instance.payment
     systemoa = 641  # 系统操作的id 641
