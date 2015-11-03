@@ -499,10 +499,11 @@ class ShoppingCart(models.Model):
     def calc_discount_fee(self,xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return product_sku.calc_discount_fee(xlmm)
-    
-from signals_coupon import *
+
+import logging
 from shopback import signals
 from django.contrib.auth.models import User as DjangoUser
+
 
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
