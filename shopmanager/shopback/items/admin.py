@@ -33,7 +33,7 @@ from shopback.items.forms import ProductModelForm
 from shopback.base.options import DateFieldListFilter
 from shopback.items.filters import ChargerFilter,DateScheduleFilter, GroupNameFilter,CategoryFilter
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter,update_model_fields
-from flashsale.pay import Productdetail
+from flashsale.pay.models_custom import Productdetail
 import logging 
 from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
