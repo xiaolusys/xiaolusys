@@ -7,7 +7,7 @@ from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
-from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView
+from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView, DailyDingHuoOptimizeView
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
 from .view_refund_supplier import StatisRefundSupView, change_duihuo_status
@@ -47,7 +47,8 @@ urlpatterns = [
     url(r'^stats_product/$', staff_member_required(StatsProductView.as_view()), name="stats_product"),
     url(r'^stats_supplier/$', staff_member_required(StatsSupplierView.as_view()), name="stats_supplier"),
     url(r'^point_every_day/$', csrf_exempt(staff_member_required(RecordPointView.as_view())), name="point_every_day"),
-    url(r'^begin_ding_huo/$', staff_member_required(DailyDingHuoView2.as_view()), name="test"),
+    url(r'^begin_ding_huo/$', staff_member_required(DailyDingHuoView2.as_view()), name="begin_to_ding"),
+    url(r'^begin_ding_huo_optimize/$', staff_member_required(DailyDingHuoOptimizeView.as_view()), name="ding2"),
     url(r'^show_pic/(?P<order_list_id>\d+)$', staff_member_required(ShowPicView.as_view()), name="showpic"),
     url(r'^sale_status/$', staff_member_required(EntranceView.as_view()), name="sale_status"),
     url(r'^sale_hot/$', staff_member_required(SaleHotView.as_view()), name="sale_hot"),          #热销的商品
