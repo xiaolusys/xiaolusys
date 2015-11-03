@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.views.generic import View
 from django.db import connection
 import functions
-from flashsale.dinghuo.tasks import task_ding_huo
+from flashsale.dinghuo.tasks import task_ding_huo_optimize, task_ding_huo
 
 
 class DailyDingHuoView(View):
@@ -162,6 +162,46 @@ class DailyDingHuoView2(View):
 
                                   context_instance=RequestContext(request))
 
+class DailyDingHuoOptimizeView(View):
+    def parseEndDt(self, end_dt):
+        if not end_dt:
+            dt = datetime.datetime.now()
+            return datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59)
+        if len(end_dt) > 10:
+            return functions.parse_datetime(end_dt)
+        return functions.parse_date(end_dt)
+
+    def get(self, request):
+        content = request.REQUEST
+        today = datetime.date.today()
+        shelve_fromstr = content.get("df", None)
+        shelve_to_str = content.get("dt", None)
+        query_time_str = content.get("showt", None)
+        dinghuo_begin_str = content.get("showt_begin", None)
+        groupname = content.get("groupname", 0)
+        dhstatus = content.get("dhstatus", '1')
+        groupname = int(groupname)
+        search_text = content.get("search_text", '').strip()
+        target_date = today
+        if shelve_fromstr:
+            year, month, day = shelve_fromstr.split('-')
+            target_date = datetime.date(int(year), int(month), int(day))
+            if target_date > today:
+                target_date = today
+
+        shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        time_to = self.parseEndDt(shelve_to_str)
+        if time_to - shelve_from < datetime.timedelta(0):
+            time_to = shelve_from + datetime.timedelta(1)
+        query_time = self.parseEndDt(query_time_str)
+        dinghuo_begin = self.parseEndDt(dinghuo_begin_str)
+        task_id = task_ding_huo_optimize.s(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus)()
+        return render_to_response("dinghuo/daily_work_optimize.html",
+                                  {"task_id": task_id, "shelve_from": target_date, "time_to": time_to,
+                                   "searchDinghuo_end": query_time, 'groupname': groupname, "dhstatus": dhstatus,
+                                   "search_text": search_text, "searchDinghuo_begin": dinghuo_begin},
+
+                                  context_instance=RequestContext(request))
 
 from flashsale.dinghuo.models import OrderDetail
 from shopback.items.models import Product
