@@ -525,4 +525,4 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
-from models_coupon_new import *
+from models_coupon_new import CouponTemplate, CouponsPool, UserCoupon
