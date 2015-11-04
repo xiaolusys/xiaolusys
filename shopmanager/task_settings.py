@@ -152,7 +152,7 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时释放定时提醒订单':{
         'task':'shopback.trades.tasks_release.CancelMergeOrderStockOutTask',
-        'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,22,2)])),
+        'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,22,1)])),
         'args':(),
         'options' : {'queue':'peroid'} 
     },

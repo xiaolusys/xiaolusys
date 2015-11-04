@@ -4,7 +4,8 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Product
 from shopback.trades.models import MergeTrade,MergeOrder
 from common.utils import update_model_fields
-
+from shopback.users.models import User
+from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
 
 def releaseRegularOutstockTrade(trade,num_maps=None):
     """ 释放特卖定时订单 """
@@ -53,8 +54,11 @@ def releaseRegularOutstockTrade(trade,num_maps=None):
                 num_maps[code]  = num_maps.get(code,0) + num
     else:
         t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-    
     update_model_fields(t,update_fields=['sys_status','sys_memo','ware_by'])
+    
+    if t.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS):
+        oauser = User.getSystemOAUser()
+        log_action(oauser.id,t,CHANGE,u'到货释放订单')
     return t
 
 from common.cachelock import cache_lock

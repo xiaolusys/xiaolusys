@@ -79,8 +79,6 @@ def task_Merge_Sale_Customer(user, code):
         logger.debug(exc.message,exc_info=True)
         
     
-
-    
 from shopback.trades.models import MergeTrade,MergeOrder
 
 @task()
