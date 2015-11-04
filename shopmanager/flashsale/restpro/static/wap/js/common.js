@@ -100,7 +100,7 @@ var GLConfig = {
 	get_user_profile:'/users/profile.json',//得到用户信息
 	get_user_point:'/integral.json',//得到用户积分
 	delete_detail_trade:'/trades/{{trade_id}}',//用户取消订单
-    confirm_sign_trade:'/trades/{{trade_id}}/confirm_sign',//用户确认签收
+    confirm_sign_order:'/order/{{order_id}}/confirm_sign',//用户确认签收
     usercoupons:"/usercoupons",//2015-09-04　重构后的优惠券接口
     past_usercoupons:"/usercoupons/list_past_coupon",//2015-09-04　重构后的优惠券接口 过期的优惠券
     choose_coupon:"/usercoupons/{{ coupon_id }}/choose_coupon",//选择优惠券（校验优惠券）

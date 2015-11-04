@@ -84,11 +84,8 @@
 	 <span class="count">数量：{{ num }}</span>
 	 </p>
 	 <p class="price">单价：<span class="gprice"><em>¥</em>{{ payment }}</span>
-	 <a id="btn_refund" class="btn_order_status_{{ status }}  refund_status_{{ refund_status }} refund_btn_show" cid="{{ refund_status }}" href="tuikuan.html?oid={{id}}&tid={{trade_id}}" cid={{ id }}></a></p>
-        {{ if status == 5 }}
-	        <a class="btn_order_success_status_{{ refund_status }} refund_btn_show_5"></a>
-        {{ /if }}
-        </p>
+	 <a class="btn_order_status_{{ status }} refund_status_{{ refund_status }} refund_btn_show"
+        onclick="Order_Status_Handdler({{ trade_id }},{{ id }},{{ status }},{{ refund_status }});"></a>
 	</div>
 </div>
 </script>
