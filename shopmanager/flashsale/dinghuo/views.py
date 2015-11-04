@@ -418,9 +418,13 @@ def add_detail_to_ding_huo(req):
 
 @csrf_exempt
 def changearrivalquantity(request):
+    """
+    修改入库存数量
+    1、增加后为负数不予添加
+    """
     post = request.POST
     order_detail_id = post.get("orderdetailid", "").strip()
-    arrived_num = post.get("arrived_num", "0").strip()
+    arrived_num = post.get("arrived_num", "0").strip()          #获取即将入库的数量
     result = "{flag:false,num:0}"
     arrival_time = datetime.datetime.now()
     if len(arrived_num) > 0 and len(order_detail_id) > 0:
@@ -428,6 +432,12 @@ def changearrivalquantity(request):
         order_detail_id = int(order_detail_id)
         order = OrderDetail.objects.get(id=order_detail_id)
         orderlist = OrderList.objects.get(id=order.orderlist_id)
+        try:
+            sku = ProductSku.objects.get(id=order.chichu_id)
+            if sku.quantity + arrived_num < 0:
+                return HttpResponse(result)
+        except:
+            return HttpResponse(result)
         order.arrival_quantity = order.arrival_quantity + arrived_num
         order.non_arrival_quantity = order.buy_quantity - order.arrival_quantity - order.inferior_quantity
         Product.objects.filter(id=order.product_id).update(collect_num=F('collect_num') + arrived_num)
