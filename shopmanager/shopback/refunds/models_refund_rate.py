@@ -3,7 +3,6 @@
 退款率模型, 数据计算方法
 """
 from django.db import models
-from common.modelutils import update_model_fields
 
 
 class PayRefundRate(models.Model):

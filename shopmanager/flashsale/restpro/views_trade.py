@@ -471,6 +471,11 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
 
         return obj
 
+    def confirm_sign(self, request, pk=None):
+        instance = self.queryset.get(id=pk)
+        instance.confirm_sign_order()
+        log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
+        return Response({"ok": True})
 
 import json
 import pingpp
@@ -918,12 +923,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－取消订单')
         return Response(data={"ok": True})
 
-    @detail_route(methods=['post'])
-    def confirm_sign(self, request, pk=None):
-        instance = self.get_object()
-        instance.confirm_sign_trade()
-        log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
-        return Response(data={"ok": True})
+
 
 from django.conf import settings
 from shopapp.weixin.models import WXOrder

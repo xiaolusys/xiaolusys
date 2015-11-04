@@ -89,7 +89,7 @@ class SaleTrade(models.Model):
         (WAIT_BUYER_PAY,u'待付款'),
         (WAIT_SELLER_SEND_GOODS,u'已付款'),
         (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
-        (TRADE_BUYER_SIGNED,u'货到付款签收'),
+        (TRADE_BUYER_SIGNED,u'确认签收'),
         (TRADE_FINISHED,u'交易成功'),
         (TRADE_CLOSED,u'退款关闭'),
         (TRADE_CLOSED_BY_SYS,u'交易关闭'),
@@ -306,7 +306,7 @@ class SaleOrder(models.Model):
         (WAIT_BUYER_PAY,u'待付款'),
         (WAIT_SELLER_SEND_GOODS,u'已付款'),
         (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
-        (TRADE_BUYER_SIGNED,u'货到付款签收'),
+        (TRADE_BUYER_SIGNED,u'确认签收'),
         (TRADE_FINISHED,u'交易成功'),
         (TRADE_CLOSED,u'退款关闭'),
         (TRADE_CLOSED_BY_SYS,u'交易关闭'),
@@ -390,13 +390,10 @@ class SaleOrder(models.Model):
         Product.objects.releaseLockQuantity(sku,self.num)
 
     def confirm_sign_order(self):
-        """确认签收 修改该订单状态到 交易完成"""
-        try:
-            SaleOrder.objects.get(id=self.id)
-        except SaleOrder.DoesNotExist,exc:
-            return
-        self.status = self.TRADE_FINISHED
+        """确认签收 修改该订单状态到 确认签收状态"""
+        self.status = self.TRADE_BUYER_SIGNED
         self.save()
+
 
 class TradeCharge(models.Model):
     

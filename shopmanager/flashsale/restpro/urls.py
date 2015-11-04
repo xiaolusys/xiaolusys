@@ -60,6 +60,11 @@ router_urls += format_suffix_patterns([
         url(r'^trades/(?P<tid>[0-9]+)/orders/(?P<pk>[0-9]+)$',
             views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
             name='saleorder-detail'),
+
+        url(r'^order/(?P<pk>[0-9]+)/confirm_sign$',
+            views_trade.SaleOrderViewSet.as_view({'post': 'confirm_sign'}),
+            name='confirm_sign_order'),
+
         url(r'^user/integral/',
             views_integral.UserIntegralViewSet.as_view({'get': 'list'}),
             name="user-intergral"),
