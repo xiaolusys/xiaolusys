@@ -119,10 +119,10 @@ def refund_Handler(request):
 def refund_Status(order_id=None):
     order = get_object_or_404(SaleOrder, id=order_id)
     # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
-    # 如果Order已经发货 签收 交易成功 refund_type = BUYER_RECEIVED
+    # 如果Order 仅仅签收状态才可以退货  refund_type = BUYER_RECEIVED
     if order.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
         refund_type = SaleRefund.BUYER_NOT_RECEIVED
-    elif order.status in (SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.TRADE_FINISHED):
+    elif order.status in (SaleOrder.TRADE_BUYER_SIGNED,):
         refund_type = SaleRefund.BUYER_RECEIVED
     else:
         raise exceptions.APIException(u'订单状态不予退款或退货')

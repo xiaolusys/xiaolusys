@@ -332,13 +332,20 @@ from flashsale.pay.models import  SaleRefund
 class ReturnGoodsAdmin(admin.ModelAdmin):
     list_display = ('id', "show_pic", "show_detail_num", "sum_amount", "status_contrl",
                      "consign_time", "sid", "noter", "consigner", 'show_memo','show_reason')
-    search_fields = ["product_id", "supplier_id",
+    search_fields = ['id', "product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
     readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
     list_display_links = ['sum_amount', ]
     list_per_page = 10
+
+    def queryset(self, request):
+        qs = super(ReturnGoodsAdmin, self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.exclude(status=ReturnGoods.OBSOLETE_RG)
 
     def show_pic(self, obj):
         product_id = obj.product_id
