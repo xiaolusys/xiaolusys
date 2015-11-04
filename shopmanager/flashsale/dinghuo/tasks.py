@@ -3,7 +3,7 @@ from __future__ import division
 __author__ = 'yann'
 from celery.task import task
 from shopback.items.models import Product, ProductSku
-from flashsale.dinghuo.models_stats import SupplyChainDataStats
+from flashsale.dinghuo.models_stats import SupplyChainDataStats,PayToPackStats
 from flashsale.dinghuo.models import OrderDetail, OrderList
 import functions
 import datetime
@@ -12,6 +12,17 @@ import urllib2
 import re
 from django.db import connection
 import sys
+
+@task(max_retry=3, default_retry_delay=5)
+def task_stats_paytopack(pay_date,sku_num,total_days):
+    try:
+        entry,status = PayToPackStats.objects.get_or_create(pay_date=pay_date)
+        entry.packed_sku_num += sku_num
+        entry.total_days += total_days
+        entry.save()
+    except Exception, exc:
+        raise task_stats_paytopack.retry(exc=exc)
+
 
 @task(max_retry=3, default_retry_delay=5)
 def task_stats_daily_product(pre_day=1):
