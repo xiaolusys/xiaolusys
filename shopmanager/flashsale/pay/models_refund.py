@@ -33,6 +33,12 @@ class SaleRefund(models.Model):
         (REFUND_SUCCESS,'退款成功'),
     )
     
+    REFUNDABLE_STATUS = (REFUND_WAIT_SELLER_AGREE,
+                         REFUND_WAIT_RETURN_GOODS,
+                         REFUND_CONFIRM_GOODS,
+                         REFUND_APPROVE,
+                         REFUND_SUCCESS)
+    
     REFUND_STATUS_MAP = (
         (NO_REFUND,pcfg.NO_REFUND),
         (REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_WAIT_SELLER_AGREE),

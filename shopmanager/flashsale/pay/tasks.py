@@ -105,7 +105,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
                 merge_trade__sys_status__in=MergeTrade.WAIT_WEIGHT_STATUS,
                 sys_status=MergeOrder.NORMAL
             )
-            if not morders.exists() and order.refund_status in SaleOrder.REFUNDABLE_STATUS :
+            if not morders.exists() and order.refund_status in SaleRefund.REFUNDABLE_STATUS :
                 order.status = SaleOrder.TRADE_CLOSED
             else:
                 morder = morders[0]
