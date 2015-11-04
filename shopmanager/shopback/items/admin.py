@@ -746,8 +746,9 @@ class ProductAdmin(MyAdmin):
                'regular_saleorder_action',
                'deliver_saleorder_action',
                'export_prodsku_info_action',
-               'create_saleproduct_order',
-               'create_refund_good']
+               'create_refund_good',
+               'create_saleproduct_order'
+               ]
 
 admin.site.register(Product, ProductAdmin)
 
