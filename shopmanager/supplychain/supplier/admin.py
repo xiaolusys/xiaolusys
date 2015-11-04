@@ -346,7 +346,8 @@ class SaleProductAdmin(MyAdmin):
     def get_select_list(self,obj):
         slist = []
         if obj.status == SaleProduct.WAIT:
-            slist.extend([SaleProduct.SELECTED,
+            slist.extend([SaleProduct.WAIT,
+                          SaleProduct.SELECTED,
                           SaleProduct.PURCHASE,
                           SaleProduct.IGNORED])
         elif obj.status in (SaleProduct.SELECTED,
