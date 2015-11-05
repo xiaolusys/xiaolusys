@@ -176,7 +176,7 @@ class RefundProductAdmin(admin.ModelAdmin):
 
 admin.site.register(RefundProduct,RefundProductAdmin)
 
-from models_refund_rate import PayRefundRate, PayRefund24HRate
+from models_refund_rate import PayRefundRate, PayRefNumRcord
 
 
 class PayRefundRateAdmin(admin.ModelAdmin):
@@ -189,11 +189,12 @@ class PayRefundRateAdmin(admin.ModelAdmin):
 admin.site.register(PayRefundRate, PayRefundRateAdmin)
 
 
-class PayRefund24HRateAdmin(admin.ModelAdmin):
-    list_display = ('id', 'date_cal', 'ref_num', 'pay_num', 'ref_rate', 'created')
+class PayRefundRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'date_cal', 'ref_num_out', 'ref_num_in', 'ref_sed_num', 'created')
     list_display_links = ('id', 'date_cal')
     list_filter = ('date_cal', 'created')
     search_fields = ['=id', '=date_cal']
 
 
-admin.site.register(PayRefund24HRate, PayRefund24HRateAdmin)
+admin.site.register(PayRefNumRcord, PayRefundRecordAdmin)
+
