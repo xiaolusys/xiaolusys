@@ -250,32 +250,62 @@ class SaleProduct(models.Model):
     def __unicode__(self):
         return self.title
 
-from shopback.base.models import JSONCharMyField
-
 
 class SaleProductManage(models.Model):
-    PRODUCT_LSIT_DEFAULT = ('''
-    {
-    "1":"商品1",
-    "2":"商品2"
-    }
-    ''')
     sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
     product_num = models.IntegerField(default=0, verbose_name=u'商品数量')
     responsible_people_id = models.BigIntegerField(max_length=64, blank=True, default=0, db_index=True, verbose_name=u'负责人ID')
     responsible_person_name = models.CharField(max_length=64, verbose_name=u'负责人名字')
-    product_list = JSONCharMyField(max_length=64, default=PRODUCT_LSIT_DEFAULT, verbose_name=u'商品ID列表')
+    lock_status = models.BooleanField(default=False, verbose_name=u'锁定')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage'
-        verbose_name = u'选品/排期管理'
-        verbose_name_plural = u'选品/排期管理列表'
+        verbose_name = u'排期管理'
+        verbose_name_plural = u'排期管理列表'
+    @property
+    def normal_detail(self):
+        return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL)
 
     def __unicode__(self):
         return '<%s,%s>' % (self.sale_time, self.responsible_person_name)
 
+
+class SaleProductManageDetail(models.Model):
+    COMPLETE = u'complete'
+    WORKING = u'working'
+    NORMAL = u'normal'
+    DELETE = u'delete'
+    use = u'working'
+    MATERIAL_STATUS = (
+        (COMPLETE, u'全部完成'),
+        (WORKING, u'进行中')
+    )
+    USE_STATUS = (
+        (NORMAL, u'使用'),
+        (DELETE, u'作废')
+    )
+    schedule_manage = BigIntegerForeignKey(SaleProductManage, related_name='manage_schedule', verbose_name=u'排期管理')
+    sale_product_id = models.BigIntegerField(default=0, verbose_name=u"选品ID")
+    name = models.CharField(max_length=64, verbose_name=u'选品名称')
+    pic_path = models.CharField(max_length=512, blank=True, verbose_name=u'商品图片')
+    sale_category = models.CharField(max_length=32, blank=True, verbose_name=u'商品分类')
+    product_link = models.CharField(max_length=512, blank=True, verbose_name=u'商品外部链接')
+    material_status = models.CharField(max_length=64, blank=True, default=WORKING, choices=MATERIAL_STATUS,
+                                       verbose_name=u"资料状态")
+    today_use_status = models.CharField(max_length=64, db_index=True, default=NORMAL, choices=USE_STATUS,
+                                        verbose_name=u"使用状态")
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+
+    class Meta:
+        db_table = 'supplychain_supply_schedule_manage_detail'
+        verbose_name = u'排期管理明细'
+        verbose_name_plural = u'排期管理明细列表'
+
+    def __unicode__(self):
+        return '<%s,%s>' % (self.id, self.sale_product_id)
 
 from django.db.models.signals import pre_save
 from common.modelutils import update_model_fields

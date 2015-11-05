@@ -10,8 +10,9 @@ from django.db import transaction
 
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
-from supplychain.supplier.models import SaleSupplier, SaleCategory
-
+from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage
+import datetime
+from supplychain.supplier.models import SaleProduct
 
 class AddSupplierView(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
@@ -60,3 +61,27 @@ class CheckSupplierView(generics.ListCreateAPIView):
         if suppliers.count() > 0:
             return Response({"result": "10", "supplier": [s.supplier_name for s in suppliers]})
         return Response({"result": "0"})
+
+def get_target_date_detail(target_date):
+    target_sch = SaleProductManage.objects.filter(sale_time=target_date)
+    result_data = []
+    if target_sch.count() > 0:
+        all_detail = target_sch[0].normal_detail
+        return all_detail
+    else:
+        return ""
+
+
+class ScheduleManageView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "schedulemanage.html"
+
+    def get(self, request, *args, **kwargs):
+        target_date = request.GET.get("target_date", datetime.date.today())
+        result_data = []
+        one_data = get_target_date_detail(target_date)
+        result_data.append({target_date: one_data})
+        return Response({"result_data": result_data, "target_date": target_date})
+
+
