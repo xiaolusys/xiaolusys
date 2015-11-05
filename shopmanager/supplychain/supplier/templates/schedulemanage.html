@@ -66,10 +66,10 @@
                             <td><a data-sale-product="{{ data1.sale_product_id }}" class="id_list"
                                    href="/supplychain/supplier/bdproduct/{{ data1.sale_product_id }}"
                                    target="_blank">{{ data1.name }}</a></td>
-                            <td><span id="color_{{ data1.id }}"></span></td>
-                            <td><span id="sku_{{ data1.id }}"></span></td>
-                            <td><span id="name_{{ data1.id }}"></span></td>
-                            <td><img src="" id="zhutu_{{ data1.id }}" width="80px"></td>
+                            <td><span id="color_{{ data1.sale_product_id }}"></span></td>
+                            <td><span id="sku_{{ data1.sale_product_id }}"></span></td>
+                            <td><span id="name_{{ data1.sale_product_id }}"></span></td>
+                            <td><img src="" id="zhutu_{{ data1.sale_product_id }}" width="80px"></td>
                         </tr>
                     {% endfor %}
                 </table>
