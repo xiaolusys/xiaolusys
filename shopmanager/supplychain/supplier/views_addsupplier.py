@@ -84,4 +84,29 @@ class ScheduleManageView(generics.ListCreateAPIView):
         result_data.append({target_date: one_data})
         return Response({"result_data": result_data, "target_date": target_date})
 
+from shopback.items.models import Product
+from flashsale.pay.models_custom import ModelProduct
+class SaleProductAPIView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        sale_product_id = request.GET.get("sale_product")
+        if not sale_product_id:
+            return Response({"flag": "error"})
+        all_product = Product.objects.filter(status=Product.NORMAL, sale_product=sale_product_id)
+        if all_product.count() == 0:
+            return Response({"flag": "working"})
+        color_list = all_product[0].details.color
+        sku_list = ""
+        for one_sku in all_product[0].normal_skus:
+            sku_list += (one_sku.properties_name + "|")
+        name = all_product[0].name.split("/")[0]
+        try:
+            zhutu = ModelProduct.objects.get(id=all_product[0].model_id).head_imgs
+        except:
+            zhutu = ""
+        return Response({"flag": "done", "color_list": color_list, "sku_list": sku_list,
+                         "name": name, "zhutu": zhutu})
+
 
