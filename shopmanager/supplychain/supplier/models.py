@@ -244,11 +244,39 @@ class SaleProduct(models.Model):
         verbose_name_plural = u'特卖/选品列表'
         permissions = [
             ("sale_product_mgr", u"特卖商品管理"),
+            ("schedule_manage", u"排期管理")
         ]
 
     def __unicode__(self):
         return self.title
-    
+
+from shopback.base.models import JSONCharMyField
+
+
+class SaleProductManage(models.Model):
+    PRODUCT_LSIT_DEFAULT = ('''
+    {
+    "1":"商品1",
+    "2":"商品2"
+    }
+    ''')
+    sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
+    product_num = models.IntegerField(default=0, verbose_name=u'商品数量')
+    responsible_people_id = models.BigIntegerField(max_length=64, blank=True, default=0, db_index=True, verbose_name=u'负责人ID')
+    responsible_person_name = models.CharField(max_length=64, verbose_name=u'负责人名字')
+    product_list = JSONCharMyField(max_length=64, default=PRODUCT_LSIT_DEFAULT, verbose_name=u'商品ID列表')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+
+    class Meta:
+        db_table = 'supplychain_supply_schedule_manage'
+        verbose_name = u'选品/排期管理'
+        verbose_name_plural = u'选品/排期管理列表'
+
+    def __unicode__(self):
+        return '<%s,%s>' % (self.sale_time, self.responsible_person_name)
+
+
 from django.db.models.signals import pre_save
 from common.modelutils import update_model_fields
 def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
