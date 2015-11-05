@@ -17,6 +17,8 @@ from shopback.base.options import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
+from supplychain.supplier.models import SaleProductManage
+
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -395,6 +397,28 @@ class SaleProductAdmin(MyAdmin):
               "js/select_buyer_group.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
               "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js","js/make_hot.js")
 
+    def get_actions(self, request):
+        user = request.user
+        actions = super(SaleProductAdmin, self).get_actions(request)
+
+        if user.is_superuser:
+            return actions
+        valid_actions = set([])
+        if user.has_perm('supplier.schedule_manage'):  # 排期管理
+            valid_actions.add('schedule_manage_action')
+        if user.has_perm('supplier.sale_product_mgr'):
+            valid_actions.add('voting_action')
+            valid_actions.add('cancel_voting_action')
+        valid_actions.add('rejected_action')
+        unauth_actions = []
+        for action in actions.viewkeys():
+            action_ss = str(action)
+            if action_ss not in valid_actions:
+                unauth_actions.append(action_ss)
+
+        for action in unauth_actions:
+            del actions[action]
+        return actions
     def get_changelist(self, request, **kwargs):
         """
         Returns the ChangeList class for use on the changelist page.
@@ -473,7 +497,37 @@ class SaleProductAdmin(MyAdmin):
         
     rejected_action.short_description = u"淘汰选品"
     
-    actions = ['voting_action', 'cancel_voting_action', 'rejected_action']
+    def schedule_manage_action(self, request, queryset):
+        """  排期管理  """
+        print request.user.id,request.user.username
+        sale_time = queryset[0].sale_time.strftime('%Y-%m-%d')
+        product_list = {}
+        product_num = 0
+        for one_product in queryset:
+            print sale_time,one_product.sale_time.strftime('%Y-%m-%d')
+            if one_product.status != SaleProduct.SCHEDULE:
+                self.message_user(request, u"有未在排期范围内的商品")
+                return
+            if sale_time != one_product.sale_time.strftime('%Y-%m-%d'):
+                self.message_user(request, u"有不是同一天的商品")
+                return
+            sale_time = one_product.sale_time.strftime('%Y-%m-%d')
+            product_list[one_product.id] = one_product.title
+        mgr_p, state = SaleProductManage.objects.get_or_create(sale_time=sale_time)
+        mgr_p.product_num = product_num
+        mgr_p.responsible_people_id = request.user.id
+        mgr_p.responsible_person_name = request.user.username
+        mgr_p.product_list = product_list
+        mgr_p.save()
+        if state:
+            log_action(request.user.id, mgr_p, ADDITION, u'完成排期')
+        else:
+            log_action(request.user.id, mgr_p, CHANGE, u'修改排期')
+        self.message_user(request, u"设置成功")
+
+    schedule_manage_action.short_description = u"排期完成"
+    actions = ['voting_action', 'cancel_voting_action', 'schedule_manage_action', 'rejected_action']
+
 
 admin.site.register(SaleProduct, SaleProductAdmin)
 
@@ -500,8 +554,6 @@ class SalePraiseAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SalePraise, SalePraiseAdmin)
-
-from models_hots import HotProduct
 
 
 class HotProductAdmin(admin.ModelAdmin):
@@ -552,3 +604,9 @@ class HotProductAdmin(admin.ModelAdmin):
 
 
 admin.site.register(HotProduct, HotProductAdmin)
+
+
+class SaleProductManageAdmin(admin.ModelAdmin):
+    list_display = ('sale_time', 'product_num', 'responsible_person_name', 'product_list', 'created', 'modified')
+
+admin.site.register(SaleProductManage, SaleProductManageAdmin)
