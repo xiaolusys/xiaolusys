@@ -48,15 +48,37 @@
     </div>
 </div>
 
-<div class="col-lg-12" style="margin-top: 30px">
+<div class="col-lg-12" id="div_myChart" style="margin-top: 30px">
     <canvas id="myChart" width="1100" height="200"></canvas>
 </div>
-<div class="col-lg-12">
+<div class="col-lg-12" id="div_myChart_rate">
     <canvas id="myChart_rate" width="1100" height="400"></canvas>
 </div>
-<div class="col-lg-12">
+
+<div style="margin-top: 30px;margin-bottom: 40px">
+    <h4>数量记录</h4>
+    <span class="label label-default">付款数</span>
+    <span class="label label-success">24小时内退款数</span>
+    <span class="label label-warning">24小时外退款数</span>
+    <span class="label label-danger">退货数</span>
+</div>
+
+<div class="col-lg-12" id="div_refund_rcord">
+    <canvas id="refund_rcord" width="1100" height="200"></canvas>
+</div>
+
+<div class="col-lg-12" id="div_refund_rcord_rate" style="margin-top: 30px">
+    <canvas id="refund_rcord_rate" width="1100" height="200"></canvas>
+</div>
+
+
+<div style="margin-top: 100px">
+    <h4>退款率线性回归</h4>
+</div>
+<div class="col-lg-12" id="div_lin_ana" style="margin-top: 10px">
     <canvas id="lin_ana" width="1100" height="400"></canvas>
 </div>
+
 </body>
 
 <script type="text/javascript">
@@ -65,7 +87,6 @@
             dateFormat: "yy-mm-dd"
         });
     });
-
     function chartShow(X_axis, Y_axis1, Y_axis2, Y_axis3, LineArray) {
         var ctx = $("#myChart").get(0).getContext("2d");
         var ctx_rate = $("#myChart_rate").get(0).getContext('2d');
@@ -124,16 +145,35 @@
         var date_from = $("#left_date_pic").val();
         var date_to = $("#right_date_pic").val();
         getRateData(date_from, date_to);
-
+        getRcordData(date_from, date_to);
         $("#go_search").click(function () {
             var date_from = $("#left_date_pic").val();
             var date_to = $("#right_date_pic").val();
+
             if (date_from == '' || date_to == '') {
                 layer.msg('时间不能为空');
                 return
             }
             else {
+                $("#refund_rcord").remove();
+                $("#refund_rcord_rate").remove();
+                $("#myChart").remove();
+                $("#myChart_rate").remove();
+                $("#lin_ana").remove();
+
+                var div_myChart = '<canvas id="myChart" width="1100" height="200"></canvas>';
+                var myChart_rate = '<canvas id="myChart_rate" width="1100" height="400"></canvas>';
+                var refund_rcord = '<canvas id="refund_rcord" width="1100" height="200"></canvas>';
+                var refund_rcord_rate = '<canvas id="refund_rcord_rate" width="1100" height="200"></canvas>';
+                var lin_ana = '<canvas id="lin_ana" width="1100" height="400"></canvas>';
+                $("#div_refund_rcord").append(refund_rcord);
+                $("#div_refund_rcord_rate").append(refund_rcord_rate);
+                $("#div_myChart").append(div_myChart);
+                $("#div_myChart_rate").append(myChart_rate);
+                $("#div_lin_ana").append(lin_ana);
+
                 getRateData(date_from, date_to);
+                getRcordData(date_from, date_to);
             }
         });
     });
@@ -162,8 +202,6 @@
                 Y_axis3.push(rate.ref_rate);
             });
             console.log('数组长度:', Y_axis3.length);
-
-
             // 回归分析
             var X_array = new Array();
             for (var i = 0; i < X_axis.length; i++) {
@@ -171,11 +209,116 @@
             }
             var LineArray = LineXy(X_array, Y_axis3);
             console.log("LineArray:", LineArray);
-
-
             chartShow(X_axis, Y_axis1, Y_axis2, Y_axis3, LineArray);// 调用图标处理
         }
     }
+
+    <!-- 获取退款记录表中数据 -->
+    function getRcordData(t1, t2) {
+        var task_url = '/refunds/ref_rcord/';
+        var data = {"date_from": t1, "date_to": t2};
+        $.ajax({
+            url: task_url,
+            data: data,
+            type: "post",
+            dataType: "json",
+            success: taskCallBack
+        });
+        function taskCallBack(res) {
+            var X_axis = []; // X_axis : 日期
+            var Y_axis1 = []; //24h外未发货申请数
+            var Y_axis2 = []; //24h内未发货申请数
+            var Y_axis3 = []; //发货后申请数
+            var Y_axis4 = []; //付款数数组 总数
+
+            var Y_axis5 = [];
+            var Y_axis6 = [];
+            var Y_axis7 = [];
+
+            $.each(res, function (i, record) {
+                X_axis.push(record.date_cal);
+                Y_axis1.push(record.ref_num_out);
+                Y_axis2.push(record.ref_num_in);
+                Y_axis3.push(record.ref_sed_num);
+                Y_axis4.push(record.pay_num);
+
+                Y_axis5.push(parseFloat((record.ref_num_out / record.pay_num).toFixed(4)));// 24外率
+                Y_axis6.push(parseFloat((record.ref_num_in / record.pay_num).toFixed(4)));// 24内率
+                Y_axis7.push(parseFloat((record.ref_sed_num / record.pay_num).toFixed(4)));// 发货后率
+
+            });
+            // 回归分析
+            chartRecordShow(X_axis, Y_axis1, Y_axis2, Y_axis3, Y_axis4, Y_axis5, Y_axis6, Y_axis7);// 调用图标处理
+        }
+    }
+
+    function chartRecordShow(X_axis, Y_axis1, Y_axis2, Y_axis3, Y_axis4, Y_axis5, Y_axis6, Y_axis7) {
+        var ctx = $("#refund_rcord").get(0).getContext("2d");
+        var ctx_rate = $("#refund_rcord_rate").get(0).getContext('2d');
+        var data = {
+            labels: X_axis,//日期数组
+            datasets: [
+                {
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "yellow",
+                    pointColor: "yellow",
+                    pointStrokeColor: "yellow",
+                    data: Y_axis1//24h外未发货申请数
+                },
+                {
+                    fillColor: "rgba(151,187,205,0.5)",
+                    strokeColor: "green",
+                    pointColor: "green",
+                    pointStrokeColor: "green",
+                    data: Y_axis2//24h内未发货申请数
+                },
+                {
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "red",
+                    pointColor: "red",
+                    pointStrokeColor: "red",
+                    data: Y_axis3//发货后申请数
+                },
+                {
+                    fillColor: "rgba(151,187,205,0.5)",
+                    strokeColor: "black",
+                    pointColor: "black",
+                    pointStrokeColor: "black",
+                    data: Y_axis4//付款数数组 总数
+                }
+            ]
+        };
+        var rate_data = {
+            labels: X_axis,//日期数组
+            datasets: [
+                {
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "yellow",
+                    pointColor: "yellow",
+                    pointStrokeColor: "yellow",
+                    data: Y_axis5//24h外未发货申请数
+                },
+                {
+                    fillColor: "rgba(151,187,205,0.5)",
+                    strokeColor: "green",
+                    pointColor: "green",
+                    pointStrokeColor: "green",
+                    data: Y_axis6//24h内未发货申请数
+                },
+                {
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "red",
+                    pointColor: "red",
+                    pointStrokeColor: "red",
+                    data: Y_axis7//发货后申请数
+                }
+            ]
+        };
+        new Chart(ctx).Line(data);
+        new Chart(ctx_rate).Line(rate_data);
+        new Chart(pie).Pie(pie_data);
+    }
+
 
     <!--字符串format函数-->
     String.format = function () {
