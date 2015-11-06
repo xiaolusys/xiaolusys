@@ -66,6 +66,7 @@ class DailySupplyChainStatsOrder(models.Model):
     cost_of_product = models.FloatField(default=0, verbose_name=u'成本')
     sale_cost_of_product = models.FloatField(default=0, verbose_name=u'销售额')
     return_num = models.IntegerField(default=0, verbose_name=u'退款数量')
+    return_pro = models.IntegerField(default=0, verbose_name=u'退货数量')
     inferior_num = models.IntegerField(default=0, verbose_name=u'次品数量')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
