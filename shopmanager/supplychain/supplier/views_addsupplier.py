@@ -10,8 +10,9 @@ from django.db import transaction
 
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
-from supplychain.supplier.models import SaleSupplier, SaleCategory
-
+from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage
+import datetime
+from supplychain.supplier.models import SaleProduct
 
 class AddSupplierView(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
@@ -60,3 +61,52 @@ class CheckSupplierView(generics.ListCreateAPIView):
         if suppliers.count() > 0:
             return Response({"result": "10", "supplier": [s.supplier_name for s in suppliers]})
         return Response({"result": "0"})
+
+def get_target_date_detail(target_date):
+    target_sch = SaleProductManage.objects.filter(sale_time=target_date)
+    result_data = []
+    if target_sch.count() > 0:
+        all_detail = target_sch[0].normal_detail
+        return all_detail
+    else:
+        return ""
+
+
+class ScheduleManageView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "schedulemanage.html"
+
+    def get(self, request, *args, **kwargs):
+        target_date = request.GET.get("target_date", datetime.date.today())
+        result_data = []
+        one_data = get_target_date_detail(target_date)
+        result_data.append({target_date: one_data})
+        return Response({"result_data": result_data, "target_date": target_date})
+
+from shopback.items.models import Product
+from flashsale.pay.models_custom import ModelProduct
+class SaleProductAPIView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        sale_product_id = request.GET.get("sale_product")
+        if not sale_product_id:
+            return Response({"flag": "error"})
+        all_product = Product.objects.filter(status=Product.NORMAL, sale_product=sale_product_id)
+        if all_product.count() == 0:
+            return Response({"flag": "working"})
+        color_list = all_product[0].details.color
+        sku_list = ""
+        for one_sku in all_product[0].normal_skus:
+            sku_list += (one_sku.properties_name + "|")
+        name = all_product[0].name.split("/")[0]
+        try:
+            zhutu = ModelProduct.objects.get(id=all_product[0].model_id).head_imgs
+        except:
+            zhutu = ""
+        return Response({"flag": "done", "color_list": color_list, "sku_list": sku_list,
+                         "name": name, "zhutu": zhutu})
+
+
