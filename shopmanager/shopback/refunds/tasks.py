@@ -171,8 +171,10 @@ def his_dinghuo_return_pro():
         good_status__in=(SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS)).exclude(
         status=SaleRefund.REFUND_CLOSED)
     for refund in refunds:
-        record = DailySupplyChainStatsOrder.objects.filter(product_id=refund.outer_id)
+        record = DailySupplyChainStatsOrder.objects.filter(product_id=refund.outer_id())
         if record.exists():
-            record[0].return_pro += refund.refund_num
-            update_model_fields(record[0], update_fields=['return_pro'])
+            record = record[0]
+            refund_num = refund.refund_num
+            record.return_pro += refund_num
+            update_model_fields(record, update_fields=['return_pro'])
 
