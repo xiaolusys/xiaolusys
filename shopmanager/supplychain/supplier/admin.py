@@ -521,9 +521,8 @@ class SaleProductAdmin(MyAdmin):
             product_num += 1
             product_list.append(one_product.id)
             # 新建排期detail
-            one_detail = SaleProductManageDetail()
-            one_detail.schedule_manage = mgr_p
-            one_detail.sale_product_id = one_product.id
+            one_detail, already_cun = SaleProductManageDetail.objects.get_or_create(schedule_manage=mgr_p,
+                                                                       sale_product_id=one_product.id)
             one_detail.name = one_product.title
             one_detail.pic_path = one_product.pic_url
             one_detail.product_link = one_product.product_link
