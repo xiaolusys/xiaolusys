@@ -25,8 +25,16 @@
                         var result_data = eval(res.task.result);
                         $("#data-table-result thead").eq(0).nextAll().remove();
                         $.each(result_data, function (index, dd) {
-                            tb.append("<tr>" +
-                            "<td>" + (index+1) + "</td>" +
+
+                            var result_str = "";
+                            if(dd.warning_status == "1"){
+                                result_str+="<tr style='color:red'>";
+                            }else if(dd.warning_status == "2"){
+                                result_str+="<tr style='color:yellow'>";
+                            }else{
+                                result_str+="<tr>";
+                            }
+                            result_str += "<td>" + (index+1) + "</td>" +
                             "<td><a href='/admin/items/product/?q=" + dd.p_outer + "' target='_blank'>" + dd.p_outer + "</a></td>" +
                             "<td>" + dd.p_name + "</td><td><img src='" + dd.pic_path + "' width='100px' class='img-circle'/></td>" +
                             "<td>" + dd.product_category + "</td>" +
@@ -38,7 +46,8 @@
                             "<td>" + (parseFloat(dd.p_agent_price)-parseFloat(dd.p_cost)).toFixed(2) + "</td>" +
                             "<td>" + dd.tui_huo + "</td>" +
                             "<td>" + dd.suppliers + "</td>" +
-                            "<td>" + dd.sale_contactor + "</td></tr>");
+                            "<td>" + dd.sale_contactor + "</td></tr>"
+                            tb.append(result_str);
                         });
                          var oHead = document.getElementsByTagName('HEAD').item(0);
                         var oScript = document.createElement("script");
@@ -57,7 +66,7 @@
     </script>
 {% endblock %}
 {% block container %}
-    <div class="row" style="margin-top: 40px">
+    <div class="row" style="margin-top: 40px;">
         <form class="form-horizontal" role="form" method="GET" action="/sale/dinghuo/sale_hot/">
 
             <div class="col-xs-4">
@@ -104,7 +113,7 @@
                 <th width="5%">销售价</th>
                 <th width="5%">成交额</th>
                 <th width="5%">毛利润</th>
-                <th width="5%">退款数</th>
+                <th width="5%">退货数</th>
                 <th width="9%">供应商</th>
                 <th width="5%">买手</th>
                 </thead>
