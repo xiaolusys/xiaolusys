@@ -14,6 +14,7 @@ from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductM
 import datetime
 from supplychain.supplier.models import SaleProduct
 
+
 class AddSupplierView(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
     template_name = "add_supplier.html"
@@ -62,14 +63,34 @@ class CheckSupplierView(generics.ListCreateAPIView):
             return Response({"result": "10", "supplier": [s.supplier_name for s in suppliers]})
         return Response({"result": "0"})
 
+
+from shopback.items.models import Product
+from flashsale.pay.models_custom import ModelProduct, GoodShelf
+
+
 def get_target_date_detail(target_date):
     target_sch = SaleProductManage.objects.filter(sale_time=target_date)
-    result_data = []
+    try:
+        end_time = target_date + datetime.timedelta(days=1)
+    except:
+        return "", "", ""
+    try:
+        goodshelf = GoodShelf.objects.get(active_time__range=(target_date, end_time))
+        print goodshelf
+        wem_posters_list = goodshelf.wem_posters
+        if wem_posters_list:
+            wem_posters = wem_posters_list[0]["pic_link"]
+        chd_posters_list = goodshelf.chd_posters
+        if chd_posters_list:
+            chd_posters = chd_posters_list[0]["pic_link"]
+    except:
+        wem_posters = ""
+        chd_posters = ""
     if target_sch.count() > 0:
         all_detail = target_sch[0].normal_detail
-        return all_detail
+        return all_detail, wem_posters, chd_posters
     else:
-        return ""
+        return "", wem_posters, chd_posters
 
 
 class ScheduleManageView(generics.ListCreateAPIView):
@@ -78,14 +99,17 @@ class ScheduleManageView(generics.ListCreateAPIView):
     template_name = "schedulemanage.html"
 
     def get(self, request, *args, **kwargs):
-        target_date = request.GET.get("target_date", datetime.date.today())
+        target_date_str = request.GET.get("target_date", datetime.date.today().strftime("%Y-%m-%d"))
         result_data = []
-        one_data = get_target_date_detail(target_date)
-        result_data.append({target_date: one_data})
-        return Response({"result_data": result_data, "target_date": target_date})
+        target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
+        for i in range(0, 6):
+            temp_date = target_date + datetime.timedelta(days=i)
+            one_data, wem_posters, chd_posters = get_target_date_detail(temp_date)
+            result_data.append({"data": one_data, "date": temp_date.strftime("%Y-%m-%d"),
+                                "wem_posters": wem_posters, "chd_posters": chd_posters})
+        return Response({"result_data": result_data, "target_date": target_date_str})
 
-from shopback.items.models import Product
-from flashsale.pay.models_custom import ModelProduct
+
 class SaleProductAPIView(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
@@ -100,7 +124,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         color_list = all_product[0].details.color
         sku_list = ""
         for one_sku in all_product[0].normal_skus:
-            sku_list += (one_sku.properties_name + "|")
+            sku_list += (one_sku.properties_alias + "|")
         name = all_product[0].name.split("/")[0]
         try:
             zhutu = ModelProduct.objects.get(id=all_product[0].model_id).head_imgs
