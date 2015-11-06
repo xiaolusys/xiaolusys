@@ -68,7 +68,7 @@ from shopback.items.models import Product
 from flashsale.pay.models_custom import ModelProduct, GoodShelf
 
 
-def get_target_date_detail(target_date):
+def get_target_date_detail(target_date, category):
     target_sch = SaleProductManage.objects.filter(sale_time=target_date)
     try:
         end_time = target_date + datetime.timedelta(days=1)
@@ -76,7 +76,6 @@ def get_target_date_detail(target_date):
         return "", "", ""
     try:
         goodshelf = GoodShelf.objects.get(active_time__range=(target_date, end_time))
-        print goodshelf
         wem_posters_list = goodshelf.wem_posters
         if wem_posters_list:
             wem_posters = wem_posters_list[0]["pic_link"]
@@ -87,7 +86,12 @@ def get_target_date_detail(target_date):
         wem_posters = ""
         chd_posters = ""
     if target_sch.count() > 0:
-        all_detail = target_sch[0].normal_detail
+        if category == "1":
+            all_detail = target_sch[0].nv_detail
+        elif category == "2":
+            all_detail = target_sch[0].child_detail
+        else:
+            all_detail = target_sch[0].normal_detail
         return all_detail, wem_posters, chd_posters
     else:
         return "", wem_posters, chd_posters
@@ -100,14 +104,15 @@ class ScheduleManageView(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         target_date_str = request.GET.get("target_date", datetime.date.today().strftime("%Y-%m-%d"))
+        category = request.GET.get("category", "0")
         result_data = []
         target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
         for i in range(0, 6):
             temp_date = target_date + datetime.timedelta(days=i)
-            one_data, wem_posters, chd_posters = get_target_date_detail(temp_date)
+            one_data, wem_posters, chd_posters = get_target_date_detail(temp_date, category)
             result_data.append({"data": one_data, "date": temp_date.strftime("%Y-%m-%d"),
                                 "wem_posters": wem_posters, "chd_posters": chd_posters})
-        return Response({"result_data": result_data, "target_date": target_date_str})
+        return Response({"result_data": result_data, "target_date": target_date_str, "category": category})
 
 
 class SaleProductAPIView(generics.ListCreateAPIView):

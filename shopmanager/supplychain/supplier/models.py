@@ -264,10 +264,20 @@ class SaleProductManage(models.Model):
         db_table = 'supplychain_supply_schedule_manage'
         verbose_name = u'排期管理'
         verbose_name_plural = u'排期管理列表'
+
     @property
     def normal_detail(self):
         return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL)
 
+    @property
+    def nv_detail(self):
+        return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL,
+                                           sale_category__contains=u'女装')
+
+    @property
+    def child_detail(self):
+        return self.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL,
+                                           sale_category__contains=u'童装')
     def __unicode__(self):
         return '<%s,%s>' % (self.sale_time, self.responsible_person_name)
 

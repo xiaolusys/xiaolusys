@@ -49,6 +49,14 @@
                 <input type="text" readonly name="target_date" class="form-control datepicker"
                        value="{{ target_date }}"/>
             </div>
+            <div class="col-xs-2">
+                <label class="control-label" for="category">分类:</label>
+                <select class="form-control" name="category">
+                    <option value="0" {% ifequal category "0" %}selected="selected" {% endifequal %}>所有</option>
+                    <option value="1" {% ifequal category "1" %}selected="selected" {% endifequal %}>女装</option>
+                    <option value="2" {% ifequal category "2" %}selected="selected" {% endifequal %}>童装</option>
+                </select>
+            </div>
             <div class="col-xs-4">
                 <input type="submit" class="btn btn-info" style="margin-top: 22px" value="查询后六天"></div>
         </div>
