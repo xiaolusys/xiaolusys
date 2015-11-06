@@ -126,7 +126,8 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         for one_sku in all_product[0].normal_skus:
             sku_list += (one_sku.properties_alias + "|")
         name = all_product[0].name.split("/")[0]
-
+        lowest_price = all_product[0].lowest_price()
+        std_sale_price = all_product[0].std_sale_price
         try:
             pmodel = ModelProduct.objects.get(id=all_product[0].model_id)
             zhutu = pmodel.head_imgs.split()[0]
@@ -136,6 +137,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             except:
                 zhutu = ""
         return Response({"flag": "done", "color_list": color_list, "sku_list": sku_list,
-                         "name": name, "zhutu": zhutu})
+                         "name": name, "zhutu": zhutu, "lowest_price": lowest_price,
+                         "std_sale_price": std_sale_price})
 
 
