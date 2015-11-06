@@ -126,10 +126,15 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         for one_sku in all_product[0].normal_skus:
             sku_list += (one_sku.properties_alias + "|")
         name = all_product[0].name.split("/")[0]
+
         try:
-            zhutu = ModelProduct.objects.get(id=all_product[0].model_id).head_imgs
+            pmodel = ModelProduct.objects.get(id=all_product[0].model_id)
+            zhutu = pmodel.head_imgs.split()[0]
         except:
-            zhutu = ""
+            try:
+                zhutu = all_product[0].details.head_imgs.split()[0]
+            except:
+                zhutu = ""
         return Response({"flag": "done", "color_list": color_list, "sku_list": sku_list,
                          "name": name, "zhutu": zhutu})
 
