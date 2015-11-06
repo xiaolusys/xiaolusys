@@ -127,6 +127,7 @@ def taskRefundRecord(obj):
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
                 refund_record.ref_sed_num += 1
+            write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
         if order.status in (SaleOrder.WAIT_SELLER_SEND_GOODS, ):
             # 如果　未发货　　则　算入　24小时外未发货退款数量
             if state:  # 新建记录　填写　付款成功数量
@@ -140,6 +141,7 @@ def taskRefundRecord(obj):
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
                 refund_record.ref_sed_num += 1
+            write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
         else:  # 否则　算入　24小时内　　　退款数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_num_in = 1
@@ -147,4 +149,30 @@ def taskRefundRecord(obj):
                 refund_record.ref_num_in += 1
     update_model_fields(refund_record, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in'])
 
+
+def write_dinghuo_return_pro(refund):
+    from common.modelutils import update_model_fields
+    from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
+    try:
+        record = DailySupplyChainStatsOrder.objects.get(product_id=refund.outer_id)
+        record.return_pro += refund.refund_num
+        update_model_fields(record, update_fields=['return_pro'])
+    except:
+        return
+
+
+def his_dinghuo_return_pro():
+    """ 写入产品退货历史退货数量数据　"""
+    from common.modelutils import update_model_fields
+    from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
+    from flashsale.pay.models_refund import SaleRefund
+    # 已经收到货　或者　已经退货的　
+    refunds = SaleRefund.objects.filter(
+        good_status__in=(SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS)).exclude(
+        status=SaleRefund.REFUND_CLOSED)
+    for refund in refunds:
+        record = DailySupplyChainStatsOrder.objects.filter(product_id=refund.outer_id)
+        if record.exists():
+            record[0].return_pro += refund.refund_num
+            update_model_fields(record[0], update_fields=['return_pro'])
 
