@@ -155,7 +155,7 @@ def write_dinghuo_return_pro(refund):
     from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
     try:
         record = DailySupplyChainStatsOrder.objects.get(product_id=refund.outer_id)
-        record.return_pro += 1
+        record.return_pro += refund.refund_num
         update_model_fields(record, update_fields=['return_pro'])
     except:
         return
@@ -166,10 +166,13 @@ def his_dinghuo_return_pro():
     from common.modelutils import update_model_fields
     from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
     from flashsale.pay.models_refund import SaleRefund
-    refunds = SaleRefund.objects.all().exclude(status=SaleRefund.REFUND_CLOSED)
+    # 已经收到货　或者　已经退货的　
+    refunds = SaleRefund.objects.filter(
+        good_status__in=(SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS)).exclude(
+        status=SaleRefund.REFUND_CLOSED)
     for refund in refunds:
         record = DailySupplyChainStatsOrder.objects.filter(product_id=refund.outer_id)
         if record.exists():
-            record[0].return_pro += 1
-            update_model_fields(record, update_fields=['return_pro'])
+            record[0].return_pro += refund.refund_num
+            update_model_fields(record[0], update_fields=['return_pro'])
 
