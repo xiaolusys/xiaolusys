@@ -335,9 +335,9 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                     if one_sale_product.count() > 0:
                         supplier_list = one_sale_product[0].sale_supplier.supplier_name
                         sale_contactor = one_sale_product[0].contactor.username if one_sale_product[0].contactor else ""
-                if p_sales > 0 and tui_huo/p_sales > 0.02:
+                if p_sales > 0 and tui_huo/p_sales >= 0.2:
                     warning_status = "1"
-                elif p_sales > 0 and tui_huo/p_sales > 0.01:
+                elif p_sales > 0 and tui_huo/p_sales >= 0.1:
                     warning_status = "2"
                 else:
                     warning_status = "3"
