@@ -67,12 +67,17 @@
         {% for one_data in result_data %}
             <section class="grid" style="margin-top: 10px">
                 <div class="row">
-                    <div class="col-xs-5"><img src="{{ one_data.wem_posters }}" width="400px"></div>
-                    <div class="col-xs-2"><h3>{{ one_data.date }}排期</h3></div>
-                    <div class="col-xs-5"><img src="{{ one_data.chd_posters }}" style="float: right" width="400px">
+                    <div class="col-xs-4"><img src="{{ one_data.wem_posters }}" width="400px"></div>
+                    <div class="col-xs-4">
+                        <div style="border: 1px solid rgba(255, 255, 188, 0);">
+                            <span style="font-size: 30px">{{ one_data.date }}排期</span>
+                            <a href="javascript:;" data-date="{{ one_data.date }}" class="switch" target="_self">收起</a>
+                        </div>
+                    </div>
+                    <div class="col-xs-4"><img src="{{ one_data.chd_posters }}" style="float: right" width="400px">
                     </div>
                 </div>
-                <table class="table table-striped table-bordered">
+                <table class="table table-striped table-bordered" id="content_{{ one_data.date }}">
                     <thead>
                     <th width="3%">计数</th>
                     <th width="7%">类别</th>
@@ -116,10 +121,16 @@
             dateFormat: "yy-mm-dd"
         });
         var all_id = $(".id_list");
-
         $.each(all_id, function (index, obj) {
             ajaxProduct(all_id.eq(index).attr("data-sale-product"));
         });
+        $(".switch").bind("click", function () {
+            var hide_date = $(this).attr("data-date");
+            var content = $("#content_" + hide_date);
+
+            $(this).text(content.is(":hidden") ? "收起" : "展开");
+            content.slideToggle();
+        })
     });
 
     function ajaxProduct(sale_product_id) {
