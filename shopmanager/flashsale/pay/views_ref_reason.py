@@ -46,3 +46,12 @@ class RefundReason(APIView):
         info_base = {'today': today, "user_name": user_name, "reason": reason, "sale_num": sale_num,
                      "desc": des, 'pro_info': pro_info}
         return Response(info_base)
+
+
+class RefundAnaList(APIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    template_name = "salerefund/pro_ref_list.html"
+
+    def get(self, request):
+        username = request.user.username
+        return Response({"username": username})
