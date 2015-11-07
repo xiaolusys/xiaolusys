@@ -22,7 +22,9 @@ urlpatterns = [
     url(r'^bdproduct/(?P<pk>[0-9]+)/$', views_aggregate.AggregateProductView.as_view()),
     url(r'^addsupplier/$', views_addsupplier.AddSupplierView.as_view()),
     url(r'^checksupplier/$', views_addsupplier.CheckSupplierView.as_view()),
-    url(r'^hotpro/$', views_hot.HotProductView.as_view())
+    url(r'^hotpro/$', views_hot.HotProductView.as_view()),
+    url(r'^manage_schedule/$', views_addsupplier.ScheduleManageView.as_view()),
+    url(r'^sale_product_api/$', views_addsupplier.SaleProductAPIView.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -158,6 +158,12 @@ class SaleRefund(models.Model):
         except Product.DoesNotExist:
             return None
 
+    def outer_id(self):
+        try:
+            pro = Product.objects.get(id=self.item_id)
+            return pro.outer_id
+        except Product.DoesNotExist:
+            return None
             
 
 def buyeridPatch():
