@@ -130,6 +130,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         sku_list = ""
         for one_sku in all_product[0].normal_skus:
             sku_list += (one_sku.properties_alias + " | ")
+
         name = all_product[0].name.split("/")[0]
         lowest_price = all_product[0].lowest_price()
         std_sale_price = all_product[0].std_sale_price
@@ -139,9 +140,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         single_model = True
         try:
             pmodel = ModelProduct.objects.get(id=all_product[0].model_id)
-            if pmodel.is_single_spec:
-                model_id = 0
-            else:
+            if not pmodel.is_single_spec():
                 model_id = pmodel.id
                 single_model = False
             zhutu = pmodel.head_imgs.split()[0]

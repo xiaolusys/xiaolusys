@@ -176,9 +176,9 @@
                     $("#low_price_" + sale_product_id).html("出售最低价：" + result.lowest_price);
                     $("#std_sale_price_" + sale_product_id).html("吊牌价：" + result.std_sale_price);
                     if(result.single_model){
-                        $("#preview_page_" + sale_product_id).attr("href", "http://m.xiaolu.so/pages/shangpinxq.html?id="+result.product_id);
+                        $("#preview_page_" + sale_product_id).attr("href", "/static/wap/pages/shangpinxq.html?id="+result.product_id);
                     }else{
-                        $("#preview_page_" + sale_product_id).attr("href", "http://m.xiaolu.so/tongkuan.html?id="+result.model_id);
+                        $("#preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id="+result.model_id);
                     }
                 }
             }
