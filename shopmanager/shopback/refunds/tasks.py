@@ -148,6 +148,8 @@ def taskRefundRecord(obj):
             else:  # 有记录则累加
                 refund_record.ref_num_in += 1
     update_model_fields(refund_record, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in'])
+    # 添加产品的退货记录
+    record_pro(obj)
 
 
 def write_dinghuo_return_pro(refund):
@@ -177,4 +179,55 @@ def his_dinghuo_return_pro():
             refund_num = refund.refund_num
             record.return_pro += refund_num
             update_model_fields(record, update_fields=['return_pro'])
+
+
+def his_refund_record():
+    """ 写入产品的退货记录　"""
+    from flashsale.pay.models_refund import SaleRefund
+    # 所有退款单
+    refunds = SaleRefund.objects.all().exclude(status=SaleRefund.REFUND_CLOSED)
+    for ref in refunds:
+        record_pro(ref)
+
+
+def record_pro(ref):
+    from common.modelutils import update_model_fields
+    from shopback.refunds.models_refund_rate import ProRefunRcord
+    order = ref.sale_order()
+    if order is None:
+        return
+    trade = order.sale_trade
+    # 订单的付款时间　与　退款单的创建时间　比较　判断是否属于24小时内
+    pay_time = trade.pay_time
+    if pay_time is None:
+        return
+    ref_created = ref.created
+    after_24_h = pay_time + datetime.timedelta(days=1)
+    pro_ref_rcd, state = ProRefunRcord.objects.get_or_create(product=ref.item_id)
+    if ref_created > after_24_h:
+        # 表示24小时外申请
+        if ref.good_status in (SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS):
+            if state:
+                pro_ref_rcd.ref_sed_num = ref.refund_num
+            else:
+                pro_ref_rcd.ref_sed_num += ref.refund_num
+        else:
+            if state:
+                pro_ref_rcd.ref_num_out = ref.refund_num
+            else:
+                pro_ref_rcd.ref_num_out += ref.refund_num
+    else:
+        # 表示24小时内申请
+        if ref.good_status in (SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS):
+            if state:
+                pro_ref_rcd.ref_sed_num = ref.refund_num
+            else:
+                pro_ref_rcd.ref_sed_num += ref.refund_num
+        else:
+            if state:
+                pro_ref_rcd.ref_num_in = ref.refund_num
+            else:
+                pro_ref_rcd.ref_num_in += ref.refund_num
+
+    update_model_fields(pro_ref_rcd, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in'])
 

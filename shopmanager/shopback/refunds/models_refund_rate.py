@@ -46,3 +46,26 @@ class PayRefNumRcord(models.Model):
 
     def __unicode__(self):
         return u"%s" % self.date_cal
+
+
+class ProRefunRcord(models.Model):
+    """
+    信号触发记录　针对单个产品的　退货统计
+    付款24小时外未发货申请数       ref_num_out
+    付款24小时内未发货申请数       ref_num_in
+    付款发货后申请数              ref_sed_num
+    """
+    product = models.IntegerField(db_index=True, unique=True, verbose_name=u'产品id')
+    ref_num_out = models.IntegerField(default=0, verbose_name=u'24h外未发货申请数')
+    ref_num_in = models.IntegerField(default=0, verbose_name=u'24h内未发货申请数')
+    ref_sed_num = models.IntegerField(default=0, verbose_name=u'发货后申请数')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
+
+    class Meta:
+        db_table = 'flashsale_pay_product_refund_record'
+        verbose_name = u'特卖/产品退款数记录表'
+        verbose_name_plural = u'特卖/产品退款数记录表'
+
+    def __unicode__(self):
+        return u"%s" % self.product

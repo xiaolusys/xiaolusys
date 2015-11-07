@@ -152,7 +152,15 @@ class SaleRefund(models.Model):
             return pro.outer_id
         except Product.DoesNotExist:
             return None
-            
+
+    def sale_order(self):
+        from flashsale.pay.models import SaleOrder
+        try:
+            order = SaleOrder.objects.get(id=self.order_id)
+        except SaleOrder.DoesNotExist:
+            order = None
+        return order
+
 
 def buyeridPatch():
     
