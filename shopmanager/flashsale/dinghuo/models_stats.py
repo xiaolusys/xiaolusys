@@ -66,6 +66,7 @@ class DailySupplyChainStatsOrder(models.Model):
     cost_of_product = models.FloatField(default=0, verbose_name=u'成本')
     sale_cost_of_product = models.FloatField(default=0, verbose_name=u'销售额')
     return_num = models.IntegerField(default=0, verbose_name=u'退款数量')
+    return_pro = models.IntegerField(default=0, verbose_name=u'退货数量')
     inferior_num = models.IntegerField(default=0, verbose_name=u'次品数量')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
@@ -149,3 +150,19 @@ class DailyStatsPreview(models.Model):
             return str(days)
         else:
             return "0"
+
+
+class PayToPackStats(models.Model):
+    pay_date = models.DateField(db_index=True, unique=True, verbose_name=u'付款之日')
+    packed_sku_num = models.IntegerField(default=0, verbose_name=u'已发货sku数')
+    total_days = models.FloatField(default=0, verbose_name=u'总耗天数')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
+    
+    class Meta:
+        db_table = 'supply_chain_paytopack'
+        verbose_name = u'发货速度日汇'
+        verbose_name_plural = u'发货速度日汇表'
+
+    def __unicode__(self):
+        return '<%s>' % (self.pay_date)

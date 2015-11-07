@@ -3,7 +3,7 @@ from __future__ import division
 __author__ = 'yann'
 from celery.task import task
 from shopback.items.models import Product, ProductSku
-from flashsale.dinghuo.models_stats import SupplyChainDataStats
+from flashsale.dinghuo.models_stats import SupplyChainDataStats,PayToPackStats
 from flashsale.dinghuo.models import OrderDetail, OrderList
 import functions
 import datetime
@@ -12,6 +12,17 @@ import urllib2
 import re
 from django.db import connection
 import sys
+
+@task(max_retry=3, default_retry_delay=5)
+def task_stats_paytopack(pay_date,sku_num,total_days):
+    try:
+        entry,status = PayToPackStats.objects.get_or_create(pay_date=pay_date)
+        entry.packed_sku_num += sku_num
+        entry.total_days += total_days
+        entry.save()
+    except Exception, exc:
+        raise task_stats_paytopack.retry(exc=exc)
+
 
 @task(max_retry=3, default_retry_delay=5)
 def task_stats_daily_product(pre_day=1):
@@ -438,7 +449,7 @@ def task_supplier_stat(start_date, end_date, group_name):
 
 @task()
 def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
-
+    """非没有退款状态的，不算作销售数"""
     order_sql = "select id,outer_id,sum(num) as sale_num,outer_sku_id,pay_time from " \
                 "shop_trades_mergeorder where refund_status='NO_REFUND' and sys_status='IN_EFFECT' " \
                 "and merge_trade_id in (select id from shop_trades_mergetrade where type not in ('reissue','exchange') " \
@@ -514,7 +525,69 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
     result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
     return result_dict
+import function_of_task_optimize
+@task()
+def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
+    """非没有退款状态的，不算作销售数,没有之前的速度快"""
+    if len(search_text) > 0:
+        search_text = str(search_text)
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
+                      "(select id,name as product_name,outer_id,pic_path from " \
+                      "shop_items_product where outer_id like '%%{0}%%' or name like '%%{0}%%' ) as A " \
+                      "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+            search_text)
+    else:
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
+                      "(select id,name as product_name,outer_id,pic_path from " \
+                      "shop_items_product where  sale_time='{0}' " \
+                      "and status!='delete') as A " \
+                      "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+            target_date)
 
+    cursor = connection.cursor()
+    cursor.execute(product_sql)
+    product_raw = cursor.fetchall()
+    trade_dict = {}
+    for one_product in product_raw:
+        temp_dict = {"product_id": one_product[0], "outer_sku_id": one_product[4], "product_name": one_product[1],
+                     "pic_path": one_product[3], "sale_num": 0, "sku_name": one_product[6],
+                     "ding_huo_num": 0, "effect_num": 0, "sku_id": one_product[7],
+                     "ding_huo_status": "", "sample_num": 0,
+                     "flag_of_more": "", "flag_of_less": "", "ku_cun_num": int(one_product[8] or 0),
+                     "arrival_num": 0}
+        if one_product[2] not in trade_dict:
+            trade_dict[one_product[2]] = [temp_dict]
+        else:
+            trade_dict[one_product[2]].append(temp_dict)
+    total_more_num = 0
+    total_less_num = 0
+
+    for product_outer_id, sku_list in trade_dict.items():
+
+        for one_sku in sku_list:
+            sale_num = function_of_task_optimize.get_sale_num(shelve_from, time_to, product_outer_id,
+                                                              one_sku["outer_sku_id"])
+            ding_huo_num, sample_num, arrival_num = function_of_task_optimize.get_dinghuo_num(dinghuo_begin, query_time,
+                                                                                              product_outer_id,
+                                                                                              one_sku["sku_id"])
+            one_sku["sale_num"] = sale_num
+            one_sku["ding_huo_num"] = ding_huo_num
+            one_sku["sample_num"] = sample_num
+            one_sku["arrival_num"] = arrival_num
+            ding_huo_status, flag_of_more, flag_of_less = functions.get_ding_huo_status(
+                sale_num, ding_huo_num, one_sku["ku_cun_num"], sample_num, arrival_num)
+            one_sku["ding_huo_status"] = ding_huo_status
+            one_sku["flag_of_less"] = flag_of_less
+            one_sku["flag_of_more"] = flag_of_more
+            if flag_of_more:
+                total_more_num += (sample_num + one_sku["ku_cun_num"] + ding_huo_num + arrival_num - sale_num)
+            if flag_of_less:
+                total_less_num += (sale_num - sample_num - one_sku["ku_cun_num"] - arrival_num - ding_huo_num)
+    trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
+    result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
+    return result_dict
 
 from supplychain.supplier.models import SaleProduct
 from flashsale.pay.models_refund import SaleRefund
@@ -544,68 +617,6 @@ def time_zone_handler(date_from=None, date_to=None):
         date_from = datetime.datetime(tyear, tmonth, tday, 0, 0, 0)
         date_to = datetime.datetime(fyear, fmonth, fday, 23, 59, 59)
     return date_from, date_to
-
-
-@task()
-def calcu_refund_info_by_pro(pro_queryset=None):
-    from django.forms import model_to_dict
-    from django.db.models import Sum
-    data = []
-    for i in pro_queryset:
-        # # 退款数量 return_num
-        #  实时过滤退款单中的状态 2015-09-30
-        skus = i.prod_skus.all()
-        for sku in skus:
-            sale_refunds = SaleRefund.objects.filter(item_id=i.id, sku_id=sku.id)
-
-            # 申请退货数量（已经发货生成的退货申请）
-            sended_refunds = sale_refunds.filter(good_status=SaleRefund.BUYER_RECEIVED)
-
-            # 退货途中数量(已经到货，填写了退货物流信息的退货申请) 排除　退款关闭，退款成功，等待返款的状态
-            backing_refunds = sale_refunds.filter(good_status=SaleRefund.BUYER_RETURNED_GOODS).exclude\
-                (status__in=(SaleRefund.REFUND_CLOSED, SaleRefund.REFUND_SUCCESS, SaleRefund.REFUND_APPROVE))
-
-            # 退货到仓库的数量
-            backed_refunds = RefundProduct.objects.filter(outer_id=i.outer_id, outer_sku_id=sku.outer_id)
-
-            # 已经退货数量
-            already_return_goods = RGDetail.objects.filter(skuid=sku.id)  # 过滤出审核通过的退货单
-
-            already_num = already_return_goods.aggregate(total_al=Sum("num")).get("total_al") or 0
-            already_inferior_num_num = already_return_goods.aggregate(total_al=Sum("inferior_num")).get("total_al") or 0
-            already_return_goods_num = already_num + already_inferior_num_num
-
-            return_num = sale_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 退款数量
-
-            sended_refund_num = sended_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 申请退货数量
-            backing_refund_num = backing_refunds.aggregate(total_num=Sum("refund_num")).get("total_num") or 0  # 退货途中数量
-            backed_refund = backed_refunds.aggregate(total_num=Sum("num")).get("total_num") or 0  # 退货到仓库数量
-
-            if return_num == 0 and sended_refund_num == 0 and backed_refund == 0:
-                continue
-            # 找出供应商和买手
-            sale_supplier_name, sale_supplier_pk, \
-            sale_supplier_contact, sale_supplier_mobile = get_sale_product(i.sale_product)
-
-            prod = model_to_dict(i, exclude=("created", "modified", "sale_time"))
-            prod['s_id'] = sku.id
-            prod['s_cost'] = sku.cost
-            prod["sku_quantity"] = sku.quantity  # 库存数
-            prod['sku_inferior_num'] = sku.sku_inferior_num  # sku的次品数量
-            prod['sku_wait_post_num'] = sku.wait_post_num  # 待发数
-            prod['return_num'] = return_num  # 退款数量
-            prod['sended_refund_num'] = sended_refund_num  # 申请退货数量
-            prod['backing_refund_num'] = backing_refund_num  # 退货途中数量
-            prod['backed_refund'] = backed_refund  # 退货到仓库数量
-
-            prod['sale_supplier_name'] = sale_supplier_name  # 供应商名称
-            prod['sale_supplier_pk'] = sale_supplier_pk
-            prod['sale_supplier_contact'] = sale_supplier_contact  # 联系人
-            prod['sale_supplier_mobile'] = sale_supplier_mobile  # 手机
-            prod['already_num'] = already_return_goods_num  # 已退数量
-
-            data.append(prod)
-    return data
 
 
 def get_other_field(product_id, sku_id):

@@ -19,9 +19,9 @@ CELERYD_MAX_TASKS_PER_CHILD = 100
 # 单个任务的运行时间不超过此值，否则会被SIGKILL 信号杀死 
 # CELERYD_TASK_TIME_LIMIT = 60    
 # 非常重要,有些情况下可以防止死锁,如果有数量更时间限制应开启 
-CELERYD_FORCE_EXECV = True    
+#CELERYD_FORCE_EXECV = True    
 #WORKER每次取任务数
-CELERYD_PREFETCH_MULTIPLIER = 4
+CELERYD_PREFETCH_MULTIPLIER = 1
 # BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 90}  
 # 任务发出后，经过一段时间还未收到acknowledge , 就将任务重新交给其他worker执行  
 # CELERY_DISABLE_RATE_LIMITS = True     
@@ -30,9 +30,9 @@ CELERY_TIMEZONE = 'Asia/Shanghai'
  
 
 CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"
-CELERY_TASK_RESULT_EXPIRES = 7200  # 2 hours.
+CELERY_TASK_RESULT_EXPIRES = 10800  # 2 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
-CELERYD_CONCURRENCY = 16 # 16 processes in paralle
+CELERYD_CONCURRENCY = 8 # 16 processes in paralle
 
 from kombu import Exchange, Queue
 CELERY_DEFAULT_QUEUE = 'peroid'
@@ -152,7 +152,7 @@ SYNC_MODEL_SCHEDULE = {
     },
     u'定时释放定时提醒订单':{
         'task':'shopback.trades.tasks_release.CancelMergeOrderStockOutTask',
-        'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,22,2)])),
+        'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,22,1)])),
         'args':(),
         'options' : {'queue':'peroid'} 
     },

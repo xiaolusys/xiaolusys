@@ -10,7 +10,7 @@ from shopback.refunds.views import RefundProductView,RefundView,RefundManagerVie
 # from shopback.refunds.resources import RefundProductResource,RefundResource
 from refund_analysis import refund_Analysis, refund_Reason, refund_Invalid_Create
 from .views_quality_tracert import tracert_Page_Show, tracert_Data_Collect
-from viws_analysis import RefundAnaView, RefundRateView
+from viws_analysis import RefundRateView, RefundRecord
 
 
 __author__ = 'meixqhi'
@@ -57,6 +57,6 @@ urlpatterns = patterns('shopback.refunds.views',
     # refund quality handler
     url('refund_quality_handler/$', staff_member_required(tracert_Page_Show), name='refunde_reson_analysis'),
     url('refund_quality_data/$', staff_member_required(tracert_Data_Collect), name='refunde_reson_analysis'),
-    url('refund_ana/$', staff_member_required(RefundAnaView.as_view()),),
-    url('ref_rate/$', staff_member_required(RefundRateView.as_view()),)
+    url('ref_rate/$', staff_member_required(RefundRateView.as_view()),),
+    url('ref_rcord/$', staff_member_required(RefundRecord.as_view()),)
 )

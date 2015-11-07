@@ -1,6 +1,5 @@
 #-*- coding:utf-8 -*-
-import time
-import json
+import uuid
 import datetime
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -20,7 +19,7 @@ from .managers import SaleTradeManager
 
 from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
-import uuid
+from shopback.base.models import JSONCharMyField
 from shopback.base import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
 
@@ -90,7 +89,7 @@ class SaleTrade(models.Model):
         (WAIT_BUYER_PAY,u'待付款'),
         (WAIT_SELLER_SEND_GOODS,u'已付款'),
         (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
-        (TRADE_BUYER_SIGNED,u'货到付款签收'),
+        (TRADE_BUYER_SIGNED,u'确认签收'),
         (TRADE_FINISHED,u'交易成功'),
         (TRADE_CLOSED,u'退款关闭'),
         (TRADE_CLOSED_BY_SYS,u'交易关闭'),
@@ -140,6 +139,9 @@ class SaleTrade(models.Model):
     
     status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'交易状态')
+    
+#     is_part_consign  = models.BooleanField(db_index=True,default=False,verbose_name=u'分单发货')
+#     consign_parmas   = JSONCharMyField(max_length=512, blank=True, default='[]', verbose_name=u'发货信息')
     
     objects = models.Manager()
     normal_objects = SaleTradeManager()
@@ -304,7 +306,7 @@ class SaleOrder(models.Model):
         (WAIT_BUYER_PAY,u'待付款'),
         (WAIT_SELLER_SEND_GOODS,u'已付款'),
         (WAIT_BUYER_CONFIRM_GOODS,u'已发货'),
-        (TRADE_BUYER_SIGNED,u'货到付款签收'),
+        (TRADE_BUYER_SIGNED,u'确认签收'),
         (TRADE_FINISHED,u'交易成功'),
         (TRADE_CLOSED,u'退款关闭'),
         (TRADE_CLOSED_BY_SYS,u'交易关闭'),
@@ -388,13 +390,10 @@ class SaleOrder(models.Model):
         Product.objects.releaseLockQuantity(sku,self.num)
 
     def confirm_sign_order(self):
-        """确认签收 修改该订单状态到 交易完成"""
-        try:
-            SaleOrder.objects.get(id=self.id)
-        except SaleOrder.DoesNotExist,exc:
-            return
-        self.status = self.TRADE_FINISHED
+        """确认签收 修改该订单状态到 确认签收状态"""
+        self.status = self.TRADE_BUYER_SIGNED
         self.save()
+
 
 class TradeCharge(models.Model):
     
@@ -499,10 +498,12 @@ class ShoppingCart(models.Model):
     def calc_discount_fee(self,xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return product_sku.calc_discount_fee(xlmm)
-    
+
 from signals_coupon import *
+import logging
 from shopback import signals
 from django.contrib.auth.models import User as DjangoUser
+
 
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
@@ -523,4 +524,5 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)
 
-from models_coupon_new import *
+from models_coupon_new import CouponTemplate, CouponsPool, UserCoupon
+

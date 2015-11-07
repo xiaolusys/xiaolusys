@@ -258,7 +258,16 @@ class ProductManager(models.Manager):
                 
         except (self.model.DoesNotExist,ProductSku.DoesNotExist):
             raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
+    
+    def reduceLockNumByCode(self,outer_id,outer_sku_id,order_num):
         
+        from .models import ProductSku
+        try:
+            product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
+                                                 product__outer_id=outer_id)
+            product_sku.update_lock_num(order_num,dec_update=True)
+        except (self.model.DoesNotExist,ProductSku.DoesNotExist):
+            raise self.model.ProductCodeDefect(u'(%s,%s)编码组合未匹配到商品'%(outer_id,outer_sku_id))
         
     def trancecode(self,outer_id,outer_sku_id,sku_code_prior=False):
         

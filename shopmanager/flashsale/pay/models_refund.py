@@ -33,6 +33,12 @@ class SaleRefund(models.Model):
         (REFUND_SUCCESS,'退款成功'),
     )
     
+    REFUNDABLE_STATUS = (REFUND_WAIT_SELLER_AGREE,
+                         REFUND_WAIT_RETURN_GOODS,
+                         REFUND_CONFIRM_GOODS,
+                         REFUND_APPROVE,
+                         REFUND_SUCCESS)
+    
     REFUND_STATUS_MAP = (
         (NO_REFUND,pcfg.NO_REFUND),
         (REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_WAIT_SELLER_AGREE),
@@ -152,6 +158,12 @@ class SaleRefund(models.Model):
         except Product.DoesNotExist:
             return None
 
+    def outer_id(self):
+        try:
+            pro = Product.objects.get(id=self.item_id)
+            return pro.outer_id
+        except Product.DoesNotExist:
+            return None
             
 
 def buyeridPatch():
@@ -170,7 +182,7 @@ def handle_sale_refund_signal(sender,instance,*args,**kwargs):
     from .models import SaleTrade
     from shopback import signals
     from shopback.trades.models import MergeOrder
-    
+
     strade = SaleTrade.objects.get(id=instance.trade_id)
     if (not strade.is_Deposite_Order() and 
         instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE):

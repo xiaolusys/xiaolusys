@@ -184,7 +184,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
 @transaction.commit_on_success
 def order_Red_Packet(xlmm):
     mama = XiaoluMama.objects.get(id=xlmm)
-    if mama.agencylevel == 2:
+    if mama.can_send_redenvelop():
         # 寻找该妈妈以前的首单/十单红包记录
         red_pac_carry_logs = CarryLog.objects.filter(xlmm=xlmm, log_type=CarryLog.ORDER_RED_PAC, carry_type=CarryLog.CARRY_IN)
         buyercount = buyer_Num(xlmm, finish=True)
@@ -208,20 +208,25 @@ def update_Xlmm_Shopping_OrderStatus(order_list):
         if trades.count() == 0:
             continue
         trade = trades[0]
-        
+        xlmm  = None
+        if order.linkid > 0:
+            xlmm = XiaoluMama.objects.get(id=order.linkid)
+            
         if trade.type == MergeTrade.WX_TYPE:
             if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
                 order.status = StatisticsShopping.REFUNDED
             elif trade.sys_status == MergeTrade.FINISHED_STATUS:
                 order.status = StatisticsShopping.FINISHED
-            order.save()
         else:
             strade = SaleTrade.objects.get(tid=order_id)
             if strade.status == SaleTrade.TRADE_CLOSED:
                 order.status = StatisticsShopping.REFUNDED
             elif strade.status == SaleTrade.TRADE_FINISHED:
                 order.status = StatisticsShopping.FINISHED
-            order.save()
+                
+        order.rebetamount  = xlmm.get_Mama_Trade_Amount(strade) 
+        order.tichengcount = xlmm.get_Mama_Trade_Rebeta(strade)
+        order.save()
             
             
 @task()
@@ -518,9 +523,10 @@ def task_AgencySubsidy_MamaContribu(target_date):      # 每天 写入记录
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)  # 生成带时间的格式  开始时间
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)  # 停止时间
     
-    xlmms = XiaoluMama.objects.normal_queryset.filter(charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
+    xlmm_qs = XiaoluMama.objects.normal_queryset
+    xlmms = xlmm_qs.filter(charge_status=XiaoluMama.CHARGED) # 过滤出已经接管的类别是2的代理
     for xlmm in xlmms:
-        sub_xlmms = XiaoluMama.objects.normal_queryset.filter(referal_from=xlmm.mobile,charge_status=XiaoluMama.CHARGED)  # 找到的本代理的子代理
+        sub_xlmms = xlmm_qs.filter(referal_from=xlmm.mobile,charge_status=XiaoluMama.CHARGED)  # 找到的本代理的子代理
         sum_wxorderamount = 0  # 昨天订单总额
         for sub_xlmm in sub_xlmms:
             # 扣除记录

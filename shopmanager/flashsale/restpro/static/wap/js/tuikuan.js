@@ -34,7 +34,7 @@ function Create_refun_reason(status) {
     if (status == 2) {//退款
         html = $("#refund_reason").html();
     }
-    if (status == 3) {//退货
+    if (status == 4) {// 签收后　才允许　退货
         html = $("#refund_pro_reason").html();
     }
     $(html).appendTo("#selec_resason");
@@ -58,7 +58,7 @@ function Set_order_detail(suffix) {
                 $('body').before(header);  //在body 的最前面添加
                 Create_refun_reason(data.status);//创建退款原因选择
             }
-            else if (data.status == 3) {//显示申请退货标题
+            else if (data.status == 4) {//显示申请退货标题 确认签收后显示退货
                 console.log(data.status, '订单状态');
                 var header = Create_tuihuo_header();
                 $('body').before(header);  //在body 的最前面添加

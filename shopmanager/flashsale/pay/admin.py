@@ -200,8 +200,8 @@ from .filters import Filte_By_Reason
 from .tasks import notifyTradeRefundTask
 
 class SaleRefundAdmin(admin.ModelAdmin):
-    list_display = (
-    'refund_no', 'order_no', 'order_channel', 'title', 'refund_fee', 'has_good_return', 'has_good_change', 'created', 'status')
+    list_display = ('refund_no', 'order_no', 'order_channel', 'title', 'refund_fee',
+                    'has_good_return', 'has_good_change', 'created', 'order_status', 'status')
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
 
@@ -222,6 +222,13 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     order_channel.allow_tags = True
     order_channel.short_description = "支付方式"
+    
+    def order_status(self, obj):
+        sorder = SaleOrder.objects.get(id=obj.order_id)
+        return sorder.get_status_display()
+
+    order_status.allow_tags = True
+    order_status.short_description = "订单状态"
 
     #-------------- 页面布局 --------------
     fieldsets = (('基本信息:', {

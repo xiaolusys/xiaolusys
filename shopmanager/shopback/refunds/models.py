@@ -11,7 +11,8 @@ from shopback.users.models import User
 from django.db.models.signals import post_save
 from auth import apis
 import logging
-from models_refund_rate import PayRefundRate
+from models_refund_rate import PayRefundRate, PayRefNumRcord
+from signals_refund_rate import triger_refund_record
 
 
 logger = logging.getLogger('django.request')
@@ -253,5 +254,4 @@ class RefundProduct(models.Model):
                 setattr(self, field.name, getattr(self, field.name).strip())
                 
                 
-    
     

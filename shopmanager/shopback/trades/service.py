@@ -86,9 +86,8 @@ class TradeService(LocalService):
         self.bservice = self.getBaseService()
     
     def getBaseService(self):
-        
-        return TRADE_TYPE_SERVICE_MAP.get(
-                  self.trade.type,LocalService)(self.trade.tid)
+        origin_tid = self.trade.tid.split('-')[0]
+        return TRADE_TYPE_SERVICE_MAP.get(self.trade.type,LocalService)(origin_tid)
 
         
     @classmethod
@@ -134,11 +133,12 @@ class TradeService(LocalService):
         company_code = ''
         if self.trade.logistics_company:
             company_code = self.trade.logistics_company.code
-            
+        
         return self.bservice.sendTrade(company_code=company_code,
                                        out_sid=self.trade.out_sid,
                                        is_cod=self.trade.is_cod,
-                                       serial_no=self.trade.id)
+                                       serial_no=self.trade.id,
+                                       merge_trade=self.trade)
         
     def ShipTrade(self,oid,*args,**kwargs):
         

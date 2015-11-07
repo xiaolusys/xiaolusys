@@ -43,7 +43,8 @@ urlpatterns = patterns('',
     url(r'^top100/order/month/$', views_top100_iter.Top100_Order, name="Top100_Click"),
 
     # mama data search
-    url(r'^xlmm_info/$', staff_member_required(viws_xlmminfo.xlmmInfo), name="MamaAll"),
+    url(r'^xlmm_info/$', staff_member_required(viws_xlmminfo.XlmmInfo.as_view()), name="MamaAll"),
+    url(r'^xlmm_exit/$', staff_member_required(viws_xlmminfo.xlmmExitAction), name="MamaAll"),
     # order analysis in different linkid
     url(r'^order_linkid_analysis/$', staff_member_required(views_order_percent.by_Linkid_Analysis), name="by_Linkid_Analysis"),
     url(r'^order_linkid_showpage/$', staff_member_required(views_order_percent.show_Orderlink_Page), name="by_Linkid_Analysis"),

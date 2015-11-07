@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
+from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, PayToPackStats
 import time
 from .filters import GroupNameFilter, OrderListStatusFilter
 from flashsale.dinghuo import permissions as perms
@@ -224,6 +224,11 @@ admin.site.register(MyUser, myuserAdmin)
 admin.site.register(MyGroup)
 
 
+class PayToPackStatsAdmin(admin.ModelAdmin):
+    list_display = ('pay_date', 'packed_sku_num', 'total_days', 'updated')
+
+admin.site.register(PayToPackStats,PayToPackStatsAdmin)
+
 class SupplyChainDataStatsAdmin(admin.ModelAdmin):
     list_display = ('sale_quantity', 'cost_amount', 'turnover',
                     'order_goods_quantity', 'order_goods_amount',
@@ -288,7 +293,7 @@ admin.site.register(SupplyChainStatsOrder, SupplyChainStatsOrderAdmin)
 class DailySupplyChainStatsOrderAdmin(admin.ModelAdmin):
     list_display = (
         'product_id', 'sale_time', 'trade_general_time', 'order_deal_time', 'goods_arrival_time', 'goods_out_time',
-        'ding_huo_num', 'fahuo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num', 'inferior_num')
+        'ding_huo_num', 'fahuo_num', 'sale_num', 'cost_of_product', 'sale_cost_of_product', 'return_num','return_pro', 'inferior_num')
     search_fields = ['product_id']
 
 
@@ -320,6 +325,7 @@ class RecordGroupPointAdmin(admin.ModelAdmin):
 
 admin.site.register(RecordGroupPoint, RecordGroupPointAdmin)
 
+
 class RGDetailInline(admin.TabularInline):
     model = RGDetail
     fields = ("skuid", "return_goods", "num", "inferior_num", "price")
@@ -330,15 +336,22 @@ from supplychain.supplier.models import SaleSupplier
 from flashsale.pay.models import  SaleRefund
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
-    list_display = ("show_pic", "show_detail_num", "sum_amount", "status_contrl",
+    list_display = ('id', "show_pic", "show_detail_num", "sum_amount", "status_contrl",
                      "consign_time", "sid", "noter", "consigner", 'show_memo','show_reason')
-    search_fields = ["product_id", "supplier_id",
+    search_fields = ['id', "product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
-    # readonly_fields = ('status',)
+    readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
     list_display_links = ['sum_amount', ]
     list_per_page = 10
+
+    def queryset(self, request):
+        qs = super(ReturnGoodsAdmin, self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.exclude(status=ReturnGoods.OBSOLETE_RG)
 
     def show_pic(self, obj):
         product_id = obj.product_id

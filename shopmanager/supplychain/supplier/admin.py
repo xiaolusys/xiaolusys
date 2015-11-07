@@ -17,6 +17,8 @@ from shopback.base.options import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
+from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
+
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -346,7 +348,8 @@ class SaleProductAdmin(MyAdmin):
     def get_select_list(self,obj):
         slist = []
         if obj.status == SaleProduct.WAIT:
-            slist.extend([SaleProduct.SELECTED,
+            slist.extend([SaleProduct.WAIT,
+                          SaleProduct.SELECTED,
                           SaleProduct.PURCHASE,
                           SaleProduct.IGNORED])
         elif obj.status in (SaleProduct.SELECTED,
@@ -394,6 +397,28 @@ class SaleProductAdmin(MyAdmin):
               "js/select_buyer_group.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
               "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js","js/make_hot.js")
 
+    def get_actions(self, request):
+        user = request.user
+        actions = super(SaleProductAdmin, self).get_actions(request)
+
+        if user.is_superuser:
+            return actions
+        valid_actions = set([])
+        if user.has_perm('supplier.schedule_manage'):  # 排期管理
+            valid_actions.add('schedule_manage_action')
+        if user.has_perm('supplier.sale_product_mgr'):
+            valid_actions.add('voting_action')
+            valid_actions.add('cancel_voting_action')
+        valid_actions.add('rejected_action')
+        unauth_actions = []
+        for action in actions.viewkeys():
+            action_ss = str(action)
+            if action_ss not in valid_actions:
+                unauth_actions.append(action_ss)
+
+        for action in unauth_actions:
+            del actions[action]
+        return actions
     def get_changelist(self, request, **kwargs):
         """
         Returns the ChangeList class for use on the changelist page.
@@ -472,7 +497,59 @@ class SaleProductAdmin(MyAdmin):
         
     rejected_action.short_description = u"淘汰选品"
     
-    actions = ['voting_action', 'cancel_voting_action', 'rejected_action']
+    def schedule_manage_action(self, request, queryset):
+        """  排期管理  """
+        try:
+            sale_time = queryset[0].sale_time.strftime('%Y-%m-%d')
+        except:
+            self.message_user(request, u"有时间不对")
+            return
+        product_num = 0
+        mgr_p, state = SaleProductManage.objects.get_or_create(sale_time=sale_time)
+        if not state and mgr_p.lock_status:
+            self.message_user(request, u"排期已经被锁定")
+            return
+        product_list = []
+        for one_product in queryset:
+            if one_product.status != SaleProduct.SCHEDULE:
+                self.message_user(request, u"有未在排期范围内的商品")
+                return
+            if sale_time != one_product.sale_time.strftime('%Y-%m-%d'):
+                self.message_user(request, u"有不是同一天的商品")
+                return
+            sale_time = one_product.sale_time.strftime('%Y-%m-%d')
+            product_num += 1
+            product_list.append(one_product.id)
+            # 新建排期detail
+            one_detail, already_cun = SaleProductManageDetail.objects.get_or_create(schedule_manage=mgr_p,
+                                                                       sale_product_id=one_product.id)
+            one_detail.name = one_product.title
+            one_detail.pic_path = one_product.pic_url
+            one_detail.product_link = one_product.product_link
+            try:
+                category = one_product.sale_category.full_name
+            except:
+                category = ""
+            one_detail.sale_category = category
+            one_detail.save()
+
+        mgr_p.product_num = product_num
+        mgr_p.responsible_people_id = request.user.id
+        mgr_p.responsible_person_name = request.user.username
+        mgr_p.save()
+        if state:
+            log_action(request.user.id, mgr_p, ADDITION, u'完成排期')
+        else:
+            log_action(request.user.id, mgr_p, CHANGE, u'修改排期')
+        for detail in mgr_p.normal_detail:
+            if detail.sale_product_id not in product_list:
+                detail.today_use_status = SaleProductManageDetail.DELETE
+                detail.save()
+        self.message_user(request, u"设置成功")
+
+    schedule_manage_action.short_description = u"排期完成"
+    actions = ['voting_action', 'cancel_voting_action', 'schedule_manage_action', 'rejected_action']
+
 
 admin.site.register(SaleProduct, SaleProductAdmin)
 
@@ -499,8 +576,6 @@ class SalePraiseAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SalePraise, SalePraiseAdmin)
-
-from models_hots import HotProduct
 
 
 class HotProductAdmin(admin.ModelAdmin):
@@ -551,3 +626,34 @@ class HotProductAdmin(admin.ModelAdmin):
 
 
 admin.site.register(HotProduct, HotProductAdmin)
+
+
+class SaleProductManageDetailInline(admin.TabularInline):
+    model = SaleProductManageDetail
+    fields = ('sale_product_id', 'design_take_over', 'design_person', 'name', 'sale_category',
+              'product_link', 'material_status', 'today_use_status')
+    extra = 3
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + (
+                'sale_product_id', 'name', 'design_person', 'design_take_over', 'pic_path', 'sale_category', 'product_link', 'material_status',
+                'today_use_status')
+        return self.readonly_fields
+
+
+class SaleProductManageAdmin(admin.ModelAdmin):
+    list_display = ('sale_time', 'product_num', 'responsible_person_name', 'lock_status', 'created', 'modified')
+    inlines = [SaleProductManageDetailInline]
+    list_filter = (('sale_time', DateFieldListFilter),)
+    search_fields = ['product_num', ]
+    date_hierarchy = 'sale_time'
+    def custom_product_list(self, obj):
+        product_list = obj.product_list
+        result_str = ""
+        for k, v in product_list.items():
+            result_str += k + ":" + v + "\n"
+        return u'<pre style="width:300px;white-space: pre-wrap;word-break:break-all;">{0}</pre>'.format(result_str)
+    custom_product_list.allow_tags = True
+    custom_product_list.short_description = "商品列表"
+admin.site.register(SaleProductManage, SaleProductManageAdmin)
+

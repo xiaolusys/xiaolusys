@@ -8,7 +8,7 @@ from django.db.models.signals import post_save
 from django.db import IntegrityError, transaction
 
 from bitfield import BitField
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.base import log_action, CHANGE
 from shopback.orders.models import Trade,Order,STEP_TRADE_STATUS
@@ -310,7 +310,7 @@ class MergeTrade(models.Model):
                        ("export_finance_action",u"订单金额导出权限"),
                        ("export_logistic_action",u"物流信息导出权限"),
                        ("export_buyer_action",u"买家信息导出权限"),
-                        ("export_orderdetail_action",u"订单明细导出权限"),
+                       ("export_orderdetail_action",u"订单明细导出权限"),
                        ("export_yunda_action",u"韵达信息导出权限")
                        ]
 
@@ -883,7 +883,7 @@ def refresh_trade_status(sender,instance,*args,**kwargs):
 
 post_save.connect(refresh_trade_status, sender=MergeOrder)
 
-def refund_update_order_info(sender,instance,*args,**kwargs):
+def refund_update_order_info(sender,obj,*args,**kwargs):
     """ 
     退款更新订单明细状态及对应商品的待发数
     1,找到对应的商品的有效子订单;
@@ -891,12 +891,14 @@ def refund_update_order_info(sender,instance,*args,**kwargs):
     3,减掉待发数；
     """
     from flashsale.pay.models_refund import SaleRefund
-    if not isinstance(instance,SaleRefund):
-        logger.warning('refund ins(%s) not SaleRefund'%instance)
+    if not isinstance(obj,SaleRefund):
+        logger.warning('refund ins(%s) not SaleRefund'%obj)
         return 
+    
+    sysoa = User.getSystemOAUser()
     try:
-        trade_tid = instance.get_tid()
-        trade_oid = instance.get_oid()
+        trade_tid = obj.get_tid()
+        trade_oid = obj.get_oid()
         mtrade  = MergeTrade.objects.get(tid=trade_tid)
         morders = MergeOrder.objects.filter(oid=trade_oid,
                                             merge_trade__user=mtrade.user,
@@ -906,8 +908,10 @@ def refund_update_order_info(sender,instance,*args,**kwargs):
             morder.refund_status = MergeOrder.REFUND_WAIT_SELLER_AGREE
             morder.sys_status = MergeOrder.DELETE
             morder.save()
+            log_action(sysoa.id,mtrade,CHANGE,u'订单(oid:%s)退款自动关闭'%morder.id)
             morder.merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
             Product.objects.reduceWaitPostNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
+            Product.objects.reduceLockNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
     except Exception,exc:
         logger.error('order refund signal:%s'%exc.message)
         

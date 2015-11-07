@@ -4,7 +4,8 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Product
 from shopback.trades.models import MergeTrade,MergeOrder
 from common.utils import update_model_fields
-
+from shopback.users.models import User
+from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
 
 def releaseRegularOutstockTrade(trade,num_maps=None):
     """ 释放特卖定时订单 """
@@ -32,9 +33,18 @@ def releaseRegularOutstockTrade(trade,num_maps=None):
         except Product.ProductCodeDefect:
             code_defect = True
             continue
+        
     t = MergeTrade.objects.get(id=trade.id)
     if trade_out_stock:
         t.append_reason_code(pcfg.OUT_GOOD_CODE)
+    
+    if len(ware_set) == 1:
+        t.ware_by = ware_set.pop()
+    else:
+        t.ware_by = MergeTrade.WARE_NONE
+        t.sys_memo += u'[物流：请拆单或选择始发仓]'
+        t.append_reason_code(pcfg.DISTINCT_RULE_CODE)    
+    
     if t.reason_code:
         if not code_defect and full_out_stock:
             t.sys_status = pcfg.REGULAR_REMAIN_STATUS
@@ -44,14 +54,11 @@ def releaseRegularOutstockTrade(trade,num_maps=None):
                 num_maps[code]  = num_maps.get(code,0) + num
     else:
         t.sys_status = pcfg.WAIT_PREPARE_SEND_STATUS
-    if len(ware_set) == 1:
-        t.ware_by = ware_set.pop()
-    else:
-        t.ware_by = MergeTrade.WARE_NONE
-        t.sys_memo += u'[物流：请拆单或选择始发仓]'
-        t.append_reason_code(pcfg.DISTINCT_RULE_CODE)
-    
     update_model_fields(t,update_fields=['sys_status','sys_memo','ware_by'])
+    
+    if t.sys_status in (pcfg.WAIT_AUDIT_STATUS,pcfg.WAIT_PREPARE_SEND_STATUS):
+        oauser = User.getSystemOAUser()
+        log_action(oauser.id,t,CHANGE,u'到货释放订单')
     return t
 
 from common.cachelock import cache_lock

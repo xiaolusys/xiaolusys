@@ -232,7 +232,6 @@ def uploadTradeLogisticsTask(trade_id,operator_id):
             return
         
         if delivery_trade.is_sub and merge_trade.sys_status == pcfg.ON_THE_FLY_STATUS:
-            
             main_trade = MergeTrade.objects.get(id=delivery_trade.parent_tid)
             if main_trade.sys_status != pcfg.FINISHED_STATUS:
                 delivery_trade.message = u'父订单未称重'

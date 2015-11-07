@@ -73,7 +73,6 @@ class MergeOrderInline(admin.TabularInline):
             readonly_fields.update(('outer_id','outer_sku_id','is_merge',
                                            'is_reverse_order','operator','gift_type'))
             return tuple(readonly_fields)
-
         return tuple(readonly_fields)
     
     formfield_overrides = {

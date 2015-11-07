@@ -1,3 +1,8 @@
+############2015-11-07#####################
+alter table supplychain_supply_schedule_manage_detail add column design_take_over varchar(32) default "nottakeover" NOT NULL;
+alter table supplychain_supply_schedule_manage_detail add column design_person varchar(32) null;
+############2015-10-07#####################
+alter table supply_chain_stats_daily add return_pro int(11) default 0;
 ############2015-10-30###################
 alter table pay_coupon_template add use_fee double Not null;
 ########### 2015-10-24########### 2015-10-28 ################# #################

@@ -2,10 +2,12 @@
 {% block title %}订单详情页{% endblock %}
 {% block head_script %}
     <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'/>
+    <link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
     <style type="text/css" title="currentStyle">
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
         @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
     </style>
+    <script src="/static/wap/js/sweet-alert.min.js"></script>
     <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
 
     <script type="text/javascript">
@@ -54,12 +56,12 @@
                     } else if (res == "deleted") {
                         window.location.reload();
                     } else if (res == "false") {
-                        alert("亲,这个商品已经不在你的大货单里");
+                        swal("提示", "亲,这个商品已经不在你的大货单里", "warning");
                     }
                 };
                 $.ajax({url: url, data: data, type: "post", success: callback});
             } else {
-                alert("已经为零")
+                swal("提示", "已经为零", "warning");
             }
         }
         function minusarrivedQuantity(orderdetailid) {
@@ -75,7 +77,7 @@
                 };
                 $.ajax({url: url, data: data, type: "post", success: callback});
             } else {
-                alert("已经为零");
+                swal("提示", "已经为零", "warning");
             }
         }
         function changearrived(orderdetailid) {
@@ -90,7 +92,7 @@
                 if (dataObj.flag) {
                     p1.html(dataObj.num)
                 } else {
-                    alert("超过购买总数或者没有填写数量")
+                    swal("提示", "超过购买总数或者没有填写数量，或者添加后库存为负数", "warning");
                 }
             };
             $.ajax({url: url, data: data, type: "post", success: callback});
@@ -118,11 +120,12 @@
                     arrival_num.html(num_of_arrival - 1);
                 }
                 else if (res == "false") {
-                    alert("失败");
+                    swal("提示", "失败，可能因为次品数量已经为零了", "warning");
+
                 }
             };
             if ((flag == "0" && num == "0") || (flag == "1" && num_of_arrival == "0")) {
-                alert("次品已经为零，或者库存为零");
+                swal("提示", "次品已经为零，或者库存为零", "warning");
             } else {
                 $.ajax({url: url, data: data, type: "post", success: callback});
             }
@@ -146,7 +149,7 @@
                 if (res == "OK") {
                     location.reload();
                 } else if (res == "False") {
-                    alert("加入失败")
+                    swal("提示", "加入失败", "warning");
                 }
             };
             $.ajax({url: url, data: data, type: "post", success: callback});
@@ -209,6 +212,14 @@
                 content: url
             });
         }
+
+        function doKey() {
+            if (event.keyCode == 116) {//屏蔽 F5 刷新键
+                event.keyCode = 0;
+                event.returnValue = false;
+            }
+        }
+        document.onkeydown = doKey;
     </script>
 {% endblock %}
 {% block container %}

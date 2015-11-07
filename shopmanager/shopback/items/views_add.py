@@ -171,7 +171,6 @@ class GetSkuDetail(generics.ListCreateAPIView):
     """
         展示某个商品的所有的sku详情尺码
     """
-    queryset = ProductSkuContrast.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
     template_name = "items/change_chima.html"
@@ -242,7 +241,6 @@ class GetSkuDetail(generics.ListCreateAPIView):
 
 
 class PreviewSkuDetail(generics.ListCreateAPIView):
-    queryset = ProductSkuContrast.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
     template_name = "items/preview_chima.html"
@@ -277,3 +275,43 @@ def custom_sort(a, b):
         return False
 
     return len(a[0])-len(b[0]) or a[0] > b[0]
+
+import datetime
+
+
+class BatchSetTime(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "items/batch_settime.html"
+
+    def get(self, request, *args, **kwargs):
+        content = request.GET
+        target_shelf_date = content.get("shelf_date", datetime.date.today())
+        target_product = content.get("outer_id")
+        if target_product and len(target_product.strip()) != 0:
+            products = Product.objects.filter(outer_id=target_product, status=Product.NORMAL).order_by("outer_id")
+            return Response(
+                {"all_product": products, "target_shelf_date": target_shelf_date, "target_product": target_product})
+        products = Product.objects.filter(sale_time=target_shelf_date, status=Product.NORMAL).order_by("outer_id")
+        return Response({"all_product": products, "target_shelf_date": target_shelf_date})
+
+    @transaction.commit_on_success
+    def post(self, request, *args, **kwargs):
+        content = request.POST
+        user = request.user
+        target_product = content.get("product_list")
+        settime = content.get("settime")
+        try:
+            set_time = datetime.datetime.strptime(settime, '%Y-%m-%d %H:%M:%S')
+        except:
+            return Response({"result": "设置失败，时间格式错误"})
+        all_product = target_product.split(",")
+        if len(all_product) == 0:
+            return Response({"result": "未选中商品"})
+        for one_product in all_product:
+            product = Product.objects.get(id=one_product)
+            product.offshelf_time = settime
+            product.save()
+            log_action(user.id, product, ADDITION, u'批量设置下架时间')
+        return Response({"result": "设置成功"})
+

@@ -151,9 +151,8 @@ function Set_order_detail(suffix) {
         //设置订单费用信息
         var feiyong_dom = Create_detail_feiyong_dom(data);
         $('.feiyong .panel-bottom').append(feiyong_dom);
-        
+
         Cancel_order(suffix);//页面加载完成  调用 取消订单功能
-        Handler_Refund_Bth();
     };
     // 发送请求
     $.ajax({
@@ -165,15 +164,25 @@ function Set_order_detail(suffix) {
     });
 }
 
-function Handler_Refund_Bth(){
-    for(var i= 1;i<=7;i++){
-        $(".refund_status_"+i).removeAttr("href");//当属于退款退货状态的时候 删除锚文本的链接
+// 订单状态显示　跳转处理　已经　确认签收处理
+function Order_Status_Handdler(trade_id, id, status, refund_status) {
+    if (status == 2 && refund_status == 0) { //　已经付款　没有退款　跳转到退款　页面
+        console.log("跳转到退款页面");
+        location.href = 'tuikuan.html?oid=' + id + '&tid=' + trade_id;
     }
-    $(".btn_order_success_status_0").click(function (){//如果是交易成功点击　"我要退" 的情况　提示　去　联系客服修改订单状态
+    if (status == 3 && refund_status == 0) {
+        console.log("确认签收");
+        Confirm_Sign_For(id);// 对一笔订单进行签收
+    }
+    if (status == 4 && refund_status == 0) { //　已经签收　没有退款　跳转到退款　页面
+        console.log("跳转到退款页面");
+        location.href = 'tuikuan.html?oid=' + id + '&tid=' + trade_id;
+    }
+    if (status == 5 && refund_status == 0) { //　交易成功
+        console.log("交易成功");
         drawToast("您的订单已经交易成功,如需申请退货请联系客服！");
-    });
+    }
 }
-
 
 function Cancel_order(suffix) {
     // 取消订单
@@ -245,9 +254,8 @@ function Cancel_order(suffix) {
 }
 
 //确认签收
-function Confirm_Sign_For(dom) {
-    var trade_id = $(dom).attr('cid');
-    var requestUrl = GLConfig.baseApiUrl + GLConfig.confirm_sign_trade.template({"trade_id": trade_id});
+function Confirm_Sign_For(oid) {
+    var requestUrl = GLConfig.baseApiUrl + GLConfig.confirm_sign_order.template({"order_id": oid});
     swal({
             title: "",
             text: "订单准备签收啦~ 确认收货么？",
