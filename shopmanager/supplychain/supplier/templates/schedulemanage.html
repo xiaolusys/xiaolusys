@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <link href="https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css" type="text/css" media="all" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="/static/wap/css/sweet-alert.css">
     <!-- js -->
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
 
@@ -76,7 +77,8 @@
                             <a href="javascript:;" data-date="{{ one_data.date }}" class="switch" target="_self">收起</a>
                         </div>
                     </div>
-                    <div class="col-xs-4"><img class="preview_img" src="{{ one_data.chd_posters }}" style="float: right" width="400px">
+                    <div class="col-xs-4"><img class="preview_img" src="{{ one_data.chd_posters }}" style="float: right"
+                                               width="400px">
                     </div>
                 </div>
                 <table class="table table-striped table-bordered" id="content_{{ one_data.date }}">
@@ -88,8 +90,8 @@
                     <th width="10%">平面信息</th>
                     <th width="10%">尺码</th>
                     <th width="10%">上架名称</th>
-                    <th width="4%">主图</th>
-                    <th width="4%">操作</th>
+                    <th width="3%">主图</th>
+                    <th width="6%">操作</th>
                     </thead>
                     {% for data1 in one_data.data %}
                         <tr>
@@ -110,8 +112,19 @@
                                 <span style="color: #1c020b" id="sale_charger_{{ data1.sale_product_id }}"></span>
                             </td>
                             <td><span id="name_{{ data1.sale_product_id }}"></span></td>
-                            <td><img class="preview_img" src="" id="zhutu_{{ data1.sale_product_id }}" width="100px"></td>
-                            <td><a id="preview_page_{{ data1.sale_product_id }}" target="_blank" class="btn btn-warning">预览</a></td>
+                            <td><img class="preview_img" src="" id="zhutu_{{ data1.sale_product_id }}" width="100px">
+                            </td>
+                            <td>
+                                <div class="takeoverinfo">{% ifequal data1.design_take_over "takeover" %}
+                                    <span>接管人：{{ data1.design_person }}</span>
+                                {% else %}
+                                    <a data-product="{{ data1.id }}"
+                                       target="_blank" class="btn btn-danger takeover">接管</a>
+                                {% endifequal %}
+                                </div>
+                                <a id="preview_page_{{ data1.sale_product_id }}" style="margin-top: 10px"
+                                   target="_blank" class="btn btn-warning">预览</a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -123,7 +136,7 @@
 
     </div>
 </div>
-
+<script src="/static/wap/js/sweet-alert.min.js"></script>
 <script>
     $(function () {
         $(".datepicker").datepicker({
@@ -140,7 +153,8 @@
             $(this).text(content.is(":hidden") ? "收起" : "展开");
             content.slideToggle();
         })
-        $(".preview_img").bind("click",function(){
+        //图片预览
+        $(".preview_img").bind("click", function () {
             var url = $(this).attr("src");
             var gallery = $('.popup-gallery');
             var gallery_img = $('.popup-gallery a');
@@ -152,8 +166,41 @@
                 example.trigger("click");
             }
         })
-    });
 
+        //接管操作
+        $(".takeover").bind("click", function () {
+            var detail = $(this).attr("data-product");
+            swal({
+                title: "接管",
+                text: "要接管吗？",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "确认接管",
+                cancelButtonText: "取消"
+            }, function () {
+                var requestUrl = "/supplychain/supplier/sale_product_api/";
+                $.ajax({
+                    async: true,
+                    type: "POST",
+                    url: requestUrl,
+                    dataType: 'json',
+                    data: {"detail_id": detail},
+                    cache: false,
+                    error: function () {
+                    },
+                    success: function (result) {
+                        if (result.result == "error") {
+                            alert("有错误");
+                        } else if (result.result == "success") {
+                            alert("接管成功");
+                        } else if (result.result == "alreadytakeover") {
+                            alert("已经被接管了");
+                        }
+                    }
+                });
+            });
+        })
+    });
     function ajaxProduct(sale_product_id) {
         var requestUrl = "/supplychain/supplier/sale_product_api/";
         var data = {"sale_product": sale_product_id}
@@ -175,10 +222,10 @@
                     $("#zhutu_" + sale_product_id).attr("src", result.zhutu);
                     $("#low_price_" + sale_product_id).html("出售最低价：" + result.lowest_price);
                     $("#std_sale_price_" + sale_product_id).html("吊牌价：" + result.std_sale_price);
-                    if(result.single_model){
-                        $("#preview_page_" + sale_product_id).attr("href", "/static/wap/pages/shangpinxq.html?id="+result.product_id);
-                    }else{
-                        $("#preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id="+result.model_id);
+                    if (result.single_model) {
+                        $("#preview_page_" + sale_product_id).attr("href", "/static/wap/pages/shangpinxq.html?id=" + result.product_id);
+                    } else {
+                        $("#preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id=" + result.model_id);
                     }
                 }
             }

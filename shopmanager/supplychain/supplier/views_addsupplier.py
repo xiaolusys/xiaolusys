@@ -10,7 +10,7 @@ from django.db import transaction
 
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
-from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage
+from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail
 import datetime
 from supplychain.supplier.models import SaleProduct
 
@@ -160,5 +160,19 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                          "model_id": model_id,
                          "single_model": single_model,
                          "product_id": product_id})
+
+    def post(self, request, *args, **kwargs):
+        detail = request.POST.get("detail_id")
+        try:
+            detail_product = SaleProductManageDetail.objects.get(id=detail)
+        except:
+            return Response({"result": u"error"})
+        if detail_product.design_take_over == SaleProductManageDetail.TAKEOVER:
+            return Response({"result": u"alreadytakeover"})
+        detail_product.design_person = request.user.username
+        detail_product.design_take_over = SaleProductManageDetail.TAKEOVER
+        detail_product.save()
+        log_action(request.user.id, detail_product, CHANGE, u'接管')
+        return Response({"result": u"success"})
 
 
