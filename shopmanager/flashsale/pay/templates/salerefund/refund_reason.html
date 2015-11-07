@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>退货原因查询</title>
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/jqcloud/1.0.4/jqcloud-1.0.4.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/jqcloud/1.0.4/jqcloud.css">
+    <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+    <script src="{{ STATIC_URL }}Chart-js/Chart.min.js"></script>
+
+    <script type="text/javascript" src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/highcharts/4.1.9/modules/exporting.js"></script>
+
+</head>
+<body class="container">
+
+<div class="col-xs-6" style="margin-top: 30px">
+    <h2>产品. 查找</h2>
+
+    <div style="margin-top: 30px">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="请输入商品编码" aria-describedby="basic-addon2"
+                   id="pro_code">
+            <span class="input-group-btn">
+                <button class="btn btn-success" id="go_search" type="submit">Go!</button>
+            </span>
+        </div>
+    </div>
+    <h3 style="margin-top: 30px">产品. 信息</h3>
+
+    <div style="margin-top: 30px" id="pro_info">
+    </div>
+</div>
+<div class="col-xs-6" style="margin-top: 30px">
+    <h2>图形. 分析</h2>
+
+    <div id="container_zhu" style="min-width:400px;height:400px"></div>
+    <div id="pie_container" style="min-width:700px;height:400px"></div>
+</div>
+<div class="col-xs-12" style="margin-top: 30px">
+    <h3>原因. 描述</h3>
+
+    <div id="tag_cloud" style="width: 1100px; height: 350px;"></div>
+</div>
+</body>
+<script>
+    function showCloud(word_array) {
+        $("#tag_cloud").empty().jQCloud(word_array);
+    }
+
+    function pieChart(rate_data) {
+        $('#pie_container').highcharts({
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false
+            },
+            title: {
+                text: '退款退货原因比例图'
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        color: '#000000',
+                        connectorColor: '#000000',
+                        format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                    }
+                }
+            },
+            series: [{
+                type: 'pie',
+                name: '所占比例',
+                data: rate_data
+            }]
+        });
+    }
+
+    function showHistogram(data) {
+        $('#container_zhu').highcharts({
+            chart: {
+                type: 'column',
+                margin: [50, 50, 100, 80]
+            },
+            title: {
+                text: '销量退款柱状图'
+            },
+            xAxis: {
+                categories: [
+                    '销量',
+                    '退款数'
+                ],
+                labels: {
+                    rotation: -45,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: '数量 (件)'
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                pointFormat: '<b>{point.y:.1f} 件</b>'
+            },
+            series: [{
+                name: 'Population',
+                data: data,
+                dataLabels: {
+                    enabled: true,
+                    rotation: -90,
+                    color: '#FFFFFF',
+                    align: 'right',
+                    x: 4,
+                    y: 10,
+                    style: {
+                        fontSize: '13px',
+                        fontFamily: 'Verdana, sans-serif',
+                        textShadow: '0 0 3px black'
+                    }
+                }
+            }]
+        });
+    }
+
+
+    $(document).ready(function () {
+        $("#go_search").click(function () {
+            var pro_code = $('#pro_code').val();
+            if (pro_code == "") {
+                layer.msg("编码不能为空");
+                return
+            }
+            var data = {"pro_code": pro_code};
+            var url = "/mm/ref_reason/";
+            $.ajax({
+                "url": url,
+                "data": data,
+                "type": "get",
+                dataType: 'json',
+                success: searTradeCallback,
+                error: function (err) {
+                    var resp = JSON.parse(err.responseText);
+                    if (resp.detail) {
+                        layer.msg(resp.detail);
+                    }
+                }
+            });
+
+            function searTradeCallback(res) {
+                console.log(res);
+                var desc = res.desc;
+                var word_array = [];
+                $.each(desc, function (index, des) {
+                    console.log(des);
+                    if (des.length >= 8) {
+                        var word = {text: des.substring(0, 4), weight: 4, html: {title: des}};
+                        word_array.push(word);
+                    }
+                    else if (des.length <= 4) {
+                        var word_4 = {text: des, weight: 9};
+                        word_array.push(word_4);
+                    }
+                    else {
+                        var word_5 = {text: des, weight: 6}; //{text: "Ipsum", weight: 9, link: "http://jquery.com/"}
+                        word_array.push(word_5);
+                    }
+                });
+                var html = '<a href="/admin/items/product/{2}/" target="_blank">{0}</a><br><br>' +
+                        '<img src="{1}" width="289" height="289">';
+                var pro = res.pro_info;
+                var pro_info = String.format(html,
+                        pro.name,
+                        pro.pic_path,
+                        pro.id
+                );
+                var rate_data = [];
+                var total_num = 0;
+                $.each(res.reason, function (i, de) {
+                    console.log(i, de);
+                    var a = [i, de];
+                    total_num += de;
+                    rate_data.push(a);
+                }); //['IE', 26.8], {name: 'Chrome', y: 12.8, sliced: true, selected: true},
+                var data_zhu = [res.sale_num, total_num];
+                showCloud(word_array);
+                pieChart(rate_data);
+                $("#pro_info").empty().append(pro_info);
+                showHistogram(data_zhu);
+            }
+        });
+    });
+
+    <!--字符串format函数-->
+    String.format = function () {
+        if (arguments.length == 0)
+            return null;
+        var str = arguments[0];
+        for (var i = 1; i < arguments.length; i++) {
+            var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+            str = str.replace(re, arguments[i]);
+        }
+        return str;
+    };
+</script>
+</html>
