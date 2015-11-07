@@ -156,7 +156,7 @@
             $.each(res.results, function (i, obj) {
                 var container_str = '<tr>' +
                         '<td style="width: 80px;">' +
-                        '<div style="margin-top: 30px" id="pro_info_{0}">{0}</div>' +
+                        '<img src="{1}"style="width:180px;height:280px">' +
                         '</td>' +
                         '<td style="width: 200px;">' +
                         '<div id="histogram_{0}" style="min-width:200px;height:280px"></div>' +
@@ -170,7 +170,8 @@
                         '</tr>';
 
                 var container = String.format(container_str,
-                        obj.product
+                        obj.product,
+                        obj.pro_pic
                 );
                 $("#table_tbody").append(container);
                 // 柱状图　退款分布

@@ -148,3 +148,10 @@ class ProRefunRcord(models.Model):
         except SaleProduct.DoesNotExist:
             contactor = None
         return contactor
+
+    def pro_pic(self):
+        pro = self.item_product()
+        if pro is not None:
+            return pro.pic_path
+        else:
+            return None
