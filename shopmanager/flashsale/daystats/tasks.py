@@ -294,11 +294,21 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
             end_date = today
         """找出选择的开始月份和结束月份"""
 
-        sql = '''select substring(outer_id, 1, CHAR_LENGTH(outer_id) -1) as souter_id,sum(num) as cnum from shop_trades_mergeorder
-        where sys_status= 'IN_EFFECT' and pay_time between %s and %s and is_merge= 0 and CHAR_LENGTH(outer_id)>= 9
-        group by souter_id
-        order by cnum desc
-        limit %s'''
+        sql = '''SELECT
+                    SUBSTRING(outer_id,
+                        1,
+                        CHAR_LENGTH(outer_id) - 1) AS souter_id,
+                    SUM(num) AS cnum
+                FROM
+                    shop_trades_mergeorder
+                WHERE
+                    sys_status = 'IN_EFFECT'
+                        AND pay_time BETWEEN %s AND %s
+                        AND is_merge = 0
+                        AND CHAR_LENGTH(outer_id) >= 9
+                GROUP BY souter_id
+                ORDER BY cnum DESC
+                LIMIT %s'''
         cursor = connection.cursor()
         cursor.execute(sql, [start_date, end_date, limit])
         plist = cursor.fetchall()
@@ -317,7 +327,7 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                 tui_huo = 0
                 daily_data = DailySupplyChainStatsOrder.objects.filter(product_id__startswith=p_outer)
                 for one_data in daily_data:
-                    tui_huo += one_data.return_num
+                    tui_huo += one_data.return_pro
                 supplier_list = ""
                 sale_contactor = ""
                 if sale_product_id != 0:
@@ -325,12 +335,18 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                     if one_sale_product.count() > 0:
                         supplier_list = one_sale_product[0].sale_supplier.supplier_name
                         sale_contactor = one_sale_product[0].contactor.username if one_sale_product[0].contactor else ""
+                if p_sales > 0 and tui_huo/p_sales >= 0.2:
+                    warning_status = "1"
+                elif p_sales > 0 and tui_huo/p_sales >= 0.1:
+                    warning_status = "2"
+                else:
+                    warning_status = "3"
                 p_dict = {"p_outer": p_outer, "p_name": product_item.name.split("/")[0],
                           "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
                           "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales),
                           "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list,
                           "pic_path": product_item.pic_path, "sale_contactor": sale_contactor,
-                          "tui_huo": tui_huo, "product_category": product_category}
+                          "tui_huo": tui_huo, "product_category": product_category, "warning_status": warning_status}
                 result_list.append(p_dict)
         return result_list
 
