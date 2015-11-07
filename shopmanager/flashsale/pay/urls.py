@@ -16,7 +16,7 @@ from .views_order import order_flashsale,time_rank,sale_state,refund_state,refun
 from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView, AggregateProductCheckView
 
 from .views_coupon import RefundCouponView
-from .views_ref_reason import RefundReason
+from .views_ref_reason import RefundReason, RefundAnaList
 
 
 from flashsale.pay.views_zoneanalysis import show_Zone_Page, by_zone_Province, by_zone_City
@@ -85,5 +85,6 @@ urlpatterns = (
     url(r'^qiniu/$', views.QiniuApi.as_view()),
     url(r'^rsrc/$', csrf_exempt(RefundCouponView.as_view())),
     url(r'^ref_reason/$', csrf_exempt(RefundReason.as_view())),
+    url(r'^pro_ref_list/$', csrf_exempt(RefundAnaList.as_view())),
     url(r'^refund_pop_page/$', csrf_exempt(RefundPopPageView.as_view())),
 )

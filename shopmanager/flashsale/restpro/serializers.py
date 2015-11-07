@@ -329,3 +329,16 @@ from supplychain.supplier.models_hots import HotProduct
 class HotProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotProduct
+
+
+from shopback.refunds.models_refund_rate import ProRefunRcord
+
+
+class ProRefunRcordSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProRefunRcord
+        fields = ('product', 'same_mod_ref_num_out', 'same_mod_ref_num_in', 'same_mod_ref_num_sed',
+                  'same_mod_sale_num', 'reason_ana', 'sale_buyer', 'pro_pic')
+
+

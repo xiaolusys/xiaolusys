@@ -16,6 +16,7 @@ from flashsale.complain.views import ComplainViewSet
 
 from . import views_wuliu
 from . import views_praise
+from . import views_pro_ref
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
@@ -38,6 +39,7 @@ router.register(r'usercoupons', views_coupon.UserCouponsViewSet)
 router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)
 router.register(r'hotproduct', views_praise.HotProductViewSet)
+router.register(r'prorefrcd', views_pro_ref.ProRefRcdViewSet)
 
 
 router_urls = router.urls
