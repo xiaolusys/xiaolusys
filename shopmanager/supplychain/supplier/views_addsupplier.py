@@ -129,20 +129,36 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         color_list = all_product[0].details.color
         sku_list = ""
         for one_sku in all_product[0].normal_skus:
-            sku_list += (one_sku.properties_alias + "|")
+            sku_list += (one_sku.properties_alias + " | ")
+
         name = all_product[0].name.split("/")[0]
         lowest_price = all_product[0].lowest_price()
         std_sale_price = all_product[0].std_sale_price
+        sale_charger = all_product[0].sale_charger
+        model_id = 0
+        product_id = all_product[0].id
+        single_model = True
         try:
             pmodel = ModelProduct.objects.get(id=all_product[0].model_id)
+            if not pmodel.is_single_spec():
+                model_id = pmodel.id
+                single_model = False
             zhutu = pmodel.head_imgs.split()[0]
         except:
             try:
                 zhutu = all_product[0].details.head_imgs.split()[0]
             except:
                 zhutu = ""
-        return Response({"flag": "done", "color_list": color_list, "sku_list": sku_list,
-                         "name": name, "zhutu": zhutu, "lowest_price": lowest_price,
-                         "std_sale_price": std_sale_price})
+        return Response({"flag": "done",
+                         "color_list": color_list,
+                         "sku_list": sku_list,
+                         "name": name,
+                         "zhutu": zhutu,
+                         "lowest_price": lowest_price,
+                         "std_sale_price": std_sale_price,
+                         "sale_charger": sale_charger,
+                         "model_id": model_id,
+                         "single_model": single_model,
+                         "product_id": product_id})
 
 
