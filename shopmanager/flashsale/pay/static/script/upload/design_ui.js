@@ -202,7 +202,6 @@ FileProgress.prototype.setComplete = function(up, info) {
         str = "<div><strong>Link:</strong><a href=" + url + " target='_blank' > " + link + "</a></div>" +
             "<div class=hash><strong>Hash:</strong>" + res.hash + "</div>";
     }
-
 };
 FileProgress.prototype.setError = function() {
     this.fileProgressWrapper.find('td:eq(2)').attr('class', 'text-warning');
@@ -228,7 +227,6 @@ FileProgress.prototype.setStatus = function(status, isUploading) {
 
 
 FileProgress.prototype.appear = function() {
-    console.log("fff");
     if (this.getTimer() !== null) {
         clearTimeout(this.getTimer());
         this.setTimer(null);
