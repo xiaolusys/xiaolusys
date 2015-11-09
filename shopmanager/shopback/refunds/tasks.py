@@ -237,12 +237,17 @@ def record_pro(ref):
 
 
 def insert_field_hist_pro_rcd():
+    """ ProRefunRcord 添加字段后　将对应产品ｉd的　款式id以及接洽人　写入 对应字段　"""
     pro_rcds = ProRefunRcord.objects.all()
     for rcd in pro_rcds:
         pro = rcd.item_product()
-        rcd.pro_model = pro.model_id
+        if pro is None:
+            continue
+        model_id = 0 if pro.model_id is None else pro.model_id
+        rcd.pro_model = model_id
         if pro.sale_product > 0:
             sal_pro = SaleProduct.objects.get(id=pro.sale_product)
-            rcd.contactor = sal_pro.contactor
+            contactor = 0 if sal_pro.contactor is None else sal_pro.contactor
+            rcd.contactor = contactor
         update_model_fields(rcd, update_fields=['pro_model', 'contactor'])
 
