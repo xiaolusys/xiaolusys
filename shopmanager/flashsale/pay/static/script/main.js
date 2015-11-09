@@ -1,6 +1,6 @@
 /*global Qiniu */
 /*global plupload */
-/*global FileProgress */
+/*global FileProgress *free
 /*global hljs */
 
 
@@ -30,38 +30,27 @@ $(function () {
         auto_start: true,
         init: {
             'FilesAdded': function (up, files) {
-                //$('table').show();
-                //$('#success').hide();
-                plupload.each(files, function (file) {
-                    var progress = new FileProgress(file, 'fsUploadProgress');
-                    progress.setStatus("等待...");
-                });
+
             },
             'BeforeUpload': function (up, file) {
-                var progress = new FileProgress(file, 'fsUploadProgress');
-                var chunk_size = plupload.parseSize(this.getOption('chunk_size'));
-                if (up.runtime === 'html5' && chunk_size) {
-                    progress.setChunkProgess(chunk_size);
-                }
+
             },
             'UploadProgress': function (up, file) {
-                var progress = new FileProgress(file, 'fsUploadProgress');
-                var chunk_size = plupload.parseSize(this.getOption('chunk_size'));
-                progress.setProgress(file.percent + "%", up.total.bytesPerSec, chunk_size);
+
 
             },
             'UploadComplete': function () {
                 //$('#success').show();
             },
             'FileUploaded': function (up, file, info) {
-                var progress = new FileProgress(file, 'fsUploadProgress');
-                progress.setComplete(up, info);
+                var domain = up.getOption('domain');
+                var res = jQuery.parseJSON(info);
+                var sourceLink = domain + res.key; //获取上传成功后的文件的Url
+                $("#header_img_content").val(sourceLink);
+                $("#preview").attr("src", sourceLink);
             },
             'Error': function (up, err, errTip) {
-                //$('table').show();
-                var progress = new FileProgress(err.file, 'fsUploadProgress');
-                progress.setError();
-                progress.setStatus(errTip);
+
             }
             ,
             'Key': function(up, file) {
@@ -72,30 +61,4 @@ $(function () {
             }
         }
     });
-
-    uploader.bind('FileUploaded', function () {
-        console.log('hello man,a file is uploaded');
-    });
-    $('#container').on(
-        'dragenter',
-        function (e) {
-            e.preventDefault();
-            $('#container').addClass('draging');
-            e.stopPropagation();
-        }
-    ).on('drop', function (e) {
-            e.preventDefault();
-            $('#container').removeClass('draging');
-            e.stopPropagation();
-        }).on('dragleave', function (e) {
-            e.preventDefault();
-            $('#container').removeClass('draging');
-            e.stopPropagation();
-        }).on('dragover', function (e) {
-            e.preventDefault();
-            $('#container').addClass('draging');
-            e.stopPropagation();
-        });
-
-    $(".product_add").slideToggle(1);
 });
