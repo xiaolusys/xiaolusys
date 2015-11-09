@@ -17,7 +17,7 @@
 </head>
 <body class="container">
 
-<div class="col-xs-6" style="margin-top: 30px">
+<div class="col-xs-4" style="margin-top: 30px">
     <h2>产品. 查找</h2>
 
     <div style="margin-top: 30px">
@@ -30,11 +30,10 @@
         </div>
     </div>
     <h3 style="margin-top: 30px">产品. 信息</h3>
-
     <div style="margin-top: 30px" id="pro_info">
     </div>
 </div>
-<div class="col-xs-6" style="margin-top: 30px">
+<div class="col-xs-5" style="margin-top: 30px">
     <h2>图形. 分析</h2>
 
     <div id="container_zhu" style="min-width:400px;height:400px"></div>
@@ -42,7 +41,6 @@
 </div>
 <div class="col-xs-12" style="margin-top: 30px">
     <h3>原因. 描述</h3>
-
     <div id="tag_cloud" style="width: 1100px; height: 350px;"></div>
 </div>
 </body>
@@ -138,9 +136,28 @@
             }]
         });
     }
-
+    function getReasonAna(url, data) {
+        $.ajax({
+            "url": url,
+            "data": data,
+            "type": "get",
+            dataType: 'json',
+            success: getReaCallBack,
+            error: function (err) {
+                var resp = JSON.parse(err.responseText);
+                if (resp.detail) {
+                    layer.msg(resp.detail);
+                }
+            }
+        });
+    }
 
     $(document).ready(function () {
+        var pro_id = getUrlParam('pro_id');
+        var url = "/mm/ref_reason/";
+        var data = {'pro_id': pro_id};
+        console.log(data);
+        getReasonAna(url, data);
         $("#go_search").click(function () {
             var pro_code = $('#pro_code').val();
             if (pro_code == "") {
@@ -148,65 +165,52 @@
                 return
             }
             var data = {"pro_code": pro_code};
-            var url = "/mm/ref_reason/";
-            $.ajax({
-                "url": url,
-                "data": data,
-                "type": "get",
-                dataType: 'json',
-                success: searTradeCallback,
-                error: function (err) {
-                    var resp = JSON.parse(err.responseText);
-                    if (resp.detail) {
-                        layer.msg(resp.detail);
-                    }
-                }
-            });
-
-            function searTradeCallback(res) {
-                console.log(res);
-                var desc = res.desc;
-                var word_array = [];
-                $.each(desc, function (index, des) {
-                    console.log(des);
-                    if (des.length >= 8) {
-                        var word = {text: des.substring(0, 4), weight: 4, html: {title: des}};
-                        word_array.push(word);
-                    }
-                    else if (des.length <= 4) {
-                        var word_4 = {text: des, weight: 9};
-                        word_array.push(word_4);
-                    }
-                    else {
-                        var word_5 = {text: des, weight: 6}; //{text: "Ipsum", weight: 9, link: "http://jquery.com/"}
-                        word_array.push(word_5);
-                    }
-                });
-                var html = '<a href="/admin/items/product/{2}/" target="_blank">{0}</a><br><br>' +
-                        '<img src="{1}" width="289" height="289">';
-                var pro = res.pro_info;
-                var pro_info = String.format(html,
-                        pro.name,
-                        pro.pic_path,
-                        pro.id
-                );
-                var rate_data = [];
-                var total_num = 0;
-                $.each(res.reason, function (i, de) {
-                    console.log(i, de);
-                    var a = [i, de];
-                    total_num += de;
-                    rate_data.push(a);
-                }); //['IE', 26.8], {name: 'Chrome', y: 12.8, sliced: true, selected: true},
-                var data_zhu = [res.sale_num, total_num];
-                showCloud(word_array);
-                pieChart(rate_data);
-                $("#pro_info").empty().append(pro_info);
-                showHistogram(data_zhu);
-            }
+            getReasonAna(url, data);
         });
     });
 
+    function getReaCallBack(res) {
+        console.log(res);
+        var desc = res.desc;
+        var word_array = [];
+        $.each(desc, function (index, des) {
+            console.log(des);
+            if (des.length >= 8) {
+                var word = {text: des.substring(0, 4), weight: 4, html: {title: des}};
+                word_array.push(word);
+            }
+            else if (des.length <= 4) {
+                var word_4 = {text: des, weight: 9};
+                word_array.push(word_4);
+            }
+            else {
+                var word_5 = {text: des, weight: 6}; //{text: "Ipsum", weight: 9, link: "http://jquery.com/"}
+                word_array.push(word_5);
+            }
+        });
+        var html = '<a href="/admin/items/product/{2}/" target="_blank">{0}</a><br><br>' +
+                '<img src="{1}" width="289" height="289">';
+        var pro = res.pro_info;
+        var pro_info = String.format(html,
+                pro.name,
+                pro.pic_path,
+                pro.id
+        );
+        var rate_data = [];
+        var total_num = 0;
+        $.each(res.reason, function (i, de) {
+            console.log(i, de);
+            var a = [i, de];
+            total_num += de;
+            rate_data.push(a);
+        }); //['IE', 26.8], {name: 'Chrome', y: 12.8, sliced: true, selected: true},
+        var data_zhu = [res.sale_num, total_num];
+        showCloud(word_array);
+        pieChart(rate_data);
+        $("#pro_info").empty().append(pro_info);
+        showHistogram(data_zhu);
+
+    }
     <!--字符串format函数-->
     String.format = function () {
         if (arguments.length == 0)
@@ -218,5 +222,13 @@
         }
         return str;
     };
+
+    <!-- 获取url 参数　-->
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return unescape(r[2]);
+        return null; //返回参数值
+    }
 </script>
 </html>

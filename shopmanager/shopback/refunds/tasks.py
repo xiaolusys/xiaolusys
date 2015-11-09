@@ -108,11 +108,17 @@ def fifDaysRateFlush(days=15):
         refDataToMol(target_day=target_day)
 
 
+from flashsale.pay.models import SaleOrder
+from shopback.refunds.models_refund_rate import PayRefNumRcord
+from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
+from common.modelutils import update_model_fields
+from shopback.refunds.models_refund_rate import ProRefunRcord
+from flashsale.pay.models_refund import SaleRefund
+from supplychain.supplier.models import SaleProduct
+
+
 @task()
 def taskRefundRecord(obj):
-    from common.modelutils import update_model_fields
-    from flashsale.pay.models import SaleOrder
-    from shopback.refunds.models_refund_rate import PayRefNumRcord
     order = SaleOrder.objects.get(id=obj.order_id)
     trade = order.sale_trade
     time_from = trade.pay_time
@@ -153,8 +159,6 @@ def taskRefundRecord(obj):
 
 
 def write_dinghuo_return_pro(refund):
-    from common.modelutils import update_model_fields
-    from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
     try:
         record = DailySupplyChainStatsOrder.objects.get(product_id=refund.outer_id)
         record.return_pro += refund.refund_num
@@ -165,9 +169,6 @@ def write_dinghuo_return_pro(refund):
 
 def his_dinghuo_return_pro():
     """ 写入产品退货历史退货数量数据　"""
-    from common.modelutils import update_model_fields
-    from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
-    from flashsale.pay.models_refund import SaleRefund
     # 已经收到货　或者　已经退货的　
     refunds = SaleRefund.objects.filter(
         good_status__in=(SaleRefund.BUYER_RECEIVED, SaleRefund.BUYER_RETURNED_GOODS)).exclude(
@@ -183,7 +184,6 @@ def his_dinghuo_return_pro():
 
 def his_refund_record():
     """ 写入产品的退货记录　"""
-    from flashsale.pay.models_refund import SaleRefund
     # 所有退款单
     refunds = SaleRefund.objects.all().exclude(status=SaleRefund.REFUND_CLOSED)
     for ref in refunds:
@@ -191,8 +191,6 @@ def his_refund_record():
 
 
 def record_pro(ref):
-    from common.modelutils import update_model_fields
-    from shopback.refunds.models_refund_rate import ProRefunRcord
     order = ref.sale_order()
     if order is None:
         return
@@ -229,5 +227,27 @@ def record_pro(ref):
             else:
                 pro_ref_rcd.ref_num_in += ref.refund_num
 
-    update_model_fields(pro_ref_rcd, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in'])
+    contactor = ref.sale_contactor() if ref.sale_contactor() is not None else 0
+    pro_model = ref.pro_model() if ref.pro_model() is not None else 0
+
+    pro_ref_rcd.contactor = contactor
+    pro_ref_rcd.pro_model = pro_model
+    update_model_fields(pro_ref_rcd, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in', 'contactor',
+                                                    'pro_model'])
+
+
+def insert_field_hist_pro_rcd():
+    """ ProRefunRcord 添加字段后　将对应产品ｉd的　款式id以及接洽人　写入 对应字段　"""
+    pro_rcds = ProRefunRcord.objects.all()
+    for rcd in pro_rcds:
+        pro = rcd.item_product()
+        if pro is None:
+            continue
+        model_id = 0 if pro.model_id is None else pro.model_id
+        rcd.pro_model = model_id
+        if pro.sale_product > 0:
+            sal_pro = SaleProduct.objects.get(id=pro.sale_product)
+            contactor = 0 if sal_pro.contactor is None else sal_pro.contactor
+            rcd.contactor = contactor
+        update_model_fields(rcd, update_fields=['pro_model', 'contactor'])
 

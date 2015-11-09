@@ -200,10 +200,10 @@ admin.site.register(PayRefNumRcord, PayRefundRecordAdmin)
 
 
 class ProRefunRcorddAdmin(admin.ModelAdmin):
-    list_display = ('id', 'product', 'ref_num_out', 'ref_num_in', 'ref_sed_num', 'created')
+    list_display = ('id', 'product', 'ref_num_out', 'ref_num_in', 'ref_sed_num', 'contactor', 'pro_model', 'created')
     list_display_links = ('id', 'product')
-    list_filter = ('product', 'created')
-    search_fields = ['=id', '=product']
+    list_filter = ('contactor', 'created')
+    search_fields = ['=id', '=product', '=pro_model']
 
 
 admin.site.register(ProRefunRcord, ProRefunRcorddAdmin)

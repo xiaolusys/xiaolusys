@@ -18,13 +18,18 @@ class RefundReason(APIView):
         user_name = request.user.username
         today = datetime.datetime.today()
         pro_code = content.get("pro_code", None)
-        if pro_code is None:
-            return Response({'today': today, "user_name": user_name})
-        try:
+        pro_id = content.get("pro_id", None)
+        if pro_code:
             pros = Product.objects.filter(outer_id=pro_code, status='normal')
-            pro = pros[0]
-        except Product.DoesNotExist:
+        elif pro_id:
+            pros = Product.objects.filter(id=pro_id, status='normal')
+        else:
             return Response({'today': today, "user_name": user_name})
+        if len(pros) > 0:
+            pro = pros[0]
+        else:
+            return Response({'today': today, "user_name": user_name})
+
         if pro.model_id == 0 or pro.model_id is None:
             sale_refunds = SaleRefund.objects.filter(item_id=pro.id)
             sale = ProductDaySale.objects.filter(product_id=pro.id)

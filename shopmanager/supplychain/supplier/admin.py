@@ -524,6 +524,7 @@ class SaleProductAdmin(MyAdmin):
             one_detail, already_cun = SaleProductManageDetail.objects.get_or_create(schedule_manage=mgr_p,
                                                                        sale_product_id=one_product.id)
             one_detail.name = one_product.title
+            one_detail.today_use_status = SaleProductManageDetail.NORMAL
             one_detail.pic_path = one_product.pic_url
             one_detail.product_link = one_product.product_link
             try:
