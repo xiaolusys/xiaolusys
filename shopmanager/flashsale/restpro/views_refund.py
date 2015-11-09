@@ -42,7 +42,6 @@ def common_Handler(customer=None, order=None, reason=None, num=None, refund_fee=
     if refund_fee > (order.payment / order.num) * num:  # 退款金额不能大于 单价乘以退款数量
         raise exceptions.APIException(u'退货金额大于实付款')
     sale_refund, state = SaleRefund.objects.get_or_create(trade_id=order.sale_trade.id, order_id=order.id)
-
     if state:
         # 如果state 为真　则是第一次创建
         order.refund_id = sale_refund.id  # refund_id

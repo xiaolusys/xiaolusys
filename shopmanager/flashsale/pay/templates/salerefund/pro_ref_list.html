@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>产品退款分析列表</title>
+    <title>产品退款状况列表</title>
     <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
     <script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -11,129 +11,42 @@
     <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
     <script type="text/javascript" src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
     <script type="text/javascript" src="//cdn.bootcss.com/highcharts/4.1.9/modules/exporting.js"></script>
-</head>
+    <style>
+        .table th {
+            text-align: center;
+        }
 
+        .table tbody td {
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
 <body class="container">
-<h3 style="margin-top: 40px;height: 30px">产品退款分析列表
+<h3 style="margin-top: 40px;height: 30px">产品退款状况列表
     <small>当前买手：{{ username }}</small>
 </h3>
 
-<table class="table table-striped">
+<table class="table table-bordered table-striped">
     <thead>
     <tr>
         <th>产品图片</th>
-        <th>退款分布</th>
-        <th>原因比例</th>
-        <th>原因描述</th>
+        <th>24小时内</th>
+        <th>24小时外</th>
+        <th>发货后</th>
+        <th>同款销量</th>
     </tr>
-
     </thead>
     <tbody id="table_tbody">
-
     </tbody>
-</table>
 
+</table>
 <div style="text-align: center"><a onclick="addPageNumber()">更多</a></div>
 </body>
 
 
 <script>
-    function showCloud(id, word_array) {
-        $("#tag_cloud_" + id).empty().jQCloud(word_array);
-    }
-
-    function pieChart(id, rate_data) {
-        $('#pie_container_' + id).highcharts({
-            chart: {
-                plotBackgroundColor: null,
-                plotBorderWidth: null,
-                plotShadow: false
-            },
-            title: {
-                text: ''
-            },
-            tooltip: {
-                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-            },
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: true,
-                        color: '#000000',
-                        connectorColor: '#000000',
-                        format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                    }
-                }
-            },
-            series: [{
-                type: 'pie',
-                name: '所占比例',
-                data: rate_data
-            }]
-        });
-    }
-
-    function showHistogram(id, data) {
-        $('#histogram_' + id).highcharts({
-            chart: {
-                type: 'column',
-                margin: [50, 50, 100, 80]
-            },
-            title: {
-                text: ''
-            },
-            xAxis: {
-                categories: [
-                    '销量',
-                    '24内未发货退款',
-                    '24小时外未发货退款数',
-                    '发货后退款数'
-                ],
-                labels: {
-                    rotation: -45,
-                    align: 'right',
-                    style: {
-                        fontSize: '13px',
-                        fontFamily: 'Verdana, sans-serif'
-                    }
-                }
-            },
-            yAxis: {
-                min: 0,
-                title: {
-                    text: '数量 (件)'
-                }
-            },
-            legend: {
-                enabled: false
-            },
-            tooltip: {
-                pointFormat: '<b>{point.y:.1f} 件</b>'
-            },
-            series: [{
-                name: 'Population',
-                data: data,
-                dataLabels: {
-                    enabled: true,
-                    rotation: -90,
-                    color: '#FFFFFF',
-                    align: 'right',
-                    x: 4,
-                    y: 10,
-                    style: {
-                        fontSize: '13px',
-                        fontFamily: 'Verdana, sans-serif',
-                        textShadow: '0 0 3px black'
-                    }
-                }
-            }]
-        });
-    }
-
     var pageNumber = 1;
-
     function addPageNumber() {//加载数据
         console.log();
         var url = "/rest/v1/prorefrcd?page=" + pageNumber;
@@ -156,52 +69,24 @@
             $.each(res.results, function (i, obj) {
                 var container_str = '<tr>' +
                         '<td style="width: 80px;">' +
-                        '<img src="{1}"style="width:180px;height:280px">' +
+                        '<img src="{1}"style="width:70px;" class="img-circle" onclick="popRcdpage({0})">' +
                         '</td>' +
-                        '<td style="width: 200px;">' +
-                        '<div id="histogram_{0}" style="min-width:200px;height:280px"></div>' +
-                        '</td>' +
-                        '<td style="width: 300px;">' +
-                        '<div id="pie_container_{0}" style="min-width:200px;height:280px"></div>' +
-                        '</td>' +
-                        '<td style="width: 300px;">' +
-                        '<div id="tag_cloud_{0}" style="width: 170px; height: 280px;"></div>' +
-                        '</td>' +
+                        '<td>{2}</td>' +
+                        '<td>{3}</td>' +
+                        '<td>{4}</td>' +
+                        '<td>{5}</td>' +
                         '</tr>';
 
                 var container = String.format(container_str,
                         obj.product,
-                        obj.pro_pic
+                        obj.pro_pic,
+                        obj.ref_num_in,
+                        obj.ref_num_out,
+                        obj.ref_sed_num,
+                        obj.same_mod_sale_num
                 );
                 $("#table_tbody").append(container);
                 // 柱状图　退款分布
-                var sale_ref_arr = [obj.same_mod_sale_num, obj.same_mod_ref_num_in, obj.same_mod_ref_num_out, obj.same_mod_ref_num_sed];
-                showHistogram(obj.product, sale_ref_arr);
-
-                //　原因比例图
-                var rate_data = [];
-                $.each(obj.reason_ana.reason, function (i, de) {
-                    var a = [i, de];
-                    rate_data.push(a);
-                });
-                pieChart(obj.product, rate_data);
-                // 标签云
-                var word_array = [];
-                $.each(obj.reason_ana.desc, function (index, des) {
-                    if (des.length >= 8) {
-                        var word = {text: des.substring(0, 4), weight: 4, html: {title: des}};
-                        word_array.push(word);
-                    }
-                    else if (des.length <= 4) {
-                        var word_4 = {text: des, weight: 9};
-                        word_array.push(word_4);
-                    }
-                    else {
-                        var word_5 = {text: des, weight: 6}; //{text: "Ipsum", weight: 9, link: "http://jquery.com/"}
-                        word_array.push(word_5);
-                    }
-                });
-                showCloud(obj.product, word_array);
             })
         }
     }
@@ -210,6 +95,18 @@
         addPageNumber(pageNumber);
     });
 
+    function popRcdpage(id) {
+        console.log(id);
+        layer.open({
+            type: 2,
+            title: '产品退款分析页',
+            shadeClose: true,
+            shade: 0.8,
+            area: ['1200px', '70%'],
+            content: '/mm/ref_reason/?pro_id=' + id
+        });
+
+    }
 
     <!--字符串format函数-->
     String.format = function () {
