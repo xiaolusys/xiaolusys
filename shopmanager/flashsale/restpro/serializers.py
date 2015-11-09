@@ -338,7 +338,7 @@ class ProRefunRcordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProRefunRcord
-        fields = ('product', 'same_mod_ref_num_out', 'same_mod_ref_num_in', 'same_mod_ref_num_sed',
-                  'same_mod_sale_num', 'reason_ana', 'sale_buyer', 'pro_pic')
+        fields = ('product', 'ref_num_out', 'ref_num_in', 'ref_sed_num', 'contactor', 'pro_model',
+                  'same_mod_sale_num', 'pro_pic')
 
 

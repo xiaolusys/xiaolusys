@@ -10,6 +10,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .signals import signal_saletrade_refund_confirm
 from .options import uniqid
 from shopback.items.models import Product
+from supplychain.supplier.models import SaleProduct
 
 class SaleRefund(models.Model):
     
@@ -154,6 +155,22 @@ class SaleRefund(models.Model):
         try:
             pro = Product.objects.get(id=self.item_id)
             return pro.pic_path
+        except Product.DoesNotExist:
+            return None
+
+    def sale_contactor(self):
+        """ 选品买手　"""
+        try:
+            pro = Product.objects.get(id=self.item_id)
+            sal = SaleProduct.objects.get(id=pro.sale_product)
+            return sal.contactor.id
+        except:
+            return None
+
+    def pro_model(self):
+        try:
+            pro = Product.objects.get(id=self.item_id)
+            return pro.model_id
         except Product.DoesNotExist:
             return None
 
