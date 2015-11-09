@@ -11,14 +11,24 @@
     <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
     <script type="text/javascript" src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
     <script type="text/javascript" src="//cdn.bootcss.com/highcharts/4.1.9/modules/exporting.js"></script>
+    <style>
+        .table th {
+            text-align: center;
+        }
+
+        .table tbody td {
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
 </head>
 <body class="container">
 <h3 style="margin-top: 40px;height: 30px">产品退款状况列表
     <small>当前买手：{{ username }}</small>
 </h3>
 
-<table class="table table-striped" style="text-align: center; margin-top: 50px">
-    <thead style="text-align: center">
+<table class="table table-bordered table-striped">
+    <thead>
     <tr>
         <th>产品图片</th>
         <th>24小时内</th>
@@ -61,10 +71,10 @@
                         '<td style="width: 80px;">' +
                         '<img src="{1}"style="width:70px;" class="img-circle" onclick="popRcdpage({0})">' +
                         '</td>' +
-                        '<td style="width: 200px;">{2}</td>' +
-                        '<td style="width: 300px;">{3}</td>' +
-                        '<td style="width: 300px;">{4}</td>' +
-                        '<td style="width: 300px;">{5}</td>' +
+                        '<td>{2}</td>' +
+                        '<td>{3}</td>' +
+                        '<td>{4}</td>' +
+                        '<td>{5}</td>' +
                         '</tr>';
 
                 var container = String.format(container_str,
@@ -93,7 +103,7 @@
             shadeClose: true,
             shade: 0.8,
             area: ['1200px', '70%'],
-            content: '/mm/ref_reason/?pro_id='+id
+            content: '/mm/ref_reason/?pro_id=' + id
         });
 
     }
