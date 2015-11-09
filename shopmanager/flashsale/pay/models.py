@@ -247,7 +247,8 @@ class SaleTrade(models.Model):
         update_model_fields(self,update_fields=['status','pay_time'])
         
         for order in self.sale_orders.all():
-            order.status = order.WAIT_SELLER_SEND_GOODS
+            order.status   = order.WAIT_SELLER_SEND_GOODS
+            order.pay_time = self.pay_time
             order.save()
         #付款后订单被关闭，则加上锁定数
         if trade_close:

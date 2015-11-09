@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
+import datetime
 from django.db import models
 from shopapp.weixin.models import WXOrder
 from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel,CarryLog
-import datetime
 
 CLICK_VALID_DAYS = 2
 
@@ -472,6 +472,12 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
         
         daytongji.todayamountcount = F('todayamountcount') - delta_rebeta
         daytongji.save()
+        
+        CarryLog.objects.filter(
+            xlmm=xlmm.id,
+            order_num=strade.pay_time.strftime('%y%m%d'),
+            log_type=CarryLog.ORDER_REBETA
+        ).update(value = F('value') + delta_rebeta)
     
     
 
