@@ -7,8 +7,6 @@ from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework.response import Response
 from shopback.refunds.models_refund_rate import ProRefunRcord
-from supplychain.supplier.models import SaleProduct
-from shopback.items.models import Product
 
 
 class ProRefRcdViewSet(viewsets.ModelViewSet):
@@ -19,10 +17,7 @@ class ProRefRcdViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_owner_queryset(self, request):
-        sal_pros = SaleProduct.objects.filter(contactor=request.user.id).values('id')
-        model_ids = Product.objects.filter(sale_product__in=sal_pros).values('model_id').distinct()  # 展示到款
-        pro_ids = Product.objects.filter(model_id__in=model_ids).values('id')
-        queryset = self.queryset.filter(product__in=pro_ids)
+        queryset = self.queryset.filter(contactor=request.user.id)
         return queryset
 
     def list(self, request, *args, **kwargs):
