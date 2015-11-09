@@ -5,15 +5,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     {% block meta %} {% endblock %}
-    <title>{% block title %}已有款式{% endblock %}</title>
+    <title>{% block title %}款式详情页{% endblock %}</title>
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css"/>
+    <link href="https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css" type="text/css" media="all" rel="stylesheet"/>
     <!-- js -->
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
     <script src='{{ STATIC_URL }}jquery/addons/jquery.form.js'></script>
 
     <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
-
+    <script type="text/javascript" src="https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js"></script>
     {% block head_script %}
         <script>
             $(function () {
@@ -88,10 +89,36 @@
                         </h3>
                     </div>
                     <div class="panel-body">
-                        款式id: <span id="model_id">{{ target_model.id }}</span>
-                        款式名称: {{ target_model.name }}
-                        是否限购: {{ target_model.buy_limit }}
-                        款式名称: {{ target_model.name }}
+                        <div class="row">
+                            <div class="col-xs-2"><img src="{{ target_model.head_imgs }}" alt="主图" width="150px"></div>
+                            <div class="col-xs-8">
+                                <ul>
+                                    <li>
+                                        款式id: <span id="model_id">{{ target_model.id }}</span>
+                                    </li>
+                                    <li>
+                                        款式名称: {{ target_model.name }}
+                                    </li>
+                                    <li>
+                                        限购: {% if target_model.buy_limit %} 是</li>
+                                        <li>限购数量： {{ target_model.per_limit }}{% else %}否{% endif %}
+                                        </li>
+                                    <li>
+                                        款式名称: {{ target_model.name }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-xs-2">
+                                <div class="popup-gallery">
+                                    <a class="example-image-link" href="{{ target_model.content_imgs }}"
+                                       data-lightbox="example-1">
+                                        <img src="{{ target_model.content_imgs }}" alt="主图" height="150px">
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -207,10 +234,10 @@
 
     {% endblock %}
     </div>
+    <input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
+</div>
 
-
-    {% block tail_script %}
-    {% endblock %}
-
+    <script type="text/javascript" src="{{ STATIC_URL }}script/ui.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/qiniu.js"></script>
 </body>
 </html>
