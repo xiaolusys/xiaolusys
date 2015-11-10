@@ -1,5 +1,9 @@
 # -*- encoding:utf8 -*-
 from django.views.generic import View
+from rest_framework import generics
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework import permissions
+from rest_framework.response import Response
 from django.shortcuts import HttpResponse, render_to_response, redirect
 from django.template import RequestContext
 from flashsale.pay.models_custom import ModelProduct, Productdetail
@@ -140,3 +144,31 @@ class AggregateProductCheckView(View):
     def post(request):
         post = request.POST
         return render_to_response("pay/check_product.html", context_instance=RequestContext(request))
+
+
+class ChuanTuAPIView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        type = request.POST.get("type")
+        pro_id = request.POST.get("pro_id")
+        pic_link = request.POST.get("pic_link")
+
+        if type == "1":
+            try:
+                model_product = ModelProduct.objects.get(id=pro_id)
+                model_product.head_imgs = pic_link
+                model_product.save()
+                log_action(request.user.id, model_product, CHANGE, u'上传头图')
+            except:
+                return Response({"result": u"error"})
+        elif type == "3":
+            try:
+                product = Product.objects.get(id=pro_id)
+                product.pic_path = pic_link
+                product.save()
+                log_action(request.user.id, product, CHANGE, u'上传图片')
+            except:
+                return Response({"result": u"error"})
+        return Response({"result": u"success"})

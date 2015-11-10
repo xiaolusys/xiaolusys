@@ -115,6 +115,29 @@ class ScheduleManageView(generics.ListCreateAPIView):
         return Response({"result_data": result_data, "target_date": target_date_str, "category": category})
 
 
+class ScheduleCompareView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = "schedulecompare.html"
+
+    def get(self, request, *args, **kwargs):
+        target_date_str = request.GET.get("target_date", datetime.date.today().strftime("%Y-%m-%d"))
+        target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
+        try:
+            end_time = target_date + datetime.timedelta(days=1)
+        except:
+            return "", "", ""
+        lock_schedule = SaleProductManage.objects.filter(sale_time=target_date)
+        if lock_schedule.count() == 0:
+            return Response({"result": "0", "target_date": target_date_str})
+        now_sachedule = SaleProduct.objects.filter(sale_time__gte=target_date, sale_time__lt=end_time,
+                                                   status=SaleProduct.SCHEDULE)
+        lock_list = set([one_product.sale_product_id for one_product in lock_schedule[0].normal_detail])
+        now_list = set([one_product.id for one_product in now_sachedule])
+        result_list = (lock_list | now_list) - (lock_list & now_list)
+        return Response({"result_data": result_list, "target_date": target_date_str})
+
+
 class SaleProductAPIView(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)

@@ -13,7 +13,8 @@ from .views_refund import RefundApply,RefundConfirm, RefundPopPageView
 from .views_product import productsku_quantity_view
 from .views_order import order_flashsale,time_rank,sale_state,refund_state,refunding_state,preorder_flashsale,nextorder_flashsale,search_flashsale
 
-from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView, AggregateProductCheckView
+from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView,\
+    AggregateProductCheckView, ChuanTuAPIView
 
 from .views_coupon import RefundCouponView
 from .views_ref_reason import RefundReason, RefundAnaList
@@ -73,6 +74,7 @@ urlpatterns = (
     url(r'^nextorder_flashsale/$', nextorder_flashsale,name="nextorder_flashsale"),
     url(r'^search_flashsale/$', search_flashsale,name="search_flashsale"),    
     url(r'^aggregeta_product/$', csrf_exempt(AggregateProductView.as_view()), name="aggregate_product"),
+    url(r'^chuantu/$', csrf_exempt(ChuanTuAPIView.as_view()), name="chuantu"),
     url(r'^check_product/$', csrf_exempt(AggregateProductCheckView.as_view()), name="check_product"),
     url(r'^add_aggregeta/$', csrf_exempt(ModelProductView.as_view()), name="add_aggregate"),
     url(r'^checkmodelexist/$', csrf_exempt(CheckModelExistView.as_view()), name="check_model_exist"),
