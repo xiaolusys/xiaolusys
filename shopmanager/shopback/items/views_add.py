@@ -300,18 +300,35 @@ class BatchSetTime(generics.ListCreateAPIView):
         content = request.POST
         user = request.user
         target_product = content.get("product_list")
+        type = content.get("type")
         settime = content.get("settime")
+
+        all_product = target_product.split(",")
+        if len(all_product) == 0:
+            return Response({"result": "未选中商品"})
+
+        if type == "1": #上架时间设置
+            try:
+                set_time = datetime.datetime.strptime(settime, '%Y-%m-%d')
+            except:
+                return Response({"result": "设置失败，时间格式错误"})
+
+            for one_product in all_product:
+                product = Product.objects.get(id=one_product)
+                product.sale_time = settime
+                product.save()
+                log_action(user.id, product, CHANGE, u'批量设置上架时间')
+            return Response({"result": "设置成功"})
+
+        #下架时间设置
         try:
             set_time = datetime.datetime.strptime(settime, '%Y-%m-%d %H:%M:%S')
         except:
             return Response({"result": "设置失败，时间格式错误"})
-        all_product = target_product.split(",")
-        if len(all_product) == 0:
-            return Response({"result": "未选中商品"})
         for one_product in all_product:
             product = Product.objects.get(id=one_product)
             product.offshelf_time = settime
             product.save()
-            log_action(user.id, product, ADDITION, u'批量设置下架时间')
+            log_action(user.id, product, CHANGE, u'批量设置下架时间')
         return Response({"result": "设置成功"})
 
