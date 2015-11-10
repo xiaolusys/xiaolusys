@@ -330,14 +330,14 @@ from supplychain.supplier.models import SaleSupplier
 from flashsale.pay.models import  SaleRefund
 
 class ReturnGoodsAdmin(admin.ModelAdmin):
-    list_display = ('id', "show_pic", "show_detail_num", "sum_amount", "status_contrl",
+    list_display = ('id', "show_pic", "show_detail_num", "deal_sum_amount", "status_contrl",
                      "consign_time", "sid", "noter", "consigner", 'show_memo','show_reason')
     search_fields = ['id', "product_id", "supplier_id",
                      "noter", "consigner", "sid"]
     list_filter = ["noter", "consigner", "created", "modify", "status"]
     readonly_fields = ('status',)
     inlines = [RGDetailInline, ]
-    list_display_links = ['sum_amount', ]
+    list_display_links = ['show_detail_num', ]
     list_per_page = 10
 
     def queryset(self, request):
@@ -393,6 +393,11 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
     show_detail_num.allow_tags = True
     show_detail_num.short_description = u"数量信息"
 
+    def deal_sum_amount(self, obj):
+        html = u'<a onclick="change_sum_price({0},{2})">{1}</a>'.format(obj.id, obj.sum_amount,obj.return_num)
+        return html
+    deal_sum_amount.allow_tags = True
+    deal_sum_amount.short_description = u"退款总金额"
 
     def status_contrl(self, obj):
         cu_status = obj.get_status_display()
@@ -424,7 +429,7 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
         css = {"all": ("css/admin_css.css", "css/return_goods.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css",
                        )}
         js = ("js/tuihuo_ctrl.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
-              "layer-v1.9.2/layer/layer.js")
+              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js")
 
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
