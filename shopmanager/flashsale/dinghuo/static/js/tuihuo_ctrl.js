@@ -94,3 +94,40 @@ function supplier_admin(supplier_name, mobile, address) {
     var mes = '供应商名:' + supplier_name + "电话：" + mobile + "地址：" + address;
     layer.msg(mes);
 }
+
+function change_sum_price(id, num) {
+    // 退货单的id
+    console.log(id, num);
+    var prom = layer.prompt({
+        title: '共' + num + '件，请输入金额　并确认修改',
+        formType: 0 //prompt风格，支持0-2
+    }, function (sum_amount) {
+        // 修改该　订货单的总金额
+        change_amount(id, sum_amount);
+    });
+
+    function change_amount(id, sum_amount) {
+        $.ajax({
+            "url": '/sale/dinghuo/tuihuo/change_sum_amount/',
+            "data": {'id': id, 'sum_amount': sum_amount},
+            "type": "get",
+            dataType: 'json',
+            success: changeAmountCallback,
+            error: function (err) {
+                if (err.responseText == 'True') {
+                    layer.msg('修改成功！');
+                    location.href = '/admin/dinghuo/returngoods/';
+                }
+            }
+        });
+        function changeAmountCallback(res) {
+            console.log('res: ', res);
+            if (res.responseText == "True") {
+                layer.close(prom);
+            }
+            else {
+                layer.alert('参数错误');
+            }
+        }
+    }
+}
