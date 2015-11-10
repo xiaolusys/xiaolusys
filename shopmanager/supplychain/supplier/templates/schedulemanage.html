@@ -119,11 +119,13 @@
                                     <span>接管人：{{ data1.design_person }}</span>
                                 {% else %}
                                     <a data-product="{{ data1.id }}"
-                                       target="_blank" class="btn btn-danger takeover">接管</a>
+                                       target="_blank" class="btn btn-sm btn-danger takeover">接管</a>
                                 {% endifequal %}
                                 </div>
-                                <a id="preview_page_{{ data1.sale_product_id }}" style="margin-top: 10px"
-                                   target="_blank" class="btn btn-warning">预览</a>
+                                <a id="preview_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
+                                   target="_blank" class="btn btn-warning btn-sm">预览</a><br>
+                                <a id="chuantu_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
+                                   target="_blank" class="btn btn-sm btn-info">传图</a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -227,6 +229,9 @@
                     } else {
                         $("#preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id=" + result.model_id);
                     }
+                    $("#chuantu_page_" + sale_product_id).attr("href", "/mm/add_aggregeta/?search_model=" + result.model_id);
+
+
                 }
             }
         });

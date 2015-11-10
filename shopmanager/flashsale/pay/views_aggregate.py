@@ -55,12 +55,14 @@ class ModelProductView(View):
         model_change = ModelProduct.objects.filter(id=search_model)
         all_product = None
         target_model = None
+        content_img = None
         if model_change.count() > 0:
             target_model = model_change[0]
             all_product = Product.objects.filter(model_id=model_change[0].id, status=Product.NORMAL)
+            content_img = model_change[0].content_imgs.split()
         return render_to_response("pay/aggregate_product2already.html",
                                   {"target_model": target_model, "all_product": all_product,
-                                   "all_model_product": all_model_product},
+                                   "all_model_product": all_model_product, "content_img": content_img},
                                   context_instance=RequestContext(request))
 
     @staticmethod
@@ -154,7 +156,7 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
         type = request.POST.get("type")
         pro_id = request.POST.get("pro_id")
         pic_link = request.POST.get("pic_link")
-
+        coverage = request.POST.get("coverage")
         if type == "1":
             try:
                 model_product = ModelProduct.objects.get(id=pro_id)
@@ -166,9 +168,26 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
         elif type == "3":
             try:
                 product = Product.objects.get(id=pro_id)
+                detail, status = Productdetail.objects.get_or_create(product=product)
+                detail.head_imgs = pic_link
+                detail.save()
                 product.pic_path = pic_link
                 product.save()
                 log_action(request.user.id, product, CHANGE, u'上传图片')
             except:
                 return Response({"result": u"error"})
+        elif type == "2":
+            try:
+                model_product = ModelProduct.objects.get(id=pro_id)
+                if coverage == "true":
+                    model_product.content_imgs += "\n" + pic_link
+                else:
+                    model_product.content_imgs = pic_link
+                model_product.save()
+                #同步同款所有的商品detail
+                log_action(request.user.id, model_product, CHANGE, u'上传内容图')
+            except:
+                return Response({"result": u"error"})
+        else:
+            return Response({"result": u"error"})
         return Response({"result": u"success"})
