@@ -41,10 +41,10 @@ class StatisRefundSupView(APIView):
 
     def get(self, request, format=None):
         content = request.REQUEST
-        date_from = (content.get('date_from', datetime.datetime.today()-datetime.timedelta(days=7)))
+        date_from = (content.get('date_from', datetime.datetime.today() - datetime.timedelta(days=7)))
         date_to = (content.get('date_to', datetime.datetime.today()))
         task_id = calcu_refund_info_by_pro_v2.s(date_from, date_to)()
-        return Response({"task_id": task_id,"date_from": date_from, "date_to": date_to})
+        return Response({"task_id": task_id, "date_from": date_from, "date_to": date_to})
 
     def post(self, request, format=None):
         content = request.REQUEST
@@ -126,6 +126,26 @@ def change_duihuo_status(request):
         rg.status = ReturnGoods.FAILED_RG
         update_model_fields(rg, update_fields=['status'])
         log_action(user_id, rg, CHANGE, change_status_des.format(rg.get_status_display()))
+    return HttpResponse(True)
+
+
+def change_sum_price(request):
+    content = request.REQUEST
+    id = content.get("id", None)
+    sum_amount = content.get("sum_amount", None)
+    if id is None or sum_amount is None:
+        return HttpResponse(False)
+    id = int(id)
+    sum_price = float(sum_amount)
+    user_id = request.user.id
+    rg = ReturnGoods.objects.get(id=id)
+    rg.sum_amount = sum_price
+    update_model_fields(rg, update_fields=['sum_amount'])
+    change_sum_price_des = u"仓库退货单总金额改为_{0}"
+    log_action(user_id, rg, CHANGE, change_sum_price_des.format(sum_price))
+    rgdts = rg.rg_details.all()
+    price = sum_price / rg.return_num if rg.return_num != 0 else 0
+    rgdts.update(price=price)
     return HttpResponse(True)
 
 

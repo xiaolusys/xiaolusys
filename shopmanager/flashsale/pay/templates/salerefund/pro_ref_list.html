@@ -11,7 +11,15 @@
     <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
     <script type="text/javascript" src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script>
     <script type="text/javascript" src="//cdn.bootcss.com/highcharts/4.1.9/modules/exporting.js"></script>
+
+    <script type="text/javascript" src="//cdn.bootcss.com/datatables/1.10.9/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/datatables/1.10.9/css/dataTables.bootstrap.css">
+
     <style>
+        .table {
+            margin-top: 30px;
+        }
+
         .table th {
             text-align: center;
         }
@@ -26,27 +34,39 @@
 <h3 style="margin-top: 40px;height: 30px">产品退款状况列表
     <small>当前买手：{{ username }}</small>
 </h3>
+<div class="col-xs-8">
+    <table class="table table-bordered table-striped" id="mytable">
+        <thead>
+        <tr>
+            <th>产品ID</th>
+            <th>产品图片</th>
+            <th>24小时内</th>
+            <th>24小时外</th>
+            <th>发货后</th>
+            <th>同款销量</th>
+        </tr>
+        </thead>
+        <tbody id="table_tbody">
+        </tbody>
 
-<table class="table table-bordered table-striped">
-    <thead>
-    <tr>
-        <th>产品图片</th>
-        <th>24小时内</th>
-        <th>24小时外</th>
-        <th>发货后</th>
-        <th>同款销量</th>
-    </tr>
-    </thead>
-    <tbody id="table_tbody">
-    </tbody>
+    </table>
+</div>
+<div class="col-xs-4">
+    <span class="glyphicon glyphicon-download-alt" aria-hidden="true" onclick="addPageNumber()"> 更多</span>
 
-</table>
-<div style="text-align: center"><a onclick="addPageNumber()">更多</a></div>
+    <div id="container" style="min-width:400px;height:400px"></div>
+</div>
 </body>
 
 
 <script>
     var pageNumber = 1;
+
+    var total_out = 0;
+    var total_in = 0;
+    var total_send = 0;
+    var total_sale = 0;
+
     function addPageNumber() {//加载数据
         console.log();
         var url = "/rest/v1/prorefrcd?page=" + pageNumber;
@@ -61,13 +81,24 @@
                 if (resp.detail) {
                     layer.msg(resp.detail);
                 }
+                closeLayer();
             }
         });
+        var index = layer.load(2, {
+            shade: [0.1, 'red'] //0.1透明度的白色背景
+        });
+
+        function closeLayer() {
+            layer.close(index);// 加载完成　关闭加载层显示
+        }
+
+
         function searTradeCallback(res) {
             console.log(res);
             pageNumber += 1;
             $.each(res.results, function (i, obj) {
                 var container_str = '<tr>' +
+                        '<td>{0}</td>' +
                         '<td style="width: 80px;">' +
                         '<img src="{1}"style="width:70px;" class="img-circle" onclick="popRcdpage({0})">' +
                         '</td>' +
@@ -85,13 +116,26 @@
                         obj.ref_sed_num,
                         obj.same_mod_sale_num
                 );
+
+                total_out += obj.ref_num_out;
+                total_in += obj.ref_num_in;
+                total_send += obj.ref_sed_num;
+                total_sale += obj.same_mod_sale_num;
                 $("#table_tbody").append(container);
-                // 柱状图　退款分布
-            })
+            });
+            closeLayer();// 关闭加载层
+            $("#mytable").DataTable();
+            //　绘制柱状图
+            var char_data = [total_in, total_out, total_send, total_sale];
+            zhuChart(char_data)
         }
     }
 
     $(document).ready(function () {
+        //loading层
+        var index = layer.load(2, {
+            shade: [0.1, 'red'] //0.1透明度的白色背景
+        });
         addPageNumber(pageNumber);
     });
 
@@ -119,5 +163,52 @@
         }
         return str;
     };
+
+    function zhuChart(data) {
+        $('#container').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: '总体状况条形图'
+            },
+            subtitle: {
+                text: 'Source: youni.huyi.so'
+            },
+            xAxis: {
+                categories: [
+                    '24小时内总退款',
+                    '24小时外总退款',
+                    '发货后总退款',
+                    '总销量'
+                ]
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: '数量　(件)'
+                }
+            },
+            tooltip: {
+                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                footerFormat: '</table>',
+                shared: true,
+                useHTML: true
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: [{
+                name: '{{ username }}',
+                data: data
+            }]
+        });
+    }
+
 </script>
 </html>
