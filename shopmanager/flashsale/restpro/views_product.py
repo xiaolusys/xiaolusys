@@ -130,7 +130,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         tlast  = tnow + datetime.timedelta(days=tdays)
         return self.get_latest_right_date(tlast.date())
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         
@@ -142,7 +142,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
         """ 获取历史商品列表 """
@@ -158,7 +158,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def advance(self, request, *args, **kwargs):
         """ 获取明日商品列表 """
@@ -189,7 +189,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_child_qs(self,queryset):
         return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1').exclude(details__is_seckill=True)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
         """ 获取今日推荐商品列表 """
@@ -203,7 +203,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                          'child_list':self.get_serializer(child_qs, many=True).data}
         return Response(response_date)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_previous(self, request, *args, **kwargs):
         """ 获取历史推荐商品列表 """
@@ -251,7 +251,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                 json.dumps(key_maps, sort_keys=True).encode('utf-8')
             ])).hexdigest()
     
-    @cache_response(key_func='calc_items_cache_key')
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def childlist(self, request, *args, **kwargs):
         """ 获取特卖童装列表 """
@@ -267,7 +267,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response(key_func='calc_items_cache_key')
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def ladylist(self, request, *args, **kwargs):
         """ 获取特卖女装列表 """
@@ -283,7 +283,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response(key_func='calc_items_cache_key')
+    @cache_response(timeout=10*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def modellist(self, request, *args, **kwargs):
         """ 获取款式商品列表 """
