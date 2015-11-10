@@ -90,7 +90,9 @@
                     </div>
                     <div class="panel-body">
                         <div class="row">
-                            <div class="col-xs-2"><img src="{{ target_model.head_imgs }}" alt="主图" width="150px"></div>
+                            <div class="col-xs-2" id="zhutu">
+                                <img id="head_img" src="{{ target_model.head_imgs }}" alt="传主图" width="150px">
+                            </div>
                             <div class="col-xs-8">
                                 <ul>
                                     <li>
@@ -112,7 +114,7 @@
                                 <div class="popup-gallery">
                                     <a class="example-image-link" href="{{ target_model.content_imgs }}"
                                        data-lightbox="example-1">
-                                        <img src="{{ target_model.content_imgs }}" alt="主图" height="150px">
+                                        <img src="{{ target_model.content_imgs }}" alt="传内容图" height="150px">
                                     </a>
                                 </div>
 
@@ -142,12 +144,15 @@
                                 <tr>
                                     <td>{{ product.outer_id }}</td>
                                     <td>{{ product.name }}</td>
-                                    <td><img width="80px" src="{{ product.pic_path }}"></td>
+                                    <td>
+                                        <div class="toutu" data-product="{{ product.id }}" id="toutu_{{ product.id }}">
+                                            <img id="chuan_{{ product.id }}" width="80px" src="{{ product.pic_path }}">
+                                        </div>
+                                    </td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
-
                     </div>
                 </div>
                 <form action="/mm/add_aggregeta/" method="post" id="my_form">
@@ -234,10 +239,13 @@
 
     {% endblock %}
     </div>
+    <input hidden="" id="domain" value="http://image.xiaolu.so/">
     <input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
 </div>
-
-    <script type="text/javascript" src="{{ STATIC_URL }}script/ui.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}script/qiniu.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/upload/design_ui.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/upload/design_qiniu.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/upload/design_main.js"></script>
 </body>
 </html>
