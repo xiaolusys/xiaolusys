@@ -548,9 +548,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 获取用户订单及订单明细列表 """
         strade   = self.get_object()
         strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
-        orders_serializer = serializers.SaleOrderSerializer(strade.sale_orders.all(), many=True)
-        strade_dict['orders'] = orders_serializer.data
-        
+#         orders_serializer = serializers.SaleOrderSerializer(strade.sale_orders.all(), many=True)
+#         strade_dict['orders'] = orders_serializer.data
         return Response(strade_dict)
     
     @list_route(methods=['get'])

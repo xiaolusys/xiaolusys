@@ -25,7 +25,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    特卖海报API：
+    ###特卖海报API：
     - {prefix}/today[.format]: 获取今日特卖海报;
     - {prefix}/previous[.format]: 获取昨日特卖海报;
     """
@@ -78,7 +78,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    特卖商品API：
+    ###特卖商品API：
     - {prefix}/promote_today[.format]: 获取今日推荐商品列表;
     - {prefix}/promote_previous[.format]: 获取昨日推荐商品列表;
     - {prefix}/childlist[.format]: 获取童装专区商品列表;
