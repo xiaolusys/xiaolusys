@@ -45,7 +45,7 @@
     <form action="/supplychain/supplier/manage_schedule/" method="get">
         <div class="row">
             <div class="col-xs-2">
-                <h1 style="color: #008000">排期管理</h1>
+                <h1 style="color: #008000">排期管理</h1><span style="font-size: 13px">天蓝色：传图完成；</span><span style="font-size: 13px">白色：未完成</span>
             </div>
             <div class="col-xs-2">
                 <label class="control-label" for="target_date">查询日期:</label>
@@ -81,7 +81,7 @@
                                                width="400px">
                     </div>
                 </div>
-                <table class="table table-striped table-bordered" id="content_{{ one_data.date }}">
+                <table class="table table-bordered" id="content_{{ one_data.date }}">
                     <thead>
                     <th width="2%">计数</th>
                     <th width="4%">类别</th>
@@ -94,7 +94,7 @@
                     <th width="6%">操作</th>
                     </thead>
                     {% for data1 in one_data.data %}
-                        <tr>
+                        <tr {% if data1.design_complete %}bgcolor="#CCFFFF"{% endif %}>
                             <td><span style="font-size: 20px">{{ forloop.counter }}</span></td>
                             <td>{{ data1.sale_category }}</td>
                             <td><a href="{{ data1.product_link }}" target="_blank"><img src="{{ data1.pic_path }}"
@@ -123,9 +123,17 @@
                                 {% endifequal %}
                                 </div>
                                 <a id="preview_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
-                                   target="_blank" class="btn btn-warning btn-sm">预览</a><br>
-                                <a id="chuantu_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
-                                   target="_blank" class="btn btn-sm btn-info">传图</a>
+                                   target="_blank" class="btn btn-warning btn-sm">预览</a>
+
+                                {% if data1.design_complete %}
+                                    <br><span>已经完成</span>
+                                {% else %}
+                                    <a id="chuantu_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
+                                       target="_blank" class="btn btn-sm btn-info">传图</a><br>
+                                    <a data-product="{{ data1.id }}" style="margin-top: 5px"
+                                       target="_blank" class="btn btn-sm btn-danger complete">完成</a>
+                                {% endif %}
+
                             </td>
                         </tr>
                     {% endfor %}
@@ -154,7 +162,7 @@
 
             $(this).text(content.is(":hidden") ? "收起" : "展开");
             content.slideToggle();
-        })
+        });
         //图片预览
         $(".preview_img").bind("click", function () {
             var url = $(this).attr("src");
@@ -167,7 +175,7 @@
             if (example.length > 0) {
                 example.trigger("click");
             }
-        })
+        });
 
         //接管操作
         $(".takeover").bind("click", function () {
@@ -186,7 +194,7 @@
                     type: "POST",
                     url: requestUrl,
                     dataType: 'json',
-                    data: {"detail_id": detail},
+                    data: {"detail_id": detail, "type": "1"},
                     cache: false,
                     error: function () {
                     },
@@ -201,11 +209,49 @@
                     }
                 });
             });
-        })
+        });
+        //完成操作
+        $(".complete").bind("click", function () {
+            var detail = $(this).attr("data-product");
+            swal({
+                title: "完成",
+                text: "确定完成了吗？",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "确认",
+                cancelButtonText: "取消"
+            }, function () {
+                var requestUrl = "/supplychain/supplier/sale_product_api/";
+                $.ajax({
+                    async: true,
+                    type: "POST",
+                    url: requestUrl,
+                    dataType: 'json',
+                    data: {"detail_id": detail, "type": "2"},
+                    cache: false,
+                    error: function () {
+                    },
+                    success: function (result) {
+                        if (result.result == "error") {
+                            alert("有错误");
+                        } else if (result.result == "success") {
+                            alert("完成");
+                        } else if (result.result == "alreadycomplete") {
+                            alert("已经完成了");
+                        } else if (result.result == "not_same_people") {
+                            alert("您不是接管人");
+                        }
+                    }
+
+                });
+            });
+        });
     });
+
+    //请求每个选品的商品信息
     function ajaxProduct(sale_product_id) {
         var requestUrl = "/supplychain/supplier/sale_product_api/";
-        var data = {"sale_product": sale_product_id}
+        var data = {"sale_product": sale_product_id};
         $.ajax({
             async: true,
             type: "GET",

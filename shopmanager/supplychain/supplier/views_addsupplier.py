@@ -116,6 +116,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
 
 
 class ScheduleCompareView(generics.ListCreateAPIView):
+    """排期比较"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
     template_name = "schedulecompare.html"
@@ -139,6 +140,12 @@ class ScheduleCompareView(generics.ListCreateAPIView):
 
 
 class SaleProductAPIView(generics.ListCreateAPIView):
+    """
+        *   get:获取每个选品的资料（库存、model、detail）
+        *   post:
+                -   type:1 设计接管选品
+                -   type:2 排期完成，即设计组完成图片
+    """
     renderer_classes = (JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -186,16 +193,27 @@ class SaleProductAPIView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         detail = request.POST.get("detail_id")
+        type = request.POST.get("type")
         try:
             detail_product = SaleProductManageDetail.objects.get(id=detail)
         except:
             return Response({"result": u"error"})
-        if detail_product.design_take_over == SaleProductManageDetail.TAKEOVER:
-            return Response({"result": u"alreadytakeover"})
-        detail_product.design_person = request.user.username
-        detail_product.design_take_over = SaleProductManageDetail.TAKEOVER
-        detail_product.save()
-        log_action(request.user.id, detail_product, CHANGE, u'接管')
-        return Response({"result": u"success"})
-
+        if type == "1":
+            if detail_product.design_take_over == SaleProductManageDetail.TAKEOVER:
+                return Response({"result": u"alreadytakeover"})
+            detail_product.design_person = request.user.username
+            detail_product.design_take_over = SaleProductManageDetail.TAKEOVER
+            detail_product.save()
+            log_action(request.user.id, detail_product, CHANGE, u'接管')
+            return Response({"result": u"success"})
+        elif type == "2":
+            if detail_product.design_complete:
+                return Response({"result": u"alreadycomplete"})
+            if detail_product.design_person != request.user.username:
+                return Response({"result": u"not_same_people"})
+            detail_product.design_complete = True
+            detail_product.save()
+            log_action(request.user.id, detail_product, CHANGE, u'完成')
+            return Response({"result": u"success"})
+        return Response({"result": u"error"})
 
