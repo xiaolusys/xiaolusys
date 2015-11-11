@@ -35,6 +35,8 @@ ALTER TABLE shop_refunds_product ADD reason INT(11) DEFAULT 0;
 
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
+
+
 @csrf_exempt
 def refund_Analysis(request):
     content = request.REQUEST
