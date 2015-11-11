@@ -315,6 +315,7 @@ class SaleProductManageDetail(models.Model):
     today_use_status = models.CharField(max_length=64, db_index=True, default=NORMAL, choices=USE_STATUS,
                                         verbose_name=u"使用状态")
     design_person = models.CharField(max_length=32, blank=True, verbose_name=u'设计负责人')
+    design_complete = models.BooleanField(default=False, verbose_name=u'设计完成')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
