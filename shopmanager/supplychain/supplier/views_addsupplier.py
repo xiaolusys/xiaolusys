@@ -92,12 +92,13 @@ def get_target_date_detail(target_date, category):
             all_detail = target_sch[0].child_detail
         else:
             all_detail = target_sch[0].normal_detail
-        return all_detail, wem_posters, chd_posters
+        return all_detail, wem_posters, chd_posters, target_sch[0]
     else:
-        return "", wem_posters, chd_posters
+        return "", wem_posters, chd_posters, []
 
 
 class ScheduleManageView(generics.ListCreateAPIView):
+    """* 排期管理界面 """
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
     template_name = "schedulemanage.html"
@@ -109,7 +110,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
         target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
         for i in range(0, 6):
             temp_date = target_date + datetime.timedelta(days=i)
-            one_data, wem_posters, chd_posters = get_target_date_detail(temp_date, category)
+            one_data, wem_posters, chd_posters, target_sch = get_target_date_detail(temp_date, category)
             result_data.append({"data": one_data, "date": temp_date.strftime("%Y-%m-%d"),
                                 "wem_posters": wem_posters, "chd_posters": chd_posters})
         return Response({"result_data": result_data, "target_date": target_date_str, "category": category})
@@ -165,7 +166,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         lowest_price = all_product[0].lowest_price()
         std_sale_price = all_product[0].std_sale_price
         sale_charger = all_product[0].sale_charger
-        model_id = 0
+        model_id = all_product[0].model_id
         product_id = all_product[0].id
         single_model = True
         try:
