@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
-from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder
+from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, PayToPackStats
 import time
 from .filters import GroupNameFilter, OrderListStatusFilter
 from flashsale.dinghuo import permissions as perms
@@ -224,6 +224,11 @@ admin.site.register(MyUser, myuserAdmin)
 admin.site.register(MyGroup)
 
 
+class PayToPackStatsAdmin(admin.ModelAdmin):
+    list_display = ('pay_date', 'packed_sku_num', 'total_days', 'updated')
+
+admin.site.register(PayToPackStats,PayToPackStatsAdmin)
+
 class SupplyChainDataStatsAdmin(admin.ModelAdmin):
     list_display = ('sale_quantity', 'cost_amount', 'turnover',
                     'order_goods_quantity', 'order_goods_amount',
@@ -319,6 +324,7 @@ class RecordGroupPointAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RecordGroupPoint, RecordGroupPointAdmin)
+
 
 class RGDetailInline(admin.TabularInline):
     model = RGDetail

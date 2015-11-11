@@ -163,24 +163,24 @@ def  SaveWuliu_only01(tid,content):
         用户点击物流信息，进行物流信息存入数据库。
     """
     if content['status']==1:
-                    wuliu=   TradeWuliu()
-                    wuliu.tid=tid
-                    wuliu.status=content['status']
-                    wuliu.logistics_company=content['name']
-                    wuliu.out_sid=content['order']
-                    wuliu.errcode=content['errcode']
-                    wuliu.save()
+        wuliu=   TradeWuliu()
+        wuliu.tid=tid
+        wuliu.status=content['status']
+        wuliu.logistics_company=content['name']
+        wuliu.out_sid=content['order']
+        wuliu.errcode=content['errcode']
+        wuliu.save()
     else:
-                    for t in content['data']:
-                        wuliu=   TradeWuliu()
-                        wuliu.tid=tid
-                        wuliu.status=content['status']
-                        wuliu.logistics_company=content['name']
-                        wuliu.out_sid=content['order']
-                        wuliu.errcode=content['errcode']
-                        wuliu.content=t['content']
-                        wuliu.time=t['time']
-                        wuliu.save()
+        for t in content['data']:
+            wuliu=   TradeWuliu()
+            wuliu.tid=tid
+            wuliu.status=content['status']
+            wuliu.logistics_company=content['name']
+            wuliu.out_sid=content['order']
+            wuliu.errcode=content['errcode']
+            wuliu.content=t['content']
+            wuliu.time=t['time']
+            wuliu.save()
 
 
 #fang  2015-8-22  newVersions

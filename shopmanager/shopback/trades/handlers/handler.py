@@ -48,8 +48,12 @@ class InitHandler(BaseHandler):
         
         merge_trade.ware_by = merge_trade.get_trade_assign_ware()
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
-        update_model_fields(merge_trade,update_fields=['sys_status','ware_by'])
-
+        if merge_trade.ware_by == MergeTrade.WARE_NONE:
+            merge_trade.sys_memo += '，请选择所属仓库'
+            merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
+            
+        update_model_fields(merge_trade,update_fields=['sys_status','ware_by','sys_memo'])
+        
 
 class StockOutHandler(BaseHandler):   
      

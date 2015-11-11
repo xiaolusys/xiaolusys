@@ -53,6 +53,16 @@
         }
 
 </style>
+<script id="ntkf_template" type="text/html">
+var NTKF_PARAM = {
+	siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
+	settingid:"kf_9645_1445414087979",		//缺省客服配置ID，必填，取值参见文档开始表
+	uid:"xlmm_{{xlmm.id}}",		//用户ID,未登录可以为空
+	uname:"{{xlmm.weikefu}}({{xlmm.mobile}})",		//用户名，未登录可以为空
+	isvip:"0" ,         //是否为vip用户
+	userlevel:"1" ,    //网站自定义会员级别
+};
+</script>
 {% endblock %}
 
 {% block container %}
@@ -73,8 +83,6 @@
 	</ul>
   	<div class="tab-content" >
 	<div id="id-cashout-list" role="tabpanel" class="tab-pane active">
-
-
 	  <p style="color:orange">&nbsp;您的待提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
 	  <p style="color:#428bca">提现将由小鹿美美公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
 	  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
@@ -91,12 +99,10 @@
 	    </div>
 	    <p id="id-submit-message" style="color:red"></p>
 	  </div>
-
-
 	  <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
-	    <li class="list-group-item">提现申请已提交！<br/>请加微信客服 <b>{{ kefu_mobile }}</b> 审核提现申请，提现将以发放微信微红包方式完成。</li>
-	  </ul>
-	
+	    <li class="list-group-item">提现申请已提交！<br/>请添加微信号（{{kefu_mobile}}）审核提现申请，提现将以发放微信微红包方式完成。</li>
+		<!-- <a class="btn btn-info btn-service" href="javascript:void(0);"><i class="glyphicon glyphicon-headphones"></i>小鹿客服</a> -->	 
+	 </ul>
 	  <div style="margin-top:20px">
 	    <h5>最近提现记录：</h5>
 	    <table class="table table-bordered" >
@@ -150,7 +156,6 @@
 	 </div>
 	</div>
 	
-	
 	<div id="id-referal-list" role="tabpanel" class="tab-pane">
 	  <div style="margin-top:20px">
 	  <h5>我推荐的代理：</h5>
@@ -169,7 +174,6 @@
   	</div>
 </div>
 {% endblock %}
-
 
 {% block tail_script %}
   <script type="text/javascript">
@@ -302,16 +306,22 @@
         var data = {"v":value, "csrfmiddlewaretoken":csrf_token};
         $.ajax({url:url, data:data, type:"post", success:callback});
     });
-
   </script>
-    <script>
-        function select_value100(v) {
-            $(v).removeClass("normal").addClass("active");
-            $("#value_200").removeClass("active").addClass("normal");
-        }
-        function select_value200(v) {
-            $(v).removeClass("normal").addClass("active");
-            $("#value_100").removeClass("active").addClass("normal");
-        }
-    </script>
+<script>
+    function select_value100(v) {
+        $(v).removeClass("normal").addClass("active");
+        $("#value_200").removeClass("active").addClass("normal");
+    }
+    function select_value200(v) {
+        $(v).removeClass("normal").addClass("active");
+        $("#value_100").removeClass("active").addClass("normal");
+    }
+    $(document).ready(function(){
+    	$('.btn-service').click(function(){
+    		//对应小鹿妈妈提现接待组
+            NTKF.im_openInPageChat("kf_9645_1445414087979");
+    	});
+    });
+</script>
+<script type="text/javascript" src="http://dl.ntalker.com/js/xn6/ntkfstat.js?siteid=kf_9645" charset="utf-8"></script>
 {% endblock %}

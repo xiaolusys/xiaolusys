@@ -111,6 +111,10 @@ class LogisticsCompany(models.Model):
         return '<%s,%s>'%(self.code,self.name)
     
     @classmethod
+    def normal_companys(cls):
+        return cls.objects.filter(status=True)
+    
+    @classmethod
     def getNoPostCompany(cls):
         
         company,state = cls.objects.get_or_create(code=cls.NOPOST)
@@ -131,7 +135,8 @@ class LogisticsCompany(models.Model):
             return company
         #根据系统规则选择快递
         logistics = cls.objects.filter(status=True).order_by('-priority')
-        total_priority  = logistics.aggregate(total_priority=Sum('priority')).get('total_priority')
+        total_priority  = logistics.aggregate(total_priority=Sum('priority')).get('total_priority') 
+        total_priority  = max(total_priority,1)
         priority_ranges = []
         cur_range       = 0
         for logistic in logistics:

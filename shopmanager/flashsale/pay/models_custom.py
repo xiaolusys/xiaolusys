@@ -29,7 +29,7 @@ class Productdetail(models.Model):
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
 
     material = models.CharField(max_length=64, blank=True, verbose_name=u'商品材质')
-    color = models.CharField(max_length=64, blank=True, verbose_name=u'可选颜色')
+    color    = models.CharField(max_length=64, blank=True, verbose_name=u'可选颜色')
     wash_instructions = models.TextField(default=WASH_INSTRUCTION, blank=True, verbose_name=u'洗涤说明')
     note = models.CharField(max_length=256, blank=True, verbose_name=u'备注')
     mama_rebeta = models.IntegerField(default=OUT_PERCENT, choices=REBETA_CHOICES,

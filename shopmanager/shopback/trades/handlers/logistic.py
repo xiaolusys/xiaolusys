@@ -61,19 +61,13 @@ class LogisticsHandler(BaseHandler):
             if (merge_trade.receiver_address.find(u'镇') >= 0 
                 and merge_trade.receiver_address.find(u'村') >= 0):
                 if state.startswith(POST_STATE):
-                    return LogisticsCompany.objects.get_or_create(
-                                        code='POSTB')[0]
-                return LogisticsCompany.objects.get_or_create(
-                                        code='STO')[0]
+                    return LogisticsCompany.objects.get_or_create(code='POSTB')[0]
+                return LogisticsCompany.objects.get_or_create(code='YUNDA_QR')[0]
             
-            return LogisticsCompany.get_recommend_express(state,
-                                                          city,
-                                                          district)
-                
+            return LogisticsCompany.get_recommend_express(state,city,district)
         elif shipping_type in (pcfg.POST_SHIPPING_TYPE.upper(),
                                pcfg.EMS_SHIPPING_TYPE.upper()):
-            return LogisticsCompany.objects.get_or_create(
-                                        code=shipping_type)[0]
+            return LogisticsCompany.objects.get_or_create(code=shipping_type)[0]
         
     def process(self,merge_trade,*args,**kwargs):
         

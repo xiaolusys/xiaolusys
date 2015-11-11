@@ -17,7 +17,6 @@ class OrderService(TaobaoSendTradeMixin,TaobaoTradeService,LocalService):
         
     def __init__(self,t):
         assert t not in ('',None)
-        
         if isinstance(t,Trade):
             self.trade = t
         else:

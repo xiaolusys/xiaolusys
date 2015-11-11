@@ -361,7 +361,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             weixin_payable = isFromWeixin(request)
             xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
             xlmm = xiaolumms.count() > 0 and xiaolumms[0] or None
-            
         alipay_payable = True
         wallet_payable = False
         discount_fee = product_sku.calc_discount_fee(xlmm=xlmm)
@@ -549,9 +548,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 获取用户订单及订单明细列表 """
         strade   = self.get_object()
         strade_dict = serializers.SaleTradeSerializer(strade,context={'request': request}).data
-        orders_serializer = serializers.SaleOrderSerializer(strade.sale_orders.all(), many=True)
-        strade_dict['orders'] = orders_serializer.data
-        
+#         orders_serializer = serializers.SaleOrderSerializer(strade.sale_orders.all(), many=True)
+#         strade_dict['orders'] = orders_serializer.data
         return Response(strade_dict)
     
     @list_route(methods=['get'])
@@ -656,6 +654,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         assert UUID_RE.match(tuuid), u'订单UUID异常'
         sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
                                                            buyer_id=customer.id)
+        assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
         params = {
             'channel':form.get('channel'),
             'receiver_name':address.receiver_name,
@@ -769,7 +768,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 if not cart.is_good_enough():
                     raise exceptions.ParseError(u'抱歉,商品已被抢光')
                 cart_total_fee += cart.price * cart.num * 100
-                cart_discount += cart.calc_discount_fee(xlmm=xlmm) * 100
+                cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * 100
             
             if coupon_id:
                 # 对应用户的未使用的优惠券

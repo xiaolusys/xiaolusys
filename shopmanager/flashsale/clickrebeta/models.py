@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
+import datetime
 from django.db import models
 from shopapp.weixin.models import WXOrder
 from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel,CarryLog
-import datetime
 
 CLICK_VALID_DAYS = 2
 
@@ -444,8 +444,7 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     mm_rebeta_amount    = xlmm.get_Mama_Trade_Amount(strade) 
     mm_order_rebeta     = xlmm.get_Mama_Trade_Rebeta(strade)
     
-    delta_amount  = shopping.rebetamount  - mm_rebeta_amount
-    delta_rebeta  = shopping.tichengcount - mm_order_rebeta
+    delta_rebeta  = max(shopping.tichengcount - mm_order_rebeta,0)
     shopping_status = shopping.status
     if mm_rebeta_amount == 0 :
         shopping_status = StatisticsShopping.REFUNDED 
@@ -466,10 +465,19 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
         clog.carry_date=obj.modified
         clog.save()
     else:
-        shopping.rebetamount  = delta_amount 
-        shopping.tichengcount = delta_rebeta
+        shopping.rebetamount  = mm_rebeta_amount 
+        shopping.tichengcount = mm_order_rebeta
         shopping.status = shopping_status
         shopping.save()
+        
+        daytongji.todayamountcount = F('todayamountcount') - delta_rebeta
+        daytongji.save()
+        
+        CarryLog.objects.filter(
+            xlmm=xlmm.id,
+            order_num=strade.pay_time.strftime('%y%m%d'),
+            log_type=CarryLog.ORDER_REBETA
+        ).update(value = F('value') + delta_rebeta)
     
     
 

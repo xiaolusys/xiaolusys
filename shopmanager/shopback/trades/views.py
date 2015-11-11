@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 from django.shortcuts import render_to_response,render
 import re
 import json
@@ -34,6 +34,9 @@ from shopapp.memorule import ruleMatchSplit
 from shopback.users.models import User
 from shopback import paramconfig as pcfg
 from auth import apis
+
+
+
 from common.utils import (
 						parse_date,
                         CSVUnicodeWriter,
@@ -558,6 +561,8 @@ class CheckOrderView(APIView):
                 check_msg.append(u"订单商品编码与库存商品编码不一致")
             if trade.is_force_wlb:
                 check_msg.append(u"订单由物流宝发货")
+            if trade.ware_by == MergeTrade.WARE_NONE:
+                check_msg.append(u"请选择仓库")
             if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS):
                 check_msg.append(u"订单不在审单状态")
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):
@@ -1869,6 +1874,8 @@ class PackageScanCheckView(APIView):
         return    Response({'isSuccess':True})
         
     
+from flashsale.dinghuo.tasks import task_stats_paytopack
+
 ########################## 订单重量入库 ###########################
 class PackageScanWeightView(APIView):
     """ 订单扫描称重 """
@@ -1962,8 +1969,18 @@ class PackageScanWeightView(APIView):
         
         log_action(mt.user.user.id,mt,CHANGE,u'扫描称重')
         
+        mo = mt.normal_orders
+        for entry in mo:
+            pay_date = entry.pay_time.date()
+            sku_num = 1 # not entry.num, intentionally ignore sku_num effect
+            time_delta = mt.weight_time - entry.pay_time
+            total_days = sku_num * (time_delta.total_seconds()/86400.0)
+
+            task_stats_paytopack.s(pay_date,sku_num,total_days)()
+        
         return Response({'isSuccess':True})
     
+
 ####fang   发现这个函数没有被调用
 class SaleMergeOrderListView(APIView):
     """ docstring for class SaleMergeOrderListView """

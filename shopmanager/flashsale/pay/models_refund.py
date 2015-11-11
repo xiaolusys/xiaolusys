@@ -4,7 +4,6 @@ import datetime
 from django.db import models
 from django.db.models import Q,Sum
 from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
 
 from shopback import paramconfig as pcfg
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
@@ -35,6 +34,12 @@ class SaleRefund(models.Model):
         (REFUND_SUCCESS,'退款成功'),
     )
     
+    REFUNDABLE_STATUS = (REFUND_WAIT_SELLER_AGREE,
+                         REFUND_WAIT_RETURN_GOODS,
+                         REFUND_CONFIRM_GOODS,
+                         REFUND_APPROVE,
+                         REFUND_SUCCESS)
+    
     REFUND_STATUS_MAP = (
         (NO_REFUND,pcfg.NO_REFUND),
         (REFUND_WAIT_SELLER_AGREE,pcfg.REFUND_WAIT_SELLER_AGREE),
@@ -64,7 +69,6 @@ class SaleRefund(models.Model):
     order_id     = models.IntegerField(verbose_name='订单ID')
     
     buyer_id    = models.BigIntegerField(db_index=True,default=0,verbose_name=u"客户ID")
-    
     refund_id   = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++退款编号')
     charge      = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++支付编号')
     
@@ -116,17 +120,24 @@ class SaleRefund(models.Model):
     def refund_desc(self):
         return u'退款(oid:%s),%s'%(self.order_id,self.reason)
     
-    def refund_Confirm(self):
+    def get_tid(self):
+        from flashsale.pay.models import SaleTrade
+        strade = SaleTrade.objects.get(id=self.trade_id)
+        return strade.tid
+    
+    def get_oid(self):
+        from flashsale.pay.models import SaleOrder
+        sorder = SaleOrder.objects.get(id=self.order_id)
+        return sorder.oid
         
+    def refund_Confirm(self):
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
             return
 
         self.status = SaleRefund.REFUND_SUCCESS
         self.save()
-        
         from flashsale.pay.models import SaleOrder,SaleTrade
-        
         sorder = SaleOrder.objects.get(id=self.order_id)
         sorder.refund_status = SaleRefund.REFUND_SUCCESS
         if sorder.sale_trade.status == SaleTrade.WAIT_SELLER_SEND_GOODS:
@@ -189,4 +200,17 @@ def buyeridPatch():
         sf.buyer_id = st.buyer_id
         sf.save()
         
+
+def handle_sale_refund_signal(sender,instance,*args,**kwargs):
     
+    from .models import SaleTrade
+    from shopback import signals
+    from shopback.trades.models import MergeOrder
+
+    strade = SaleTrade.objects.get(id=instance.trade_id)
+    if (not strade.is_Deposite_Order() and 
+        instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE):
+        signals.order_refund_signal.send(sender=MergeOrder,obj=instance)
+
+post_save.connect(handle_sale_refund_signal, sender=SaleRefund)
+

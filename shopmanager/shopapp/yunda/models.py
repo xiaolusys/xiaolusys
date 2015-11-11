@@ -67,11 +67,12 @@ class AnonymousYundaCustomer():
 class YundaCustomer(models.Model): 
     
     name    = models.CharField(max_length=64,blank=True,verbose_name=u'客户名')
-    code    = models.CharField(max_length=16,unique=True,verbose_name=u'客户代码')
+    code    = models.CharField(max_length=16,verbose_name=u'客户代码')
     
     cus_id  = models.CharField(max_length=32,blank=True,verbose_name=u'网点ID') 
     company_name = models.CharField(max_length=32,blank=True,verbose_name=u'客户公司名')   
     company_trade = models.CharField(max_length=32,blank=True,verbose_name=u'客户经营范围') 
+    ware_by   = models.IntegerField(default=0,verbose_name=u'所属仓库')
     
     qr_id   = models.CharField(max_length=32,blank=True,verbose_name=u'二维码接口ID')   
     qr_code  = models.CharField(max_length=32,blank=True,verbose_name=u'二维码接口码')   
@@ -106,11 +107,12 @@ class YundaCustomer(models.Model):
     memo      =  models.CharField(max_length=100,blank=True,verbose_name=u'备注')  
     reserveo  =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义1')       
     reservet  =  models.CharField(max_length=64,blank=True,verbose_name=u'自定义2') 
-
+    
     status     = models.CharField(max_length=10,default=NORMAL,
                                   choices=ORDER_STATUS_CHOICES,verbose_name=u'状态')
     class Meta:
         db_table = 'shop_yunda_customer'
+        unique_together = ("code","ware_by")
         verbose_name=u'韵达客户'
         verbose_name_plural = u'韵达客户列表'
    

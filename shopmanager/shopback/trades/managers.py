@@ -33,11 +33,11 @@ class MergeTradeManager(models.Manager):
                 q = q|Q(receiver_mobile=receiver_mobile)
             else:
                 q = Q(receiver_mobile=receiver_mobile)   
-        if receiver_phone:
-            if q:
-                q = q|Q(receiver_phone=receiver_phone)
-            else:
-                q = Q(receiver_phone=receiver_phone)
+#         if receiver_phone:
+#             if q:
+#                 q = q|Q(receiver_phone=receiver_phone)
+#             else:
+#                 q = Q(receiver_phone=receiver_phone)
         
         if not q:
             return self.none()

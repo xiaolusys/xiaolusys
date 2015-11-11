@@ -99,8 +99,11 @@ class CashoutView(View):
         cash_outable = (click_nums >= 150 and shoppings_count >= 1) or shoppings_count >= 6
         cash, payment, could_cash_out = get_xlmm_cash_iters(xlmm, cash_outable=cash_outable)
         pending_cashouts = cashout_objs.filter(status=CashOut.PENDING)
-        data = {"xlmm":xlmm, "cashout": pending_cashouts.count(), 'kefu_mobile':kefu_mobile,
-                "referal_list":referal_list ,"could_cash_out":int(could_cash_out)}
+        data = {"xlmm":xlmm, 
+                "cashout": pending_cashouts.count(), 
+                'kefu_mobile':kefu_mobile,
+                "referal_list":referal_list,
+                "could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
         response.set_cookie("openid",openid)
@@ -231,7 +234,7 @@ class MamaStatsView(View):
             order_stat = StatisticsShoppingByDay.objects.filter(linkid=xlmm.pk,tongjidate=target_date)
             if order_stat.count() > 0:
                 order_num   = order_stat[0].buyercount
-
+            
             click_list = Clicks.objects.filter(linkid=xlmm.pk, click_time__range=(time_from, time_to), isvalid=True)
             click_num  = click_list.values('openid').distinct().count()
                     
@@ -338,9 +341,7 @@ class MamaIncomeDetailView(View):
                 carry = order_stat[0].todayamountcount / 100.0
                 carry_confirm = order_stat[0].carry_Confirm()
             
-            click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
             click_price  = xlmm.get_Mama_Click_Price_By_Day(order_num, day_date=target_date) / 100.0
-            
             futrue_date = datetime.date.today() + datetime.timedelta(days=1)
             futrue_click_price = 0
             if target_date == datetime.date.today():
@@ -352,10 +353,10 @@ class MamaIncomeDetailView(View):
             ten_click_price = click_price + 0.3 
             ten_click_pay   = 0 
             if not active_start:
+                click_state = ClickCount.objects.filter(linkid=xlmm.pk,date=target_date)
                 if click_state.count() > 0:
                     click_num = click_state[0].valid_num
                 else:
-                    click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
                     click_list = Clicks.objects.filter(linkid=xlmm.pk, click_time__range=(time_from, time_to), isvalid=True)
                     click_num  = click_list.values('openid').distinct().count()
                     
@@ -365,7 +366,6 @@ class MamaIncomeDetailView(View):
                     click_num = min(max_click_count,click_num)
                 
                 click_pay   = click_price * click_num 
-                
             else:
                 click_qs   = Clicks.objects.filter(linkid=xlmm.pk, isvalid=True)
                 click_num  = click_qs.filter(click_time__range=(datetime.datetime(2015,6,15), 

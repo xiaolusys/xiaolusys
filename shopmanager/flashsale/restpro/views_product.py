@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
+from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
@@ -25,14 +26,29 @@ from shopback.base import log_action, ADDITION, CHANGE
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    特卖海报API：
+    ###特卖海报API：
     - {prefix}/today[.format]: 获取今日特卖海报;
     - {prefix}/previous[.format]: 获取昨日特卖海报;
     """
     queryset = GoodShelf.objects.filter(is_active=True)
-    serializer_class = serializers.PosterSerializer
+    serializer_class = serializers.PosterSerializer 
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    
+    def calc_porter_cache_key(self, view_instance, view_method,
+                            request, args, kwargs):
+        key_vals = ['days']
+        key_maps = kwargs or {}
+        for k,v in request.GET.copy().iteritems():
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+                
+        return hashlib.sha256(u'.'.join([
+                view_instance.__module__,
+                view_instance.__class__.__name__,
+                view_method.__name__,
+                json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            ])).hexdigest()
     
     def get_today_poster(self):
         target_date = datetime.date.today()
@@ -56,29 +72,30 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
                                    active_time__day=target_date.day)
         return posters.count() and posters[0] or None
     
+    @cache_response(timeout=15*60,key_func='calc_porter_cache_key')
     @list_route(methods=['get'])
     def today(self, request, *args, **kwargs):
         poster = self.get_today_poster()
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
     
+    @cache_response(timeout=15*60,key_func='calc_porter_cache_key')
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
         poster = self.get_previous_poster()
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
     
+    @cache_response(timeout=15*60,key_func='calc_porter_cache_key')
     @list_route(methods=['get'])
     def preview(self, request, *args, **kwargs):
         poster = self.get_future_poster(request)
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
-from rest_framework_extensions.cache.decorators import cache_response
-
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    特卖商品API：
+    ###特卖商品API：
     - {prefix}/promote_today[.format]: 获取今日推荐商品列表;
     - {prefix}/promote_previous[.format]: 获取昨日推荐商品列表;
     - {prefix}/childlist[.format]: 获取童装专区商品列表;
@@ -97,6 +114,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
+    
+    def calc_items_cache_key(self, view_instance, view_method,
+                            request, args, kwargs):
+        key_vals = ['order_by','id','model_id','days','page','page_size']
+        key_maps = kwargs or {}
+        for k,v in request.GET.copy().iteritems():
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+                
+        return hashlib.sha256(u'.'.join([
+                view_instance.__module__,
+                view_instance.__class__.__name__,
+                view_method.__name__,
+                json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            ])).hexdigest()
     
     def get_latest_right_date(self,dt):
         ldate = dt
@@ -130,7 +162,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         tlast  = tnow + datetime.timedelta(days=tdays)
         return self.get_latest_right_date(tlast.date())
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         
@@ -142,7 +174,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
         """ 获取历史商品列表 """
@@ -158,7 +190,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def advance(self, request, *args, **kwargs):
         """ 获取明日商品列表 """
@@ -189,7 +221,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_child_qs(self,queryset):
         return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1').exclude(details__is_seckill=True)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
         """ 获取今日推荐商品列表 """
@@ -203,7 +235,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                          'child_list':self.get_serializer(child_qs, many=True).data}
         return Response(response_date)
     
-    @cache_response()
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_previous(self, request, *args, **kwargs):
         """ 获取历史推荐商品列表 """
@@ -236,22 +268,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                                                                             context={'request': request}).data}
         return Response(response_date)
     
-    def calc_items_cache_key(self, view_instance, view_method,
-                            request, args, kwargs):
-        key_vals = ['order_by','id','model_id']
-        key_maps = kwargs or {}
-        for k,v in request.GET.copy().iteritems():
-            if k in key_vals and v.strip():
-                key_maps[k] = v
-                
-        return hashlib.sha256(u'.'.join([
-                view_instance.__module__,
-                view_instance.__class__.__name__,
-                view_method.__name__,
-                json.dumps(key_maps, sort_keys=True).encode('utf-8')
-            ])).hexdigest()
-    
-    @cache_response(key_func='calc_items_cache_key')
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def childlist(self, request, *args, **kwargs):
         """ 获取特卖童装列表 """
@@ -267,7 +284,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response(key_func='calc_items_cache_key')
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def ladylist(self, request, *args, **kwargs):
         """ 获取特卖女装列表 """
@@ -283,7 +300,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @cache_response(key_func='calc_items_cache_key')
+    @cache_response(timeout=10*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def modellist(self, request, *args, **kwargs):
         """ 获取款式商品列表 """

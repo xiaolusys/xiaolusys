@@ -9,7 +9,7 @@ from shopback import paramconfig as pcfg
 from django.db import transaction
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.signals import recalc_fee_signal
-from common.utils import update_model_fields,process_lock
+from common.utils import update_model_fields,cache_lock
 import logging
 
 logger = logging.getLogger('django.request')
@@ -59,7 +59,7 @@ def _createAndCalcOrderFee(trade,sub_trade):
                                               'adjust_fee',
                                               'post_fee'])
         
-@process_lock
+@cache_lock(cache_time=12*60*60)
 @transaction.commit_on_success
 def mergeMaker(trade,sub_trade):
     
@@ -143,7 +143,8 @@ def mergeMaker(trade,sub_trade):
     update_model_fields(trade,update_fields=['has_merge','sys_status'])
         
     return True
-    
+
+@cache_lock(cache_time=12*60*60)    
 @transaction.commit_on_success    
 def mergeRemover(trade):
     
@@ -227,7 +228,6 @@ def driveMergeTrade(trade,latest_paytime=None):
         scan_merge_trades = merge_queryset.filter(sys_status__in=(
                                     pcfg.WAIT_CHECK_BARCODE_STATUS,
                                     pcfg.WAIT_SCAN_WEIGHT_STATUS))
-        
         if scan_merge_trades.count()>0:
             return
         
@@ -248,7 +248,6 @@ def driveMergeTrade(trade,latest_paytime=None):
         if trades.count() > 0:
             if not main_trade:
                 for t in trades:
-                    
                     if (not MergeTrade.objects.isTradeFullRefund(t.id) and 
                         not t.has_refund and 
                         t.buyer_full_address == full_address):
@@ -258,10 +257,8 @@ def driveMergeTrade(trade,latest_paytime=None):
                     if t.has_refund:
                         main_trade = None
                         break
-                        
             if main_trade and mergeMaker(main_trade,trade):  
                 return main_trade
-        
     except Exception,exc:        
         logger.error('Merge Trade Error:%s'%exc.message,exc_info=True)
         

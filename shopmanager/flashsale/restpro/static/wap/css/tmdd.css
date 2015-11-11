@@ -222,6 +222,9 @@
   overflow: hidden;
   white-space: nowrap;
 }
+.goods-info p a{
+  color:#3c3c3c;
+}
 .size,.count{ 
   font-size: 22px;
   color: #b7b7b7;
