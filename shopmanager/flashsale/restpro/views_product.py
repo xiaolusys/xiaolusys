@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
+from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
@@ -33,6 +34,21 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.PosterSerializer 
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    
+    def calc_porter_cache_key(self, view_instance, view_method,
+                            request, args, kwargs):
+        key_vals = ['days']
+        key_maps = kwargs or {}
+        for k,v in request.GET.copy().iteritems():
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+                
+        return hashlib.sha256(u'.'.join([
+                view_instance.__module__,
+                view_instance.__class__.__name__,
+                view_method.__name__,
+                json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            ])).hexdigest()
     
     def get_today_poster(self):
         target_date = datetime.date.today()
@@ -56,25 +72,26 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
                                    active_time__day=target_date.day)
         return posters.count() and posters[0] or None
     
+    @cache_response(timeout=15*60,key_func='calc_porter_cache_key')
     @list_route(methods=['get'])
     def today(self, request, *args, **kwargs):
         poster = self.get_today_poster()
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
     
+    @cache_response(timeout=15*60,key_func='calc_porter_cache_key')
     @list_route(methods=['get'])
     def previous(self, request, *args, **kwargs):
         poster = self.get_previous_poster()
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
     
+    @cache_response(timeout=15*60,key_func='calc_porter_cache_key')
     @list_route(methods=['get'])
     def preview(self, request, *args, **kwargs):
         poster = self.get_future_poster(request)
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
-
-from rest_framework_extensions.cache.decorators import cache_response
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -97,6 +114,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
+    
+    def calc_items_cache_key(self, view_instance, view_method,
+                            request, args, kwargs):
+        key_vals = ['order_by','id','model_id','days','page','page_size']
+        key_maps = kwargs or {}
+        for k,v in request.GET.copy().iteritems():
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+                
+        return hashlib.sha256(u'.'.join([
+                view_instance.__module__,
+                view_instance.__class__.__name__,
+                view_method.__name__,
+                json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            ])).hexdigest()
     
     def get_latest_right_date(self,dt):
         ldate = dt
@@ -235,21 +267,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                          'child_list': serializers.ProductPreviewSerializer(child_qs, many=True,
                                                                             context={'request': request}).data}
         return Response(response_date)
-    
-    def calc_items_cache_key(self, view_instance, view_method,
-                            request, args, kwargs):
-        key_vals = ['order_by','id','model_id']
-        key_maps = kwargs or {}
-        for k,v in request.GET.copy().iteritems():
-            if k in key_vals and v.strip():
-                key_maps[k] = v
-                
-        return hashlib.sha256(u'.'.join([
-                view_instance.__module__,
-                view_instance.__class__.__name__,
-                view_method.__name__,
-                json.dumps(key_maps, sort_keys=True).encode('utf-8')
-            ])).hexdigest()
     
     @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
