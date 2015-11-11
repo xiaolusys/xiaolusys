@@ -20,10 +20,8 @@ class RefundHandler(BaseHandler):
         merge_type  = MergeBuyerTrade.getMergeType(merge_trade.id)
         #如果有合并的父订单，则设置父订单退款编号
         if merge_type == pcfg.SUB_MERGE_TYPE:    
-
             main_tid = MergeBuyerTrade.objects.get(sub_tid=merge_trade.id).main_tid
             MergeTrade.objects.get(id=main_tid).append_reason_code(pcfg.NEW_REFUND_CODE)
-            
             main_trade = MergeTrade.objects.get(id=main_tid)
             main_order = None
             for order in merge_trade.merge_orders.all():
@@ -34,14 +32,12 @@ class RefundHandler(BaseHandler):
                 update_model_fields(main_order,update_fields=['status',
                                                               'refund_status',
                                                               'sys_status'])
-                
             if main_order : 
                 ruleMatchSplit(main_trade)
                 ruleMatchPayment(main_trade)
             
         if (merge_trade.sys_status in pcfg.WAIT_DELIVERY_STATUS and 
             not merge_trade.is_locked):
-            
             merge_trade.sys_status = pcfg.INVALID_STATUS
             
             

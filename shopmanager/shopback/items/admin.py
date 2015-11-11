@@ -13,6 +13,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from django.contrib.auth.models import Group
+from django.db.models.signals import post_save
 
 from shopback.items.models import (Item,Product,
                                    ProductSku,
@@ -494,6 +495,10 @@ class ProductAdmin(MyAdmin):
         for product in downshelfs:
             product.normal_skus.update(remain_num=models.F('quantity'))
             log_action(request.user.id,product,CHANGE,u'更新商品库存数至预留数')
+            if product.normal_skus.count() == 0:
+                continue
+            product_sku = product.normal_skus[0]
+            post_save.send(sender=ProductSku,instance=product_sku)
             
         self.message_user(request,u"已成功更新%s个商品的预留数!"%downshelfs.count())
         self.message_user(request,u"有%s个商品因已上架没有更新预留数!"%upshelfs.count())

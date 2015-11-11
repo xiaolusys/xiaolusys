@@ -37,8 +37,8 @@ class FlashSaleService(LocalService):
         
         if (order.status in (SaleOrder.TRADE_CLOSED,
                              SaleOrder.TRADE_CLOSED_BY_SYS) or 
-            merge_trade.status == pcfg.TRADE_CLOSED or 
-            merge_trade.status == SaleTrade.TRADE_CLOSED_BY_SYS):
+            order.refund_status in SaleRefund.REFUNDABLE_STATUS or
+            merge_trade.status in (pcfg.TRADE_CLOSED,SaleTrade.TRADE_CLOSED_BY_SYS)):
             sys_status = pcfg.INVALID_STATUS
         else:
             sys_status = merge_order.sys_status or pcfg.IN_EFFECT
