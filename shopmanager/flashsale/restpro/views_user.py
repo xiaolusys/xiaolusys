@@ -51,12 +51,12 @@ def check_day_limit(reg_bean):
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
-    特卖平台 用户注册,修改密码API：
-    - {prefix}/[.format]: params={vmobile} 注册新用户时，获取验证码;
-    - {prefix}/check_code_user: params={username,valid_code,password1,password2} 注册新用户;
-    - {prefix}/change_pwd_code: params={vmobile} 修改密码时，获取验证码api;
-    - {prefix}/change_user_pwd: params={username,valid_code,password1,password2} 提交修改密码api;
-    - {prefix}/wxapp_login: params= {headimgurl,nickname,openid,unionid} 
+    ### 特卖平台 用户注册,修改密码API：
+    - {prefix}/[.format]: `params={vmobile}` 注册新用户时，获取验证码;
+    - {prefix}/check_code_user: `params={username,valid_code,password1,password2}` 注册新用户;
+    - {prefix}/change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
+    - {prefix}/change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
+    - {prefix}/wxapp_login: `params= {headimgurl,nickname,openid,unionid}`
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -327,9 +327,19 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """
-    特卖平台 用户操作API：
-    - {prefix}/profile:获取用户信息
-    - {prefix}/customer_logout:用户注销api;
+    #### 特卖平台 用户操作API：
+    - {prefix}/profile: 获取用户信息
+    - {prefix}/need_set_info: 获取该用户是否需要设置密码
+        -   yes: 需要设置密码，并且需要绑定手机
+        -   1: 已经有手机，需要设置密码
+        -   no: 不需要设置密码
+    - {prefix}/customer_logout: 用户注销api;
+    - {prefix}/bang_mobile_code: `params={vmobile}`绑定手机时候获取验证码;
+    - {prefix}/bang_mobile: `params={username, password1, password2, valid_code}`绑定手机;
+    - {prefix}/passwd_set: `params={password1, password2}`初始化密码;
+    - {prefix}/change_pwd_code: 修改密码时获取验证码;
+    - {prefix}/change_user_pwd: `params={username, password1, password2}`提交修改密码;
+    - {prefix}/check_code: `params={username, valid_code}`验证码判断、验证码过时功能;
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
