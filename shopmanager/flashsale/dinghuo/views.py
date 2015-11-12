@@ -635,3 +635,36 @@ class DailyWorkView(View):
                                    "searchDinghuo": query_time, 'groupname': groupname,
                                    "search_text": search_text},
                                   context_instance=RequestContext(request))
+
+from rest_framework import generics
+from rest_framework.renderers import JSONRenderer
+from rest_framework import permissions
+from rest_framework.response import Response
+from shopback.items.models import ProductCategory
+
+
+def get_category(category):
+    if not category.parent_cid:
+        return unicode(category.name)
+    try:
+        p_cat = category.__class__.objects.get(cid=category.parent_cid).name
+    except:
+        p_cat = u'--'
+    return p_cat
+
+class ProductCategoryAPIView(generics.ListCreateAPIView):
+    """
+
+    """
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        category = request.GET.get("category")
+        try:
+            category_bean = ProductCategory.objects.get(cid=category)
+            group = get_category(category_bean)
+            category = category_bean.__unicode__()
+        except:
+            return Response({"flag": "error"})
+        return Response({"flag": "done", "group": group, "category": category})
