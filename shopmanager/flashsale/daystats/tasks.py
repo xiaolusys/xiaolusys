@@ -1006,8 +1006,9 @@ def task_calc_operate_data(start_date, end_date, category="0"):
                     one_product = Product.objects.get(outer_id=one_data.product_id)
                     product_category = get_category(one_product.category)
                     category_name = one_product.category.__unicode__()
-                    if u"秒杀" in one_product.name:
-                        continue
+                    # 2015-11-12 wt change for calculate
+                    # if u"秒杀" in one_product.name:
+                    #     continue
                 except:
                     continue
                 product_outer_id = one_data.product_id[0:len(one_data.product_id) - 1]
