@@ -660,11 +660,16 @@ class ProductCategoryAPIView(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
+        product = request.GET.get("product")
         category = request.GET.get("category")
+        kucun = 0
+        all_product = Product.objects.filter(status=Product.NORMAL, outer_id__startswith=product)
+        for one_product in all_product:
+            kucun += one_product.collect_num
         try:
             category_bean = ProductCategory.objects.get(cid=category)
             group = get_category(category_bean)
             category = category_bean.__unicode__()
         except:
             return Response({"flag": "error"})
-        return Response({"flag": "done", "group": group, "category": category})
+        return Response({"flag": "done", "group": group, "category": category, "stock": kucun})
