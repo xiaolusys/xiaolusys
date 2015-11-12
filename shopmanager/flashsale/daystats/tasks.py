@@ -19,8 +19,6 @@ from calendar import monthrange
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
 from shopback.categorys.models import ProductCategory
-from flashsale.pay.models_custom import Productdetail
-
 
 logger = logging.getLogger('celery.handler')
 
