@@ -19,6 +19,7 @@ from calendar import monthrange
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
 from shopback.categorys.models import ProductCategory
+from flashsale.pay.models_custom import Productdetail
 
 
 logger = logging.getLogger('celery.handler')
@@ -1007,8 +1008,9 @@ def task_calc_operate_data(start_date, end_date, category="0"):
                     product_category = get_category(one_product.category)
                     category_name = one_product.category.__unicode__()
                     # 2015-11-12 wt change for calculate
-                    # if u"秒杀" in one_product.name:
-                    #     continue
+                    sec_kill = one_product.details.is_seckill
+                    if sec_kill:
+                        continue
                 except:
                     continue
                 product_outer_id = one_data.product_id[0:len(one_data.product_id) - 1]
