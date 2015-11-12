@@ -603,11 +603,11 @@ class DailyWorkView(View):
                           "shop_items_product where status='normal' and outer_id like '%%{0}%%' or name like '%%{0}%%'".format(
                 search_text)
         else:
-            product_sql = "select id,name as product_name,outer_id,pic_path from " \
+            product_sql = "select id,name as product_name,outer_id,pic_path,cost, agent_price,category_id from " \
                           "shop_items_product where  sale_time='{0}' and status!='delete' {1}".format(
                 target_date, group_sql)
         sql = "select product.outer_id,product.product_name,product.pic_path," \
-              "order_info.sale_num,product.id " \
+              "order_info.sale_num,product.id,product.cost,product.agent_price,product.category_id " \
               "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id "
 
         cursor = connection.cursor()
@@ -618,8 +618,12 @@ class DailyWorkView(View):
         for product in raw:
             sale_num = int(product[3] or 0)
             outer_id = product[0]
-            temp_dict = {"outer_id": product[0], "product_id": product[4], "product_name": product[1],
-                         "pic_path": product[2], "sale_num": sale_num or 0}
+            cost = product[5]
+            agent_price = product[6]
+            category = product[7]
+            temp_dict = {"outer_id": product[0], "product_id": product[4], "product_name": product[1].split("/")[0],
+                         "pic_path": product[2], "sale_num": sale_num or 0, "cost": cost,
+                         "agent_price": agent_price, "category": category}
             pro_id = outer_id[0:len(outer_id) - 1]
             if pro_id not in trade_dict:
                 trade_dict[pro_id] = temp_dict
@@ -631,3 +635,36 @@ class DailyWorkView(View):
                                    "searchDinghuo": query_time, 'groupname': groupname,
                                    "search_text": search_text},
                                   context_instance=RequestContext(request))
+
+from rest_framework import generics
+from rest_framework.renderers import JSONRenderer
+from rest_framework import permissions
+from rest_framework.response import Response
+from shopback.items.models import ProductCategory
+
+
+def get_category(category):
+    if not category.parent_cid:
+        return unicode(category.name)
+    try:
+        p_cat = category.__class__.objects.get(cid=category.parent_cid).name
+    except:
+        p_cat = u'--'
+    return p_cat
+
+class ProductCategoryAPIView(generics.ListCreateAPIView):
+    """
+
+    """
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        category = request.GET.get("category")
+        try:
+            category_bean = ProductCategory.objects.get(cid=category)
+            group = get_category(category_bean)
+            category = category_bean.__unicode__()
+        except:
+            return Response({"flag": "error"})
+        return Response({"flag": "done", "group": group, "category": category})

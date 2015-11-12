@@ -20,7 +20,6 @@ from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
 from shopback.categorys.models import ProductCategory
 
-
 logger = logging.getLogger('celery.handler')
 
 
@@ -1006,7 +1005,9 @@ def task_calc_operate_data(start_date, end_date, category="0"):
                     one_product = Product.objects.get(outer_id=one_data.product_id)
                     product_category = get_category(one_product.category)
                     category_name = one_product.category.__unicode__()
-                    if u"秒杀" in one_product.name:
+                    # 2015-11-12 wt change for calculate
+                    sec_kill = one_product.details.is_seckill
+                    if sec_kill:
                         continue
                 except:
                     continue

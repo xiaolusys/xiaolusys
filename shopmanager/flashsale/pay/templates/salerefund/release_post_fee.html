@@ -48,8 +48,14 @@
                 style="margin-left: 20px;margin-right: 20px">
             发邮费优惠券(￥10)
         </button>
+    </div>
+    <div style="margin-top: 30px">
         <button type="button" class="btn btn-danger" onclick="release_coupon_action(15)">
             发邮费优惠券(￥15)
+        </button>
+        <button type="button" class="btn btn-danger" onclick="release_coupon_action(20)"
+                style="margin-left: 20px;">
+            发邮费优惠券(￥20)
         </button>
     </div>
 </div>
@@ -114,7 +120,8 @@
         var POST_COUPON = {
             typ_5: 'POST_FEE_5',
             typ_10: 'POST_FEE_10',
-            typ_15: 'POST_FEE_15'
+            typ_15: 'POST_FEE_15',
+            typ_20: 'POST_FEE_20'
         };
         var btn = $(".post_fee");
         if (btn.hasClass('loading')) {
@@ -127,6 +134,9 @@
         }
         else if (cou_type == 15) {
             coupon_type = POST_COUPON.typ_15;
+        }
+        else if (cou_type == 20) {
+            coupon_type = POST_COUPON.typ_20;
         }
         var coupon_url = "/mm/rsrc/";
         var memo = $("#trade_memo").val();

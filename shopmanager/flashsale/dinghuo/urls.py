@@ -61,4 +61,5 @@ urlpatterns = [
     url(r'^change_kucun/$', staff_member_required(views_sale_status.ChangeKunView.as_view()), name="change_kucun"), #修改上架前库存
     url(r'^sale_warning/$', staff_member_required(views_sale_status.SaleStatusView.as_view()), name="sale_warning"), #销售预警
     url(r'^set_remain_num/$', staff_member_required(views_product.SetRemainNumView.as_view()), name="set_remian"), #设置预留数
+    url(r'^product_category/$', staff_member_required(views.ProductCategoryAPIView.as_view()), name="product_category"), #商品分类api
 ]

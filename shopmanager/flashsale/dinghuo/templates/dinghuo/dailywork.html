@@ -2,6 +2,11 @@
 {% block title %}爆款{% endblock %}
 {% block head_script %}
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
+
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
             type="text/javascript"></script>
@@ -65,16 +70,36 @@
         <table class="table table-bordered" id="resultTable">
             <thead style="background-color:#01B5A2;">
             <th>商品信息</th>
+            <th>商品名字</th>
             <th>图片</th>
+            <th>分组</th>
+            <th>属性</th>
+            <th>成本价</th>
+            <th>出售价格</th>
             <th>销售数</th>
+            <th>销售成本</th>
+            <th>销售额</th>
+{#            <th>库存</th>#}
+{#            <th>库存额</th>#}
             </thead>
             <tbody>
             {% for product in  target_product %}
 
                 <tr>
-                    <td>{{ product.0 }}</td>
+                    <td><a href="/admin/items/product/?q={{ product.0 }}" target="_blank">{{ product.0 }}</a></td>
+                    <td>{{ product.1.product_name }}</td>
                     <td><img src="{{ product.1.pic_path }}" width="100px" class="img-circle"></td>
-                    <td>{{ product.1.sale_num }}</td>
+                    <td><span id="group_{{ product.0 }}" data-category="{{ product.1.category }}"
+                              data-product="{{ product.0 }}" class="group"></span></td>
+                    <td><span id="category_{{ product.0 }}"></span></td>
+                    <td><span id="cost_{{ product.0 }}">{{ product.1.cost }}</span></td>
+                    <td><span id="agent_price_{{ product.0 }}">{{ product.1.agent_price }}</span></td>
+                    <td><span id="sale_num_{{ product.0 }}">{{ product.1.sale_num }}</span></td>
+                    <td><span id="total_cost_{{ product.0 }}"></span></td>
+                    <td><span id="total_price_{{ product.0 }}"></span></td>
+{#                    <td><span id="stock_num_{{ product.0 }}"></span></td>#}
+{#                    <td><span id="stock_money_{{ product.0 }}"></span></td>#}
+
                 </tr>
             {% endfor %}
             </tbody>
@@ -127,7 +152,72 @@
                 $(".floatButton").css("position", "fixed");
                 $(".floatview").css("position", "fixed");
             });
+            var all_category = $(".group");
+            $.each(all_category, function (index, obj) {
+                get_category(all_category.eq(index).attr("data-product"), all_category.eq(index).attr("data-category"));
+                cal_total_data(all_category.eq(index).attr("data-product"))
+            });
+        });
+
+
+        //请求每个商品的分类信息
+        function get_category(product, category) {
+            var requestUrl = "/sale/dinghuo/product_category/";
+            var data = {"product": product, "category": category};
+            $.ajax({
+                async: true,
+                type: "GET",
+                url: requestUrl,
+                dataType: 'json',
+                data: data,
+                cache: false,
+                error: function () {
+                },
+                success: function (result) {
+                    if (result.flag == "done") {
+                        $("#group_" + product).html(result.group);
+                        $("#category_" + product).html(result.category);
+                    }
+                }
+            });
+        }
+        //计算总数据
+        function cal_total_data(product) {
+            var sale_num = parseInt($("#sale_num_"+product).html());
+            var cost = parseFloat($("#cost_"+product).html());
+            var agent_price = parseFloat($("#agent_price_"+product).html());
+            $("#total_cost_"+product).html(sale_num * cost);
+            $("#total_price_"+product).html(sale_num * agent_price);
+
+        }
+    </script>
+    <script src="{{ STATIC_URL }}jquery-datatable-addon/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $('#resultTable').dataTable({
+            //"bJQueryUI": true,
+            "bAutoWidth": false, //自适应宽度
+            "aaSorting": [[1, "asc"]],
+            "iDisplayLength": -1,
+            "aLengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+            //"bInfo":true,
+            //"sPaginationType": "full_numbers",
+            //"sDom": '<"H"Tfr>t<"F"ip>',
+            "oLanguage": {
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sZeroRecords": "抱歉， 没有找到",
+                "sInfo": "从 _START_ 到 _END_ /共 _TOTAL_ 条",
+                "sInfoEmpty": "没有数据",
+                "sSearch": "搜索",
+                "sInfoFiltered": "(从 _MAX_ 条数据中检索)",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "前一页",
+                    "sNext": "后一页",
+                    "sLast": "尾页"
+                },
+                "sZeroRecords": "没有检索到数据",
+                "sProcessing": "<img src='/static/img/loading.gif' />"
+            }
         });
     </script>
-
 {% endblock %}

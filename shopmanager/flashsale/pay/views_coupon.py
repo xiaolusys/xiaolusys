@@ -28,7 +28,8 @@ class RefundCouponView(APIView):
     def get_template(self, template_type):
         POST_COUPON = {'POST_FEE_5': 1,
                        'POST_FEE_10': 4,
-                       'POST_FEE_15': 5}
+                       'POST_FEE_15': 5,
+                       'POST_FEE_20': 7}
         try:
             template = CouponTemplate.objects.get(type=POST_COUPON[template_type])
         except CouponTemplate.DoesNotExist:
@@ -36,15 +37,22 @@ class RefundCouponView(APIView):
         return template
 
     def check_order_coupon(self, trade):
+        """ 检查用户该交易是否有发放过优惠券　"""
         coupon = self.usercoupons.filter(sale_trade=trade.id, cp_id__template__type__in=(
-            CouponTemplate.POST_FEE_5, CouponTemplate.POST_FEE_10, CouponTemplate.POST_FEE_15))
+            CouponTemplate.POST_FEE_5, CouponTemplate.POST_FEE_10, CouponTemplate.POST_FEE_15,
+            CouponTemplate.POST_FEE_20))
         if coupon.exists():
             raise APIException(u"已经发放过优惠券")
 
     def memo_trade(self, user, trade, memo):
+        """ 备注特卖订单信息　"""
         trade.seller_memo += memo
         update_model_fields(trade, update_fields=['seller_memo'])
         log_action(user, trade, CHANGE, u'退货退款问题发放优惠券修改卖家备注')
+
+    def check_trade_status(self, trade):
+        if trade.status in (SaleTrade.TRADE_NO_CREATE_PAY, SaleTrade.WAIT_BUYER_PAY):
+            raise APIException(u'交易状态异常，不予发放')
 
     def get(self, request):
         content = request.REQUEST
@@ -60,6 +68,7 @@ class RefundCouponView(APIView):
         user = request.user.id
 
         trade = self.get_trade(trade_id)
+        self.check_trade_status(trade)
         self.check_order_coupon(trade)
         template = self.get_template(template_type)
         self.memo_trade(user, trade, memo)
