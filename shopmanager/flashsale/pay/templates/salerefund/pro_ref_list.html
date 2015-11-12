@@ -215,9 +215,10 @@
             }]
         });
     }
-    function usedataTable(dom){
+    function usedataTable(dom) {
         $(dom).dataTable({
             //"bJQueryUI": true,
+            "bRetrieve": true,
             "bAutoWidth": true,//false, //自适应宽度
             "aaSorting": [[0, "asc"]],
             "iDisplayLength": 50,
