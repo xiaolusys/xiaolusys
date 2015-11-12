@@ -245,6 +245,7 @@ nav a:active,
 .glist li a img {
     display: block;
     width: 100%;
+    min-height:289px;
 }
 
 .glist .gname {
