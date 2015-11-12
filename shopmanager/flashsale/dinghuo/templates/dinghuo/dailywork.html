@@ -92,13 +92,13 @@
                     <td><span id="group_{{ product.0 }}" data-category="{{ product.1.category }}"
                               data-product="{{ product.0 }}" class="group"></span></td>
                     <td><span id="category_{{ product.0 }}"></span></td>
-                    <td><span id="cost_{{ product.0 }}">{{ product.1.cost }}</span></td>
-                    <td><span id="agent_price_{{ product.0 }}">{{ product.1.agent_price }}</span></td>
-                    <td><span id="sale_num_{{ product.0 }}">{{ product.1.sale_num }}</span></td>
-                    <td><span id="total_cost_{{ product.0 }}"></span></td>
-                    <td><span id="total_price_{{ product.0 }}"></span></td>
-                    <td><span id="stock_num_{{ product.0 }}"></span></td>
-                    <td><span id="stock_money_{{ product.0 }}"></span></td>
+                    <td id="cost_{{ product.0 }}">{{ product.1.cost }}</td>
+                    <td id="agent_price_{{ product.0 }}">{{ product.1.agent_price }}</td>
+                    <td id="sale_num_{{ product.0 }}">{{ product.1.sale_num }}</td>
+                    <td id="total_cost_{{ product.0 }}"></td>
+                    <td id="total_price_{{ product.0 }}"></td>
+                    <td id="stock_num_{{ product.0 }}"></td>
+                    <td id="stock_money_{{ product.0 }}"></td>
 
                 </tr>
             {% endfor %}
