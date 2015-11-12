@@ -186,10 +186,6 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         result = {}
         try:
             customer = get_object_or_404(Customer,user=request.user)
-            other_addr = UserAddress.objects.filter(cus_uid=customer.id)
-            for one in other_addr:
-                one.default = False
-                one.save()
             default_addr = UserAddress.objects.get(id=id_default)
             default_addr.default = True
             default_addr.save()

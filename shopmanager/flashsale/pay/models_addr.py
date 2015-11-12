@@ -2,7 +2,7 @@
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
 import logging
-
+from django.db.models.signals import post_delete, post_save
 class District(models.Model):
     
     FIRST_STAGE  = 1
@@ -87,4 +87,19 @@ class UserAddress(models.Model):
         
         return '<%s,%s>'%(self.id,self.cus_uid)
     
-    
+def set_only_one_default(sender, instance, *args, **kwargs):
+    """ 新建一个地址后更新只有一个默认地址
+        如果正常状态并且是默认地址，则更新所有的其他地址为非默认
+        删除状态的则检查其他的是否有默认，并且有其他地址，满足条件则将第一个置为默认
+    """
+    user = instance.cus_uid
+    normal_address = UserAddress.normal_objects.filter(cus_uid=user)
+    if instance.status == UserAddress.NORMAL and instance.default:
+        UserAddress.normal_objects.filter(cus_uid=user).exclude(id=instance.id).update(default=False)
+    else:
+        if not normal_address.filter(default=True) and normal_address.count() > 0:
+            first_address = UserAddress.normal_objects.filter(cus_uid=user)[0]
+            first_address.default = True
+            first_address.save()
+
+post_save.connect(set_only_one_default, sender=UserAddress, dispatch_uid='set_only_one')
