@@ -4,7 +4,7 @@ import datetime
 from .models import SaleTrade,SaleOrder,SaleRefund, FLASH_SELLER_ID
 from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
-from common.moodelutils import update_model_fields,update_model_change_fields
+from common.modelutils import update_model_fields,update_model_change_fields
 from shopapp.weixin.models import MIAOSHA_SELLER_ID
 from shopback.users.models import User
 import logging
