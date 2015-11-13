@@ -323,7 +323,9 @@ class SaleProductManageDetail(models.Model):
         db_table = 'supplychain_supply_schedule_manage_detail'
         verbose_name = u'排期管理明细'
         verbose_name_plural = u'排期管理明细列表'
-
+        permissions = [
+            ("revert_done", u"反完成")
+        ]
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.sale_product_id)
 
