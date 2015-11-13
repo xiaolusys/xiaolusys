@@ -247,6 +247,7 @@ class RefundPopPageView(APIView):
                             xlmm_queryset.update(cash=models.F('cash') + payment)
                             obj.status = SaleRefund.REFUND_SUCCESS
                             obj.save()
+                            log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)
 
                         obj.refund_Confirm()
 
@@ -259,6 +260,7 @@ class RefundPopPageView(APIView):
                         obj.refund_id = re.id
                         obj.status = SaleRefund.REFUND_APPROVE  # 确认退款等待返款
                         obj.save()
+                        log_action(request.user.id, obj, CHANGE, u'退款审核通过:%s' % obj.refund_id)
                 if refund_feedback:
                     obj.feedback = refund_feedback
                     obj.save()
