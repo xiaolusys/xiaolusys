@@ -906,7 +906,7 @@ def refund_update_order_info(sender,obj,*args,**kwargs):
                                             sys_status=MergeOrder.NORMAL)
         for morder in morders:
             morder.refund_status = MergeOrder.REFUND_WAIT_SELLER_AGREE
-            morder.sys_status = MergeOrder.DELETE
+            morder.sys_status    = MergeOrder.DELETE
             morder.save()
             log_action(sysoa.id,mtrade,CHANGE,u'订单(oid:%s)退款自动关闭'%morder.id)
             morder.merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
