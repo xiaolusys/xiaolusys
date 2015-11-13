@@ -195,16 +195,49 @@ class DailyDingHuoOptimizeView(View):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
         dinghuo_begin = self.parseEndDt(dinghuo_begin_str)
-        task_id = task_ding_huo_optimize.s(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus)()
+        product_dict = get_product_dict(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus)
         return render_to_response("dinghuo/daily_work_optimize.html",
-                                  {"task_id": task_id, "shelve_from": target_date, "time_to": time_to,
+                                  {"product_dict": product_dict, "shelve_from": target_date, "time_to": time_to,
                                    "searchDinghuo_end": query_time, 'groupname': groupname, "dhstatus": dhstatus,
                                    "search_text": search_text, "searchDinghuo_begin": dinghuo_begin},
 
                                   context_instance=RequestContext(request))
+def get_product_dict(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
+    """非没有退款状态的，不算作销售数,没有之前的速度快"""
+    if len(search_text) > 0:
+        search_text = str(search_text)
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
+                      "(select id,name as product_name,outer_id,pic_path from " \
+                      "shop_items_product where outer_id like '%%{0}%%' or name like '%%{0}%%' ) as A " \
+                      "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+            search_text)
+    else:
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
+                      "(select id,name as product_name,outer_id,pic_path from " \
+                      "shop_items_product where  sale_time='{0}' " \
+                      "and status!='delete') as A " \
+                      "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
+            target_date)
 
+    cursor = connection.cursor()
+    cursor.execute(product_sql)
+    product_raw = cursor.fetchall()
+    trade_dict = {}
+    for one_product in product_raw:
+        temp_dict = {"product_id": one_product[0], "outer_sku_id": one_product[4], "product_name": one_product[1],
+                     "pic_path": one_product[3], "sku_name": one_product[6],
+                     "sku_id": one_product[7],"ku_cun_num": int(one_product[8] or 0)}
+        if one_product[2] not in trade_dict:
+            trade_dict[one_product[2]] = [temp_dict]
+        else:
+            trade_dict[one_product[2]].append(temp_dict)
+    trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
+    # result_dict = {"trade_dict": trade_dict}
+    return trade_dict
 from flashsale.dinghuo.models import OrderDetail
-from shopback.items.models import Product
+from shopback.items.models import Product, ProductSku
 from django.core import serializers
 
 
@@ -225,3 +258,37 @@ class ShowPicView(View):
                 temp_dict[pro_id.product_id] = "in"
                 all_order_data.append(self.get_src_by_product(pro_id.product_id))
         return HttpResponse(",".join(all_order_data))
+
+
+from rest_framework import generics
+from rest_framework.renderers import JSONRenderer
+from rest_framework import permissions
+from rest_framework.response import Response
+import function_of_task_optimize
+
+
+class SkuAPIView(generics.ListCreateAPIView):
+    """
+        *   get:获取每个sku的销售情况（库存、model、detail）
+
+    """
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        sku_id = request.GET.get("sku_id")
+        dinghuo_begin = request.GET.get("dinghuo_begin")
+        query_time = request.GET.get("query_time")
+        time_to = request.GET.get("time_to")
+        try:
+            one_sku = ProductSku.objects.get(id=sku_id)
+        except:
+            return Response({"flag": "error"})
+        sale_num = function_of_task_optimize.get_sale_num(one_sku.product.sale_time, time_to, one_sku.product.outer_id,
+                                                          one_sku.outer_id)
+        ding_huo_num, sample_num, arrival_num = function_of_task_optimize.get_dinghuo_num(dinghuo_begin, query_time,
+                                                                                          one_sku.product.outer_id,
+                                                                                          one_sku.id)
+
+        return Response(
+            {"flag": "done", "sale_num": sale_num, "ding_huo_num": ding_huo_num, "arrival_num": arrival_num})
