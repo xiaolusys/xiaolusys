@@ -123,3 +123,7 @@
     right: 0px;
     background: url(../images/icon-shouye.png) no-repeat center center;
 }
+
+.pressed {
+  background-color: #f75d00;
+}

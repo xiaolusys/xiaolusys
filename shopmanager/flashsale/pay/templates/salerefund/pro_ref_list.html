@@ -61,10 +61,14 @@
 
     <div id="container" style="min-width:400px;height:400px"></div>
 </div>
+<a onclick="test_fo_data()" style="display: none"> test </a>
 </body>
 
 
 <script>
+    function test_fo_data(){
+        addItem([1,2,3,4,5,6]);
+    }
     var pageNumber = 1;
 
     var total_out = 0;
@@ -102,35 +106,25 @@
             console.log(res);
             pageNumber += 1;
             $.each(res.results, function (i, obj) {
-                var container_str = '<tr>' +
-                        '<td>{0}</td>' +
-                        '<td style="width: 80px;">' +
-                        '<img src="{1}"style="width:70px;" class="img-circle" onclick="popRcdpage({0})">' +
-                        '</td>' +
-                        '<td>{2}</td>' +
-                        '<td>{3}</td>' +
-                        '<td>{4}</td>' +
-                        '<td>{5}</td>' +
-                        '</tr>';
-
-                var container = String.format(container_str,
+                var pic_str = '<img src="{1}"style="width:70px;" class="img-circle" onclick="popRcdpage({0})">';
+                var pic = String.format(pic_str,
                         obj.product,
-                        obj.pro_pic,
-                        obj.ref_num_in,
-                        obj.ref_num_out,
-                        obj.ref_sed_num,
-                        obj.same_mod_sale_num
+                        obj.pro_pic
                 );
+                addItem([obj.product,
+                    pic,
+                    obj.ref_num_in,
+                    obj.ref_num_out,
+                    obj.ref_sed_num,
+                    obj.same_mod_sale_num
+                ]);
 
                 total_out += obj.ref_num_out;
                 total_in += obj.ref_num_in;
                 total_send += obj.ref_sed_num;
                 total_sale += obj.same_mod_sale_num;
-                $("#table_tbody").append(container);
             });
             closeLayer();//
-            var table_dom = $('#mytable');
-            usedataTable(table_dom);
             //　绘制柱状图
             var char_data = [total_in, total_out, total_send, total_sale];
             zhuChart(char_data)
@@ -214,6 +208,11 @@
                 data: data
             }]
         });
+    }
+    function addItem(arr) {
+        $("#mytable").dataTable().fnAddData(
+                arr
+        );
     }
     function usedataTable(dom) {
         $(dom).dataTable({
