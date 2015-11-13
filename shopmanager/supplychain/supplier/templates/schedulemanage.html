@@ -91,7 +91,7 @@
                     <th width="10%">尺码</th>
                     <th width="10%">上架名称</th>
                     <th width="3%">主图</th>
-                    <th width="6%">操作</th>
+                    <th width="10%">操作</th>
                     </thead>
                     {% for data1 in one_data.data %}
                         <tr {% if data1.design_complete %}bgcolor="#CCFFFF"{% endif %}>
@@ -115,33 +115,38 @@
                             <td><img class="preview_img" src="" id="zhutu_{{ data1.sale_product_id }}" width="100px">
                             </td>
                             <td>
-                                <div class="takeoverinfo">{% ifequal data1.design_take_over "takeover" %}
-                                    <span>接管人：{{ data1.design_person }}</span>
-                                {% else %}
-                                    <a data-product="{{ data1.id }}"
-                                       target="_blank" class="btn btn-sm btn-danger takeover">接管</a>
-                                {% endifequal %}
+                                <div class="takeoverinfo">
+                                    {% ifequal data1.design_take_over "takeover" %}
+                                        <span>接管人：{{ data1.design_person }}</span>
+                                    {% else %}
+                                        <a data-product="{{ data1.id }}"
+                                           target="_blank" class="btn btn-sm btn-danger takeover">接管</a>
+                                    {% endifequal %}
                                 </div>
                                 <a id="preview_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
                                    target="_blank" class="btn btn-warning btn-sm">预览</a>
 
                                 {% if data1.design_complete %}
-                                    <br><span>已经完成</span>
-                                    {% ifequal user.username data1.design_person %}
-                                        <a data-product="{{ data1.id }}" style="margin-top: 5px"
-                                           target="_blank" class="btn btn-sm btn-danger revert_complete">反完成</a>
-                                    {% else %}
-                                        {% if perms.supplier.revert_done %}
+                                    <div class="complete_status" style="display: inline">
+                                        <br><span>已经完成</span>
+                                        {% ifequal user.username data1.design_person %}
                                             <a data-product="{{ data1.id }}" style="margin-top: 5px"
                                                target="_blank" class="btn btn-sm btn-danger revert_complete">反完成</a>
-                                        {% endif %}
-                                    {% endifequal %}
-
+                                        {% else %}
+                                            {% if perms.supplier.revert_done %}
+                                                <a data-product="{{ data1.id }}" style="margin-top: 5px"
+                                                   target="_blank" class="btn btn-sm btn-danger revert_complete">反完成</a>
+                                            {% endif %}
+                                        {% endifequal %}
+                                    </div>
                                 {% else %}
-                                    <a id="chuantu_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
-                                       target="_blank" class="btn btn-sm btn-info">传图</a><br>
-                                    <a data-product="{{ data1.id }}" style="margin-top: 5px"
-                                       target="_blank" class="btn btn-sm btn-danger complete">完成</a>
+                                    <div class="complete_status" style="display: inline">
+                                        <a id="chuantu_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
+                                           target="_blank" class="btn btn-sm btn-info">传图</a><br>
+
+                                        <a data-product="{{ data1.id }}" style="margin-top: 5px"
+                                           target="_blank" class="btn btn-sm btn-danger complete">完成</a>
+                                    </div>
                                 {% endif %}
 
                             </td>
@@ -190,6 +195,7 @@
         //接管操作
         $(".takeover").bind("click", function () {
             var detail = $(this).attr("data-product");
+            var target_sale = $(this);
             swal({
                 title: "接管",
                 text: "要接管吗？",
@@ -213,6 +219,7 @@
                             alert("有错误");
                         } else if (result.result == "success") {
                             alert("接管成功");
+                            target_sale.parent('.takeoverinfo').html("接管人:"+result.username);
                         } else if (result.result == "alreadytakeover") {
                             alert("已经被接管了");
                         }
@@ -223,6 +230,7 @@
         //完成操作
         $(".complete").bind("click", function () {
             var detail = $(this).attr("data-product");
+            var target_sale = $(this);
             swal({
                 title: "完成",
                 text: "确定完成了吗？",
@@ -245,7 +253,8 @@
                         if (result.result == "error") {
                             alert("有错误");
                         } else if (result.result == "success") {
-                            alert("完成");
+                            target_sale.parent().parent().parent().attr("bgcolor","#CCFFFF");
+                            target_sale.parent(".complete_status").html("</br>已经完成");
                         } else if (result.result == "alreadycomplete") {
                             alert("已经完成了");
                         } else if (result.result == "not_same_people") {
@@ -260,6 +269,7 @@
         //反完成操作
         $(".revert_complete").bind("click", function () {
             var detail = $(this).attr("data-product");
+            var target_sale = $(this);
             swal({
                 title: "取消完成",
                 text: "确定取消完成吗？",
@@ -282,7 +292,9 @@
                         if (result.result == "error") {
                             alert("有错误");
                         } else if (result.result == "success") {
-                            alert("完成");
+                            alert("成功");
+                            target_sale.parent().parent().parent().attr("bgcolor","white");
+                            target_sale.parent(".complete_status").html("未完成");
                         } else if (result.result == "notdone") {
                             alert("尚未完成，请刷新。");
                         } else if (result.result == "forbidden") {
