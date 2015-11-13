@@ -126,7 +126,8 @@
                                    target="_blank" class="btn btn-warning btn-sm">预览</a>
 
                                 {% if data1.design_complete %}
-                                    <br><span>已经完成</span>
+                                    <br><span>已经完成</span>{% if perms.supplier.revert_done %}<a data-product="{{ data1.id }}" style="margin-top: 5px"
+                                       target="_blank" class="btn btn-sm btn-danger revert_complete">反完成</a>{% endif %}
                                 {% else %}
                                     <a id="chuantu_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
                                        target="_blank" class="btn btn-sm btn-info">传图</a><br>
@@ -240,6 +241,43 @@
                             alert("已经完成了");
                         } else if (result.result == "not_same_people") {
                             alert("您不是接管人");
+                        }
+                    }
+
+                });
+            });
+        });
+
+        //反完成操作
+        $(".revert_complete").bind("click", function () {
+            var detail = $(this).attr("data-product");
+            swal({
+                title: "取消完成",
+                text: "确定取消完成吗？",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "确认",
+                cancelButtonText: "取消"
+            }, function () {
+                var requestUrl = "/supplychain/supplier/sale_product_api/";
+                $.ajax({
+                    async: true,
+                    type: "POST",
+                    url: requestUrl,
+                    dataType: 'json',
+                    data: {"detail_id": detail, "type": "3"},
+                    cache: false,
+                    error: function () {
+                    },
+                    success: function (result) {
+                        if (result.result == "error") {
+                            alert("有错误");
+                        } else if (result.result == "success") {
+                            alert("完成");
+                        } else if (result.result == "notdone") {
+                            alert("尚未完成，请刷新。");
+                        } else if (result.result == "forbidden") {
+                            alert("您无权限");
                         }
                     }
 
