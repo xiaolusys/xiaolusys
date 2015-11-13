@@ -207,7 +207,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             detail_product.design_take_over = SaleProductManageDetail.TAKEOVER
             detail_product.save()
             log_action(request.user.id, detail_product, CHANGE, u'接管')
-            return Response({"result": u"success"})
+            return Response({"result": u"success", "username": request.user.username})
         elif type == "2":
             if detail_product.design_complete:
                 return Response({"result": u"alreadycomplete"})
@@ -220,7 +220,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         elif type == "3":
             if not detail_product.design_complete:
                 return Response({"result": u"notdone"})
-            if not request.user.has_perm('supplier.revert_done'):
+            if detail_product.design_person != request.user.username and not request.user.has_perm('supplier.revert_done'):
                 return Response({"result": u"forbidden"})
             detail_product.design_complete = False
             detail_product.save()
