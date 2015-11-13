@@ -225,7 +225,7 @@ admin.site.register(MyGroup)
 
 
 class PayToPackStatsAdmin(admin.ModelAdmin):
-    list_display = ('pay_date', 'packed_sku_num', 'total_days', 'updated')
+    list_display = ('pay_date', 'packed_sku_num', 'total_days', 'avg_post_days', 'updated')
 
 admin.site.register(PayToPackStats,PayToPackStatsAdmin)
 
