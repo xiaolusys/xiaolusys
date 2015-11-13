@@ -166,3 +166,11 @@ class PayToPackStats(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.pay_date)
+    
+    def avg_post_days(self):
+        return round(self.total_days / self.packed_sku_num, 2)
+    
+    avg_post_days.allow_tags = True
+    avg_post_days.short_description = u"平均发货日期"
+    
+    
