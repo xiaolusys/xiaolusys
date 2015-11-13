@@ -126,8 +126,17 @@
                                    target="_blank" class="btn btn-warning btn-sm">预览</a>
 
                                 {% if data1.design_complete %}
-                                    <br><span>已经完成</span>{% if perms.supplier.revert_done %}<a data-product="{{ data1.id }}" style="margin-top: 5px"
-                                       target="_blank" class="btn btn-sm btn-danger revert_complete">反完成</a>{% endif %}
+                                    <br><span>已经完成</span>
+                                    {% ifequal user.username data1.design_person %}
+                                        <a data-product="{{ data1.id }}" style="margin-top: 5px"
+                                           target="_blank" class="btn btn-sm btn-danger revert_complete">反完成</a>
+                                    {% else %}
+                                        {% if perms.supplier.revert_done %}
+                                            <a data-product="{{ data1.id }}" style="margin-top: 5px"
+                                               target="_blank" class="btn btn-sm btn-danger revert_complete">反完成</a>
+                                        {% endif %}
+                                    {% endifequal %}
+
                                 {% else %}
                                     <a id="chuantu_page_{{ data1.sale_product_id }}" style="margin-top: 5px"
                                        target="_blank" class="btn btn-sm btn-info">传图</a><br>

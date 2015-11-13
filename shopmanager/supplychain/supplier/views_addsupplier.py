@@ -220,7 +220,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         elif type == "3":
             if not detail_product.design_complete:
                 return Response({"result": u"notdone"})
-            if not request.user.has_perm('supplier.revert_done'):
+            if detail_product.design_person != request.user.username and not request.user.has_perm('supplier.revert_done'):
                 return Response({"result": u"forbidden"})
             detail_product.design_complete = False
             detail_product.save()
