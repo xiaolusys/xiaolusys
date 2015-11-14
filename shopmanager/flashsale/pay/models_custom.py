@@ -84,6 +84,9 @@ class ModelProduct(models.Model):
         unique_together = ("id", "name")
         verbose_name=u'特卖商品/款式'
         verbose_name_plural = u'特卖商品/款式列表'
+        permissions = [
+            ("change_name_permission", u"修改名字"),
+        ]
      
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.name)
