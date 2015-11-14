@@ -49,8 +49,7 @@ function Set_order_detail(suffix) {
     //请求成功回调函数
     var requestCallBack = function (data) {
         if (typeof(data.id) != 'undifined' && data.id != null) {
-            var refun_status = (data.refund_status_display);
-            console.log(refun_status, 'refun_status');
+            $("#shenqingjine").val(data.payment + '￥');
 
             if (data.status == 2) { //显示申请退款标题
                 console.log(data.status, '订单状态');
@@ -85,18 +84,6 @@ function Set_order_detail(suffix) {
             $('.basic .panel-bottom').append(detail_dom);
             Handler_Refund_Infor(data.item_id, data.status);
         }
-        var order_payment = $("#order_payment").html().split(">")[2];
-        $("#shenqingjine").keyup(function () {
-            var refund_fee = parseFloat(($(this).val()).trim());
-            console.log("debug refund_fee :", refund_fee);
-            var checkNum = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;
-            if (!checkNum.test(refund_fee)) {
-                drawToast("您申请金额填写的不正确哦~");
-            }
-            if (refund_fee > order_payment) {
-                drawToast("您申请金额超过了可以申请的金额哦~");
-            }
-        });
     };
     // 发送请求
     $.ajax({
@@ -108,35 +95,61 @@ function Set_order_detail(suffix) {
     });
 }
 
+
+function getApplyFee(num) {
+    // 修改退货数量　获取服务器　计算的退款金额
+    var oid = $(".order_detail_num").attr('id').split("_")[2];
+    console.log(num, '---', oid);
+    var url = GLConfig.baseApiUrl + GLConfig.refunds;
+    var data = {"id": oid, "num": num, 'modify': 3};
+    $.ajax({
+        "url": url,
+        "data": data,
+        "type": "post",
+        dataType: 'json',
+        success: getApplyFeeCallBack,
+        error: function (err) {
+            var resp = JSON.parse(err.responseText);
+            if (!isNone(resp.detail)) {
+                drawToast(resp.detail);
+            }
+        }
+    });
+    function getApplyFeeCallBack(res) {
+        $("#shenqingjine").val(res.apply_fee + "￥");
+    }
+}
+
 function Button_reduct_num(id) {
     var num = parseInt($("#show_num_" + id).html());
-    var num = num - 1;
+    num = num - 1;
     if (num <= 0) {
         var num = 1;
         $("#show_num_" + id).html(num);
     } else {
         $("#show_num_" + id).html(num);
     }
+    getApplyFee(num);
 }
 function Button_plus_num(id) {
     var num = parseInt($("#show_num_" + id).html());
     var cid = parseInt($("#show_num_" + id).attr('cid'));
-    var num = num + 1;
+    num = num + 1;
     if (num > cid) {
         var num = cid;
         $("#show_num_" + id).html(num);
     } else {
         $("#show_num_" + id).html(num);
     }
+    getApplyFee(num);
 }
 
 
 function Button_tijiao() {
     var data = {};
     var refund_reason = $("#selec_resason").val();
-    var shenqingjine = $.trim($("#shenqingjine").val());     //　退款的订单金额
     var description = $("#description").val();
-    var checkNum = /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;
+    var shenqingjine = $("#shenqingjine").val();
 
     var urlParams = parseUrlParams(window.location.href);
     var modify = urlParams['modify'];  // 是否是修改内容
@@ -148,20 +161,13 @@ function Button_tijiao() {
         modify = 0;
     }
     console.log(modify, 'modify');
-    if (shenqingjine == '') {
-        drawToast("您申请的金额为空哦~");
-    }
-    else if (!checkNum.test(shenqingjine)) {
-        drawToast("您申请金额填写的不正确哦~");
-    }
-    else if (description == '') {
+    if (description == '') {
         drawToast("您申请建议为空,更好的有助于售后更好的服务哦~");
     }
     else {
         console.log(description, 'description');
-        console.log(shenqingjine, 'shenqingjine');
 
-        var mess = "退款金额为：" + shenqingjine + "￥" + "\n您确定退单？";
+        var mess = "退款金额为：" + shenqingjine + "\n您确定退单？";
         var num = $(".order_detail_num").html();
         var oid = $(".order_detail_num").attr('id').split("_")[2];
         data = {
@@ -169,14 +175,14 @@ function Button_tijiao() {
             "reason": refund_reason,
             "id": oid,
             "num": num,
-            "sum_price": shenqingjine,
             "description": description,
             "modify": modify
         };
 
         var url = GLConfig.baseApiUrl + GLConfig.refunds;
+
         function refundcallback() {
-                window.location.href = "../pages/wodetuihuo.html";
+            window.location.href = "../pages/wodetuihuo.html";
         };
         if (swal_flag == 1) {
             swal({
