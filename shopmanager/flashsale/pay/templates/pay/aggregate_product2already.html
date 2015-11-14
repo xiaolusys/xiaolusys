@@ -37,6 +37,31 @@
                                 $('html,body').animate({scrollTop: scroll_offset.top}, 800);
                             }, 'json');
                 })
+                $("#model_name").bind("click", function () {
+                    if ($(this).attr("readonly") == "readonly") {
+                        $(this).attr("readonly", false);
+                        $(this).parent().append('<input type="button" class="btn btn-info" id="ajaxchangename" value="保存">');
+                        $("#ajaxchangename").bind("click", function () {
+                            var requestUrl = "/mm/change_model_name_api/"
+                            $.ajax({
+                                async: true,
+                                type: "post",
+                                url: requestUrl,
+                                dataType: 'json',
+                                data: {"model_id": $("#model_id").html(), "model_name": $("#model_name").val(), "type": "1"},
+                                cache: false,
+                                error: function () {
+                                },
+                                success: function (result) {
+                                    if(result.flag=="done"){
+                                        location.reload();
+                                    }
+                                }
+
+                            });
+                        })
+                    }
+                })
             });
             function add_to_merge(product_id) {
                 var search_tb = $('#' + 'tr_' + product_id);
@@ -107,7 +132,12 @@
                                             id="model_id">{{ target_model.id }}</span></a>
                                     </li>
                                     <li>
-                                        款式名称: {{ target_model.name }}
+                                        <div class="form-inline form-group has-success">
+                                            <label>款式名称：</label>
+                                            <input readonly type="text" class="form-control" {% if perms.supplier.revert_done %}id="model_name"{% endif %}
+                                                   value="{{ target_model.name }}">
+
+                                        </div>
                                     </li>
                                     <li>
                                         限购: {% if target_model.buy_limit %} 是</li>
