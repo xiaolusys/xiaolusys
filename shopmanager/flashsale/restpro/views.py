@@ -50,6 +50,13 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             `company`:  物流公司
             `sid`:  物流单号
 
+        -  修改数量获取退款金额
+
+            `id`: sale order id
+            `modify`:   3
+            `num`:  退货数量
+            `:return`:apply_fee 申请金额
+
     - {prefix}/{{ order_id }}/get_by_order_id/method:get  根据订单id 获取指定的退款单
         -  返回
 

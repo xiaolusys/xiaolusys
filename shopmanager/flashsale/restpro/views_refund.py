@@ -107,6 +107,15 @@ def refund_Handler(request):
 
     if modify == 2:  # 修改该物流信息
         modify_refund(customer, company, oid, sid)
+    elif modify == 3:  # 修改数量返回退款金额
+        order, refund_type = refund_Status(order_id=oid)
+        if num == 0 or None:  # 提交的退款产品数量为0
+            raise exceptions.APIException(u'退货数量为0')
+        if num == order.num:
+            apply_fee = order.payment  # 申请费用
+        else:
+            apply_fee = '%0.2f' % ((order.payment / order.num) * num)  # 申请费用
+        return {"apply_fee": apply_fee}
     else:
         # 验证处理订单的状态即退款状态
         order, refund_type = refund_Status(order_id=oid)
