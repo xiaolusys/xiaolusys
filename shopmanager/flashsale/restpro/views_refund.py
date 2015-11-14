@@ -129,9 +129,6 @@ def refund_Handler(request):
         # 验证处理订单的状态即退款状态
         order, refund_type = refund_Status(order_id=oid)
         refund_fee = apply_fee_handler(num=num, order=order)  # 计算退款费用
-        leavings = order.payment - order.refund_fee
-        if refund_fee > leavings:
-            raise exceptions.APIException(u'退款金额异常请联系客服处理')
         common_Handler(customer=customer, reason=reason, num=num, refund_fee=refund_fee, desc=desc,
                        refund_type=refund_type, order=order, modify=modify)
     return {"res": "ok"}

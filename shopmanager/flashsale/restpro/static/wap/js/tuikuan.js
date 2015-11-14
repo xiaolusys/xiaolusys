@@ -45,20 +45,17 @@ var swal_flag = 0;
 function Set_order_detail(suffix) {
     //请求URL
     var requestUrl = GLConfig.baseApiUrl + suffix;
-    console.log(requestUrl, "requestUrl requestUrl requestUrl");
     //请求成功回调函数
     var requestCallBack = function (data) {
         if (typeof(data.id) != 'undifined' && data.id != null) {
             $("#shenqingjine").val(data.payment + '￥');
 
             if (data.status == 2) { //显示申请退款标题
-                console.log(data.status, '订单状态');
                 var header = Create_tuikuan_header();
                 $('body').before(header);  //在body 的最前面添加
                 Create_refun_reason(data.status);//创建退款原因选择
             }
             else if (data.status == 4) {//显示申请退货标题 确认签收后显示退货
-                console.log(data.status, '订单状态');
                 var header = Create_tuihuo_header();
                 $('body').before(header);  //在body 的最前面添加
                 Create_refun_reason(data.status);//创建退货原因选择
@@ -99,7 +96,6 @@ function Set_order_detail(suffix) {
 function getApplyFee(num) {
     // 修改退货数量　获取服务器　计算的退款金额
     var oid = $(".order_detail_num").attr('id').split("_")[2];
-    console.log(num, '---', oid);
     var url = GLConfig.baseApiUrl + GLConfig.refunds;
     var data = {"id": oid, "num": num, 'modify': 3};
     $.ajax({
@@ -153,20 +149,16 @@ function Button_tijiao() {
 
     var urlParams = parseUrlParams(window.location.href);
     var modify = urlParams['modify'];  // 是否是修改内容
-    console.log(modify, 'modify');
     if (modify) {
         modify = 1;// 不是修改页面来的
     }
     else {
         modify = 0;
     }
-    console.log(modify, 'modify');
     if (description == '') {
         drawToast("您申请建议为空,更好的有助于售后更好的服务哦~");
     }
     else {
-        console.log(description, 'description');
-
         var mess = "退款金额为：" + shenqingjine + "\n您确定退单？";
         var num = $(".order_detail_num").html();
         var oid = $(".order_detail_num").attr('id').split("_")[2];
@@ -217,8 +209,6 @@ function Button_tijiao() {
                 }
             );
         }
-
-        console.log("debug data :", data);
         function ajax_to_server() {
             $.ajax({
                 "url": url,
@@ -238,7 +228,6 @@ function Button_tijiao() {
 }
 
 function Handler_Refund_Infor(item_id, status) {// data 是订单信息
-    console.log("debug item_id:", item_id, status);// 2　退款　　３是退货
     var requestUrl = GLConfig.baseApiUrl + "/products/" + item_id;
     $.ajax({
         type: 'get',
@@ -248,7 +237,6 @@ function Handler_Refund_Infor(item_id, status) {// data 是订单信息
         success: requestCallBack
     });
     function requestCallBack(res) {
-        console.log(res.is_saleopen);
         if (res.is_saleopen == false) {//商品已经下架了
             // 显示提示信息
             var html = "";
