@@ -177,7 +177,20 @@ class SaleSupplierAdmin(MyAdmin):
 
     batch_uncharge_action.short_description = "批量取消接管".decode('utf8')
 
-    actions = ['batch_charge_action', 'batch_uncharge_action']
+
+    def batch_taotai_action(self, request, queryset):
+        """ 批量淘汰 """
+        employee = request.user
+        for supplier in queryset:
+            supplier.progress = SaleSupplier.REJECTED
+            supplier.save()
+        log_action(request.user.id, supplier, CHANGE, u'淘汰成功')
+
+        self.message_user(request, u"======= 商家批量淘汰成功 =======")
+        return HttpResponseRedirect("./")
+
+    batch_taotai_action.short_description = "批量淘汰".decode('utf8')
+    actions = ['batch_charge_action', 'batch_uncharge_action', 'batch_taotai_action']
 
 
 admin.site.register(SaleSupplier, SaleSupplierAdmin)
