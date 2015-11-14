@@ -146,6 +146,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         *   post:
                 -   type:1 设计接管选品
                 -   type:2 排期完成，即设计组完成图片
+                -   type:3 取消排期完成
     """
     renderer_classes = (JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
@@ -206,7 +207,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             detail_product.design_take_over = SaleProductManageDetail.TAKEOVER
             detail_product.save()
             log_action(request.user.id, detail_product, CHANGE, u'接管')
-            return Response({"result": u"success"})
+            return Response({"result": u"success", "username": request.user.username})
         elif type == "2":
             if detail_product.design_complete:
                 return Response({"result": u"alreadycomplete"})
@@ -215,6 +216,15 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             detail_product.design_complete = True
             detail_product.save()
             log_action(request.user.id, detail_product, CHANGE, u'完成')
+            return Response({"result": u"success"})
+        elif type == "3":
+            if not detail_product.design_complete:
+                return Response({"result": u"notdone"})
+            if detail_product.design_person != request.user.username and not request.user.has_perm('supplier.revert_done'):
+                return Response({"result": u"forbidden"})
+            detail_product.design_complete = False
+            detail_product.save()
+            log_action(request.user.id, detail_product, CHANGE, u'反完成')
             return Response({"result": u"success"})
         return Response({"result": u"error"})
 
