@@ -22,7 +22,7 @@ def update_model_change_fields(obj,update_params={},trigger_signals=False):
         只更新在obj上发生改变的属性值
     """
     field_entry = {}
-    for k,v in update_params:
+    for k,v in update_params.iteritems():
         if hasattr(obj,k) and getattr(obj,k) != v:
             field_entry[k] = v
             setattr(obj,k,v)
