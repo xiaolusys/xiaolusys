@@ -72,6 +72,7 @@ class ProRefunRcord(models.Model):
         db_table = 'flashsale_pay_product_refund_record'
         verbose_name = u'特卖/产品退款数记录表'
         verbose_name_plural = u'特卖/产品退款数记录表'
+        permissions = [('browser_all_pro_duct_ref_lis', u'浏览买手所有产品的退货状况记录')]
 
     def __unicode__(self):
         return u"%s" % self.product
