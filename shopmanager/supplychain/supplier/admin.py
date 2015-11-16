@@ -40,7 +40,7 @@ class SaleSupplierChangeList(ChangeList):
 class SaleSupplierAdmin(MyAdmin):
     list_display = ('id', 'supplier_name_link', 'platform','charge_link','level',
                     'total_select_num','total_sale_amount','total_refund_amount','avg_post_days',
-                     'category_select', 'progress', 'last_select_time', 'last_schedule_time', 'created')
+                     'category_select', 'progress', 'last_select_time', 'created', 'memo')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -90,9 +90,7 @@ class SaleSupplierAdmin(MyAdmin):
         return SaleSupplierChangeList
 
     def category_select(self, obj):
-
         categorys = self.category_list()
-
         cat_list = ["<select class='category_select' sid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:
@@ -194,7 +192,7 @@ class SaleSupplierAdmin(MyAdmin):
         for supplier in queryset:
             supplier.progress = SaleSupplier.REJECTED
             supplier.save()
-        log_action(request.user.id, supplier, CHANGE, u'淘汰成功')
+            log_action(employee.id, supplier, CHANGE, u'淘汰成功')
 
         self.message_user(request, u"======= 商家批量淘汰成功 =======")
         return HttpResponseRedirect("./")
