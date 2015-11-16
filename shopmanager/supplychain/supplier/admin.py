@@ -184,7 +184,7 @@ class SaleSupplierAdmin(MyAdmin):
         for supplier in queryset:
             supplier.progress = SaleSupplier.REJECTED
             supplier.save()
-        log_action(request.user.id, supplier, CHANGE, u'淘汰成功')
+            log_action(request.user.id, supplier, CHANGE, u'淘汰成功')
 
         self.message_user(request, u"======= 商家批量淘汰成功 =======")
         return HttpResponseRedirect("./")
