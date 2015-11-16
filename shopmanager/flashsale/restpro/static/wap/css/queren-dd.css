@@ -262,3 +262,32 @@
   top: 10px;
   font-size: 26px;
 }
+
+/* 添加买家留言　样式　*/
+.cost .cart-list .container-mess .buyer-mess{
+    display: inline;
+    height: 200px;
+    float: left;
+}
+.cost .cart-list .container-mess .mess-content{
+    display: inline;
+    height: 200px;
+}
+.cost .cart-list .container-mess .buyer-mess span {
+    font-size: 25px;
+    padding: 0 0 0 42px;
+    display:block;
+    margin-bottom: 100px;
+}
+
+.cost .cart-list .container-mess .mess-content textarea {
+    overflow:hidden;
+    background: #EEF0F3;
+    display:block;
+    width: 420px;
+    height: 28px;
+    padding: 10px 0 5px 10px;
+    resize: none;
+    font-size: 28px;
+}
+
