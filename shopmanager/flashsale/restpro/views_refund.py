@@ -12,7 +12,7 @@ import math
 
 
 def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None, reason=None, desc=None,
-                        good_status=None):
+                        good_status=None, proof_pic=None):
     sale_refund.buyer_id = order.sale_trade.buyer_id
     sale_refund.title = order.title
     sale_refund.charge = order.sale_trade.charge
@@ -29,14 +29,15 @@ def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None, reason=No
     sale_refund.reason = REFUND_REASON[reason][1]  # 填写原因
     sale_refund.desc = desc
     sale_refund.good_status = good_status  # 退货状态
+    sale_refund.proof_pic = proof_pic  # 保存 佐证图片
     update_model_fields(sale_refund,
                         update_fields=['buyer_id', 'title', 'charge', 'item_id', 'sku_id', 'sku_name', 'refund_num',
                                        'buyer_nick', 'mobile', 'phone', 'total_fee', 'payment', 'refund_fee', 'reason',
-                                       'desc', 'good_status'])
+                                       'desc', 'good_status', 'proof_pic'])
 
 
 def common_Handler(customer=None, order=None, reason=None, num=None, refund_fee=None, desc=None, refund_type=None,
-                   modify=None):
+                   modify=None, proof_pic=None):
     if num == 0 or None:  # 提交的退款产品数量为0
         raise exceptions.APIException(u'退货数量为0')
     if num > order.num:
@@ -54,7 +55,7 @@ def common_Handler(customer=None, order=None, reason=None, num=None, refund_fee=
         log_action(customer, order, CHANGE, u'用户售后提交申请时修改order信息！')
         # 保存其他信息到 sale_refund
         save_Other_Atriibut(order=order, sale_refund=sale_refund, refund_num=num, good_status=refund_type,
-                            reason=reason, desc=desc)
+                            reason=reason, desc=desc, proof_pic=proof_pic)
         log_action(customer, sale_refund, ADDITION, u'用户售后增加退货款单信息！')
         # 发送信号退款
         signal_saletrade_refund_post.send(sender=SaleRefund, obj=sale_refund)
@@ -119,6 +120,16 @@ def refund_Handler(request):
     num = int(request.data.get("num", 0))
     desc = request.data.get("description", '')
 
+    proof_pic = str(request.data.get("proof_pic", {}))
+    print("proof_pic", proof_pic)
+    proof_pic_dic = {}
+
+    if proof_pic != '{}':
+        pfcl = proof_pic.split(',')
+        for i in range(len(pfcl)):
+            proof_pic_dic[i] = pfcl[i]
+    proof_p = str(proof_pic_dic)
+
     if modify == 2:  # 修改该物流信息
         modify_refund(customer, company, oid, sid)
     elif modify == 3:  # 修改数量返回退款金额
@@ -130,7 +141,7 @@ def refund_Handler(request):
         order, refund_type = refund_Status(order_id=oid)
         refund_fee = apply_fee_handler(num=num, order=order)  # 计算退款费用
         common_Handler(customer=customer, reason=reason, num=num, refund_fee=refund_fee, desc=desc,
-                       refund_type=refund_type, order=order, modify=modify)
+                       refund_type=refund_type, order=order, modify=modify, proof_pic=proof_p)
     return {"res": "ok"}
 
 
