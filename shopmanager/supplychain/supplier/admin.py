@@ -42,7 +42,7 @@ class SaleSupplierChangeList(ChangeList):
 class SaleSupplierAdmin(MyAdmin):
     list_display = ('id','supplier_code', 'supplier_name_link', 'platform','charge_link','level',
                     'total_select_num','total_sale_amount','total_refund_amount','avg_post_days',
-                     'category_select', 'progress', 'last_select_time', 'created', 'memo')
+                     'category_select', 'progress', 'last_select_time', 'created', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -71,7 +71,7 @@ class SaleSupplierAdmin(MyAdmin):
 
     charge_link.allow_tags = True
     charge_link.short_description = u"接管信息/操作"
-
+    
     def supplier_name_link(self, obj):
         return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank">{1}</a>'.format(
             obj.id, obj.supplier_name)
@@ -103,6 +103,13 @@ class SaleSupplierAdmin(MyAdmin):
 
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
+    
+    def memo_well(self, obj):
+        return u'<div style="width:200px;"><div class="well well-content">[特长]：{0}</div><br><div class="well well-content">[备注]：{1}</div></div>'.format(
+            obj.speciality, obj.memo)
+
+    memo_well.allow_tags = True
+    memo_well.short_description = u"特长及备注"
     
     # --------设置页面布局----------------
     fieldsets = ((u'供应商基本信息:', {
