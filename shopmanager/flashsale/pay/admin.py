@@ -237,7 +237,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                                , ('buyer_id', 'title', 'sku_name',)
                                , ('payment', 'total_fee',)
                                , ('company_name', 'sid')
-                               , ('reason', 'desc')
+                               , ('reason', 'desc', 'proof_pic')
                                )
                  }),
                  ('内部信息:', {

@@ -1,3 +1,5 @@
+############2015-11-16#####################
+alter table flashsale_refund add column proof_pic longtext;
 ############2015-11-07#####################
 alter table flashsale_pay_product_refund_record add column contactor bigint(20) NOT NULL DEFAULT 0;
 alter table flashsale_pay_product_refund_record add column pro_model bigint(20) NOT NULL DEFAULT 0;
