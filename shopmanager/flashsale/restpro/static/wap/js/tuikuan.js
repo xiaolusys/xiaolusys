@@ -144,6 +144,9 @@ function Button_plus_num(id) {
 function Button_tijiao() {
     var data = {};
     var refund_reason = $("#selec_resason").val();
+    if (refund_reason == '') {
+        refund_reason = 0;
+    }
     var description = $("#description").val();
     var shenqingjine = $("#shenqingjine").val();
 
