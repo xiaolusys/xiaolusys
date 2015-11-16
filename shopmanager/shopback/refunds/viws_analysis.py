@@ -25,7 +25,7 @@ class RefundRateView(APIView):
 
     def get(self, request):
         time_from = datetime.date.today() - datetime.timedelta(days=30)
-        time_to = datetime.date.today()
+        time_to = datetime.date.today() - datetime.timedelta(days=1)
         return Response({"time_from": time_from, "time_to": time_to})
 
     def post(self, request, format=None):
@@ -53,7 +53,7 @@ class RefundRecord(APIView):
 
     def get(self, request):
         time_from = datetime.date.today() - datetime.timedelta(days=30)
-        time_to = datetime.date.today()
+        time_to = datetime.date.today() - datetime.timedelta(days=1)
         return Response({"time_from": time_from, "time_to": time_to})
 
     def post(self, request, format=None):

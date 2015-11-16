@@ -92,10 +92,12 @@ class FlashSaleService(LocalService):
         merge_trade,state = MergeTrade.objects.get_or_create(tid=trade.tid,
                                                              user=seller)
         
-        update_fields = ['buyer_nick','created','pay_time','modified','status']
+        update_fields = ['buyer_nick','created','pay_time','modified','status', 'buyer_message']
 
         merge_trade.buyer_nick = trade.buyer_nick.strip() or trade.receiver_mobile
-        
+
+        merge_trade.buyer_message = trade.buyer_message
+
         merge_trade.created  = trade.created
         merge_trade.modified = trade.modified
         merge_trade.pay_time = trade.pay_time

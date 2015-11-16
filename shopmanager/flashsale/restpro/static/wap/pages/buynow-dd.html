@@ -77,6 +77,14 @@ var NTKF_PARAM = {
 		<input type="hidden" name="agent_price" value="{{ sku.agent_price }}" />
 		<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
 		<input type="hidden" name="total_fee" value="{{ total_fee }}" />
+          <div class="container-mess">
+              <div class="buyer-mess">
+                  <span>买家留言：</span>
+              </div>
+              <div class="mess-content">
+                  <textarea type="" rows="4" name="buyer_message" value="{{ buyer_message }}" onfocus="messFocusCtrl(this)" onblur="messBluCtrl(this)"/>
+              </div>
+          </div>
       </form>
     </script>
   </div>
