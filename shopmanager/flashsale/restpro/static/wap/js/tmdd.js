@@ -42,20 +42,22 @@ function Create_order_dom(obj) {
     if (obj.status == 1) {
         obj.btn_class = 'shengyu';
         obj.btn_content = '剩余时间：' + parseTimeSM(obj.created);
-    } else if (obj.status == 3) {// 已发货才显示确认签收
-        obj.btn_class = 'btn-qianshou';
-        obj.btn_content = '确认签收';
-        obj.cid = obj.id;
-    } else {
-        obj.btn_class = '';
-        obj.btn_content = '';
     }
+    //else if (obj.status == 3) {// 已发货才显示确认签收
+    //    obj.btn_class = 'btn-qianshou';
+    //    obj.btn_content = '确认签收';
+    //    obj.cid = obj.id;
+    //} else {
+    //    obj.btn_class = '';
+    //    obj.btn_content = '';
+    //}
+//<div class="{{btn_class}}" xl_created="{{created}}" cid="{{cid}}" onclick="Confirm_Sign_For(this)">{{btn_content}}</div>
+
     function Order_dom() {
         /*
          <li>
          <div class="top clear">
          <div class="xiadan">下单时间：{{ created }}</div>
-         <div class="{{btn_class}}" xl_created="{{created}}" cid="{{cid}}" onclick="Confirm_Sign_For(this)">{{btn_content}}</div>
          </div>
          <a href="./dd-detail.html?id={{ id }}" class="info clear">
          <div class="left"><img src="{{ order_pic }}" /></div>
