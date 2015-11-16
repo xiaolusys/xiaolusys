@@ -8,6 +8,7 @@ from rest_framework import exceptions
 from common.modelutils import update_model_fields
 from flashsale.pay.tasks import pushTradeRefundTask
 from flashsale.pay.signals import signal_saletrade_refund_post
+import math
 
 
 def save_Other_Atriibut(order=None, sale_refund=None, refund_num=None, reason=None, desc=None,
@@ -38,6 +39,8 @@ def common_Handler(customer=None, order=None, reason=None, num=None, refund_fee=
                    modify=None):
     if num == 0 or None:  # 提交的退款产品数量为0
         raise exceptions.APIException(u'退货数量为0')
+    if num > order.num:
+        raise exceptions.APIException(u'退货数量超过购买数量')
     # 退款处理　生成退款单
     if refund_fee > (order.payment / order.num) * num:  # 退款金额不能大于 单价乘以退款数量
         raise exceptions.APIException(u'退货金额大于实付款')
@@ -93,6 +96,18 @@ def modify_refund(customer, company, oid, sid):
     log_action(customer, refund, CHANGE, u'用户退货填写物流信息！')
 
 
+def apply_fee_handler(num=None, order=None):
+    """ 计算退款费用　"""
+    if num == 0 or None:  # 提交的退款产品数量为0
+        raise exceptions.APIException(u'退货数量为0')
+    if num == order.num:  # 退款数量等于购买数量 全额退款
+        apply_fee = order.payment  # 申请费用
+    else:
+        apply_fe = ((order.payment / order.num) * num)  # 申请费用
+        apply_fee = math.floor(apply_fe * 100) / 100
+    return apply_fee
+
+
 def refund_Handler(request):
     content = request.REQUEST
     modify = int(content.get("modify", 0))
@@ -102,14 +117,18 @@ def refund_Handler(request):
     customer = request.user.id
     reason = int(request.data.get("reason", "0"))
     num = int(request.data.get("num", 0))
-    refund_fee = float(request.data.get("sum_price", 0))
     desc = request.data.get("description", '')
 
     if modify == 2:  # 修改该物流信息
         modify_refund(customer, company, oid, sid)
+    elif modify == 3:  # 修改数量返回退款金额
+        order, refund_type = refund_Status(order_id=oid)
+        apply_fee = apply_fee_handler(num=num, order=order)
+        return {"apply_fee": apply_fee}
     else:
         # 验证处理订单的状态即退款状态
         order, refund_type = refund_Status(order_id=oid)
+        refund_fee = apply_fee_handler(num=num, order=order)  # 计算退款费用
         common_Handler(customer=customer, reason=reason, num=num, refund_fee=refund_fee, desc=desc,
                        refund_type=refund_type, order=order, modify=modify)
     return {"res": "ok"}

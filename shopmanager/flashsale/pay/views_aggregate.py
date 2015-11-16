@@ -45,6 +45,10 @@ class AggregateProductView(View):
 
 
 class ModelProductView(View):
+    """
+        *   get:款式商品列表，根据款式的id进行搜索，找出相关联的库存商品
+        *   post:将搜索出来的商品，关联到某个款式
+    """
     @staticmethod
     def get(request):
         content = request.GET
@@ -191,3 +195,41 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
         else:
             return Response({"result": u"error"})
         return Response({"result": u"success"})
+
+
+class ModelChangeAPIView(generics.ListCreateAPIView):
+    """
+        *   post:
+                -   type:1 修改model的名字和关联的库存商品名
+
+    """
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        model_id = request.POST.get("model_id")
+        model_name = request.POST.get("model_name")
+        try:
+            model_bean = ModelProduct.objects.get(id=model_id)
+            model_bean.name = model_name
+            model_bean.save()
+            log_action(request.user.id, model_bean, CHANGE, u'修改名字')
+            products = Product.objects.filter(status=Product.NORMAL, model_id=model_bean.id)
+            change_name(request.user.id, model_name, products)
+        except:
+            return Response({"flag": "error"})
+        return Response({"flag": "done"})
+
+
+def change_name(userid, name, products):
+    for product in products:
+        product_name = product.name
+        if len(product_name.split("/")) > 1:
+            product.name = name + "/" + product_name.split("/")[1]
+            product.save()
+            log_action(userid, product, CHANGE, u'修改名字')
+            continue
+        if len(product_name.split("-")) > 1:
+            product.name = name + "/" + product_name.split("-")[1]
+            product.save()
+            log_action(userid, product, CHANGE, u'修改名字')
