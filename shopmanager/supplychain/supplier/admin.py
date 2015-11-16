@@ -44,7 +44,7 @@ class SaleSupplierAdmin(MyAdmin):
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('progress', 'status', 'platform',
+    list_filter = ('level','progress', 'status', 'platform',
                    CategoryFilter,
                    )
 
