@@ -100,7 +100,7 @@ class SaleSupplier(models.Model):
         (REJECTED, u'淘汰'),
         (IGNORED, u'忽略'),)
 
-    supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'品牌名称')
+    supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
 
     description = models.CharField(max_length=1024, blank=True, verbose_name=u'品牌简介')
@@ -120,15 +120,15 @@ class SaleSupplier(models.Model):
     total_sale_amount = models.FloatField(default=0.0,verbose_name=u'累计销售额')
     total_refund_num  = models.IntegerField(default=0,verbose_name=u'累计退款件数')
     total_refund_amount = models.FloatField(default=0.0,verbose_name=u'累计退款')
-    avg_post_days = models.IntegerField(default=0,db_index=True,verbose_name=u'平均发货天数')
-    last_select_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'最后选款日期')
+    avg_post_days     = models.FloatField(default=0,verbose_name=u'平均发货天数')
+    last_select_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'最后选款日期')
     last_schedule_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'最后上架日期')
     
     contact = models.CharField(max_length=32, blank=False, verbose_name=u'联系人')
     phone = models.CharField(max_length=32, blank=True, verbose_name=u'电话')
     mobile = models.CharField(max_length=16, blank=False, verbose_name=u'手机')
     fax = models.CharField(max_length=16, blank=True, verbose_name=u'传真')
-    zip_code = models.CharField(max_length=16, blank=True, verbose_name=u'邮编')
+    zip_code = models.CharField(max_length=16, blank=True, verbose_name=u'其它联系')
     email = models.CharField(max_length=64, blank=True, verbose_name=u'邮箱')
 
     address = models.CharField(max_length=64, blank=False, verbose_name=u'地址')

@@ -12,6 +12,8 @@ from .models import (
     SaleCategory,
     SupplierCharge
 )
+
+from .forms import SaleSupplierForm
 from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter
 from shopback.base.options import DateFieldListFilter
 from . import permissions as perms
@@ -38,20 +40,17 @@ class SaleSupplierChangeList(ChangeList):
 
 
 class SaleSupplierAdmin(MyAdmin):
-    list_display = ('id', 'supplier_name_link', 'platform','charge_link','level',
+    list_display = ('id','supplier_code', 'supplier_name_link', 'platform','charge_link','level',
                     'total_select_num','total_sale_amount','total_refund_amount','avg_post_days',
                      'category_select', 'progress', 'last_select_time', 'created', 'memo')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('level','progress', 'status', 'platform',
-                   CategoryFilter,
-                   )
-
+    list_filter = ('level','progress', 'status', 'platform', CategoryFilter)
     search_fields = ['supplier_name', 'supplier_code']
-
+    form = SaleSupplierForm
+    
     def charge_link(self, obj):
-
         if obj.status == SaleSupplier.CHARGED:
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
             if obj.platform == "manualinput":
@@ -104,7 +103,7 @@ class SaleSupplierAdmin(MyAdmin):
 
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
-
+    
     # --------设置页面布局----------------
     fieldsets = ((u'供应商基本信息:', {
                     'classes': ('expand',),
@@ -112,7 +111,7 @@ class SaleSupplierAdmin(MyAdmin):
                                , ('main_page', 'category', 'platform')
                                , ('contact', 'fax')
                                , ('phone', 'mobile')
-                               , ('zip_code', 'email')
+                               , ('email', 'zip_code')
                                , ('address', 'progress', 'status')
                                , ('account_bank', 'account_no')
                                , ('memo',)
@@ -134,12 +133,10 @@ class SaleSupplierAdmin(MyAdmin):
         js = ("js/admin/adminpopup.js", "js/supplier_change_list.js")
 
     def get_queryset(self, request):
-
         search_q = request.GET.get('q', '').strip()
         qs = super(SaleSupplierAdmin, self).get_queryset(request)
         if search_q:
             return qs
-
         if request.user.is_superuser:
             return qs
         scharges = SupplierCharge.objects.filter(employee=request.user, status=SupplierCharge.EFFECT)
