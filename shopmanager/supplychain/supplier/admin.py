@@ -38,8 +38,9 @@ class SaleSupplierChangeList(ChangeList):
 
 
 class SaleSupplierAdmin(MyAdmin):
-    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform',
-                    'charge_link', 'category_select', 'progress', 'created', 'modified')
+    list_display = ('id', 'supplier_name_link', 'platform','charge_link','level',
+                    'total_select_num','total_sale_amount','total_refund_amount','avg_post_days',
+                     'category_select', 'progress', 'last_select_time', 'last_schedule_time', 'created')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -107,17 +108,26 @@ class SaleSupplierAdmin(MyAdmin):
     category_select.short_description = u"所属类目"
 
     # --------设置页面布局----------------
-    fieldsets = ((u'客户基本信息:', {
-        'classes': ('expand',),
-        'fields': (('supplier_name', 'supplier_code')
-                   , ('main_page', 'category', 'platform')
-                   , ('contact', 'fax')
-                   , ('phone', 'mobile')
-                   , ('zip_code', 'email')
-                   , ('address', 'progress', 'status')
-                   , ('account_bank', 'account_no')
-                   , ('memo',)
-                   )}),)
+    fieldsets = ((u'供应商基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('supplier_name', 'supplier_code')
+                               , ('main_page', 'category', 'platform')
+                               , ('contact', 'fax')
+                               , ('phone', 'mobile')
+                               , ('zip_code', 'email')
+                               , ('address', 'progress', 'status')
+                               , ('account_bank', 'account_no')
+                               , ('memo',)
+                               )
+                 }),
+                 (u'供应商数据:', {
+                    'classes': ('expand',),
+                    'fields': (('level', 'last_select_time', 'last_schedule_time')
+                               , ('total_select_num', 'total_sale_num', 'total_sale_amount')
+                               , ('total_refund_num', 'total_refund_amount', 'avg_post_days')
+                               , ('speciality',)
+                               )
+                 }))
 
     class Media:
         css = {
@@ -158,7 +168,7 @@ class SaleSupplierAdmin(MyAdmin):
         self.message_user(request, u"======= 商家批量接管成功 =======")
         return HttpResponseRedirect("./")
 
-    batch_charge_action.short_description = "批量接管".decode('utf8')
+    batch_charge_action.short_description = u"批量接管"
 
     def batch_uncharge_action(self, request, queryset):
         """ 商家批量取消接管 """
@@ -175,7 +185,7 @@ class SaleSupplierAdmin(MyAdmin):
 
         return HttpResponseRedirect("./")
 
-    batch_uncharge_action.short_description = "批量取消接管".decode('utf8')
+    batch_uncharge_action.short_description = u"批量取消接管"
 
 
     def batch_taotai_action(self, request, queryset):
@@ -189,7 +199,7 @@ class SaleSupplierAdmin(MyAdmin):
         self.message_user(request, u"======= 商家批量淘汰成功 =======")
         return HttpResponseRedirect("./")
 
-    batch_taotai_action.short_description = "批量淘汰".decode('utf8')
+    batch_taotai_action.short_description = u"批量淘汰"
     actions = ['batch_charge_action', 'batch_uncharge_action', 'batch_taotai_action']
 
 

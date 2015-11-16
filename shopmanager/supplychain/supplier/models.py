@@ -56,7 +56,16 @@ class SaleSupplier(models.Model):
         (CHARGED, u'已接管'),
         (FROZEN, u'已冻结'),
     )
-
+    
+    LEVEL_GOOD = 100
+    LEVEL_NORMAL = 50
+    LEVEL_INFERIOR = 0
+    LEVEL_CHOICES = (
+        (LEVEL_GOOD, u'优质'),
+        (LEVEL_NORMAL, u'普通'),
+        (LEVEL_INFERIOR, u'劣质'),
+    )
+    
     MANUAL = 'manual'
     MANUALINPUT = 'manualinput'
     TAOBAO = 'taobao'
@@ -91,7 +100,7 @@ class SaleSupplier(models.Model):
         (REJECTED, u'淘汰'),
         (IGNORED, u'忽略'),)
 
-    supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'店铺名称')
+    supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'品牌名称')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
 
     description = models.CharField(max_length=1024, blank=True, verbose_name=u'品牌简介')
@@ -103,7 +112,18 @@ class SaleSupplier(models.Model):
 
     category = BigIntegerForeignKey(SaleCategory, null=True,
                                     related_name='category_suppliers', verbose_name=u'类别')
-
+    
+    level = models.IntegerField(db_index=True,default=LEVEL_NORMAL,choices=LEVEL_CHOICES,verbose_name=u'等级')
+    speciality  = models.CharField(max_length=256, blank=True, verbose_name=u'产品特长')
+    total_select_num  = models.IntegerField(default=0,verbose_name=u'累计选款数量')
+    total_sale_num    = models.FloatField(default=0.0,verbose_name=u'累计销售件数')
+    total_sale_amount = models.FloatField(default=0.0,verbose_name=u'累计销售额')
+    total_refund_num  = models.IntegerField(default=0,verbose_name=u'累计退款件数')
+    total_refund_amount = models.FloatField(default=0.0,verbose_name=u'累计退款')
+    avg_post_days = models.IntegerField(default=0,db_index=True,verbose_name=u'平均发货天数')
+    last_select_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'最后选款日期')
+    last_schedule_time = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'最后上架日期')
+    
     contact = models.CharField(max_length=32, blank=False, verbose_name=u'联系人')
     phone = models.CharField(max_length=32, blank=True, verbose_name=u'电话')
     mobile = models.CharField(max_length=16, blank=False, verbose_name=u'手机')
@@ -114,7 +134,7 @@ class SaleSupplier(models.Model):
     address = models.CharField(max_length=64, blank=False, verbose_name=u'地址')
     account_bank = models.CharField(max_length=32, blank=True, verbose_name=u'汇款银行')
     account_no = models.CharField(max_length=32, blank=True, verbose_name=u'汇款帐号')
-
+    
     memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
 
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
