@@ -319,7 +319,7 @@ function loadBaiduStat(){
 }
 
 function makePicUlr(pic_url,params){
-	var url_params = '&/imageMogr2/';
+	var url_params = '&imageMogr2/';
 	if (!isNone(params.size)){
 		url_params += 'thumbnail/{{size}}/';
 	}
@@ -327,7 +327,7 @@ function makePicUlr(pic_url,params){
 		url_params += 'format/{{format}}/';
 	}
 	if (!isNone(params.quality)){
-		url_params += 'quality/{{quality}}';
+		url_params += 'quality/{{quality}}/';
 	}
 	url_params = url_params.template(params);
 	if (pic_url.indexOf('?')>0){
