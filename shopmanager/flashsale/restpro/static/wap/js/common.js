@@ -318,6 +318,24 @@ function loadBaiduStat(){
 	})();
 }
 
+function makePicUlr(pic_url,params){
+	var url_params = '&/imageMogr2/';
+	if (!isNone(params.size)){
+		url_params += 'thumbnail/{{size}}/';
+	}
+	if (!isNone(params.format)){
+		url_params += 'format/{{format}}/';
+	}
+	if (!isNone(params.quality)){
+		url_params += 'quality/{{quality}}';
+	}
+	url_params = url_params.template(params);
+	if (pic_url.indexOf('?')>0){
+		return pic_url + url_params;
+	}
+	return pic_url + '?' + url_params;
+}
+
 //加载小能客服插件
 function loadNTalker(params,callback){
 	var NTKF_PARAM = NTKF_PARAM || null;

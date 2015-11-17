@@ -28,9 +28,12 @@ var swiper = new Swiper('.swiper-container', {
 
 function Create_product_topslides(obj_list) {
     //创建商品题头图Slide
+    function　config_pic_url(pic_url){
+		return makePicUlr(pic_url,{'format':'jpg', 'quality':'100'});
+	}
     var slides = [];
     $.each(obj_list, function (index, obj) {
-        slides[slides.length] = '<div class="swiper-slide"><img src="' + obj + '"></div>';
+        slides[slides.length] = '<div class="swiper-slide"><img src="' + config_pic_url(obj) + '"></div>';
     });
     return slides;
 }
@@ -49,7 +52,6 @@ function Create_product_detailsku_dom(obj) {
         sku_list[sku_list.length] = '<li class="{{sku_class}}" name="select-sku" sku_id="{{id}}" id="skusize_{{id}}" sku_price="{{agent_price}}">{{name}}<i></i></li>'.template(sku);
     });
     obj.sku_list = sku_list.join('');
-
     //创建商品详情及规格信息
     function Content_dom() {
         /*
@@ -62,7 +64,7 @@ function Create_product_detailsku_dom(obj) {
          <span id="product_id" style="display:none">{{id}}</span>
          </div>
          <div class="goods-size">
-         <img src="http://image.xiaolu.so/kexuanchima.png" width="100%">
+         <img src="http://image.xiaolu.so/kexuanchima.png?imageMogr2/format/jpg/quality/100" width="100%">
          <ul id="js-goods-size">
          {{sku_list}}
          </ul>
@@ -131,9 +133,12 @@ function link_sku_size(obj){
 }
 function Create_product_bottomslide_dom(obj_list) {
     //创建内容图Slide
+    function　config_pic_url(pic_url){
+		return makePicUlr(pic_url,{'format':'jpg', 'quality':'85'});
+	}
     var slides = [];
     $.each(obj_list, function (index, obj) {
-        slides[slides.length] = '<img src="' + obj + '">';
+        slides[slides.length] = '<img src="' + config_pic_url(obj) + '">';
     });
     return slides.join('');
 }
@@ -167,12 +172,12 @@ function Set_product_detail(suffix) {
         var bottom_dom = Create_product_bottomslide_dom(product_model.content_imgs);
         $('.goods-img .list').html(bottom_dom);
         if (data.offshelf_time) {
-                var shelf_time = new Date(data.offshelf_time.replace("T", " "));
-                product_timer_new(shelf_time, data.is_saleopen);
-            } else if (data.sale_time) {
-                var shelf_time = new Date(data.sale_time);
-                product_timer(shelf_time);
-            }
+            var shelf_time = new Date(data.offshelf_time.replace("T", " "));
+            product_timer_new(shelf_time, data.is_saleopen);
+        } else if (data.sale_time) {
+            var shelf_time = new Date(data.sale_time);
+            product_timer(shelf_time);
+        }
         //设置尺码表
         add_chi_ma(data);
         if(data.is_saleopen){
