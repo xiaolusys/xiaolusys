@@ -6,17 +6,16 @@ class SaleSupplierManager(models.Manager):
     def charge(self, supplier, user, *args, **kwargs):
 
         from .models import SupplierCharge
-
         try:
             SupplierCharge.objects.get(
                 supplier_id=supplier.id,
                 status=SupplierCharge.EFFECT)
         except SupplierCharge.DoesNotExist:
-            SupplierCharge.objects.get_or_create(
+            scharge,state = SupplierCharge.objects.get_or_create(
                 supplier_id=supplier.id,
-                employee=user,
-                status=SupplierCharge.EFFECT)
-
+                employee=user)
+            scharge.status = SupplierCharge.EFFECT
+            scharge.save()
         else:
             return False
 
@@ -27,7 +26,6 @@ class SaleSupplierManager(models.Manager):
     def uncharge(self, supplier, *args, **kwargs):
 
         from .models import SupplierCharge
-
         try:
             scharge = SupplierCharge.objects.get(
                 supplier_id=supplier.id,

@@ -168,11 +168,11 @@ class SaleSupplierAdmin(MyAdmin):
         """ 商家批量接管 """
         employee = request.user
         queryset = queryset.filter(status=SaleSupplier.UNCHARGE)
-
+        
         for supplier in queryset:
             if SaleSupplier.objects.charge(supplier, employee):
                 log_action(request.user.id, supplier, CHANGE, u'接管成功')
-
+        
         self.message_user(request, u"======= 商家批量接管成功 =======")
         return HttpResponseRedirect("./")
 
