@@ -131,7 +131,7 @@ class SaleSupplier(models.Model):
     zip_code = models.CharField(max_length=16, blank=True, verbose_name=u'其它联系')
     email = models.CharField(max_length=64, blank=True, verbose_name=u'邮箱')
 
-    address = models.CharField(max_length=64, blank=False, verbose_name=u'地址')
+    address = models.CharField(max_length=128, blank=False, verbose_name=u'地址')
     account_bank = models.CharField(max_length=32, blank=True, verbose_name=u'汇款银行')
     account_no = models.CharField(max_length=32, blank=True, verbose_name=u'汇款帐号')
     

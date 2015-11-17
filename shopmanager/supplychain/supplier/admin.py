@@ -132,7 +132,13 @@ class SaleSupplierAdmin(MyAdmin):
                                , ('speciality',)
                                )
                  }))
-
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':64, 'maxlength': '256',})},
+        models.FloatField: {'widget': TextInput(attrs={'size':24})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+    }
+    
     class Media:
         css = {
             "all": (
