@@ -283,4 +283,11 @@ function minus_shop(sku_id) {
 }
 
 
-
+function messFocusCtrl(dom){
+    $(dom).css('height','170px');
+    $(dom).css('width','420px');
+}
+function messBluCtrl(dom){
+    $(dom).css('height','28px');
+    $(dom).css('width','420px');
+}

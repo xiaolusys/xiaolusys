@@ -21,7 +21,10 @@ class ProRefRcdViewSet(viewsets.ModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        if request.user.has_perm('refunds.browser_all_pro_duct_ref_lis'):
+            queryset = self.queryset
+        else:
+            queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = queryset.order_by('product')[::-1]  # 产品id排序
         page = self.paginate_queryset(queryset)
         if page is not None:

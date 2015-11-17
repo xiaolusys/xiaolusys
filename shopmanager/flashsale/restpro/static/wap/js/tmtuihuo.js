@@ -20,7 +20,7 @@ $(document).ready(function () {
 });
 var pageNumber = 1;
 function Set_refund_detail() {
-    //请求URL 获取用户的所有订单
+    //请求URL 获取用户的所有退款单
     var requestUrl = GLConfig.baseApiUrl + GLConfig.refunds + "?page=" + pageNumber;
     //请求成功回调函数
     var requestCallBack = function (data) {
