@@ -7,6 +7,8 @@
     <script src="../js/common.js"></script>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/tousu.css">
+    <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
+
 </head>
 <body>
 <div class="header">
@@ -16,14 +18,13 @@
 </div>
 
 <div class="ipt-wrap">
-    <textarea class="content" onkeyup="t()" placeholder="请写下您的意见和建议，以便我们更好地服务于您~" maxlength="500"  id="com_content"></textarea>
+    <textarea class="content" onkeyup="t()" placeholder="请写下您的意见和建议，以便我们更好地服务于您~" maxlength="500" id="com_content"
+              style="resize : none;"></textarea>
 </div>
 
 <div class="tips">最少输入5个字符，最多500个字符，已输入<span id="t">0</span>个字符</div>
 
-<div class="tips error-tips">您的意见＜5个字符，或＞500个字符，请核实后再提交~</div>
-
-<button type="button" class="btn-submit" onclick="my_submit()" >提&nbsp;&nbsp;交</button>
+<button type="button" class="btn-submit" onclick="my_submit()">提&nbsp;&nbsp;交</button>
 <script type="text/javascript" src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script style="text/javascript">
     function t() {
@@ -32,5 +33,6 @@
     }
 </script>
 <script src="../js/complain.js"></script>
+<script src="../js/sweet-alert.min.js"></script>
 </body>
 </html>
