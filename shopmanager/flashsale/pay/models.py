@@ -384,10 +384,10 @@ class SaleOrder(models.Model):
         consign_time = self.consign_time
         sign_time = self.sign_time
         if (self.status == self.WAIT_BUYER_CONFIRM_GOODS 
-            and consign_time and (now_time - consign_time) > 15):
+            and consign_time and (now_time - consign_time).days > 15):
             return True
         elif (self.status == self.TRADE_BUYER_SIGNED 
-            and sign_time and (now_time - sign_time) > 7):
+            and sign_time and (now_time - sign_time).days > 7):
             return True
         return False
             
