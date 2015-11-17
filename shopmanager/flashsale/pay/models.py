@@ -374,7 +374,6 @@ class SaleOrder(models.Model):
     def refundable(self):
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
     
-    @property
     def is_finishable(self):
         """
         1，订单发货后超过15天未确认签收,系统自动变成已完成状态；
