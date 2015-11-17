@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import re
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -28,12 +29,11 @@ class SaleSupplierChangeList(ChangeList):
         qs = self.root_query_set
 
         search_q = request.GET.get('q', '').strip()
-        print len(search_q.split(" ")) > 1
-        if len(search_q.split(" ")) > 1 and search_q.split(" ")[1] == 'u':
+        if re.compile('^[\w\.]+$').match(search_q):
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
-            scharge = SupplierCharge.objects.filter(employee__username=search_q.split(" ")[0], status=SupplierCharge.EFFECT)
-            sc = [s.supplier_id for s in scharge]
+            scharge = SupplierCharge.objects.filter(employee__username=search_q, status=SupplierCharge.EFFECT)
+            sc = set([s.supplier_id for s in scharge])
             suppliers = qs.filter(id__in=sc)
             return suppliers
         return super(SaleSupplierChangeList, self).get_query_set(request)
