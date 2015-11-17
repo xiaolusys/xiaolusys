@@ -40,10 +40,11 @@ class AddSupplierView(generics.ListCreateAPIView):
         address = post.get("contact_address")
         memo = post.get("note")
         progress = post.get("progress")
+        speciality = post.get("speciality", '')
 
         new_supplier = SaleSupplier(supplier_name=supplier_name, supplier_code=supplier_code, main_page=main_page,
                                     platform=platform, category_id=category, contact=contact_name, mobile=mobile,
-                                    address=address, memo=memo, progress=progress)
+                                    address=address, memo=memo, progress=progress, speciality=speciality)
         new_supplier.save()
         log_action(request.user.id, new_supplier, ADDITION, u'新建'.format(""))
         return Response({"supplier_id": new_supplier.id})
@@ -220,7 +221,8 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         elif type == "3":
             if not detail_product.design_complete:
                 return Response({"result": u"notdone"})
-            if detail_product.design_person != request.user.username and not request.user.has_perm('supplier.revert_done'):
+            if detail_product.design_person != request.user.username and not request.user.has_perm(
+                    'supplier.revert_done'):
                 return Response({"result": u"forbidden"})
             detail_product.design_complete = False
             detail_product.save()
