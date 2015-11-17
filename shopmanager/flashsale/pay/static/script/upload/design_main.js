@@ -46,7 +46,7 @@ $(function () {
             ,
             'Key': function (up, file) {
                 var timestamp = new Date().getTime();
-                var key = "MG-" + timestamp + "-" + file.name;
+                var key = "MG-" + timestamp;
                 return key
             }
         }

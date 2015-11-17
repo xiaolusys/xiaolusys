@@ -161,6 +161,7 @@ class SaleSupplier(models.Model):
 
 
 class SupplierCharge(models.Model):
+    """ 供应商接管信息表　"""
     EFFECT = 'effect'
     INVALID = 'invalid'
     STATUS_CHOICES = (

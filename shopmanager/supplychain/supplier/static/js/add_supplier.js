@@ -10,6 +10,7 @@ jQuery(document).ready(function () {
         var mobile = $('#mobile').val().trim();
         var contact_address = $('#contact_address').val().trim();
         var note = $('#note').val().trim();
+        var speciality = $('#speciality').val().trim();
 
         if (supplier_name == '') {
             showtip("Tips", "供应商没有填写", "warning");
@@ -48,7 +49,8 @@ jQuery(document).ready(function () {
                 contact_name: contact_name,
                 mobile: mobile,
                 contact_address: contact_address,
-                note: note
+                note: note,
+                speciality:speciality
             },
             dataType: 'json',
             success: function (data) {
