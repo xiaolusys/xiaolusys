@@ -4,7 +4,7 @@ import datetime
 from .models import SaleTrade,SaleOrder,SaleRefund, FLASH_SELLER_ID
 from shopback.base.service import LocalService
 from shopback import paramconfig as pcfg
-from common.utils import update_model_fields
+from common.modelutils import update_model_fields,update_model_change_fields
 from shopapp.weixin.models import MIAOSHA_SELLER_ID
 from shopback.users.models import User
 import logging
@@ -34,8 +34,8 @@ class FlashSaleService(LocalService):
         merge_order,state = MergeOrder.objects.get_or_create(oid=order_id,
                                                              merge_trade=merge_trade)
         state = state or not merge_order.sys_status
-        
-        if (order.status in (SaleOrder.TRADE_CLOSED,
+        update_prams = {}
+        if state and (order.status in (SaleOrder.TRADE_CLOSED,
                              SaleOrder.TRADE_CLOSED_BY_SYS) or 
             order.refund_status in SaleRefund.REFUNDABLE_STATUS or
             merge_trade.status in (pcfg.TRADE_CLOSED,SaleTrade.TRADE_CLOSED_BY_SYS)):
@@ -47,22 +47,23 @@ class FlashSaleService(LocalService):
             product = Product.objects.get(id=order.item_id)
             sku     = ProductSku.objects.get(id=order.sku_id,product=product)
               
-            merge_order.payment = order.payment
-            merge_order.total_fee = order.total_fee
+            update_prams['payment'] = order.payment
+            update_prams['total_fee'] = order.total_fee
             
-            merge_order.num     = order.num
-            merge_order.title   = order.title
-            merge_order.outer_id      = product.outer_id
-            merge_order.sku_properties_name = order.sku_name
-            merge_order.outer_sku_id  = sku.outer_id
+            update_prams['num']     = order.num
+            update_prams['title']   = order.title
+            update_prams['outer_id']      = product.outer_id
+            update_prams['sku_properties_name'] = order.sku_name
+            update_prams['outer_sku_id']  = sku.outer_id
             
-        merge_order.created  = merge_trade.created
-        merge_order.pay_time = merge_trade.pay_time
-        merge_order.status   = merge_trade.status
-        merge_order.sys_status = sys_status
-        merge_order.refund_fee    = order.refund_fee
-        merge_order.refund_status = dict(SaleRefund.REFUND_STATUS_MAP).get(order.refund_status)
-        merge_order.save()
+        update_prams['created']  = merge_trade.created
+        update_prams['pay_time'] = merge_trade.pay_time
+        update_prams['status']   = merge_trade.status
+        update_prams['sys_status']    = sys_status
+        update_prams['refund_fee']    = order.refund_fee
+        update_prams['refund_status'] = dict(SaleRefund.REFUND_STATUS_MAP).get(order.refund_status)
+        
+        update_model_change_fields(merge_order,update_params=update_prams,trigger_signals=True)
         return merge_order
         
     @classmethod

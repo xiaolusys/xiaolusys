@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+import re
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
@@ -12,6 +13,8 @@ from .models import (
     SaleCategory,
     SupplierCharge
 )
+
+from .forms import SaleSupplierForm
 from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter
 from shopback.base.options import DateFieldListFilter
 from . import permissions as perms
@@ -26,31 +29,28 @@ class SaleSupplierChangeList(ChangeList):
         qs = self.root_query_set
 
         search_q = request.GET.get('q', '').strip()
-        print len(search_q.split(" ")) > 1
-        if len(search_q.split(" ")) > 1 and search_q.split(" ")[1] == 'u':
+        if re.compile('^[\w\.]+$').match(search_q):
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
-            scharge = SupplierCharge.objects.filter(employee__username=search_q.split(" ")[0], status=SupplierCharge.EFFECT)
-            sc = [s.supplier_id for s in scharge]
+            scharge = SupplierCharge.objects.filter(employee__username=search_q, status=SupplierCharge.EFFECT)
+            sc = set([s.supplier_id for s in scharge])
             suppliers = qs.filter(id__in=sc)
             return suppliers
         return super(SaleSupplierChangeList, self).get_query_set(request)
 
 
 class SaleSupplierAdmin(MyAdmin):
-    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform',
-                    'charge_link', 'category_select', 'progress', 'created', 'modified')
+    list_display = ('id','supplier_code', 'supplier_name_link', 'platform','charge_link','level',
+                    'total_select_num','total_sale_amount','total_refund_amount','avg_post_days',
+                     'category_select', 'progress', 'last_select_time', 'created', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('progress', 'status', 'platform',
-                   CategoryFilter,
-                   )
-
+    list_filter = ('level','progress', 'status', 'platform', CategoryFilter)
     search_fields = ['supplier_name', 'supplier_code']
-
+    form = SaleSupplierForm
+    
     def charge_link(self, obj):
-
         if obj.status == SaleSupplier.CHARGED:
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
             if obj.platform == "manualinput":
@@ -71,7 +71,7 @@ class SaleSupplierAdmin(MyAdmin):
 
     charge_link.allow_tags = True
     charge_link.short_description = u"接管信息/操作"
-
+    
     def supplier_name_link(self, obj):
         return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank">{1}</a>'.format(
             obj.id, obj.supplier_name)
@@ -89,9 +89,7 @@ class SaleSupplierAdmin(MyAdmin):
         return SaleSupplierChangeList
 
     def category_select(self, obj):
-
         categorys = self.category_list()
-
         cat_list = ["<select class='category_select' sid='%s'>" % obj.id]
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:
@@ -105,20 +103,42 @@ class SaleSupplierAdmin(MyAdmin):
 
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
+    
+    def memo_well(self, obj):
+        return u'<div style="width:200px;"><div class="well well-content">[特长]：{0}</div><br><div class="well well-content">[备注]：{1}</div></div>'.format(
+            obj.speciality, obj.memo)
 
+    memo_well.allow_tags = True
+    memo_well.short_description = u"特长及备注"
+    
     # --------设置页面布局----------------
-    fieldsets = ((u'客户基本信息:', {
-        'classes': ('expand',),
-        'fields': (('supplier_name', 'supplier_code')
-                   , ('main_page', 'category', 'platform')
-                   , ('contact', 'fax')
-                   , ('phone', 'mobile')
-                   , ('zip_code', 'email')
-                   , ('address', 'progress', 'status')
-                   , ('account_bank', 'account_no')
-                   , ('memo',)
-                   )}),)
-
+    fieldsets = ((u'供应商基本信息:', {
+                    'classes': ('expand',),
+                    'fields': (('supplier_name', 'supplier_code')
+                               , ('main_page', 'category', 'platform')
+                               , ('contact', 'fax')
+                               , ('phone', 'mobile')
+                               , ('email', 'zip_code')
+                               , ('address', 'progress', 'status')
+                               , ('account_bank', 'account_no')
+                               , ('memo',)
+                               )
+                 }),
+                 (u'供应商数据:', {
+                    'classes': ('expand',),
+                    'fields': (('level', 'last_select_time', 'last_schedule_time')
+                               , ('total_select_num', 'total_sale_num', 'total_sale_amount')
+                               , ('total_refund_num', 'total_refund_amount', 'avg_post_days')
+                               , ('speciality',)
+                               )
+                 }))
+    
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size':64, 'maxlength': '256',})},
+        models.FloatField: {'widget': TextInput(attrs={'size':24})},
+        models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
+    }
+    
     class Media:
         css = {
             "all": (
@@ -126,12 +146,10 @@ class SaleSupplierAdmin(MyAdmin):
         js = ("js/admin/adminpopup.js", "js/supplier_change_list.js")
 
     def get_queryset(self, request):
-
         search_q = request.GET.get('q', '').strip()
         qs = super(SaleSupplierAdmin, self).get_queryset(request)
         if search_q:
             return qs
-
         if request.user.is_superuser:
             return qs
         scharges = SupplierCharge.objects.filter(employee=request.user, status=SupplierCharge.EFFECT)
@@ -150,15 +168,15 @@ class SaleSupplierAdmin(MyAdmin):
         """ 商家批量接管 """
         employee = request.user
         queryset = queryset.filter(status=SaleSupplier.UNCHARGE)
-
+        
         for supplier in queryset:
             if SaleSupplier.objects.charge(supplier, employee):
                 log_action(request.user.id, supplier, CHANGE, u'接管成功')
-
+        
         self.message_user(request, u"======= 商家批量接管成功 =======")
         return HttpResponseRedirect("./")
 
-    batch_charge_action.short_description = "批量接管".decode('utf8')
+    batch_charge_action.short_description = u"批量接管"
 
     def batch_uncharge_action(self, request, queryset):
         """ 商家批量取消接管 """
@@ -175,7 +193,7 @@ class SaleSupplierAdmin(MyAdmin):
 
         return HttpResponseRedirect("./")
 
-    batch_uncharge_action.short_description = "批量取消接管".decode('utf8')
+    batch_uncharge_action.short_description = u"批量取消接管"
 
 
     def batch_taotai_action(self, request, queryset):
@@ -184,12 +202,12 @@ class SaleSupplierAdmin(MyAdmin):
         for supplier in queryset:
             supplier.progress = SaleSupplier.REJECTED
             supplier.save()
-            log_action(request.user.id, supplier, CHANGE, u'淘汰成功')
+            log_action(employee.id, supplier, CHANGE, u'淘汰成功')
 
         self.message_user(request, u"======= 商家批量淘汰成功 =======")
         return HttpResponseRedirect("./")
 
-    batch_taotai_action.short_description = "批量淘汰".decode('utf8')
+    batch_taotai_action.short_description = u"批量淘汰"
     actions = ['batch_charge_action', 'batch_uncharge_action', 'batch_taotai_action']
 
 

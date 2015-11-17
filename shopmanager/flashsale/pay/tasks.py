@@ -52,7 +52,6 @@ def task_Merge_Sale_Customer(user, code):
         return 
     
     WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
-    
     try:
         profile, state = Customer.objects.get_or_create(user=user)
         wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
@@ -83,36 +82,32 @@ from shopback.trades.models import MergeTrade,MergeOrder
 
 @task()
 def task_Push_SaleTrade_Finished(pre_days=10):
-    """ 定时将待确认状态小鹿特卖订单更新成已完成
-    1,查找明细订单对应的MergeOrder;
-    2,根据MergeOrder父订单状态更新Saleorder状态；
-    3,根据SaleTrade的所有SaleOrder状态更新SaleTrade状态;
+    """ 
+    定时将待确认状态小鹿特卖订单更新成已完成：
+    1，查找明细订单对应的MergeOrder;
+    2，根据MergeOrder父订单状态更新Saleorder状态；
+    3，根据SaleTrade的所有SaleOrder状态更新SaleTrade状态;
     """
-    
     day_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
     strades = SaleTrade.objects.filter(
-        status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,SaleTrade.WAIT_BUYER_CONFIRM_GOODS),
+        status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,
+                    SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                    SaleTrade.TRADE_BUYER_SIGNED),
         pay_time__gte=day_date
     )
     for strade in strades:
-        for order in strade.normal_orders:
-            trade_oid = order.oid
-            morders = MergeOrder.objects.filter(
-                oid=trade_oid,
-                merge_trade__type=MergeTrade.SALE_TYPE,
-                merge_trade__sys_status__in=MergeTrade.WAIT_WEIGHT_STATUS,
-                sys_status=MergeOrder.NORMAL
-            )
-            if not morders.exists() and order.refund_status in SaleRefund.REFUNDABLE_STATUS :
-                order.status = SaleOrder.TRADE_CLOSED
-            else:
-                morder = morders[0]
-                mtrade = morder.merge_trade
-                if mtrade.sys_status == MergeTrade.FINISHED_STATUS:
-                    order.status = SaleOrder.WAIT_BUYER_CONFIRM_GOODS
-            order.save()
-        if strade.normal_orders.count() == 0 :
+        for sorder in strade.normal_orders:
+            if sorder.is_finishable():
+                sorder.status = SaleOrder.TRADE_FINISHED
+                sorder.save()
+        if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
+            strade.save()
+            
+        normal_orders = strade.normal_orders
+        finish_orders = strade.sale_orders.filter(status=SaleOrder.TRADE_FINISHED)
+        if normal_orders.count() == finish_orders.count():
+            strade.status = SaleTrade.TRADE_FINISHED
             strade.save()
                     
 

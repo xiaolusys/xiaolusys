@@ -3,6 +3,7 @@ import uuid
 import datetime
 from django.db import models
 from django.shortcuts import get_object_or_404
+from django.db.models.signals import post_save
 
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.logistics.models import LogisticsCompany
@@ -41,7 +42,6 @@ class SaleTrade(models.Model):
     ALIPAY_WAP = 'alipay_wap'
     UPMP_WAP   = 'upmp_wap'
     WALLET     = 'wallet'
-    
     CHANNEL_CHOICES = (
         (WALLET,u'小鹿钱包'),
         (WX,u'微信APP'),
@@ -53,7 +53,6 @@ class SaleTrade(models.Model):
     
     PREPAY  = 0
     POSTPAY = 1
-    
     TRADE_TYPE_CHOICES = (
         (PREPAY,u"在线支付"),
         (POSTPAY,"货到付款"),
@@ -67,7 +66,6 @@ class SaleTrade(models.Model):
     TRADE_FINISHED = 5
     TRADE_CLOSED = 6
     TRADE_CLOSED_BY_SYS = 7
-    
     NORMAL_TRADE_STATUS = (WAIT_BUYER_PAY,
                            WAIT_SELLER_SEND_GOODS,
                            WAIT_BUYER_CONFIRM_GOODS,
@@ -253,12 +251,10 @@ class SaleTrade(models.Model):
         #付款后订单被关闭，则加上锁定数
         if trade_close:
             self.increase_lock_skunum() 
-               
         self.confirm_payment()
     
     def close_trade(self):
         """ 关闭待付款订单 """
-
         urows = SaleTrade.objects.filter(id=self.id,status=SaleTrade.WAIT_BUYER_PAY).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
         if urows == 0:
             return
@@ -301,7 +297,6 @@ class SaleOrder(models.Model):
     TRADE_FINISHED = 5
     TRADE_CLOSED = 6
     TRADE_CLOSED_BY_SYS = 7
-
     ORDER_STATUS = (
         (TRADE_NO_CREATE_PAY,u'订单创建'),
         (WAIT_BUYER_PAY,u'待付款'),
@@ -348,6 +343,7 @@ class SaleOrder(models.Model):
     modified      =  models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
     consign_time  =  models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
+    sign_time     =  models.DateTimeField(null=True,blank=True,verbose_name=u'签收日期')
     
     refund_id     = models.BigIntegerField(null=True,verbose_name=u'退款ID')
     refund_fee    = models.FloatField(default=0.0,verbose_name=u'退款费用')
@@ -378,6 +374,22 @@ class SaleOrder(models.Model):
     def refundable(self):
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
     
+    def is_finishable(self):
+        """
+        1，订单发货后超过15天未确认签收,系统自动变成已完成状态；
+        2，订单确认签收后，７天之后订单状态变成已完成；
+        """
+        now_time = datetime.datetime.now()
+        consign_time = self.consign_time
+        sign_time = self.sign_time
+        if (self.status == self.WAIT_BUYER_CONFIRM_GOODS 
+            and consign_time and (now_time - consign_time).days > 15):
+            return True
+        elif (self.status == self.TRADE_BUYER_SIGNED 
+            and sign_time and (now_time - sign_time).days > 7):
+            return True
+        return False
+            
     def close_order(self):
         """ 待付款关闭订单 """
         try:
@@ -393,8 +405,22 @@ class SaleOrder(models.Model):
     def confirm_sign_order(self):
         """确认签收 修改该订单状态到 确认签收状态"""
         self.status = self.TRADE_BUYER_SIGNED
+        self.sign_time = datetime.datetime.now()
         self.save()
+        
+        sale_trade    = self.sale_trade
+        normal_orders = sale_trade.normal_orders
+        sign_orders   = sale_trade.sale_orders.filter(status=SaleOrder.TRADE_BUYER_SIGNED)
+        if sign_orders.count() == normal_orders.count():
+            sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
+            update_model_fields(sale_trade,update_fields=['status'])
+            
 
+def refresh_sale_trade_status(sender,instance,*args,**kwargs):
+    """ 更新订单状态 """
+    #TODO
+    
+post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
 
 class TradeCharge(models.Model):
     

@@ -657,17 +657,14 @@ class ProductAdmin(MyAdmin):
         except Exception,exc:
             self.message_user(request,u"更新错误，微信商品上下架接口异常：%s"%exc.message)
             
-        up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
-        down_queryset = queryset.filter(shelf_status=Product.DOWN_SHELF)
-        
+        up_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.UP_SHELF)
+        down_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
         if unverify_qs.count() > 0:
-            self.message_user(request,u"有%s个商品未核对，请核对后才能在微信上架!"%unverify_qs.count())
+            self.message_user(request,u"有%s个商品未核对，请核对后才能上架!"%unverify_qs.count())
         
         for product in up_queryset:
             log_action(request.user.id,product,CHANGE,u'上架商品')
-        
         self.message_user(request,u"已成功上架%s个商品,有%s个商品上架失败!"%(up_queryset.count(),down_queryset.count()))
-        
         return HttpResponseRedirect(request.get_full_path())
         
     upshelf_product_action.short_description = u"上架微信商品 (批量)"
