@@ -106,7 +106,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             
         normal_orders = strade.normal_orders
         finish_orders = strade.sale_orders.filter(status=SaleOrder.TRADE_FINISHED)
-        if normal_orders.count() == finish_orders.orders:
+        if normal_orders.count() == finish_orders.count():
             strade.status = SaleTrade.TRADE_FINISHED
             strade.save()
                     
