@@ -25,6 +25,7 @@ from flashsale.dinghuo.models_user import MyUser
 import logging
 import collections
 from common.modelutils import update_model_fields
+from supplychain.supplier.models import SaleProduct
 
 
 logger  = logging.getLogger('django.request')
@@ -289,19 +290,25 @@ class Product(models.Model):
     def title(self):
         return self.name
 
-    def get_supplier_contactor(self):
-        from supplychain.supplier.models import SaleProduct
+    def pro_sale_supplier(self):
+        """ 返回产品的选品和供应商　"""
         try:
             sal_p = SaleProduct.objects.get(pk=self.sale_product)
+            supplier = sal_p.sale_supplier
+            return sal_p, supplier
+        except SaleProduct.DoesNotExist:
+            return None, None
+
+    def get_supplier_contactor(self):
+        sal_p, supplier = self.pro_sale_supplier()
+        if sal_p is not None:
             if sal_p.contactor.first_name and sal_p.contactor.last_name:
                 return sal_p.contactor.last_name + sal_p.contactor.first_name
             return sal_p.contactor  # 返回接洽人
-        except SaleProduct.DoesNotExist:
+        else:
             return self.sale_charger + "未关联"
-        except DjangoUser.DoesNotExist:
-            return self.sale_charger + "空买手"
-        
-    def update_collect_num(self,num,full_update=False,dec_update=False):
+
+    def update_collect_num(self, num, full_update=False, dec_update=False):
         """
             更新商品库存:
                 full_update:是否全量更新

@@ -168,13 +168,16 @@ def record_supplier(obj):
         Returns: None
         Raises: None
     """
-    item_id = obj.item_id   # 商品id
-    pro = Product.objects.get(id=item_id)   # 找到商品
-    sprid = pro.sale_product
-    spro = SaleProduct.objects.get(id=sprid)    # 找到对应选品（供应商）
-    spro.sale_supplier.total_refund_num = F('total_refund_num') + obj.refund_num
-    spro.sale_supplier.total_refund_amount = F('total_refund_amount') + obj.total_fee
-    update_model_fields(spro.sale_supplier, update_fields=['total_refund_num', 'total_refund_amount'])  # 更新字段
+    try:
+        item_id = obj.item_id   # 商品id
+        pro = Product.objects.get(id=item_id)   # 找到商品
+        sal_p, supplier = pro.pro_sale_supplier()
+        if supplier is not None:
+            supplier.total_refund_num = F('total_refund_num') + obj.refund_num
+            supplier.total_refund_amount = F('total_refund_amount') + obj.total_fee
+            update_model_fields(supplier, update_fields=['total_refund_num', 'total_refund_amount'])  # 更新字段
+    except:
+        return
 
 
 def write_dinghuo_return_pro(refund):
