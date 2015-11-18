@@ -121,7 +121,6 @@ def refund_Handler(request):
     desc = request.data.get("description", '')
 
     proof_pic = str(request.data.get("proof_pic", {}))
-    print("proof_pic", proof_pic)
     proof_pic_dic = {}
 
     if proof_pic != '{}':
