@@ -134,7 +134,7 @@
                                     <li>
                                         <div class="form-inline form-group has-success">
                                             <label>款式名称：</label>
-                                            <input readonly type="text" class="form-control" {% if perms.supplier.revert_done %}id="model_name"{% endif %}
+                                            <input readonly type="text" class="form-control" {% if perms.pay.change_name_permission %}id="model_name"{% endif %}
                                                    value="{{ target_model.name }}">
 
                                         </div>
