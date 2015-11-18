@@ -29,7 +29,7 @@ var swiper = new Swiper('.swiper-container', {
 function Create_product_topslides(obj_list) {
     //创建商品题头图Slide
     function　config_pic_url(pic_url){
-		return makePicUlr(pic_url,{'format':'jpg', 'quality':'90'});
+		return makePicUlr(pic_url,{'size':'640' ,'format':'jpg', 'quality':'90'});
 	}
     var slides = [];
     $.each(obj_list, function (index, obj) {
@@ -134,7 +134,7 @@ function link_sku_size(obj){
 function Create_product_bottomslide_dom(obj_list) {
     //创建内容图Slide
     function　config_pic_url(pic_url){
-		return makePicUlr(pic_url,{'format':'jpg', 'quality':'90'});
+		return makePicUlr(pic_url,{'size':'640' ,'format':'jpg', 'quality':'90'});
 	}
     var slides = [];
     $.each(obj_list, function (index, obj) {

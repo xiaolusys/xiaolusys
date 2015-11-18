@@ -202,7 +202,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="pages/shangpinxq.html?id={{ id }}">
-        <img src="{{ head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+        <img src="{{ head_img }}?imageMogr2/thumbnail/289/format/jpg/quality/90">
         <p class="gname">{{ name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ product_lowest_price }} </span>
@@ -218,7 +218,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="tongkuan.html?id={{ product_model.id }}">
-        <img src="{{ product_model.head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+        <img src="{{ product_model.head_img }}?imageMogr2/thumbnail/289/format/jpg/quality/90">
         <p class="gname">{{ product_model.name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ lowest_price }} </span>

@@ -2391,7 +2391,7 @@ def beizhu(request):
     tids = []
     for i in tid_list:
         tids.append(i.strip())
-    not_handler = []
+    not_handler  = []
     muti_handler = []
     for tid in tids:
         try:
