@@ -291,3 +291,20 @@
     font-size: 28px;
 }
 
+.message {
+	font-size:24px;
+	height:70px;
+}
+.message label{
+	margin-left:20px;
+	margin-top:10px;
+	display:inline;
+	float: left;
+}
+.message textarea{
+	display:inline;
+	width:510px;
+	height:40px;
+	text-aligin:bottom;
+	border-bottom: 1px solid #5f5f5e;
+}

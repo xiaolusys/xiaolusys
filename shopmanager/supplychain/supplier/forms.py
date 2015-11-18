@@ -15,6 +15,6 @@ class SaleSupplierForm(forms.ModelForm):
     address  = forms.CharField(label=u'地址',
                                required=True,
                                widget=forms.TextInput(attrs={'size':'60','maxlength':'256'}),
-                               validators=[RegexValidator(ur"^[\u4e00-\u9fa5]+[\u4e00-\u9fa50-9_#\-\(\)\w]+$", message=u"请输入汉字及数字")])
+                               validators=[RegexValidator(ur"^[\u4e00-\u9fa5]+[\u4e00-\u9fa50-9_#\-\(\)\w\s]+$", message=u"请输入汉字及数字")])
     class Meta:
         model = SaleSupplier

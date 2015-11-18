@@ -217,6 +217,9 @@ class Product(models.Model):
         """ 返回特卖商品是否新品 """
         return self.sale_time and self.sale_time >= datetime.date.today()
     
+    def is_sale_out(self):
+        return self.sale_out
+    
     def is_deposite(self):
         return self.outer_id.startswith(DIPOSITE_CODE_PREFIX)
     

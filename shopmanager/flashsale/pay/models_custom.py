@@ -99,6 +99,13 @@ class ModelProduct(models.Model):
             return False
         return True
     
+    def is_sale_out(self):
+        all_sale_out = True
+        products = Product.objects.filter(model_id=self.id,status=Product.NORMAL)
+        for product in products:
+            all_sale_out &= product.is_sale_out()
+        return all_sale_out
+    
 from shopback.base.models import JSONCharMyField
 
 POSTER_DEFAULT =(

@@ -152,15 +152,17 @@ function checkTime(i) {
 function Set_posters(suffix){
 	//获取海报
 	var posterUrl = GLConfig.baseApiUrl + suffix;
-	
+	function　config_pic_url(pic_url){
+		return makePicUlr(pic_url,{'size':'618x253','format':'jpg', 'quality':'90'});
+	}
 	var posterCallBack = function(data){
 		if (!isNone(data.wem_posters)){
 			//设置女装海报链接及图片
 			$.each(data.wem_posters,
 				function(index,poster){
 					$('.poster .nvzhuang').attr('href',poster.item_link);
-					$('.poster .nvzhuang img').attr('src',poster.pic_link+"?imageMogr2/format/jpg/quality/100");
-					if (poster.subject === 'undifine' || poster.subject === null ){
+					$('.poster .nvzhuang img').attr('src',config_pic_url(poster.pic_link));
+					if (isNone(poster.subject)){
 						return
 					}
 					$('.poster .nvzhuang .subject').html('<span class="tips">'+poster.subject[0]+'</span>'+poster.subject[1]);
@@ -172,8 +174,8 @@ function Set_posters(suffix){
 			$.each(data.chd_posters,
 				function(index,poster){
 					$('.poster .chaotong').attr('href',poster.item_link);
-					$('.poster .chaotong img').attr('src',poster.pic_link+"?imageMogr2/format/jpg/quality/100");
-					if (poster.subject === 'undifine' || poster.subject === null ){
+					$('.poster .chaotong img').attr('src',config_pic_url(poster.pic_link));
+					if (isNone(poster.subject)){
 						return
 					}
 					$('.poster .chaotong .subject').html('<span class="tips">'+poster.subject[0]+'</span>'+poster.subject[1]);
@@ -200,7 +202,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="pages/shangpinxq.html?id={{ id }}">
-        <img src="{{ head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+        <img src="{{ head_img }}?imageMogr2/thumbnail/289/format/jpg/quality/90">
         <p class="gname">{{ name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ product_lowest_price }} </span>
@@ -216,7 +218,7 @@ function Create_item_dom(p_obj,close_model){
 	/* 
 	<li>
       <a href="tongkuan.html?id={{ product_model.id }}">
-        <img src="{{ product_model.head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+        <img src="{{ product_model.head_img }}?imageMogr2/thumbnail/289/format/jpg/quality/90">
         <p class="gname">{{ product_model.name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ lowest_price }} </span>
@@ -238,11 +240,12 @@ function Create_item_dom(p_obj,close_model){
             } else {
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
             }
+        }else if(p_obj.product_model.is_sale_out && true){
+        	p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
         }
         p_obj.product_model.head_img = p_obj.product_model.head_imgs[0]
         return hereDoc(Model_dom).template(p_obj);
     }
-
     //上架判断
     if (!p_obj.is_saleopen) {
         if (p_obj.sale_time >= today) {
@@ -300,13 +303,11 @@ function Set_promotes_product(suffix){
         },
 		success:promoteCallBack 
 	}); 
-	
 }
 
 function Set_category_product(suffix){
 	//获取潮流童装商品
 	var promoteUrl = GLConfig.baseApiUrl + suffix;
-	
 	var promoteCallBack = function(data){
 		if (!isNone(data.results)){
             $("#loading").hide();
@@ -339,7 +340,6 @@ function Set_model_product(suffix){
 	var promoteCallBack = function(data){
         $("#loading").hide();
 		//设置女装推荐链接及图片
-
 		$.each(data,
 			function(index,p_obj){
 				var item_dom = Create_item_dom(p_obj,true);
@@ -354,7 +354,6 @@ function Set_model_product(suffix){
                 var shelf_time = new Date(data[0].sale_time);
                 product_timer(shelf_time);
             }
-
         }
 	};
 	// 请求推荐数据

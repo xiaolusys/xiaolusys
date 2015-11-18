@@ -121,13 +121,13 @@ function Ctrl_sure_charge(pay_url){
 		drawToast('请选择正确的支付方式');
     	return
 	}
-    
     var addrid = $('.addr li.active i').attr('addrid');
     if (isNone(addrid)){
     	drawToast('请填写收货信息');
     	return
     }
     var couponid = $('.coupons li i').attr('couponid');
+    $('input[name="buyer_message"]').val($('#id_buyer_message').val());
     //获取表单参数
 	var params = {};
 	var form_array = $('#pay-form').serializeArray();
@@ -284,10 +284,10 @@ function minus_shop(sku_id) {
 
 
 function messFocusCtrl(dom){
-    $(dom).css('height','170px');
-    $(dom).css('width','420px');
+    $(dom).css('height','90px').css('width','510px');
 }
+
 function messBluCtrl(dom){
-    $(dom).css('height','28px');
-    $(dom).css('width','420px');
+    $(dom).css('height','40px').css('width','510px');
 }
+

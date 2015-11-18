@@ -83,10 +83,11 @@ class ModelProductSerializer(serializers.ModelSerializer):
     head_imgs = JsonListField(read_only=True,required=False)
     content_imgs = JsonListField(read_only=True,required=False)
     is_single_spec = serializers.BooleanField(read_only=True)
+    is_sale_out = serializers.BooleanField(read_only=True)
     
     class Meta:
         model = ModelProduct
-        fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'buy_limit', 'per_limit')
+        fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     
