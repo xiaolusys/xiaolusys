@@ -110,11 +110,13 @@ def fifDaysRateFlush(days=15):
 
 from flashsale.pay.models import SaleOrder
 from shopback.refunds.models_refund_rate import PayRefNumRcord
+from shopback.items.models import Product
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from common.modelutils import update_model_fields
 from shopback.refunds.models_refund_rate import ProRefunRcord
 from flashsale.pay.models_refund import SaleRefund
 from supplychain.supplier.models import SaleProduct
+from django.db.models import F
 
 
 @task()
@@ -156,6 +158,23 @@ def taskRefundRecord(obj):
     update_model_fields(refund_record, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in'])
     # 添加产品的退货记录
     record_pro(obj)
+    # 记录供应商的一些参数
+    record_supplier(obj)
+
+
+def record_supplier(obj):
+    """ 记录某供应商下产品的的退款状况：　总退款件数　总退款额
+        Args: obj SaleRefund instance
+        Returns: None
+        Raises: None
+    """
+    item_id = obj.item_id   # 商品id
+    pro = Product.objects.get(id=item_id)   # 找到商品
+    sprid = pro.sale_product
+    spro = SaleProduct.objects.get(id=sprid)    # 找到对应选品（供应商）
+    spro.sale_supplier.total_refund_num = F('total_refund_num') + obj.refund_num
+    spro.sale_supplier.total_refund_amount = F('total_refund_amount') + obj.total_fee
+    update_model_fields(spro.sale_supplier, update_fields=['total_refund_num', 'total_refund_amount'])  # 更新字段
 
 
 def write_dinghuo_return_pro(refund):
