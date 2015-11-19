@@ -11,6 +11,7 @@ from supplychain.supplier.models import SaleSupplier
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
 from supplychain.supplier.models import SaleProduct
+from flashsale.pay.signals import signal_record_supplier_models
 
 
 class AddItemView(generics.ListCreateAPIView):
@@ -122,6 +123,8 @@ class AddItemView(generics.ListCreateAPIView):
                 one_sku.save()
                 log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
                 count += 1
+        # 发送　添加供应商总选款的字段　的信号
+        signal_record_supplier_models.send(sender=ModelProduct, obj=model_pro)
         return Response({"result": "OK", "outer_id": inner_outer_id})
 
 
