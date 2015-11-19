@@ -300,7 +300,7 @@ def record_supplier_args(sender, obj, **kwargs):
         if supplier is not None:
             supplier.total_sale_num = F('total_sale_num') + order.num
             supplier.total_sale_amount = F("total_sale_amount") + order.payment
-        update_model_fields(supplier, update_fields=['total_sale_num', 'total_sale_amount'])
+            update_model_fields(supplier, update_fields=['total_sale_num', 'total_sale_amount'])
 
 
 signal_saletrade_pay_confirm.connect(record_supplier_args, sender=SaleTrade)
