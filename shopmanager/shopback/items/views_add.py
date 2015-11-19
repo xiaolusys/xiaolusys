@@ -24,6 +24,8 @@ class AddItemView(generics.ListCreateAPIView):
 
     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
+        """ 新增库存商品　新增款式
+        """
         content = request.data
         user = request.user
 

@@ -33,6 +33,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             `num`:退货数量
             `sum_price` 申请金额
             `description`: 申请描述
+            `proof_pic`: 佐证图片（字符串格式网址链接，多个使用＇，＇隔开）
 
         -  修改退款单
 
