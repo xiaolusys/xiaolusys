@@ -632,7 +632,6 @@ class UserCouponChangeList(ChangeList):
 
     def get_query_set(self, request):
         search_q = request.GET.get('q', '').strip()
-        print "search_q: ", search_q
         # add_RMB118?customer=123
         if search_q:
             try:
@@ -649,6 +648,7 @@ class UserCouponAdmin(admin.ModelAdmin):
     list_display = ("id", "cp_id", "customer", "sale_trade", "status", "created", "modified")
     list_filter = ("status", "created")
     search_fields = ['=id', "=customer", "=sale_trade"]
+    readonly_fields = ("id", "cp_id", "customer", "sale_trade")
 
     def change_coupon_status_to_unuse(self, request, queryset):
         if queryset.count() > 1:
