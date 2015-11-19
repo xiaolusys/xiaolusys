@@ -447,11 +447,12 @@ class BranchZoneView(APIView):
         district   = content.get('district','')
         address   = content.get('address','')
         
-        branch_zone = get_addr_zones(province,city,district,address=address)
-
+        #branch_zone = get_addr_zones(province,city,district,address=address)
+        #branch_zone  = branch_zone and serializers.BranchZoneSerializer(branch_zone).data or {}
+        branch_zone = {}
         return Response({'province':province,
                 'city':city,
                 'district':district,
                 'address':address,
-                'branch_zone':branch_zone and serializers.BranchZoneSerializer(branch_zone).data or {},
+                'branch_zone':branch_zone,
                 })
