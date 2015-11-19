@@ -160,7 +160,7 @@ def add_purchase(request, outer_id):
     user = request.user
     order_dr_all = orderdraft.objects.all().filter(buyer_name=user)
     product_res = []
-    queryset = Product.objects.filter(outer_id__icontains=outer_id)
+    queryset = Product.objects.filter(status=Product.NORMAL, outer_id__icontains=outer_id)
     for p in queryset:
         product_dict = model_to_dict(p)
         product_dict['prod_skus'] = []
