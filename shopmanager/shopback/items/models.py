@@ -596,6 +596,7 @@ class ProductSku(models.Model):
     
     @property
     def real_remainnum(self):
+        """ 实际剩余库存 """
         wait_post_num = max(self.wait_post_num, 0)
         if self.remain_num > 0 and self.remain_num >= wait_post_num:
             return self.remain_num - wait_post_num

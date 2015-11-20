@@ -415,7 +415,28 @@ class SaleProductAdmin(MyAdmin):
 
     status_link.allow_tags = True
     status_link.short_description = u"状态／操作"
+    
+    def select_Contactor(self, obj):
+        from models_buyer_group import BuyerGroup
 
+        buyer_groups = (0, 1, 2, 3)
+        name = str(obj.contactor)
+        BuyerGroupNo = (u'未分组', u'A组', u'B组', u'C组')
+        target_user_group = BuyerGroup.objects.filter(buyer_name=name)
+        html = [
+            "<p id='item_id_{1}'>{0}</p><select id='select_buyer_group_{1}' name='selse' onchange='select_buyter({1})'>".format(
+                obj.contactor, obj.id)]
+        for group in buyer_groups:
+            if target_user_group.count() > 0 and target_user_group[0].buyer_group == group:
+                html.append("<option selected='selected' value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
+            else:
+                html.append("<option value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
+        html.append("</select>")
+        return "".join(html)
+
+    select_Contactor.allow_tags = True
+    select_Contactor.short_description = u"接洽人"
+    
     class Media:
         css = {
             "all": (
@@ -472,28 +493,6 @@ class SaleProductAdmin(MyAdmin):
             obj.save()
 
         return super(SaleProductAdmin, self).response_add(request, obj, post_url_continue=post_url_continue)
-
-    def select_Contactor(self, obj):
-        from models_buyer_group import BuyerGroup
-
-        buyer_groups = (0, 1, 2, 3)
-        name = str(obj.contactor)
-        BuyerGroupNo = (u'未分组', u'A组', u'B组', u'C组')
-        target_user_group = BuyerGroup.objects.filter(buyer_name=name)
-        html = [
-            "<p id='item_id_{1}'>{0}</p><select id='select_buyer_group_{1}' name='selse' onchange='select_buyter({1})'>".format(
-                obj.contactor, obj.id)]
-        for group in buyer_groups:
-            if target_user_group.count() > 0 and target_user_group[0].buyer_group == group:
-                html.append("<option selected='selected' value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
-            else:
-                html.append("<option value='{0}'>{1}</option>".format(group, BuyerGroupNo[group]))
-
-        html.append("</select>")
-        return "".join(html)
-
-    select_Contactor.allow_tags = True
-    select_Contactor.short_description = u"接洽人"
 
     def voting_action(self, request, queryset):
         """  设置选品投票  取样通过　的产品可以设置参与投票　"""

@@ -150,7 +150,7 @@ class XiaoluMama(models.Model):
     
     def can_send_redenvelop(self):
         """ 是否可以发送订单红包 """
-        if self.charge_time > datetime.datetime(2015,8,25):
+        if not self.charge_time or self.charge_time > datetime.datetime(2015,8,25):
             return False
         if self.agencylevel == self.VIP_LEVEL:
             return True
