@@ -18,7 +18,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     - {prefix}/list_past_coupon method:get 获取用户已经过期的优惠券
         -  return:
             `id`:优惠券id <br>`coupon_no:`优惠券券池号码<br>
-            `status:` 优惠券状态　0：未使用，１:已经使用<br>
+            `title`: 优惠券模板定义的标题
+            `status:` 优惠券状态　0：未使用，１:已经使用， 2:冻结中<br>
             `poll_status:` 券池发放状态：１:已经发放，0：未发放，2:已经过期<br>
             `coupon_type:` 优惠券类型：RMB118:"二期代理优惠券" ,POST_FEE:"退货补邮费", C150_10:"满150减10", C259_20:"满259减20"<br>
             `sale_trade:`  绑定交易id：购买交易的id<br>
@@ -26,6 +27,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
             `coupon_value:` 优惠券对应的面值<br>
             `valid:`　优惠券的有效性（true or false）<br> `title:`　优惠券标题<br>
             `created:`　创建时间<br> `deadline:`　截止时间<br>
+            `use_fee:` 满单额（即满多少可以使用）
 
     - {prefix}/method: post 创建用户优惠券
 
