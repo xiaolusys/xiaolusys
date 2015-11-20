@@ -402,11 +402,13 @@ class SaleOrder(models.Model):
         now_time = datetime.datetime.now()
         consign_time = self.consign_time
         sign_time = self.sign_time
+        if self.refund_status in SaleRefund.REFUNDABLE_STATUS:
+            return False
         if (self.status == self.WAIT_BUYER_CONFIRM_GOODS 
-            and consign_time and (now_time - consign_time).days > 15):
+            and (not consign_time or (now_time - consign_time).days > 15)):
             return True
         elif (self.status == self.TRADE_BUYER_SIGNED 
-            and sign_time and (now_time - sign_time).days > 7):
+            and (not sign_time or (now_time - sign_time).days > 7)):
             return True
         return False
             
