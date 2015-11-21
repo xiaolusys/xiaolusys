@@ -283,11 +283,13 @@ class UsersCouponSerializer(serializers.ModelSerializer):
     poll_status = serializers.IntegerField(source='cp_id.status', read_only=True)
     coupon_value = serializers.FloatField(source='cp_id.template.value', read_only=True)
     valid = serializers.BooleanField(source='cp_id.template.valid', read_only=True)
+    use_fee = serializers.FloatField(source='cp_id.template.use_fee', read_only=True)
 
     class Meta:
         model = UserCoupon
-        fields = ("id", "cp_id", "coupon_type",'title', "customer",'coupon_no','coupon_value','valid','poll_status',
-                  "deadline", "sale_trade", "status", "created", "modified")
+        # remove the "cp_id" field, test for browser solwly
+        fields = ("id",  "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
+                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee')
 
 from shopapp.weixin.models import WXOrder
 

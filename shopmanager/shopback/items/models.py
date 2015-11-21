@@ -457,7 +457,6 @@ class Product(models.Model):
             prcs.append(sku.agent_price)
         return min(prcs) if prcs else 0
 
-
     @property
     def inferior_num(self):
         """商品次品数"""
@@ -466,8 +465,37 @@ class Product(models.Model):
             inferior_num += one_sku.sku_inferior_num
         return inferior_num
 
+    def same_model_pros(self):
+        """ 同款产品　"""
+        if self.model_id == 0 or self.model_id is None:
+            return None
+        pros = self.__class__.objects.filter(model_id=self.model_id)
+        return pros
+
+
+def delete_pro_record_supplier(sender, instance, created, **kwargs):
+    """ 当作废产品的时候　检查　同款是否 全部  作废　如果是　则　将对应供应商的选款数量减去１
+        这里有多处可以作废产品　所以使用了　post_save
+    """
+    if instance.status != Product.DELETE:
+        return
+    pros = instance.same_model_pros()
+    if pros is not None:
+        sta = pros.values('status').distinct()
+        if len(sta) != 1:
+            return
+        if sta[0]['status'] == Product.DELETE:
+            sal_p, supplier = instance.pro_sale_supplier()
+            if supplier is not None and supplier.total_select_num > 0:
+                supplier.total_select_num = F('total_select_num') - 1
+                update_model_fields(supplier, update_fields=['total_select_num'])
+
+post_save.connect(delete_pro_record_supplier, Product)
+
 
 from shopback.signals import signal_product_upshelf
+
+
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     
     products = Product.objects.filter(id=instance.id)
