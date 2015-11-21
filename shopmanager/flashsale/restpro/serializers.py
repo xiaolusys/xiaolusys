@@ -250,7 +250,7 @@ class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = IntegralLog
-        fields = ('id', 'integral_user', 'mobile', 'order', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
+        fields = ('id', 'integral_user', 'mobile', 'order_info', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
 
 
 class UserCouponSerializer(serializers.ModelSerializer):
@@ -272,7 +272,7 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
         model = TradeWuliu
         exclude=()
 
-from flashsale.pay.models_coupon_new import CouponsPool, CouponTemplate, UserCoupon
+from flashsale.pay.models_coupon_new import UserCoupon
 
 
 class UsersCouponSerializer(serializers.ModelSerializer):
