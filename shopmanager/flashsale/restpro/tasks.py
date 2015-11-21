@@ -81,9 +81,10 @@ def task_off_the_shelf(product_id=None):
     except Exception, exc:
         raise task_off_the_shelf.retry(exc=exc)
 
-
+from common.cachelock import cache_lock
 import datetime
 @task()
+@cache_lock(cache_time=60 * 60)
 def task_schedule_cart():
     """
         定时清空购物车中已经超过预留时间和订单中未支付的。
