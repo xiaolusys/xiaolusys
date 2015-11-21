@@ -30,6 +30,7 @@
         </div>
     </div>
     <h3 style="margin-top: 30px">产品. 信息</h3>
+
     <div style="margin-top: 30px" id="pro_info">
     </div>
 </div>
@@ -41,6 +42,7 @@
 </div>
 <div class="col-xs-12" style="margin-top: 30px">
     <h3>原因. 描述</h3>
+
     <div id="tag_cloud" style="width: 1100px; height: 350px;"></div>
 </div>
 </body>
@@ -154,8 +156,9 @@
 
     $(document).ready(function () {
         var pro_id = getUrlParam('pro_id');
+        var pro_code = getUrlParam('pro_code');
         var url = "/mm/ref_reason/";
-        var data = {'pro_id': pro_id};
+        var data = {'pro_id': pro_id, 'pro_code': pro_code};
         console.log(data);
         getReasonAna(url, data);
         $("#go_search").click(function () {
