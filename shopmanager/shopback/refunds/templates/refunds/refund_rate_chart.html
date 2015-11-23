@@ -161,6 +161,7 @@
                 X_array.push(i);
             }
             var LineArray = LineXy(X_array, Y_axis3);
+            console.log(LineArray );
             var series_all = [{
                 name: '退款数',
                 data: Y_axis1
@@ -171,10 +172,13 @@
             var series_nan = [{
                 name: '退款率',
                 data: Y_axis3
-            }, {
-                name: '线性回归',
-                data: LineArray
-            }];
+            }
+                //, {    不显示
+                //name: '线性回归',
+                //data: LineArray
+           // }
+
+            ];
             var dom_all = $("#hight_all");
             var dom_ana = $("#hight_rate_ana");
             var Titleall = {"xtitle": "退款趋势图", "xsub_title": "订单退款数量趋势图信息", "ytitle": "件数"};
