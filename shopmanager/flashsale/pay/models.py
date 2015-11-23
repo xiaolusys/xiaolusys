@@ -24,8 +24,10 @@ from shopback.base.models import JSONCharMyField
 from shopback.base import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
 
-FLASH_SELLER_ID = 'flashsale'
+FLASH_SELLER_ID  = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
+TIME_FOR_PAYMENT = 25 * 60
+
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
@@ -203,6 +205,10 @@ class SaleTrade(models.Model):
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
     
+    def is_payable(self):
+        now = datetime.datetime.now()
+        return self.status == self.WAIT_BUYER_PAY and (now - self.created).seconds < TIME_FOR_PAYMENT
+    
     def is_closed(self):
         return self.status == self.TRADE_CLOSED_BY_SYS
     
@@ -270,7 +276,7 @@ class SaleTrade(models.Model):
         UserCoupon.objects.filter(sale_trade=self.id, status=UserCoupon.USED).update(status=UserCoupon.UNUSED)
     
     @property
-    def can_sign_order(self):
+    def unsign_orders(self):
         """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""
         return self.sale_orders.filter(status__in=
                                        (SaleOrder.WAIT_SELLER_SEND_GOODS,
@@ -280,7 +286,7 @@ class SaleTrade(models.Model):
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
         SaleTrade.objects.get(id=self.id)
-        for order in self.can_sign_order:
+        for order in self.unsign_orders:
             order.confirm_sign_order()  # 同时修改正常订单到交易完成
         self.status = SaleTrade.TRADE_FINISHED
         self.save()

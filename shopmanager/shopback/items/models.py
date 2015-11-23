@@ -199,6 +199,13 @@ class Product(models.Model):
         return 0
     
     @property
+    def lock_num(self):
+        lnum = 0
+        for sku in self.pskus:
+            lnum += sku.lock_num
+        return lnum
+        
+    @property
     def sale_out(self):
         sale_out = True
         for sku in self.pskus:
