@@ -152,7 +152,7 @@ function checkTime(i) {
 function Set_posters(suffix){
 	//获取海报
 	var posterUrl = GLConfig.baseApiUrl + suffix;
-	function　config_pic_url(pic_url){
+	function config_pic_url(pic_url){
 		return makePicUlr(pic_url,{'size':'618x253','format':'jpg', 'quality':'90'});
 	}
 	var posterCallBack = function(data){

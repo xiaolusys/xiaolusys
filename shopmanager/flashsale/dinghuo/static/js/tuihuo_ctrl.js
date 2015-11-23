@@ -97,7 +97,7 @@ function supplier_admin(supplier_name, mobile, address) {
 
 function change_sum_price(id, num) {
     // 退货单的id
-    console.log(id, num);
+    console.log(id, num,'dasdfasdf');
     var prom = layer.prompt({
         title: '共' + num + '件，请输入金额　并确认修改',
         formType: 0 //prompt风格，支持0-2
@@ -116,7 +116,7 @@ function change_sum_price(id, num) {
             error: function (err) {
                 if (err.responseText == 'True') {
                     layer.msg('修改成功！');
-                    location.href = '/admin/dinghuo/returngoods/';
+                    location.reload();
                 }
             }
         });
