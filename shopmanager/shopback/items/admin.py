@@ -485,23 +485,29 @@ class ProductAdmin(MyAdmin):
     
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
     
-    
+    def get_product_logsign(self,product):
+        return '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(product.collect_num,
+                                                                product.wait_post_num,
+                                                                product.remain_num,
+                                                                product.lock_num)
+        
     #更新商品库存数至预留数
     def update_quantity2remain_action(self,request,queryset):
          
-        downshelfs = queryset.filter(shelf_status=Product.DOWN_SHELF)
-        upshelfs   = queryset.filter(shelf_status=Product.UP_SHELF)
-        
-        for product in downshelfs:
+#         downshelfs = queryset.filter(shelf_status=Product.DOWN_SHELF)
+#         upshelfs   = queryset.filter(shelf_status=Product.UP_SHELF)
+        p_count = queryset.count()
+        for product in queryset:
             product.normal_skus.update(remain_num=models.F('quantity'))
-            log_action(request.user.id,product,CHANGE,u'更新商品库存数至预留数')
+            log_sign = self.get_product_logsign(product)
+            log_action(request.user.id,product,CHANGE,u'库存更新预留数:%s'%log_sign)
             if product.normal_skus.count() == 0:
                 continue
             product_sku = product.normal_skus[0]
             post_save.send(sender=ProductSku,instance=product_sku)
             
-        self.message_user(request,u"已成功更新%s个商品的预留数!"%downshelfs.count())
-        self.message_user(request,u"有%s个商品因已上架没有更新预留数!"%upshelfs.count())
+        self.message_user(request,u"已成功更新%s个商品的预留数!"%p_count)
+#         self.message_user(request,u"有%s个商品因已上架没有更新预留数!"%upshelfs.count())
         return HttpResponseRedirect(request.get_full_path())
         
     update_quantity2remain_action.short_description = u"更新商品库存为预留数"
@@ -589,7 +595,6 @@ class ProductAdmin(MyAdmin):
         mos = MergeOrder.objects.filter(outer_id__in=outer_ids,
                                     merge_trade__sys_status__in=(MergeTrade.WAIT_PREPARE_SEND_STATUS,
                                                                  MergeTrade.WAIT_AUDIT_STATUS))
-        
         merge_trades = set([o.merge_trade for o in mos])
         effect_num = 0
         for t in merge_trades:
@@ -661,10 +666,7 @@ class ProductAdmin(MyAdmin):
             self.message_user(request,u"有%s个商品未核对，请核对后才能上架!"%unverify_qs.count())
         
         for product in up_queryset:
-            log_sign = '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(product.collect_num,
-                                                                product.wait_post_num,
-                                                                product.remain_num,
-                                                                product.lock_num)
+            log_sign = self.get_product_logsign(product)
             log_action(request.user.id,product,CHANGE,u'上架商品:%s'%log_sign)
         self.message_user(request,u"已成功上架%s个商品,有%s个商品上架失败!"%(up_queryset.count(),down_queryset.count()))
         return HttpResponseRedirect(request.get_full_path())
@@ -686,10 +688,7 @@ class ProductAdmin(MyAdmin):
         
         self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))
         for product in down_queryset:
-            log_sign = '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(product.collect_num,
-                                                                product.wait_post_num,
-                                                                product.remain_num,
-                                                                product.lock_num)
+            log_sign = self.get_product_logsign(product)
             log_action(request.user.id,product,CHANGE,u'下架商品:%s'%log_sign)
         
         return HttpResponseRedirect(request.get_full_path())
