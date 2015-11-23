@@ -24,11 +24,12 @@ class XiaoluMamaAdmin(MyAdmin):
     user_groups = []
     
     form = forms.XiaoluMamaForm
-    list_display = ('id','mobile','get_cash_display','total_inout_item','weikefu','agencylevel',
+    list_display = ('id','mama_data_display','get_cash_display','total_inout_item','weikefu','agencylevel',
                     'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status','referal_from','mama_Verify')
     list_filter = ('progress','agencylevel','manager','status','charge_status','hasale',('charge_time',DateFieldListFilter),'user_group')
     search_fields = ['=id','=mobile','=manager','weikefu','=openid','=referal_from']
     list_per_page = 25
+    list_display_links = ('mama_data_display', )
     
     
     def get_changelist(self, request, **kwargs):
@@ -132,8 +133,16 @@ class XiaoluMamaAdmin(MyAdmin):
             return (u'没有交押金')
         else:
             return (u'已经审核')
+
     mama_Verify.allow_tags = True
     mama_Verify.short_description = u"妈妈审核"
+
+    def mama_data_display(self, obj):
+        html = u'<a href="/m/xlmm_info/?id={1}" target="_blank">{0}</a>'
+        return html.format(obj.mobile, obj.id)
+
+    mama_data_display.allow_tags = True
+    mama_data_display.short_description = u"妈妈信息"
     
     class Media:
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css"

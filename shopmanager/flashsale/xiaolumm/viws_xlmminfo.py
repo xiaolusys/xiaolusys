@@ -72,6 +72,7 @@ def carry_Log_By_date(left, right, xlmm):
     sum_agency = carry_Log(xlmm, left, right, log_type=CarryLog.AGENCY_SUBSIDY)  # 确定的记录
     sum_mama_rec = carry_Log(xlmm, left, right, log_type=CarryLog.MAMA_RECRUIT)  # 确定的记录
     sum_red_pac = carry_Log(xlmm, left, right, log_type=CarryLog.ORDER_RED_PAC)  # 确定的记录
+    sum_recharge = carry_Log(xlmm, left, right, log_type=CarryLog.RECHARGE)  # 确定的记录
 
     sum_order_rebp_ending = carry_Log(xlmm, left, right, log_type=CarryLog.ORDER_REBETA, status=CarryLog.PENDING)
     sum_click_pending = carry_Log(xlmm, left, right, log_type=CarryLog.CLICK_REBETA, status=CarryLog.PENDING)
@@ -82,7 +83,7 @@ def carry_Log_By_date(left, right, xlmm):
     sum_red_pac_pending = carry_Log(xlmm, left, right, log_type=CarryLog.ORDER_RED_PAC, status=CarryLog.PENDING)
 
     sum_detail_confirm = [sum_order_reb, sum_order_buy, sum_refund, sum_click, sum_cash, sum_deposit, sum_thound,
-                          sum_agency, sum_mama_rec, sum_red_pac]
+                          sum_agency, sum_mama_rec, sum_red_pac, sum_recharge]
     sum_detail_pending = [sum_order_rebp_ending, sum_click_pending,
                           sum_thound_pending, sum_agency_pending, sum_mama_rec_pending, sum_red_pac_pending]
 
@@ -91,23 +92,26 @@ def carry_Log_By_date(left, right, xlmm):
 
 class XlmmInfo(View):
     template = 'xlmm_info/xlmm_info.html'
+    date = datetime.date.today()
 
-    def get(self, request):
-        date = datetime.date.today()
-        data = {"xlmm": 0, "left_date": date, "right": date}
-        return render_to_response(self.template, data, context_instance=RequestContext(request))
-
-    def post(self, request):
+    def handler_date(self, request):
         content = request.REQUEST
         left = content.get('date_from', None)
         right = content.get('date_to', None)
-        xlmm = map(int, [content.get('xlmm', 0)])[0]
-
+        if right is None or left is None:
+            right = datetime.date.today()
+            left = right - datetime.timedelta(days=15)
+            return left, right
         year, month, day = map(int, right.split('-'))
         right_date = datetime.date(year, month, day)
         year, month, day = map(int, left.split('-'))
         left_date = datetime.date(year, month, day)
+        return left_date, right_date
 
+    def calcu_data(self, request):
+        content = request.REQUEST
+        left_date, right_date = self.handler_date(request)
+        xlmm = map(int, [content.get('id', 0)])[0]
         carry_log_all_sum, sum_detail_confirm, sum_detail_pending = carry_Log_By_date(left_date, right_date, xlmm)
         clickcounts = click_Count(xlmm, left_date, right_date)  # 点击状况
         total_clicks = clickcounts.aggregate(clis=Sum('valid_num')).get('clis') or 0  # 点击总数
@@ -115,15 +119,24 @@ class XlmmInfo(View):
         total_orders = order_counts.count()  # 订单总数(不包含取消的)
 
         xlmm_obj = XiaoluMama.objects.get(id=xlmm)
+
         allcarrylogs = CarryLog.objects.filter(xlmm=xlmm, carry_date__gte=left_date, carry_date__lte=right_date)
         referals = referal_From(xlmm_obj.mobile)  # 推荐代理状况
         refs_num = referals.count()
         data = {"xlmm_obj": xlmm_obj, "clickcounts": clickcounts, "carry_log_all_sum": carry_log_all_sum,
                 "order_counts": order_counts, "referals": referals, "allcarrylogs": allcarrylogs,
                 "xlmm": xlmm, "left_date": left_date,
-                "right": right, "sum_detail_pending": sum_detail_pending,
+                "right": right_date, "sum_detail_pending": sum_detail_pending,
                 "sum_detail_confirm": sum_detail_confirm, 'total_clicks': total_clicks,
                 'total_orders': total_orders, 'refs_num': refs_num}
+        return data
+
+    def get(self, request):
+        data = self.calcu_data(request)
+        return render_to_response(self.template, data, context_instance=RequestContext(request))
+
+    def post(self, request):
+        data = self.calcu_data(request)
         return render_to_response(self.template, data, context_instance=RequestContext(request))
 
 
@@ -215,8 +228,6 @@ class XlmmExit(object):
         self.modify_xlmm_base_info(self.xlmm)  # 修改该代理账户 基本信息
         self.modify_lowest_uncoushout(xlmm)
         return flush_value / 100.0
-
-
 
 
 def xlmmExitAction(request):
