@@ -95,6 +95,9 @@
 .cost .label2{
   padding:14px 0 24px 86px;
 }
+.cost .label3,.cost .label4{
+  padding:14px 0 0px 86px;
+}
 .cost p{
   margin-right: 60px;
 }

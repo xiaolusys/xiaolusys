@@ -51,10 +51,10 @@
   $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
   $('.cart').listencart();
   //设置潮童商品列表
-  var urlParams = parseUrlParams(window.location.href);
   var req_url   = GLConfig.get_childlist_url;
-  if (!isNone(urlParams['order_by'])){
-  	req_url += '?'+$.param({order_by:urlParams['order_by']})
+  var order_by  = getUrlParam('order_by');
+  if (!isNone(order_by)){
+  	req_url += '?'+$.param({order_by:order_by})
   }
   Set_category_product(req_url);
   Set_shopcarts_num();

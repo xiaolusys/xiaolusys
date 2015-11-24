@@ -151,8 +151,7 @@ function Button_tijiao() {
     var description = $("#description").val();
     var shenqingjine = $("#shenqingjine").val();
 
-    var urlParams = parseUrlParams(window.location.href);
-    var modify = urlParams['modify'];  // 是否是修改内容
+    var modify = getUrlParam('modify');  // 是否是修改内容
     if (modify) {
         modify = 1;// 不是修改页面来的
     }
@@ -175,9 +174,7 @@ function Button_tijiao() {
             "modify": modify
             //,'proof_pic': proof_pic
         };
-
         var url = GLConfig.baseApiUrl + GLConfig.refunds;
-
         function refundcallback() {
             window.location.href = "../pages/wodetuihuo.html";
         };

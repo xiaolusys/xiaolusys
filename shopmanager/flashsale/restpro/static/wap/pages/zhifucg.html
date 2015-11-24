@@ -34,7 +34,7 @@ var NTKF_PARAM = {
 <script type="text/javascript">
 window.onload = function(){
 	//$('.ui-loader').remove();
-	var trade_no = parseUrlParams(window.location.href)['out_trade_no'];
+	var trade_no = getUrlParam('out_trade_no');
 	if (!isNone(trade_no)){
 		// 获取订单信息
 		var requestUrl = GLConfig.baseApiUrl + GLConfig.get_trade_all_url;

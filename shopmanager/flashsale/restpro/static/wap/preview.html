@@ -215,7 +215,7 @@ function scroll_top(e){
     $('body').animate({scrollTop: 0}, 400);
 }
 function change_pagination(){
-	var now_day = parseUrlParams(window.location.href)['days'] || '0';
+	var now_day = getUrlParam('days') || '0';
 	if (isNaN(now_day)){
 		drawToast('日期参数错误：'+now_day);
 		return;

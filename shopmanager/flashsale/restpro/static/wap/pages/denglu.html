@@ -50,7 +50,7 @@
 function login(e){
 	e.preventDefault();
 	var redirect_url = $(this).attr('href');
-	var next = parseUrlParams(window.location.href)['next'];
+	var next = getUrlParam('next');
 	if (isNone(next)){
 		window.location = redirect_url;
 	}else{

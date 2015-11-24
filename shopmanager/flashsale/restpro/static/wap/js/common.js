@@ -41,15 +41,11 @@ function isNone(value) {
     return typeof(value) == 'undifined' || value == null
 }
 
-function parseUrlParams(myUrl) {
-    var vars = [], hash;
-    var hashes = window.location.href.slice(myUrl.indexOf('?') + 1).split('&');
-    for (var i = 0; i < hashes.length; i++) {
-        hash = hashes[i].split('=');
-        vars.push(hash[0]);
-        vars[hash[0]] = hash[1];
-    }
-    return vars;
+function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]);
+    return null; 
 }
 
 //定义多行字符串函数实现

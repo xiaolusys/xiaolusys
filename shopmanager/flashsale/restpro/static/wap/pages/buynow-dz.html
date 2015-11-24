@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>小鹿美美</title>
+<meta charset="UTF-8">
+<meta name="format-detection" content="telephone=no"/>
+<meta name="format-detection" content="email=no"/>
+<meta id="viewport" name="viewport" />
+<script src="../js/common.js"></script>
+<link rel="stylesheet" href="../css/common.css">
+<link rel="stylesheet" href="../css/gouwuche.css">
+<link rel="stylesheet" href="../css/queren-dd.css">
+<link rel="stylesheet" href="../css/shouhuodz.css">
+<script id="ntkf_template" type="text/html">
+var NTKF_PARAM = {
+	siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
+	settingid:"kf_9645_1444459002183",		//缺省客服配置ID，必填，取值参见文档开始表
+	uid:"{{profile.id}}",		//用户ID,未登录可以为空
+	uname:"{{profile.nick}}",		//用户名，未登录可以为空
+	isvip:"0" ,         //是否为vip用户
+	userlevel:"1" ,    //网站自定义会员级别
+	orderid:"{{trade.uuid}}",		//订单ID,
+	orderprice:"{{trade.total_payment}}"		//订单总价,
+};
+</script>
+</head>
+<body>
+<div class="header">
+  <h1>确认订单</h1>
+  <a class="back" href="javascript:history.go(-1)"></a>
+  <a class="user" href="gerenzhongxin.html" target="_parent"></a>
+</div>
+
+<div class="add">
+    <a>
+        <i onclick=" jump_add_address()" ></i>
+        <p class="p2">新增收货地址</p>
+    </a>
+</div>
+<ul id="js-addr" class="addr">
+  <script id="addr-template" type="text/html">
+  <li class="{{ addr_class }}" name="select-addr">
+      <a href="shouhuodz.html" target="_parent">
+        <p class="label3">收货人：{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
+        <p class="label4">收货地址：{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}-{{receiver_address}}</p>
+        <a class="icon-edit" href="shouhuodz-edit.html?id={{ id }}" target="_parent"></a>
+        <i class="icon-radio" addrid={{ id }}></i>
+  	  </a>
+  </li>
+  </script>
+</ul>
+
+<div class="cost">
+  <h2>商品支付详情</h2>
+  <div id="item-list" class="cart-list">
+    <script id="form-template" type="text/html">
+      <form id="pay-form" action="#" method="POST">
+		<div class="item" >
+		  <div class="gpic"><img src="{{ sku.product.pic_path }}"></div>
+		  <div class="gname">{{ sku.product.name }}</div>
+		  <div class="gprice">¥ <span class="item_price" id="itemprice_{{ sku.id }}">{{ sku.agent_price }}</span></div>
+		  <div class="gsize">尺码：{{ sku.name }}</div>
+		  <div class="goprice"><s>¥{{ sku.std_sale_price }}</s></div>
+		  <div class="gcount">
+		    <div class="btn reduce" onclick="minus_shop({{ sku.id }})" name="btn-reduce"></div>
+		    <div class="total">
+		      <input type="number" name="num" readonly id="num_{{ sku.id }}" value="1">
+		    </div>
+		    <div class="btn plus" onclick="plus_shop({{ sku.id }})" name="btn-plus"></div>
+		  </div>
+		</div>
+		<input type="hidden" name="uuid" value="{{uuid}}" />
+		<input type="hidden" name="item_id" value="{{sku.product.id}}" />
+		<input type="hidden" name="sku_id" value="{{sku.id}}" />
+		<input type="hidden" name="pre_payment" value="{{ pre_payment }}" />
+		<input type="hidden" name="post_fee" value="{{ post_fee }}" />
+		<input type="hidden" name="agent_price" value="{{ sku.agent_price }}" />
+		<input type="hidden" name="discount_fee" value="{{ presale_off }}" />
+		<input type="hidden" name="total_fee" value="{{ total_fee }}" />
+		<input type="hidden" name="buyer_message" value="{{ buyer_message }}" />
+      </form>
+    </script>
+  </div>
+  <div>
+    <p class="label1 dingjin">预付定金<span>¥ 0</span></p>
+    <p class="label3 youfei grey">包裹运费<span >¥ 0</span></p>
+    <p class="label4 zongjine grey">商品总金额<span id="total_money" >¥ 0</span></p>
+    <p class="label2 weijin grey">尾金（预定成功后支付）<span >¥ 0</span></p>
+  </div>
+  <div class="message">
+	<label>留言：</label><textarea id="id_buyer_message" rows="4" placeholder="选填：给卖家留言(限30字)" size="30" value="{{ buyer_message }}" class="" ></textarea>
+	<!-- onfocus="messFocusCtrl(this);" onblur="messBluCtrl(this);" -->
+  </div>
+</div>
+
+<div class="pay-type">
+  <h2>支付方式</h2>
+  <ul id="js-pay-type" class="pay-list">
+<!--  	<li><i></i>货到付款（现金）</li>-->
+  </ul>
+</div>
+<div class="buy-dz">
+  <a class="btn btn-buy-dz">预&nbsp;&nbsp;定</a>
+</div>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.js"></script>
+<script src="../js/pingpp_pay.js"></script>
+<script src="../js/pingpp_ap.js"></script>
+<script src="../js/dingzhi.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  $('.ui-loader').remove();
+  //支付方式切换
+  $(document).on({
+    tap:change_paytype,
+  },'#js-pay-type li');
+  //获取用户地址
+  Set_user_address(GLConfig.get_user_address);
+  //获取用户优惠券
+  //Set_user_coupons(GLConfig.today_suffix);
+  //获取购买信息
+  var urlParams = window.location.href.split('?')[1];
+  Set_dzorder_info(GLConfig.get_now_payinfo_url+'?'+urlParams);
+  
+  //显示优惠券并绑定付款事件
+  $(document).on({
+  	tap:Confirm_charge,
+  	touchstart:btnPresse,
+  	touchend:btnUnpresse,
+  },'.buy .btn-buy');
+});
+//页面只显示一个地址，点击跳转到地址管理页面
+function jump_shouhuodz() { //跳转地址管理页面
+    window.location = "shouhuodz.html";
+}
+function jump_add_address(){
+    window.location = "shouhuodz-add.html";
+}
+function change_paytype(){
+    $('#js-pay-type li.active').removeClass('active').addClass('normal');
+    $(this).removeClass('normal').addClass('active');
+};
+function Confirm_charge(e){
+    Ctrl_sure_charge(GLConfig.get_buynow_url);
+};
+</script>
+</body>
+</html>
