@@ -13,7 +13,7 @@ class Register(models.Model):
     MAX_SUBMIT_TIMES  = 6
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
-    cus_uid      = models.BigIntegerField(db_index=True,null=True,verbose_name=u"客户ID")
+    cus_uid      = models.BigIntegerField(db_index=True,default=0,null=True,verbose_name=u"客户ID")
     vmobile      = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
     verify_code  = models.CharField(max_length=8,blank=True,verbose_name=u"验证码")
     
@@ -57,7 +57,18 @@ class Register(models.Model):
             return False
         return True
     
-
+    def is_submitable(self):
+        if self.submit_count > self.MAX_SUBMIT_TIMES:
+            return False
+        return True
+    
+    def check_code(self,vcode):
+        if self.verify_code and self.verify_code == vcode:
+            return True
+        self.submit_count += 1
+        self.save()
+        return False
+        
     
 class Customer(models.Model):
     
