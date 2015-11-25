@@ -220,7 +220,36 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
+    
+    @list_route(methods=['get','post'])
+    def create_customer(self, request, **kwargs):
+        """根据手机号和验证码创建用户账户"""
+        content = request.REQUEST
+        mobile  = content.get('mobile')
+        vcode   = content.get('vcode')
 
+        registers = Register.objects.filter(vmobile=mobile)
+        if registers.count() == 0:
+            raise exceptions.APIException('未匹配到手机号')
+        
+        register = registers[0]
+        if not register.is_submitable():
+            raise exceptions.APIException('验证达到上限，请联系管理员')
+        
+        if not register.check_code(vcode):
+            return Response({'result':0,
+                             'try_times':register.submit_count,
+                             'limit_times':Register.MAX_SUBMIT_TIMES})
+        
+        customers = Customer.objects.filter(mobile=mobile, status=Customer.NORMAL) 
+        if customers.count() > 0:
+            customer = customers[0]
+        else:
+            duser,state = DjangoUser.objects.get_or_create(username='mobile', is_active=True)
+            customer,state = Customer.objects.get_or_create(mobile=mobile,user=duser)
+        
+        return Response({'result':1,'mobile':mobile,'uid':customer.id})
+    
     @list_route(methods=['post'])
     def customer_login(self, request):
         """验证用户登录"""
@@ -496,7 +525,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
-
+    
     @list_route(methods=['post'])
     def passwd_set(self, request):
         """初始化密码"""
