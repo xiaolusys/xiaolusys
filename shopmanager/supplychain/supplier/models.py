@@ -274,15 +274,14 @@ class SaleProduct(models.Model):
 from django.db.models.signals import pre_save, post_save
 from common.modelutils import update_model_fields
 
-def update_saleproduct_supplier(sender, instance, raw, **kwargs):
+def update_saleproduct_supplier(sender, instance, **kwargs):
     """
         如果选品录入，则更新供应商品最后选品日期,最后上架日期
     """
-    print 'sender:',sender
     if sender == SaleProduct:
         sale_supplier = instance.sale_supplier
-        if (sale_supplier.last_select_time and
-            instance.created < sale_supplier.last_select_time):
+        if (not sale_supplier or  (sale_supplier.last_select_time and
+            instance.created < sale_supplier.last_select_time)):
             return 
         sale_supplier.last_select_time = instance.created
         update_model_fields(sale_supplier,update_fields=['last_select_time'])
@@ -292,8 +291,8 @@ def update_saleproduct_supplier(sender, instance, raw, **kwargs):
             return 
         sale_supplier = sale_products[0].sale_supplier
         sale_manage   = instance.schedule_manage
-        if (sale_supplier.last_schedule_time and
-            sale_manage.sale_time < sale_supplier.last_schedule_time.date()):
+        if (not sale_supplier or (sale_supplier.last_schedule_time and
+            sale_manage.sale_time < sale_supplier.last_schedule_time.date())):
             return 
         sale_supplier.last_schedule_time = sale_manage.sale_time
         update_model_fields(sale_supplier,update_fields=['last_schedule_time'])
