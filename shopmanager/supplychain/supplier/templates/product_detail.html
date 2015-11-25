@@ -66,7 +66,6 @@
                     <input type="hidden" name="product_link" value="{{ fetch_url }}"/>
                     <input type="hidden" name="status" value="{{ status }}"/>
                     <input type="hidden" name="memo" value="{{ memo }}"/>
-
                     <div class="col-xs-4">
                         <div class="thumbnail">
                             <a href="{{ fetch_url }}" target="_blank">
@@ -76,9 +75,7 @@
                     </div>
                     <div class="col-xs-4">
                         <p><textarea rows="3" cols="20" name="title" class="form-control">{{ title }}</textarea></p>
-
                         <p>售价:<input name="price" placeholder="价格*必填" class="form-control" value="{{ price }}"/></p>
-
                         <p>类别:
                             <select class="form-control input" name="sale_category">
                                 {% for cat in categorys %}

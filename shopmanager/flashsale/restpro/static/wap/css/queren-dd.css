@@ -308,6 +308,8 @@
 	display:inline;
 	width:510px;
 	height:40px;
+	font-size: 22px;
+    margin-top: 10px;
 	text-aligin:bottom;
-	border-bottom: 1px solid #5f5f5e;
+	border-bottom: 1px solid #83837E;
 }

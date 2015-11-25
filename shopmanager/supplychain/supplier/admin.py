@@ -258,7 +258,6 @@ class SaleProductAdmin(MyAdmin):
                    , ('memo',), ('voting',)
                    )}),)
 
-    #
     def outer_id_link(self, obj):
 
         test_link = u'<div style="width:120px;font-size:12px;"><a href="/admin/supplier/saleproduct/{0}/" onclick="return showTradePopup(this);">{1}</a>'.format(
