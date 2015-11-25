@@ -57,6 +57,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     - {prefix}/change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
     - {prefix}/change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
     - {prefix}/wxapp_login: `params= {headimgurl,nickname,openid,unionid}`
+    - {prefix}/check_vcode: mobile,vcode ,检查验证码;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -222,7 +223,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         return Response({"result": "0"})
     
     @list_route(methods=['get','post'])
-    def create_customer(self, request, **kwargs):
+    def check_vcode(self, request, **kwargs):
         """根据手机号和验证码创建用户账户"""
         content = request.REQUEST
         mobile  = content.get('mobile')
