@@ -306,28 +306,13 @@
                     {% ifequal record.status '通过' %}
                     <p><label class="label label-success">上架时间:</label>
                         <input type="text" id="id-sale-time-{{ forloop.counter }}" class="datepicker "
-                               value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/></p>
-
-                    <p><label class="label  label-success">吊牌价:</label>
-                        <input type="text" id="id-std-sale-price-{{ forloop.counter }}"
-                               value="{{ record.std_sale_price }}" style="width:30%;"/>
-                        <label class="label  label-success">出售价:</label>
-                        <input type="text" id="id-on-sale-price-{{ forloop.counter }}"
-                               value="{{ record.on_sale_price }}" style="width:30%;"/>
+                            value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/>
                     </p>
                     {% endifequal %}
                     {% ifequal record.status '排期' %}
                     <p><label class="label label-success">上架时间:</label>
                         <input type="text" id="id-sale-time-{{ forloop.counter }}" name="dt" class="datepicker "
                                value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/></p>
-
-                    <p><label class="label  label-success">吊牌价:</label>
-                        <input type="text" id="id-std-sale-price-{{ forloop.counter }}"
-                               value="{{ record.std_sale_price }}" style="width:30%;"/>
-                        <label class="label  label-success">出售价:</label>
-                        <input type="text" id="id-on-sale-price-{{ forloop.counter }}"
-                               value="{{ record.on_sale_price }}" style="width:30%;"/>
-                    </p>
                     {% endifequal %}
                     {% endif %}
                     <p style="margin-top:10px">备注：</p><textarea rows="1" cols="20" class="form-control"
