@@ -271,6 +271,47 @@ class SaleProduct(models.Model):
     def __unicode__(self):
         return self.title
 
+from django.db.models.signals import pre_save, post_save
+from common.modelutils import update_model_fields
+
+def update_saleproduct_supplier(sender, instance, raw, **kwargs):
+    """
+        如果选品录入，则更新供应商品最后选品日期,最后上架日期
+    """
+    print 'sender:',sender
+    if sender == SaleProduct:
+        sale_supplier = instance.sale_supplier
+        if (sale_supplier.last_select_time and
+            instance.created < sale_supplier.last_select_time):
+            return 
+        sale_supplier.last_select_time = instance.created
+        update_model_fields(sale_supplier,update_fields=['last_select_time'])
+    elif sender == SaleProductManageDetail:
+        sale_products = SaleProduct.objects.filter(id=instance.sale_product_id)
+        if not sale_products.exists():
+            return 
+        sale_supplier = sale_products[0].sale_supplier
+        sale_manage   = instance.schedule_manage
+        if (sale_supplier.last_schedule_time and
+            sale_manage.sale_time < sale_supplier.last_schedule_time.date()):
+            return 
+        sale_supplier.last_schedule_time = sale_manage.sale_time
+        update_model_fields(sale_supplier,update_fields=['last_schedule_time'])
+    
+post_save.connect(update_saleproduct_supplier, SaleProduct)
+
+def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
+    try:
+        product = SaleProduct.objects.get(id=instance.id)
+        #如果上架时间修改，则重置is_verify
+        if (product.status == SaleProduct.SCHEDULE and 
+            (product.sale_time != instance.sale_time or product.status != instance.status)):
+            instance.is_changed = True
+            update_model_fields(instance,update_fields=['is_changed'])
+    except SaleProduct.DoesNotExist:
+        pass
+    
+pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
 
 class SaleProductManage(models.Model):
     sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
@@ -349,21 +390,8 @@ class SaleProductManageDetail(models.Model):
         ]
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.sale_product_id)
-
-from django.db.models.signals import pre_save
-from common.modelutils import update_model_fields
-def change_saleprodut_by_pre_save(sender, instance, raw, *args, **kwargs):
-    try:
-        product = SaleProduct.objects.get(id=instance.id)
-        #如果上架时间修改，则重置is_verify
-        if (product.status == SaleProduct.SCHEDULE and 
-            (product.sale_time != instance.sale_time or product.status != instance.status)):
-            instance.is_changed = True
-            update_model_fields(instance,update_fields=['is_changed'])
-    except SaleProduct.DoesNotExist:
-        pass
     
-pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
+post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)
 
 
 class SaleProductSku(models.Model):

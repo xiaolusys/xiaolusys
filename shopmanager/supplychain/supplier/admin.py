@@ -42,7 +42,7 @@ class SaleSupplierChangeList(ChangeList):
 class SaleSupplierAdmin(MyAdmin):
     list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link', 'level',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
-                    'category_select', 'progress', 'last_select_time', 'created', 'memo_well')
+                    'category_select', 'progress', 'last_select_time', 'last_schedule_time', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 

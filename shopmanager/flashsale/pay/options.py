@@ -28,12 +28,25 @@ def valid_openid(openid):
         return False
     return True 
 
+def get_cookie_openid(cookies,appid):
+    x = cookies.get('sopenid','').split('-')
+    y = cookies.get('sunionid','').split('-')
+    if len(x) < 2 or len(y) <2 or x[0] != y[0] or y[0] != appid:
+        return ('','')
+    return (x[1], y[1])
+
+def set_cookie_openid(response,appid,openid,unionid):
+    sopenid = '%s-%s'%(appid,openid)
+    sunionid = '%s-%s'%(appid,unionid)
+    response.set_cookie("sopenid",sopenid)
+    response.set_cookie("sunionid",sunionid)
+    return response
+    
 def get_user_unionid(code, 
                     appid='', 
                     secret='',
                     request=None):
-    
-    
+
     debug_m   = settings.DEBUG
     content   = {}
     if not debug_m and request: 
@@ -49,8 +62,7 @@ def get_user_unionid(code,
         return ('','')
     
     if not code and request:
-        cookies = request.COOKIES 
-        return (cookies.get('sopenid'), cookies.get('sunionid'))
+        return get_cookie_openid(request.COOKIES, appid)
     
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
     get_openid_url = url % (appid, secret, code)

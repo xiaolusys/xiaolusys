@@ -143,7 +143,7 @@ class SaleRefund(models.Model):
         from flashsale.pay.models import SaleOrder,SaleTrade
         sorder = SaleOrder.objects.get(id=self.order_id)
         sorder.refund_status = SaleRefund.REFUND_SUCCESS
-        if sorder.sale_trade.status in (
+        if sorder.status in (
             SaleTrade.WAIT_SELLER_SEND_GOODS,
             SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
             SaleTrade.TRADE_BUYER_SIGNED):

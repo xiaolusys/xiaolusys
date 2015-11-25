@@ -32,7 +32,6 @@ def index(request):
     dt = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=36000), "%a, %d-%b-%Y %H:%M:%S GMT")
     response=render(request, 'index.html')
     #response.set_cookie("openid", "多选测试")
-    
    # print "这里是 zuixin"
     response.set_cookie("unionid", user_unionid, expires=dt)
     return response

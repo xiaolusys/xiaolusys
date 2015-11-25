@@ -6,9 +6,7 @@
 <script src="{{ STATIC_URL }}jquery/jquery.js"></script>
 <script>
     $(document).ready(function() {
-    	
     	$('form').submit(function(e){
-    		
     		if ( window.location.href.indexOf('_popup') < 0){
     			return true;
     		}
@@ -26,8 +24,16 @@
 		    $.each(form_array,function(i, n){
 		        params[n['name']] = n['value'];
 		    });
-    		console.log('array:',params);
-    		$.post(form.attr('action'),params,callback);
+    		console.log('params:',params);
+    		$.ajax({ 
+		        type:'post', 
+		        url:form.attr('action'), 
+		        data:params, 
+		        success:callback ,
+		        error:function(err){
+		            alert('保存出错：'+err.responseText);
+		        }
+		    }); 
     		return false;
     	});
     });
