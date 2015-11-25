@@ -64,6 +64,8 @@ class Register(models.Model):
     
     def check_code(self,vcode):
         if self.verify_code and self.verify_code == vcode:
+            self.submit_count = 0
+            self.save()
             return True
         self.submit_count += 1
         self.save()
