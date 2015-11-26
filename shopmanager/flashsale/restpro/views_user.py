@@ -238,16 +238,16 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({'result':1,
                              'try_times':register.submit_count,
                              'limit_times':Register.MAX_SUBMIT_TIMES,
-                             'error_msg':'验证失败'})
+                             'error_msg':'手机验证失败'})
         
-        customers = Customer.objects.filter(mobile=mobile, status=Customer.NORMAL) 
-        if customers.count() > 0:
-            customer = customers[0]
-        else:
-            duser,state = DjangoUser.objects.get_or_create(username='mobile', is_active=True)
-            customer,state = Customer.objects.get_or_create(mobile=mobile,user=duser)
+#         customers = Customer.objects.filter(mobile=mobile, status=Customer.NORMAL) 
+#         if customers.count() > 0:
+#             customer = customers[0]
+#         else:
+#             duser,state = DjangoUser.objects.get_or_create(username='mobile', is_active=True)
+#             customer,state = Customer.objects.get_or_create(mobile=mobile,user=duser)
         
-        return Response({'result':0,'mobile':mobile,'uid':customer.id})
+        return Response({'result':0,'mobile':mobile,'valid_code':vcode})
     
     @list_route(methods=['post'])
     def customer_login(self, request):

@@ -516,7 +516,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
     filter_fields = ('tid',)
-    paginate_by = 25
+    paginate_by = 15
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
