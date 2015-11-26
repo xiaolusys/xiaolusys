@@ -49,6 +49,9 @@
             <th>24小时外</th>
             <th>发货后</th>
             <th>同款销量</th>
+            <th>接洽人</th>
+            <th>上架时间</th>
+            <th>供应商</th>
         </tr>
         </thead>
         <tbody id="table_tbody">
@@ -66,8 +69,8 @@
 
 
 <script>
-    function test_fo_data(){
-        addItem([1,2,3,4,5,6]);
+    function test_fo_data() {
+        addItem([1, 2, 3, 4, 5, 6]);
     }
     var pageNumber = 1;
 
@@ -116,7 +119,10 @@
                     obj.ref_num_in,
                     obj.ref_num_out,
                     obj.ref_sed_num,
-                    obj.same_mod_sale_num
+                    obj.same_mod_sale_num,
+                    obj.pro_contactor,
+                    obj.sale_time,
+                    obj.pro_supplier
                 ]);
 
                 total_out += obj.ref_num_out;
