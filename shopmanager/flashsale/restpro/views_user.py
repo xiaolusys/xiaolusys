@@ -53,11 +53,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     """
     ### 特卖平台 用户注册,修改密码API：
     - {prefix}/[.format]: `params={vmobile}` 注册新用户时，获取验证码;
-    - {prefix}/check_code_user: `params={username,valid_code}` 注册新用户;
+    - {prefix}/check_code_user: `params={username,valid_code}` 校验验证码（旧）;
     - {prefix}/change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
     - {prefix}/change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
-    - {prefix}/wxapp_login: `params= {headimgurl,nickname,openid,unionid}`
-    - {prefix}/check_vcode: mobile,vcode ,检查验证码;
+    - {prefix}/wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
+    - {prefix}/check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
