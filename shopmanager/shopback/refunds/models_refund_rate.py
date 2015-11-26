@@ -7,6 +7,8 @@ from django.db.models import Sum
 from shopback.items.models import Product
 from shopback.items.models import ProductDaySale
 from flashsale.pay.models_refund import SaleRefund
+from django.contrib.auth.models import User
+from supplychain.supplier.models import SaleProduct
 
 
 class PayRefundRate(models.Model):
@@ -115,3 +117,32 @@ class ProRefunRcord(models.Model):
             return pro.pic_path
         else:
             return None
+
+    def pro_contactor(self):
+        """　接洽人　"""
+        try:
+            user = User.objects.get(id=self.contactor)
+            return user.username
+        except User.DoesNotExist:
+            return None
+
+    def sale_time(self):
+        """ 上架时间　"""
+        pro = self.item_product()
+        if pro is not None:
+            return pro.sale_time
+        return None
+
+    def pro_supplier(self):
+        """ 供应商　"""
+        try:
+            pro = self.item_product()
+            sale_product = pro.sale_product
+            sal_pro = SaleProduct.objects.get(id=sale_product)
+            supplier_name = sal_pro.sale_supplier.supplier_name
+            return supplier_name
+        except:
+            return None
+
+
+
