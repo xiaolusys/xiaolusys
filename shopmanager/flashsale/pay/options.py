@@ -29,15 +29,15 @@ def valid_openid(openid):
     return True 
 
 def get_cookie_openid(cookies,appid):
-    x = cookies.get('sopenid','').split('-')
-    y = cookies.get('sunionid','').split('-')
+    x = cookies.get('sopenid','').split('|')
+    y = cookies.get('sunionid','').split('|')
     if len(x) < 2 or len(y) <2 or x[0] != y[0] or y[0] != appid:
         return ('','')
     return (x[1], y[1])
 
 def set_cookie_openid(response,appid,openid,unionid):
-    sopenid = '%s-%s'%(appid,openid)
-    sunionid = '%s-%s'%(appid,unionid)
+    sopenid = '%s|%s'%(appid,openid)
+    sunionid = '%s|%s'%(appid,unionid)
     response.set_cookie("sopenid",sopenid)
     response.set_cookie("sunionid",sunionid)
     return response
