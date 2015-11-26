@@ -83,10 +83,11 @@ class ModelProductSerializer(serializers.ModelSerializer):
     head_imgs = JsonListField(read_only=True,required=False)
     content_imgs = JsonListField(read_only=True,required=False)
     is_single_spec = serializers.BooleanField(read_only=True)
+    is_sale_out = serializers.BooleanField(read_only=True)
     
     class Meta:
         model = ModelProduct
-        fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'buy_limit', 'per_limit')
+        fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     
@@ -119,7 +120,7 @@ class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo', 'lowest_price',
-                   'product_model','ware_by','is_verify',"model_id", "sale_charger")
+                   'product_model','product_lowest_price','ware_by','is_verify',"model_id", "sale_charger")
 
 
 class JSONParseField(serializers.Field):
@@ -249,7 +250,7 @@ class UserIntegralLogSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = IntegralLog
-        fields = ('id', 'integral_user', 'mobile', 'order', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
+        fields = ('id', 'integral_user', 'mobile', 'order_info', 'log_value', 'log_status', 'log_type', 'in_out', 'created','modified')
 
 
 class UserCouponSerializer(serializers.ModelSerializer):
@@ -271,7 +272,7 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
         model = TradeWuliu
         exclude=()
 
-from flashsale.pay.models_coupon_new import CouponsPool, CouponTemplate, UserCoupon
+from flashsale.pay.models_coupon_new import UserCoupon
 
 
 class UsersCouponSerializer(serializers.ModelSerializer):
@@ -282,11 +283,13 @@ class UsersCouponSerializer(serializers.ModelSerializer):
     poll_status = serializers.IntegerField(source='cp_id.status', read_only=True)
     coupon_value = serializers.FloatField(source='cp_id.template.value', read_only=True)
     valid = serializers.BooleanField(source='cp_id.template.valid', read_only=True)
+    use_fee = serializers.FloatField(source='cp_id.template.use_fee', read_only=True)
 
     class Meta:
         model = UserCoupon
-        fields = ("id", "cp_id", "coupon_type",'title', "customer",'coupon_no','coupon_value','valid','poll_status',
-                  "deadline", "sale_trade", "status", "created", "modified")
+        # remove the "cp_id" field, test for browser solwly
+        fields = ("id",  "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
+                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee')
 
 from shopapp.weixin.models import WXOrder
 

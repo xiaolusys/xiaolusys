@@ -24,8 +24,10 @@ from shopback.base.models import JSONCharMyField
 from shopback.base import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
 
-FLASH_SELLER_ID = 'flashsale'
+FLASH_SELLER_ID  = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
+TIME_FOR_PAYMENT = 25 * 60
+
 
 def genUUID():
     return str(uuid.uuid1(clock_seq=True))
@@ -203,6 +205,10 @@ class SaleTrade(models.Model):
         status_list = MergeTrade.TAOBAO_TRADE_STATUS
         return status_list[index][0]
     
+    def is_payable(self):
+        now = datetime.datetime.now()
+        return self.status == self.WAIT_BUYER_PAY and (now - self.created).seconds < TIME_FOR_PAYMENT
+    
     def is_closed(self):
         return self.status == self.TRADE_CLOSED_BY_SYS
     
@@ -270,7 +276,7 @@ class SaleTrade(models.Model):
         UserCoupon.objects.filter(sale_trade=self.id, status=UserCoupon.USED).update(status=UserCoupon.UNUSED)
     
     @property
-    def can_sign_order(self):
+    def unsign_orders(self):
         """ 允许签收的订单 （已经付款、已发货、货到付款签收）"""
         return self.sale_orders.filter(status__in=
                                        (SaleOrder.WAIT_SELLER_SEND_GOODS,
@@ -280,10 +286,30 @@ class SaleTrade(models.Model):
     def confirm_sign_trade(self):
         """确认签收 修改该交易 状态到交易完成 """
         SaleTrade.objects.get(id=self.id)
-        for order in self.can_sign_order:
+        for order in self.unsign_orders:
             order.confirm_sign_order()  # 同时修改正常订单到交易完成
         self.status = SaleTrade.TRADE_FINISHED
         self.save()
+
+
+def record_supplier_args(sender, obj, **kwargs):
+    """ 随支付成功信号　更新供应商的销售额，　销售数量
+        :arg obj -> SaleTrade instance
+        :except None
+        :return None
+    """
+    normal_orders = obj.normal_orders.all()
+    for order in normal_orders:
+        item_id = order.item_id
+        pro = Product.objects.get(id=item_id)
+        sal_p, supplier = pro.pro_sale_supplier()
+        if supplier is not None:
+            supplier.total_sale_num = F('total_sale_num') + order.num
+            supplier.total_sale_amount = F("total_sale_amount") + order.payment
+            update_model_fields(supplier, update_fields=['total_sale_num', 'total_sale_amount'])
+
+
+signal_saletrade_pay_confirm.connect(record_supplier_args, sender=SaleTrade)
 
 
 class SaleOrder(models.Model):
@@ -374,7 +400,6 @@ class SaleOrder(models.Model):
     def refundable(self):
         return self.sale_trade.status in SaleTrade.REFUNDABLE_STATUS
     
-    @property
     def is_finishable(self):
         """
         1，订单发货后超过15天未确认签收,系统自动变成已完成状态；
@@ -383,11 +408,13 @@ class SaleOrder(models.Model):
         now_time = datetime.datetime.now()
         consign_time = self.consign_time
         sign_time = self.sign_time
+        if self.refund_status in SaleRefund.REFUNDABLE_STATUS:
+            return False
         if (self.status == self.WAIT_BUYER_CONFIRM_GOODS 
-            and consign_time and (now_time - consign_time) > 15):
+            and (not consign_time or (now_time - consign_time).days > 15)):
             return True
         elif (self.status == self.TRADE_BUYER_SIGNED 
-            and sign_time and (now_time - sign_time) > 7):
+            and (not sign_time or (now_time - sign_time).days > 7)):
             return True
         return False
             

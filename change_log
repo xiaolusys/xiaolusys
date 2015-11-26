@@ -1,4 +1,5 @@
 ############2015-11-16#####################
+alter table flashsale_refund add column proof_pic longtext;
 alter table flashsale_order add column `sign_time` datetime default null;
 
 alter table supplychain_supply_supplier add column `level` int(11) NOT NULL default 50 ,add index SC_SP_SR_LEVEL_IDX (`level`);
@@ -11,6 +12,7 @@ alter table supplychain_supply_supplier add column `total_refund_amount` double 
 alter table supplychain_supply_supplier add column `avg_post_days`  double precision NOT NULL;
 alter table supplychain_supply_supplier add column `last_select_time` datetime default null;
 alter table supplychain_supply_supplier add column `last_schedule_time` datetime default null;
+>>>>>>> 3c9446d9bd22367fac50ed2faa1c593ab425f3a7
 ############2015-11-07#####################
 alter table flashsale_pay_product_refund_record add column contactor bigint(20) NOT NULL DEFAULT 0;
 alter table flashsale_pay_product_refund_record add column pro_model bigint(20) NOT NULL DEFAULT 0;

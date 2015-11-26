@@ -159,7 +159,6 @@ class SaleProductAdd(generics.ListCreateAPIView):
         sproduct.status = SaleProduct.SELECTED
         sproduct.platform = SaleProduct.MANUALINPUT
         sproduct.contactor = request.user
-
         sproduct.save()
 
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')

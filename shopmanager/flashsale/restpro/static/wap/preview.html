@@ -153,13 +153,6 @@
 </div>
 
 <div id="loading"><span class="dots-loader"></span></div>
-<!--
-<div class="cart-container">
-    <a class="p-center" href="pages/gerenzhongxin.html"></a>
-    <a class="cart" href="javascript:void(0);"><span class="total">0</span><span class="carttime"></span></a>
-</div>
-<div class="scroll-top" id="js-scroll-top"></div>
--->
 <nav class="pagination-nav">
   <ul class="pager">
     <li class="previous"><a href="#"><span aria-hidden="true">&larr;</span>前一天</a></li>
@@ -222,7 +215,7 @@ function scroll_top(e){
     $('body').animate({scrollTop: 0}, 400);
 }
 function change_pagination(){
-	var now_day = parseUrlParams(window.location.href)['days'] || '0';
+	var now_day = getUrlParam('days') || '0';
 	if (isNaN(now_day)){
 		drawToast('日期参数错误：'+now_day);
 		return;

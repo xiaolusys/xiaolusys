@@ -47,6 +47,8 @@ class UserIntegralLogViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        # 过滤已经确定的积分
+        queryset = queryset.filter(log_status=IntegralLog.CONFIRM)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

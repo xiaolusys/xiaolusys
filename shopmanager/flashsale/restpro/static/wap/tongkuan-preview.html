@@ -44,8 +44,7 @@
   $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
   $('.cart').listencart();
   //获取同款聚合商品列表
-  var urlParams = parseUrlParams(window.location.href);
-  var urlConf = {'model_id':urlParams['id']};
+  var urlConf = {'model_id':getUrlParam('id')};
   Set_model_product(GLConfig.get_modellist_preview_url.template(urlConf));
   Set_shopcarts_num();
   need_set_info();

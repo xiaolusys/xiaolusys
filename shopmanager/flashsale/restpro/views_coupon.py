@@ -16,28 +16,29 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     """
     - {prefix}/method: get 获取用户惠券(默认为有效且没有过期的优惠券)
     - {prefix}/list_past_coupon method:get 获取用户已经过期的优惠券
-    ->return:
-        -->id:          优惠券id
-        -->coupon_no:   优惠券券池号码
-        -->status:      优惠券状态　0：未使用，１:已经使用
-        -->poll_status: 券池发放状态：１:已经发放，0：未发放，2:已经过期
-        -->coupon_type: 优惠券类型：RMB118:"二期代理优惠券" ,POST_FEE:"退货补邮费", C150_10:"满150减10", C259_20:"满259减20"
-        -->sale_trade:  绑定交易id：购买交易的id
-        -->customer:    对应的客户id
-        -->coupon_value: 优惠券对应的面值
-        -->valid:       优惠券的有效性（true or false）
-        -->title:       优惠券标题
-        -->created:     创建时间
-        -->deadline:    截止时间
+        -  return:
+            `id`:优惠券id <br>`coupon_no:`优惠券券池号码<br>
+            `title`: 优惠券模板定义的标题
+            `status:` 优惠券状态　0：未使用，１:已经使用， 2:冻结中<br>
+            `poll_status:` 券池发放状态：１:已经发放，0：未发放，2:已经过期<br>
+            `coupon_type:` 优惠券类型：RMB118:"二期代理优惠券" ,POST_FEE:"退货补邮费", C150_10:"满150减10", C259_20:"满259减20"<br>
+            `sale_trade:`  绑定交易id：购买交易的id<br>
+            `customer:`　对应的客户id<br>
+            `coupon_value:` 优惠券对应的面值<br>
+            `valid:`　优惠券的有效性（true or false）<br> `title:`　优惠券标题<br>
+            `created:`　创建时间<br> `deadline:`　截止时间<br>
+            `use_fee:` 满单额（即满多少可以使用）
 
     - {prefix}/method: post 创建用户优惠券
-    ->arg: coupon_type  优惠券类型
-    -->C150_10:满150减10
-    -->C259_20:满259减20
-    :return
-    {'res':'limit'}         ->: 创建受限
-    {'res':'success'}       ->: 创建成功
-    {'res':'not_release'}   ->: 暂未发放
+
+        `arg`: coupon_type  优惠券类型
+        `C150_10:` 满150减10
+        `C259_20:` 满259减20
+
+        -  return:
+        `创建受限` {'res':'limit'}
+        `创建成功` {'res':'success'}
+        `暂未发放`{'res':'not_release'}
     """
 
     queryset = UserCoupon.objects.all()

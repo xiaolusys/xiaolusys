@@ -463,13 +463,12 @@ class ProductSkuView(APIView):
         #修改库存商品信息
         try:
             product_sku = ProductSku.objects.get(product=pid,id=sku_id)
-        
             content = request.REQUEST
             update_check = content.get('update_check') 
+            update_fields = []
             fields = ['outer_id','properties_alias','wait_post_num','remain_num','warn_num'
                       ,'cost','std_sale_price','agent_price','staff_price','match_reason'
                       ,'barcode','buyer_prompt','memo']
-            
             check_fields = set(['sync_stock','post_check','is_match'])
             if update_check:
                 fields.extend(list(check_fields))
@@ -479,23 +478,29 @@ class ProductSkuView(APIView):
                     continue
                 if k in check_fields:
                     check_fields.remove(k)
+                if k in ('cost','std_sale_price','agent_price','staff_price'):
+                    v = float(v)
                 if k in ('wait_post_num','remain_num','warn_num'):
                     v = int(v)
+                if v == getattr(product_sku,k):
+                    continue
                 setattr(product_sku,k,v)
+                update_fields.append(k)
             
             if update_check:
                 for k in check_fields:
-                    setattr(product_sku,k,False)    
-            
+                    setattr(product_sku,k,False) 
+                    update_fields.append(k)   
             product_sku.save()
-        
         except ProductSku.DoesNotExist:
             return Response('未找到商品属性')
         except Exception,exc:
             return Response(u'填写信息不规则')
-        
-        log_action(request.user.id,product_sku.product,CHANGE,
-                   u'更新商品规格信息:%s'%unicode(product_sku))
+        update_field_labels = []
+        for field in update_fields:
+            update_field_labels.append(ProductSku._meta.get_field(field).verbose_name.title())
+        product = product_sku.product
+        log_action(request.user.id,product,CHANGE,u'更新规格(%s:%s)信息'%(unicode(product_sku),','.join(update_field_labels)))
         
         return Response(product_sku.json)
     

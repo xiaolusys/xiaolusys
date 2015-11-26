@@ -55,7 +55,7 @@ $(function () {
             ,
             'Key': function(up, file) {
                  var timestamp = new Date().getTime();
-                 var key = "TT-" + timestamp + "-" + file.name;
+                 var key = "TT-" + timestamp;
                  // do something with key
                  return key
             }

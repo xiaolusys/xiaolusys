@@ -1,168 +1,11 @@
-# coding:utf-8
+# coding=utf-8
 __author__ = 'timi06'
-# from django.http import HttpResponse, Http404
-# from django.shortcuts import get_object_or_404
-# from django.views.decorators.csrf import csrf_exempt
-# from rest_framework.renderers import JSONRenderer
-# from rest_framework.parsers import JSONParser
 from .models import Complain
 from .serializers import ComplainSerializers
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, mixins, generics, \
-    viewsets, permissions, authentication, renderers
-
-#
-# class ComplainList(APIView):
-#     """
-#     列出所有complain数据，或创建一条新的complain数据。
-#     """
-#
-#     def get(self, request, format=None):
-#         complain = Complain.objects.all()
-#         serializer = ComplainSerializers(complain, many=True)
-#         return Response(serializer.data)
-#
-#     def post(self, request, format=None):
-#         serializer = ComplainSerializers(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-# class ComplainDetail(APIView):
-#     """
-#     检索，更新或删除数据。
-#     """
-#
-#     def get_object(self, pk):
-#         try:
-#             return Complain.objects.get(id=pk)
-#         except Complain.DoesNotExist:
-#             raise Http404
-#
-#     def get(self, request, pk, format=None):
-#         complain = self.get_object(pk)
-#         serializer = ComplainSerializers(complain)
-#         return Response(serializer.data)
-#
-#     def put(self, request, pk, format=None):
-#         complain = self.get_object(pk)
-#         serializer = ComplainSerializers(complain, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#     def delete(self, request, pk, format=None):
-#         complain = self.get_object(pk)
-#         complain.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-#
-#
-# class JSONResponse(HttpResponse):
-#     """
-#     HttpResponse呈现其内容为JSON。
-#     """
-#
-#     def __init__(self, data, **kwargs):
-#         content = JSONRenderer().render(data)
-#         kwargs['content_type'] = 'application/json'
-#         super(JSONResponse, self).__init__(content, **kwargs)
-#
-#
-# @csrf_exempt
-# def complain_list(request, format=None):
-#     """
-#     列出所有complain数据，或创建一条新的complain数据。
-#     """
-#     if request.method == 'GET':
-#         complain = Complain.objects.all()
-#         serializer = ComplainSerializers(complain, many=True)
-#         return JSONResponse(serializer.data)
-#
-#     elif request.method == 'POST':
-#         data = JSONParser().parse(request)
-#         serializer = ComplainSerializers(data=data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return JSONResponse(serializer.data, status=201)
-#         return JSONResponse(serializer.errors, status=400)
-#
-#
-# @csrf_exempt
-# def complain_detail(request, pk, format=None):
-#     """
-#     检索，更新或删除数据。
-#     """
-#     try:
-#         complain = Complain.objects.get(pk=pk)
-#     except Complain.DoesNotExist:
-#         return HttpResponse(status=404)
-#
-#     if request.method == 'GET':
-#         serializer = ComplainSerializers(complain)
-#         return JSONResponse(serializer.data)
-#
-#     elif request.method == 'PUT':
-#         data = JSONParser().parse(request)
-#         serializer = ComplainSerializers(Complain, data=data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return JSONResponse(serializer.data)
-#         return JSONResponse(serializer.errors, status=400)
-#
-#     elif request.method == 'DELETE':
-#         complain.delete()
-#         return HttpResponse(status=204)
+from rest_framework import generics, viewsets, permissions, authentication, renderers
 
 
-# 显示数据列表，或创建数据
-class ComplainList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
-    queryset = Complain.objects.all()
-    serializer_class = ComplainSerializers
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-# 检索，更新或删除数据
-class ComplainDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin,
-                     generics.GenericAPIView):
-    queryset = Complain.objects.all()
-    serializer_class = ComplainSerializers
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-import permissions
-
-# 创建数据，或显示数据列表
-class ComplainsList(generics.ListCreateAPIView):
-    """
-    允许被查看或编辑
-    """
-    queryset = Complain.objects.all()
-    serializer_class = ComplainSerializers
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsAdminSuperUser, permissions.IsOwnerOrReadOnly)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-
-    queryset = Complain.objects.all()
-    serializer_class = ComplainSerializers
-
-
-# 检索，更新或删除数据
 class ComplainsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Complain.objects.all()
     serializer_class = ComplainSerializers
@@ -170,26 +13,36 @@ class ComplainsDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class ComplainViewSet(viewsets.ModelViewSet):
     """
-    允许被组查看或编辑
+    - {prefix}/method: `get`  获取用户的投诉列表
+    - {prefix}/method: `post` 创建用户的投诉条目　　
+        -  com_type     类型 :   `0`: 购物问题;
+                                `1`: 订单相关;
+                                `2`: 意见/建议;
+                                `4`: 售后问题;
+                                `3`: 其他
+        -  com_title    标题 default 问题反馈
+        -  com_content  内容
+        -  contact_way  联系方式
     """
     queryset = Complain.objects.all()
     serializer_class = ComplainSerializers
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
-    permission_classes = (permissions.IsOwnerOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def create(self, request, *args, **kwargs):
-        """
-        创建投诉
-        """
-        insider_phone = request.user
-        com_content = request.data['com_content']
+        """ 创建投诉 """
+        content = request.REQUEST
+        com_title = content.get('com_title', '')
+        com_content = content.get('com_content', '')
+        com_type = int(content.get('com_type', 3))
         complain = Complain()
-        complain.insider_phone = insider_phone
+        complain.insider_phone = str(request.user.id)
+        complain.com_title = com_title
         complain.com_content = com_content
+        complain.com_type = com_type
         complain.save()
-
-        return Response("OK")
+        return Response({"res": True})
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

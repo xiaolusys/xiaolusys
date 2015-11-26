@@ -166,8 +166,7 @@
     }
   }, false);
   
-  var urlParams = parseUrlParams(window.location.href);
-  var urlConf = {'trade_id':urlParams['id']};
+  var urlConf = {'trade_id':getUrlParam('id')};
   var order_url = GLConfig.get_trade_details_url.template(urlConf);
 
   //获取待支付订单列表
@@ -179,13 +178,11 @@
   },'.buy_button .btn-buy');
   //  fang  2015-8-20
   //var status=$("#status_display").innerHTML;
-  var urlParams = parseUrlParams(window.location.href);
-  Wuliu(urlParams['id']);
+  Wuliu(getUrlParam('id'));
 })(jQuery);
 
 function Confirm_charge(){
-	var urlParams = parseUrlParams(window.location.href);
-  	var urlConf = {'trade_id':urlParams['id']};
+  	var urlConf = {'trade_id':getUrlParam('id')};
     Ctrl_order_charge(GLConfig.waitpay_charge.template(urlConf));
 };
 </script>

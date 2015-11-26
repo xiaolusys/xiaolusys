@@ -41,15 +41,11 @@ function isNone(value) {
     return typeof(value) == 'undifined' || value == null
 }
 
-function parseUrlParams(myUrl) {
-    var vars = [], hash;
-    var hashes = window.location.href.slice(myUrl.indexOf('?') + 1).split('&');
-    for (var i = 0; i < hashes.length; i++) {
-        hash = hashes[i].split('=');
-        vars.push(hash[0]);
-        vars[hash[0]] = hash[1];
-    }
-    return vars;
+function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]);
+    return null; 
 }
 
 //定义多行字符串函数实现
@@ -316,6 +312,24 @@ function loadBaiduStat(){
 	  var s = document.getElementsByTagName("script")[0]; 
 	  s.parentNode.insertBefore(hm, s);
 	})();
+}
+
+function makePicUlr(pic_url,params){
+	var url_params = '&imageMogr2/';
+	if (!isNone(params.size)){
+		url_params += 'thumbnail/{{size}}/';
+	}
+	if (!isNone(params.format)){
+		url_params += 'format/{{format}}/';
+	}
+	if (!isNone(params.quality)){
+		url_params += 'quality/{{quality}}/';
+	}
+	url_params = url_params.template(params);
+	if (pic_url.indexOf('?')>0){
+		return pic_url + url_params;
+	}
+	return pic_url + '?' + url_params;
 }
 
 //加载小能客服插件

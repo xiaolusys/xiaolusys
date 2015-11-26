@@ -10,7 +10,7 @@
             type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
-
+    <script type="text/javascript" src="{{ STATIC_URL }}script/highchar-script/highchart-common.js"></script>
 
     <style type="text/css">
         th {
@@ -118,6 +118,11 @@
                     <span class="label label-success">代理补贴:</span><a>{{ sum_detail_confirm.7 }}</a>
                     <span class="label label-success">招募奖金:</span><a>{{ sum_detail_confirm.8 }}</a>
                     <span class="label label-success">订单红包:</span><a>{{ sum_detail_confirm.9 }}</a>
+                </div>
+                <br/>
+                <div>
+                    <span class="label label-success">妈妈充值:</span><a>{{ sum_detail_confirm.10 }}</a>
+
                 </div>
             </div>
             <div class="panel panel-default col-xs-6">

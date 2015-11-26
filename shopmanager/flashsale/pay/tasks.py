@@ -93,7 +93,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
         status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,
                     SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
                     SaleTrade.TRADE_BUYER_SIGNED),
-        pay_time__gte=day_date
+        pay_time__lte=day_date
     )
     for strade in strades:
         for sorder in strade.normal_orders:
@@ -106,7 +106,7 @@ def task_Push_SaleTrade_Finished(pre_days=10):
             
         normal_orders = strade.normal_orders
         finish_orders = strade.sale_orders.filter(status=SaleOrder.TRADE_FINISHED)
-        if normal_orders.count() == finish_orders.orders:
+        if normal_orders.count() == finish_orders.count():
             strade.status = SaleTrade.TRADE_FINISHED
             strade.save()
                     

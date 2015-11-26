@@ -11,6 +11,8 @@ from .signals import signal_saletrade_refund_confirm
 from .options import uniqid
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
+from shopback.base.models import JSONCharMyField
+
 
 class SaleRefund(models.Model):
     
@@ -94,9 +96,10 @@ class SaleRefund(models.Model):
     company_name = models.CharField(max_length=64,blank=True,verbose_name='退回快递公司')
     sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='退回快递单号')
 
-    reason    = models.TextField(max_length=200,blank=True,verbose_name='退款原因')
-    desc      = models.TextField(max_length=1000,blank=True,verbose_name='描述')
-    feedback  = models.TextField(max_length=1000,blank=True,verbose_name='审核意见')      
+    reason = models.TextField(max_length=200, blank=True, verbose_name='退款原因')
+    proof_pic = JSONCharMyField(max_length=10240, blank=True, null=True, verbose_name=u'佐证图片')
+    desc = models.TextField(max_length=1000, blank=True, verbose_name='描述')
+    feedback = models.TextField(max_length=1000, blank=True, verbose_name='审核意见')
     
     has_good_return = models.BooleanField(default=False,verbose_name='是否退货')
     has_good_change = models.BooleanField(default=False,verbose_name='是否换货')
@@ -140,7 +143,7 @@ class SaleRefund(models.Model):
         from flashsale.pay.models import SaleOrder,SaleTrade
         sorder = SaleOrder.objects.get(id=self.order_id)
         sorder.refund_status = SaleRefund.REFUND_SUCCESS
-        if sorder.sale_trade.status in (
+        if sorder.status in (
             SaleTrade.WAIT_SELLER_SEND_GOODS,
             SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
             SaleTrade.TRADE_BUYER_SIGNED):

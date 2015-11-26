@@ -37,13 +37,12 @@ $(document).ready(function () {
             $.each(res.results, function (i, val) {
                 var modify = (val.modified).replace('T', '  ');
                 var value = val.log_value;
-                var order = val.order;
-                var order_u = order.replace('u', '');
-                var pic = eval(order_u)[0].pic_link;
+                var order = val.order_info;
+                var pic = order.pic_link;
                 if (pic == '') {
                     pic = "../images/icon-xiaolu.png";
                 }
-                var oid = eval(order)[0].order_id;
+                var oid =order.order_id;
                 var jf_obj = {"modify": modify, "value": value, "pic": pic, "oid": oid};
                 var jf_dmtree = create_jf_dom(jf_obj);
                 $(".jifen-list").append(jf_dmtree);

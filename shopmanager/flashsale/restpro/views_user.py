@@ -53,10 +53,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     """
     ### 特卖平台 用户注册,修改密码API：
     - {prefix}/[.format]: `params={vmobile}` 注册新用户时，获取验证码;
-    - {prefix}/check_code_user: `params={username,valid_code,password1,password2}` 注册新用户;
+    - {prefix}/check_code_user: `params={username,valid_code}` 校验验证码（旧）;
     - {prefix}/change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
     - {prefix}/change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
-    - {prefix}/wxapp_login: `params= {headimgurl,nickname,openid,unionid}`
+    - {prefix}/wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
+    - {prefix}/check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -108,7 +109,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
     @list_route(methods=['post'])
     def check_code_user(self, request):
-        """验证码判断、验证码过时功能、新建用户"""
+        """验证码校验（判断验证码是否过时，超次，并新建用户）"""
         post = request.POST
         mobile = post['username']
         client_valid_code = post.get('valid_code', 0)
@@ -183,7 +184,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
     @list_route(methods=['post'])
     def change_user_pwd(self, request):
-        """提交修改密码"""
+        """手机校验修改密码"""
         mobile = request.data['username']
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
@@ -220,7 +221,34 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
+    
+    @list_route(methods=['get','post'])
+    def check_vcode(self, request, **kwargs):
+        """根据手机号和验证码创建用户账户"""
+        content = request.REQUEST
+        mobile  = content.get('mobile')
+        vcode   = content.get('vcode')
+        
+        registers = Register.objects.filter(vmobile=mobile)
+        if registers.count() == 0:
+            return Response({'result':2,'error_msg':'未匹配到手机号'})
+        
+        register = registers[0]
+        if not register.is_submitable() or not register.check_code(vcode):
+            return Response({'result':1,
+                             'try_times':register.submit_count,
+                             'limit_times':Register.MAX_SUBMIT_TIMES,
+                             'error_msg':'手机验证失败'})
+        
+        customers = Customer.objects.filter(mobile=mobile, status=Customer.NORMAL) 
+        if customers.count() > 0:
+            customer = customers[0]
+        else:
+            duser,state = DjangoUser.objects.get_or_create(username='mobile', is_active=True)
+            customer,state = Customer.objects.get_or_create(mobile=mobile,user=duser)
 
+        return Response({'result':0,'mobile':mobile,'valid_code':vcode,'uid':customer.id})
+    
     @list_route(methods=['post'])
     def customer_login(self, request):
         """验证用户登录"""
@@ -496,7 +524,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
-
+    
     @list_route(methods=['post'])
     def passwd_set(self, request):
         """初始化密码"""

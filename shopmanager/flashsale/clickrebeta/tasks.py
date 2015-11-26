@@ -44,7 +44,7 @@ def task_Push_Rebeta_To_MamaCash(target_date):
         
         XiaoluMama.objects.filter(id=mm_stat.linkid).update(pending=F('pending') + order_rebeta)
   
-        
+from .models import tongji_wxorder,tongji_saleorder        
 
 @task(max_retry=3, default_retry_delay=5)
 def task_Tongji_User_Order(pre_day=1):
@@ -63,10 +63,10 @@ def task_Tongji_User_Order(pre_day=1):
         tongjibyday.delete()
         
         for wxorder in wxorders:
-            wxorder.confirm_payment()
+            tongji_wxorder(None,wxorder)
             
         for strade in saletrades:
-            strade.confirm_payment()
+            tongji_saleorder(None,strade)
         
         #update xlmm Cash
         task_Push_Rebeta_To_MamaCash(pre_date)
@@ -81,10 +81,10 @@ def task_Tongji_All_Order():
     try:
         StatisticsShoppingByDay.objects.all().delete()
         StatisticsShopping.objects.all().delete()
-        all = WXOrder.objects.all()
+        wx_orders = WXOrder.objects.all()
         cnt = 0
-        for order1 in all:
-            order1.confirm_payment()
+        for order1 in wx_orders:
+            tongji_wxorder(None,order1)
             cnt += 1
             if cnt % 1000 == 0:
                 print cnt

@@ -1,6 +1,11 @@
 #-*- coding:utf-8 -*-
 from django.db import models
 from shopback.items.models import Product,ProductSku
+from . signals import signal_record_supplier_models
+from shopback import paramconfig as pcfg
+from django.db.models import F
+from common.utils import update_model_fields
+
 
 class Productdetail(models.Model):
     WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
@@ -99,6 +104,34 @@ class ModelProduct(models.Model):
             return False
         return True
     
+    def is_sale_out(self):
+        all_sale_out = True
+        products = Product.objects.filter(model_id=self.id,status=Product.NORMAL)
+        for product in products:
+            all_sale_out &= product.is_sale_out()
+        return all_sale_out
+
+    def item_product(self):
+        pros = Product.objects.filter(model_id=self.id, status=pcfg.NORMAL)
+        if pros.exists():
+            pro = pros[0]
+            return pro
+        else:
+            return None
+
+
+def create_Model_Product(sender, obj, **kwargs):
+    pro = obj.item_product()
+    if isinstance(pro, Product):
+        sal_p, supplier = pro.pro_sale_supplier()
+        if supplier is not None:
+            supplier.total_select_num = F('total_select_num') + 1
+            update_model_fields(supplier, update_fields=['total_select_num'])
+
+
+signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
+
+
 from shopback.base.models import JSONCharMyField
 
 POSTER_DEFAULT =(

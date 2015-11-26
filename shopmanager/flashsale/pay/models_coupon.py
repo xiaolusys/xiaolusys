@@ -3,6 +3,7 @@ from django.db import models
 from shopback.base.models import JSONCharMyField
 import datetime
 from options import uniqid
+import json
 
 
 """
@@ -62,6 +63,14 @@ class IntegralLog(models.Model):
 
     def __unicode__(self):
         return '<%s>' % (self.id)
+
+    @property
+    def order_info(self):
+        info = json.loads(self.order)
+        if isinstance(info, list) and len(info) == 1:
+            return json.loads(self.order)[0]
+        else:
+            return {}
 
 
 class Coupon(models.Model):
@@ -168,7 +177,7 @@ class CouponPool(models.Model):
     LIM100 = 3
     LIM118 = 4
     POST_FEE = 5
-    CO_TYPE = ((LIM30, u"订单满30减3"), (LIM300, u"订单满300减30"), (LIM118, u"妈妈专享 订单满30减30"),(POST_FEE, u"优惠券"))
+    CO_TYPE = ((LIM30, u"订单满30减3"), (LIM300, u"订单满300减30"), (LIM118, u"妈妈专享 订单满30减30"), (POST_FEE, u"优惠券"))
 
     coupon_no = models.CharField(max_length=40, unique=True, default=lambda: uniqid(
         '%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))), verbose_name=u"优惠券号码")
@@ -189,6 +198,7 @@ class CouponPool(models.Model):
 
 
 from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate, CouponsPool
+
 """
 这个是数据库数据迁移的程序片段
 关系：
@@ -209,9 +219,9 @@ def coupon_migration_handler():
         customer = coupon.coupon_user
         trade_id = coupon.trade_id
         if coupon.status == Coupon.USED:  # 已使用状态
-            new_status = UserCoupon.USED    # 已经使用
+            new_status = UserCoupon.USED  # 已经使用
         else:
-            new_status = UserCoupon.UNUSED   # 没有使用的
+            new_status = UserCoupon.UNUSED  # 没有使用的
         if customer and trade_id:
             tpl = CouponTemplate.objects.get(type=CouponTemplate.RMB118, valid=True)  # 获取：模板采用admin后台手动产生
             try:

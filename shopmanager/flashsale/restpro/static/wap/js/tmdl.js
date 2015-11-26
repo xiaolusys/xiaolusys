@@ -21,7 +21,7 @@ $(document).ready(function () {
 function login_click() {
     var username = $(".username_in").val();
     var password = $(".password_in").val();
-    var next = parseUrlParams(window.location.href)['next'];
+    var next = getUrlParam('next');
     var error_tips = $(".error-tips");
     var data = {"username": username, "password": password};
     if (!isNone(next)) {

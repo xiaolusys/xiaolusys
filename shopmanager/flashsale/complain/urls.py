@@ -1,13 +1,11 @@
 __author__ = 'timi06'
-# coding:utf-8
+# coding=utf-8
 from django.conf.urls import url
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
-from rest_framework import routers
 
 
 urlpatterns = [
-    url(r'complain/$', views.ComplainsList.as_view()),
     url(r'complain/(?P<pk>[0-9]+)/$', views.ComplainsDetail.as_view()),
 ]
 

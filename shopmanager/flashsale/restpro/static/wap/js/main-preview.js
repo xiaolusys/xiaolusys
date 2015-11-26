@@ -336,7 +336,7 @@ function Create_item_dom(p_obj, close_model) {
          <img src="{{ head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
          <p class="gname">{{ name }}</p>
          <p class="gprice">
-         <span class="nprice"><em>¥</em> {{ lowest_price }} </span>
+         <span class="nprice"><em>¥</em> {{ product_lowest_price }} </span>
          <s class="oprice"><em>¥</em> {{ std_sale_price }}</s>
          </p>{{ saleout_dom }}
          </a>

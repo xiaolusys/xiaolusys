@@ -68,8 +68,8 @@ class CashoutView(View):
     def get(self, request):
         content = request.REQUEST
         code = content.get('code',None)
-
-        openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
+        openid,unionid = get_user_unionid(code,
+                                          appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET,
                                           request=request)
 
@@ -106,8 +106,7 @@ class CashoutView(View):
                 "could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
-        response.set_cookie("openid",openid)
-        response.set_cookie("unionid",unionid)
+        response = set_cookie_openid(response,settings.WEIXIN_APPID,openid,unionid)
         return response
 
     def post(self, request):
@@ -164,7 +163,7 @@ class CarryLogList(generics.ListAPIView):
     
 
 from django.conf import settings
-from flashsale.pay.options import get_user_unionid
+from flashsale.pay.options import set_cookie_openid,get_user_unionid
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
 from flashsale.mmexam.models import Result
@@ -177,7 +176,6 @@ class MamaStatsView(View):
         
         content = request.REQUEST
         code = content.get('code',None)
-        
         openid,unionid = get_user_unionid(code,
                                           appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET,
@@ -191,8 +189,7 @@ class MamaStatsView(View):
         wx_user = service._wx_user
         
         if not wx_user.isValid():
-            return render_to_response("remind.html",{"openid":openid},
-                                      context_instance=RequestContext(request))
+            return render_to_response("remind.html",{"openid":openid},context_instance=RequestContext(request))
 
         target_date = datetime.date.today()
         yesterday   = target_date - datetime.timedelta(days=1)
@@ -271,8 +268,7 @@ class MamaStatsView(View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
-        response.set_cookie("sunionid",unionid)
-        response.set_cookie("sopenid",openid)
+        response = set_cookie_openid(response,settings.WEIXIN_APPID,openid,unionid)
         return response
     
 class MamaIncomeDetailView(View):
@@ -285,7 +281,6 @@ class MamaIncomeDetailView(View):
                                           appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET,
                                           request=request)
-        
         if not valid_openid(openid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
@@ -398,8 +393,7 @@ class MamaIncomeDetailView(View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_income.html", data, context_instance=RequestContext(request))
-        response.set_cookie("sunionid",unionid)
-        response.set_cookie("sopenid",openid)
+        response = set_cookie_openid(response,settings.WEIXIN_APPID,openid,unionid)
         return response
 
 

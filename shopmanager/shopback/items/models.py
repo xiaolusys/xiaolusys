@@ -25,6 +25,7 @@ from flashsale.dinghuo.models_user import MyUser
 import logging
 import collections
 from common.modelutils import update_model_fields
+from supplychain.supplier.models import SaleProduct
 
 
 logger  = logging.getLogger('django.request')
@@ -198,6 +199,13 @@ class Product(models.Model):
         return 0
     
     @property
+    def lock_num(self):
+        lnum = 0
+        for sku in self.pskus:
+            lnum += sku.lock_num
+        return lnum
+        
+    @property
     def sale_out(self):
         sale_out = True
         for sku in self.pskus:
@@ -215,6 +223,9 @@ class Product(models.Model):
     def new_good(self):
         """ 返回特卖商品是否新品 """
         return self.sale_time and self.sale_time >= datetime.date.today()
+    
+    def is_sale_out(self):
+        return self.sale_out
     
     def is_deposite(self):
         return self.outer_id.startswith(DIPOSITE_CODE_PREFIX)
@@ -289,19 +300,25 @@ class Product(models.Model):
     def title(self):
         return self.name
 
-    def get_supplier_contactor(self):
-        from supplychain.supplier.models import SaleProduct
+    def pro_sale_supplier(self):
+        """ 返回产品的选品和供应商　"""
         try:
             sal_p = SaleProduct.objects.get(pk=self.sale_product)
+            supplier = sal_p.sale_supplier
+            return sal_p, supplier
+        except SaleProduct.DoesNotExist:
+            return None, None
+
+    def get_supplier_contactor(self):
+        sal_p, supplier = self.pro_sale_supplier()
+        if sal_p is not None:
             if sal_p.contactor.first_name and sal_p.contactor.last_name:
                 return sal_p.contactor.last_name + sal_p.contactor.first_name
             return sal_p.contactor  # 返回接洽人
-        except SaleProduct.DoesNotExist:
+        else:
             return self.sale_charger + "未关联"
-        except DjangoUser.DoesNotExist:
-            return self.sale_charger + "空买手"
-        
-    def update_collect_num(self,num,full_update=False,dec_update=False):
+
+    def update_collect_num(self, num, full_update=False, dec_update=False):
         """
             更新商品库存:
                 full_update:是否全量更新
@@ -440,7 +457,6 @@ class Product(models.Model):
             prcs.append(sku.agent_price)
         return min(prcs) if prcs else 0
 
-
     @property
     def inferior_num(self):
         """商品次品数"""
@@ -449,8 +465,37 @@ class Product(models.Model):
             inferior_num += one_sku.sku_inferior_num
         return inferior_num
 
+    def same_model_pros(self):
+        """ 同款产品　"""
+        if self.model_id == 0 or self.model_id is None:
+            return None
+        pros = self.__class__.objects.filter(model_id=self.model_id)
+        return pros
+
+
+def delete_pro_record_supplier(sender, instance, created, **kwargs):
+    """ 当作废产品的时候　检查　同款是否 全部  作废　如果是　则　将对应供应商的选款数量减去１
+        这里有多处可以作废产品　所以使用了　post_save
+    """
+    if instance.status != Product.DELETE:
+        return
+    pros = instance.same_model_pros()
+    if pros is not None:
+        sta = pros.values('status').distinct()
+        if len(sta) != 1:
+            return
+        if sta[0]['status'] == Product.DELETE:
+            sal_p, supplier = instance.pro_sale_supplier()
+            if supplier is not None and supplier.total_select_num > 0:
+                supplier.total_select_num = F('total_select_num') - 1
+                update_model_fields(supplier, update_fields=['total_select_num'])
+
+post_save.connect(delete_pro_record_supplier, Product)
+
 
 from shopback.signals import signal_product_upshelf
+
+
 def change_obj_state_by_pre_save(sender, instance, raw, *args, **kwargs):
     
     products = Product.objects.filter(id=instance.id)
@@ -558,6 +603,7 @@ class ProductSku(models.Model):
     
     @property
     def real_remainnum(self):
+        """ 实际剩余库存 """
         wait_post_num = max(self.wait_post_num, 0)
         if self.remain_num > 0 and self.remain_num >= wait_post_num:
             return self.remain_num - wait_post_num

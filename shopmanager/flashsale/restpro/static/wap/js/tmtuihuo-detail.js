@@ -457,7 +457,7 @@ function bindServiceBox() {
     $('.service_box').click(function () {
         DoIfLogin({
             callback: function () {
-                var trade_id = parseUrlParams(window.location.href)['tid'];
+                var trade_id = getUrlParam('tid');
                 var requestUrl = GLConfig.baseApiUrl + GLConfig.get_trade_details_url.template({"trade_id": trade_id});
                 $.ajax({
                     type: 'get',

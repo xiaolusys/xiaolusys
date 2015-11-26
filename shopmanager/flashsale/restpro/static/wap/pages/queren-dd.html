@@ -60,6 +60,10 @@ var NTKF_PARAM = {
     <p class="label1">商品总金额<span id="total_money">¥ 0</span></p>
     <p class="label2">小鹿美美运费<span>¥ 0</span></p>
   </div>
+  <div class="message">
+	<label>留言：</label><textarea id="id_buyer_message" rows="4" placeholder="选填：快递暂可发韵达，邮政包邮哦(限30字)" size="30" value="{{ buyer_message }}"></textarea>
+	<!-- onfocus="messFocusCtrl(this);" onblur="messBluCtrl(this);" -->
+  </div>
 </div>
 <script id="item-template" type="text/html">
 	<div class="item" >
@@ -81,14 +85,7 @@ var NTKF_PARAM = {
 	<input type="hidden" name="post_fee" value="{{ post_fee }}" />
 	<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
 	<input type="hidden" name="total_fee" value="{{ total_fee }}" />
-      <div class="container-mess">
-              <div class="buyer-mess">
-                  <span>买家留言：</span>
-              </div>
-              <div class="mess-content">
-                  <textarea type="" rows="4" name="buyer_message" value="{{ buyer_message }}" onfocus="messFocusCtrl(this)" onblur="messBluCtrl(this)"/>
-              </div>
-          </div>
+  	<input type="hidden" name="buyer_message" value="{{ buyer_message }}" />
   </form>
 </script>
 <div class="coupons">

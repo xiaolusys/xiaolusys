@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      小鹿美美 - 每日上新，天天惊喜！
+    </title>
+    <meta charset="UTF-8">
+    <meta id="viewport" name="viewport" />
+    <script src="js/common.js">
+    </script>
+    <link rel="stylesheet/less" href="less/common.less" />
+    <link rel="stylesheet/less" href="less/dingzhi.less" />
+    <script src="js/less.js">
+    </script>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html" class="home">
+      </a>
+      <a href="pages/gerenzhongxin.html" class="user">
+      </a>
+      <h1>
+        精品预定
+      </h1>
+    </div>
+    <!--<div class="shengyu">剩余2天1小时18分</div>-->
+    <ul class="glist">
+	</ul>
+<script id="dingzhi-template" type="text/html">
+  <li>
+  <a class="dingzhi" href="pages/dingzhixq.html?id={{id}}">
+    <img src="{{details.pre_pic}}" />
+    <div class="mask">
+      <div class="mask-lf">
+      </div>
+      <div class="mask-rg">
+        <div class="mask-rg-up">
+          <div class="timer-tag">
+            <span class="counter" cnt="{{details.deadline_sec}}">00:00:00</span>
+            <span class="label">预售</span>
+          </div>
+        </div>
+        <div class="mask-rg-down">
+          <div class="c_header">
+            <span class="span1"><em>￥</em>{{agent_price}}</span>
+          </div>
+          <div class="c_middle">
+            <div class="mingcheng">
+              <span class="span2">{{name}}</span>
+            </div>
+            <div class="jindu">
+              <span class="span3">预定进度：{{details.pre_sale_num}}/{{details.pre_target_num}}</span>
+            </div>
+          </div>
+          <div class="c_footer">
+            <div class="dinggou">
+              <span class="span4">立即预订<i class="">&gt;</i></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </a>
+  </li>
+</script>
+<div id="loading">
+  <span class="dots-loader">
+  </span>
+</div>
+<div class="scroll-top" id="js-scroll-top">
+</div>
+<div class="footer clearfix">
+  <div class="link">
+    <a href="/index.html">
+      首页
+    </a>
+    <a href="/contact.html">
+      联系我们
+    </a>
+  </div>
+  <div class="copyright">
+    <p >
+      Copyright © 2014-2015 小鹿美美，All Rights Reserved 沪ICP备15013901号-1
+    </p>
+  </div>
+</div>
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="js/jquery-shopping.js"></script>
+<script src="js/dingzhi.js"></script>
+<script>
+(function($){
+    //返回顶部
+    $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
+    //设置女装商品列表
+    var req_url   = GLConfig.get_dingzhi_url;
+    Set_dingzhi_product(req_url);
+})(jQuery);
+function scroll_top(e){
+    e.preventDefault();
+    $('body').animate({scrollTop: 0}, 400);
+}
+</script>
+<link rel="stylesheet" type="text/css" href="css/sweet-alert.css"/>
+<script src="js/sweet-alert.min.js"></script>
+</body>
+</html>

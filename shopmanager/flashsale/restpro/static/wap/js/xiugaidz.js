@@ -14,9 +14,7 @@ function province_list() {
         for (var i = 1; i <= data.length; i++) {
             selectid[i] = new Option(data[i - 1].name, data[i - 1].id);
         }
-        var urlParams = parseUrlParams(window.location.href);
-
-        var up_id = {'up_id':urlParams['id']};
+        var up_id = {'up_id':getUrlParam('id')};
         xugaifuzi(up_id.up_id);
     };
     // 发送请求

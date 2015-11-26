@@ -190,8 +190,7 @@
             }
         }, false);
 
-        var urlParams = parseUrlParams(window.location.href);
-        var url_conf = {'oid': urlParams['oid'], "tid": urlParams['tid']};
+        var url_conf = {'oid': getUrlParam('oid'), "tid": getUrlParam('tid')};
         console.log(url_conf);
 
         var order_url = GLConfig.get_order_detail_url.template(url_conf);

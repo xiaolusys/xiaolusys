@@ -95,6 +95,9 @@
 .cost .label2{
   padding:14px 0 24px 86px;
 }
+.cost .label3,.cost .label4{
+  padding:14px 0 0px 86px;
+}
 .cost p{
   margin-right: 60px;
 }
@@ -291,3 +294,22 @@
     font-size: 28px;
 }
 
+.message {
+	font-size:24px;
+	height:70px;
+}
+.message label{
+	margin-left:20px;
+	margin-top:10px;
+	display:inline;
+	float: left;
+}
+.message textarea{
+	display:inline;
+	width:510px;
+	height:40px;
+	font-size: 22px;
+    margin-top: 10px;
+	text-aligin:bottom;
+	border-bottom: 1px solid #83837E;
+}
