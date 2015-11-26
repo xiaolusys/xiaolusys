@@ -48,19 +48,15 @@ def get_user_unionid(code,
                     request=None):
 
     debug_m   = settings.DEBUG
-    content   = {}
+    content   = request and request.REQUEST or {}
     if not debug_m and request: 
-        content = request.REQUEST 
         debug_m = content.get('debug')
-        
     if debug_m:
         openid  = content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c')
         unionid = content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4')
         return (openid, unionid)
-    
     if not code and not request:
         return ('','')
-    
     if not code and request:
         return get_cookie_openid(request.COOKIES, appid)
     
