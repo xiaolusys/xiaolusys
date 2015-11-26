@@ -82,7 +82,7 @@ class SaleProductList(generics.ListCreateAPIView):
     template_name = "product_screen.html"
     permission_classes = (permissions.IsAuthenticated,)
 
-    paginate_by = 100
+    paginate_by = 2
     page_query_param = 'page_size'
     max_paginate_by = 100
 
@@ -92,7 +92,9 @@ class SaleProductList(generics.ListCreateAPIView):
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         resp_data = serializer.data
-
+        sale_category = SaleCategory.objects.all()
+        sale_category = SaleCategorySerializer(sale_category, many=True).data
+        
         supplier_id = request.GET.get('sale_supplier', '')
         supplier = None
         if supplier_id:
@@ -103,8 +105,34 @@ class SaleProductList(generics.ListCreateAPIView):
                 supplier.progress = progress
                 supplier.save()
             supplier = SaleSupplierSerializer(supplier, context={'request': request}).data
-        result_data = {'request_data': request.GET.dict(), 'supplier': supplier, "results": resp_data}
+        result_data = {'request_data': request.GET.dict(), 'supplier': supplier
+                       , 'sale_category': sale_category, "results": resp_data}
         return Response(result_data)
+    
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        supplier_id = data["supplier"]
+        supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
+        sproduct, state = SaleProduct.objects.get_or_create(
+            outer_id='OO%d' % time.time(),
+            platform=supplier.platform)
+
+        for k, v in data.iteritems():
+            if len(v) > 0 and len(k) > 0:
+                if k == 'sale_category':
+                    v = SaleCategory.objects.get(id=v)
+                if k == 'title':
+                    v = v + "-" + supplier.supplier_name
+                hasattr(sproduct, k) and setattr(sproduct, k, v)
+
+        sproduct.sale_supplier = supplier
+        sproduct.status = SaleProduct.SELECTED
+        sproduct.platform = SaleProduct.MANUALINPUT
+        sproduct.contactor = request.user
+        sproduct.save()
+
+        log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
+        return HttpResponseRedirect("/supplychain/supplier/product/?sale_supplier=" + supplier_id)
 
 
 class SaleProductAdd(generics.ListCreateAPIView):
