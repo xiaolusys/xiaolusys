@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 import hashlib
-import datetime
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets
@@ -21,50 +21,45 @@ from flashsale.pay.models import SaleRefund,District,UserAddress
 from django.forms import model_to_dict
 import json
 
+from qiniu import Auth
 
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
+    ### 退款API:
+    
     - {prefix}/method: get 获取用户的退款单列表
     - {prefix}/method: post 创建用户的退款单
         -  创建退款单
-
-            `id`:sale order id
-            `reason`:退货原因
-            `num`:退货数量
-            `sum_price` 申请金额
-            `description`: 申请描述
-            `proof_pic`: 佐证图片（字符串格式网址链接，多个使用＇，＇隔开）
-
+        >`id`:sale order id
+        > `reason`:退货原因
+        > `num`:退货数量
+        > `sum_price` 申请金额
+        > `description`: 申请描述
+        > `proof_pic`: 佐证图片（字符串格式网址链接，多个使用＇，＇隔开）
         -  修改退款单
-
-            `id`: sale order id
-            `modify`:   1
-            `reason`:   退货原因
-            `num`:  退货数量
-            `sum_price`:    申请金额
-            `description`:  申请描述
-
+        > `id`: sale order id
+        > `modify`:   1
+        > `reason`:   退货原因
+        > `num`:  退货数量
+        > `sum_price`:    申请金额
+        > `description`:  申请描述
         -  添加退款单物流信息
-
-            `id`:   sale order id
-            `modify`:   2
-            `company`:  物流公司
-            `sid`:  物流单号
-
+        > `id`:   sale order id
+        > `modify`:   2
+        > `company`:  物流公司
+        > `sid`:  物流单号
         -  修改数量获取退款金额
-
-            `id`: sale order id
-            `modify`:   3
-            `num`:  退货数量
-            `:return`:apply_fee 申请金额
-
+        > `id`: sale order id
+        > `modify`:   3
+        > `num`:  退货数量
+        > `:return`:apply_fee 申请金额
     - {prefix}/{{ order_id }}/get_by_order_id/method:get  根据订单id 获取指定的退款单
         -  返回
-
-            `feedback`:  驳回原因
-            `id`: id
-            `buyer_id`: 用户id
-            `reason`: 买家申请原因
+        > `feedback`:  驳回原因
+        > `id`: id
+        > `buyer_id`: 用户id
+        > `reason`: 买家申请原因
+    - {prefix}/qiniu_token: get 获取用户的退款单列表
     """
     queryset = SaleRefund.objects.all()
     serializer_class = serializers.SaleRefundSerializer# Create your views here.
@@ -101,6 +96,12 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             sale_refund = queryset[0]
             refund_dic = model_to_dict(sale_refund, fields=["id", "feedback", "buyer_id", "reason"])
         return Response(refund_dic)
+    
+    @list_route(methods=["get"])
+    def qiniu_token(self, request,**kwargs):
+        q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
+        token = q.upload_token("xiaolumm", expires=3600)
+        return Response({'uptoken': token})
 
 
 class UserAddressViewSet(viewsets.ModelViewSet):

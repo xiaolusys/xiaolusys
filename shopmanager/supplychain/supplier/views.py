@@ -1,6 +1,7 @@
 # -*- encoding:utf8 -*-
 import json
 import time
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 
@@ -321,26 +322,19 @@ class FetchAndCreateProduct(APIView):
         sproduct.save()
 
         data = {'record': SaleProductSerializer(sproduct, context={'request': request}).data}
-
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
 
         return Response(data)
 
-
 from qiniu import Auth
-
-access_key = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
-secret_key = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
-bucket_name = "xiaolumm"
-
 
 class QiniuApi(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
 
     def get(self, request):
-        q = Auth(access_key, secret_key)
-        token = q.upload_token(bucket_name, expires=3600)
+        q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
+        token = q.upload_token("xiaolumm", expires=3600)
         return Response({'uptoken': token})
     
 
