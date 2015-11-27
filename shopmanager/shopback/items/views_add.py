@@ -23,7 +23,7 @@ class AddItemView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         return Response({"v": "v"})
 
-    @transaction.commit_on_success
+#     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
         """ 新增库存商品　新增款式
         """
@@ -62,8 +62,8 @@ class AddItemView(generics.ListCreateAPIView):
         count = 1
         while True:
             inner_outer_id = outer_id + "%03d" % count
-            test_pro = Product.objects.filter(outer_id=(inner_outer_id + "1"), status=Product.NORMAL)
-            if test_pro.count() == 0:
+            test_pros = Product.objects.filter(outer_id__startswith=inner_outer_id, status=Product.NORMAL)
+            if test_pros.count() == 0 or count > 998:
                 break
             count += 1
         if len(inner_outer_id) > 12:
@@ -89,7 +89,6 @@ class AddItemView(generics.ListCreateAPIView):
         pro_count = 1
         for color in all_colors:
             total_remain_num = 0
-
             for sku in all_sku:
                 remain_num = content.get(color + "_" + sku + "_remainnum", "")
                 cost = content.get(color + "_" + sku + "_cost", "")
