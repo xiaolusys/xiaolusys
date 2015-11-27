@@ -83,7 +83,7 @@ class SaleProductList(generics.ListCreateAPIView):
     template_name = "product_screen.html"
     permission_classes = (permissions.IsAuthenticated,)
 
-    paginate_by = 2
+    paginate_by = 15
     page_query_param = 'page_size'
     max_paginate_by = 100
 
