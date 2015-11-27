@@ -67,7 +67,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             `reason`: 买家申请原因
     """
     queryset = SaleRefund.objects.all()
-    serializer_class = serializers.SaleRefundSerializer# Create your views here.
+    serializer_class = serializers.SaleRefundSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
