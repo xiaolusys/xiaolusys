@@ -23,6 +23,7 @@ class ClickCount(models.Model):
         verbose_name = u'点击统计表'
         verbose_name_plural = u'点击统计表列表'
         ordering=['-date']
+        permissions = [('browser_xlmm_active', u'浏览代理活跃度')]
 
     def __unicode__(self):
         return self.weikefu
