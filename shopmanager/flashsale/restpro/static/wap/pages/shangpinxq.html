@@ -39,7 +39,7 @@
         </div>
         <div class="swiper-pagination"></div>
     </div>
-  <a class="btn-back" href="javascript:history.go(-1)"></a>
+  <a class="btn-back" href="javascript:void(0);"></a>
 </div>
 <!-- 商品详细信息 -->
 <div class="goods-content">
@@ -198,6 +198,14 @@ $(document).ready(function(){
     $('.p-center').click(function(){
         window.location = "gerenzhongxin.html";
     })
+    $('.btn-back').click(function(){
+        var referer_url = document.referrer.trim();
+        if (isNone(referer_url) || referer_url==''){
+            window.location = "../index.html";
+        }else{
+            history.go(-1);
+        }
+    })
     $('.buy-now').click(function(){
     	DoIfLogin({
     		callback:buynow,
@@ -242,7 +250,6 @@ function buynow(){
     var sku_id = $('#js-goods-size li.active').attr('sku_id');
     window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
 }
-
 function callNTKFChatPage(){
 	//对应手机WAP端组代码
 	NTKF.im_openInPageChat("kf_9645_1444459002183");
