@@ -338,16 +338,10 @@ class SaleProductAdmin(MyAdmin):
             obj.sale_supplier.id,obj.sale_supplier and obj.sale_supplier.supplier_name or '')
         if obj.status in (SaleProduct.SELECTED, SaleProduct.PURCHASE, SaleProduct.WAIT, SaleProduct.PASSED,
                           SaleProduct.SCHEDULE) and obj.sale_supplier:
-            if obj.platform == u'manualinput':
-                base_link += u'<br><br><a href="/supplychain/supplier/line_product/?status={0}&sale_supplier={1}"  target="_blank" >{2}</a></div>'
-                base_link = base_link.format(obj.status,
-                                             obj.sale_supplier.id,
-                                             u'洽谈')
-            else:
-                base_link += u'<br><br><a href="/supplychain/supplier/product/?status={0}&sale_supplier={1}"  target="_blank" >{2}</a></div>'
-                base_link = base_link.format(obj.status,
-                                             obj.sale_supplier.id,
-                                             u'洽谈')
+            base_link += u'<br><br><a href="/supplychain/supplier/product/?status={0}&sale_supplier={1}"  target="_blank" >{2}</a></div>'
+            base_link = base_link.format(obj.status,
+                                         obj.sale_supplier.id,
+                                         u'洽谈')
         return base_link
 
     supplier_link.allow_tags = True

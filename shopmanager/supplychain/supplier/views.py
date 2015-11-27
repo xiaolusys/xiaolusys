@@ -8,6 +8,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
+from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 
 from shopback.base import log_action, ADDITION, CHANGE
@@ -90,8 +91,6 @@ class SaleProductList(generics.ListCreateAPIView):
 
         queryset = self.filter_queryset(self.queryset)
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        resp_data = serializer.data
         sale_category = SaleCategory.objects.all()
         sale_category = SaleCategorySerializer(sale_category, many=True).data
         
@@ -105,8 +104,17 @@ class SaleProductList(generics.ListCreateAPIView):
                 supplier.progress = progress
                 supplier.save()
             supplier = SaleSupplierSerializer(supplier, context={'request': request}).data
+        
+        resp_data = self.get_serializer(page, many=True).data
         result_data = {'request_data': request.GET.dict(), 'supplier': supplier
                        , 'sale_category': sale_category, "results": resp_data}
+        if hasattr(self,'get_paginated_response'):
+            result_data.update(OrderedDict([
+                            ('count', self.paginator.page.paginator.count),
+                            ('next', self.paginator.get_next_link()),
+                            ('previous', self.paginator.get_previous_link()),
+                        ]))
+        
         return Response(result_data)
     
     def post(self, request, *args, **kwargs):
