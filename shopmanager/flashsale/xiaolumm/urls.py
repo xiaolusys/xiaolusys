@@ -6,6 +6,7 @@ from django.views.generic import TemplateView
 from . import views ,views_duokefu,views_top100_iter,viws_xlmminfo,views_order_percent, top_view_api
 from .views_register import MamaRegisterView,MamaConfirmView
 from rest_framework import routers
+from . import views_xlmm_active
 
 urlpatterns = patterns('',
     url(r'^$',views.landing),
@@ -51,6 +52,7 @@ urlpatterns = patterns('',
     url(r'^order_carry_analysis/$', staff_member_required(views_order_percent.xlmm_Carry_Log), name="xlmm_Carry_Log"),
     
     url(r'^top/', staff_member_required(top_view_api.TopDataView.as_view()), name="xlmm_tp_api"),
+    url(r'^xlmm_active/', staff_member_required(views_xlmm_active.XlmmActive.as_view()), name="xlmm_active"),
 
 
 )
