@@ -134,6 +134,12 @@ function Set_order_detail(suffix) {
     	//设置订单商品明细
         if (!isNone(data.orders)){
 	        $.each(data.orders,function (index, order) {
+                    if(order.kill_title == true){
+                        order.kill_title=1;
+                    }
+                    else{
+                            order.kill_title=0;
+                        }
 	                order.trade_id = suffix.split("/")[2];//赋值交易id
 	                var detail_dom = Create_detail_dom(order);
 	                $('.basic .panel-bottom').append(detail_dom);
@@ -167,7 +173,11 @@ function Set_order_detail(suffix) {
 }
 
 // 订单状态显示　跳转处理　已经　确认签收处理
-function Order_Status_Handdler(trade_id, id, status, refund_status) {
+function Order_Status_Handdler(trade_id, id, status, refund_status, kill_title) {
+    if(kill_title){
+        drawToast("您的订单属于秒杀产品，暂不支持退款，请见谅！");
+        return
+    }
     if (status == 2 && refund_status == 0) { //　已经付款　没有退款　跳转到退款　页面
         console.log("跳转到退款页面");
         location.href = 'tuikuan.html?oid=' + id + '&tid=' + trade_id;
@@ -188,7 +198,7 @@ function Order_Status_Handdler(trade_id, id, status, refund_status) {
 
 function Cancel_order(suffix) {
     // 取消订单
-    var cid = $(".btn_interactive").attr('cid')
+    var cid = $(".btn_interactive").attr('cid');
     if (cid == 0 || cid == 1) {
         var buy_button = Create_button_buy_dom();
         $('.buy_button').append(buy_button);

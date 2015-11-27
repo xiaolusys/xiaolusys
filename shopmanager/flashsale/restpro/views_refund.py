@@ -148,6 +148,9 @@ def refund_Status(order_id=None):
     order = get_object_or_404(SaleOrder, id=order_id)
     # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
     # 如果Order 仅仅签收状态才可以退货  refund_type = BUYER_RECEIVED
+    second_kill = order.second_kill_title()
+    if second_kill:
+        raise exceptions.APIException(u'秒杀商品暂不支持退单，请见谅！')
     if order.status == SaleOrder.WAIT_SELLER_SEND_GOODS:
         refund_type = SaleRefund.BUYER_NOT_RECEIVED
     elif order.status in (SaleOrder.TRADE_BUYER_SIGNED,):

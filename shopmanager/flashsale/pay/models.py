@@ -442,6 +442,10 @@ class SaleOrder(models.Model):
         if sign_orders.count() == normal_orders.count():
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
             update_model_fields(sale_trade,update_fields=['status'])
+
+    def second_kill_title(self):
+        """ 判断是否秒杀标题　"""
+        return True if self.title.startswith(u'秒杀') else False
             
 
 def refresh_sale_trade_status(sender,instance,*args,**kwargs):

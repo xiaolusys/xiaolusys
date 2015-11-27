@@ -161,18 +161,18 @@ class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
-    
-#     url        = serializers.HyperlinkedIdentityField(view_name='v1:saleorder-detail')
-    status     = serializers.ChoiceField(choices=SaleOrder.ORDER_STATUS)
+    # url = serializers.HyperlinkedIdentityField(view_name='v1:saleorder-detail')
+    status = serializers.ChoiceField(choices=SaleOrder.ORDER_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    refund_status  = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
+    refund_status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
     refund_status_display = serializers.CharField(source='get_refund_status_display', read_only=True)
-    
+    kill_title = serializers.BooleanField(source='second_kill_title', read_only=True)
+
     class Meta:
         model = SaleOrder
-        fields = ( 'id', 'oid', 'item_id', 'title', 'sku_id' , 'num', 'outer_id', 'total_fee' ,
-                    'payment', 'discount_fee', 'sku_name', 'pic_path', 'status' ,'status_display',
-                   'refund_status', 'refund_status_display',"refund_id")
+        fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
+                  'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
+                  'refund_status', 'refund_status_display', "refund_id", 'kill_title')
         
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
