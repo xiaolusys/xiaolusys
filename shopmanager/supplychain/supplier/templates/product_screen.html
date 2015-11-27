@@ -1,10 +1,12 @@
-
 {% extends "supplier_base.html" %}
 
 {% load mathfilters %}
 
 {% block title %}
 品牌供应商
+{% endblock %}
+
+{% block head_script %}
 {% endblock %}
 
 {% block container %}
@@ -32,14 +34,17 @@
   	</div>
   </div>
   <div class="row" style="margin-bottom:16px;">
-  <div class="col-md-6" >
-    <div class="input-group">
-      <input id="query_input" type="text" class="form-control">
-      <span class="input-group-btn">
-        <button id="query_create" class="btn btn-primary" type="button">查询并创建</button>
-      </span>
-    </div><!-- /input-group -->
-    </div>
+	  <div class="col-md-6" >
+	    <div class="input-group">
+	      <input id="query_input" type="text" class="form-control"/>
+	      <span class="input-group-btn">
+	        <button id="query_create" class="btn btn-primary" type="button">查询并创建</button>
+	      </span>
+	      <span class="input-group-btn">
+	        <button class="btn btn-primary" type="button" style="margin-left:10px;" onclick="slideProdcutToggle()" >手工创建&nbsp;<i class="glyphicon glyphicon-plus"></i></button>
+	      </span>
+	    </div><!-- /input-group -->
+	  </div>
     <div class="col-md-2" >
     	<div class="btn-group">
 		  <button type="button" class="btn btn-warning">{{ supplier.progress }}</button>
@@ -61,15 +66,118 @@
 	<ul class="nav nav-pills pagination pagination-lg" style="margin:0px;">
 	  {% if previous %}
 	  <li><a href="{{ previous }}">&lt;&lt; 上一页</a></li>
-          {% endif %}
+      {% endif %}
 	  {% if next %}
 	  <li><a href="{{ next }}">下一页 &gt;&gt;</a></li>
 	  {% endif %}
 	</ul>
   </div>
 </div><!-- /.row -->
+<!-- 七牛图片上传模块 -->
+<div style="display:none" id="success" class="col-md-12">
+    <div class="alert-success">
+        队列全部文件处理完毕
+    </div>
+</div>
+<div class="col-md-12 ">
+    <table class="table table-striped table-hover text-left" style="margin-top:40px;display:none">
+        <thead>
+        <tr>
+            <th class="col-md-4">Filename</th>
+            <th class="col-md-2">Size</th>
+            <th class="col-md-6">Detail</th>
+        </tr>
+        </thead>
+        <tbody id="fsUploadProgress">
+        </tbody>
+    </table>
+</div>
+<div class="panel panel-default product_add" >
+    <form action="/supplychain/supplier/product/" method="post">
+    {% csrf_token %}
+    <input value="{{supplier.id}}" hidden="hidden" name="supplier">
+    <input hidden="" id="domain" value="http://7xkyoy.com1.z0.glb.clouddn.com/">
+    <input hidden=""  id="uptoken_url" value="/supplychain/supplier/qiniu/?format=json">
+        <!-- Default panel contents -->
+        <div class="panel-heading">新建商品</div>
+        <div class="panel-body">
+            <!-- List group -->
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;"><label>商品名称：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" name="title">
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>进货价：</label>
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <input class="form-control" name="sale_price">
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>商品图片:</label>
+                        </div>
+                        <div class="col-md-3" style="text-align:left;display:inline;">
+                            <input class="form-control" name="pic_url" id="pic_path">
+                        </div>
+                        <div id="container" class="col-md-1">
+                            <a class="btn btn-default" id="pickfiles" href="javascript:void(0)" >
+                                <i class="glyphicon glyphicon-plus"></i>
+                            </a>
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>类别：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <select class="form-control" name="sale_category">
+                                {% for category in sale_category %}
+                                <option value="{{category.id}}">{{ category.full_name }}</option>
+                                {%endfor%}
+                            </select>
+                        </div>
 
- <div class="panel panel-default supplier-info" style="display:none;">
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>商品材质：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" name="product_material">
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>商品预留时间：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" id="reserve_time_id" name="reserve_time">
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>备注：</label>
+                        </div>
+                        <div class="col-md-8" style="text-align:left;display:inline;">
+                            <textarea rows="3" cols="20" class="form-control"></textarea>
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;float: right">
+                            <input class="btn btn-primary" type="submit" value="确认新建">
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </form>
+</div>
+<div class="panel panel-default supplier-info" style="display:none;">
   <!-- Default panel contents -->
   <div class="panel-heading"> 商家信息  </div>
   <div class="panel-body">
@@ -228,112 +336,106 @@
     </li>
     {% endfor %}
   </ul>
-
   <div class="footer">
     <p>© Uni Littles 2014</p>
   </div>
 </div>
-
 {% endblock %}
 
 {% block tail_script %}
-    <script type="text/javascript">
-        function screen(id, counter) {
-
-            var buyPrice = parseFloat($("#id-buy-price-" + counter).val());
-            var stdSalePrice = parseFloat($("#id-std-sale-price-" + counter).val());
-            var onSalePrice = parseFloat($("#id-on-sale-price-" + counter).val());
-            if (isNaN(buyPrice) || buyPrice < 0) {
-                $("#id-msg-" + counter)[0].innerHTML = "请输入进货价：";
-                $("#id-msg-" + counter).css("color", "red");
-                return;
-            }
-            if (!isNaN(onSalePrice) && !isNaN(stdSalePrice) && (stdSalePrice <= 0 || onSalePrice <= 0)) {
-                $("#id-msg-" + counter)[0].innerHTML = "请输入吊牌价和售价：";
-                $("#id-msg-" + counter).css("color", "red");
-                return;
-            }
-            if (isNaN(onSalePrice) || isNaN(stdSalePrice)) {
-                stdSalePrice = onSalePrice = '0';
-            }
-
-            var url = "/supplychain/supplier/product/" + id + "/";
-            var callback = function (res) {
-                if (res["status"]) {
-                    $("#id-item-" + id).slideUp();
-                }
-            };
-
-            var sale_time = "";
-            var sale_time_sct = $("#id-sale-time-" + counter);
-
-            if (sale_time_sct) {
-                sale_time = sale_time_sct.val();
-            }
-
-            if (sale_time_sct && sale_time == "") {
-                $("#id-msg-" + counter)[0].innerHTML = "请选择上架日期";
-                $("#id-msg-" + counter).css("color", "red");
-                return;
-            }
-
-            var memo = $("#id-memo-" + counter).val();
-            var selection = $("#id-select-" + counter).val();
-
-            var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-            var data = {
-                "status": selection,
-                "csrfmiddlewaretoken": csrf_token,
-                "sale_price": buyPrice,
-                "std_sale_price": stdSalePrice,
-                "on_sale_price": onSalePrice,
-                "sale_time": sale_time,
-                "memo": memo
-            };
-
-            var headers = {
-                'X-HTTP-Method-Override': 'PATCH'
-            };
-
-            $.ajax({url: url, data: data, success: callback, method: "post", headers: headers});
+<script type="text/javascript">
+    function screen(id, counter) {
+        var buyPrice = parseFloat($("#id-buy-price-" + counter).val());
+        var stdSalePrice = parseFloat($("#id-std-sale-price-" + counter).val());
+        var onSalePrice = parseFloat($("#id-on-sale-price-" + counter).val());
+        if (isNaN(buyPrice) || buyPrice < 0) {
+            $("#id-msg-" + counter)[0].innerHTML = "请输入进货价：";
+            $("#id-msg-" + counter).css("color", "red");
+            return;
         }
-        ;
-
-        function slideToggle() {
-            $(".supplier-info").slideToggle(1000);
+        if (!isNaN(onSalePrice) && !isNaN(stdSalePrice) && (stdSalePrice <= 0 || onSalePrice <= 0)) {
+            $("#id-msg-" + counter)[0].innerHTML = "请输入吊牌价和售价：";
+            $("#id-msg-" + counter).css("color", "red");
+            return;
         }
-        ;
-
-        $("#query_create").click(function () {
-
-            var fetch_url = $("#query_input").val();
-            if (!fetch_url) {
-                return;
+        if (isNaN(onSalePrice) || isNaN(stdSalePrice)) {
+            stdSalePrice = onSalePrice = '0';
+        }
+        var url = "/supplychain/supplier/product/" + id + "/";
+        var callback = function (res) {
+            if (res["status"]) {
+                $("#id-item-" + id).slideUp();
             }
+        };
+        var sale_time = "";
+        var sale_time_sct = $("#id-sale-time-" + counter);
 
-            if ($("#fetch-form").length > 0) {
-                $("#fetch-form").css("border", "1px solid #5BC0DE")
-                return;
+        if (sale_time_sct) {
+            sale_time = sale_time_sct.val();
+        }
+        if (sale_time_sct && sale_time == "") {
+            $("#id-msg-" + counter)[0].innerHTML = "请选择上架日期";
+            $("#id-msg-" + counter).css("color", "red");
+            return;
+        }
+        var memo = $("#id-memo-" + counter).val();
+        var selection = $("#id-select-" + counter).val();
+
+        var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        var data = {
+            "status": selection,
+            "csrfmiddlewaretoken": csrf_token,
+            "sale_price": buyPrice,
+            "std_sale_price": stdSalePrice,
+            "on_sale_price": onSalePrice,
+            "sale_time": sale_time,
+            "memo": memo
+        };
+
+        var headers = {
+            'X-HTTP-Method-Override': 'PATCH'
+        };
+        $.ajax({url: url, data: data, success: callback, method: "post", headers: headers});
+    };
+    function slideToggle() {
+        $(".supplier-info").slideToggle(500);
+    };
+    function slideProdcutToggle() {
+        $(".product_add").slideToggle(500);
+    };
+    $("#query_create").click(function () {
+        var fetch_url = $("#query_input").val();
+        console.log('debug fetch:',fetch_url);
+        if (!fetch_url) {
+            return;
+        }
+        if ($("#fetch-form").length > 0) {
+            $("#fetch-form").css("border", "1px solid #5BC0DE")
+            return;
+        }
+        var supplier_id = $("#supplier_id").val();
+        var url = "/supplychain/supplier/brand/fetch/" + supplier_id + "/";
+        var status = $("#status_id").val();
+        var callback = function (res) {
+            if ($("#items-group li").length == 0) {
+                $("#items-group").append(res);
+            } else {
+                $("#items-group li:first").before(res);
             }
-            var supplier_id = $("#supplier_id").val();
-            var url = "/supplychain/supplier/brand/fetch/" + supplier_id + "/";
-            var status = $("#status_id").val();
-
-            var callback = function (res) {
-                if ($("#items-group li").length == 0) {
-                    $("#items-group").append(res);
-                } else {
-                    $("#items-group li:first").before(res);
-                }
-            };
-
-            var data = {"fetch_url": fetch_url, 'status': status};
-
-            $.ajax({url: url, data: data, success: callback, method: "GET"});
-        });
-        $(function () {
-            $(".datepicker").datepicker({dateFormat: "yy-mm-dd 00:00:00"});
-        });
-    </script>
+        };
+        var data = {"fetch_url": fetch_url, 'status': status};
+        $.ajax({url: url, data: data, success: callback, method: "GET"});
+    });
+    $(function () {
+        $(".datepicker").datepicker({dateFormat: "yy-mm-dd 00:00:00"});
+        $("#reserve_time_id").datepicker({dateFormat: "yy-mm-dd 00:00:00"});
+    });
+</script>
+<script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+<script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_ui.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_qiniu.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_main.js"></script>
 {% endblock %}
     

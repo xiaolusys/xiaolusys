@@ -133,10 +133,14 @@ PINGPP_APPKEY  = "sk_live_HOS4OSW10u5CDyrn5Gn9izLC"
 ################### Ntalker SETTINGS ##################
 
 NTALKER_NOTIFY_URL = 'http://wx.ntalker.com/agent/weixin'
-
 WX_MESSAGE_URL = 'https://api.weixin.qq.com/cgi-bin/message/custom/send'
 WX_MEDIA_UPLOAD_URL = 'https://api.weixin.qq.com/cgi-bin/media/upload'
 WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
+
+################### QINIU SETTINGS ##################
+
+QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
+QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
 
 LOGGING = {
     'version': 1,

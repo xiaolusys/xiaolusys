@@ -1,6 +1,7 @@
 # -*- encoding:utf8 -*-
 import json
 import time
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 
@@ -8,6 +9,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
+from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 
 from shopback.base import log_action, ADDITION, CHANGE
@@ -82,7 +84,7 @@ class SaleProductList(generics.ListCreateAPIView):
     template_name = "product_screen.html"
     permission_classes = (permissions.IsAuthenticated,)
 
-    paginate_by = 100
+    paginate_by = 15
     page_query_param = 'page_size'
     max_paginate_by = 100
 
@@ -90,9 +92,9 @@ class SaleProductList(generics.ListCreateAPIView):
 
         queryset = self.filter_queryset(self.queryset)
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        resp_data = serializer.data
-
+        sale_category = SaleCategory.objects.all()
+        sale_category = SaleCategorySerializer(sale_category, many=True).data
+        
         supplier_id = request.GET.get('sale_supplier', '')
         supplier = None
         if supplier_id:
@@ -103,8 +105,43 @@ class SaleProductList(generics.ListCreateAPIView):
                 supplier.progress = progress
                 supplier.save()
             supplier = SaleSupplierSerializer(supplier, context={'request': request}).data
-        result_data = {'request_data': request.GET.dict(), 'supplier': supplier, "results": resp_data}
+        
+        resp_data = self.get_serializer(page, many=True).data
+        result_data = {'request_data': request.GET.dict(), 'supplier': supplier
+                       , 'sale_category': sale_category, "results": resp_data}
+        if hasattr(self,'get_paginated_response'):
+            result_data.update(OrderedDict([
+                            ('count', self.paginator.page.paginator.count),
+                            ('next', self.paginator.get_next_link()),
+                            ('previous', self.paginator.get_previous_link()),
+                        ]))
+        
         return Response(result_data)
+    
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        supplier_id = data["supplier"]
+        supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
+        sproduct, state = SaleProduct.objects.get_or_create(
+            outer_id='OO%d' % time.time(),
+            platform=supplier.platform)
+
+        for k, v in data.iteritems():
+            if len(v) > 0 and len(k) > 0:
+                if k == 'sale_category':
+                    v = SaleCategory.objects.get(id=v)
+                if k == 'title':
+                    v = v + "-" + supplier.supplier_name
+                hasattr(sproduct, k) and setattr(sproduct, k, v)
+
+        sproduct.sale_supplier = supplier
+        sproduct.status = SaleProduct.SELECTED
+        sproduct.platform = SaleProduct.MANUALINPUT
+        sproduct.contactor = request.user
+        sproduct.save()
+
+        log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
+        return HttpResponseRedirect("/supplychain/supplier/product/?sale_supplier=" + supplier_id)
 
 
 class SaleProductAdd(generics.ListCreateAPIView):
@@ -285,26 +322,19 @@ class FetchAndCreateProduct(APIView):
         sproduct.save()
 
         data = {'record': SaleProductSerializer(sproduct, context={'request': request}).data}
-
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
 
         return Response(data)
 
-
 from qiniu import Auth
-
-access_key = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
-secret_key = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
-bucket_name = "xiaolumm"
-
 
 class QiniuApi(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
 
     def get(self, request):
-        q = Auth(access_key, secret_key)
-        token = q.upload_token(bucket_name, expires=3600)
+        q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
+        token = q.upload_token("xiaolumm", expires=3600)
         return Response({'uptoken': token})
     
 

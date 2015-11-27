@@ -40,12 +40,10 @@
     <a href="#" class="thumbnail">
       <img src="{{ kefu_url }}" alt="...">
     </a>
-
     <form action="{% url mama_confirm %}" method="POST">
 	  {% csrf_token %}
 	  <input type="hidden"  name="openid" value="{{ wxuser.openid }}">
 	  <input type="hidden"  name="unionid" value="{{ wxuser.unionid }}">
-	  
 	  <button type="submit" class="btn btn-primary btn-lg">确认已添加管理员微信号</button>
 	</form>
   </div>

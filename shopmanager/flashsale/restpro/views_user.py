@@ -51,13 +51,19 @@ def check_day_limit(reg_bean):
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
-    ### 特卖平台 用户注册,修改密码API：
+    ### 特卖平台 用户注册,修改密码API：　
+    
     - {prefix}/[.format]: `params={vmobile}` 注册新用户时，获取验证码;
+    > 返回参数result：0-已经注册了;1-180秒不能重复发送;２－验证次数达上限;OK-表示获取成功;
     - {prefix}/check_code_user: `params={username,valid_code}` 校验验证码（旧）;
+    > 返回参数result：0-已经注册了;1-验证码过期或不对;２－参数格式不对;３-未获取验证码;7-注册成功;
     - {prefix}/change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
+    > 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－当日验证次数超过上限;３-验证码过期;
     - {prefix}/change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
+    > 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－验证码不对;３-未获取验证码;４-验证码过期;５-校验异常;
     - {prefix}/wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
     - {prefix}/check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
+    > 返回参数result：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer

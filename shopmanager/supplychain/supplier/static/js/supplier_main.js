@@ -10,7 +10,7 @@ $(function () {
         browse_button: 'pickfiles',
         container: 'container',
         drop_element: 'container',
-        max_file_size: '100mb',
+        max_file_size: '10mb',
         flash_swf_url: 'js/plupload/Moxie.swf',
         dragdrop: true,
         chunk_size: '4mb',
@@ -70,35 +70,28 @@ $(function () {
             }
         }
     });
-
     uploader.bind('FileUploaded', function () {
         console.log('hello man,a file is uploaded');
     });
-    console.log($('#container'));
     $('#container').on(
         'dragenter',
         function (e) {
-            console.log("eeeeee");
             e.preventDefault();
             $('#container').addClass('draging');
             e.stopPropagation();
         }
     ).on('drop', function (e) {
-            console.log("eeeeeeff");
             e.preventDefault();
             $('#container').removeClass('draging');
             e.stopPropagation();
         }).on('dragleave', function (e) {
-            console.log("eeeeeddde");
             e.preventDefault();
             $('#container').removeClass('draging');
             e.stopPropagation();
         }).on('dragover', function (e) {
-            console.log("eaaaeeeee");
             e.preventDefault();
             $('#container').addClass('draging');
             e.stopPropagation();
         });
-
     $(".product_add").slideToggle(1);
 });

@@ -542,7 +542,7 @@ class ProductSku(models.Model):
     wait_post_num = models.IntegerField(default=0,verbose_name='待发数')    #待发数
     sale_num      = models.IntegerField(default=0,verbose_name=u'日出库数') #日出库
     reduce_num    = models.IntegerField(default=0,verbose_name='预减数')    #下次入库减掉这部分库存
-    lock_num      = models.IntegerField(default=0,verbose_name='锁定数')    #特卖平台待付款数量
+    lock_num      = models.IntegerField(default=0,verbose_name='锁定数')    #特卖待发货，待付款数量
     sku_inferior_num = models.IntegerField(default=0, verbose_name=u"次品数") #　保存对应sku的次品数量
     
     cost          = models.FloatField(default=0,verbose_name='成本价')
@@ -619,7 +619,11 @@ class ProductSku(models.Model):
         
     @property
     def sale_out(self):
-        return self.free_num <= 0
+        if self.free_num > 0:
+            return False
+        if self.quantity > self.wait_post_num > 0:
+            return False
+        return True
 
     @property
     def size_of_sku(self):

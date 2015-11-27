@@ -110,11 +110,9 @@
     <input value="{{supplier.id}}" hidden="hidden" name="supplier">
     <input hidden="" id="domain" value="http://7xkyoy.com1.z0.glb.clouddn.com/">
     <input hidden=""  id="uptoken_url" value="/supplychain/supplier/qiniu/?format=json">
-
         <!-- Default panel contents -->
         <div class="panel-heading">新建商品</div>
         <div class="panel-body">
-
             <!-- List group -->
             <ul class="list-group">
                 <li class="list-group-item">
@@ -131,7 +129,6 @@
                             <input class="form-control" name="sale_price">
                         </div>
                     </div>
-
                 </li>
                 <li class="list-group-item">
                     <div class="row">
@@ -157,7 +154,6 @@
                                 {%endfor%}
                             </select>
                         </div>
-
                     </div>
                 </li>
                 <li class="list-group-item">
@@ -190,9 +186,7 @@
                     </div>
                 </li>
             </ul>
-
         </div>
-
     </form>
 </div>
     <div class="panel panel-default supplier-info" style="display:none;">
@@ -200,7 +194,6 @@
         <div class="panel-heading"> 商家信息</div>
         <div class="panel-body">
             <label>说明：</label>
-
             <p>{{ supplier.memo }}
                 <a href="/admin/supplier/salesupplier/{{  supplier.id }}/" class="btn btn-primary"
                    style="display:inline;float:right;" onclick="return showAddAnotherPopup(this);">修改</a></p>
@@ -381,7 +374,6 @@
         </li>
         {% endfor %}
     </ul>
-
     <div class="footer">
         <p>© Uni Littles 2015</p>
     </div>
@@ -488,6 +480,5 @@
 <script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/supplier_ui.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/supplier_qiniu.js"></script>
-
 <script type="text/javascript" src="{{ STATIC_URL }}js/supplier_main.js"></script>
 {% endblock %}

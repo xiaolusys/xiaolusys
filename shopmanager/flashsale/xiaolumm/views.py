@@ -12,11 +12,17 @@ from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
 from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
+from django.conf import settings
+from flashsale.pay.options import set_cookie_openid,get_cookie_openid,get_user_unionid
+from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
+from flashsale.clickcount.tasks import CLICK_ACTIVE_START_TIME, CLICK_MAX_LIMIT_DATE  
+from common.modelutils import update_model_fields
 
-from models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
+from .models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 
-from serializers import CashOutSerializer,CarryLogSerializer
+from .serializers import CashOutSerializer,CarryLogSerializer
 from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -72,13 +78,11 @@ class CashoutView(View):
                                           appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET,
                                           request=request)
-
         if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
-
         referal_list = XiaoluMama.objects.filter(referal_from=xlmm.mobile,status=XiaoluMama.EFFECT)
         cashout_objs = CashOut.objects.filter(xlmm=xlmm.pk)
 
@@ -111,7 +115,8 @@ class CashoutView(View):
 
     def post(self, request):
         content = request.REQUEST
-        unionid = request.COOKIES.get('unionid')
+        cookies = request.COOKIES
+        openid, unionid = get_cookie_openid(cookies,settings.WEIXIN_APPID)
         if not valid_openid(unionid):
             raise Http404
         could_cash_out = 0
@@ -147,7 +152,6 @@ class CashoutView(View):
         return HttpResponse(json.dumps(status),content_type='application/json')
 
 
-
 class CashOutList(generics.ListAPIView):
     queryset = CashOut.objects.all().order_by('-created')
     serializer_class = CashOutSerializer
@@ -161,15 +165,6 @@ class CarryLogList(generics.ListAPIView):
     renderer_classes = (JSONRenderer,)
     filter_fields = ("xlmm",)
     
-
-from django.conf import settings
-from flashsale.pay.options import set_cookie_openid,get_user_unionid
-from flashsale.clickcount.models import ClickCount
-from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
-from flashsale.mmexam.models import Result
-from common.modelutils import update_model_fields
-
-from flashsale.clickcount.tasks import CLICK_ACTIVE_START_TIME, CLICK_MAX_LIMIT_DATE  
 
 class MamaStatsView(View):
     def get(self, request):
