@@ -83,12 +83,9 @@ def task_off_the_shelf(product_id=None):
 
 from common.cachelock import cache_lock
 import datetime
-@task()
+
 @cache_lock(cache_time=60 * 60)
-def task_schedule_cart():
-    """
-        定时清空购物车中已经超过预留时间和订单中未支付的。
-    """
+def close_timeout_carts_and_orders():
     djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
     now = datetime.datetime.now() 
     all_product_in_cart = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL, remain_time__lte=now)
@@ -107,6 +104,13 @@ def task_schedule_cart():
         except Exception, exc:
             logger = logging.getLogger('django.request')
             logger.error(exc.message, exc_info=True)
+
+@task()
+def task_schedule_cart():
+    """
+        定时清空购物车中已经超过预留时间和订单中未支付的。
+    """
+    close_timeout_carts_and_orders()
 
 #fang  2015-8-21    
 @task(max_retry=3, default_retry_delay=5)  
