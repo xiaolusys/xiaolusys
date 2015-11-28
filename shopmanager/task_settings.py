@@ -6,7 +6,7 @@ CELERY_IMPORTS = (
     'shopback.trades.tasks_release',
 )
 #CELERY_RESULT_BACKEND = 'database'
-#BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
+# BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 #BROKER_URL = 'amqp://user1:passwd1@127.0.0.1:5672/vhost1'
@@ -27,9 +27,8 @@ CELERYD_PREFETCH_MULTIPLIER = 1
 # CELERY_DISABLE_RATE_LIMITS = True     
 
 CELERY_TIMEZONE = 'Asia/Shanghai'  
- 
 
-CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend"
+CELERY_RESULT_BACKEND = "amqp" #"djcelery.backends.cache:CacheBackend"
 CELERY_TASK_RESULT_EXPIRES = 10800  # 2 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
 CELERYD_CONCURRENCY = 8 # 16 processes in paralle
