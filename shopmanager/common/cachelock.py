@@ -52,11 +52,14 @@ def cache_lock(cache_time=0,lock_wait=False):
             lock = CacheLock(cache_key, cache_time, lock_wait=lock_wait)
             try:
                 lock.acquire()
-                return func(*args,**kwargs)
+                resp = func(*args,**kwargs)
+                lock.release()
+                return resp
             except CacheLockedException:
                 pass
-            finally: 
+            except:
                 lock.release()
+                
         return wraper
     return func_wraper
 
