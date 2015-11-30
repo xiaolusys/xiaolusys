@@ -175,7 +175,7 @@ function Set_order_detail(suffix) {
 // 订单状态显示　跳转处理　已经　确认签收处理
 function Order_Status_Handdler(trade_id, id, status, refund_status, kill_title) {
     if(kill_title){
-        drawToast("您的订单属于秒杀产品，暂不支持退款，请见谅！");
+        drawToast("秒杀订单不可退款，如疑问请联系客服！");
         return
     }
     if (status == 2 && refund_status == 0) { //　已经付款　没有退款　跳转到退款　页面
