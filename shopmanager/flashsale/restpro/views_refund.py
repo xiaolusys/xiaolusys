@@ -120,14 +120,11 @@ def refund_Handler(request):
     num = int(request.data.get("num", 0))
     desc = request.data.get("description", '')
 
-    proof_pic = str(request.data.get("proof_pic", {}))
-    proof_pic_dic = {}
-
-    if proof_pic != '{}':
+    proof_pic = str(request.data.get("proof_pic", ""))
+    pfcl = []
+    if proof_pic != "":
         pfcl = proof_pic.split(',')
-        for i in range(len(pfcl)):
-            proof_pic_dic[i] = pfcl[i]
-    proof_p = str(proof_pic_dic)
+    proof_p = pfcl
 
     if modify == 2:  # 修改该物流信息
         modify_refund(customer, company, oid, sid)

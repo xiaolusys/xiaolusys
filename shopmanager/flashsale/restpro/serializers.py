@@ -204,6 +204,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
     good_status = serializers.ChoiceField(choices=SaleRefund.GOOD_STATUS_CHOICES)
     status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    proof_pic = JSONParseField()
 
     class Meta:
         model = SaleRefund

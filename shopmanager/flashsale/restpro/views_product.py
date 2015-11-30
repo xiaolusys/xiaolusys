@@ -110,7 +110,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
-    paginate_by = 100
+    paginate_by = 10
     page_query_param = 'page'
     paginate_by_param = 'page_size'
     max_paginate_by = 100
@@ -234,7 +234,22 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
                          'child_list':self.get_serializer(child_qs, many=True).data}
         return Response(response_date)
-    
+
+    @cache_response(timeout=15 * 60, key_func='calc_items_cache_key')
+    @list_route(methods=['get'])
+    def promote_today_paging(self, request, *args, **kwargs):
+        """ 　　商品列表　　分页接口 """
+        today_dt = self.get_today_date()
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(sale_time=today_dt).order_by('-category__parent_cid', '-details__is_recommend',
+                                                                '-wait_post_num')
+        pagin_query = self.paginate_queryset(queryset)
+        if pagin_query is not None:
+            serializer = self.get_serializer(pagin_query, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_previous(self, request, *args, **kwargs):
