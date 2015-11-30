@@ -181,11 +181,11 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
     
 
 @task()
-def updateProductWaitPostNumTask():
+def updateProductWaitPostNumTask(pre_days=3):
     """ 更新商品待发数任务 """
-    products = Product.objects.filter(status=pcfg.NORMAL)
+    pre_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
+    products = Product.objects.filter(modified__gte=pre_date,status=pcfg.NORMAL)
     for product in products:
-        
         Product.objects.updateProductWaitPostNum(product)
 
 
@@ -499,7 +499,7 @@ def updateItemNum(user_id,num_iid):
         elif sync_num > 0:
             product.is_assign = False
         else:
-            sync_num = 0    
+            sync_num = 0
             
         #当前同步库存值，与线上拍下未付款商品数，哪个大取哪个 
         sync_num = max(sync_num,item.with_hold_quantity)

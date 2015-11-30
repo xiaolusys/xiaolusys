@@ -101,7 +101,7 @@ class Product(models.Model):
     weight       = models.CharField(max_length=10,blank=True,verbose_name=u'重量(g)')
     created      = models.DateTimeField(null=True,blank=True,
                                         auto_now_add=True,verbose_name=u'创建时间')
-    modified     = models.DateTimeField(null=True,blank=True,
+    modified     = models.DateTimeField(null=True,blank=True,db_index=True,
                                         auto_now=True,verbose_name=u'修改时间')
     sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
     offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
