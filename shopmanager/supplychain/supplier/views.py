@@ -85,7 +85,8 @@ class SaleProductList(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     paginate_by = 15
-    page_query_param = 'page_size'
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
     max_paginate_by = 100
 
     def get(self, request, *args, **kwargs):
@@ -151,8 +152,9 @@ class SaleProductAdd(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "product_add.html"
     permission_classes = (permissions.IsAuthenticated,)
-    paginate_by = 100
-    page_query_param = 'page_size'
+    paginate_by = 10
+    page_query_param = 'page'
+    paginate_by_param = 'page_size'
     max_paginate_by = 100
 
     def get(self, request, *args, **kwargs):
