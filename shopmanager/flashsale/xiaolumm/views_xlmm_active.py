@@ -46,7 +46,7 @@ class XlmmActive(APIView):
         return user_nums
 
     def get(self, request):
-        if request.user.has_perm('clickcount.browser_xlmm_active'):
+        if request.user.has_perm('xiaolumm.browser_xlmm_active'):
             date_from, today = self.date_zone(request)
             ac_queryset, queryset = self.filter_queryset(date_from, today)
             ac_record = ac_queryset.count()
@@ -60,7 +60,7 @@ class XlmmActive(APIView):
             return Response({})
 
     def post(self, request):
-        if request.user.has_perm('clickcount.browser_xlmm_active'):
+        if request.user.has_perm('xiaolumm.browser_xlmm_active'):
             date_from, today = self.date_zone(request)
             ac_queryset, queryset = self.filter_queryset(date_from, today)
             ac_record = ac_queryset.count()
