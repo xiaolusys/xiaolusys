@@ -25,10 +25,10 @@
 
 {% block container %}
     <div class="row" style="margin-top: 50px">
-        <form method="post" id="my_form">
+        <form method="get" id="my_form">
             <div class="input-group ">
                 <span class="input-group-addon" id="mm_search">代理编号</span>
-                <input type="number" name="xlmm" id="xlmm_num"
+                <input type="number" name="id" id="xlmm_num"
                        class="form-control  mama_base_data_search" placeholder="妈妈编号" value="{{ xlmm }}"
                        aria-describedby="basic-addon3">
                 <span class="input-group-addon" id="date_from">开始时间</span>
