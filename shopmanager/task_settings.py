@@ -38,7 +38,7 @@ CELERY_DEFAULT_QUEUE = 'default'
 CELERY_QUEUES = (
     Queue('default', routing_key='tasks.#'),
     Queue('notify', routing_key='notify.#'),
-    Queue('peroid', routing_key='peroid.#'),
+    Queue('peroid', routing_key='tasks.#'),
     Queue('async', routing_key='async.#'),
 )
 
@@ -66,7 +66,7 @@ CELERY_ROUTES = {
         #######################################################
         'flashsale.xiaolumm.tasks.task_Create_Click_Record': {
             'queue': 'default',
-            'routing_key': 'default.push_xlmm_pending_cash',
+            'routing_key': 'tasks.task_Create_Click_Record',
         },
         'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
             'queue': 'notify',
