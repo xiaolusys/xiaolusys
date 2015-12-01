@@ -27,8 +27,9 @@ BROKER_URL = 'amqp://user1:passwd1@10.132.179.237:5672/vhost1'
 # CELERY_DISABLE_RATE_LIMITS = True     
 
 CELERY_TIMEZONE = 'Asia/Shanghai'  
+CELERY_IGNORE_RESULT = True
 
-CELERY_RESULT_BACKEND = "amqp" #"djcelery.backends.cache:CacheBackend"
+CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend" #"amqp"
 CELERY_TASK_RESULT_EXPIRES = 10800  # 2 hours.
 BROKER_POOL_LIMIT = 10 # 10 connections
 CELERYD_CONCURRENCY = 8 # 16 processes in paralle
