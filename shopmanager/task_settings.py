@@ -42,6 +42,7 @@ CELERY_QUEUES = (
     Queue('default', routing_key='tasks.#'),
     Queue('notify', routing_key='notify.#'),
     Queue('peroid', routing_key='peroid.#'),
+    Queue('frency', routing_key='frency.#'),
     Queue('async', routing_key='async.#'),
 )
 
@@ -68,8 +69,8 @@ CELERY_ROUTES = {
         },
         #######################################################
         'flashsale.xiaolumm.tasks.task_Create_Click_Record': {
-            'queue': 'default',
-            'routing_key': 'tasks.task_Create_Click_Record',
+            'queue': 'frency',
+            'routing_key': 'frency.task_Create_Click_Record',
         },
         'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
             'queue': 'notify',
@@ -106,19 +107,17 @@ SYNC_MODEL_SCHEDULE = {
         'task':'shopback.fenxiao.tasks.updateAllUserIncrementPurchasesTask',
         'schedule':crontab(minute="*/15"),
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.updateAllUserIncrementPurchasesTask'} 
     },
     u'定时淘宝商城订单增量下载任务':{
         'task':'shopback.orders.tasks.updateAllUserIncrementTradesTask',
         'schedule':crontab(minute="0",hour="*/12"),
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.updateAllUserIncrementTradesTask'} 
     },
     u'定时淘宝商城待发货订单下载任务':{
         'task':'shopback.orders.tasks.updateAllUserWaitPostOrderTask',
         'schedule':crontab(minute="30",hour="23"),
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.updateAllUserWaitPostOrderTask'} 
+#         'options' : {'queue':'peroid','routing_key':'peroid.updateAllUserWaitPostOrderTask'} 
     },
     u'分段日期统计商品销售数据':{     #将昨日的订单数更新为商品的警告库位
          'task':'shopback.items.tasks.gradCalcProductSaleTask',
@@ -134,25 +133,21 @@ SYNC_MODEL_SCHEDULE = {
          'task':'shopback.trades.tasks.regularRemainOrderTask',
          'schedule':crontab(minute="0",hour='0,12,17'),
          'args':(),
-         'options' : {'queue':'peroid','routing_key':'peroid.regularRemainOrderTask'} 
      },
      u'定时更新商品待发数':{     #更新库存
         'task':'shopback.items.tasks.updateProductWaitPostNumTask',
         'schedule':crontab(minute="0",hour="5,13"),#
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.updateProductWaitPostNumTask'} 
      },
      u'定时更新淘宝商品库存':{     #更新库存
         'task':'shopback.items.tasks.updateAllUserItemNumTask',
         'schedule':crontab(minute="0",hour="7"),#
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.updateAllUserItemNumTask'} 
     },
     u'定时更新分销商品库存':{     #更新库存
         'task':'shopback.items.tasks.updateAllUserPurchaseItemNumTask',
         'schedule':crontab(minute="0",hour="7"),#
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.updateAllUserPurchaseItemNumTask'} 
     },
     u'定时生成每月物流信息报表':{     #更新库存
         'task':'shopback.trades.tasks.task_Gen_Logistic_Report_File_By_Month',
@@ -163,7 +158,6 @@ SYNC_MODEL_SCHEDULE = {
         'task':'shopback.trades.tasks_release.CancelMergeOrderStockOutTask',
         'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,22,1)])),
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.CancelMergeOrderStockOutTask'} 
     },
 #    'runs-every-weeks-order-amount':{   #更新用户商城订单结算，按周
 #        'task':'shopback.amounts.tasks.updateAllUserOrdersAmountTask',
@@ -188,7 +182,6 @@ SHOP_APP_SCHEDULE = {
         'task':'shopapp.comments.tasks.crawAllUserOnsaleItemComment',
         'schedule':crontab(minute="0",hour="8,10,12,14,16,18,20,22"),
         'args':(),
-        'options' : {'queue':'peroid','routing_key':'peroid.crawAllUserOnsaleItemComment'} 
     },
     u'定时上架任务':{  #定时上架任务
         'task':'shopapp.autolist.tasks.updateAllItemListTask',
