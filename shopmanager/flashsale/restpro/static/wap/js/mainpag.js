@@ -265,31 +265,35 @@ function Create_item_dom(p_obj,close_model){
 
 //初始页面
 var PageNum = 1;
-
 function Set_promotes_product(){
 	//获取今日推荐商品
-    var promoteUrl = GLConfig.baseApiUrl + GLConfig.products_today_paging + '?page='+PageNum;
+    var promoteUrl = GLConfig.baseApiUrl + GLConfig.products_today_paging + '?page='+PageNum+'&page_size=10';
 
     var promoteCallBack = function (data) {
-        $("#loading").hide();
-        if (!isNone(data.results)) {
-            $.each(data.results,
-                function (index, p_obj) {
-                    if (p_obj.category.parent_cid==8) {
-                        var item_dom = Create_item_dom(p_obj);
-                        $('.glist .nvzhuang').append(item_dom);
-                        $('.child_zone').hide();
+        console.log("call back running ", data.next);
+            $("#loading").hide();
+            // 这里判断　next　的页数　如果大于　PageNum　一样才去加载
+            if (!isNone(data.results)) {
+                $('.child_zone').hide();
+                $.each(data.results,
+                    function (index, p_obj) {
+                        if (p_obj.category.parent_cid == 8) {
+                            var item_dom = Create_item_dom(p_obj);
+                            console.log("新增商品：　", p_obj.id);
+                            $('.glist .nvzhuang').append(item_dom);
+                        }
+                        else if (p_obj.category.parent_cid == 5) {
+                            // 童装dom　show
+                            $('.child_zone').show();
+                            var child_item_dom = Create_item_dom(p_obj);
+                            $('.glist .chaotong').append(child_item_dom);
+                        }
                     }
-                    if (p_obj.category.parent_cid==5) {
-                        // 童装dom　show
-                        $('.child_zone').show();
-                        var item_dom = Create_item_dom(p_obj);
-                        $('.glist .chaotong').append(item_dom);
-                    }
-                }
-            );
-            PageNum += 1;
-        }
+                );
+                console.log("before:", PageNum);
+                PageNum = PageNum + 1;
+                console.log("after:", PageNum);
+            }
     };
     // 请求推荐数据
 	$.ajax({
@@ -492,13 +496,14 @@ function need_set_info(){
 	});
 }
 
-
-var scroll_height = 0;
-function loadData(func) {//分页加载数据
+var load_times = 1;// 页面加载即算一次
+function loadData() {//分页加载数据
+    console.log("等待加载页面数值", PageNum);
     var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
-    scroll_height = $(document).height() - totalheight;
-    if (($(document).height() - 200 <= totalheight) && scroll_height < 200)
-    {
-        func();
+    var scroll_height = $(document).height() - totalheight;
+    if (($(document).height() - 200 <= totalheight) && scroll_height < 200 && PageNum > load_times) {
+        Set_promotes_product();
+         console.log("已经加载 :", load_times+1);
+        load_times++;
     }
 }
