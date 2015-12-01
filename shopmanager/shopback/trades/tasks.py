@@ -141,7 +141,7 @@ def sendTradeCallBack(trade_ids,*args,**kwargs):
         return None
         
         
-@task()
+@task(ignore_result=False)
 def sendTaobaoTradeTask(operator_id,trade_id):
     """ 淘宝发货任务 """
 
@@ -213,12 +213,12 @@ def sendTaobaoTradeTask(operator_id,trade_id):
     return trade_id
        
 
-@task()
+@task(ignore_result=False)
 def deliveryTradeCallBack(*args,**kwargs):
 
-    pass 
+    return (None)
 
-@task(max_retries=3,default_retry_delay=30)
+@task(max_retries=3,default_retry_delay=30,ignore_result=False)
 def uploadTradeLogisticsTask(trade_id,operator_id):
     
     try:
