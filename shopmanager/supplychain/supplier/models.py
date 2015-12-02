@@ -389,6 +389,15 @@ class SaleProductManageDetail(models.Model):
         ]
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.sale_product_id)
+
+    @property
+    def sale_memo(self):
+        try:
+            sl_pro = SaleProduct.objects.get(id=self.sale_product_id)
+            return sl_pro.memo
+        except:
+            return u""
+
     
 post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)
 
