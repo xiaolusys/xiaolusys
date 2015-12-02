@@ -86,6 +86,7 @@
                     <th width="2%">计数</th>
                     <th width="4%">类别</th>
                     <th width="4%">图片/链接</th>
+                    <th width="4%">选品备注</th>
                     <th width="10%">名称</th>
                     <th width="10%">平面信息</th>
                     <th width="10%">尺码</th>
@@ -99,6 +100,7 @@
                             <td>{{ data1.sale_category }}</td>
                             <td><a href="{{ data1.product_link }}" target="_blank"><img src="{{ data1.pic_path }}"
                                                                                         width="100px"></a></td>
+                        <td>{{ data1.sale_memo }}</td>
                             <td><a data-sale-product="{{ data1.sale_product_id }}" class="id_list"
                                    href="/supplychain/supplier/bdproduct/{{ data1.sale_product_id }}"
                                    target="_blank">{{ data1.name }}</a></td>
@@ -108,7 +110,7 @@
                                 <span style="color: #008000" class="low_price_{{ data1.sale_product_id }}"></span><br>
                                 <span style="color: #0000ff" clas="std_sale_price_{{ data1.sale_product_id }}"></span>
                             </td>
-                            <td><span class"sku_{{ data1.sale_product_id }}"></span><br>
+                            <td><span class="sku_{{ data1.sale_product_id }}"></span><br>
                                 <span style="color: #1c020b" class="sale_charger_{{ data1.sale_product_id }}"></span>
                             </td>
                             <td><span class="name_{{ data1.sale_product_id }}"></span></td>
