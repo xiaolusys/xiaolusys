@@ -651,10 +651,11 @@ class ProductAdmin(MyAdmin):
     def upshelf_product_action(self,request,queryset):
         """ 库存商品上架（批量） """
         unverify_qs = queryset.filter(is_verify=False)
-        
-        outer_ids = [p.outer_id for p in queryset]
+        upshelf_qs  = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        outer_ids = [p.outer_id for p in upshelf_qs]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
+        
         try:
             task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
         except Exception,exc:
@@ -664,7 +665,7 @@ class ProductAdmin(MyAdmin):
         down_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
         if unverify_qs.count() > 0:
             self.message_user(request,u"有%s个商品未核对，请核对后才能上架!"%unverify_qs.count())
-        
+
         for product in up_queryset:
             log_sign = self.get_product_logsign(product)
             log_action(request.user.id,product,CHANGE,u'上架商品:%s'%log_sign)
@@ -675,7 +676,8 @@ class ProductAdmin(MyAdmin):
     
     def downshelf_product_action(self,request,queryset):
         """ 库存商品下架（批量） """
-        outer_ids = [p.outer_id for p in queryset]
+        downshelf_qs  = queryset.filter(shelf_status=Product.UP_SHELF)
+        outer_ids = [p.outer_id for p in downshelf_qs]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
         try:
@@ -683,7 +685,7 @@ class ProductAdmin(MyAdmin):
         except Exception,exc:
             self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
             
-        up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        up_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.UP_SHELF)
         down_queryset  = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
         
         self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))

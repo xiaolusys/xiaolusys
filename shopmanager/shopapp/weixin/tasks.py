@@ -124,7 +124,10 @@ def task_Mod_Merchant_Product_Status(outer_ids,status):
 #             exception = exc
         
         product = Product.objects.get(outer_id=outer_id)
-        if status == WXProduct.UP_ACTION:
+        if status == product.shelf_status:
+            continue
+        
+        if status == WXProduct.UP_ACTION :
             product.shelf_status = Product.UP_SHELF
             #发送商品上架消息
             signals.signal_product_upshelf.send(sender=Product,product_list=[product])
