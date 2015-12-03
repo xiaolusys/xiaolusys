@@ -32,7 +32,7 @@ CELERY_CHORD_PROPAGATES = True
 CELERY_IGNORE_RESULT = False
 
 CELERY_TASK_RESULT_EXPIRES = 5*60  # 5min
-CELERYD_POOL = 'gevent'
+#CELERYD_POOL = 'gevent'
 BROKER_POOL_LIMIT = 10 # 10 connections
 CELERYD_CONCURRENCY = 16 # 16 processes in paralle
 
@@ -206,6 +206,12 @@ SYNC_MODEL_SCHEDULE = {
     u'定时释放定时提醒订单':{
         'task':'shopback.trades.tasks_release.CancelMergeOrderStockOutTask',
         'schedule':crontab(minute="5",hour=','.join([str(i) for i in range(8,22,1)])),
+        'args':(),
+        'options' : {'queue':'peroid','routing_key':'peroid.task'} 
+    },
+    u'定时下载更新小鹿特卖订单':{
+        'task':'flashsale.pay.tasks.pull_Paid_SaleTrade',
+        'schedule':crontab(minute="20",hour="3"),
         'args':(),
         'options' : {'queue':'peroid','routing_key':'peroid.task'} 
     },
