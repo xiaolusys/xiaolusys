@@ -29,7 +29,7 @@ class SaleSupplierChangeList(ChangeList):
         qs = self.root_query_set
 
         search_q = request.GET.get('q', '').strip()
-        if re.compile('^[\w\.]+$').match(search_q):
+        if re.compile('^[\w]+[\.][\w]+$').match(search_q):
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
             scharge = SupplierCharge.objects.filter(employee__username=search_q, status=SupplierCharge.EFFECT)
@@ -47,7 +47,7 @@ class SaleSupplierAdmin(MyAdmin):
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter)
-    search_fields = ['supplier_name', 'supplier_code']
+    search_fields = ['supplier_name', 'supplier_code','id']
     form = SaleSupplierForm
 
     def charge_link(self, obj):
