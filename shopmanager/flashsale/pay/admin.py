@@ -648,7 +648,7 @@ class UserCouponAdmin(admin.ModelAdmin):
     list_display = ("id", "cp_id", "customer", "sale_trade", "status", "created", "modified")
     list_filter = ("status", "created")
     search_fields = ['=id', "=customer", "=sale_trade"]
-    readonly_fields = ("id", "cp_id", "customer", "sale_trade")
+    readonly_fields = ("id", "cp_id", "sale_trade")
 
     def change_coupon_status_to_unuse(self, request, queryset):
         if queryset.count() > 1:
