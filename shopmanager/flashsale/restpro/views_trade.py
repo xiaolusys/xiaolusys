@@ -639,7 +639,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                   'amount':'%d'%payment,
                   'client_ip':settings.PINGPP_CLENTIP,
                   'subject':u'小鹿美美平台交易',
-                  'body':u'支付成功',
+                  'body':u'订单ID(%s),订单金额(%.2f)'%(sale_trade.id,sale_trade.payment),
                   'metadata':dict(color='red'),
                   'extra':extra}
         charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
