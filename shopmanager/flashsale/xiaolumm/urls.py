@@ -15,6 +15,7 @@ urlpatterns = patterns('',
     url(r'^register/confirm/$',MamaConfirmView.as_view(),name="mama_confirm"),
     url(r'^help/sharewx/$', TemplateView.as_view(template_name="mama_sharewx.html"), name='mama_sharewx'),
     url(r'^help/recruit/$', TemplateView.as_view(template_name="mama_recruit.html"), name='mama_recruit'),
+    url(r'^help/term_service/$', TemplateView.as_view(template_name="term_service.html"), name='term_service'),
     url(r'^income/$',views.MamaIncomeDetailView.as_view()),
     
     url(r'^stats/$',staff_member_required(views.StatsView.as_view())),

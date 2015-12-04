@@ -1,40 +1,35 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import time
 import json
 import random
 from django.conf import settings
-from django.http import HttpResponse,HttpResponseRedirect  
-from django.template import RequestContext 
-from django.shortcuts import render,redirect
+from django.http import HttpResponse, HttpResponseRedirect
+from django.template import RequestContext
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
-from flashsale.mmexam.models import Question,Choice,Result
+from flashsale.mmexam.models import Question, Choice, Result
 from django.shortcuts import get_object_or_404, render
 from flashsale.pay.options import get_user_unionid
 import datetime
 
+
 def index(request):
-    
-    #这里得到openid
-   # print "这里是首页"
     content = request.REQUEST
-    code = content.get('code',None)
-    user_openid,user_unionid = get_user_unionid(code,
-                                                appid=settings.WEIXIN_APPID,
-                                                secret=settings.WEIXIN_SECRET,
-                                                request=request)
-        
+    code = content.get('code', None)
+    user_openid, user_unionid = get_user_unionid(code,
+                                                 appid=settings.WEIXIN_APPID,
+                                                 secret=settings.WEIXIN_SECRET,
+                                                 request=request)
+
     if not valid_openid(user_openid) or not valid_openid(user_unionid):
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/sale/exam/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
         return redirect(redirect_url)
-    #    if not user_openid  or user_openid.upper() == 'NONE':
-            #render(request, 'invalid_user.html')#无效用户
-   
-    dt = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=36000), "%a, %d-%b-%Y %H:%M:%S GMT")
-    response=render(request, 'index.html')
-    #response.set_cookie("openid", "多选测试")
-   # print "这里是 zuixin"
+    dt = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=36000),
+                                    "%a, %d-%b-%Y %H:%M:%S GMT")
+    response = render(request, 'index.html')
     response.set_cookie("unionid", user_unionid, expires=dt)
     return response
+
 
 def exam(request,question_id):
     
