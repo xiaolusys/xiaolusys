@@ -144,5 +144,19 @@ class ProRefunRcord(models.Model):
         except:
             return None
 
+    @property
+    def is_female(self):
+        """ 通过外部编码　判断　是否是女装　"""
+        pro = self.item_product()
+        return 1 if pro and str(pro.outer_id).startswith('8') and str(pro.outer_id).endswith('1') else 0
 
+    @property
+    def is_child(self):
+        """ 通过外部编码　判断　是否是童装　"""
+        pro = self.item_product()
+        return 1 if pro and (str(pro.outer_id).startswith('9') or str(pro.outer_id).startswith('1')) \
+                    and str(pro.outer_id).endswith('1') else 0
 
+    @property
+    def refund_num(self):
+        return self.ref_num_out + self.ref_num_in + self.ref_sed_num
