@@ -8,8 +8,6 @@ urlpatterns = patterns('flashsale.mmexam.views',
     url(r'^$','index',name='index'),
     url(r'^mmexam/(?P<question_id>\d+)/$','exam',name='exam'),
 #    url(r'^correct_problem_count/$','correct_problem_count'),
-
-
     
 )
 

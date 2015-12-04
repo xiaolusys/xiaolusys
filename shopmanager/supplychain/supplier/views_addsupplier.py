@@ -170,6 +170,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         sale_charger = all_product[0].sale_charger
         model_id = all_product[0].model_id
         product_id = all_product[0].id
+        std_purchase_price = all_product[0].std_purchase_price
         single_model = True
         try:
             pmodel = ModelProduct.objects.get(id=all_product[0].model_id)
@@ -190,6 +191,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                          "lowest_price": lowest_price,
                          "std_sale_price": std_sale_price,
                          "sale_charger": sale_charger,
+                         "std_purchase_price":std_purchase_price,
                          "model_id": model_id,
                          "single_model": single_model,
                          "product_id": product_id})

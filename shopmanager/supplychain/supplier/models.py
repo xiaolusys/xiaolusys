@@ -397,6 +397,14 @@ class SaleProductManageDetail(models.Model):
             return sl_pro.memo
         except:
             return u""
+        
+    @property
+    def std_purchase_price(self):
+        try:
+            sl_pro = SaleProduct.objects.get(id=self.sale_product_id)
+            return sl_pro.sale_price
+        except:
+            return u"0.0"
 
     
 post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)

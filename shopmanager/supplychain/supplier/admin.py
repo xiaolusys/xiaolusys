@@ -516,7 +516,7 @@ class SaleProductAdmin(MyAdmin):
     def schedule_manage_action(self, request, queryset):
         """  排期管理  """
         try:
-            sale_time = queryset[0].sale_time.strftime('%Y-%m-%d')
+            sale_time = queryset[0].sale_time.date()
         except:
             self.message_user(request, u"有时间不对")
             return
@@ -530,10 +530,10 @@ class SaleProductAdmin(MyAdmin):
             if one_product.status != SaleProduct.SCHEDULE:
                 self.message_user(request, u"有未在排期范围内的商品")
                 return
-            if sale_time != one_product.sale_time.strftime('%Y-%m-%d'):
+            if sale_time != one_product.sale_time.date():
                 self.message_user(request, u"有不是同一天的商品")
                 return
-            sale_time = one_product.sale_time.strftime('%Y-%m-%d')
+            sale_time = one_product.sale_time.date()
             product_num += 1
             product_list.append(one_product.id)
             # 新建排期detail

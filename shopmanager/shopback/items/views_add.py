@@ -76,7 +76,6 @@ class AddItemView(generics.ListCreateAPIView):
         chi_ma_str = content.get("all_chima", "")
         all_chi_ma = [] if content.get("all_chima", "") == "" else chi_ma_str.split(",")
         chi_ma_result = {}
- 
         for sku in all_sku:
             for chi_ma in all_chi_ma:
                 temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
