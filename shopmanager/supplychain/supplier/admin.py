@@ -311,7 +311,7 @@ class SaleProductAdmin(MyAdmin):
 
     def pic_link(self, obj):
         #         abs_pic_url = '%s%s'%(settings.MEDIA_URL,obj.pic_url)
-        return (u'<a href="%s" target="_blank"><img src="%s" width="120px" height="100px" title="%s"/></a>' % (
+        return (u'<a href="%s" target="_blank"><img src="%s" width="120px" height="100px" title="%s?imageMogr2/thumbnail/150/format/jpg/quality/90"/></a>' % (
             obj.product_link, obj.pic_url, obj.get_platform_display()))
 
     pic_link.allow_tags = True
