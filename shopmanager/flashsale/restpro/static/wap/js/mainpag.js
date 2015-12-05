@@ -281,7 +281,7 @@ function Set_promotes_product(){
                 $('.child_zone').hide();
                 $.each(data.results,
                     function (index, p_obj) {
-                        if (p_obj.category.parent_cid == 8) {
+                        if (p_obj.category.parent_cid == 8 || p_obj.category.cid == 8) {
                             var item_dom = Create_item_dom(p_obj);
                             $('.glist .nvzhuang').append(item_dom);
                         }
