@@ -264,13 +264,17 @@ function Create_item_dom(p_obj,close_model){
 }
 
 //初始页面
-var PageNum = 1;
+var PageNum  = 1;
+var NextPage = true;
 function Set_promotes_product(){
 	//获取今日推荐商品
+	if(NextPage == null){
+	   drawToast("已经到最底了哟~");
+	   return;
+	};
     var promoteUrl = GLConfig.baseApiUrl + GLConfig.products_today_paging + '?page='+PageNum+'&page_size=10';
 
     var promoteCallBack = function (data) {
-        console.log("call back running ", data.next);
             $("#loading").hide();
             // 这里判断　next　的页数　如果大于　PageNum　一样才去加载
             if (!isNone(data.results)) {
@@ -279,10 +283,9 @@ function Set_promotes_product(){
                     function (index, p_obj) {
                         if (p_obj.category.parent_cid == 8) {
                             var item_dom = Create_item_dom(p_obj);
-                            console.log("新增商品：　", p_obj.id);
                             $('.glist .nvzhuang').append(item_dom);
                         }
-                        else if (p_obj.category.parent_cid == 5) {
+                        else {
                             // 童装dom　show
                             $('.child_zone').show();
                             var child_item_dom = Create_item_dom(p_obj);
@@ -290,9 +293,8 @@ function Set_promotes_product(){
                         }
                     }
                 );
-                console.log("before:", PageNum);
                 PageNum = PageNum + 1;
-                console.log("after:", PageNum);
+                NextPage = data.next;
             }
     };
     // 请求推荐数据
@@ -306,10 +308,8 @@ function Set_promotes_product(){
         },
 		success:promoteCallBack,
         error: function (data) {
-            if (data.status == 404) {
-                //drawToast("已经到最底了哟~");
-                 $("#loading").hide();
-            }
+            drawToast("数据没有加载成功！");
+            $("#loading").hide();
         }
 	});
 }

@@ -1,3 +1,8 @@
+############2015-12-05#####################
+alter table flashsale_productdetail  add column `is_sale` bool NOT NULL;
+alter table flashsale_productdetail  add column `order_weight` integer NOT NULL;
+CREATE INDEX `flashsale_productdetail_650909aa` ON `flashsale_productdetail` (`is_sale`);
+CREATE INDEX `flashsale_productdetail_522af0b0` ON `flashsale_productdetail` (`order_weight`);
 ############2015-11-16#####################
 alter table flashsale_refund add column proof_pic longtext;
 alter table flashsale_order add column `sign_time` datetime default null;

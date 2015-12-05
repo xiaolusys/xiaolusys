@@ -71,7 +71,7 @@ class ProductdetailInline(admin.StackedInline):
     
     fields = ('head_imgs',
               'content_imgs',
-              ('is_seckill','is_recommend','mama_discount','buy_limit','per_limit','mama_rebeta'),
+              ('is_seckill','is_recommend','is_sale','order_weight','mama_discount','buy_limit','per_limit','mama_rebeta'),
               ('material', 'color'),
               ('note', 'wash_instructions'))
     
