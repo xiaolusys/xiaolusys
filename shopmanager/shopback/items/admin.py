@@ -145,7 +145,7 @@ class ProductAdmin(MyAdmin):
         
         str_list = []
         str_list.append('<a href="/items/product/%d/" target="_blank">'%obj.id)
-        str_list.append('<img src="%s" width="100px" height="80px" title="%s?imageMogr2/thumbnail/100/format/jpg/quality/90"/>'%(abs_pic_url,obj.name))
+        str_list.append('<img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="100px" height="80px" title="%s"/>'%(abs_pic_url,obj.name))
         str_list.append('<p><span>%s</span></p>'%(obj.name or u'--'))
         return ''.join(str_list)
     

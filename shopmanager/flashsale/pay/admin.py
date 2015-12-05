@@ -201,7 +201,7 @@ from .tasks import notifyTradeRefundTask
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = ('refund_no', 'order_no', 'order_channel', 'title', 'refund_fee',
-                    'has_good_return', 'has_good_change', 'created', 'order_status', 'status')
+                    'has_good_return', 'has_good_change', 'created','success_time', 'order_status', 'status')
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
 

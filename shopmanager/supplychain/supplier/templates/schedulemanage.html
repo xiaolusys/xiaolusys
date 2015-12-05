@@ -62,8 +62,6 @@
                 <input type="submit" class="btn btn-info" style="margin-top: 22px" value="查询后六天"></div>
         </div>
     </form>
-
-
     <div class="main">
         {% for one_data in result_data %}
             <section class="grid" style="margin-top: 10px">
@@ -114,7 +112,10 @@
                             <td><span class="sku_{{ data1.sale_product_id }}"></span><br>
                                 <span style="color: #1c020b" class="sale_charger_{{ data1.sale_product_id }}"></span>
                             </td>
-                            <td><span class="name_{{ data1.sale_product_id }}"></span></td>
+                            <td>
+                                <span class="name_{{ data1.sale_product_id }}"></span><br>
+                                <a href="/admin/items/product/?sale_product={{ data1.sale_product_id }}" class="btn btn-success" target="_blank" >关联库存商品</a>
+                            </td>
                             <td><img  src="" class="preview_img zhutu_{{ data1.sale_product_id }}" width="100px">
                             </td>
                             <td>
