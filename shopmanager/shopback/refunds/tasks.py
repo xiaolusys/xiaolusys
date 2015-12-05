@@ -100,8 +100,8 @@ def flushHistToRefRat(bt=None):
 
 
 @task()
-def fifDaysRateFlush(days=15):
-    """ 每天定时执行 刷新过去15天的数据 """
+def fifDaysRateFlush(days=30):
+    """ 每天定时执行 刷新过去30天的数据 """
     for i in range(days):
         target_day = datetime.datetime.today() - datetime.timedelta(days=i)
         print u"target_day:%s" % target_day
@@ -134,27 +134,27 @@ def taskRefundRecord(obj):
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
-                refund_record.ref_sed_num += 1
+                refund_record.ref_sed_num += F('ref_sed_num') + 1
             write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
         if order.status in (SaleOrder.WAIT_SELLER_SEND_GOODS, ):
             # 如果　未发货　　则　算入　24小时外未发货退款数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_num_out = 1
             else:  # 有记录则累加
-                refund_record.ref_num_out += 1
+                refund_record.ref_num_out = F('ref_num_out') + 1
     else:  # 如果24小时内　已发货   则　算入　发货后退货数量
         if order.status in (SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED):
             # 如果　已发货　　则　算入　发货后退货数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
-                refund_record.ref_sed_num += 1
+                refund_record.ref_sed_num = F('ref_sed_num') + 1
             write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
         else:  # 否则　算入　24小时内　　　退款数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_num_in = 1
             else:  # 有记录则累加
-                refund_record.ref_num_in += 1
+                refund_record.ref_num_in = F('ref_num_in') + 1
     update_model_fields(refund_record, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in'])
     # 添加产品的退货记录
     record_pro(obj)
