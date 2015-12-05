@@ -215,11 +215,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.order_by('-details__is_recommend','-wait_post_num')
         return queryset
     
+    def get_custom_qs(self,queryset):
+        return queryset.filter(outer_id__endswith='1').exclude(details__is_seckill=True)
+    
     def get_female_qs(self,queryset):
-        return queryset.filter(outer_id__startswith='8',outer_id__endswith='1').exclude(details__is_seckill=True)
+        return self.get_custom_qs(queryset).filter(outer_id__startswith='8')
     
     def get_child_qs(self,queryset):
-        return queryset.filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'),outer_id__endswith='1').exclude(details__is_seckill=True)
+        return self.get_custom_qs(queryset).filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'))
     
     @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
@@ -241,9 +244,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 　　商品列表　　分页接口 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        tal_queryset = queryset.filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='8') | #.filter(sale_time=today_dt)
-                                       Q(outer_id__startswith='1'), outer_id__endswith='1').exclude(details__is_seckill=True)
-        queryset = tal_queryset.order_by('-category__parent_cid', '-details__is_recommend', '-wait_post_num')
+        tal_queryset = self.get_custom_qs(queryset).filter(sale_time=today_dt)
+        queryset = tal_queryset.order_by('-category__parent_cid', '-details__is_recommend', '-details__order_weight','id')
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
             serializer = self.get_serializer(pagin_query, many=True)
