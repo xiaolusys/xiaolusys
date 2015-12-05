@@ -3,8 +3,8 @@
 <li id="id-item-{% if record %}{{ record.id }}{% endif %}" class="list-group-item">
     <div class="row">
         {% if code %}
-            <div class="col-xs-12">
-                <div class="well well-sm label-danger">{{ error_response }}</div>
+            <div class="col-xs-12 ">
+                <div class="alert alert-danger">{{ error_response }}</div>
             </div>
         {% else %}
             {% if record %}

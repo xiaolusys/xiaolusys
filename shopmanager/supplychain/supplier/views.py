@@ -11,6 +11,7 @@ from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework import exceptions
 
 from shopback.base import log_action, ADDITION, CHANGE
 from .models import SaleSupplier, SaleCategory, SaleProduct
@@ -123,6 +124,8 @@ class SaleProductList(generics.ListCreateAPIView):
         data = request.data
         supplier_id = data["supplier"]
         supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
+        if not supplier.is_active():
+            return Response({'code':1,'error_response':'供应商已被淘汰，不能添加商品','request_data': request.GET.dict()})
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)
@@ -136,13 +139,13 @@ class SaleProductList(generics.ListCreateAPIView):
                 hasattr(sproduct, k) and setattr(sproduct, k, v)
 
         sproduct.sale_supplier = supplier
-        sproduct.status = SaleProduct.SELECTED
+        sproduct.status = sproduct.status or SaleProduct.SELECTED
         sproduct.platform = SaleProduct.MANUALINPUT
         sproduct.contactor = request.user
         sproduct.save()
 
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
-        return HttpResponseRedirect("/supplychain/supplier/product/?sale_supplier=" + supplier_id)
+        return HttpResponseRedirect("/supplychain/supplier/product/?status=%s&sale_supplier=%s"%(sproduct.status,supplier_id))
 
 
 class SaleProductAdd(generics.ListCreateAPIView):
@@ -182,10 +185,11 @@ class SaleProductAdd(generics.ListCreateAPIView):
         data = request.data
         supplier_id = data["supplier"]
         supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
+        if not supplier.is_active():
+            return Response({'code':1,'error_response':'供应商已被淘汰，不能添加商品','request_data': request.GET.dict()})
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)
-
         for k, v in data.iteritems():
             if len(v) > 0 and len(k) > 0:
                 if k == 'sale_category':
@@ -195,13 +199,13 @@ class SaleProductAdd(generics.ListCreateAPIView):
                 hasattr(sproduct, k) and setattr(sproduct, k, v)
 
         sproduct.sale_supplier = supplier
-        sproduct.status = SaleProduct.SELECTED
+        sproduct.status = sproduct.status or SaleProduct.SELECTED
         sproduct.platform = SaleProduct.MANUALINPUT
         sproduct.contactor = request.user
         sproduct.save()
 
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
-        return HttpResponseRedirect("/supplychain/supplier/line_product/?sale_supplier=" + supplier_id)
+        return HttpResponseRedirect("/supplychain/supplier/line_product/?status=%s&sale_supplier=%s"%(sproduct.status,supplier_id))
 
 
 class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -308,10 +312,12 @@ class FetchAndCreateProduct(APIView):
         category_name = content.get('category_name', '')
 
         supplier = get_object_or_404(SaleSupplier, pk=pk)
+        if not supplier.is_active():
+            return Response({'code':1,'error_response':'供应商已被淘汰，不能添加商品'})
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)
-
+        
         for k, v in content.iteritems():
             if k == 'sale_category':
                 v = SaleCategory.objects.get(id=v)

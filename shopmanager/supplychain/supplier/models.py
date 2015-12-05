@@ -158,6 +158,10 @@ class SaleSupplier(models.Model):
 
     def __unicode__(self):
         return self.supplier_name
+    
+    def is_active(self):
+        """ 是否有效 """
+        return self.status != self.FROZEN and self.progress not in (self.REJECTED,self.IGNORED)
 
 
 class SupplierCharge(models.Model):

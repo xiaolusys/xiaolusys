@@ -40,7 +40,7 @@ class SaleSupplierChangeList(ChangeList):
 
 
 class SaleSupplierAdmin(MyAdmin):
-    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link', 'level',
+    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link', 
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
                     'category_select', 'progress', 'last_select_time', 'last_schedule_time', 'memo_well')
     list_display_links = ('id',)
@@ -66,8 +66,15 @@ class SaleSupplierAdmin(MyAdmin):
     charge_link.short_description = u"接管信息/操作"
     
     def supplier_name_link(self, obj):
-        return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank">{1}</a>'.format(
-            obj.id, obj.supplier_name)
+        span_style="font-size:16px;"
+        if obj.level == SaleSupplier.LEVEL_GOOD:
+            span_style += "background-color:green;color:white;"
+        elif obj.level == SaleSupplier.LEVEL_INFERIOR:
+            span_style += "color:gray;font-size:10px;"
+        if not obj.is_active():
+            span_style += 'text-decoration:line-through;'
+        return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank"><span style="{3}">{1}&nbsp;({2})</span></a>'.format(
+            obj.id, obj.supplier_name, obj.get_level_display(),span_style)
 
     supplier_name_link.allow_tags = True
     supplier_name_link.short_description = u"供应商"
@@ -653,8 +660,8 @@ class SaleProductManageDetailInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             return self.readonly_fields + (
-                'sale_product_id', 'name', 'design_person', 'design_take_over', 'pic_path', 'sale_category', 'product_link', 'material_status',
-                'today_use_status')
+                'sale_product_id', 'name', 'design_person', 'design_take_over', 'pic_path', 
+                'sale_category', 'product_link', 'material_status','today_use_status')
         return self.readonly_fields
 
 
