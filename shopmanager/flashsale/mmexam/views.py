@@ -11,7 +11,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 
 
 def index(request):
-    START_QUESTION_NO = 1  # 考试开始题号
+    START_QUESTION_NO = 61  # 考试开始题号
     content = request.REQUEST
     code = content.get('code', None)
     user_openid, user_unionid = get_user_unionid(code,
@@ -30,8 +30,8 @@ def index(request):
 
 
 def exam(request, question_id):
-    START_QUESTION_NO = 1  # 第二批考试题从34题开始
-    END_QUESTION_NO = 28  # 结束试题号码
+    START_QUESTION_NO = 61  # 第二批考试题从34题开始
+    END_QUESTION_NO = 86  # 结束试题号码
     if request.method == "POST":
         prequestion = get_object_or_404(Question, pk=question_id)  # 从数据库提取问题（question_id）
         if prequestion.single_many == 1:  # 如果是单选题
