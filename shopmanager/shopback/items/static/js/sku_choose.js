@@ -12,7 +12,6 @@ $(function () {
         }else{
              swal("填写空白", "(^_^)", "warning");
         }
-
     });
     $("#color-add").click(function () {
         var colortext = $(".color-add").val().trim();

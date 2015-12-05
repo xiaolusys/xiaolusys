@@ -76,7 +76,6 @@ class AddItemView(generics.ListCreateAPIView):
         chi_ma_str = content.get("all_chima", "")
         all_chi_ma = [] if content.get("all_chima", "") == "" else chi_ma_str.split(",")
         chi_ma_result = {}
- 
         for sku in all_sku:
             for chi_ma in all_chi_ma:
                 temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
@@ -185,22 +184,26 @@ class GetSkuDetail(generics.ListCreateAPIView):
         if not searchtext or len(searchtext.strip()) == 0:
             return Response({"result": "NOTFOUND"})
         product_bean = Product.objects.filter(Q(outer_id=searchtext)).filter(status=Product.NORMAL)
-        all_chima_content = ContrastContent.objects.all()
+        all_chima_content = ContrastContent.objects.all().order_by('sid')
 
         try:
             if product_bean.count() > 0:
                 all_sku = [key.properties_alias for key in product_bean[0].normal_skus]
                 result_data = {}
                 for one_sku in all_sku:
+                    notexist_skus = []
                     for one_chima in all_chima_content:
                         try:
                             chi_ma_size = product_bean[0].contrast.contrast_detail[one_sku][one_chima.cid]
                         except:
                             chi_ma_size = 0
+                            notexist_skus.append((one_chima.name,chi_ma_size))
+                            continue
                         if one_sku in result_data:
-                            result_data[one_sku][one_chima.name] = chi_ma_size
+                            result_data[one_sku].append((one_chima.name,chi_ma_size))
                         else:
-                            result_data[one_sku] = {one_chima.name: chi_ma_size}
+                            result_data[one_sku] = [(one_chima.name, chi_ma_size)]
+                    result_data[one_sku].extend(notexist_skus)
                 # chima_content = product_bean[0].contrast.get_correspond_content
                 chima_content = result_data.items()
                 chima_content.sort(cmp=custom_sort)
@@ -268,7 +271,7 @@ class PreviewSkuDetail(generics.ListCreateAPIView):
 
 
 def custom_sort(a, b):
-    print a[0], b[0]
+    
     if a[0].isdigit() and b[0].isdigit():
         return int(a[0])-int(b[0])
 

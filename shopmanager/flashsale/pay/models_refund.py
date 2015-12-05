@@ -90,8 +90,9 @@ class SaleRefund(models.Model):
     payment      = models.FloatField(default=0.0,verbose_name='实付')
     refund_fee   = models.FloatField(default=0.0,verbose_name='退款费用')
     
-    created   = models.DateTimeField(db_index=True,auto_now_add=True,verbose_name='创建日期')
-    modified  = models.DateTimeField(auto_now=True,verbose_name='修改日期')
+    created   = models.DateTimeField(db_index=True,auto_now_add=True,verbose_name='创建时间')
+    success_time = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name='退款成功时间')
+    modified  = models.DateTimeField(auto_now=True,verbose_name='修改时间')
 
     company_name = models.CharField(max_length=64,blank=True,verbose_name='退回快递公司')
     sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='退回快递单号')
@@ -137,7 +138,7 @@ class SaleRefund(models.Model):
         srefund = SaleRefund.objects.get(id=self.id)
         if srefund.status == SaleRefund.REFUND_SUCCESS:
             return
-
+        self.success_time = datetime.datetime.now()
         self.status = SaleRefund.REFUND_SUCCESS
         self.save()
         from flashsale.pay.models import SaleOrder,SaleTrade

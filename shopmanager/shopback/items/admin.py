@@ -133,7 +133,7 @@ class ProductAdmin(MyAdmin):
             product_detail = None
         head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or NO_PIC_URL
         
-        return u'<p>%s</p><img src="%s" width="50px" height="40px" />'%(obj.outer_id, head_img_url)
+        return u'<p>%s</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />'%(obj.outer_id, head_img_url)
     
     outer_id_link.allow_tags = True
     outer_id_link.short_description = u"商品编码(题头图)" 
@@ -145,7 +145,7 @@ class ProductAdmin(MyAdmin):
         
         str_list = []
         str_list.append('<a href="/items/product/%d/" target="_blank">'%obj.id)
-        str_list.append('<img src="%s" width="100px" height="80px" title="%s"/>'%(abs_pic_url,obj.name))
+        str_list.append('<img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="100px" height="80px" title="%s"/>'%(abs_pic_url,obj.name))
         str_list.append('<p><span>%s</span></p>'%(obj.name or u'--'))
         return ''.join(str_list)
     

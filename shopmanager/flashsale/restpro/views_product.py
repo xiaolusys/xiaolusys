@@ -241,11 +241,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 　　商品列表　　分页接口 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        tal_queryset = queryset.filter(sale_time=today_dt).filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='8') |
-                                       Q(outer_id__startswith='1'), outer_id__endswith='1').exclude(
-            details__is_seckill=True)
-        queryset = tal_queryset.order_by('-category__parent_cid', '-details__is_recommend',
-                                         '-wait_post_num')
+        tal_queryset = queryset.filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='8') | #.filter(sale_time=today_dt)
+                                       Q(outer_id__startswith='1'), outer_id__endswith='1').exclude(details__is_seckill=True)
+        queryset = tal_queryset.order_by('-category__parent_cid', '-details__is_recommend', '-wait_post_num')
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
             serializer = self.get_serializer(pagin_query, many=True)

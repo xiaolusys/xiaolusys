@@ -40,8 +40,6 @@
 </head>
 <body>
 <div class="container" style="margin-top: 20px">
-
-
     <form action="/supplychain/supplier/manage_schedule/" method="get">
         <div class="row">
             <div class="col-xs-2">
@@ -64,8 +62,6 @@
                 <input type="submit" class="btn btn-info" style="margin-top: 22px" value="查询后六天"></div>
         </div>
     </form>
-
-
     <div class="main">
         {% for one_data in result_data %}
             <section class="grid" style="margin-top: 10px">
@@ -98,8 +94,11 @@
                         <tr {% if data1.design_complete %}bgcolor="#CCFFFF"{% endif %}>
                             <td><span style="font-size: 20px">{{ forloop.counter }}</span></td>
                             <td>{{ data1.sale_category }}</td>
-                            <td><a href="{{ data1.product_link }}" target="_blank"><img src="{{ data1.pic_path }}"
-                                                                                        width="100px"></a></td>
+                            <td>
+                                <a href="{{ data1.product_link }}" target="_blank">
+                                <img src="{{ data1.pic_path }}" width="100px"></img>
+                                </a>
+                            </td>
                             <td><textarea style="width:150px;height: 150px;border:0;" readonly="readonly">{{ data1.sale_memo }}</textarea></td>
                             <td><a data-sale-product="{{ data1.sale_product_id }}" class="id_list"
                                    href="/supplychain/supplier/bdproduct/{{ data1.sale_product_id }}"
@@ -108,12 +107,15 @@
                                 <span style="font-size: 18px;font-family: sans-serif;"
                                       class="color_{{ data1.sale_product_id }}"></span><br><br>
                                 <span style="color: #008000" class="low_price_{{ data1.sale_product_id }}"></span><br>
-                                <span style="color: #0000ff" clas="std_sale_price_{{ data1.sale_product_id }}"></span>
+                                <span style="color: #0000ff" class="purchase_price_{{ data1.sale_product_id }}">标准采购价：{{data1.std_purchase_price}}</span><br>
                             </td>
                             <td><span class="sku_{{ data1.sale_product_id }}"></span><br>
                                 <span style="color: #1c020b" class="sale_charger_{{ data1.sale_product_id }}"></span>
                             </td>
-                            <td><span class="name_{{ data1.sale_product_id }}"></span></td>
+                            <td>
+                                <span class="name_{{ data1.sale_product_id }}"></span><br>
+                                <a href="/admin/items/product/?sale_product={{ data1.sale_product_id }}" class="btn btn-success" target="_blank" >关联库存商品</a>
+                            </td>
                             <td><img  src="" class="preview_img zhutu_{{ data1.sale_product_id }}" width="100px">
                             </td>
                             <td>
@@ -145,17 +147,14 @@
                                     <div class="complete_status" style="display: inline">
                                         <a class="chuantu_page_{{ data1.sale_product_id }} btn btn-sm btn-info" style="margin-top: 5px"
                                            target="_blank">传图</a><br>
-
                                         <a data-product="{{ data1.id }}" style="margin-top: 5px"
                                            target="_blank" class="btn btn-sm btn-danger complete">完成</a>
                                     </div>
                                 {% endif %}
-
                             </td>
                         </tr>
                     {% endfor %}
                 </table>
-
             </section>
         {% endfor %}
     </div>
@@ -303,7 +302,6 @@
                             alert("您无权限");
                         }
                     }
-
                 });
             });
         });
@@ -330,15 +328,12 @@
                     $(".sale_charger_" + sale_product_id).html("资料负责：" + result.sale_charger);
                     $(".zhutu_" + sale_product_id).attr("src", result.zhutu);
                     $(".low_price_" + sale_product_id).html("出售最低价：" + result.lowest_price);
-                    $(".std_sale_price_" + sale_product_id).html("吊牌价：" + result.std_sale_price);
                     if (result.single_model) {
                         $(".preview_page_" + sale_product_id).attr("href", "/static/wap/pages/shangpinxq.html?id=" + result.product_id);
                     } else {
                         $(".preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id=" + result.model_id);
                     }
                     $(".chuantu_page_" + sale_product_id).attr("href", "/mm/add_aggregeta/?search_model=" + result.model_id);
-
-
                 }
             }
         });
