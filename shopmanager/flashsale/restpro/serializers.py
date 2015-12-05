@@ -98,7 +98,6 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     is_saleout    = serializers.BooleanField(source='sale_out', read_only=True)
     is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
     is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
-    is_female     = serializers.BooleanField(source='new_good',read_only=True)
 
     class Meta:
         model = Product
