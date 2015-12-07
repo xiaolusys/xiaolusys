@@ -255,7 +255,8 @@ class User(models.Model):
             
 def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
-    top_params = json.loads(top_parameters or '{}')
+    top_params = kwargs.get('top_parameters','{}')
+    top_params = isinstance(top_params,dict) and top_params or json.dumps(top_params)
     visitor_id = top_params and top_params.get('taobao_user_id') or None
     profiles = User.objects.filter(type__in=(User.SHOP_TYPE_B,User.SHOP_TYPE_C)
                                    ,visitor_id=visitor_id)
