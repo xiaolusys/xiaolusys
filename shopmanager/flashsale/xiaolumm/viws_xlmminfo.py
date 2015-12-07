@@ -92,7 +92,6 @@ def carry_Log_By_date(left, right, xlmm):
 
 class XlmmInfo(View):
     template = 'xlmm_info/xlmm_info.html'
-    date = datetime.date.today()
 
     def handler_date(self, request):
         content = request.REQUEST

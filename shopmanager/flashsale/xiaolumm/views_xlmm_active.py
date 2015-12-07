@@ -14,8 +14,6 @@ class XlmmActive(APIView):
     queryset = ClickCount.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "analysis/xlmm_active.html"
-    date_from = datetime.date.today() - datetime.timedelta(days=15)
-    date_to = datetime.date.today()
     default_active_num = 5
 
     def date_zone(self, request):
@@ -24,7 +22,9 @@ class XlmmActive(APIView):
         date_from = content.get('date_from', None)
         date_to = content.get('date_to', None)
         if date_from is None or date_to is None:
-            return self.date_from, self.date_to
+            date_from = datetime.date.today() - datetime.timedelta(days=15)
+            date_to = datetime.date.today()
+            return date_from, date_to
         year, month, day = map(int, date_from.split('-'))
         date_from = datetime.date(year, month, day)
         year, month, day = map(int, date_to.split('-'))

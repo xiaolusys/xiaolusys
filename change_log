@@ -1,3 +1,5 @@
+############2015-12-07#####################
+CREATE INDEX `flashsale_pay_product_refund_record_3216ff68` ON `flashsale_pay_product_refund_record` (`created`);
 ############2015-12-05#####################
 alter table flashsale_productdetail  add column `is_sale` bool NOT NULL;
 alter table flashsale_productdetail  add column `order_weight` integer NOT NULL;
