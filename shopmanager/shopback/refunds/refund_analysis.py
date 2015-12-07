@@ -18,15 +18,15 @@ class RefundReason(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "refunds/refund_analysis.html"
     sale_refs = SaleRefund.objects.all()
-    today_date = datetime.datetime.today()
-    fifth_date = today_date - datetime.timedelta(days=15)
 
     def time_zone(self, request):
         content = request.REQUEST
         date_from = content.get('date_from', None)
         date_to = content.get('date_to', None)
         if date_from is None or date_to is None:
-            return self.fifth_date, self.today_date
+            today_date = datetime.datetime.today()
+            fifth_date = today_date - datetime.timedelta(days=15)
+            return fifth_date, today_date
         year, month, day = map(int, date_from.split('-'))
         date_from = datetime.datetime(year, month, day, 0, 0, 0)
         year, month, day = map(int, date_to.split('-'))

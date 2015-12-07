@@ -17,8 +17,6 @@ class ProRefRcdViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    today = datetime.datetime.today()
-    fifth_day = today - datetime.timedelta(days=15)
 
     def get_owner_queryset(self, request):
         queryset = self.queryset.filter(contactor=request.user.id)
@@ -51,8 +49,6 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-    today = datetime.datetime.today()
-    fifth_day = today - datetime.timedelta(days=15)
 
     def get_owner_queryset(self, request):
         queryset = self.queryset.filter(contactor=request.user.id)
@@ -67,14 +63,16 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
 
     def time_zone_query(self, request, queryset):
         content = request.REQUEST
-        time_from = content.get("date_from", self.fifth_day)
-        time_to = content.get("date_to", self.today)
+        today = datetime.datetime.today()
+        fifth_day = today - datetime.timedelta(days=15)
+        time_from = content.get("date_from", fifth_day)
+        time_to = content.get("date_to", today)
         if isinstance(time_from, str) and isinstance(time_to, str):
             year, mont, day = map(int, time_from.split('-'))
             time_from = datetime.datetime(year, mont, day)
             year, mont, day = map(int, time_from.split('-'))
             time_to = datetime.datetime(year, mont, day)
-        query = queryset.filter(created__gte=time_from, created__lte=time_to)
+        query = queryset.filter(created__range=(time_from, time_to))
         return query
 
     @list_route(methods=['get'])

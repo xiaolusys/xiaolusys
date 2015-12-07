@@ -67,7 +67,7 @@ class ProRefunRcord(models.Model):
     ref_sed_num = models.IntegerField(default=0, verbose_name=u'发货后申请数')
     contactor = models.BigIntegerField(default=0, db_index=True, verbose_name=u'接洽人')
     pro_model = models.BigIntegerField(default=0, db_index=True, verbose_name=u'产品款式id')
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
+    created = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
     class Meta:
@@ -154,5 +154,4 @@ class ProRefunRcord(models.Model):
     def is_child(self):
         """ 通过外部编码　判断　是否是童装　"""
         pro = self.item_product()
-        return 1 if pro and (str(pro.outer_id).startswith('9') or str(pro.outer_id).startswith('1')) \
-                    and str(pro.outer_id).endswith('1') else 0
+        return 1 if pro and (str(pro.outer_id).startswith(('9', '1')) and str(pro.outer_id).endswith('1')) else 0
