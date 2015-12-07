@@ -388,6 +388,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options' : {'queue':'peroid','routing_key':'peroid.task'} 
     },
+    u'定时更新妈妈提成订单状态':{
+        'task':'flashsale.clickrebeta.tasks.task_Update_Shoppingorder_Status',
+        'schedule':crontab(minute="40",hour='3'),
+        'args':(),
+        'options' : {'queue':'peroid','routing_key':'peroid.task'} 
+    },
     u'定时发货速度':{
         'task':'flashsale.dinghuo.tasks.task_daily_preview',
         'schedule': crontab(minute="50", hour="2"),
