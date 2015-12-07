@@ -269,7 +269,7 @@ var NextPage = true;
 function Set_promotes_product(){
 	//获取今日推荐商品
 	if(NextPage == null){
-	   drawToast("已经到最底了哟~");
+	   drawToast("没有更多商品了");
 	   return;
 	};
     var promoteUrl = GLConfig.baseApiUrl + GLConfig.products_today_paging + '?page='+PageNum+'&page_size=10';
@@ -451,7 +451,6 @@ function product_timer(shelf_time) {
     } else if (ts < 0) {
         $(".top p").text("已下架");
     }
-
 }
 
     /*
@@ -501,7 +500,7 @@ function loadData() {//分页加载数据
     console.log("等待加载页面数值", PageNum);
     var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
     var scroll_height = $(document).height() - totalheight;
-    if (($(document).height() - 200 <= totalheight) && scroll_height < 200 && PageNum > load_times) {
+    if (($(document).height() - 600 <= totalheight) && scroll_height < 600 && PageNum > load_times) {
         Set_promotes_product();
          console.log("已经加载 :", load_times+1);
         load_times++;

@@ -255,10 +255,12 @@ class User(models.Model):
             
 def add_taobao_user(sender, user,top_session,top_parameters, *args, **kwargs):
     """docstring for user_logged_in"""
-    
-    profiles = User.objects.filter(type__in=(User.SHOP_TYPE_B,User.SHOP_TYPE_C),user=user)
+    top_params = kwargs.get('top_parameters','{}')
+    top_params = isinstance(top_params,dict) and top_params or json.dumps(top_params)
+    visitor_id = top_params and top_params.get('taobao_user_id') or None
+    profiles = User.objects.filter(type__in=(User.SHOP_TYPE_B,User.SHOP_TYPE_C)
+                                   ,visitor_id=visitor_id)
     for profile in profiles:
-        profile = user.get_profile()
         profile.populate_user_info(top_session,top_parameters)
         
         profile.verify_fenxiao_user()

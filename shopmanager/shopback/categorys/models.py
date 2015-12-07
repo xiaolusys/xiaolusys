@@ -58,7 +58,7 @@ class ProductCategory(models.Model):
     
     is_parent  = models.BooleanField(default=True,verbose_name=u'有子类目')
     status  = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL,verbose_name=u'状态')
-    sort_order = models.IntegerField(default=0,verbose_name=u'优先级')
+    sort_order = models.IntegerField(default=0,db_index=True,verbose_name=u'优先级')
     
     class Meta:
         db_table = 'shop_categorys_productcategory' 
