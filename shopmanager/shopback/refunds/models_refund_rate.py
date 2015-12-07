@@ -156,7 +156,3 @@ class ProRefunRcord(models.Model):
         pro = self.item_product()
         return 1 if pro and (str(pro.outer_id).startswith('9') or str(pro.outer_id).startswith('1')) \
                     and str(pro.outer_id).endswith('1') else 0
-
-    @property
-    def refund_num(self):
-        return self.ref_num_out + self.ref_num_in + self.ref_sed_num

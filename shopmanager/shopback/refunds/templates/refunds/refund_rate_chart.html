@@ -62,9 +62,15 @@
     <div id="hight_hour_rate" style="min-width:900px;height:400px"></div>
 </div>
 
-<div id="double_pie" style="min-width:700px;height:400px"></div>
-</body>
+<div class="col-lg-6">
+    <div id="double_pie" style="min-width:400px;height:300px"></div>
+</div>
+<div class="col-lg-6">
+    <div id="rowhan_column" style="min-width:400px;height:300px"></div>
+</div>
 
+
+</body>
 <script type="text/javascript">
     $(function () {
         $(".select_saletime").datepicker({
@@ -89,7 +95,7 @@
             else {
                 getRateData(date_from, date_to);
                 getRcordData(date_from, date_to);
-                getProRcordData(date_from, date_to);
+
             }
         });
     });
@@ -215,14 +221,23 @@
             var Title_hour_rate = {"xtitle": "退款状况趋势图", "xsub_title": "订单退款状况趋势图信息", "ytitle": "件数"};
             linechart(dom_hour, X_axis, Title_hour.xtitle, Title_hour.xsub_title, Title_hour.ytitle, series_hour);
             linechart(dom_hour_rate, X_axis, Title_hour_rate.xtitle, Title_hour_rate.xsub_title, Title_hour_rate.ytitle, series_hour_rate);
+
+            getProRcordData(t1, t2, X_axis);
         }
     }
 
 
-    function getProRcordData(t1, t2) {
+    function getProRcordData(t1, t2, X_axis) {
         // 获取产品的退货数据
-        console.log("pro rcd is running");
-        var pro_url = '/rest/v1/prorefrcd/time_zone';
+        var date_dic_female = {};
+        var date_dic_child = {};
+        $.each(X_axis, function (index, dt) {
+            date_dic_female[dt] = 0;
+            date_dic_child[dt] = 0;
+        });
+
+        // 生成日期t1, t2的key
+        var pro_url = '/rest/v1/calcuprorefrcd/time_zone';
         var data = {"date_from": t1, "date_to": t2};
         $.ajax({
             url: pro_url,
@@ -233,41 +248,101 @@
         });
 
         function recodCallback(res) {
-            console.log("pro rcd res is :", res);
             //　童装
             //　女装　
             // 生成一个日期　童装女装分类　对象
             var female = {ref_num_in: 0, ref_num_out: 0, ref_sed_num: 0, refund_num: 0};
             var child = {ref_num_in: 0, ref_num_out: 0, ref_sed_num: 0, refund_num: 0};
-
             $.each(res, function (index, content) {
-                var sale_time = content.sale_time;
-                var refund_num = content.refund_num;
                 // 日期key
                 if (content.is_child) {
-                    console.log("童装");
                     female.ref_num_in += content.ref_num_in;
                     female.ref_num_out += content.ref_num_out;
                     female.ref_sed_num += content.ref_sed_num;
-                    female.refund_num += content.refund_num;
+                    female.refund_num += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
+                    if ($.inArray(content.sale_time, X_axis) >= 0) {// 日期在已有的数组中
+                        date_dic_female[content.sale_time] += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
+                    }
                 }
                 else if (content.is_female) {
-                    console.log("女装");
                     child.ref_num_in += content.ref_num_in;
                     child.ref_num_out += content.ref_num_out;
                     child.ref_sed_num += content.ref_sed_num;
-                    child.refund_num += content.refund_num;
+                    child.refund_num += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
+                    if ($.inArray(content.sale_time, X_axis) >= 0) {// 日期在已有的数组中
+                        date_dic_child[content.sale_time] += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
+                    }
                 }
             });
-            console.log(female);
-            console.log(child);
+
+            console.log('date_dic-child--->: ', date_dic_child);
+            console.log('date_dic-femle--->: ', date_dic_female);
+
             var t_data = [child.ref_num_in, child.ref_num_out, child.ref_sed_num];
             var n_data = [female.ref_num_in, female.ref_num_out, female.ref_sed_num];
             var dom = $("#double_pie");
             var tn_data = [child.refund_num, female.refund_num];
             double_pip(dom, t_data, n_data, tn_data);
 
+            var categories = [];// 日期
+            var xtitle_text = '童．女装柱状图';
+            var ytitle_text = '数量（件）';
+            var series = [{
+                name: '童装',
+                data: []
+            }, {
+                name: '女装',
+                data: []
+            }];
+
+            $.each(X_axis, function (index, dt) {
+                series[0].data.push(date_dic_child[dt]);
+                series[1].data.push(date_dic_female[dt]);
+            });
+
+            ColumRowHan(xtitle_text, ytitle_text, X_axis, series);
         }
+    }
+
+    function ColumRowHan(xtitle_text, ytitle_text, X_axis, series) {
+        $('#rowhan_column').highcharts({
+
+            chart: {
+                type: 'column'
+            },
+
+            title: {
+                text: xtitle_text//'Total fruit consumtion, grouped by gender'
+            },
+
+            xAxis: {
+                categories: X_axis//['Apples', 'Oranges', 'Pears', 'Grapes', 'Bananas']
+            },
+
+            yAxis: {
+                allowDecimals: false,
+                min: 0,
+                title: {
+                    text: ytitle_text// 'Number of fruits'
+                }
+            },
+
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.x + '</b><br/>' +
+                            this.series.name + ': ' + this.y + '<br/>' +
+                            'Total: ' + this.point.stackTotal;
+                }
+            },
+
+            plotOptions: {
+                column: {
+                    stacking: 'normal'
+                }
+            },
+
+            series: series
+        });
     }
 
 
@@ -283,7 +358,7 @@
         var b_bar = (sgm_xiyi - n * avg_x * avg_y) / (sgm_xi2 - n * avg_x * avg_x);
         var a_bar = avg_y - b_bar * avg_x;
 
-        console.log(avg_x, '-', avg_y, '-', sgm_xiyi, '-', sgm_xi2, '-', b_bar, '-', a_bar);
+        //console.log(avg_x, '-', avg_y, '-', sgm_xiyi, '-', sgm_xi2, '-', b_bar, '-', a_bar);
         //undefined "-" undefined "-" 28 "-" 51039 "-" NaN "-" NaN
 
         var resultArry = new Array();

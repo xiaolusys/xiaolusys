@@ -1,3 +1,4 @@
+# coding=utf-8
 from shopback.items.models import Product,ProductSku,ProductCategory
 from flashsale.pay.models import (
     SaleTrade,
@@ -344,6 +345,15 @@ class ProRefunRcordSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProRefunRcord
         fields = ('product', 'ref_num_out', 'ref_num_in', 'ref_sed_num', 'pro_contactor', 'pro_model', 'sale_time',
-                  'pro_supplier', 'same_mod_sale_num', 'pro_pic', 'is_female', 'is_child', 'refund_num')
+                  'pro_supplier', 'same_mod_sale_num', 'pro_pic')
 
+
+class ProRefunRcdSerializer(serializers.ModelSerializer):
+    """ # 针对商品的退款统计内容　
+        - ProRefunRcordSerializer　fields　is to many, it makes the http request 404 return
+        - To extend for client to handler the data of the pro rcd
+    """
+    class Meta:
+        model = ProRefunRcord
+        fields = ('ref_num_out', 'ref_num_in', 'ref_sed_num', 'sale_time', 'is_female', 'is_child')
 
