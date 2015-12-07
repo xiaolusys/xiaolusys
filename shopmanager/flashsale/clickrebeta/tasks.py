@@ -129,7 +129,7 @@ def update_Xlmm_Shopping_OrderStatus(order_list):
 def task_Update_Shoppingorder_Status(pre_day=11):
     
     target_date = datetime.datetime.now() - datetime.timedelta(days=pre_day)
-    shopings = StatisticsShopping.objects.filter(shoptime__lt=target_date)
-    
+    shopings = StatisticsShopping.objects.filter(shoptime__lt=target_date,
+                                                 status=StatisticsShopping.WAIT_SEND)
     update_Xlmm_Shopping_OrderStatus(shopings)
     
