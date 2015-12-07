@@ -64,7 +64,10 @@ class RefundReason(APIView):
         close_amount = close_refs.aggregate(t_amount=Sum('refund_fee')).get('t_amount') or 0
         ramount = refs.values('reason').annotate(r_amount=Sum('refund_fee'))
         rsum = refs.values('reason').annotate(r_num=Sum('refund_num'))
-        return Response({'rsum': rsum, 'ramount': ramount, 'close_amount': close_amount})
+        mamapup_refs = refs.filter(charge='')  # charge 为空字符串的退款单（默认是小鹿钱包支付的订单）
+        mamapup_amount = mamapup_refs.aggregate(mmpub_amount=Sum('refund_fee')).get('mmpub_amount') or 0
+        return Response(
+            {'rsum': rsum, 'ramount': ramount, 'close_amount': close_amount, "mamapup_amount": mamapup_amount})
 
 
 @csrf_exempt
