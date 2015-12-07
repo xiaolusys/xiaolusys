@@ -1,4 +1,5 @@
 #-*- coding:utf8 -*-
+import json
 import datetime
 from django.db import models
 from shopback.base.fields import BigIntegerAutoField
@@ -72,11 +73,14 @@ class TmcUser(models.Model):
 def createTmcUser(sender,user,*args,**kwargs):
     
     logger.debug('debug createTmcUser receiver:%s'%sender)
-    
-    profile = user.get_profile()
+    top_params = json.loads(kwargs.get('top_parameters','{}'))
+    visitor_id = top_params and top_params.get('taobao_user_id') or None
+    if not visitor_id:
+        return 
+    visitor_nick = top_params and top_params.get('taobao_user_nick') or ''
     tmc_user,state = TmcUser.objects.get_or_create(
-                       user_id=profile.visitor_id)
-    tmc_user.user_nick = profile.nick
+                       user_id=visitor_id)
+    tmc_user.user_nick = visitor_nick
     tmc_user.save()
     
     
