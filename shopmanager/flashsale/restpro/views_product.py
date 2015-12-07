@@ -244,8 +244,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 　　商品列表　　分页接口 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        tal_queryset = self.get_custom_qs(queryset).filter(sale_time=today_dt)
-        queryset = tal_queryset.order_by('-category__parent_cid', '-details__is_recommend', '-details__order_weight','id')
+        tal_queryset = self.get_custom_qs(queryset)#.filter(sale_time=today_dt)
+        queryset = tal_queryset.order_by('-category__sort_order', '-details__is_recommend', '-details__order_weight','id')
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
             serializer = self.get_serializer(pagin_query, many=True)

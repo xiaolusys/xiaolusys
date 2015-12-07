@@ -74,7 +74,7 @@ REGULAR_DAYS = 10
 #APPSECRET = '7232a740a644ee9ad370b08a1db1cf2d'
 
 APPKEY = '12545735'   #app name guanyi erp ,younishijie
-APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af'
+APPSECRET = '5d845250d49aea44c3a07d8c1d513db5'
 
 TAOBAO_API_HOSTNAME = 'eco.taobao.com'
 AUTHRIZE_URL   = 'https://oauth.taobao.com/authorize'
