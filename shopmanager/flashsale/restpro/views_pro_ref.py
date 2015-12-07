@@ -41,6 +41,30 @@ class ProRefRcdViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        return
+
+
+class CalcuProRefRcd(viewsets.ModelViewSet):
+    queryset = ProRefunRcord.objects.all()
+    serializer_class = serializers.ProRefunRcdSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+    today = datetime.datetime.today()
+    fifth_day = today - datetime.timedelta(days=15)
+
+    def get_owner_queryset(self, request):
+        queryset = self.queryset.filter(contactor=request.user.id)
+        return queryset
+
+    def super_admin_query(self, request):
+        if request.user.has_perm('refunds.browser_all_pro_duct_ref_lis'):
+            queryset = self.queryset
+        else:
+            queryset = self.filter_queryset(self.get_owner_queryset(request))
+        return queryset
+
     def time_zone_query(self, request, queryset):
         content = request.REQUEST
         time_from = content.get("date_from", self.fifth_day)
@@ -61,5 +85,3 @@ class ProRefRcdViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(tzone_query, many=True)
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        return
