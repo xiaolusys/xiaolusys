@@ -96,7 +96,11 @@ class MergeTradeChangeList(ChangeList):
         if search_q:
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
-        
+             
+            for filter_spec in self.filter_specs:
+                new_qs = filter_spec.queryset(request, qs)
+                if new_qs is not None:
+                    qs = new_qs
             # Set ordering.
             ordering = self.get_ordering(request, qs)
             qs = qs.order_by(*ordering)
@@ -122,7 +126,7 @@ class MergeTradeChangeList(ChangeList):
             return qs.filter(tid=tid)
 
         if search_q:
-            tid_list = ['%s-%s'%(search_q,i) for i in range(1,6)]
+            tid_list = ['%s-%s'%(search_q,i) for i in range(1,8)]
             tid_list.append(search_q)
             trades = qs.filter(models.Q(tid__in=tid_list)|models.Q(out_sid=search_q))
             return trades
@@ -201,7 +205,7 @@ class MergeTradeAdmin(MyAdmin):
 
     inlines = [MergeOrderInline]
     
-    list_filter   = (TradeStatusFilter,'status','user',('pay_time',DateFieldListFilter),'type',
+    list_filter   = (TradeStatusFilter,'user',('pay_time',DateFieldListFilter),'type',
                      ('weight_time',DateFieldListFilter),'ware_by',#('trade_from', BitFieldListFilter,),
                      'has_out_stock','has_rule_match','has_merge','has_sys_err','has_memo',
                     'is_picking_print','is_express_print', 'is_locked','is_charged','is_qrcode')
