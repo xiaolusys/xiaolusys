@@ -32,6 +32,14 @@ class SaleSupplierChangeList(ChangeList):
         if re.compile('^[\w]+[\.][\w]+$').match(search_q):
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
+             
+            for filter_spec in self.filter_specs:
+                new_qs = filter_spec.queryset(request, qs)
+                if new_qs is not None:
+                    qs = new_qs
+            
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
             scharge = SupplierCharge.objects.filter(employee__username=search_q, status=SupplierCharge.EFFECT)
             sc = set([s.supplier_id for s in scharge])
             suppliers = qs.filter(id__in=sc)
@@ -94,9 +102,9 @@ class SaleSupplierAdmin(MyAdmin):
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:
             if obj.category == cat:
-                cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat.name))
+                cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
                 continue
-            cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat.name))
+            cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat))
         cat_list.append("</select>")
 
         return "".join(cat_list)
