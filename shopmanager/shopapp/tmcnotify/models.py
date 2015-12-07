@@ -79,7 +79,7 @@ def createTmcUser(sender,user,*args,**kwargs):
     if not visitor_id:
         return 
     visitor_nick = top_params and top_params.get('taobao_user_nick') or ''
-    tmc_user,state = TmcUser.objects.get_or_create(
+    tmc_user,state = TmcUser.valid_users.get_or_create(
                        user_id=visitor_id)
     tmc_user.user_nick = visitor_nick
     tmc_user.save()
