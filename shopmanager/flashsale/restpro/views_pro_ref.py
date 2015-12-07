@@ -74,7 +74,7 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
             time_from = datetime.datetime(year, mont, day)
             year, mont, day = map(int, time_from.split('-'))
             time_to = datetime.datetime(year, mont, day)
-        query = queryset.filter(created__gte=time_from, created__lte=time_to)
+        query = queryset.filter(created__range=(time_from, time_to))
         return query
 
     @list_route(methods=['get'])
