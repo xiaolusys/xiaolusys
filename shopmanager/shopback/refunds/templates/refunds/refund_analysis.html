@@ -64,6 +64,7 @@
     <div style="margin-top: 10px">
         <span class="badge total_r_num"></span>
         <span class="badge total_r_amount"></span>
+        <span class="badge total_mam_pub_amount"></span>
         <span class="badge total_r_close"></span>
     </div>
 
@@ -141,10 +142,10 @@
         });
         function CallBack(res) {
             console.log(res);
-            rsumdata(res.rsum, res.ramount, res.close_amount);
+            rsumdata(res.rsum, res.ramount, res.close_amount, res.mamapup_amount);
         }
     }
-    function rsumdata(rsum, ramount, close_amount) {
+    function rsumdata(rsum, ramount, close_amount, mamapup_amount) {
         var reason = [];
         var amount_reason = [];
         var r_num = [];
@@ -187,8 +188,9 @@
         var mount_pie_dom = $("#amount_pie_dom");
         pieChart(mount_pie_dom, "原因金额占比", "原因金额分布", amount_pie_data);
         $(".total_r_num").html("退款总数量：" + total_num);
+        $(".total_mam_pub_amount").html("小鹿钱包退款金额：" + mamapup_amount);
         $(".total_r_amount").html("退款总金额：" + total_amount);
-        $(".total_r_close").html("拒绝退款占比：" + (close_amount/total_amount).toFixed(4));
+        $(".total_r_close").html("拒绝退款占比：" + (close_amount / total_amount).toFixed(4));
 
     }
 
