@@ -451,7 +451,6 @@ function product_timer(shelf_time) {
     } else if (ts < 0) {
         $(".top p").text("已下架");
     }
-
 }
 
     /*
