@@ -528,7 +528,9 @@ def task_calc_new_user_repeat(start_date, end_date):
                     user_data_list.append("None")
                 else:
                     stats_date_begin = datetime.datetime(start_date.year, i, 1)
-                    stats_date_end = datetime.datetime(start_date.year, i + 1, 1)
+                    next_month = i + 1 if i < 12 else 1
+                    year = start_date.year if i < 12 else start_date.year + 1
+                    stats_date_end = datetime.datetime(year, next_month, 1)
                     count_month = StatisticsShopping.objects.filter(
                         shoptime__range=(stats_date_begin, stats_date_end)).filter(openid__in=new_user).values(
                         'openid').distinct().count()

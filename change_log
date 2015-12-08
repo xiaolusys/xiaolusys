@@ -1,3 +1,6 @@
+############2015-12-08#####################
+alter table flashsale_pay_product_refund_record add column sale_date date Not null;
+CREATE INDEX `flashsale_pay_product_refund_record_96b5e96` ON `flashsale_pay_product_refund_record` (`sale_date`);
 ############2015-12-07#####################
 CREATE INDEX `flashsale_pay_product_refund_record_3216ff68` ON `flashsale_pay_product_refund_record` (`created`);
 ############2015-12-05#####################
