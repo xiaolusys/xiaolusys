@@ -63,16 +63,16 @@ class CalcuProRefRcd(viewsets.ModelViewSet):
 
     def time_zone_query(self, request, queryset):
         content = request.REQUEST
-        today = datetime.datetime.today()
+        today = datetime.date.today()
         fifth_day = today - datetime.timedelta(days=15)
         time_from = content.get("date_from", fifth_day)
         time_to = content.get("date_to", today)
         if isinstance(time_from, str) and isinstance(time_to, str):
             year, mont, day = map(int, time_from.split('-'))
-            time_from = datetime.datetime(year, mont, day)
+            time_from = datetime.date(year, mont, day)
             year, mont, day = map(int, time_from.split('-'))
-            time_to = datetime.datetime(year, mont, day)
-        query = queryset.filter(created__range=(time_from, time_to))
+            time_to = datetime.date(year, mont, day)
+        query = queryset.filter(sale_date__range=(time_from, time_to))
         return query
 
     @list_route(methods=['get'])

@@ -250,12 +250,17 @@ def record_pro(ref):
                 pro_ref_rcd.ref_num_in += ref.refund_num
 
     contactor = ref.sale_contactor() if ref.sale_contactor() is not None else 0
+
     pro_model = ref.pro_model() if ref.pro_model() is not None else 0
 
     pro_ref_rcd.contactor = contactor
     pro_ref_rcd.pro_model = pro_model
+    if pro_ref_rcd.sale_time() is not None:
+        # 这里如果重新上架的产品产生的退款会将以前的上架日期覆盖掉
+        pro_ref_rcd.sale_date = pro_ref_rcd.sale_time()
+
     update_model_fields(pro_ref_rcd, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in', 'contactor',
-                                                    'pro_model'])
+                                                    'pro_model', 'sale_date'])
 
 
 def insert_field_hist_pro_rcd():
@@ -272,6 +277,18 @@ def insert_field_hist_pro_rcd():
             contactor = 0 if sal_pro.contactor is None else sal_pro.contactor
             rcd.contactor = contactor
         update_model_fields(rcd, update_fields=['pro_model', 'contactor'])
+
+
+def write_rcd_column_sale_date():
+    """ ProRefunRcord 添加日期字段后　将对应产品上架日期写入 对应字段　"""
+    pro_rcds = ProRefunRcord.objects.all()
+    print(u"条数：", pro_rcds.count())
+    for rcd in pro_rcds:
+        sale_date = rcd.sale_time()
+        if sale_date is None:
+            continue
+        rcd.sale_date = sale_date
+        update_model_fields(rcd, update_fields=['sale_date'])
 
 
 def handler_Refund_Send_Num():
