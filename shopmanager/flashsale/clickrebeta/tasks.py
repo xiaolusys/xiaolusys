@@ -103,10 +103,11 @@ def update_Xlmm_Shopping_OrderStatus(order_list):
         if trades.count() == 0:
             continue
         trade = trades[0]
-        xlmm  = None
-        if order.linkid > 0:
-            xlmm = XiaoluMama.objects.get(id=order.linkid)
         
+        try:
+            xlmm = XiaoluMama.objects.get(id=order.linkid)
+        except XiaoluMama.DoesNotExist:
+            xlmm  = None
         if trade.type == MergeTrade.WX_TYPE:
             strade = WXOrder.objects.get(order_id=order_id)
             if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
