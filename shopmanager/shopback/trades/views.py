@@ -552,17 +552,19 @@ class CheckOrderView(APIView):
 
         if action_code == 'check':
             check_msg = []
+            sys_assign_ware = trade.get_trade_assign_ware()
             if trade.has_refund:
                 check_msg.append(u"有待退款")
             if trade.has_out_stock:
                 check_msg.append(u"有缺货")
-            if (trade.has_rule_match or
-                    MergeTrade.objects.isTradeDefect(trade)):
+            if (trade.has_rule_match or MergeTrade.objects.isTradeDefect(trade)):
                 check_msg.append(u"订单商品编码与库存商品编码不一致")
             if trade.is_force_wlb:
                 check_msg.append(u"订单由物流宝发货")
             if trade.ware_by == MergeTrade.WARE_NONE:
                 check_msg.append(u"请选择仓库")
+            if trade.ware_by != MergeTrade.WARE_NONE and trade.ware_by != sys_assign_ware:
+                check_msg.append(u"订单所属仓库与商品所属仓不一致")
             if trade.sys_status not in (pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS):
                 check_msg.append(u"订单不在审单状态")
             if trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE):

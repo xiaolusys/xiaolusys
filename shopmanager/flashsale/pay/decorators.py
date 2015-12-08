@@ -64,12 +64,12 @@ def weixin_xlmm_auth(redirecto=None):
             if request.user.is_active :
                 # The user is valid. Continue to the admin page.
                 return view_func(request, *args, **kwargs)
-    
+            
             code   = request.GET.get('code')
             user_agent = request.META.get('HTTP_USER_AGENT')
             if not user_agent or user_agent.find('MicroMessenger') < 0:
                 return HttpResponseRedirect(redirecto)
-        
+            
             if not code :
                 params = {'appid':settings.WXPAY_APPID,
                           'redirect_uri':request.build_absolute_uri().split('#')[0],

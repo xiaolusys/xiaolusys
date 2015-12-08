@@ -556,7 +556,6 @@ def task_calc_package(start_date, end_date, old=True):
             file_name = u'month_package.csv'
             file_path_name = os.path.join(file_dir, file_name)
 
-
             result_list = []
             my_file = file(file_path_name, 'rb')
             reader = csv.reader(my_file)

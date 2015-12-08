@@ -57,7 +57,8 @@ class SaleSupplierAdmin(MyAdmin):
     list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter)
     search_fields = ['supplier_name', 'supplier_code','id']
     form = SaleSupplierForm
-
+    list_per_page = 15
+    
     def charge_link(self, obj):
         if obj.status == SaleSupplier.CHARGED:  # 如果是已经接管
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
