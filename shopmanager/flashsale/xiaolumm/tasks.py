@@ -196,38 +196,6 @@ def order_Red_Packet(xlmm):
             for red_pac_carry_log in red_pac_carry_logs:
                 if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
                     mama.push_carrylog_to_cash(red_pac_carry_log)
-
-
-def update_Xlmm_Shopping_OrderStatus(order_list):
-    """ 更新小鹿妈妈交易订单状态 """
-    for order in order_list:
-        order_id = order.wxorderid
-        trades = MergeTrade.objects.filter(tid=order_id,
-                                           type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
-        if trades.count() == 0:
-            continue
-        trade = trades[0]
-        xlmm  = None
-        if order.linkid > 0:
-            xlmm = XiaoluMama.objects.get(id=order.linkid)
-        
-        if trade.type == MergeTrade.WX_TYPE:
-            strade = WXOrder.objects.get(order_id=order_id)
-            if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
-                order.status = StatisticsShopping.REFUNDED
-            elif trade.sys_status == MergeTrade.FINISHED_STATUS:
-                order.status = StatisticsShopping.FINISHED
-        else:
-            strade = SaleTrade.objects.get(tid=order_id) 
-            if strade.status == SaleTrade.TRADE_CLOSED:
-                order.status = StatisticsShopping.REFUNDED
-            elif strade.status == SaleTrade.TRADE_FINISHED:
-                order.status = StatisticsShopping.FINISHED
-                
-        order.rebetamount  = xlmm.get_Mama_Trade_Amount(strade) 
-        order.tichengcount = xlmm.get_Mama_Trade_Rebeta(strade)
-        order.save()
-            
             
 @task()
 def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
@@ -236,6 +204,8 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
     xlmm_id:小鹿妈妈id，
     target_date：计算日期
     """
+    from flashsale.clickrebeta.tasks import update_Xlmm_Shopping_OrderStatus
+    
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
     

@@ -92,5 +92,45 @@ def task_Tongji_All_Order():
     except Exception, exc:
         raise task_Tongji_All_Order.retry(exc=exc)
     
+from shopback.trades.models import MergeTrade
+
+def update_Xlmm_Shopping_OrderStatus(order_list):
+    """ 更新小鹿妈妈交易订单状态 """
+    for order in order_list:
+        order_id = order.wxorderid
+        trades = MergeTrade.objects.filter(tid=order_id,
+                                           type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
+        if trades.count() == 0:
+            continue
+        trade = trades[0]
+        
+        try:
+            xlmm = XiaoluMama.objects.get(id=order.linkid)
+        except XiaoluMama.DoesNotExist:
+            xlmm  = None
+        if trade.type == MergeTrade.WX_TYPE:
+            strade = WXOrder.objects.get(order_id=order_id)
+            if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
+                order.status = StatisticsShopping.REFUNDED
+            elif trade.sys_status == MergeTrade.FINISHED_STATUS:
+                order.status = StatisticsShopping.FINISHED
+        else:
+            strade = SaleTrade.objects.get(tid=order_id) 
+            if strade.status == SaleTrade.TRADE_CLOSED:
+                order.status = StatisticsShopping.REFUNDED
+            elif strade.status == SaleTrade.TRADE_FINISHED:
+                order.status = StatisticsShopping.FINISHED
+                
+        order.rebetamount  = xlmm and xlmm.get_Mama_Trade_Amount(strade) or order.rebetamount
+        order.tichengcount = xlmm and xlmm.get_Mama_Trade_Rebeta(strade) or order.tichengcount
+        order.save()
+        
+        
+@task()
+def task_Update_Shoppingorder_Status(pre_day=11):
     
+    target_date = datetime.datetime.now() - datetime.timedelta(days=pre_day)
+    shopings = StatisticsShopping.objects.filter(shoptime__lt=target_date,
+                                                 status=StatisticsShopping.WAIT_SEND)
+    update_Xlmm_Shopping_OrderStatus(shopings)
     
