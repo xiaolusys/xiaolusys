@@ -229,6 +229,7 @@
 
     function getProRcordData(t1, t2, X_axis) {
         // 获取产品的退货数据
+        console.log("X_axis: ", X_axis);
         var date_dic_female = {};
         var date_dic_child = {};
         $.each(X_axis, function (index, dt) {
@@ -251,6 +252,7 @@
             //　童装
             //　女装　
             // 生成一个日期　童装女装分类　对象
+            console.log("pro res: ", res);
             var female = {ref_num_in: 0, ref_num_out: 0, ref_sed_num: 0, refund_num: 0};
             var child = {ref_num_in: 0, ref_num_out: 0, ref_sed_num: 0, refund_num: 0};
             $.each(res, function (index, content) {
@@ -260,8 +262,8 @@
                     female.ref_num_out += content.ref_num_out;
                     female.ref_sed_num += content.ref_sed_num;
                     female.refund_num += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
-                    if ($.inArray(content.sale_time, X_axis) >= 0) {// 日期在已有的数组中
-                        date_dic_female[content.sale_time] += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
+                    if ($.inArray(content.sale_date, X_axis) >= 0) {// 日期在已有的数组中
+                        date_dic_female[content.sale_date] += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
                     }
                 }
                 else if (content.is_female) {
@@ -269,8 +271,8 @@
                     child.ref_num_out += content.ref_num_out;
                     child.ref_sed_num += content.ref_sed_num;
                     child.refund_num += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
-                    if ($.inArray(content.sale_time, X_axis) >= 0) {// 日期在已有的数组中
-                        date_dic_child[content.sale_time] += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
+                    if ($.inArray(content.sale_date, X_axis) >= 0) {// 日期在已有的数组中
+                        date_dic_child[content.sale_date] += (content.ref_num_in + content.ref_num_out + content.ref_sed_num);
                     }
                 }
             });
