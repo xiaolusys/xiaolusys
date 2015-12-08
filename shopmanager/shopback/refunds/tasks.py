@@ -134,7 +134,7 @@ def taskRefundRecord(obj):
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
-                refund_record.ref_sed_num += F('ref_sed_num') + 1
+                refund_record.ref_sed_num = F('ref_sed_num') + 1
             write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
         if order.status in (SaleOrder.WAIT_SELLER_SEND_GOODS, ):
             # 如果　未发货　　则　算入　24小时外未发货退款数量
@@ -272,4 +272,23 @@ def insert_field_hist_pro_rcd():
             contactor = 0 if sal_pro.contactor is None else sal_pro.contactor
             rcd.contactor = contactor
         update_model_fields(rcd, update_fields=['pro_model', 'contactor'])
+
+
+def handler_Refund_Send_Num():
+    """
+    2015-12-08 脏数据处理　taskRefundRecord　中发货后的数据出现问题
+    """
+    time_from = datetime.datetime(2015, 11, 1)
+    time_to = datetime.datetime(2015, 12, 9)
+    print "time_from:", time_from, "time_to", time_to
+    rcds = PayRefNumRcord.objects.filter(date_cal__gte=time_from, date_cal__lte=time_to)
+
+    for rcd in rcds:
+        refra = PayRefundRate.objects.get(date_cal=rcd.date_cal)  # 找到总的退款率记录
+        ref_num = refra.ref_num  # 总退款数量
+        ref_num_out = rcd.ref_num_out
+        ref_num_in = rcd.ref_num_in
+        rcd.ref_sed_num = ref_num - ref_num_out - ref_num_in  # 发货后等于总的减去２４外和内
+        print "{0}记录,总退款 {1},发货后退款 {2}".format(rcd.date_cal, ref_num, rcd.ref_sed_num)
+        rcd.save()
 
