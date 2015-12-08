@@ -85,7 +85,11 @@
             </div>
             <div class="row">
                 <div class="col-md-1"><input type="button" class="btn" value="商品材质:"/></div>
-                <div class="col-md-3"><input type="text" id="material_id" class="form-control"/></div>
+                <div class="col-md-2"><input type="text" id="material_id" class="form-control"/></div>
+                <div class="col-md-2">
+                    <select id="wash_desc_select" select="selected" class="form-control">
+                    </select>
+                </div>
                 <div class="col-md-1"><input type="button" class="btn" value="备注:"/></div>
                 <div class="col-md-3"><input type="text" id="note_id" class="form-control"/></div>
             </div>
@@ -502,7 +506,10 @@
 <script type="text/javascript" src="js/ui.js"></script>
 <script type="text/javascript" src="/static/script/qiniu.js"></script>
 <script type="text/javascript" src="js/sku_choose.js"></script>
-
+<script type="text/javascript" src="js/select_2_input.js"></script>
+<script>
+    choose_2_input("wash_desc_select", "wash_instroduce", "material_id")
+</script>
 <script type="text/javascript" src="js/main.js"></script>
 </body>
 </html>
