@@ -534,7 +534,7 @@ class CheckOrderView(APIView):
         logistic_code = content.get('logistic_code')
         shipping_type = content.get('shipping_type')
         action_code = content.get('action')
-        ware_by = content.get('ware_by')
+        ware_by     = int(content.get('ware_by','0'))
         logistics_company = None
 
         if logistic_code:
