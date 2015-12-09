@@ -290,10 +290,10 @@
             var xtitle_text = '童．女装柱状图';
             var ytitle_text = '数量（件）';
             var series = [{
-                name: '童装',
+                name: '女装',
                 data: []
             }, {
-                name: '女装',
+                name: '童装',
                 data: []
             }];
 
@@ -395,14 +395,14 @@
 
     function double_pip(dom, t_data, n_data, tn_data) {
         var colors = Highcharts.getOptions().colors,
-                categories = ['童装', '女装'],
+                categories = ['女装', '童装'],
                 name = '童装女装退款（退货）占比',
                 data = [
                     {
                         y: tn_data[0],
                         color: colors[0],
                         drilldown: {
-                            name: '童装',
+                            name: '女装',
                             categories: ['24小时内', '24小时外', '发货后'],
                             data: t_data, //[10.85, 7.35, 33.06, 2.81],
                             color: colors[0]
@@ -413,7 +413,7 @@
                         y: tn_data[1],
                         color: colors[1],
                         drilldown: {
-                            name: '女装',
+                            name: '童装',
                             categories: ['24小时内', '24小时外', '发货后'],
                             data: n_data,
                             color: colors[1]
