@@ -23,14 +23,15 @@ from . import serializers
 from shopback.base import log_action, ADDITION, CHANGE
 
 
-class CustomShareViewSet(viewsets.ReadOnlyModelViewSet):
+class CustomShareViewSet(viewsets.ModelViewSet):
     """
     特卖分享API：
     - {prefix}/today[.format]: 获取今日分享内容;
     """
     queryset = CustomShare.objects.filter(status=True)
     serializer_class = serializers.CustomShareSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
     def get_xlmm(self,request):
