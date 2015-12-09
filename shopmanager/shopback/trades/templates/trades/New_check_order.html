@@ -121,6 +121,7 @@
 	{% if trade.need_manual_merge %}<li><span class="badge1 badge-warning1">需手动合单</span></li>{% endif %}
 	{% if trade.has_sys_err %}<li><span class="badge1 badge-warning1">系统错误</span></li>{% endif %}
 	{% if trade.is_force_wlb %}<li><span class="badge1 badge-warning1">发物流宝</span></li>{% endif %}
+	{% if trade.is_ware_match %}<li><span class="badge1 badge-warning1">所属仓库不一致</span></li>{% endif %}
 </ul>
 </div>
 <div class="accordion-group1">
