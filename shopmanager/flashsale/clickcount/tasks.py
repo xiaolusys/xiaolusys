@@ -1,10 +1,14 @@
 # -*- encoding:utf8 -*-
 import datetime
 from django.db.models import F, Sum
+from django.conf import settings
+from celery import chain
 from celery.task import task
 
-from flashsale.xiaolumm.models import XiaoluMama, Clicks, CarryLog, AgencyLevel
-from .models import ClickCount, WeekCount
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, AgencyLevel
+from .models import Clicks, UserClicks, ClickCount, WeekCount
+from shopapp.weixin.models import WeixinUnionID
+from common.modelutils import update_model_change_fields
 import logging
 
 __author__ = 'linjie'
@@ -13,6 +17,55 @@ logger = logging.getLogger('celery.handler')
 
 CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,15,10)
 CLICK_MAX_LIMIT_DATE  = datetime.date(2015,6,5)
+
+@task()
+def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
+    """
+    异步保存妈妈分享点击记录
+    xlmm_id:小鹿妈妈id,
+    openid:妈妈微信openid,
+    click_time:点击时间
+    """
+    xlmmid = int(xlmmid)
+    
+    today = datetime.datetime.now()
+    tf = datetime.datetime(today.year,today.month,today.day,0,0,0)
+    tt = datetime.datetime(today.year,today.month,today.day,23,59,59)
+    
+    isvalid = False
+    clicks = Clicks.objects.filter(openid=openid,click_time__range=(tf,tt))
+    click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
+    click_count   = len(click_linkids)
+    xlmms = XiaoluMama.objects.filter(id=xlmmid)
+    
+    if click_count < Clicks.CLICK_DAY_LIMIT and xlmms.count() > 0 and xlmmid not in click_linkids:
+        isvalid = True
+        
+    click = Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
+    WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
+    
+    return click
+
+@task()
+def task_Update_User_Click(click, *args, **kwargs):
+    
+    openid = click.openid
+    wxunoin = WeixinUnionID.objects.get(openid=openid,app_key='wx25fcb32689872499')#settings.WEIXIN_APPID)
+    
+    user_click,state = UserClicks.objects.get_or_create(unoinid=wxunoin.unionid)
+    params  = {}
+    if  not user_click.click_end_time or (click.click_time - user_click.click_end_time).days > 1:
+        params.update(visit_days = F('visit_days') + 1)
+    
+    if not user_click.click_start_time or user_click.click_start_time > click.click_time:
+        params.update(click_start_time = click.click_time)
+        
+    if not user_click.click_end_time or user_click.click_end_time < click.click_time:
+        params.update(click_end_time = click.click_time)
+
+    update_model_change_fields(user_click,update_params=params)
+    
+    
 
 def task_patch_mamacash_61():
     

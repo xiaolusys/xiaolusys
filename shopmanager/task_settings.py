@@ -73,9 +73,13 @@ CELERY_ROUTES = {
             'routing_key': 'noitfy.push_refund',
         },#小鹿特卖平台订单退款更新到仓库订单
          #######################################################
-        'flashsale.xiaolumm.tasks.task_Create_Click_Record': {
+        'flashsale.clickcount.tasks.task_Create_Click_Record': {
             'queue': 'frency',
             'routing_key': 'frency.task_Create_Click_Record',
+        },#微信用户点击记录
+        'flashsale.clickcount.tasks.task_Update_User_Click': {
+            'queue': 'frency',
+            'routing_key': 'frency.task_Update_User_Click',
         },#微信用户点击记录
         'flashsale.pay.tasks.task_Update_Sale_Customer': {
             'queue': 'frency',

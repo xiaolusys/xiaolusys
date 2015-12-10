@@ -1,7 +1,6 @@
 #-*- coding:utf8 -*-
 from django import forms
-
-from .models import Clicks,XiaoluMama,AgencyLevel,CashOut,CarryLog,MamaDayStats
+from .models import XiaoluMama,AgencyLevel,CashOut,CarryLog,MamaDayStats
 
 class XiaoluMamaForm( forms.ModelForm ):
     

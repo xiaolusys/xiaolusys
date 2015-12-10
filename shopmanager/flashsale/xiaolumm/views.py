@@ -1,12 +1,14 @@
 #-*- coding:utf-8 -*-
-
+import re
 import json
+import datetime
 from django.http import HttpResponse,Http404,HttpResponseRedirect
 from django.shortcuts import redirect,render_to_response
 from django.views.generic import View
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.db.models import Sum
+from celery import chain
 
 from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder
@@ -14,12 +16,12 @@ from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
 from django.conf import settings
 from flashsale.pay.options import set_cookie_openid,get_cookie_openid,get_user_unionid
-from flashsale.clickcount.models import ClickCount
+from flashsale.clickcount.models import Clicks, ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
-from flashsale.clickcount.tasks import CLICK_ACTIVE_START_TIME, CLICK_MAX_LIMIT_DATE  
+from flashsale.clickcount import tasks as ctasks
 from common.modelutils import update_model_fields
 
-from .models import Clicks, XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
+from .models import XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 
 from .serializers import CashOutSerializer,CarryLogSerializer
@@ -30,9 +32,6 @@ from models_advertis import XlmmAdvertis
 
 import logging
 logger = logging.getLogger('django.request')
-
-
-import datetime, re
 
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
@@ -232,7 +231,7 @@ class MamaStatsView(View):
                     
             #设置最高有效最高点击上限
             max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num, day_date=target_date)
-            if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+            if time_from.date() >= ctasks.CLICK_MAX_LIMIT_DATE:
                 click_num = min(max_click_count,click_num)
                 
             referal_mm = 0
@@ -301,7 +300,7 @@ class MamaIncomeDetailView(View):
         time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
         
-        active_start = CLICK_ACTIVE_START_TIME.date() == time_from.date()
+        active_start = ctasks.CLICK_ACTIVE_START_TIME.date() == time_from.date()
         prev_day = target_date - datetime.timedelta(days=1)
         next_day = None
         if target_date < today:
@@ -352,7 +351,7 @@ class MamaIncomeDetailView(View):
                     
                 #设置最高有效最高点击上限
                 max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num,day_date=target_date)
-                if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+                if time_from.date() >= ctasks.CLICK_MAX_LIMIT_DATE:
                     click_num = min(max_click_count,click_num)
                 
                 click_pay   = click_price * click_num 
@@ -368,7 +367,7 @@ class MamaIncomeDetailView(View):
                                                 
                 #设置最高有效最高点击上限
                 max_click_count = xlmm.get_Mama_Max_Valid_Clickcount(order_num,day_date=target_date)
-                if time_from.date() >= CLICK_MAX_LIMIT_DATE:
+                if time_from.date() >= ctasks.CLICK_MAX_LIMIT_DATE:
                     click_num = min(max_click_count,click_num)
                     ten_click_num = min(max_click_count,ten_click_num)
                 
@@ -485,7 +484,8 @@ def logclicks(request, linkid):
         return redirect(redirect_url)
     
     click_time = datetime.datetime.now()
-    tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
+    chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
+          ctasks.task_Update_User_Click.s())()
     
     return redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
 
@@ -509,7 +509,9 @@ def logChannelClicks(request, linkid):
     openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
                                       secret=settings.WEIXIN_SECRET)
     click_time = datetime.datetime.now()
-    tasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time)()
+    chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
+          ctasks.task_Update_User_Click.s())()
+          
     return redirect(settings.M_SITE_URL)
 
 
@@ -799,7 +801,7 @@ def create_coupon(sale_orders):
     cou.release_deposit_coupon(**kwargs)
     return cou
 
-from tasks import task_mama_Verify_Action
+from .tasks import task_mama_Verify_Action
 
 
 @csrf_exempt

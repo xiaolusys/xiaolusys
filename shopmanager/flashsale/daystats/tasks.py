@@ -4,9 +4,9 @@ import datetime
 from django.db.models import F, Sum
 from celery.task import task
 
-from flashsale.clickcount.models import ClickCount
+from flashsale.clickcount.models import Clicks,ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models import Clicks, CarryLog
+from flashsale.xiaolumm.models import CarryLog
 from flashsale.pay.models import Customer
 from  flashsale.pay.models_refund import SaleRefund
 from .models import DailyStat, PopularizeCost

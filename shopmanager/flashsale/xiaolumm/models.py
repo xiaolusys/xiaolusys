@@ -405,47 +405,6 @@ class AgencyLevel(models.Model):
         return (self.basic_rate / 100.0) / 2
     
 
-# class ClickPrice(models.Model):
-#     
-#     order_num  = models.IntegerField(default=0,verbose_name=u'订单数量')
-#     start_time = models.DateTimeField(verbose_name=u'开始时间')
-#     end_time   = models.DateTimeField(verbose_name=u'结束时间')
-#     click_price = models.IntegerField(default=0,verbose_name=u'点击价格')
-# 
-#     class Meta:
-#         db_table = 'xiaolumm_click_price'
-#         verbose_name=u'点击价格'
-#         verbose_name_plural = u'点击价格列表'
-# 
-#     def __unicode__(self):
-#         return '%s'%self.id
-
-
-class Clicks(models.Model):
-    
-    CLICK_DAY_LIMIT = MM_CLICK_DAY_LIMIT
-    
-    linkid = models.IntegerField(default=0,db_index=True,verbose_name=u"链接ID")    
-    openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"OpenId")    
-    isvalid = models.BooleanField(default=False,verbose_name='是否有效')
-    click_time = models.DateTimeField(db_index=True,verbose_name=u'点击时间')
-    created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-
-    class Meta:
-        db_table = 'xiaolumm_clicks'
-        verbose_name=u'点击记录'
-        verbose_name_plural = u'点击记录列表'
-
-    def __unicode__(self):
-        return '%s'%self.id
-
-# from django.db.models.signals import post_save
-# def Create_Or_Change_Clickcount(sender, instance, created, **kwargs):
-#     from flashsale.clickcount.tasks import task_Count_ClickCount_Info
-#     task_Count_ClickCount_Info.s(instance, created)()
-# 
-# post_save.connect(Create_Or_Change_Clickcount, sender=Clicks)
-
 class CashOut(models.Model):
     PENDING = 'pending'
     APPROVED = 'approved'

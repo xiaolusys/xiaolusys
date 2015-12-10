@@ -6,7 +6,7 @@ from celery.task import task
 from shopapp.weixin.models import WXOrder
 from flashsale.pay.models import SaleTrade
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
-from flashsale.xiaolumm.models import CarryLog,XiaoluMama,AgencyLevel,Clicks
+from flashsale.xiaolumm.models import CarryLog,XiaoluMama
 
 import logging
 

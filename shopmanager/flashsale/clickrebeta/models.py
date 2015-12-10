@@ -2,7 +2,8 @@
 import datetime
 from django.db import models
 from shopapp.weixin.models import WXOrder
-from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel,CarryLog
+from flashsale.clickcount.models import Clicks
+from flashsale.xiaolumm.models import XiaoluMama, AgencyLevel,CarryLog
 
 CLICK_VALID_DAYS = 2
 

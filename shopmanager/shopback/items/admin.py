@@ -439,6 +439,22 @@ class ProductAdmin(MyAdmin):
     #作废商品
     def invalid_product_action(self,request,queryset):
          
+        uninvalid_qs = queryset.filter(models.Q(collect_num__gt=0)|
+                                       models.Q(wait_post_num__gt=0)|
+                                       models.Q(shelf_status=Product.UP_SHELF))
+        if uninvalid_qs.count() > 0:
+            for p in uninvalid_qs:
+                msg_list = ['商品编码：%s，不能作废原因:'%p.outer_id]
+                if p.collect_num > 0:
+                    msg_list.append('库存不为０')
+                if p.wait_post_num > 0:
+                    msg_list.append('待发数不为０')
+                if p.shelf_status==Product.UP_SHELF:
+                    msg_list.append('商品未下架')
+                self.message_user(request,u"XXXXXX:%s"%(','.join(msg_list)))
+                
+            return HttpResponseRedirect(request.get_full_path())
+        
         if queryset.count() >= 25:
             self.message_user(request,u"*********作废的商品数不能超过24个************")
             return HttpResponseRedirect(request.get_full_path())
