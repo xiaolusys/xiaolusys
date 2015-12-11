@@ -210,7 +210,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def order_queryset(self,request,queryset,order_by=None):
         """ 对集合列表进行排序 """
         order_by = order_by or request.REQUEST.get('order_by')
-        if order_by == 'main':
+        if order_by == self.INDEX_ORDER_BY:
             queryset = queryset.extra(select={'is_saleout':'remain_num - wait_post_num <= 0'})\
                 .order_by('-category__sort_order','is_saleout', '-details__is_recommend','-details__order_weight','id')
         elif order_by == 'price':
