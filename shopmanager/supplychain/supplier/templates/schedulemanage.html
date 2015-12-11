@@ -355,16 +355,28 @@
 
 <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
 <script>
+    var pop_frame = 1;
     function postPost(dom){
         var poppage_url = $(dom).attr('cid');
-        console.log("poppage_url :", poppage_url );
+        console.log("上传页面地址 :", poppage_url );
+
         layer.open({
             type: 2,
             title: '上传海报页面',
             shadeClose: true,
             shade: 0.8,
             area: ['500px', '61%'],
-            content: poppage_url
+            content: poppage_url,
+            btn: ['确定上传成功']
+            , yes: function () {
+                console.log(location.href);
+                console.log($('iframe'));
+                console.log("上传成功后给的链接:", $(window.frames["layui-layer-iframe" + pop_frame].document).find("body img").attr('src'));
+                var src = $(window.frames["layui-layer-iframe" + pop_frame].document).find("body img").attr('src');
+                $($(dom).parent().children()[0]).attr('src', src);
+                pop_frame += 1;
+                layer.closeAll();
+            }
         });
     }
 </script>
