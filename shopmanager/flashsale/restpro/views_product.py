@@ -211,12 +211,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 对集合列表进行排序 """
         order_by = order_by or request.REQUEST.get('order_by')
         if order_by == self.INDEX_ORDER_BY:
-            queryset = queryset.extra(select={'is_saleout':'remain_num - wait_post_num <= 0'})\
+            queryset = queryset.extra(select={'is_saleout':'remain_num - lock_num <= 0'})\
                 .order_by('-category__sort_order','is_saleout', '-details__is_recommend','-details__order_weight','id')
         elif order_by == 'price':
             queryset = queryset.order_by('agent_price')
         else:
-            queryset = queryset.extra(select={'is_saleout':'remain_num - wait_post_num <= 0'})\
+            queryset = queryset.extra(select={'is_saleout':'remain_num - lock_num <= 0'})\
                 .order_by('is_saleout','-details__is_recommend','-details__order_weight','id')
         return queryset
     
@@ -281,8 +281,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取历史推荐商品列表 预览页面"""
         previous_dt = self.get_priview_date(request)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=previous_dt).order_by('-details__is_recommend','-wait_post_num')
-
+        queryset = queryset.filter(sale_time=previous_dt)
+        queryset = self.order_queryset(request, queryset)
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
         # response_date = {'female_list':self.get_serializer(female_qs, many=True).data,
