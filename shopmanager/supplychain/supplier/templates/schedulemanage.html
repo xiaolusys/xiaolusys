@@ -66,15 +66,20 @@
         {% for one_data in result_data %}
             <section class="grid" style="margin-top: 10px">
                 <div class="row">
-                    <div class="col-xs-4"><img class="preview_img" src="{{ one_data.wem_posters }}" width="400px"></div>
+                    <div class="col-xs-4">
+                        <img class="preview_img" src="{{ one_data.wem_posters }}" width="400px">
+                            <a class="btn btn-danger poster_of_date_female" style="margin-top: 5px" onclick="postPost(this)"
+                               cid="/mm/post_poster/?date={{ one_data.date }}&categray=female">传女装海报</a>
+                    </div>
                     <div class="col-xs-4">
                         <div style="border: 1px solid rgba(255, 255, 188, 0);">
                             <span style="font-size: 30px">{{ one_data.date }}排期</span>
-                            <a href="javascript:;" data-date="{{ one_data.date }}" class="switch" target="_self">收起</a>
                         </div>
                     </div>
-                    <div class="col-xs-4"><img class="preview_img" src="{{ one_data.chd_posters }}" style="float: right"
-                                               width="400px">
+                    <div class="col-xs-4">
+                            <img class="preview_img" src="{{ one_data.chd_posters }}" style="float: right" width="400px">
+                            <a class="btn btn-info poster_of_date_child" style="margin-top: 5px;float: right" onclick="postPost(this)"
+                               cid="/mm/post_poster/?date={{ one_data.date }}&categray=child">传童装海报</a>
                     </div>
                 </div>
                 <table class="table table-bordered" id="content_{{ one_data.date }}">
@@ -155,6 +160,14 @@
                         </tr>
                     {% endfor %}
                 </table>
+
+            <div class="row">
+                <div class="col-xs-4"></div>
+                <div class="col-xs-4">
+                <a href="javascript:;" data-date="{{ one_data.date }}" class="switch" target="_self">收起</a>
+                </div>
+                <div class="col-xs-4"></div>
+                </div>
             </section>
         {% endfor %}
     </div>
@@ -336,6 +349,22 @@
                     $(".chuantu_page_" + sale_product_id).attr("href", "/mm/add_aggregeta/?search_model=" + result.model_id);
                 }
             }
+        });
+    }
+</script>
+
+<script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+<script>
+    function postPost(dom){
+        var poppage_url = $(dom).attr('cid');
+        console.log("poppage_url :", poppage_url );
+        layer.open({
+            type: 2,
+            title: '上传海报页面',
+            shadeClose: true,
+            shade: 0.8,
+            area: ['500px', '61%'],
+            content: poppage_url
         });
     }
 </script>

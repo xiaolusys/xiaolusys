@@ -18,6 +18,7 @@ from .views_aggregate import AggregateProductView, ModelProductView, CheckModelE
 
 from .views_coupon import RefundCouponView
 from .views_ref_reason import RefundReason, RefundAnaList
+from .views_poster import PostGoodShelf
 
 
 from flashsale.pay.views_zoneanalysis import show_Zone_Page, by_zone_Province, by_zone_City
@@ -89,5 +90,6 @@ urlpatterns = (
     url(r'^ref_reason/$', csrf_exempt(RefundReason.as_view())),
     url(r'^pro_ref_list/$', csrf_exempt(RefundAnaList.as_view())),
     url(r'^refund_pop_page/$', csrf_exempt(RefundPopPageView.as_view())),
-    url(r'^change_model_name_api/$', ModelChangeAPIView.as_view())
+    url(r'^change_model_name_api/$', ModelChangeAPIView.as_view()),
+    url(r'^post_poster/$', csrf_exempt(PostGoodShelf.as_view())),
 )
