@@ -22,6 +22,16 @@ $("#coupon_release_right").click(function () {
     Action_release(data, d);
 });
 
+$("#coupon_release").click(function () {
+    //领取优惠券
+    console.log("12-12");
+    //var data = {"coupon_type": "C259_20"};
+    //2015-10-8 修改按照优惠券模板来发放
+    var data = {"template_id": 11};
+    var d = $("#coupon_release");
+    Action_release(data, d);
+});
+
 function Action_release(data, d) {
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
     if (d.hasClass('loading')) {
@@ -43,7 +53,7 @@ function Action_release(data, d) {
     });
     function callback(res) {
         d.removeClass("loading");
-        console.log("debug 150 c :", res);
+        console.log("debug :", res);
         if (res.res == "success") {
             drawToast("领取成功 赶紧去挑选商品吧 不要过期哦！");
             //等待3秒跳转到优惠券页面
