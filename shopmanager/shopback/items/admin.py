@@ -285,7 +285,8 @@ class ProductAdmin(MyAdmin):
                     'fields': (('outer_id','category')
                                ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
-                               ,('std_purchase_price','staff_price','sale_time','offshelf_time')
+                               ,('lock_num','inferior_num','std_purchase_price','staff_price')
+                               ,('sale_time','offshelf_time')
                                ,('cost','std_sale_price','agent_price')
                                ,('status','shelf_status','model_id','sale_product','ware_by'))
                 }),
@@ -310,8 +311,8 @@ class ProductAdmin(MyAdmin):
     def get_readonly_fields(self, request, obj=None):
         
         if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + ('model_id','sale_product','collect_num','warn_num'
-                                           ,'wait_post_num','sale_charger','storage_charger')
+            return self.readonly_fields + ('model_id','sale_product','collect_num','warn_num','lock_num'
+                                           ,'inferior_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
     
     def get_actions(self, request):
