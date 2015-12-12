@@ -516,6 +516,7 @@ class CheckOrderView(APIView):
                                               trade.has_reason_code(pcfg.RULE_MATCH_CODE)),
                            'is_product_defect': (trade.has_rule_match and
                                                  trade.has_reason_code(pcfg.TRADE_DEFECT_CODE)),
+                           'is_ware_match':trade.ware_by != trade.get_trade_assign_ware(),
                            'need_manual_merge': trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE),
                            'shippings': dict(SHIPPING_TYPE_CHOICE),
                            'ware_list': MergeTrade.WARE_CHOICES
@@ -534,7 +535,7 @@ class CheckOrderView(APIView):
         logistic_code = content.get('logistic_code')
         shipping_type = content.get('shipping_type')
         action_code = content.get('action')
-        ware_by = content.get('ware_by')
+        ware_by     = int(content.get('ware_by','0'))
         logistics_company = None
 
         if logistic_code:
@@ -556,8 +557,7 @@ class CheckOrderView(APIView):
                 check_msg.append(u"有待退款")
             if trade.has_out_stock:
                 check_msg.append(u"有缺货")
-            if (trade.has_rule_match or
-                    MergeTrade.objects.isTradeDefect(trade)):
+            if (trade.has_rule_match or MergeTrade.objects.isTradeDefect(trade)):
                 check_msg.append(u"订单商品编码与库存商品编码不一致")
             if trade.is_force_wlb:
                 check_msg.append(u"订单由物流宝发货")

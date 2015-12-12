@@ -100,8 +100,8 @@ def flushHistToRefRat(bt=None):
 
 
 @task()
-def fifDaysRateFlush(days=15):
-    """ 每天定时执行 刷新过去15天的数据 """
+def fifDaysRateFlush(days=30):
+    """ 每天定时执行 刷新过去30天的数据 """
     for i in range(days):
         target_day = datetime.datetime.today() - datetime.timedelta(days=i)
         print u"target_day:%s" % target_day
@@ -134,27 +134,27 @@ def taskRefundRecord(obj):
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
-                refund_record.ref_sed_num += 1
+                refund_record.ref_sed_num = F('ref_sed_num') + 1
             write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
         if order.status in (SaleOrder.WAIT_SELLER_SEND_GOODS, ):
             # 如果　未发货　　则　算入　24小时外未发货退款数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_num_out = 1
             else:  # 有记录则累加
-                refund_record.ref_num_out += 1
+                refund_record.ref_num_out = F('ref_num_out') + 1
     else:  # 如果24小时内　已发货   则　算入　发货后退货数量
         if order.status in (SaleOrder.WAIT_BUYER_CONFIRM_GOODS, SaleOrder.TRADE_BUYER_SIGNED):
             # 如果　已发货　　则　算入　发货后退货数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_sed_num = 1
             else:  # 有记录则累加
-                refund_record.ref_sed_num += 1
+                refund_record.ref_sed_num = F('ref_sed_num') + 1
             write_dinghuo_return_pro(obj)   # 计算到订货表中的退货数量
         else:  # 否则　算入　24小时内　　　退款数量
             if state:  # 新建记录　填写　付款成功数量
                 refund_record.ref_num_in = 1
             else:  # 有记录则累加
-                refund_record.ref_num_in += 1
+                refund_record.ref_num_in = F('ref_num_in') + 1
     update_model_fields(refund_record, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in'])
     # 添加产品的退货记录
     record_pro(obj)
@@ -250,12 +250,17 @@ def record_pro(ref):
                 pro_ref_rcd.ref_num_in += ref.refund_num
 
     contactor = ref.sale_contactor() if ref.sale_contactor() is not None else 0
+
     pro_model = ref.pro_model() if ref.pro_model() is not None else 0
 
     pro_ref_rcd.contactor = contactor
     pro_ref_rcd.pro_model = pro_model
+    if pro_ref_rcd.sale_time() is not None:
+        # 这里如果重新上架的产品产生的退款会将以前的上架日期覆盖掉
+        pro_ref_rcd.sale_date = pro_ref_rcd.sale_time()
+
     update_model_fields(pro_ref_rcd, update_fields=['ref_sed_num', 'ref_num_out', 'ref_num_in', 'contactor',
-                                                    'pro_model'])
+                                                    'pro_model', 'sale_date'])
 
 
 def insert_field_hist_pro_rcd():
@@ -272,4 +277,35 @@ def insert_field_hist_pro_rcd():
             contactor = 0 if sal_pro.contactor is None else sal_pro.contactor
             rcd.contactor = contactor
         update_model_fields(rcd, update_fields=['pro_model', 'contactor'])
+
+
+def write_rcd_column_sale_date():
+    """ ProRefunRcord 添加日期字段后　将对应产品上架日期写入 对应字段　"""
+    pro_rcds = ProRefunRcord.objects.all()
+    print(u"条数：", pro_rcds.count())
+    for rcd in pro_rcds:
+        sale_date = rcd.sale_time()
+        if sale_date is None:
+            continue
+        rcd.sale_date = sale_date
+        update_model_fields(rcd, update_fields=['sale_date'])
+
+
+def handler_Refund_Send_Num():
+    """
+    2015-12-08 脏数据处理　taskRefundRecord　中发货后的数据出现问题
+    """
+    time_from = datetime.datetime(2015, 11, 1)
+    time_to = datetime.datetime(2015, 12, 9)
+    print "time_from:", time_from, "time_to", time_to
+    rcds = PayRefNumRcord.objects.filter(date_cal__gte=time_from, date_cal__lte=time_to)
+
+    for rcd in rcds:
+        refra = PayRefundRate.objects.get(date_cal=rcd.date_cal)  # 找到总的退款率记录
+        ref_num = refra.ref_num  # 总退款数量
+        ref_num_out = rcd.ref_num_out
+        ref_num_in = rcd.ref_num_in
+        rcd.ref_sed_num = ref_num - ref_num_out - ref_num_in  # 发货后等于总的减去２４外和内
+        print "{0}记录,总退款 {1},发货后退款 {2}".format(rcd.date_cal, ref_num, rcd.ref_sed_num)
+        rcd.save()
 

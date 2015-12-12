@@ -305,6 +305,7 @@ tasks.register(AsyncOrderTask)
 
 
 class PrintAsyncTask(Task):
+    ignore_result=False
     
     def genExpressData(self,trade_list):
         pass
@@ -428,7 +429,7 @@ class PrintAsyncTask(Task):
         else:
             
             express_data = self.genExpressData(trade_list)
-        
+        return 0
 
 
 tasks.register(PrintAsyncTask) 

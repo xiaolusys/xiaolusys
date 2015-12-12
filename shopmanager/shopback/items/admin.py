@@ -71,7 +71,7 @@ class ProductdetailInline(admin.StackedInline):
     
     fields = ('head_imgs',
               'content_imgs',
-              ('is_seckill','is_recommend','mama_discount','buy_limit','per_limit','mama_rebeta'),
+              ('is_seckill','is_recommend','is_sale','order_weight','mama_discount','buy_limit','per_limit','mama_rebeta'),
               ('material', 'color'),
               ('note', 'wash_instructions'))
     
@@ -133,7 +133,7 @@ class ProductAdmin(MyAdmin):
             product_detail = None
         head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or NO_PIC_URL
         
-        return u'<p>%s</p><img src="%s" width="50px" height="40px" />'%(obj.outer_id, head_img_url)
+        return u'<p>%s</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />'%(obj.outer_id, head_img_url)
     
     outer_id_link.allow_tags = True
     outer_id_link.short_description = u"商品编码(题头图)" 
@@ -145,7 +145,7 @@ class ProductAdmin(MyAdmin):
         
         str_list = []
         str_list.append('<a href="/items/product/%d/" target="_blank">'%obj.id)
-        str_list.append('<img src="%s" width="100px" height="80px" title="%s"/>'%(abs_pic_url,obj.name))
+        str_list.append('<img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="100px" height="80px" title="%s"/>'%(abs_pic_url,obj.name))
         str_list.append('<p><span>%s</span></p>'%(obj.name or u'--'))
         return ''.join(str_list)
     
@@ -285,7 +285,8 @@ class ProductAdmin(MyAdmin):
                     'fields': (('outer_id','category')
                                ,('name','pic_path')
                                ,('collect_num','warn_num','remain_num','wait_post_num','reduce_num')
-                               ,('std_purchase_price','staff_price','sale_time','offshelf_time')
+                               ,('lock_num','inferior_num','std_purchase_price','staff_price')
+                               ,('sale_time','offshelf_time')
                                ,('cost','std_sale_price','agent_price')
                                ,('status','shelf_status','model_id','sale_product','ware_by'))
                 }),
@@ -310,8 +311,8 @@ class ProductAdmin(MyAdmin):
     def get_readonly_fields(self, request, obj=None):
         
         if not perms.has_change_product_skunum_permission(request.user):
-            return self.readonly_fields + ('model_id','sale_product','collect_num','warn_num'
-                                           ,'wait_post_num','sale_charger','storage_charger')
+            return self.readonly_fields + ('model_id','sale_product','collect_num','warn_num','lock_num'
+                                           ,'inferior_num','wait_post_num','sale_charger','storage_charger')
         return self.readonly_fields
     
     def get_actions(self, request):
@@ -439,6 +440,22 @@ class ProductAdmin(MyAdmin):
     #作废商品
     def invalid_product_action(self,request,queryset):
          
+        uninvalid_qs = queryset.filter(models.Q(collect_num__gt=0)|
+                                       models.Q(wait_post_num__gt=0)|
+                                       models.Q(shelf_status=Product.UP_SHELF))
+        if uninvalid_qs.count() > 0:
+            for p in uninvalid_qs:
+                msg_list = ['商品编码：%s，不能作废原因:'%p.outer_id]
+                if p.collect_num > 0:
+                    msg_list.append('库存不为０')
+                if p.wait_post_num > 0:
+                    msg_list.append('待发数不为０')
+                if p.shelf_status==Product.UP_SHELF:
+                    msg_list.append('商品未下架')
+                self.message_user(request,u"XXXXXX:%s"%(','.join(msg_list)))
+                
+            return HttpResponseRedirect(request.get_full_path())
+        
         if queryset.count() >= 25:
             self.message_user(request,u"*********作废的商品数不能超过24个************")
             return HttpResponseRedirect(request.get_full_path())
@@ -651,10 +668,11 @@ class ProductAdmin(MyAdmin):
     def upshelf_product_action(self,request,queryset):
         """ 库存商品上架（批量） """
         unverify_qs = queryset.filter(is_verify=False)
-        
-        outer_ids = [p.outer_id for p in queryset]
+        upshelf_qs  = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        outer_ids = [p.outer_id for p in upshelf_qs]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
+        
         try:
             task_Mod_Merchant_Product_Status(outer_ids,WXProduct.UP_ACTION)
         except Exception,exc:
@@ -664,7 +682,7 @@ class ProductAdmin(MyAdmin):
         down_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
         if unverify_qs.count() > 0:
             self.message_user(request,u"有%s个商品未核对，请核对后才能上架!"%unverify_qs.count())
-        
+
         for product in up_queryset:
             log_sign = self.get_product_logsign(product)
             log_action(request.user.id,product,CHANGE,u'上架商品:%s'%log_sign)
@@ -675,7 +693,8 @@ class ProductAdmin(MyAdmin):
     
     def downshelf_product_action(self,request,queryset):
         """ 库存商品下架（批量） """
-        outer_ids = [p.outer_id for p in queryset]
+        downshelf_qs  = queryset.filter(shelf_status=Product.UP_SHELF)
+        outer_ids = [p.outer_id for p in downshelf_qs]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
         try:
@@ -683,7 +702,7 @@ class ProductAdmin(MyAdmin):
         except Exception,exc:
             self.message_user(request,u"更新错误，商品上下架接口异常：%s"%exc.message)
             
-        up_queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        up_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.UP_SHELF)
         down_queryset  = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
         
         self.message_user(request,u"已成功下架%s个商品,有%s个商品下架失败!"%(down_queryset.count(),up_queryset.count()))

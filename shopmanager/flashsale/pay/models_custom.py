@@ -15,6 +15,8 @@ class Productdetail(models.Model):
     TWENTY_PERCENT = 20
     THIRTY_PERCENT = 30
 
+    WEIGHT_CHOICE = ((i,i) for i in range(1,17)[::-1])
+    
     REBETA_CHOICES = ((OUT_PERCENT,u'未设置返利'),
                      (ZERO_PERCENT,u'该商品不返利'),
                      (TEN_PERCENT,u'返利百分之10'),
@@ -28,8 +30,10 @@ class Productdetail(models.Model):
     content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
     
     mama_discount  = models.IntegerField(default=100,verbose_name=u'妈妈折扣')
-    is_recommend = models.BooleanField(db_index=True,verbose_name=u'专区推荐')
+    is_recommend = models.BooleanField(db_index=True,default=False,verbose_name=u'专区推荐')
     is_seckill   = models.BooleanField(db_index=True,default=False, verbose_name=u'是否秒杀')
+    is_sale      = models.BooleanField(db_index=True,default=False,verbose_name=u'专区特价')
+    order_weight = models.IntegerField(db_index=True,default=8,choices=WEIGHT_CHOICE,verbose_name=u'权值')
     buy_limit    = models.BooleanField(db_index=True,default=False,verbose_name=u'是否限购')
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
 

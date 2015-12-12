@@ -29,9 +29,17 @@ class SaleSupplierChangeList(ChangeList):
         qs = self.root_query_set
 
         search_q = request.GET.get('q', '').strip()
-        if re.compile('^[\w\.]+$').match(search_q):
+        if re.compile('^[\w]+[\.][\w]+$').match(search_q):
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
+             
+            for filter_spec in self.filter_specs:
+                new_qs = filter_spec.queryset(request, qs)
+                if new_qs is not None:
+                    qs = new_qs
+            
+            ordering = self.get_ordering(request, qs)
+            qs = qs.order_by(*ordering)
             scharge = SupplierCharge.objects.filter(employee__username=search_q, status=SupplierCharge.EFFECT)
             sc = set([s.supplier_id for s in scharge])
             suppliers = qs.filter(id__in=sc)
@@ -40,16 +48,17 @@ class SaleSupplierChangeList(ChangeList):
 
 
 class SaleSupplierAdmin(MyAdmin):
-    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link', 'level',
+    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link', 
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
                     'category_select', 'progress', 'last_select_time', 'last_schedule_time', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter)
-    search_fields = ['supplier_name', 'supplier_code']
+    search_fields = ['supplier_name', 'supplier_code','id']
     form = SaleSupplierForm
-
+    list_per_page = 15
+    
     def charge_link(self, obj):
         if obj.status == SaleSupplier.CHARGED:  # 如果是已经接管
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
@@ -66,8 +75,15 @@ class SaleSupplierAdmin(MyAdmin):
     charge_link.short_description = u"接管信息/操作"
     
     def supplier_name_link(self, obj):
-        return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank">{1}</a>'.format(
-            obj.id, obj.supplier_name)
+        span_style="font-size:16px;"
+        if obj.level == SaleSupplier.LEVEL_GOOD:
+            span_style += "background-color:green;color:white;"
+        elif obj.level == SaleSupplier.LEVEL_INFERIOR:
+            span_style += "color:gray;font-size:10px;"
+        if not obj.is_active():
+            span_style += 'text-decoration:line-through;'
+        return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank"><span style="{3}">{1}&nbsp;({2})</span></a>'.format(
+            obj.id, obj.supplier_name, obj.get_level_display(),span_style)
 
     supplier_name_link.allow_tags = True
     supplier_name_link.short_description = u"供应商"
@@ -87,9 +103,9 @@ class SaleSupplierAdmin(MyAdmin):
         cat_list.append("<option value=''>-------------------</option>")
         for cat in categorys:
             if obj.category == cat:
-                cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat.name))
+                cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
                 continue
-            cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat.name))
+            cat_list.append("<option value='%s'>%s</option>" % (cat.id, cat))
         cat_list.append("</select>")
 
         return "".join(cat_list)
@@ -311,7 +327,7 @@ class SaleProductAdmin(MyAdmin):
 
     def pic_link(self, obj):
         #         abs_pic_url = '%s%s'%(settings.MEDIA_URL,obj.pic_url)
-        return (u'<a href="%s" target="_blank"><img src="%s" width="120px" height="100px" title="%s"/></a>' % (
+        return (u'<a href="%s" target="_blank"><img src="%s" width="120px" height="100px" title="%s?imageMogr2/thumbnail/150/format/jpg/quality/90"/></a>' % (
             obj.product_link, obj.pic_url, obj.get_platform_display()))
 
     pic_link.allow_tags = True
@@ -516,7 +532,7 @@ class SaleProductAdmin(MyAdmin):
     def schedule_manage_action(self, request, queryset):
         """  排期管理  """
         try:
-            sale_time = queryset[0].sale_time.strftime('%Y-%m-%d')
+            sale_time = queryset[0].sale_time.date()
         except:
             self.message_user(request, u"有时间不对")
             return
@@ -530,10 +546,10 @@ class SaleProductAdmin(MyAdmin):
             if one_product.status != SaleProduct.SCHEDULE:
                 self.message_user(request, u"有未在排期范围内的商品")
                 return
-            if sale_time != one_product.sale_time.strftime('%Y-%m-%d'):
+            if sale_time != one_product.sale_time.date():
                 self.message_user(request, u"有不是同一天的商品")
                 return
-            sale_time = one_product.sale_time.strftime('%Y-%m-%d')
+            sale_time = one_product.sale_time.date()
             product_num += 1
             product_list.append(one_product.id)
             # 新建排期detail
@@ -653,8 +669,8 @@ class SaleProductManageDetailInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             return self.readonly_fields + (
-                'sale_product_id', 'name', 'design_person', 'design_take_over', 'pic_path', 'sale_category', 'product_link', 'material_status',
-                'today_use_status')
+                'sale_product_id', 'name', 'design_person', 'design_take_over', 'pic_path', 
+                'sale_category', 'product_link', 'material_status','today_use_status')
         return self.readonly_fields
 
 

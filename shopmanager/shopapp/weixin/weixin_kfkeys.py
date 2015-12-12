@@ -110,7 +110,7 @@ KFKEYS = [
        "sisi100",
        "buma101",
     ]
-print 'len',len(set(URLMAP))
+
 IMG_URL_PREFIX = "https://mmbiz.qlogo.cn/mmbiz/"
 KFMAP ={
         "xiaoxi44":"yMhOQPTKhLvafp41YQMnm6MMTHj1sl4mQmvNpBHibYTgOEAjdib4KYnSYian2JqXzpsqaV7BTn6ibACgfhpqvdDvIA/0",

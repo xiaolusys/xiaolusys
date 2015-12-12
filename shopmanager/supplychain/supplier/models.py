@@ -158,6 +158,10 @@ class SaleSupplier(models.Model):
 
     def __unicode__(self):
         return self.supplier_name
+    
+    def is_active(self):
+        """ 是否有效 """
+        return self.status != self.FROZEN and self.progress not in (self.REJECTED,self.IGNORED)
 
 
 class SupplierCharge(models.Model):
@@ -389,6 +393,23 @@ class SaleProductManageDetail(models.Model):
         ]
     def __unicode__(self):
         return '<%s,%s>' % (self.id, self.sale_product_id)
+
+    @property
+    def sale_memo(self):
+        try:
+            sl_pro = SaleProduct.objects.get(id=self.sale_product_id)
+            return sl_pro.memo
+        except:
+            return u""
+        
+    @property
+    def std_purchase_price(self):
+        try:
+            sl_pro = SaleProduct.objects.get(id=self.sale_product_id)
+            return sl_pro.sale_price
+        except:
+            return u"0.0"
+
     
 post_save.connect(update_saleproduct_supplier, SaleProductManageDetail)
 

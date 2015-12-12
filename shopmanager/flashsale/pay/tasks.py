@@ -6,7 +6,6 @@ from django.conf import settings
 from django.db import models
 from celery.task import task
 from celery.task.sets import subtask
-from django.conf import settings
 
 from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser,WeixinUnionID
@@ -228,8 +227,42 @@ def pushTradeRefundTask(refund_id):
         
     except Exception,exc:
         raise pushTradeRefundTask.retry(exc=exc)
+
+
+import pingpp
+
+@task 
+def pull_Paid_SaleTrade(pre_day=1,interval=1):
+    """ pre_day:表示从几天前开始；interval:表示从pre_day开始更新多少天的数据 """
+    target    =  datetime.datetime.now() - datetime.timedelta(days=pre_day)
+    pre_date  = datetime.datetime(target.year,target.month,target.day)
+    post_date = pre_date + datetime.timedelta(days=interval)
+    
+    pingpp.api_key = settings.PINGPP_APPKEY
+    
+    page_size = 50
+    has_next = True
+    starting_after = None
+    while has_next:
+        if starting_after:
+            resp = pingpp.Charge.all(limit=page_size,
+                                     created={'gte':pre_date,'lte':post_date},
+                                     starting_after=starting_after)  
+        else:
+            resp = pingpp.Charge.all(limit=page_size,
+                                     created={'gte':pre_date,'lte':post_date})  
+        e = None
+        for e in resp['data']:
+            #notifyTradePayTask.s(e)()
+            notifyTradePayTask(e)
         
-            
+        if e:
+            starting_after = e['id']
+        
+        has_next = resp['has_more']
+        if not has_next:
+            break
+    
 @task
 def push_SaleTrade_To_MergeTrade():
     """ 更新特卖订单到订单列表 """
@@ -242,7 +275,7 @@ def push_SaleTrade_To_MergeTrade():
         saleservice = FlashSaleService(strade)
         saleservice.payTrade()
         
-import pingpp
+
 from flashsale.pay.models import Envelop
 
 @task
@@ -288,11 +321,11 @@ def task_Pull_Red_Envelope(pre_day=7):
         else:
             resp = pingpp.RedEnvelope.all(limit=page_size,
                                           created={'gte':pre_date,'lte':today})  
-        
+        e = None
         for e in resp['data']:
             envelop = Envelop.objects.get(id=e['order_no'])
             envelop.handle_envelop(e)
-        else:
+        if e:
             starting_after = e['id']
         
         has_next = resp['has_more']

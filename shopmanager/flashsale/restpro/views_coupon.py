@@ -88,8 +88,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """　根据参数生成不同类型的优惠券　"""
         content = request.REQUEST
-        if content:
-            return Response({"res": "not_release"})
+        # if content:
+        #     return Response({"res": "not_release"})
         try:
             template_id = int(content.get("template_id", None))
         except TypeError:

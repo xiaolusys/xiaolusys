@@ -1,8 +1,6 @@
 # -*- coding:utf-8 -*-
-from django.db import models
-from shopapp.weixin.models import WXOrder
-from flashsale.xiaolumm.models import Clicks, XiaoluMama, AgencyLevel
 import datetime
+from django.db import models
 
 
 class DailyStat(models.Model):

@@ -116,7 +116,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     @list_route(methods=['post'])
     def check_code_user(self, request):
         """验证码校验（判断验证码是否过时，超次，并新建用户）"""
-        post = request.POST
+        post = request.REQUEST
         mobile = post['username']
         client_valid_code = post.get('valid_code', 0)
         current_time = datetime.datetime.now()
@@ -228,7 +228,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "5"})
         return Response({"result": "0"})
     
-    @list_route(methods=['get','post'])
+    @list_route(methods=['post'])
     def check_vcode(self, request, **kwargs):
         """根据手机号和验证码创建用户账户"""
         content = request.REQUEST
@@ -250,7 +250,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if customers.count() > 0:
             customer = customers[0]
         else:
-            duser,state = DjangoUser.objects.get_or_create(username='mobile', is_active=True)
+            duser,state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
             customer,state = Customer.objects.get_or_create(mobile=mobile,user=duser)
 
         return Response({'result':0,'mobile':mobile,'valid_code':vcode,'uid':customer.id})

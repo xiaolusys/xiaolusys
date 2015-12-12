@@ -6,8 +6,8 @@ from django.conf import settings
 from celery.task import task
 
 from flashsale.clickrebeta.models import StatisticsShopping
-from flashsale.xiaolumm.models import Clicks,XiaoluMama,CarryLog, OrderRedPacket
-from flashsale.pay.models import SaleTrade
+from flashsale.clickcount.models import Clicks
+from flashsale.xiaolumm.models import XiaoluMama,CarryLog, OrderRedPacket
 from shopapp.weixin.models import WeixinUnionID,WXOrder
 
 import logging
@@ -20,32 +20,6 @@ ORDER_REBETA_DAYS = 10
 AGENCY_SUBSIDY_DAYS = 11
 AGENCY_RECRUIT_DAYS = 1
 
-@task()
-def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
-    """
-    异步保存妈妈分享点击记录
-    xlmm_id:小鹿妈妈id,
-    openid:妈妈微信openid,
-    click_time:点击时间
-    """
-    xlmmid = int(xlmmid)
-    
-    today = datetime.datetime.now()
-    tf = datetime.datetime(today.year,today.month,today.day,0,0,0)
-    tt = datetime.datetime(today.year,today.month,today.day,23,59,59)
-    
-    isvalid = False
-    clicks = Clicks.objects.filter(openid=openid,click_time__range=(tf,tt))
-    click_linkids = set([l.get('linkid') for l in clicks.values('linkid').distinct()])
-    click_count   = len(click_linkids)
-    xlmms = XiaoluMama.objects.filter(id=xlmmid)
-    
-    if click_count < Clicks.CLICK_DAY_LIMIT and xlmms.count() > 0 and xlmmid not in click_linkids:
-        isvalid = True
-        
-    Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
-    WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
-    
 
 @task()
 def task_Push_Pending_Carry_Cash(xlmm_id=None):
@@ -196,38 +170,6 @@ def order_Red_Packet(xlmm):
             for red_pac_carry_log in red_pac_carry_logs:
                 if red_pac_carry_log.value == 880 and red_pac_carry_log.status == CarryLog.PENDING:
                     mama.push_carrylog_to_cash(red_pac_carry_log)
-
-
-def update_Xlmm_Shopping_OrderStatus(order_list):
-    """ 更新小鹿妈妈交易订单状态 """
-    for order in order_list:
-        order_id = order.wxorderid
-        trades = MergeTrade.objects.filter(tid=order_id,
-                                           type__in=(MergeTrade.WX_TYPE,MergeTrade.SALE_TYPE))
-        if trades.count() == 0:
-            continue
-        trade = trades[0]
-        xlmm  = None
-        if order.linkid > 0:
-            xlmm = XiaoluMama.objects.get(id=order.linkid)
-        
-        if trade.type == MergeTrade.WX_TYPE:
-            strade = WXOrder.objects.get(order_id=order_id)
-            if trade.sys_status == MergeTrade.INVALID_STATUS or trade.status == MergeTrade.TRADE_CLOSED:
-                order.status = StatisticsShopping.REFUNDED
-            elif trade.sys_status == MergeTrade.FINISHED_STATUS:
-                order.status = StatisticsShopping.FINISHED
-        else:
-            strade = SaleTrade.objects.get(tid=order_id) 
-            if strade.status == SaleTrade.TRADE_CLOSED:
-                order.status = StatisticsShopping.REFUNDED
-            elif strade.status == SaleTrade.TRADE_FINISHED:
-                order.status = StatisticsShopping.FINISHED
-                
-        order.rebetamount  = xlmm.get_Mama_Trade_Amount(strade) 
-        order.tichengcount = xlmm.get_Mama_Trade_Rebeta(strade)
-        order.save()
-            
             
 @task()
 def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
@@ -236,6 +178,8 @@ def task_Update_Xlmm_Order_By_Day(xlmm,target_date):
     xlmm_id:小鹿妈妈id，
     target_date：计算日期
     """
+    from flashsale.clickrebeta.tasks import update_Xlmm_Shopping_OrderStatus
+    
     time_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
     time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
     

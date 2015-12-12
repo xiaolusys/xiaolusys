@@ -31,8 +31,8 @@ logger = logging.getLogger('django.request')
 
 class SaleOrderInline(admin.TabularInline):
     model = SaleOrder
-    fields = (
-    'oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 'num','discount_fee', 'refund_fee', 'refund_status', 'status','item_id')
+    fields = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 
+              'num','discount_fee', 'refund_fee', 'refund_status', 'status','item_id')
 
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '16'})},
@@ -201,7 +201,7 @@ from .tasks import notifyTradeRefundTask
 
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = ('refund_no', 'order_no', 'order_channel', 'title', 'refund_fee',
-                    'has_good_return', 'has_good_change', 'created', 'order_status', 'status')
+                    'has_good_return', 'has_good_change', 'created','success_time', 'order_status', 'status')
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
 
@@ -648,7 +648,7 @@ class UserCouponAdmin(admin.ModelAdmin):
     list_display = ("id", "cp_id", "customer", "sale_trade", "status", "created", "modified")
     list_filter = ("status", "created")
     search_fields = ['=id', "=customer", "=sale_trade"]
-    readonly_fields = ("id", "cp_id", "customer", "sale_trade")
+    readonly_fields = ("id", "cp_id", "sale_trade")
 
     def change_coupon_status_to_unuse(self, request, queryset):
         if queryset.count() > 1:

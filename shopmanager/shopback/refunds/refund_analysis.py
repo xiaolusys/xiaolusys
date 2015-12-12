@@ -18,15 +18,15 @@ class RefundReason(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "refunds/refund_analysis.html"
     sale_refs = SaleRefund.objects.all()
-    today_date = datetime.datetime.today()
-    fifth_date = today_date - datetime.timedelta(days=15)
 
     def time_zone(self, request):
         content = request.REQUEST
         date_from = content.get('date_from', None)
         date_to = content.get('date_to', None)
         if date_from is None or date_to is None:
-            return self.fifth_date, self.today_date
+            today_date = datetime.datetime.today()
+            fifth_date = today_date - datetime.timedelta(days=15)
+            return fifth_date, today_date
         year, month, day = map(int, date_from.split('-'))
         date_from = datetime.datetime(year, month, day, 0, 0, 0)
         year, month, day = map(int, date_to.split('-'))
@@ -64,7 +64,10 @@ class RefundReason(APIView):
         close_amount = close_refs.aggregate(t_amount=Sum('refund_fee')).get('t_amount') or 0
         ramount = refs.values('reason').annotate(r_amount=Sum('refund_fee'))
         rsum = refs.values('reason').annotate(r_num=Sum('refund_num'))
-        return Response({'rsum': rsum, 'ramount': ramount, 'close_amount': close_amount})
+        mamapup_refs = refs.filter(charge='')  # charge 为空字符串的退款单（默认是小鹿钱包支付的订单）
+        mamapup_amount = mamapup_refs.aggregate(mmpub_amount=Sum('refund_fee')).get('mmpub_amount') or 0
+        return Response(
+            {'rsum': rsum, 'ramount': ramount, 'close_amount': close_amount, "mamapup_amount": mamapup_amount})
 
 
 @csrf_exempt

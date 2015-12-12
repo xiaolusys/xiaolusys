@@ -164,7 +164,7 @@ function Set_posters(suffix) {
             $.each(data.wem_posters,
                 function (index, poster) {
                     $('.poster .nvzhuang').attr('href', poster.item_link);
-                    $('.poster .nvzhuang img').attr('src', poster.pic_link + "?imageMogr2/format/jpg/quality/100");
+                    $('.poster .nvzhuang img').attr('src', poster.pic_link + "?imageMogr2/thumbnail/289/format/jpg/quality/90");
                     if (poster.subject === 'undifine' || poster.subject === null) {
                         return
                     }
@@ -178,7 +178,7 @@ function Set_posters(suffix) {
             $.each(data.chd_posters,
                 function (index, poster) {
                     $('.poster .chaotong').attr('href', poster.item_link);
-                    $('.poster .chaotong img').attr('src', poster.pic_link + "?imageMogr2/format/jpg/quality/100");
+                    $('.poster .chaotong img').attr('src', poster.pic_link + "?imageMogr2thumbnail/618/format/jpg/quality/95");
                     if (poster.subject === 'undifine' || poster.subject === null) {
                         return
                     }

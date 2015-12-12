@@ -14,8 +14,6 @@ class XlmmActive(APIView):
     queryset = ClickCount.objects.all()
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "analysis/xlmm_active.html"
-    date_from = datetime.date.today() - datetime.timedelta(days=15)
-    date_to = datetime.date.today()
     default_active_num = 5
 
     def date_zone(self, request):
@@ -24,7 +22,9 @@ class XlmmActive(APIView):
         date_from = content.get('date_from', None)
         date_to = content.get('date_to', None)
         if date_from is None or date_to is None:
-            return self.date_from, self.date_to
+            date_from = datetime.date.today() - datetime.timedelta(days=15)
+            date_to = datetime.date.today()
+            return date_from, date_to
         year, month, day = map(int, date_from.split('-'))
         date_from = datetime.date(year, month, day)
         year, month, day = map(int, date_to.split('-'))
@@ -38,39 +38,36 @@ class XlmmActive(APIView):
         return active_queryset, queryset
 
     def click_query(self, queryset):
-        xlmm_clicks = queryset.values('linkid', 'date').annotate(s_valid_num=Sum('valid_num'))
+        xlmm_clicks = queryset.values('date').annotate(s_valid_num=Sum('valid_num'))
         return xlmm_clicks
 
-    def calcu_ac_dic(self, ac_da):
-        active_dic = {}
-        for rcdd in ac_da:
-            rcd = rcdd['linkid']
-            if active_dic.has_key(rcd):
-                active_dic[rcd] += 1
-            else:
-                active_dic[rcd] = 1
-        return active_dic
+    def user_query(self, queryset):
+        user_nums = queryset.values('date').annotate(s_user_num=Sum('user_num'))
+        return user_nums
 
     def get(self, request):
-        if request.user.has_perm('clickcount.browser_xlmm_active'):
+        if request.user.has_perm('xiaolumm.browser_xlmm_active'):
             date_from, today = self.date_zone(request)
             ac_queryset, queryset = self.filter_queryset(date_from, today)
-            ac_da = self.click_query(ac_queryset)
+            ac_record = ac_queryset.count()
+            total_record = queryset.count()
             tol_da = self.click_query(queryset)
-            active_dic = self.calcu_ac_dic(ac_da)
+            user_da = self.user_query(queryset)
             return Response(
-                {"date_from": date_from, "today": today, 'ac_da': ac_da, 'tol_da': tol_da, 'active_dic': active_dic})
+                {"date_from": date_from, "today": today, 'ac_day': [ac_record, total_record], 'tol_da': tol_da,
+                 'user_da': user_da})
         else:
             return Response({})
 
     def post(self, request):
-        if request.user.has_perm('clickcount.browser_xlmm_active'):
+        if request.user.has_perm('xiaolumm.browser_xlmm_active'):
             date_from, today = self.date_zone(request)
             ac_queryset, queryset = self.filter_queryset(date_from, today)
-            ac_da = self.click_query(ac_queryset)
+            ac_record = ac_queryset.count()
+            total_record = queryset.count()
             tol_da = self.click_query(queryset)
-            active_dic = self.calcu_ac_dic(ac_da)
-            return Response({'ac_da': ac_da, 'tol_da': tol_da, 'active_dic': active_dic})
+            user_da = self.user_query(queryset)
+            return Response({'ac_day': [ac_record, total_record], 'tol_da': tol_da, 'user_da': user_da})
         else:
             return Response({})
 

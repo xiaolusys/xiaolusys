@@ -91,6 +91,8 @@ class Product(models.Model):
     wait_post_num   = models.IntegerField(default=0,verbose_name=u'待发数')  #待发数
     sale_num     = models.IntegerField(default=0,verbose_name=u'日出库数')  #日出库
     reduce_num   = models.IntegerField(default=0,verbose_name=u'预减数')  #下次入库减掉这部分库存
+    lock_num      = models.IntegerField(default=0,verbose_name='锁定数')    #特卖待发货，待付款数量
+    inferior_num  = models.IntegerField(default=0, verbose_name=u"次品数")  #保存对应sku的次品数量
     
     cost         = models.FloatField(default=0,verbose_name=u'成本价')
     std_purchase_price = models.FloatField(default=0,verbose_name=u'标准进价')
@@ -101,7 +103,7 @@ class Product(models.Model):
     weight       = models.CharField(max_length=10,blank=True,verbose_name=u'重量(g)')
     created      = models.DateTimeField(null=True,blank=True,
                                         auto_now_add=True,verbose_name=u'创建时间')
-    modified     = models.DateTimeField(null=True,blank=True,
+    modified     = models.DateTimeField(null=True,blank=True,db_index=True,
                                         auto_now=True,verbose_name=u'修改时间')
     sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
     offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
@@ -198,12 +200,6 @@ class Product(models.Model):
             return self.collect_num - self.sale_num
         return 0
     
-    @property
-    def lock_num(self):
-        lnum = 0
-        for sku in self.pskus:
-            lnum += sku.lock_num
-        return lnum
         
     @property
     def sale_out(self):
@@ -456,14 +452,6 @@ class Product(models.Model):
         for sku in skus:
             prcs.append(sku.agent_price)
         return min(prcs) if prcs else 0
-
-    @property
-    def inferior_num(self):
-        """商品次品数"""
-        inferior_num = 0
-        for one_sku in self.normal_skus:
-            inferior_num += one_sku.sku_inferior_num
-        return inferior_num
 
     def same_model_pros(self):
         """ 同款产品　"""
@@ -840,6 +828,8 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
                                                total_remain_num=Sum('remain_num'),
                                                total_post_num=Sum('wait_post_num'),
                                                total_reduce_num=Sum('reduce_num'),
+                                               total_lock_num=Sum('lock_num'),
+                                               total_inferior_num=Sum('sku_inferior_num'),
                                                avg_cost=Avg('cost'),
                                                avg_purchase_price=Avg('std_purchase_price'),
                                                avg_sale_price=Avg('std_sale_price'),
@@ -850,7 +840,9 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         product.warn_num     =  product_dict.get('total_warn_num') or 0
         product.remain_num   =  product_dict.get('total_remain_num') or 0
         product.wait_post_num  =  product_dict.get('total_post_num') or 0
-        product.reduce_num   =  product_dict.get('reduce_num') or 0
+        product.reduce_num     =  product_dict.get('reduce_num') or 0
+        product.lock_num       =  product_dict.get('total_lock_num') or 0
+        product.inferior_num   =  product_dict.get('total_inferior_num') or 0
             
         product.cost               = "{0:.2f}".format(product_dict.get('avg_cost') or 0)
         product.std_purchase_price = "{0:.2f}".format(product_dict.get('avg_purchase_price') or 0)
@@ -858,8 +850,8 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         product.agent_price        = "{0:.2f}".format(product_dict.get('avg_agent_price') or 0)
         product.staff_price        = "{0:.2f}".format(product_dict.get('avg_staff_price') or 0)
 
-        update_model_fields(product, ["collect_num", "warn_num", "remain_num", 
-                                      "wait_post_num", "reduce_num", "std_purchase_price",
+        update_model_fields(product, ["collect_num", "warn_num", "remain_num", "wait_post_num",
+                                      "lock_num","inferior_num","reduce_num", "std_purchase_price",
                                       "cost", "std_sale_price", "agent_price", "staff_price"])
         # product.save()
     

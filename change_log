@@ -1,3 +1,13 @@
+############2015-12-08#####################
+alter table flashsale_pay_product_refund_record add column sale_date date Not null;
+CREATE INDEX `flashsale_pay_product_refund_record_96b5e96` ON `flashsale_pay_product_refund_record` (`sale_date`);
+############2015-12-07#####################
+CREATE INDEX `flashsale_pay_product_refund_record_3216ff68` ON `flashsale_pay_product_refund_record` (`created`);
+############2015-12-05#####################
+alter table flashsale_productdetail  add column `is_sale` bool NOT NULL;
+alter table flashsale_productdetail  add column `order_weight` integer NOT NULL;
+CREATE INDEX `flashsale_productdetail_650909aa` ON `flashsale_productdetail` (`is_sale`);
+CREATE INDEX `flashsale_productdetail_522af0b0` ON `flashsale_productdetail` (`order_weight`);
 ############2015-11-16#####################
 alter table flashsale_refund add column proof_pic longtext;
 alter table flashsale_order add column `sign_time` datetime default null;
@@ -12,7 +22,7 @@ alter table supplychain_supply_supplier add column `total_refund_amount` double 
 alter table supplychain_supply_supplier add column `avg_post_days`  double precision NOT NULL;
 alter table supplychain_supply_supplier add column `last_select_time` datetime default null;
 alter table supplychain_supply_supplier add column `last_schedule_time` datetime default null;
->>>>>>> 3c9446d9bd22367fac50ed2faa1c593ab425f3a7
+
 ############2015-11-07#####################
 alter table flashsale_pay_product_refund_record add column contactor bigint(20) NOT NULL DEFAULT 0;
 alter table flashsale_pay_product_refund_record add column pro_model bigint(20) NOT NULL DEFAULT 0;

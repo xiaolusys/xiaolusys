@@ -40,6 +40,7 @@ router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)
 router.register(r'hotproduct', views_praise.HotProductViewSet)
 router.register(r'prorefrcd', views_pro_ref.ProRefRcdViewSet)
+router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 
 
 router_urls = router.urls

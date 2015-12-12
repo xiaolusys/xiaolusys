@@ -64,6 +64,7 @@ var GLConfig = {
 	poster_today:'/posters/today.json',  //获取今日特卖海报
 	poster_previous:'/posters/previous.json',  //获取昨日特卖海报
 	products_today:'/products/promote_today.json',  //获取昨日特卖推荐列表
+	products_today_paging:'/products/promote_today_paging.json',  //获取昨日特卖推荐列表
 	products_previous:'/products/promote_previous.json',  //获取昨日特卖推荐列表
 	get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
 	get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表
@@ -105,6 +106,7 @@ var GLConfig = {
     refunds:'/refunds',//退款
     refunds_by_order_id:"/refunds/{{order_id}}/get_by_order_id",
     sale_product: "/saleproduct",   //获取特卖选品列表
+    api_share_page:'/share/today.json',//分享页面
     change_hot_val: "/saleproduct/{{ id }}/change_hot_val",   //添加热度值
     hot_product: "/hotproduct",   //获取特卖选品列表
     change_hot_pro_hot_val: "/hotproduct/{{ id }}/change_hot_val"   //添加热度值

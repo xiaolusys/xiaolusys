@@ -60,7 +60,7 @@ function Create_order_dom(obj) {
          <div class="xiadan">下单时间：{{ created }}</div>
          </div>
          <a href="./dd-detail.html?id={{ id }}" class="info clear">
-         <div class="left"><img src="{{ order_pic }}" /></div>
+         <div class="left"><img src="{{ order_pic }}?imageMogr2/thumbnail/150/format/jpg/quality/90" /></div>
          <div class="right">
          <p>订单编号：<span class="caaaaaa orderno">{{ tid }}</span></p>
          <p>订单状态：<span class="caaaaaa">{{ status_display }}</span></p>

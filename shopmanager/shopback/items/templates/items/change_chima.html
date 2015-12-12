@@ -46,8 +46,7 @@
                     {% for one_chima in result %}
                         <tr>
                             <td>{{ one_chima.0 }}</td>
-                            {% for k1,v1 in one_chima.1.items %}
-
+                            {% for k1,v1 in one_chima.1 %}
                                 <td>
                                     <div class="input-group">
                                         <div class="input-group-addon">{{ k1 }}</div>
@@ -55,17 +54,17 @@
                                                id="{{ product_id }}_{{ one_chima.0 }}_{{ k1 }}" value="{{ v1 }}">
                                     </div>
                                 </td>
-                                {% ifequal forloop.counter 5 %}
+                                {% ifequal forloop.counter 6 %}
                                     </tr>
                                     <tr>
                                     <td></td>
                                 {% endifequal %}
-                            {% ifequal forloop.counter 10 %}
+                            {% ifequal forloop.counter 12 %}
                                 </tr>
                                 <tr>
                                 <td></td>
                             {% endifequal %}
-                            {% ifequal forloop.counter 15 %}
+                            {% ifequal forloop.counter 18 %}
                                 </tr>
                                 <tr>
                                 <td></td>

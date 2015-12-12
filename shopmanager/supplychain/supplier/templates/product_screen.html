@@ -92,8 +92,9 @@
         </tbody>
     </table>
 </div>
+
 <div class="panel panel-default product_add" >
-    <form action="/supplychain/supplier/product/" method="post">
+    <form action="/supplychain/supplier/product/?status={{ request_data.status }}&sale_supplier={{ request_data.sale_supplier }}" method="post">
     {% csrf_token %}
     <input value="{{supplier.id}}" hidden="hidden" name="supplier">
     <input hidden="" id="domain" value="http://7xkyoy.com1.z0.glb.clouddn.com/">
@@ -218,8 +219,13 @@
     </li>
   </ul>
 </div>
-
-  <ul id="items-group" class="list-group">
+<div>
+    {% if code %}
+	    <div class="col-xs-12 ">
+	        <div class="alert alert-danger">{{ error_response }}</div>
+	    </div>
+	{% else %}
+    <ul id="items-group" class="list-group">
     {% for record in results %}
     <li class="list-group-item" id="id-item-{{ record.id }}">
     <div class="row">
@@ -328,14 +334,14 @@
 	  <a href="/admin/supplier/saleproduct/{{ record.id }}/" class="glyphicon glyphicon-edit"
 	  	style="display:inline;float:right;margin-top:20px;" onclick="return showAddAnotherPopup(this);">修改</a></p>
 	  </p>
-
 	  <p id="id-msg-{{ forloop.counter }}"></p>
-
 	</div>
     </div>
     </li>
     {% endfor %}
   </ul>
+  {% endif %}
+  </div>
   <div class="footer">
     <p>© Uni Littles 2014</p>
   </div>
@@ -424,7 +430,12 @@
             }
         };
         var data = {"fetch_url": fetch_url, 'status': status};
-        $.ajax({url: url, data: data, success: callback, method: "GET"});
+        $.ajax({
+            url: url, 
+            method: "GET",
+            data: data, 
+            success: callback, 
+        });
     });
     $(function () {
         $(".datepicker").datepicker({dateFormat: "yy-mm-dd 00:00:00"});

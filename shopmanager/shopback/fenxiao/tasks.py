@@ -188,8 +188,8 @@ def updateAllUserIncrementPurchaseOrderTask(update_from=None,update_to=None):
                                                                           month=month,
                                                                           day=day)
             try:
-               if not monitor_status.update_purchase_increment: 
-                   saveUserIncrementPurchaseOrderTask(user.visitor_id,
+                if not monitor_status.update_purchase_increment: 
+                    saveUserIncrementPurchaseOrderTask(user.visitor_id,
                                                       update_from=update_start,
                                                       update_to=update_end)
             except Exception,exc:

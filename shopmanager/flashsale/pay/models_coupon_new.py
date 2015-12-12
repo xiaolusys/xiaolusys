@@ -18,9 +18,10 @@ class CouponTemplate(models.Model):
     C150_10 = 2
     C259_20 = 3
     DOUBLE_11 = 6
+    DOUBLE_12 = 8
     COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"), (POST_FEE_20, u"20元退货补邮费"),
-                   (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"))
+                   (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"))
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
@@ -253,7 +254,7 @@ class UserCoupon(models.Model):
         # {"buyer_id": customer.id, "template_id":template_id}
         if buyer_id and trade_id and template_id:
             try:
-                tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取满150减10优惠券
+                tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取点击的优惠券模板
             except CouponTemplate.DoesNotExist:
                 return "not_release"
             # 每个人只能领取一张
