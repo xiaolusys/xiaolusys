@@ -56,7 +56,7 @@ def task_Update_User_Click(click, *args, **kwargs):
     params  = {}
     if (not user_click.click_end_time or 
         (click.click_time - user_click.click_end_time).days >= 1 or
-        (user_click.click_start_time - click.click_time) >= 1):
+        (user_click.click_start_time - click.click_time).days >= 1):
         params.update(visit_days = F('visit_days') + 1)
     
     if not user_click.click_start_time or user_click.click_start_time > click.click_time:
