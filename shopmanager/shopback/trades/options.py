@@ -34,8 +34,10 @@ def _createAndCalcOrderFee(trade,sub_trade):
                 setattr(merge_order,field.name,getattr(order,field.name))
         if state:
             merge_order.is_merge    = state
-        is_order_normal = MergeOrder.NORMAL in (order.sys_status,merge_order.sys_status)
-        merge_order.sys_status  = is_order_normal and MergeOrder.NORMAL or MergeOrder.DELETE
+        if MergeOrder.NORMAL in (order.sys_status,merge_order.sys_status):
+            merge_order.sys_status  =  MergeOrder.NORMAL 
+        else:
+            merge_order.sys_status  =  MergeOrder.DELETE
         merge_order.is_reverse_order = trade.isPostScan()
         merge_order.created  = order.created
         merge_order.pay_time = order.pay_time
