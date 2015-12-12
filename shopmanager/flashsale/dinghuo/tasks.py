@@ -788,7 +788,7 @@ def task_supplier_avg_post_time(days=5):
     """
     from django.db.models import Avg
     from common.modelutils import update_model_fields
-    time_to = datetime.datetime.today()
+    time_to = datetime.datetime.today() - datetime.timedelta(days-8)
     time_from = time_to - datetime.timedelta(days=days)
     pros = Product.objects.filter(sale_time__gte=time_from, sale_time__lte=time_to, status='normal')
     pro_sales = pros.values('sale_product').distinct()
@@ -804,10 +804,10 @@ def task_supplier_avg_post_time(days=5):
         sale_ids = one_supplier_sale.values('id')
         sig_sup_allpros = Product.objects.filter(sale_product__in=sale_ids)  # 该供应商选品对应的所有产品
         sig_sup_outers = sig_sup_allpros.values('outer_id')
-        sorders = DailySupplyChainStatsOrder.objects.filter(product_id__in=sig_sup_outers).exclude(order_deal_time=0).\
+        sorders = DailySupplyChainStatsOrder.objects.filter(product_id__in=sig_sup_outers).exclude(trade_general_time=0).\
             exclude(goods_arrival_time=0)  # 获取统计供应链统计数据(排除订货时间为０或者到货时间为０的记录)
-        # 计算平均发货使用小时数
-        avg_order_time = sorders.aggregate(order_time=Avg('order_deal_time')).get('order_time') or 0    # 平均订货时间
+        # 计算平均发货天数
+        avg_order_time = sorders.aggregate(order_time=Avg('trade_general_time')).get('order_time') or 0    # 平均下单时间
         avg_arrive_time = sorders.aggregate(arri_time=Avg('goods_arrival_time')).get('arri_time') or 0  # 平均到货时间
         avg_orde = datetime.datetime.utcfromtimestamp(avg_order_time)
         avr_arri = datetime.datetime.utcfromtimestamp(avg_arrive_time)
