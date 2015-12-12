@@ -464,6 +464,13 @@ SHOP_APP_SCHEDULE = {
         'args':(),
         'options' : {'queue':'peroid','routing_key':'peroid.task'} 
     },
+    u'定时统计供应商的平均发货速度任务': {
+        'task': 'flashsale.dinghuo.tasks.task_supplier_avg_post_time',
+        'schedule': crontab(minute="30", hour="3"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
