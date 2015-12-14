@@ -27,10 +27,16 @@ class XiaoluMamaAdmin(MyAdmin):
     list_display = ('id','mama_data_display','get_cash_display','total_inout_item','weikefu','agencylevel',
                     'charge_link','group_select','click_state','exam_pass','progress','hasale','charge_time','status','referal_from','mama_Verify')
     list_filter = ('progress','agencylevel','manager','status','charge_status','hasale',('charge_time',DateFieldListFilter),'user_group')
+    list_display_links = ('id','mama_data_display', )
     search_fields = ['=id','=mobile','=manager','weikefu','=openid','=referal_from']
     list_per_page = 25
-    list_display_links = ('mama_data_display', )
     
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = self.readonly_fields
+        if not request.user.is_superuser:
+            readonly_fields = readonly_fields+('mobile','openid','lowest_uncoushout','charge_time',
+                                               'charge_status','referal_from')
+        return readonly_fields
     
     def get_changelist(self, request, **kwargs):
         """

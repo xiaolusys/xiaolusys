@@ -18,6 +18,7 @@ from rest_framework import exceptions
 from flashsale.pay.models import CustomShare,Customer
 from flashsale.xiaolumm.models import XiaoluMama
 
+from shopapp.weixin.models import WeixinUnionID
 from shopapp.weixin.weixin_apis import WeiXinAPI,WeiXinRequestException
 from . import permissions as perms
 from . import serializers 
@@ -48,6 +49,17 @@ class CustomShareViewSet(viewsets.ModelViewSet):
             return True
         return False
     
+    def get_xlmm_share_openid(self,xlmm):
+        if not xlmm:
+            return ''
+        unoinid    = xlmm.openid
+        wxunions    = WeixinUnionID.objects.filter(app_key=settings.WEIXIN_APPID,
+                                                  unionid=unoinid)
+        if not wxunions.exists():
+            return ''
+        return wxunions[0].openid
+        
+        
     @list_route(methods=['get'])
     def today(self, request, *args, **kwargs):
         """ 获取今日分享链接内容 """
@@ -65,10 +77,11 @@ class CustomShareViewSet(viewsets.ModelViewSet):
         xlmm_id  = xlmm and xlmm.id or 0
         share_url = cshare.share_link({'xlmm':xlmm_id})
         resp['share_link'] = share_url
-        if self.is_request_from_weixin(request): #
+        if self.is_request_from_weixin(request):
+            resp['openid']     = self.get_xlmm_share_openid(xlmm)
             wx_api     = WeiXinAPI()
             signparams = wx_api.getShareSignParams(share_url)
             resp['wx_singkey'] = signparams
-
+            
         return Response(resp)
     
