@@ -8,10 +8,7 @@ function sharePage(xlmm){
         data: "",
         success: listenWeixinShareEvent,
         error: function (data) {
-            alert('debug:data='+data);
-            if (data.status == 403) {
-                window.location = GLConfig.login_url+'?next='+encodeURIComponent(cfg.redirecto);
-            }
+            console.log('需登陆后才能分享专属链接；');
         }
     });
 }
