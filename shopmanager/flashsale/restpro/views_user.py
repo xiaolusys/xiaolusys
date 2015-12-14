@@ -64,6 +64,10 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     - {prefix}/wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
     - {prefix}/check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
     > 返回参数result：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
+    - {prefix}/send_code: ｛mobile,｝ ,获取登录验证码;
+    > 返回参数result：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
+    - {prefix}/sms_login: ｛mobile,sms_code｝ ,通过验证码登录;
+    > 返回参数result：0-获取成功;1-登录验证失败;２－手机号码不合法;3-验证码有误;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -317,7 +321,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         logger.error('%s'%params)
         return False
     
-    @list_route(methods=['GET','post'])
+    @list_route(methods=['get','post'])
     def wxapp_login(self, request, *args, **kwargs):
         """微信app 登录接口数据校验算法:
             　参数：params = {'a':1,'c':2,'b':3}
@@ -357,6 +361,50 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         user_info['score'] = user_score
         
         return Response({"ｉs_login":True, "info":user_info})
+    
+    @list_route(methods=['post'])
+    def send_code(self, request, *args, **kwargs):
+        """ 根据手机号获取验证码 """
+        mobile = request.REQUEST['mobile']
+        current_time = datetime.datetime.now()
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):
+            return Response({"code":2, "info":"手机号码有误"})
+        new_reg,state= Register.objects.get_or_create(vmobile=mobile)
+        if not new_reg.is_verifyable():
+            return Response({"code":1, "info":"获取验证码失败"})
+        new_reg.verify_code = new_reg.genValidCode()
+        new_reg.verify_count = 1
+        new_reg.code_time = current_time
+        new_reg.save()
+        task_register_code.s(mobile, "1")()
+        return Response({"code": 0,"info":"验证码已发送"})
+    
+    @list_route(methods=['post'])
+    def sms_login(self, request, *args, **kwargs):
+        """ 短信验证码登陆 """
+        req_params = request.REQUEST
+        mobile  = req_params.get('mobile','')
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile): 
+            return Response({"code":2, "info":"手机号码有误"}) 
+        sms_code  = req_params.get('sms_code','')
+        if not sms_code or not sms_code.isdigit() :  
+            return Response({"code":3, "info":"验证码有误"})  
+        
+        user1 = authenticate(request=request,**req_params)
+        if not user1 or user1.is_anonymous():
+            return Response({"code":1, "info":"登录验证失败"})
+        login(request, user1)
+        
+        customer = get_object_or_404(Customer,user=request.user)
+        serializer = serializers.CustomerSerializer(customer,context={'request': request})
+        user_info  = serializer.data
+        user_scores = Integral.objects.filter(integral_user=customer.id)
+        user_score = 0
+        if user_scores.count() > 0:
+            user_score = user_scores[0].integral_value
+        user_info['score'] = user_score
+        
+        return Response({"code":0, "info":user_info})
 
 
 class CustomerViewSet(viewsets.ModelViewSet):

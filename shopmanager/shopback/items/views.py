@@ -455,7 +455,7 @@ class ProductSkuView(APIView):
         #print 
         #print type(product_sku),product_sku
         product_sku['layer_table'] = render_to_string('items/productskutable.html', { 'object':instance}) 
-        print product_sku['layer_table']
+
         return  Response(product_sku)
     
     
