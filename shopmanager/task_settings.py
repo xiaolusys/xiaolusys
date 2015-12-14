@@ -470,6 +470,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'定时分类统计产品的坑位数量任务': {
+        'task': 'shopback.categorys.tasks.category_pit_num_stat',
+        'schedule': crontab(minute="30", hour="11"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',

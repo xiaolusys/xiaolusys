@@ -3,9 +3,10 @@ import datetime
 from django.conf import settings
 from celery.task import task
 from celery.task.sets import subtask
-from shopback.categorys.models import Category
+from shopback.categorys.models import Category, CategorySaleStat
 from shopback.monitor.models import SystemConfig
 from auth import apis
+from shopback.items.models import Product
 
 import logging
 
@@ -46,6 +47,25 @@ def UpdateCategoryIncrementTask():
     day_delta = today_dt - category_updated
     
     response = apis.taobao_itemcats_increment_get(cids=None,type=None,days=None,tb_user_id=None)
-    
-    
-    
+
+
+from common.modelutils import update_model_fields
+
+
+@task(max_retry=3)
+def category_pit_num_stat():
+    """
+        定时任务　计算保存　分类统计中的产品坑位数量
+    """
+    pros = Product.objects.filter(sale_time=datetime.date.today(), status="normal").values()
+    cgymods = pros.values("category", "model_id").distinct()
+    dic_cgy = {}
+    for cgy in cgymods:
+        if dic_cgy.has_key(cgy['category']):
+            dic_cgy[cgy['category']] += 1
+        else:
+            dic_cgy[cgy['category']] = 1
+    for category, pit_num in dic_cgy.items():
+        cgysta, state = CategorySaleStat.objects.get_or_create(stat_date=datetime.date.today(), category=category)
+        cgysta.pit_num = pit_num
+        update_model_fields(cgysta, update_fields=['pit_num'])

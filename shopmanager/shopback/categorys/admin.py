@@ -1,34 +1,43 @@
-#-*- coding:utf8 -*-
+# -*- coding:utf8 -*-
 from django.contrib import admin
-from shopback.categorys.models import Category,ProductCategory
-
+from shopback.categorys.models import Category, ProductCategory, CategorySaleStat
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('cid','parent_cid','name','is_parent','status','sort_order')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    list_display = ('cid', 'parent_cid', 'name', 'is_parent', 'status', 'sort_order')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status','is_parent')
-    search_fields = ['cid','parent_cid','name']
+    list_filter = ('status', 'is_parent')
+    search_fields = ['cid', 'parent_cid', 'name']
 
 
-admin.site.register(Category,CategoryAdmin)
-  
-  
+admin.site.register(Category, CategoryAdmin)
+
+
 class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = ('cid','parent_cid','full_name','is_parent','status','sort_order')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
-    
+    list_display = ('cid', 'parent_cid', 'full_name', 'is_parent', 'status', 'sort_order')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
+
     def full_name(self, obj):
-        return '%s'%obj
-    
+        return '%s' % obj
+
     full_name.allow_tags = True
     full_name.short_description = u"全名"
-    
-    ordering = ['parent_cid','-sort_order',]
-    
-    list_filter = ('status','is_parent')
-    search_fields = ['cid','parent_cid','name']
+
+    ordering = ['parent_cid', '-sort_order', ]
+
+    list_filter = ('status', 'is_parent')
+    search_fields = ['cid', 'parent_cid', 'name']
 
 
-admin.site.register(ProductCategory,ProductCategoryAdmin)
+admin.site.register(ProductCategory, ProductCategoryAdmin)
+
+
+class CategorySaleStatAdmin(admin.ModelAdmin):
+    list_display = ("stat_date", "category", "sale_amount", "sale_num", "pit_num", "collect_num", "collect_amount",
+                    "stock_num", "stock_amount", "refund_num", "refund_amount", "created")
+
+    list_filter = ("category", "created")
+
+
+admin.site.register(CategorySaleStat, CategorySaleStatAdmin)
