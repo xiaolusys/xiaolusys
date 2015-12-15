@@ -38,11 +38,12 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     user_id  = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
+    has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
     
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone', 
-                  'status', 'created', 'modified','xiaolumm')
+                  'status', 'created', 'modified', 'xiaolumm', 'has_usable_password')
 
 
 #####################################################################################

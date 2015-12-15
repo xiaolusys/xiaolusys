@@ -50,11 +50,11 @@ class Register(models.Model):
     def verifyable(self):
         dt = datetime.datetime.now()
         if self.code_time and (dt - self.code_time).days > 1:
-            self.valid_count = 1
+            self.verify_count = 1
             self.save()
             return True
         
-        if self.valid_count >= self.MAX_FALD_TIMES:
+        if self.verify_count >= self.MAX_FALD_TIMES:
             return False
         return True
     
