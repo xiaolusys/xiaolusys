@@ -470,13 +470,18 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-    u'定时分类统计产品的坑位数量任务': {
+    u'定时统计产品分类的坑位数量任务': {
         'task': 'shopback.categorys.tasks.category_pit_num_stat',
         'schedule': crontab(minute="30", hour="11"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
-
+    u'定时统计产品分类的订货数量和订货金额任务': {
+        'task': 'flashsale.dinghuo.tasks.task_category_stock_data',
+        'schedule': crontab(minute="50", hour="3"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),

@@ -113,7 +113,7 @@ class CategorySaleStat(models.Model):
 
     def __unicode__(self):
         try:
-            category = ProductCategory.objects.get(id=self.category)
+            category = ProductCategory.objects.get(cid=self.category)
             category_full_name = category.__unicode__()
         except ProductCategory.DoesNotExist:
             category_full_name = "NoCategory"
