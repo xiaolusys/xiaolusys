@@ -54,7 +54,7 @@ class Register(models.Model):
             self.save()
             return True
         
-        if self.verify_count >= self.MAX_FALD_TIMES:
+        if self.verify_count >= self.MAX_VALID_COUNT:
             return False
         return True
     
