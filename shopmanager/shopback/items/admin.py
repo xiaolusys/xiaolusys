@@ -173,7 +173,7 @@ class ProductAdmin(MyAdmin):
     
     def wait_receive_num(self, obj):
         from flashsale.dinghuo.options import getProductOnTheWayNum
-        wrNum = getProductOnTheWayNum(obj.id,obj.sale_time)
+        wrNum = getProductOnTheWayNum(obj.id,start_time=obj.sale_time)
         if (obj.collect_num + wrNum) < obj.wait_post_num:
             return u'<div style="color:white;background-color:red;">%d</div>'%wrNum
         else:
