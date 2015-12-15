@@ -815,3 +815,38 @@ def task_supplier_avg_post_time(days=5):
         avg_day = round(minus.seconds/3600.0/24, 4)  # 天数
         supplier.avg_post_days = avg_day
         update_model_fields(supplier, update_fields=['avg_post_days'])
+
+
+from django.db.models import F
+from common.modelutils import update_model_fields
+
+
+@task()
+def task_category_stock_data(days=15):
+    """
+        统计产品分类中的进货数据
+        这里由于订货的状态不是很稳定，　即　在验货完成之后还会有修改的　还有作废的（供应商缺货） 误操作　仓库入仓出错等情况
+        采用任务处理　将　15天以内的订货单来核算按照产品类别来计算产品的数量　
+        新建某产品的订货单后还有可能会再次新建该产品的订货单　所以这里要累加（并且不能有重复数据）
+        所以仅仅处理一天的数据在任务中每天执行一次
+    """
+    from shopback.categorys.models import CategorySaleStat
+    # stock_num 进货数量
+    # stock_amount 进货金额
+    today = datetime.date.today()
+    target_day = today - datetime.timedelta(days=days)
+    # 验货完成状态和已经处理状态的订货单(15天前的)
+    dinghuos = OrderList.objects.filter(created=target_day, status__in=(OrderList.COMPLETED, OrderList.COMPLETED))
+    for dinhuo in dinghuos:
+        dinhuo_details = dinhuo.order_list.all()  # 订货明细内容
+        for detail in dinhuo_details:
+            pro = Product.objects.get(id=detail.product_id)
+            cgysta, state = CategorySaleStat.objects.get_or_create(stat_date=pro.sale_time, category=pro.category.cid)
+            if state:  # 如果是新建
+                cgysta.stock_amount = detail.total_price  # 订货明细金额
+                cgysta.stock_num = detail.buy_quantity  # 订货明细数量
+            else:  # 在原有基础上面加订货明细金额　订货明细数量
+                cgysta.stock_amount = F("stock_amount") + detail.total_price
+                cgysta.stock_num = F("stock_num") + detail.buy_quantity
+            update_model_fields(cgysta, update_fields=["stock_amount", "stock_num"])
+

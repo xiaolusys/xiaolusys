@@ -221,3 +221,26 @@ def handle_sale_refund_signal(sender,instance,*args,**kwargs):
 
 post_save.connect(handle_sale_refund_signal, sender=SaleRefund)
 
+
+from flashsale.pay.signals import signal_saletrade_refund_post
+from shopback.categorys.models import CategorySaleStat
+from django.db.models import F
+from common.modelutils import update_model_fields
+
+
+def category_refund_stat(sender, obj, **kwargs):
+    """
+        通过信号写对应上架日期的产品分类的退款数量和金额
+    """
+    pro = Product.objects.get(id=obj.item_id)
+    cgysta, state = CategorySaleStat.objects.get_or_create(stat_date=pro.sale_time, category=pro.category.cid)
+    if state:  # 如果是新建
+        cgysta.refund_num = obj.refund_num
+        cgysta.refund_amount = obj.refund_fee
+    else:  # 在原有基础上面加退款数量和退款金额
+        cgysta.refund_num = F("refund_num") + obj.refund_num
+        cgysta.refund_amount = F("refund_amount") + obj.refund_fee
+    update_model_fields(cgysta, update_fields=["refund_num", "refund_amount"])
+
+
+signal_saletrade_refund_post.connect(category_refund_stat, sender=SaleRefund)

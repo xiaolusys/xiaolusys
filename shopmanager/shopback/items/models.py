@@ -814,6 +814,10 @@ class ProductSku(models.Model):
         sum_inferior_num = same_pro_skus.aggregate(total_inferior=Sum("sku_inferior_num")).get("total_inferior") or 0
         return sum_inferior_num
 
+    @property
+    def collect_amount(self):
+        return self.cost * self.quantity
+
 
 def calculate_product_stock_num(sender, instance, *args, **kwargs):
     """修改SKU库存后，更新库存商品的总库存 """
