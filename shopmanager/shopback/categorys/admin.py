@@ -34,10 +34,15 @@ admin.site.register(ProductCategory, ProductCategoryAdmin)
 
 
 class CategorySaleStatAdmin(admin.ModelAdmin):
-    list_display = ("stat_date", "category", "sale_amount", "sale_num", "pit_num", "collect_num", "collect_amount",
+    list_display = ("stat_date", "category_show", "sale_amount", "sale_num", "pit_num", "collect_num", "collect_amount",
                     "stock_num", "stock_amount", "refund_num", "refund_amount", "created")
 
     list_filter = ("category", "created")
 
+    def category_show(self, obj):
+        return obj.category_display
+
+    category_show.allow_tags = True
+    category_show.short_description = "类别"
 
 admin.site.register(CategorySaleStat, CategorySaleStatAdmin)

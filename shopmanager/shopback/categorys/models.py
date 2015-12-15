@@ -8,13 +8,13 @@ logger = logging.getLogger('categorys.handler')
 CAT_STATUS = (
     (pcfg.NORMAL,u'正常'),
     (pcfg.DELETE,u'删除'),
-) 
+)
 
 class Category(models.Model):
-    
+
     NORMAL = pcfg.NORMAL
     DELETE = pcfg.DELETE
-    
+
     cid        = models.IntegerField(primary_key=True)
     parent_cid = models.IntegerField(null=True,db_index=True)
 
@@ -45,28 +45,28 @@ class Category(models.Model):
                 logger.error('淘宝后台更新该类目(cat_id:%s)出错'%str(cat_id),exc_info=True)
 
         return category
-    
-    
+
+
 class ProductCategory(models.Model):
-    
+
     NORMAL = pcfg.NORMAL
     DELETE = pcfg.DELETE
-    
+
     cid     = models.AutoField(primary_key=True,verbose_name=u'类目ID')
     parent_cid = models.IntegerField(null=False,verbose_name=u'父类目ID')
     name    = models.CharField(max_length=32,blank=True,verbose_name=u'类目名')
-    
+
     is_parent  = models.BooleanField(default=True,verbose_name=u'有子类目')
     status  = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL,verbose_name=u'状态')
     sort_order = models.IntegerField(default=0,db_index=True,verbose_name=u'优先级')
-    
+
     class Meta:
-        db_table = 'shop_categorys_productcategory' 
+        db_table = 'shop_categorys_productcategory'
         verbose_name = u'产品类目'
         verbose_name_plural = u'产品类目列表'
-        
+
     def __unicode__(self):
-        
+
         if not self.parent_cid:
             return unicode(self.name)
         try:
@@ -118,3 +118,12 @@ class CategorySaleStat(models.Model):
         except ProductCategory.DoesNotExist:
             category_full_name = "NoCategory"
         return "%s_%s" % (self.stat_date, category_full_name)
+
+    @property
+    def category_display(self):
+        try:
+            category = ProductCategory.objects.get(cid=self.category)
+            category_full_name = category.__unicode__()
+        except ProductCategory.DoesNotExist:
+            category_full_name = "NoCategory"
+        return "%s" % category_full_name
