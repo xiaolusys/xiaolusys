@@ -20,3 +20,8 @@ def productsku_quantity_view(request):
     
     return HttpResponse(json.dumps(resp),content_type='application/json')
     
+    
+    
+
+
+

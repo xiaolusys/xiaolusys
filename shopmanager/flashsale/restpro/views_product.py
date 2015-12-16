@@ -1,10 +1,14 @@
 # -*- coding:utf8 -*-
+import os
 import json
 import datetime
 import hashlib
-from django.shortcuts import get_object_or_404
+import urlparse
+from django.conf import settings
+from django.shortcuts import get_object_or_404, render_to_response
 from django.db.models import Q
 
+from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import permissions
@@ -18,9 +22,12 @@ from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
 from flashsale.pay.models import GoodShelf,ModelProduct
 from flashsale.pay.models_custom import Productdetail
+from flashsale.pay.models import Customer
+from flashsale.xiaolumm.models import XiaoluMama
 
 from . import permissions as perms
 from . import serializers 
+from .options import gen_and_save_jpeg_pic
 from shopback.base import log_action, ADDITION, CHANGE
 
 
@@ -96,19 +103,20 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###特卖商品API：
-    - {prefix}/promote_today[.format]: 获取今日推荐商品列表;
-    - {prefix}/promote_previous[.format]: 获取昨日推荐商品列表;
-    - {prefix}/childlist[.format]: 获取童装专区商品列表;
-    - {prefix}/ladylist[.format]: 获取女装专区商品列表;
-    - {prefix}/previous[.format]: 获取昨日特卖商品列表;
-    - {prefix}/advance[.format]: 获取明日特卖商品列表;
-    - {prefix}/seckill[.format]: 获取秒杀商品列表;
-    - {prefix}/modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）
+    - /promote_today[.format]: 获取今日推荐商品列表;
+    - /promote_previous[.format]: 获取昨日推荐商品列表;
+    - /childlist[.format]: 获取童装专区商品列表;
+    - /ladylist[.format]: 获取女装专区商品列表;
+    - /previous[.format]: 获取昨日特卖商品列表;
+    - /advance[.format]: 获取明日特卖商品列表;
+    - /seckill[.format]: 获取秒杀商品列表;
+    - /modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）
+    - /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
     """
     queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer)
     
     paginate_by = 100
     page_query_param = 'page'
@@ -348,7 +356,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(serializer.data)
     
-    @cache_response(timeout=10*60,key_func='calc_items_cache_key')
+#     @cache_response(timeout=10*60,key_func='calc_items_cache_key')
     @detail_route(methods=['get'])
     def details(self, request, *args, **kwargs):
         """ 商品明细，包含详细规格信息 """
@@ -364,6 +372,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         except:
             pdetail_dict  = {}
         product_dict['details'] = pdetail_dict
+    
         return Response(product_dict)
     
     @list_route(methods=['get'])
@@ -404,3 +413,65 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             log_action(request.user.id, pro, CHANGE, u'预览时修改产品为已审核！')
         res = {"is_verify": pro.is_verify, "id": pro.id}
         return Response(res)
+
+class ProductSnapshotView(generics.RetrieveAPIView):
+    """ 获取特卖商品快照 """
+    queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
+    serializer_class = serializers.ProductSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,renderers.TemplateHTMLRenderer)
+    template_name = 'shangpin_share.html'
+    
+    QR_IMG_PATH    = 'qr'
+    
+    def get_share_link(self,params):
+        link = urlparse.urljoin(settings.M_STATIC_URL,'pages/shangpinxq.html?id={product_id}&linkid={linkid}')
+        return link.format(**params)
+    
+    def get_xlmm(self,request):
+        customer = get_object_or_404(Customer,user=request.user)
+        if not customer.unionid.strip():
+            return None
+        xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
+        return xiaolumms.count() > 0 and xiaolumms[0] or None
+    
+    def gen_item_share_qrcode_link(self, product_id, linkid=None):
+        
+        root_path = os.path.join(settings.MEDIA_ROOT,self.QR_IMG_PATH)
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+        
+        params = {'product_id':product_id, 'linkid':linkid}
+        file_name = 'qr-{linkid}-{product_id}.jpg'.format(**params)
+        file_path = os.path.join(root_path,file_name)
+        
+        share_link = self.get_share_link(params)
+        if not os.path.exists(file_path):
+            gen_and_save_jpeg_pic(share_link,file_path)
+        
+        return os.path.join(settings.MEDIA_URL,self.QR_IMG_PATH,file_name)
+        
+    def get(self, request, format=None,*args, **kwargs):
+        
+        instance = self.get_object()
+        product_dict = self.get_serializer(instance).data
+        #设置商品规格信息
+        normal_skusdict = serializers.ProductSkuSerializer(instance.normal_skus,many=True)
+        product_dict['normal_skus'] = normal_skusdict.data
+        #设置商品特卖详情
+        try:
+            pdetail = instance.details
+            pdetail_dict = serializers.ProductdetailSerializer(pdetail).data
+        except:
+            pdetail_dict  = {}
+        product_dict['details'] = pdetail_dict
+        if format == 'html':
+            product_dict['M_STATIC_URL'] = settings.M_STATIC_URL
+        
+        xlmm = self.get_xlmm(request)
+        product_dict['share_qrcode'] = self.gen_item_share_qrcode_link(instance.id,linkid=xlmm and xlmm.id or 0)
+        
+        return Response(product_dict)
+    
+    

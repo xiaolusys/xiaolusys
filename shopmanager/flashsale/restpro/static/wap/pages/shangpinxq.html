@@ -6,28 +6,28 @@
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="format-detection" content="email=no"/>
     <meta name="format-detection" content="telephone=no"/>
-   	<meta id="viewport" name="viewport" />
+       <meta id="viewport" name="viewport" />
     <script src="../js/common.js"></script>
     <link rel="stylesheet" href="../css/swiper3.07.min.css">
-	<link rel="stylesheet" type="text/css" href="../css/dots-loading.css">
-	<link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" type="text/css" href="../css/dots-loading.css">
+    <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/shangpinxq.css">
     <link rel="stylesheet" href="../css/jquery.webui-popover.min.css">
     <script id="ntkf_template" type="text/html">
-	var NTKF_PARAM = {
-		siteid:"kf_9645",		//企业ID，必填，取值参见文档开始表
-		settingid:"kf_9645_1444459002183",		//缺省客服配置ID，必填，取值参见文档开始表
-		uid:"{{profile.id}}",		//用户ID,未登录可以为空
-		uname:"{{profile.nick_alias}}({{profile.mobile}})",		//用户名，未登录可以为空
-		isvip:"0" ,         //是否为vip用户
-		userlevel:"1" ,    //网站自定义会员级别
-		ntalkerparam:{
-	　　		item:{		//注意：详情页这里是item，其它地方是items
-	　　			id:"{{item_id}}" 		//商品ID
-	　　		}
-		}
-	};
-	</script>
+    var NTKF_PARAM = {
+        siteid:"kf_9645",        //企业ID，必填，取值参见文档开始表
+        settingid:"kf_9645_1444459002183",        //缺省客服配置ID，必填，取值参见文档开始表
+        uid:"{{profile.id}}",        //用户ID,未登录可以为空
+        uname:"{{profile.nick_alias}}({{profile.mobile}})",        //用户名，未登录可以为空
+        isvip:"0" ,         //是否为vip用户
+        userlevel:"1" ,    //网站自定义会员级别
+        ntalkerparam:{
+　　          item:{        //注意：详情页这里是item，其它地方是items
+　　              id:"{{item_id}}"         //商品ID
+　　          }
+        }
+    };
+    </script>
 </head>
 <body>
 <div class="goods-slide">
@@ -106,9 +106,9 @@
 <div class="scroll-top" id="js-scroll-top"></div>
 <div id="loading"><span class="dots-loader"></span></div>
 <div class="service_box">
-	<ul class="tab_nav">
-		<li><a href="javascript:void(0);"><i class="icon icon_1"></i>联系客服</a></li>
-	</ul>
+    <ul class="tab_nav">
+        <li><a href="javascript:void(0);"><i class="icon icon_1"></i>联系客服</a></li>
+    </ul>
 </div>
 <div class="footer clearfix">
 <div class="link">
@@ -178,10 +178,10 @@
 <script src="../js/jquery-shopping.js"></script>
 <script>
 $(document).ready(function(){
-	$('.ui-loader').remove();
-	 //商品尺寸切换,动态加载内容需事件委托
+    $('.ui-loader').remove();
+     //商品尺寸切换,动态加载内容需事件委托
     $(document).on({
-    	tap:change_goodsize,
+        tap:change_goodsize,
     },'#js-goods-size li');
     //返回顶部
     $(document).on({tap:scroll_top},'#js-scroll-top');
@@ -207,25 +207,25 @@ $(document).ready(function(){
         }
     })
     $('.buy-now').click(function(){
-    	DoIfLogin({
-    		callback:buynow,
-    		redirecto:window.location.href
-    	});
+        DoIfLogin({
+            callback:buynow,
+            redirecto:window.location.href
+        });
     });
     $(document).on({
-    	tap:function () {
-	    	DoIfLogin({
-	    		callback:function(){
-	    			var params = {
-						'item_id':getUrlParam('id'),
-						'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}')
-					};
-	    			loadNTalker(params,callNTKFChatPage);
-	    		},
-	    		redirecto:window.location.href
-	    	});
-	    }
-	},'.service_box');
+        tap:function () {
+            DoIfLogin({
+                callback:function(){
+                    var params = {
+                        'item_id':getUrlParam('id'),
+                        'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}')
+                    };
+                    loadNTalker(params,callNTKFChatPage);
+                },
+                redirecto:window.location.href
+            });
+        }
+    },'.service_box');
 });
 function change_goodsize() {
     $('#js-goods-size li.active').removeClass('active').addClass('normal');
@@ -240,19 +240,19 @@ function scroll_top(e){
     $('body').animate({scrollTop: 0}, 400);
 }  
 function buynow(){
-	//如果未选中商品尺寸,事件不执行
+    //如果未选中商品尺寸,事件不执行
     if ($('#js-goods-size li.active').length == 0){
-    	document.getElementById('js-goods-size').scrollIntoView(false);
-    	drawToast('请选择商品尺寸');
-    	return;
+        document.getElementById('js-goods-size').scrollIntoView(false);
+        drawToast('请选择商品尺寸');
+        return;
     };
     var item_id = getUrlParam('id');
     var sku_id = $('#js-goods-size li.active').attr('sku_id');
     window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
 }
 function callNTKFChatPage(){
-	//对应手机WAP端组代码
-	NTKF.im_openInPageChat("kf_9645_1444459002183");
+    //对应手机WAP端组代码
+    NTKF.im_openInPageChat("kf_9645_1444459002183");
 }
 </script>
 <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">

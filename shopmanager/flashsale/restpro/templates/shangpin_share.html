@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>小鹿美美</title>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="format-detection" content="email=no"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta id="viewport" name="viewport" />
+    <script src="{{M_STATIC_URL}}/static/wap/js/common.js"></script>
+    <link rel="stylesheet" href="{{M_STATIC_URL}}css/swiper3.07.min.css">
+    <link rel="stylesheet" href="{{M_STATIC_URL}}css/common.css">
+    <link rel="stylesheet" href="{{M_STATIC_URL}}css/shangpinxq.css">
+</head>
+<body>
+<div class="goods-slide">
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide">
+            <!-- 这里添加题头图 -->
+            <img src="{{pic_path}}?imageMogr2/format/jpg/quality/90"></img>
+            </div>
+        </div>
+        <div class="swiper-pagination"></div>
+    </div>
+</div>
+<!-- 商品详细信息 -->
+<div class="goods-content">
+    <div class="goods-info">
+     <h3>{{name}}</h3>
+     <div class="price">
+     <span>¥ {{ product_lowest_price }}</span>
+     <s>¥{{ std_sale_price }}</s>
+     </div>
+     <span id="product_id" style="display:none">{{id}}</span>
+    </div>
+    <div class="goods-size">
+     <img src="http://image.xiaolu.so/kexuanchima.png?imageMogr2/format/jpg/quality/100" width="100%">
+     <ul id="js-goods-size">
+        {% for sku in normal_skus %}
+        <li class="normal" name="select-sku" sku_id="{{sku.id}}" id="skusize_{{sku.id}}" sku_price="{{sku.agent_price}}">{{sku.name}}<i></i></li>
+        {% endfor %}
+     </ul>
+    </div>
+    <div class="detail-introduce">
+        <img src="http://image.xiaolu.so/xuanchuan.png" width="100%">
+    </div>
+    <div class="goods-param">
+        <img class="spcs" src="http://image.xiaolu.so/shangpincanshu.png">
+        <hr style="height:1px;border:none;border-top:1px solid #ff6d73;width: 600px;margin: 0 auto;" />
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <td>商品名称：</td>
+                <td>{{ name }}</td>
+            </tr>
+            <tr>
+                <td>货品编号：</td>
+                <td>{{ outer_id }}</td>
+            </tr>
+            {% if details.material %}
+            <tr>
+                <td>商品材质：</td>
+                <td>{{ details.material }}</td>
+            </tr>
+            {% endif %}
+            {% if details.color %}
+            <tr>
+                <td>可选颜色:</td>
+                <td>{{ details.color }}</td>
+            </tr>
+            {% endif %}
+            {% if details.note %}
+            <tr>
+                <td valign="top">备<span class="space"></span>注：</td>
+                <td><span>{{ details.note }}</span></td>
+            </tr>
+            {% endif %}
+            {% if details.wash_instructions %}
+            <tr>
+                <td valign="top">洗涤说明：</td>
+                <td><span class="wash">{{ details.wash_instructions }}</span></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td>洗涤说明：</td>
+                <td>30℃以下手洗；阴凉处悬挂晾干</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+<div class="goods-img">
+    <!--<img src="http://image.xiaolu.so/TT-1440400785024-sotp.png" width="100%">-->
+    <img src="http://image.xiaolu.so/chimabiao.png?imageMogr2/format/jpg/quality/100" width="100%">
+    <div class="chi-ma-biao">
+        <table>
+        {% for sku in normal_skus %}
+        {% with sku.size_of_sku.result as chima %}
+            {% if forloop.first %}
+            <thead></thead><th>尺码</th>
+            {% for cm in chima %}
+            <th>{{ cm }}</th>
+            {% endfor %}
+            </thead>
+            {% endif %}
+            <tr><td>{{sku.name}}</td>
+            {% for cm,cv in chima.items %}
+            <td>{{ cv }}</td>
+            {% endfor %}
+            </tr>
+        {% endwith %}
+        {% endfor %}
+        </table>
+    </div>
+    <div class="list">
+	    <!-- 这里添加商品图片 -->
+	    {% if details %}
+	    {% for img in details.content_imgs %}
+	    <img src="{{img}}?imageMogr2/format/jpg/quality/90"></img>
+	    {% endfor %}
+	    {% elif product_model %}
+	    {% for img in product_model.content_imgs %}
+	    <img src="{{img}}?imageMogr2/format/jpg/quality/90"></img>
+	    {% endfor %}
+	    {% endif %}
+    </div>
+    <div class="share">
+	    <div class="thumbnail" style="width:210px;margin:0 auto;margin-bottom:20px;">
+	        <img src="{{share_qrcode}}" ></img>
+	    </div>
+	    <div>
+	      <p class="span1">长按图片,识别图中二维码,查看商品详情</p>
+	      <p class="span2">如果无法识别可下载小鹿美美APP了解更多</p>
+	    </div>
+    </div>
+</div>
+<div class="footer clearfix">
+</div>
+</body>
+</html>

@@ -79,7 +79,7 @@ function add_chi_ma(obj) {
     $.each(obj.normal_skus, function (index, sku) {
         if (sku.size_of_sku.result != "None") {
             if (index == 0) {
-                insertable = "<table><th>尺码</th>";
+                insertable = "<table><tr><th>尺码</th>";
                 for (var p in sku.size_of_sku.result) {
                     insertable += "<th>" + p + "</th>";
                 }
@@ -87,13 +87,13 @@ function add_chi_ma(obj) {
                 for (var p in sku.size_of_sku.result) {
                     insertable += "<td>" + sku.size_of_sku.result[p] + "</td>";
                 }
-                insertable += "</tr>"
+                insertable += "</tr>";
             } else {
                 insertable += "<tr><td>" + sku.name + "</td>";
                 for (var p in sku.size_of_sku.result) {
                     insertable += "<td>" + sku.size_of_sku.result[p] + "</td>";
                 }
-                insertable += "</tr>"
+                insertable += "</tr>";
             }
         }
     });
