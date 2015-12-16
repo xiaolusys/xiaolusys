@@ -570,7 +570,6 @@ TF_CODE_MAP = {
 def recalc_trade_fee(sender,trade_id,*args,**kwargs):
     
     trade = MergeTrade.objects.get(id=trade_id)
-    
     fee_dict   = trade.merge_orders.aggregate(total_total_fee=Sum('total_fee'),
                                       total_payment=Sum('payment'),
                                       total_discount_fee=Sum('discount_fee'),
@@ -899,19 +898,25 @@ def refund_update_order_info(sender,obj,*args,**kwargs):
     try:
         trade_tid = obj.get_tid()
         trade_oid = obj.get_oid()
+        normal_status_list = MergeTrade.WAIT_WEIGHT_STATUS
+        normal_status_list.append(MergeTrade.ON_THE_FLY_STATUS)
         mtrade  = MergeTrade.objects.get(tid=trade_tid)
         morders = MergeOrder.objects.filter(oid=trade_oid,
                                             merge_trade__user=mtrade.user,
-                                            merge_trade__sys_status__in=MergeTrade.WAIT_WEIGHT_STATUS,
+                                            merge_trade__sys_status__in=normal_status_list,
                                             sys_status=MergeOrder.NORMAL)
         for morder in morders:
             morder.refund_status = MergeOrder.REFUND_WAIT_SELLER_AGREE
             morder.sys_status    = MergeOrder.DELETE
             morder.save()
-            log_action(sysoa.id,mtrade,CHANGE,u'订单(oid:%s)退款自动关闭'%morder.id)
-            morder.merge_trade.append_reason_code(pcfg.NEW_REFUND_CODE)
-            Product.objects.reduceWaitPostNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
-            Product.objects.reduceLockNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
+            itrade = morder.merge_trade
+            itrade.append_reason_code(pcfg.NEW_REFUND_CODE)
+            if itrade.sys_status == MergeTrade.ON_THE_FLY_STATUS:
+                log_action(sysoa.id,itrade,CHANGE,u'飞行模式订单(oid:%s)退款自动关闭'%morder.id)
+            else:
+                log_action(sysoa.id,itrade,CHANGE,u'订单(oid:%s)退款自动关闭'%morder.id)
+                Product.objects.reduceWaitPostNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
+                Product.objects.reduceLockNumByCode(morder.outer_id,morder.outer_sku_id,morder.num)
     except Exception,exc:
         logger.error('order refund signal:%s'%exc.message)
         

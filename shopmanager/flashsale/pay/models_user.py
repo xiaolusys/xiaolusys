@@ -48,21 +48,33 @@ class Register(models.Model):
         return ''.join(random.sample(list('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_'),32))
     
     def verifyable(self):
+        dt = datetime.datetime.now()
+        if self.code_time and (dt - self.code_time).days > 1:
+            self.verify_count = 1
+            self.save()
+            return True
         
-        if self.is_verify:
-            return False
-        if self.valid_count >= self.MAX_FALD_TIMES:
-            return False
-        if self.submit_count >= self.MAX_SUBMIT_TIMES:
+        if self.verify_count >= self.MAX_VALID_COUNT:
             return False
         return True
     
+    def is_verifyable(self):
+        """ 能否获取验证码 """
+        return self.verifyable()
+        
     def is_submitable(self):
+        """ 能否提交验证 """
+        dt = datetime.datetime.now()
+        if self.code_time and (dt - self.code_time).days > 1:
+            self.submit_count = 1
+            self.save()
+            return True
         if self.submit_count > self.MAX_SUBMIT_TIMES:
             return False
         return True
     
     def check_code(self,vcode):
+        """ 检查验证码是否正确 """
         if self.verify_code and self.verify_code == vcode:
             self.submit_count = 0
             self.save()

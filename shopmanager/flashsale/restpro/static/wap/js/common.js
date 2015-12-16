@@ -112,6 +112,15 @@ var GLConfig = {
     change_hot_pro_hot_val: "/hotproduct/{{ id }}/change_hot_val"   //添加热度值
 };
 
+var s;
+var ua = navigator.userAgent.toLowerCase();
+(s = ua.match(/msie ([\d.]+)/)) ? GLConfig.ie = s[1] :
+(s = ua.match(/firefox\/([\d.]+)/)) ? GLConfig.firefox = s[1] :
+(s = ua.match(/chrome\/([\d.]+)/)) ? GLConfig.chrome = s[1] :
+(s = ua.match(/opera.([\d.]+)/)) ? GLConfig.opera = s[1] :
+(s = ua.match(/version\/([\d.]+).*safari/)) ? GLConfig.safari = s[1] : 0;
+(s = ua.match(/micromessenger\/([\d.]+).*/)) ? GLConfig.weixin = s[1] : GLConfig.weixin = 0;
+
 // using jQuery
 function getCookie(name) {
     var cookieValue = null;
@@ -128,15 +137,14 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-function setCookie(c_name,value,expiredays)
-{
+function setCookie(c_name,value,expiredays){
 	var exdate=new Date();
 	exdate.setDate(exdate.getDate()+expiredays);
 	document.cookie=c_name+ "=" +encodeURIComponent(value)+
 	((expiredays==null) ? "" : "; expires="+exdate.toGMTString());
 }
-function delCookie(name)//删除cookie
-{
+function delCookie(name){
+    //删除cookie
     var exp = new Date();
     exp.setTime(exp.getTime() - 1);
     var cval=getCookie(name);
@@ -208,7 +216,6 @@ function btnUnpresse(){
 	$(this).removeClass('pressed');
 }
  
-
 var remain_date = 0;
 
 function Set_shopcarts_num() {
@@ -368,8 +375,8 @@ function loadNTalker(params,callback){
     var oViewport = document.getElementById('viewport');
     var phoneWidth = parseInt(window.screen.width);
     var phoneScale = phoneWidth / 640;
-    var ua = navigator.userAgent;
-    if (/Android (\d+\.\d+)/.test(ua)) {
+    var ua = navigator.userAgent.toLowerCase();
+    if (/android (\d+\.\d+)/.test(ua)) {
         var version = parseFloat(RegExp.$1);
         if (version > 2.3) {
             oViewport.setAttribute('content', 'width=640, minimum-scale = ' + phoneScale + ', maximum-scale = ' + phoneScale + ', target-densitydpi=device-dpi')

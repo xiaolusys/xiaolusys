@@ -1178,7 +1178,6 @@ class FinalListView(View):
         wx_users = WeiXinUser.objects.filter(openid__in=openids)
         items = []
         for user in wx_users:
-
             items.append(self.getListItem(user))
 
         total = order_list.count()

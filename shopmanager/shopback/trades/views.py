@@ -871,8 +871,7 @@ def delete_trade_order(request,id):
     user_id      = request.user.id
     try:
         merge_order  = MergeOrder.objects.get(id=id,sys_status=pcfg.IN_EFFECT)
-    
-        merge_trade = merge_order.merge_trade
+        merge_trade  = merge_order.merge_trade
         is_reverse_order = False
         if merge_trade.sys_status in (pcfg.WAIT_CHECK_BARCODE_STATUS,
                                       pcfg.WAIT_SCAN_WEIGHT_STATUS):
@@ -884,12 +883,22 @@ def delete_trade_order(request,id):
         merge_order.is_reverse_order = is_reverse_order
         merge_order.save()
         
+        if merge_order.is_merge :
+            iorders = MergeOrder.objects.filter(oid=merge_order.oid,
+                                               sys_status=MergeOrder.NORMAL,
+                                               merge_trade__sys_status=MergeTrade.ON_THE_FLY_STATUS)
+            if iorders.exists():
+                iorder = iorders[0]
+                iorder.sys_status    = MergeOrder.DELETE
+                iorder.save()
+                log_action(user_id,iorder.merge_trade,CHANGE,u'飞行模式订单(oid:%s)作废'%iorder.id)
+        
         Product.objects.reduceWaitPostNumByCode(
                                                 merge_order.outer_id, 
                                                 merge_order.outer_sku_id, 
                                                 merge_order.num)
         
-        log_action(user_id,merge_trade,CHANGE,u'子订单作废(%d)'%merge_order.id)
+        log_action(user_id,merge_trade,CHANGE,u'子订单(oid:%d)作废'%merge_order.id)
             
     except MergeOrder.DoesNotExist:
         ret_params = {'code':1,'response_error':u'订单不存在'}

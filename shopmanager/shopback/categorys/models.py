@@ -8,13 +8,13 @@ logger = logging.getLogger('categorys.handler')
 CAT_STATUS = (
     (pcfg.NORMAL,u'正常'),
     (pcfg.DELETE,u'删除'),
-) 
+)
 
 class Category(models.Model):
-    
+
     NORMAL = pcfg.NORMAL
     DELETE = pcfg.DELETE
-    
+
     cid        = models.IntegerField(primary_key=True)
     parent_cid = models.IntegerField(null=True,db_index=True)
 
@@ -45,28 +45,28 @@ class Category(models.Model):
                 logger.error('淘宝后台更新该类目(cat_id:%s)出错'%str(cat_id),exc_info=True)
 
         return category
-    
-    
+
+
 class ProductCategory(models.Model):
-    
+
     NORMAL = pcfg.NORMAL
     DELETE = pcfg.DELETE
-    
+
     cid     = models.AutoField(primary_key=True,verbose_name=u'类目ID')
     parent_cid = models.IntegerField(null=False,verbose_name=u'父类目ID')
     name    = models.CharField(max_length=32,blank=True,verbose_name=u'类目名')
-    
+
     is_parent  = models.BooleanField(default=True,verbose_name=u'有子类目')
     status  = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL,verbose_name=u'状态')
     sort_order = models.IntegerField(default=0,db_index=True,verbose_name=u'优先级')
-    
+
     class Meta:
-        db_table = 'shop_categorys_productcategory' 
+        db_table = 'shop_categorys_productcategory'
         verbose_name = u'产品类目'
         verbose_name_plural = u'产品类目列表'
-        
+
     def __unicode__(self):
-        
+
         if not self.parent_cid:
             return unicode(self.name)
         try:
@@ -74,9 +74,56 @@ class ProductCategory(models.Model):
         except:
             p_cat = u'--'
         return u'%s / %s'%(p_cat,self.name)
-        
-    
-    
-       
-       
-       
+
+
+class CategorySaleStat(models.Model):
+    """
+        销售分类统计
+        上架日期: 产品的上架日期
+        产品类别: 产品类别中所属类别（类别id）
+        销售金额: 上架日期上架对应类别产品的的销售金额（包含退款金额）
+        销售数量: 上架日期上架对应类别的产品的销售数量（包含退款数量）
+        坑位数量: 上架日期对应类别的坑位数量
+        库存数量: 上架日期对应类别的库存数量
+        库存金额: 上架日期对应类别的库存金额
+        进货数量: 上架日期对应类别的大货进货数量
+        进货金额: 上架日期对应类别的大货进货金额
+        退款数量: 上架日期对应类别的退款数量
+        退款金额: 上架日期对应类别的退款金额
+    """
+    stat_date = models.DateField(db_index=True, verbose_name="上架日期")
+    category = models.IntegerField(default=0, db_index=True, verbose_name="产品类别")
+    sale_amount = models.FloatField(default=0.0, verbose_name="销售金额")
+    sale_num = models.IntegerField(default=0, verbose_name="销售数量")
+    pit_num = models.IntegerField(default=0, verbose_name="坑位数量")
+    collect_num = models.IntegerField(default=0, verbose_name="库存数量")
+    collect_amount = models.FloatField(default=0.0, verbose_name="库存金额")
+    stock_num = models.IntegerField(default=0, verbose_name="进货数量")
+    stock_amount = models.FloatField(default=0.0, verbose_name="进货金额")
+    refund_num = models.IntegerField(default=0, verbose_name="退款数量")
+    refund_amount = models.FloatField(default=0.0, verbose_name="退款金额")
+    created = models.DateTimeField(db_index=True, auto_now_add=True, verbose_name="创建时间")
+    modified = models.DateTimeField(auto_now=True, verbose_name="修改时间")
+
+    class Meta:
+        db_table = "shop_category_stat"
+        verbose_name = "产品分类统计"
+        verbose_name_plural = "产品分类统计列表"
+        permissions = [("shop_category_stat", "产品分类统计"), ]
+
+    def __unicode__(self):
+        try:
+            category = ProductCategory.objects.get(cid=self.category)
+            category_full_name = category.__unicode__()
+        except ProductCategory.DoesNotExist:
+            category_full_name = "NoCategory"
+        return "%s_%s" % (self.stat_date, category_full_name)
+
+    @property
+    def category_display(self):
+        try:
+            category = ProductCategory.objects.get(cid=self.category)
+            category_full_name = category.__unicode__()
+        except ProductCategory.DoesNotExist:
+            category_full_name = "NoCategory"
+        return "%s" % category_full_name

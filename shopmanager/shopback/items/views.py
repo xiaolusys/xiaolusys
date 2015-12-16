@@ -429,7 +429,7 @@ class ProductView(APIView):
             raise exceptions.APIException(u'填写信息不规则:%s'%exc.message)
         update_field_labels = []
         for field in update_fields:
-            update_field_labels.append(Product._meta.get_field(field).verbose_name.title())
+            update_field_labels.append('%s:%s'%(Product._meta.get_field(field).verbose_name.title(),getattr(product,field)))
         log_action(request.user.id,product,CHANGE,u'更新[%s]信息'%(','.join(update_field_labels)))
         prod_serializer     = serializers.ProductSerializer(product).data
         prod_serializer['skus'] = serializers.ProductSkuSerializer(product.pskus,many=True).data
@@ -455,7 +455,7 @@ class ProductSkuView(APIView):
         #print 
         #print type(product_sku),product_sku
         product_sku['layer_table'] = render_to_string('items/productskutable.html', { 'object':instance}) 
-        print product_sku['layer_table']
+
         return  Response(product_sku)
     
     
@@ -498,9 +498,9 @@ class ProductSkuView(APIView):
             return Response(u'填写信息不规则')
         update_field_labels = []
         for field in update_fields:
-            update_field_labels.append(ProductSku._meta.get_field(field).verbose_name.title())
+            update_field_labels.append('%s:%s'%(ProductSku._meta.get_field(field).verbose_name.title(),getattr(product_sku,field)))
         product = product_sku.product
-        log_action(request.user.id,product,CHANGE,u'更新规格(%s:%s)信息'%(unicode(product_sku),','.join(update_field_labels)))
+        log_action(request.user.id,product,CHANGE,u'更新规格(%s,%s)信息'%(unicode(product_sku),','.join(update_field_labels)))
         
         return Response(product_sku.json)
     

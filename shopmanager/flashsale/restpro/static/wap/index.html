@@ -127,16 +127,22 @@
     Set_shopcarts_num();
     today_timer();
     need_set_info();
-
     $(window).scroll(function () {
         loadData(Set_promotes_product);// 更具页面下拉情况来加载数据
     });
-
+    
 })(jQuery);
 function scroll_top(e){
     e.preventDefault();
     $('body').animate({scrollTop: 0}, 400);
 }
+</script>
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script src="js/wx-share.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  sharePage();
+});
 </script>
 <link rel="stylesheet" type="text/css" href="css/sweet-alert.css">
 <script src="js/sweet-alert.min.js"></script>

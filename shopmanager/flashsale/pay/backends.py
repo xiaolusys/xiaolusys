@@ -7,7 +7,7 @@ from django.contrib.auth.models import User,AnonymousUser
 from django.contrib.auth.backends import RemoteUserBackend
 from django.core.urlresolvers import reverse
 
-from .models import Customer
+from .models import Customer,Register
 from .options import get_user_unionid
 from .tasks import task_Update_Sale_Customer
 from shopapp.weixin.views import valid_openid
@@ -18,7 +18,7 @@ logger = logging.getLogger('django.request')
 
 
 class FlashSaleBackend(RemoteUserBackend):
-    
+    """ 微信用户名，密码授权登陆 """
     create_unknown_user = False
     upports_inactive_user = False
     supports_object_permissions = False
@@ -67,7 +67,7 @@ class FlashSaleBackend(RemoteUserBackend):
         
 
 class WeixinPubBackend(RemoteUserBackend):
-    
+    """ 微信公众号授权登陆 """
     create_unknown_user = True
     upports_inactive_user = False
     supports_object_permissions = False
@@ -121,7 +121,7 @@ class WeixinPubBackend(RemoteUserBackend):
             return None
         
 class WeixinAppBackend(RemoteUserBackend):
-    
+    """ 微信APP授权登陆 """
     create_unknown_user = True
     upports_inactive_user = False
     supports_object_permissions = False
@@ -174,3 +174,51 @@ class WeixinAppBackend(RemoteUserBackend):
         except:
             return None
   
+class SMSLoginBackend(RemoteUserBackend):
+    """ 短信验证码登陆后台 """
+    create_unknown_user = True
+    upports_inactive_user = False
+    supports_object_permissions = False
+
+    def authenticate(self, request, **kwargs):
+        
+        content = request.POST
+        mobile  = content.get('mobile')
+        sms_code = content.get('sms_code')
+        if not (request.path.startswith("/rest/") and mobile and sms_code):
+            return None
+        
+        try:
+            register = Register.objects.get(vmobile=mobile)
+            if not register.is_submitable() or not register.check_code(sms_code):
+                return AnonymousUser()
+            
+            profile = Customer.objects.get(mobile=mobile)
+            if profile.user:
+                if not profile.user.is_active:
+                    profile.user.is_active = True
+                    profile.user.save()
+                return profile.user
+            else:
+                user,state = User.objects.get_or_create(username=mobile,is_active=True)
+                profile.user = user
+                profile.save()
+        
+        except Register.DoesNotExist:
+            return AnonymousUser()
+        except Customer.DoesNotExist:
+            if not self.create_unknown_user:
+                return AnonymousUser()
+            user,state = User.objects.get_or_create(username=mobile,is_active=True)
+            profile,state = Customer.objects.get_or_create(mobile=mobile,user=user)
+        return user
+    
+
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except:
+            return None
+        
+        
+        

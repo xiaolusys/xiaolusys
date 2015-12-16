@@ -148,9 +148,16 @@ class WeiXinUserAdmin(MyAdmin):
     list_per_page = 25
     list_display = ('openid','nickname','sex','province','city','mobile','subscribe' #,'referal_count'
                     ,'subscribe_time','vipcode_link','charge_link','group_select','isvalid')
-    
+    list_display_links = ('openid',)
     list_filter = ('charge_status','subscribe','isvalid','sex','user_group',)
     search_fields = ['=openid','=mobile']
+    
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = self.readonly_fields
+        if not request.user.is_superuser:
+            readonly_fields = readonly_fields+('openid','unionid','charge_status','subscribe','subscribe_time',
+                                               'validcode','vmobile','mobile','referal_from_openid')
+        return readonly_fields
     
     def charge_link(self, obj):
 

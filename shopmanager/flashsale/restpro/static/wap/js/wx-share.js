@@ -1,15 +1,14 @@
 
 function sharePage(xlmm){
+    if (!GLConfig.weixin){return;}
     var share_url = GLConfig.baseApiUrl + GLConfig.api_share_page;
     $.ajax({
         type: "get",
         url: share_url,
         data: "",
-        success: cookieProfile,
+        success: listenWeixinShareEvent,
         error: function (data) {
-            if (data.status == 403) {
-                window.location = GLConfig.login_url+'?next='+encodeURIComponent(cfg.redirecto);
-            }
+            console.log('需登陆后才能分享专属链接；');
         }
     });
 }

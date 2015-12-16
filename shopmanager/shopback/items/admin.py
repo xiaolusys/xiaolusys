@@ -25,7 +25,7 @@ from shopback.items.models import (Item,Product,
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopback.users.models import User
 from shopback.categorys.models import ProductCategory
-from shopback.purchases import getProductWaitReceiveNum
+# from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
@@ -106,7 +106,7 @@ class ProductAdmin(MyAdmin):
     form = ProductModelForm
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
-                    'remain_num','wait_post_num','cost' ,'std_sale_price','agent_price'
+                    'remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price','agent_price'
                     , 'model_id', 'sync_stock','is_match','is_split','sale_time_select',
                    'sale_charger','ware_select','district_link','shelf_status', 'sale_time') #'charger_select',
     list_display_links = ('id',)
@@ -172,10 +172,12 @@ class ProductAdmin(MyAdmin):
     district_link.short_description = u"附加信息>>"
     
     def wait_receive_num(self, obj):
-        wrNum = getProductWaitReceiveNum(obj.id)
-        if not wrNum:
-            return '0'
-        return u'<div style="color:blue;background-color:red;">%d</div>'%wrNum
+        from flashsale.dinghuo.options import getProductOnTheWayNum
+        wrNum = getProductOnTheWayNum(obj.id,start_time=obj.sale_time)
+        if (obj.collect_num + wrNum) < obj.wait_post_num:
+            return u'<div style="color:white;background-color:red;">%d</div>'%wrNum
+        else:
+            return u'<div style="color:white;background-color:green;">%d</div>'%wrNum
     
     wait_receive_num.allow_tags = True
     wait_receive_num.short_description = u"在途数" 

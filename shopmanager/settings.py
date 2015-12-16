@@ -189,11 +189,13 @@ AUTH_PROFILE_MODULE = 'users.user'
 
 AUTHENTICATION_BACKENDS = (
     'flashsale.pay.backends.FlashSaleBackend',
+    'flashsale.pay.backends.SMSLoginBackend',
     'flashsale.pay.backends.WeixinPubBackend',
     'flashsale.pay.backends.WeixinAppBackend',
     'auth.accounts.backends.TaoBaoBackend',
     'shopapp.jingdong.backends.JingDongBackend',
-    'django.contrib.auth.backends.ModelBackend')
+    'django.contrib.auth.backends.ModelBackend'
+)
 
 LOGIN_REDIRECT_URL = '/home/'
 LOGIN_URL = '/admin/'
