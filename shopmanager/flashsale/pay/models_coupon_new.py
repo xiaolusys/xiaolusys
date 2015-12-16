@@ -71,6 +71,12 @@ class CouponTemplate(models.Model):
         if now < vas_t:
             raise AssertionError(u'%s至%s启动使用' % (vas_t, self.deadline))
 
+    def check_pro(self, pro):
+        """ 检查产品 """
+
+
+
+
 
 class CouponsPool(models.Model):
     RELEASE = 1
@@ -191,58 +197,6 @@ class UserCoupon(models.Model):
                     cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
                     cou.save()
         return
-
-    def release_150_10(self, **kwargs):
-        buyer_id = kwargs.get("buyer_id", None)
-        # 2015-10-1前可以使用
-        trade_id = "0"
-        if buyer_id and trade_id:
-            tpl = CouponTemplate.objects.get(type=CouponTemplate.C150_10, valid=True)  # 获取满150减10优惠券
-            # 每个人只能领取一张
-            uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__type=CouponTemplate.C150_10)
-            if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
-                return "limit"
-            else:
-                # 发放优惠券
-                cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
-                if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
-                    cou.delete()  # 删除create 防止产生脏数据
-                    message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
-                    raise Exception(message)
-                else:
-                    self.cp_id = cou
-                    self.customer = buyer_id
-                    self.sale_trade = trade_id
-                    self.save()
-                    cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
-                    cou.save()
-                    return "success"
-        return None
-
-    def release_259_20(self, **kwargs):
-        buyer_id = kwargs.get("buyer_id", None)
-        # 2015-10-1前可以使用
-        trade_id = "0"
-        if buyer_id and trade_id:
-            tpl = CouponTemplate.objects.get(type=CouponTemplate.C259_20, valid=True)  # 获取满150减10优惠券
-            # 每个人只能领取一张
-            uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__type=CouponTemplate.C259_20)
-            if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
-                return "limit"
-            cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
-            if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
-                cou.delete()  # 删除create 防止产生脏数据
-                message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
-                raise Exception(message)
-            else:
-                self.cp_id = cou
-                self.customer = buyer_id
-                self.sale_trade = trade_id
-                self.save()
-                cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
-                cou.save()
-                return "success"
-        return None
 
     def release_by_template(self, **kwargs):
         """
