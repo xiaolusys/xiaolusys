@@ -35,6 +35,7 @@ router.register(r'districts', views.DistrictViewSet)
 router.register(r'integral', views_integral.UserIntegralViewSet)
 router.register(r'integrallog', views_integral.UserIntegralLogViewSet)
 router.register(r'usercoupons', views_coupon.UserCouponsViewSet)
+router.register(r'cpntmpl', views_coupon.CouponTemplateViewSet)
 
 router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)

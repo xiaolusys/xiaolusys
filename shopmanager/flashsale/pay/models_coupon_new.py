@@ -22,6 +22,9 @@ class CouponTemplate(models.Model):
     COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"), (POST_FEE_20, u"20元退货补邮费"),
                    (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"))
+    CLICK_WAY = 0
+    BUY_WAY = 1
+    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"))
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
@@ -34,6 +37,8 @@ class CouponTemplate(models.Model):
     use_fee = models.FloatField(default=0.0, verbose_name=u'满单额')  # 满多少可以使用
     deadline = models.DateTimeField(blank=True, verbose_name=u'截止日期')
     use_notice = models.TextField(blank=True, verbose_name=u"使用须知")
+    way_type = models.IntegerField(default=0, choices=COUPON_WAY, verbose_name=u"领取途径")
+    post_img = models.CharField(max_length=512, verbose_name=u"模板图片")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 

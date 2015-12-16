@@ -276,7 +276,7 @@ class TradeWuliuSerializer(serializers.ModelSerializer):
         model = TradeWuliu
         exclude=()
 
-from flashsale.pay.models_coupon_new import UserCoupon
+from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
 
 
 class UsersCouponSerializer(serializers.ModelSerializer):
@@ -294,6 +294,12 @@ class UsersCouponSerializer(serializers.ModelSerializer):
         # remove the "cp_id" field, test for browser solwly
         fields = ("id",  "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
                   'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee')
+
+
+class CouponTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CouponTemplate
+
 
 from shopapp.weixin.models import WXOrder
 
