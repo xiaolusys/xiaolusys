@@ -10,6 +10,7 @@ from flashsale.pay.models import Customer
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import APIException
+from shopback.items.models import Product
 
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
@@ -89,7 +90,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         """　根据参数生成不同类型的优惠券　"""
         content = request.REQUEST
         # if content:
-        #     return Response({"res": "not_release"})
+        # return Response({"res": "not_release"})
         try:
             template_id = int(content.get("template_id", None))
         except TypeError:
@@ -108,9 +109,12 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["post"])
     def choose_coupon(self, request, pk=None):
-        print "request data :", request.data
         content = request.REQUEST
         price = float(content.get("price", 0))
+        item = int(content.get("item_id", 0))
+        pro = Product.objects.get(id=item)
+        if item and (pro.details.is_seckill or str(pro.name).startswith("秒杀")):
+            raise APIException(u"秒杀产品不支持使用优惠券")
         coupon_id = pk  # 获取order_id
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)
