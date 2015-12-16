@@ -71,12 +71,6 @@ class CouponTemplate(models.Model):
         if now < vas_t:
             raise AssertionError(u'%s至%s启动使用' % (vas_t, self.deadline))
 
-    def check_pro(self, pro):
-        """ 检查产品 """
-
-
-
-
 
 class CouponsPool(models.Model):
     RELEASE = 1
