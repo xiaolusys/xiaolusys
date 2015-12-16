@@ -29,6 +29,8 @@ if DEBUG:
 else :
     STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
 
+M_STATIC_URL = '/'
+
 ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','121.199.168.159']
 
 CACHES = {
