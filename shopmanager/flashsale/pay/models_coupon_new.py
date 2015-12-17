@@ -46,7 +46,7 @@ class CouponTemplate(models.Model):
     use_notice = models.TextField(blank=True, verbose_name=u"使用须知")
     way_type = models.IntegerField(default=0, choices=COUPON_WAY, verbose_name=u"领取途径")
     target_user = models.IntegerField(default=0, choices=TAR_USER, verbose_name=u"目标用户")
-    post_img = models.CharField(max_length=512, verbose_name=u"模板图片")
+    post_img = models.CharField(max_length=512, blank=True, null=True, verbose_name=u"模板图片")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 

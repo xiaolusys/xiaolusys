@@ -2,7 +2,7 @@
 alter table pay_coupon_template add column target_user int(11) default 1;
 ############2015-12-16#####################
 alter table pay_coupon_template add column way_type int(11) default 0;
-alter table pay_coupon_template add column post_img varchar(512) NOT NULL ;
+alter table pay_coupon_template add column post_img varchar(512) default null ;
 ############2015-12-08#####################
 alter table flashsale_pay_product_refund_record add column sale_date date Not null;
 CREATE INDEX `flashsale_pay_product_refund_record_96b5e96` ON `flashsale_pay_product_refund_record` (`sale_date`);

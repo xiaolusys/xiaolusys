@@ -70,17 +70,20 @@ function Set_coupon_tpls() {
         "csrfmiddlewaretoken": csrftoken
     });
     function callback(res) {
-        console.log("tpls:", res);
+        var img_num = 0;
         $.each(res, function (i, v) {
-            var tplhml = create_tpl_show(v);
-            $("#tpl_ul_show").append(tplhml);
+            if (v.post_img != "") {
+                var tplhml = create_tpl_show(v);
+                $("#tpl_ul_show").append(tplhml);
+                img_num += 1;
+            }
         });
         // 调用轮播
         var autoplay = false;
-        if (res.length > 1) {
+        if (img_num > 1) {
             autoplay = true; //优惠券张数大于1的时候显示轮播
         }
-        else if (res.length <= 0) {
+        else if (img_num <= 0) {
             $(".glist_cou").remove();//没有优惠券的时候删除dom
         }
         CouponTemplateShow($(".glist_cou"), 500, 3000, autoplay);
@@ -93,7 +96,6 @@ function Set_coupon_tpls() {
 }
 
 function CouponTemplateShow(dom, speed, delay, autoplay) {
-    console.log("dom:", dom);
     $(dom).unslider({
         autoplay: autoplay,
         speed: speed,
