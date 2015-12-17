@@ -130,8 +130,8 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 class CouponTemplateViewSet(viewsets.ModelViewSet):
     queryset = CouponTemplate.objects.all()
     serializer_class = serializers.CouponTemplateSerializer
-    authentication_classes = (authentication.SessionAuthentication, authentication.BaseAuthentication)
-    permission_classes = (permissions.IsAuthenticated, )
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # 这里使用只读的权限
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def get_useful_template_query(self):

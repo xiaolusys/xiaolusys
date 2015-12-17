@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="css/dots-loading.css">
     <link rel="stylesheet" type="text/css" href="css/common.css">
     <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link rel="stylesheet" type="text/css" href="css/unslider.css">
 </head>
 <body>
 <!-- 页首、导航栏 -->
@@ -29,14 +30,12 @@
 </div>
 <div >
     <div class="glist_cou" id="coupon_release">
-        <img src="http://image.xiaolu.so/TT-1449801292770"/>
+        <ul id="tpl_ul_show">
+        </ul>
     </div>
-    <!--
-        <div class="glist_cou_left" id="coupon_release_left">
-        </div>
-        <div class="glist_cou_right" id="coupon_release_right">
-        </div>
-    -->
+    <script type="text/html" id="coupon_tpl">
+        <li cid="{{ id }}"><img src="{{ post_img }}"></li>
+    </script>
 </div>
 <!-- 海报、推荐专区 -->
 <div class="poster new">
@@ -100,6 +99,7 @@
 <script src="js/jquery-shopping.js"></script>
 <script src="js/mainpag.js"></script>
 <script src="js/coupon_release_index.js"></script>
+<script src="js/unslider-min.js"></script>
 <script type="text/javascript">
 (function ($) {
     //返回顶部
@@ -130,6 +130,8 @@
     $(window).scroll(function () {
         loadData(Set_promotes_product);// 更具页面下拉情况来加载数据
     });
+    // 获取优惠券
+    Set_coupon_tpls();
     
 })(jQuery);
 function scroll_top(e){
