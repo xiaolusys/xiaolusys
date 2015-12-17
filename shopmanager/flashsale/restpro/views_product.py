@@ -426,7 +426,7 @@ class ProductSnapshotView(generics.RetrieveAPIView):
     QR_IMG_PATH    = 'qr'
     
     def get_share_link(self,params):
-        link = urlparse.urljoin(settings.M_STATIC_URL,'pages/shangpinxq.html?id={product_id}&linkid={linkid}')
+        link = urlparse.urljoin(settings.M_SITE_URL,'pages/shangpinxq.html?id={product_id}&linkid={linkid}')
         return link.format(**params)
     
     def get_xlmm(self,request):
