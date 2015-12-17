@@ -7,6 +7,7 @@
 from django.db import models
 import datetime
 from options import uniqid
+from flashsale.pay.models import Customer
 
 
 class CouponTemplate(models.Model):
@@ -19,12 +20,18 @@ class CouponTemplate(models.Model):
     C259_20 = 3
     DOUBLE_11 = 6
     DOUBLE_12 = 8
+    USUAL = 9
     COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"), (POST_FEE_20, u"20元退货补邮费"),
-                   (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"))
+                   (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"),
+                   (USUAL, u"普通"))
     CLICK_WAY = 0
     BUY_WAY = 1
     COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"))
+    ALL_USER = 1
+    AGENCY_VIP = 2
+    AGENCY_A = 3
+    TAR_USER = ((ALL_USER, u"所有用户"), (AGENCY_A, u"A类代理"), (AGENCY_VIP, u"VIP代理"))
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
@@ -38,6 +45,7 @@ class CouponTemplate(models.Model):
     deadline = models.DateTimeField(blank=True, verbose_name=u'截止日期')
     use_notice = models.TextField(blank=True, verbose_name=u"使用须知")
     way_type = models.IntegerField(default=0, choices=COUPON_WAY, verbose_name=u"领取途径")
+    target_user = models.IntegerField(default=0, choices=TAR_USER, verbose_name=u"目标用户")
     post_img = models.CharField(max_length=512, verbose_name=u"模板图片")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
@@ -210,7 +218,22 @@ class UserCoupon(models.Model):
                 tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取点击的优惠券模板
             except CouponTemplate.DoesNotExist:
                 return "not_release"
-            # 每个人只能领取一张
+            # 身份判定（判断身份是否和优惠券模板指定用户一致） 注意　这里是硬编码　和　XiaoluMama　代理级别关联
+            if tpl.target_user != CouponTemplate.ALL_USER:  # 如果不是所有用户可领取则判定级别
+                from flashsale.xiaolumm.models import XiaoluMama
+                cus_id = int(buyer_id)
+                customer = Customer.objects.get(id=cus_id)
+                unionid = customer.unionid
+                try:
+                    xlmm = XiaoluMama.objects.get(openid=unionid)
+                    user_level = xlmm.agencylevel  # 用户的是代理身份 内1 　VIP2  A3
+                except XiaoluMama.DoesNotExist:
+                    user_level = CouponTemplate.ALL_USER  # 没找到则默认所有用户
+            else:
+                user_level = CouponTemplate.ALL_USER
+            if user_level != tpl.target_user:
+                # 如果用户领取的优惠券和用户身份不一致则不予领取
+                return "not_release"
             uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
             if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
                 return "limit"
