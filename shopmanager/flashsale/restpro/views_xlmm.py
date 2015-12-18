@@ -29,8 +29,9 @@ yestoday_time_to = datetime.datetime(yestoday.year, yestoday.month, yestoday.day
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
     """
-    特卖平台－小鹿妈妈代理API:
-    -{prefix}[.format] : 获取登陆用户的代理基本信息
+    ### 特卖平台－小鹿妈妈代理API:
+    - {prefix}[.format] method:get : 获取登陆用户的代理基本信息
+    - {prefix}/list_base_data　method:get : 获取代理推荐人信息
     """
     queryset = XiaoluMama.objects.all()
     serializer_class = serializers.XiaoluMamaSerialize
@@ -54,6 +55,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return Response()
 
+    @list_route(methods=['get'])
     def list_base_data(self, request):
         """
         该代理推荐的人
@@ -67,8 +69,15 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """
-    特卖平台－小鹿妈妈收支记录API:
-    -{prefix}[.format] : 获取登陆用户的收支记录信息
+    ## 特卖平台－小鹿妈妈收支记录API:
+    - {prefix}[.format] : 获取登陆用户的收支记录信息
+    - {prefix}/list_base_data　method:get : 账户基本信息页面显示
+        - return :
+        `mci`: 已经确认收入
+        `mco`:　已经确认支出  　
+        `ymci`:　昨天确认收入
+        `ymco`: 昨天确认支出
+        `pdc`: 待确认金额
     """
     queryset = CarryLog.objects.all()
     serializer_class = serializers.CarryLogSerialize
@@ -93,6 +102,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return Response()
 
+    @list_route(methods=['get'])
     def list_base_data(self, request):
         """  账户基本信息页面显示　"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -115,8 +125,9 @@ class CarryLogViewSet(viewsets.ModelViewSet):
 
 class ClickCountViewSet(viewsets.ModelViewSet):
     """
-    特卖平台－小鹿妈妈点击API:
-    -{prefix}[.format]: 获取登陆用户的点击记录
+    ## 特卖平台－小鹿妈妈点击API:
+    - {prefix}[.format]: 获取登陆用户的点击记录
+    - {prefix}/list_base_data　method:get : 当天的点击统计记录
     """
     queryset = ClickCount.objects.all()
     serializer_class = serializers.ClickCountSerialize
@@ -141,6 +152,7 @@ class ClickCountViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return Response()
 
+    @list_route(methods=['get'])
     def list_base_data(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         tqs = queryset.filter(date=today.date())  # 今天的统计记录
@@ -150,8 +162,9 @@ class ClickCountViewSet(viewsets.ModelViewSet):
 
 class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     """
-    特卖平台－小鹿妈妈购买统计API:
-    -{prefix}[.format]: 获取登陆用户的购买统计记录
+    ## 特卖平台－小鹿妈妈购买统计API:
+    - {prefix}[.format]: 获取登陆用户的购买统计记录
+    - {prefix}/list_base_data　method:get : 当天的购买统计记录
     """
     queryset = StatisticsShopping.objects.all()
     serializer_class = serializers.StatisticsShoppingSerialize
@@ -176,6 +189,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return Response()
 
+    @list_route(methods=['get'])
     def list_base_data(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         tqs = queryset.filter(shoptime__gte=today_time_from, shoptime__lte=today_time_to)  # 今天的统计记录
@@ -185,8 +199,8 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
 
 class CashOutViewSet(viewsets.ModelViewSet):
     """
-    特卖平台－小鹿妈妈购体现记录API:
-    -{prefix}[.format]: 获取登陆用户的提现记录
+    ## 特卖平台－小鹿妈妈购体现记录API:
+    - {prefix}[.format]: 获取登陆用户的提现记录
     """
     queryset = CashOut.objects.all()
     serializer_class = serializers.CashOutSerialize
