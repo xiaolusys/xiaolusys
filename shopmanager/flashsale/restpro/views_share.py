@@ -36,6 +36,9 @@ class CustomShareViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
     
+    def list(self, request, *args, **kwargs):
+        raise exceptions.APIException('该方法不被允许')
+        
     def get_xlmm(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         if not customer.unionid.strip():
@@ -70,18 +73,20 @@ class CustomShareViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException('not found!')
         
         cshare   = queryset[0]
-        serializer = self.get_serializer(cshare, many=False)
-        resp     = serializer.data
-        
         xlmm     = self.get_xlmm(request)
         xlmm_id  = xlmm and xlmm.id or 0
         share_url = cshare.share_link({'xlmm':xlmm_id})
+        serializer = self.get_serializer(cshare, many=False)
+        resp     = serializer.data
+        
         resp['share_link'] = share_url
         if self.is_request_from_weixin(request):
+            http_referer = request.META.get('HTTP_REFERER',settings.M_SITE_URL)
+            referer_url  = request.GET.get('referer',http_referer).split('#')[0]
             resp['openid']     = self.get_xlmm_share_openid(xlmm)
             wx_api     = WeiXinAPI()
-            signparams = wx_api.getShareSignParams(share_url)
+            signparams = wx_api.getShareSignParams(referer_url)
             resp['wx_singkey'] = signparams
-            
+
         return Response(resp)
     

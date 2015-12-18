@@ -216,13 +216,14 @@
 
 .goods-img{
   padding-top: 20px;
+  padding-bottom: 78px;
   width: 640px;
   margin: 0 auto;
   background-color: #fff;
 
 }
 .goods-img .list{
-  padding-bottom:78px;
+  padding-bottom:38px;
 }
 .goods-img h3{
   font-size: 20px;
@@ -488,4 +489,20 @@ body{font:12px Arial, Helvetica, sans-serif}
 .table-bordered tr:first-child{
     border-top: 0;
     background-color: #f0f0f0;
+}
+
+.share{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.share .span1{
+    color:gray;
+    font-size:20px;
+    line-height:30px;
+}
+
+.share .span2{
+    font-size:20px;
+    line-height:30px;
 }
