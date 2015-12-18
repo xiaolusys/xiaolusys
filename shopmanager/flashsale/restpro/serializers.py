@@ -364,3 +364,39 @@ class ProRefunRcdSerializer(serializers.ModelSerializer):
         model = ProRefunRcord
         fields = ('product', 'ref_num_out', 'ref_num_in', 'ref_sed_num', 'sale_date', 'is_female', 'is_child')
 
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut
+from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShopping
+
+
+class XiaoluMamaSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XiaoluMama
+        fields = ("id", "get_cash_display", "charge_status", "agencylevel", "manager", "referal_from", "mobile", "weikefu",
+                  "charge_time")
+
+
+class CarryLogSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = CarryLog
+        fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type_name", "carry_date", "created")
+
+
+class ClickCountSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = ClickCount
+        fields = ("linkid", "agencylevel", "user_num", "valid_num", "click_num", "date")
+
+
+class StatisticsShoppingSerialize(serializers.ModelSerializer):
+
+    class Meta:
+        model = StatisticsShopping
+        fields = ("linkid", "linkname", "wxorderid", "wxordernick", "order_cash", "rebeta_cash", "ticheng_cash",
+                  "shoptime", "status", "get_status_display")
+
+
+class CashOutSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = CashOut
+        fields = ("xlmm", "value_money", "get_status_display", "status", "created")

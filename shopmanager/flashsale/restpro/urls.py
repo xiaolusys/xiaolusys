@@ -17,6 +17,7 @@ from flashsale.complain.views import ComplainViewSet
 from . import views_wuliu
 from . import views_praise
 from . import views_pro_ref
+from . import views_xlmm
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
@@ -42,6 +43,14 @@ router.register(r'saleproduct', views_praise.SaleProductViewSet)
 router.register(r'hotproduct', views_praise.HotProductViewSet)
 router.register(r'prorefrcd', views_pro_ref.ProRefRcdViewSet)
 router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
+
+
+
+router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
+router.register(r'carrylog', views_xlmm.CarryLogViewSet)
+router.register(r'cashout', views_xlmm.CashOutViewSet)
+router.register(r'clickcount', views_xlmm.ClickCountViewSet)
+router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
 
 
 router_urls = router.urls
@@ -78,6 +87,22 @@ router_urls += format_suffix_patterns([
         url(r'^user/integrallog/',
             views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
+
+        url(r'^xlmm/list_base_data/$',
+            views_xlmm.XiaoluMamaViewSet.as_view({'get': 'list_base_data'}),
+            name='xlmm-base-data'),
+
+        url(r'^carrylog/list_base_data/$',
+            views_xlmm.CarryLogViewSet.as_view({'get': 'list_base_data'}),
+            name='xlmm-carrlog-base-data'),
+
+        url(r'^clickcount/list_base_data/$',
+            views_xlmm.ClickCountViewSet.as_view({'get': 'list_base_data'}),
+            name='xlmm-clickcount-base-data'),
+
+        url(r'^shopping/list_base_data/$',
+            views_xlmm.StatisticsShoppingViewSet.as_view({'get': 'list_base_data'}),
+            name='xlmm-shopping-base-data'),
     ])
 
 urlpatterns = patterns('',
