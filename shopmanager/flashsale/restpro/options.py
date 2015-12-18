@@ -11,7 +11,7 @@ def gen_wxlogin_sha1_sign(params,secret):
 
 import qrcode
 def gen_and_save_jpeg_pic(link,file_path_name):
-    qr = qrcode.QRCode(version=1, box_size=5, border=4)
+    qr = qrcode.QRCode(version=1, box_size=8, border=1)
     qr.add_data(link)
     qr.make(fit=True)
     x = qr.make_image()

@@ -1,7 +1,7 @@
 import qrcode
 
 def gen_jpeg_pic(link):
-    qr = qrcode.QRCode(version=1, box_size=5, border=4)
+    qr = qrcode.QRCode(version=1, box_size=7, border=2)
     qr.add_data(link)
     qr.make(fit=True)
     x = qr.make_image()

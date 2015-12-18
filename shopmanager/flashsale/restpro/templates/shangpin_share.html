@@ -7,7 +7,7 @@
     <meta name="format-detection" content="email=no"/>
     <meta name="format-detection" content="telephone=no"/>
     <meta id="viewport" name="viewport" />
-    <script src="{{M_STATIC_URL}}/static/wap/js/common.js"></script>
+    <script src="{{M_STATIC_URL}}js/common.js"></script>
     <link rel="stylesheet" href="{{M_STATIC_URL}}css/swiper3.07.min.css">
     <link rel="stylesheet" href="{{M_STATIC_URL}}css/common.css">
     <link rel="stylesheet" href="{{M_STATIC_URL}}css/shangpinxq.css">
@@ -114,27 +114,25 @@
     </div>
     <div class="list">
 	    <!-- 这里添加商品图片 -->
-	    {% if details %}
+	    {% if details.content_imgs %}
 	    {% for img in details.content_imgs %}
 	    <img src="{{img}}?imageMogr2/format/jpg/quality/90"></img>
 	    {% endfor %}
-	    {% elif product_model %}
+	    {% elif product_model.content_imgs %}
 	    {% for img in product_model.content_imgs %}
 	    <img src="{{img}}?imageMogr2/format/jpg/quality/90"></img>
 	    {% endfor %}
 	    {% endif %}
     </div>
     <div class="share">
-	    <div class="thumbnail" style="width:210px;margin:0 auto;margin-bottom:20px;">
+	    <div class="thumbnail" style="width:280px;margin:0 auto;margin-bottom:20px;">
 	        <img src="{{share_qrcode}}" ></img>
 	    </div>
-	    <div>
+	    <div class="tixing">
 	      <p class="span1">长按图片,识别图中二维码,查看商品详情</p>
 	      <p class="span2">如果无法识别可下载小鹿美美APP了解更多</p>
 	    </div>
     </div>
-</div>
-<div class="footer clearfix">
 </div>
 </body>
 </html>
