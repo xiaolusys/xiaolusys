@@ -21,10 +21,11 @@ class CouponTemplate(models.Model):
     DOUBLE_11 = 6
     DOUBLE_12 = 8
     USUAL = 9
+    NEW_YEAR = 10
     COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"), (POST_FEE_20, u"20元退货补邮费"),
                    (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"),
-                   (USUAL, u"普通"))
+                   (USUAL, u"普通"), (NEW_YEAR, u"元旦专用"))
     CLICK_WAY = 0
     BUY_WAY = 1
     COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"))
@@ -215,12 +216,17 @@ class UserCoupon(models.Model):
         # {"buyer_id": customer.id, "template_id":template_id}
         if buyer_id and trade_id and template_id:
             try:
-                tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取点击的优惠券模板
+                tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取优惠券模板
+                start_time = tpl.deadline - datetime.timedelta(days=tpl.preset_days)
+                now = datetime.datetime.now()
+                if now <= start_time or now >= tpl.deadline:
+                    return "not_release"  # 不在模板定义时间
             except CouponTemplate.DoesNotExist:
                 return "not_release"
             # 身份判定（判断身份是否和优惠券模板指定用户一致） 注意　这里是硬编码　和　XiaoluMama　代理级别关联
             if tpl.target_user != CouponTemplate.ALL_USER:  # 如果不是所有用户可领取则判定级别
                 from flashsale.xiaolumm.models import XiaoluMama
+
                 cus_id = int(buyer_id)
                 customer = Customer.objects.get(id=cus_id)
                 unionid = customer.unionid

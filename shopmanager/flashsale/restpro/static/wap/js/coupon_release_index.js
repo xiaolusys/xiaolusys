@@ -39,14 +39,14 @@ function Action_release(data, d) {
     function callback(res) {
 
         if (res.res == "success") {
-            drawToast("领取成功 赶紧去挑选商品吧 不要过期哦！");
+            drawToast("领取成功 赶紧去挑选商品吧 ！");
             //等待3秒跳转到优惠券页面
         }
         if (res.res == "already") {
-            drawToast("您已经领取优惠券啦 赶紧去挑选商品吧 不要过期哦！");
+            drawToast("您已经领取优惠券啦 赶紧去挑选商品吧 ！");
         }
         if (res.res == "no_type") {
-            drawToast("优惠券类型不正确呢！");
+            drawToast("还没有开放该优惠券敬请期待！");
         }
         if (res.res == "not_release") {
             drawToast("还没有开放该优惠券哦 敬请期待！");
@@ -55,7 +55,7 @@ function Action_release(data, d) {
             drawToast("用户未找到！尝试重新登陆");
         }
         if (res.res == "limit") {
-            drawToast("超过领取限制哦~");
+            drawToast("您已经领取过了哦~");
         }
     }
 }
@@ -81,7 +81,7 @@ function Set_coupon_tpls() {
         // 调用轮播
         var autoplay = false;
         if (img_num > 1) {
-            autoplay = true; //优惠券张数大于1的时候显示轮播
+            autoplay = false; //优惠券张数大于1的时候显示轮播（true） 暂时不设轮播
         }
         else if (img_num <= 0) {
             $(".glist_cou").remove();//没有优惠券的时候删除dom

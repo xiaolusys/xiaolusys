@@ -182,14 +182,10 @@ def release_Coupon_Buy_Way(sender, obj, **kwargs):
     order = obj.sale_orders.all()[0] if obj.sale_orders.exists() else False  # 这里充值的交易只有一个订单
     if order and order.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
         return  # 如果是充值产品 则不发放优惠券
-    now = datetime.datetime.now()
     # 有效的并且是购买方式发放的优惠券模板
-    tpls = CouponTemplate.objects.filter(valid=True, way_type=CouponTemplate.BUY_WAY)
+    tpls = CouponTemplate.objects.filter(valid=True, way_type=CouponTemplate.BUY_WAY).exclude(
+        type=CouponTemplate.NEW_YEAR)  # 排除特殊条件的优惠券
     for tpl in tpls:
-        # 判断时间　现在的时间是不是小于优惠券截止时间　并且大于　该优惠券截止时间 减去　该券的预置天数的时间
-        start_time = tpl.deadline - datetime.timedelta(days=tpl.preset_days)
-        if now <= start_time or now >= tpl.deadline:  # 小于开始时间　大于结束时间　跳出当前模板优惠券发放
-            break
         # 在允许发送情况下　准备发放优惠券
         # 获取该用户的该模板的优惠券
         coups = UserCoupon.objects.filter(customer=obj.buyer_id, cp_id__template__id=tpl.id)
@@ -197,13 +193,9 @@ def release_Coupon_Buy_Way(sender, obj, **kwargs):
         if free_coupons.exists():
             one_freeze_coupon = free_coupons[0]
             one_freeze_coupon.status = UserCoupon.UNUSED  # 从冻结状态 改为 未使用
-            one_freeze_coupon.sale_trade = obj.id
+            one_freeze_coupon.sale_trade = obj.id  # 绑定当前的交易id
             one_freeze_coupon.save()
-            break  # 如果该用户存在冻结的该模板类型优惠券　则将该优惠券解冻并退出当前模板发放（一次购买仅解冻一个优惠券或发放一次该优惠券）
-        cps_count = coups.count()
-        if cps_count >= tpl.limit_num:
-            break  # 如果大于等于该优惠券模板定义的限制张数则　跳出当前模板的优惠券发放
-        # 没有超过限制张数　且　该交易没有用来解冻优惠券　则发放优惠券
+            break  # 如果该用户存在冻结的该模板类型优惠券　则将该优惠券解冻并退出所有模板发放（一次购买仅解冻一个优惠券或发放一次该优惠券）
         # 发放优惠券
         try:
             trade_id = obj.id  # 交易id
