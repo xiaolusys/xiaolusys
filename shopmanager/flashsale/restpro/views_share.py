@@ -81,10 +81,10 @@ class CustomShareViewSet(viewsets.ModelViewSet):
         
         resp['share_link'] = share_url
         if self.is_request_from_weixin(request):
-            curpage_url  = request.build_absolute_uri().split('#')[0]
+            referer_url  = request.META['HTTP_REFERER'].split('#')[0]
             resp['openid']     = self.get_xlmm_share_openid(xlmm)
             wx_api     = WeiXinAPI()
-            signparams = wx_api.getShareSignParams(curpage_url)
+            signparams = wx_api.getShareSignParams(referer_url)
             resp['wx_singkey'] = signparams
 
         return Response(resp)
