@@ -2,7 +2,6 @@
 function sharePage(xlmm){
     if (!GLConfig.weixin){return;}
     var share_url = GLConfig.baseApiUrl + GLConfig.api_share_page;
-    alert('debug share:'+share_url);
     $.ajax({
         type: "get",
         url: share_url,
@@ -15,7 +14,6 @@ function sharePage(xlmm){
 }
 
 function listenWeixinShareEvent(configParams) {
-    alert('debug config:'+configParams);
     var imgUrl      = configParams.share_img;
     var lineLink    = configParams.share_url;
     var descContent = configParams.desc;
@@ -35,7 +33,6 @@ function listenWeixinShareEvent(configParams) {
         // 必填，签名，见附录1
         jsApiList: ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ", "onMenuShareWeibo"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
     });
-    alert('debug config:'+wx.config);
     wx.ready(function() {
         wx.onMenuShareAppMessage({
             title: shareTitle,
