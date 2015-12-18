@@ -319,7 +319,7 @@ class CustomShareSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = CustomShare
-        fields = ('url','id','title', 'desc', 'share_url', 'share_img', 'active_at', 'created', 'status')
+        fields = ('url','id','title', 'desc', 'share_img', 'active_at', 'created', 'status')
         
 
 from supplychain.supplier.models import SaleProduct
