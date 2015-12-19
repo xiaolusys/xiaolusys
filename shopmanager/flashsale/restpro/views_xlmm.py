@@ -32,6 +32,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     ### 特卖平台－小鹿妈妈代理API:
     - {prefix}[.format] method:get : 获取登陆用户的代理基本信息
     - {prefix}/list_base_data　method:get : 获取代理推荐人信息
+    - {prefix}/agency_info　method:get : 代理整理数据
     """
     queryset = XiaoluMama.objects.all()
     serializer_class = serializers.XiaoluMamaSerialize
@@ -68,6 +69,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def agency_info(self):
+        """ wap 版本页面数据整理显示　"""
+
         return Response()
 
 
