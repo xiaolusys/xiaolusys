@@ -52,6 +52,18 @@ function scroll_top(e){
     $('body').animate({scrollTop: 0}, 400);
 }
 </script>
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script src="js/wx-share.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  var items   = $('.glist li>a');
+  if (items.length == 0){
+    console.log('没有可分享的内容');
+  }
+  var item_id = getLinkParam(items[0].href,'id');
+  shareDetailPage(item_id);
+});
+</script>
 <link rel="stylesheet" type="text/css" href="css/sweet-alert.css">
 <script src="js/sweet-alert.min.js"></script>
 </body>

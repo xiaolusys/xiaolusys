@@ -41,11 +41,16 @@ function isNone(value) {
     return typeof(value) == 'undifined' || value == null
 }
 
-function getUrlParam(name) {
+function getLinkParam(url,name){
     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
+    var r = url.substr(1).match(reg);
     if (r != null) return unescape(r[2]);
-    return null; 
+    return null;
+}
+
+function getUrlParam(name) {
+    var local_link = window.location.search;
+    return getLinkParam(local_link,name);
 }
 
 //定义多行字符串函数实现
@@ -107,7 +112,8 @@ var GLConfig = {
     refunds:'/refunds',//退款
     refunds_by_order_id:"/refunds/{{order_id}}/get_by_order_id",
     sale_product: "/saleproduct",   //获取特卖选品列表
-    api_share_page:'/share/today.json',//分享页面
+    api_share_page:'/share/today.json',//分享店铺主页
+    api_share_product:'/share/product.json',//分享商品详情页
     change_hot_val: "/saleproduct/{{ id }}/change_hot_val",   //添加热度值
     hot_product: "/hotproduct",   //获取特卖选品列表
     change_hot_pro_hot_val: "/hotproduct/{{ id }}/change_hot_val"   //添加热度值

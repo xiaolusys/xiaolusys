@@ -1,11 +1,27 @@
 
-function sharePage(xlmm){
+function sharePage(){
+//分享店铺链接
     if (!GLConfig.weixin){return;}
     var share_url = GLConfig.baseApiUrl + GLConfig.api_share_page;
     $.ajax({
         type: "get",
         url: share_url,
         data: "",
+        success: listenWeixinShareEvent,
+        error: function (data) {
+            console.log('需登陆后才能分享专属链接');
+        }
+    });
+}
+
+function shareDetailPage(product_id){
+//分享商品链接
+    if (!GLConfig.weixin || isNone(product_id)){return;}
+    var share_url = GLConfig.baseApiUrl + GLConfig.api_share_product;
+    $.ajax({
+        type: "get",
+        url: share_url,
+        data: {product_id:product_id},
         success: listenWeixinShareEvent,
         error: function (data) {
             console.log('需登陆后才能分享专属链接');
@@ -22,7 +38,7 @@ function listenWeixinShareEvent(configParams) {
     var signkey     = configParams.wx_singkey;
     alert('debug:share link = '+lineLink);
     wx.config({
-        debug: true,
+        debug: false,
         // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
         appId: signkey.app_id,
         // 必填，公众号的唯一标识

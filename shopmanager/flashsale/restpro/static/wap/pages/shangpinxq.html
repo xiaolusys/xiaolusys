@@ -255,6 +255,14 @@ function callNTKFChatPage(){
     NTKF.im_openInPageChat("kf_9645_1444459002183");
 }
 </script>
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script src="../js/wx-share.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  var item_id = getUrlParam('id');
+  shareDetailPage(item_id);
+});
+</script>
 <link rel="stylesheet" type="text/css" href="../css/sweet-alert.css">
 <script src="../js/sweet-alert.min.js"></script>
 </body>
