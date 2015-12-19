@@ -1,3 +1,5 @@
+############2015-12-19#####################
+alter table flashsale_customshare add column share_type varchar(8) not null;
 ############2015-12-17#####################
 alter table pay_coupon_template add column target_user int(11) default 1;
 ############2015-12-16#####################

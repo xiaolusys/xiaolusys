@@ -414,7 +414,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         res = {"is_verify": pro.is_verify, "id": pro.id}
         return Response(res)
 
-class ProductSnapshotView(generics.RetrieveAPIView):
+class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """
     queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer

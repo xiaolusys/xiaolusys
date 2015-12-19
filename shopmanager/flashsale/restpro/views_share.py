@@ -17,6 +17,7 @@ from rest_framework import exceptions
 
 from flashsale.pay.models import CustomShare,Customer
 from flashsale.xiaolumm.models import XiaoluMama
+from shopback.items.models import Product
 
 from shopapp.weixin.models import WeixinUnionID
 from shopapp.weixin.weixin_apis import WeiXinAPI,WeiXinRequestException
@@ -28,7 +29,10 @@ from shopback.base import log_action, ADDITION, CHANGE
 class CustomShareViewSet(viewsets.ModelViewSet):
     """
     特卖分享API：
-    - {prefix}/today[.format]: 获取今日分享内容;
+    
+    - /today : (or /shop)分享店铺信息接口;
+    - /product: 分享商品信息接口;
+    > product_id:被分享的商品ID
     """
     queryset = CustomShare.objects.filter(status=True)
     serializer_class = serializers.CustomShareSerializer
@@ -62,24 +66,53 @@ class CustomShareViewSet(viewsets.ModelViewSet):
             return ''
         return wxunions[0].openid
         
-        
-    @list_route(methods=['get'])
-    def today(self, request, *args, **kwargs):
-        """ 获取今日分享链接内容 """
-        today = datetime.date.today()
-        queryset = self.get_queryset()
-        queryset = queryset.filter(active_at__lte=today).order_by('-active_at')
-        if queryset.count() == 0 :
-            raise exceptions.APIException('not found!')
-        
-        cshare   = queryset[0]
-        xlmm     = self.get_xlmm(request)
+    def render_share_params(self, xlmm, cshare, product=None):
+        if not cshare:
+            return {'share_link':'',
+                    'share_img':'',
+                    'title':'',
+                    'desc':'',
+                    }
         xlmm_id  = xlmm and xlmm.id or 0
-        share_url = cshare.share_link({'xlmm':xlmm_id})
         serializer = self.get_serializer(cshare, many=False)
         resp     = serializer.data
         
-        resp['share_link'] = share_url
+        resp['share_link'] = cshare.share_link(xlmm=xlmm_id,product=product)
+        resp['title']      = cshare.share_title(xlmm=xlmm_id,product=product)
+        resp['desc']       = cshare.share_desc(xlmm=xlmm_id,product=product)
+        resp['share_img']  = cshare.share_image(xlmm=xlmm_id,product=product)
+        return resp
+        
+    @list_route(methods=['get'])
+    def today(self, request, *args, **kwargs):
+        """ 分享店铺信息接口 """
+        
+        xlmm     = self.get_xlmm(request)
+        cshare = CustomShare.get_shop_share()
+        resp = self.render_share_params(xlmm, cshare)
+        
+        if self.is_request_from_weixin(request):
+            http_referer = request.META.get('HTTP_REFERER',settings.M_SITE_URL)
+            referer_url  = request.GET.get('referer',http_referer).split('#')[0]
+            resp['openid']     = self.get_xlmm_share_openid(xlmm)
+            wx_api     = WeiXinAPI()
+            signparams = wx_api.getShareSignParams(referer_url)
+            resp['wx_singkey'] = signparams
+            
+        return Response(resp)
+    
+    shop = today
+    
+    @list_route(methods=['get'])
+    def product(self, request, *args, **kwargs):
+        """ 分享商品信息接口 """
+        product_id = request.GET.get('product_id',0)
+        product    = get_object_or_404(Product,id=product_id)
+        
+        xlmm     = self.get_xlmm(request)
+        cshare = CustomShare.get_product_share()
+        resp = self.render_share_params(xlmm, cshare, product=product)
+        
         if self.is_request_from_weixin(request):
             http_referer = request.META.get('HTTP_REFERER',settings.M_SITE_URL)
             referer_url  = request.GET.get('referer',http_referer).split('#')[0]
@@ -89,4 +122,3 @@ class CustomShareViewSet(viewsets.ModelViewSet):
             resp['wx_singkey'] = signparams
 
         return Response(resp)
-    

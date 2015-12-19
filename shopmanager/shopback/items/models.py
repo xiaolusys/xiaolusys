@@ -254,7 +254,9 @@ class Product(models.Model):
             except:
                 return self.PIC_PATH
         return pmodel.head_imgs.split()[0]
-        
+    
+    head_img_url = property(head_img)
+    
     @property
     def json(self):
         

@@ -26,13 +26,15 @@
 </div>
 <!-- 商品详细信息 -->
 <div class="goods-content">
-    <div class="goods-info">
-     <h3>{{name}}</h3>
-     <div class="price">
-     <span>¥ {{ product_lowest_price }}</span>
-     <s>¥{{ std_sale_price }}</s>
-     </div>
-     <span id="product_id" style="display:none">{{id}}</span>
+	 <div class="goods-info">
+	    <div style="width:80%;float:left;">
+		    <h3>{{name}}</h3>
+		    <div class="price">
+		    <span>¥ {{ product_lowest_price }}</span>
+		    <s>¥{{ std_sale_price }}</s>
+		    </div>
+        </div>
+        <div style="width:20%;float:left;"><img src="{{share_qrcode}}" style="width:102px;height:102px;"/></div>
     </div>
     <div class="goods-size">
      <img src="http://image.xiaolu.so/kexuanchima.png?imageMogr2/format/jpg/quality/100" width="100%">
