@@ -333,32 +333,21 @@ def task_Pull_Red_Envelope(pre_day=7):
             break
             
 
-# 2015-10-7 修改该任务到新版本优惠券
-from models_coupon_new import CouponsPool, UserCoupon, CouponTemplate
+from models_coupon_new import CouponsPool, CouponTemplate
 from django.db import transaction
-
-
-def Update_CouponPoll_Status(type=None):
-    today = datetime.datetime.today()
-    # 定时更新优惠券的状态:超过截至时间的优惠券 将其状态修改为过期无效状态
-    # 找到截至时间 是昨天的 优惠券
-    deadline_time = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
-    # 未发放的 已经发放的 可以使用的  （截至时间小于昨天的）
-    cous = CouponsPool.objects.filter(template__type=type, template__deadline__lte=deadline_time,
-                                      status__in=(CouponsPool.RELEASE, CouponsPool.UNRELEASE))
-
-    cous.update(status=CouponsPool.PAST)  # 更新为无效的优惠券
-
 
 
 @task
 @transaction.commit_on_success
 def task_Update_CouponPoll_Status():
-    # 修改C259_20　和　C150_10　类型的优惠券状态
-    # 2015-10-7
-    Update_CouponPoll_Status(type=CouponTemplate.C150_10)
-    Update_CouponPoll_Status(type=CouponTemplate.C259_20)
-    # 双十一
-    Update_CouponPoll_Status(type=CouponTemplate.DOUBLE_11)
-    # 双十二
-    Update_CouponPoll_Status(type=CouponTemplate.DOUBLE_12)
+    """ 定时更新券池中的优惠券到过期过期状态　"""
+    today = datetime.datetime.today()
+    # 定时更新优惠券的状态:　超过模板定义截至时间的优惠券 将其状态修改为过期无效状态
+    deadline_time = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
+    # 未发放的 已经发放的   截止日期在今天之前的　排除邮费和代理优惠券
+    cous = CouponsPool.objects.filter(template__deadline__lte=deadline_time,
+                                      status__in=(CouponsPool.RELEASE, CouponsPool.UNRELEASE)).exclude(
+        template__type__in=(CouponTemplate.RMB118, CouponTemplate.POST_FEE_5,
+                            CouponTemplate.POST_FEE_10, CouponTemplate.POST_FEE_15,
+                            CouponTemplate.POST_FEE_20))
+    cous.update(status=CouponsPool.PAST)  # 更新为过期优惠券

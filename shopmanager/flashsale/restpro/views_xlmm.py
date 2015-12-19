@@ -18,20 +18,23 @@ from django.forms import model_to_dict
 from django.db.models import Sum
 
 
-today = datetime.datetime.today()
-yestoday = today - datetime.timedelta(days=1)
-
-today_time_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
-today_time_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
-yestoday_time_from = datetime.datetime(yestoday.year, yestoday.month, yestoday.day, 0, 0, 0)
-yestoday_time_to = datetime.datetime(yestoday.year, yestoday.month, yestoday.day, 23, 59, 59)
-
-
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
     """
     ### 特卖平台－小鹿妈妈代理API:
     - {prefix}[.format] method:get : 获取登陆用户的代理基本信息
     - {prefix}/list_base_data　method:get : 获取代理推荐人信息
+    - {prefix}/agency_info　method:get : 代理整理数据  
+    `recommend_num`: 总推荐数量  
+    `clk_num`: 今日点击  
+    `shop_num`: 今日订单  
+    `mobile`: 手机号  
+    `mco`: 确定支出  
+    `ymco`: 昨日确定支出  
+    `pdc`: 总待确定金额  
+    `ymci`:昨日确定收入  
+    `mci`: 确定收入  
+    `cash`: 账户现金  
+    `mama_link`: 专属链接
     """
     queryset = XiaoluMama.objects.all()
     serializer_class = serializers.XiaoluMamaSerialize
@@ -45,10 +48,6 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -67,8 +66,42 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @list_route(methods=['get'])
-    def agency_info(self):
-        return Response()
+    def agency_info(self, request):
+        """ wap 版本页面数据整理显示　"""
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+
+        recommend_num = self.queryset.filter(referal_from=xlmm.mobile).count()  # 总推荐数量
+        cash = xlmm.cash_money  # 账户现金
+        carry_logs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(status=CarryLog.CANCELED)
+        today = datetime.date.today()
+        yestoday = today - datetime.timedelta(days=1)
+        cfm_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
+        cfm_out = carry_logs.filter(carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
+        yst_cfm_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED, carry_date=yestoday)
+        yst_cfm_out = carry_logs.filter(carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED, carry_date=yestoday)
+        pending = carry_logs.filter(status=CarryLog.PENDING)
+
+        mci = (cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定收入
+        mco = (cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定支出
+        ymci = (yst_cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 昨日确定收入
+        ymco = (yst_cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 昨日确定支出
+        pdc = (pending.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 总待确定金额
+        mmclog = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc}
+
+        # 今日有效点击数量
+        clks = ClickCount.objects.filter(linkid=xlmm.id, date=today)
+        clk_num = clks.aggregate(clk_num=Sum('valid_num')).get('clk_num') or 0
+        # 今日订单
+        t_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
+        t_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
+        shop_num = StatisticsShopping.objects.filter(shoptime__gte=t_from, shoptime__lte=t_to,
+                                                     status__in=(StatisticsShopping.WAIT_SEND,
+                                                                 StatisticsShopping.FINISHED)).count()
+        mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
+        data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
+                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num}
+        return Response(data)
 
 
 class CarryLogViewSet(viewsets.ModelViewSet):
@@ -110,12 +143,13 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     def list_base_data(self, request):
         """  账户基本信息页面显示　"""
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        yestoday = datetime.date.today() - datetime.timedelta(days=1)
         qst_confirm_in = queryset.filter(carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
         qst_confirm_out = queryset.filter(carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
         qst_yst_confirm_in = queryset.filter(carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED,
-                                             created__gte=yestoday_time_from, created__lte=yestoday_time_to)
+                                             carry_date=yestoday)
         qst_yst_confirm_out = queryset.filter(carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED,
-                                              created__gte=yestoday_time_from, created__lte=yestoday_time_to)
+                                              carry_date=yestoday)
         qst_pending = queryset.filter(status=CarryLog.PENDING)
 
         mci = (qst_confirm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
@@ -158,8 +192,9 @@ class ClickCountViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def list_base_data(self, request):
+        today = datetime.date.today()
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        tqs = queryset.filter(date=today.date())  # 今天的统计记录
+        tqs = queryset.filter(date=today)  # 今天的统计记录
         serializer = self.get_serializer(tqs, many=True)
         return Response(serializer.data)
 
@@ -196,6 +231,9 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def list_base_data(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        now = datetime.datetime.now()
+        today_time_from = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+        today_time_to = datetime.datetime(now.year, now.month, now.day, 23, 59, 59)
         tqs = queryset.filter(shoptime__gte=today_time_from, shoptime__lte=today_time_to)  # 今天的统计记录
         serializer = self.get_serializer(tqs, many=True)
         return Response(serializer.data)

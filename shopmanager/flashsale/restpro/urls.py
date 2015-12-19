@@ -17,7 +17,7 @@ from flashsale.complain.views import ComplainViewSet
 from . import views_wuliu
 from . import views_praise
 from . import views_pro_ref
-# from . import views_xlmm
+from . import views_xlmm
 from . import views_mmadver
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -47,7 +47,7 @@ router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 
 
 
-# router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
+router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
 # router.register(r'carrylog', views_xlmm.CarryLogViewSet)
 # router.register(r'cashout', views_xlmm.CashOutViewSet)
 # router.register(r'clickcount', views_xlmm.ClickCountViewSet)
