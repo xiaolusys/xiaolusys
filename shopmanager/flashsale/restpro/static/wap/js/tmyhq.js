@@ -34,8 +34,21 @@ function set_coupon() {
     var USED = 1;
     var UNUSED = 0;
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons + "?page=" + pageNumber;
-    $.get(url, function (res) {
-        console.log("user_coupon:", res);
+    $.ajax({
+        "url": url,
+        "type": "get",
+        "success": callback,
+        "csrfmiddlewaretoken": csrftoken,
+        error: function (data) {
+            console.log('debug profile:', data);
+            if (data.status == 403) {
+                //drawToast('您还没有登陆哦!');
+                location.href = "denglu.html";
+            }
+        }
+    });
+
+    function callback(res) {
         $.each(res.results, function (i, val) {
             //默认对象
             if (val.status == UNUSED && val.poll_status == RELEASE) {//未使用　并且　券池状态为发放状态
@@ -48,7 +61,7 @@ function set_coupon() {
             }
         });
         pageNumber += 1;
-    });
+    }
 }
 
 function set_past_coupon() {

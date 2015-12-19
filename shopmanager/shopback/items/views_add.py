@@ -294,11 +294,11 @@ class BatchSetTime(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         content = request.GET
         target_shelf_date = content.get("shelf_date", datetime.date.today())
-        target_product = content.get("outer_id")
-        if target_product and len(target_product.strip()) != 0:
-            products = Product.objects.filter(outer_id=target_product, status=Product.NORMAL).order_by("outer_id")
+        model_id = content.get("model_id")
+        if model_id and len(model_id.strip()) != 0:
+            products = Product.objects.filter(model_id=model_id, status=Product.NORMAL).order_by("outer_id")
             return Response(
-                {"all_product": products, "target_shelf_date": target_shelf_date, "target_product": target_product})
+                {"all_product": products, "target_shelf_date": target_shelf_date, "model_id": model_id})
         products = Product.objects.filter(sale_time=target_shelf_date, status=Product.NORMAL).order_by("outer_id")
         return Response({"all_product": products, "target_shelf_date": target_shelf_date})
 

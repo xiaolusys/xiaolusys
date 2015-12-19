@@ -100,6 +100,7 @@ var GLConfig = {
     confirm_sign_order:'/order/{{order_id}}/confirm_sign',//用户确认签收
     usercoupons:"/usercoupons",//2015-09-04　重构后的优惠券接口
     past_usercoupons:"/usercoupons/list_past_coupon",//2015-09-04　重构后的优惠券接口 过期的优惠券
+    coupon_tpls:"/cpntmpl",//  优惠券模板接口
     choose_coupon:"/usercoupons/{{ coupon_id }}/choose_coupon",//选择优惠券（校验优惠券）
 	user_logout:'/users/customer_logout',//用户注销
 	user_islogin:'/users/islogin.json',//用户是否登录

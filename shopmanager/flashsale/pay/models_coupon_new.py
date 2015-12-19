@@ -7,6 +7,7 @@
 from django.db import models
 import datetime
 from options import uniqid
+from flashsale.pay.models import Customer
 
 
 class CouponTemplate(models.Model):
@@ -19,9 +20,19 @@ class CouponTemplate(models.Model):
     C259_20 = 3
     DOUBLE_11 = 6
     DOUBLE_12 = 8
+    USUAL = 9
+    NEW_YEAR = 10
     COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"), (POST_FEE_20, u"20元退货补邮费"),
-                   (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"))
+                   (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"),
+                   (USUAL, u"普通"), (NEW_YEAR, u"元旦专用"))
+    CLICK_WAY = 0
+    BUY_WAY = 1
+    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"))
+    ALL_USER = 1
+    AGENCY_VIP = 2
+    AGENCY_A = 3
+    TAR_USER = ((ALL_USER, u"所有用户"), (AGENCY_A, u"A类代理"), (AGENCY_VIP, u"VIP代理"))
 
     title = models.CharField(max_length=64, verbose_name=u"优惠券标题")
     value = models.FloatField(default=1.0, verbose_name=u"优惠券价值")
@@ -34,6 +45,9 @@ class CouponTemplate(models.Model):
     use_fee = models.FloatField(default=0.0, verbose_name=u'满单额')  # 满多少可以使用
     deadline = models.DateTimeField(blank=True, verbose_name=u'截止日期')
     use_notice = models.TextField(blank=True, verbose_name=u"使用须知")
+    way_type = models.IntegerField(default=0, choices=COUPON_WAY, verbose_name=u"领取途径")
+    target_user = models.IntegerField(default=0, choices=TAR_USER, verbose_name=u"目标用户")
+    post_img = models.CharField(max_length=512, blank=True, null=True, verbose_name=u"模板图片")
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
@@ -192,58 +206,6 @@ class UserCoupon(models.Model):
                     cou.save()
         return
 
-    def release_150_10(self, **kwargs):
-        buyer_id = kwargs.get("buyer_id", None)
-        # 2015-10-1前可以使用
-        trade_id = "0"
-        if buyer_id and trade_id:
-            tpl = CouponTemplate.objects.get(type=CouponTemplate.C150_10, valid=True)  # 获取满150减10优惠券
-            # 每个人只能领取一张
-            uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__type=CouponTemplate.C150_10)
-            if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
-                return "limit"
-            else:
-                # 发放优惠券
-                cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
-                if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
-                    cou.delete()  # 删除create 防止产生脏数据
-                    message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
-                    raise Exception(message)
-                else:
-                    self.cp_id = cou
-                    self.customer = buyer_id
-                    self.sale_trade = trade_id
-                    self.save()
-                    cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
-                    cou.save()
-                    return "success"
-        return None
-
-    def release_259_20(self, **kwargs):
-        buyer_id = kwargs.get("buyer_id", None)
-        # 2015-10-1前可以使用
-        trade_id = "0"
-        if buyer_id and trade_id:
-            tpl = CouponTemplate.objects.get(type=CouponTemplate.C259_20, valid=True)  # 获取满150减10优惠券
-            # 每个人只能领取一张
-            uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__type=CouponTemplate.C259_20)
-            if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
-                return "limit"
-            cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
-            if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
-                cou.delete()  # 删除create 防止产生脏数据
-                message = u"{0},优惠券发放数量不能大于模板定义数量.".format(tpl.get_type_display())
-                raise Exception(message)
-            else:
-                self.cp_id = cou
-                self.customer = buyer_id
-                self.sale_trade = trade_id
-                self.save()
-                cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
-                cou.save()
-                return "success"
-        return None
-
     def release_by_template(self, **kwargs):
         """
         发放不绑定交易的任何类型的优惠券
@@ -254,10 +216,30 @@ class UserCoupon(models.Model):
         # {"buyer_id": customer.id, "template_id":template_id}
         if buyer_id and trade_id and template_id:
             try:
-                tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取点击的优惠券模板
+                tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取优惠券模板
+                start_time = tpl.deadline - datetime.timedelta(days=tpl.preset_days)
+                now = datetime.datetime.now()
+                if now <= start_time or now >= tpl.deadline:
+                    return "not_release"  # 不在模板定义时间
             except CouponTemplate.DoesNotExist:
                 return "not_release"
-            # 每个人只能领取一张
+            # 身份判定（判断身份是否和优惠券模板指定用户一致） 注意　这里是硬编码　和　XiaoluMama　代理级别关联
+            if tpl.target_user != CouponTemplate.ALL_USER:  # 如果不是所有用户可领取则判定级别
+                from flashsale.xiaolumm.models import XiaoluMama
+
+                cus_id = int(buyer_id)
+                customer = Customer.objects.get(id=cus_id)
+                unionid = customer.unionid
+                try:
+                    xlmm = XiaoluMama.objects.get(openid=unionid)
+                    user_level = xlmm.agencylevel  # 用户的是代理身份 内1 　VIP2  A3
+                except XiaoluMama.DoesNotExist:
+                    user_level = CouponTemplate.ALL_USER  # 没找到则默认所有用户
+            else:
+                user_level = CouponTemplate.ALL_USER
+            if user_level != tpl.target_user:
+                # 如果用户领取的优惠券和用户身份不一致则不予领取
+                return "not_release"
             uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
             if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
                 return "limit"

@@ -1,5 +1,5 @@
 # coding=utf-8
-from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool
+from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 from rest_framework import viewsets
 from . import serializers
 from rest_framework import authentication
@@ -10,6 +10,8 @@ from flashsale.pay.models import Customer
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import APIException
+from shopback.items.models import Product
+import datetime
 
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
@@ -89,7 +91,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         """　根据参数生成不同类型的优惠券　"""
         content = request.REQUEST
         # if content:
-        #     return Response({"res": "not_release"})
+        # return Response({"res": "not_release"})
         try:
             template_id = int(content.get("template_id", None))
         except TypeError:
@@ -108,9 +110,12 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["post"])
     def choose_coupon(self, request, pk=None):
-        print "request data :", request.data
         content = request.REQUEST
         price = float(content.get("price", 0))
+        item = int(content.get("item_id", 0))
+        pro = Product.objects.get(id=item)
+        if item and (pro.details.is_seckill or str(pro.name).startswith("秒杀")):
+            raise APIException(u"秒杀产品不支持使用优惠券")
         coupon_id = pk  # 获取order_id
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)
@@ -120,3 +125,35 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         except Exception, exc:
             raise APIException(u"错误:%s" % exc.message)
         return Response({"res": "ok"})
+
+
+class CouponTemplateViewSet(viewsets.ModelViewSet):
+    queryset = CouponTemplate.objects.all()
+    serializer_class = serializers.CouponTemplateSerializer
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # 这里使用只读的权限
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def get_useful_template_query(self):
+        # 点击方式领取的　有效的　在预置天数内的优惠券
+        tpls = self.queryset.filter(way_type=CouponTemplate.CLICK_WAY, valid=True).exclude(
+            type__in=(CouponTemplate.RMB118, CouponTemplate.POST_FEE_5, CouponTemplate.POST_FEE_10,
+                      CouponTemplate.POST_FEE_15, CouponTemplate.POST_FEE_20))
+        temps = []
+        now = datetime.datetime.now()
+        for tpl in tpls:
+            # 如果现在的时间是在截止日期减去预置天数后日期之间则加入集合
+            time_start = tpl.deadline - datetime.timedelta(days=tpl.preset_days)
+            if now >= time_start and now <= tpl.deadline:
+                temps.append(tpl)
+        return temps
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_useful_template_query())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        return Response()
+
+

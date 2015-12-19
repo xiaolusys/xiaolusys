@@ -1,43 +1,28 @@
 /**
  * Created by jishu_linjie on 9/24/15.
  */
-
-$("#coupon_release_left").click(function () {
-    //领取优惠券
-    console.log("150-10");
-    //var data = {"coupon_type": "C150_10"};
-    //2015-10-8 修改按照优惠券模板来发放
-    var data = {"template_id": 5};
-    var d = $("#coupon_release_left");
-    Action_release(data, d);
-});
-
-$("#coupon_release_right").click(function () {
-    //领取优惠券
-    console.log("259-20");
-    //var data = {"coupon_type": "C259_20"};
-    //2015-10-8 修改按照优惠券模板来发放
-    var data = {"template_id": 6};
-    var d = $("#coupon_release_right");
-    Action_release(data, d);
-});
+var CLICK_COUPON_TIMES = 1;
 
 $("#coupon_release").click(function () {
     //领取优惠券
-    console.log("12-12");
-    //var data = {"coupon_type": "C259_20"};
-    //2015-10-8 修改按照优惠券模板来发放
-    var data = {"template_id": 11};
-    var d = $("#coupon_release");
-    Action_release(data, d);
+    if (CLICK_COUPON_TIMES > 1) {
+        // 第二次点击跳转到优惠券页面
+        location.href = "pages/youhuiquan.html";
+    }
+    var uldom = $("#tpl_ul_show");
+    $.each($(uldom).children(), function (i, v) {
+        var tmpid = $(v).attr("cid");
+        var data = {"template_id": tmpid};
+        var d = $("#coupon_release");
+        console.log("data :", data);
+        Action_release(data, d);
+    });
+    CLICK_COUPON_TIMES += 1; // 再次点击
 });
 
 function Action_release(data, d) {
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
-    if (d.hasClass('loading')) {
-        return
-    }
-    d.addClass("loading");
+
     $.ajax({
         "url": url,
         "data": data,
@@ -52,17 +37,16 @@ function Action_release(data, d) {
         }
     });
     function callback(res) {
-        d.removeClass("loading");
-        console.log("debug :", res);
+
         if (res.res == "success") {
-            drawToast("领取成功 赶紧去挑选商品吧 不要过期哦！");
+            drawToast("领取成功 赶紧去挑选商品吧 ！");
             //等待3秒跳转到优惠券页面
         }
         if (res.res == "already") {
-            drawToast("您已经领取优惠券啦 赶紧去挑选商品吧 不要过期哦！");
+            drawToast("您已经领取优惠券啦 赶紧去挑选商品吧 ！");
         }
         if (res.res == "no_type") {
-            drawToast("优惠券类型不正确呢！");
+            drawToast("还没有开放该优惠券敬请期待！");
         }
         if (res.res == "not_release") {
             drawToast("还没有开放该优惠券哦 敬请期待！");
@@ -71,7 +55,53 @@ function Action_release(data, d) {
             drawToast("用户未找到！尝试重新登陆");
         }
         if (res.res == "limit") {
-            drawToast("超过领取限制哦~");
+            drawToast("您已经领取过了哦~");
         }
     }
+}
+
+function Set_coupon_tpls() {
+    var tpls_url = GLConfig.baseApiUrl + GLConfig.coupon_tpls;
+    $.ajax({
+        "url": tpls_url,
+        "data": {},
+        "success": callback,
+        "type": "get",
+        "csrfmiddlewaretoken": csrftoken
+    });
+    function callback(res) {
+        var img_num = 0;
+        $.each(res, function (i, v) {
+            if (v.post_img != "") {
+                var tplhml = create_tpl_show(v);
+                $("#tpl_ul_show").append(tplhml);
+                img_num += 1;
+            }
+        });
+        // 调用轮播
+        var autoplay = false;
+        if (img_num > 1) {
+            autoplay = false; //优惠券张数大于1的时候显示轮播（true） 暂时不设轮播
+        }
+        else if (img_num <= 0) {
+            $(".glist_cou").remove();//没有优惠券的时候删除dom
+        }
+        CouponTemplateShow($(".glist_cou"), 500, 3000, autoplay);
+    }
+
+    function create_tpl_show(obj) {
+        var copl = $("#coupon_tpl").html();
+        return hereDoc(copl).template(obj)
+    }
+}
+
+function CouponTemplateShow(dom, speed, delay, autoplay) {
+    $(dom).unslider({
+        autoplay: autoplay,
+        speed: speed,
+        delay: delay,
+        keys: false,
+        arrows: false,
+        nav: false
+    });
 }

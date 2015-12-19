@@ -346,9 +346,9 @@ def Update_CouponPoll_Status(type=None):
     # 未发放的 已经发放的 可以使用的  （截至时间小于昨天的）
     cous = CouponsPool.objects.filter(template__type=type, template__deadline__lte=deadline_time,
                                       status__in=(CouponsPool.RELEASE, CouponsPool.UNRELEASE))
-    for cou in cous:
-        cou.status = CouponsPool.PAST  # 修改为无效的优惠券
-        cou.save()
+
+    cous.update(status=CouponsPool.PAST)  # 更新为无效的优惠券
+
 
 
 @task
@@ -358,3 +358,7 @@ def task_Update_CouponPoll_Status():
     # 2015-10-7
     Update_CouponPoll_Status(type=CouponTemplate.C150_10)
     Update_CouponPoll_Status(type=CouponTemplate.C259_20)
+    # 双十一
+    Update_CouponPoll_Status(type=CouponTemplate.DOUBLE_11)
+    # 双十二
+    Update_CouponPoll_Status(type=CouponTemplate.DOUBLE_12)

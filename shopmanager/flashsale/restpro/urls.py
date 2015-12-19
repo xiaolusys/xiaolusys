@@ -17,6 +17,8 @@ from flashsale.complain.views import ComplainViewSet
 from . import views_wuliu
 from . import views_praise
 from . import views_pro_ref
+# from . import views_xlmm
+from . import views_mmadver
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
@@ -35,12 +37,22 @@ router.register(r'districts', views.DistrictViewSet)
 router.register(r'integral', views_integral.UserIntegralViewSet)
 router.register(r'integrallog', views_integral.UserIntegralLogViewSet)
 router.register(r'usercoupons', views_coupon.UserCouponsViewSet)
+router.register(r'cpntmpl', views_coupon.CouponTemplateViewSet)
 
 router.register(r'share', views_share.CustomShareViewSet)
 router.register(r'saleproduct', views_praise.SaleProductViewSet)
 router.register(r'hotproduct', views_praise.HotProductViewSet)
 router.register(r'prorefrcd', views_pro_ref.ProRefRcdViewSet)
 router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
+
+
+
+# router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
+# router.register(r'carrylog', views_xlmm.CarryLogViewSet)
+# router.register(r'cashout', views_xlmm.CashOutViewSet)
+# router.register(r'clickcount', views_xlmm.ClickCountViewSet)
+# router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
+router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
 
 
 router_urls = router.urls

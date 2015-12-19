@@ -35,7 +35,8 @@ function Coupon_Nums_Show(nums) {
             //判断是否是确认页面
 
             var cart_ids = getUrlParam('cart_ids');
-            console.log(cart_ids);
+            var item_id = getUrlParam('item_id');// 获取购买产品
+            console.log("cart_ids :", cart_ids);
             if (cart_ids) {
                 var total_money = ($("#total_money").html().split(">")[2]);
                 var pro_num = $(".pro_num").html();
@@ -46,7 +47,7 @@ function Coupon_Nums_Show(nums) {
                 var total_money = ($("#total_money").html().split(">")[2]);
                 var pro_num = document.getElementsByName("num")[0].value;
                 console.log("pro_num :", pro_num);
-                location.href = "./choose-coupon.html?price=" + total_money + "&pro_num=" + pro_num;
+                location.href = "./choose-coupon.html?price=" + total_money + "&pro_num=" + pro_num + "&item_id=" + item_id;
             }
         });
     }
@@ -110,9 +111,16 @@ function copon_judeg(coupon_id, pro_num) {
 function choose_Coupon(coupon_id, coupon_type) {
     var price = parseFloat(getUrlParam('price'));
     var pro_num = parseFloat(getUrlParam('pro_num'));
+    var item_id = parseInt(getUrlParam('item_id'));
     console.log("choose coupon_type:", coupon_type);
     var couponUrl = GLConfig.baseApiUrl + GLConfig.choose_coupon.template({"coupon_id": coupon_id});
-    var data = {"price": price, "pro_num": pro_num};
+    var data = {};
+    if (isNaN(item_id)) {
+        data = {"price": price, "pro_num": pro_num};
+    }
+    else {
+        data = {"price": price, "pro_num": pro_num, "item_id": item_id};
+    }
     $.ajax({
         "url": couponUrl,
         "data": data,
