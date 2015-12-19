@@ -18,6 +18,7 @@ from . import views_wuliu
 from . import views_praise
 from . import views_pro_ref
 # from . import views_xlmm
+from . import views_mmadver
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
@@ -51,6 +52,7 @@ router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 # router.register(r'cashout', views_xlmm.CashOutViewSet)
 # router.register(r'clickcount', views_xlmm.ClickCountViewSet)
 # router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
+router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
 
 
 router_urls = router.urls

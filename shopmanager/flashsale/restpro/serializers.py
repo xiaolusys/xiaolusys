@@ -400,3 +400,12 @@ class CashOutSerialize(serializers.ModelSerializer):
     class Meta:
         model = CashOut
         fields = ("xlmm", "value_money", "get_status_display", "status", "created")
+
+
+from flashsale.xiaolumm.models_advertis import XlmmAdvertis
+
+
+class XlmmAdvertisSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XlmmAdvertis
+
