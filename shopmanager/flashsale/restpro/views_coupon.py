@@ -113,9 +113,12 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         price = float(content.get("price", 0))
         item = int(content.get("item_id", 0))
-        pro = Product.objects.get(id=item)
-        if item and (pro.details.is_seckill or str(pro.name).startswith("秒杀")):
-            raise APIException(u"秒杀产品不支持使用优惠券")
+        try:
+            pro = Product.objects.get(id=item)
+            if item and (pro.details.is_seckill or str(pro.name).startswith("秒杀")):
+                raise APIException(u"秒杀产品不支持使用优惠券")
+        except Product.DoesNotExist:
+            pass
         coupon_id = pk  # 获取order_id
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)

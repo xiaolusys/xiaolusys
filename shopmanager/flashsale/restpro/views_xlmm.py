@@ -66,6 +66,10 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qst, many=True)
         return Response(serializer.data)
 
+    @list_route(methods=['get'])
+    def agency_info(self):
+        return Response()
+
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """
