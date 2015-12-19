@@ -408,4 +408,5 @@ from flashsale.xiaolumm.models_advertis import XlmmAdvertis
 class XlmmAdvertisSerialize(serializers.ModelSerializer):
     class Meta:
         model = XlmmAdvertis
+        fields = ("title", "cntnt")
 
