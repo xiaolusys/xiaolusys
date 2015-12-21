@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>批量设置时间</title>
+    <title>库存批量设置</title>
     <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css" type="text/css"/>
     <script src="http://youni.huyi.so/static/jquery/jquery-1.8.13.min.js"></script>
@@ -18,11 +18,29 @@
 </head>
 <body>
 <div class="container" style="margin-top: 30px">
+    <script>
+        function removethisdiv(dom) {
+            $(dom).children().toggle();
+        }
+    </script>
+    <div class="alert alert-info" role="alert" onclick="removethisdiv(this)">点击蓝色框隐藏或显示操作注意事项
+        <h3 hidden="hidden">温馨提示：<br/>
+            <small>1. 当款式id为空的时候点击搜索将按照左侧选择的上架时间列出准备修改的产品</small>
+            <br/>
+            <small>2. 当款式id不为空的时候点击搜索将按照款式id列出准备修改的产品</small>
+            <br/>
+            <small>3. 可以在款式id中输入两个款式或更多款式，并以'-'隔开(英文输入法下)，搜索多个款式产品</small>
+            <br/>
+            <small>4. 选择上架时间，下架时间，产品类别，仓库点击设置后服务器会提示，注意服务器提示，必要时请点击搜索(同条件搜索)验证修改后的结果是否正确</small>
+            <br/>
+            <small>5. 如果要添加某一个产品的秒杀标题，请在选中产品后并勾选秒杀选框．</small>
+        </h3>
+    </div>
     <div class="row">
         <form method="get" action="/items/batch_settime/">
             <div class="col-xs-4">
                 <input type="text" class="form-control" name="shelf_date" readonly value="{{ target_shelf_date }}"
-                       id="shelfdate"/>
+                       id="shelfdate" placeholder="选择上架日期"/>
             </div>
             <div class="col-xs-4">
                 <input type="text" class="form-control" name="model_id" value="{{ model_id }}"
@@ -76,36 +94,47 @@
                        style="text-align: center">
                     <thead>
 
-                    <td width="5%">
-                        <input type="checkbox" id="all_check" style="width: 25px;height: 25px">
-                    </td>
+
                     <td width="10%">图片</td>
 
-                    <td width="10%">编码</td>
+                    <td width="10%">编码-款式</td>
                     <td width="10%">商品名</td>
+
                     <td width="15%">上架日期</td>
                     <td width="20%">下架时间</td>
 
                     <td>类别</td>
                     <td>仓库</td>
+                    <td width="5%">勾选
+                        <input type="checkbox" id="all_check" style="width: 25px;height: 25px">
+                    </td>
+                    <td width="5%" style="color: red">秒杀
+                        <input type="checkbox" id="sec_kill_products" style="width: 25px;height: 25px">
+                    </td>
                     <td>忽略</td>
                     </thead>
                     {% for product in all_product %}
                         <tr class="warning">
-                            <td>
-                                <input type="checkbox" class="my_product" data-product-id="{{ product.id }}"
-                                       style="width: 25px;height: 25px"/>
-                            </td>
+
                             <td><img src="{{ product.PIC_PATH }}" width="100px" class="img-circle"></td>
                             <td>
                                 <a href="/admin/items/product/?id={{ product.id }}"
                                    target="_blank">{{ product.outer_id }}-{{ product.model_id }}</a>
                             </td>
                             <td>{{ product.name }}</td>
+
                             <td>{{ product.sale_time }}</td>
                             <td>{{ product.offshelf_time }}</td>
                             <td>{{ product.category.name }}</td>
                             <td>{{ product.get_ware_by_display }}</td>
+                            <td>
+                                <input type="checkbox" class="my_product" data-product-id="{{ product.id }}"
+                                       style="width: 25px;height: 25px"/>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="sec_kill_products" kill_product_id="{{ product.id }}"
+                                       style="width: 25px;height: 25px;"/>
+                            </td>
                             <td>
                                 <span class="glyphicon glyphicon-trash" aria-hidden="true"
                                       onclick="remove_this_row(this)"></span>
@@ -144,6 +173,14 @@
             }
         });
 
+        $("#sec_kill_products").bind("click", function () {
+            if ($("#sec_kill_products").prop("checked")) {
+                $(".sec_kill_products").attr("checked", true);
+            } else {
+                $(".sec_kill_products").attr("checked", false);
+            }
+        });
+
 
         $("#set_target").bind("click", function () {
             var all_product = $(".my_product");
@@ -153,6 +190,14 @@
                 var temp_product = all_product.eq(index);
                 if (temp_product.prop("checked")) {
                     checked_product += temp_product.attr("data-product-id") + ","
+                }
+            });
+            var kill_pro = $(".sec_kill_products");
+            var kill_pros = "";
+            $.each(kill_pro, function (i, tt) {
+                var tp_pro = kill_pro.eq(i);
+                if (tp_pro.prop("checked")) {
+                    kill_pros += tp_pro.attr("kill_product_id") + ","
                 }
             });
             var unshelf_time = $("#unshelf_time").val();//下架时间
@@ -182,7 +227,8 @@
                 "unshelf_time": unshelf_time,
                 "shelf_time": shelf_time,
                 "category": category,
-                "ware_by": ware_by
+                "ware_by": ware_by,
+                "kill_pros": kill_pros
             };
 
             $.ajax({

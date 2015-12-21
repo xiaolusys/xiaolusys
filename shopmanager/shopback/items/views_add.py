@@ -295,10 +295,14 @@ class BatchSetTime(generics.ListCreateAPIView):
         content = request.GET
         target_shelf_date = content.get("shelf_date", datetime.date.today())
         model_id = content.get("model_id", None)
-        model_id_strip = model_id.strip()
         if model_id is not None and "-" in model_id:
+            model_id_strip = model_id.strip()
             models = model_id_strip.split('-')
+        elif model_id == "" or model_id is None:
+            models = []
+            model_id_strip = ''
         else:
+            model_id_strip = model_id.strip()
             models = [model_id_strip, ]
         # 添加类目
         categorys = ProductCategory.objects.all()
@@ -324,12 +328,26 @@ class BatchSetTime(generics.ListCreateAPIView):
         shelf_time = content.get("shelf_time", None)
         category = content.get("category", None)
         ware_by = content.get("ware_by", None)
-        print request.data
+        kill_pros = content.get("kill_pros", None)
+        kill_pro_list = kill_pros.split(",")
         all_product = target_product.split(",")
 
+        result = "设置"
+
+        if kill_pros != "":
+            count = 0
+            for kill in kill_pro_list:
+                if kill != "":
+                    product = Product.objects.get(id=kill)
+                    title = product.title()
+                    if not title.startswith('秒杀'):  # 防止重复添加秒杀
+                        product.name = '秒杀' + title
+                        product.save()
+                        log_action(user.id, product, CHANGE, u'批量设置秒杀标题')
+                        count += 1
+            result += " + 秒杀{0}产品".format(count)
         if len(all_product) == 0:
             return Response({"result": "未选中商品"})
-        result = "设置"
 
         if shelf_time is not None and shelf_time != "":  # 上架时间设置
             try:
