@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="css/dots-loading.css">
     <link rel="stylesheet" type="text/css" href="css/common.css">
     <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link rel="stylesheet" type="text/css" href="css/unslider.css">
     <style>
     .bg-primary{
     	text-align:center;
@@ -32,6 +33,15 @@
 <body>
 <div class="top">
 	<p class="bg-primary">现在是预览模式 </p>
+</div>
+<div>
+    <div class="glist_cou" id="coupon_release">
+        <ul id="tpl_ul_show">
+        </ul>
+    </div>
+    <script type="text/html" id="coupon_tpl">
+        <li cid="{{ id }}"><img src="{{ post_img }}"></li>
+    </script>
 </div>
 <div class="poster new">
     <dl>
@@ -181,6 +191,8 @@
 <script src="js/main-preview.js"></script>
 <link rel="stylesheet" type="text/css" href="css/sweet-alert.css">
 <script src="js/sweet-alert.min.js"></script>
+<script src="js/unslider-min.js"></script>
+<script src="js/coupon_release_index.js"></script>
 <script type="text/javascript">
 (function ($) {
     //返回顶部
@@ -209,6 +221,10 @@
     Set_shopcarts_num();
 	//设置分页
 	change_pagination();
+
+    // 获取优惠券
+    Set_coupon_tpls();
+
 })(jQuery);
 function scroll_top(e){
     e.preventDefault();
