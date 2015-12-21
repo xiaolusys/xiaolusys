@@ -23,7 +23,7 @@ class AddItemView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         return Response({"v": "v"})
 
-#     @transaction.commit_on_success
+    # @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
         """ 新增库存商品　新增款式
         """
@@ -44,7 +44,7 @@ class AddItemView(generics.ListCreateAPIView):
         if sale_product.count() == 0 or str(sale_product[0].sale_supplier.id) != supplier:
             return Response({"result": "选品ID错误"})
         if product_name == "" or category == "" or wash_instroduce == "" \
-                or shelf_time == "" or material == "" or supplier == ""\
+                or shelf_time == "" or material == "" or supplier == "" \
                 or header_img == "" or ware_by == "":
             return Response({"result": "填写表单错误"})
         category_item = ProductCategory.objects.get(cid=category)
@@ -197,10 +197,10 @@ class GetSkuDetail(generics.ListCreateAPIView):
                             chi_ma_size = product_bean[0].contrast.contrast_detail[one_sku][one_chima.cid]
                         except:
                             chi_ma_size = 0
-                            notexist_skus.append((one_chima.name,chi_ma_size))
+                            notexist_skus.append((one_chima.name, chi_ma_size))
                             continue
                         if one_sku in result_data:
-                            result_data[one_sku].append((one_chima.name,chi_ma_size))
+                            result_data[one_sku].append((one_chima.name, chi_ma_size))
                         else:
                             result_data[one_sku] = [(one_chima.name, chi_ma_size)]
                     result_data[one_sku].extend(notexist_skus)
@@ -271,9 +271,8 @@ class PreviewSkuDetail(generics.ListCreateAPIView):
 
 
 def custom_sort(a, b):
-    
     if a[0].isdigit() and b[0].isdigit():
-        return int(a[0])-int(b[0])
+        return int(a[0]) - int(b[0])
 
     if a[0].isdigit() and not b[0].isdigit():
         return True
@@ -281,7 +280,8 @@ def custom_sort(a, b):
     if not a[0].isdigit() and b[0].isdigit():
         return False
 
-    return len(a[0])-len(b[0]) or a[0] > b[0]
+    return len(a[0]) - len(b[0]) or a[0] > b[0]
+
 
 import datetime
 
@@ -294,48 +294,83 @@ class BatchSetTime(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         content = request.GET
         target_shelf_date = content.get("shelf_date", datetime.date.today())
-        model_id = content.get("model_id")
-        if model_id and len(model_id.strip()) != 0:
-            products = Product.objects.filter(model_id=model_id, status=Product.NORMAL).order_by("outer_id")
+        model_id = content.get("model_id", None)
+        model_id_strip = model_id.strip()
+        if model_id is not None and "-" in model_id:
+            models = model_id_strip.split('-')
+        else:
+            models = [model_id_strip, ]
+        # 添加类目
+        categorys = ProductCategory.objects.all()
+        cates = []
+        for cate in categorys:
+            kv = {"cid": cate.cid, "full_cate_name": cate.__unicode__()}
+            cates.append(kv)
+        if models and len(models) != 0:
+            products = Product.objects.filter(model_id__in=models, status=Product.NORMAL).order_by("outer_id")
             return Response(
-                {"all_product": products, "target_shelf_date": target_shelf_date, "model_id": model_id})
+                {"all_product": products, "target_shelf_date": target_shelf_date, "model_id": model_id_strip,
+                 "cates": cates, "ware_by": Product.WARE_CHOICES})
         products = Product.objects.filter(sale_time=target_shelf_date, status=Product.NORMAL).order_by("outer_id")
-        return Response({"all_product": products, "target_shelf_date": target_shelf_date})
+        return Response({"all_product": products, "target_shelf_date": target_shelf_date, "cates": cates,
+                         "ware_by": Product.WARE_CHOICES})
 
     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
         content = request.POST
         user = request.user
-        target_product = content.get("product_list")
-        type = content.get("type")
-        settime = content.get("settime")
-
+        target_product = content.get("product_list", None)
+        unshelf_time = content.get("unshelf_time", None)
+        shelf_time = content.get("shelf_time", None)
+        category = content.get("category", None)
+        ware_by = content.get("ware_by", None)
+        print request.data
         all_product = target_product.split(",")
+
         if len(all_product) == 0:
             return Response({"result": "未选中商品"})
+        result = "设置"
 
-        if type == "1": #上架时间设置
+        if shelf_time is not None and shelf_time != "":  # 上架时间设置
             try:
-                set_time = datetime.datetime.strptime(settime, '%Y-%m-%d')
+                set_time = datetime.datetime.strptime(shelf_time, '%Y-%m-%d')
             except:
                 return Response({"result": "设置失败，时间格式错误"})
 
             for one_product in all_product:
                 product = Product.objects.get(id=one_product)
-                product.sale_time = settime
+                product.sale_time = set_time
                 product.save()
                 log_action(user.id, product, CHANGE, u'批量设置上架时间')
-            return Response({"result": "设置成功"})
+            result += "上架日期"
 
-        #下架时间设置
-        try:
-            set_time = datetime.datetime.strptime(settime, '%Y-%m-%d %H:%M:%S')
-        except:
-            return Response({"result": "设置失败，时间格式错误"})
-        for one_product in all_product:
-            product = Product.objects.get(id=one_product)
-            product.offshelf_time = settime
-            product.save()
-            log_action(user.id, product, CHANGE, u'批量设置下架时间')
-        return Response({"result": "设置成功"})
+        if unshelf_time is not None and unshelf_time != "":  # 下架时间设置
+            try:
+                set_time = datetime.datetime.strptime(unshelf_time, '%Y-%m-%d %H:%M:%S')
+            except:
+                return Response({"result": "设置失败，时间格式错误"})
+            for one_product in all_product:
+                product = Product.objects.get(id=one_product)
+                product.offshelf_time = set_time
+                product.save()
+                log_action(user.id, product, CHANGE, u'批量设置下架时间')
+            result += " + 下架时间"
 
+        if ware_by != "" and ware_by is not None:
+            for one_product in all_product:
+                product = Product.objects.get(id=one_product)
+                product.ware_by = ware_by
+                product.save()
+                log_action(user.id, product, CHANGE, u'批量设置所属仓库')
+            result += " + 所属仓库"
+
+        if category != "" and category is not None:
+            for one_product in all_product:
+                product = Product.objects.get(id=one_product)
+                cate = ProductCategory.objects.get(cid=category)
+                product.category = cate
+                product.save()
+                log_action(user.id, product, CHANGE, u'批量设置所属仓库')
+            result += " + 产品品类"
+        result += " + 成功"
+        return Response({"result": result})

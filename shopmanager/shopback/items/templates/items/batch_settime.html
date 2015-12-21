@@ -39,37 +39,77 @@
         </div>
         <div class="panel-body">
             <div class="row">
-                <div class="col-xs-3">
+                <div class="col-xs-2">
+                </div>
+                <div class="col-xs-2">
+                </div>
+                <div class="col-xs-2">
                     <input type="text" id="shelf_time" class="form-control" readonly/>
                 </div>
-                <div class="col-xs-3">
-                    <input type="button" class="btn" id="set_target" value="设置上架时间"/>
+                <div class="col-xs-2">
+                    <input type="text" id="unshelf_time" class="form-control" readonly/>
                 </div>
-                <div class="col-xs-3">
-                    <input type="text" id="target_time" class="form-control" readonly/>
+                <div class="col-xs-2">
+                    <select name="pro_category" id="pro_category">
+                        <option value="" selected="selected">选择品类</option>
+                        {% for  cate in cates %}
+                            <option value="{{ cate.cid }}">{{ cate.full_cate_name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="col-xs-3">
-                    <input type="button" class="btn" id="setting" value="设置下架时间"/>
+                <div class="col-xs-1">
+                    <select name="ware_by" id="setting_ware_by">
+                        <option value="" selected="selected">选择仓库</option>
+                        {% for  wareid , ware in ware_by %}
+                            <option value="{{ wareid }}">{{ ware }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-xs-1">
+                    <input type="button" class="btn btn-danger" id="set_target" value="设置"/>
                 </div>
             </div>
+            <br>
+
             <div class="table-responsive">
-                <table class="table table-bordered table-bordered table-hover table-condensed">
+                <table class="table table-bordered table-bordered table-hover table-condensed"
+                       style="text-align: center">
                     <thead>
-                    <td>全<span id="is_all_check" hidden="hidden">不</span>选<input type="checkbox" id="all_check"></td>
-                    <td>编码</td>
-                    <td>商品名</td>
-                    <td>上架日期</td>
-                    <td>下架时间</td>
-                    <td>图片</td>
+
+                    <td width="5%">
+                        <input type="checkbox" id="all_check" style="width: 25px;height: 25px">
+                    </td>
+                    <td width="10%">图片</td>
+
+                    <td width="10%">编码</td>
+                    <td width="10%">商品名</td>
+                    <td width="15%">上架日期</td>
+                    <td width="20%">下架时间</td>
+
+                    <td>类别</td>
+                    <td>仓库</td>
+                    <td>忽略</td>
                     </thead>
                     {% for product in all_product %}
                         <tr class="warning">
-                            <td><input type="checkbox" class="my_product" data-product-id="{{ product.id }}"/></td>
-                            <td><a href="/admin/items/product/?id={{ product.id }}" target="_blank">{{ product.outer_id }}</a></td>
+                            <td>
+                                <input type="checkbox" class="my_product" data-product-id="{{ product.id }}"
+                                       style="width: 25px;height: 25px"/>
+                            </td>
+                            <td><img src="{{ product.PIC_PATH }}" width="100px" class="img-circle"></td>
+                            <td>
+                                <a href="/admin/items/product/?id={{ product.id }}"
+                                   target="_blank">{{ product.outer_id }}-{{ product.model_id }}</a>
+                            </td>
                             <td>{{ product.name }}</td>
                             <td>{{ product.sale_time }}</td>
                             <td>{{ product.offshelf_time }}</td>
-                            <td><img src="{{ product.PIC_PATH }}" width="100px" class="img-circle"></td>
+                            <td>{{ product.category.name }}</td>
+                            <td>{{ product.get_ware_by_display }}</td>
+                            <td>
+                                <span class="glyphicon glyphicon-trash" aria-hidden="true"
+                                      onclick="remove_this_row(this)"></span>
+                            </td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -80,101 +120,80 @@
 </div>
 <script src="/static/wap/js/sweet-alert.min.js"></script>
 <script>
+    // 删除表中单行
+    function remove_this_row(dom) {
+        $(dom).parent().parent().remove();
+    }
+
     (function () {
-        $("#shelfdate").datepicker({
+        $("#unshelf_time").datetimepicker({
+            timeFormat: "HH:mm:ss",
             dateFormat: "yy-mm-dd"
         });
         $("#shelf_time").datepicker({
             dateFormat: "yy-mm-dd"
         });
-        $("#target_time").datetimepicker({
-            timeFormat: "HH:mm:ss",
+        $("#shelfdate").datepicker({
             dateFormat: "yy-mm-dd"
         });
         $("#all_check").bind("click", function () {
-            if($("#all_check").prop("checked")){
+            if ($("#all_check").prop("checked")) {
                 $(".my_product").attr("checked", true);
-                $("#is_all_check").show();
-            }else{
+            } else {
                 $(".my_product").attr("checked", false);
-                $("#is_all_check").hide()
             }
-        })
-        $("#setting").bind("click", function () {
-            var all_product = $(".my_product");
-            var checked_product = "";
-            $.each(all_product, function (index, dd) {
-                var temp_product = all_product.eq(index);
-                if (temp_product.prop("checked")){
-                    checked_product += temp_product.attr("data-product-id")+","
-                }
-            })
-            var settime = $("#target_time").val();
-            if(settime.length==0){
-                swal("您好！", "请设置时间(^_^)", "warning");
+        });
 
-                return
-            }
-            if(checked_product && checked_product.length!=0){
-                checked_product = checked_product.substring(0,checked_product.length-1);
-            }else{
-                swal("您好！", "请选择商品(^_^)", "warning");
-                return
-            }
-            //获取分类信息
-            var requestUrl = "/items/batch_settime/";
 
-            //请求成功回调函数
-            var requestCallBack = function (data) {
-                swal("您好！", data.result+"(^_^)", "warning");
-            };
-            // 发送请求
-            $.ajax({
-                type: 'post',
-                url: requestUrl,
-                data: {"product_list": checked_product, "settime": settime},
-                dataType: 'json',
-                success: requestCallBack
-            });
-        })
         $("#set_target").bind("click", function () {
             var all_product = $(".my_product");
             var checked_product = "";
-            $.each(all_product, function (index, dd) {
-                var temp_product = all_product.eq(index);
-                if (temp_product.prop("checked")){
-                    checked_product += temp_product.attr("data-product-id")+","
-                }
-            })
-            var settime = $("#shelf_time").val();
-            if(settime.length==0){
-                swal("您好！", "请设置时间(^_^)", "warning");
-                return
-            }
-            if(checked_product && checked_product.length!=0){
-                checked_product = checked_product.substring(0,checked_product.length-1);
-            }else{
-                swal("您好！", "请选择商品(^_^)", "warning");
-                return
-            }
-            //获取分类信息
-            var requestUrl = "/items/batch_settime/";
 
-            //请求成功回调函数
-            var requestCallBack = function (data) {
-                swal("您好！", data.result+"(^_^)", "warning");
+            $.each(all_product, function (index, dd) { // 获取选中的产品
+                var temp_product = all_product.eq(index);
+                if (temp_product.prop("checked")) {
+                    checked_product += temp_product.attr("data-product-id") + ","
+                }
+            });
+            var unshelf_time = $("#unshelf_time").val();//下架时间
+            var shelf_time = $("#shelf_time").val();//上架时间
+            var category = $("#pro_category").val();//类别
+            var ware_by = $("#setting_ware_by").val();//所选仓库
+
+            if (checked_product && checked_product.length != 0) {
+                checked_product = checked_product.substring(0, checked_product.length - 1);
+            } else {
+                swal("您好！", "请选择商品", "warning");
+                return
+            }
+
+            var requestUrl = "/items/batch_settime/";
+            var requestCallBack = function (res) {
+                if (res.result == "设置 + 成功") {
+                    swal("注意！", "没有设置任何项", "warning");
+                }
+                else {
+                    swal("您好！", res.result, "warning");
+                }
             };
-            // 发送请求
+
+            var data = {
+                "product_list": checked_product,
+                "unshelf_time": unshelf_time,
+                "shelf_time": shelf_time,
+                "category": category,
+                "ware_by": ware_by
+            };
+
             $.ajax({
                 type: 'post',
                 url: requestUrl,
-                data: {"product_list": checked_product, "settime": settime, "type": "1"},
+                data: data,
                 dataType: 'json',
                 success: requestCallBack
             });
         })
     })()
-
 </script>
 
 </body>
