@@ -294,11 +294,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_ticket  = None
         if coupon_id:
             coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id))
-            if coupon.status is UserCoupon.USED:  # 使用的
-                raise exceptions.APIException(u'该优惠券已使用')
-            coupon_pool  = coupon.cp_id
-            if coupon_pool.status != CouponsPool.RELEASE:   # 没有发放
-                raise exceptions.APIException(u"优惠券池状态错误")
+
+            try:    # 优惠券条件检查
+                coupon.check_usercoupon()
+                coupon.cp_id.template.usefee_check(total_fee)
+                coupon_pool  = coupon.cp_id
+                discount_fee    += coupon_pool.template.value
+                coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
+                coupon_ticket['receive_date'] = coupon.created
+                coupon_ticket['coupon_id'] = coupon_id
+            except Exception, exc:
+                raise exceptions.APIException(exc.message)
 
             discount_fee += coupon_pool.template.value
             coupon_ticket = serializers.UsersCouponSerializer(coupon).data
@@ -345,6 +351,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product     = product_sku.product
         
         total_fee = float(product_sku.agent_price) * 1
+        print "total_fee:", total_fee
         post_fee = 0
         has_deposite = product.is_deposite()
         wallet_cash  = 0 
@@ -370,17 +377,17 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if coupon_id:
             coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
-            if coupon.status is UserCoupon.USED:
-                raise exceptions.APIException(u'该优惠券已使用')
-            coupon_pool  = coupon.cp_id
-            if coupon_pool.status != CouponsPool.RELEASE:
-                raise exceptions.APIException(u"优惠券池状态错误")
+            try:
+                coupon.check_usercoupon()
+                coupon.cp_id.template.usefee_check(total_fee)
+                coupon_pool  = coupon.cp_id
+                discount_fee    += coupon_pool.template.value
+                coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
+                coupon_ticket['receive_date'] = coupon.created
+                coupon_ticket['coupon_id'] = coupon_id
+            except Exception, exc:
+                raise exceptions.APIException(exc.message)
 
-            discount_fee    += coupon_pool.template.value
-            coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
-            coupon_ticket['receive_date'] = coupon.created
-            coupon_ticket['coupon_id'] = coupon_id
-            
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -774,13 +781,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 # 对应用户的未使用的优惠券
                 coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
                                                  status=UserCoupon.UNUSED)
-                coupon_pool  = coupon.cp_id
-                if coupon_pool.status != CouponsPool.RELEASE:
-                    raise exceptions.APIException(u"优惠券池状态异常")
-                
-                if ((coupon_pool.template.type == CouponTemplate.C150_10 and cart_total_fee < 15000) or
-                    (coupon_pool.template.type == CouponTemplate.C259_20 and cart_total_fee < 25900)):
-                    raise exceptions.APIException(u"订单金额不满足优惠券使用条件")
+                try:  # 优惠券条件检查
+                    coupon.check_usercoupon()
+                    coupon.cp_id.template.usefee_check(payment/100.0)  # 检查消费金额是否满足
+                    coupon_pool = coupon.cp_id
+                except Exception, exc:
+                    raise exceptions.APIException(exc.message)
+
                 cart_discount    += int(coupon_pool.template.value * 100)
             
             if discount_fee > cart_discount:
@@ -839,14 +846,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             # 对应用户的未使用的优惠券
             coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
-            coupon_pool  = coupon.cp_id
-            if coupon_pool.status != CouponsPool.RELEASE:
-                raise exceptions.APIException(u"优惠券池状态异常")
-            
-            if ((coupon_pool.template.type == CouponTemplate.C150_10 and bn_totalfee < 15000) or
-                (coupon_pool.template.type == CouponTemplate.C259_20 and bn_totalfee < 25900)):
-                raise exceptions.APIException(u"订单金额不满足优惠券使用条件")
-            bn_discount    += int(coupon_pool.template.value * 100)
+
+            try:  # 优惠券条件检查
+                coupon.check_usercoupon()
+                coupon.cp_id.template.usefee_check(payment / 100.0)  # 检查消费金额是否满足
+                coupon_pool = coupon.cp_id
+            except Exception, exc:
+                raise exceptions.APIException(exc.message)
+
+            bn_discount += int(coupon_pool.template.value * 100)
 
         if discount_fee > bn_discount:
             raise exceptions.ParseError(u'优惠金额异常')
