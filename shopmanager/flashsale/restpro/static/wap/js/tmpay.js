@@ -157,6 +157,7 @@ function Ctrl_sure_charge(pay_url){
     	var redirect_url = '/index.html';
 	  	if (data.channel == WALLET_PAY){//使用钱包支付
 	  		redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
+	  		window.location.href = adjustPageLink(redirect_url);
 	  	}else{
 	      pingpp.createPayment(data, function(result, err) {
 	      	if (result == "success") {
@@ -166,9 +167,9 @@ function Ctrl_sure_charge(pay_url){
 		    } else if (result == "cancel") {
 		        redirect_url = GLConfig.daizhifu_url;
 		    }
+		    window.location.href = adjustPageLink(redirect_url);
 	      });
 	    }
-	    window.location.href = adjustPageLink(redirect_url);
     }
     // 调用接口
 	$.ajax({ 
