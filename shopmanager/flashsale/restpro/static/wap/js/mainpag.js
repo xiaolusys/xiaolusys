@@ -125,7 +125,6 @@ function tm_timer() {
     hh = checkTime(hh);
     mm = checkTime(mm);
     ss = checkTime(ss);
-    console.log(dd, hh, mm, ss);
     if (ts >= 86400000) {
         $(".poster_timer.tm1").text("剩余" + dd + "天" + hh + "时" + mm + "分" + ss + "秒");
         setTimeout(function () {
@@ -433,7 +432,6 @@ function product_timer(shelf_time) {
     hh = checkTime(hh);
     mm = checkTime(mm);
     ss = checkTime(ss);
-    console.log(ts)
     if (ts > 100800000 && ts < 136800000) {
         $(".top p").text("敬请期待");
     } else if (ts < 100800000 && ts >= 86400000) {

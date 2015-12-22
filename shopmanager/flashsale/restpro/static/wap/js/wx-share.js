@@ -55,7 +55,7 @@ function listenWeixinShareEvent(configParams) {
             // 分享标题
             desc: descContent,
             // 分享描述
-            link: lineLink,
+            link: makeLinkUrl(lineLink,{'ufrom':'wxapp'}),
             // 分享链接
             imgUrl: imgUrl,
             // 分享图标
@@ -79,7 +79,7 @@ function listenWeixinShareEvent(configParams) {
         wx.onMenuShareTimeline({
             title: shareTitle,
             // 分享标题
-            link: lineLink,
+            link: makeLinkUrl(lineLink,{'ufrom':'wxpyq'}),
             // 分享链接
             imgUrl: imgUrl,
             // 分享图标
@@ -105,7 +105,7 @@ function listenWeixinShareEvent(configParams) {
             // 分享标题
             desc: descContent,
             // 分享描述
-            link: lineLink,
+            link: makeLinkUrl(lineLink,{'ufrom':'qq'}),
             // 分享链接
             imgUrl: imgUrl,
             // 分享图标
@@ -131,7 +131,7 @@ function listenWeixinShareEvent(configParams) {
             // 分享标题
             desc: descContent,
             // 分享描述
-            link: lineLink,
+            link: makeLinkUrl(lineLink,{'ufrom':'txweibo'}),
             // 分享链接
             imgUrl: imgUrl,
             // 分享图标

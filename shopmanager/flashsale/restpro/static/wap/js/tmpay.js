@@ -147,24 +147,28 @@ function Ctrl_sure_charge(pay_url){
 	params.addr_id = addrid;
 	params.channel = channel;
 	params.csrfmiddlewaretoken = csrftoken;
+	params.mm_linkid = getUrlParam('mm_linkid');
+	params.ufrom     = getUrlParam('ufrom');
 	if(!isNone(couponid)){
 		params.coupon_id = couponid;
 	}
     var callBack = function(data){
     	click_paybtn = false;
+    	var redirect_url = '/index.html';
 	  	if (data.channel == WALLET_PAY){//使用钱包支付
-	  		window.location.href = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
+	  		redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
 	  	}else{
 	      pingpp.createPayment(data, function(result, err) {
 	      	if (result == "success") {
-		        window.location.href =  GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
+		        redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
 		    } else if (result == "fail") {
-		        window.location.href =  GLConfig.daizhifu_url;
+		        redirect_url = GLConfig.daizhifu_url;
 		    } else if (result == "cancel") {
-		        window.location.href =  GLConfig.daizhifu_url;
+		        redirect_url = GLConfig.daizhifu_url;
 		    }
 	      });
 	    }
+	    window.location.href = adjustPageLink(redirect_url);
     }
     // 调用接口
 	$.ajax({ 

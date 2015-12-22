@@ -69,7 +69,8 @@ function Ctrl_sure_pay(){
     drawToast("购物车没有商品");
     return
   }
-  window.location = 'queren-dd.html?cart_ids='+cart_ids.join(',');
+  var pay_link = 'queren-dd.html?cart_ids='+cart_ids.join(',');
+  window.location.href = adjustPageLink(pay_link);
 }
 </script>
 </body>

@@ -248,7 +248,8 @@ function buynow(){
     };
     var item_id = getUrlParam('id');
     var sku_id = $('#js-goods-size li.active').attr('sku_id');
-    window.location = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
+    var buy_link = 'buynow-dd.html?item_id={{item_id}}&sku_id={{sku_id}}'.template({item_id:item_id,sku_id:sku_id});
+    window.location.href = adjustPageLink(buy_link);
 }
 function callNTKFChatPage(){
     //对应手机WAP端组代码

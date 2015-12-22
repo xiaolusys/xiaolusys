@@ -209,7 +209,7 @@ function DoIfLogin(cfg){
         success: cookieProfile,
         error: function (data) {
             if (data.status == 403) {
-                window.location = GLConfig.login_url+'?next='+encodeURIComponent(cfg.redirecto);
+                window.location.href = GLConfig.login_url+'?next='+encodeURIComponent(adjustPageLink(cfg.redirecto));
             }
         }
     });
@@ -302,9 +302,7 @@ var cart_timer = function () {
         } else {
             count = 1;
         }
-
     }
-
     return {
         publicMethod: function () {
             count++;
@@ -346,6 +344,38 @@ function makePicUlr(pic_url,params){
 		return pic_url + url_params;
 	}
 	return pic_url + '?' + url_params;
+}
+
+function parseUrlParams(link){
+    var vars = {}, hash;
+    if (link.indexOf('?') < 0)return vars;
+    var hashes = link.slice(link.indexOf('?') + 1).split('&');
+    for (var i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        vars[hash[0]] = hash[1];
+    }
+    return vars
+}
+
+function makeLinkUrl(link,params){
+    if (!link || link.startsWith('javascript') || link.startsWith('#')){
+        console.log('invalid link:',link);
+        return link
+    }
+    var vars = parseUrlParams(link);
+    for (var p in params){
+        if (params[p]==null)continue;
+        vars[p] = params[p];
+    }
+    if (link.indexOf('?') < 0){
+        return link + '?' + $.param(vars);
+    }
+    return link.slice(0,link.indexOf('?'))+'?'+$.param(vars)
+}
+
+function adjustPageLink(link){
+    var params  = {'mm_linkid':getUrlParam('mm_linkid'),'ufrom':getUrlParam('ufrom')};
+    return makeLinkUrl(link,params);
 }
 
 //加载小能客服插件
@@ -394,9 +424,24 @@ function loadNTalker(params,callback){
         oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
     }
     window.onload = function () {
-        document.body.addEventListener('touchstart', function () {});
-        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
+        window.event.cacenlBubble=false;
+        if(document.addEventListener){
+	        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
+	        document.body.addEventListener('click',function(e){
+	            var target = e.target || e.srcElement;
+	            var parentTarget = target.parentNode;
+	            if (target.nodeName.toLowerCase() === 'a') {
+			        target.href = adjustPageLink(target.href);
+			    }else if(parentTarget.nodeName.toLowerCase() === 'a'){
+			        parentTarget.href = adjustPageLink(parentTarget.href);
+			    }
+	        },false);
+	    }
+        //加载百度统计插件
+        loadBaiduStat();
+    }
+    window.onbeforeunload = function(event){
+        //to handle unload page,cannot replace location;
     }
 })();
-//加载百度统计插件
-loadBaiduStat();
+
