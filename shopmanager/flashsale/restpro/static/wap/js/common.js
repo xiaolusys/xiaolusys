@@ -358,7 +358,7 @@ function parseUrlParams(link){
 }
 
 function makeLinkUrl(link,params){
-    if (!link || link.startsWith('javascript') || link.startsWith('#')){
+    if (isNone(link) || /^(javascript|#)/.test(link)){
         console.log('invalid link:',link);
         return link
     }

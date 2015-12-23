@@ -669,7 +669,8 @@ class ProductAdmin(MyAdmin):
     
     def upshelf_product_action(self,request,queryset):
         """ 库存商品上架（批量） """
-        upshelf_qs  = queryset.filter(shelf_status=Product.DOWN_SHELF,status=Product.NORMAL)
+        qs_outer_ids = [p.outer_id for p in queryset]
+        upshelf_qs   = queryset.filter(shelf_status=Product.DOWN_SHELF,status=Product.NORMAL)
         outer_ids = [p.outer_id for p in upshelf_qs]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
@@ -679,8 +680,8 @@ class ProductAdmin(MyAdmin):
         except Exception,exc:
             self.message_user(request,u"更新错误，微信商品上下架接口异常：%s"%exc.message)
             
-        up_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.UP_SHELF)
-        down_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
+        up_queryset = Product.objects.filter(outer_id__in=qs_outer_ids,shelf_status=Product.UP_SHELF)
+        down_queryset = Product.objects.filter(outer_id__in=qs_outer_ids,shelf_status=Product.DOWN_SHELF)
         for product in up_queryset:
             log_sign = self.get_product_logsign(product)
             log_action(request.user.id,product,CHANGE,u'上架商品:%s'%log_sign)
