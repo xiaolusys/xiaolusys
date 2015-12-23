@@ -669,8 +669,7 @@ class ProductAdmin(MyAdmin):
     
     def upshelf_product_action(self,request,queryset):
         """ 库存商品上架（批量） """
-        unverify_qs = queryset.filter(is_verify=False)
-        upshelf_qs  = queryset.filter(shelf_status=Product.DOWN_SHELF)
+        upshelf_qs  = queryset.filter(shelf_status=Product.DOWN_SHELF,status=Product.NORMAL)
         outer_ids = [p.outer_id for p in upshelf_qs]
         from shopapp.weixin.models import WXProduct
         from shopapp.weixin.tasks import task_Mod_Merchant_Product_Status
@@ -682,13 +681,18 @@ class ProductAdmin(MyAdmin):
             
         up_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.UP_SHELF)
         down_queryset = Product.objects.filter(outer_id__in=outer_ids,shelf_status=Product.DOWN_SHELF)
-        if unverify_qs.count() > 0:
-            self.message_user(request,u"有%s个商品未核对，请核对后才能上架!"%unverify_qs.count())
-
         for product in up_queryset:
             log_sign = self.get_product_logsign(product)
             log_action(request.user.id,product,CHANGE,u'上架商品:%s'%log_sign)
         self.message_user(request,u"已成功上架%s个商品,有%s个商品上架失败!"%(up_queryset.count(),down_queryset.count()))
+        for product in down_queryset:
+            msg = u"xxx商品上架失败：%s"%product.outer_id
+            if not product.is_verify:
+                msg += u',商品信息未校对'
+            if product.status != Product.NORMAL:
+                msg += u',商品状态(%s)非正常使用状态'%product.get_status_display()
+            self.message_user(request,msg)
+        
         return HttpResponseRedirect(request.get_full_path())
         
     upshelf_product_action.short_description = u"上架微信商品 (批量)"

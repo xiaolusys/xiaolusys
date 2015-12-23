@@ -53,16 +53,17 @@ class WXMessageHttpProxy(HttpProxy):
 #         ret_params = wx_service.handleRequest(params)
 #         response = formatParam2XML(ret_params)
         request_url = self.get_full_url(self.url)
+        request_body = request.body
         request = self.create_request(request_url,body=request.body)
         response = urllib2.urlopen(request)
         start = time.time()
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % ('%s\n%s'%(request_url,response_body)))
+            logger.debug(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % ('%s\n%s'%(request_url,response_body)))
+            logger.error(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
             status = e.code
         end = time.time()
         logger.debug('\nconsume seconds：%.2f'%(end - start))
@@ -97,6 +98,7 @@ class WXCustomAndMediaProxy(HttpProxy):
         Proxy for the Request
         """
         request_url = self.get_full_url(self.url)
+        request_body = request.body
         request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
                           'Content-length': request.META.get('CONTENT_LENGTH')}
         request = self.create_request(request_url,body=request.body,headers=request_header)
@@ -105,10 +107,10 @@ class WXCustomAndMediaProxy(HttpProxy):
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % ('%s\n%s'%(request_url,response_body)))
+            logger.debug(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % ('%s\n%s'%(request_url,response_body)))
+            logger.error(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
             status = e.code
         end = time.time()
         logger.debug('\nconsume seconds：%.2f'%(end - start))

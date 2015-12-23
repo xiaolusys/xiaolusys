@@ -38,7 +38,7 @@ String.prototype.template = function (data) {
 };
 //判断是否为空
 function isNone(value) {
-    return typeof(value) == 'undifined' || value == null
+    return typeof(value) == 'undifined' || value == null || value == '';
 }
 
 function getLinkParam(url,name){
@@ -430,9 +430,9 @@ function loadNTalker(params,callback){
 	        document.body.addEventListener('click',function(e){
 	            var target = e.target || e.srcElement;
 	            var parentTarget = target.parentNode;
-	            if (target.nodeName.toLowerCase() === 'a') {
+	            if (target.nodeName.toLowerCase() === 'a' && !isNone(target.href)) {
 			        target.href = adjustPageLink(target.href);
-			    }else if(parentTarget.nodeName.toLowerCase() === 'a'){
+			    }else if(parentTarget.nodeName.toLowerCase() === 'a' && !isNone(parentTarget.href)){
 			        parentTarget.href = adjustPageLink(parentTarget.href);
 			    }
 	        },false);
