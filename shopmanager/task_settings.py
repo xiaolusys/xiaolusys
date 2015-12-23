@@ -488,6 +488,18 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'定时上架库存商品任务': {
+        'task': 'shopback.categorys.tasks.task_category_collect_num',
+        'schedule': crontab(minute="0", hour="10"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+    u'定时下架库存商品任务': {
+        'task': 'shopback.categorys.tasks.task_category_collect_num',
+        'schedule': crontab(minute="0", hour="14"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
