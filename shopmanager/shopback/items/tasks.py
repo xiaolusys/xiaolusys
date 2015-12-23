@@ -955,3 +955,56 @@ class CalcProductSaleAsyncTask(Task):
         sale_items = self.calcSaleItems(queryset=sale_qs, buyer_name=buyer_name, supplier=supplier, p_outer_id=p_outer_id, show_sale=show_sale)
         return sale_items
     
+
+def get_product_logsign(product):
+    return '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(product.collect_num, product.wait_post_num,
+                                                            product.remain_num, product.lock_num)
+
+
+@task(max_retry=3, default_retry_delay=60)
+def task_Auto_Upload_Shelf():
+    """ 自动上架商品　"""
+    logger = logging.getLogger('celery.handler')
+    from shopback.base import log_action, CHANGE
+    from django.contrib.auth.models import User as DjangoUser
+    systemoa, state = DjangoUser.objects.get_or_create(username="systemoa", is_active=True)  # 系统用户
+    today = datetime.date.today()   # 上架日期
+    queryset = Product.objects.filter(sale_time=today, status=Product.NORMAL)  # 今天的正常状态的产品
+    unverify_qs = queryset.filter(is_verify=False)  # 今天正常状态产品中没有审核的产品
+    upshelf_qs = queryset.filter(is_verify=True, shelf_status=Product.DOWN_SHELF)  # 未上架的产品(并且是已经审核状态产品)
+    unverify_no = unverify_qs.count()  # 没有审核的产品数量
+    count = 0
+    for product in upshelf_qs:
+        product.shelf_status = Product.UP_SHELF
+        # signals.signal_product_upshelf.send(sender=Product, product_list=[product])  # 发送商品上架消息
+        # 上架的信号触发在 items.models pre_save 中已经有保存上架状态变化的时候触发上架信号所以这里注释掉
+        product.save()
+        log_sign = get_product_logsign(product)  # 生成日志信息
+        log_action(systemoa.id, product, CHANGE, u'系统自动上架商品:%s' % log_sign)  # 保存操作日志
+        count += 1
+    logger.error("{0}系统自动上架{1}个产品,未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
+
+
+@task(max_retry=3, default_retry_delay=60)
+def task_Auto_Download_Shelf():
+    """ 自动下架商品 """
+    logger = logging.getLogger('celery.handler')
+    from shopback import signals
+    from shopback.base import log_action, CHANGE
+    from django.contrib.auth.models import User as DjangoUser
+    systemoa, state = DjangoUser.objects.get_or_create(username="systemoa", is_active=True)
+    yestoday = datetime.date.today() - datetime.timedelta(days=1)
+    queryset = Product.objects.filter(sale_time=yestoday, status=Product.NORMAL)   # 昨天上架的状态正常的产品
+    unverify_qs = queryset.filter(is_verify=False)  # 昨天上架状态正常没有审核的
+    upshelf_qs = queryset.filter(shelf_status=Product.UP_SHELF)  # 昨天已经上架的产品(包含没有审核状态产品)
+    unverify_no = unverify_qs.count()  # 没有审核的产品数量
+    count = 0
+    for product in upshelf_qs:
+        product.shelf_status = Product.DOWN_SHELF
+        signals.signal_product_downshelf.send(sender=Product, product_list=[product])
+        product.save()
+        count += 1
+        log_sign = get_product_logsign(product)  # 生成日志信息
+        log_action(systemoa.id, product, CHANGE, u'系统自动下架商品:%s' % log_sign)  # 保存操作日志
+    logger.error("{0}系统自动下架{1}个产品,含未通过审核{2}个产品".format(datetime.datetime.now(), count, unverify_no), exc_info=True)
+
