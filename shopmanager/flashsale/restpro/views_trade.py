@@ -297,7 +297,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
             try:    # 优惠券条件检查
                 coupon.check_usercoupon()
-                coupon.cp_id.template.usefee_check(total_fee)
                 coupon_pool  = coupon.cp_id
                 discount_fee    += coupon_pool.template.value
                 coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
@@ -351,7 +350,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product     = product_sku.product
         
         total_fee = float(product_sku.agent_price) * 1
-        print "total_fee:", total_fee
         post_fee = 0
         has_deposite = product.is_deposite()
         wallet_cash  = 0 
@@ -379,7 +377,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                                              status=UserCoupon.UNUSED)
             try:
                 coupon.check_usercoupon()
-                coupon.cp_id.template.usefee_check(total_fee)
                 coupon_pool  = coupon.cp_id
                 discount_fee    += coupon_pool.template.value
                 coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
