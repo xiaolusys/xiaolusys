@@ -53,7 +53,7 @@ class ModelProductView(View):
     def get(request):
         content = request.GET
         search_model = content.get('search_model', '0')
-        all_model_product = ModelProduct.objects.exclude(status=u'1').order_by('-created')
+        all_model_product = ModelProduct.objects.exclude(status=u'1').order_by('-created')[0:20]
         if len(search_model) == 0:
             search_model = 0
         model_change = ModelProduct.objects.filter(id=search_model)
@@ -75,7 +75,7 @@ class ModelProductView(View):
         product_id_list = post.getlist("product_id")
         model_id = post.get("model_id", 0)
         m = ModelProduct.objects.get(id=model_id)
-        all_model_product = ModelProduct.objects.all()
+        all_model_product = ModelProduct.objects.exclude(status=u'1').order_by('-created')[0:20]
         for product_id in product_id_list:
             pro = Product.objects.filter(id=product_id)
             if pro.count() > 0:
