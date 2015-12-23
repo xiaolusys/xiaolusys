@@ -28,7 +28,8 @@ class CouponTemplate(models.Model):
                    (USUAL, u"普通"), (NEW_YEAR, u"元旦专用"))
     CLICK_WAY = 0
     BUY_WAY = 1
-    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"))
+    XMM_LINK = 2
+    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"),(XMM_LINK ,u"购买专属链接"))
     ALL_USER = 1
     AGENCY_VIP = 2
     AGENCY_A = 3

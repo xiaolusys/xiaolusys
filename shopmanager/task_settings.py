@@ -500,6 +500,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'定时发放有购买代理优惠券任务': {
+        'task': 'flashsale.pay.tasks.task_Release_Coupon_For_Mmlink',
+        'schedule': crontab(minute="0", hour="3"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
