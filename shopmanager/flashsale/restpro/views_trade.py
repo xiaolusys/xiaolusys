@@ -304,8 +304,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 coupon_ticket['coupon_id'] = coupon_id
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
-
-            discount_fee += coupon_pool.template.value
             coupon_ticket = serializers.UsersCouponSerializer(coupon).data
             coupon_ticket['receive_date'] = coupon.created
             coupon_ticket['coupon_id'] = coupon_id
