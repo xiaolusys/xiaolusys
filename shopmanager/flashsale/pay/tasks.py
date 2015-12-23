@@ -333,7 +333,7 @@ def task_Pull_Red_Envelope(pre_day=7):
             break
             
 
-from models_coupon_new import CouponsPool, CouponTemplate
+from models_coupon_new import CouponsPool, CouponTemplate, UserCoupon
 from django.db import transaction
 
 
@@ -351,3 +351,37 @@ def task_Update_CouponPoll_Status():
                             CouponTemplate.POST_FEE_10, CouponTemplate.POST_FEE_15,
                             CouponTemplate.POST_FEE_20))
     cous.update(status=CouponsPool.PAST)  # 更新为过期优惠券
+
+
+from flashsale.clickrebeta.models import StatisticsShopping
+
+
+@task
+def task_Release_Coupon_For_Mmlink():
+    """
+    执行检查代理专属链接　是否有购买　有　则发放该类型的优惠券
+    """
+    from flashsale.xiaolumm.models import XiaoluMama
+    today = datetime.date.today()
+    yes_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0) - datetime.timedelta(days=1)
+    yes_to = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
+    yes_shops = StatisticsShopping.objects.filter(shoptime__gte=yes_from, shoptime__lte=yes_to).exclude(
+        status=StatisticsShopping.REFUNDED).only('linkid', 'wxorderid')  # 昨天的购买订单 排除已经取消的
+    # 发放优惠券
+    for shop in yes_shops:
+        try:
+            xlmm = XiaoluMama.objects.get(id=shop.linkid)
+            cus = Customer.objects.get(unionid=xlmm.openid)  # 代理的用户id
+            # 注意这里如果是多个则将抛异常跳过　所以只能保持一个有效的
+            tpl = CouponTemplate.objects.get(way_type=CouponTemplate.XMM_LINK, valid=True, type=CouponTemplate.USUAL)
+            if tpl:
+                buyer_id = cus.id  # 代理的用户id
+                kwargs = {"buyer_id": buyer_id, "template_id": tpl.id}
+                coupon = UserCoupon()
+                coupon.release_by_template(**kwargs)
+            else:  # 没有模板跳出循环
+                break
+        except:
+            continue
+
+
