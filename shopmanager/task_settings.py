@@ -16,7 +16,7 @@ CELERY_RESULT_BACKEND = "djcelery.backends.cache:CacheBackend" #"amqp"
 # 某个程序中出现的队列，在broker中不存在，则立刻创建它  
 #CELERY_CREATE_MISSING_QUEUES = True 
 # 每个worker最多执行万100个任务就会被销毁，可防止内存泄露  
-#CELERYD_MAX_TASKS_PER_CHILD = 100    
+CELERYD_MAX_TASKS_PER_CHILD = 100    
 # 单个任务的运行时间不超过此值，否则会被SIGKILL 信号杀死 
 # CELERYD_TASK_TIME_LIMIT = 60    
 # 非常重要,有些情况下可以防止死锁,如果有数量更时间限制应开启 
