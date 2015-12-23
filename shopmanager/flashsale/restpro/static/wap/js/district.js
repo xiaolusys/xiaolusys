@@ -176,9 +176,9 @@ function btn_save_func () {
         var referrer = document.referrer;
         var hashes = referrer.split("?")[0].split('/');
         if (hashes && (hashes[hashes.length - 1] == "buynow-dd.html" || hashes[hashes.length - 1] == "queren-dd.html")) {
-            window.location.href = referrer;
+            window.location = referrer;
         } else {
-            window.location.href = "shouhuodz.html"
+            window.location = "shouhuodz.html"
         }
     };
     $(".btn-save").unbind("click");

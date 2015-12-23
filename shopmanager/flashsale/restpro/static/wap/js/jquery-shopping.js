@@ -13,7 +13,7 @@
                 },
                 doIflogin:function(){
                 	DoIfLogin({
-			    		callback:function(){window.location.href=adjustPageLink('/pages/gouwuche.html');},
+			    		callback:function(){window.location=adjustPageLink('/pages/gouwuche.html');},
 			    		redirecto:adjustPageLink('/pages/gouwuche.html')
 			    	});
                 }

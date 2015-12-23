@@ -209,7 +209,7 @@ function DoIfLogin(cfg){
         success: cookieProfile,
         error: function (data) {
             if (data.status == 403) {
-                window.location.href = GLConfig.login_url+'?next='+encodeURIComponent(adjustPageLink(cfg.redirecto));
+                window.location = GLConfig.login_url+'?next='+encodeURIComponent(adjustPageLink(cfg.redirecto));
             }
         }
     });
