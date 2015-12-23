@@ -295,6 +295,14 @@ class BatchSetTime(generics.ListCreateAPIView):
         content = request.GET
         target_shelf_date = content.get("shelf_date", datetime.date.today())
         model_id = content.get("model_id", None)
+        p_cate_search = content.get("search_cate", None)
+        ex_names = ['小鹿美美','优尼世界']
+        parent_categorys = ProductCategory.objects.filter(is_parent=True).exclude(name__in=ex_names)
+        p_cates = []
+        for parent in parent_categorys:
+            p_kv = {"p_cid": parent.cid, "p_fullcate_name": parent.__unicode__()}
+            p_cates.append(p_kv)
+        categorys = ProductCategory.objects.filter(is_parent=False)
         if model_id is not None and "-" in model_id:
             model_id_strip = model_id.strip()
             models = model_id_strip.split('-')
@@ -305,7 +313,6 @@ class BatchSetTime(generics.ListCreateAPIView):
             model_id_strip = model_id.strip()
             models = [model_id_strip, ]
         # 添加类目
-        categorys = ProductCategory.objects.all()
         cates = []
         for cate in categorys:
             kv = {"cid": cate.cid, "full_cate_name": cate.__unicode__()}
@@ -314,10 +321,14 @@ class BatchSetTime(generics.ListCreateAPIView):
             products = Product.objects.filter(model_id__in=models, status=Product.NORMAL).order_by("outer_id")
             return Response(
                 {"all_product": products, "target_shelf_date": target_shelf_date, "model_id": model_id_strip,
-                 "cates": cates, "ware_by": Product.WARE_CHOICES})
-        products = Product.objects.filter(sale_time=target_shelf_date, status=Product.NORMAL).order_by("outer_id")
+                 "cates": cates, "ware_by": Product.WARE_CHOICES, "p_cates": p_cates})
+        if p_cate_search is not None and p_cate_search != "":
+            products = Product.objects.filter(sale_time=target_shelf_date, status=Product.NORMAL
+                                              , category__parent_cid=p_cate_search).order_by("outer_id")
+        else:
+            products = []
         return Response({"all_product": products, "target_shelf_date": target_shelf_date, "cates": cates,
-                         "ware_by": Product.WARE_CHOICES})
+                         "ware_by": Product.WARE_CHOICES, "p_cates": p_cates})
 
     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
@@ -341,7 +352,7 @@ class BatchSetTime(generics.ListCreateAPIView):
                     product = Product.objects.get(id=kill)
                     title = product.title()
                     if not title.startswith('秒杀'):  # 防止重复添加秒杀
-                        product.name = '秒杀' + title
+                        product.name = '秒杀 ' + title
                         product.save()
                         log_action(user.id, product, CHANGE, u'批量设置秒杀标题')
                         count += 1
