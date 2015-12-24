@@ -53,21 +53,24 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     """
     ### 特卖平台 用户注册,修改密码API：　
     
-    - {prefix}/[.format]: `params={vmobile}` 注册新用户时，获取验证码;
+    - /[.format]: `params={vmobile}` 注册新用户时，获取验证码;
     > 返回参数result：0-已经注册了;1-180秒不能重复发送;２－验证次数达上限;OK-表示获取成功;
-    - {prefix}/check_code_user: `params={username,valid_code}` 校验验证码（旧）;
+    - /check_code_user: `params={username,valid_code}` 校验验证码（旧）;
     > 返回参数result：0-已经注册了;1-验证码过期或不对;２－参数格式不对;３-未获取验证码;7-注册成功;
-    - {prefix}/change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
+    - /change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
     > 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－当日验证次数超过上限;３-验证码过期;
-    - {prefix}/change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
+    - /change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
     > 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－验证码不对;３-未获取验证码;４-验证码过期;５-校验异常;
-    - {prefix}/wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
-    - {prefix}/check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
-    > 返回参数result：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
-    - {prefix}/send_code: ｛mobile,｝ ,获取登录验证码;
-    > 返回参数result：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
-    - {prefix}/sms_login: ｛mobile,sms_code｝ ,通过验证码登录;
-    > 返回参数result：0-获取成功;1-登录验证失败;２－手机号码不合法;3-验证码有误;
+    - /customer_login: `params={username,password}`　用户名，密码登陆
+    >返回参数code:0-登陆成功;1－参数不对；２－密码错误；３－用户未找到；4－账号异常；５-用户未设置密码；6－系统异常；
+    - /wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
+    >返回参数code:0-登陆成功;1－签名错误；２－非法用户；
+    - /check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
+    > 返回参数code：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
+    - /send_code: ｛mobile,｝ ,获取登录验证码;
+    > 返回参数code：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
+    - /sms_login: ｛mobile,sms_code｝ ,通过验证码登录;
+    > 返回参数code：0-获取成功;1-登录验证失败;２－手机号码不合法;3-验证码有误;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -270,7 +273,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         password = request.POST.get('password')
         next_url = request.POST.get('next','/index.html')
         if not username or not password:
-            return Response({"result": "null"})
+            return Response({"code":1, "result": "null"})
         try:
             customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username)
                                                 ,status=Customer.NORMAL)
@@ -278,16 +281,16 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 username = customers[0].user.username
             user1 = authenticate(username=username, password=password)
             if not user1 or user1.is_anonymous():
-                return Response({"result": "p_error"})  # 密码错误
+                return Response({"code":2,"result": "p_error"})  # 密码错误
             login(request, user1)
             
             user_agent = request.META.get('HTTP_USER_AGENT')
             if not user_agent or user_agent.find('MicroMessenger') < 0:
-                return Response({"result": "login", "next": next_url})   #登录不是来自微信，直接返回登录成功
+                return Response({"code":0,"result": "login", "next": next_url})   #登录不是来自微信，直接返回登录成功
              
             customers = Customer.objects.filter(user=user1)
             if customers.count() == 0 or customers[0].is_wxauth():
-                return Response({"result": "login", "next": next_url})  #如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
+                return Response({"code":0,"result": "login", "next": next_url})  #如果是系统帐号登录，或已经微信授权过，则直接返回登录成功
             
             params = {'appid':settings.WXPAY_APPID,
               'redirect_uri':('{0}{1}?next={2}').format(settings.M_SITE_URL,reverse('v1:xlmm-wxauth'),next_url),
@@ -295,15 +298,15 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
               'scope':'snsapi_base',
               'state':'135'}
             redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
-            return Response({"result": "login", "next": redirect_url})  #如果用户没有微信授权则直接微信授权后跳转
+            return Response({"code":0,"result": "login", "next": redirect_url})  #如果用户没有微信授权则直接微信授权后跳转
             
         except Customer.DoesNotExist:
-            return Response({"result": "u_error"})  # # 用户错误
+            return Response({"code":3,"result": "u_error"})  # # 用户错误
         except Customer.MultipleObjectsReturned:
-            return Response({"result": "s_error"})  # 账户异常
+            return Response({"code":4,"result": "s_error"})  # 账户异常
         except ValueError, exc:
-            return Response({"result": "no_pwd"})
-        return Response({"result": "fail"})
+            return Response({"code":5,"result": "no_pwd"})
+        return Response({"code":6,"result": "fail"})
     
     def check_sign(self,request):
         CONTENT = request.GET
@@ -343,12 +346,12 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
            POST: 'a=1&b=3&c=2'
         """
         if not self.check_sign(request):
-            return Response({"is_login":False, "info":"invalid sign"}) 
+            return Response({"code":1,"is_login":False, "info":"invalid sign"}) 
         
         req_params = request.POST
         user1 = authenticate(request=request,**req_params)
         if not user1 or user1.is_anonymous():
-            return Response({"is_login":False, "info":"invalid user"})  
+            return Response({"code":2,"is_login":False, "info":"invalid user"})  
         login(request, user1)
         
         customer = get_object_or_404(Customer,user=request.user)
@@ -360,7 +363,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             user_score = user_scores[0].integral_value
         user_info['score'] = user_score
         
-        return Response({"ｉs_login":True, "info":user_info})
+        return Response({"code":0,"ｉs_login":True, "info":user_info})
     
     @list_route(methods=['post'])
     def send_code(self, request, *args, **kwargs):

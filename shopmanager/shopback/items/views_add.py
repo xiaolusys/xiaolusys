@@ -177,15 +177,14 @@ class GetSkuDetail(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
     template_name = "items/change_chima.html"
-
+    
     def get(self, request, *args, **kwargs):
         content = request.GET
         searchtext = content.get("search_input")
         if not searchtext or len(searchtext.strip()) == 0:
             return Response({"result": "NOTFOUND"})
-        product_bean = Product.objects.filter(Q(outer_id=searchtext)).filter(status=Product.NORMAL)
+        product_bean = Product.objects.filter(Q(outer_id=searchtext))
         all_chima_content = ContrastContent.objects.all().order_by('sid')
-
         try:
             if product_bean.count() > 0:
                 all_sku = [key.properties_alias for key in product_bean[0].normal_skus]
@@ -194,7 +193,11 @@ class GetSkuDetail(generics.ListCreateAPIView):
                     notexist_skus = []
                     for one_chima in all_chima_content:
                         try:
-                            chi_ma_size = product_bean[0].contrast.contrast_detail[one_sku][one_chima.cid]
+                            contrast_detail = product_bean[0].contrast.contrast_detail
+                            if one_sku in contrast_detail:
+                                chi_ma_size = contrast_detail[one_sku][one_chima.cid]
+                            else:
+                                chi_ma_size = 0
                         except:
                             chi_ma_size = 0
                             notexist_skus.append((one_chima.name, chi_ma_size))
