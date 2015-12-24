@@ -764,13 +764,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             payment         = int(float(CONTENT.get('payment','0')) * 100)
             post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
             discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
-            cart_total_fee  = 0 
+            cart_total_fee  = 0
             cart_discount   = 0
             for cart in cart_qs:
                 if not cart.is_good_enough():
                     raise exceptions.ParseError(u'抱歉,商品已被抢光')
                 cart_total_fee += cart.price * cart.num * 100
-                cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * 100
+                cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
             
             if coupon_id:
                 # 对应用户的未使用的优惠券
@@ -778,11 +778,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                                  status=UserCoupon.UNUSED)
                 try:  # 优惠券条件检查
                     coupon.check_usercoupon()
-                    coupon.cp_id.template.usefee_check(payment/100.0)  # 检查消费金额是否满足
+                    coupon.cp_id.template.usefee_check((cart_total_fee - cart_discount) / 100.0)  # 检查消费金额是否满足
                     coupon_pool = coupon.cp_id
                 except Exception, exc:
                     raise exceptions.APIException(exc.message)
-
                 cart_discount    += int(coupon_pool.template.value * 100)
             
             if discount_fee > cart_discount:
@@ -832,7 +831,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         bn_totalfee     = int(product_sku.agent_price * sku_num * 100)
         
         xlmm            = self.get_xlmm(request)
-        bn_discount     = product_sku.calc_discount_fee(xlmm)
+        bn_discount     = product_sku.calc_discount_fee(xlmm) * sku_num
         if product_sku.free_num < sku_num or product.shelf_status == Product.DOWN_SHELF:
             raise exceptions.ParseError(u'商品已被抢光啦！')
         
@@ -841,14 +840,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             # 对应用户的未使用的优惠券
             coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
-
             try:  # 优惠券条件检查
                 coupon.check_usercoupon()
-                coupon.cp_id.template.usefee_check(payment / 100.0)  # 检查消费金额是否满足
+                coupon.cp_id.template.usefee_check((bn_totalfee - bn_discount) / 100.0)  # 检查消费金额是否满足
                 coupon_pool = coupon.cp_id
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
-
             bn_discount += int(coupon_pool.template.value * 100)
 
         if discount_fee > bn_discount:
