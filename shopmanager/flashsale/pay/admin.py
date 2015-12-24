@@ -542,27 +542,7 @@ class GoodShelfAdmin(admin.ModelAdmin):
 admin.site.register(GoodShelf, GoodShelfAdmin)
 
 
-from models_coupon import CouponPool, Coupon, Integral, IntegralLog
-#
-
-class CouponPoololdAdmin(admin.ModelAdmin):
-    list_display = (
-        'id', 'coupon_no', 'deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
-    list_filter = ('deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
-    search_fields = ['=id', '=coupon_no']
-    list_per_page = 50
-
-admin.site.register(CouponPool, CouponPoololdAdmin)
-
-
-class CouponoldAdmin(admin.ModelAdmin):
-    list_display = ('id', 'coupon_user', 'coupon_no', 'mobile', 'trade_id', 'created', 'modified', 'status')
-    list_filter = ('created', 'status')
-    search_fields = ['=coupon_user', '=mobile', '=trade_id']
-    list_per_page = 50
-
-
-admin.site.register(Coupon, CouponoldAdmin)
+from models_coupon import Integral, IntegralLog
 
 
 class IntegralAdmin(admin.ModelAdmin):
