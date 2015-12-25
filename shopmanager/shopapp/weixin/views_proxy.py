@@ -60,10 +60,10 @@ class WXMessageHttpProxy(HttpProxy):
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
+            logger.debug(self._msg % ('%s\nQ%s\nP%s'%(request_url,request_body,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
+            logger.error(self._msg % ('%s\nQ%s\nP%s'%(request_url,request_body,response_body)))
             status = e.code
         end = time.time()
         logger.debug('\nconsume seconds：%.2f'%(end - start))
@@ -107,10 +107,10 @@ class WXCustomAndMediaProxy(HttpProxy):
         try:
             response_body = response.read()
             status = response.getcode()
-            logger.debug(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
+            logger.debug(self._msg % ('%s\nQ%s\nP%s'%(request_url,request_body,response_body)))
         except urllib2.HTTPError, e:
             response_body = e.read()
-            logger.error(self._msg % ('%s\n>%s\n<%s'%(request_url,request_body,response_body)))
+            logger.error(self._msg % ('%s\nQ%s\nP%s'%(request_url,request_body,response_body)))
             status = e.code
         end = time.time()
         logger.debug('\nconsume seconds：%.2f'%(end - start))
