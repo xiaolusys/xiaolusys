@@ -362,26 +362,51 @@ def task_Release_Coupon_For_Mmlink():
     执行检查代理专属链接　是否有购买　有　则发放该类型的优惠券
     """
     from flashsale.xiaolumm.models import XiaoluMama
+    from flashsale.pay.models import SaleTrade
     today = datetime.date.today()
     yes_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0) - datetime.timedelta(days=1)
     yes_to = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
     yes_shops = StatisticsShopping.objects.filter(shoptime__gte=yes_from, shoptime__lte=yes_to).exclude(
         status=StatisticsShopping.REFUNDED).only('linkid', 'wxorderid')  # 昨天的购买订单 排除已经取消的
     # 发放优惠券
+    d24 = datetime.date(2015, 12, 24)   # 优惠券开始时间
+    tpl = CouponTemplate.objects.get(way_type=CouponTemplate.XMM_LINK, valid=True, type=CouponTemplate.USUAL)
+    if not tpl:
+        return
     for shop in yes_shops:
         try:
-            xlmm = XiaoluMama.objects.get(id=shop.linkid)
-            cus = Customer.objects.get(unionid=xlmm.openid)  # 代理的用户id
-            # 注意这里如果是多个则将抛异常跳过　所以只能保持一个有效的
-            tpl = CouponTemplate.objects.get(way_type=CouponTemplate.XMM_LINK, valid=True, type=CouponTemplate.USUAL)
-            if tpl:
-                buyer_id = cus.id  # 代理的用户id
-                kwargs = {"buyer_id": buyer_id, "template_id": tpl.id}
-                coupon = UserCoupon()
-                coupon.release_by_template(**kwargs)
-            else:  # 没有模板跳出循环
-                break
+            strade = SaleTrade.objects.get(tid=shop.wxorderid)  # 交易 包含链接是0的交易
+            cus = Customer.objects.get(id=strade.buyer_id)  # 用户
+            try:
+                xlmm = XiaoluMama.objects.get(openid=cus.unionid)   # 如果用户又是代理
+            except:
+                # 用户不是代理则　找专属链接发放优惠券
+                xlmm = XiaoluMama.objects.get(id=shop.linkid)  # 根据统计购买找到代理
+                cus = Customer.objects.get(unionid=xlmm.openid)  # 根据代理找到用户
+            sorders = strade.sale_orders.all()
+            order_counts = sorders.count()
+            kill_count = 0
+            for order in sorders:
+                if order.second_kill_title():
+                    kill_count += 1
+            if kill_count == order_counts:
+                continue  # 如果都是秒杀产品则查看下一笔交易
+            # 计算用户领取的开单优惠券张数
+            uscops = UserCoupon.objects.filter(cp_id__template__id=tpl.id)
+            coup_counts = uscops.count()
+            # 执行日期
+            exc_date = datetime.date.today()
+            minus_days = (exc_date - d24).days  # 差值　比如２５号执行减去２４号　　为１天　
+            while coup_counts < minus_days:
+                # 如果已经发放的优惠券大于发放天数差值
+                if tpl:
+                    buyer_id = cus.id  # 代理的用户id
+                    kwargs = {"buyer_id": buyer_id, "template_id": tpl.id}
+                    coupon = UserCoupon()
+                    coupon.release_by_template(**kwargs)
+                    coup_counts += 1  # 发放成功则数量加１
         except:
-            continue
+            continue  # 有异常则查看下一笔交易
+
 
 
