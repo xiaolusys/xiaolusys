@@ -372,15 +372,19 @@ def task_Release_Coupon_For_Mmlink():
     d24 = datetime.date(2015, 12, 24)   # 优惠券开始时间
     tpl = CouponTemplate.objects.get(way_type=CouponTemplate.XMM_LINK, valid=True, type=CouponTemplate.USUAL)
     if not tpl:
+        print "没有模板"
         return
+    print "交易数量为：", yes_shops
     for shop in yes_shops:
         try:
             strade = SaleTrade.objects.get(tid=shop.wxorderid)  # 交易 包含链接是0的交易
             cus = Customer.objects.get(id=strade.buyer_id)  # 用户
             try:
                 xlmm = XiaoluMama.objects.get(openid=cus.unionid)   # 如果用户又是代理
+                print "是代理"
             except:
                 # 用户不是代理则　找专属链接发放优惠券
+                print "找代理"
                 xlmm = XiaoluMama.objects.get(id=shop.linkid)  # 根据统计购买找到代理
                 cus = Customer.objects.get(unionid=xlmm.openid)  # 根据代理找到用户
             sorders = strade.sale_orders.all()
@@ -397,6 +401,7 @@ def task_Release_Coupon_For_Mmlink():
             # 执行日期
             exc_date = datetime.date.today()
             minus_days = (exc_date - d24).days  # 差值　比如２５号执行减去２４号　　为１天　
+            print "差值天数：", minus_days, "{0}代理优惠券张数：".format(xlmm.id), coup_counts,"用户id{0}".format(cus.id)
             while coup_counts < minus_days:
                 # 如果已经发放的优惠券大于发放天数差值
                 if tpl:
