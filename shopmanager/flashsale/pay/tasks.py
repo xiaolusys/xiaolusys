@@ -374,7 +374,7 @@ def task_Release_Coupon_For_Mmlink():
     if not tpl:
         print "没有模板"
         return
-    print "交易数量为：", yes_shops
+    print "交易数量为：", yes_shops.count()
     for shop in yes_shops:
         try:
             strade = SaleTrade.objects.get(tid=shop.wxorderid)  # 交易 包含链接是0的交易
