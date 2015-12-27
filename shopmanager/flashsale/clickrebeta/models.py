@@ -264,7 +264,6 @@ from flashsale.pay.signals import signal_saletrade_pay_confirm
 def tongji_saleorder(sender, obj, **kwargs):
     """ 统计特卖订单提成 """
     #如果订单试用钱包付款，或是押金订单则不处理
-
     if obj.is_Deposite_Order():
         return 
     
@@ -300,13 +299,13 @@ def tongji_saleorder(sender, obj, **kwargs):
                            shoptime=ordertime, 
                            tichengcount=mm_order_rebeta).save()
         return
+    mm_linkid = obj.extras_info.get('mm_linkid')
+    xiaolumms = XiaoluMama.objects.filter(id=mm_linkid)
+    if not xiaolumms.exists():
+        xiaolumms = XiaoluMama.objects.filter(openid=wx_unoinid)
     
-    isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,
-                                             charge_status=XiaoluMama.CHARGED,
-                                             charge_time__lte=ordertime)
-    
-    if isinxiaolumm.count() > 0:
-        xiaolumm = isinxiaolumm[0]
+    if xiaolumms.exists():
+        xiaolumm = xiaolumms[0]
         #计算小鹿妈妈订单返利
         mm_rebeta_amount    = xiaolumm.get_Mama_Trade_Amount(obj) 
         mm_order_rebeta     = xiaolumm.get_Mama_Trade_Rebeta(obj)
