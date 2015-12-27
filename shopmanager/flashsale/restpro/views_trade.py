@@ -294,14 +294,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_ticket  = None
         if coupon_id:
             coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id))
-
             try:    # 优惠券条件检查
                 coupon.check_usercoupon()
                 coupon_pool  = coupon.cp_id
                 discount_fee    += coupon_pool.template.value
-                coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
-                coupon_ticket['receive_date'] = coupon.created
-                coupon_ticket['coupon_id'] = coupon_id
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
             coupon_ticket = serializers.UsersCouponSerializer(coupon).data
@@ -377,11 +373,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 coupon.check_usercoupon()
                 coupon_pool  = coupon.cp_id
                 discount_fee    += coupon_pool.template.value
-                coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
-                coupon_ticket['receive_date'] = coupon.created
-                coupon_ticket['coupon_id'] = coupon_id
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
+            
+            coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
+            coupon_ticket['receive_date'] = coupon.created
+            coupon_ticket['coupon_id'] = coupon_id
 
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:

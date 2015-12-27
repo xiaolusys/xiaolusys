@@ -37,7 +37,7 @@ class RefundAdmin(admin.ModelAdmin):
                                 ,('cs_status','order_status','reason'))
                 }))
 
-     #--------定制控件属性----------------
+    #--------定制控件属性----------------
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':'16'})},
         models.TextField: {'widget': Textarea(attrs={'rows':6, 'cols':35})},

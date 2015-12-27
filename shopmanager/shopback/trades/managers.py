@@ -9,7 +9,6 @@ from common.utils import update_model_fields
 
 class MergeTradeManager(models.Manager):
     
-
     def get_queryset(self):
         
         super_tm = super(MergeTradeManager,self)
@@ -32,7 +31,7 @@ class MergeTradeManager(models.Manager):
             if q:
                 q = q|Q(receiver_mobile=receiver_mobile)
             else:
-                q = Q(receiver_mobile=receiver_mobile)   
+                q = Q(receiver_mobile=receiver_mobile)
 #         if receiver_phone:
 #             if q:
 #                 q = q|Q(receiver_phone=receiver_phone)

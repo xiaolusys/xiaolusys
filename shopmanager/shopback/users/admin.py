@@ -17,7 +17,7 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('id','has_fenxiao','visitor_id','uid','nick','user_code'
                     ,'sync_stock','percentage','is_primary','created_at','status')
     list_display_links = ('id', 'nick')
-
+    
     list_filter = ('status',)
     search_fields = ['id','nick']
     

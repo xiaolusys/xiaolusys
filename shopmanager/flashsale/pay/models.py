@@ -99,7 +99,7 @@ class SaleTrade(models.Model):
     
     tid   = models.CharField(max_length=40,unique=True,
                              default=genTradeUniqueid,
-                             verbose_name=u'原单ID')  
+                             verbose_name=u'原单ID')
     buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
     
@@ -136,6 +136,8 @@ class SaleTrade(models.Model):
 
     openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信用户ID')
     charge  = models.CharField(max_length=28,verbose_name=u'支付编号')
+    
+    extras_info  = JSONCharMyField(max_length=256, blank=True, default='{}', verbose_name=u'附加信息')
     
     status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'交易状态')
@@ -578,7 +580,8 @@ class ShoppingCart(models.Model):
     def calc_discount_fee(self,xlmm=None):
         product_sku = ProductSku.objects.get(id=self.sku_id)
         return product_sku.calc_discount_fee(xlmm)
-
+    
+    
 from signals_coupon import *
 import logging
 from shopback import signals

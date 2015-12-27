@@ -1,3 +1,5 @@
+############2015-12-26#####################
+alter table flashsale_trade add  `extras_info` longtext NOT NULL;
 ############2015-12-19#####################
 alter table flashsale_customshare add column share_type varchar(8) not null;
 ############2015-12-17#####################

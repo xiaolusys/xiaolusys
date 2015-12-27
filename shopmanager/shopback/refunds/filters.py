@@ -1,10 +1,7 @@
 # coding=utf-8
 from django.contrib.auth.models import User
 from django.contrib.admin import SimpleListFilter
-from .models import RefundProduct
-from django.db import connection
 import datetime
-import dateutil
 import calendar
 
 
@@ -66,10 +63,9 @@ def filter_Categry(queryset, categry):
         pros = Product.objects.raw("select id, outer_id from shop_items_product where "
                                    " category_id in (8,18,19,20,21,22)   ")
         product_outer_ids = [pro.outer_id for pro in pros]
-
         qs = queryset.filter(outer_id__in=product_outer_ids)
-        print qs.count()
         return qs
+    
     elif categry == '3':
         # 过滤出其他 退货产品
         pros = Product.objects.raw("select id, outer_id from shop_items_product where "

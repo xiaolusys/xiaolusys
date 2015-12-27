@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
+from rest_framework import exceptions
 from rest_framework_extensions.cache.decorators import cache_response
 
 from shopback.items.models import Product
@@ -173,15 +174,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        raise exceptions.APIException(u'该接口暂未提供数据')
     
     @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
@@ -422,7 +415,6 @@ class ProductShareView(generics.RetrieveAPIView):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,renderers.TemplateHTMLRenderer)
     template_name = 'shangpin_share.html'
-    
     QR_IMG_PATH    = 'qr'
     
     def get_share_link(self,params):
