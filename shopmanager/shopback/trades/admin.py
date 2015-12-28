@@ -1067,8 +1067,9 @@ class MergeOrderAdmin(MyAdmin):
                 }),)
     
     def merge_trade_link(self, obj):
-        return '%s-%s-%s'%(obj.merge_trade.is_express_print and '[P]' or '[N]',
+        return '''%s-%s-<a href="%s" target="_blank">%s</a>'''%(obj.merge_trade.is_express_print and '[P]' or '[N]',
                            obj.merge_trade.get_type_display(),
+                           '/admin/trades/mergetrade/?q='+obj.merge_trade.tid,
                            obj.merge_trade)
         
     merge_trade_link.allow_tags = True

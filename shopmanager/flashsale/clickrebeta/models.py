@@ -331,7 +331,7 @@ def tongji_saleorder(sender, obj, **kwargs):
                                                tongjidate=target_time).update(buyercount=buyercount)
         return
     
-    mm_linkid = obj.extras_info.get('mm_linkid')
+    mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
     xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
     if not xiaolu_mmset.exists():
         mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
