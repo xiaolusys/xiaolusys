@@ -224,6 +224,9 @@ class SaleTrade(models.Model):
                 return True
         return False
     
+    def is_wallet_paid(self):
+        return self.channel == self.WALLET
+    
     def release_lock_skunum(self):
         try:
             for order in self.normal_orders:

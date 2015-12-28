@@ -291,7 +291,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     if xd_unoins.count() > 0:
         xd_openid = xd_unoins[0].openid
     #如果钱包付款，则不算提成
-    if obj.channel == SaleTrade.WALLET or obj.pay_time < datetime.datetime(2015,6,19):
+    if obj.pay_time < datetime.datetime(2015,6,19):
         StatisticsShopping(linkid=0, 
                            openid=xd_openid, 
                            wxorderid=order_id,
@@ -299,11 +299,7 @@ def tongji_saleorder(sender, obj, **kwargs):
                            shoptime=ordertime, 
                            tichengcount=mm_order_rebeta).save()
         return
-    mm_linkid = obj.extras_info.get('mm_linkid')
-    xiaolumms = XiaoluMama.objects.filter(id=mm_linkid)
-    if not xiaolumms.exists():
-        xiaolumms = XiaoluMama.objects.filter(openid=wx_unoinid)
-    
+    xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid)
     if xiaolumms.exists():
         xiaolumm = xiaolumms[0]
         #计算小鹿妈妈订单返利
@@ -335,57 +331,52 @@ def tongji_saleorder(sender, obj, **kwargs):
                                                tongjidate=target_time).update(buyercount=buyercount)
         return
     
-    mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
-        openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
-    if mm_clicks.count() > 0:
+    mm_linkid = obj.extras_info.get('mm_linkid')
+    xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
+    if not xiaolu_mmset.exists():
+        mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
+            openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
         mm_linkid   = get_xlmm_linkid(mm_clicks)
         xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
-        if xiaolu_mmset.count() > 0:
-            xiaolu_mm = xiaolu_mmset[0]
-            #计算小鹿妈妈订单返利
-            mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj) 
-            mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj)
-            tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
-                                                                   wxorderid=order_id)
-            tongjiorder.linkname    = xiaolu_mm.weikefu
-            tongjiorder.openid      = xd_openid
-            tongjiorder.wxordernick = order_buyer_nick
-            tongjiorder.wxorderamount = mm_order_amount
-            tongjiorder.rebetamount   = mm_rebeta_amount
-            tongjiorder.shoptime      = ordertime
-            tongjiorder.tichengcount  = mm_order_rebeta
-            tongjiorder.save()
-            
-            daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=mm_linkid,
-                                                      tongjidate=target_time)
-            daytongji.linkname   = xiaolu_mm.weikefu
-            daytongji.ordernumcount    = F('ordernumcount') + 1
-            daytongji.orderamountcount = F('orderamountcount') + mm_order_amount
-            daytongji.todayamountcount = F('todayamountcount') + mm_order_rebeta
-            daytongji.save()
-             
-            buyercount = StatisticsShopping.objects.filter(linkid=xiaolu_mm.id,
-                        shoptime__range=(time_from, time_dayend)).values('openid').distinct().count()
-            if buyercount != daytongji.buyercount:
-                StatisticsShoppingByDay.objects.filter(linkid=xiaolu_mm.id, 
-                                                   tongjidate=target_time).update(buyercount=buyercount)
-        else:
-            StatisticsShopping(linkid=0, 
-                               openid=xd_openid, 
-                               wxorderid=order_id,
-                               wxordernick=order_buyer_nick,
-                               wxorderamount=mm_order_amount,
-                               shoptime=ordertime, 
-                               tichengcount=mm_order_rebeta).save()
- 
-    else:
-        tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=order_id)
-        tongjiorder.openid = xd_openid
-        tongjiorder.wxordernick=order_buyer_nick
+        
+    if xiaolu_mmset.count() > 0:
+        xiaolu_mm = xiaolu_mmset[0]
+        #计算小鹿妈妈订单返利
+        mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj) 
+        mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj)
+        tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
+                                                               wxorderid=order_id)
+        tongjiorder.linkname    = xiaolu_mm.weikefu
+        tongjiorder.openid      = xd_openid
+        tongjiorder.wxordernick = order_buyer_nick
         tongjiorder.wxorderamount = mm_order_amount
-        tongjiorder.shoptime = ordertime
-        tongjiorder.tichengcount=mm_order_rebeta
+        tongjiorder.rebetamount   = mm_rebeta_amount
+        tongjiorder.shoptime      = ordertime
+        tongjiorder.tichengcount  = mm_order_rebeta
         tongjiorder.save()
+        
+        daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=mm_linkid,
+                                                  tongjidate=target_time)
+        daytongji.linkname   = xiaolu_mm.weikefu
+        daytongji.ordernumcount    = F('ordernumcount') + 1
+        daytongji.orderamountcount = F('orderamountcount') + mm_order_amount
+        daytongji.todayamountcount = F('todayamountcount') + mm_order_rebeta
+        daytongji.save()
+         
+        buyercount = StatisticsShopping.objects.filter(linkid=xiaolu_mm.id,
+                    shoptime__range=(time_from, time_dayend)).values('openid').distinct().count()
+        if buyercount != daytongji.buyercount:
+            StatisticsShoppingByDay.objects.filter(linkid=xiaolu_mm.id, 
+                                               tongjidate=target_time).update(buyercount=buyercount)
+    else:
+        StatisticsShopping(linkid=0,
+                           openid=xd_openid,
+                           wxorderid=order_id,
+                           wxordernick=order_buyer_nick,
+                           wxorderamount=mm_order_amount,
+                           shoptime=ordertime,
+                           tichengcount=mm_order_rebeta).save()
+ 
     
 signal_saletrade_pay_confirm.connect(tongji_saleorder, sender=SaleTrade)
 

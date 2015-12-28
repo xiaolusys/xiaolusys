@@ -58,20 +58,21 @@ class SaleTradeAdmin(admin.ModelAdmin):
 
     #-------------- 页面布局 --------------
     fieldsets = ((u'订单基本信息:', {
-        'classes': ('expand',),
-        'fields': (('tid', 'buyer_nick', 'channel', 'status')
-                   , ('trade_type', 'total_fee', 'payment', 'post_fee')
-                   , ('pay_time', 'consign_time', 'charge', 'openid')
-                   , ('buyer_message', 'seller_memo','buyer_id')
-                   )
-    }),
+                'classes': ('expand',),
+                'fields': (('tid', 'buyer_nick', 'channel', 'status')
+                           , ('trade_type', 'total_fee', 'payment', 'post_fee')
+                           , ('pay_time', 'consign_time', 'charge')
+                           , ('buyer_id', 'openid','extras_info')
+                           , ('buyer_message', 'seller_memo',)
+                           )
+                 }),
                  (u'收货人及物流信息:', {
                      'classes': ('expand',),
                      'fields': (('receiver_name', 'receiver_state', 'receiver_city', 'receiver_district')
                                 , ('receiver_address', 'receiver_zip', 'receiver_mobile', 'receiver_phone')
                                 , ('logistics_company', 'out_sid'))
                  }),
-                 )
+    )
 
     #--------定制控件属性----------------
     formfield_overrides = {

@@ -15,6 +15,7 @@ from models_advertis import XlmmAdvertis
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,8,25)
 ORDER_RATEUP_START = datetime.date(2015,7,8)
+ORDER_REBETA_START = datetime.datetime(2015,6,19)
 
 MM_CLICK_DAY_LIMIT = 1
 MM_CLICK_DAY_BASE_COUNT  = 10
@@ -256,7 +257,11 @@ class XiaoluMama(models.Model):
 
     def get_Mama_Trade_Rebeta(self,trade):
         """ 获取妈妈交易返利提成 """
+        if hasattr(trade,'pay_time') and trade.pay_time < ORDER_REBETA_START:
+            return 0
         if hasattr(trade,'normal_orders'):
+            if hasattr(trade,'is_wallet_paid') and trade.is_wallet_paid():
+                return 0
             rebeta = 0
             for order in trade.normal_orders:
                 rebeta += self.get_Mama_Order_Rebeta(order)
@@ -265,7 +270,11 @@ class XiaoluMama(models.Model):
     
     def get_Mama_Trade_Amount(self,trade):
         """ 获取妈妈交易返利提成 """
+        if hasattr(trade,'pay_time') and trade.pay_time < ORDER_REBETA_START:
+            return 0
         if hasattr(trade,'normal_orders'):
+            if hasattr(trade,'is_wallet_paid') and trade.is_wallet_paid():
+                return 0
             amount = 0
             for order in trade.normal_orders:
                 if self.get_Mama_Order_Rebeta(order) == 0:
