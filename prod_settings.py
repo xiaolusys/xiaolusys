@@ -31,7 +31,7 @@ else :
 
 M_STATIC_URL = '/'
 
-ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','121.199.168.159']
+ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','.xiaolumeimei.com','.xiaolumm.com','121.199.168.159']
 
 CACHES = {
     'default': {
