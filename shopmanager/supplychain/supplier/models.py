@@ -99,6 +99,13 @@ class SaleSupplier(models.Model):
         (PASSED, u'已签合同'),
         (REJECTED, u'淘汰'),
         (IGNORED, u'忽略'),)
+    NO_TYPE = 0
+    MANUFACTURER = 1
+    WHOLESALER = 2
+    BRAND_OWNER = 3
+    CLOTHING_FACTORY = 4
+    SUPPLIER_TYPE = ((NO_TYPE, u'未分类'), (MANUFACTURER, u'生产加工'), (WHOLESALER, u'经销批发'), (BRAND_OWNER, u'品牌'),
+                     (CLOTHING_FACTORY, u'源头大厂'))
 
     supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
@@ -145,7 +152,8 @@ class SaleSupplier(models.Model):
 
     progress = models.CharField(max_length=16, blank=True, choices=PROGRESS_CHOICES,
                                 default=SELECTED, verbose_name=u'进度')
-
+    supplier_type = models.IntegerField(choices=SUPPLIER_TYPE, blank=True, default=0, verbose_name=u"供应商类型")
+    supplier_zone = models.IntegerField(default=0, db_index=True, verbose_name=u'供应商所属区域')
     objects = SaleSupplierManager()
 
     class Meta:
@@ -191,6 +199,19 @@ class SupplierCharge(models.Model):
 
     def __unicode__(self):
         return '<{0},{1},{2}>'.format(self.supplier_id, self.employee, self.get_status_display())
+
+
+class SupplierZone(models.Model):
+
+    name = models.CharField(max_length=128, unique=True, verbose_name=u'区域名称')
+
+    class Meta:
+        db_table = 'supplychain_supply_supplier_zone'
+        verbose_name = u'特卖供应商区域表'
+        verbose_name_plural = u'特卖供应商区域列表'
+
+    def __unicode__(self):
+        return "{0}".format(self.name)
 
 
 class SaleProduct(models.Model):

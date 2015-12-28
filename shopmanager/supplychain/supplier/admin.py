@@ -48,13 +48,13 @@ class SaleSupplierChangeList(ChangeList):
 
 
 class SaleSupplierAdmin(MyAdmin):
-    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link', 
+    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
                     'category_select', 'progress', 'last_select_time', 'last_schedule_time', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter)
+    list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter, 'supplier_type')
     search_fields = ['supplier_name', 'supplier_code','id']
     form = SaleSupplierForm
     list_per_page = 15
@@ -130,6 +130,7 @@ class SaleSupplierAdmin(MyAdmin):
                                , ('email', 'zip_code')
                                , ('address', 'progress', 'status')
                                , ('account_bank', 'account_no')
+                               , ('supplier_type', 'supplier_zone')
                                , ('memo',)
                                )
                  }),

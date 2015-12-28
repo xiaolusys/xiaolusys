@@ -10,7 +10,8 @@ from django.db import transaction
 
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
-from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail
+from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail, \
+    SupplierZone
 import datetime
 from supplychain.supplier.models import SaleProduct
 
@@ -24,8 +25,10 @@ class AddSupplierView(generics.ListCreateAPIView):
         platform_choice = SaleSupplier.PLATFORM_CHOICE
         process_choice = SaleSupplier.PROGRESS_CHOICES
         all_category = SaleCategory.objects.filter()
+        zones = SupplierZone.objects.all()
         return Response({"platform_choice": platform_choice, "all_category": all_category,
-                         "process_choice": process_choice})
+                         "process_choice": process_choice, "supplier_types": SaleSupplier.SUPPLIER_TYPE,
+                         "zones": zones})
 
     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
@@ -41,10 +44,13 @@ class AddSupplierView(generics.ListCreateAPIView):
         memo = post.get("note")
         progress = post.get("progress")
         speciality = post.get("speciality", '')
+        supplier_type = post.get("supplier_type", 0)
+        supplier_zone = post.get("supplier_zone", 0)
 
         new_supplier = SaleSupplier(supplier_name=supplier_name, supplier_code=supplier_code, main_page=main_page,
                                     platform=platform, category_id=category, contact=contact_name, mobile=mobile,
-                                    address=address, memo=memo, progress=progress, speciality=speciality)
+                                    address=address, memo=memo, progress=progress, speciality=speciality,
+                                    supplier_type=supplier_type, supplier_zone=supplier_zone)
         new_supplier.save()
         log_action(request.user.id, new_supplier, ADDITION, u'新建'.format(""))
         return Response({"supplier_id": new_supplier.id})
@@ -191,7 +197,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                          "lowest_price": lowest_price,
                          "std_sale_price": std_sale_price,
                          "sale_charger": sale_charger,
-                         "std_purchase_price":std_purchase_price,
+                         "std_purchase_price": std_purchase_price,
                          "model_id": model_id,
                          "single_model": single_model,
                          "product_id": product_id})
