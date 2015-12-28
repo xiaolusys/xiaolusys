@@ -41,7 +41,7 @@
         <div class="col-md-1">
             <label class="form-control">类别:</label>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <select class="form-control" id="category">
                 {% for one_category in all_category %}
                     <option value="{{ one_category.id }}">{{ one_category }}</option>
@@ -51,17 +51,32 @@
         <div class="col-md-1">
             <label class="form-control">平台:</label>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <select class="form-control" id="platform">
                 {% for one_choice in platform_choice %}
                     <option value="{{ one_choice.0 }}">{{ one_choice.1 }}</option>
                 {% endfor %}
             </select>
         </div>
+
+
+        <div class="col-md-1">
+            <label class="form-control">类型:</label>
+        </div>
+
+        <div class="col-md-2">
+            <select class="form-control" id="supplier_type">
+                {% for k,v in supplier_types %}
+                    <option value="{{ k }}">{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
         <div class="col-md-1">
             <label class="form-control">进度:</label>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <select class="form-control" id="progress">
                 {% for process in process_choice %}
                     <option value="{{ process.0 }}">{{ process.1 }}</option>
@@ -73,21 +88,34 @@
         <div class="col-md-1">
             <label class="form-control">联系人</label>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <input type="text" id="contact_name" placeholder="联系人" class="form-control">
         </div>
         <div class="col-md-1">
             <label class="form-control">手机</label>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <input type="text" id="mobile" placeholder="手机" class="form-control">
         </div>
         <div class="col-md-1">
             <label class="form-control">地址</label>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <input type="text" id="contact_address" placeholder="地址" class="form-control">
         </div>
+
+        <div class="col-md-1">
+            <label class="form-control">区域</label>
+        </div>
+        <div class="col-md-2">
+            <select class="form-control" id="supplier_zone">
+                <option value="0">未分区域</option>
+                {% for zone in zones %}
+                    <option value="{{ zone.id }}">{{ zone.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
     </div>
     <div class="row">
         <div class="col-md-2">

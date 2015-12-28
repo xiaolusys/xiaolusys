@@ -11,6 +11,8 @@ jQuery(document).ready(function () {
         var contact_address = $('#contact_address').val().trim();
         var note = $('#note').val().trim();
         var speciality = $('#speciality').val().trim();
+        var supplier_type = $('#supplier_type').val().trim(); // 供应商类型
+        var supplier_zone = $('#supplier_zone').val().trim(); //供应商区域
 
         if (supplier_name == '') {
             showtip("Tips", "供应商没有填写", "warning");
@@ -28,12 +30,16 @@ jQuery(document).ready(function () {
             showtip("Tips", "地址没有填写", "warning");
             return false;
         }
-        if($("#check_flag").hasClass("need_check")){
+        if ($("#check_flag").hasClass("need_check")) {
             showtip("Tips", "请先检测", "warning");
             return false;
         }
-        if($("#check_flag").hasClass("can_not_add")){
+        if ($("#check_flag").hasClass("can_not_add")) {
             showtip("Tips", "已经存在同名供应商", "warning");
+            return false;
+        }
+        if (supplier_type == 0 || supplier_zone == 0) {
+            showtip("Tips", "请填写供应商区域和类型", "warning");
             return false;
         }
         $.ajax({
@@ -50,19 +56,21 @@ jQuery(document).ready(function () {
                 mobile: mobile,
                 contact_address: contact_address,
                 note: note,
-                speciality:speciality
+                speciality: speciality,
+                supplier_type: supplier_type,
+                supplier_zone: supplier_zone
             },
             dataType: 'json',
             success: function (data) {
                 swal({
-                        title: "Tips",
-                        text: "成功(^_^)",
-                        type: "success",
-                        showCancelButton: false,
-                        confirmButtonText: "确定"
-                    }, function () {
-                        window.location = "/admin/supplier/salesupplier/?id=" + data.supplier_id;
-                    });
+                    title: "Tips",
+                    text: "成功(^_^)",
+                    type: "success",
+                    showCancelButton: false,
+                    confirmButtonText: "确定"
+                }, function () {
+                    window.location = "/admin/supplier/salesupplier/?id=" + data.supplier_id;
+                });
             },
             error: function (data) {
                 if (data.status == 403) {
