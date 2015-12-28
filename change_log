@@ -1,3 +1,7 @@
+############2015-12-26#####################
+alter table supplychain_supply_supplier add column supplier_type int(11) default 0;
+alter table supplychain_supply_supplier add column supplier_zone int(11) default 0;
+CREATE INDEX `supplychain_supply_supplier_787383db` ON `supplychain_supply_supplier` (`supplier_zone`);
 ############2015-12-19#####################
 alter table flashsale_customshare add column share_type varchar(8) not null;
 ############2015-12-17#####################
