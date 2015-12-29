@@ -252,7 +252,7 @@ class Product(models.Model):
                 return self.details.head_imgs.split()[0]
             except:
                 return self.PIC_PATH
-        return pmodel.head_imgs.split()[0]
+        return pmodel.head_imgs and pmodel.head_imgs.split()[0] or self.PIC_PATH
     
     head_img_url = property(head_img)
     
