@@ -50,7 +50,7 @@ class SaleSupplierChangeList(ChangeList):
 class SaleSupplierAdmin(MyAdmin):
     list_display = ('id', 'supplier_code', 'supplier_name_link', 'charge_link',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
-                    'category_select', 'progress', 'last_select_time', 'last_schedule_time',
+                    'category_select', 'progress', 'last_select_time_display', 'last_schedule_time_display',
                     'supplier_type_choice', 'supplier_zone_choice', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
@@ -59,6 +59,18 @@ class SaleSupplierAdmin(MyAdmin):
     search_fields = ['supplier_name', 'supplier_code','id']
     form = SaleSupplierForm
     list_per_page = 15
+
+    def last_select_time_display(self, obj):
+        return obj.last_select_time.date()
+
+    last_select_time_display.allow_tags = True
+    last_select_time_display.short_description = u"最后选款日期"
+
+    def last_schedule_time_display(self, obj):
+        return obj.last_schedule_time.date()
+
+    last_schedule_time_display.allow_tags = True
+    last_schedule_time_display.short_description = u"最后上架日期"
 
     def supplier_zone_choice(self, obj):
         select_list = ['<select id="supplier_zone_{0}" class="supplier_zone" cid="{0}">'.format(obj.id)]
@@ -98,7 +110,7 @@ class SaleSupplierAdmin(MyAdmin):
                 ' style="color:white;" sid="{0}">接管</a></p>'.format(obj.id))
 
     charge_link.allow_tags = True
-    charge_link.short_description = u"接管信息/操作"
+    charge_link.short_description = u"接管/操作"
     
     def supplier_name_link(self, obj):
         span_style="font-size:16px;"
@@ -108,7 +120,9 @@ class SaleSupplierAdmin(MyAdmin):
             span_style += "color:gray;font-size:10px;"
         if not obj.is_active():
             span_style += 'text-decoration:line-through;'
-        return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank"><span style="{3}">{1}&nbsp;({2})</span></a>'.format(
+        return u'<a href="/admin/supplier/saleproduct/?sale_supplier={0}" target="_blank">' \
+               u'<span style="{3}" class="supplier_name">{1}&nbsp;({2})</span>' \
+               u'</a>'.format(
             obj.id, obj.supplier_name, obj.get_level_display(),span_style)
 
     supplier_name_link.allow_tags = True
@@ -178,7 +192,8 @@ class SaleSupplierAdmin(MyAdmin):
     class Media:
         css = {
             "all": (
-                "admin/css/forms.css", "css/admin/dialog.css", "css/admin/common.css", "jquery/jquery-ui-1.10.1.css")}
+                "admin/css/forms.css", "css/admin/dialog.css", "css/admin/common.css", "jquery/jquery-ui-1.10.1.css",
+                "css/supplier_changelist.css")}
         js = ("js/admin/adminpopup.js", "js/supplier_change_list.js")
 
     def get_queryset(self, request):
