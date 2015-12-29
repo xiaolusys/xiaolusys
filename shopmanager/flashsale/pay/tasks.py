@@ -397,7 +397,24 @@ def task_Release_Coupon_For_Mmlink():
             # 执行日期
             exc_date = datetime.date.today()
             minus_days = (exc_date - d24).days  # 差值　比如２５号执行减去２４号　　为１天　
-            while coup_counts < minus_days:
+
+            time_from = datetime.datetime(2015, 12, 24, 0, 0, 0)
+            now = datetime.datetime.now()
+            strade = SaleTrade.objects.filter(buyer_id=cus.id,  # 代理自己的
+                                              pay_time__gte=time_from, pay_time__lte=now,  # 24 号到现在
+                                              status__in=(  # 状态正常的
+                                                            SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                                            SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                                                            SaleTrade.TRADE_BUYER_SIGNED,
+                                                            SaleTrade.TRADE_FINISHED)
+                                              ).only("pay_time").dates("pay_time", "day",
+                                                                       order='DESC')  # 交易数量按照日期去重
+            shops = StatisticsShopping.objects.filter(linkid=xlmm.id,
+                                                      shoptime__gte=time_from, shoptime__lte=now
+                                                      ).exclude(status=StatisticsShopping.REFUNDED).only(
+                "shoptime").dates("shoptime", "day", order='DESC')
+            # 专属链接的交易数量　与　用户的交易数量的最大值　发放
+            while coup_counts < min(max(len(strade), len(shops)), minus_days):
                 # 如果已经发放的优惠券大于发放天数差值
                 if tpl:
                     buyer_id = cus.id  # 代理的用户id
