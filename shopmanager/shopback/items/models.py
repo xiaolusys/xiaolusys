@@ -20,7 +20,6 @@ from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser,User
 from .managers import ProductManager
 from auth import apis
-from common.utils import update_model_fields
 from flashsale.dinghuo.models_user import MyUser
 import logging
 import collections

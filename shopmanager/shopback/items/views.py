@@ -185,7 +185,7 @@ def update_user_item(request):
 from rest_framework import viewsets
 import math
 #fang
-class ProductListView(viewsets.ModelViewSet):    #ListOrCreateModelView
+class ProductListView(viewsets.ModelViewSet):
     """ docstring for ProductListView """
     queryset = None
     serializer_class = serializers.ProductSerializer

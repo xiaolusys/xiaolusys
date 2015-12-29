@@ -106,12 +106,15 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     ###特卖商品API：
     - /promote_today[.format]: 获取今日推荐商品列表;
     - /promote_previous[.format]: 获取昨日推荐商品列表;
+    - /promote_today_paging：获取今日推荐商品列表（分页）;
+    > 参数：page - 页码（０开始），page_size - 每页数量
     - /childlist[.format]: 获取童装专区商品列表;
     - /ladylist[.format]: 获取女装专区商品列表;
     - /previous[.format]: 获取昨日特卖商品列表;
     - /advance[.format]: 获取明日特卖商品列表;
     - /seckill[.format]: 获取秒杀商品列表;
-    - /modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）
+    - /modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）;
+    - /{pk}/details[.format]: 商品详情;
     - /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
     """
     queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
