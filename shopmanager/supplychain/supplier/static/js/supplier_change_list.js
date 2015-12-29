@@ -132,3 +132,54 @@ $(function () {
 	    $.ajax({"url":url,"data":data,"success":callback,"type":"POST","headers":headers });
 	});
 });
+
+// 修改供应商区域字段 supplier_zone字段修改
+$(".supplier_zone").live("change", function (e) {
+    e.preventDefault();
+    var target = e.target;
+    var supplier_id = target.getAttribute('cid');
+    var zone_id = $(target).val();
+    var url = "/supplychain/supplier/change_list_fields/";
+    var callback = function (res) {
+        if (res.code == 0) {
+            $(target).after("<img src='/static/admin/img/icon-yes.gif'>");
+        }
+        else {
+            alert("系统出错");
+        }
+    };
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var data = {
+        "csrfmiddlewaretoken": csrf_token,
+        "format": "json",
+        "zone_id": zone_id,
+        "supplier_id": supplier_id
+    };
+    $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
+});
+
+// 修改供应商区域字段 supplier_zone字段修改
+$(".supplier_type").live("change", function (e) {
+    e.preventDefault();
+    var target = e.target;
+    var supplier_id = target.getAttribute('cid');
+    var supplier_type = $(target).val();
+    var url = "/supplychain/supplier/change_list_fields/";
+    var callback = function (res) {
+        if (res.code == 0) {
+            $(target).after("<img src='/static/admin/img/icon-yes.gif'>");
+        }
+        else{
+            alert("系统出错");
+        }
+    };
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var data = {
+        "csrfmiddlewaretoken": csrf_token,
+        "format": "json",
+        "supplier_id": supplier_id,
+        "supplier_type": supplier_type
+    };
+    $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
+});
+

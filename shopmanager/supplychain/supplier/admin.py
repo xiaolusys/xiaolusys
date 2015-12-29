@@ -21,7 +21,7 @@ from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
 from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
-
+from .models import SupplierZone
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -48,9 +48,10 @@ class SaleSupplierChangeList(ChangeList):
 
 
 class SaleSupplierAdmin(MyAdmin):
-    list_display = ('id', 'supplier_code', 'supplier_name_link', 'platform', 'charge_link',
+    list_display = ('id', 'supplier_code', 'supplier_name_link', 'charge_link',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
-                    'category_select', 'progress', 'last_select_time', 'last_schedule_time', 'memo_well')
+                    'category_select', 'progress', 'last_select_time', 'last_schedule_time',
+                    'supplier_type_choice', 'supplier_zone_choice', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -58,7 +59,32 @@ class SaleSupplierAdmin(MyAdmin):
     search_fields = ['supplier_name', 'supplier_code','id']
     form = SaleSupplierForm
     list_per_page = 15
-    
+
+    def supplier_zone_choice(self, obj):
+        select_list = ['<select id="supplier_zone_{0}" class="supplier_zone" cid="{0}">'.format(obj.id)]
+        supplier_zones = SupplierZone.objects.all()
+        for zone in supplier_zones:
+            if obj.supplier_zone == zone.id:
+                select_list.append('<option value="{0}" selected="selected">{1}</option>'.format(zone.id, zone.name))
+                continue
+            select_list.append('<option value="{0}">{1}</option>'.format(zone.id, zone.name))
+        select_list.append('</select>')
+        return "".join(select_list)
+
+    supplier_zone_choice.allow_tags = True
+    supplier_zone_choice.short_description = u"供应商片区"
+
+    def supplier_type_choice(self, obj):
+        select_list = ['<select id="supplier_type_{0}" class="supplier_type" cid="{0}">'.format(obj.id)]
+        for k, v in SaleSupplier.SUPPLIER_TYPE:
+            if obj.supplier_type == k:
+                select_list.append('<option value="{0}" selected="selected">{1}</option>'.format(k, v))
+                continue
+            select_list.append('<option value="{0}">{1}</option>'.format(k, v))
+        return "".join(select_list)
+    supplier_type_choice.allow_tags = True
+    supplier_type_choice.short_description = u"类型"
+
     def charge_link(self, obj):
         if obj.status == SaleSupplier.CHARGED:  # 如果是已经接管
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
