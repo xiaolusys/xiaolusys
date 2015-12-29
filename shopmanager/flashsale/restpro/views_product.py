@@ -276,6 +276,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(response_date)
     
+    @cache_response(timeout=30,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_preview(self, request, *args, **kwargs):
         """ 获取历史推荐商品列表 预览页面"""
@@ -336,7 +337,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         
         return Response(serializer.data)
-
+    
+    @cache_response(timeout=5*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def preview_modellist(self, request, *args, **kwargs):
         """ 获取款式商品列表-同款预览页面 """
@@ -348,7 +350,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(serializer.data)
     
-#     @cache_response(timeout=10*60,key_func='calc_items_cache_key')
+    @cache_response(timeout=1*60,key_func='calc_items_cache_key')
     @detail_route(methods=['get'])
     def details(self, request, *args, **kwargs):
         """ 商品明细，包含详细规格信息 """
