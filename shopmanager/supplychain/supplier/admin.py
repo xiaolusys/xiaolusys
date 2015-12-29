@@ -284,6 +284,13 @@ class SaleCategoryAdmin(admin.ModelAdmin):
 admin.site.register(SaleCategory, SaleCategoryAdmin)
 
 
+class SupplierZoneAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ['id', 'name']
+
+admin.site.register(SupplierZone, SupplierZoneAdmin)
+
+
 class SaleProductAdmin(MyAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link','category_select',
