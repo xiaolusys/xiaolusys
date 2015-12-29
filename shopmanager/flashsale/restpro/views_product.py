@@ -221,7 +221,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                 .order_by('is_saleout','-details__is_recommend','-details__order_weight','id')
         return queryset
     
-    
     def get_custom_qs(self,queryset):
         return queryset.filter(outer_id__endswith='1')#.exclude(details__is_seckill=True)
     
@@ -237,7 +236,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取今日推荐商品列表 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=today_dt)
+        queryset = queryset.filter(sale_time=today_dt,shelf_status=Product.UP_SHELF)
         queryset = self.order_queryset(request, queryset, order_by=self.INDEX_ORDER_BY)
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
@@ -252,7 +251,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 　　商品列表　　分页接口 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        tal_queryset = self.get_custom_qs(queryset).filter(sale_time=today_dt)
+        tal_queryset = self.get_custom_qs(queryset).filter(sale_time=today_dt,shelf_status=Product.UP_SHELF)
         queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
@@ -277,6 +276,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(response_date)
     
+    @cache_response(timeout=30,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_preview(self, request, *args, **kwargs):
         """ 获取历史推荐商品列表 预览页面"""
@@ -337,7 +337,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         
         return Response(serializer.data)
-
+    
+    @cache_response(timeout=5*60,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def preview_modellist(self, request, *args, **kwargs):
         """ 获取款式商品列表-同款预览页面 """
@@ -349,7 +350,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response(serializer.data)
     
-#     @cache_response(timeout=10*60,key_func='calc_items_cache_key')
+    @cache_response(timeout=1*60,key_func='calc_items_cache_key')
     @detail_route(methods=['get'])
     def details(self, request, *args, **kwargs):
         """ 商品明细，包含详细规格信息 """
