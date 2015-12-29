@@ -221,9 +221,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                 .order_by('is_saleout','-details__is_recommend','-details__order_weight','id')
         return queryset
     
-    
     def get_custom_qs(self,queryset):
-        return queryset.filter(outer_id__endswith='1',shelf_status=Product.UP_SHELF)#.exclude(details__is_seckill=True)
+        return queryset.filter(outer_id__endswith='1')#.exclude(details__is_seckill=True)
     
     def get_female_qs(self,queryset):
         return self.get_custom_qs(queryset).filter(outer_id__startswith='8')
@@ -237,7 +236,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取今日推荐商品列表 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(sale_time=today_dt)
+        queryset = queryset.filter(sale_time=today_dt,shelf_status=Product.UP_SHELF)
         queryset = self.order_queryset(request, queryset, order_by=self.INDEX_ORDER_BY)
         female_qs = self.get_female_qs(queryset)
         child_qs  = self.get_child_qs(queryset)
@@ -252,7 +251,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 　　商品列表　　分页接口 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        tal_queryset = self.get_custom_qs(queryset).filter(sale_time=today_dt)
+        tal_queryset = self.get_custom_qs(queryset).filter(sale_time=today_dt,shelf_status=Product.UP_SHELF)
         queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
