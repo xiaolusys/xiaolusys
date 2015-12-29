@@ -32,12 +32,14 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 admin.site.register(ProductCategory, ProductCategoryAdmin)
 
+from .filters import CategoryFilter
+
 
 class CategorySaleStatAdmin(admin.ModelAdmin):
     list_display = ("stat_date", "category_show", "sale_amount", "sale_num", "pit_num", "collect_num", "collect_amount",
                     "stock_num", "stock_amount", "refund_num", "refund_amount", "created")
 
-    list_filter = ("category", "created")
+    list_filter = ("created", CategoryFilter)
 
     def category_show(self, obj):
         return obj.category_display
