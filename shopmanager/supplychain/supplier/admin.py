@@ -15,7 +15,7 @@ from .models import (
 )
 
 from .forms import SaleSupplierForm
-from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter
+from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter, SupplierZoneFilter
 from shopback.base.options import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
@@ -50,27 +50,27 @@ class SaleSupplierChangeList(ChangeList):
 class SaleSupplierAdmin(MyAdmin):
     list_display = ('id', 'supplier_code', 'supplier_name_link', 'charge_link',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
-                    'category_select', 'progress', 'last_select_time_display', 'last_schedule_time_display',
+                    'category_select', 'progress', 'last_select_time', 'last_schedule_time',
                     'supplier_type_choice', 'supplier_zone_choice', 'memo_well')
     list_display_links = ('id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter, 'supplier_type')
+    list_filter = ('level', 'progress', 'status', 'platform', CategoryFilter, 'supplier_type', SupplierZoneFilter)
     search_fields = ['supplier_name', 'supplier_code','id']
     form = SaleSupplierForm
     list_per_page = 15
 
     def last_select_time_display(self, obj):
         return obj.last_select_time.date()
-
-    last_select_time_display.allow_tags = True
-    last_select_time_display.short_description = u"最后选款日期"
+    #
+    # last_select_time_display.allow_tags = True
+    # last_select_time_display.short_description = u"最后选款日期"
 
     def last_schedule_time_display(self, obj):
         return obj.last_schedule_time.date()
 
-    last_schedule_time_display.allow_tags = True
-    last_schedule_time_display.short_description = u"最后上架日期"
+    # last_schedule_time_display.allow_tags = True
+    # last_schedule_time_display.short_description = u"最后上架日期"
 
     def supplier_zone_choice(self, obj):
         select_list = ['<select id="supplier_zone_{0}" class="supplier_zone" cid="{0}">'.format(obj.id)]
