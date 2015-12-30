@@ -32,7 +32,7 @@ class Productdetail(models.Model):
     mama_discount  = models.IntegerField(default=100,verbose_name=u'妈妈折扣')
     is_recommend = models.BooleanField(db_index=True,default=False,verbose_name=u'专区推荐')
     is_seckill   = models.BooleanField(db_index=True,default=False, verbose_name=u'是否秒杀')
-    is_sale      = models.BooleanField(db_index=True,default=False,verbose_name=u'专区特价')
+    is_sale      = models.BooleanField(db_index=True,default=False,verbose_name=u'特价商品')
     order_weight = models.IntegerField(db_index=True,default=8,choices=WEIGHT_CHOICE,verbose_name=u'权值')
     buy_limit    = models.BooleanField(db_index=True,default=False,verbose_name=u'是否限购')
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
