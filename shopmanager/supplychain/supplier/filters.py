@@ -205,7 +205,6 @@ class SupplierZoneFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         supplier_zone = self.value()
-        print supplier_zone
         if supplier_zone is None:
             return queryset
         else:
