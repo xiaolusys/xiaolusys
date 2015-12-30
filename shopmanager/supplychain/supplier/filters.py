@@ -187,3 +187,26 @@ class BuyerGroupFilter(SimpleListFilter):
             syd_id_list = [val.id for val in users]
             queryset_group = queryset.filter(contactor__in=syd_id_list)
             return queryset_group
+
+
+from .models import SupplierZone
+
+
+class SupplierZoneFilter(SimpleListFilter):
+    title = u'片区'
+    parameter_name = 'supplier_zone'
+
+    def lookups(self, request, model_admin):
+        zones = SupplierZone.objects.all()
+        zone_list = []
+        for zone in zones:
+            zone_list.append((zone.id, zone.name))
+        return tuple(zone_list)
+
+    def queryset(self, request, queryset):
+        supplier_zone = self.value()
+        if supplier_zone is None:
+            return queryset
+        else:
+            qs = queryset.filter(supplier_zone=supplier_zone)
+            return qs
