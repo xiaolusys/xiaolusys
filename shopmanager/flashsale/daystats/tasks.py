@@ -323,10 +323,17 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                 agent_price = product_item.agent_price
                 sale_product_id = p_products[0].sale_product
                 product_category = p_products[0].category.__unicode__() if p_products[0].category else ""
-                tui_huo = 0
-                daily_data = DailySupplyChainStatsOrder.objects.filter(product_id__startswith=p_outer)
-                for one_data in daily_data:
-                    tui_huo += one_data.return_pro
+                # tui_huo = 0
+                # daily_data = DailySupplyChainStatsOrder.objects.filter(product_id__startswith=p_outer)
+                # for one_data in daily_data:
+                #     tui_huo += one_data.return_pro  # 退货数量
+                proids = p_products.values('id')
+                refs = SaleRefund.objects.filter(item_id__in=proids,  # 后来产生的退款单数量 排除关闭,拒绝,退款
+                                                 created__gte=start_date).exclude(status__in=(
+                                            SaleRefund.REFUND_REFUSE_BUYER, SaleRefund.REFUND_CLOSED),
+                                            good_status=SaleRefund.BUYER_NOT_RECEIVED)
+                tui_huo = refs.aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
+
                 supplier_list = ""
                 sale_contactor = ""
                 if sale_product_id != 0:
