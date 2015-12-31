@@ -55,8 +55,8 @@ def task_Update_User_Click(click, *args, **kwargs):
     user_click,state = UserClicks.objects.get_or_create(unoinid=wxunoin.unionid)
     params  = {}
     if (not user_click.click_end_time or 
-        (click.click_time - user_click.click_end_time).days >= 1 or
-        (user_click.click_start_time - click.click_time).days >= 1):
+        click.click_time.date() != user_click.click_end_time.date() or
+        user_click.click_start_time.date() != click.click_time.date()):
         params.update(visit_days = F('visit_days') + 1)
     
     if not user_click.click_start_time or user_click.click_start_time > click.click_time:
@@ -306,7 +306,7 @@ def push_history_week_data():  # 初始执行
     
     for i in xrange(1,14):
         week_date = week_start - datetime.timedelta(days=7*i)
-        print 'start date:',week_date
+        
         week_Count_week_Handdle(pre_week_start_dt = week_date)
 
 
