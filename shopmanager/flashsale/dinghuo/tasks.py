@@ -850,3 +850,64 @@ def task_category_stock_data(days=15):
                 cgysta.stock_num = F("stock_num") + detail.buy_quantity
             update_model_fields(cgysta, update_fields=["stock_amount", "stock_num"])
 
+
+from .models import SaleInventoryStat
+
+
+@task()
+def task_stat_category_inventory_data(date=None):
+    """
+        统计当天的订货表的新增采购数　未到货总数　到货数 童女装分类
+    """
+    from django.db.models import Q, Sum
+    from shopback.trades.models import MergeOrder
+    target_date = datetime.date.today() - datetime.timedelta(days=1) if date is None else date
+    target_from = datetime.datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0)
+    target_to = target_from + datetime.timedelta(days=1)
+    # 目标日期订货的订货单　订货单明细内容　排除作废的
+    odts_female = OrderDetail.objects.filter(outer_id__startswith='8', orderlist__created=target_date,  # 女装
+                                             ).exclude(orderlist__status=OrderList.ZUOFEI)
+    odts_child = OrderDetail.objects.filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='1')).filter(  # 童装
+                                            orderlist__created=target_date).exclude(orderlist__status=OrderList.ZUOFEI)
+    c_newly_increased = odts_child.aggregate(t_buy_quantity=Sum('buy_quantity')).get("t_buy_quantity") or 0
+    c_arrived = odts_child.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get("t_arrival_quantity") or 0
+    c_not_arrive = odts_child.aggregate(t_non_arrival_quantity=Sum('non_arrival_quantity')).get(
+        "t_non_arrival_quantity") or 0
+    f_newly_increased = odts_female.aggregate(t_buy_quantity=Sum('buy_quantity')).get("t_buy_quantity") or 0
+    f_arrived = odts_female.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get("t_arrival_quantity") or 0
+    f_not_arrive = odts_female.aggregate(t_non_arrival_quantity=Sum('non_arrival_quantity')).get(
+        "t_non_arrival_quantity") or 0
+    # 总库存统计 排除优尼世界的产品
+    childps = Product.objects.filter(status=Product.NORMAL, collect_num__gt=0).filter(
+        Q(outer_id__startswith='9') | Q(outer_id__startswith='1')).exclude(category__cid=1)
+    femaleps = Product.objects.filter(status=Product.NORMAL, outer_id__startswith='8',
+                                      collect_num__gt=0).exclude(category__cid=1)
+    inventory_c_num = childps.aggregate(t_collect_num=Sum('collect_num')).get("t_collect_num") or 0
+    inventory_f_num = femaleps.aggregate(t_collect_num=Sum('collect_num')).get("t_collect_num") or 0
+
+    # 昨天称重的订单　发出的数量
+    mos_f = MergeOrder.objects.filter(merge_trade__weight_time__range=(target_from, target_to),
+                                      outer_id__startswith='8')
+    mos_c = MergeOrder.objects.filter(merge_trade__weight_time__range=(target_from, target_to)).filter(
+        Q(outer_id__startswith='9') | Q(outer_id__startswith='1'))
+    mos_f_snum = mos_f.aggregate(t_fnum=Sum('num')).get("t_fnum") or 0
+    mos_c_snum = mos_c.aggregate(t_cnum=Sum('num')).get("t_cnum") or 0
+
+    # 分别保存　童装和女装的各个数量
+    inventory_c, state_c = SaleInventoryStat.objects.get_or_create(stat_date=target_date,
+                                                                   category=SaleInventoryStat.CHILD)
+    inventory_c.newly_increased = c_newly_increased
+    inventory_c.arrived = c_arrived
+    inventory_c.not_arrive = c_not_arrive
+    inventory_c.inventory = inventory_c_num
+    inventory_c.deliver = mos_c_snum
+    inventory_c.save()
+    inventory_f, state_f = SaleInventoryStat.objects.get_or_create(stat_date=target_date,
+                                                                   category=SaleInventoryStat.FEMALE)
+    inventory_f.newly_increased = f_newly_increased
+    inventory_f.arrived = f_arrived
+    inventory_f.not_arrive = f_not_arrive
+    inventory_f.inventory = inventory_f_num
+    inventory_f.deliver = mos_f_snum
+    inventory_f.save()
+

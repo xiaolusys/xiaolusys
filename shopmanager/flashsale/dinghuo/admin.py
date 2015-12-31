@@ -440,4 +440,11 @@ class ReturnGoodsAdmin(admin.ModelAdmin):
 
 admin.site.register(ReturnGoods, ReturnGoodsAdmin)
 
+from .models import SaleInventoryStat
 
+
+class SaleInventoryStatAdmin(admin.ModelAdmin):
+    list_display = ('stat_date', 'newly_increased', 'not_arrive', 'arrived', 'deliver', 'inventory')
+    list_filter = ('category', )
+
+admin.site.register(SaleInventoryStat, SaleInventoryStatAdmin)

@@ -259,3 +259,29 @@ def syncRGdTreturn(sender, instance, **kwargs):
 
 post_save.connect(syncRGdTreturn, sender=RGDetail)
 
+
+class SaleInventoryStat(models.Model):
+    """
+    （只统计小鹿特卖商品）统计当天的订货表的新增采购数，未到货总数，到货数，发出件数，总库存数
+    """
+    CHILD = 1
+    FEMALE = 2
+
+    INVENTORY_CATEGORY = ((CHILD, u'童装'), (FEMALE, u'女装'))
+    newly_increased = models.IntegerField(default=0, verbose_name=u'新增采购数')
+    not_arrive = models.IntegerField(default=0, verbose_name=u'未到货数')
+    arrived = models.IntegerField(default=0, verbose_name=u'到货数')
+    deliver = models.IntegerField(default=0, verbose_name=u'发出数')
+    inventory = models.IntegerField(default=0, verbose_name=u'库存')
+    category = models.IntegerField(blank=True, null=True, db_index=True, choices=INVENTORY_CATEGORY,
+                                   verbose_name=u'分类')
+    stat_date = models.DateField(verbose_name=u'统计日期')
+
+    class Meta:
+        db_table = 'flashsale_inventory_stat'
+        verbose_name = u'特卖入库及库存每日统计'
+        verbose_name_plural = u'特卖入库及库存每日统计列表'
+
+    def __unicode__(self):
+        return u'<%s>' % self.stat_date
+
