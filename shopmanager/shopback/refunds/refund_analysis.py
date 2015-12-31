@@ -88,7 +88,7 @@ def refund_Invalid_Create(request):
         ref.mobile = trade.receiver_mobile  # 手机
         ref.total_fee = trade.total_fee  # 总费用
         ref.payment = trade.payment  # 退款费用
-        ref.company_name = trade.logistics_company  # 快递公司
+        ref.company_name = trade.logistics_company or ''  # 快递公司
         ref.sid = trade.out_sid  # 快递单号
         ref.reason = REASON[reason]  # 原因
         ref.order_status = trade.get_status_display()  # 订单状态
