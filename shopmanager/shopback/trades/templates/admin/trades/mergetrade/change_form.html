@@ -73,6 +73,10 @@
                     var url = "/refunds/refund_invalid_create/";
                     var callback1 = function (res) {
                         console.log("debug: res ", res);
+                        if (res != 'ok'){
+                            alert(res);
+                            return ;
+                        }
                         params['_invalid'] = '';
                         $.post(commit.attr('action'), params, callback);//提交当前表单
                     };

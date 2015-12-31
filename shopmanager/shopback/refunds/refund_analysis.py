@@ -12,7 +12,7 @@ from flashsale.pay.models_refund import SaleRefund
 import operator
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
-
+import logging
 
 class RefundReason(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
@@ -94,5 +94,7 @@ def refund_Invalid_Create(request):
         ref.order_status = trade.get_status_display()  # 订单状态
         ref.save()
         return HttpResponse("ok")
-    except:
-        return HttpResponse('error')
+    except Exception,exc:
+        logger = logging.getLogger('django.request')
+        logger.error(exc.message or 'empty',exc_info=True)
+        return HttpResponse('error:%s'%exc.message)
