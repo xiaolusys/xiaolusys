@@ -216,7 +216,7 @@ class MergeTradeAdmin(MyAdmin):
         css = {"all": ("admin/css/forms.css","css/admin/dialog.css","css/admin/checkorder.css")}
 #         js = ("jquery/jquery-1.8.13.min.js","script/admin/adminpopup.js","script/trades/new_checkTrade.js",
 #               "layer-v1.9.2/layer/layer.js","bootstrap/js/bootstrap.js","script/trades/select_stock.js",)
-        js = ("script/admin/adminpopup.js","script/base.js","script/trades/checkorder.js",
+        js = ("closure-library/closure/goog/base.js","script/admin/adminpopup.js","script/base.js","script/trades/checkorder.js",
               "script/trades/tradetags.js","script/trades/new_checkTrade.js","layer-v1.9.2/layer/layer.js",
               "bootstrap/js/bootstrap.js","jquery/jquery-1.8.13.min.js","script/trades/select_stock.js")
     
