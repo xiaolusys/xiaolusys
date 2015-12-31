@@ -506,6 +506,13 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'定时统计发出库存和新增订货任务': {
+        'task': 'flashsale.dinghuo.tasks.task_stat_category_inventory_data',
+        'schedule': crontab(minute="0", hour="5"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
