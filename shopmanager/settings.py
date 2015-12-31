@@ -106,7 +106,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     'chartit',
     'south',
     'gunicorn',
@@ -117,7 +117,7 @@ INSTALLED_APPS = (
     'deamon',
     'httpproxy',
     'deamon.celery_sentry',
-    
+
     'common',
     'shopback.amounts',
     'shopback.categorys',
@@ -133,7 +133,7 @@ INSTALLED_APPS = (
     'shopback.purchases',
     'shopback.warehouse',
     #'shopback.aftersale',
-    
+
     'shopapp.autolist',
     'shopapp.collector',
     'shopapp.memorule',
@@ -158,7 +158,7 @@ INSTALLED_APPS = (
     'shopapp.weixin_score',
     'shopapp.weixin_examination',
     'shopapp.sampleproduct',
-    
+
     #'shopapp.second_time_sort',
     'supplychain.wavepick',
     'supplychain.supplier',
@@ -178,6 +178,7 @@ INSTALLED_APPS = (
     'flashsale.daystats',
     'flashsale.restpro',
     'flashsale.kefu',
+    'flashsale.push',
     'mathfilters',
 
     #'test.celery',
@@ -221,7 +222,7 @@ from task_settings import *
 
 if DEBUG:
     BROKER_URL = 'amqp://usera:passwda@192.168.1.101:5672/vhosta'
-    
+
 REST_FRAMEWORK = {
 #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
@@ -234,7 +235,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'flashsale.restpro.exceptions.my_exception_handler',
     'PAGINATE_BY': 10,                 # Default to 10
     'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
-    'MAX_PAGINATE_BY': 100     
+    'MAX_PAGINATE_BY': 100
 }
 
 REST_FRAMEWORK_EXTENSIONS = {

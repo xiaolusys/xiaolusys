@@ -1,3 +1,6 @@
+# coding: utf-8
+
+
 from django.conf.urls import patterns, include, url
 from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
@@ -6,19 +9,22 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
 from . import views
 from . import views_user
-from . import views_product 
-from . import views_trade 
+from . import views_product
+from . import views_trade
 from . import views_share
 from . import views_coupon
 from . import views_integral
 from flashsale.pay.views_login import weixin_login,weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
+from flashsale.push import views as views_push
 
 from . import views_wuliu
 from . import views_praise
 from . import views_pro_ref
 from . import views_xlmm
 from . import views_mmadver
+
+
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
@@ -54,12 +60,15 @@ router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
 # router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
 router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
 
+# 推送相关
+router.register(r'push', views_push.PushViewSet)
+
 
 router_urls = router.urls
 
-router_urls += format_suffix_patterns([  
-        url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),    
-        url(r'^users/weixin_auth/$',weixin_auth_and_redirect,name='xlmm-wxauth'), 
+router_urls += format_suffix_patterns([
+        url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),
+        url(r'^users/weixin_auth/$',weixin_auth_and_redirect,name='xlmm-wxauth'),
         url(r'^products/modellist/(?P<model_id>[0-9]+)$',
             views_product.ProductViewSet.as_view({'get': 'modellist'}),
             name='product-model-list'),
@@ -98,5 +107,3 @@ urlpatterns = patterns('',
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
     url(r'^test/',views_wuliu.test),
 )
-
-
