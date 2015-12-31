@@ -77,12 +77,13 @@ def refund_Invalid_Create(request):
     """
     REASON = (u"其他", u"错拍", u"缺货", u"没有发货", u"未收到货", u"与描述不符", u"七天无理由退换货")
     content = request.REQUEST
-    tid = content.get("tid", None)
+    
+    trade_id = content.get("trade_id", None)
     reason = int(content.get("reason", None))
     try:
-        trade = MergeTrade.objects.get(tid=tid)
+        trade = MergeTrade.objects.get(id=trade_id)
         ref = Refund()
-        ref.tid = tid
+        ref.tid = trade.tid
         ref.user = trade.user  # 店铺
         ref.buyer_nick = trade.buyer_nick  # 买家昵称
         ref.mobile = trade.receiver_mobile  # 手机
