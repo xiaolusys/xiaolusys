@@ -66,7 +66,6 @@ class ModelProduct(models.Model):
     
     NORMAL = '0'
     DELETE = '1'
-    
     STATUS_CHOICES = ((NORMAL,u'正常'),
                       (DELETE,u'作废'))
     

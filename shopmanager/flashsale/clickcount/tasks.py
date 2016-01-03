@@ -55,8 +55,8 @@ def task_Update_User_Click(click, *args, **kwargs):
     user_click,state = UserClicks.objects.get_or_create(unoinid=wxunoin.unionid)
     params  = {}
     if (not user_click.click_end_time or 
-        click.click_time.date() != user_click.click_end_time.date() or
-        user_click.click_start_time.date() != click.click_time.date()):
+        (click.click_time > user_click.click_end_time and
+        click.click_time.date() != user_click.click_end_time.date())):
         params.update(visit_days = F('visit_days') + 1)
     
     if not user_click.click_start_time or user_click.click_start_time > click.click_time:

@@ -1,0 +1,235 @@
+{% load mathfilters %} 
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>小鹿美美－大乐透</title>
+<meta name="keywords" content="" />
+<meta name="description" content="" />
+<link href="//cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+<style type="text/css">
+body{
+    margin:0 auto;
+}
+input,label,button{
+    margin-left:5px;
+}
+@-webkit-keyframes twinkling{   /*透明度由0到1*/
+    0%{
+        opacity:0.4;
+        width:50px;
+    }
+    100%{
+        opacity:1;              /*透明度为1*/
+        width:150px;
+    }
+}
+#lottery{margin:0px auto 0;}
+#lottery ul li{text-align:center;vertical-align:middle;font-size:24px;color:#333;font-index:-999}
+#lottery ul li.active img{-webkit-animation:twinkling 1s infinite ease-in-out;}
+#lottery-header {
+    margin:10px auto;
+    height:100px;
+}
+.lottery-ul ,.award-ul{
+    list-style: none;
+}
+.lottery-ul li {
+    float:left;
+    width:125px;
+    height:110px;
+    margin-top:15px;
+    margin-right:20px;
+    padding:5px 5px;
+}
+.award-ul li {
+    float:left;
+    width:125px;
+    height:110px;
+    padding:5px 5px;
+}
+
+.lottery-ul li img,.award-panel li img{
+    width:120px;
+}
+.lottery-ul li img:hover,.award-panel li img:hover{
+ width:400px;
+ position: absolute;
+ z-index: 10;
+}
+.ctrl-panel,.award-panel{
+    border:1px dashed blue;
+    height:95px;
+    float:left;
+}
+.ctrl-panel{
+    width:18%;
+}
+.ctrl-panel div{
+    margin-bottom:10px;
+}
+.award-panel{
+    width:80%;
+}
+</style>
+</head>
+<body>
+<div class="container" >
+<div id="lottery-header">
+    <div class="ctrl-panel"><div><label>抽奖人数:</label>
+        <select id="award-num" class="form-control" style="width:120px;display:inline;">
+            <option val="1">1</option>
+            <option val="2">2</option>
+            <option val="3">3</option>
+            <option val="4">4</option>
+            <option val="5">5</option>
+            <option val="6">6</option>
+            <option val="7">7</option>
+            <option val="8">8</option>
+            <option val="9">9</option>
+            <option val="10">10</option>
+        </select>
+        </div>
+        <div>
+        <button class="btn btn-large btn-primary award-start">开始抽奖</button>&nbsp;&nbsp;&nbsp;&nbsp;
+        <button class="btn btn-large btn-danger award-remove">中奖移除</button>
+        </div>
+    </div>
+    <div class="award-panel"><ul class="award-ul"></ul></div>
+</div>
+<div id="lottery">
+	<ul class="lottery-ul">
+	   {% for joiner in joiners %}
+		<li class="lottery-unit lottery-unit-{{forloop.counter}}" joiner="{{joiner.id}}">
+		 <img src="{{joiner.thumbnail}}">
+		</li>
+	   {% endfor %}
+	</ul>
+</div>
+</div>
+<script type="text/javascript" src="//cdn.bootcss.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+var lottery={
+	index:-1,	//当前转动到哪个位置，起点位置
+	count:0,	//总共有多少个位置
+	timer:0,	//setTimeout的ID，用clearTimeout清除
+	speed:20,	//初始转动速度
+	times:0,	//转动次数
+	cycle:10,	//转动基本次数：即至少需要转动多少次再进入抽奖环节
+	prize_num:0, //中奖人数
+	prize:-1,	//中奖位置
+	prize_list:[], //中奖位置列表
+	prize_rlist:[],//中奖移除列表
+	init:function(id){
+		if ($("#"+id).find(".lottery-unit").length>0) {
+			$lottery = $("#"+id);
+			$units = $lottery.find(".lottery-unit");
+			this.obj = $lottery;
+			this.count = $units.length;
+			$lottery.find(".lottery-unit-"+this.index).addClass("active");
+		};
+	},
+	roll:function(){
+		var index = this.index;
+		var count = this.count;
+		var lottery = this.obj;
+		$(lottery).find(".lottery-unit-"+index).removeClass("active");
+		index += 1;
+		while(hasBump(index)){
+		  index += 1;
+		};
+		if (index > count) {
+			index = 1;
+		};
+		$(lottery).find(".lottery-unit-"+index).addClass("active");
+		this.index=index;
+		return false;
+	},
+	stop:function(index){
+		this.prize=index;
+		return false;
+	}
+};
+function award(index){
+    console.log('debug award:',index,lottery.prize_list);
+    var award = $("#lottery .lottery-unit-"+index);
+    $('.award-ul').append(award);
+}
+function hasBump(index){
+    return index in lottery.prize_list || index in lottery.prize_rlist; 
+}
+function roll(){
+	lottery.times += 1;
+	lottery.roll();
+	if (lottery.times > lottery.cycle+10 && lottery.prize==lottery.index) {
+	    lottery.prize_list[lottery.prize_list.length] = lottery.prize;
+	    award(lottery.prize);
+		clearTimeout(lottery.timer);
+		lottery.prize=-1;
+		lottery.times=0;
+		click=false;
+		if (lottery.prize_num > lottery.prize_list.length){
+		  roll();
+		  click=true;
+		}
+	}else{
+		if (lottery.times<lottery.cycle) {
+			lottery.speed -= 10;
+		}else if(lottery.times==lottery.cycle) {
+		    var index = Math.random()*(lottery.count)|1;
+		    while(hasBump(index)){
+			  index = Math.random()*(lottery.count)|1;
+			}
+			lottery.prize = index;		
+		}else{
+			if (lottery.times > lottery.cycle+10 && ((lottery.prize==0 && lottery.index==7) || lottery.prize==lottery.index+1)) {
+				lottery.speed += 50;
+			}else{
+				lottery.speed += 20;
+			}
+		}
+		if (lottery.speed<40) {
+			lottery.speed=40;
+		};
+		//console.log(lottery.times+'^^^^^^'+lottery.speed+'^^^^^^^'+lottery.prize);
+		lottery.timer = setTimeout(roll,lottery.speed);
+	}
+	return false;
+}
+var click=false;
+window.onload=function(){
+	lottery.init('lottery');
+	$("#lottery-header button.award-start").click(function(){
+		if(click) {
+			return false;
+		}
+		else{
+		    console.log('debug:',click);
+			lottery.speed=100;
+			lottery.cycle=100;
+			lottery.prize_num=parseInt($('#award-num').val());
+			roll();
+			click=true;
+			return false;
+		}
+	});
+	$("#lottery-header button.award-remove").click(function(){
+        if(click) {
+            return false;
+        }
+        else{
+            console.log('debug:',click);
+            $('.award-ul').empty();
+            for (var i=0;i<=lottery.prize_list.length;i++){
+                lottery.prize_rlist[lottery.prize_rlist.length] = lottery.prize_list[i];
+            }
+            lottery.prize_list = [];
+            return false;
+        }
+    });
+};
+</script>
+</body>
+</html>

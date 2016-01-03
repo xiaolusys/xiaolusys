@@ -166,6 +166,7 @@ INSTALLED_APPS = (
     #'supplychain.temai',
     'games.paint',
     'games.bomb',
+    'games.luckyawards',
 
     #'flashsale.supplier',
     'flashsale.complain',

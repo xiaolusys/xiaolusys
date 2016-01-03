@@ -48,7 +48,7 @@ class SaleOrderInline(admin.TabularInline):
 
 class SaleTradeAdmin(admin.ModelAdmin):
     list_display = ('id', 'tid', 'buyer_nick', 'channel', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
-    list_display_links = ('id', 'tid')
+    list_display_links = ('id', 'tid', 'buyer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'channel', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
