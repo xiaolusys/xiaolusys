@@ -1,0 +1,138 @@
+{% extends 'line_template.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block line_show %}
+    <div class="col-lg-12">
+        <div id="show_line" style="min-width:400px;height:300px"></div>
+    </div>
+    <div class="col-lg-12">
+        <div id="show_line_2" style="min-width:400px;height:300px"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        function getData(df, dt) {
+            // 根据时间获取数据
+            var data_url = $("#data_url").val();
+            $.ajax({
+                url: data_url,
+                data: {'df': df, "dt": dt},
+                type: "post",
+                dataType: "json",
+                success: getDataBack
+            });
+            function getDataBack(res) {
+                DataHandler(res);//　获取数据成功后调用处理函数
+            }
+        }
+        function DataHandler(data) {
+            // 数据处理
+            var newly_increased_1 = [];
+            var stat_date_1 = [];
+            var deliver_1 = [];
+            var arrived_1 = [];
+            var inventory_1 = [];
+            var not_arrive_1 = [];
+
+            var newly_increased_2 = [];
+            var stat_date_2 = [];
+            var deliver_2 = [];
+            var arrived_2 = [];
+            var inventory_2 = [];
+            var not_arrive_2 = [];
+
+            $.each(data, function (index, item) {
+                console.log(item);
+                if (item.category == 1) {
+                    $.each(item, function (key, value) {
+                        switch (key) {
+                            case 'newly_increased':
+                                newly_increased_1.push(value);
+                                break;
+                            case 'stat_date':
+                                stat_date_1.push(value);
+                                break;
+                            case 'deliver':
+                                deliver_1.push(value);
+                                break;
+                            case 'arrived':
+                                arrived_1.push(value);
+                                break;
+                            case 'inventory':
+                                inventory_1.push(value);
+                                break;
+                            case 'not_arrive':
+                                not_arrive_1.push(value);
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+                } else if (item.category == 2) {
+                    $.each(item, function (key, value) {
+                        switch (key) {
+                            case 'newly_increased':
+                                newly_increased_2.push(value);
+                                break;
+                            case 'stat_date':
+                                stat_date_2.push(value);
+                                break;
+                            case 'deliver':
+                                deliver_2.push(value);
+                                break;
+                            case 'arrived':
+                                arrived_2.push(value);
+                                break;
+                            case 'inventory':
+                                inventory_2.push(value);
+                                break;
+                            case 'not_arrive':
+                                not_arrive_2.push(value);
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+                }
+            });
+            var show_container = $("#show_line");
+            var title = {"xtitle": "进货出仓及库存", "xsub_title": "童装", "ytitle": "件数"};
+            var series = [{
+                name: '新增订货',
+                data: newly_increased_1
+            }, {
+                name: '发出',
+                data: deliver_1
+            }, {
+                name: '到货',
+                data: arrived_1
+            }, {
+                name: '未到货',
+                data: not_arrive_1
+            }, {
+                name: '库存',
+                data: inventory_1
+            }];
+            linechart(show_container, stat_date_1, title.xtitle, title.xsub_title, title.ytitle, series);
+
+            var show_container_2 = $("#show_line_2");
+            var title_2 = {"xtitle": "进货出仓及库存", "xsub_title": "女装", "ytitle": "件数"};
+            var series_2 = [{
+                name: '新增订货',
+                data: newly_increased_2
+            }, {
+                name: '发出',
+                data: deliver_2
+            }, {
+                name: '到货',
+                data: arrived_2
+            }, {
+                name: '未到货',
+                data: not_arrive_2
+            }, {
+                name: '库存',
+                data: inventory_2
+            }];
+            linechart(show_container_2, stat_date_2, title_2.xtitle, title_2.xsub_title, title_2.ytitle, series_2);
+        }
+    </script>
+{% endblock %}
