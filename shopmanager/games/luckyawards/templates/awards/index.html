@@ -171,6 +171,9 @@ function roll(){
 		lottery.times=0;
 		click=false;
 		if (lottery.prize_num > lottery.prize_list.length){
+		  lottery.speed=100;
+	      lottery.cycle=100;
+	      lottery.speed=20;
 		  roll();
 		  click=true;
 		}
@@ -209,6 +212,7 @@ window.onload=function(){
 		    console.log('debug:',click);
 			lottery.speed=100;
 			lottery.cycle=100;
+			lottery.speed=20;
 			lottery.prize_num=parseInt($('#award-num').val());
 			roll();
 			click=true;

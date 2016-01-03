@@ -106,9 +106,9 @@ class ProductAdmin(MyAdmin):
     form = ProductModelForm
     list_per_page = 25
     list_display = ('id','outer_id_link','pic_link','collect_num','category_select',
-                    'remain_num','wait_post_num','wait_receive_num','cost' ,'std_sale_price','agent_price'
-                    , 'model_id', 'sync_stock','is_match','is_split','sale_time_select',
-                   'sale_charger','ware_select','district_link','shelf_status', 'sale_time') #'charger_select',
+                    'remain_num','wait_post_num','lock_num','wait_receive_num','cost' ,'std_sale_price',
+                    'agent_price','model_id', 'sync_stock','sale_time_select',
+                   'sale_charger','ware_select','district_link','shelf_status') #'charger_select',
     list_display_links = ('id',)
     #list_editable = ('name',)
     
@@ -133,7 +133,7 @@ class ProductAdmin(MyAdmin):
             product_detail = None
         head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or NO_PIC_URL
         
-        return u'<p>%s</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />'%(obj.outer_id, head_img_url)
+        return u'<p>%s</p><p>(%s)</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />'%(obj.outer_id,obj.get_status_display(), head_img_url)
     
     outer_id_link.allow_tags = True
     outer_id_link.short_description = u"商品编码(题头图)" 
