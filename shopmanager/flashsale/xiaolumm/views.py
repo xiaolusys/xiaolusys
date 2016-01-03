@@ -35,7 +35,7 @@ logger = logging.getLogger('django.request')
 
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
-# SHOPURL = "http://weixin.huyi.so/mm/plist/"
+# SHOPURL = "http://m.xiaolumeimei.com/mm/plist/"
 
 def landing(request):
     return render_to_response("mama_landing.html", context_instance=RequestContext(request))
@@ -78,7 +78,7 @@ class CashoutView(View):
                                           secret=settings.WEIXIN_SECRET,
                                           request=request)
         if not valid_openid(openid) or not valid_openid(unionid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
@@ -176,7 +176,7 @@ class MamaStatsView(View):
                                           request=request)
 
         if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
@@ -276,7 +276,7 @@ class MamaIncomeDetailView(View):
                                           secret=settings.WEIXIN_SECRET,
                                           request=request)
         if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
@@ -480,7 +480,7 @@ def logclicks(request, linkid):
                                           secret=settings.WEIXIN_SECRET)
 
     if not valid_openid(openid):
-        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
+        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
         return redirect(redirect_url)
     
     click_time = datetime.datetime.now()

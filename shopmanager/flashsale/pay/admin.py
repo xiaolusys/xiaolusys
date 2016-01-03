@@ -534,7 +534,7 @@ class GoodShelfAdmin(admin.ModelAdmin):
     def preview_link(self, obj):
         if obj.active_time:
             pre_days = (obj.active_time.date() - datetime.date.today()).days
-            return u'<a href="http://m.xiaolu.so/preview.html?days=%s">预览一下</a>'%pre_days
+            return u'<a href="http://m.xiaolumeimei.com/preview.html?days=%s">预览一下</a>'%pre_days
         return u'' 
         
     preview_link.allow_tags = True

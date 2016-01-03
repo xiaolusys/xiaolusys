@@ -63,13 +63,12 @@
   </h3>
 </div>
 
-    {% if advertise %}
-
-        <div class="alert alert-danger" role="alert">
-            <span class="label label-danger">公告:</span>
-            {{ advertise.cntnt }}
-        </div>
-    {% endif %}
+{% if advertise %}
+    <div class="alert alert-danger" role="alert">
+        <span class="label label-danger">公告:</span>
+        {{ advertise.cntnt }}
+    </div>
+{% endif %}
 
 <div class="main-page" style="margin-top:20px">
   <div class="panel panel-default" >
@@ -103,13 +102,17 @@
  </div>
   
   <ul class="list-group">
-    <li class="list-group-item">小鹿妈妈: {{ xlmm.weikefu }}&nbsp;{% if referal_mmid > 0 %}(<a href="/m/register/{{referal_mmid}}/">申请正式小鹿妈妈</a>){% endif %} {%  ifequal xlmm.charge_status 'charged' %}<a class="btn btn-warning" href="http://m.xiaolu.so/pages/shangpinxq.html?id=22030" role="button" style="float:right;  padding-left: 5px;padding-right: 5px;padding-bottom: 1px;">充值</a> {% endifequal %}</li>
+    <li class="list-group-item">小鹿妈妈: {{ xlmm.weikefu }}&nbsp;
+    {% if referal_mmid > 0 %}(<a href="/m/register/{{referal_mmid}}/">申请正式小鹿妈妈</a>)
+    {% endif %} {%  ifequal xlmm.charge_status 'charged' %}<a class="btn btn-warning" href="/pages/shangpinxq.html?id=22030" role="button" style="float:right;  padding-left: 5px;padding-right: 5px;padding-bottom: 1px;">充值</a> 
+    {% endifequal %}
+    </li>
     <li class="list-group-item">手机号: {{ mobile }}</li>
     <li class="list-group-item"><lable>专属链接：</label> <b>http://xiaolu.so/m/{{ pk }}/</b></li>
     <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">收入支出流水 </div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
     <li class="list-group-item"><a href="/m/income/"><div class="row nav-item"><div class="col-xs-10">收益列表 (今日点击<span class="badge label-warning">{{ click_num }}</span>-订单<span class="badge label-warning">{{ order_num }}</span>)</div><div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
     <li class="list-group-item"><a href="/m/cashout/"><div class="row nav-item"><div class="col-xs-10">推荐妈妈列表 (总推荐数<span class="badge label-warning">{{ referal_num }}</span>)</div> <div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
-    <li class="list-group-item"><a href="http://m.xiaolu.so/pages/hot_product_praise.html"><div class="row nav-item"><div class="col-xs-10">一起去投票</div><div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
+    <li class="list-group-item"><a href="/pages/hot_product_praise.html"><div class="row nav-item"><div class="col-xs-10">一起去投票</div><div class="col-xs-2 glyphicon glyphicon-chevron-right" ></div></div></a></li>
   </ul>
 </div>
 

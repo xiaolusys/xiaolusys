@@ -308,7 +308,7 @@ class OrderInfoView(View):
         user_openid = get_user_openid(request, code)
         
         if not valid_openid(user_openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/orderinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/orderinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
@@ -439,7 +439,7 @@ class BabyInfoView(View):
         openid = get_user_openid(request, code)
 
         if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/babyinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         wx_user = None
@@ -771,7 +771,7 @@ class FreeSampleView(View):
         
         user_openid = get_user_openid(request, code)
         if not valid_openid(user_openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
@@ -854,7 +854,7 @@ class SampleApplyView(View):
         ## if not correct, redirect
         vipcodes = VipCode.objects.filter(code=fcode)
         if vipcodes.count() < 1:
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
         color = int(color) or 1
@@ -978,7 +978,7 @@ class SampleAdsView(View):
                                           context_instance=RequestContext(request))
             return response
 
-        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/freesamples/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
         return redirect(redirect_url)
 
         
@@ -1026,7 +1026,7 @@ class ResultView(View):
         
         if user_openid == "" or user_openid == None or user_openid == "None":
             redirect_url = ("https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&"
-                +"redirect_uri=http://weixin.huyi.so/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect")
+                +"redirect_uri=http://m.xiaolumeimei.com/weixin/inviteresult/&response_type=code&scope=snsapi_base&state=135#wechat_redirect")
             return redirect(redirect_url)
             
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
@@ -1293,7 +1293,7 @@ class SurveyView(View):
         user_openid = get_user_openid(request, code)
 
         if not valid_openid(user_openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/survey/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/survey/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
 
         exist = False
@@ -1435,7 +1435,7 @@ class ScoreMenuView(View):
         code = content.get('code')
         user_openid = get_user_openid(request, code)
         if not valid_openid(user_openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/scoremenu/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/scoremenu/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
@@ -1671,7 +1671,7 @@ def  weixinorder_detail(request):
         user_openid = get_user_openid(request, code)
         
         if not valid_openid(user_openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/orderinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/orderinfo/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
             return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=user_openid)
