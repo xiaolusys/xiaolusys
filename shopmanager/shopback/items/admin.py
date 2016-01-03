@@ -505,10 +505,11 @@ class ProductAdmin(MyAdmin):
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
     
     def get_product_logsign(self,product):
+        """ 上架操作会触发系统更新待发数未锁定数 """
         return '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(product.collect_num,
                                                                 product.wait_post_num,
                                                                 product.remain_num,
-                                                                product.lock_num)
+                                                                product.wait_post_num)
         
     #更新商品库存数至预留数
     def update_quantity2remain_action(self,request,queryset):
