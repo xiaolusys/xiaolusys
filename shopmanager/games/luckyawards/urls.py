@@ -8,5 +8,5 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from .import views
 
 urlpatterns = patterns('',
-    url(r'^awards/',views.LuckyAwardView.as_view()),
+    url(r'^awards/',views.LuckyAwardView.as_view(),name="lucky-awards"),
 )
