@@ -83,7 +83,20 @@ class StatisticsShopping(models.Model):
             return False
         clog = clogs[0]
         return clog.status != CarryLog.PENDING
-        
+
+    def pro_pic(self):
+        """ 返回有提成订单的产品图片　"""
+        from shopback.items.models import Product
+        sod = SaleOrder.objects.filter(sale_trade__tid=self.wxorderid,  # 这里至返回没有退款的订单
+                                       refund_status=SaleRefund.NO_REFUND).only('item_id')
+        if sod.exists():  # 至返回第一个产品的图片
+            pro = Product.objects.get(id=sod[0].item_id).pic_path
+            return pro
+        else:
+            return None
+
+    def day_time(self):
+        return self.shoptime.strftime("%H:%M")
 
 class StatisticsShoppingByDay(models.Model):
     

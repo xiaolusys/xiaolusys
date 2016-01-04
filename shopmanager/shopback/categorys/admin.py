@@ -39,7 +39,7 @@ class CategorySaleStatAdmin(admin.ModelAdmin):
     list_display = ("stat_date", "category_show", "sale_amount", "sale_num", "pit_num", "collect_num", "collect_amount",
                     "stock_num", "stock_amount", "refund_num", "refund_amount", "created")
 
-    list_filter = ("created", CategoryFilter)
+    list_filter = ("created", CategoryFilter, 'stat_date')
 
     def category_show(self, obj):
         return obj.category_display
