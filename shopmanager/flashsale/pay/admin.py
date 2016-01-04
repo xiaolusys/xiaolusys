@@ -42,7 +42,7 @@ class SaleOrderInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields + ('oid',))
         if not request.user.is_superuser:
-            readonly_fields.update(('outer_id', 'outer_sku_id'))
+            readonly_fields.update(('outer_id', 'outer_sku_id','item_id'))
         return tuple(readonly_fields)
 
 
@@ -52,7 +52,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'channel', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
-    search_fields = ['=tid', '=id', '=receiver_mobile']
+    search_fields = ['=tid', '=id', '=receiver_mobile','=buyer_id']
 
     inlines = [SaleOrderInline]
 
