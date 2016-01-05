@@ -15,8 +15,7 @@ class JoinerAdmin(admin.ModelAdmin):
     search_fields = ['id','name']
     
     def thumbnail_pic(self, obj):
-        
-        return '<img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="100px" height="80px"/>'%(obj.thumbnail)
+        return '<img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="100px" height="80px"/>'%(obj.thumbnail_link)
     
     thumbnail_pic.allow_tags = True
     thumbnail_pic.short_description = u"照片"
