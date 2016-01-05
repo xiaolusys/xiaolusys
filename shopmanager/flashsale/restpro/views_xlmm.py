@@ -209,6 +209,9 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     - {prefix}[.format]: 获取登陆用户的购买统计记录
     - {prefix}/today_shops　method:get : 当天的购买统计记录
     - {prefix}/seven_days_num method: get : 过去七天的推广交易数量
+    - {prefix}/shop_num_by_day?date=2015-12-31 method: get :获取2015-12-31日期的订单数量
+        `shop_num:` 订单数量
+        `code:`1 错误日期
     """
     queryset = StatisticsShopping.objects.all()
     serializer_class = serializers.StatisticsShoppingSerialize
@@ -258,6 +261,21 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         d = [data[i] - data_cp[i - 1] for i in range(7)[::-1] if i > 0]
         d.append(data[0])
         return Response(d[::-1])
+
+    @list_route(methods=['get'])
+    def shop_num_by_day(self, request):
+        """　根据日期参数传该日期的订单数量　"""
+        content = request.REQUEST
+        date = content.get("date", None)
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        if date is not None:
+            ftime = datetime.datetime.strptime(date, '%Y-%m-%d')
+            ttime = ftime + datetime.timedelta(days=1)
+            num = queryset.filter(shoptime__gte=ftime, shoptime__lte=ttime,
+                                  status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND)).count()
+            return Response({"shop_num": num})
+        else:
+            return Response({"code": 1})
 
 
 class CashOutViewSet(viewsets.ModelViewSet):
