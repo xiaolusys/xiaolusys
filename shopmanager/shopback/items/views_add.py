@@ -62,7 +62,7 @@ class AddItemView(generics.ListCreateAPIView):
         count = 1
         while True:
             inner_outer_id = outer_id + "%03d" % count
-            test_pros = Product.objects.filter(outer_id__startswith=inner_outer_id, status=Product.NORMAL)
+            test_pros = Product.objects.filter(outer_id__startswith=inner_outer_id)
             if test_pros.count() == 0 or count > 998:
                 break
             count += 1

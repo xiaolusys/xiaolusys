@@ -312,7 +312,7 @@ def tongji_saleorder(sender, obj, **kwargs):
                            shoptime=ordertime, 
                            tichengcount=mm_order_rebeta).save()
         return
-    xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid)
+    xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,charge_status=XiaoluMama.CHARGED)
     if xiaolumms.exists():
         xiaolumm = xiaolumms[0]
         #计算小鹿妈妈订单返利

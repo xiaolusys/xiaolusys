@@ -13,9 +13,14 @@
     		e.preventDefault();
     		var form = $(this);
     		
-    		var callback = function(resp){
-    			window.opener.location.reload(true);
-    			window.close();
+    		var callback = function(resp,status){
+    		    if (xhr.status == 302){
+                    window.location.reload(true);
+                    window.close();
+                }else{
+                    $(document).empty();
+                    document.write(resp);
+                }
     		}
     		
     		var form_array = form.serializeArray();

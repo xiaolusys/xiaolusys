@@ -50,7 +50,7 @@
 
       <div style="text-align:center;height:80px;padding-top:20px;">
 	{% if not identical %}
-	<p><a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击申请领取 >></a></p>
+	<p><a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/weixin/freesamples/?f={{ vipcode }}&response_type=code&scope=snsapi_base&state=135#wechat_redirect" class="btn btn-warning">点击申请领取 >></a></p>
 	{% endif %}
 	<p style="color:red">VIP邀请码：{{ vipcode }}</p>
       </div>
@@ -112,7 +112,7 @@ WeixinApi.ready(function(Api) {
     var wxData = {
         "appId": "wx3192657bff632654", // 服务号可以填写appId
         "imgUrl" : "https://mmbiz.qlogo.cn/mmbiz/yMhOQPTKhLvu5WdzhDicmHmlBpuga4YW6nwKMuINKhI5Nicyp8baGAwt06DSgFFktcvolIAPHJmUDviaaQguqqPtg/0",
-        "link" : "http://weixin.huyi.so/weixin/sampleads/{{ pk }}/",
+        "link" : "http://m.xiaolumeimei.com/weixin/sampleads/{{ pk }}/",
         "desc" : "超级实用的睡袋，适用年龄0-6岁，宝宝穿上就再也不怕感冒咯！",
         "title": "宝宝再也不感冒啦！我刚申请了免费试用这款睡袋，你也快来申请吧！" 
     };

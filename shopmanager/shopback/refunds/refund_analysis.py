@@ -12,7 +12,7 @@ from flashsale.pay.models_refund import SaleRefund
 import operator
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
-
+import logging
 
 class RefundReason(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
@@ -77,22 +77,25 @@ def refund_Invalid_Create(request):
     """
     REASON = (u"其他", u"错拍", u"缺货", u"没有发货", u"未收到货", u"与描述不符", u"七天无理由退换货")
     content = request.REQUEST
-    tid = content.get("tid", None)
+    
+    trade_id = content.get("trade_id", None)
     reason = int(content.get("reason", None))
     try:
-        trade = MergeTrade.objects.get(tid=tid)
+        trade = MergeTrade.objects.get(id=trade_id)
         ref = Refund()
-        ref.tid = tid
+        ref.tid = trade.tid
         ref.user = trade.user  # 店铺
         ref.buyer_nick = trade.buyer_nick  # 买家昵称
         ref.mobile = trade.receiver_mobile  # 手机
         ref.total_fee = trade.total_fee  # 总费用
         ref.payment = trade.payment  # 退款费用
-        ref.company_name = trade.logistics_company  # 快递公司
+        ref.company_name = trade.logistics_company or ''  # 快递公司
         ref.sid = trade.out_sid  # 快递单号
         ref.reason = REASON[reason]  # 原因
         ref.order_status = trade.get_status_display()  # 订单状态
         ref.save()
         return HttpResponse("ok")
-    except:
-        return HttpResponse('error')
+    except Exception,exc:
+        logger = logging.getLogger('django.request')
+        logger.error(exc.message or 'empty',exc_info=True)
+        return HttpResponse('error:%s'%exc.message)

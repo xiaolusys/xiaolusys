@@ -31,6 +31,7 @@ urlpatterns = patterns('',
     url(r'^djcelery/',include('djcelery.urls'),name="task_state"),
     
     (r'^app/',include('shopapp.urls')),
+    (r'^lucky/',include('games.luckyawards.urls')),
     url(r'^home/$',home,name='home_page'),
     (r'^$',home),
     (r'^top_monitor\.html$',csrf_exempt(TemplateView.as_view(template_name='top_monitor.html'))),

@@ -48,7 +48,7 @@ class UserAdmin(admin.ModelAdmin):
         
         user = request.user
         actions = super(UserAdmin, self).get_actions(request)
-
+        
         if not perms.has_delete_user_permission(user) and 'delete_selected' in actions:
             del actions['delete_selected']
         if not perms.has_download_orderinfo_permission(user) and 'pull_user_unpost_trades' in actions:

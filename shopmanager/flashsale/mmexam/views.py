@@ -19,7 +19,7 @@ def index(request):
                                                  secret=settings.WEIXIN_SECRET,
                                                  request=request)
     if not valid_openid(user_openid) or not valid_openid(user_unionid):
-        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://weixin.huyi.so/sale/exam/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/sale/exam/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
         return redirect(redirect_url)
     dt = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=36000),
                                     "%a, %d-%b-%Y %H:%M:%S GMT")
