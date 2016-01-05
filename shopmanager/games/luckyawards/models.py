@@ -22,6 +22,6 @@ class Joiner(models.Model):
 
     @property
     def thumbnail_link(self):
-        if self.thumbnail.url.startswith(('https://','http://')):
-            return self.thumbnail.url
-        return settings.MEDIA_URL + self.thumbnail.url.split('/')[-1]
+        if self.thumbnail.name.startswith(('https://','http://')):
+            return self.thumbnail.name
+        return settings.MEDIA_URL + self.thumbnail.name.split('/')[-1]

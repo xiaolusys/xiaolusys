@@ -102,7 +102,7 @@ input,label,button{
 	<ul class="lottery-ul">
 	   {% for joiner in joiners %}
 		<li class="lottery-unit lottery-unit-{{forloop.counter}}" joiner="{{joiner.id}}">
-		 <img src="{{joiner.thumbnail}}">
+		 <img src="{{joiner.thumbnail_link}}">
 		</li>
 	   {% endfor %}
 	</ul>
