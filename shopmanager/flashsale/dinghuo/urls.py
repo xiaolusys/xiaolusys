@@ -14,6 +14,7 @@ from .view_refund_supplier import StatisRefundSupView, change_duihuo_status, cha
 import views_wuliu
 import views_sale_status
 import views_product
+import views_line_show
 urlpatterns = [
 
     url(r'^searchproduct/$', views.search_product, name='searchProduct'),                       #搜索所有的商品 ajax
@@ -63,4 +64,5 @@ urlpatterns = [
     url(r'^set_remain_num/$', staff_member_required(views_product.SetRemainNumView.as_view()), name="set_remian"), #设置预留数
     url(r'^product_category/$', staff_member_required(views.ProductCategoryAPIView.as_view()), name="product_category"), #商品分类api
     url(r'^skuapi/$', staff_member_required(SkuAPIView.as_view()), name="product_category"), #商品分类api
+    url(r'^stats/$', staff_member_required(views_line_show.InventoryDataLineShow.as_view()), name="line_show"),  # 折线图显示数据
 ]

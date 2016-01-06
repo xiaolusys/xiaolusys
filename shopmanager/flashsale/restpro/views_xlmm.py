@@ -27,7 +27,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     `recommend_num`: 总推荐数量  
     `clk_num`: 今日点击  
     `shop_num`: 今日订单  
-    `mobile`: 手机号  
+    `mobile`: 手机号
+    `all_shop_num`: 所有订单数 
     `mco`: 确定支出  
     `ymco`: 昨日确定支出  
     `pdc`: 总待确定金额  
@@ -73,7 +74,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
 
         recommend_num = self.queryset.filter(referal_from=xlmm.mobile).count()  # 总推荐数量
         cash = xlmm.cash_money  # 账户现金
-        carry_logs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(status=CarryLog.CANCELED)
+        carry_logs = CarryLog.objects.filter(xlmm=xlmm.id).exclude(status=CarryLog.CANCELED)  # 该代理的收支记录
         today = datetime.date.today()
         yestoday = today - datetime.timedelta(days=1)
         cfm_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
@@ -81,13 +82,16 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         yst_cfm_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED, carry_date=yestoday)
         yst_cfm_out = carry_logs.filter(carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED, carry_date=yestoday)
         pending = carry_logs.filter(status=CarryLog.PENDING)
+        nmc_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status__in=(CarryLog.CONFIRMED, CarryLog.PENDING),
+                                   carry_date=today)
 
         mci = (cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定收入
         mco = (cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定支出
         ymci = (yst_cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 昨日确定收入
         ymco = (yst_cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 昨日确定支出
         pdc = (pending.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 总待确定金额
-        mmclog = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc}
+        nmci = (nmc_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 今日收入(含待收入)
+        mmclog = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc, "nmci": nmci}
 
         # 今日有效点击数量
         clks = ClickCount.objects.filter(linkid=xlmm.id, date=today)
@@ -95,12 +99,12 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         # 今日订单
         t_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
         t_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
-        shop_num = StatisticsShopping.objects.filter(shoptime__gte=t_from, shoptime__lte=t_to,
-                                                     status__in=(StatisticsShopping.WAIT_SEND,
-                                                                 StatisticsShopping.FINISHED)).count()
+        all_shops = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
+        all_shop_num = all_shops.count()
+        shop_num = all_shops.filter(shoptime__gte=t_from, shoptime__lte=t_to).count()  # 今日订单数量
         mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
         data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
-                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num}
+                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num}
         return Response(data)
 
 
@@ -203,7 +207,11 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     """
     ## 特卖平台－小鹿妈妈购买统计API:
     - {prefix}[.format]: 获取登陆用户的购买统计记录
-    - {prefix}/list_base_data　method:get : 当天的购买统计记录
+    - {prefix}/today_shops　method:get : 当天的购买统计记录
+    - {prefix}/seven_days_num method: get : 过去七天的推广交易数量
+    - {prefix}/shop_num_by_day?date=2015-12-31 method: get :获取2015-12-31日期的订单数量
+        `shop_num:` 订单数量
+        `code:`1 错误日期
     """
     queryset = StatisticsShopping.objects.all()
     serializer_class = serializers.StatisticsShoppingSerialize
@@ -228,15 +236,46 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return Response()
 
-    @list_route(methods=['get'])
-    def list_base_data(self, request):
+    def get_tzone_queryset(self, days, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        now = datetime.datetime.now()
-        today_time_from = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
-        today_time_to = datetime.datetime(now.year, now.month, now.day, 23, 59, 59)
-        tqs = queryset.filter(shoptime__gte=today_time_from, shoptime__lte=today_time_to)  # 今天的统计记录
+        today = datetime.datetime.today()
+        tf = datetime.datetime(today.year, today.month, today.day, 0, 0, 0) - datetime.timedelta(days=days)
+        tt = datetime.datetime.now()
+        tqs = queryset.filter(shoptime__gte=tf, shoptime__lte=tt)
+        return tqs
+
+    @list_route(methods=['get'])
+    def today_shops(self, request):
+        tqs = self.get_tzone_queryset(days=1, request=request)
         serializer = self.get_serializer(tqs, many=True)
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def seven_days_num(self, request):
+        # 过去七天的shop数量
+        data = [(self.get_tzone_queryset(days=i, request=request).filter(status__in=(
+            StatisticsShopping.FINISHED,
+            StatisticsShopping.WAIT_SEND)).count())
+                for i in range(0, 7)]
+        data_cp = data
+        d = [data[i] - data_cp[i - 1] for i in range(7)[::-1] if i > 0]
+        d.append(data[0])
+        return Response(d[::-1])
+
+    @list_route(methods=['get'])
+    def shop_num_by_day(self, request):
+        """　根据日期参数传该日期的订单数量　"""
+        content = request.REQUEST
+        date = content.get("date", None)
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        if date is not None:
+            ftime = datetime.datetime.strptime(date, '%Y-%m-%d')
+            ttime = ftime + datetime.timedelta(days=1)
+            num = queryset.filter(shoptime__gte=ftime, shoptime__lte=ttime,
+                                  status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND)).count()
+            return Response({"shop_num": num})
+        else:
+            return Response({"code": 1})
 
 
 class CashOutViewSet(viewsets.ModelViewSet):

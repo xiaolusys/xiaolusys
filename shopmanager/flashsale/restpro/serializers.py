@@ -389,11 +389,12 @@ class ClickCountSerialize(serializers.ModelSerializer):
 
 
 class StatisticsShoppingSerialize(serializers.ModelSerializer):
-
+    pic_path = serializers.CharField(source='pro_pic', read_only=True)
+    time_display = serializers.CharField(source='day_time', read_only=True)
     class Meta:
         model = StatisticsShopping
         fields = ("linkid", "linkname", "wxorderid", "wxordernick", "order_cash", "rebeta_cash", "ticheng_cash",
-                  "shoptime", "status", "get_status_display")
+                  "shoptime", "status", "get_status_display", "pic_path", "time_display")
 
 
 class CashOutSerialize(serializers.ModelSerializer):

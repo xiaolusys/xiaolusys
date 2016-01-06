@@ -112,128 +112,25 @@ def task_schedule_cart():
     """
     close_timeout_carts_and_orders()
 
-#fang  2015-8-21    
-@task(max_retry=3, default_retry_delay=5)  
-def  SaveWuliu(tid):
-    
-        # apikey = '47deda738666430bab15306c2878dd3a'     
-        apikey='ebd77d3a6ef243c4bf1b1f8610443e27'
-    #访问的API代码  
-        #uid = '39400'
-        uid='40340'
-        try:
-            trade_info=SaleTrade.objects.get( id=tid )
-        except:
-            trade_info=SaleTrade.objects.get(tid=tid )
 
-        try:
-            exType=trade_info.logistics_company.code
-            out_sid=trade_info.out_sid
-            if exType  in POST_CODE_NAME_MAP.keys():
-                tid=trade_info.tid
-                data = {'id':BAIDU_POST_CODE_EXCHANGE.get(exType),'order':out_sid,'key': apikey,'uid': uid}
-                req = urllib2.urlopen(BADU_KD100_URL, urllib.urlencode(data),timeout=30)
-                content = json.loads(req.read())
-                #if content['data'].length=0
-                if content['status']==1:
-                    wuliu=   TradeWuliu()
-                    wuliu.tid=tid
-                    wuliu.status=content['status']
-                    wuliu.logistics_company=content['name']
-                    wuliu.out_sid=content['order']
-                    wuliu.errcode=content['errcode']
-                    wuliu.save()
-                else:
-                    for t in content['data']:
-                        wuliu=   TradeWuliu()
-                        wuliu.tid=tid
-                        wuliu.status=content['status']
-                        wuliu.logistics_company=content['name']
-                        wuliu.out_sid=content['order']
-                        wuliu.errcode=content['errcode']
-                        wuliu.content=t['content']
-                        wuliu.time=t['time']
-                        wuliu.save()
-        except:
-            pass
-
-
-
-
-#fang  2015-8-21
-@task(max_retry=3, default_retry_delay=5)  
-def  SaveWuliu_only01(tid,content):
+@task(max_retry=3, default_retry_delay=5)
+def SaveWuliu_only(tid, content):
     """
         用户点击物流信息，进行物流信息存入数据库。
     """
-    if content['status']==1:
-        wuliu=   TradeWuliu()
-        wuliu.tid=tid
-        wuliu.status=content['status']
-        wuliu.logistics_company=content['name']
-        wuliu.out_sid=content['order']
-        wuliu.errcode=content['errcode']
-        wuliu.save()
-    else:
-        for t in content['data']:
-            wuliu=   TradeWuliu()
-            wuliu.tid=tid
-            wuliu.status=content['status']
-            wuliu.logistics_company=content['name']
-            wuliu.out_sid=content['order']
-            wuliu.errcode=content['errcode']
-            wuliu.content=t['content']
-            wuliu.time=t['time']
+    wulius = TradeWuliu.objects.filter(tid=tid).order_by("-time")
+    datalen = len(content['data'])
+    data = content['data']
+    alread_count = wulius.count()
+    if alread_count >= datalen:  # 已有记录条数大于等于接口给予条数只是更新状态到最后一条记录中
+        if wulius.exists():
+            wuliu = wulius[0]
+            wuliu.status = int(content['status'])
             wuliu.save()
-
-
-#fang  2015-8-22  newVersions
-@task(max_retry=3, default_retry_delay=5)  
-def  SaveWuliu_only(tid,content):
-    """
-        用户点击物流信息，进行物流信息存入数据库。
-    """
-    if content['status']==1:
-        try:
-            wuliu_info=TradeWuliu.objects.filter(tid=tid)
-            wuliu_info.delete()
-            wuliu=   TradeWuliu()
-            wuliu.tid=tid
-            wuliu.status=content['status']
-            wuliu.logistics_company=content['name']
-            wuliu.out_sid=content['order']
-            wuliu.errcode=content['errcode']
-            wuliu.save()
-        except:
-            wuliu=   TradeWuliu()
-            wuliu.tid=tid
-            wuliu.status=content['status']
-            wuliu.logistics_company=content['name']
-            wuliu.out_sid=content['order']
-            wuliu.errcode=content['errcode']
-            wuliu.save()
-    else:
-        try:
-            wuliu_info=TradeWuliu.objects.filter(tid=tid)
-            wuliu_info.delete()
-            for t in content['data']:
-                wuliu=   TradeWuliu()
-                wuliu.tid=tid
-                wuliu.status=content['status']
-                wuliu.logistics_company=content['name']
-                wuliu.out_sid=content['order']
-                wuliu.errcode=content['errcode']
-                wuliu.content=t['content']
-                wuliu.time=t['time']
-                wuliu.save()
-        except:
-            for t in content['data']:
-                wuliu=   TradeWuliu()
-                wuliu.tid=tid
-                wuliu.status=content['status']
-                wuliu.logistics_company=content['name']
-                wuliu.out_sid=content['order']
-                wuliu.errcode=content['errcode']
-                wuliu.content=t['content']
-                wuliu.time=t['time']
-                wuliu.save()
+    else:  # 如果接口数据大于已经存储的条数　则创建　多出来的条目　
+        if wulius.exists():
+            wulius.delete()  # 删除旧数据
+        for da in data:  # 保存新数据
+            TradeWuliu.objects.create(tid=tid, status=content['status'], logistics_company=content['name'],
+                                      out_sid=content['order'], errcode=content['errcode'],
+                                      content=da['content'], time=da['time'])
