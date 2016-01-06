@@ -30,6 +30,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
     BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"  # 访问第三方接口
     apikey = '47deda738666430bab15306c2878dd3a'
     uid = '39400'
+    default_post = 'yunda'
 
     BAIDU_POST_CODE_EXCHANGE = {
         'YUNDA': 'yunda', 'YUNDA_QR': 'yunda', 'STO': 'shentong', 'EMS': 'ems', 'ZTO': 'zhongtong', 'ZJS': 'zhaijisong',
@@ -71,7 +72,8 @@ class WuliuViewSet(viewsets.ModelViewSet):
     def get_third_apidata(self, trade):
         """ 访问第三方api 获取物流参数 并保存到本地数据库　"""
         tid = trade.tid
-        exType = trade.logistics_company.code  # 快递编码(快递公司编码)
+        # 快递编码(快递公司编码)
+        exType = trade.logistics_company.code if trade.logistics_company is not None else self.default_post
         data = {'id': self.BAIDU_POST_CODE_EXCHANGE.get(exType), 'order': trade.out_sid, 'key': self.apikey,
                 'uid': self.uid}
         req = urllib2.urlopen(self.BADU_KD100_URL, urllib.urlencode(data), timeout=30)
