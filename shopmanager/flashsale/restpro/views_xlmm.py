@@ -208,10 +208,9 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     ## 特卖平台－小鹿妈妈购买统计API:
     - {prefix}[.format]: 获取登陆用户的购买统计记录
     - {prefix}/today_shops　method:get : 当天的购买统计记录
-    - {prefix}/seven_days_num method: get : 过去七天的推广交易数量
-    - {prefix}/shop_num_by_day?date=2015-12-31 method: get :获取2015-12-31日期的订单数量
-        `shop_num:` 订单数量
-        `code:`1 错误日期
+    - {prefix}/days_num?days=[days] method: get : 过去days天每天的推广交易数量
+    - {prefix}/noedaynum_by_days?days=[days] method: get :获取days天前当天的订单数量,没有参数则返回days=0的对应数据
+        `shops_num:` 订单数量
     """
     queryset = StatisticsShopping.objects.all()
     serializer_class = serializers.StatisticsShoppingSerialize
@@ -251,31 +250,31 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @list_route(methods=['get'])
-    def seven_days_num(self, request):
-        # 过去七天的shop数量
+    def days_num(self, request):
+        """ 根据给的天数，返回天数内每天的专属订单的数量　"""
+        days = int(request.REQUEST.get('days', 0))
         data = [(self.get_tzone_queryset(days=i, request=request).filter(status__in=(
             StatisticsShopping.FINISHED,
             StatisticsShopping.WAIT_SEND)).count())
-                for i in range(0, 7)]
+                for i in range(0, days)]
         data_cp = data
-        d = [data[i] - data_cp[i - 1] for i in range(7)[::-1] if i > 0]
+        d = [data[i] - data_cp[i - 1] for i in range(days)[::-1] if i > 0]
         d.append(data[0])
         return Response(d[::-1])
 
     @list_route(methods=['get'])
-    def shop_num_by_day(self, request):
+    def noedaynum_by_days(self, request):
         """　根据日期参数传该日期的订单数量　"""
         content = request.REQUEST
-        date = content.get("date", None)
+        days = content.get("days", 0)
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        if date is not None:
-            ftime = datetime.datetime.strptime(date, '%Y-%m-%d')
-            ttime = ftime + datetime.timedelta(days=1)
-            num = queryset.filter(shoptime__gte=ftime, shoptime__lte=ttime,
-                                  status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND)).count()
-            return Response({"shop_num": num})
-        else:
-            return Response({"code": 1})
+        days = int(days)
+        today = datetime.date.today()  # 今天日期
+        target_date = today - datetime.timedelta(days=days)
+        target_date_end = target_date + datetime.timedelta(days=1)
+        num = queryset.filter(shoptime__gte=target_date, shoptime__lte=target_date_end,
+                              status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND)).count()
+        return Response({"shops_num": num})
 
 
 class CashOutViewSet(viewsets.ModelViewSet):
@@ -288,6 +287,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    cashout_type = {"c1": 80, "c2": 200}
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -305,7 +305,19 @@ class CashOutViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """代理提现"""
+        cash_type = request.REQUEST.get('ctype', None)
+        if cash_type is None:  # 参数错误
+            return Response({"code": 1})
+        value = self.cashout_type.get(cash_type)
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
-        # 创建体现记录
-        return Response()
+        could_cashout = xlmm.get_cash_iters()  # 可以提现的金额
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        if queryset.filter(status=CashOut.PENDING).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
+            return Response({"code": 3})
+        if could_cashout < value:  # 如果可以提现金额不足
+            return Response({"code": 2})
+        # 满足提现请求　创建提现记录
+        CashOut.objects.create(xlmm=xlmm.id, value=value)
+        return Response({"code": 0})
+
