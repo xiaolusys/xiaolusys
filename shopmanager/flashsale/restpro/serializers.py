@@ -19,30 +19,30 @@ from rest_framework import serializers
 
 
 class RegisterSerializer(serializers.HyperlinkedModelSerializer):
-    
-    
+
+
     class Meta:
         model = Register
         fields = ('id','vmobile')
-        
+
 class XiaoluMamaSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     class Meta:
         model  = XiaoluMama
         fields = ('id','cash','agencylevel','created','status')
-        
+
 
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url = serializers.HyperlinkedIdentityField(view_name='v1:customer-detail')
     user_id  = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
     has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
-    
+
     class Meta:
         model = Customer
-        fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone', 
+        fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone',
                   'status', 'created', 'modified', 'xiaolumm', 'has_usable_password')
 
 
@@ -53,7 +53,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         fields = ('cid', 'parent_cid', 'name', 'status', 'sort_order')
 
 class ProductSkuSerializer(serializers.ModelSerializer):
-    
+
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
 
 
@@ -62,37 +62,37 @@ class ProductSkuSerializer(serializers.ModelSerializer):
         fields = ('id', 'outer_id', 'name', 'remain_num', 'size_of_sku', 'is_saleout', 'std_sale_price', 'agent_price')
 
 class JsonListField(serializers.Field):
-    
+
     def to_representation(self, obj):
         return [s.strip() for s in obj.split() if s.startswith(('http://','https://'))]
-        
+
     def to_internal_value(self, data):
         return data
 
 class ProductdetailSerializer(serializers.ModelSerializer):
-    
+
     head_imgs = JsonListField(read_only=True,required=False)
     content_imgs = JsonListField(read_only=True,required=False)
-    
+
     class Meta:
         model = Productdetail
         fields = ( 'head_imgs', 'content_imgs', 'mama_discount', 'is_recommend',
                    'buy_limit', 'per_limit', 'mama_rebeta', 'material', 'wash_instructions', 'note', 'color')
 
 class ModelProductSerializer(serializers.ModelSerializer):
-    
+
     id = serializers.IntegerField(read_only=True)
     head_imgs = JsonListField(read_only=True,required=False)
     content_imgs = JsonListField(read_only=True,required=False)
     is_single_spec = serializers.BooleanField(read_only=True)
     is_sale_out = serializers.BooleanField(read_only=True)
-    
+
     class Meta:
         model = ModelProduct
         fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
     category = ProductCategorySerializer(read_only=True)
 #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
@@ -100,12 +100,13 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     is_saleout    = serializers.BooleanField(source='sale_out', read_only=True)
     is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
     is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
+    watermark_op = serializers.CharField(read_only=True)
 
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
-                  'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id")
+                  'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id", 'watermark_op')
 
 
 class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
@@ -128,17 +129,17 @@ class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
 class JSONParseField(serializers.Field):
     def to_representation(self, obj):
         return obj
-    
+
     def to_internal_value(self, data):
         return data
 
 
 class PosterSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
     wem_posters = JSONParseField(read_only=True,required=False)
     chd_posters = JSONParseField(read_only=True,required=False)
-    
+
     class Meta:
         model = GoodShelf
         fields = ('id','url','wem_posters','chd_posters','active_time')
@@ -152,10 +153,10 @@ class LogisticsCompanySerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url     = serializers.HyperlinkedIdentityField(view_name='v1:shoppingcart-detail')
     status      = serializers.ChoiceField(choices=ShoppingCart.STATUS_CHOICE)
-    
+
     class Meta:
         model = ShoppingCart
         fields = ( 'id', 'url','buyer_id', 'buyer_nick', 'item_id', 'title', 'price', 'std_sale_price',
@@ -175,10 +176,10 @@ class SaleOrderSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'oid', 'item_id', 'title', 'sku_id', 'num', 'outer_id', 'total_fee',
                   'payment', 'discount_fee', 'sku_name', 'pic_path', 'status', 'status_display',
                   'refund_status', 'refund_status_display', "refund_id", 'kill_title')
-        
+
 
 class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url     = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-detail')
     orders  = SaleOrderSerializer(source='sale_orders',many=True,read_only=True)
     #orders = serializers.HyperlinkedIdentityField(view_name='v1:saletrade-saleorder')
@@ -188,16 +189,16 @@ class SaleTradeSerializer(serializers.HyperlinkedModelSerializer):
     status     = serializers.ChoiceField(choices=SaleTrade.TRADE_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     order_pic  = serializers.CharField(read_only=True)
-    
+
     class Meta:
         model = SaleTrade
         fields = ( 'id', 'url', 'orders', 'tid', 'buyer_nick', 'buyer_id', 'channel', 'payment',
                     'post_fee', 'total_fee', 'discount_fee', 'status','status_display','order_pic',
-                    'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid', 
-                   'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city', 
+                    'buyer_message', 'trade_type', 'created', 'pay_time', 'consign_time', 'out_sid',
+                   'logistics_company', 'receiver_name', 'receiver_state', 'receiver_city',
                    'receiver_district', 'receiver_address','receiver_mobile', 'receiver_phone')
- 
- 
+
+
 from flashsale.pay.models import District,UserAddress
 
 
@@ -215,29 +216,29 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
                   'total_fee', 'payment', 'created', 'modified', 'company_name', 'sid', 'reason', 'pic_path',
                   'desc', 'feedback', 'has_good_return', 'has_good_change', 'good_status', 'status', 'refund_fee',
                   "status_display")
-        
+
 
 #####################################################################################
-     
+
 class UserAddressSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url = serializers.HyperlinkedIdentityField(view_name='v1:useraddress-detail')
     status      = serializers.ChoiceField(choices=UserAddress.STATUS_CHOICES)
-    
+
     class Meta:
         model = UserAddress
-        fields = ( 'id', 'url', 'cus_uid', 'receiver_name', 'receiver_state', 'receiver_city', 
+        fields = ( 'id', 'url', 'cus_uid', 'receiver_name', 'receiver_state', 'receiver_city',
                    'receiver_district', 'receiver_address', 'receiver_zip', 'receiver_mobile',
                     'receiver_phone', 'default', 'status', 'created')
-        
+
 
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url = serializers.HyperlinkedIdentityField(view_name='v1:district-detail')
     class Meta:
         model = District
         fields = ( 'id' , 'url', 'parent_id', 'name', 'grade', 'sort_order')
-        
+
 
 from flashsale.pay.models_coupon import IntegralLog, Integral, CouponPool, Coupon
 
@@ -305,28 +306,28 @@ from shopapp.weixin.models import WXOrder
 
 
 class WXOrderSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url = serializers.HyperlinkedIdentityField(view_name='v1:wxorder-detail')
     order_status_display  = serializers.CharField(source='get_order_status_display', read_only=True)
-    
+
     class Meta:
         model = WXOrder
         fields = ( 'url','order_id', 'buyer_nick', 'order_total_price', 'order_express_price', 'order_create_time', 'order_status',
                     'receiver_name', 'receiver_province', 'receiver_city', 'receiver_zone','receiver_address','receiver_mobile',
-                    'receiver_phone', 'product_id', 'product_name', 'product_price', 'product_sku', 'product_count', 
+                    'receiver_phone', 'product_id', 'product_name', 'product_price', 'product_sku', 'product_count',
                     'order_status_display', 'product_img', 'delivery_id', 'delivery_company')
 
 
 ##################################################################################
 
 class CustomShareSerializer(serializers.HyperlinkedModelSerializer):
-    
+
     url = serializers.HyperlinkedIdentityField(view_name='v1:customshare-detail')
 
     class Meta:
         model = CustomShare
         fields = ('url','id','title', 'desc', 'share_img', 'active_at', 'created', 'status')
-        
+
 
 from supplychain.supplier.models import SaleProduct
 
@@ -410,4 +411,3 @@ class XlmmAdvertisSerialize(serializers.ModelSerializer):
     class Meta:
         model = XlmmAdvertis
         fields = ("title", "cntnt")
-

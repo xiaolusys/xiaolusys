@@ -31,6 +31,8 @@ def retry(times=3):
                         import traceback
                         traceback.print_exc()
                         continue
+                    if settings.DEBUG:
+                        print result
                     code = result.get('code', -1)
                     if code:
                         print result

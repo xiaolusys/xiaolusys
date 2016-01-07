@@ -13,17 +13,23 @@ from .decorators import mask, retry
 
 class MiPush(object):
     # 全推
-    BROADCAST_URL = 'https://api.xmpush.xiaomi.com/v2/message/all'
+    PROD_BROADCAST_URL = 'https://api.xmpush.xiaomi.com/v2/message/all'
+    SANDBOX_BROADCAST_URL = 'https://sandbox.xmpush.xiaomi.com/v2/message/all'
     # 按照标签推送
-    TOPIC_URL = 'https://api.xmpush.xiaomi.com/v2/message/topic'
+    PROD_TOPIC_URL = 'https://api.xmpush.xiaomi.com/v2/message/topic'
+    SANDBOX_TOPIC_URL = 'https://sandbox.xmpush.xiaomi.com/v2/message/topic'
     # 按照account推送
-    ACCOUNT_URL = 'https://api.xmpush.xiaomi.com/v2/message/user_account'
+    PROD_ACCOUNT_URL = 'https://api.xmpush.xiaomi.com/v2/message/user_account'
+    SANDBOX_ACCOUNT_URL = 'https://sandbox.xmpush.xiaomi.com/v2/message/user_account'
     # 按照regid推送
-    REGID_URL = 'https://api.xmpush.xiaomi.com/v2/message/regid'
+    PROD_REGID_URL = 'https://api.xmpush.xiaomi.com/v2/message/regid'
+    SANDBOX_REGID_URL = 'https://sandbox.xmpush.xiaomi.com/v2/message/regid'
     # 设置标签
-    SUBSCRIBE_BY_REGID_URL = 'https://api.xmpush.xiaomi.com/v2/topic/subscribe'
+    PROD_SUBSCRIBE_BY_REGID_URL = 'https://api.xmpush.xiaomi.com/v2/topic/subscribe'
+    SANDBOX_SUBSCRIBE_BY_REGID_URL = 'https://sandbox.xmpush.xiaomi.com/v2/topic/subscribe'
     # 取消标签
-    UNSUBSCRIBE_BY_REGID_URL = 'https://api.xmpush.xiaomi.com/v2/topic/unsubscribe'
+    PROD_UNSUBSCRIBE_BY_REGID_URL = 'https://api.xmpush.xiaomi.com/v2/topic/unsubscribe'
+    SANDBOX_UNSUBSCRIBE_BY_REGID_URL = 'https://sandbox.xmpush.xiaomi.com/v2/topic/unsubscribe'
 
     # app_secret
     IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
@@ -41,12 +47,11 @@ class MiPush(object):
     ALL_CACHE_KEY = 'mipush-all'
     TOPIC_CACHE_KEY = 'mipush-topic'
     ACCOUNT_CACHE_KEY_TPL = 'mipush-account-%d'
-    REGISTRATION_CACHE_KEY_TPL= 'mipush-regid-%s'
+    REGISTRATION_CACHE_KEY_TPL = 'mipush-regid-%s'
 
     # 推送设置
     TIME_TO_LIVE = 8 * 3600 * 1000
     PASS_THROUGH = 0
-
 
     def __init__(self, platform='android'):
         self.platform = platform
@@ -60,6 +65,23 @@ class MiPush(object):
             'Authorization': 'key=%s' % self.app_secret,
             'Content-Type': 'application/x-www-form-urlencoded',
         }
+
+        # 初始化接口地址
+        if settings.DEBUG:
+            self.broadcast_url = self.SANDBOX_BROADCAST_URL
+            self.topic_url = self.SANDBOX_TOPIC_URL
+            self.account_url = self.SANDBOX_ACCOUNT_URL
+            self.regid_url = self.SANDBOX_REGID_URL
+            self.subscribe_by_regid_url = self.SANDBOX_SUBSCRIBE_BY_REGID_URL
+            self.unsubscribe_by_regid_url = self.SANDBOX_UNSUBSCRIBE_BY_REGID_URL
+        else:
+            self.broadcast_url = self.PROD_BROADCAST_URL
+            self.topic_url = self.PROD_TOPIC_URL
+            self.account_url = self.PROD_ACCOUNT_URL
+            self.regid_url = self.PROD_REGID_URL
+            self.subscribe_by_regid_url = self.PROD_SUBSCRIBE_BY_REGID_URL
+            self.unsubscribe_by_regid_url = self.PROD_UNSUBSCRIBE_BY_REGID_URL
+
         self.session.headers.update(self.headers)
 
     def post(self, url, data):
@@ -96,7 +118,6 @@ class MiPush(object):
             cache.set(cache_key, 1, self.CACHE_INTERVAL)
             return 1
         return cache.incr(cache_key)
-
 
     @mask(1 << 12)
     def get_topic_nid(self):
@@ -136,6 +157,7 @@ class MiPush(object):
         }
         if self.platform == 'ios':
             data['extra.badge'] = 1
+            extra = payload
         else:
             data.update({
                 'title': title,
@@ -171,10 +193,18 @@ class MiPush(object):
                           time_to_send,
                           extra=extra)
         data['user_account'] = 'user-%d' % customer_id
-        return self.post(self.ACCOUNT_URL, data)
+        return self.post(self.account_url, data)
 
     @retry()
-    def push_to_regid(self, regid, payload, title='小鹿美美', description='', notify_type=1, notify_id=0, time_to_send=None, extra=None):
+    def push_to_regid(self,
+                      regid,
+                      payload,
+                      title='小鹿美美',
+                      description='',
+                      notify_type=1,
+                      notify_id=0,
+                      time_to_send=None,
+                      extra=None):
         if not notify_id:
             notify_id = self.get_registration_nid(regid)
         data = self.build(payload,
@@ -185,7 +215,7 @@ class MiPush(object):
                           time_to_send,
                           extra=extra)
         data['registration_id'] = regid
-        return self.post(self.REGID_URL, data)
+        return self.post(self.regid_url, data)
 
     @retry()
     def push_to_topic(self,
@@ -207,7 +237,7 @@ class MiPush(object):
                           time_to_send,
                           extra=extra)
         data['topic'] = topic
-        return self.post(self.TOPIC_URL, data)
+        return self.post(self.topic_url, data)
 
     @retry()
     def push_to_all(self,
@@ -227,23 +257,17 @@ class MiPush(object):
                           notify_id,
                           time_to_send,
                           extra=extra)
-        return self.post(self.BROADCAST_URL, data)
+        return self.post(self.broadcast_url, data)
 
     @retry()
     def subscribe_by_regid(self, regid, topic):
-        data = {
-            'registration_id': regid,
-            'topic': topic
-        }
-        return self.post(self.SUBSCRIBE_BY_REGID_URL, data)
+        data = {'registration_id': regid, 'topic': topic}
+        return self.post(self.subscribe_by_regid_url, data)
 
     @retry()
     def unsubscribe_by_regid(self, regid, topic):
-        data = {
-            'registration_id': regid,
-            'topic': topic
-        }
-        return self.post(self.UNSUBSCRIBE_BY_REGID_URL, data)
+        data = {'registration_id': regid, 'topic': topic}
+        return self.post(self.unsubscribe_by_regid_url, data)
 
 
 mipush_of_ios = MiPush('ios')

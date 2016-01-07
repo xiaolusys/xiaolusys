@@ -1,3 +1,6 @@
+######## 2016-01-04 ########
+alter table shop_items_product add column is_watermark tinyint(1) default 0;
+
 ############2015-12-26#####################
 alter table flashsale_trade add `extras_info` varchar(256) NOT NULL DEFAULT '{}';
 
@@ -100,7 +103,7 @@ alter table flashsale_productdetail add column note varchar(64) null;
 alter table shop_items_product add ware_by int(11) NOT NULL;
 alter table shop_items_product add index SH_IT_PR_SF_SU_ST_WB_IDX(sale_time,shelf_status,ware_by);
 ########### 2015-8-15 #################
-ALTER TABLE flashsale_tongji_shopping ADD rebetamount INT(11) DEFAULT 0; 
+ALTER TABLE flashsale_tongji_shopping ADD rebetamount INT(11) DEFAULT 0;
 ########### 2015-8-13 #################
 alter table flashsale_shoppingcart add column remain_time datetime DEFAULT NULL;
 ########### 2015-8-6 #################
@@ -600,7 +603,7 @@ alter table shop_items_productsku add column buyer_prompt varchar(40) NOT NULL;
 ######### 2013-6-4  ###########
 rename table shop_trades_replayposttrade to trades_replayposttrade;
 python manage.py syncdb;
-insert into shop_trades_replayposttrade(operator,post_data,order_num,trade_ids,created,finished) 
+insert into shop_trades_replayposttrade(operator,post_data,order_num,trade_ids,created,finished)
 	select operator,post_data,order_num,trade_ids,created,finished from trades_replayposttrade;
 ######### 2013-5-30 ###########
 alter table shop_trades_mergetrade add column order_num  int(11) DEFAULT 0;
@@ -768,7 +771,7 @@ alter table shop_fenxiao_purchaseorder add column supplier_flag int(11) DEFAULT 
 ########  2012-11-15  #########
 alter table shop_trades_mergetrade add column has_out_stock tinyint(1) NOT NULL;
 alter table shop_trades_mergetrade add column has_rule_match tinyint(1) NOT NULL;
-alter table shop_trades_mergeorder add column out_stock tinyint(1) NOT NULL; 
+alter table shop_trades_mergeorder add column out_stock tinyint(1) NOT NULL;
 
 alter table shop_users_user drop column update_items_datetime ;
 alter table shop_users_user add column item_notify_updated datetime DEFAULT NULL;
@@ -792,7 +795,7 @@ purchase_product_sku
 wait_num
 remain_num
 ############## 2012-09-16 ###############
- alter table shop_items_product add column status varchar(16)  NOT NULL; 
+ alter table shop_items_product add column status varchar(16)  NOT NULL;
 ########  2012-07-28  #########
 alter table shop_orders_trade add column seller_cod_fee varchar(10) NOT NULL;
 
@@ -814,4 +817,3 @@ alter table shop_item change column modified modified datetime DEFAULT NULL;
 alter table shop_item change column list_time list_time datetime DEFAULT NULL;
 
 alter table shop_item change column delist_time delist_time datetime DEFAULT NULL;
-

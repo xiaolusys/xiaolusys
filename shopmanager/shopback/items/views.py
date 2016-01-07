@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 
 import re
 import datetime
@@ -47,7 +47,7 @@ from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,Browsable
 from rest_framework.views import APIView
 from rest_framework import filters
 from rest_framework import authentication
-from . import serializers 
+from . import serializers
 from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
 from django.http import HttpResponse, HttpResponseRedirect, Http404,HttpResponseForbidden
@@ -86,11 +86,11 @@ def update_product_stock(request):
     remain_num = content.get('remain_num','')
     reduce_num = content.get('reduce_num',0)
     mode     = content.get('mode',0) #0增量，1全量
-    
+
     if not num :
         return HttpResponse(json.dumps({'code':1,'response_error':u'库存数量不能为空'})
                             ,mimetype='application/json')
-    
+
     prod     = None
     prod_sku = None
     num ,mode ,reduce_num = int(num),int(mode),int(reduce_num)
@@ -99,22 +99,22 @@ def update_product_stock(request):
             prod = Product.objects.get(id=product_id)
         except:
             prod = Product.objects.get(outer_id=outer_id)
-        
+
         if sku_id or outer_sku_id:
             if sku_id:
                 prod_sku = ProductSku.objects.get(id=sku_id)
             else:
                 prod_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-            
+
             prod_sku.update_quantity(num,full_update=mode,dec_update=False)
             prod_sku.update_reduce_num(reduce_num,full_update=mode,dec_update=False)
             prod = prod_sku.product
-            
-        else:       
+
+        else:
             prod.update_collect_num(num,full_update=mode)
             prod.update_reduce_num(reduce_num,full_update=mode,dec_update=False)
-        
-        if remain_num :  
+
+        if remain_num :
             if prod_sku:
                 prod_sku.remain_num = int(remain_num)
             else:
@@ -129,10 +129,10 @@ def update_product_stock(request):
     except Exception,exc:
         response = {'code':1,'response_error':exc.message}
         return HttpResponse(json.dumps(response),mimetype='application/json')
-                
+
     log_action(request.user.id,prod,CHANGE,u'更新商品库存,%s，编码%s-%s,库存数%d,预留数%s,预减数%d'%
                (mode and u'全量' or u'增量',prod.outer_id,prod_sku and prod_sku.outer_id or sku_id,num,remain_num or '-',reduce_num))
-    
+
     response = {
                 'id':prod.id,
                 'outer_id':prod.outer_id,
@@ -181,7 +181,7 @@ def update_user_item(request):
     #item_dict = {'code':1,'reponse':Serializer().serialize(item)}#  fang 2015-7-28
     item_dict = {'code':1,'reponse':serializers.ItemSerializer(item).data}
     return  HttpResponse(json.dumps(item_dict,cls=DjangoJSONEncoder))
-##fang 
+##fang
 from rest_framework import viewsets
 import math
 #fang
@@ -228,13 +228,13 @@ class ProductListView(viewsets.ModelViewSet):
         #a['b']=page1
        # print serializer,"99999"
         return Response(serializer.data)
-       
-        
- 
-    
+
+
+
+
     def get_queryset(self):
         return self.queryset
-    
+
 
 class ProductItemView(APIView):#ListModelView
     """ docstring for ProductItemView """
@@ -243,7 +243,7 @@ class ProductItemView(APIView):#ListModelView
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductItemHtmlRenderer,JSONRenderer,BrowsableAPIRenderer,)
-    #template_name = "fullcalendar/default.html"    
+    #template_name = "fullcalendar/default.html"
     def get(self, request, *args, **kwargs):
         #获取某outer_id对应的商品，以及同步商品库存
         print Item.objects.all()[0].outer_id
@@ -256,7 +256,7 @@ class ProductItemView(APIView):#ListModelView
             items = model.objects.filter(outer_id=outer_id,approve_status=pcfg.ONSALE_STATUS)
             for item in items:
                 updateItemNum(item.num_iid,update_time)
-        
+
         queryset = self.get_queryset() if self.get_queryset() is not None else model.objects.all()
 
         if hasattr(self, 'resource'):
@@ -267,29 +267,29 @@ class ProductItemView(APIView):#ListModelView
         if ordering:
             args = as_tuple(ordering)
             queryset = queryset.order_by(*args)
-            
+
         item_dict = {}
         items = queryset.filter(**kwargs)
        # item_dict['itemobjs'] =  Serializer().serialize(items)
         item_dict['itemobjs'] =  serializers.ItemSerializer(items,many=True).datas
-        item_dict['layer_table'] = render_to_string('items/itemstable.html', 
-                                                    { 'object':item_dict['itemobjs']})    
-        
+        item_dict['layer_table'] = render_to_string('items/itemstable.html',
+                                                    { 'object':item_dict['itemobjs']})
+
         return Response({"object":item_dict})
-    
+
     def post(self, request, *args, **kwargs):
         #删除product或productsku
         outer_id = kwargs.get('outer_id')
         outer_sku_id = request.REQUEST.get('outer_sku_id',None)
-        
+
         if outer_sku_id:
             row = ProductSku.objects.filter(product=outer_id,
                                             outer_id=outer_sku_id).update(status=pcfg.DELETE)
         else:
             row = Product.objects.filter(outer_id=outer_id).update(status=pcfg.DELETE)
-        
+
         return  Response( {'updates_num':row})
-    
+
     def get_queryset(self):
         return self.queryset
 
@@ -309,11 +309,11 @@ class ProductModifyView(APIView):
                                             outer_id=outer_sku_id).update(is_assign=True)
         else:
             row = Product.objects.filter(outer_id=outer_id).update(is_assign=True)
-            
+
         return Response({'updates_num':row})
-    
-    
-    
+
+
+
 class ProductUpdateView(APIView):
     """ docstring for ProductListView """
     serializer_class = serializers.ProductSerializer
@@ -321,45 +321,45 @@ class ProductUpdateView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductUpdateHtmlRenderer,JSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, *args, **kwargs):
-        
+
         outer_id = kwargs.get('outer_id','None')
         try:
             instance = Product.objects.get(outer_id=outer_id)
         except:
             return HttpResponseNotFound(u'商品未找到')
-        
+
         ins_dict = instance.json
-        
+
         return Response({'object':ins_dict})
-    
-    
+
+
     def post(self, request, *args, **kwargs):
         #修改库存商品信息
-        
+
         return Response( 0)
-   
+
    #  fang 2015-7-26 没有引用到就删掉了
 # class ProductSkuCreateView(ModelView):
 #     """ docstring for ProductSkuCreateView """
-#     
+#
 #     def get(self, request, *args, **kwargs):
-#         
+#
 #         prod_sku_id = request.REQUEST.get('prod_sku_id',None)
 #         try:
 #             instance = ProductSku.objects.get(id=prod_sku_id)
 #         except:
 #             raise Http404
-#         
+#
 #         return instance
-#     
-#     
+#
+#
 #     def post(self, request, *args, **kwargs):
 #         #创建库存产品属性信息
-#     
-#             
+#
+#
 #         return 0
-    
-    
+
+
 class ProductSkuInstanceView(APIView):
     """ docstring for ProductSkuInstanceView """
     serializer_class = serializers.ProductSkuSerializer
@@ -367,7 +367,7 @@ class ProductSkuInstanceView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductSkuHtmlRenderer,JSONRenderer,BrowsableAPIRenderer,)
     def get(self, request, sku_id, *args, **kwargs):
-        
+
         try:
             instance = ProductSku.objects.get(id=sku_id)
         except:
@@ -375,22 +375,22 @@ class ProductSkuInstanceView(APIView):
             raise Http404
         #product_sku = self._resource.filter_response(instance)
         product_sku=serializers.ProductSkuSerializer(instance).data
-        product_sku['layer_table'] = render_to_string('items/productskutable.html', 
-                                                      { 'object':instance}) 
-        
+        product_sku['layer_table'] = render_to_string('items/productskutable.html',
+                                                      { 'object':instance})
+
         return Response({"object":product_sku})
-    
-    
+
+
     def post(self, request, *args, **kwargs):
         #修改库存商品信息
-    
+
         return Response(0)
 
 ############################ 库存商品操作 ###############################
 
 class ProductView(APIView):
     """ docstring for ProductView """
-    
+
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
@@ -400,7 +400,7 @@ class ProductView(APIView):
         prod_serializer = serializers.ProductSerializer(product).data
         prod_serializer['skus'] = serializers.ProductSkuSerializer(product.pskus,many=True).data
         return  Response(prod_serializer)  #这个也能实现2015-7-27
-        #return  Response({'object':serializers.ProductSerializer(product).data}) 
+        #return  Response({'object':serializers.ProductSerializer(product).data})
 
     def post(self, request, id, *args, **kwargs):
         try:
@@ -433,16 +433,16 @@ class ProductView(APIView):
         log_action(request.user.id,product,CHANGE,u'更新[%s]信息'%(','.join(update_field_labels)))
         prod_serializer     = serializers.ProductSerializer(product).data
         prod_serializer['skus'] = serializers.ProductSkuSerializer(product.pskus,many=True).data
-        return  Response(prod_serializer) 
-    
-        
+        return  Response(prod_serializer)
+
+
 class ProductSkuView(APIView):
     """ docstring for ProductSkuView """
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,BrowsableAPIRenderer)
-    
+
     def get(self, request, pid, sku_id, *args, **kwargs):
 
         try:
@@ -452,19 +452,19 @@ class ProductSkuView(APIView):
             raise Http404
         #product_sku = self._resource.filter_response(instance)
         product_sku=serializers.ProductSkuSerializer(instance).data
-        #print 
+        #print
         #print type(product_sku),product_sku
-        product_sku['layer_table'] = render_to_string('items/productskutable.html', { 'object':instance}) 
+        product_sku['layer_table'] = render_to_string('items/productskutable.html', { 'object':instance})
 
         return  Response(product_sku)
-    
-    
+
+
     def post(self, request,pid, sku_id, *args, **kwargs):
         #修改库存商品信息
         try:
             product_sku = ProductSku.objects.get(product=pid,id=sku_id)
             content = request.REQUEST
-            update_check = content.get('update_check') 
+            update_check = content.get('update_check')
             update_fields = []
             fields = ['outer_id','properties_alias','wait_post_num','remain_num','warn_num'
                       ,'cost','std_sale_price','agent_price','staff_price','match_reason'
@@ -472,7 +472,7 @@ class ProductSkuView(APIView):
             check_fields = set(['sync_stock','post_check','is_match'])
             if update_check:
                 fields.extend(list(check_fields))
-                
+
             for k,v in content.iteritems():
                 if k not in fields:
                     continue
@@ -486,11 +486,11 @@ class ProductSkuView(APIView):
                     continue
                 setattr(product_sku,k,v)
                 update_fields.append(k)
-            
+
             if update_check:
                 for k in check_fields:
-                    setattr(product_sku,k,False) 
-                    update_fields.append(k)   
+                    setattr(product_sku,k,False)
+                    update_fields.append(k)
             product_sku.save()
         except ProductSku.DoesNotExist:
             return Response('未找到商品属性')
@@ -501,11 +501,11 @@ class ProductSkuView(APIView):
             update_field_labels.append('%s:%s'%(ProductSku._meta.get_field(field).verbose_name.title(),getattr(product_sku,field)))
         product = product_sku.product
         log_action(request.user.id,product,CHANGE,u'更新规格(%s,%s)信息'%(unicode(product_sku),','.join(update_field_labels)))
-        
+
         return Response(product_sku.json)
-    
-    
-        
+
+
+
 class ProductSearchView(APIView):
     """ 根据商品编码，名称查询商品 """
     serializer_class = serializers.ProductSerializer
@@ -519,25 +519,25 @@ class ProductSearchView(APIView):
         if not q:
             return Response('没有输入查询关键字'.decode('utf8'))
         products = Product.objects.filter(Q(outer_id=q)|Q(name__contains=q),status__in=(pcfg.NORMAL,pcfg.REMAIN))
-        
+
         prod_list = [(prod.outer_id,
                       prod.pic_path,
                       prod.name,
                       prod.cost,
                       prod.collect_num,
                       prod.created,
-                      [(sku.outer_id,sku.name,sku.quantity) 
-                       for sku in prod.pskus.order_by('-created')]) 
+                      [(sku.outer_id,sku.name,sku.quantity)
+                       for sku in prod.pskus.order_by('-created')])
                        for prod in products]
-        
+
         return Response(prod_list)
 
     def post(self, request, *args, **kwargs):
         #修改库存商品信息
-    
+
         return Response(0)
-    
-    
+
+
 class ProductBarCodeView(APIView):
     """ docstring for ProductBarCodeView """
 
@@ -550,27 +550,27 @@ class ProductBarCodeView(APIView):
         print     Product.objects.all()[0].outer_id
         content  = request.REQUEST
         outer_id = content.get('outer_id','')
-        
+
         products = Product.objects.getProductByBarcode(outer_id)
-        
+
         product_json = [p.json for p in products]
-        
+
         return Response({'products':product_json,'outer_id':outer_id})
- 
+
     def post(self, request, *args, **kwargs):
-        
+
         content       = request.REQUEST
         outer_id      = content.get('outer_id') or None
         outer_sku_id  = content.get('outer_sku_id')
         barcode       = content.get('barcode') or ''
-        
+
         product     = None
         product_sku = None
         try:
             product   =  Product.objects.get(outer_id=outer_id)
             if outer_sku_id :
                 product_sku   =  ProductSku.objects.get(outer_id=outer_sku_id,product=product)
-                
+
                 product_sku.barcode = barcode.strip()
                 product_sku.save()
             else:
@@ -582,14 +582,14 @@ class ProductBarCodeView(APIView):
             return  Response(u'未找到商品规格' )
         except Exception,exc:
             return Response(exc.message)
-        
+
         log_action(request.user.id,product,CHANGE,u'更新商品条码:(%s-%s,%s)'
                    %(outer_id or '',outer_sku_id or '',barcode))
         #product_sku=ProductSku.objects.all()[0]  fang add  ceshi
         #print product_sku
         return Response({'barcode':product_sku and product_sku.BARCODE or product.BARCODE})
-        
-          
+
+
 
 ############################################ 产品区位操作 #######################################
 class ProductDistrictView(APIView):
@@ -599,17 +599,17 @@ class ProductDistrictView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductDistrictHtmlRenderer,new_BaseJSONRenderer,)
     def get(self, request, id,*args, **kwargs):
-        
+
         content = request.REQUEST
         try:
             product = Product.objects.get(id=id)
         except:
             return Response(u'商品未找到')
-        
+
         product_district = product.get_districts_code() or u'--'
-        
+
         return Response({'product':product.json,'product_districts':product_district})
-        
+
     def post(self, request, id,*args, **kwargs):
 #         print "post"
         content   = request.REQUEST
@@ -620,33 +620,33 @@ class ProductDistrictView(APIView):
         m  = r.match(district)
         if not m:
             return Response(u'标签不合规则')
-        
+
         tag_dict = m.groupdict()
         pno = tag_dict.get('pno')
         dno = tag_dict.get('dno')
         deposit_obj = DepositeDistrict.objects.get(parent_no=pno or '',district_no=dno or '')
         district_obj = serializers.DepositeDistrictSerializer(deposit_obj).data
-        
+
         product   = Product.objects.get(outer_id=outer_id)
         prod_sku  = None
         if outer_sku_id:
             prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=product)
-        
+
         location,state = ProductLocation.objects.get_or_create(
                             product_id=product.id,sku_id=prod_sku and prod_sku.id,district=deposit_obj)
-        
+
         log_action(request.user.id,product,CHANGE,u'更新商品库位:(%s-%s,%s)'
                    %(outer_id or '',outer_sku_id or '',district))
-        
+
         return   Response({'outer_id':location.outer_id,
                 'outer_sku_id':location.outer_sku_id,
                 'district':district_obj})
-        
-        
+
+
 @csrf_exempt
-@login_required_ajax            
+@login_required_ajax
 def delete_product_district(request):
-    
+
     content      = request.REQUEST
     outer_id     = content.get('outer_id') or None
     outer_sku_id = content.get('outer_sku_id') or None
@@ -657,18 +657,18 @@ def delete_product_district(request):
     if not m:
         ret = {'code':1,'error_response':u'标签不合规则'}
         return HttpResponse(json.dumps(ret),mimetype="application/json")
-        
+
     tag_dict = m.groupdict()
     pno = tag_dict.get('pno')
     dno = tag_dict.get('dno')
     district = DepositeDistrict.objects.get(parent_no=pno or '',district_no=dno or '')
-    
+
     try:
         product   = Product.objects.get(outer_id=outer_id)
         prod_sku  = None
         if outer_sku_id:
             prod_sku = ProductSku.objects.get(outer_id=outer_sku_id,product=product)
-            
+
         location = ProductLocation.objects.get(
                          product_id=product.id,sku_id=prod_sku and prod_sku.id,district=district)
         location.delete()
@@ -676,18 +676,18 @@ def delete_product_district(request):
         logger.error(exc.message,exc_info=True)
         ret = {'code':1,'error_response':u'未找到删除项'}
         return HttpResponse(json.dumps(ret),mimetype="application/json")
-    
+
     log_action(request.user.id,Product.objects.get(outer_id=outer_id),CHANGE,
                u'删除商品库位:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',district))
-    
+
     ret = {'code':0,'response_content':'success'}
     return HttpResponse(json.dumps(ret),mimetype="application/json")
 
 
 @csrf_exempt
-@login_required_ajax            
+@login_required_ajax
 def deposite_district_query(request):
-        
+
     content = request.REQUEST
     q       = content.get('term')
     if not q:
@@ -697,10 +697,10 @@ def deposite_district_query(request):
     districts = DepositeDistrict.objects.filter(parent_no__istartswith=q)
 
     ret = [{'id':str(d),'value':str(d)} for d in districts]
-    
+
     return HttpResponse(json.dumps(ret),mimetype="application/json")
-    
-    
+
+
 ##################################### 警告库存商品规格管理 ##################################
 
 class ProductOrSkuStatusMdView(APIView):
@@ -710,7 +710,7 @@ class ProductOrSkuStatusMdView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (new_BaseJSONRenderer,)
     def post(self, request,*args, **kwargs):
-        
+
         content      = request.REQUEST
         outer_id     = content.get('outer_id')
         outer_sku_id = content.get('outer_sku_id')
@@ -718,27 +718,27 @@ class ProductOrSkuStatusMdView(APIView):
         sku_id       = content.get('sku_id')
         is_delete    = content.get('is_delete') == 'true'
         is_remain    = content.get('is_remain') == 'true'
-        
+
         status       = (is_delete and pcfg.DELETE) or (is_remain and pcfg.REMAIN) or pcfg.NORMAL
-        
+
         queryset     = ProductSku.objects.all()
         if product_id:
             queryset = queryset.filter(product__id=product_id)
         else :
             queryset = queryset.filter(product__outer_id=outer_id)
-            
-        if sku_id: 
+
+        if sku_id:
             queryset = queryset.filter(id=sku_id)
-            
+
         if outer_sku_id:
             queryset = queryset.filter(outer_id=outer_sku_id)
-            
+
         row = queryset.update(status=status)
-        
+
         log_action(request.user.id,queryset[0].product,CHANGE,
                    u'更改规格库存状态:%s,%s'%(outer_sku_id or sku_id,
                     dict(ONLINE_PRODUCT_STATUS).get(status)))
-        
+
         return  Response({'updates_num':row})
 
 class ProductWarnMgrView(APIView):
@@ -748,18 +748,18 @@ class ProductWarnMgrView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductWarnHtmlRenderer,new_BaseJSONRenderer)
     def get(self, request, *args, **kwargs):
-        
+
         pskus = ProductSku.objects.filter(product__status=pcfg.NORMAL,status=pcfg.NORMAL,is_assign=False)\
             .extra(where=["(quantity<=shop_items_productsku.remain_num+shop_items_productsku.wait_post_num "+
             "OR quantity<=shop_items_productsku.remain_num)"])
         pskus_new=  serializers.ProductSkuSerializer( pskus,many=True).data
         return Response({"object": {'warn_skus':pskus_new}})
-        
+
     def post(self, request,*args, **kwargs):
-        
+
         pass
         return Response({"examle":"unused post"})
-    
+
 class ProductNumAssignView(APIView):
     """ docstring for ProductNumAssignView """
     serializer_class = serializers.ProductSerializer
@@ -771,7 +771,7 @@ class ProductNumAssignView(APIView):
         content       = request.REQUEST
         outer_id      = content.get('outer_id')
         outer_sku_id  = content.get('outer_sku_id')
-        
+
         real_num  = 0
         lday_num  = 0
         product = Product.objects.get(outer_id=outer_id)
@@ -788,11 +788,11 @@ class ProductNumAssignView(APIView):
         else:
             real_num = product.collect_num - product.wait_post_num
             lday_num  = product.warn_num
-            
+
         items_dict_list    = []
         items   = Item.objects.filter(outer_id=outer_id,status=True)
         for item in items:
-            
+
             #item = Item.get_or_create(item.user.visitor_id,item.num_iid,force_update=True)
             item_dict  = {}
             sku_dict   = {}
@@ -807,9 +807,9 @@ class ProductNumAssignView(APIView):
                     sku_dict['properties_name']    = product_sku.properties_name
                     sku_dict['with_hold_quantity'] = spty.with_hold_quantity
                     sku_dict['quantity']   = spty.quantity
-            
+
             item_dict['sku']  = sku_dict
-            
+
             item_dict['num_iid']    = item.num_iid
             item_dict['outer_id']   = item.outer_id
             item_dict['seller_nick']   = item.user.nick
@@ -821,15 +821,15 @@ class ProductNumAssignView(APIView):
             item_dict['title']      = item.title
             item_dict['pic_url']    = item.pic_url
             item_dict['detail_url'] = item.detail_url
-                
+
             items_dict_list.append(item_dict)
-        
+
         assign_tpl_string = render_to_string('items/product_assign_warn.html',{'items_list':items_dict_list,
                                             'outer_id':outer_id,
                                             'outer_sku_id':outer_sku_id,
                                             'real_num':real_num,
                                             'lday_num':lday_num})
-        
+
         return     Response( {'id':product.id,
                'outer_id':outer_id,
                'name':product.name,
@@ -844,99 +844,99 @@ class ProductNumAssignView(APIView):
                'sku':product_sku and product_sku.json or {},
                'assign_template':assign_tpl_string
                })
-    
+
     def post(self, request, *args, **kwargs):
         #删除product或productsku
-        
+
         content   = request.REQUEST
         outer_id  =  content.get('assign_outer_id')
         outer_sku_id  =  content.get('assign_outer_sku_id')
         try:
             item_list = self.parse_params(content)
-            
+
             self.valid_params(item_list,outer_id,outer_sku_id)
-            
+
             self.assign_num_action(item_list)
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             return Response(exc.message)
-        
+
         product = Product.objects.get(outer_id=outer_id)
-        
+
         if outer_sku_id :
             row = ProductSku.objects.filter(outer_id=outer_sku_id,product__outer_id=outer_id).update(is_assign=True)
         else:
             row = Product.objects.filter(outer_id=outer_id).update(is_assign=True)
-        
+
         log_action(request.user.id,product,CHANGE,u'手动分配商品线上库存')
-            
+
         return Response({'success':row})
-    
+
     def parse_params(self,content):
-        
+
         items_list = []
         try:
             r  = re.compile(ASSRIGN_PARAMS_REGEX)
-            
+
             for k,v in content.iteritems():
                 m = r.match(k)
                 if not m :
                     continue
-                
+
                 d = m.groupdict()
                 items_list.append((d['num_iid'],d['sku_id'],int(v)))
-                    
+
         except:
             raise Exception('参数格式不对'.decode('utf8'))
         return items_list
-    
+
     def valid_params(self,item_list,outer_id,outer_sku_id):
-        
+
         product     = None
         product_sku = None
         if outer_sku_id:
             product_sku = ProductSku.objects.get(product__outer_id=outer_id,outer_id=outer_sku_id)
-        
+
         product = Product.objects.get(outer_id=outer_id)
-        
+
         real_num = product_sku and product_sku.realnum or product.realnum
         assign_num   = 0
         for item in item_list:
             if item[2] != 0 and item[1] and not product_sku:
                 raise Exception('线上规格不在系统规格中'.decode('utf8'))
             assign_num += item[2]
-        
+
         if assign_num > real_num:
             raise Exception('库存分配超出实际库存'.decode('utf8'))
-        
-        
+
+
     def assign_num_action(self,item_list):
-        
+
         for item in item_list:
-            
+
             im = Item.objects.get(num_iid=item[0])
             hold_num = im.with_hold_quantity
-            
+
             sku = None
             if item[1]:
                 sku = SkuProperty.objects.get(num_iid=item[0],sku_id=item[1])
                 hold_num = sku.with_hold_quantity
-                
-            if item[2] < hold_num:    
+
+            if item[2] < hold_num:
                 raise Exception('分配库存小于线上拍下待付款数'.decode('utf8'))
-            
+
             if im.user.isValid():
                 apis.taobao_item_quantity_update\
-                        (num_iid=item[0],quantity=item[2],sku_id=item[1],tb_user_id=im.user.visitor_id)   
-            
-            if sku:  
+                        (num_iid=item[0],quantity=item[2],sku_id=item[1],tb_user_id=im.user.visitor_id)
+
+            if sku:
                 sku.quantity = item[2]
                 sku.save()
-            else:    
+            else:
                 im.num = item[2]
-                im.save()  
-                            
-               
+                im.save()
+
+
 class StatProductSaleView(APIView):
     """ docstring for class StatisticsMergeOrderView """
        #serializer_class = serializers.ProductSerializer
@@ -944,36 +944,36 @@ class StatProductSaleView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductSaleHtmlRenderer,new_BaseJSONRenderer, )
     def parseDate(self,start_dt):
-        
+
         if not start_dt:
             dt = datetime.datetime.now()
             return (dt-datetime.timedelta(days=1)).date()
-        
+
         return parse_date(start_dt)
-        
-        
+
+
     def getProductByOuterId(self,outer_id):
-        
+
         try:
             return Product.objects.get(outer_id=outer_id)
         except:
             return None
-        
+
     def getSaleSortedItems(self,queryset):
-        
+
         sale_items  = {}
         for sale in queryset:
             product_id = sale.product_id
-            sku_id         = sale.sku_id 
-            
+            sku_id         = sale.sku_id
+
             if sale_items.has_key(product_id):
                 sale_items[product_id]['sale_num']      += sale.sale_num
                 sale_items[product_id]['sale_payment']  += sale.sale_payment
                 sale_items[product_id]['sale_refund']   += sale.sale_refund
                 sale_items[product_id]['confirm_num']   += sale.confirm_num
                 sale_items[product_id]['confirm_payment']   += sale.confirm_payment
-                
-                if not sku_id :continue                
+
+                if not sku_id :continue
                 skus = sale_items[product_id]['skus']
                 if skus.has_key(sku_id):
                     skus[sku_id]['sale_num']        += sale.sale_num
@@ -1011,11 +1011,11 @@ class StatProductSaleView(APIView):
                                         'confirm_num':sale.confirm_num,
                                         'confirm_payment':sale.confirm_payment,
                                        }
-            
+
         return sorted(sale_items.items(),key=lambda d:d[1]['sale_num'],reverse=True)
-    
+
     def calcSaleSortedItems(self,queryset):
-        
+
         total_stock_num   = 0
         total_sale_num  = 0
         total_sale_payment = 0
@@ -1025,7 +1025,7 @@ class StatProductSaleView(APIView):
         total_sale_refund  = 0
         total_stock_cost   = 0
         sale_stat_list = self.getSaleSortedItems(queryset)
-        
+
         for product_id,sale_stat in sale_stat_list:
             try:
                 product = Product.objects.get(id=product_id)
@@ -1034,28 +1034,28 @@ class StatProductSaleView(APIView):
             has_sku = sale_stat['skus'] and True or False
             sale_stat['name']     = product.name
             sale_stat['outer_id'] = product.outer_id
-            sale_stat['confirm_cost'] = not has_sku and product.cost * sale_stat['confirm_num'] or 0 
-            sale_stat['collect_num'] = not has_sku and product.collect_num or 0 
-            sale_stat['stock_cost']  = not has_sku and product.cost * product.collect_num or 0 
+            sale_stat['confirm_cost'] = not has_sku and product.cost * sale_stat['confirm_num'] or 0
+            sale_stat['collect_num'] = not has_sku and product.collect_num or 0
+            sale_stat['stock_cost']  = not has_sku and product.cost * product.collect_num or 0
 
             for sku_id,sku_stat in sale_stat['skus'].iteritems():
                 try:
                     sku = ProductSku.objects.get(id=sku_id)
                 except ProductSku.DoesNotExist:
                     continue
-                sku_stat['name']      = sku.name 
+                sku_stat['name']      = sku.name
                 sku_stat['outer_id']  = sku.outer_id
                 sku_stat['quantity']  = sku.quantity
                 sku_stat['confirm_cost'] =  sku.cost * sku_stat['confirm_num']
                 sku_stat['stock_cost'] = sku.cost * sku.quantity
-                sale_stat['confirm_cost'] += sku_stat['confirm_cost'] 
+                sale_stat['confirm_cost'] += sku_stat['confirm_cost']
                 sale_stat['collect_num'] += sku.quantity
                 sale_stat['stock_cost']  += sku_stat['stock_cost']
 
             sale_stat['skus'] = sorted(sale_stat['skus'].items(),
                                        key=lambda d:d[1]['sale_num'],
                                        reverse=True)
-            
+
             total_stock_num        += sale_stat['collect_num']
             total_sale_num         += sale_stat['sale_num']
             total_confirm_num      += sale_stat['confirm_num']
@@ -1065,7 +1065,7 @@ class StatProductSaleView(APIView):
             total_sale_refund      += sale_stat['sale_refund']
             total_stock_cost       += sale_stat['stock_cost']
 
-        return {'sale_items':sale_stat_list, 
+        return {'sale_items':sale_stat_list,
                 'total_confirm_cost':total_confirm_cost ,
                 'total_confirm_num':total_confirm_num ,
                 'total_confirm_payment':total_confirm_payment ,
@@ -1074,30 +1074,30 @@ class StatProductSaleView(APIView):
                 'total_sale_payment':total_sale_payment,
                 'total_stock_num':total_stock_num,
                 'total_stock_cost':total_stock_cost}
-    
+
     def calcUnSaleSortedItems(self,queryset,p_outer_id=None):
-        
+
         total_stock_num   = 0
         total_stock_cost  = 0
         product_list = Product.objects.filter(status=pcfg.NORMAL)
         if p_outer_id:
             product_list = product_list.filter(outer_id__startswith=p_outer_id)
-            
+
         ps_tuple     = set(queryset.values_list('product_id','sku_id').distinct())
         productid_set      = set(s[0] for s in ps_tuple)
         sale_items   = {}
         for product in product_list:
             product_id = product.id
-            
+
             if product.collect_num <= 0:
                 continue
-            
+
             for sku in product.pskus:
                 sku_id = sku.id
-                
+
                 if (product_id,sku_id) in ps_tuple or sku.quantity <= 0:
                     continue
-                
+
                 if not sale_items.has_key(product_id):
                     sale_items[product_id]={
                                            'sale_num':0,
@@ -1112,7 +1112,7 @@ class StatProductSaleView(APIView):
                                            'stock_cost':0,
                                            'collect_num':0,
                                            'skus':{}}
-                
+
                 sale_items[product_id]['skus'][sku_id] = {
                                         'name':sku.name,
                                         'outer_id':sku.outer_id,
@@ -1128,13 +1128,13 @@ class StatProductSaleView(APIView):
                                    }
                 sale_items[product_id]['collect_num'] += sku.quantity
                 sale_items[product_id]['stock_cost']  += sku.quantity * sku.cost
-                
+
             if product_id not in productid_set and not sale_items.has_key(product_id):
                 product = Product.objects.get(id=product_id)
                 pic_path = product.pic_path
                 if pic_path.startswith('http://img02.taobaocdn'):
                     pic_path = pic_path.rstrip('_80x80.jpg')+'.jpg_80x80.jpg'
-                    
+
                 sale_items[product_id]={'pic_path':pic_path,
                                        'title':product.title,
                                        'sale_num':0,
@@ -1149,16 +1149,16 @@ class StatProductSaleView(APIView):
                                        'sale_cost':0,
                                        'stock_cost':product.collect_num * product.cost,
                                        'skus':{}}
-            
-            if sale_items.has_key(product_id): 
+
+            if sale_items.has_key(product_id):
 
                 sale_items[product_id]['skus'] = sorted(sale_items[product_id]['skus'].items(),
                                                     key=lambda d:d[1]['quantity'],
                                                     reverse=True)
-            
+
                 total_stock_num  += sale_items[product_id]['collect_num']
                 total_stock_cost += sale_items[product_id]['stock_cost']
-            
+
         return {'sale_items':sorted(sale_items.items(),
                                     key=lambda d:d[1]['collect_num'],
                                     reverse=True),
@@ -1170,14 +1170,14 @@ class StatProductSaleView(APIView):
                 'total_sale_payment':0,
                 'total_stock_num':total_stock_num,
                 'total_stock_cost':total_stock_cost}
-    
+
     def calcSaleItems(self,queryset,p_outer_id=None,show_sale=True):
-        
+
         if show_sale:
             return self.calcSaleSortedItems(queryset)
-        
+
         return self.calcUnSaleSortedItems(queryset,p_outer_id=p_outer_id)
-    
+
     def get(self, request, *args, **kwargs):
         try:
             content   = request.REQUEST
@@ -1185,16 +1185,16 @@ class StatProductSaleView(APIView):
             end_dt    = content.get('dt','').strip()
             shop_id   = content.get('shop_id')
             p_outer_id   = content.get('outer_id','')
-            show_sale    = not content.has_key('_unsaleable') 
+            show_sale    = not content.has_key('_unsaleable')
             sale_items = {}
             params = {'day_date__gte':self.parseDate(start_dt),
                               'day_date__lte':self.parseDate(end_dt)}
             if shop_id:
                 params.update(user_id=shop_id)
-             
+
             if p_outer_id:
                 params.update(outer_id__startswith=p_outer_id)
-            
+
             sale_qs  = ProductDaySale.objects.filter(**params)
             sale_items   = self.calcSaleItems(sale_qs,p_outer_id=p_outer_id,show_sale=show_sale)
             sale_items.update({
@@ -1209,7 +1209,7 @@ class StatProductSaleView(APIView):
             logger.error(exc_msg,exc_info=True)
             raise exceptions.APIException(exc_msg)
         return   Response({'object':{'sale_stats':sale_items}})
-        
+
     post = get
 
 from shopback.items.tasks import CalcProductSaleAsyncTask
@@ -1260,38 +1260,38 @@ class ProductScanView(APIView):
     authentication_classes = (authentication.SessionAuthentication,authentication.BasicAuthentication,)
     renderer_classes = (ProductScanRenderer,new_BaseJSONRenderer, )
     def get(self,request,*args,**kwargs):
-        
+
         wave_no = datetime.datetime.now().strftime("%Y-%m-%d-%H")
-        
+
         return Response({'wave_no':wave_no})
-    
+
     def post(self,request,*args,**kwargs):
-        
+
         content = request.REQUEST
-        
+
         barcode = content.get('barcode')
         product_sku_list = Product.objects.getProductSkuByBarcode(barcode)
         if len(product_sku_list) == 0:
             product_list = Product.objects.getProductByBarcode(barcode)
             if len(product_list) == 0:
                 return Response(u'条码未找到商品')
-            
+
             if len(product_list) > 1:
                 return Response(u'条码对应多件商品')
-        
+
         if len(product_sku_list) > 1:
             return Response(u'条码对应多件商品')
-        
+
         if len(product_sku_list) == 1:
             product_sku = product_sku_list[0]
             product = product_sku.product
         else:
             product_sku = None
             product = product_list[0]
-        
+
         wave_no = content.get('wave_no')
         num     = content.get('num')
-        
+
         prod,state = ProductScanStorage.objects.get_or_create(wave_no=wave_no,
                                                  product_id=product.id,
                                                  sku_id=product_sku and product_sku.id or '')
@@ -1303,7 +1303,7 @@ class ProductScanView(APIView):
         prod.scan_num     = F('scan_num') + int(num)
         prod.status       = ProductScanStorage.WAIT
         prod.save()
-        
+
         return    Response ({"object":{'product_id':prod.product_id,
                 'product_name':prod.product_name,
                 'sku_name':prod.sku_name,
@@ -1314,7 +1314,7 @@ class ProductScanView(APIView):
 
 
 
-#######  fang  2015-7-28 
+#######  fang  2015-7-28
 def as_tuple(obj):
     """
     Given an object which may be a list/tuple, another object, or None,
