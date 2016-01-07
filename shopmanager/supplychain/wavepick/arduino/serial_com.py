@@ -13,7 +13,7 @@ if __name__ == '__main__':
     ser = serial.Serial('/dev/ttyACM0', 9600)
     print ser.portstr
 
-    url = "http://weixin.huyi.so/supplychain/wavepick/publish/1/"
+    url = "http://m.xiaolumeimei.com/supplychain/wavepick/publish/1/"
     ser.open()
     
     requstAndWrite(url,ser)

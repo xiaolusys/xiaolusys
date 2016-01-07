@@ -42,17 +42,17 @@ class SaleOrderInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields + ('oid',))
         if not request.user.is_superuser:
-            readonly_fields.update(('outer_id', 'outer_sku_id'))
+            readonly_fields.update(('outer_id', 'outer_sku_id','item_id'))
         return tuple(readonly_fields)
 
 
 class SaleTradeAdmin(admin.ModelAdmin):
     list_display = ('id', 'tid', 'buyer_nick', 'channel', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
-    list_display_links = ('id', 'tid')
+    list_display_links = ('id', 'tid', 'buyer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'channel', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
-    search_fields = ['=tid', '=id', '=receiver_mobile']
+    search_fields = ['=tid', '=id', '=receiver_mobile','=buyer_id']
 
     inlines = [SaleOrderInline]
 
@@ -534,7 +534,7 @@ class GoodShelfAdmin(admin.ModelAdmin):
     def preview_link(self, obj):
         if obj.active_time:
             pre_days = (obj.active_time.date() - datetime.date.today()).days
-            return u'<a href="http://m.xiaolu.so/preview.html?days=%s">预览一下</a>'%pre_days
+            return u'<a href="http://m.xiaolumeimei.com/preview.html?days=%s">预览一下</a>'%pre_days
         return u'' 
         
     preview_link.allow_tags = True

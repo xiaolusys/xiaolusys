@@ -7,7 +7,6 @@
 {% endblock %}
 
 {% block extrahead %}{{ block.super }}
-
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.min.js"></script>
     <script>
@@ -54,10 +53,14 @@
             $("input[name='_invalid']").click(function (e) {
                 e.preventDefault(); //阻止form 提交动作
                 var commit = $('form');
-                var callback = function (resp) {
-                    console.log('debug: resp ', resp);
-                    window.location.reload(true);
-                    window.close();
+                var callback = function (resp,status,xhr) {
+                    if (xhr.status == 302){
+	                    //window.location.reload(true);
+	                    window.close();
+                    }else{
+                        $(document).empty();
+                        document.write(resp);
+                    }
                 };
                 var form_array = commit.serializeArray();
                 var params = {};
@@ -66,15 +69,21 @@
                 });
                 $("#reason_select").change(function () {
                     var reason_val = this.value;
-                    var tid = params.tid;
+                    var regs = location.href.split('?')[0].match(new RegExp(/(\/)([\d]{1,20})(\/)$/));
+                    if (regs == null || regs.length == 0){alert('url参数不对');}
+                    var trade_id = regs[2];
                     $("#reason_select").css('background', 'green');
-                    var data = {"tid": tid, "reason": reason_val};
+                    var data = {"trade_id": trade_id, "reason": reason_val};
                     //创建退货款单 带上原因
                     var url = "/refunds/refund_invalid_create/";
                     var callback1 = function (res) {
                         console.log("debug: res ", res);
-                        params['_invalid'] = '';
-                        $.post(commit.attr('action'), params, callback);//提交当前表单
+                        if (res != 'ok'){
+                            document.write(res);
+                        }else{
+                            params['_invalid'] = '';
+                            $.post(commit.attr('action'), params, callback);//提交当前表单
+                        }
                     };
                     $.ajax({"url": url, "data": data, "type": "POST", "success": callback1});
                 });

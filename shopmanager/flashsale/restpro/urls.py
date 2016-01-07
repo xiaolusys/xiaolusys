@@ -23,6 +23,7 @@ from . import views_praise
 from . import views_pro_ref
 from . import views_xlmm
 from . import views_mmadver
+from . import views_wuliu_new
 
 
 
@@ -57,8 +58,11 @@ router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
 # router.register(r'carrylog', views_xlmm.CarryLogViewSet)
 # router.register(r'cashout', views_xlmm.CashOutViewSet)
 # router.register(r'clickcount', views_xlmm.ClickCountViewSet)
-# router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
+router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
 router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
+
+
+router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
 
 # 推送相关
 router.register(r'push', views_push.PushViewSet)
@@ -105,5 +109,5 @@ urlpatterns = patterns('',
     url(r'^v1/', include(router_urls,namespace='v1')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
-    url(r'^test/',views_wuliu.test),
+    #url(r'^test/',views_wuliu.test),
 )

@@ -13,7 +13,7 @@ from shopback.items.models import Product
 from flashsale.pay.models import SaleTrade, SaleOrder
 import datetime
 from . import serializers
-from flashsale.restpro.tasks import SaveWuliu, SaveWuliu_only
+from flashsale.restpro.tasks import SaveWuliu_only
 
 BADU_KD100_URL = "http://www.kuaidiapi.cn/rest"
 BAIDU_POST_CODE_EXCHANGE = {
@@ -42,14 +42,6 @@ POST_CODE_NAME_MAP = {
     'TTKDEX': u'天天快递',
     'QFKD': u'全峰快递',
 }
-
-
-def test(request):
-    if request.method == 'GET':
-        trade = SaleTrade.objects.filter()[:10]
-        for info in trade:
-            SaveWuliu.delay(info.tid)
-        return HttpResponse("ok")
 
 
 ##fang 2015-8-22 new version

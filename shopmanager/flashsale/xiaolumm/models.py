@@ -295,15 +295,15 @@ class XiaoluMama(models.Model):
         if self.agencylevel < 2:
             return 0
         #2015-11-01取消点击补贴
-        if day_date >= datetime.date(2015,11,1):
-            return 0
-        if day_date >= ROI_CLICK_START:
+        if  datetime.date(2015,12,30) < day_date < datetime.date(2016,1,3):
+            return 20
+        
+        if ROI_CLICK_START <= day_date < datetime.date(2015,11,1):
             return 10
         return 0
 #         agency_level = agency_levels[0]
 #         if not day_date or day_date < ROI_CLICK_START:
 #             return base_price + agency_level.get_Click_Price(ordernum)
-#         
 #         return 0
         
 #         pre_date = day_date - datetime.timedelta(days=1)
@@ -320,8 +320,8 @@ class XiaoluMama(models.Model):
             return 0
         agency_level = agency_levels[0]
         click_num = agency_level.get_Max_Valid_Clickcount(ordernum)
-        if day_date and (datetime.date(2015,10,18) < day_date < datetime.date(2015,10,22)):
-            click_num += 20
+#         if day_date and day_date > datetime.date(2015,12,31,10):
+#             click_num += 20
         return click_num
     
     def push_carrylog_to_cash(self,clog):

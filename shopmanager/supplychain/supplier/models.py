@@ -340,7 +340,7 @@ pre_save.connect(change_saleprodut_by_pre_save, sender=SaleProduct)
 class SaleProductManage(models.Model):
     sale_time = models.DateField(db_index=True, unique=True, verbose_name=u'排期日期')
     product_num = models.IntegerField(default=0, verbose_name=u'商品数量')
-    responsible_people_id = models.BigIntegerField(max_length=64, blank=True, default=0, db_index=True, verbose_name=u'负责人ID')
+    responsible_people_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'负责人ID')
     responsible_person_name = models.CharField(max_length=64, verbose_name=u'负责人名字')
     lock_status = models.BooleanField(default=False, verbose_name=u'锁定')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')

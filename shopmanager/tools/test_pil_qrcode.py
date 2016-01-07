@@ -12,5 +12,5 @@ def gen_jpeg_pic(link):
     
     
 if __name__ == '__main__':
-    link = 'http://m.xiaolu.so/pages/shangpinxq.html?id=24340&linkid=44'
+    link = 'http://m.xiaolumeimei.com/pages/shangpinxq.html?id=24340&linkid=44'
     gen_jpeg_pic(link)
