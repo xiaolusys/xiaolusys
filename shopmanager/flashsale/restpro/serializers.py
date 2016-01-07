@@ -118,12 +118,13 @@ class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
     is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
     is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
     sale_charger = serializers.CharField(source="get_supplier_contactor", read_only=True)
-
+    watermark_op = serializers.CharField(read_only=True)
+    
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo', 'lowest_price',
-                   'product_model','product_lowest_price','ware_by','is_verify',"model_id", "sale_charger")
+                   'product_model','product_lowest_price','ware_by','is_verify',"model_id", "sale_charger",'watermark_op')
 
 
 class JSONParseField(serializers.Field):
