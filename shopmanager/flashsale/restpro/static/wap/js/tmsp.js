@@ -158,7 +158,11 @@ function Set_product_detail(suffix) {
         }
         console.log('debug:',product_model);
         //设置商品题头图列表
-        var slides = Create_product_topslides([data.pic_path]);
+        //弃用Create_product_topslides函数
+        var slide = data.pic_path + '?imageMogr2/thumbnail/640/format/jpg/quality/90';
+        if(data.watermark_op)
+            slide += '|' + data.watermark_op;
+        var slides = ['<div class="swiper-slide"><img src="' + slide + '"></div>'];
         //设置swiper滑动图片
         swiper.removeAllSlides();
         swiper.appendSlide(slides);

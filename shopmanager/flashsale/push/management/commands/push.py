@@ -40,28 +40,28 @@ class Command(BaseCommand):
         target_type = int(target_type)
 
         params = []
-        for p in kwargs.get('params', []):
+        for p in kwargs.get('params') or []:
             params.append(p.split('='))
         params = dict(params)
         target_url = get_target_url(target_type, params)
         print target_url
 
-        if push_type == 'regid':
+        if push_type == PUSH_BY_REGID:
             regid, desc = args[2:4]
             mipush.push_to_regid(regid,
                                  {'target_url': target_url},
                                  description=desc)
-        elif push_type == 'account':
+        elif push_type == PUSH_BY_ACCOUNT:
             customer_id, desc = args[2:4]
             customer_id = int(customer_id)
             mipush.push_to_account(customer_id,
                                    {'target_url': target_url},
                                    description=desc)
-        elif push_type == 'topic':
+        elif push_type == PUSH_BY_TOPIC:
             topic, desc = args[2:4]
             mipush.push_to_topic(topic,
                                  {'target_url': target_url},
                                  description=desc)
-        elif push_type == 'all':
+        elif push_type == PUSH_ALL:
             desc = args[2]
             mipush.push_to_all({'target_url': target_url}, description=desc)
