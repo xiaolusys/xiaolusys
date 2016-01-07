@@ -19,7 +19,6 @@ from django.db.models import Sum
 from shopback.base import log_action, ADDITION
 
 
-
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
     """
     ### 特卖平台－小鹿妈妈代理API:
@@ -283,24 +282,33 @@ class CashOutViewSet(viewsets.ModelViewSet):
     """
     ## 特卖平台－小鹿妈妈购体现记录API:
     - {prefix}[.format]: 获取登陆用户的提现记录
-    - {prefix} method[post]: 创建提现记录  
+    - {prefix} method[post][arg:choice("c1":80,"c2":200)]: 创建提现记录
         返回`code`   
         1: 参数错误  
         2: 不足提现金额  
         3: 有待审核记录不予再次提现  
         0: 提现成功，待审核通过  
+    - {prefix}
     """
     queryset = CashOut.objects.all()
     serializer_class = serializers.CashOutSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    cashout_type = {"c1": 80, "c2": 200}
+    cashout_type = {"c1": 8000, "c2": 20000}
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         return self.queryset.filter(xlmm=xlmm.id)  # 对应的xlmm的购买统计
+
+    @list_route(methods=['get'])
+    def get_could_cash_out(self, request):
+        """ 获取可以提现的金额 """
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+        cash, payment, could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+        return Response({"could_cash_out": could_cash_out})
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -319,11 +327,11 @@ class CashOutViewSet(viewsets.ModelViewSet):
         value = self.cashout_type.get(cash_type)
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
-        could_cashout = xlmm.get_cash_iters()  # 可以提现的金额
+        cash, payment, could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         if queryset.filter(status=CashOut.PENDING).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
             return Response({"code": 3})
-        if could_cashout < value:  # 如果可以提现金额不足
+        if could_cash_out < value:  # 如果可以提现金额不足
             return Response({"code": 2})
         # 满足提现请求　创建提现记录
         cashout = CashOut.objects.create(xlmm=xlmm.id, value=value)

@@ -1,0 +1,96 @@
+{% extends 'line_template.html' %}
+{% block title %} {{ title }} {% endblock %}
+<a>{{ calcu_value }}</a>
+
+{% block form %}
+    <form action="">
+{% endblock %}
+
+{% block form_end %}
+    </form>
+{% endblock %}
+
+{% block line_show %}
+
+    <table class="table table-striped table-bordered" style="margin-top: 50px">
+        <tbody>
+        <thead>
+        <tr>
+            <td>产品分类</td>
+            <td>销售数量</td>
+            <td>销售金额</td>
+            <td>坑位数量</td>
+            <td>库存数量</td>
+            <td>库存金额</td>
+            <td>进货数量</td>
+            <td>进货金额</td>
+            <td>退款数量</td>
+            <td>退款金额</td>
+
+            <td>单坑产出</td>
+            <td>单坑销量</td>
+            <td>平均价格</td>
+        </tr>
+        <tr style="color: red">
+            <td>总计</td>
+            <td>{{ key_svlues.s_sale_num }}</td>
+            <td>{{ key_svlues.s_sale_amount }}</td>
+            <td>{{ key_svlues.s_pit_num }}</td>
+            <td>{{ key_svlues.s_collect_num }}</td>
+            <td>{{ key_svlues.s_collect_amount }}</td>
+            <td>{{ key_svlues.s_stock_num }}</td>
+            <td>{{ key_svlues.s_stock_amount }}</td>
+            <td>{{ key_svlues.s_refund_num }}</td>
+            <td>{{ key_svlues.s_refund_amount }}</td>
+        </tr>
+        </thead>
+        {% for i in calcu_value %}
+            <tr>
+                <td>{{ i.category }}</td>
+                <td>{{ i.s_sale_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_sale_num_p }}%</td>
+                <td>{{ i.s_sale_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_sale_amount_p }}%</td>
+                <td>{{ i.s_pit_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_pit_num_p }}%</td>
+                <td>{{ i.s_collect_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_collect_num_p }}%</td>
+                <td>{{ i.s_collect_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_collect_amount_p }}%</td>
+                <td>{{ i.s_stock_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_stock_num_p }}%</td>
+                <td>{{ i.s_stock_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_stock_amount_p }}%</td>
+                <td>{{ i.s_refund_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_refund_num_p }}%</td>
+                <td>{{ i.s_refund_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_refund_amount_p }}%</td>
+
+                <td>{{ i.sigle_output }}</td>
+                <td>{{ i.sigle_sale }}</td>
+                <td>{{ i.average_price }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot></tfoot>
+    </table>
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        $(function () {
+            $(".select_saletime").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+        });
+
+        function getData(df, dt) {
+            var data = {"df": df, "dt": dt};
+            var url = "/category/cate_stat/";
+            $.ajax({
+                url: url,
+                type: "get",
+                success: callback,
+                dataType: "json",
+                data: data
+            });
+            function callback(res) {
+                // 遍历结果填充数据到页面
+                $.each(res, function (k, v) {
+                    console.log(k, v);
+                });
+            }
+        }
+    </script>
+{% endblock %}

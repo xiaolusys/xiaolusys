@@ -20,23 +20,30 @@
 <body class="container">
 {% block content %}
     <h1>{{ title }}</h1>
-    <div class="input-group">
-        <span class="input-group-addon" id="date_from">开始时间</span>
-        <input type="text" name="date_from" id="left_date_pic"
-               class="form-control select_saletime  datepicker" placeholder="" value="{{ df }}"
-               aria-describedby="basic-addon1">
-        <span class="input-group-addon" id="date_to">结束时间</span>
-        <input type="text" name="date_to" id="right_date_pic"
-               class="form-control select_saletime  datepicker" placeholder="" value="{{ dt }}"
-               aria-describedby="basic-addon2">
+
+    {% block form %}
+    {% endblock %}
+    {% block time_zone %}
+        <div class="input-group">
+            <span class="input-group-addon" id="date_from">开始时间</span>
+            <input type="text" name="df" id="left_date_pic"
+                   class="form-control select_saletime  datepicker" placeholder="" value="{{ df }}"
+                   aria-describedby="basic-addon1">
+            <span class="input-group-addon" id="date_to">结束时间</span>
+            <input type="text" name="dt" id="right_date_pic"
+                   class="form-control select_saletime  datepicker" placeholder="" value="{{ dt }}"
+                   aria-describedby="basic-addon2">
             <span class="input-group-btn">
                 <button class="btn btn-success" id="go_search" type="submit">Go!</button>
             </span>
-    </div>
+        </div>
+    {% endblock %}
+    {% block form_end %}
+    {% endblock %}
 
     {% block line_show %}
-
     {% endblock %}
+
 {% endblock %}
 
 {% block data_url %}
@@ -44,30 +51,33 @@
 {% endblock %}
 </body>
 
-<script type="text/javascript">
-    $(function () {
-        $(".select_saletime").datepicker({
-            dateFormat: "yy-mm-dd"
+{% block js %}
+    <script type="text/javascript">
+        $(function () {
+            $(".select_saletime").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
         });
-    });
-    $(document).ready(function () {
-        // 默认加载　渲染的时间
-        var df = $("#left_date_pic").val();
-        var dt = $("#right_date_pic").val();
-        getData(df, dt);
-        $("#go_search").click(function () {
+        console.log("LLLL")
+        $(document).ready(function () {
+            // 默认加载　渲染的时间
             var df = $("#left_date_pic").val();
             var dt = $("#right_date_pic").val();
-            if (df == '' || dt == '') {
-                layer.msg('时间不能为空');
-                return
-            }
-            else {
-                getData(df, dt);
-            }
+            getData(df, dt);
+            $("#go_search").click(function () {
+                var df = $("#left_date_pic").val();
+                var dt = $("#right_date_pic").val();
+                if (df == '' || dt == '') {
+                    layer.msg('时间不能为空');
+                    return
+                }
+                else {
+                    getData(df, dt);
+                }
+            });
         });
-    });
-</script>
-{% block js %}
+    </script>
+{% endblock %}
+{% block active_js %}
 {% endblock %}
 </html>
