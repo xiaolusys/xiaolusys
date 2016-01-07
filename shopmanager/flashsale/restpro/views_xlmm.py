@@ -16,6 +16,8 @@ from . import permissions as perms
 from . import serializers
 from django.forms import model_to_dict
 from django.db.models import Sum
+from shopback.base import log_action, ADDITION
+
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -281,6 +283,12 @@ class CashOutViewSet(viewsets.ModelViewSet):
     """
     ## 特卖平台－小鹿妈妈购体现记录API:
     - {prefix}[.format]: 获取登陆用户的提现记录
+    - {prefix} method[post]: 创建提现记录  
+        返回`code`   
+        1: 参数错误  
+        2: 不足提现金额  
+        3: 有待审核记录不予再次提现  
+        0: 提现成功，待审核通过  
     """
     queryset = CashOut.objects.all()
     serializer_class = serializers.CashOutSerialize
@@ -305,7 +313,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """代理提现"""
-        cash_type = request.REQUEST.get('ctype', None)
+        cash_type = request.REQUEST.get('choice', None)
         if cash_type is None:  # 参数错误
             return Response({"code": 1})
         value = self.cashout_type.get(cash_type)
@@ -318,6 +326,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         if could_cashout < value:  # 如果可以提现金额不足
             return Response({"code": 2})
         # 满足提现请求　创建提现记录
-        CashOut.objects.create(xlmm=xlmm.id, value=value)
+        cashout = CashOut.objects.create(xlmm=xlmm.id, value=value)
+        log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response({"code": 0})
 
