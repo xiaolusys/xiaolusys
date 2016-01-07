@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from django.conf.urls.defaults import patterns, url
 from django.views.generic import TemplateView
 from shopback.items.views import (ProductListView,
@@ -63,7 +65,7 @@ urlpatterns = patterns('shopback.items.views',
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
-                       
+
     (r'^product/$',ProductListView.as_view({'get': 'list'}
 #         resource=ProductListResource,
 #         renderers=(ProductListHtmlRenderer,JSONRenderer),
@@ -112,13 +114,13 @@ urlpatterns = patterns('shopback.items.views',
 #         renderers=(BaseJsonRenderer,),
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
-    )),                
+    )),
     (r'^product/warn/$',ProductWarnMgrView.as_view(
 #         resource=ProductResource,
 #         renderers=(BaseJsonRenderer,ProductWarnHtmlRenderer),
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
-    )),   
+    )),
     (r'^product/assign/$',ProductNumAssignView.as_view(
 #         resource=ProductResource,
 #         renderers=(BaseJsonRenderer,),
@@ -139,7 +141,7 @@ urlpatterns = patterns('shopback.items.views',
 #         permissions=(IsAuthenticated,)
     )),
     url(r'^test/$', TemplateView.as_view(
-        template_name="items/product_sku_diff.html"), 
+        template_name="items/product_sku_diff.html"),
         name='test_diff'),
     #(r'^product_lookup/$', 'shopback.items.views.json_lookup', product_lookup),
     url(r'^select_sale_time/$', change_Sale_Time, name='select_sale_time'),
@@ -150,4 +152,3 @@ urlpatterns = patterns('shopback.items.views',
     url(r'^preview_sku/$', PreviewSkuDetail.as_view(), name='preview_sku'),
     url(r'^batch_settime/$', BatchSetTime.as_view(), name='batch_settime'),
 )
-

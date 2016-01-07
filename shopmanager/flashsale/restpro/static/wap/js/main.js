@@ -1,6 +1,6 @@
 /**
  *@author: imeron
- *@date: 2015-07-22 
+ *@date: 2015-07-22
  */
 var timestamp = Date.parse(new Date());
 var wait = 60;
@@ -179,13 +179,13 @@ function Set_posters(suffix){
         }
     };
     // 请求海报数据
-    $.ajax({ 
-        type:'get', 
-        url:posterUrl, 
-        data:{}, 
-        dataType:'json', 
-        success:posterCallBack 
-    }); 
+    $.ajax({
+        type:'get',
+        url:posterUrl,
+        data:{},
+        dataType:'json',
+        success:posterCallBack
+    });
 }
 
 function Create_item_dom(p_obj,close_model){
@@ -194,10 +194,10 @@ function Create_item_dom(p_obj,close_model){
      */
     //创建商品DOM
     function Item_dom(){
-    /* 
+    /*
     <li>
       <a href="pages/shangpinxq.html?id={{ id }}">
-        <img src="{{ head_img }}?imageMogr2/thumbnail/289/format/jpg/quality/90">
+        <img src="{{ head_img }}">
         <p class="gname">{{ name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ product_lowest_price }} </span>
@@ -207,13 +207,13 @@ function Create_item_dom(p_obj,close_model){
     </li>
     */
     };
-    
+
     //创建商品款式DOM
     function Model_dom(){
-    /* 
+    /*
     <li>
       <a href="tongkuan.html?id={{ product_model.id }}">
-        <img src="{{ product_model.head_img }}?imageMogr2/thumbnail/289/format/jpg/quality/90">
+        <img src="{{ product_model.head_img }}">
         <p class="gname">{{ product_model.name }}</p>
         <p class="gprice">
           <span class="nprice"><em>¥</em> {{ lowest_price }} </span>
@@ -238,7 +238,9 @@ function Create_item_dom(p_obj,close_model){
         }else if(p_obj.product_model.is_sale_out && true){
             p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
         }
-        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0]
+        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0] + '?imageMogr2/thumbnail/289/format/jpg/quality/90';
+        if(p_obj.watermark_op)
+            p_obj.product_model.head_img += '|' + p_obj.watermark_op;
         return hereDoc(Model_dom).template(p_obj);
     }
     //上架判断
@@ -255,6 +257,9 @@ function Create_item_dom(p_obj,close_model){
     if (close_model && true){
         p_obj.head_img = p_obj.pic_path;
     }
+    p_obj.head_img += '?imageMogr2/thumbnail/289/format/jpg/quality/90';
+    if(p_obj.watermark_op)
+        p_obj.head_img += '|' + p_obj.watermark_op;
     return hereDoc(Item_dom).template(p_obj);
 }
 
@@ -285,16 +290,16 @@ function Set_promotes_product(suffix){
         }
     };
     // 请求推荐数据
-    $.ajax({ 
-        type:'get', 
-        url:promoteUrl, 
-        data:{}, 
+    $.ajax({
+        type:'get',
+        url:promoteUrl,
+        data:{},
         dataType:'json',
         beforeSend: function () {
             $("#loading").show();
         },
-        success:promoteCallBack 
-    }); 
+        success:promoteCallBack
+    });
 }
 
 function Set_category_product(suffix){
@@ -313,16 +318,16 @@ function Set_category_product(suffix){
         }
     };
     // 请求推荐数据
-    $.ajax({ 
-        type:'get', 
-        url:promoteUrl, 
-        data:{}, 
+    $.ajax({
+        type:'get',
+        url:promoteUrl,
+        data:{},
         dataType:'json',
         beforeSend: function () {
             $("#loading").show();
         },
-        success:promoteCallBack 
-    }); 
+        success:promoteCallBack
+    });
 }
 
 function Set_model_product(suffix){
@@ -350,17 +355,17 @@ function Set_model_product(suffix){
         }
     };
     // 请求推荐数据
-    $.ajax({ 
-        type:'get', 
-        url:promoteUrl, 
-        data:{}, 
+    $.ajax({
+        type:'get',
+        url:promoteUrl,
+        data:{},
         dataType:'json',
         beforeSend: function () {
             $("#loading").show();
         },
-        success:promoteCallBack 
-    }); 
-    
+        success:promoteCallBack
+    });
+
 }
 
 function product_timer_new(shelf_time, is_saleopen) {

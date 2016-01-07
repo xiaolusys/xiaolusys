@@ -1,4 +1,4 @@
-# -*- encoding:utf8 -*-
+# -*- encoding:utf-8 -*-
 import json
 import time
 from django.conf import settings
@@ -96,7 +96,7 @@ class SaleProductList(generics.ListCreateAPIView):
         page = self.paginate_queryset(queryset)
         sale_category = SaleCategory.objects.all()
         sale_category = SaleCategorySerializer(sale_category, many=True).data
-        
+
         supplier_id = request.GET.get('sale_supplier', '')
         supplier = None
         if supplier_id:
@@ -107,7 +107,7 @@ class SaleProductList(generics.ListCreateAPIView):
                 supplier.progress = progress
                 supplier.save()
             supplier = SaleSupplierSerializer(supplier, context={'request': request}).data
-        
+
         resp_data = self.get_serializer(page, many=True).data
         result_data = {'request_data': request.GET.dict(), 'supplier': supplier
                        , 'sale_category': sale_category, "results": resp_data}
@@ -117,9 +117,9 @@ class SaleProductList(generics.ListCreateAPIView):
                             ('next', self.paginator.get_next_link()),
                             ('previous', self.paginator.get_previous_link()),
                         ]))
-        
+
         return Response(result_data)
-    
+
     def post(self, request, *args, **kwargs):
         data = request.data
         supplier_id = data["supplier"]
@@ -219,7 +219,7 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         if not instance.contactor:
             instance.contactor = self.request.user
-        
+
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -227,12 +227,12 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                      SaleProduct.PURCHASE: 2,
                      SaleProduct.PASSED: 3,
                      SaleProduct.SCHEDULE: 4}
-        
+
         update_field_labels = []
         for k,v in request.data.iteritems():
             if not hasattr(instance,k):continue
             update_field_labels.append('%s:%s'%(SaleProduct._meta.get_field(k).verbose_name.title(),v))
-            
+
         status_label = (u'淘汰',
                         u'初选入围',
                         u'洽谈通过',
@@ -317,7 +317,7 @@ class FetchAndCreateProduct(APIView):
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)
-        
+
         for k, v in content.iteritems():
             if k == 'sale_category':
                 v = SaleCategory.objects.get(id=v)
@@ -344,7 +344,7 @@ class QiniuApi(APIView):
         q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
         token = q.upload_token("xiaolumm", expires=3600)
         return Response({'uptoken': token})
-    
+
 
 import datetime
 
