@@ -333,7 +333,7 @@ function Create_item_dom(p_obj, close_model) {
         /*
          <li>
          <a href="pages/shangpinxq.html?id={{ id }}">
-         <img src="{{ head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+         <img src="{{ head_img }}">
          <p class="gname">{{ name }}</p>
          <p class="gprice">
          <span class="nprice"><em>¥</em> {{ product_lowest_price }} </span>
@@ -349,7 +349,7 @@ function Create_item_dom(p_obj, close_model) {
         /*
          <li>
          <a href="tongkuan.html?id={{ product_model.id }}">
-         <img src="{{ product_model.head_img }}?imageMogr2/thumbnail/289x289/format/jpg/quality/85">
+         <img src="{{ product_model.head_img }}">
          <p class="gname">{{ product_model.name }}</p>
          <p class="gprice">
          <span class="nprice"><em>¥</em> {{ lowest_price }} </span>
@@ -372,7 +372,9 @@ function Create_item_dom(p_obj, close_model) {
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
             }
         }
-        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0]
+        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0] + '?imageMogr2/thumbnail/289x289/format/jpg/quality/85';
+        if(p_obj.watermark_op)
+            p_obj.product_model.head_img += '|' + p_obj.watermark_op;
         return hereDoc(Model_dom).template(p_obj);
     }
 
@@ -389,6 +391,9 @@ function Create_item_dom(p_obj, close_model) {
     if (close_model && true) {
         p_obj.head_img = p_obj.pic_path;
     }
+    p_obj.head_img += '?imageMogr2/thumbnail/289x289/format/jpg/quality/85';
+    if(p_obj.watermark_op)
+        p_obj.head_img += '|' + p_obj.watermark_op;
     return hereDoc(Item_dom).template(p_obj);
 }
 
