@@ -9,6 +9,9 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
+from flashsale.clickcount.models import ClickCount
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404
 import logging
 from models_advertis import XlmmAdvertis
 
@@ -348,7 +351,37 @@ class XiaoluMama(models.Model):
   
         update_model_fields(self,update_fields=['cash','pending'])
         
-        
+    def cashout_able_check(self):
+        """ 提现前提条件 点击数了和专属订单数量检查　"""
+        from flashsale.clickrebeta.models import StatisticsShopping
+        shopscount = StatisticsShopping.objects.filter(linkid=self.id).count()
+        clickcounts = ClickCount.objects.filter(linkid=self.id)
+        click_nums = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
+        if (click_nums >= 150 and shopscount >= 1) or shopscount >= 6:
+            return True
+        return False
+
+    def get_cash_iters(self):
+        cash = self.cash / 100.0
+        clog_outs = CarryLog.objects.filter(xlmm=self.id, log_type=CarryLog.ORDER_BUY,
+                                            carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
+        consume_value = (clog_outs.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
+        clog_refunds = CarryLog.objects.filter(xlmm=self.id, log_type=CarryLog.REFUND_RETURN,
+                                               carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
+        refund_value = (clog_refunds.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
+        cash_outable = self.cashout_able_check()
+        payment = consume_value - refund_value
+        x_choice = cash_outable and self.get_Mama_Deposite() or self.get_Mama_Deposite_Amount()
+        mony_without_pay = cash + payment  # 从未消费情况下的金额
+        leave_cash_out = mony_without_pay - x_choice - self.lowest_uncoushout  # 减去代理的最低不可提现金额(充值) = 可提现金额
+        could_cash_out = cash
+        if leave_cash_out < cash:
+            could_cash_out = leave_cash_out
+        if could_cash_out < 0:
+            could_cash_out = 0
+        return cash, payment, could_cash_out
+
+
 # from .clickprice import CLICK_TIME_PRICE
 
 class AgencyLevel(models.Model):
@@ -414,6 +447,7 @@ class AgencyLevel(models.Model):
         return (self.basic_rate / 100.0) / 2
     
 
+
 class CashOut(models.Model):
     PENDING = 'pending'
     APPROVED = 'approved'
@@ -451,8 +485,8 @@ class CashOut(models.Model):
     
     @property
     def value_money(self):
-        return self.get_value_display()    
-    
+        return self.get_value_display()
+
 
 
 class CarryLog(models.Model):
