@@ -5,7 +5,7 @@ from django.conf import settings
 class Joiner(models.Model):
     
     name = models.CharField(max_length=64,verbose_name=u'姓名')
-    thumbnail = models.ImageField(upload_to=settings.MEDIA_ROOT,max_length=10000,verbose_name=u'照片')
+    thumbnail = models.ImageField(upload_to=settings.MEDIA_ROOT,max_length=256,verbose_name=u'照片')
     born_at = models.DateField(blank=True,null=True,verbose_name=u'出生年月')
     addresss = models.CharField(max_length=64,blank=True,verbose_name=u'地址')
     descript = models.CharField(max_length=128,blank=True,verbose_name=u'说明')
@@ -17,5 +17,11 @@ class Joiner(models.Model):
     
     class Meta:
         db_table = 'game_joiner'
-        verbose_name = u'参与人员'
-        verbose_name_plural = u'参与人员列表'
+        verbose_name = u'活动抽奖'
+        verbose_name_plural = u'活动抽奖人员列表'
+
+    @property
+    def thumbnail_link(self):
+        if self.thumbnail.name.startswith(('https://','http://')):
+            return self.thumbnail.name
+        return settings.MEDIA_URL + self.thumbnail.name.split('/')[-1]
