@@ -269,11 +269,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         target_date_end = target_date + datetime.timedelta(days=1)
         qses = queryset.filter(shoptime__gte=target_date, shoptime__lte=target_date_end,
                                status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND))
-        page = self.paginate_queryset(qses)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(qses, many=True)
         return Response(serializer.data)
 
 
