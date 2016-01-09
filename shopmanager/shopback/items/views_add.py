@@ -177,7 +177,7 @@ class GetSkuDetail(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated,)
     template_name = "items/change_chima.html"
-    
+
     def get(self, request, *args, **kwargs):
         content = request.GET
         searchtext = content.get("search_input")
@@ -299,7 +299,7 @@ class BatchSetTime(generics.ListCreateAPIView):
         target_shelf_date = content.get("shelf_date", datetime.date.today())
         model_id = content.get("model_id", None)
         p_cate_search = content.get("search_cate", None)
-        ex_names = ['小鹿美美','优尼世界']
+        ex_names = ['小鹿美美', '优尼世界']
         parent_categorys = ProductCategory.objects.filter(is_parent=True).exclude(name__in=ex_names)
         p_cates = []
         for parent in parent_categorys:
@@ -333,76 +333,71 @@ class BatchSetTime(generics.ListCreateAPIView):
         return Response({"all_product": products, "target_shelf_date": target_shelf_date, "cates": cates,
                          "ware_by": Product.WARE_CHOICES, "p_cates": p_cates})
 
+    def change_pro_field(self, field, value, pro_list, actioner):
+        """ 修改产品指定字段　"""
+        pros = Product.objects.filter(id__in=pro_list)
+        for pro in pros:
+            pro.__setattr__(field, value)
+            pro.save()
+            log_action(actioner, pro, CHANGE, u'批量设置产品{0}字段为{1}'.format(field, value))
+        return
+
     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
         content = request.POST
-        user = request.user
         target_product = content.get("product_list", None)
         unshelf_time = content.get("unshelf_time", None)
         shelf_time = content.get("shelf_time", None)
         category = content.get("category", None)
         ware_by = content.get("ware_by", None)
         kill_pros = content.get("kill_pros", None)
+        water_pros = content.get("water_pros", None)
+
         kill_pro_list = kill_pros.split(",")
         all_product = target_product.split(",")
+        water_pros_list = water_pros.split(",")
 
+        is_water_pros = [x for x in water_pros_list if x is not u'']
+        kill_pros = [x for x in kill_pro_list if x is not u'']
         result = "设置"
 
-        if kill_pros != "":
-            count = 0
-            for kill in kill_pro_list:
-                if kill != "":
-                    product = Product.objects.get(id=kill)
-                    title = product.title()
-                    if not title.startswith('秒杀'):  # 防止重复添加秒杀
-                        product.name = '秒杀 ' + title
-                        product.save()
-                        log_action(user.id, product, CHANGE, u'批量设置秒杀标题')
-                        count += 1
-            result += " + 秒杀{0}产品".format(count)
+        count = 0
+        for kill in kill_pros:
+            product = Product.objects.get(id=kill)
+            title = product.title()
+            if not title.startswith('秒杀'):  # 防止重复添加秒杀
+                product.name = '秒杀 ' + title
+                product.save()
+                log_action(request.user.id, product, CHANGE, u'批量设置秒杀标题')
+                count += 1
+        result += " + 秒杀{0}产品".format(count)
+        self.change_pro_field('is_watermark', True, is_water_pros, request.user.id)
+
         if len(all_product) == 0:
             return Response({"result": "未选中商品"})
 
         if shelf_time is not None and shelf_time != "":  # 上架时间设置
             try:
-                set_time = datetime.datetime.strptime(shelf_time, '%Y-%m-%d')
+                set_shelf_time = datetime.datetime.strptime(shelf_time, '%Y-%m-%d')
             except:
                 return Response({"result": "设置失败，时间格式错误"})
-
-            for one_product in all_product:
-                product = Product.objects.get(id=one_product)
-                product.sale_time = set_time
-                product.save()
-                log_action(user.id, product, CHANGE, u'批量设置上架时间')
+            self.change_pro_field("sale_time", set_shelf_time, all_product, request.user.id)
             result += "上架日期"
-
         if unshelf_time is not None and unshelf_time != "":  # 下架时间设置
             try:
-                set_time = datetime.datetime.strptime(unshelf_time, '%Y-%m-%d %H:%M:%S')
+                set_unshelf_time = datetime.datetime.strptime(unshelf_time, '%Y-%m-%d %H:%M:%S')
             except:
                 return Response({"result": "设置失败，时间格式错误"})
-            for one_product in all_product:
-                product = Product.objects.get(id=one_product)
-                product.offshelf_time = set_time
-                product.save()
-                log_action(user.id, product, CHANGE, u'批量设置下架时间')
+            self.change_pro_field("offshelf_time", set_unshelf_time, all_product, request.user.id)
             result += " + 下架时间"
 
         if ware_by != "" and ware_by is not None:
-            for one_product in all_product:
-                product = Product.objects.get(id=one_product)
-                product.ware_by = ware_by
-                product.save()
-                log_action(user.id, product, CHANGE, u'批量设置所属仓库')
+            self.change_pro_field("ware_by", ware_by, all_product, request.user.id)
             result += " + 所属仓库"
 
         if category != "" and category is not None:
-            for one_product in all_product:
-                product = Product.objects.get(id=one_product)
-                cate = ProductCategory.objects.get(cid=category)
-                product.category = cate
-                product.save()
-                log_action(user.id, product, CHANGE, u'批量设置所属仓库')
+            cate = ProductCategory.objects.get(cid=category)
+            self.change_pro_field("category", cate, all_product, request.user.id)
             result += " + 产品品类"
         result += " + 成功"
         return Response({"result": result})
