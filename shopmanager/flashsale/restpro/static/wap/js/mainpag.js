@@ -247,7 +247,7 @@ function Create_item_dom(p_obj,close_model){
         if(p_obj.watermark_op)
             pipes.push(p_obj.watermark_op);
         pipes.push('imageMogr2/thumbnail/289/format/jpg/quality/90');
-        p_obj.product_mode.head_img = p_obj.product_model.head_img[0] + '?' + pipes.join('|');
+        p_obj.product_mode.head_img = p_obj.product_model.head_imgs[0] + '?' + pipes.join('|');
         return hereDoc(Model_dom).template(p_obj);
     }
     //上架判断
