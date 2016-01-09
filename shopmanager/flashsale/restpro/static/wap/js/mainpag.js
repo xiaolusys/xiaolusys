@@ -10,13 +10,13 @@ function time(btn) {
         btn.text("获取验证码");
         wait = 60;
     } else {
-        btn.unbind("click")
+        btn.unbind("click");
         btn.text(wait + "秒后重新获取");
         wait--;
         setTimeout(function () {
                 time(btn);
             },
-            1000)
+            1000);
     }
 }
 
@@ -229,8 +229,9 @@ function Create_item_dom(p_obj,close_model){
 	};
 
     p_obj.saleout_dom = '';
+    var pipes = [];
     var today = new Date().Format("yyyy-MM-dd");
-	var is_single_spec = isNone(p_obj.product_model) || p_obj.product_model.is_single_spec == true;
+    var is_single_spec = isNone(p_obj.product_model) || p_obj.product_model.is_single_spec == true;
     //如果没有close model,并且model_product存在并且是多规格
     if (!close_model && is_single_spec == false) {
         if (!p_obj.is_saleopen) {
@@ -242,9 +243,11 @@ function Create_item_dom(p_obj,close_model){
         }else if(p_obj.product_model.is_sale_out && true){
         	p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
         }
-        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0] + '?imageMogr2/thumbnail/289/format/jpg/quality/90';
+
         if(p_obj.watermark_op)
-            p_obj.product_model.head_img += '|' + p_obj.watermark_op;
+            pipes.push(p_obj.watermark_op);
+        pipes.push('imageMogr2/thumbnail/289/format/jpg/quality/90');
+        p_obj.product_mode.head_img = p_obj.product_model.head_img[0] + '?' + pipes.join('|');
         return hereDoc(Model_dom).template(p_obj);
     }
     //上架判断
@@ -262,9 +265,10 @@ function Create_item_dom(p_obj,close_model){
     	p_obj.head_img = p_obj.pic_path;
     }
 
-    p_obj.head_img += '?imageMogr2/thumbnail/289/format/jpg/quality/90';
     if(p_obj.watermark_op)
-        p_obj.head_img += '|' + p_obj.watermark_op;
+        pipes.push(p_obj.watermark_op);
+    pipes.push('imageMogr2/thumbnail/289/format/jpg/quality/90');
+    p_obj.head_img += '?' + pipes.join('|');
     return hereDoc(Item_dom).template(p_obj);
 }
 

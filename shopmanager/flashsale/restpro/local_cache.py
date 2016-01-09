@@ -3,7 +3,7 @@ from common import cacheable
 from qiniu import urlsafe_base64_encode
 
 class ImageWaterMarkCache(cacheable.LocalCacheable):
-    WATERMARK_TPL = 'watermark/1/image/%s/dissovle/50/gravity/NorthWest/ws/0.382'
+    WATERMARK_TPL = 'watermark/1/image/%s/dissovle/50/gravity/Center/dx/0/dy/0/ws/1'
 
     def __init__(self):
         super(ImageWaterMarkCache, self).__init__()

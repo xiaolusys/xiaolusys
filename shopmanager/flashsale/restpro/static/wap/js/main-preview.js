@@ -13,13 +13,13 @@ function time(btn) {
         btn.text("获取验证码");
         wait = 60;
     } else {
-        btn.unbind("click")
+        btn.unbind("click");
         btn.text(wait + "秒后重新获取");
         wait--;
         setTimeout(function () {
                 time(btn);
             },
-            1000)
+            1000);
     }
 }
 
@@ -166,7 +166,7 @@ function Set_posters(suffix) {
                     $('.poster .nvzhuang').attr('href', poster.item_link);
                     $('.poster .nvzhuang img').attr('src', poster.pic_link + "?imageMogr2/thumbnail/289/format/jpg/quality/90");
                     if (poster.subject === 'undifine' || poster.subject === null) {
-                        return
+                        return;
                     }
                     //$('.poster .nvzhuang .subject').html('<span class="tips">'+poster.subject[0]+'</span>'+poster.subject[1]);
                 }
@@ -180,7 +180,7 @@ function Set_posters(suffix) {
                     $('.poster .chaotong').attr('href', poster.item_link);
                     $('.poster .chaotong img').attr('src', poster.pic_link + "?imageMogr2thumbnail/618/format/jpg/quality/95");
                     if (poster.subject === 'undifine' || poster.subject === null) {
-                        return
+                        return;
                     }
                     //$('.poster .chaotong .subject').html('<span class="tips">'+poster.subject[0]+'</span>'+poster.subject[1]);
                 }
@@ -265,7 +265,7 @@ function preview_verify(verify, id, dom, model_id, sale_charger) {
             }
         }
     }
-    return redom
+    return redom;
 }
 
 function verify_categray(id, model_id) {
@@ -361,6 +361,7 @@ function Create_item_dom(p_obj, close_model) {
     };
 
     p_obj.saleout_dom = '';
+    var pipes = [];
     var today = new Date().Format("yyyy-MM-dd");
 
     //如果没有close model,并且model_product存在
@@ -372,9 +373,11 @@ function Create_item_dom(p_obj, close_model) {
                 p_obj.saleout_dom = '<div class="mask"></div><div class="text">已抢光</div>';
             }
         }
-        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0] + '?imageMogr2/thumbnail/289x289/format/jpg/quality/85';
+
         if(p_obj.watermark_op)
-            p_obj.product_model.head_img += '|' + p_obj.watermark_op;
+            pipes.push(p_obj.watermark_op);
+        pipes.push('imageMogr2/thumbnail/289x289/format/jpg/quality/85');
+        p_obj.product_model.head_img = p_obj.product_model.head_imgs[0] + '?' + pipes.join('|');
         return hereDoc(Model_dom).template(p_obj);
     }
 
@@ -391,9 +394,11 @@ function Create_item_dom(p_obj, close_model) {
     if (close_model && true) {
         p_obj.head_img = p_obj.pic_path;
     }
-    p_obj.head_img += '?imageMogr2/thumbnail/289x289/format/jpg/quality/85';
+
     if(p_obj.watermark_op)
-        p_obj.head_img += '|' + p_obj.watermark_op;
+        pipes.push(p_obj.watermark_op);
+    p_obj.push('imageMogr2/thumbnail/289x289/format/jpg/quality/85');
+    p_obj.head_img += '?' + pipes.join('|');
     return hereDoc(Item_dom).template(p_obj);
 }
 
