@@ -112,11 +112,10 @@ class ProductAdmin(MyAdmin):
 
     list_display = ('id', 'outer_id_link', 'pic_link', 'collect_num',
                     'category_select', 'remain_num', 'wait_post_num',
-                    'wait_receive_num', 'cost', 'std_sale_price', 'agent_price',
-                    'model_id', 'sync_stock', 'is_match', 'is_split',
-                    'is_watermark', 'sale_time_select', 'sale_charger',
-                    'ware_select', 'district_link', 'shelf_status',
-                    'sale_time')  #'charger_select',
+                    'lock_num', 'wait_receive_num', 'cost', 'std_sale_price', 
+                    'agent_price', 'model_id', 'sync_stock','is_watermark', 
+                    'sale_time_select', 'sale_charger','ware_select', 
+                    'district_link', 'shelf_status')  #'charger_select',
 
     list_display_links = ('id',)
     #list_editable = ('name',)

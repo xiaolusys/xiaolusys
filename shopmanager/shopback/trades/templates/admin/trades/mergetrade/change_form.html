@@ -10,8 +10,8 @@
     <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
     <script src="{{ STATIC_URL }}jquery/jquery-ui-1.10.1.min.js"></script>
     <script>
-        $(document).ready(function () {
-            jQuery('head').append('<link>');
+    	function init_refund_dialog(){
+    		jQuery('head').append('<link>');
             a = jQuery('head').children(':last');
             a.attr({
                 rel: 'stylesheet',
@@ -47,15 +47,24 @@
             $("#pop_r").click(function () {
                 $("#pop_div").dialog("open");
             });
-
+    	}
+    
+        $(document).ready(function () {
+            
+			init_refund_dialog();
+			
+			//如果页面关闭，则刷新父页
+	    	window.onunload = refreshParent;
+	        function refreshParent() {
+	            window.opener.location.reload();
+	        }
+			
             console.log('is running ...');
-
             $("input[name='_invalid']").click(function (e) {
                 e.preventDefault(); //阻止form 提交动作
                 var commit = $('form');
                 var callback = function (resp,status,xhr) {
-                    if (xhr.status == 302){
-	                    //window.location.reload(true);
+                    if (xhr.status == 200||xhr.status == 301||xhr.status == 302){
 	                    window.close();
                     }else{
                         $(document).empty();
@@ -90,9 +99,8 @@
 
                 return false;
             });
-        })
-        ;
-
+        });
+		
     </script>
 {% endblock extrahead %}
 

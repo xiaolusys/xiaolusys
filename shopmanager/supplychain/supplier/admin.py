@@ -100,7 +100,7 @@ class SaleSupplierAdmin(MyAdmin):
     def charge_link(self, obj):
         if obj.status == SaleSupplier.CHARGED:  # 如果是已经接管
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
-            return u'<a href="/supplychain/supplier/product/?status=selected&sale_supplier={0}"' \
+            return u'<a href="/supplychain/supplier/product/?status=purchase&sale_supplier={0}"' \
                    u' target="_blank">{1}</a>'.format(obj.id, u'[ %s ]' % scharge.employee.username)
 
         if obj.status == SaleSupplier.FROZEN:   # 如果是冻结状态　则显示冻结

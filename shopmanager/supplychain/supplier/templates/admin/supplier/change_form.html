@@ -6,6 +6,12 @@
 <script src="{{ STATIC_URL }}jquery/jquery.js"></script>
 <script>
     $(document).ready(function() {
+    	//如果页面关闭，则刷新父页
+    	function refreshParent() {
+            window.opener.location.reload();
+        }
+    	window.onunload = refreshParent;
+        
     	$('form').submit(function(e){
     		if ( window.location.href.indexOf('_popup') < 0){
     			return true;
@@ -14,8 +20,7 @@
     		var form = $(this);
     		
     		var callback = function(resp,status,xhr){
-    		    if (xhr.status == 302){
-                    //window.location.reload(true);
+    		    if (xhr.status == 200||xhr.status == 301||xhr.status == 302){
                     window.close();
                 }else{
                     $(document).empty();
