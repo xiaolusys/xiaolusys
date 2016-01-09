@@ -105,7 +105,7 @@ function add_chi_ma(obj) {
 function link_sku_size(obj){
     $.each(obj.normal_skus, function (index, sku) {
         if(sku.is_saleout){
-            return
+            return;
         }
         var tableContent = "";
         if (sku.size_of_sku.free_num != "NO") {
@@ -150,7 +150,7 @@ function Set_product_detail(suffix) {
     var requestCallBack = function (data) {
     	$("#loading").hide();
         if (isNone(data.id)) {
-            return
+            return;
         }
         product_model = data.product_model;
         if (isNone(product_model)) {
@@ -159,9 +159,11 @@ function Set_product_detail(suffix) {
         console.log('debug:',product_model);
         //设置商品题头图列表
         //弃用Create_product_topslides函数
-        var slide = data.pic_path + '?imageMogr2/thumbnail/640/format/jpg/quality/90';
+        var pipes = [];
         if(data.watermark_op)
-            slide += '|' + data.watermark_op;
+            pipes.push(data.watermark_op);
+        pipes.push('imageMogr2/thumbnail/640/format/jpg/quality/90');
+        var slide = data.pic_path + '?' + pipes.join('|');
         var slides = ['<div class="swiper-slide"><img src="' + slide + '"></div>'];
         //设置swiper滑动图片
         swiper.removeAllSlides();
@@ -267,7 +269,7 @@ function Create_item() {
     var sku = $("#js-goods-size .active");
     var sku_id = sku.eq(0).attr("sku_id");
     var num = 1;
-    var requestUrl = GLConfig.baseApiUrl + "/carts"
+    var requestUrl = GLConfig.baseApiUrl + "/carts";
     var requestCallBack = function (res) {
         Set_shopcarts_num();
     };
@@ -285,7 +287,7 @@ function Create_item() {
             	var errmsg = $.parseJSON(data.responseText).detail;
             	drawToast(errmsg);
                 if(errmsg == "商品库存不足"){
-                    setTimeout(reload,1000)
+                    setTimeout(reload, 1000);
                 }
             }
         }

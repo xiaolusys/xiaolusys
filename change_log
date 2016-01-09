@@ -1,3 +1,6 @@
+######## 2016-01-04 ########
+alter table shop_items_product add column is_watermark tinyint(1) default 0;
+
 ############2015-12-26#####################
 alter table flashsale_trade add `extras_info` varchar(256) NOT NULL DEFAULT '{}';
 
@@ -814,7 +817,3 @@ alter table shop_item change column modified modified datetime DEFAULT NULL;
 alter table shop_item change column list_time list_time datetime DEFAULT NULL;
 
 alter table shop_item change column delist_time delist_time datetime DEFAULT NULL;
-
-
-######## 2015-01-04 ########
-alter table shop_items_product add column is_watermark tinyint(1) default 0;

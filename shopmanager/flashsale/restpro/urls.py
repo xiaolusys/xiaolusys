@@ -56,7 +56,7 @@ router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 
 router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
 # router.register(r'carrylog', views_xlmm.CarryLogViewSet)
-# router.register(r'cashout', views_xlmm.CashOutViewSet)
+router.register(r'cashout', views_xlmm.CashOutViewSet)
 # router.register(r'clickcount', views_xlmm.ClickCountViewSet)
 router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
 router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
