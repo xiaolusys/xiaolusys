@@ -119,6 +119,9 @@
                     <td width="5%" style="color: red">秒杀
                         <input type="checkbox" id="sec_kill_products" style="width: 25px;height: 25px">
                     </td>
+                    <td width="5%" style="color: blue">水印
+                        <input type="checkbox" id="is_watermark" style="width: 25px;height: 25px">
+                    </td>
                     <td>忽略</td>
                     </thead>
                     {% for product in all_product %}
@@ -141,6 +144,10 @@
                             </td>
                             <td>
                                 <input type="checkbox" class="sec_kill_products" kill_product_id="{{ product.id }}"
+                                       style="width: 25px;height: 25px;"/>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="is_watermark" is_watermark="{{ product.id }}"
                                        style="width: 25px;height: 25px;"/>
                             </td>
                             <td>
@@ -189,6 +196,14 @@
             }
         });
 
+        $("#is_watermark").bind("click", function () {
+            if ($("#is_watermark").prop("checked")) {
+                $(".is_watermark").attr("checked", true);
+            } else {
+                $(".is_watermark").attr("checked", false);
+            }
+        });
+
 
         $("#set_target").bind("click", function () {
             var all_product = $(".my_product");
@@ -208,6 +223,17 @@
                     kill_pros += tp_pro.attr("kill_product_id") + ","
                 }
             });
+
+            var water = $(".is_watermark");
+            var water_pros = "";
+            $.each(water, function (i, tt) {
+                var w = water.eq(i);
+                if (w.prop("checked")) {
+                    water_pros += w.attr("is_watermark") + ",";
+                }
+            });
+            console.log("water_pros:", water_pros);
+
             var unshelf_time = $("#unshelf_time").val();//下架时间
             var shelf_time = $("#shelf_time").val();//上架时间
             var category = $("#pro_category").val();//类别
@@ -236,7 +262,8 @@
                 "shelf_time": shelf_time,
                 "category": category,
                 "ware_by": ware_by,
-                "kill_pros": kill_pros
+                "kill_pros": kill_pros,
+                "water_pros": water_pros
             };
 
             $.ajax({

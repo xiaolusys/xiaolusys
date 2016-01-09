@@ -16,7 +16,7 @@ class LuckyAwardView(APIView):
     
 #     authentication_classes = (authentication.TokenAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer,renderers.TemplateHTMLRenderer)
+    renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "awards/index.html"
     
     def get(self,request):

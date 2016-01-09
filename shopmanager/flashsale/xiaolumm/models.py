@@ -303,6 +303,9 @@ class XiaoluMama(models.Model):
         
         if ROI_CLICK_START <= day_date < datetime.date(2015,11,1):
             return 10
+        
+        if day_date > datetime.date(2016,1,5):
+            return 10
         return 0
 #         agency_level = agency_levels[0]
 #         if not day_date or day_date < ROI_CLICK_START:

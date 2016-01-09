@@ -22,6 +22,8 @@ from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
 from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
 from .models import SupplierZone
+from shopback.items.models import  Product
+
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -293,7 +295,7 @@ admin.site.register(SupplierZone, SupplierZoneAdmin)
 
 class SaleProductAdmin(MyAdmin):
     category_list = []
-    list_display = ('outer_id_link', 'pic_link', 'title_link', 'on_sale_price', 'std_sale_price', 'supplier_link','category_select',
+    list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'on_sale_price', 'std_sale_price', 'supplier_link','category_select',
                     'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'created')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
@@ -333,7 +335,10 @@ class SaleProductAdmin(MyAdmin):
             #                              u'加入样品库')
             test_link += u'<br><br><a href="/static/add_item.html?supplier_id={0}&saleproduct={1}" class="btn" target="_blank" >{2}</a>' \
                          u'<a href="/supplychain/supplier/bdproduct/{1}/" class="btn" target="_blank" >{3}</a>'
-            test_link = test_link.format(obj.sale_supplier.id, obj.id, u'加入库存商品', u'关联库存商品')
+            history_sale = u'加入库存商品'
+            if Product.objects.filter(sale_product=obj.id).exists():
+                history_sale = u'<span style="color:red">加入库存商品</span>'
+            test_link = test_link.format(obj.sale_supplier.id, obj.id, history_sale, u'关联库存商品')
         test_link += u'</div>'
 
         return test_link
@@ -345,7 +350,7 @@ class SaleProductAdmin(MyAdmin):
 
         categorys = self.category_list
         cat_list = ["<select class='sale_category_select' spid='%s'>" % obj.id]
-        cat_list.append("<option value=''>-------------------</option>")
+        cat_list.append("<option value=''>------------</option>")
         for cat in categorys:
             if obj and obj.sale_category == cat:
                 cat_list.append("<option value='%s' selected>%s</option>" % (cat.id, cat))
@@ -393,7 +398,7 @@ class SaleProductAdmin(MyAdmin):
                 html = u''
         except HotProduct.MultipleObjectsReturned:
             html = u'<br><br><a class="btn" target="_blank" href="/admin/supplier/hotproduct/?proid={0}">查看爆款</a>'.format(obj.id)
-        return (u'<div style="width:350px;"><div class="well well-content">{0}</div></div>{1}').format(obj.title,html)
+        return (u'<div style="width:150px;"><div class="well well-content">{0}</div></div>{1}').format(obj.title,html)
 
     title_link.allow_tags = True
     title_link.short_description = u"标题"
@@ -417,10 +422,10 @@ class SaleProductAdmin(MyAdmin):
         # 只有通过　和排期状态的才可以修改该时间
         if obj.status in (SaleProduct.PURCHASE,SaleProduct.PASSED,SaleProduct.SCHEDULE):
             if obj.sale_time is None:
-                s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
+                s ='<input type="text" id="{0}" style="width:100px" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
             else:
                 sale_time = obj.sale_time.strftime("%y-%m-%d")
-                s ='<input type="text" id="{0}" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
+                s ='<input type="text" id="{0}" style="width:100px" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
         else:
             s = "非可排期状态"
         return s
@@ -490,6 +495,14 @@ class SaleProductAdmin(MyAdmin):
 
     select_Contactor.allow_tags = True
     select_Contactor.short_description = u"接洽人"
+
+    def memo_display(self, obj):
+        res = ''
+        if obj.memo != u'':
+            res = u'<div style="width:150px;"><div class="well well-content">{0}</div></div>'.format(obj.memo)
+        return res
+    memo_display.allow_tags = True
+    memo_display.short_description = u"备注"
     
     class Media:
         css = {

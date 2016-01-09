@@ -39,6 +39,7 @@ input,label,button{
     float:left;
     width:125px;
     height:110px;
+    overflow:hidden;
     margin-top:15px;
     margin-right:20px;
     padding:5px 5px;
@@ -47,6 +48,7 @@ input,label,button{
     float:left;
     width:125px;
     height:110px;
+    overflow:hidden;
     padding:5px 5px;
 }
 
@@ -55,12 +57,13 @@ input,label,button{
 }
 .lottery-ul li img:hover,.award-panel li img:hover{
  width:400px;
+ height:auto;
  position: absolute;
  z-index: 10;
 }
 .ctrl-panel,.award-panel{
     border:1px dashed blue;
-    height:95px;
+    height:115px;
     float:left;
 }
 .ctrl-panel{
@@ -102,7 +105,7 @@ input,label,button{
 	<ul class="lottery-ul">
 	   {% for joiner in joiners %}
 		<li class="lottery-unit lottery-unit-{{forloop.counter}}" joiner="{{joiner.id}}">
-		 <img src="{{joiner.thumbnail}}">
+		 <img src="{{joiner.thumbnail_link}}">
 		</li>
 	   {% endfor %}
 	</ul>

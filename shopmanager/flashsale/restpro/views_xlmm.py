@@ -210,7 +210,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
     - {prefix}[.format]: 获取登陆用户的购买统计记录
     - {prefix}/today_shops　method:get : 当天的购买统计记录
     - {prefix}/days_num?days=[days] method: get : 过去days天每天的推广交易数量
-    - {prefix}/noedaynum_by_days?days=[days] method: get :获取days天前当天的订单数量,没有参数则返回days=0的对应数据
+    - {prefix}/shops_by_day?days=[days] method: get :获取days天前当天的订单数量,没有参数则返回days=0的对应数据
         `shops_num:` 订单数量
     """
     queryset = StatisticsShopping.objects.all()
@@ -245,12 +245,6 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         return tqs
 
     @list_route(methods=['get'])
-    def today_shops(self, request):
-        tqs = self.get_tzone_queryset(days=1, request=request)
-        serializer = self.get_serializer(tqs, many=True)
-        return Response(serializer.data)
-
-    @list_route(methods=['get'])
     def days_num(self, request):
         """ 根据给的天数，返回天数内每天的专属订单的数量　"""
         days = int(request.REQUEST.get('days', 0))
@@ -264,7 +258,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         return Response(d[::-1])
 
     @list_route(methods=['get'])
-    def noedaynum_by_days(self, request):
+    def shops_by_day(self, request):
         """　根据日期参数传该日期的订单数量　"""
         content = request.REQUEST
         days = content.get("days", 0)
@@ -273,9 +267,10 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         today = datetime.date.today()  # 今天日期
         target_date = today - datetime.timedelta(days=days)
         target_date_end = target_date + datetime.timedelta(days=1)
-        num = queryset.filter(shoptime__gte=target_date, shoptime__lte=target_date_end,
-                              status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND)).count()
-        return Response({"shops_num": num})
+        qses = queryset.filter(shoptime__gte=target_date, shoptime__lte=target_date_end,
+                               status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND))
+        serializer = self.get_serializer(qses, many=True)
+        return Response(serializer.data)
 
 
 class CashOutViewSet(viewsets.ModelViewSet):
