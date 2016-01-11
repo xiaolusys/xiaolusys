@@ -308,6 +308,68 @@ function Set_promotes_product(suffix){
     });
 }
 
+function Set_promotes_product_by_paging(suffix){
+	//通过分页获取商品数据，闭包实现
+	var pageNum  = 1;
+	var nextPage = true;
+	var loading  = false;
+	function get_products(suffix){
+		if (nextPage == null){
+		   drawToast("没有更多商品了");
+		   return;
+		};
+		if (loading == true){
+			return;
+		}
+		loading = true;
+	    var promoteUrl = GLConfig.baseApiUrl + suffix + '?page='+pageNum+'&page_size=10';
+	    var promoteCallBack = function (data) {
+            $("#loading").hide();
+            loading = false;
+            // 这里判断　next　的页数　如果大于　pageNum　一样才去加载
+            if (isNone(data.results)) {
+            	nextPage = null;
+            	return;
+            }
+            pageNum += 1;
+            nextPage = data.next;
+            $('.child_zone').hide();
+            $.each(data.results,
+                function (index, p_obj) {
+                    if (p_obj.category.parent_cid == 8 || p_obj.category.cid == 8) {
+                        var item_dom = Create_item_dom(p_obj);
+                        $('.glist .nvzhuang').append(item_dom);
+                    }
+                    else {
+                        // 童装dom　show
+                        $('.child_zone').show();
+                        var child_item_dom = Create_item_dom(p_obj);
+                        $('.glist .chaotong').append(child_item_dom);
+                    }
+                }
+            );
+	    };
+	    // 请求推荐数据
+		$.ajax({
+			type:'get',
+			url:promoteUrl,
+			data:{},
+			dataType:'json',
+	        beforeSend: function () {
+	            $("#loading").show();
+	        },
+			success:promoteCallBack,
+	        error: function (data) {
+	            drawToast("数据没有加载成功！");
+	            $("#loading").hide();
+	            loading = false;
+	        }
+		});
+	}
+	return get_products;
+}
+
+
 function Set_category_product(suffix){
     //获取潮流童装商品
     var promoteUrl = GLConfig.baseApiUrl + suffix;
