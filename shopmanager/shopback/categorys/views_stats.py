@@ -22,13 +22,21 @@ class CategoryStatViewSet(APIView):
         today = datetime.datetime.today()
         df = content.get("df", None)
         dt = content.get("dt", None)
+        category = content.get("choose_category", 0)  # 0 表示全部，　1　表示童装，　2　表示女装
         title = "产品分类统计"
         # 分类童装和女装
         df = datetime.datetime.strptime(df, '%Y-%m-%d') if df is not None else today - datetime.timedelta(days=7)
         dt = datetime.datetime.strptime(dt, '%Y-%m-%d') if dt is not None else today
         queryset = self.queryset.filter(stat_date__gte=df, stat_date__lte=dt)
+        if int(category) == 1:  # 过滤童装
+            category = ProductCategory.objects.filter(parent_cid=5).values('cid')
+            queryset = queryset.filter(category__in=category)
+        elif int(category) == 2:  # 过滤女装
+            category = ProductCategory.objects.filter(parent_cid=8).values('cid')
+            queryset = queryset.filter(category__in=category)
         calcu_value, key_svlues = self.calculate_by_queryset(queryset)
-        return Response({"title": title, "df": df.date(), "dt": dt.date(), "calcu_value": calcu_value, "key_svlues": key_svlues})
+        return Response(
+            {"title": title, "df": df.date(), "dt": dt.date(), "calcu_value": calcu_value, "key_svlues": key_svlues})
 
     def calculate_by_queryset(self, queryset):
         """ 计算 """
