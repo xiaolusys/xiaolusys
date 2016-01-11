@@ -864,19 +864,33 @@ def task_stat_category_inventory_data(date=None):
     target_date = datetime.date.today() - datetime.timedelta(days=1) if date is None else date
     target_from = datetime.datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0)
     target_to = target_from + datetime.timedelta(days=1)
+
+    all_orders = OrderDetail.objects.all().exclude(orderlist__status=OrderList.ZUOFEI)
+
     # 目标日期订货的订货单　订货单明细内容　排除作废的
-    odts_female = OrderDetail.objects.filter(outer_id__startswith='8', orderlist__created=target_date,  # 女装
-                                             ).exclude(orderlist__status=OrderList.ZUOFEI)
-    odts_child = OrderDetail.objects.filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='1')).filter(  # 童装
-                                            orderlist__created=target_date).exclude(orderlist__status=OrderList.ZUOFEI)
+    odts_female = all_orders.filter(outer_id__startswith='8', orderlist__created=target_date)  # 女装
+    odts_child = all_orders.filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='1')).filter(
+        orderlist__created=target_date)  # 童装
+
     c_newly_increased = odts_child.aggregate(t_buy_quantity=Sum('buy_quantity')).get("t_buy_quantity") or 0
-    c_arrived = odts_child.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get("t_arrival_quantity") or 0
-    c_not_arrive = odts_child.aggregate(t_non_arrival_quantity=Sum('non_arrival_quantity')).get(
+
+    # 产品的到货数量和未到货数量会有延迟　
+    the_date = target_date - datetime.timedelta(days=15)
+    odts_child_the_date = all_orders.filter(Q(outer_id__startswith='9') | Q(outer_id__startswith='1')).filter(
+        orderlist__created=the_date)  # 童装
+    c_arrived = odts_child_the_date.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get("t_arrival_quantity") or 0
+    c_not_arrive = odts_child_the_date.aggregate(t_non_arrival_quantity=Sum('non_arrival_quantity')).get(
         "t_non_arrival_quantity") or 0
+
     f_newly_increased = odts_female.aggregate(t_buy_quantity=Sum('buy_quantity')).get("t_buy_quantity") or 0
-    f_arrived = odts_female.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get("t_arrival_quantity") or 0
-    f_not_arrive = odts_female.aggregate(t_non_arrival_quantity=Sum('non_arrival_quantity')).get(
+
+    # 产品的到货数量和未到货数量会有延迟　
+    odts_female_the_date = all_orders.filter(outer_id__startswith='8', orderlist__created=the_date)  # 女装
+    f_arrived = odts_female_the_date.aggregate(t_arrival_quantity=Sum('arrival_quantity')).get("t_arrival_quantity") or 0
+    f_not_arrive = odts_female_the_date.aggregate(t_non_arrival_quantity=Sum('non_arrival_quantity')).get(
         "t_non_arrival_quantity") or 0
+
+
     # 总库存统计 排除优尼世界的产品
     childps = Product.objects.filter(status=Product.NORMAL, collect_num__gt=0).filter(
         Q(outer_id__startswith='9') | Q(outer_id__startswith='1')).exclude(category__cid=1)
@@ -897,17 +911,26 @@ def task_stat_category_inventory_data(date=None):
     inventory_c, state_c = SaleInventoryStat.objects.get_or_create(stat_date=target_date,
                                                                    category=SaleInventoryStat.CHILD)
     inventory_c.newly_increased = c_newly_increased
-    inventory_c.arrived = c_arrived
-    inventory_c.not_arrive = c_not_arrive
+
     inventory_c.inventory = inventory_c_num
     inventory_c.deliver = mos_c_snum
     inventory_c.save()
     inventory_f, state_f = SaleInventoryStat.objects.get_or_create(stat_date=target_date,
                                                                    category=SaleInventoryStat.FEMALE)
     inventory_f.newly_increased = f_newly_increased
-    inventory_f.arrived = f_arrived
-    inventory_f.not_arrive = f_not_arrive
     inventory_f.inventory = inventory_f_num
     inventory_f.deliver = mos_f_snum
     inventory_f.save()
 
+    # 保存十五天前的稳定的到货数据和为到货数据
+    fifth_inventory_c, state_c = SaleInventoryStat.objects.get_or_create(stat_date=the_date,  # 十五天前的记录
+                                                                         category=SaleInventoryStat.CHILD)
+    fifth_inventory_c.arrived = c_arrived
+    fifth_inventory_c.not_arrive = c_not_arrive
+    fifth_inventory_c.save()
+
+    fifth_inventory_f, state_f = SaleInventoryStat.objects.get_or_create(stat_date=the_date,
+                                                                         category=SaleInventoryStat.FEMALE)
+    fifth_inventory_f.arrived = f_arrived
+    fifth_inventory_f.not_arrive = f_not_arrive
+    fifth_inventory_f.save()
