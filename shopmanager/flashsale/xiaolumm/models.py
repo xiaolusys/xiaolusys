@@ -356,6 +356,8 @@ class XiaoluMama(models.Model):
         
     def cashout_able_check(self):
         """ 提现前提条件 点击数了和专属订单数量检查　"""
+        if self.agencylevel not in(self.A_LEVEL, self.VIP_LEVEL) or self.charge_status != self.CHARGED:
+            raise AssertionError(u"身份核实有误无法提现")
         from flashsale.clickrebeta.models import StatisticsShopping
         shopscount = StatisticsShopping.objects.filter(linkid=self.id).count()
         clickcounts = ClickCount.objects.filter(linkid=self.id)

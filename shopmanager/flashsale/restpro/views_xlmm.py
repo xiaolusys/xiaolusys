@@ -17,7 +17,7 @@ from . import serializers
 from django.forms import model_to_dict
 from django.db.models import Sum
 from shopback.base import log_action, ADDITION
-
+from rest_framework.exceptions import APIException
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
     """
@@ -322,7 +322,10 @@ class CashOutViewSet(viewsets.ModelViewSet):
         value = self.cashout_type.get(cash_type)
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
-        cash, payment, could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+        try:
+            cash, payment, could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+        except Exception, exc:
+            raise APIException(u'{0}'.format(exc.message))
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         if queryset.filter(status=CashOut.PENDING).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
             return Response({"code": 3})
