@@ -22,8 +22,8 @@ from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
 from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
 from .models import SupplierZone
-from shopback.items.models import  Product
-
+from shopback.items.models import Product
+from django.contrib.auth.models import User
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -295,8 +295,9 @@ admin.site.register(SupplierZone, SupplierZoneAdmin)
 
 class SaleProductAdmin(MyAdmin):
     category_list = []
-    list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'on_sale_price', 'std_sale_price', 'supplier_link','category_select',
-                    'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'created')
+    list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'librarian_select', 'buyer_select',
+                    'select_Contactor', 'supplier_link', 'category_select',
+                    'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'is_changed', 'created')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -304,9 +305,9 @@ class SaleProductAdmin(MyAdmin):
     date_hierarchy = 'sale_time'
     list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
-                   ('created', DateFieldListFilter))
+                   ('created', DateFieldListFilter), 'librarian', "buyer")
     search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
-    list_per_page = 40
+    list_per_page = 20
 
     # --------设置页面布局----------------
     fieldsets = ((u'客户基本信息:', {
@@ -345,6 +346,36 @@ class SaleProductAdmin(MyAdmin):
 
     outer_id_link.allow_tags = True
     outer_id_link.short_description = u"外部ID"
+
+    def librarian_select(self, obj):
+        select = ['<select class="sale_librarian_select" spid="%s" onchange="sale_librarian_select(this)">' % obj.id]
+        select.append('<option value="">------</option>')
+        users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿采购管理员', u'小鹿采购员'))
+        for user in users:
+            if obj and obj.librarian == user.username:
+                select.append('<option value="{0}" selected>{0}</option>'.format(user.username))
+                continue
+            select.append('<option value="{0}">{0}</option>'.format(user.username))
+        select.append("</select>")
+        return "".join(select)
+
+    librarian_select.allow_tags = True
+    librarian_select.short_description = u"资料员"
+
+    def buyer_select(self, obj):
+        select = ['<select class="sale_buyer_select" spid="%s" onchange="sale_buyer_select(this)">' % obj.id]
+        select.append('<option value="">------</option>')
+        users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿采购管理员', u'小鹿采购员'))
+        for user in users:
+            if obj and obj.buyer == user.username:
+                select.append('<option value="{0}" selected>{0}</option>'.format(user.username))
+                continue
+            select.append('<option value="{0}">{0}</option>'.format(user.username))
+        select.append("</select>")
+        return "".join(select)
+
+    buyer_select.allow_tags = True
+    buyer_select.short_description = u"采购员"
 
     def category_select(self, obj):
 
