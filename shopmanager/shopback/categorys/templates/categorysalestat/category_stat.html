@@ -1,12 +1,19 @@
 {% extends 'line_template.html' %}
 {% block title %} {{ title }} {% endblock %}
 <a>{{ calcu_value }}</a>
-
+{% block container %}
+    <body class="">
+{% endblock %}
 {% block form %}
     <form action="">
 {% endblock %}
 
 {% block form_end %}
+    <select name="choose_category" id="choose_category" style="float: right;margin-top: 20px">
+        <option value="0">全部</option>
+        <option value="1">童装</option>
+        <option value="2">女装</option>
+    </select>
     </form>
 {% endblock %}
 
@@ -18,14 +25,23 @@
         <tr>
             <td>产品分类</td>
             <td>销售数量</td>
+            <td>占比</td>
             <td>销售金额</td>
+            <td>占比</td>
             <td>坑位数量</td>
+            <td>占比</td>
             <td>库存数量</td>
+            <td>占比</td>
             <td>库存金额</td>
+            <td>占比</td>
             <td>进货数量</td>
+            <td>占比</td>
             <td>进货金额</td>
+            <td>占比</td>
             <td>退款数量</td>
+            <td>占比</td>
             <td>退款金额</td>
+            <td>占比</td>
 
             <td>单坑产出</td>
             <td>单坑销量</td>
@@ -34,28 +50,45 @@
         <tr style="color: red">
             <td>总计</td>
             <td>{{ key_svlues.s_sale_num }}</td>
+            <td></td>
             <td>{{ key_svlues.s_sale_amount }}</td>
+            <td></td>
             <td>{{ key_svlues.s_pit_num }}</td>
+            <td></td>
             <td>{{ key_svlues.s_collect_num }}</td>
+            <td></td>
             <td>{{ key_svlues.s_collect_amount }}</td>
+            <td></td>
             <td>{{ key_svlues.s_stock_num }}</td>
+            <td></td>
             <td>{{ key_svlues.s_stock_amount }}</td>
+            <td></td>
             <td>{{ key_svlues.s_refund_num }}</td>
+            <td></td>
             <td>{{ key_svlues.s_refund_amount }}</td>
         </tr>
         </thead>
         {% for i in calcu_value %}
             <tr>
                 <td>{{ i.category }}</td>
-                <td>{{ i.s_sale_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_sale_num_p }}%</td>
-                <td>{{ i.s_sale_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_sale_amount_p }}%</td>
-                <td>{{ i.s_pit_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_pit_num_p }}%</td>
-                <td>{{ i.s_collect_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_collect_num_p }}%</td>
-                <td>{{ i.s_collect_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_collect_amount_p }}%</td>
-                <td>{{ i.s_stock_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_stock_num_p }}%</td>
-                <td>{{ i.s_stock_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_stock_amount_p }}%</td>
-                <td>{{ i.s_refund_num }}&nbsp&nbsp&nbsp&nbsp{{ i.s_refund_num_p }}%</td>
-                <td>{{ i.s_refund_amount }}&nbsp&nbsp&nbsp&nbsp{{ i.s_refund_amount_p }}%</td>
+                <td>{{ i.s_sale_num }}</td>
+                <td>{{ i.s_sale_num_p }}%</td>
+                <td>{{ i.s_sale_amount }}</td>
+                <td>{{ i.s_sale_amount_p }}%</td>
+                <td>{{ i.s_pit_num }}</td>
+                <td>{{ i.s_pit_num_p }}%</td>
+                <td>{{ i.s_collect_num }}</td>
+                <td>{{ i.s_collect_num_p }}%</td>
+                <td>{{ i.s_collect_amount }}</td>
+                <td>{{ i.s_collect_amount_p }}%</td>
+                <td>{{ i.s_stock_num }}</td>
+                <td>{{ i.s_stock_num_p }}%</td>
+                <td>{{ i.s_stock_amount }}</td>
+                <td>{{ i.s_stock_amount_p }}%</td>
+                <td>{{ i.s_refund_num }}</td>
+                <td>{{ i.s_refund_num_p }}%</td>
+                <td>{{ i.s_refund_amount }}</td>
+                <td>{{ i.s_refund_amount_p }}%</td>
 
                 <td>{{ i.sigle_output }}</td>
                 <td>{{ i.sigle_sale }}</td>
