@@ -13,7 +13,7 @@ from shopback import paramconfig as pcfg
 from common.utils import update_model_fields,single_instance_task
 import logging
 
-logger = logging.getLogger('smsmgr.handler')
+logger = logging.getLogger('celery.handler')
 
 POST_NOTIFY_TITLE = '订单发货客户提示'
 
@@ -191,7 +191,6 @@ def task_register_code(mobile, send_type="1"):
     except:
         return
     try:
-
         register_v = Register.objects.get(vmobile=mobile)
         if send_type == "1":
             content = u"注册验证码为：" + register_v.verify_code + "，请在页面输入完成验证。如非本人操作请忽略。 --小鹿美美"

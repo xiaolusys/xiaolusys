@@ -568,7 +568,7 @@ class ProductAdmin(MyAdmin):
     def get_product_logsign(self, product):
         return '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(
             product.collect_num, product.wait_post_num, product.remain_num,
-            product.lock_num)
+            product.wait_post_num)
 
     #更新商品库存数至预留数
     def update_quantity2remain_action(self, request, queryset):

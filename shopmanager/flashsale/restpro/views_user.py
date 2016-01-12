@@ -51,26 +51,26 @@ def check_day_limit(reg_bean):
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
-    ### 特卖平台 用户注册,修改密码API：　
+    ## 特卖平台 用户注册,修改密码API：　
     
-    - /[.format]: `params={vmobile}` 注册新用户时，获取验证码;
-    > 返回参数result：0-已经注册了;1-180秒不能重复发送;２－验证次数达上限;OK-表示获取成功;
-    - /check_code_user: `params={username,valid_code}` 校验验证码（旧）;
-    > 返回参数result：0-已经注册了;1-验证码过期或不对;２－参数格式不对;３-未获取验证码;7-注册成功;
-    - /change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
-    > 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－当日验证次数超过上限;３-验证码过期;
-    - /change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
-    > 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－验证码不对;３-未获取验证码;４-验证码过期;５-校验异常;
-    - /customer_login: `params={username,password}`　用户名，密码登陆
-    >返回参数code:0-登陆成功;1－参数不对；２－密码错误；３－用户未找到；4－账号异常；５-用户未设置密码；6－系统异常；
-    - /wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
-    >返回参数code:0-登陆成功;1－签名错误；２－非法用户；
-    - /check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
-    > 返回参数code：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
-    - /send_code: ｛mobile,｝ ,获取登录验证码;
-    > 返回参数code：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
-    - /sms_login: ｛mobile,sms_code｝ ,通过验证码登录;
-    > 返回参数code：0-获取成功;1-登录验证失败;２－手机号码不合法;3-验证码有误;
+    > ### /[.format]: `params={vmobile}` 注册新用户时，获取验证码;
+    - 返回参数result：0-已经注册了;1-180秒不能重复发送;２－验证次数达上限;OK-表示获取成功;
+    > ### /check_code_user: `params={username,valid_code}` 校验验证码（旧）;
+    - 返回参数result：0-已经注册了;1-验证码过期或不对;２－参数格式不对;３-未获取验证码;7-注册成功;
+    > ### /change_pwd_code: `params={vmobile}` 修改密码时，获取验证码api;
+    - 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－当日验证次数超过上限;３-验证码过期;
+    > ### /change_user_pwd: `params={username,valid_code,password1,password2}` 提交修改密码api;
+    - 返回参数result：0-验证码获取成功;1-尚无用户或者手机未绑定;２－验证码不对;３-未获取验证码;４-验证码过期;５-校验异常;
+    > ### /customer_login: `params={username,password}`　用户名，密码登陆
+    - 返回参数code:0-登陆成功;1－参数不对；２－密码错误；３－用户未找到；4－账号异常；５-用户未设置密码；6－系统异常；
+    > ### /wxapp_login: `params={headimgurl,nickname,openid,unionid}`　微信app授权登陆
+    - 返回参数code:0-登陆成功;1－签名错误；２－非法用户；
+    > ### /check_vcode: ｛mobile,vcode｝ ,校验验证码（新）;
+    - 返回参数code：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
+    > ### /send_code: ｛mobile,｝ ,获取登录验证码;
+    - 返回参数code：0-获取成功;1-验证码过期或超次;２－手机号码不合法;
+    > ### /sms_login: ｛mobile,sms_code｝ ,通过验证码登录;
+    - 返回参数code：0-获取成功;1-登录验证失败;２－手机号码不合法;3-验证码有误;
     """
     queryset = Register.objects.all()
     serializer_class = serializers.RegisterSerializer
@@ -412,19 +412,26 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """
-    #### 特卖平台 用户操作API：
-    - {prefix}/profile: 获取用户信息
-    - {prefix}/need_set_info: 获取该用户是否需要设置密码
-        -   yes: 需要设置密码，并且需要绑定手机
-        -   1: 已经有手机，需要设置密码
-        -   no: 不需要设置密码
-    - {prefix}/customer_logout: 用户注销api;
-    - {prefix}/bang_mobile_code: `params={vmobile}`绑定手机时候获取验证码;
-    - {prefix}/bang_mobile: `params={username, password1, password2, valid_code}`绑定手机;
-    - {prefix}/passwd_set: `params={password1, password2}`初始化密码;
-    - {prefix}/change_pwd_code: 修改密码时获取验证码;
-    - {prefix}/change_user_pwd: `params={username, password1, password2}`提交修改密码;
-    - {prefix}/check_code: `params={username, valid_code}`验证码判断、验证码过时功能;
+    ## 特卖平台 用户操作API：
+    > ###/profile: 获取用户信息;
+    >
+    > ###/need_set_info: 获取该用户是否需要设置密码;
+    - code: 0,不需要设置密码;1: 已经有手机，需要设置密码;2:需要设置密码，并且需要绑定手机;
+    >
+    > ### /customer_logout: 用户注销api;
+    - code: 0,退出成功；
+    > ### /bang_mobile_code: `params={vmobile}`绑定手机时候获取验证码;
+    - code: 0,发送成功；1,手机号码已注册；２，当日验证超过５次；３，180s已发过验证码；４，手机号码不对；
+    > ### /bang_mobile: `params={username, password1, password2, valid_code}`绑定手机;
+    - code: 0,退出成功；1,手机已经绑定;2,手机号码不对;3,验证码不对;4,验证码过期;5,系统异常;
+    > ### /passwd_set: `params={password1, password2}`初始化密码;
+    - code: 0,退出成功；1,密码格式不对;
+    > ### /change_pwd_code: 修改密码时获取验证码;
+    - code: 0,退出成功；1,手机号码不对;2,当日验证次数超过5;3,180s内已经发送过;
+    > ### /change_user_pwd: `params={username, password1, password2}`提交修改密码;
+    - code: 0,退出成功；2,手机密码格式不对;3,验证码不对;4,验证码过期;5,系统异常;
+    > ### /check_code: `params={username, valid_code}`验证码判断、验证码过时功能;
+    - code: 0,退出成功；1,已经绑定用户;2,手机验证码不对;3,手机未注册;4,验证码过期;5,验证码不对;
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
@@ -467,7 +474,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def customer_logout(self, request, *args, **kwargs):
         logout(request)
-        return Response({"result": 'logout'})
+        return Response({"code":0, "result": 'logout'})
     
     @list_route(methods=['get'])
     def islogin(self,request, *args, **kwargs):
@@ -487,11 +494,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
         if customer.mobile and len(customer.mobile) == 11:
             if has_set_passwd:
-                return Response({'result': 'no', 'mobile': customer.mobile})
+                return Response({'code':0,'result': 'no', 'mobile': customer.mobile, 'info':''})
             else:
-                return Response({'result': '1', 'mobile': customer.mobile})
+                return Response({'code':1,'result': '1', 'mobile': customer.mobile, 'info':'没有设置密码'})
         else:
-            return Response({'result': 'yes'})
+            return Response({'code': 2, 'result': 'yes', 'info':'没有设置手机号'})
 
 
     @list_route(methods=['post'])
@@ -504,11 +511,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if len(customer.mobile) != 0:
             raise exceptions.APIException(u'账户异常，请联系客服～')
         mobile = request.data['vmobile']
-        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
-            return Response({"result": "false"})
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile): 
+            return Response({"code":4,"result": "false","info":"请输入正确的手机号"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
-            return Response({"result": "1"})  # 手机已经绑定
+            return Response({"code":1,"result": "1","info":"手机已经绑定"})  
 
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
@@ -519,19 +526,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg.save()
             log_action(request.user.id, new_reg, ADDITION, u'新建，绑定手机验证码')
             task_register_code.s(mobile, "3")()
-            return Response({"result": "0"})
+            return Response({"code":0,"result": "0","info":"发送成功"})
         else:
             reg_temp = reg[0]
             if check_day_limit(reg_temp):
-                return Response({"result": "2"})  #当日验证次数超过5
+                return Response({"code":2,"result": "2","info":"当日验证次数超过5"})
             if reg_temp.code_time and reg_temp.code_time > last_send_time:
-                return Response({"result": "3"})  # 180s内已经发送过
+                return Response({"code":3,"result": "3","info":"180s内已经发送过"})
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
             log_action(request.user.id, reg_temp, CHANGE, u'绑定手机获取验证码')
             task_register_code.s(mobile, "3")()
-        return Response({"result": "0"})
+        return Response({"code":0,"result": "0","info":"发送成功"})
 
     @list_route(methods=['post'])
     def bang_mobile(self, request):
@@ -544,29 +551,29 @@ class CustomerViewSet(viewsets.ModelViewSet):
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
                 or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
-            return Response({"result": "2"})
+            return Response({"code":2,"info":"手机号密码不对","result": "2"})
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
-            return Response({"result": "2"})
+            return Response({"code":2,"info":"手机号码不对","result": "2"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
-            return Response({"result": "1"})  # 手机已经绑定
+            return Response({"code":1,"info":"手机已经绑定","result": "1"})
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         if len(customer.mobile) != 0:
             raise exceptions.APIException(u'账户异常，请联系客服～')
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
-            return Response({"result": "3"})  # 验证码不对
+            return Response({"code":3,"info":"验证码不对","result": "3"})  
         reg_temp = reg[0]
         reg_temp.submit_count += 1     #提交次数加一
         reg_temp.save()
         if reg_temp.code_time and reg_temp.code_time < last_send_time:
             log_action(request.user.id, reg_temp, CHANGE, u'验证码过期')
-            return Response({"result": "4"}) #验证码过期
+            return Response({"code":4,"info":"验证码过期","result": "4"}) 
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
             log_action(request.user.id, reg_temp, CHANGE, u'验证码不对')
-            return Response({"result": "3"})  # 验证码不对
+            return Response({"code":3,"info":"验证码不对","result": "3"})  
         try:
             customer.mobile = mobile
             customer.save()
@@ -578,9 +585,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
             system_user = customer.user
             system_user.set_password(passwd1)
             system_user.save()
-        except:
-            return Response({"result": "5"})
-        return Response({"result": "0"})
+        except Exception,exc:
+            logger.error(exc.message or 'empty error',exc_info=True)
+            return Response({"code":5, "result": "5", 'info':exc.message})
+        return Response({"code":0, "result": "0",'info':'success'})
     
     @list_route(methods=['post'])
     def passwd_set(self, request):
@@ -588,7 +596,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         passwd1 = request.data['password1']
         passwd2 = request.data['password2']
         if not passwd1 and not passwd2 and len(passwd1) < 6 and len(passwd2) < 6 and passwd2 != passwd1:
-            return Response({"result": "1"})
+            return Response({"code":1, "result": "1", "info":"密码格式不对"})
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         log_action(request.user.id, customer, CHANGE, u'第一次设置密码成功')
@@ -607,7 +615,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             temp_register.verify_code = temp_register.genValidCode()
             temp_register.save()
             log_action(request.user.id, temp_register, CHANGE, u'已有，初始化密码')
-        return Response({"result": "0"})
+        return Response({"code":0, "result": "0", "info":"success"})
 
     @list_route(methods=['post'])
     def change_pwd_code(self, request):
@@ -617,7 +625,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         if customer.mobile == "" or not re.match(PHONE_NUM_RE, customer.mobile):  # 进行正则判断，待写
-            return Response({"result": "false"})
+            return Response({"code":1,"result": "false", "info":"手机号码不对"})
         reg = Register.objects.filter(vmobile=customer.mobile)
         if reg.count() == 0:
             new_reg = Register(vmobile=customer.mobile)
@@ -628,19 +636,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
             new_reg.save()
             log_action(request.user.id, new_reg, ADDITION, u'登录后，新建，修改密码')
             task_register_code.s(customer.mobile, "2")()
-            return Response({"result": "0"})
+            return Response({"code":0, "result": "0", "info":"success"})
         else:
             reg_temp = reg[0]
             if check_day_limit(reg_temp):
-                return Response({"result": "2"})  #当日验证次数超过5
+                return Response({"code":2, "result": "2", "info":"当日验证次数超过5"})  
             if reg_temp.code_time and reg_temp.code_time > last_send_time:
-                return Response({"result": "3"})  # 180s内已经发送过
+                return Response({"code":3, "result": "3", "info":"180s内已经发送过"})  
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
             log_action(request.user.id, reg_temp, ADDITION, u'登录后，修改密码')
             task_register_code.s(customer.mobile, "2")()
-        return Response({"result": "0"})
+        return Response({"code":0, "result": "0", "info":"success"})
 
     @list_route(methods=['post'])
     def change_user_pwd(self, request):
@@ -654,33 +662,34 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
         if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
                 or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
-            return Response({"result": "2"})
+            return Response({"code":2, "result": "2", "info":"手机密码格式不对"})
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         if customer.mobile != mobile:
-            raise exceptions.APIException(u'手机参数出错')
+            raise exceptions.APIException(u'用户信息异常')
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
-            return Response({"result": "3"})  # 验证码不对
+            return Response({"code":3, "result": "3", "info":"验证码不对"})  
         reg_temp = reg[0]
         reg_temp.submit_count += 1     #提交次数加一
         reg_temp.cus_uid = customer.id
         reg_temp.save()
         log_action(request.user.id, reg_temp, CHANGE, u'修改密码')
         if reg_temp.code_time and reg_temp.code_time < last_send_time:
-            return Response({"result": "4"}) #验证码过期
+            return Response({"code":4, "result": "4", "info":"验证码过期"}) 
 
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
-            return Response({"result": "3"})  # 验证码不对
+            return Response({"code":3, "result": "3", "info":"验证码不对"})  
         try:
             system_user = customer.user
             system_user.set_password(passwd1)
             system_user.save()
             log_action(request.user.id, customer, CHANGE, u'修改密码')
-        except:
-            return Response({"result": "5"})
-        return Response({"result": "0"})
+        except Exception,exc:
+            logger.error(exc.message or 'empty error',exc_info=True)
+            return Response({"code":5, "result": "5", "info":"系统异常"})
+        return Response({"code":0, "result": "0", "info":"success"})
 
 
     @list_route(methods=['post'])
@@ -692,24 +701,25 @@ class CustomerViewSet(viewsets.ModelViewSet):
         verify_code = request.data['valid_code']
 
         if not mobile or not verify_code or len(mobile) == 0 or len(verify_code) == 0:
-            return Response({"result": "2"})  # 输入有误
+            return Response({"code":2, "result": "2", "info":"手机验证码不对"}) 
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
-            return Response({"result": "0"})  # 已经绑定用户
+            return Response({"code":1, "result": "1", "info":"已经绑定用户"})
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
-            return Response({"result": "3"})  # 验证码不对
+            return Response({"code":3, "result": "3", "info":"手机未注册"})  
         reg_temp = reg[0]
         reg_temp.submit_count += 1     #提交次数加一
         reg_temp.cus_uid = customer.id
         reg_temp.save()
         log_action(request.user.id, reg_temp, CHANGE, u'验证码验证')
         if reg_temp.code_time and reg_temp.code_time < last_send_time:
-            return Response({"result": "4"}) #验证码过期
+            return Response({"code":4, "result": "4", "info":"验证码过期"}) 
 
         verify_code_server = reg_temp.verify_code
         if verify_code_server != verify_code:
-            return Response({"result": "3"})  # 验证码不对
-        return Response({"result": "OK"})
+            return Response({"code":5, "result": "5", "info":"验证码不对"})
+        return Response({"code":0, "result": "OK", "info":"success"})
+    
