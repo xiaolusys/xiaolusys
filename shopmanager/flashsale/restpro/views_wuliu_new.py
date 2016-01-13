@@ -102,7 +102,7 @@ class WuliuViewSet(viewsets.ModelViewSet):
         if message is not None:
             return Response(message)
         else:
-            queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(tid=trade.tid).order_by(
+            queryset = self.queryset.filter(tid=trade.tid).order_by(
                 "-time")  # 这里要按照物流信息时间倒序
             if queryset.exists():
                 last_wuliu = queryset[0]
