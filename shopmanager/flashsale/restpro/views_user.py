@@ -423,15 +423,15 @@ class CustomerViewSet(viewsets.ModelViewSet):
     > ### /bang_mobile_code: `params={vmobile}`绑定手机时候获取验证码;
     - code: 0,发送成功；1,手机号码已注册；２，当日验证超过５次；３，180s已发过验证码；４，手机号码不对；
     > ### /bang_mobile: `params={username, password1, password2, valid_code}`绑定手机;
-    - code: 0,退出成功；1,手机已经绑定;2,手机号码不对;3,验证码不对;4,验证码过期;5,系统异常;
+    - code: 0,绑定成功；1,手机已经绑定;2,手机号码不对;3,验证码不对;4,验证码过期;5,系统异常;
     > ### /passwd_set: `params={password1, password2}`初始化密码;
-    - code: 0,退出成功；1,密码格式不对;
+    - code: 0,设置成功；1,密码格式不对;
     > ### /change_pwd_code: 修改密码时获取验证码;
-    - code: 0,退出成功；1,手机号码不对;2,当日验证次数超过5;3,180s内已经发送过;
+    - code: 0,发送成功；1,手机号码不对;2,当日验证次数超过5;3,180s内已经发送过;
     > ### /change_user_pwd: `params={username, password1, password2}`提交修改密码;
-    - code: 0,退出成功；2,手机密码格式不对;3,验证码不对;4,验证码过期;5,系统异常;
+    - code: 0,修改成功；2,手机密码格式不对;3,验证码不对;4,验证码过期;5,系统异常;
     > ### /check_code: `params={username, valid_code}`验证码判断、验证码过时功能;
-    - code: 0,退出成功；1,已经绑定用户;2,手机验证码不对;3,手机未注册;4,验证码过期;5,验证码不对;
+    - code: 0,验证通过；1,已经绑定用户;2,手机验证码不对;3,手机未注册;4,验证码过期;5,验证码不对;
     """
     queryset = Customer.objects.all()
     serializer_class = serializers.CustomerSerializer
