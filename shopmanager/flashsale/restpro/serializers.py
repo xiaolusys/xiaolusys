@@ -405,10 +405,18 @@ class CashOutSerialize(serializers.ModelSerializer):
         fields = ("xlmm", "value_money", "get_status_display", "status", "created")
 
 
-from flashsale.xiaolumm.models_advertis import XlmmAdvertis
+from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
 
 
 class XlmmAdvertisSerialize(serializers.ModelSerializer):
     class Meta:
         model = XlmmAdvertis
         fields = ("title", "cntnt")
+
+
+class NinePicAdverSerialize(serializers.ModelSerializer):
+    pic_arry = JSONParseField()
+
+    class Meta:
+        model = NinePicAdver
+        fields = ("title", "start_time", "turns_num", "pic_arry")
