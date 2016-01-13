@@ -15,7 +15,7 @@ function select_buyter(id) {
         if (res == 'changeok') {
             console.log(res);
         }
-        else if (res=='createok') {
+        else if (res == 'createok') {
             console.log(res);
         }
         else {
@@ -24,4 +24,34 @@ function select_buyter(id) {
     }
 
     $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
+}
+
+//  product/(?P<pk>[0-9]+)/
+function sale_librarian_select(dom) {
+    // 修改资料员
+    var librarian = $(dom).val();
+    var spid = $(dom).attr('spid');
+    var url = "/supplychain/supplier/product_change/" + spid + '/';
+    var data = {"librarian": librarian};
+
+    console.log(librarian, spid);
+    $.ajax({"url": url, "data": data, "success": callback, "type": "post"});
+    function callback(res) {
+        console.log(res);
+    }
+}
+
+
+function sale_buyer_select(dom) {
+    // 修改采购员
+    var buyer = $(dom).val();
+    var spid = $(dom).attr('spid');
+    var url = "/supplychain/supplier/product_change/" + spid + '/';
+    var data = {"buyer": buyer};
+
+    console.log(buyer, spid);
+    $.ajax({"url": url, "data": data, "success": callback, "type": "post"});
+    function callback(res) {
+        console.log(res);
+    }
 }

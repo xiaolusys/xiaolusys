@@ -13,7 +13,7 @@ from flashsale.clickcount.models import ClickCount
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 import logging
-from models_advertis import XlmmAdvertis
+from models_advertis import XlmmAdvertis, TweetAdvertorial
 
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,8,25)
@@ -356,6 +356,8 @@ class XiaoluMama(models.Model):
         
     def cashout_able_check(self):
         """ 提现前提条件 点击数了和专属订单数量检查　"""
+        if self.agencylevel not in(self.A_LEVEL, self.VIP_LEVEL) or self.charge_status != self.CHARGED:
+            raise AssertionError(u"身份核实有误无法提现")
         from flashsale.clickrebeta.models import StatisticsShopping
         shopscount = StatisticsShopping.objects.filter(linkid=self.id).count()
         clickcounts = ClickCount.objects.filter(linkid=self.id)

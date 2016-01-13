@@ -20,6 +20,8 @@ TARGET_TYPE_ORDER_DETAIL = 7
 TARGET_TYPE_AVAILABLE_COUPONS = 8
 # Webview
 TARGET_TYPE_WEBVIEW = 9
+# 小鹿妈妈
+TARGET_TYPE_VIP_HOME = 10
 
 TARGET_PATHS = {
     TARGET_TYPE_HOME_TAB_1: 'app/v1/products/promote_today',
@@ -30,5 +32,6 @@ TARGET_PATHS = {
     TARGET_TYPE_PRODUCT: 'app/v1/products',
     TARGET_TYPE_ORDER_DETAIL: 'app/v1/trades/details',
     TARGET_TYPE_AVAILABLE_COUPONS: 'app/v1/usercoupons/method',
-    TARGET_TYPE_WEBVIEW: 'app/v1/webview'
+    TARGET_TYPE_WEBVIEW: 'app/v1/webview',
+    TARGET_TYPE_VIP_HOME: 'app/v1/vip_home'
 }

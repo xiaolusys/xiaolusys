@@ -369,3 +369,32 @@ def change_Sale_Time(request):
         return HttpResponse('OK')
     else:
         return HttpResponse('false')
+
+
+from django.shortcuts import get_object_or_404
+from common.utils import update_model_fields
+
+
+class SaleProductChange(APIView):
+    queryset = SaleProduct.objects.all()
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        instance = get_object_or_404(SaleProduct, id=args[0]) if len(args) == 1 else 0
+        if not instance.contactor:
+            instance.contactor = self.request.user
+        index_map = {SaleProduct.SELECTED: 1,
+                     SaleProduct.PURCHASE: 2,
+                     SaleProduct.PASSED: 3,
+                     SaleProduct.SCHEDULE: 4}
+        update_field_labels = []
+        for k, v in request.data.iteritems():
+            k = str(k)
+            if not hasattr(instance, k): continue
+            update_field_labels.append('%s:%s' % (SaleProduct._meta.get_field(k).verbose_name.title(), v))
+            instance.__setattr__(k, v)
+            update_model_fields(instance, update_fields=[k])
+        status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过', u'排期')[index_map.get(instance.status, 0)]
+        log_action(request.user.id, instance, CHANGE, '%s(%s)' % (status_label, ','.join(update_field_labels)))
+        return Response({"ok"})

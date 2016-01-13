@@ -3,6 +3,7 @@
 代理广告处理
 """
 from django.db import models
+from shopback.base.models import JSONCharMyField
 
 
 class XlmmAdvertis(models.Model):
@@ -25,6 +26,21 @@ class XlmmAdvertis(models.Model):
         db_table = 'flashsale_xlmm_advertis'
         verbose_name = u'代理广告表'
         verbose_name_plural = u'代理广告表列表'
+
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.id, self.title)
+
+
+class TweetAdvertorial(models.Model):
+    title = models.CharField(max_length=128, db_index=True, verbose_name=u'推文标题')
+    content = models.TextField(max_length=6400, verbose_name=u'推文文字内容')
+    pic_arry = JSONCharMyField(max_length=6400, null=True, blank=True, verbose_name=u'推文图片')
+    release_date = models.DateField(blank=True, null=True, verbose_name=u"投放日期")
+
+    class Meta:
+        db_table = 'flashsale_xlmm_tweet'
+        verbose_name = u'分享推文表'
+        verbose_name_plural = u'分享推文列表'
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
