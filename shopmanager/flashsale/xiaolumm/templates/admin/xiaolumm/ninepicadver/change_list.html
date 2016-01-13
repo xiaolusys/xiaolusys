@@ -1,0 +1,20 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_static admin_list %}
+{% load url from future %}
+{% load admin_urls %}
+
+{% block object-tools %}
+  {% if has_add_permission %}
+    <ul class="object-tools">
+      {% block object-tools-items %}
+        <li>
+          <a href="/m/adver_nine_pic/" class="historylink" target="_blank">
+            上传九张图
+          </a>
+        </li>
+      {% endblock %}
+    </ul>
+  {% endif %}
+{% endblock %}
+
+

@@ -419,4 +419,4 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = NinePicAdver
-        fields = ("title", "start_time", "turns_num", "pic_arry")
+        fields = ('id', "title", "start_time", "turns_num", "pic_arry")
