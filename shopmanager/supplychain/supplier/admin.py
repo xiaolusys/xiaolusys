@@ -350,12 +350,12 @@ class SaleProductAdmin(MyAdmin):
     def librarian_select(self, obj):
         select = ['<select class="sale_librarian_select" spid="%s" onchange="sale_librarian_select(this)">' % obj.id]
         select.append('<option value="">------</option>')
-        users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿采购管理员', u'小鹿采购员'))
+        users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿买手资料员', ))
         for user in users:
-            if obj and obj.librarian == user.username:
-                select.append('<option value="{0}" selected>{0}</option>'.format(user.username))
+            if obj and obj.librarian == user.get_full_name():
+                select.append('<option value="{0}" selected>{0}</option>'.format(user.get_full_name()))
                 continue
-            select.append('<option value="{0}">{0}</option>'.format(user.username))
+            select.append('<option value="{0}">{0}</option>'.format(user.get_full_name()))
         select.append("</select>")
         return "".join(select)
 
@@ -367,10 +367,10 @@ class SaleProductAdmin(MyAdmin):
         select.append('<option value="">------</option>')
         users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿采购管理员', u'小鹿采购员'))
         for user in users:
-            if obj and obj.buyer == user.username:
-                select.append('<option value="{0}" selected>{0}</option>'.format(user.username))
+            if obj and obj.buyer == user.get_full_name():
+                select.append('<option value="{0}" selected>{0}</option>'.format(user.get_full_name()))
                 continue
-            select.append('<option value="{0}">{0}</option>'.format(user.username))
+            select.append('<option value="{0}">{0}</option>'.format(user.get_full_name()))
         select.append("</select>")
         return "".join(select)
 
