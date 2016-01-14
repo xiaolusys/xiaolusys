@@ -91,7 +91,7 @@
             <h3 class="panel-title">新建区域</h3>
 
             <div class="panel-body">
-                <p>注意：标题可以为空，当时间为空或者格式错误的时候，默认为上传日期的上午十点</p>
+                <p>注意：标题可以为空,注意时间对应轮数的选择</p>
             </div>
         </div>
         <div class="panel-body">
@@ -101,7 +101,7 @@
                     <input type="text" name="date_from" id="title_adv" class="form-control">
                     <span class="input-group-addon" id="date_from">开始时间</span>
                     <input type="text" name="date_from" id="start_ime" readonly="readonly"
-                           class="form-control datepicker"
+                           class="form-control datepicker" value="{{ start_t }}"
                            aria-describedby="basic-addon1">
                 </div>
                 <div class="col-xs-2" style="margin-top: 30px">

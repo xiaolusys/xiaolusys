@@ -28,6 +28,7 @@ class NinepicView(APIView):
             'start_time')
         return Response({"auther": auther, "date": target_day.date(), "today_query": today_query,
                          "target_day_tomorow": target_day_tomorow.date(),
+                         "start_t": target_day_tomorow.strftime("%H:%M:%S"),
                          "category_choices": NinePicAdver.CATEGORY_CHOICE})
 
     def post(self, request):
@@ -42,8 +43,7 @@ class NinepicView(APIView):
         try:
             start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d%H:%M:%S')
         except ValueError:
-            now = datetime.datetime.now()
-            start_time = datetime.datetime(now.year, now.month, now.day, now.hour, now.minute, 0)
+            return Response({"code": 2})
         ninepic = NinePicAdver.objects.create(title=title, start_time=start_time, pic_arry=pic_arry,
                                               turns_num=turns_num, cate_gory=cate_gory,
                                               auther=auther)
