@@ -21,7 +21,7 @@ class NinepicView(APIView):
         today = datetime.date.today()
         auther = request.user.get_full_name()
         monday = today + datetime.timedelta(days=1)
-        today_query = self.queryset.filter(start_time__gte=today, start_time__lte=monday)
+        today_query = self.queryset.filter(start_time__gte=today, start_time__lt=monday)
         return Response({"auther": auther, "date": today, "today_query": today_query})
 
     def post(self, request):

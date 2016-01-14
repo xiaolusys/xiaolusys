@@ -72,7 +72,7 @@
             </div>
             <div class="panel-body">
                 {% for pic in nine.pic_arry %}
-                    <img src="{{ pic }}" style="width: 110px;height: 160px"/>
+                    <img src="{{ pic }}" style="width: 110px;height: 160px;margin-left: 8px"/>
                 {% endfor %}
             </div>
         </div>
@@ -84,18 +84,16 @@
         </div>
         <div class="panel-body">
             <div style="margin-top: 30px">
-                <div class="col-md-4" style="margin-top: 30px">
+                <div class="col-md-2" style="margin-top: 30px">
                     <a id="uploadfile" class="file">选择文件
                         <input class="btn btn-info" type="file" name="poster" id="pickfiles">
                     </a>
                 </div>
-                <div class="input-group col-md-4">
+                <div class="input-group col-md-10">
                     <span class="input-group-addon">标题</span>
-                    <input type="text" name="date_from" id="title_adv" class="form-control">
-                </div>
-                <div class="input-group col-md-4">
+                    <input type="text" name="date_from" id="title_adv" class="form-control" style="width: 500px">
                     <span class="input-group-addon" id="date_from">开始时间</span>
-                    <input type="text" name="date_from" id="start_ime" readonly="readonly"
+                    <input type="text" name="date_from" id="start_ime" readonly="readonly" style="width: 200px"
                            class="form-control datepicker" placeholder="{{ today }}"
                            aria-describedby="basic-addon1">
                 </div>

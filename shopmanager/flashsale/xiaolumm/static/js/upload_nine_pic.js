@@ -45,7 +45,7 @@ $(function () {
 
 function saveLinkDb(nine_pics) {
     console.log("完成上传图片数组：", nine_pics);
-    if (nine_pics.length != 2) {
+    if (nine_pics.length != 9) {
         layer.msg("上传有误,没有9张请重新上传！");
         return
     }

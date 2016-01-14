@@ -51,10 +51,16 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
+    def get_today_queryset(self):
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        queryset = self.queryset.filter(start_time__gte=today, start_time__lt=tomorrow)
+        return queryset
+
     def list(self, request, *args, **kwargs):
         advers = []
         now = datetime.datetime.now()
-        for adver in self.queryset:
+        for adver in self.get_today_queryset():
             if now >= adver.start_time:
                 advers.append(adver)
         serializer = self.get_serializer(advers, many=True)
