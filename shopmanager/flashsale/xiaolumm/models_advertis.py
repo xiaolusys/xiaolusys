@@ -48,16 +48,19 @@ class TweetAdvertorial(models.Model):
 
 class NinePicAdver(models.Model):
     """ 9张图 """
+    Nine_PIC = 9
+    CATEGORY_CHOICE = ((Nine_PIC, u"九张图类型"),)
     auther = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'作者')
-    title = models.CharField(max_length=512, db_index=True, verbose_name=u'九张图标题')
+    title = models.CharField(max_length=512, db_index=True, verbose_name=u'标题')
+    cate_gory = models.IntegerField(choices=CATEGORY_CHOICE, default=Nine_PIC, verbose_name=u"类型")
     pic_arry = JSONCharMyField(max_length=2048, blank=True, null=True, verbose_name=u'图片链接')
     start_time = models.DateTimeField(null=True, blank=True, unique=True, verbose_name=u'开始时间')
     turns_num = models.IntegerField(verbose_name=u'轮数(第几轮)')
 
     class Meta:
         db_table = 'flashsale_xlmm_nine_pic'
-        verbose_name = u'九张图表'
-        verbose_name_plural = u'九张图列表'
+        verbose_name = u'图片推广表'
+        verbose_name_plural = u'图片推广列表'
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)

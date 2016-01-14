@@ -304,7 +304,7 @@ class NinePicAdverAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'title', 'auther', 'turns_num', 'start_time')
     search_fields = ['title', 'id']
-    list_filter = ('start_time', )
+    list_filter = ('start_time', 'cate_gory')
 
 
 admin.site.register(NinePicAdver, NinePicAdverAdmin)

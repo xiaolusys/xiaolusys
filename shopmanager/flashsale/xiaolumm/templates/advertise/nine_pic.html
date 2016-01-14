@@ -52,11 +52,19 @@
 <div class="container">
     <h2 style="margin-top: 30px">上传九张图</h2>
 
+    <div class="alert alert-warning" role="alert">如果要修改请点击＂回后台修改＂，并注意轮数</div>
+
     <h3 style="margin-bottom: 30px">
         <small>
-            <span class="glyphicon glyphicon-dashboard" aria-hidden="true">当前日期：{{ date }}</span>
+            <a href="/m/adver_nine_pic/">今天</a>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="glyphicon glyphicon-dashboard" aria-hidden="true">上传日期：<a
+                    id="current_date">{{ date }}</a></span>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="/m/adver_nine_pic/?target_day={{ target_day_tomorow }}">Next Day</a>
             &nbsp;&nbsp;&nbsp;&nbsp;
             <span class="glyphicon glyphicon-user" aria-hidden="true">当前用户：{{ auther }}　</span>
+            <a href="/admin/xiaolumm/ninepicadver/?start_time__gte={{ date }}&start_time__lt={{ target_day_tomorow }}">回后台修改</a>
         </small>
     </h3>
 
@@ -81,21 +89,32 @@
     <div class="panel panel-primary" style="margin-bottom: 200px">
         <div class="panel-heading">
             <h3 class="panel-title">新建区域</h3>
+
+            <div class="panel-body">
+                <p>注意：标题可以为空，当时间为空或者格式错误的时候，默认为上传日期的上午十点</p>
+            </div>
         </div>
         <div class="panel-body">
             <div style="margin-top: 30px">
+                <div class="input-group col-md-12">
+                    <span class="input-group-addon">标题</span>
+                    <input type="text" name="date_from" id="title_adv" class="form-control">
+                    <span class="input-group-addon" id="date_from">开始时间</span>
+                    <input type="text" name="date_from" id="start_ime" readonly="readonly"
+                           class="form-control datepicker"
+                           aria-describedby="basic-addon1">
+                </div>
+                <div class="col-xs-2" style="margin-top: 30px">
+                    <select name="ware_by" id="category_choices" class="file">
+                        {% for k , v in category_choices %}
+                        <option value="{{ k }}">{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="col-md-2" style="margin-top: 30px">
                     <a id="uploadfile" class="file">选择文件
                         <input class="btn btn-info" type="file" name="poster" id="pickfiles">
                     </a>
-                </div>
-                <div class="input-group col-md-10">
-                    <span class="input-group-addon">标题</span>
-                    <input type="text" name="date_from" id="title_adv" class="form-control" style="width: 500px">
-                    <span class="input-group-addon" id="date_from">开始时间</span>
-                    <input type="text" name="date_from" id="start_ime" readonly="readonly" style="width: 200px"
-                           class="form-control datepicker" placeholder="{{ today }}"
-                           aria-describedby="basic-addon1">
                 </div>
             </div>
         </div>
@@ -116,8 +135,7 @@
 <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
 <script>
     $(document).ready(function () {
-        $("#start_ime").datetimepicker({
-            dateFormat: "yy-mm-dd",
+        $("#start_ime").timepicker({
             timeFormat: "HH:mm:ss"
         });
     });
