@@ -384,7 +384,7 @@ class XiaoluMama(models.Model):
             could_cash_out = leave_cash_out
         if could_cash_out < 0:
             could_cash_out = 0
-        return cash, payment, could_cash_out
+        return could_cash_out
 
 
 # from .clickprice import CLICK_TIME_PRICE

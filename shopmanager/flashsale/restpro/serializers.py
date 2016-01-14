@@ -372,10 +372,11 @@ from flashsale.clickrebeta.models import StatisticsShopping
 
 
 class XiaoluMamaSerialize(serializers.ModelSerializer):
+    coulde_cashout = serializers.FloatField(source='get_cash_iters', read_only=True)
     class Meta:
         model = XiaoluMama
         fields = ("id", "get_cash_display", "charge_status", "agencylevel", "manager", "referal_from", "mobile", "weikefu",
-                  "charge_time")
+                  "charge_time", 'coulde_cashout')
 
 
 class CarryLogSerialize(serializers.ModelSerializer):

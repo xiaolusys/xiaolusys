@@ -323,7 +323,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         try:
-            cash, payment, could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+            could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
         except Exception, exc:
             raise APIException(u'{0}'.format(exc.message))
         queryset = self.filter_queryset(self.get_owner_queryset(request))
