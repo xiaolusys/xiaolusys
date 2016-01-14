@@ -307,7 +307,7 @@ class SaleProductAdmin(MyAdmin):
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
                    ('created', DateFieldListFilter), 'librarian', "buyer")
     search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
-    list_per_page = 20
+    list_per_page = 25
 
     # --------设置页面布局----------------
     fieldsets = ((u'客户基本信息:', {

@@ -234,7 +234,6 @@ class ProductManager(models.Manager):
                 product_sku = ProductSku.objects.get(outer_id=outer_sku_id,
                                                      product__outer_id=outer_id)
                 product_sku.update_wait_post_num(order_num)
-                
             else:
                 product = self.get(outer_id=outer_id)
                 product.update_wait_post_num(order_num)
@@ -295,7 +294,6 @@ class ProductManager(models.Manager):
                 wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id,outer_sku_id)
                 sku.wait_post_num = wait_post_num
                 sku.save()
-
         else:
             outer_sku_id = ''
             wait_post_num = MergeTrade.objects.getProductOrSkuWaitPostNum(outer_id,outer_sku_id)

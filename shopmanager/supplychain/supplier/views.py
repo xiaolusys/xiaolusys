@@ -1,4 +1,5 @@
 # -*- encoding:utf-8 -*-
+import re
 import json
 import time
 from django.conf import settings
@@ -264,7 +265,7 @@ class FetchAndCreateProduct(APIView):
 
     def getItemPic(self, soup):
 
-        container = soup.findAll(attrs={'class': 'container'})
+        container = soup.findAll(attrs={'class':re.compile('^(container|florid-goods-page-container)')})
         for c in container:
             for a in c.findAll('a'):
                 img_src = self.get_img_src(a)

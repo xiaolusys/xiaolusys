@@ -12,9 +12,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from django.contrib.auth.models import Group
 from django.db.models.signals import post_save
-from django.utils.safestring import mark_safe
 
 from shopback.items.models import (Item, Product, ProductSku, ProductLocation,
                                    ItemNumTaskLog, SkuProperty, ProductDaySale,
