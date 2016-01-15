@@ -13,7 +13,7 @@ from flashsale.clickcount.models import ClickCount
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 import logging
-from models_advertis import XlmmAdvertis, TweetAdvertorial
+from models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,8,25)
@@ -386,7 +386,7 @@ class XiaoluMama(models.Model):
             could_cash_out = leave_cash_out
         if could_cash_out < 0:
             could_cash_out = 0
-        return cash, payment, could_cash_out
+        return could_cash_out
 
 
 # from .clickprice import CLICK_TIME_PRICE

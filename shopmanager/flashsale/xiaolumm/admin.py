@@ -287,7 +287,7 @@ class MamaDayStatsAdmin(admin.ModelAdmin):
 admin.site.register(MamaDayStats, MamaDayStatsAdmin)
 
 
-from models_advertis import XlmmAdvertis, TweetAdvertorial
+from models_advertis import XlmmAdvertis, NinePicAdver
 
 
 class XlmmAdvertisAdmin(admin.ModelAdmin):
@@ -300,11 +300,11 @@ class XlmmAdvertisAdmin(admin.ModelAdmin):
 admin.site.register(XlmmAdvertis, XlmmAdvertisAdmin)
 
 
-class TweetAdvertorialAdmin(admin.ModelAdmin):
+class NinePicAdverAdmin(admin.ModelAdmin):
 
-    list_display = ('id', 'title', 'release_date')
+    list_display = ('id', 'title', 'auther', 'turns_num', 'start_time')
     search_fields = ['title', 'id']
-    list_filter = ('release_date', )
+    list_filter = ('start_time', 'cate_gory')
 
 
-admin.site.register(TweetAdvertorial, TweetAdvertorialAdmin)
+admin.site.register(NinePicAdver, NinePicAdverAdmin)

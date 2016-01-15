@@ -76,11 +76,14 @@ class RefundAdmin(admin.ModelAdmin):
 admin.site.register(Refund,RefundAdmin)
   
 from .filters import RefundMonthFilter, BoyGirlWomen
+
+
 class RefundProductAdmin(admin.ModelAdmin):
-    list_display = ('id','outer_id', 'title', 'outer_sku_id','show_Product_Price','buyer_nick','buyer_mobile','buyer_phone','trade_id'
-                    ,'out_sid','company','can_reuse','is_finish','created','modified','memo','select_Reason')
-    list_display_links = ('id','outer_id')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    list_display = ('id', 'outer_id', 'title', 'outer_sku_id', 'show_Product_Price', 'buyer_nick', 'buyer_mobile',
+                    'buyer_phone', 'trade_id_display'
+                    , 'out_sid', 'company', 'can_reuse', 'is_finish', 'created', 'modified', 'memo', 'select_Reason')
+    list_display_links = ('id', 'outer_id')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
     date_hierarchy = 'created'
     #ordering = ['created_at']
@@ -110,6 +113,14 @@ class RefundProductAdmin(admin.ModelAdmin):
             return None
     show_Product_Price.allow_tags = True
     show_Product_Price.short_description = u"出售价格"
+
+    def trade_id_display(self, obj):
+        trade = u'{0}<br><br>' \
+                u'<a href="/admin/trades/mergetrade/?q={0}" target="_blank">订单列表</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
+                u'<a href="/admin/pay/saletrade/?q={0}" target="_blank">特卖订单</a>'.format(obj.trade_id)
+        return trade
+    trade_id_display.allow_tags = True
+    trade_id_display.short_description = u"订单"
 
     def select_Reason(self, obj):
         reason_id = obj.reason
