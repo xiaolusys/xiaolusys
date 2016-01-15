@@ -16,7 +16,7 @@ $(".category_select").live("change", function (e) {
     var data = {
         "csrfmiddlewaretoken": csrf_token,
         "format": "json",
-        "category_id": cat_id
+        "category": cat_id
     };
 
     $.ajax({"url": url, "data": data, "success": callback, "type": "POST"});
