@@ -71,7 +71,7 @@ class ClickCount(models.Model):
     agencylevel = models.IntegerField(default=1, verbose_name=u"类别")
     mobile = models.CharField(max_length=11, verbose_name=u"手机")
     
-    user_num = models.IntegerField(default=0, verbose_name=u'人数')
+    user_num  = models.IntegerField(default=0, verbose_name=u'人数')
     valid_num = models.IntegerField(default=0, verbose_name=u'有效点击人数')
     click_num = models.IntegerField(default=0, verbose_name=u'次数')
     date = models.DateField(db_index=True,verbose_name=u'日期')

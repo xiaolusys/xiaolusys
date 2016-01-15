@@ -192,6 +192,7 @@ class MamaStatsView(View):
         time_to = datetime.datetime(target_date.year, target_date.month, target_date.day, 23, 59, 59)
         
         mobile = wx_user.mobile
+        unionid = unionid or wx_user.unionid
         data   = {}
         try:
             referal_num = XiaoluMama.objects.filter(referal_from=mobile,status=XiaoluMama.EFFECT).count()
@@ -286,7 +287,7 @@ class MamaIncomeDetailView(View):
         if not wx_user.isValid():
             return render_to_response("remind.html",{"openid":openid}, 
                                       context_instance=RequestContext(request))
-        
+        unionid = unionid or wx_user.unionid
         daystr = content.get("day", None)
         today  = datetime.date.today()
         year,month,day = today.year,today.month,today.day
@@ -481,7 +482,7 @@ def logclicks(request, linkid):
     openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET)
 
-    if not valid_openid(openid):
+    if not valid_openid(openid) or not valid_openid(unionid):
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
         return redirect(redirect_url)
     
