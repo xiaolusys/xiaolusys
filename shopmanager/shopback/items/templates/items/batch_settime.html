@@ -33,7 +33,16 @@
             <br/>
             <small>4. 选择上架时间，下架时间，产品类别，仓库点击设置后服务器会提示，注意服务器提示，必要时请点击搜索(同条件搜索)验证修改后的结果是否正确</small>
             <br/>
-            <small>5. 如果要添加某一个产品的秒杀标题，请在选中产品后并勾选秒杀选框．</small>
+            <small>5. 如果要添加某产品的秒杀标题，请在选中产品后并勾选秒杀选框点击设置即可．</small>
+            <br/>
+            <small>6. 如果要删除某产品的秒杀标题，请在选中产品后并勾选秒杀选框点击设置即可．</small>
+        </h3>
+        <h3>特别注意：<br/>
+            <small>1. 当有秒杀标题存在而没有勾选秒杀就点击设置，则将会移除该秒杀标题</small>
+            <br/>
+            <small>2. 打上水印标签后修改其他字段时候没有勾选水印则将删除水印设置</small>
+            <br/>
+            <small>3. 注意配合忽略按钮操作</small>
         </h3>
     </div>
     <div class="row">
@@ -66,22 +75,18 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-xs-2">
+                    <span class="label label-warning">秒杀</span>
+                    <input type="checkbox" id="sec_kill_products" style="width: 25px;height: 25px">
                 </div>
                 <div class="col-xs-2">
+                    <span class="label label-warning">水印</span>
+                    <input type="checkbox" id="is_watermark" style="width: 25px;height: 25px">
                 </div>
                 <div class="col-xs-2">
                     <input type="text" id="shelf_time" class="form-control" readonly/>
                 </div>
                 <div class="col-xs-2">
                     <input type="text" id="unshelf_time" class="form-control" readonly/>
-                </div>
-                <div class="col-xs-2">
-                    <select name="pro_category" id="pro_category">
-                        <option value="" selected="selected">选择品类</option>
-                        {% for  cate in cates %}
-                            <option value="{{ cate.cid }}">{{ cate.full_cate_name }}</option>
-                        {% endfor %}
-                    </select>
                 </div>
                 <div class="col-xs-1">
                     <select name="ware_by" id="setting_ware_by">
@@ -90,6 +95,8 @@
                             <option value="{{ wareid }}">{{ ware }}</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="col-xs-2">
                 </div>
                 <div class="col-xs-1">
                     <input type="button" class="btn btn-danger" id="set_target" value="设置"/>
@@ -101,26 +108,16 @@
                 <table class="table table-bordered table-bordered table-hover table-condensed"
                        style="text-align: center">
                     <thead>
-
-
                     <td width="10%">图片</td>
-
                     <td width="10%">编码-款式</td>
                     <td width="10%">商品名</td>
-
                     <td width="15%">上架日期</td>
                     <td width="20%">下架时间</td>
-
                     <td>类别</td>
                     <td>仓库</td>
+                    <td>水印</td>
                     <td width="5%">勾选
                         <input type="checkbox" id="all_check" style="width: 25px;height: 25px">
-                    </td>
-                    <td width="5%" style="color: red">秒杀
-                        <input type="checkbox" id="sec_kill_products" style="width: 25px;height: 25px">
-                    </td>
-                    <td width="5%" style="color: blue">水印
-                        <input type="checkbox" id="is_watermark" style="width: 25px;height: 25px">
                     </td>
                     <td>忽略</td>
                     </thead>
@@ -138,17 +135,10 @@
                             <td>{{ product.offshelf_time }}</td>
                             <td>{{ product.category.name }}</td>
                             <td>{{ product.get_ware_by_display }}</td>
+                            <td>{{ product.is_watermark }}</td>
                             <td>
                                 <input type="checkbox" class="my_product" data-product-id="{{ product.id }}"
                                        style="width: 25px;height: 25px"/>
-                            </td>
-                            <td>
-                                <input type="checkbox" class="sec_kill_products" kill_product_id="{{ product.id }}"
-                                       style="width: 25px;height: 25px;"/>
-                            </td>
-                            <td>
-                                <input type="checkbox" class="is_watermark" is_watermark="{{ product.id }}"
-                                       style="width: 25px;height: 25px;"/>
                             </td>
                             <td>
                                 <span class="glyphicon glyphicon-trash" aria-hidden="true"
@@ -188,24 +178,8 @@
             }
         });
 
-        $("#sec_kill_products").bind("click", function () {
-            if ($("#sec_kill_products").prop("checked")) {
-                $(".sec_kill_products").attr("checked", true);
-            } else {
-                $(".sec_kill_products").attr("checked", false);
-            }
-        });
-
-        $("#is_watermark").bind("click", function () {
-            if ($("#is_watermark").prop("checked")) {
-                $(".is_watermark").attr("checked", true);
-            } else {
-                $(".is_watermark").attr("checked", false);
-            }
-        });
-
-
         $("#set_target").bind("click", function () {
+            console.log("setting");
             var all_product = $(".my_product");
             var checked_product = "";
 
@@ -215,28 +189,11 @@
                     checked_product += temp_product.attr("data-product-id") + ","
                 }
             });
-            var kill_pro = $(".sec_kill_products");
-            var kill_pros = "";
-            $.each(kill_pro, function (i, tt) {
-                var tp_pro = kill_pro.eq(i);
-                if (tp_pro.prop("checked")) {
-                    kill_pros += tp_pro.attr("kill_product_id") + ","
-                }
-            });
 
-            var water = $(".is_watermark");
-            var water_pros = "";
-            $.each(water, function (i, tt) {
-                var w = water.eq(i);
-                if (w.prop("checked")) {
-                    water_pros += w.attr("is_watermark") + ",";
-                }
-            });
-            console.log("water_pros:", water_pros);
-
+            var add_kill_title = 0;
+            var is_watermark = 0;
             var unshelf_time = $("#unshelf_time").val();//下架时间
             var shelf_time = $("#shelf_time").val();//上架时间
-            var category = $("#pro_category").val();//类别
             var ware_by = $("#setting_ware_by").val();//所选仓库
 
             if (checked_product && checked_product.length != 0) {
@@ -245,27 +202,23 @@
                 swal("您好！", "请选择商品", "warning");
                 return
             }
-
+            if ($("#is_watermark").prop("checked")) {
+                is_watermark = 1;
+            }
+            if ($("#sec_kill_products").prop("checked")) {
+                add_kill_title = 1;
+            }
             var requestUrl = "/items/batch_settime/";
-            var requestCallBack = function (res) {
-                if (res.result == "设置 + 成功") {
-                    swal("注意！", "没有设置任何项", "warning");
-                }
-                else {
-                    swal("您好！", res.result, "warning");
-                }
-            };
-
             var data = {
                 "product_list": checked_product,
-                "unshelf_time": unshelf_time,
-                "shelf_time": shelf_time,
-                "category": category,
-                "ware_by": ware_by,
-                "kill_pros": kill_pros,
-                "water_pros": water_pros
-            };
+                "add_kill_title": add_kill_title,
 
+                "offshelf_time": unshelf_time,
+                "sale_time": shelf_time,
+                "ware_by": ware_by,
+                "is_watermark": is_watermark
+            };
+            console.log("data:", data);
             $.ajax({
                 type: 'post',
                 url: requestUrl,
@@ -273,6 +226,14 @@
                 dataType: 'json',
                 success: requestCallBack
             });
+            function requestCallBack(res) {
+                if (res.code == 0) {
+                    swal("您好！", "设置成功", "warning");
+                }
+                else {
+                    swal("您好！", "系统错误，联系技术处理", "warning");
+                }
+            };
         })
     })()
 </script>
