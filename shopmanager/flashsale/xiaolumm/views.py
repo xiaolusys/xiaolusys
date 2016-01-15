@@ -482,10 +482,10 @@ def logclicks(request, linkid):
     openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET)
 
-    if not valid_openid(openid) or not valid_openid(unionid):
+    if not valid_openid(openid) :
         redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
         return redirect(redirect_url)
-    
+
     click_time = datetime.datetime.now()
     chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
           ctasks.task_Update_User_Click.s())()
