@@ -72,7 +72,7 @@ class WeiXinAPI(object):
         else:
             wx = WeiXinAccount.objects.filter(app_id=appKey)
             if not wx.exists():
-                raise Exception('not found appkey(%S) account'%appKey)
+                raise Exception('not found appkey(%s) account'%appKey)
             self._account  = wx[0]
             self._wxpub_id = self._account.account_id
 

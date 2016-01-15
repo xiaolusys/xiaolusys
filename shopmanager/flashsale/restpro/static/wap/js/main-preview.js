@@ -397,7 +397,7 @@ function Create_item_dom(p_obj, close_model) {
 
     if(p_obj.watermark_op)
         pipes.push(p_obj.watermark_op);
-    p_obj.push('imageMogr2/thumbnail/289x289/format/jpg/quality/85');
+    pipes.push('imageMogr2/thumbnail/289x289/format/jpg/quality/85');
     p_obj.head_img += '?' + pipes.join('|');
     return hereDoc(Item_dom).template(p_obj);
 }

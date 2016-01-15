@@ -12,9 +12,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.forms import TextInput, Textarea
-from django.contrib.auth.models import Group
 from django.db.models.signals import post_save
-from django.utils.safestring import mark_safe
 
 from shopback.items.models import (Item, Product, ProductSku, ProductLocation,
                                    ItemNumTaskLog, SkuProperty, ProductDaySale,
@@ -112,11 +110,10 @@ class ProductAdmin(MyAdmin):
 
     list_display = ('id', 'outer_id_link', 'pic_link', 'collect_num',
                     'category_select', 'remain_num', 'wait_post_num',
-                    'wait_receive_num', 'cost', 'std_sale_price', 'agent_price',
-                    'model_id', 'sync_stock', 'is_match', 'is_split',
-                    'is_watermark', 'sale_time_select', 'sale_charger',
-                    'ware_select', 'district_link', 'shelf_status',
-                    'sale_time')  #'charger_select',
+                    'lock_num', 'wait_receive_num', 'cost', 'std_sale_price', 
+                    'agent_price', 'model_id', 'sync_stock','is_watermark', 
+                    'sale_time_select', 'sale_charger','ware_select', 
+                    'district_link', 'shelf_status')  #'charger_select',
 
     list_display_links = ('id',)
     #list_editable = ('name',)
@@ -569,7 +566,7 @@ class ProductAdmin(MyAdmin):
     def get_product_logsign(self, product):
         return '库存数={0},待发数={1},预留数={2},锁定数={3}'.format(
             product.collect_num, product.wait_post_num, product.remain_num,
-            product.lock_num)
+            product.wait_post_num)
 
     #更新商品库存数至预留数
     def update_quantity2remain_action(self, request, queryset):

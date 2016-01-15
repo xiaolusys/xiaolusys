@@ -14,7 +14,7 @@ function get_user_profile() {
     	if (!isNone(obj.xiaolumm) && !isNone(obj.xiaolumm.id)){
 			$('.userinfo-list').append(
 				'<li><i class="icon icon-qiehuanzhanghao"></i>'+
-				'<a href="http://xiaolu.so/m/m/">小鹿妈妈入口</a>'.template(obj.xiaolumm)+
+				'<a href="http://m.xiaolumeimei.com/m/m/">小鹿妈妈入口</a>'.template(obj.xiaolumm)+
 				'<i class="icon-jiantouyou"></i></li>')
     	}
     	var name = obj.nick!=''?obj.nick:(obj.mobile!=""?obj.mobile:'[无名]');

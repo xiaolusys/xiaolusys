@@ -93,6 +93,10 @@ CELERY_ROUTES = {
             'queue': 'frency',
             'routing_key': 'frency.SaveWuliu_only',
         }, #更新物流信息
+        'shopapp.smsmgr.tasks.task_register_code': {
+            'queue': 'frency',
+            'routing_key': 'frency.task_register_code',
+        }, #更新物流信息
         #######################################################
         'shopapp.asynctask.tasks.PrintAsyncTask': {
             'queue': 'async',

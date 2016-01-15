@@ -35,6 +35,7 @@ logger = logging.getLogger('django.request')
 
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
+WEB_SHARE_URL = "{site_url}/index.html?mm_linkid={mm_linkid}&ufrom=web"
 # SHOPURL = "http://m.xiaolumeimei.com/mm/plist/"
 
 def landing(request):
@@ -474,7 +475,8 @@ def logclicks(request, linkid):
     
     user_agent = request.META.get('HTTP_USER_AGENT')
     if not user_agent or user_agent.find('MicroMessenger') < 0:
-        return redirect(settings.M_SITE_URL)
+        share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
+        return redirect(share_url)
     
     openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
                                           secret=settings.WEIXIN_SECRET)

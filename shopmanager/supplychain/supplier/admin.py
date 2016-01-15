@@ -102,7 +102,7 @@ class SaleSupplierAdmin(MyAdmin):
     def charge_link(self, obj):
         if obj.status == SaleSupplier.CHARGED:  # 如果是已经接管
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
-            return u'<a href="/supplychain/supplier/product/?status=selected&sale_supplier={0}"' \
+            return u'<a href="/supplychain/supplier/product/?status=purchase&sale_supplier={0}"' \
                    u' target="_blank">{1}</a>'.format(obj.id, u'[ %s ]' % scharge.employee.username)
 
         if obj.status == SaleSupplier.FROZEN:   # 如果是冻结状态　则显示冻结
@@ -307,7 +307,7 @@ class SaleProductAdmin(MyAdmin):
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
                    ('created', DateFieldListFilter), 'librarian', "buyer")
     search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
-    list_per_page = 20
+    list_per_page = 25
 
     # --------设置页面布局----------------
     fieldsets = ((u'客户基本信息:', {
