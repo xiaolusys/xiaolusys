@@ -116,8 +116,8 @@ class RefundProductAdmin(admin.ModelAdmin):
 
     def trade_id_display(self, obj):
         trade = u'{0}<br><br>' \
-                u'<a href="/admin/trades/mergetrade/?q={0}" target="_blank">订单列表</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
-                u'<a href="/admin/pay/saletrade/?q={0}" target="_blank">特卖订单</a>'.format(obj.trade_id)
+                u'<a href="/admin/trades/mergetrade/?q={0}" target="_blank">订单</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' \
+                u'<a href="/admin/pay/salerefund/?q={0}" target="_blank">退款单</a>'.format(obj.trade_id)
         return trade
     trade_id_display.allow_tags = True
     trade_id_display.short_description = u"订单"
