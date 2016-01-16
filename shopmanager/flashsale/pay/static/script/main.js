@@ -1,7 +1,7 @@
 /*global Qiniu */
 /*global plupload */
 /*global FileProgress *free
-/*global hljs */
+ /*global hljs */
 
 
 $(function () {
@@ -53,11 +53,10 @@ $(function () {
 
             }
             ,
-            'Key': function(up, file) {
-                 var timestamp = new Date().getTime();
-                 var key = "TT-" + timestamp;
-                 // do something with key
-                 return key
+            'Key': function (up, file) {
+                var key = FileNameHandler(file.name, 'juhe');
+                // do something with key
+                return key
             }
         }
     });
