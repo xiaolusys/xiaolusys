@@ -54,7 +54,7 @@ $(function () {
             }
             ,
             'Key': function (up, file) {
-                var key = FileNameHandler(file.name, 'juhe');
+                var key = FileNameHandler(file.name, 'TT');
                 // do something with key
                 return key
             }
