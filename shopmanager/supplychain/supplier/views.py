@@ -55,12 +55,8 @@ def chargeSupplier(request, pk):
             result = {'code': 1, 'error_response': ''}
 
     if charged:
-        if supplier.platform == "manualinput":
-            result = {'success': True,
-                      'brand_links': '/supplychain/supplier/line_product/?status=wait&sale_supplier=%s' % pk}
-        else:
-            result = {'success': True,
-                      'brand_links': '/supplychain/supplier/product/?status=wait&sale_supplier=%s' % pk}
+        result = {'success': True,
+                  'brand_links': '/supplychain/supplier/product/?status=wait&sale_supplier=%s' % pk}
 
         log_action(request.user.id, supplier, CHANGE, u'接管品牌')
 
