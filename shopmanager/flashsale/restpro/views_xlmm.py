@@ -19,6 +19,7 @@ from django.db.models import Sum
 from shopback.base import log_action, ADDITION
 from rest_framework.exceptions import APIException
 
+
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
     """
     ### 特卖平台－小鹿妈妈代理API:
@@ -290,7 +291,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    cashout_type = {"c1": 8000, "c2": 20000}
+    cashout_type = {"c1": 100, "c2": 200}
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)

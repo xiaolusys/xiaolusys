@@ -37,7 +37,7 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_name', 'order_amount', 'quantity', 'receiver', 'display_pic', 'created', 'shenhe',
+        'id', 'buyer_name', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'receiver', 'display_pic', 'created', 'shenhe',
         'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
     list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'buyer_name')
@@ -50,6 +50,27 @@ class ordelistAdmin(admin.ModelAdmin):
             return qs
         else:
             return qs.exclude(status='作废')
+
+    def calcu_item_sum_amount(self, obj):
+        amount = 0
+        details = obj.order_list.all()
+        for detail in details:
+            pro = Product.objects.get(id=detail.product_id)
+            amount += detail.buy_quantity * pro.cost
+        return amount
+    calcu_item_sum_amount.allow_tags = True
+    calcu_item_sum_amount.short_description = "录入价"
+
+    def calcu_model_num(self, obj):
+        """计算显示款式数量"""
+        dics = obj.order_list.all().values('outer_id').distinct()
+        se = set()
+        for i in dics:
+            se.add(i['outer_id'][0:11]) if len(i['outer_id']) > 11 else se.add(i['outer_id'])
+        return len(se)
+
+    calcu_model_num.allow_tags = True
+    calcu_model_num.short_description = "款数"
 
     def quantity(self, obj):
         alldetails = OrderDetail.objects.filter(orderlist_id=obj.id)
@@ -155,7 +176,8 @@ class ordelistAdmin(admin.ModelAdmin):
 
     class Media:
         css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
-        js = ("js/admin_js.js", "https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js")
+        js = ("https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
+              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js", "js/admin_js.js")
 
 
 class OrderListChangeList(ChangeList):

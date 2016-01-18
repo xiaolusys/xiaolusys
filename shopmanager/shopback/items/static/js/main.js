@@ -2,7 +2,14 @@
 /*global plupload */
 /*global FileProgress */
 /*global hljs */
-
+function FileNameHandler(file_name, suffix) {
+    // 处理上传字符串将字符串中的非正常字符删除
+    console.log('file_name:',file_name);
+    var name = file_name.replace(/[^\u4E00-\u9FA5\w\.]/g, '');
+    var timestamp = new Date().getTime();// 添加上传时间戳
+    var key = timestamp + name;
+    return suffix + key
+}
 
 $(function () {
     var uploader = Qiniu.uploader({
@@ -65,8 +72,7 @@ $(function () {
             }
             ,
             'Key': function(up, file) {
-                 var timestamp = new Date().getTime();
-                 var key = "TT-" + timestamp + "-" + file.name;
+                 var key = FileNameHandler(file.name, 'salproduct');
                  // do something with key
                  return key
             }
