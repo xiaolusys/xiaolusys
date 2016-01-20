@@ -1,0 +1,162 @@
+{% extends "mama_base.html" %}
+{% block title %} 提现批量审核 {% endblock %}
+
+{% block head_script %}
+    <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet' xmlns="http://www.w3.org/1999/html"
+          xmlns="http://www.w3.org/1999/html"/>
+    <style type="text/css" title="currentStyle">
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
+        @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_table.css";
+    </style>
+
+{% endblock %}
+{% block container %}
+    <div class="page-header container row">
+        <h3>提现批量审核<br><br>
+            <small>
+                <span class="glyphicon glyphicon-user">当前用户{{ user }}</span>
+            </small>
+            <div class="alert alert-info" role="alert" onclick="removethisdiv(this)">
+                <h4>温馨提示：<br>
+                    <small>1. 默认每页显示50条提现记录</small>
+                    <br>
+                    <small>2. 当提现金额大于可提现金额的时提现金额显示红色</small>
+                </h4>
+            </div>
+        </h3>
+    </div>
+    <div class="col-xs-4"><a href="?target_day={{ target_day_yestoday }}">前一天</a></div>
+    <div class="col-xs-4"><span class="glyphicon glyphicon-dashboard"></span>　{{ date }}</div>
+    <div class="col-xs-4">
+        <a href="?target_day={{ target_day_tomorow }}">前一天</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="/admin/xiaolumm/cashout/?status__exact=pending">回后台</a>
+        <button type="button" class="btn btn-success" id="allow_cashout" style="float: right">允许提现</button>
+    </div>
+    <br/>
+
+    <table class="table table-bordered table-striped" id="mytable" style="margin-top:30px">
+        <thead>
+        <tr>
+            <th>妈妈编号</th>
+            <th>手机号</th>
+            <th>总收入</th>
+            <th>总支出</th>
+            <th>可用现金</th>
+            <th>收支差</th>
+            <th>可提现金</th>
+            <th>提现金额</th>
+            <th>忽略</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in data %}
+            <tr class="cashout_info" cid="{{ item.id }}">
+                <td width="150px">
+                    <a class="xlmm_carry" xlmm_id="{{ item.xlmm }}">收支</a>
+                    {{ item.xlmm }}
+                    <a class="xlmm_cashout" xlmm_id="{{ item.xlmm }}">提现</a>
+                </td>
+                <td>{{ item.mobile }}</td>
+                <td>{{ item.sum_carry_in }}</td>
+                <td>{{ item.sum_carry_out }}</td>
+                <td>{{ item.cash }}</td>
+                <td>{{ item.minus }}</td>
+                <td>{{ item.could_cash_out }}</td>
+                {% if item.value > item.could_cash_out %}
+                    <td style="color: red">{{ item.value }}</td>
+                {% else %}
+                    <td>{{ item.value }}</td>
+                {% endif %}
+                <td><span class="glyphicon glyphicon-trash" aria-hidden="true" onclick="remove_this_row(this)"></span>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+        </tfoot>
+    </table>
+
+{% endblock %}
+{% block footer %}
+    <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+    <script type="text/javascript">
+        $("#allow_cashout").click(function () {
+            var requestUrl = '/m/cashout_bathandler/';
+            var allow_cashout = $("#allow_cashout");
+            if (allow_cashout.hasClass('loading')) {
+                return;
+            }
+            allow_cashout.addClass('loading');
+            var cashouts = $(".cashout_info");
+            var cashout_ids = "";
+            $.each(cashouts, function (k, v) {
+                if (k < cashouts.length - 1) {
+                    cashout_ids += $(v).attr("cid") + '-'
+                } else if (k == cashouts.length - 1) {
+                    cashout_ids += $(v).attr("cid")
+                }
+            });
+            if (cashout_ids == "") {
+                layer.confirm('没有提现条目,点击确定后刷新', {
+                    btn: ['确定'] //按钮
+                }, function () {
+                    location.reload();//刷新页面
+                });
+                return
+            }
+            function requestCallBack(res) {
+                allow_cashout.removeClass('loading');
+                if (res.code == 0) {
+                    location.reload();//刷新页面
+                }
+                else if (res.code == 1) {
+                    layer.msg("缺少参数");
+                }
+                else if (res.code == 2) {
+                    layer.msg("没有权限");
+                }
+            }
+
+            layer.confirm('当前列表' + cashouts.length + '记录将通过审核', {
+                btn: ['确定', '取消']
+            }, function () {
+                $.ajax({
+                    type: 'post',
+                    url: requestUrl,
+                    data: {"cashout_ids": cashout_ids},
+                    dataType: 'json',
+                    success: requestCallBack
+                });
+            }, function () {
+                return
+            });
+        });
+
+        function remove_this_row(dom) {
+            $(dom).parent().parent().remove();
+        }
+        $(".xlmm_carry").click(function () {
+            var xlmm_id = $(this).attr('xlmm_id');
+            layer.open({
+                type: 2,
+                title: '收支记录',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['1000px', '50%'],
+                content: '/admin/xiaolumm/cashout/?xlmm=' + xlmm_id
+            });
+        });
+        $(".xlmm_cashout").click(function () {
+            var xlmm_id = $(this).attr('xlmm_id');
+            layer.open({
+                type: 2,
+                title: '提现记录',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['1000px', '50%'],
+                content: '/admin/xiaolumm/cashout/?xlmm=' + xlmm_id
+            });
+        });
+    </script>
+
+{% endblock %}

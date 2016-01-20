@@ -6,7 +6,7 @@ from django.views.generic import TemplateView
 from . import views ,views_duokefu,views_top100_iter,views_xlmminfo,views_order_percent, top_view_api
 from .views_register import MamaRegisterView,MamaConfirmView
 from rest_framework import routers
-from . import views_xlmm_active, views_xlmm_adver
+from . import views_xlmm_active, views_xlmm_adver, views_cashout
 
 urlpatterns = patterns('',
     url(r'^$',views.landing),
@@ -55,6 +55,7 @@ urlpatterns = patterns('',
     url(r'^top/', staff_member_required(top_view_api.TopDataView.as_view()), name="xlmm_tp_api"),
     url(r'^xlmm_active/', staff_member_required(views_xlmm_active.XlmmActive.as_view()), name="xlmm_active"),
     url(r'^adver_nine_pic/', staff_member_required(views_xlmm_adver.NinepicView.as_view()), name="nine_pic"),
+    url(r'^cashout_bathandler/', staff_member_required(views_cashout.CashoutBatView.as_view()), name="cashout_bat"),
 
 
 )
