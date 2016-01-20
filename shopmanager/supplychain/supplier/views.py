@@ -395,3 +395,5 @@ class SaleProductChange(APIView):
         status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过', u'排期')[index_map.get(instance.status, 0)]
         log_action(request.user.id, instance, CHANGE, '%s(%s)' % (status_label, ','.join(update_field_labels)))
         return Response({"ok"})
+    
+    

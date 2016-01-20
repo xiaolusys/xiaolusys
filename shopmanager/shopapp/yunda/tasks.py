@@ -101,7 +101,7 @@ class CancelUnsedYundaSidTask(Task):
     interval_days  = 10 
     
     def getCustomerBySeller(self,seller):
-        return YundaCustomer.objects.get(code=seller.user_code)
+        return YundaCustomer.objects.filter(code=seller.user_code)
         
     def getSourceIDList(self,seller):
         
@@ -134,21 +134,21 @@ class CancelUnsedYundaSidTask(Task):
         if not source_ids:
             return []
         
-        yd_customer = self.getCustomerBySeller(seller)
-        
+        yd_customers = self.getCustomerBySeller(seller)
         cancel_ids = []
-        doc   = search_order(source_ids,
-                             partner_id=yd_customer.qr_id,
-                             secret=yd_customer.qr_code)
-        
-        orders = doc.xpath('/responses/response')
-        for order in orders:
-            status = order.xpath('status')[0].text
-            mail_no = order.xpath('mailno')[0].text
-            order_serial_no = order.xpath('order_serial_no')[0].text
+        for yd_customer in yd_customers:
+            doc   = search_order(source_ids,
+                                 partner_id=yd_customer.qr_id,
+                                 secret=yd_customer.qr_code)
             
-            if self.isCancelable(order_serial_no, mail_no, status):
-                cancel_ids.append(order_serial_no)
+            orders = doc.xpath('/responses/response')
+            for order in orders:
+                status = order.xpath('status')[0].text
+                mail_no = order.xpath('mailno')[0].text
+                order_serial_no = order.xpath('order_serial_no')[0].text
+                
+                if self.isCancelable(order_serial_no, mail_no, status):
+                    cancel_ids.append(order_serial_no)
 
         return cancel_ids
     
