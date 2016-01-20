@@ -51,7 +51,11 @@
         <tbody>
         {% for item in data %}
             <tr class="cashout_info" cid="{{ item.id }}">
-                <td>{{ item.xlmm }}</td>
+                <td width="150px">
+                    <a class="xlmm_carry" xlmm_id="{{ item.xlmm }}">收支</a>
+                    {{ item.xlmm }}
+                    <a class="xlmm_cashout" xlmm_id="{{ item.xlmm }}">提现</a>
+                </td>
                 <td>{{ item.mobile }}</td>
                 <td>{{ item.sum_carry_in }}</td>
                 <td>{{ item.sum_carry_out }}</td>
@@ -131,6 +135,28 @@
         function remove_this_row(dom) {
             $(dom).parent().parent().remove();
         }
+        $(".xlmm_carry").click(function () {
+            var xlmm_id = $(this).attr('xlmm_id');
+            layer.open({
+                type: 2,
+                title: '收支记录',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['1000px', '50%'],
+                content: '/admin/xiaolumm/cashout/?xlmm=' + xlmm_id
+            });
+        });
+        $(".xlmm_cashout").click(function () {
+            var xlmm_id = $(this).attr('xlmm_id');
+            layer.open({
+                type: 2,
+                title: '提现记录',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['1000px', '50%'],
+                content: '/admin/xiaolumm/cashout/?xlmm=' + xlmm_id
+            });
+        });
     </script>
 
 {% endblock %}
