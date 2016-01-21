@@ -4,6 +4,7 @@
 """
 from django.db import models
 from shopback.base.models import JSONCharMyField
+import datetime
 
 
 class XlmmAdvertis(models.Model):
@@ -64,4 +65,13 @@ class NinePicAdver(models.Model):
 
     def __unicode__(self):
         return u'<%s,%s>' % (self.id, self.title)
+
+    def is_share(self):
+        """ 是否可以分享 """
+        now = datetime.datetime.now()  # 现在时间
+        end_clock = datetime.datetime(now.year, now.month, now.day, 14, 0, 0, 0)  # 下架时间
+        yestoday = datetime.date.today() - datetime.timedelta(days=1)  # 昨天
+        if self.start_time.date() == yestoday and now > end_clock:  # 开始时间是昨天　并且是现在是下架以后则不能分享
+            return 0
+        return 1  # 否则可以分享
 

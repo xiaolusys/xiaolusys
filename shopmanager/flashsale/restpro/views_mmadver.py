@@ -44,6 +44,7 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     """
     ### 特卖平台－九张图API:
     - {prefix}[.format] method:get : 获取九张图
+    `could_share`: 标记当前的九张图记录是否可以用来分享
     """
     queryset = NinePicAdver.objects.all()
     serializer_class = serializers.NinePicAdverSerialize
@@ -52,15 +53,15 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_today_queryset(self):
-        today = datetime.date.today()
-        tomorrow = today + datetime.timedelta(days=1)
-        queryset = self.queryset.filter(start_time__gte=today, start_time__lt=tomorrow)
+        yesetoday = datetime.date.today() - datetime.timedelta(days=1)
+        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+        queryset = self.queryset.filter(start_time__gte=yesetoday, start_time__lt=tomorrow)
         return queryset
 
     def list(self, request, *args, **kwargs):
         advers = []
         now = datetime.datetime.now()
-        for adver in self.get_today_queryset():
+        for adver in self.get_today_queryset().order_by('-start_time'):
             if now >= adver.start_time:
                 advers.append(adver)
         serializer = self.get_serializer(advers, many=True)
