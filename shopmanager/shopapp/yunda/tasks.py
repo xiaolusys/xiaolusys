@@ -96,20 +96,21 @@ def post_yunda_service(req_url,data='',headers=None):
 
 
 class CancelUnsedYundaSidTask(Task):
-    
+    """ 取消韵达二维码打单但未发出单号 """
     max_retries   = 3
     interval_days  = 10 
     
     def getCustomerBySeller(self,seller):
         return YundaCustomer.objects.filter(code=seller.user_code)
         
-    def getSourceIDList(self,seller):
+    def getSourceIDList(self,seller,ware_by):
         
         dt  = datetime.datetime.now()
         df  = dt - datetime.timedelta(days=self.interval_days)
         
         trades = MergeTrade.objects.filter(user=seller,
                                            is_qrcode=True,
+                                           ware_by=ware_by,
                                            pay_time__gte=df,
                                            pay_time__lte=dt)
         
@@ -128,27 +129,25 @@ class CancelUnsedYundaSidTask(Task):
         
         return False
         
-    def getCancelIDList(self,seller):
+    def getCancelIDList(self,seller,yd_customer):
         
-        source_ids = self.getSourceIDList(seller)
+        source_ids = self.getSourceIDList(seller,ware_by=yd_customer.ware_by)
         if not source_ids:
             return []
-        
-        yd_customers = self.getCustomerBySeller(seller)
+
         cancel_ids = []
-        for yd_customer in yd_customers:
-            doc   = search_order(source_ids,
-                                 partner_id=yd_customer.qr_id,
-                                 secret=yd_customer.qr_code)
+        doc   = search_order(source_ids,
+                             partner_id=yd_customer.qr_id,
+                             secret=yd_customer.qr_code)
+        
+        orders = doc.xpath('/responses/response')
+        for order in orders:
+            status = order.xpath('status')[0].text
+            mail_no = order.xpath('mailno')[0].text
+            order_serial_no = order.xpath('order_serial_no')[0].text
             
-            orders = doc.xpath('/responses/response')
-            for order in orders:
-                status = order.xpath('status')[0].text
-                mail_no = order.xpath('mailno')[0].text
-                order_serial_no = order.xpath('order_serial_no')[0].text
-                
-                if self.isCancelable(order_serial_no, mail_no, status):
-                    cancel_ids.append(order_serial_no)
+            if self.isCancelable(order_serial_no, mail_no, status):
+                cancel_ids.append(order_serial_no)
 
         return cancel_ids
     
@@ -157,14 +156,12 @@ class CancelUnsedYundaSidTask(Task):
         sellers = Seller.objects.all()
         try:
             for seller in sellers:
-            
-                cancel_ids  = self.getCancelIDList(seller)
-                
-                yd_customer = self.getCustomerBySeller(seller)
-                cancel_order(cancel_ids,
-                             partner_id=yd_customer.qr_id,
-                             secret=yd_customer.qr_code)
-                
+                yd_customers = self.getCustomerBySeller(seller)
+                for yd_customer in yd_customers:
+                    cancel_ids  = self.getCancelIDList(seller,yd_customer)
+                    cancel_order(cancel_ids,
+                                 partner_id=yd_customer.qr_id,
+                                 secret=yd_customer.qr_code)
         except Exception,exc:
             raise self.retry(exc=exc, countdown=RETRY_INTERVAL)
     

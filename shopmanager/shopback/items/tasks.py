@@ -26,6 +26,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 PURCHASE_STOCK_PERCENT = 0.5
+UPDATE_WAIT_POST_DAYS = 20
 
 @task()
 def updateUserItemsTask(user_id):
@@ -181,7 +182,7 @@ def updateUserProductSkuTask(user_id=None,outer_ids=None,force_update_num=False)
     
 
 @task()
-def updateProductWaitPostNumTask(pre_days=3):
+def updateProductWaitPostNumTask(pre_days=UPDATE_WAIT_POST_DAYS):
     """ 更新商品待发数任务 """
     pre_date = datetime.datetime.now() - datetime.timedelta(days=pre_days)
     products = Product.objects.filter(modified__gte=pre_date,status=pcfg.NORMAL)
