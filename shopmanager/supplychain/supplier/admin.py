@@ -323,7 +323,6 @@ class SaleProductAdmin(MyAdmin):
                    )}),)
 
     def outer_id_link(self, obj):
-
         test_link = u'<div style="width:120px;font-size:12px;"><a href="/admin/supplier/saleproduct/{0}/" onclick="return showTradePopup(this);">{1}</a>'.format(
             obj.id, obj.outer_id or '')
 
@@ -541,7 +540,8 @@ class SaleProductAdmin(MyAdmin):
              "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")}
         js = ("jquery/jquery-1.8.13.min.js", "js/admin/adminpopup.js", "js/supplier_change_list.js",
               "js/select_buyer_group.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
-              "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js","js/make_hot.js")
+              "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js","js/make_hot.js")+ \
+              ('//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js','script/qiniu.js',"js/image_productreview.js")
 
     def get_actions(self, request):
         user = request.user

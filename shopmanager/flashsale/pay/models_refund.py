@@ -208,14 +208,14 @@ def buyeridPatch():
         sf.save()
         
 
-def handle_sale_refund_signal(sender,instance,*args,**kwargs):
-    
+def handle_sale_refund_signal(sender,instance,created,*args,**kwargs):
+    """ 特卖退款单生成触发更新库存数及锁定数信号 """
     from .models import SaleTrade
     from shopback import signals
     from shopback.trades.models import MergeOrder
 
     strade = SaleTrade.objects.get(id=instance.trade_id)
-    if (not strade.is_Deposite_Order() and 
+    if (not strade.is_Deposite_Order() and created and
         instance.status == SaleRefund.REFUND_WAIT_SELLER_AGREE):
         signals.order_refund_signal.send(sender=MergeOrder,obj=instance)
 
