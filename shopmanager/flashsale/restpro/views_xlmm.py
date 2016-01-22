@@ -18,6 +18,8 @@ from django.forms import model_to_dict
 from django.db.models import Sum
 from shopback.base import log_action, ADDITION
 from rest_framework.exceptions import APIException
+from options import gen_and_save_jpeg_pic
+import os, settings, urlparse
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -44,6 +46,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    MM_LINKID_PATH = 'mm'
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -67,6 +70,25 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         qst = self.queryset.filter(referal_from=xlmm.mobile)
         serializer = self.get_serializer(qst, many=True)
         return Response(serializer.data)
+
+    def get_share_link(self, params):
+        link = urlparse.urljoin(settings.M_SITE_URL, 'm/{linkid}/')
+        return link.format(**params)
+
+    def gen_xlmm_share_qrcode_pic(self, linkid):
+        root_path = os.path.join(settings.MEDIA_ROOT, self.MM_LINKID_PATH)
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+
+        params = {'linkid': linkid}
+        file_name = 'mm-{linkid}.jpg'.format(**params)
+        file_path = os.path.join(root_path, file_name)
+
+        share_link = self.get_share_link(params)
+        if not os.path.exists(file_path):
+            gen_and_save_jpeg_pic(share_link, file_path)
+
+        return os.path.join(settings.MEDIA_URL, self.MM_LINKID_PATH, file_name)
 
     @list_route(methods=['get'])
     def agency_info(self, request):
@@ -105,8 +127,10 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         all_shop_num = all_shops.count()
         shop_num = all_shops.filter(shoptime__gte=t_from, shoptime__lte=t_to).count()  # 今日订单数量
         mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
+        share_mmcode = self.gen_xlmm_share_qrcode_pic(xlmm.id)
         data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
-                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num}
+                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num,
+                "share_mmcode": share_mmcode}
         return Response(data)
 
 
