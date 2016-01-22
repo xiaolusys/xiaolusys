@@ -136,15 +136,31 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """
-    ## 特卖平台－小鹿妈妈收支记录API:
-    - {prefix}[.format] : 获取登陆用户的收支记录信息
-    - {prefix}/list_base_data　method:get : 账户基本信息页面显示
-        - return :
-        `mci`: 已经确认收入
-        `mco`:　已经确认支出  　
-        `ymci`:　昨天确认收入
-        `ymco`: 昨天确认支出
-        `pdc`: 待确认金额
+    ## 特卖平台－小鹿妈妈收支记录API:  
+    - {prefix}[.format] : 获取登陆用户的收支记录信息  
+        - log_type:  
+            `rebeta`: 订单返利  
+            `buy`: 消费支出  
+            `click`:点击兑现  
+            `refund`:退款返现  
+            `reoff`:退款扣除  
+            `cashout`:钱包提现  
+            `deposit`:押金  
+            `thousand`:千元提成  
+            `subsidy`:代理补贴  
+            `recruit`:招募奖金  
+            `ordred`:订单红包  
+            `flush`:补差额  
+            `recharge`:充值  
+    - {prefix}/list_base_data　method:get : 账户基本信息页面显示   
+        - return :   
+        `mci`: 已经确认收入  
+        `mco`:　已经确认支出   　
+        `ymci`:　昨天确认收入   
+        `ymco`: 昨天确认支出  
+        `pdc`: 待确认金额  
+    - {prefix}/get_carryinlog method: get : 获取用户自己的收入记录  
+
     """
     queryset = CarryLog.objects.all()
     serializer_class = serializers.CarryLogSerialize
@@ -156,6 +172,17 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         return self.queryset.filter(xlmm=xlmm.id)  # 对应的carrylog记录
+
+    @list_route(methods=['get'])
+    def get_carryinlog(self, request):
+        """获取收入内容"""
+        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(carry_type=CarryLog.CARRY_IN))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))

@@ -382,7 +382,7 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
 class CarryLogSerialize(serializers.ModelSerializer):
     class Meta:
         model = CarryLog
-        fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type_name", "carry_date", "created")
+        fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type", "carry_date", "created")
 
 
 class ClickCountSerialize(serializers.ModelSerializer):
