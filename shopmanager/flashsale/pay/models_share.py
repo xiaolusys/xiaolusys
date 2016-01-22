@@ -5,9 +5,11 @@ import datetime
 class CustomShare(models.Model):
     
     SHOP_SHARE = 'shop'
+    MODEL_SHARE = 'model'
     PRODUCT_SHARE = 'product'
     
     SHARE_TYPE = ((SHOP_SHARE,u'店铺分享'),
+                  (MODEL_SHARE,u'款式分享'),
                   (PRODUCT_SHARE,u'商品分享'),)
     
     title   = models.CharField(max_length=64,blank=True,verbose_name=u'分享标题')
@@ -33,23 +35,14 @@ class CustomShare(models.Model):
         return '<%s,%s>'%(self.id,self.title)
     
     @classmethod
-    def get_shop_share(cls):
+    def get_instance_by_type(cls,share_type):
         today = datetime.date.today()
-        shares = cls.objects.filter(status=True,share_type=cls.SHOP_SHARE,
+        shares = cls.objects.filter(status=True,share_type=share_type,
                                     active_at__lte=today).order_by('-active_at')
         if shares.exists():
             return shares[0]
         return None
-    
-    @classmethod
-    def get_product_share(cls):
-        today = datetime.date.today()
-        shares = cls.objects.filter(status=True,share_type=cls.PRODUCT_SHARE,
-                                    active_at__lte=today).order_by('-active_at')
-        if shares.exists():
-            return shares[0]
-        return None
-        
+
     def share_link(self,**params):
         if not params:
             return self.share_url
@@ -72,5 +65,4 @@ class CustomShare(models.Model):
     
 
         
-    
     

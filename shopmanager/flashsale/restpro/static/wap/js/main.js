@@ -419,7 +419,6 @@ function Set_model_product(suffix){
                 var shelf_time = new Date(data[0].sale_time);
                 product_timer(shelf_time);
             }
-            shareDetailPage(data[0].id);
         }
     };
     // 请求推荐数据

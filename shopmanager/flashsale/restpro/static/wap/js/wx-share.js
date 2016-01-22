@@ -9,11 +9,24 @@ function sharePage(){
         data: "",
         success: listenWeixinShareEvent,
         error: function (data) {
-            console.log('需登陆后才能分享专属链接');
+            drawToast('需登陆后才能分享专属链接');
         }
     });
 }
-
+function shareModelPage(model_id){
+//分享店铺链接
+    if (!GLConfig.weixin){return;}
+    var share_url = GLConfig.baseApiUrl + GLConfig.api_share_model;
+    $.ajax({
+        type: "get",
+        url: share_url,
+        data: {model_id:model_id},
+        success: listenWeixinShareEvent,
+        error: function (data) {
+            drawToast('需登陆后才能分享专属链接');
+        }
+    });
+}
 function shareDetailPage(product_id){
 //分享商品链接
     if (!GLConfig.weixin || isNone(product_id)){return;}
@@ -24,7 +37,7 @@ function shareDetailPage(product_id){
         data: {product_id:product_id},
         success: listenWeixinShareEvent,
         error: function (data) {
-            console.log('需登陆后才能分享专属链接');
+            drawToast('需登陆后才能分享专属链接');
         }
     });
 }
