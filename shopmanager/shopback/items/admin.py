@@ -30,7 +30,8 @@ from shopback.base.options import DateFieldListFilter
 from shopback.items.filters import ChargerFilter, DateScheduleFilter, GroupNameFilter, CategoryFilter
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models_custom import Productdetail
-import logging
+from flashsale.pay.forms import ProductdetailForm
+
 from flashsale.dinghuo.models import orderdraft
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from django.contrib.auth.models import User as DjangoUser
@@ -39,6 +40,8 @@ from flashsale.dinghuo import functions2view
 
 from flashsale.dinghuo.models import ReturnGoods, RGDetail
 from supplychain.supplier.models import SaleProduct
+
+import logging
 logger = logging.getLogger('django.request')
 
 
@@ -68,11 +71,23 @@ class ProductSkuInline(admin.TabularInline):
 class ProductdetailInline(admin.StackedInline):
 
     model = Productdetail
-
-    fields = ('head_imgs', 'content_imgs',
-              ('is_seckill', 'is_recommend', 'is_sale', 'order_weight',
-               'mama_discount', 'buy_limit', 'per_limit', 'mama_rebeta'),
-              ('material', 'color'), ('note', 'wash_instructions'))
+    form  = ProductdetailForm
+    
+#     fields = ('head_imgs', 'content_imgs',
+#               ('is_seckill', 'is_recommend', 'is_sale', 'order_weight',
+#                'mama_discount', 'buy_limit', 'per_limit', 'rebeta_scheme_id'),
+#               ('material', 'color'), ('note', 'wash_instructions'))
+    fieldsets = (('题头图内容图及商品参数:', {
+                    'classes': ('collapse',),
+                    'fields':
+                    ('head_imgs', 'content_imgs',
+                     ('material', 'color'), ('note', 'wash_instructions'))
+                }),
+                ('商品销售策略设置', {
+                    'classes': ('expand',),
+                    'fields':
+                    (('is_seckill', 'is_recommend', 'is_sale', 'order_weight','mama_discount', 'buy_limit', 'per_limit', 'rebeta_scheme_id'),)
+                }),)
 
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '50'})},
@@ -311,16 +326,16 @@ class ProductAdmin(MyAdmin):
 
     #--------设置页面布局----------------
     fieldsets = (('商品基本信息:', {
-        'classes': ('expand',),
-        'fields':
-        (('outer_id', 'category'), ('name', 'pic_path'),
-         ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
-          'reduce_num'),
-         ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
-         ('sale_time', 'offshelf_time'),
-         ('cost', 'std_sale_price', 'agent_price'),
-         ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
-    }),
+                    'classes': ('expand',),
+                    'fields':
+                    (('outer_id', 'category'), ('name', 'pic_path'),
+                     ('collect_num', 'warn_num', 'remain_num', 'wait_post_num',
+                      'reduce_num'),
+                     ('lock_num', 'inferior_num', 'std_purchase_price', 'staff_price'),
+                     ('sale_time', 'offshelf_time'),
+                     ('cost', 'std_sale_price', 'agent_price'),
+                     ('status', 'shelf_status', 'model_id', 'sale_product', 'ware_by'))
+                }),
                  ('商品系统设置:', {
                      'classes': ('collapse',),
                      'fields': (('weight', 'sync_stock', 'is_assign',

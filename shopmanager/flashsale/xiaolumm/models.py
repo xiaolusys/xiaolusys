@@ -1,6 +1,7 @@
 #-*- coding:utf-8 -*-
 import datetime
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth.models import User as DjangoUser
 from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
@@ -10,11 +11,10 @@ from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku
 from common.modelutils import update_model_fields
 from flashsale.clickcount.models import ClickCount
-from django.db.models import Sum
-from django.shortcuts import get_object_or_404
-import logging
-from models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
+from .models_rebeta import AgencyOrderRebetaScheme
+from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 
+import logging
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,8,25)
 ORDER_RATEUP_START = datetime.date(2015,7,8)
