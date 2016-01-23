@@ -90,4 +90,5 @@ def url_utf8_quote(link):
     link_tuple = link[link.find(':') + 1:].split('?')
     if len(link_tuple) == 1:
         return '%s:%s'%(req_http,urllib.quote(link_tuple[0]))
-    return '%s:%s?%s'%(req_http,urllib.quote(link_tuple[0]),urllib.quote(link_tuple[1]))
+    encode_params = parse_urlparams(link_tuple[1])
+    return '%s:%s?%s'%(req_http,urllib.quote(link_tuple[0]),urllib.urlencode(encode_params))

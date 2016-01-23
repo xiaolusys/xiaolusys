@@ -30,8 +30,8 @@ class CustomShare(models.Model):
     
     class Meta:
         db_table = 'flashsale_customshare'
-        verbose_name=u'特卖/定制分享'
-        verbose_name_plural = u'特卖/定制分享列表'
+        verbose_name=u'特卖/用户分享设置'
+        verbose_name_plural = u'特卖/用户分享设置'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.title)

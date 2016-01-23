@@ -41,6 +41,14 @@
   //返回顶部
   $(document).on({touchend:scroll_top,click:scroll_top},'#js-scroll-top');
   $('.cart').listencart();
+  $('.back').click(function(){
+    var referer_url = document.referrer.trim();
+    if (isNone(referer_url) || referer_url==''){
+        window.location = adjustPageLink("../index.html");
+    }else{
+        history.go(-1);
+    }
+  })
   //获取同款聚合商品列表
   var urlConf = {'model_id':getUrlParam('id')};
   Set_model_product(GLConfig.get_modellist_url.template(urlConf));
