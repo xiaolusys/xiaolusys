@@ -20,6 +20,7 @@ from shopback.base import log_action, ADDITION
 from rest_framework.exceptions import APIException
 from options import gen_and_save_jpeg_pic
 import os, settings, urlparse
+from flashsale.clickcount.models import Clicks
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -322,9 +323,17 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         d.append(data[0])
         return Response(d[::-1])
 
+    def get_xlmm(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+        return xlmm
+
     @list_route(methods=['get'])
     def shops_by_day(self, request):
-        """　根据日期参数传该日期的订单数量　"""
+        """　
+        根据日期参数传该日期的订单数量　
+        当天点击数量和点击佣金
+        """
         content = request.REQUEST
         days = content.get("days", 0)
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -332,10 +341,19 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         today = datetime.date.today()  # 今天日期
         target_date = today - datetime.timedelta(days=days)
         target_date_end = target_date + datetime.timedelta(days=1)
-        qses = queryset.filter(shoptime__gte=target_date, shoptime__lte=target_date_end,
+        # 获取当天的点击数量
+        xlmm = self.get_xlmm(request)
+        clicks = Clicks.objects.filter(linkid=xlmm.id, click_time__gte=target_date,
+                                       click_time__lt=target_date_end).count()  # 点击数量
+        # 获取当天的点击佣金
+        mmclgs = CarryLog.objects.filter(xlmm=xlmm.id, carry_date=target_date, log_type=CarryLog.CLICK_REBETA,
+                                         status__in=(CarryLog.CONFIRMED, CarryLog.PENDING))  # 点击佣金
+        click_income = mmclgs.aggregate(sum_value=Sum('value')).get('value') or 0
+        click_money = click_income / 100.0 if click_income > 0 else 0
+        qses = queryset.filter(shoptime__gte=target_date, shoptime__lt=target_date_end,
                                status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND))
         serializer = self.get_serializer(qses, many=True)
-        return Response(serializer.data)
+        return Response({'shops': serializer.data, "clicks": clicks, "click_money": click_money})
 
 
 class CashOutViewSet(viewsets.ModelViewSet):
