@@ -1,6 +1,8 @@
 #-*- coding:utf-8 -*-
-from django.db import models
 import datetime
+from django.db import models
+
+from common.utils import url_utf8_quote
 
 class CustomShare(models.Model):
     
@@ -28,8 +30,8 @@ class CustomShare(models.Model):
     
     class Meta:
         db_table = 'flashsale_customshare'
-        verbose_name=u'特卖/定制分享'
-        verbose_name_plural = u'特卖/定制分享列表'
+        verbose_name=u'特卖/用户分享设置'
+        verbose_name_plural = u'特卖/用户分享设置'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.title)
@@ -44,9 +46,8 @@ class CustomShare(models.Model):
         return None
 
     def share_link(self,**params):
-        if not params:
-            return self.share_url
-        return self.share_url.format(**params)
+        share_link = self.share_url.format(**params)
+        return url_utf8_quote(share_link.encode('utf-8'))
     
     def share_title(self,**params):
         if not params:
@@ -59,9 +60,9 @@ class CustomShare(models.Model):
         return self.desc.format(**params)
     
     def share_image(self,**params):
-        if not params:
-            return self.share_img
-        return self.share_img.format(**params)
+        share_img = self.share_img.format(**params)
+        return url_utf8_quote(share_img.encode('utf-8'))
+
     
 
         
