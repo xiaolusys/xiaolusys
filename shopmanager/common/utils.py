@@ -40,7 +40,6 @@ def parse_urlparams(string):
 def valid_xml_string(xml_str):
     return re.sub(REGEX_INVALID_XML_CHAR,'*',xml_str)
 
-
 def parse_datetime(dt):
     return datetime.datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
 
@@ -85,4 +84,10 @@ def replace_utf8mb4(v):
     INVALID_UTF8_RE = re.compile(u'[^\u0000-\uD7FF\uE000-\uFFFF]', re.UNICODE)
     return INVALID_UTF8_RE.sub(u'*', v)
 
-
+def url_utf8_quote(link):
+    """ quote url utf-8 chars  """
+    req_http   = link[:link.find(':')]
+    link_tuple = link[link.find(':') + 1:].split('?')
+    if len(link_tuple) == 1:
+        return '%s:%s'%(req_http,urllib.quote(link_tuple[0]))
+    return '%s:%s?%s'%(req_http,urllib.quote(link_tuple[0]),urllib.quote(link_tuple[1]))

@@ -1,6 +1,8 @@
 #-*- coding:utf-8 -*-
-from django.db import models
 import datetime
+from django.db import models
+
+from common.utils import url_utf8_quote
 
 class CustomShare(models.Model):
     
@@ -44,9 +46,8 @@ class CustomShare(models.Model):
         return None
 
     def share_link(self,**params):
-        if not params:
-            return self.share_url
-        return self.share_url.format(**params)
+        share_link = self.share_url.format(**params)
+        return url_utf8_quote(share_link)
     
     def share_title(self,**params):
         if not params:
@@ -59,9 +60,9 @@ class CustomShare(models.Model):
         return self.desc.format(**params)
     
     def share_image(self,**params):
-        if not params:
-            return self.share_img
-        return self.share_img.format(**params)
+        share_img = self.share_img.format(**params)
+        return url_utf8_quote(share_img)
+
     
 
         
