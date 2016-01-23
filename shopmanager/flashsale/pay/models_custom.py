@@ -11,6 +11,8 @@ class Productdetail(models.Model):
     WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
     OUT_PERCENT  = 0 #未设置代理返利比例
     ZERO_PERCENT = -1
+    THREE_PERCENT = 3
+    FIVE_PERCENT  = 5
     TEN_PERCENT  = 10
     TWENTY_PERCENT = 20
     THIRTY_PERCENT = 30
@@ -19,6 +21,8 @@ class Productdetail(models.Model):
     
     REBETA_CHOICES = ((OUT_PERCENT,u'未设置返利'),
                      (ZERO_PERCENT,u'该商品不返利'),
+                     (THREE_PERCENT,u'返利百分之3'),
+                     (FIVE_PERCENT,u'返利百分之5'),
                      (TEN_PERCENT,u'返利百分之10'),
                      (TWENTY_PERCENT,u'返利百分之20'),
                      (THIRTY_PERCENT,u'返利百分之30'),)
@@ -99,6 +103,11 @@ class ModelProduct(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.name)
     
+    def head_img(self):
+        return self.head_imgs and self.head_imgs.split()[0] or ''
+    
+    head_img_url = property(head_img)
+        
     def is_single_spec(self):
         if self.id <= 0:
             return True

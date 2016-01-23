@@ -170,7 +170,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_priview_date(self,request):
         """ 获取明日上架日期 """
-        tdays  = int(request.GET.get('days','０'))
+        tdays  = int(request.GET.get('days','0'))
         tnow   = datetime.datetime.now()
         tlast  = tnow + datetime.timedelta(days=tdays)
         return self.get_latest_right_date(tlast.date())

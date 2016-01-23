@@ -105,7 +105,9 @@ $(".sale_category_select").live("change",function(e){
 
 
 $(function () {
-	$(".select_saletime").datepicker({
+	var time_selectors = $(".select_saletime");
+	if (time_selectors.length==null || time_selectors.length == 0)return;
+	time_selectors.datepicker({
 	    dateFormat: "yy-mm-dd 00:00:00"
 	}).change(function (e) {
 	    var pid = this.id;

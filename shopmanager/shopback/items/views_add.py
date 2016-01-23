@@ -333,71 +333,47 @@ class BatchSetTime(generics.ListCreateAPIView):
         return Response({"all_product": products, "target_shelf_date": target_shelf_date, "cates": cates,
                          "ware_by": Product.WARE_CHOICES, "p_cates": p_cates})
 
-    def change_pro_field(self, field, value, pro_list, actioner):
-        """ 修改产品指定字段　"""
-        pros = Product.objects.filter(id__in=pro_list)
+    def add_kill_title(self, pros, actioner):
+        """ 添加秒杀标题 """
         for pro in pros:
-            pro.__setattr__(field, value)
+            title = pro.title()
+            if not title.startswith('秒杀'):  # 防止重复添加秒杀
+                pro.name = '秒杀 ' + title
+                pro.save()
+                log_action(actioner, pro, CHANGE, u'批量添加秒杀标题')
+        return
+
+    def remove_kill_title(self, pros, actioner):
+        """ 移除秒杀标题 """
+        for pro in pros:
+            title = pro.title()
+            if not title.startswith('秒杀'): continue  # 不是秒杀开头则不处理
+            no_kill_title = title.replace("秒杀", "").lstrip()
+            pro.name = no_kill_title
             pro.save()
-            log_action(actioner, pro, CHANGE, u'批量设置产品{0}字段为{1}'.format(field, value))
+            log_action(actioner, pro, CHANGE, u'批量删除秒杀标题')
         return
 
     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
         content = request.POST
         target_product = content.get("product_list", None)
-        unshelf_time = content.get("unshelf_time", None)
-        shelf_time = content.get("shelf_time", None)
-        category = content.get("category", None)
-        ware_by = content.get("ware_by", None)
-        kill_pros = content.get("kill_pros", None)
-        water_pros = content.get("water_pros", None)
-
-        kill_pro_list = kill_pros.split(",")
+        add_kill_title = content.get("add_kill_title", None)
         all_product = target_product.split(",")
-        water_pros_list = water_pros.split(",")
-
-        is_water_pros = [x for x in water_pros_list if x is not u'']
-        kill_pros = [x for x in kill_pro_list if x is not u'']
-        result = "设置"
-
-        count = 0
-        for kill in kill_pros:
-            product = Product.objects.get(id=kill)
-            title = product.title()
-            if not title.startswith('秒杀'):  # 防止重复添加秒杀
-                product.name = '秒杀 ' + title
-                product.save()
-                log_action(request.user.id, product, CHANGE, u'批量设置秒杀标题')
-                count += 1
-        result += " + 秒杀{0}产品".format(count)
-        self.change_pro_field('is_watermark', True, is_water_pros, request.user.id)
-
-        if len(all_product) == 0:
-            return Response({"result": "未选中商品"})
-
-        if shelf_time is not None and shelf_time != "":  # 上架时间设置
-            try:
-                set_shelf_time = datetime.datetime.strptime(shelf_time, '%Y-%m-%d')
-            except:
-                return Response({"result": "设置失败，时间格式错误"})
-            self.change_pro_field("sale_time", set_shelf_time, all_product, request.user.id)
-            result += "上架日期"
-        if unshelf_time is not None and unshelf_time != "":  # 下架时间设置
-            try:
-                set_unshelf_time = datetime.datetime.strptime(unshelf_time, '%Y-%m-%d %H:%M:%S')
-            except:
-                return Response({"result": "设置失败，时间格式错误"})
-            self.change_pro_field("offshelf_time", set_unshelf_time, all_product, request.user.id)
-            result += " + 下架时间"
-
-        if ware_by != "" and ware_by is not None:
-            self.change_pro_field("ware_by", ware_by, all_product, request.user.id)
-            result += " + 所属仓库"
-
-        if category != "" and category is not None:
-            cate = ProductCategory.objects.get(cid=category)
-            self.change_pro_field("category", cate, all_product, request.user.id)
-            result += " + 产品品类"
-        result += " + 成功"
-        return Response({"result": result})
+        pros = Product.objects.filter(id__in=all_product)
+        if add_kill_title is not None and int(add_kill_title) == 1:  # 添加秒杀标题
+            self.add_kill_title(pros, request.user.id)
+        elif add_kill_title is not None and int(add_kill_title) == 0:  # 移除秒杀
+            self.remove_kill_title(pros, request.user.id)
+        for pro in pros:
+            for k, v in request.data.iteritems():
+                k = str(k)
+                if k in ("offshelf_time", "sale_time", "ware_by") and v == "": continue
+                if not hasattr(pro, k): continue
+                if k in ("ware_by", "is_watermark"):
+                    v = int(v)
+                    if pro.__getattribute__(k) == v: continue  # 如果数值没有变则不去更改和产生操作记录
+                pro.__setattr__(k, v)
+                pro.save()
+                log_action(request.user.id, pro, CHANGE, u'批量设置产品{0}字段为{1}'.format(k, v))
+        return Response({"code": 0})

@@ -148,7 +148,6 @@ class IPYYSMSManager(SMSManager):
                 params[f] = kwargs[f]
         
         params['action']   = 'send'
-        
         response = ''
         success  = False
         task_id  = None

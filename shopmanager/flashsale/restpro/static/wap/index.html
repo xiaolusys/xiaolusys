@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8"/>
+    <meta name="baidu-site-verification" content="uOV5Yxcbtk" />
     <title>小鹿美美 - 外贸原单，天天惊喜！</title>
     <meta id="viewport" name="viewport"/>
+    <meta name="keywords" content="童装，女装，特卖，限时抢购，代理，小鹿妈妈，小鹿美美">
+    <meta name="description" content="小鹿美美，致力于——为每一位妈妈宝贝穿上世界最美的衣服，每天10点上新，商品囊括女装、童装，限时抢购为特色，优质产品，100%质检保证性价比，全场包邮，7天无理由退货。">
     <script src="js/common.js"></script>
     <link rel="stylesheet" type="text/css" href="css/dots-loading.css">
     <link rel="stylesheet" type="text/css" href="css/common.css">
@@ -100,7 +103,7 @@
 </div>
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="js/jquery-shopping.js"></script>
-<script src="js/mainpag.js"></script>
+<script src="js/main.js"></script>
 <script src="js/coupon_release_index.js"></script>
 <script src="js/unslider-min.js"></script>
 <script type="text/javascript">
@@ -124,15 +127,20 @@
 	$('.cart').listencart();
     //获取今日海报
     Set_posters(GLConfig.poster_today);
-    //获取今日推荐商品
-    Set_promotes_product();
+    //分页获取今日推荐商品列表
+    var paginate_product_func = Set_promotes_product_by_paging();
+    paginate_product_func(GLConfig.products_today_paging);
+    $(window).scroll(function () {
+        var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
+	    var scroll_height = $(document).height() - totalheight;
+	    if (($(document).height() - 600 <= totalheight) && scroll_height < 600 ) {
+	        paginate_product_func(GLConfig.products_today_paging);
+	    }
+    });
     //获取购物车商品数
     Set_shopcarts_num();
     today_timer();
     need_set_info();
-    $(window).scroll(function () {
-        loadData(Set_promotes_product);// 更具页面下拉情况来加载数据
-    });
     // 获取优惠券
     Set_coupon_tpls();
     
@@ -142,7 +150,6 @@ function scroll_top(e){
     $('body').animate({scrollTop: 0}, 400);
 }
 </script>
-<!--
 <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 <script src="js/wx-share.js"></script>
 <script type="text/javascript">
@@ -150,7 +157,6 @@ $(document).ready(function(){
   sharePage();
 });
 </script>
--->
 <link rel="stylesheet" type="text/css" href="css/sweet-alert.css">
 <script src="js/sweet-alert.min.js"></script>
 </body>

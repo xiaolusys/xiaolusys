@@ -113,6 +113,7 @@ var GLConfig = {
     refunds_by_order_id:"/refunds/{{order_id}}/get_by_order_id",
     sale_product: "/saleproduct",   //获取特卖选品列表
     api_share_page:'/share/today.json',//分享店铺主页
+    api_share_model:'/share/model.json',//分享店铺主页
     api_share_product:'/share/product.json',//分享商品详情页
     change_hot_val: "/saleproduct/{{ id }}/change_hot_val",   //添加热度值
     hot_product: "/hotproduct",   //获取特卖选品列表
@@ -186,7 +187,6 @@ function drawToast(message) {
         alert.style.opacity = .9;
         alert.style.zIndex = 9999;
     }
-    console.log('debug toast:', alert);
     intervalCounter = setInterval("hideToast()", 2000);
 }
 

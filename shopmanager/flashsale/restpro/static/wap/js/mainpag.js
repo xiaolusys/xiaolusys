@@ -461,12 +461,12 @@ function product_timer(shelf_time) {
     }
 }
 
-    /*
-     * 时间格式化
-     * auther:yann
-     * date:2015/22/8
-     */
 Date.prototype.Format = function (fmt) {
+	/*
+	 * 时间格式化
+	 * auther:yann
+	 * date:2015/22/8
+	 */
     var o = {
         "M+": this.getMonth() + 1, //月份
         "d+": this.getDate(), //日

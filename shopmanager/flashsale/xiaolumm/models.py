@@ -13,7 +13,7 @@ from flashsale.clickcount.models import ClickCount
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 import logging
-from models_advertis import XlmmAdvertis
+from models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 
 logger = logging.getLogger('django.request')
 ROI_CLICK_START = datetime.date(2015,8,25)
@@ -297,10 +297,12 @@ class XiaoluMama(models.Model):
         """ 按日期获取小鹿妈妈点击价格 """
         if self.agencylevel < 2:
             return 0
+        
+        if  datetime.date(2016,1,17) < day_date < datetime.date(2016,1,20):
+            return 30
         #2015-11-01取消点击补贴
         if  datetime.date(2015,12,30) < day_date < datetime.date(2016,1,3):
             return 20
-        
         if ROI_CLICK_START <= day_date < datetime.date(2015,11,1):
             return 10
         
@@ -384,7 +386,7 @@ class XiaoluMama(models.Model):
             could_cash_out = leave_cash_out
         if could_cash_out < 0:
             could_cash_out = 0
-        return cash, payment, could_cash_out
+        return could_cash_out
 
 
 # from .clickprice import CLICK_TIME_PRICE
@@ -452,46 +454,71 @@ class AgencyLevel(models.Model):
         return (self.basic_rate / 100.0) / 2
     
 
-
 class CashOut(models.Model):
     PENDING = 'pending'
     APPROVED = 'approved'
     REJECTED = 'rejected'
     COMPLETED = 'completed'
+    CANCEL = 'cancel'
 
     STATUS_CHOICES = (
-        (PENDING,u'待审核'),
-        (APPROVED,u'审核通过'),
-        (REJECTED,u'已拒绝'),
-        (COMPLETED,u'完成'),
+        (PENDING, u'待审核'),
+        (APPROVED, u'审核通过'),
+        (REJECTED, u'已拒绝'),
+        (CANCEL, u'取消'),
+        (COMPLETED, u'完成'),
     )
-    
-    xlmm = models.IntegerField(default=0,db_index=True,verbose_name=u"妈妈编号")
-    value = models.IntegerField(default=0,verbose_name=u"金额(分)")
-    status = models.CharField(max_length=16,blank=True,choices=STATUS_CHOICES,default=PENDING,verbose_name=u'状态')
-    
-    approve_time = models.DateTimeField(blank=True,null=True,verbose_name=u'审核时间')
-    created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
+
+    xlmm = models.IntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
+    value = models.IntegerField(default=0, verbose_name=u"金额(分)")
+    status = models.CharField(max_length=16, blank=True, choices=STATUS_CHOICES, default=PENDING, verbose_name=u'状态')
+    approve_time = models.DateTimeField(blank=True, null=True, verbose_name=u'审核时间')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
 
     class Meta:
         db_table = 'xiaolumm_cashout'
-        verbose_name=u'提现记录'
+        verbose_name = u'提现记录'
         verbose_name_plural = u'提现记录列表'
-        
+        permissions = [('xiaolumm_cashout_bat_handler', u'提现批量审核')]
+
     def __unicode__(self):
-        return '%s'%self.id
-        
+        return '%s' % self.id
+
     def get_value_display(self):
         return self.value / 100.0
-    
+
     get_value_display.allow_tags = True
     get_value_display.admin_order_field = 'value'
     get_value_display.short_description = u"提现金额"
-    
+
     @property
     def value_money(self):
         return self.get_value_display()
 
+    def cancel_cashout(self):
+        """取消提现"""
+        if self.status == CashOut.PENDING:  # 待审核状态才允许取消
+            self.status = CashOut.CANCEL
+            self.save()
+            return True
+        return False
+
+    def reject_cashout(self):
+        """拒绝提现"""
+        if self.status == CashOut.PENDING:  # 待审核状态才允许拒绝
+            self.status = CashOut.REJECTED
+            self.save()
+            return True
+        return False
+
+    def approve_cashout(self):
+        """同意提现"""
+        if self.status == CashOut.PENDING:  # 待审核状态才允许同意
+            self.status = CashOut.APPROVED
+            self.approve_time = datetime.datetime.now()  # 通过时间
+            self.save()
+            return True
+        return False
 
 
 class CarryLog(models.Model):

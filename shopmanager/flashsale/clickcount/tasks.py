@@ -42,7 +42,8 @@ def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
         isvalid = True
         
     click = Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
-    WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
+    if unionid:
+        WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
     
     return click
 

@@ -30,8 +30,7 @@ $(function () {
             }
             ,
             'Key': function (up, file) {
-                var timestamp = new Date().getTime();
-                var key = "poster_" + timestamp;
+                var key = FileNameHandler(file.name, 'post');
                 return key
             }
         }

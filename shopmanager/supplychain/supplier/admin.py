@@ -22,8 +22,8 @@ from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
 from supplychain.supplier.models import SaleProductManage, SaleProductManageDetail
 from .models import SupplierZone
-from shopback.items.models import  Product
-
+from shopback.items.models import Product
+from django.contrib.auth.models import User
 
 class SaleSupplierChangeList(ChangeList):
 
@@ -102,7 +102,7 @@ class SaleSupplierAdmin(MyAdmin):
     def charge_link(self, obj):
         if obj.status == SaleSupplier.CHARGED:  # 如果是已经接管
             scharge = SupplierCharge.objects.get(supplier_id=obj.id, status=SupplierCharge.EFFECT)
-            return u'<a href="/supplychain/supplier/product/?status=selected&sale_supplier={0}"' \
+            return u'<a href="/supplychain/supplier/product/?status=purchase&sale_supplier={0}"' \
                    u' target="_blank">{1}</a>'.format(obj.id, u'[ %s ]' % scharge.employee.username)
 
         if obj.status == SaleSupplier.FROZEN:   # 如果是冻结状态　则显示冻结
@@ -295,8 +295,9 @@ admin.site.register(SupplierZone, SupplierZoneAdmin)
 
 class SaleProductAdmin(MyAdmin):
     category_list = []
-    list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'on_sale_price', 'std_sale_price', 'supplier_link','category_select',
-                    'hot_value', 'sale_price', 'sale_time_select', 'status_link', 'select_Contactor','is_changed', 'created')
+    list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'librarian_select',
+                    'select_Contactor', 'supplier_link', 'category_select',
+                    'sale_price', 'sale_time_select',  'status_link')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
@@ -304,9 +305,9 @@ class SaleProductAdmin(MyAdmin):
     date_hierarchy = 'sale_time'
     list_filter = ('status', ('sale_time', DateScheduleFilter),CategoryFilter,'is_changed',
                    ('modified', DateFieldListFilter), 'platform', BuyerGroupFilter,
-                   ('created', DateFieldListFilter))
+                   ('created', DateFieldListFilter), 'librarian', "buyer")
     search_fields = ['=id', 'title', '=outer_id', '=sale_supplier__supplier_name', '=contactor__username']
-    list_per_page = 40
+    list_per_page = 25
 
     # --------设置页面布局----------------
     fieldsets = ((u'客户基本信息:', {
@@ -322,7 +323,6 @@ class SaleProductAdmin(MyAdmin):
                    )}),)
 
     def outer_id_link(self, obj):
-
         test_link = u'<div style="width:120px;font-size:12px;"><a href="/admin/supplier/saleproduct/{0}/" onclick="return showTradePopup(this);">{1}</a>'.format(
             obj.id, obj.outer_id or '')
 
@@ -345,6 +345,33 @@ class SaleProductAdmin(MyAdmin):
 
     outer_id_link.allow_tags = True
     outer_id_link.short_description = u"外部ID"
+
+    def librarian_select(self, obj):
+        select_librarian = ['资料员：<br><select class="sale_librarian_select" spid="%s" onchange="sale_librarian_select(this)">' % obj.id]
+        select_librarian.append('<option value="">------</option>')
+        librarian_users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿买手资料员', ))
+        for user in librarian_users:
+            if obj and obj.librarian == user.get_full_name():
+                select_librarian.append('<option value="{0}" selected>{0}</option>'.format(user.get_full_name()))
+                continue
+            select_librarian.append('<option value="{0}">{0}</option>'.format(user.get_full_name()))
+        select_librarian.append("</select><br><br>")
+        librarian_select = "".join(select_librarian)
+
+        select_buyer = ['采购员：<br><select class="sale_buyer_select" spid="%s" onchange="sale_buyer_select(this)">' % obj.id]
+        select_buyer.append('<option value="">------</option>')
+        buyer_users = User.objects.filter(is_staff=True, groups__name__in=(u'小鹿采购管理员', u'小鹿采购员'))
+        for user in buyer_users:
+            if obj and obj.buyer == user.get_full_name():
+                select_buyer.append('<option value="{0}" selected>{0}</option>'.format(user.get_full_name()))
+                continue
+            select_buyer.append('<option value="{0}">{0}</option>'.format(user.get_full_name()))
+        select_buyer.append("</select><br>")
+        buyer_select = "".join(select_buyer)
+        return librarian_select + buyer_select
+
+    librarian_select.allow_tags = True
+    librarian_select.short_description = u"人员分配"
 
     def category_select(self, obj):
 
@@ -381,8 +408,10 @@ class SaleProductAdmin(MyAdmin):
 
     def pic_link(self, obj):
         #         abs_pic_url = '%s%s'%(settings.MEDIA_URL,obj.pic_url)
-        return (u'<a href="%s" target="_blank"><img src="%s" width="120px" height="100px" title="%s?imageMogr2/thumbnail/150/format/jpg/quality/90"/></a>' % (
-            obj.product_link, obj.pic_url, obj.get_platform_display()))
+        return (u'<div class="well well-content"><a href="%s" target="_blank"><img src="%s" width="120px" height="100px" '
+                u'title="%s?imageMogr2/thumbnail/150/format/jpg/quality/90"/></a>'
+                u'<br>%s<br></div>' % (
+                    obj.product_link, obj.pic_url, obj.get_platform_display(), obj.created.strftime('%Y/%m/%d %H:%M')))
 
     pic_link.allow_tags = True
     pic_link.short_description = u"商品图片"
@@ -398,13 +427,13 @@ class SaleProductAdmin(MyAdmin):
                 html = u''
         except HotProduct.MultipleObjectsReturned:
             html = u'<br><br><a class="btn" target="_blank" href="/admin/supplier/hotproduct/?proid={0}">查看爆款</a>'.format(obj.id)
-        return (u'<div style="width:150px;"><div class="well well-content">{0}</div></div>{1}').format(obj.title,html)
+        return (u'<div style="width:100px;"><div class="well well-content">{0}</div></div>{1}').format(obj.title,html)
 
     title_link.allow_tags = True
     title_link.short_description = u"标题"
 
     def supplier_link(self, obj):
-        base_link = u'<div style="width:150px;font-size:20px;"><a href="/admin/supplier/saleproduct/?sale_supplier={0}"><label>{1} &gt;&gt;</label></a>'.format(
+        base_link = u'<div style="width:90px;font-size:20px;"><a href="/admin/supplier/saleproduct/?sale_supplier={0}"><label>{1} &gt;&gt;</label></a>'.format(
             obj.sale_supplier.id,obj.sale_supplier and obj.sale_supplier.supplier_name or '')
         if obj.status in (SaleProduct.SELECTED, SaleProduct.PURCHASE, SaleProduct.WAIT, SaleProduct.PASSED,
                           SaleProduct.SCHEDULE) and obj.sale_supplier:
@@ -422,10 +451,10 @@ class SaleProductAdmin(MyAdmin):
         # 只有通过　和排期状态的才可以修改该时间
         if obj.status in (SaleProduct.PURCHASE,SaleProduct.PASSED,SaleProduct.SCHEDULE):
             if obj.sale_time is None:
-                s ='<input type="text" id="{0}" style="width:100px" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
+                s ='<input type="text" id="{0}" style="width:70px" readonly="true" class="select_saletime form-control datepicker" name="" value=""/>'.format(obj.id)
             else:
                 sale_time = obj.sale_time.strftime("%y-%m-%d")
-                s ='<input type="text" id="{0}" style="width:100px" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
+                s ='<input type="text" id="{0}" style="width:70px" readonly="true" class="select_saletime form-control datepicker" name={1} value="{1}"/>'.format(obj.id, sale_time)
         else:
             s = "非可排期状态"
         return s
@@ -499,7 +528,7 @@ class SaleProductAdmin(MyAdmin):
     def memo_display(self, obj):
         res = ''
         if obj.memo != u'':
-            res = u'<div style="width:150px;"><div class="well well-content">{0}</div></div>'.format(obj.memo)
+            res = u'<div style="width:100px;"><div class="well well-content">{0}</div></div>'.format(obj.memo)
         return res
     memo_display.allow_tags = True
     memo_display.short_description = u"备注"
@@ -511,7 +540,8 @@ class SaleProductAdmin(MyAdmin):
              "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")}
         js = ("jquery/jquery-1.8.13.min.js", "js/admin/adminpopup.js", "js/supplier_change_list.js",
               "js/select_buyer_group.js","jquery/jquery-ui-1.8.13.min.js","jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js",
-              "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js","js/make_hot.js")
+              "jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js","js/make_hot.js")+ \
+              ('//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js','script/qiniu.js',"js/image_productreview.js")
 
     def get_actions(self, request):
         user = request.user

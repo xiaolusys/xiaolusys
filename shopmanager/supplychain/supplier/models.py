@@ -277,6 +277,8 @@ class SaleProduct(models.Model):
                               choices=STATUS_CHOICES, default=WAIT, verbose_name=u'状态')
 
     contactor = BigIntegerForeignKey(User, null=True, related_name='sale_products', verbose_name=u'接洽人')
+    librarian = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'资料员')
+    buyer = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'采购员')
 
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')

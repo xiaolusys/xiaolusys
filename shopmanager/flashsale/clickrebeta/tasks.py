@@ -120,9 +120,9 @@ def update_Xlmm_Shopping_OrderStatus(order_list):
                 order.status = StatisticsShopping.REFUNDED
             elif strade.status == SaleTrade.TRADE_FINISHED:
                 order.status = StatisticsShopping.FINISHED
-                
-        order.rebetamount  = xlmm and xlmm.get_Mama_Trade_Amount(strade) or order.rebetamount
-        order.tichengcount = xlmm and xlmm.get_Mama_Trade_Rebeta(strade) or order.tichengcount
+        if order.status == StatisticsShopping.WAIT_SEND:
+            order.rebetamount  = xlmm and xlmm.get_Mama_Trade_Amount(strade) or 0
+            order.tichengcount = xlmm and xlmm.get_Mama_Trade_Rebeta(strade) or 0
         order.save()
         
         

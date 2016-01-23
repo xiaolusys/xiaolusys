@@ -23,6 +23,9 @@ from .options import uniqid
 from shopback.base.models import JSONCharMyField
 from shopback.base import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
+import logging
+
+logger = logging.getLogger('django.request')
 
 FLASH_SELLER_ID  = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
@@ -325,15 +328,19 @@ def category_trade_stat(sender, obj, **kwargs):
     """
     orders = obj.sale_orders.all()
     for order in orders:
-        pro = Product.objects.get(id=order.item_id)
-        cgysta, state = CategorySaleStat.objects.get_or_create(stat_date=pro.sale_time, category=pro.category.cid)
-        if state:  # 如果是新建
-            cgysta.sale_amount = order.payment  # 销售金额
-            cgysta.sale_num = order.num  # 销售数量
-        else:  # 在原有基础上面加销售数量和销售金额
-            cgysta.sale_amount = F("sale_amount") + order.payment
-            cgysta.sale_num = F("sale_num") + order.num
-        update_model_fields(cgysta, update_fields=["sale_amount", "sale_num"])
+        try:
+            pro = Product.objects.get(id=order.item_id)
+            cgysta, state = CategorySaleStat.objects.get_or_create(stat_date=pro.sale_time, 
+                                                                   category=pro.category.cid)
+            if state:  # 如果是新建
+                cgysta.sale_amount = order.payment  # 销售金额
+                cgysta.sale_num = order.num  # 销售数量
+            else:  # 在原有基础上面加销售数量和销售金额
+                cgysta.sale_amount = F("sale_amount") + order.payment
+                cgysta.sale_num = F("sale_num") + order.num
+            update_model_fields(cgysta, update_fields=["sale_amount", "sale_num"])
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
 
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 

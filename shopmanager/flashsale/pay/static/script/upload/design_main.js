@@ -45,8 +45,7 @@ $(function () {
             }
             ,
             'Key': function (up, file) {
-                var timestamp = new Date().getTime();
-                var key = "MG-" + timestamp;
+                var key = FileNameHandler(file.name, 'MG_');
                 return key
             }
         }
@@ -98,8 +97,7 @@ $(function () {
             }
             ,
             'Key': function (up, file) {
-                var timestamp = new Date().getTime();
-                var key = "MG-" + timestamp + "-" + file.name;
+                var key = FileNameHandler(file.name, 'MG_');
                 return key
             }
         }
@@ -146,9 +144,7 @@ $(function () {
                 }
                 ,
                 'Key': function (up, file) {
-                    var timestamp = new Date().getTime();
-                    var key = "MG-" + timestamp + "-" + file.name;
-                    // do something with key
+                    var key = FileNameHandler(file.name, 'MG_');
                     return key
                 }
             }

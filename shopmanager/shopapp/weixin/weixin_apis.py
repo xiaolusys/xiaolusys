@@ -53,8 +53,10 @@ class WeiXinAPI(object):
     _merchant_order_getbyfilter_uri   = "/merchant/order/getbyfilter"
     _merchant_order_setdelivery_uri   = "/merchant/order/setdelivery"
     _merchant_modproductstatus_uri    = "/merchant/modproductstatus"
-    
     _merchant_category_getsku_uri   = "/merchant/category/getsku"
+    
+    #上传文件
+    _upload_media_uri = "/cgi-bin/media/uploadimg?"
     
     #微信原生支付URL
     _native_url   = "weixin://wxpay/bizpayurl"
@@ -72,7 +74,7 @@ class WeiXinAPI(object):
         else:
             wx = WeiXinAccount.objects.filter(app_id=appKey)
             if not wx.exists():
-                raise Exception('not found appkey(%S) account'%appKey)
+                raise Exception('not found appkey(%s) account'%appKey)
             self._account  = wx[0]
             self._wxpub_id = self._account.account_id
 
@@ -331,7 +333,7 @@ class WeiXinAPI(object):
         return self.handleRequest(self._deliver_notify_url, 
                            str(json.dumps(params)), 
                            method='POST')
-        
+    
     def getJSTicket(self):
         
         if not self._wx_account.isJSTicketExpired():
@@ -355,7 +357,8 @@ class WeiXinAPI(object):
                             update_fields=['js_ticket','js_expired'])
         
         return content['ticket']
-
+  
+        
     def getShareSignParams(self,share_url):
         
         sign_params = {"noncestr":randomString(),

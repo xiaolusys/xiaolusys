@@ -372,16 +372,17 @@ from flashsale.clickrebeta.models import StatisticsShopping
 
 
 class XiaoluMamaSerialize(serializers.ModelSerializer):
+    coulde_cashout = serializers.FloatField(source='get_cash_iters', read_only=True)
     class Meta:
         model = XiaoluMama
         fields = ("id", "get_cash_display", "charge_status", "agencylevel", "manager", "referal_from", "mobile", "weikefu",
-                  "charge_time")
+                  "charge_time", 'coulde_cashout')
 
 
 class CarryLogSerialize(serializers.ModelSerializer):
     class Meta:
         model = CarryLog
-        fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type_name", "carry_date", "created")
+        fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type", "carry_date", "created")
 
 
 class ClickCountSerialize(serializers.ModelSerializer):
@@ -405,10 +406,19 @@ class CashOutSerialize(serializers.ModelSerializer):
         fields = ("xlmm", "value_money", "get_status_display", "status", "created")
 
 
-from flashsale.xiaolumm.models_advertis import XlmmAdvertis
+from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
 
 
 class XlmmAdvertisSerialize(serializers.ModelSerializer):
     class Meta:
         model = XlmmAdvertis
         fields = ("title", "cntnt")
+
+
+class NinePicAdverSerialize(serializers.ModelSerializer):
+    pic_arry = JSONParseField()
+    could_share = serializers.IntegerField(source='is_share', read_only=True)
+
+    class Meta:
+        model = NinePicAdver
+        fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share')

@@ -15,9 +15,12 @@ from flashsale.pay.models import Customer
 from . import permissions as perms
 from . import serializers
 from django.forms import model_to_dict
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from shopback.base import log_action, ADDITION
 from rest_framework.exceptions import APIException
+from options import gen_and_save_jpeg_pic
+import os, settings, urlparse
+
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
     """
@@ -43,6 +46,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+    MM_LINKID_PATH = 'mm'
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -66,6 +70,25 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         qst = self.queryset.filter(referal_from=xlmm.mobile)
         serializer = self.get_serializer(qst, many=True)
         return Response(serializer.data)
+
+    def get_share_link(self, params):
+        link = urlparse.urljoin(settings.M_SITE_URL, 'm/{linkid}/')
+        return link.format(**params)
+
+    def gen_xlmm_share_qrcode_pic(self, linkid):
+        root_path = os.path.join(settings.MEDIA_ROOT, self.MM_LINKID_PATH)
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+
+        params = {'linkid': linkid}
+        file_name = 'mm-{linkid}.jpg'.format(**params)
+        file_path = os.path.join(root_path, file_name)
+
+        share_link = self.get_share_link(params)
+        if not os.path.exists(file_path):
+            gen_and_save_jpeg_pic(share_link, file_path)
+
+        return os.path.join(settings.MEDIA_URL, self.MM_LINKID_PATH, file_name)
 
     @list_route(methods=['get'])
     def agency_info(self, request):
@@ -104,22 +127,40 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         all_shop_num = all_shops.count()
         shop_num = all_shops.filter(shoptime__gte=t_from, shoptime__lte=t_to).count()  # 今日订单数量
         mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
+        share_mmcode = self.gen_xlmm_share_qrcode_pic(xlmm.id)
         data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
-                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num}
+                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num,
+                "share_mmcode": share_mmcode}
         return Response(data)
 
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """
-    ## 特卖平台－小鹿妈妈收支记录API:
-    - {prefix}[.format] : 获取登陆用户的收支记录信息
-    - {prefix}/list_base_data　method:get : 账户基本信息页面显示
-        - return :
-        `mci`: 已经确认收入
-        `mco`:　已经确认支出  　
-        `ymci`:　昨天确认收入
-        `ymco`: 昨天确认支出
-        `pdc`: 待确认金额
+    ## 特卖平台－小鹿妈妈收支记录API:  
+    - {prefix}[.format] : 获取登陆用户的收支记录信息  
+        - log_type:  
+            `rebeta`: 订单返利  
+            `buy`: 消费支出  
+            `click`:点击兑现  
+            `refund`:退款返现  
+            `reoff`:退款扣除  
+            `cashout`:钱包提现  
+            `deposit`:押金  
+            `thousand`:千元提成  
+            `subsidy`:代理补贴  
+            `recruit`:招募奖金  
+            `ordred`:订单红包  
+            `flush`:补差额  
+            `recharge`:充值  
+    - {prefix}/list_base_data　method:get : 账户基本信息页面显示   
+        - return :   
+        `mci`: 已经确认收入  
+        `mco`:　已经确认支出   　
+        `ymci`:　昨天确认收入   
+        `ymco`: 昨天确认支出  
+        `pdc`: 待确认金额  
+    - {prefix}/get_carryinlog method: get : 获取用户自己的收入记录  
+
     """
     queryset = CarryLog.objects.all()
     serializer_class = serializers.CarryLogSerialize
@@ -131,6 +172,30 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         return self.queryset.filter(xlmm=xlmm.id)  # 对应的carrylog记录
+
+    @list_route(methods=['get'])
+    def get_carryinlog(self, request):
+        """获取收入内容"""
+        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(carry_type=CarryLog.CARRY_IN))
+        groupclgs = queryset.values("carry_date", "log_type", "xlmm"
+                                    ).annotate(sum_value=Sum('value'),
+                                               type_count=Count('log_type')).order_by('-carry_date')
+        clgs = groupclgs[0:100] if len(groupclgs) > 100 else groupclgs
+        for i in clgs:
+            xlmm = i['xlmm']
+            carry_date = i['carry_date']
+            if i['log_type'] == CarryLog.CLICK_REBETA:  # 点击类型获取点击数量
+                clks = ClickCount.objects.filter(linkid=xlmm, date=carry_date)
+                i['type_count'] = clks.aggregate(cliknum=Sum('valid_num')).get('cliknum') or 0
+            if i['log_type'] == CarryLog.ORDER_REBETA:  # 订单返利　则获取返利单数
+                lefttime = carry_date
+                righttime = carry_date + datetime.timedelta(days=1)
+                shopscount = StatisticsShopping.objects.filter(linkid=xlmm, shoptime__gte=lefttime,
+                                                               shoptime__lt=righttime,
+                                                               status__in=(StatisticsShopping.FINISHED,
+                                                                           StatisticsShopping.WAIT_SEND)).count()
+                i['type_count'] = shopscount
+        return Response(clgs)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -290,7 +355,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    cashout_type = {"c1": 8000, "c2": 20000}
+    cashout_type = {"c1": 100, "c2": 200}
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -323,7 +388,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         try:
-            cash, payment, could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+            could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
         except Exception, exc:
             raise APIException(u'{0}'.format(exc.message))
         queryset = self.filter_queryset(self.get_owner_queryset(request))

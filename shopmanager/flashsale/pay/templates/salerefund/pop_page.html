@@ -16,7 +16,10 @@
 
     <div class="col-xs-4">
         <h5>订单信息：</h5>
-        <span class="label label-info" style="padding: 1px">交易编号：</span>&nbsp&nbsp{{ refund.tid }}<br>
+        <span class="label label-info" style="padding: 1px">交易编号：</span>{{ refund.tid }}
+        <a href="/admin/trades/mergetrade/?q={{ refund.tid }}" target="_blank">
+        <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
+        </a><br>
         <span class="label label-info" style="padding: 1px">名称：</span>&nbsp&nbsp{{ refund.title }}<br>
         <span class="label label-info" style="padding: 1px">买家：</span>&nbsp&nbsp{{ refund.buyer_nick }}<br>
         <span class="label label-info" style="padding: 1px">规格：</span>&nbsp&nbsp{{ refund.sku_name }}<br>

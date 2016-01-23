@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>新增款式</title>
+    <title>新增款式sss</title>
     <link href="http://cdn.bootcss.com/select2/3.5.2/select2.min.css" rel="stylesheet"/>
     <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
 
@@ -378,13 +378,14 @@
 </div>
 <input hidden="" id="domain" value="http://image.xiaolu.so/">
 <input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
+{{ STATIC_URL }}
 <script src="{{ STATIC_URL }}wap/js/template.js"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
 <script type="text/javascript" src="http://cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
-<script type="text/javascript" src="http://youni.huyi.so/static/script/ui.js"></script>
-<script type="text/javascript" src="http://youni.huyi.so/static/script/qiniu.js"></script>
-<script type="text/javascript" src="http://youni.huyi.so/static/js/sku_choose.js"></script>
-
-<script type="text/javascript" src="http://youni.huyi.so/static/script/main.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/ui.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/qiniu.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/sku_choose.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/qiniu_file_name_handler.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/main.js"></script>
 </body>
 </html>

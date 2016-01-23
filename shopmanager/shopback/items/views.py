@@ -387,6 +387,8 @@ class ProductSkuInstanceView(APIView):
         return Response(0)
 
 ############################ 库存商品操作 ###############################
+from shopback.categorys.models import ProductCategory
+
 
 class ProductView(APIView):
     """ docstring for ProductView """
@@ -407,7 +409,7 @@ class ProductView(APIView):
             product = Product.objects.get(id=id)
             content = request.REQUEST
             update_fields = []
-            fields = ['outer_id','barcode','name','category_id','remain_num','weight','cost','ware_by',
+            fields = ['outer_id','barcode','name','category','remain_num','weight','cost','ware_by',
                       'std_purchase_price','std_sale_price','agent_price','staff_price','is_split',
                       'sync_stock','post_check','is_match','match_reason','buyer_prompt','memo','storage_charger']
             check_fields = set(['is_split','sync_stock'])
@@ -420,6 +422,11 @@ class ProductView(APIView):
                 if k in ('wait_post_num','remain_num'):
                     v = int(v)
                 if hasattr(product,k) and getattr(product,k) != v:
+                    if k == 'category':
+                        cate = ProductCategory.objects.get(cid=v)
+                        pu = Product.objects.filter(id=product.id)
+                        pu.update(category=cate)
+                        continue
                     setattr(product,k,v)
                     update_fields.append(k)
             update_model_fields(product,update_fields=update_fields)
