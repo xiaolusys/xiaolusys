@@ -290,7 +290,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(linkid=xlmm.id)  # 对应的xlmm的购买统计
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        queryset = self.filter_queryset(self.get_owner_queryset(request)).order_by('-shoptime')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
