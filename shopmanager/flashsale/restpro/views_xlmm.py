@@ -15,7 +15,7 @@ from flashsale.pay.models import Customer
 from . import permissions as perms
 from . import serializers
 from django.forms import model_to_dict
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from shopback.base import log_action, ADDITION
 from rest_framework.exceptions import APIException
 from options import gen_and_save_jpeg_pic
@@ -177,12 +177,25 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     def get_carryinlog(self, request):
         """获取收入内容"""
         queryset = self.filter_queryset(self.get_owner_queryset(request).filter(carry_type=CarryLog.CARRY_IN))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        groupclgs = queryset.values("carry_date", "log_type", "xlmm"
+                                    ).annotate(sum_value=Sum('value'),
+                                               type_count=Count('log_type')).order_by('-carry_date')
+        clgs = groupclgs[0:100] if len(groupclgs) > 100 else groupclgs
+        for i in clgs:
+            xlmm = i['xlmm']
+            carry_date = i['carry_date']
+            if i['log_type'] == CarryLog.CLICK_REBETA:  # 点击类型获取点击数量
+                clks = ClickCount.objects.filter(linkid=xlmm, date=carry_date)
+                i['type_count'] = clks.aggregate(cliknum=Sum('valid_num')).get('cliknum') or 0
+            if i['log_type'] == CarryLog.ORDER_REBETA:  # 订单返利　则获取返利单数
+                lefttime = carry_date
+                righttime = carry_date + datetime.timedelta(days=1)
+                shopscount = StatisticsShopping.objects.filter(linkid=xlmm, shoptime__gte=lefttime,
+                                                               shoptime__lt=righttime,
+                                                               status__in=(StatisticsShopping.FINISHED,
+                                                                           StatisticsShopping.WAIT_SEND)).count()
+                i['type_count'] = shopscount
+        return Response(clgs)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
