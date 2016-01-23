@@ -47,7 +47,7 @@ class CustomShare(models.Model):
 
     def share_link(self,**params):
         share_link = self.share_url.format(**params)
-        return url_utf8_quote(share_link)
+        return url_utf8_quote(share_link.encode('utf-8'))
     
     def share_title(self,**params):
         if not params:
@@ -61,7 +61,7 @@ class CustomShare(models.Model):
     
     def share_image(self,**params):
         share_img = self.share_img.format(**params)
-        return url_utf8_quote(share_img)
+        return url_utf8_quote(share_img.encode('utf-8'))
 
     
 
