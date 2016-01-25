@@ -1,13 +1,17 @@
 #-*- coding:utf-8 -*-
-from django.db import models
 import datetime
+from django.db import models
+
+from common.utils import url_utf8_quote
 
 class CustomShare(models.Model):
     
     SHOP_SHARE = 'shop'
+    MODEL_SHARE = 'model'
     PRODUCT_SHARE = 'product'
     
     SHARE_TYPE = ((SHOP_SHARE,u'店铺分享'),
+                  (MODEL_SHARE,u'款式分享'),
                   (PRODUCT_SHARE,u'商品分享'),)
     
     title   = models.CharField(max_length=64,blank=True,verbose_name=u'分享标题')
@@ -26,34 +30,24 @@ class CustomShare(models.Model):
     
     class Meta:
         db_table = 'flashsale_customshare'
-        verbose_name=u'特卖/定制分享'
-        verbose_name_plural = u'特卖/定制分享列表'
+        verbose_name=u'特卖/用户分享设置'
+        verbose_name_plural = u'特卖/用户分享设置'
 
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.title)
     
     @classmethod
-    def get_shop_share(cls):
+    def get_instance_by_type(cls,share_type):
         today = datetime.date.today()
-        shares = cls.objects.filter(status=True,share_type=cls.SHOP_SHARE,
+        shares = cls.objects.filter(status=True,share_type=share_type,
                                     active_at__lte=today).order_by('-active_at')
         if shares.exists():
             return shares[0]
         return None
-    
-    @classmethod
-    def get_product_share(cls):
-        today = datetime.date.today()
-        shares = cls.objects.filter(status=True,share_type=cls.PRODUCT_SHARE,
-                                    active_at__lte=today).order_by('-active_at')
-        if shares.exists():
-            return shares[0]
-        return None
-        
+
     def share_link(self,**params):
-        if not params:
-            return self.share_url
-        return self.share_url.format(**params)
+        share_link = self.share_url.format(**params)
+        return url_utf8_quote(share_link.encode('utf-8'))
     
     def share_title(self,**params):
         if not params:
@@ -66,11 +60,10 @@ class CustomShare(models.Model):
         return self.desc.format(**params)
     
     def share_image(self,**params):
-        if not params:
-            return self.share_img
-        return self.share_img.format(**params)
+        share_img = self.share_img.format(**params)
+        return url_utf8_quote(share_img.encode('utf-8'))
+
     
 
         
-    
     

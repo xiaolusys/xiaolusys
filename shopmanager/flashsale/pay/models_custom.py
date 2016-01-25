@@ -103,6 +103,11 @@ class ModelProduct(models.Model):
     def __unicode__(self):
         return '<%s,%s>'%(self.id,self.name)
     
+    def head_img(self):
+        return self.head_imgs and self.head_imgs.split()[0] or ''
+    
+    head_img_url = property(head_img)
+        
     def is_single_spec(self):
         if self.id <= 0:
             return True

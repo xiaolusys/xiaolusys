@@ -683,10 +683,10 @@ admin.site.register(ShoppingCart, ShoppingCartAdmin)
 from .models import CustomShare
 
 class CustomShareAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'share_img', 'status', 'active_at', 'created')
+    list_display = ('id', 'title','share_type', 'share_img', 'status', 'active_at', 'created')
     list_display_links = ('id', 'title',)
     
-    list_filter = ('status',)
+    list_filter = ('status','share_type')
     search_fields = ['=id', 'title']
     form = CustomShareForm
     
