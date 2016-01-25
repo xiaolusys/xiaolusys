@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 import os
 import re
 import hashlib
@@ -58,6 +59,18 @@ def format_year_month(dt):
 def format_time(dt):
     return dt.strftime("%H:%M")
 
+def year_month_range(sdate,tdate):
+    """ 计算两个日期之间年月组合列表 """
+    syear, smonth = sdate.year, sdate.month
+    eyear, emonth = tdate.year, tdate.month
+    month_range = []
+    for syear in range(syear,eyear + 1):
+        for smonth in range(smonth, 13):
+            if syear > eyear or (syear == eyear and smonth > emonth):
+                break
+            month_range.append((syear,smonth))
+        smonth = 1
+    return month_range
 
 def pinghost(hostid):
     try:

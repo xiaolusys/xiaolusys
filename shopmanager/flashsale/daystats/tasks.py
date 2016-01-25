@@ -1,9 +1,12 @@
 # -*- encoding:utf8 -*-
 from __future__ import division
 import datetime
+from calendar import monthrange
 from django.db.models import F, Sum
 from celery.task import task
+from django.conf import settings
 
+from common.utils import year_month_range
 from flashsale.clickcount.models import Clicks,ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models import CarryLog
@@ -11,15 +14,13 @@ from flashsale.pay.models import Customer
 from  flashsale.pay.models_refund import SaleRefund
 from .models import DailyStat, PopularizeCost
 
-import logging
 from flashsale.xiaolumm.models import XiaoluMama
-from django.conf import settings
 from shopapp.weixin.models import get_Unionid
-from calendar import monthrange
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
 from shopback.categorys.models import ProductCategory
 
+import logging
 logger = logging.getLogger('celery.handler')
 
 
@@ -216,13 +217,12 @@ def task_calc_xlmm(start_time_str, end_time_str, old=True):
             else:
                 end_date = today
             """找出选择的开始月份和结束月份"""
-            start_month = start_date.month
-            end_month = end_date.month
-            month_range = range(start_month, end_month + 1)
+            month_range = year_month_range(start_date,end_date)
             result_list = []
-            for month in month_range:
-                month_start_date = datetime.date(start_date.year, month, 1)
-                month_end_date = datetime.date(end_date.year, month + 1, 1)
+
+            for year, month in month_range:
+                month_start_date = datetime.date(year, month, 1)
+                month_end_date = datetime.date(year, month + 1, 1)
 
                 all_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
                                                                  shoptime__lt=month_end_date).values(
@@ -245,9 +245,8 @@ def task_calc_xlmm(start_time_str, end_time_str, old=True):
                 repeat_xlmm = repeat_user_unionid & all_xlmm_detail
                 xlmm_num = all_purchase_detail_unionid & all_xlmm_detail
                 result_list.append(
-                    (month, all_purchase_num, len(repeat_user), len(repeat_xlmm), len(xlmm_num))
+                    ('%04d-%02d'%(year,month), all_purchase_num, len(repeat_user), len(repeat_xlmm), len(xlmm_num))
                 )
-
 
             file_dir = os.path.join(settings.DOWNLOAD_ROOT, STAT_DIR)
             if not os.path.exists(file_dir):
@@ -256,8 +255,6 @@ def task_calc_xlmm(start_time_str, end_time_str, old=True):
             file_name = u'month_sale.csv'
             file_path_name = os.path.join(file_dir, file_name)
 
-
-
             csvfile = file(file_path_name, 'wb')
             writer = csv.writer(csvfile)
             data = result_list
@@ -265,6 +262,7 @@ def task_calc_xlmm(start_time_str, end_time_str, old=True):
             csvfile.close()
             return result_list
     except Exception, exc:
+        logger.error(exc.message or 'empty error',exc_info=True)
         raise task_calc_xlmm.retry(exc=exc)
 
 
@@ -575,7 +573,7 @@ def task_calc_package(start_date, end_date, old=True):
         else:
             start_month = start_date.month
             end_month = end_date.month
-
+            
             month_range = range(start_month, end_month + 1)
             result_list = []
             for month in month_range:
