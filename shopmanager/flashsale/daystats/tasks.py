@@ -607,7 +607,7 @@ def task_calc_package(start_date, end_date, old=True):
                         weight_time__range=(month_start_time ,month_end_time)
                     ).count()
                 result_list.append(
-                    (month, total_sale_amount / 100, total_order_num, total_package_num, total_sale_num))
+                    ('%04d-%02d'%(year,month), total_sale_amount / 100, total_order_num, total_package_num, total_sale_num))
             
             file_dir = os.path.join(settings.DOWNLOAD_ROOT, STAT_DIR)
             if not os.path.exists(file_dir):
