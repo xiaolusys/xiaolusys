@@ -34,6 +34,12 @@ class AgencyOrderRebetaScheme(models.Model):
     def __unicode__(self):
         return u'<%d,%s>'%(self.id,self.name)
     
+    @classmethod
+    def get_default_scheme(cls):
+        qs = cls.objects.filter(status=cls.NORMAL,is_default=True)
+        if qs.exists():
+            return qs[0]
+        return None
 
         
         

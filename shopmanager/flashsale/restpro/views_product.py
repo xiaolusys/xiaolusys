@@ -57,9 +57,21 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
                 view_method.__name__,
                 json.dumps(key_maps, sort_keys=True).encode('utf-8')
             ])).hexdigest()
-
+    
+    def get_latest_right_date(self,dt):
+        ldate = dt
+        model_qs = self.get_queryset()
+        for i in xrange(0,30):
+            ldate = dt - datetime.timedelta(days=i)
+            product_qs = model_qs.filter(active_time__year=ldate.year,
+                                        active_time__month=ldate.month,
+                                        active_time__day=ldate.day)
+            if product_qs.count() > 0:
+                break
+        return ldate
+    
     def get_today_poster(self):
-        target_date = datetime.date.today()
+        target_date = self.get_latest_right_date(datetime.date.today())
         posters = self.queryset.filter(active_time__year=target_date.year,
                                     active_time__month=target_date.month,
                                     active_time__day=target_date.day)
@@ -67,6 +79,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_previous_poster(self):
         target_date = datetime.date.today() - datetime.timedelta(days=1)
+        target_date = self.get_latest_right_date(target_date)
         posters = self.queryset.filter(active_time__year=target_date.year,
                                    active_time__month=target_date.month,
                                    active_time__day=target_date.day)
@@ -75,6 +88,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     def get_future_poster(self,request):
         view_days   = int(request.GET.get('days','1'))
         target_date = datetime.date.today() + datetime.timedelta(days=view_days)
+        target_date = self.get_latest_right_date(target_date)
         posters = self.queryset.filter(active_time__year=target_date.year,
                                    active_time__month=target_date.month,
                                    active_time__day=target_date.day)

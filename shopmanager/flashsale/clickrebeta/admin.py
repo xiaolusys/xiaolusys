@@ -4,8 +4,17 @@ from django.contrib.admin.views.main import ChangeList
 from django import forms
 
 from shopback.base.options import DateFieldListFilter
-from .models import StatisticsShopping, StatisticsShoppingByDay
+from .models import StatisticsShopping, OrderDetailRebeta, StatisticsShoppingByDay
 
+class OrderDetailRebetaInline(admin.TabularInline):
+
+    model = OrderDetailRebeta
+    fields = ('detail_id', 'order_amount','rebeta_amount', 'status')
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + ('detail_id', 'rebeta_amount')
+        return self.readonly_fields
 
 
 class StatisticsShoppingForm(forms.ModelForm):
@@ -79,8 +88,9 @@ class StatisticsShoppingAdmin(admin.ModelAdmin):
     date_hierarchy = 'shoptime'
     search_fields = ['=linkid','=openid','=wxorderid']
     
+    inlines = [OrderDetailRebetaInline]
+    
     def get_changelist(self, request, **kwargs):
-
         return StatisticsShoppingChangeList
 
 admin.site.register(StatisticsShopping, StatisticsShoppingAdmin)

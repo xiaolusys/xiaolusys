@@ -196,21 +196,22 @@ class XiaoluMama(models.Model):
         return 0
         
     def get_Mama_Order_Rebeta_Rate(self):
-        """ 获取小鹿妈妈订单提成点数 """
+        """ 获取小鹿妈妈订单提成点数(a,b),a表示固定金额，b表示按比例提成 """
+        #TODO
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
-        if agency_levels.count() == 0:
-            return 0
-        
-        agency_level = agency_levels[0]
-        return agency_level.get_Rebeta_Rate()
+        if agency_levels.exists():
+            default = AgencyOrderRebetaScheme.get_default_scheme()
+            agency_level = agency_levels[0]
+            return agency_level.get_Rebeta_Rate()
+        return (0, 0)
+
     
     def get_Mama_Order_Product_Rate(self,product):
         """
         	如果特卖商品detail设置代理了返利，
         	则返回设置值，否则返回小鹿妈妈统一设置值
         """
-#         if self.agencylevel != 2:
-#             return 0.0
+        #TODO
         try:
             pdetail = product.details
         except:
@@ -246,6 +247,23 @@ class XiaoluMama(models.Model):
         elif hasattr(order,'payment'):
             order_price = int(order.payment * 100)
         
+        #订单是特卖订单明细,则保存订单佣金明细
+        if hasattr(order,'id') and hasattr(order,'payment'):
+            from flashsale.clickrebeta.models import StatisticsShopping,OrderDetailRebeta
+            shopping_order, state = StatisticsShopping.objects.get_or_create(
+                linkid=self.id,
+                wxorderid=order.sale_trade.tid
+            )
+            order_detail, state = OrderDetailRebeta.objects.get_or_create(
+                  order=shopping_order,
+                  detail_id=order.oid
+            )
+            #TODO
+            if state:
+                order_detail.order_amount = order.payment
+                order_detail.rebeta_amount = 0
+                order_detail.save()
+        
         return rebeta_rate * order_price
     
     
@@ -280,9 +298,7 @@ class XiaoluMama(models.Model):
                 return 0
             amount = 0
             for order in trade.normal_orders:
-                if self.get_Mama_Order_Rebeta(order) == 0:
-                    continue
-                amount += self.get_Mama_Order_Amount(order)
+                amount += self.get_Mama_Order_Rebeta(order)
             return amount
         if self.get_Mama_Order_Rebeta(trade) == 0:
             return 0

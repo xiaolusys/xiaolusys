@@ -31,7 +31,7 @@ class StatisticsShopping(models.Model):
     
     NORMAL_STATUS = [WAIT_SEND,FINISHED]
     
-    linkid    = models.IntegerField(default=0,verbose_name=u"链接ID")
+    linkid    = models.IntegerField(default=0,verbose_name=u"妈妈ID")
     linkname  = models.CharField(max_length=20, default="", verbose_name=u'代理人')
     openid    = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"优尼OpenId")
     wxorderid = models.CharField(max_length=64, db_index=True, verbose_name=u'微信订单')
@@ -97,6 +97,33 @@ class StatisticsShopping(models.Model):
 
     def day_time(self):
         return self.shoptime.strftime("%H:%M")
+
+class OrderDetailRebeta(models.Model):
+    """ 订单佣金明细 """
+    WAIT_SEND = 0
+    FINISHED  = 1
+    REFUNDED  = 2
+    
+    SHOPPING_STATUS = (
+        (WAIT_SEND, u'已付款'),
+        (FINISHED, u'已完成'),
+        (REFUNDED, u'已退款'),
+    )
+
+    order     = models.ForeignKey(StatisticsShopping,null=True,related_name='detail_orders',verbose_name='订单')
+    detail_id = models.CharField(max_length=64, db_index=True, verbose_name=u'订单明细ID')
+    pay_time = models.DateTimeField(db_index=True, verbose_name=u'支付时间')
+    order_amount = models.IntegerField(default=0, verbose_name=u'支付金额')
+    rebeta_amount  = models.IntegerField(default=0, verbose_name=u'订单提成')
+    status   = models.IntegerField(default=WAIT_SEND, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
+    
+    class Meta:
+        db_table = 'flashsale_tongji_orderebeta'
+        unique_together = ('order', 'detail_id')
+        app_label = 'xiaolumm'
+        verbose_name = u'订单佣金明细'
+        verbose_name_plural = u'订单佣金明细'
+        
 
 class StatisticsShoppingByDay(models.Model):
     
@@ -308,9 +335,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     order_id          = obj.tid
     order_buyer_nick  = obj.buyer_nick or '%s(%s)'%(obj.receiver_name[0:24],obj.receiver_mobile[8:11])
     ordertime       = obj.pay_time
-    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS)
-    time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
-    time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
+    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS) 
     
     wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
     if not wx_unionid:
@@ -319,44 +344,13 @@ def tongji_saleorder(sender, obj, **kwargs):
     xd_openid  = wx_unionid
     if xd_unoins.count() > 0:
         xd_openid = xd_unoins[0].openid
-    #如果钱包付款，则不算提成
-    if obj.pay_time < datetime.datetime(2015,6,19):
-        StatisticsShopping(linkid=0, 
-                           openid=xd_openid, 
-                           wxorderid=order_id,
-                           wxorderamount=mm_order_amount,
-                           shoptime=ordertime, 
-                           tichengcount=mm_order_rebeta).save()
-        return
+    #计算订单所属小鹿妈妈ID
     xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,charge_status=XiaoluMama.CHARGED)
     if xiaolumms.exists():
-        xiaolumm = xiaolumms[0]
-        #计算小鹿妈妈订单返利
-        mm_rebeta_amount    = xiaolumm.get_Mama_Trade_Amount(obj) 
-        mm_order_rebeta     = xiaolumm.get_Mama_Trade_Rebeta(obj)
-        tongjiorder,state   = StatisticsShopping.objects.get_or_create(linkid=xiaolumm.id,
-                                                               wxorderid=order_id)
-        tongjiorder.linkname      = xiaolumm.weikefu
-        tongjiorder.openid        = xd_openid
-        tongjiorder.wxordernick   = order_buyer_nick
-        tongjiorder.wxorderamount = mm_order_amount
-        tongjiorder.shoptime      = ordertime
-        tongjiorder.tichengcount  = mm_order_rebeta
-        tongjiorder.rebetamount   = mm_rebeta_amount
-        tongjiorder.save()
+        mm_linkid = xiaolumms[0].id
+    else:
+        mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
         
-        daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xiaolumm.id, 
-                                                                        tongjidate=target_time)
-        if state:
-            daytongji.buyercount = 1
-            daytongji.linkname   = xiaolumm.weikefu
-            daytongji.ordernumcount    = 1
-            daytongji.orderamountcount = mm_order_amount
-            daytongji.todayamountcount = mm_order_rebeta
-            daytongji.save()
-        return
-    
-    mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
     xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
     if not xiaolu_mmset.exists():
         mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
@@ -364,13 +358,14 @@ def tongji_saleorder(sender, obj, **kwargs):
         mm_linkid   = get_xlmm_linkid(mm_clicks)
         xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
         
-    if xiaolu_mmset.count() > 0:
+    if xiaolu_mmset.exists():
         xiaolu_mm = xiaolu_mmset[0]
         #计算小鹿妈妈订单返利
         mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj) 
         mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj)
         tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                wxorderid=order_id)
+        
         tongjiorder.linkname    = xiaolu_mm.weikefu
         tongjiorder.openid      = xd_openid
         tongjiorder.wxordernick = order_buyer_nick
@@ -407,7 +402,7 @@ from flashsale.pay.signals import signal_saletrade_refund_confirm
 
 
 def get_strade_wxid_iter(strade):
-    
+    """ 获取特卖订单微信openid,unionid """
     buyer_openid = strade.get_buyer_openid()
     ordertime    = strade.pay_time
     wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
