@@ -1,4 +1,4 @@
-# coding=utf-8
+#-*- coding:utf-8 -*-
 from __future__ import division
 __author__ = 'yann'
 from django.views.generic import View
@@ -46,13 +46,21 @@ class StatsRepeatView(View):
         start_month = start_date.month
         end_month = end_date.month
         month_range = range(start_month + 1, end_month + 1)
-        task_id = task_calc_new_user_repeat.delay(start_date, end_date) #计算重复购买
-        send_tasks = task_calc_xlmm.delay(start_time_str, end_time_str) #计算小鹿妈妈购买
-        task_id_sale = task_calc_package.delay(start_date, end_date)  #计算包裹数量
-        return render_to_response("xiaolumm/data2repeatshop.html",
-                                  {"task_id": task_id, "task_id_2": send_tasks, "task_id_sale": task_id_sale, "start_date": start_date, "end_date": end_date,
-                                   "month_range": month_range},
-                                  context_instance=RequestContext(request))
+        task_id = task_calc_new_user_repeat.s(start_date, end_date)()  # 计算重复购买
+        send_tasks = task_calc_xlmm.s(start_time_str, end_time_str)()  # 计算小鹿妈妈购买
+        task_id_sale = task_calc_package.s(start_date, end_date)()  # 计算包裹数量
+        return render_to_response(
+            "xiaolumm/data2repeatshop.html",
+            {
+                "task_id": task_id,
+                "task_id_2": send_tasks,
+                "task_id_sale": task_id_sale,
+                "start_date": start_date,
+                "end_date": end_date,
+                "month_range": month_range
+            },
+            context_instance=RequestContext(request)
+        )
 
 
 from flashsale.daystats.models import DailyStat
@@ -82,11 +90,17 @@ class StatsSaleView(View):
         start_month = start_date.month
         end_month = end_date.month
         month_range = range(start_month, end_month + 1)
-        task_id = task_calc_package.delay(start_date, end_date, False)
-        return render_to_response("xiaolumm/data2sale.html",
-                                  {"month_range": month_range, "task_id_sale": task_id, "start_date": start_date,
-                                   "end_date": end_date},
-                                  context_instance=RequestContext(request))
+        task_id = task_calc_package.s(start_date, end_date, False)()
+        return render_to_response(
+            "xiaolumm/data2sale.html",
+            {
+                "month_range": month_range,
+                "task_id_sale": task_id,
+                "start_date": start_date,
+                "end_date": end_date
+             },
+            context_instance=RequestContext(request)
+        )
 
 
 class StatsSalePeopleView(View):
@@ -99,3 +113,4 @@ class StatsSalePeopleView(View):
         return render_to_response("xiaolumm/data2salepeople.html",
                                   {"task_id": send_tasks},
                                   context_instance=RequestContext(request))
+        
