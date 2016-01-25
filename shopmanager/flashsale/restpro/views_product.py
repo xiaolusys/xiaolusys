@@ -30,6 +30,8 @@ from . import permissions as perms
 from . import serializers
 from .options import gen_and_save_jpeg_pic
 from shopback.base import log_action, ADDITION, CHANGE
+from django.forms import model_to_dict
+
 
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
@@ -417,6 +419,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """
         我的选品(不添加秒杀和卖光的产品) 这里要计算用户的佣金
         """
+        customer = get_object_or_404(Customer, user=request.user)
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(shelf_status=Product.UP_SHELF)
         pros = []
@@ -426,13 +429,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             elif pro.is_sale_out():  # 是否卖光
                 continue
             else:
-                pros.append(pro)
-        page = self.paginate_queryset(pros)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+                prodic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price'])
+                prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
+                pros.append(prodic)
+        return Response(pros)
 
 
 class ProductShareView(generics.RetrieveAPIView):

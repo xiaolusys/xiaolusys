@@ -7,7 +7,7 @@ class CustomerShops(models.Model):
     """
     用户店铺: 存储用户的＂我的店铺＂信息
     """
-    customer = models.IntegerField(db_index=True, verbose_name=u'用户ID')
+    customer = models.IntegerField(db_index=True, unique=True, verbose_name=u'用户ID')
     name = models.CharField(max_length=128, null=True, blank=True, verbose_name=u'店铺名称')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'开店时间')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'店铺更新时间')
