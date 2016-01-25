@@ -41,3 +41,9 @@ class CuShopPros(models.Model):
 
     def __unicode__(self):
         return u'%s-%s' % (self.id, self.shop)
+
+    def down_shelf_pro(self):
+        if self.pro_status == CuShopPros.UP_SHELF:
+            self.pro_status = CuShopPros.DOWN_SHELF
+            self.save()
+        return

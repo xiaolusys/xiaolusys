@@ -116,6 +116,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     - /modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）;
     - /{pk}/details[.format]: 商品详情;
     - /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
+    - /my_choice_pro: 获取'我的选品列表'产品数据
     """
     queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer
