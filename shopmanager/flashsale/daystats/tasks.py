@@ -221,12 +221,12 @@ def task_calc_xlmm(start_time_str, end_time_str, old=True):
             result_list = []
 
             for year, month in month_range:
-                month_start_date = datetime.date(year, month, 1)
-                month_end_date = datetime.date(year, month + 1, 1)
-
+                month_start_date = datetime.datetime(year, month, 1, 0, 0, 0)
+                month_end_date   = datetime.datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
+                
                 all_purchase = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
-                                                                 shoptime__lt=month_end_date).values(
-                    "openid").distinct()
+                                                                 shoptime__lte=month_end_date)\
+                                                                 .values("openid").distinct()
                 all_purchase_num = all_purchase.count()
                 history_purchase = StatisticsShopping.objects.filter(shoptime__lt=month_start_date).values(
                     "openid").distinct()
@@ -571,38 +571,44 @@ def task_calc_package(start_date, end_date, old=True):
             my_file.close()
             return result_list
         else:
-            start_month = start_date.month
-            end_month = end_date.month
-            
-            month_range = range(start_month, end_month + 1)
+            month_range = year_month_range(start_date,end_date)
             result_list = []
-            for month in month_range:
-                month_start_date = datetime.date(start_date.year, month, 1)
-                month_end_date = datetime.date(end_date.year, month + 1, 1)
-                total_sale_amount = DailyStat.objects.filter(day_date__gte=month_start_date,
-                                                             day_date__lt=month_end_date).aggregate(
-                    total_sale_amount=Sum('total_payment')).get('total_sale_amount') or 0
-                total_order_num = DailyStat.objects.filter(day_date__gte=month_start_date,
-                                                           day_date__lt=month_end_date).aggregate(
-                    total_sale_order=Sum('total_order_num')).get('total_sale_order') or 0
-                shoping_stats = StatisticsShopping.objects.filter(shoptime__gte=month_start_date,
-                                                                  shoptime__lt=month_end_date)
+            for year, month in month_range:
+                month_start_time = datetime.date(year, month, 1, 0, 0, 0)
+                month_end_time   = datetime.date(year, month, monthrange(year, month)[1], 23, 59, 59)
+                total_sale_amount = DailyStat.objects.filter(
+                        day_date__range=(month_start_time ,month_end_time )
+                    ).aggregate(
+                        total_sale_amount=Sum('total_payment')
+                    ).get('total_sale_amount') or 0
+                total_order_num = DailyStat.objects.filter(
+                        day_date__range=(month_start_time ,month_end_time)
+                    ).aggregate(
+                        total_sale_order=Sum('total_order_num')
+                    ).get('total_sale_order') or 0
+                shoping_stats = StatisticsShopping.objects.filter(
+                    shoptime__range=(month_start_time ,month_end_time)
+                )
                 total_sale_num = 0
                 sm = {}
-                for shop_stat in shoping_stats:
-                    tm = '%s-%s-%s' % (shop_stat.shoptime.year, shop_stat.shoptime.month, shop_stat.shoptime.day)
+                for shop_stat in shoping_stats.values('shoptime','openid'):
+                    tm = shop_stat['shoptime'].strftime('%y-%m－%d')
+                    openid = shop_stat['openid']
                     if tm in sm:
-                        sm[tm].add(shop_stat.openid)
+                        sm[tm].add(openid)
                     else:
-                        sm[tm] = set([shop_stat.openid])
+                        sm[tm] = set([openid])
                 for s, m in sm.iteritems():
                     total_sale_num += len(m)
-
-                total_package_num = MergeTrade.objects.filter(type__in=("sale", "wx")).filter(
-                    sys_status=u'FINISHED').filter(weight_time__gte=month_start_date, weight_time__lt=month_end_date).count()
+                
+                total_package_num = MergeTrade.objects.filter(
+                        type__in=("sale", "wx"),
+                        sys_status=u'FINISHED',
+                        weight_time__range=(month_start_time ,month_end_time)
+                    ).count()
                 result_list.append(
                     (month, total_sale_amount / 100, total_order_num, total_package_num, total_sale_num))
-
+            
             file_dir = os.path.join(settings.DOWNLOAD_ROOT, STAT_DIR)
             if not os.path.exists(file_dir):
                 os.makedirs(file_dir)
@@ -617,6 +623,7 @@ def task_calc_package(start_date, end_date, old=True):
             csv_file.close()
             return result_list
     except Exception, exc:
+        logger.error(exc.message or 'empty',exc_info=True)
         raise task_calc_package.retry(exc=exc)
 
 
@@ -1051,6 +1058,8 @@ def judge_already(p_id, p_list):
         if p_id == one_dict["outer_id"]:
             return True, one_dict
     return False, []
+
+
 def get_category(category):
     if not category.parent_cid:
         return unicode(category.name)
@@ -1059,3 +1068,4 @@ def get_category(category):
     except:
         p_cat = u'--'
     return p_cat
+
