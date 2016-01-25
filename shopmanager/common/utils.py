@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 import os
 import re
 import hashlib
@@ -10,7 +11,7 @@ import urllib2
 import decimal
 import random
 import cStringIO
-
+import urlparse
 
 from taskutils  import single_instance_task
 from modelutils import update_model_fields
@@ -33,9 +34,8 @@ BASE_STRING = 'abcdefghijklmnopqrstuvwxyz1234567890-'
 REGEX_INVALID_XML_CHAR = r'$><^;\&\[\]\?\!\"\:'
 
 def parse_urlparams(string):
-    arr = string.split('&')
-    map = dict([(s.split('=')[0],s.split('=')[1]) for s in arr if s.find('=')>0])
-    return map
+    query = urlparse.urlparse(string).query
+    return dict([(k,v[0]) for k,v in urlparse.parse_qs(query).items()])
 
 def valid_xml_string(xml_str):
     return re.sub(REGEX_INVALID_XML_CHAR,'*',xml_str)
@@ -58,6 +58,18 @@ def format_year_month(dt):
 def format_time(dt):
     return dt.strftime("%H:%M")
 
+def year_month_range(sdate,tdate):
+    """ 计算两个日期之间年月组合列表 """
+    syear, smonth = sdate.year, sdate.month
+    eyear, emonth = tdate.year, tdate.month
+    month_range = []
+    for syear in range(syear,eyear + 1):
+        for smonth in range(smonth, 13):
+            if syear > eyear or (syear == eyear and smonth > emonth):
+                break
+            month_range.append((syear,smonth))
+        smonth = 1
+    return month_range
 
 def pinghost(hostid):
     try:
@@ -90,5 +102,8 @@ def url_utf8_quote(link):
     link_tuple = link[link.find(':') + 1:].split('?')
     if len(link_tuple) == 1:
         return '%s:%s'%(req_http,urllib.quote(link_tuple[0]))
-    encode_params = parse_urlparams(link_tuple[1])
-    return '%s:%s?%s'%(req_http,urllib.quote(link_tuple[0]),urllib.urlencode(encode_params))
+    link_params = link_tuple[1]
+    if link_params.find('=') > -1:
+        encode_params = parse_urlparams(link_params)
+        link_params = urllib.urlencode(encode_params)
+    return '%s:%s?%s'%(req_http,urllib.quote(link_tuple[0]),link_params)
