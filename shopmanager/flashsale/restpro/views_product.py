@@ -411,6 +411,29 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         res = {"is_verify": pro.is_verify, "id": pro.id}
         return Response(res)
 
+    @list_route(methods=['get'])
+    def my_choice_pro(self, request):
+        """
+        我的选品(不添加秒杀和卖光的产品) 这里要计算用户的佣金
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        pros = []
+        for pro in queryset:
+            if pro.name.startswith('秒杀'):
+                continue
+            elif pro.is_sale_out():  # 是否卖光
+                continue
+            else:
+                pros.append(pro)
+        page = self.paginate_queryset(pros)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """
     queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
