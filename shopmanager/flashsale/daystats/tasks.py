@@ -574,8 +574,8 @@ def task_calc_package(start_date, end_date, old=True):
             month_range = year_month_range(start_date,end_date)
             result_list = []
             for year, month in month_range:
-                month_start_time = datetime.date(year, month, 1, 0, 0, 0)
-                month_end_time   = datetime.date(year, month, monthrange(year, month)[1], 23, 59, 59)
+                month_start_time = datetime.datetime(year, month, 1, 0, 0, 0)
+                month_end_time   = datetime.datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
                 total_sale_amount = DailyStat.objects.filter(
                         day_date__range=(month_start_time ,month_end_time )
                     ).aggregate(
