@@ -196,22 +196,19 @@ class XiaoluMama(models.Model):
         return 0
         
     def get_Mama_Order_Rebeta_Rate(self):
-        """ 获取小鹿妈妈订单提成点数(a,b),a表示固定金额，b表示按比例提成 """
-        #TODO
+        """ 获取小鹿妈妈订单提成点数 """
         agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
-        if agency_levels.exists():
-            default = AgencyOrderRebetaScheme.get_default_scheme()
-            agency_level = agency_levels[0]
-            return agency_level.get_Rebeta_Rate()
-        return (0, 0)
+        if agency_levels.count() == 0:
+            return 0
 
-    
+        agency_level = agency_levels[0]
+        return agency_level.get_Rebeta_Rate()
+
     def get_Mama_Order_Product_Rate(self,product):
         """
-        	如果特卖商品detail设置代理了返利，
-        	则返回设置值，否则返回小鹿妈妈统一设置值
+                如果特卖商品detail设置代理了返利，
+                则返回设置值，否则返回小鹿妈妈统一设置值
         """
-        #TODO
         try:
             pdetail = product.details
         except:
@@ -222,6 +219,20 @@ class XiaoluMama(models.Model):
                 return self.get_Mama_Order_Rebeta_Rate()
             return rate
         
+    
+    def get_Mama_Order_Rebeta_Scheme(self, product):
+        """ 获取妈妈佣金返利计划 """
+        try:
+            product_detail = product.detail
+        except:
+            return AgencyOrderRebetaScheme.get_default_scheme()
+        else:
+            schemes = AgencyOrderRebetaScheme.objects.get(id=product_detail.rebeta_scheme_id)
+            if schemes.exists():
+                return schemes[0]
+            return AgencyOrderRebetaScheme.get_default_scheme()
+
+    
     def get_Mama_Order_Rebeta(self,order):
         #如果订单来自小鹿特卖平台
         if hasattr(order,'item_id'):
@@ -230,7 +241,7 @@ class XiaoluMama(models.Model):
         elif hasattr(order,'product_sku'):
             try:
                 wxsku =  WXProductSku.objects.get(sku_id=order.product_sku,
-            									  product=order.product_id)
+                                                  product=order.product_id)
                 product_qs = Product.objects.filter(outer_id=wxsku.outer_id) 
             except Exception,exc:
                 logger.error(exc.message,exc_info=True)
@@ -239,17 +250,16 @@ class XiaoluMama(models.Model):
             product_qs = Product.objects.none()
             
         product_ins = product_qs.count() > 0 and product_qs[0] or None
-        rebeta_rate = self.get_Mama_Order_Product_Rate(product_ins)
-        
-        order_price = 0
+        order_payment = 0
         if hasattr(order,'order_total_price'):
-            order_price = order.order_total_price
+            order_payment = order.order_total_price
         elif hasattr(order,'payment'):
-            order_price = int(order.payment * 100)
+            order_payment = int(order.payment * 100)
         
         #订单是特卖订单明细,则保存订单佣金明细
         if hasattr(order,'id') and hasattr(order,'payment'):
             from flashsale.clickrebeta.models import StatisticsShopping,OrderDetailRebeta
+            
             shopping_order, state = StatisticsShopping.objects.get_or_create(
                 linkid=self.id,
                 wxorderid=order.sale_trade.tid
@@ -258,13 +268,21 @@ class XiaoluMama(models.Model):
                   order=shopping_order,
                   detail_id=order.oid
             )
-            #TODO
             if state:
-                order_detail.order_amount = order.payment
-                order_detail.rebeta_amount = 0
+                rebeta_scheme = self.get_Mama_Order_Rebeta_Scheme(product_ins)
+                rebeta_amount = rebeta_scheme.get_scheme_rebeta(
+                    agencylevel=self.agencylevel,
+                    payment=order_payment
+                )
+                order_detail.order_amount  = order_payment
+                order_detail.rebeta_scheme_id  = rebeta_scheme
+                order_detail.rebeta_amount = rebeta_amount
                 order_detail.save()
+            return order_detail.rebeta_amount
         
-        return rebeta_rate * order_price
+        else:
+            rebeta_rate = self.get_Mama_Order_Product_Rate(product_ins)
+            return rebeta_rate * order_payment
     
     
     def get_Mama_Order_Amount(self,order):
@@ -287,21 +305,17 @@ class XiaoluMama(models.Model):
             for order in trade.normal_orders:
                 rebeta += self.get_Mama_Order_Rebeta(order)
             return rebeta
-        return 	self.get_Mama_Order_Rebeta(trade)
+        return self.get_Mama_Order_Rebeta(trade)
     
     def get_Mama_Trade_Amount(self,trade):
-        """ 获取妈妈交易返利提成 """
+        """ 获取妈妈交易订单金额 """
         if hasattr(trade,'pay_time') and trade.pay_time < ORDER_REBETA_START:
             return 0
         if hasattr(trade,'normal_orders'):
-            if hasattr(trade,'is_wallet_paid') and trade.is_wallet_paid():
-                return 0
             amount = 0
             for order in trade.normal_orders:
-                amount += self.get_Mama_Order_Rebeta(order)
+                amount += self.get_Mama_Order_Amount(order)
             return amount
-        if self.get_Mama_Order_Rebeta(trade) == 0:
-            return 0
         return self.get_Mama_Order_Amount(trade)
     
     def get_Mama_Click_Price(self,ordernum):
@@ -325,17 +339,20 @@ class XiaoluMama(models.Model):
         if day_date > datetime.date(2016,1,5):
             return 10
         return 0
-#         agency_level = agency_levels[0]
-#         if not day_date or day_date < ROI_CLICK_START:
-#             return base_price + agency_level.get_Click_Price(ordernum)
-#         return 0
+    
+        """ 
+        agency_level = agency_levels[0]
+        if not day_date or day_date < ROI_CLICK_START:
+            return base_price + agency_level.get_Click_Price(ordernum)
+        return 0
         
-#         pre_date = day_date - datetime.timedelta(days=1)
-#         mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
-#         if mm_stats.count() > 0:
-#             base_price = mm_stats[0].base_click_price
-#         
-#         return base_price + agency_level.get_Click_Price(ordernum)
+        pre_date = day_date - datetime.timedelta(days=1)
+        mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
+        if mm_stats.count() > 0:
+            base_price = mm_stats[0].base_click_price
+         
+        return base_price + agency_level.get_Click_Price(ordernum)
+        """
     
     def get_Mama_Max_Valid_Clickcount(self, ordernum, day_date):
         """ 获取小鹿妈妈最大有效点击数  """

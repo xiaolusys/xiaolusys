@@ -358,7 +358,7 @@ class ProductAdmin(MyAdmin):
             "admin/css/forms.css", "css/admin/dialog.css",
             "css/admin/common.css", "jquery/jquery-ui-1.10.1.css",
             "jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.css")
-              }
+            }
         js = (
             "js/admin/adminpopup.js", "js/item_change_list.js",
             "jquery/jquery-ui-1.8.13.min.js",
@@ -371,7 +371,7 @@ class ProductAdmin(MyAdmin):
             return self.readonly_fields + (
                 'model_id', 'sale_product', 'collect_num', 'warn_num',
                 'lock_num', 'inferior_num', 'wait_post_num', 'sale_charger',
-                'storage_charger')
+                'storage_charger','shelf_status','status')
         return self.readonly_fields
 
     def get_actions(self, request):

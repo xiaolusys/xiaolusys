@@ -40,7 +40,21 @@ class AgencyOrderRebetaScheme(models.Model):
         if qs.exists():
             return qs[0]
         return None
-
+    
+    def get_scheme_rebeta(self, **kwargs):
+        """ 根据订单支付金额，商品价格，小鹿妈妈等级，获取返利金额 """
+        agency_level = '%d'%kwargs.get('agencylevel',0)
+        payment      = kwargs.get('payment',0)
+        rebeta_rate  = self.agency_rebetas.get(agency_level,[0,0])
+        rebeta_amount = 0
+        if rebeta_rate[0] > 0:
+            rebeta_amount = payment * rebeta_rate[0]
+        else:
+            rebeta_amount = max(rebeta_rate[1] * 100,0)
         
+        if rebeta_amount > payment:
+            raise Exception('返利金额超过实际支付')
+        
+        return rebeta_amount
         
         

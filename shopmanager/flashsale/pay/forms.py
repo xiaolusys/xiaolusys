@@ -48,3 +48,5 @@ class ProductdetailForm(forms.ModelForm):
     
     class Meta:
         model = Productdetail
+        
+        

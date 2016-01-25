@@ -1,6 +1,7 @@
-# -*- coding:utf-8 -*-
+OrderDetailRebeta# -*- coding:utf-8 -*-
 import datetime
 from django.db import models
+from django.db.models.signals import post_save
 from shopapp.weixin.models import WXOrder
 from flashsale.clickcount.models import Clicks
 from flashsale.xiaolumm.models import XiaoluMama, AgencyLevel,CarryLog
@@ -52,7 +53,6 @@ class StatisticsShopping(models.Model):
         verbose_name = u'统计购买'
         verbose_name_plural = u'统计购买列表'
 
-
     def order_cash(self):
         return self.wxorderamount / 100.0
 
@@ -74,6 +74,14 @@ class StatisticsShopping(models.Model):
     @property
     def status_name(self):
         return self.get_status_display()
+    
+    def normal_orders(self):
+        return self.detail_orders.filter(
+            status__in=(
+                OrderDetailRebeta.WAIT_SEND,
+                OrderDetailRebeta.FINISHED
+            )
+        )
     
     def is_balanced(self):
         clogs = CarryLog.objects.filter(xlmm=self.linkid,
@@ -98,6 +106,7 @@ class StatisticsShopping(models.Model):
     def day_time(self):
         return self.shoptime.strftime("%H:%M")
 
+
 class OrderDetailRebeta(models.Model):
     """ 订单佣金明细 """
     WAIT_SEND = 0
@@ -112,7 +121,8 @@ class OrderDetailRebeta(models.Model):
 
     order     = models.ForeignKey(StatisticsShopping,null=True,related_name='detail_orders',verbose_name='订单')
     detail_id = models.CharField(max_length=64, db_index=True, verbose_name=u'订单明细ID')
-    pay_time = models.DateTimeField(db_index=True, verbose_name=u'支付时间')
+    scheme_id = models.IntegerField(default=0, verbose_name=u'佣金计划ID')
+    pay_time  = models.DateTimeField(db_index=True, verbose_name=u'支付时间')
     order_amount = models.IntegerField(default=0, verbose_name=u'支付金额')
     rebeta_amount  = models.IntegerField(default=0, verbose_name=u'订单提成')
     status   = models.IntegerField(default=WAIT_SEND, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
@@ -124,6 +134,29 @@ class OrderDetailRebeta(models.Model):
         verbose_name = u'订单佣金明细'
         verbose_name_plural = u'订单佣金明细'
         
+        
+def recalc_shopping_rebeta_amount(sender, instance, created, **kwargs):
+    """ 重新计算订单提成，实付金额，以及提成状态 """
+    if created:
+        return 
+    
+    shopping_order = instance.order
+    total_amount = 0
+    total_rebeta = 0
+    order_status = 1
+    for order in shopping_order.detail_orders:
+        total_amount += order.order_amount
+        total_rebeta += order.rebeta_amount
+        order_status &= order.status
+        
+    shopping_order.rebetamount   = total_amount
+    shopping_order.tichengcount  = total_rebeta
+    shopping_order.status        = order_status
+    shopping_order.save()
+            
+
+post_save.connect(recalc_shopping_rebeta_amount, sender=OrderDetailRebeta)
+
 
 class StatisticsShoppingByDay(models.Model):
     
@@ -163,7 +196,6 @@ class StatisticsShoppingByDay(models.Model):
         return c_logs.count() > 0
     
 # 2015-08-24  取消首单十个单红包　之前发放的会在任务里面　予以确定
-from django.db.models.signals import post_save
 
 def check_or_create_order_redenvelop(sender,instance, **kwargs):
 
@@ -361,7 +393,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     if xiaolu_mmset.exists():
         xiaolu_mm = xiaolu_mmset[0]
         #计算小鹿妈妈订单返利
-        mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj) 
+        mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj)
         mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj)
         tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                wxorderid=order_id)
@@ -428,8 +460,9 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     if strade.is_Deposite_Order() or strade.channel == SaleTrade.WALLET:
         return 
     
-    order_id          = strade.tid
-    order_time        = strade.pay_time
+    order_tid   = strade.tid
+    order_oid   = sorder.oid
+    order_time   = strade.pay_time
     today       = datetime.date.today()
     target_date = order_time.date()
     if target_date > today:
@@ -439,9 +472,8 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     if not xlmm:
         return 
     
-    shoppings = StatisticsShopping.objects.filter(wxorderid=order_id)\
-        .exclude(status=StatisticsShopping.REFUNDED)
-    if shoppings.count() == 0:
+    shoppings = StatisticsShopping.objects.filter(wxorderid=order_tid)
+    if not shoppings.exists() or shoppings[0].status == StatisticsShopping.REFUNDED:
         return
     shopping  = shoppings[0]
     daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xlmm.id,
@@ -449,10 +481,22 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     
     #订单返利是否结算
     is_balanced = shopping.is_balanced()
-    mm_rebeta_amount    = xlmm.get_Mama_Trade_Amount(strade) 
-    mm_order_rebeta     = xlmm.get_Mama_Trade_Rebeta(strade)
-    
-    delta_rebeta  = max(shopping.tichengcount - mm_order_rebeta,0)
+    #获取订单佣金明细
+    detail_orders = OrderDetailRebeta.objects.filter(order=shopping,detail_id=order_oid)
+    if detail_orders.exists():
+        detail_order = detail_orders[0]
+        detail_order.rebeta_amount = min((sorder.num - obj.refund_num) / sorder.num, 1) * detail_order.rebeta_amount
+        detail_order.status = OrderDetailRebeta.REFUNDED
+        detail_order.save()
+        
+        mm_rebeta_amount    = detail_order.order.rebetamount
+        mm_order_rebeta     = detail_order.order.tichengcount
+        delta_rebeta = (obj.refund_num / sorder.num) * detail_order.rebeta_amount
+    else:
+        mm_rebeta_amount    = xlmm.get_Mama_Trade_Amount(strade) 
+        mm_order_rebeta     = xlmm.get_Mama_Trade_Rebeta(strade)
+        delta_rebeta  = max(shopping.tichengcount - mm_order_rebeta,0)
+        
     shopping_status = shopping.status
     if mm_rebeta_amount == 0 :
         shopping_status = StatisticsShopping.REFUNDED 
