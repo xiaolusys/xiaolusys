@@ -161,12 +161,12 @@ class Product(models.Model):
     def product_model(self):
         """ 获取商品款式 """
         if self.model_id == 0:
-            return None
+            return {}
         from flashsale.pay.models_custom import ModelProduct
         try:
             pmodel = ModelProduct.objects.get(id=self.model_id)
         except:
-            return None
+            return {}
         return pmodel
 
     @property
@@ -174,7 +174,7 @@ class Product(models.Model):
         try:
             return self.details
         except:
-            return None
+            return {}
 
     @property
     def sale_group(self):
