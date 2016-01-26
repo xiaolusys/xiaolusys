@@ -469,6 +469,18 @@ class Product(models.Model):
         pros = self.__class__.objects.filter(model_id=self.model_id)
         return pros
 
+    def in_customer_shop(self, customer):
+        """在用户我的店铺中有本产品则返回true否则返回false"""
+        try:
+            customer_shop = CustomerShops.objects.get(customer=customer)
+            cps = CuShopPros.objects.filter(product=self.id, shop=customer_shop.id)
+            if cps.exists():
+                return True
+            return False
+        except:
+            return False
+from flashsale.pay.models_shops import CuShopPros, CustomerShops
+
 
 def delete_pro_record_supplier(sender, instance, created, **kwargs):
     """ 当作废产品的时候　检查　同款是否 全部  作废　如果是　则　将对应供应商的选款数量减去１

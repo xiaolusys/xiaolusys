@@ -692,5 +692,25 @@ class CustomShareAdmin(admin.ModelAdmin):
     
 admin.site.register(CustomShare, CustomShareAdmin)
 
+from .models_shops import CuShopPros, CustomerShops
 
+
+class CuShopProsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'shop', 'product', 'pro_status', 'created')
+    list_display_links = ('shop',)
+    list_filter = ('created', 'pro_status')
+    search_fields = ['=id', 'shop', 'product']
+
+
+admin.site.register(CuShopPros, CuShopProsAdmin)
+
+
+class CustomShopadmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'created')
+    list_display_links = ('name',)
+    list_filter = ('created',)
+    search_fields = ['=id', 'name']
+
+
+admin.site.register(CustomerShops, CustomShopadmin)
 
