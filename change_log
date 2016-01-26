@@ -1,4 +1,4 @@
-######## 2016-01-012 ########
+######## 2016-01-022 ########
 alter table supplychain_supply_schedule_manage_detail add column pic_rating double precision default NULL;
 
 ######## 2016-01-012 ########
