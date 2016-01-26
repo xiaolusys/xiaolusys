@@ -122,7 +122,7 @@ class OrderDetailRebeta(models.Model):
     order     = models.ForeignKey(StatisticsShopping,null=True,related_name='detail_orders',verbose_name='订单')
     detail_id = models.CharField(max_length=64, db_index=True, verbose_name=u'订单明细ID')
     scheme_id = models.IntegerField(default=0, verbose_name=u'佣金计划ID')
-    pay_time  = models.DateTimeField(db_index=True, verbose_name=u'支付时间')
+    pay_time  = models.DateTimeField(db_index=True,null=True,blank=True, verbose_name=u'支付时间')
     order_amount = models.IntegerField(default=0, verbose_name=u'支付金额')
     rebeta_amount  = models.IntegerField(default=0, verbose_name=u'订单提成')
     status   = models.IntegerField(default=WAIT_SEND, choices=SHOPPING_STATUS, verbose_name=u'订单状态')
@@ -144,7 +144,7 @@ def recalc_shopping_rebeta_amount(sender, instance, created, **kwargs):
     total_amount = 0
     total_rebeta = 0
     order_status = 1
-    for order in shopping_order.detail_orders:
+    for order in shopping_order.normal_orders():
         total_amount += order.order_amount
         total_rebeta += order.rebeta_amount
         order_status &= order.status
@@ -476,9 +476,7 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
     if not shoppings.exists() or shoppings[0].status == StatisticsShopping.REFUNDED:
         return
     shopping  = shoppings[0]
-    daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xlmm.id,
-                                                      tongjidate=order_time.date())
-    
+ 
     #订单返利是否结算
     is_balanced = shopping.is_balanced()
     #获取订单佣金明细
@@ -491,7 +489,7 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
         
         mm_rebeta_amount    = detail_order.order.rebetamount
         mm_order_rebeta     = detail_order.order.tichengcount
-        delta_rebeta = (obj.refund_num / sorder.num) * detail_order.rebeta_amount
+        delta_rebeta        = (obj.refund_num / sorder.num) * detail_order.rebeta_amount
     else:
         mm_rebeta_amount    = xlmm.get_Mama_Trade_Amount(strade) 
         mm_order_rebeta     = xlmm.get_Mama_Trade_Rebeta(strade)
@@ -522,6 +520,8 @@ def refund_rebeta_takeoff(sender, obj, **kwargs):
         shopping.status = shopping_status
         shopping.save()
         
+        daytongji,state = StatisticsShoppingByDay.objects.get_or_create(linkid=xlmm.id,
+                                                      tongjidate=order_time.date())
         daytongji.todayamountcount = F('todayamountcount') - delta_rebeta
         daytongji.save()
         

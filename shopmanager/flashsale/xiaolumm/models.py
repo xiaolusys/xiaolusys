@@ -222,15 +222,12 @@ class XiaoluMama(models.Model):
     
     def get_Mama_Order_Rebeta_Scheme(self, product):
         """ 获取妈妈佣金返利计划 """
-        try:
-            product_detail = product.detail
-        except:
-            return AgencyOrderRebetaScheme.get_default_scheme()
-        else:
-            schemes = AgencyOrderRebetaScheme.objects.get(id=product_detail.rebeta_scheme_id)
-            if schemes.exists():
-                return schemes[0]
-            return AgencyOrderRebetaScheme.get_default_scheme()
+        product_detail = product.detail
+        scheme_id = product_detail and product_detail.rebeta_scheme_id or 0
+        schemes = AgencyOrderRebetaScheme.objects.filter(id=scheme_id)
+        if schemes.exists():
+            return schemes[0]
+        return AgencyOrderRebetaScheme.get_default_scheme()
 
     
     def get_Mama_Order_Rebeta(self,order):
@@ -274,8 +271,9 @@ class XiaoluMama(models.Model):
                     agencylevel=self.agencylevel,
                     payment=order_payment
                 )
+                order_detail.pay_time = order.pay_time
                 order_detail.order_amount  = order_payment
-                order_detail.rebeta_scheme_id  = rebeta_scheme
+                order_detail.scheme_id  = rebeta_scheme
                 order_detail.rebeta_amount = rebeta_amount
                 order_detail.save()
             return order_detail.rebeta_amount

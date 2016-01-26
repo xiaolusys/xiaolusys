@@ -13,7 +13,7 @@ class AgencyOrderRebetaScheme(models.Model):
     name = models.CharField(max_length=64, blank=True, verbose_name=u'计划名称')
     
     agency_rebetas = JSONCharMyField(max_length=10240, blank=True, 
-                                default='[{"1":[0,0]}]', 
+                                default='{"1":[0,0]}', 
                                 verbose_name=u'代理等级返利设置')
     price_rebetas = JSONCharMyField(max_length=10240, blank=True, 
                                 default='[{"100":{"1":[0,0]}}]', 

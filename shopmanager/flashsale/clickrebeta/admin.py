@@ -9,7 +9,7 @@ from .models import StatisticsShopping, OrderDetailRebeta, StatisticsShoppingByD
 class OrderDetailRebetaInline(admin.TabularInline):
 
     model = OrderDetailRebeta
-    fields = ('detail_id', 'order_amount','rebeta_amount', 'status')
+    fields = ('detail_id','scheme_id', 'order_amount','rebeta_amount','pay_time', 'status')
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
