@@ -9,7 +9,15 @@ from django.contrib.admin.views.main import ChangeList
 from shopback.base.admin import MyAdmin
 from shopback.base.options import DateFieldListFilter
 
-from .models import XiaoluMama,AgencyLevel,CashOut,CarryLog,OrderRedPacket,MamaDayStats
+from .models import (
+    XiaoluMama,
+    AgencyLevel,
+    CashOut,
+    CarryLog,
+    OrderRedPacket,
+    MamaDayStats,
+    AgencyOrderRebetaScheme
+)
 from . import forms 
 from flashsale.mmexam.models import Result
 from flashsale.clickcount.models import ClickCount
@@ -308,3 +316,12 @@ class NinePicAdverAdmin(admin.ModelAdmin):
 
 
 admin.site.register(NinePicAdver, NinePicAdverAdmin)
+
+class AgencyOrderRebetaSchemeAdmin(admin.ModelAdmin):
+
+    list_display = ('id', 'name', 'modified', 'is_default', 'status')
+    search_fields = ['name', 'id']
+    list_filter = ('is_default', 'status')
+
+
+admin.site.register(AgencyOrderRebetaScheme, AgencyOrderRebetaSchemeAdmin)

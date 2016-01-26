@@ -166,32 +166,29 @@ admin.site.register(UserAddress, UserAddressAdmin)
 
 
 class SaleRefundChangeList(ChangeList):
+    
     def get_query_set(self, request):
-
         search_q = request.GET.get('q', '').strip()
         if search_q:
-
             refunds = SaleRefund.objects.none()
             trades = SaleTrade.objects.filter(tid=search_q)
             if trades.count() > 0 and search_q.isdigit():
-
                 refunds = SaleRefund.objects.filter(models.Q(trade_id=trades[0].id) |
                                                     models.Q(order_id=search_q) |
                                                     models.Q(refund_id=search_q) |
                                                     models.Q(mobile=search_q) |
                                                     models.Q(trade_id=search_q))
-
             elif trades.count() > 0:
                 refunds = SaleRefund.objects.filter(trade_id=trades[0].id)
-
             elif search_q.isdigit():
                 refunds = SaleRefund.objects.filter(models.Q(order_id=search_q) |
                                                     models.Q(refund_id=search_q) |
                                                     models.Q(mobile=search_q) |
                                                     models.Q(trade_id=search_q))
-
+            else:
+                return super(SaleRefundChangeList, self).get_query_set(request)
             return refunds
-
+        
         return super(SaleRefundChangeList, self).get_query_set(request)
 
 import pingpp
@@ -206,7 +203,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
 
-    search_fields = ['=trade_id', '=order_id', '=refund_id', '=mobile']
+    search_fields = ['=refund_no','=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
 
     def order_no(self, obj):

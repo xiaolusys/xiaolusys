@@ -8,6 +8,7 @@ from common.utils import update_model_fields
 
 
 class Productdetail(models.Model):
+    
     WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
     OUT_PERCENT  = 0 #未设置代理返利比例
     ZERO_PERCENT = -1
@@ -18,6 +19,8 @@ class Productdetail(models.Model):
     THIRTY_PERCENT = 30
 
     WEIGHT_CHOICE = ((i,i) for i in range(1,17)[::-1])
+    DISCOUNT_CHOICE = ((i,i) for i in range(1,101)[::-1])
+    BUY_LIMIT_CHOICE = ((i,i) for i in range(1,21))
     
     REBETA_CHOICES = ((OUT_PERCENT,u'未设置返利'),
                      (ZERO_PERCENT,u'该商品不返利'),
@@ -33,21 +36,22 @@ class Productdetail(models.Model):
     head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
     content_imgs = models.TextField(blank=True,verbose_name=u'内容照(多张请换行)')
     
-    mama_discount  = models.IntegerField(default=100,verbose_name=u'妈妈折扣')
+    mama_discount  = models.IntegerField(default=100, choices=DISCOUNT_CHOICE, verbose_name=u'妈妈折扣')
     is_recommend = models.BooleanField(db_index=True,default=False,verbose_name=u'专区推荐')
     is_seckill   = models.BooleanField(db_index=True,default=False, verbose_name=u'是否秒杀')
     is_sale      = models.BooleanField(db_index=True,default=False,verbose_name=u'特价商品')
     order_weight = models.IntegerField(db_index=True,default=8,choices=WEIGHT_CHOICE,verbose_name=u'权值')
     buy_limit    = models.BooleanField(db_index=True,default=False,verbose_name=u'是否限购')
-    per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
+    per_limit    = models.IntegerField(default=5,choices=BUY_LIMIT_CHOICE,verbose_name=u'限购数量')
 
     material = models.CharField(max_length=64, blank=True, verbose_name=u'商品材质')
     color    = models.CharField(max_length=64, blank=True, verbose_name=u'可选颜色')
     wash_instructions = models.TextField(default=WASH_INSTRUCTION, blank=True, verbose_name=u'洗涤说明')
     note = models.CharField(max_length=256, blank=True, verbose_name=u'备注')
-    mama_rebeta = models.IntegerField(default=OUT_PERCENT, choices=REBETA_CHOICES,
-                                      db_index=True, verbose_name=u'代理返利')
-
+    mama_rebeta = models.IntegerField(default=OUT_PERCENT, choices=REBETA_CHOICES, db_index=True, verbose_name=u'代理返利')
+    
+    rebeta_scheme_id = models.IntegerField(default=0,verbose_name=u'返利计划')
+    
     class Meta:
         db_table = 'flashsale_productdetail'
         verbose_name=u'特卖商品/详情'

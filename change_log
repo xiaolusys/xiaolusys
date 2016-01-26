@@ -1,7 +1,8 @@
 ######## 2016-01-022 ########
 alter table supplychain_supply_schedule_manage_detail add column pic_rating double precision default NULL;
-
-######## 2016-01-012 ########
+######## 2016-01-22 ########
+alter table flashsale_productdetail add column rebeta_scheme_id int(11) default 0 NOT NULL;
+######## 2016-01-12 ########
 alter table supplychain_supply_product add column librarian varchar(32) default null ;
 alter table supplychain_supply_product add column buyer varchar(32) default null ;
 ######## 2016-01-04 ########

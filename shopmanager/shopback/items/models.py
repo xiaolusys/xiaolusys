@@ -177,7 +177,7 @@ class Product(models.Model):
             return None
     
     detail = product_detail = property(get_product_detail)
-    
+
     @property
     def sale_group(self):
         myuser = MyUser.objects.filter(user__username=self.sale_charger)
@@ -205,13 +205,11 @@ class Product(models.Model):
             return self.collect_num - self.sale_num
         return 0
 
-
     @property
     def sale_out(self):
         sale_out = True
         for sku in self.pskus:
             sale_out &= sku.sale_out
-
         return sale_out
 
     def has_quantity(self):
