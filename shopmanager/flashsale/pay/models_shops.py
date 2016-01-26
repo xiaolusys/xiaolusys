@@ -43,7 +43,15 @@ class CuShopPros(models.Model):
         return u'%s-%s' % (self.id, self.shop)
 
     def down_shelf_pro(self):
+        """ 修改为下架状态 """
         if self.pro_status == CuShopPros.UP_SHELF:
             self.pro_status = CuShopPros.DOWN_SHELF
+            self.save()
+        return
+
+    def up_shelf_pro(self):
+        """ 修改为上架状态 """
+        if self.pro_status == CuShopPros.DOWN_SHELF:
+            self.pro_status = CuShopPros.UP_SHELF
             self.save()
         return

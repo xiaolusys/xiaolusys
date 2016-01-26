@@ -181,6 +181,7 @@ INSTALLED_APPS = (
     'flashsale.kefu',
     'flashsale.push',
     'mathfilters',
+    'flashsale.activities',
 
     #'test.celery',
     #'shopapp.notify',
