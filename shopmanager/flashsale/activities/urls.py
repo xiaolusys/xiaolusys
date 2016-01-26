@@ -1,1 +1,5 @@
-__author__ = 'jishu_linjie'
+# -*- coding:utf-8 -*-
+from django.conf.urls import url
+
+urlpatterns = [
+]
