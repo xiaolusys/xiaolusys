@@ -79,7 +79,6 @@ class Product(models.Model):
     outer_id     = models.CharField(max_length=64,unique=True,null=False,
                                     blank=True,verbose_name=u'外部编码')
     name         = models.CharField(max_length=64,db_index=True,blank=True,verbose_name=u'商品名称')
-
     model_id     = models.BigIntegerField(db_index=True,default=0,verbose_name='商品款式ID')
 
     barcode      = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'条码')
@@ -158,24 +157,27 @@ class Product(models.Model):
                 setattr(self, field.name, getattr(self, field.name).strip())
 
 
-    def product_model(self):
+    def get_product_model(self):
         """ 获取商品款式 """
         if self.model_id == 0:
-            return {}
+            return None
         from flashsale.pay.models_custom import ModelProduct
         try:
             pmodel = ModelProduct.objects.get(id=self.model_id)
         except:
-            return {}
+            return None
         return pmodel
-
-    @property
-    def detail(self):
+    
+    product_model = property(get_product_model)
+    
+    def get_product_detail(self):
         try:
             return self.details
         except:
-            return {}
-
+            return None
+    
+    detail = product_detail = property(get_product_detail)
+    
     @property
     def sale_group(self):
         myuser = MyUser.objects.filter(user__username=self.sale_charger)
