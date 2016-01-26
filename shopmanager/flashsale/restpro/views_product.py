@@ -219,12 +219,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         order_by = order_by or request.REQUEST.get('order_by')
         if order_by == self.INDEX_ORDER_BY:
             queryset = queryset.extra(select={'is_saleout':'remain_num - lock_num <= 0'})\
-                .order_by('-category__sort_order','is_saleout', '-details__is_recommend','-details__order_weight','id')
+                .order_by('-category__sort_order','is_saleout', '-details__is_recommend','-details__order_weight','-id')
         elif order_by == 'price':
             queryset = queryset.order_by('agent_price')
         else:
             queryset = queryset.extra(select={'is_saleout':'remain_num - lock_num <= 0'})\
-                .order_by('is_saleout','-details__is_recommend','-details__order_weight','id')
+                .order_by('is_saleout','-details__is_recommend','-details__order_weight','-id')
         return queryset
 
     def get_custom_qs(self,queryset):

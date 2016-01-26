@@ -78,11 +78,14 @@ class CustomShareViewSet(viewsets.ModelViewSet):
             return {'share_link':'',
                     'share_img':'',
                     'title':'',
-                    'desc':'',
-                    }
+                    'desc':'',}
         xlmm_id  = xlmm and xlmm.id or 0
         serializer = self.get_serializer(cshare, many=False)
         resp     = serializer.data
+        
+        product = kwargs.get('product',None)
+        if product:
+            product.detail = product.detail or {}
         
         resp['share_link'] = cshare.share_link(xlmm=xlmm_id,**kwargs)
         resp['title']      = cshare.share_title(xlmm=xlmm_id,**kwargs)
