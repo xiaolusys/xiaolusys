@@ -1,5 +1,7 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 #coding:utf-8
+
+import json
 import re
 from django import template
 
@@ -19,11 +21,15 @@ def regexReplace(value, arg=''):
 
 @register.filter(name='stringBlur')
 def stringBlur(value,start=3,end=-3):
-    
+
     slen = len(value)
     if slen<start or slen<end:
         return value
-    
+
     es = value[end:]
     plen = slen - len(es)
     return value[0:start].ljust(plen,'*')+es
+
+@register.filter()
+def jsonify(data):
+    return json.dumps(data)
