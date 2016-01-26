@@ -120,7 +120,6 @@ def get_timestr(dt, now=datetime.datetime.now()):
     if now > ONE_DAY_LATER:
         return dt.strftime('%Y%m%d %H:%M:%S')
     elif now > ONE_HOUR_LATER:
-        print dir(now - dt)
         return '%d小时前' % ((now - dt).seconds / 3600 )
     elif now > ONE_MINUTE_LATER:
         return '%d分钟前' % ((now - dt).seconds / 60 )
