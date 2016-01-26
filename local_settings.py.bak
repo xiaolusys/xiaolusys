@@ -27,8 +27,8 @@ if DEBUG:
     STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT, "site_media", "static"),
     )
-    STATIC_ROOT = ""
-else :
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "local")
+else:
     STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
 
 MIDDLEWARE_CLASSES = (
