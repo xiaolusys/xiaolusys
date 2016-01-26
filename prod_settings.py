@@ -26,8 +26,9 @@ if DEBUG:
     STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT,"site_media","static"),
     )
-else :
-    STATIC_ROOT = os.path.join(PROJECT_ROOT,"site_media","static")
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "local")
+else:
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
 
 M_STATIC_URL = '/'
 

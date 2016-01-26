@@ -50,7 +50,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
         for k,v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
                 key_maps[k] = v
-
+        
         return hashlib.sha256(u'.'.join([
                 view_instance.__module__,
                 view_instance.__class__.__name__,
@@ -251,10 +251,13 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @cache_response(timeout=15 * 60, key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_today_paging(self, request, *args, **kwargs):
-        """ 　　商品列表　　分页接口 """
+        """ 　　商品列表分页接口 """
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
-        tal_queryset = self.get_custom_qs(queryset).filter(sale_time=today_dt,shelf_status=Product.UP_SHELF)
+        tal_queryset = self.get_custom_qs(queryset).filter(
+            Q(sale_time=today_dt)|Q(details__is_recommend=True),
+            shelf_status=Product.UP_SHELF
+        )
         queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
         pagin_query = self.paginate_queryset(queryset)
         if pagin_query is not None:
