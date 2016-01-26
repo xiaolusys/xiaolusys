@@ -30,6 +30,8 @@ from . import permissions as perms
 from . import serializers
 from .options import gen_and_save_jpeg_pic
 from shopback.base import log_action, ADDITION, CHANGE
+from django.forms import model_to_dict
+
 
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
@@ -116,6 +118,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     - /modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）;
     - /{pk}/details[.format]: 商品详情;
     - /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
+    - /my_choice_pro: 获取'我的选品列表'产品数据
     """
     queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer
@@ -410,6 +413,27 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             log_action(request.user.id, pro, CHANGE, u'预览时修改产品为已审核！')
         res = {"is_verify": pro.is_verify, "id": pro.id}
         return Response(res)
+
+    @list_route(methods=['get'])
+    def my_choice_pro(self, request):
+        """
+        我的选品(不添加秒杀和卖光的产品) 这里要计算用户的佣金
+        """
+        customer = get_object_or_404(Customer, user=request.user)
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        pros = []
+        for pro in queryset:
+            if pro.name.startswith('秒杀'):
+                continue
+            elif pro.is_sale_out():  # 是否卖光
+                continue
+            else:
+                prodic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price'])
+                prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
+                pros.append(prodic)
+        return Response(pros)
+
 
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """

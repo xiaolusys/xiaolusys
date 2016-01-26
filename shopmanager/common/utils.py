@@ -1,4 +1,5 @@
-#-*- coding:utf-8 -*-
+# coding: utf-8
+
 import os
 import re
 import hashlib
@@ -11,7 +12,7 @@ import urllib2
 import decimal
 import random
 import cStringIO
-
+import urlparse
 
 from taskutils  import single_instance_task
 from modelutils import update_model_fields
@@ -34,9 +35,8 @@ BASE_STRING = 'abcdefghijklmnopqrstuvwxyz1234567890-'
 REGEX_INVALID_XML_CHAR = r'$><^;\&\[\]\?\!\"\:'
 
 def parse_urlparams(string):
-    arr = string.split('&')
-    map = dict([(s.split('=')[0],s.split('=')[1]) for s in arr if s.find('=')>0])
-    return map
+    query = urlparse.urlparse(string).query
+    return dict([(k,v[0]) for k,v in urlparse.parse_qs(query).items()])
 
 def valid_xml_string(xml_str):
     return re.sub(REGEX_INVALID_XML_CHAR,'*',xml_str)
@@ -103,5 +103,28 @@ def url_utf8_quote(link):
     link_tuple = link[link.find(':') + 1:].split('?')
     if len(link_tuple) == 1:
         return '%s:%s'%(req_http,urllib.quote(link_tuple[0]))
-    encode_params = parse_urlparams(link_tuple[1])
-    return '%s:%s?%s'%(req_http,urllib.quote(link_tuple[0]),urllib.urlencode(encode_params))
+
+    link_params = link_tuple[1]
+    if link_params.find('=') > -1:
+        encode_params = parse_urlparams(link_params)
+        link_params = urllib.urlencode(encode_params)
+    return '%s:%s?%s'%(req_http,urllib.quote(link_tuple[0]),link_params)
+
+
+def get_timestr(dt, now=datetime.datetime.now()):
+    ONE_DAY_LATER = dt + datetime.timedelta(days=1)
+    ONE_HOUR_LATER = dt + datetime.timedelta(hours=1)
+    ONE_MINUTE_LATER = dt + datetime.timedelta(minutes=1)
+    TEN_SECONDS_LATER = dt + datetime.timedelta(seconds=10)
+
+    if now > ONE_DAY_LATER:
+        return dt.strftime('%Y%m%d %H:%M:%S')
+    elif now > ONE_HOUR_LATER:
+        print dir(now - dt)
+        return '%d小时前' % ((now - dt).seconds / 3600 )
+    elif now > ONE_MINUTE_LATER:
+        return '%d分钟前' % ((now - dt).seconds / 60 )
+    elif now > TEN_SECONDS_LATER:
+        return '%d秒前' % (now - dt).seconds
+    else:
+        return '刚刚'

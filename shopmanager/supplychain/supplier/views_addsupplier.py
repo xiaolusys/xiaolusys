@@ -1,4 +1,7 @@
-# -*- encoding:utf8 -*-
+# coding: utf-8
+
+import json
+
 from rest_framework import generics
 from shopback.categorys.models import ProductCategory
 
@@ -11,7 +14,7 @@ from django.db import transaction
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
 from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail, \
-    SupplierZone
+    SupplierZone, SaleProductPicRatingMemo
 import datetime
 from supplychain.supplier.models import SaleProduct
 
@@ -120,7 +123,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
             one_data, wem_posters, chd_posters, target_sch = get_target_date_detail(temp_date, category)
             result_data.append({"data": one_data, "date": temp_date.strftime("%Y-%m-%d"),
                                 "wem_posters": wem_posters, "chd_posters": chd_posters})
-        return Response({"result_data": result_data, "target_date": target_date_str, "category": category})
+        return Response({"result_data": result_data, "target_date": target_date_str, "category": category, 'show_pic_rating_btn': request.user.has_perm('supplier.pic_rating')})
 
 
 class ScheduleCompareView(generics.ListCreateAPIView):
@@ -154,6 +157,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                 -   type:1 设计接管选品
                 -   type:2 排期完成，即设计组完成图片
                 -   type:3 取消排期完成
+                -   type:4 作图评分
     """
     renderer_classes = (JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
@@ -236,5 +240,24 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             detail_product.save()
             log_action(request.user.id, detail_product, CHANGE, u'反完成')
             return Response({"result": u"success"})
-        return Response({"result": u"error"})
+        elif type == '4':
+            """
+            if not detail_product.design_complete:
+                return Response({'result': u'notdone'})
+            """
+            if not request.user.has_perm('supplier.pic_rating'):
+                return Response({'result': u'forbidden'})
+            memo = request.POST.get('memo') or ''
+            rating = float(request.POST.get('rating') or 0)
 
+            pic_rating_memo = None
+            if memo:
+                pic_rating_memo = SaleProductPicRatingMemo(memo=memo, user=request.user, schedule_detail=detail_product)
+                pic_rating_memo.save()
+
+            detail_product.pic_rating = rating
+            detail_product.save()
+            result = {} if not pic_rating_memo else {'memo': unicode(pic_rating_memo)}
+            return Response(result)
+
+        return Response({"result": u"error"})
