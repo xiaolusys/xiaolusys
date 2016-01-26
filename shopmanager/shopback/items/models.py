@@ -475,10 +475,10 @@ class Product(models.Model):
             customer_shop = CustomerShops.objects.get(customer=customer)
             cps = CuShopPros.objects.filter(product=self.id, shop=customer_shop.id)
             if cps.exists():
-                return True
-            return False
+                return cps[0].pro_status
+            return 0
         except:
-            return False
+            return 0
 from flashsale.pay.models_shops import CuShopPros, CustomerShops
 
 

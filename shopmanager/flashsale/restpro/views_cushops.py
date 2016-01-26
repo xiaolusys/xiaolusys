@@ -94,7 +94,8 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
         shop_pros, pro_state = CuShopPros.objects.get_or_create(shop=shop.id, product=pro.id)
         if pro_state:  # 新建成功
             return Response({"code": 0})
-        return Response({"code": 2})
+        shop_pros.up_shelf_pro()
+        return Response({"code": 0})
 
     @list_route(methods=['post'])
     def remove_pro_from_shop(self, request):
