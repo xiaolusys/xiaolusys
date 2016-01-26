@@ -540,7 +540,7 @@ class ProductSku(models.Model):
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
 
-    outer_id = models.CharField(max_length=64,blank=False,verbose_name='规格外部编码')
+    outer_id = models.CharField(max_length=64,blank=False,verbose_name=u'供应商货号/编码')
 
     barcode  = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
     product  = models.ForeignKey(Product,null=True,related_name='prod_skus',verbose_name='商品')
