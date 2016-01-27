@@ -64,6 +64,7 @@ router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
 router.register(r'ninepic', views_mmadver.NinePicAdverViewSet)
 router.register(r'cushop', views_cushops.CustomerShopsViewSet)
 router.register(r'cushoppros', views_cushops.CuShopProsViewSet)
+router.register(r'clicklog', views_xlmm.ClickViewSet)
 
 
 router.register(r'wuliu', views_wuliu_new.WuliuViewSet)

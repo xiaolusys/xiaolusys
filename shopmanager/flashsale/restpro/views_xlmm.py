@@ -21,6 +21,7 @@ from rest_framework.exceptions import APIException
 from options import gen_and_save_jpeg_pic
 import os, settings, urlparse
 from flashsale.clickcount.models import Clicks
+from rest_framework import exceptions
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -419,3 +420,71 @@ class CashOutViewSet(viewsets.ModelViewSet):
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response({"code": 0})
 
+
+class ClickViewSet(viewsets.ModelViewSet):
+    """
+    ## 特卖平台－代理专属链接点击记录API:  
+    - {prefix}[.format]: 获取登陆代理用户的点击记录  
+    - {prefix}/click_by_day?days=[days][.format]　[method:get] : 获取当前代理的指定days天数的所有点击佣金额 和　按天数的点击记录  
+    :return  
+    `all_income`: 所有点击的佣金金额  
+    `results`: 点击记录  
+    """
+    queryset = Clicks.objects.all()
+    serializer_class = serializers.ClickSerialize
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, request):
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+        return self.queryset.filter(linkid=xlmm.id)  # 对应的xlmm的点击记录
+
+    def get_owner_xlmm(self, request):
+        """ 返回当前用户的代理对象(如果存在的话) """
+        customer = get_object_or_404(Customer, user=request.user)
+        xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+        return xlmm  # 对应的xlmm
+
+    @list_route(methods=['get'])
+    def click_by_day(self, request):
+        """ 计算当前代理用户的今日点击佣金和所有点击佣金 """
+        content = request.REQUEST
+        days = content.get("days", 0)
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        days = int(days)
+        today = datetime.date.today()  # 今天日期
+        target_date = today - datetime.timedelta(days=days)
+        target_date_end = target_date + datetime.timedelta(days=1)
+        today_clicks = queryset.filter(click_time__gte=target_date, click_time__lt=target_date_end).order_by(
+            '-click_time')
+        data = []
+        for click in today_clicks:
+            dic = model_to_dict(click, fields=['isvalid', 'click_time'])
+            data.append(dic)
+
+        xlmm = self.get_owner_xlmm(request)
+        mmclgs = CarryLog.objects.filter(xlmm=xlmm.id, log_type=CarryLog.CLICK_REBETA,
+                                         status__in=(CarryLog.CONFIRMED, CarryLog.PENDING))  # 总计点击佣金
+        mmclgs_all_income = mmclgs.aggregate(sum_value=Sum('value')).get('value') or 0
+        all_income = mmclgs_all_income / 100.0 if mmclgs_all_income > 0 else 0
+        return Response({"all_income": all_income, "results": data})
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_owner_queryset(request)).order_by('-click_time')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        raise exceptions.APIException("method not allowed")
+
+    def partial_update(self, request, *args, **kwargs):
+        raise exceptions.APIException("method not allowed")
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException("method not allowed")

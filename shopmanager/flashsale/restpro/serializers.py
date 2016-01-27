@@ -367,7 +367,7 @@ class ProRefunRcdSerializer(serializers.ModelSerializer):
         fields = ('product', 'ref_num_out', 'ref_num_in', 'ref_sed_num', 'sale_date', 'is_female', 'is_child')
 
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut
-from flashsale.clickcount.models import ClickCount
+from flashsale.clickcount.models import ClickCount, Clicks
 from flashsale.clickrebeta.models import StatisticsShopping
 
 
@@ -389,6 +389,12 @@ class ClickCountSerialize(serializers.ModelSerializer):
     class Meta:
         model = ClickCount
         fields = ("linkid", "agencylevel", "user_num", "valid_num", "click_num", "date")
+
+
+class ClickSerialize(serializers.ModelSerializer):
+
+    class Meta:
+        model = Clicks
 
 
 class StatisticsShoppingSerialize(serializers.ModelSerializer):
