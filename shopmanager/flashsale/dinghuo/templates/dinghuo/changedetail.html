@@ -229,7 +229,6 @@
             <label id="order_status" class="label label-success"
                    style="font-size: large">{{ orderlist.get_status_display }}</label>
         </div>
-        <div class="col-lg-2"></div>
         <div class="col-lg-2">
             <a href="/admin/dinghuo/orderlist" style="text-align: right">
                 <span class="label label-warning" style="font-size: 15px">去订货单页面</span>
@@ -238,6 +237,11 @@
         <div class="col-lg-2">
             <a href="/admin/items/product" style="text-align: right">
                 <span class="label label-info" style="font-size: 15px">去商品页面</span>
+            </a>
+        </div>
+        <div class="col-lg-2">
+            <a href="/sale/dinghuo/changedetail/{{ orderlist.id }}/export" target="_blank" style="text-align: right">
+                <span class="label label-success" style="font-size: 15px">导出excel</span>
             </a>
         </div>
     </div>
@@ -370,6 +374,7 @@
         <table id="orderdetailtable" border="1" class="table table-striped table-bordered table-hover">
             <thead>
             <th>商品编码</th>
+            <th>供应商编码</th>
             <th>商品名称</th>
             <th>图片</th>
             <th>规格</th>
@@ -386,6 +391,7 @@
             {% for order in orderdetails %}
                 <tr id="orderdetail_{{ forloop.counter }}">
                     <td><a href="/admin/items/product/?q={{ order.outer_id|slice:":9" }}" target="_blank">{{ order.outer_id }}</a></td>
+                    <td><a href="/admin/items/productsku/{{order.chichu_id}}/" target="_blank">{{ order.supplier_outer_id }}</a></td>
                     <td>{{ order.product_name }}</td>
                     <td><img src="{{ order.pic_path }}" title="{{ order.product_name }}" width="60px" height="60px" class="img-circle"></td>
                     <td>{{ order.product_chicun }}</td>
