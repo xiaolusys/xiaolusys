@@ -4,7 +4,6 @@
 
 {% block head_script %}
     <script src="{{ STATIC_URL }}jquery/jquery-2.1.1.min.js"></script>
-    <script src="{{ STATIC_URL }}jqueryapplink/jquery.applink.js"></script>
     <script>
         var OSTest = function () {// 客户端平台检测　返回
             var u = navigator.userAgent;
@@ -15,29 +14,31 @@
             }
             else if (isiOS == true) {
                 return 'iOS';
-                //window.location.href = "https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985";
             }
             else {
                 return 'web'
             }
         };
-        function startAPP() {
-            window.location = "xlmm://local.app/openwith";
-        }
-        function downloadAPP() {
-            window.location = "http://IP/**/**.apk";
-        }
-        $(document).ready(function () {
-            console.log("os is :", OSTest());
-            //startAPP();
-            //$('.links-list')
-            if (isWeiXin()) {//如果是微信内置浏览器则提示在外部浏览器打开
-                $("#download").hide();
-            }
-            $('a[data-applink]').applink();//启动app
 
-        });
-        function isWeiXin() {
+        function startAndroidAPP() {
+            console.log("start android app...");
+            window.location = "xlmm://local.app/openwith";//打开本地app
+            setTimeout(
+                    function () {
+                        window.location = "http://m.xiaolu.so";//超时则去下载
+                    }, 50);
+        }
+        function startiOSAPP() {
+            console.log("start iOS app...");
+            window.location = "wx25fcb32689872499:open?active_share_weixin_user=1111";//打开本地app
+
+            setTimeout(
+                    function () {//超时则去下载
+                        window.location = "https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985";
+                    }, 50);
+        }
+
+        function isWeiXin() {//判断当前浏览器是否是微信内置浏览器
             var ua = window.navigator.userAgent.toLowerCase();
             if (ua.match(/MicroMessenger/i) == 'micromessenger') {
                 return true;
@@ -50,21 +51,36 @@
 
 
 {% block container %}
+    <span id="weixin_label" hidden="hidden">可以点击右上角在浏览器中打开</span>
     <div id="download">
         <div class="col-xs-12" style="text-align: center;height: 180px">
             <h1 style="padding: 30px">{{ title }}下载页面</h1>
         </div>
 
-        <a href="http://m.xiaolu.so" data-applink="xlmm://local.app/openwith">小鹿美美</a>
-
         <div class="col-xs-2"></div>
         <div class="col-xs-8">
-            <form action="">
-                <input type="text" class="form-control" value="推荐人:{{ share_customer }}" name="share_customer"
-                       aria-describedby="basic-addon1" style="text-align: center">
-                <button class="btn btn-default form-control" type="submit">下载app</button>
-            </form>
+            <button class="btn btn-default form-control" type="submit">下载app</button>
         </div>
         <div class="col-xs-2"></div>
     </div>
+{% endblock %}
+{% block footer %}
+    <script>
+        $(document).ready(function () {
+            var os = OSTest();
+            if (isWeiXin()) {//如果是微信内置浏览器则提示在外部浏览器打开
+                $("#download").hide();
+                $("#weixin_label").show();
+            }
+            else {
+                console.log("not in weixin, is in " + os);
+                if (os == 'Android') {
+                    startAndroidAPP();//启动app
+                }
+                else if (os == "iOS") {
+                    startiOSAPP();//启动ios app
+                }
+            }
+        });
+    </script>
 {% endblock %}
