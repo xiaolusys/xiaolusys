@@ -1,12 +1,15 @@
 # coding:utf-8
+from django.db import transaction
+
 from rest_framework import generics
-from shopback.categorys.models import ProductCategory
-from shopback.items.models import Product, ProductSku, ProductSkuContrast, ContrastContent
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
+
+from shopback.categorys.models import ProductCategory
+from shopback.items.models import Product, ProductSku, ProductSkuContrast, ContrastContent
 from flashsale.pay.models_custom import ModelProduct, Productdetail
-from django.db import transaction
+from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from supplychain.supplier.models import SaleSupplier
 from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
@@ -298,7 +301,7 @@ class BatchSetTime(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         content = request.GET
         target_shelf_date = content.get("shelf_date", datetime.date.today())
-        model_id = content.get("model_id", None)
+        model_id = content.get("model_id", '')
         p_cate_search = content.get("search_cate", None)
         ex_names = ['小鹿美美', '优尼世界']
         parent_categorys = ProductCategory.objects.filter(is_parent=True).exclude(name__in=ex_names)
@@ -323,16 +326,20 @@ class BatchSetTime(generics.ListCreateAPIView):
             cates.append(kv)
         if models and len(models) != 0:
             products = Product.objects.filter(model_id__in=models, status=Product.NORMAL).order_by("outer_id")
-            return Response(
-                {"all_product": products, "target_shelf_date": target_shelf_date, "model_id": model_id_strip,
-                 "cates": cates, "ware_by": Product.WARE_CHOICES, "p_cates": p_cates})
-        if p_cate_search is not None and p_cate_search != "":
+        elif p_cate_search is not None and p_cate_search != "":
             products = Product.objects.filter(sale_time=target_shelf_date, status=Product.NORMAL
                                               , category__parent_cid=p_cate_search).order_by("outer_id")
         else:
             products = []
-        return Response({"all_product": products, "target_shelf_date": target_shelf_date, "cates": cates,
-                         "ware_by": Product.WARE_CHOICES, "p_cates": p_cates})
+        rebeta_schemes = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
+        print 'debug:',rebeta_schemes
+        return Response({"all_product": products, 
+                         "model_id":model_id,
+                         "target_shelf_date": target_shelf_date, 
+                         "cates": cates,
+                         "ware_by": Product.WARE_CHOICES, 
+                         "rebeta_schemes":rebeta_schemes,
+                         "p_cates": p_cates})
 
     def add_kill_title(self, pros, actioner):
         """ 添加秒杀标题 """
@@ -367,14 +374,25 @@ class BatchSetTime(generics.ListCreateAPIView):
         elif add_kill_title is not None and int(add_kill_title) == 0:  # 移除秒杀
             self.remove_kill_title(pros, request.user.id)
         for pro in pros:
+            properties = []
             for k, v in request.data.iteritems():
                 k = str(k)
-                if k in ("offshelf_time", "sale_time", "ware_by") and v == "": continue
-                if not hasattr(pro, k): continue
-                if k in ("ware_by", "is_watermark"):
-                    v = int(v)
-                    if pro.__getattribute__(k) == v: continue  # 如果数值没有变则不去更改和产生操作记录
-                pro.__setattr__(k, v)
-                pro.save()
-                log_action(request.user.id, pro, CHANGE, u'批量设置产品{0}字段为{1}'.format(k, v))
+                if k in ("offshelf_time", "sale_time", "ware_by", "agent_price") and v == "": continue
+                if hasattr(pro, k):
+                    if k == 'is_watermark':
+                        setattr(pro, k, int(v))
+                    else:
+                        setattr(pro, k, v)
+                    properties.append((Product._meta.get_field(k).verbose_name.title(),v))
+                
+                if k == 'agent_price':
+                    pro.pskus.update(agent_price=v)
+                if k == 'rebeta_scheme_id' and v != '':
+                    product_detail,state = Productdetail.objects.get_or_create(product=pro)
+                    product_detail.rebeta_scheme_id = v
+                    product_detail.save()
+                    properties.append((Productdetail._meta.get_field(k).verbose_name.title(),v))
+            pro.save()
+            if k:log_action(request.user.id, pro, CHANGE, u'批量设置产品:%s'%(','.join('%s＝%s'%p for p in properties)))
         return Response({"code": 0})
+

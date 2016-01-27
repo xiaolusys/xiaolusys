@@ -14,7 +14,15 @@
             type="text/javascript"></script>
     <script src="/static/jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
             type="text/javascript"></script>
-
+<style>
+input[type=checkbox]{
+    width: 16px;
+    height: 16x;
+}
+.checkbox{
+    display:inline;
+}
+</style>
 </head>
 <body>
 <div class="container" style="margin-top: 30px">
@@ -52,7 +60,7 @@
                        id="shelfdate" placeholder="选择上架日期"/>
             </div>
             <div class="col-xs-2">
-                <select name="search_cate">
+                <select name="search_cate" class="form-control">
                     <option value="" selected="selected">选择分类</option>
                     {% for  p_cate in p_cates %}
                         <option value="{{ p_cate.p_cid }}">{{ p_cate.p_fullcate_name }}</option>
@@ -74,22 +82,26 @@
         </div>
         <div class="panel-body">
             <div class="row">
-                <div class="col-xs-2">
-                    <span class="label label-warning">秒杀</span>
-                    <input type="checkbox" id="sec_kill_products" style="width: 25px;height: 25px">
-                </div>
-                <div class="col-xs-2">
-                    <span class="label label-warning">水印</span>
-                    <input type="checkbox" id="is_watermark" style="width: 25px;height: 25px">
-                </div>
-                <div class="col-xs-2">
-                    <input type="text" id="shelf_time" class="form-control" readonly/>
-                </div>
-                <div class="col-xs-2">
-                    <input type="text" id="unshelf_time" class="form-control" readonly/>
-                </div>
                 <div class="col-xs-1">
-                    <select name="ware_by" id="setting_ware_by">
+                    <div class="checkbox">
+	                    <label>
+	                      <input type="checkbox" id="sec_kill_products"> 秒杀
+	                    </label>
+	                </div>
+                    <div class="checkbox">
+                        <label>
+                          <input type="checkbox" id="is_watermark"> 水印
+                        </label>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    <input type="text" id="shelf_time" class="form-control" placeholder="设置上架日期" readonly/>
+                </div>
+                <div class="col-xs-2">
+                    <input type="text" id="unshelf_time" class="form-control" placeholder="设置下架日期" readonly/>
+                </div>
+                <div class="col-xs-2">
+                    <select name="ware_by" id="setting_ware_by" class="form-control">
                         <option value="" selected="selected">选择仓库</option>
                         {% for  wareid , ware in ware_by %}
                             <option value="{{ wareid }}">{{ ware }}</option>
@@ -97,6 +109,21 @@
                     </select>
                 </div>
                 <div class="col-xs-2">
+                    <div class="form-group">
+					    <label class="sr-only" for="exampleInputAmount"></label>
+					    <div class="input-group">
+					      <div class="input-group-addon">￥</div>
+					      <input type="text" class="form-control" id="setting_price" placeholder="售价">
+					    </div>
+					  </div>
+                </div>
+                <div class="col-xs-2">
+                    <select name="rebeta_scheme_id" id="setting_rebeta_scheme" class="form-control">
+                        <option value="" selected="selected">选择返利计划</option>
+                        {% for scheme in rebeta_schemes %}
+                            <option value="{{ scheme.id }}">{{ scheme.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-xs-1">
                     <input type="button" class="btn btn-danger" id="set_target" value="设置"/>
@@ -111,11 +138,13 @@
                     <td width="10%">图片</td>
                     <td width="10%">编码-款式</td>
                     <td width="10%">商品名</td>
-                    <td width="15%">上架日期</td>
-                    <td width="20%">下架时间</td>
-                    <td>类别</td>
-                    <td>仓库</td>
-                    <td>水印</td>
+                    <td width="10%">上架日期</td>
+                    <td width="10%">返利计划</td>
+                    <td width="10%">售价(￥)</td>
+                    <td width="10%">类别</td>
+                    <td width="10%">仓库</td>
+                    <td width="5%">秒杀</td>
+                    <td width="5%">水印</td>
                     <td width="5%">勾选
                         <input type="checkbox" id="all_check" style="width: 25px;height: 25px">
                     </td>
@@ -132,10 +161,25 @@
                             <td>{{ product.name }}</td>
 
                             <td>{{ product.sale_time }}</td>
-                            <td>{{ product.offshelf_time }}</td>
+                            <td>{% if product.detail %}
+                                    {% for scheme in rebeta_schemes %}
+                                    {% if scheme.id == product.detail.rebeta_scheme_id %}
+                                    {{scheme.name}}
+                                    {% endif %}
+                                    {% endfor %}
+                                {% endif %}</td>
+                            <td>{{ product.agent_price }}</td>
                             <td>{{ product.category.name }}</td>
                             <td>{{ product.get_ware_by_display }}</td>
-                            <td>{{ product.is_watermark }}</td>
+                            <td>{% if product.detail %}
+                                    {% if product.is_seckill %}<i class="glyphicon glyphicon-ok-circle"></i>
+                                    {%else%}<i class="glyphicon glyphicon-ban-circle"></i>{%endif%}
+                                {% else %}
+                                    <i class="glyphicon glyphicon-ban-circle"></i>
+                                {% endif %}     
+                            </td>
+                            <td>{% if product.is_watermark %}<i class="glyphicon glyphicon-ok-circle"></i>
+                                {%else%}<i class="glyphicon glyphicon-ban-circle"></i>{%endif%}</td>
                             <td>
                                 <input type="checkbox" class="my_product" data-product-id="{{ product.id }}"
                                        style="width: 25px;height: 25px"/>
@@ -195,18 +239,23 @@
             var unshelf_time = $("#unshelf_time").val();//下架时间
             var shelf_time = $("#shelf_time").val();//上架时间
             var ware_by = $("#setting_ware_by").val();//所选仓库
-
+            var rebeta_scheme = $("#setting_rebeta_scheme").val();//返利计划
+            var price = $("#setting_price").val();//返利计划
             if (checked_product && checked_product.length != 0) {
                 checked_product = checked_product.substring(0, checked_product.length - 1);
             } else {
                 swal("您好！", "请选择商品", "warning");
-                return
+                return;
             }
             if ($("#is_watermark").prop("checked")) {
                 is_watermark = 1;
             }
             if ($("#sec_kill_products").prop("checked")) {
                 add_kill_title = 1;
+            }
+            if (price != '' && !parseFloat(price)){
+                swal("您好！", "商品价格输入有误", "warning");
+                return;
             }
             var requestUrl = "/items/batch_settime/";
             var data = {
@@ -216,6 +265,8 @@
                 "offshelf_time": unshelf_time,
                 "sale_time": shelf_time,
                 "ware_by": ware_by,
+                "agent_price": price,
+                "rebeta_scheme_id": rebeta_scheme,
                 "is_watermark": is_watermark
             };
             console.log("data:", data);
