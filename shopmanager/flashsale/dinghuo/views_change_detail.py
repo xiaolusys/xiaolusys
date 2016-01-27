@@ -177,6 +177,8 @@ class ChangeDetailExportView(View):
         items = [map(unicode, [i['outer_id'], i['supplier_outer_id'], i['product_name'],
                   i['pic_path'], i['product_chicun'], i['buy_quantity'],
                   i['buy_unitprice'], i['total_price']]) for i in items]
+        sum_of_total_price = round(sum(map(lambda x: float(x[-1]), items)), 2)
+        items.append([''] * 6 + [u'总计', unicode(sum_of_total_price)])
         items.insert(0, headers)
         buff = StringIO()
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1
