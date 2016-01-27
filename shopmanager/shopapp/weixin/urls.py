@@ -7,7 +7,7 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 from shopback.base.proxy  import ProxyView
 from shopapp.weixin_sales.decorators import record_weixin_clicks
-from shopapp.weixin import views, views_freetrial
+from shopapp.weixin import views
 
 # from shopback.base.renderers  import BaseJsonRenderer
 # from shopback.base.permissions import IsAuthenticated
@@ -100,8 +100,6 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^wxpay/$','wxpay',name='weixin_wxpay'),
     
     url(r'^wxorder_detail/$','weixinorder_detail',name='weixinorder_detail'),
-    url(r'^freetrial/$', csrf_exempt(views_freetrial.FreeSampleView.as_view()), name='free_trial_active'),
-    url(r'^appdownload/$', csrf_exempt(views_freetrial.ActiveAction.as_view()), name='activate_action'),
 
 )
 

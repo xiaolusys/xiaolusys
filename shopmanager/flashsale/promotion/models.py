@@ -4,7 +4,7 @@ from django.db import models
 from core.models import BaseModel
 from django.contrib.auth.models import User
 from shopback.base.models import JSONCharMyField
-
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku
 
 SAFE_CODE_SECONDS = 180
 TOKEN_EXPIRED_IN  = 15 * 60
