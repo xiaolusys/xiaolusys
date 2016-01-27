@@ -28,7 +28,7 @@ class Participation(models.Model):
     activity = models.IntegerField(db_index=True, verbose_name=u"活动种类")
     weixinid = models.IntegerField(db_index=True, verbose_name=u"微信用户ID")
     phone_no = models.CharField(max_length=11, verbose_name=u"参与手机号")
-    activation_code = models.CharField(max_length=6, verbose_name=u'激活码')
+    activation_code = models.CharField(max_length=32, unique=True, verbose_name=u'激活码')
     result = models.BooleanField(default=False, verbose_name=u"活动结果")
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     created = models.DateTimeField(auto_now_add=True, verbose_name=u"参与时间")

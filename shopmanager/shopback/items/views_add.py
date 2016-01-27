@@ -111,11 +111,12 @@ class AddItemView(generics.ListCreateAPIView):
             chima_model.save()
             count = 1
             for sku in all_sku:
+                outer_id = content.get(color + "_" + sku + "_outerid", "")
                 remain_num = content.get(color + "_" + sku + "_remainnum", "")
                 cost = content.get(color + "_" + sku + "_cost", "")
                 price = content.get(color + "_" + sku + "_pricestd", "")
                 agentprice = content.get(color + "_" + sku + "_agentprice", "")
-                one_sku = ProductSku(outer_id=count, product=one_product, remain_num=remain_num, cost=cost,
+                one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num, cost=cost,
                                      std_sale_price=price, agent_price=agentprice,
                                      properties_name=sku, properties_alias=sku)
                 one_sku.save()
