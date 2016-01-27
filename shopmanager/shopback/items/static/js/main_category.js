@@ -20,7 +20,7 @@ $(function () {
     get_supplier();
     //get_sale_product();
     $('#new-product').bind("click", submit_data);
-})
+});
 function get_sale_product(){
     //获取选品信息
 
@@ -42,21 +42,21 @@ function showCategory(first_cate, second_cate, third_cate) {
     var title = ['一级', '2级', '3级'];
     $.each(title, function (k, v) {
         title[k] = '<option value="">' + v + '</option>';
-    })
+    });
 
     $('#first_category').append(title[0]);
     $('#second_category').append(title[1]);
     $('#third_category').append(title[2]);
 
 
-    $("#first_category,#second_category,#third_category").select2()
+    $("#first_category,#second_category,#third_category").select2();
     $('#first_category').change(function () {
 
         $('#second_category').empty();
         $('#second_category').append(title[1]);
         loc.fillOption('second_category', '0,' + $('#first_category').val());
-        $('#second_category').change()
-    })
+        $('#second_category').change();
+    });
 
     $('#second_category').change(function () {
         if(this.value==5){
@@ -67,11 +67,11 @@ function showCategory(first_cate, second_cate, third_cate) {
         $('#third_category').empty();
         $('#third_category').append(title[2]);
         loc.fillOption('third_category', '0,' + $('#first_category').val() + ',' + $('#second_category').val());
-    })
+    });
 
     $('#third_category').change(function () {
         $('input[name=location_id]').val($(this).val());
-    })
+    });
 
     if (first_cate) {
         loc.fillOption('first_category', '0', first_cate);
@@ -158,7 +158,7 @@ function get_supplier() {
                             window.location = "/admin";
                         });
                     } else {
-                        swal("Tips", "有错误，请联系技术人员(^_^)", "warning")
+                        swal("Tips", "有错误，请联系技术人员(^_^)", "warning");
                     }
                 }
     });
@@ -176,7 +176,7 @@ function get_all_check_color() {
             color[count++] = one_color.defaultValue;
         }
     });
-    return color
+    return color;
 }
 function get_all_sku() {
     /*
@@ -191,7 +191,7 @@ function get_all_sku() {
             skus[count++] = one_sku.defaultValue;
         }
     });
-    return skus
+    return skus;
 }
 function get_all_chima() {
     /*
@@ -206,7 +206,7 @@ function get_all_chima() {
             chi_ma[count++] = one_chima.defaultValue;
         }
     });
-    return chi_ma
+    return chi_ma;
 }
 function submit_data() {
     //请求URL
@@ -223,7 +223,7 @@ function submit_data() {
         category = first_category;
     } else {
         swal("warning", "please select category(^_^)", "error");
-        return
+        return;
     }
     var supplier = $('#supplier').val();
     var product_name = $('#product_name').val().trim();
@@ -242,9 +242,9 @@ function submit_data() {
     var all_chima_str = "";
     var need_chima = true;
     if ($("#no-chima").attr("checked")) {
-        need_chima = false
+        need_chima = false;
     } else {
-        need_chima = true
+        need_chima = true;
     }
 
     for (var i = 0; i < all_color.length; i++) {
@@ -304,9 +304,10 @@ function submit_data() {
     };
     for (var i = 0; i < all_color.length; i++) {
         var one_color = all_color[i].replace(/\+/g,"\\+").replace(/\[/g,"\\[").replace(/\]/g,"\\]").replace(/\*/g,"\\*");
-        console.log(one_color)
+        //console.log(one_color)
         for (var j = 0; j < all_sku.length; j++) {
             var one_sku = all_sku[j].replace("/","\\/").replace(/\*/g,"\\*");
+            result_data[all_color[i] + "_" + all_sku[j] + "_outerid"] = $("#" + one_color + "_" + one_sku + "_outerid").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + one_sku + "_remainnum").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + one_color + "_" + one_sku + "_cost").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_pricestd"] = $("#" + one_color + "_" + one_sku + "_pricestd").val().trim();
@@ -367,11 +368,9 @@ function submit_data() {
                         $('#new-product').bind("click", submit_data);
                         swal("Tips", "请先登录一下(^_^)", "warning");
                     } else {
-                        swal("Tips", "有错误，请联系技术人员(^_^)", "warning")
+                        swal("Tips", "有错误，请联系技术人员(^_^)", "warning");
                     }
                 }
             });
         });
-
-
 }
