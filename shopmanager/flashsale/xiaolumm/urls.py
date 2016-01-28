@@ -18,6 +18,8 @@ urlpatterns = patterns('',
     url(r'^help/term_service/$', TemplateView.as_view(template_name="term_service.html"), name='term_service'),
     url(r'^income/$',views.MamaIncomeDetailView.as_view()),
     
+    url(r'^authcheck/', views.WeixinAuthCheckView.as_view(), name="wxauth_view"),
+    
     url(r'^stats/$',staff_member_required(views.StatsView.as_view())),
     url(r'^cashout/$',views.CashoutView.as_view()),
     url(r'^cashoutlist/$',views.CashOutList.as_view()),
@@ -56,6 +58,5 @@ urlpatterns = patterns('',
     url(r'^xlmm_active/', staff_member_required(views_xlmm_active.XlmmActive.as_view()), name="xlmm_active"),
     url(r'^adver_nine_pic/', staff_member_required(views_xlmm_adver.NinepicView.as_view()), name="nine_pic"),
     url(r'^cashout_bathandler/', staff_member_required(views_cashout.CashoutBatView.as_view()), name="cashout_bat"),
-
 
 )
