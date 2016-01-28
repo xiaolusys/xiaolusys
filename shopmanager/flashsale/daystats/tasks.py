@@ -326,12 +326,19 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                 # for one_data in daily_data:
                 #     tui_huo += one_data.return_pro  # 退货数量
                 proids = p_products.values('id')
-                refs = SaleRefund.objects.filter(item_id__in=proids,  # 后来产生的退款单数量 排除关闭,拒绝,退款
-                                                 created__gte=start_date).exclude(status__in=(
-                                            SaleRefund.REFUND_REFUSE_BUYER, SaleRefund.REFUND_CLOSED),
-                                            good_status=SaleRefund.BUYER_NOT_RECEIVED)
-                tui_huo = refs.aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
-
+                refs = SaleRefund.objects.filter(
+                    item_id__in=proids,  # 后来产生的退款单数量 排除关闭,拒绝,退款
+                    created__gte=start_date
+                ).exclude(
+                    status__in=(
+                        SaleRefund.REFUND_REFUSE_BUYER, 
+                        SaleRefund.REFUND_CLOSED
+                    )
+                )
+                pre_tui_huo = refs.filter(good_status=SaleRefund.BUYER_NOT_RECEIVED)\
+                    .aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
+                post_tui_huo = refs.filter(good_status__in=(SaleRefund.BUYER_RECEIVED,SaleRefund.BUYER_RETURNED_GOODS))\
+                    .aggregate(t_refund_num=Sum('refund_num')).get('t_refund_num') or 0
                 supplier_list = ""
                 sale_contactor = ""
                 if sale_product_id != 0:
@@ -339,9 +346,9 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                     if one_sale_product.count() > 0:
                         supplier_list = one_sale_product[0].sale_supplier.supplier_name
                         sale_contactor = one_sale_product[0].contactor.username if one_sale_product[0].contactor else ""
-                if p_sales > 0 and tui_huo/p_sales >= 0.2:
+                if p_sales > 0 and pre_tui_huo/p_sales >= 0.2:
                     warning_status = "1"
-                elif p_sales > 0 and tui_huo/p_sales >= 0.1:
+                elif p_sales > 0 and pre_tui_huo/p_sales >= 0.1:
                     warning_status = "2"
                 else:
                     warning_status = "3"
@@ -349,8 +356,8 @@ def task_calc_hot_sale(start_time_str, end_time_str, category, limit=100):
                           "sale_time": product_item.sale_time.strftime("%Y-%m-%d") if product_item.sale_time else "",
                           "p_sales": p_sales, "cost": cost, "agent_price": agent_price, "p_cost": cost * int(p_sales),
                           "p_agent_price": agent_price * int(p_sales), "suppliers": supplier_list,
-                          "pic_path": product_item.pic_path, "sale_contactor": sale_contactor,
-                          "tui_huo": tui_huo, "product_category": product_category, "warning_status": warning_status}
+                          "pic_path": product_item.pic_path, "sale_contactor": sale_contactor,"tui_huo": pre_tui_huo,
+                          "post_tui_huo":post_tui_huo, "product_category": product_category, "warning_status": warning_status}
                 result_list.append(p_dict)
         return result_list
 
