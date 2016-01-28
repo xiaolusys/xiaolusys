@@ -2,6 +2,7 @@
 from django.db import models
 from shopback.base.models import JSONCharMyField
 
+
 class AgencyOrderRebetaScheme(models.Model):
     """ 代理订单返利模板：代理等级返利设置始终生效，如果商品价格返利选上，则先查找价格返利，然后才查询代理等级返利 """ 
     NORMAL = 1

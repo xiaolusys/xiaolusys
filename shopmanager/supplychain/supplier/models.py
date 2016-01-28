@@ -109,7 +109,10 @@ class SaleSupplier(models.Model):
     WHOLESALER = 2
     BRAND_OWNER = 3
     CLOTHING_FACTORY = 4
-    SUPPLIER_TYPE = ((NO_TYPE, u'未分类'), (MANUFACTURER, u'生产加工'), (WHOLESALER, u'经销批发'), (BRAND_OWNER, u'品牌'),
+    SUPPLIER_TYPE = ((NO_TYPE, u'未分类'), 
+                     (MANUFACTURER, u'生产加工'), 
+                     (WHOLESALER, u'经销批发'), 
+                     (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
 
     supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
