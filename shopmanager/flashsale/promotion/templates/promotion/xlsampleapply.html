@@ -1,7 +1,6 @@
-{% extends "./promotion_base.html" %}
+{% extends "promotion_base.html" %}
 
 {% block title %}{{ title }}{% endblock %}
-
 
 {% block container %}
     <div class="col-xs-12" style="text-align: center;">
@@ -11,34 +10,37 @@
         <img src="{{ xlsample.pic_url }}" alt="" style="width: 80px;height: 80px"/>
     </div>
     <div class="col-xs-12" style="text-align: center;margin-bottom: 20px">
-        {% if promotion_passed %}
-            <a href="{{ xlsample.sale_url }}" target="_blank">去购买</a><br/>
-        {% endif %}
-
         <span>SKU编码:{{ zl_aku.sku_code }}</span><br/>
         <span>款式尺寸:{{ zl_aku.sku_name }}</span>
-
     </div>
-    {% if not promotion_passed %}
+
+    <div class="col-xs-2"></div>
+    <div class="col-xs-8">
         <form action="" method="post">
-            <input type="text" class="form-control" name="vipcode" placeholder="{{ vipcode_message }}"
+            <input type="text" name="mobile" class="form-control" placeholder="{{ mobile_message }}"
                    aria-describedby="basic-addon1" style="text-align: center">
-            <button class="btn btn-default form-control" type="submit">提交申请</button>
+            <input type="text" name="vipcode" class="form-control"
+                    {% ifnotequal vipcode 'None' %}
+                   placeholder="{{ vipcode_message }}"
+                    {% else %}
+                   value="{{ vipcode }}"
+                    {% endifnotequal %}
+                   aria-describedby="basic-addon2" style="text-align: center">
+            <button class="btn btn-default form-control" type="submit">立即活动</button>
         </form>
-    {% endif %}
     </div>
     <div class="col-xs-2"></div>
+
     <div class="col-xs-12" style="text-align: center;height: 180px">
-        <p style="padding: 30px">
+        <p style="padding: 10px">
         <hr/>
         活动细节<br>
         活动细节<br>
         活动细节<br>
         活动细节<br>
         <hr/>
-        {% if share_link %}
-            分享链接：{{ share_link }}
-        {% endif %}
         </p>
     </div>
+{% endblock %}
+{% block tail_script %}
 {% endblock %}
