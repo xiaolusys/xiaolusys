@@ -359,15 +359,19 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
 
 class CashOutViewSet(viewsets.ModelViewSet):
     """
-    ## 特卖平台－小鹿妈妈购体现记录API:
-    - {prefix}[.format]: 获取登陆用户的提现记录
-    - {prefix} method[post][arg:choice("c1":80,"c2":200)]: 创建提现记录
-        返回`code`   
+    ## 特卖平台－小鹿妈妈购体现记录API:  
+    - {prefix}[.format]: 获取登陆用户的提现记录  
+    - {prefix} method[post][arg:choice("c1":80,"c2":200)]: 创建提现记录  
+        :return `code`  
         1: 参数错误  
         2: 不足提现金额  
-        3: 有待审核记录不予再次提现  
-        0: 提现成功，待审核通过  
-    - {prefix}
+        3: 有待审核记录不予再次提现    
+        0: 提现成功，待审核通过    
+    - {prefix}/cancal_cashout [method:post] [id:id]　：　取消提现记录  
+        :return `code`   
+        `0`: 取消成功  
+        `1`: 取消失败  
+        `2`: 提现记录不存在  
     """
     queryset = CashOut.objects.all()
     serializer_class = serializers.CashOutSerialize
@@ -419,6 +423,24 @@ class CashOutViewSet(viewsets.ModelViewSet):
         cashout = CashOut.objects.create(xlmm=xlmm.id, value=value)
         log_action(request.user, cashout, ADDITION, u'{0}用户提交提现申请！'.format(customer.id))
         return Response({"code": 0})
+
+    def update(self, request, *args, **kwargs):
+        raise exceptions.APIException('method not allowed')
+
+    def partial_update(self, request, *args, **kwargs):
+        raise exceptions.APIException('method not allowed')
+
+    @list_route(methods=['post'])
+    def cancal_cashout(self, request):
+        """ 取消提现 接口 """
+        pk = request.REQUEST.get("id", None)
+        queryset = self.get_owner_queryset(request).filter(id=pk)
+        if queryset.exists():
+            cashout = queryset[0]
+            result = cashout.cancel_cashout()
+            code = 0 if result else 1
+            return Response({"code": code})  # 0　体现取消成功　1　失败
+        return Response({"code": 2})  # 提现记录不存在
 
 
 class ClickViewSet(viewsets.ModelViewSet):
