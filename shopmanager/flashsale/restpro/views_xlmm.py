@@ -489,7 +489,7 @@ class ClickViewSet(viewsets.ModelViewSet):
         xlmm = self.get_owner_xlmm(request)
         mmclgs = CarryLog.objects.filter(xlmm=xlmm.id, log_type=CarryLog.CLICK_REBETA,
                                          status__in=(CarryLog.CONFIRMED, CarryLog.PENDING))  # 总计点击佣金
-        mmclgs_all_income = mmclgs.aggregate(sum_value=Sum('value')).get('value') or 0
+        mmclgs_all_income = mmclgs.aggregate(sum_value=Sum('value')).get('sum_value') or 0
         all_income = mmclgs_all_income / 100.0 if mmclgs_all_income > 0 else 0
         return Response({"all_income": all_income, "results": data})
 
