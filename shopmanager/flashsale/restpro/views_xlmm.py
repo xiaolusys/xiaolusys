@@ -349,7 +349,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         # 获取当天的点击佣金
         mmclgs = CarryLog.objects.filter(xlmm=xlmm.id, carry_date=target_date, log_type=CarryLog.CLICK_REBETA,
                                          status__in=(CarryLog.CONFIRMED, CarryLog.PENDING))  # 点击佣金
-        click_income = mmclgs.aggregate(sum_value=Sum('value')).get('value') or 0
+        click_income = mmclgs.aggregate(sum_value=Sum('value')).get('sum_value') or 0
         click_money = click_income / 100.0 if click_income > 0 else 0
         qses = queryset.filter(shoptime__gte=target_date, shoptime__lt=target_date_end,
                                status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND))
