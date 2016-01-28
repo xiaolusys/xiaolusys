@@ -85,7 +85,7 @@ class CustomShareViewSet(viewsets.ModelViewSet):
         
         product = kwargs.get('product',None)
         if product:
-            product.detail = product.detail or {}
+            product.detail_note = product.detail and product.detail.note or ''
         
         resp['share_link'] = cshare.share_link(xlmm=xlmm_id,**kwargs)
         resp['title']      = cshare.share_title(xlmm=xlmm_id,**kwargs)

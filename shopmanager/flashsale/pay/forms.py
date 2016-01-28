@@ -24,3 +24,29 @@ class CustomShareForm( forms.ModelForm ):
     class Meta:
         model = CustomShare
     
+from .models_custom import Productdetail
+
+try:
+    from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+except ImportError:
+    func_rebeta_scheme_list = lambda:('0','未设置返利计划')
+else:
+    def func_rebeta_scheme_list():
+        schemes = AgencyOrderRebetaScheme.objects.filter(status=AgencyOrderRebetaScheme.NORMAL)
+        scheme_tuple = list(schemes.values_list('id','name'))
+        scheme_tuple.insert(0,('0','未设置返利计划'))
+        return scheme_tuple
+
+class ProductdetailForm(forms.ModelForm):
+    
+    rebeta_scheme_id = forms.ChoiceField(label='返利计划')
+#     ware_by = forms.ModelChoiceField(queryset=func_ware_list())
+    def __init__(self, *args, **kwargs):
+        super(ProductdetailForm, self).__init__(*args, **kwargs)
+        # access object through self.instance...
+        self.fields['rebeta_scheme_id'].choices = func_rebeta_scheme_list()
+    
+    class Meta:
+        model = Productdetail
+        
+        

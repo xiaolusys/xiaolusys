@@ -44,7 +44,7 @@
                             "<td>" + dd.agent_price + "</td>" +
                             "<td>" + dd.p_agent_price + "</td>" +
                             "<td>" + (parseFloat(dd.p_agent_price)-parseFloat(dd.p_cost)).toFixed(2) + "</td>" +
-                            "<td>" + dd.tui_huo + "</td>" +
+                            "<td>" + dd.tui_huo +' &nbsp;/&nbsp;' + dd.post_tui_huo + "</td>" +
                             "<td>" + dd.suppliers + "</td>" +
                             "<td>" + dd.sale_contactor + "</td></tr>"
                             tb.append(result_str);
@@ -114,7 +114,7 @@
                 <th width="5%">销售价</th>
                 <th width="5%">成交额</th>
                 <th width="5%">毛利润</th>
-                <th width="5%">退货数</th>
+                <th width="5%">退货数(前／后)</th>
                 <th width="9%">供应商</th>
                 <th width="5%">买手</th>
                 </thead>

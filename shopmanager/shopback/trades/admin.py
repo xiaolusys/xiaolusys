@@ -1021,8 +1021,12 @@ class MergeOrderChangeList(ChangeList):
             return qs
              
         if re.compile('^[\w]{1,36}$').match(search_q):
+            filter_qs = models.Q(tid=search_q)
+            if len(search_q) == 11 and search_q.isdigit():
+                filter_qs |= models.Q(receiver_mobile=search_q)
+                
             try:
-                mts = MergeTrade.objects.filter(tid=search_q)
+                mts = MergeTrade.objects.filter(filter_qs)
                 mtids = [m.id for m in mts]
             except:
                 mtids = []
