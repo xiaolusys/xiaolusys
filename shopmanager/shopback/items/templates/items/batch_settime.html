@@ -140,7 +140,7 @@ input[type=checkbox]{
                     <td width="10%">商品名</td>
                     <td width="10%">上架日期</td>
                     <td width="10%">返利计划</td>
-                    <td width="10%">售价(￥)</td>
+                    <td width="10%">售价-成本(￥)</td>
                     <td width="10%">类别</td>
                     <td width="10%">仓库</td>
                     <td width="5%">秒杀</td>
@@ -168,7 +168,7 @@ input[type=checkbox]{
                                     {% endif %}
                                     {% endfor %}
                                 {% endif %}</td>
-                            <td>{{ product.agent_price }}</td>
+                            <td>{{ product.agent_price }}－{{  product.cost }}</td>
                             <td>{{ product.category.name }}</td>
                             <td>{{ product.get_ware_by_display }}</td>
                             <td>{% if product.detail %}

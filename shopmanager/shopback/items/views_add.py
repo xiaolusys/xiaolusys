@@ -347,6 +347,8 @@ class BatchSetTime(generics.ListCreateAPIView):
             title = pro.title()
             if not title.startswith('秒杀'):  # 防止重复添加秒杀
                 pro.name = '秒杀 ' + title
+                # 添加备注　秒杀不退不换
+                pro.memo += u'秒杀商品，一经售出，概不退换'
                 pro.save()
                 log_action(actioner, pro, CHANGE, u'批量添加秒杀标题')
         return
@@ -358,6 +360,8 @@ class BatchSetTime(generics.ListCreateAPIView):
             if not title.startswith('秒杀'): continue  # 不是秒杀开头则不处理
             no_kill_title = title.replace("秒杀", "").lstrip()
             pro.name = no_kill_title
+            no_kill_memo = pro.memo.replace(u'秒杀商品，一经售出，概不退换', u'')
+            pro.memo = no_kill_memo
             pro.save()
             log_action(actioner, pro, CHANGE, u'批量删除秒杀标题')
         return
