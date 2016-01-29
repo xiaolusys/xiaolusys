@@ -63,9 +63,9 @@ class XLSampleApply(BaseModel):
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
     
     ufrom    = models.CharField(max_length=8,choices=FROM_CHOICES,blank=True,verbose_name=u'来自平台')
-    user_openid  = models.CharField(max_length=28,db_index=True,blank=True,verbose_name=u'用户openid')
+    user_openid  = models.CharField(max_length=28,db_index=True,blank=True,null=True,verbose_name=u'用户openid')
     mobile   = models.CharField(max_length=11,null=False,db_index=True,blank=False,verbose_name=u'试用手机')
-    vipcode  = models.CharField(max_length=16,null=False,db_index=True,blank=False,verbose_name=u'试用邀请码')
+    vipcode  = models.CharField(max_length=16,db_index=True,blank=True,null=True,verbose_name=u'试用邀请码')
     status   = models.IntegerField(default=INACTIVE,choices=STATUS_CHOICES,db_index=True, verbose_name=u"状态")
     
     class Meta:

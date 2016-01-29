@@ -443,3 +443,19 @@ class CuShopProsSerialize(serializers.ModelSerializer):
         model = CuShopPros
 
 
+from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
+
+
+class XLSampleOrderSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XLSampleOrder
+
+
+class XLFreeSampleSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XLFreeSample
+
+
+class XLSampleSkuSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XLSampleSku

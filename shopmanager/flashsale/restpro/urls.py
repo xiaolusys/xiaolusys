@@ -25,6 +25,7 @@ from . import views_xlmm
 from . import views_mmadver
 from . import views_wuliu_new
 from . import views_cushops
+from . import views_promotion
 
 
 
@@ -54,17 +55,20 @@ router.register(r'prorefrcd', views_pro_ref.ProRefRcdViewSet)
 router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 
 
-
-router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
-router.register(r'carrylog', views_xlmm.CarryLogViewSet)
-router.register(r'cashout', views_xlmm.CashOutViewSet)
+#  推广接口注册
+promotion_router = routers.DefaultRouter(trailing_slash=False)
+promotion_router.register(r'xlmm', views_xlmm.XiaoluMamaViewSet)
+promotion_router.register(r'carrylog', views_xlmm.CarryLogViewSet)
+promotion_router.register(r'cashout', views_xlmm.CashOutViewSet)
 # router.register(r'clickcount', views_xlmm.ClickCountViewSet)
-router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
-router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
-router.register(r'ninepic', views_mmadver.NinePicAdverViewSet)
-router.register(r'cushop', views_cushops.CustomerShopsViewSet)
-router.register(r'cushoppros', views_cushops.CuShopProsViewSet)
-router.register(r'clicklog', views_xlmm.ClickViewSet)
+promotion_router.register(r'shopping', views_xlmm.StatisticsShoppingViewSet)
+promotion_router.register(r'mmadver', views_mmadver.XlmmAdvertisViewSet)
+promotion_router.register(r'ninepic', views_mmadver.NinePicAdverViewSet)
+promotion_router.register(r'cushop', views_cushops.CustomerShopsViewSet)
+promotion_router.register(r'cushoppros', views_cushops.CuShopProsViewSet)
+promotion_router.register(r'clicklog', views_xlmm.ClickViewSet)
+promotion_router.register(r'free_proinfo', views_promotion.XLFreeSampleViewSet)
+promotion_router.register(r'free_order', views_promotion.XLSampleOrderViewSet)
 
 
 router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
@@ -74,6 +78,7 @@ router.register(r'push', views_push.PushViewSet)
 
 
 router_urls = router.urls
+router_urls_promotion = promotion_router.urls
 
 router_urls += format_suffix_patterns([
         url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),
@@ -109,9 +114,11 @@ router_urls += format_suffix_patterns([
             name="user-intergrallog"),
     ])
 
+
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^v1/', include(router_urls,namespace='v1')),
+    url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
     #url(r'^test/',views_wuliu.test),
