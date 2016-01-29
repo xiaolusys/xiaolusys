@@ -1,6 +1,9 @@
 import json
 import urllib
 from django.conf import settings
+import re
+OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+
 
 def get_cookie_openid(cookies,appid):
     x = cookies.get('sopenid','').split('|')
@@ -37,8 +40,16 @@ def get_user_unionid(code,
 
     return (r.get('openid'),r.get('unionid'))
 
+
 class WeixinAuthMixin(object):
-    
+
+    def valid_openid(self, openid):
+        if not openid:
+            return False
+        if not OPENID_RE.match(openid):
+            return False
+        return True
+
     def get_openid_and_unionid(self, request):
         code    = request.GET.get('code')
         return get_user_unionid(
