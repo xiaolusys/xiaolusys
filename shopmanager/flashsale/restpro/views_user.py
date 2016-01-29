@@ -51,7 +51,7 @@ def check_day_limit(reg_bean):
 
 class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
-    ## 特卖平台 用户注册,修改密码API：　
+    ## 特卖平台 用户注册,修改密码API：
     
     > ### /[.format]: `params={vmobile}` 注册新用户时，获取验证码;
     - 返回参数result：0-已经注册了;1-180秒不能重复发送;２－验证次数达上限;OK-表示获取成功;
@@ -157,8 +157,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             return Response({"result": "7"})  # 注册成功
         else:
             return Response({"result": "2"})  # 表单填写有误
-
-
+    
     @list_route(methods=['post'])
     def change_pwd_code(self, request):
         """忘记密码时获取验证码"""
@@ -194,7 +193,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             log_action(DJUSER.id, reg_temp, CHANGE, u'修改，忘记密码验证码')
             task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
-
+    
     @list_route(methods=['post'])
     def change_user_pwd(self, request):
         """手机校验修改密码"""

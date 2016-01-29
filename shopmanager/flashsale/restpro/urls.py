@@ -28,7 +28,6 @@ from . import views_cushops
 from . import views_promotion
 
 
-
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'complain', ComplainViewSet)
 router.register(r'register', views_user.RegisterViewSet)
@@ -69,6 +68,7 @@ promotion_router.register(r'cushoppros', views_cushops.CuShopProsViewSet)
 promotion_router.register(r'clicklog', views_xlmm.ClickViewSet)
 promotion_router.register(r'free_proinfo', views_promotion.XLFreeSampleViewSet)
 promotion_router.register(r'free_order', views_promotion.XLSampleOrderViewSet)
+promotion_router.register(r'fanlist', views_promotion.InviteReletionshipView)
 
 
 router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
@@ -83,6 +83,7 @@ router_urls_promotion = promotion_router.urls
 router_urls += format_suffix_patterns([
         url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),
         url(r'^users/weixin_auth/$',weixin_auth_and_redirect,name='xlmm-wxauth'),
+
         url(r'^products/modellist/(?P<model_id>[0-9]+)$',
             views_product.ProductViewSet.as_view({'get': 'modellist'}),
             name='product-model-list'),
@@ -101,15 +102,14 @@ router_urls += format_suffix_patterns([
         url(r'^trades/(?P<tid>[0-9]+)/orders/(?P<pk>[0-9]+)$',
             views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
             name='saleorder-detail'),
-
+        
         url(r'^order/(?P<pk>[0-9]+)/confirm_sign$',
             views_trade.SaleOrderViewSet.as_view({'post': 'confirm_sign'}),
             name='confirm_sign_order'),
-
-        url(r'^user/integral/',
+        url(r'^users/integral',
             views_integral.UserIntegralViewSet.as_view({'get': 'list'}),
             name="user-intergral"),
-        url(r'^user/integrallog/',
+        url(r'^users/integrallog',
             views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
     ])
@@ -121,5 +121,6 @@ urlpatterns = patterns('',
     url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
+    
     #url(r'^test/',views_wuliu.test),
 )

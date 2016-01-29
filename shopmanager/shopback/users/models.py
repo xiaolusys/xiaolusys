@@ -166,7 +166,6 @@ class User(models.Model):
     
     @classmethod
     def getSellerByVisitorId(cls,visitor_id):
-    
         try:
             return cls.objects.get(visitor_id=visitor_id)
         except cls.DoesNotExist:

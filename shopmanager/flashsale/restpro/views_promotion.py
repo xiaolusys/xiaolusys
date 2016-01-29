@@ -1,20 +1,28 @@
 # -*- coding:utf8 -*-
-from rest_framework import viewsets
+import datetime
+
+from django.forms import model_to_dict
+from django.db.models import Sum, Count
+from django.shortcuts import get_object_or_404
+
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.response import Response
+from rest_framework import exceptions
+from rest_framework import mixins
 from rest_framework import permissions
+from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
-from rest_framework import exceptions
+from rest_framework import status
+from rest_framework import viewsets
+
 from . import permissions as perms
 from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
-from flashsale.promotion.managers import VipCodeManager
 import serializers
-from django.forms import model_to_dict
-import datetime
-from django.db.models import Sum, Count
 from flashsale.pay.models import Customer
-from django.shortcuts import get_object_or_404
+from flashsale.promotion.models import XLReferalRelationship
+
+import logging
+logger = logging.getLogger('django.request')
 
 
 class XLFreeSampleViewSet(viewsets.ModelViewSet):
@@ -121,3 +129,25 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         grou_xlsapplys = xlsapplys.values("vipcode").annotate(vipcode_count=Count('mobile'))
         group_xlsorders = xlsapplys.values("vipcode").annotate(vipcode_count=Count('id'))
         return Response({"code": 1})
+
+
+class InviteReletionshipView(viewsets.mixins.ListModelMixin, viewsets.GenericViewSet):
+    """ 用户活动邀请粉丝列表 """
+    queryset = XLReferalRelationship.objects.all()
+    serializer_class = None
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
+
+    def list(self, request, *args, **kwargs):
+
+        user     = request.user
+        customer = get_object_or_404(Customer,user=user)
+        
+        relationships = XLReferalRelationship.objects.filter(referal_uid=customer.id)
+        referal_uids  = [rf[0] for rf in relationships.values_list('referal_from_uid')]
+        customers     = Customer.objects.filter(id__in=referal_uids,status=Customer.NORMAL)
+        info_list     = customers.values_list('id','nick','thumbnail')
+        
+        return Response(info_list)
+
