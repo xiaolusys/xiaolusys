@@ -103,6 +103,7 @@ class Customer(models.Model):
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'客户ID')
     user  = models.OneToOneField(DjangoUser,verbose_name= u'原始用户')
     nick  = models.CharField(max_length=32,blank=True,verbose_name=u'昵称') 
+    thumbnail   = models.CharField(max_length=256,blank=True,verbose_name=u'头像') 
     mobile  = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u'手机') 
     email   = models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'邮箱') 
     phone   = models.CharField(max_length=18,blank=True,verbose_name=u'电话') 

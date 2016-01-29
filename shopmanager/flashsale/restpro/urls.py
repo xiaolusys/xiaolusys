@@ -25,7 +25,7 @@ from . import views_xlmm
 from . import views_mmadver
 from . import views_wuliu_new
 from . import views_cushops
-
+from . import views_promotion
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -66,7 +66,6 @@ router.register(r'cushop', views_cushops.CustomerShopsViewSet)
 router.register(r'cushoppros', views_cushops.CuShopProsViewSet)
 router.register(r'clicklog', views_xlmm.ClickViewSet)
 
-
 router.register(r'wuliu', views_wuliu_new.WuliuViewSet)
 
 # 推送相关
@@ -96,17 +95,19 @@ router_urls += format_suffix_patterns([
         url(r'^trades/(?P<tid>[0-9]+)/orders/(?P<pk>[0-9]+)$',
             views_trade.SaleOrderViewSet.as_view({'get': 'retrieve'}),
             name='saleorder-detail'),
-
+        
         url(r'^order/(?P<pk>[0-9]+)/confirm_sign$',
             views_trade.SaleOrderViewSet.as_view({'post': 'confirm_sign'}),
             name='confirm_sign_order'),
-
-        url(r'^user/integral/',
+        url(r'^users/integral/',
             views_integral.UserIntegralViewSet.as_view({'get': 'list'}),
             name="user-intergral"),
-        url(r'^user/integrallog/',
+        url(r'^users/integrallog/',
             views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
+        url(r'^users/fans/',
+            views_promotion.InviteReletionshipView.as_view(),
+            name="user-fans"),
     ])
 
 urlpatterns = patterns('',
