@@ -77,6 +77,11 @@ router_urls = router.urls
 router_urls += format_suffix_patterns([
         url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),
         url(r'^users/weixin_auth/$',weixin_auth_and_redirect,name='xlmm-wxauth'),
+        url(r'^users/fanlist/',
+            views_promotion.InviteReletionshipView.as_view({'get': 'get'}),
+            name="user-fanlist"),
+ 
+                                       
         url(r'^products/modellist/(?P<model_id>[0-9]+)$',
             views_product.ProductViewSet.as_view({'get': 'modellist'}),
             name='product-model-list'),
@@ -99,15 +104,12 @@ router_urls += format_suffix_patterns([
         url(r'^order/(?P<pk>[0-9]+)/confirm_sign$',
             views_trade.SaleOrderViewSet.as_view({'post': 'confirm_sign'}),
             name='confirm_sign_order'),
-        url(r'^users/integral/',
+        url(r'^users/integral',
             views_integral.UserIntegralViewSet.as_view({'get': 'list'}),
             name="user-intergral"),
-        url(r'^users/integrallog/',
+        url(r'^users/integrallog',
             views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
-        url(r'^users/fans/',
-            views_promotion.InviteReletionshipView.as_view(),
-            name="user-fans"),
     ])
 
 urlpatterns = patterns('',
@@ -115,5 +117,6 @@ urlpatterns = patterns('',
     url(r'^v1/', include(router_urls,namespace='v1')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
+    
     #url(r'^test/',views_wuliu.test),
 )

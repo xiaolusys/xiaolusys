@@ -45,11 +45,11 @@ class XLSampleApply(BaseModel):
         (INACTIVE, u'未激活'),
         (ACTIVED, u'已激活'),
     )
-    FROM_WXAPP = 'WXAPP'
-    FROM_PYQ  = 'PYQ'
-    FROM_QQ   = 'QQ'
-    FROM_WB   = 'TXWB'
-    FROM_WEB  = 'WEB'
+    FROM_WXAPP = 'wxapp'
+    FROM_PYQ  = 'pyq'
+    FROM_QQ   = 'qq'
+    FROM_WB   = 'txwb'
+    FROM_WEB  = 'web'
 
     FROM_CHOICES = (
         (FROM_WXAPP,u'微信好友'),

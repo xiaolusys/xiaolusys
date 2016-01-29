@@ -847,7 +847,7 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         return
 
     product_skus = product.pskus
-    if product_skus.count()>0:
+    if product_skus.exists():
         product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
                                                total_warn_num=Sum('warn_num'),
                                                total_remain_num=Sum('remain_num'),
