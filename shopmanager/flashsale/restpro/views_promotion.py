@@ -26,9 +26,8 @@ class InviteReletionshipView(viewsets.ViewSet):
 
         user     = request.user
         customer = get_object_or_404(Customer,user=user)
-        
-        relationships = XLReferalRelationship.objects.filter(referal_uid=customer.id)
-        referal_uids  = [rf[0] for rf in relationships.values_list('referal_from_uid')]
+        relationships = XLReferalRelationship.objects.filter(referal_from_uid=customer.id)
+        referal_uids  = [rf[0] for rf in relationships.values_list('referal_uid')]
         customers     = Customer.objects.filter(id__in=referal_uids,status=Customer.NORMAL)
         info_list     = customers.values_list('id','nick','thumbnail')
         
