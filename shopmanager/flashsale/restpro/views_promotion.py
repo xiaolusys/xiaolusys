@@ -22,6 +22,7 @@ from flashsale.pay.models import Customer
 from flashsale.promotion.models import XLReferalRelationship
 
 import logging
+
 logger = logging.getLogger('django.request')
 
 
@@ -99,7 +100,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         mobile = content.get('mobile', None)
         if mobile is None:
             return Response({"code": 1})  # 缺少参数
-        xlin_codes = XLInviteCode.objects.filter(mobile=customer.mobile)
+        xlin_codes = XLInviteCode.objects.filter(mobile=customer.mobile)  # 查看自己的邀请码记录
         try:
             XLSampleOrder.objects.get(customer_id=customer.id, vipcode=vipcode)
             # 返回自己的邀请链接　和邀请结果
@@ -116,6 +117,13 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
                 return Response({"code": 1})  # 缺少参数
             # 参数不缺创建正式申请记录
             XLSampleOrder.objects.create(customer_id=customer.id, vipcode=vipcode, outer_id=outer_id, sku_code=sku_code)
+
+            try:  # 激活预申请中的字段
+                apply_salm = XLSampleApply.objects.get(vipcode=vipcode, mobile=mobile)
+                apply_salm.status = XLSampleApply.ACTIVED
+                apply_salm.save()
+            except:
+                pass
             # 创建自己的邀请链接
             expiried = datetime.datetime(2016, 2, 29)
             cus_vicode = XLInviteCode.objects.genVIpCode(mobile, expiried)
@@ -160,13 +168,12 @@ class InviteReletionshipView(viewsets.mixins.ListModelMixin, viewsets.GenericVie
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def list(self, request, *args, **kwargs):
-
-        user     = request.user
-        customer = get_object_or_404(Customer,user=user)
+        user = request.user
+        customer = get_object_or_404(Customer, user=user)
         relationships = XLReferalRelationship.objects.filter(referal_from_uid=customer.id)
-        referal_uids  = [rf[0] for rf in relationships.values_list('referal_uid')]
-        customers     = Customer.objects.filter(id__in=referal_uids,status=Customer.NORMAL)
-        info_list     = customers.values_list('id','nick','thumbnail')
-        
+        referal_uids = [rf[0] for rf in relationships.values_list('referal_uid')]
+        customers = Customer.objects.filter(id__in=referal_uids, status=Customer.NORMAL)
+        info_list = customers.values_list('id', 'nick', 'thumbnail')
+
         return Response(info_list)
 
