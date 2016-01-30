@@ -1,4 +1,5 @@
 # coding:utf-8
+import datetime
 from django.db import transaction
 
 from rest_framework import generics
@@ -290,7 +291,6 @@ def custom_sort(a, b):
     return len(a[0]) - len(b[0]) or a[0] > b[0]
 
 
-import datetime
 
 
 class BatchSetTime(generics.ListCreateAPIView):
@@ -342,7 +342,7 @@ class BatchSetTime(generics.ListCreateAPIView):
                          "p_cates": p_cates})
 
     def add_kill_title(self, pros, actioner):
-        """ 添加秒杀标题 """
+        """ 添加秒杀标题  添加款式的苗烧标题 """
         for pro in pros:
             title = pro.title()
             if not title.startswith('秒杀'):  # 防止重复添加秒杀
@@ -351,6 +351,16 @@ class BatchSetTime(generics.ListCreateAPIView):
                 pro.memo += u'秒杀商品，一经售出，概不退换'
                 pro.save()
                 log_action(actioner, pro, CHANGE, u'批量添加秒杀标题')
+            model_id = pro.model_id
+        try:
+            model = ModelProduct.objects.get(id=model_id)
+            model_name = model.name
+            if not model_name.startswith('秒杀'):
+                model.name = '秒杀 ' + model_name
+                model.save()
+                log_action(actioner, model, CHANGE, u'批量添加秒杀标题')
+        except:
+            pass
         return
 
     def remove_kill_title(self, pros, actioner):
@@ -364,6 +374,16 @@ class BatchSetTime(generics.ListCreateAPIView):
             pro.memo = no_kill_memo
             pro.save()
             log_action(actioner, pro, CHANGE, u'批量删除秒杀标题')
+            model_id = pro.model_id
+        try:
+            model = ModelProduct.objects.get(id=model_id)
+            model_name = model.name
+            if model_name.startswith('秒杀'):
+                model.name = model_name.replace("秒杀", "").lstrip()
+                model.save()
+                log_action(actioner, model, CHANGE, u'批量删除秒杀标题')
+        except:
+            pass
         return
 
     @transaction.commit_on_success
