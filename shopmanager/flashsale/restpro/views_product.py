@@ -53,7 +53,7 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
             if k in key_vals and v.strip():
                 key_maps[k] = v
         
-        return hashlib.sha256(u'.'.join([
+        return hashlib.sha1(u'.'.join([
                 view_instance.__module__,
                 view_instance.__class__.__name__,
                 view_method.__name__,
@@ -153,7 +153,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             if k in key_vals and v.strip():
                 key_maps[k] = v
 
-        return hashlib.sha256(u'.'.join([
+        return hashlib.sha1(u'.'.join([
                 view_instance.__module__,
                 view_instance.__class__.__name__,
                 view_method.__name__,
