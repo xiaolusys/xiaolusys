@@ -54,8 +54,25 @@ class XLFreeSampleViewSet(viewsets.ModelViewSet):
 
 
 class XLSampleOrderViewSet(viewsets.ModelViewSet):
-    """　### 申请免费活动商品正式订单提交接口　
-
+    """　### 申请免费活动商品正式订单提交接口  
+- {prefix} [method:post]  
+    -  参数:  
+  >> `vipcode`: 邀请码（必须）  
+  >> `outer_id`: 免费商品的外部编码（必须）  
+  >> `sku_code`: 选择商品尺码id（必须）  
+  >> `mobile`: 用户手机号吗（必须）  
+    -  返回:  
+  >> `promote_count`: 当前用户的推荐数量  
+  >> `app_down_count`: 当前用户的下载数量  
+  >> `share_link`: 当前用户的分享页（基础链接），分享时候需要修改添加参数   
+  `ufrom:`分享到的平台  
+  {  
+  `wxapp`: 微信  
+  `pyq  `: 朋友圈  
+  `qq   `: qq  
+  `txwb `: 腾讯微博   
+  `web  `: 网页  
+  }  
     """
     queryset = XLSampleOrder.objects.all()
     serializer_class = serializers.XLSampleOrderSerialize
@@ -90,7 +107,8 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
                 cus_vicode = xlin_codes[0].vipcode
                 promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
                 return Response(
-                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link})
+                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+                     'vipcode': cus_vicode})
             else:
                 return Response({'share_link': self.share_link})
         except XLSampleOrder.DoesNotExist:
@@ -104,14 +122,16 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
             # 返回自己的邀请链接　和邀请结果　推荐数量　和下载数量
             promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
             return Response(
-                {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link})
+                {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+                 'vipcode': cus_vicode})
         except XLSampleOrder.MultipleObjectsReturned:
             # 返回自己的邀请链接　和邀请结果
             if xlin_codes.exists():
                 cus_vicode = xlin_codes[0].vipcode
                 promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
                 return Response(
-                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link})
+                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+                     'vipcode': cus_vicode})
             else:
                 return Response({'share_link': self.share_link})
 
