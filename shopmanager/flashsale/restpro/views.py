@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
+from rest_framework import exceptions
 from .views_refund import refund_Handler
 
 from flashsale.pay.models import SaleTrade,Customer
@@ -17,7 +18,7 @@ from flashsale.pay.models import SaleTrade,Customer
 from . import permissions as perms
 from . import serializers 
 
-from flashsale.pay.models import SaleRefund,District,UserAddress
+from flashsale.pay.models import SaleRefund,District,UserAddress,SaleOrder
 from django.forms import model_to_dict
 import json
 
@@ -83,6 +84,16 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        content = request.REQUEST
+        oid = int(content.get("id", 0))
+        order = get_object_or_404(SaleOrder, id=oid)
+        # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
+        # 如果Order 仅仅签收状态才可以退货  refund_type = BUYER_RECEIVED
+        second_kill = order.second_kill_title()
+        if second_kill:
+            raise exceptions.APIException(u'秒杀商品暂不支持退单，请见谅！')
+        elif order.status not in (SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.WAIT_SELLER_SEND_GOODS):
+            raise exceptions.APIException(u'订单状态不予退款或退货')
 
         res = refund_Handler(request)
         return Response(res)
