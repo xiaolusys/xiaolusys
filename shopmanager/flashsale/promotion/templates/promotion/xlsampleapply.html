@@ -22,16 +22,30 @@
                 {% for sku in skus %}
                     <option value="{{ sku.sku_code }}">{{ sku.sku_name }}</option>
                 {% endfor %}
-            </select>
-            <input type="text" name="mobile" class="form-control" placeholder="{{ mobile_message }}"
+            </select><br/>
+            {% if mobile_message %}
+                <span>
+                {{ mobile_message }}
+                </span>
+            {% endif %}
+            <input type="number" name="mobile" class="form-control"
+                    {% if mobile %}
+                   value="{{ mobile }}"
+                    {% endif %}
                    aria-describedby="basic-addon1" style="text-align: center">
+
+            {% if vipcode_message %}
+                <span>
+                    {{ vipcode_message }}
+                 </span>
+            {% endif %}
             <input type="text" name="vipcode" class="form-control"
-                    {% ifnotequal vipcode 'None' %}
-                   placeholder="{{ vipcode_message }}"
-                    {% else %}
+                    {% if vipcode %}
                    value="{{ vipcode }}"
-                    {% endifnotequal %}
+                    {% endif %}
                    aria-describedby="basic-addon2" style="text-align: center">
+
+
             <button class="btn btn-default form-control" type="submit">立即活动</button>
         </form>
     </div>

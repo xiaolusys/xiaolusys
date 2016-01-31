@@ -22,6 +22,7 @@ from flashsale.pay.models import Customer
 from flashsale.promotion.models import XLReferalRelationship
 
 import logging
+
 logger = logging.getLogger('django.request')
 
 
@@ -54,8 +55,25 @@ class XLFreeSampleViewSet(viewsets.ModelViewSet):
 
 
 class XLSampleOrderViewSet(viewsets.ModelViewSet):
-    """　### 申请免费活动商品正式订单提交接口　
-
+    """　### 申请免费活动商品正式订单提交接口  
+- {prefix} [method:post]  
+    -  参数:  
+  >> `vipcode`: 邀请码（必须）  
+  >> `outer_id`: 免费商品的外部编码（必须）  
+  >> `sku_code`: 选择商品尺码id（必须）  
+  >> `mobile`: 用户手机号吗（必须）  
+    -  返回:  
+  >> `promote_count`: 当前用户的推荐数量  
+  >> `app_down_count`: 当前用户的下载数量  
+  >> `share_link`: 当前用户的分享页（基础链接），分享时候需要修改添加参数   
+  `ufrom:`分享到的平台  
+  {  
+  `wxapp`: 微信  
+  `pyq  `: 朋友圈  
+  `qq   `: qq  
+  `txwb `: 腾讯微博   
+  `web  `: 网页  
+  }  
     """
     queryset = XLSampleOrder.objects.all()
     serializer_class = serializers.XLSampleOrderSerialize
@@ -82,7 +100,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         mobile = content.get('mobile', None)
         if mobile is None:
             return Response({"code": 1})  # 缺少参数
-        xlin_codes = XLInviteCode.objects.filter(mobile=customer.mobile)
+        xlin_codes = XLInviteCode.objects.filter(mobile=customer.mobile)  # 查看自己的邀请码记录
         try:
             XLSampleOrder.objects.get(customer_id=customer.id, vipcode=vipcode)
             # 返回自己的邀请链接　和邀请结果
@@ -90,7 +108,8 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
                 cus_vicode = xlin_codes[0].vipcode
                 promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
                 return Response(
-                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link})
+                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+                     'vipcode': cus_vicode})
             else:
                 return Response({'share_link': self.share_link})
         except XLSampleOrder.DoesNotExist:
@@ -98,20 +117,29 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
                 return Response({"code": 1})  # 缺少参数
             # 参数不缺创建正式申请记录
             XLSampleOrder.objects.create(customer_id=customer.id, vipcode=vipcode, outer_id=outer_id, sku_code=sku_code)
+
+            try:  # 激活预申请中的字段
+                apply_salm = XLSampleApply.objects.get(vipcode=vipcode, mobile=mobile)
+                apply_salm.status = XLSampleApply.ACTIVED
+                apply_salm.save()
+            except:
+                pass
             # 创建自己的邀请链接
             expiried = datetime.datetime(2016, 2, 29)
             cus_vicode = XLInviteCode.objects.genVIpCode(mobile, expiried)
             # 返回自己的邀请链接　和邀请结果　推荐数量　和下载数量
             promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
             return Response(
-                {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link})
+                {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+                 'vipcode': cus_vicode})
         except XLSampleOrder.MultipleObjectsReturned:
             # 返回自己的邀请链接　和邀请结果
             if xlin_codes.exists():
                 cus_vicode = xlin_codes[0].vipcode
                 promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
                 return Response(
-                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link})
+                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+                     'vipcode': cus_vicode})
             else:
                 return Response({'share_link': self.share_link})
 
@@ -140,13 +168,12 @@ class InviteReletionshipView(viewsets.mixins.ListModelMixin, viewsets.GenericVie
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
 
     def list(self, request, *args, **kwargs):
-
-        user     = request.user
-        customer = get_object_or_404(Customer,user=user)
+        user = request.user
+        customer = get_object_or_404(Customer, user=user)
         relationships = XLReferalRelationship.objects.filter(referal_from_uid=customer.id)
-        referal_uids  = [rf[0] for rf in relationships.values_list('referal_uid')]
-        customers     = Customer.objects.filter(id__in=referal_uids,status=Customer.NORMAL)
-        info_list     = customers.values_list('id','nick','thumbnail')
-        
+        referal_uids = [rf[0] for rf in relationships.values_list('referal_uid')]
+        customers = Customer.objects.filter(id__in=referal_uids, status=Customer.NORMAL)
+        info_list = customers.values_list('id', 'nick', 'thumbnail')
+
         return Response(info_list)
 
