@@ -1,9 +1,12 @@
 #-*- coding:utf-8 -*-
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField
-import logging
-from django.db.models.signals import post_delete, post_save
-class District(models.Model):
+from django.db.models.signals import  post_save
+
+from .base import PayBaseModel
+from . import managers
+
+
+class District(PayBaseModel):
     
     FIRST_STAGE  = 1
     SECOND_STAGE = 2
@@ -21,6 +24,8 @@ class District(models.Model):
     
     grade   = models.IntegerField(default=0,choices=STAGE_CHOICES,verbose_name=u'等级')
     sort_order = models.IntegerField(default=0,verbose_name=u'优先级')
+    
+    
     
     class Meta:
         db_table = 'flashsale_district' 
@@ -44,9 +49,7 @@ class District(models.Model):
         return self.name
     
     
-from .managers import UserAddressManager
-
-class UserAddress(models.Model):
+class UserAddress(PayBaseModel):
     
     NORMAL = 'normal'
     DELETE = 'delete'
@@ -72,12 +75,7 @@ class UserAddress(models.Model):
     status          = models.CharField(max_length=8,blank=True,db_index=True,default=NORMAL,
                                        choices=STATUS_CHOICES,verbose_name=u'状态')
     
-    created     = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
-    
-    objects     = models.Manager()
-    normal_objects = UserAddressManager()
-    
+    normal_objects = managers.NormalUserAddressManager()
     class Meta:
         db_table = 'flashsale_address' 
         verbose_name = u'特卖用户/地址'
@@ -103,3 +101,4 @@ def set_only_one_default(sender, instance, *args, **kwargs):
             first_address.save()
 
 post_save.connect(set_only_one_default, sender=UserAddress, dispatch_uid='set_only_one')
+

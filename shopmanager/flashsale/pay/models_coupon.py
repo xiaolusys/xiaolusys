@@ -1,9 +1,11 @@
 # coding=utf-8
-from django.db import models
-from shopback.base.models import JSONCharMyField
-import datetime
-from options import uniqid
 import json
+import datetime
+from django.db import models
+
+from core.fields import JSONCharMyField
+from .base import PayBaseModel
+from .options import uniqid
 
 
 """
@@ -13,11 +15,9 @@ import json
 """
 
 
-class Integral(models.Model):
+class Integral(PayBaseModel):
     integral_user = models.BigIntegerField(null=False, unique=True, db_index=True, verbose_name=u"用户ID")
     integral_value = models.IntegerField(default=0, verbose_name=u"订单积分")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
     class Meta:
         db_table = "sale_user_integral"
@@ -28,7 +28,7 @@ class Integral(models.Model):
         return '<%s>' % (self.id)
 
 
-class IntegralLog(models.Model):
+class IntegralLog(PayBaseModel):
     """
     记录用户积分的使用情况
     """
@@ -52,8 +52,6 @@ class IntegralLog(models.Model):
     order = JSONCharMyField(max_length=10240, blank=True,
                             default='[{"order_id":"","pic_link":"","trade_id":"","order_status":""}]',
                             verbose_name=u'订单信息')
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
     class Meta:
         unique_together = ('integral_user', 'order_id')
@@ -73,7 +71,7 @@ class IntegralLog(models.Model):
             return {}
 
 
-class Coupon(models.Model):
+class Coupon(PayBaseModel):
     """
     优惠券只能使用一次，退货不退回使用的优惠券。
     """
@@ -86,8 +84,6 @@ class Coupon(models.Model):
     coupon_no = models.CharField(max_length=40, default='YH0', verbose_name=u"优惠券号码")
     mobile = models.CharField(max_length=11, db_index=True, blank=True, verbose_name=u'手机')
     trade_id = models.CharField(max_length=40, db_index=True, blank=True, verbose_name=u"交易ID")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     status = models.IntegerField(db_index=True, default=RECEIVE, choices=COUPON_STATUS, verbose_name=u'使用状态')
 
     class Meta:
@@ -162,7 +158,7 @@ class Coupon(models.Model):
             return 'notInStatus'
 
 
-class CouponPool(models.Model):
+class CouponPool(PayBaseModel):
     """
     优惠券池
     """
@@ -184,8 +180,6 @@ class CouponPool(models.Model):
     deadline = models.DateTimeField(verbose_name=u"截止日期")
     coupon_type = models.IntegerField(choices=CO_TYPE, default=1, verbose_name=u"优惠券类型")
     coupon_value = models.FloatField(default=1.0, verbose_name=u"优惠券数值")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     coupon_status = models.IntegerField(choices=COUPON_STATUS, default=1, verbose_name=u"优惠券状态")
 
     class Meta:

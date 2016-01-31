@@ -1,12 +1,13 @@
 #-*- coding:utf-8 -*-
 import datetime
-import urllib,urllib2
 from django.conf import settings
 from django.db import models
+
+from .base import PayBaseModel
 import pingpp
 
 
-class Envelop(models.Model):
+class Envelop(PayBaseModel):
     
     WXPUB  = 'wx_pub'
     ENVELOP_CHOICES = ((WXPUB,u'微信公众'),)
@@ -64,8 +65,6 @@ class Envelop(models.Model):
     
     referal_id   = models.CharField(max_length=32,blank=True,db_index=True,verbose_name=u'引用ID')
     send_time    = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name=u'发送时间')
-    created      = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    modified     = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
 
     class Meta:
         db_table = 'flashsale_envelop'

@@ -19,8 +19,9 @@ log = logging.getLogger(__name__)
 
 class CachedQuerySet(QuerySet):
 
-    __CACHE_FOREVER = 2592000  # http://ur1.ca/egyvu
-
+    __CACHE_FOREVER = 100800  # 24 * 3600
+    
+    
     def get(self, *args, **kwargs):
         """
         Adds a layer of caching around the Manager's built in 'get()' method.
@@ -29,7 +30,7 @@ class CachedQuerySet(QuerySet):
         """
 
         orig_kwargs = kwargs.copy()
-
+        
         # If this queryset is filtered by a single column and no arguments
         # were passed to get(), treat the queryset filter as an argument to
         # get(). This lets Model.objects.filter(pk=42).get() work like
@@ -43,16 +44,16 @@ class CachedQuerySet(QuerySet):
             if isinstance(child, Exact) and isinstance(child.lhs, Col):
                 can_ignore_filter = True
                 kwargs[child.lhs.target.attname] = child.rhs
-
+        
         # Don't access cache if using a filtered queryset
         if self.query.where and not can_ignore_filter:
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
-
+        
         # Don't access cache if using a deferred queryset
         if len(self.query.deferred_loading[0]) > 0 or \
                 not self.query.deferred_loading[1]:
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
-
+        
         # Get the cache key from the model name and pk
         if "pk" in kwargs:
             pk = kwargs["pk"]
@@ -66,9 +67,10 @@ class CachedQuerySet(QuerySet):
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
 
         key = self.cache_key(pk)
-
+        
         # Retrieve (or set) the item in the cache
         item = cache.get(key)
+        
         if item is None:
             cache_missed.send(sender=self.model)
             item = super(CachedQuerySet, self).get(*args, **orig_kwargs)
@@ -104,7 +106,17 @@ class CachedQuerySet(QuerySet):
         """
         Generate the cache key for an individual model
         """
-        return "{}-pk:{}".format(self.model.__name__, pk)
+        return "{}-{}-pk:{}".format(self.model._meta.app_label,self.model.__name__, pk)
+    
+    def update(self, **kwargs):
+        """
+        Queryset update flush model cache
+        """
+        lookup_ids = self.values_list('pk')
+        resp = super(CachedQuerySet,self).update(**kwargs)
+        for pk in lookup_ids:
+            self.invalidate(pk)
+        return resp
 
     def invalidate(self, pk, recache=False):
         """
@@ -125,3 +137,6 @@ class CachedQuerySet(QuerySet):
                 cache.set(key, entry, self.__CACHE_FOREVER)
         else:
             cache.delete(key)
+            
+            
+            

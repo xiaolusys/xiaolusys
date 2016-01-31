@@ -4,9 +4,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 
 from shopback import paramconfig as pcfg
-from core.ormcache.mixins import CachedManagerMixin
-
-class ProductManager(CachedManagerMixin,models.Manager):
+from core.ormcache.managers import CacheManager
+    
+    
+class ProductManager(CacheManager):
     
     def getProductByOuterid(self,outer_id):
         

@@ -117,6 +117,7 @@ INSTALLED_APPS = (
     'deamon',
     'httpproxy',
     'deamon.celery_sentry',
+    'core.ormcache',
 
     'common',
     'shopback.amounts',

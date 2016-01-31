@@ -9,7 +9,6 @@ class CachedManagerMixin(object):
     def __cache_enabled(self):
         return getattr(self.model, "cache_enabled", False)
     
-    @staticmethod
     def __require_cache(func):
         def wrapper(self, *args, **kwargs):
             if not self.__cache_enabled:
@@ -48,11 +47,9 @@ class CachedManagerMixin(object):
             return CachedQuerySet(self.model)
         else:
             super_ = super(CachedManagerMixin, self)
-
             if hasattr(super_, "get_queryset"):
                 # Django > 1.6
                 return super_.get_queryset()
-
             # Django <= 1.5
             return super_.get_query_set()
 

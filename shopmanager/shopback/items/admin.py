@@ -597,7 +597,7 @@ class ProductAdmin(MyAdmin):
             if product.normal_skus.count() == 0:
                 continue
             product_sku = product.normal_skus[0]
-            post_save.send(sender=ProductSku, instance=product_sku)
+            post_save.send(sender=ProductSku, instance=product_sku, created=False)
 
         self.message_user(request, u"已成功更新%s个商品的预留数!" % p_count)
         #         self.message_user(request,u"有%s个商品因已上架没有更新预留数!"%upshelfs.count())

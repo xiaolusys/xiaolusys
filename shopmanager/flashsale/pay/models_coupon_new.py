@@ -6,11 +6,13 @@
 """
 from django.db import models
 import datetime
+
+from .base import PayBaseModel
 from options import uniqid
 from flashsale.pay.models import Customer
 
 
-class CouponTemplate(models.Model):
+class CouponTemplate(PayBaseModel):
     RMB118 = 0
     POST_FEE_5 = 1
     POST_FEE_10 = 4
@@ -49,8 +51,6 @@ class CouponTemplate(models.Model):
     way_type = models.IntegerField(default=0, choices=COUPON_WAY, verbose_name=u"领取途径")
     target_user = models.IntegerField(default=0, choices=TAR_USER, verbose_name=u"目标用户")
     post_img = models.CharField(max_length=512, blank=True, null=True, verbose_name=u"模板图片")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
     class Meta:
         db_table = "pay_coupon_template"
@@ -87,7 +87,7 @@ class CouponTemplate(models.Model):
             raise AssertionError(u'%s至%s启动使用' % (vas_t, self.deadline))
 
 
-class CouponsPool(models.Model):
+class CouponsPool(PayBaseModel):
     RELEASE = 1
     UNRELEASE = 0
     PAST = 2
@@ -97,8 +97,6 @@ class CouponsPool(models.Model):
     coupon_no = models.CharField(max_length=32, db_index=True, unique=True, default=lambda: uniqid(
         '%s%s' % ('YH', datetime.datetime.now().strftime('%y%m%d'))), verbose_name=u"优惠券号码")
     status = models.IntegerField(default=UNRELEASE, choices=POOL_COUPON_STATUS, verbose_name=u"发放状态")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
     class Meta:
         db_table = "pay_coupon_pool"
@@ -126,7 +124,7 @@ class CouponsPool(models.Model):
         self.save()
 
 
-class UserCoupon(models.Model):
+class UserCoupon(PayBaseModel):
     USED = 1
     UNUSED = 0
     FREEZE = 2
@@ -137,8 +135,6 @@ class UserCoupon(models.Model):
     customer = models.CharField(max_length=32, db_index=True, verbose_name=u"顾客ID")
     sale_trade = models.CharField(max_length=32, db_index=True, verbose_name=u"绑定交易ID")
     status = models.IntegerField(default=UNUSED, choices=USER_COUPON_STATUS, verbose_name=u"使用状态")
-    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
-    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
 
     class Meta:
         unique_together = ('cp_id', 'customer')

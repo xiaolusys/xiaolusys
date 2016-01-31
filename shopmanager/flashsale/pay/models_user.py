@@ -4,10 +4,11 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
     
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
+from .base import PayBaseModel
 
-    
-class Register(models.Model):
+
+class Register(PayBaseModel):
     
     MAX_VALID_COUNT   = 3
     MAX_SUBMIT_TIMES  = 6
@@ -30,8 +31,6 @@ class Register(models.Model):
     mail_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'邮件发送时间')
 
     initialize_pwd = models.BooleanField(default=False, verbose_name=u"初始化密码")
-    created     = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
     class Meta:
         db_table = 'flashsale_register'
@@ -84,7 +83,12 @@ class Register(models.Model):
         return False
         
     
-class Customer(models.Model):
+class Customer(PayBaseModel):
+    
+    class Meta:
+        db_table = 'flashsale_customer'
+        verbose_name=u'特卖用户/客户'
+        verbose_name_plural = u'特卖用户/客户列表'
     
     NORMAL = 1     #正常
     INACTIVE = 0   #未激活
@@ -113,17 +117,9 @@ class Customer(models.Model):
     
     status     = models.IntegerField(choices=USER_STATUS_CHOICES,default=NORMAL,verbose_name= u'状态') 
     
-    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
-    
 #     first_paytime   = models.DateTimeField(null=True,blank=True,verbose_name=u'首次购买日期')
 #     latest_paytime  = models.DateTimeField(null=True,blank=True,verbose_name=u'最近购买日期')
     
-    class Meta:
-        db_table = 'flashsale_customer'
-        verbose_name=u'特卖用户/客户'
-        verbose_name_plural = u'特卖用户/客户列表'
-        
     def __unicode__(self):
         return '%s(%s)'%(self.nick,self.id) 
     

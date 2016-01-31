@@ -1,13 +1,16 @@
 #-*- coding:utf-8 -*-
 from django.db import models
-from shopback.items.models import Product,ProductSku
+from django.db.models import F
+
+from common.utils import update_model_fields
+from core.fields import JSONCharMyField
+from .base import PayBaseModel
+
+from shopback.items.models import Product
 from . signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
-from django.db.models import F
-from common.utils import update_model_fields
 
-
-class Productdetail(models.Model):
+class Productdetail(PayBaseModel):
     
     WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
     OUT_PERCENT  = 0 #未设置代理返利比例
@@ -70,7 +73,7 @@ class Productdetail(models.Model):
         return rate 
     
     
-class ModelProduct(models.Model):
+class ModelProduct(PayBaseModel):
     
     NORMAL = '0'
     DELETE = '1'
@@ -87,9 +90,6 @@ class ModelProduct(models.Model):
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
     
     sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
-    
-    created      = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-    modified     = models.DateTimeField(auto_now=True,verbose_name=u'修改时间')
     
     status       = models.CharField(max_length=16,db_index=True,
                                     choices=STATUS_CHOICES,
@@ -147,9 +147,6 @@ def create_Model_Product(sender, obj, **kwargs):
 
 signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
 
-
-from shopback.base.models import JSONCharMyField
-
 POSTER_DEFAULT =(
 '''
 [
@@ -161,7 +158,7 @@ POSTER_DEFAULT =(
 ]
 ''')
 
-class GoodShelf(models.Model):
+class GoodShelf(PayBaseModel):
     
     title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报说明')
     
@@ -175,8 +172,6 @@ class GoodShelf(models.Model):
     is_active    = models.BooleanField(default=True,verbose_name=u'上线')
     active_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'上线日期')
     
-    created      = models.DateTimeField(null=True,auto_now_add=True,db_index=True,blank=True,verbose_name=u'生成日期')
-    modified     = models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     
     class Meta:
         db_table = 'flashsale_goodshelf'

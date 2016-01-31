@@ -135,6 +135,7 @@ class WeixinAppBackend(RemoteUserBackend):
         openid  = content.get('openid')
         unionid = content.get('unionid')
         nickname = content.get('nickname')
+        headimgurl = content.get('headimgurl')
         if not valid_openid(openid) or not valid_openid(unionid):
             return AnonymousUser()
         
@@ -162,6 +163,7 @@ class WeixinAppBackend(RemoteUserBackend):
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             if not profile.nick.strip():
                 profile.nick = nickname
+                profile.thumbnail = headimgurl
                 profile.save()
                 
         task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXAPP_ID)()

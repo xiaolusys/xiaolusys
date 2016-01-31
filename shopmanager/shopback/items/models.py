@@ -18,7 +18,7 @@ from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser,User
-from .managers import ProductManager
+from . import managers
 from auth import apis
 from flashsale.dinghuo.models_user import MyUser
 import logging
@@ -54,8 +54,25 @@ class ProductDefectException(Exception):
 
 
 class Product(models.Model):
-    """ 系统商品（根据淘宝外部编码) """
-
+    """ 记录库存属性及加上排期信息的商品类 """
+    
+    class Meta:
+        db_table = 'shop_items_product'
+        verbose_name = u'库存商品'
+        verbose_name_plural = u'库存商品列表'
+        permissions = [
+            ("change_product_skunum", u"修改库存信息"),
+            ("change_product_shelf",  u"特卖商品上架/下架"),
+            ("sync_product_stock", u"商品库存同步/取消"),
+            ("regular_product_order", u"商品订单定时/释放"),
+            ("create_product_purchase", u"创建商品订货单"),
+            ("export_product_info", u"导出库存商品信息"),
+            ("invalid_product_info", u"作废库存商品信息")
+        ]
+    
+    cache_enabled = True
+    objects = managers.ProductManager()
+    
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
@@ -133,20 +150,7 @@ class Product(models.Model):
                                        default=DOWN_SHELF,verbose_name=u'上架状态')
     ware_by        = models.IntegerField(default=WARE_SH,choices=WARE_CHOICES,
                                          db_index=True,verbose_name=u'所属仓库')
-    objects = ProductManager()
-
-    class Meta:
-        db_table = 'shop_items_product'
-        verbose_name = u'库存商品'
-        verbose_name_plural = u'库存商品列表'
-        permissions = [("change_product_skunum", u"修改库存信息"),
-                       ("change_product_shelf",  u"特卖商品上架/下架"),
-                       ("sync_product_stock", u"商品库存同步/取消"),
-                       ("regular_product_order", u"商品订单定时/释放"),
-                       ("create_product_purchase", u"创建商品订货单"),
-                       ("export_product_info", u"导出库存商品信息"),
-                       ("invalid_product_info", u"作废库存商品信息")]
-
+    
     def __unicode__(self):
         return '%s'%self.id
         #return '<%s,%s>'%(self.outer_id,self.name)
@@ -529,17 +533,21 @@ def custom_sort(a, b):
 
 
 class ProductSku(models.Model):
-
-    """
-        抽象商品规格（根据淘宝规格外部编码），描述：
-        1,映射淘宝出售商品规格与采购商品规格桥梁；
-        2,库存管理的规格核心类；
-    """
-
+    """ 记录库存商品规格属性类 """
+    
+    class Meta:
+        db_table = 'shop_items_productsku'
+        unique_together = ("outer_id", "product")
+        verbose_name=u'库存商品规格'
+        verbose_name_plural = u'库存商品规格列表'
+    
+    cache_enabled = True
+    objects = managers.CacheManager()
+    
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
-
+    
     outer_id = models.CharField(max_length=64,blank=False,verbose_name=u'供应商货号/编码')
 
     barcode  = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
@@ -581,12 +589,7 @@ class ProductSku(models.Model):
     match_reason = models.CharField(max_length=80,blank=True,verbose_name='匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
-    class Meta:
-        db_table = 'shop_items_productsku'
-        unique_together = ("outer_id", "product")
-        verbose_name=u'库存商品规格'
-        verbose_name_plural = u'库存商品规格列表'
-
+    
     def __unicode__(self):
         return '<%s,%s:%s>'%(self.id,self.outer_id,self.properties_alias or self.properties_name)
 
