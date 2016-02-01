@@ -31,6 +31,7 @@ from . import serializers
 from .options import gen_and_save_jpeg_pic
 from shopback.base import log_action, ADDITION, CHANGE
 from django.forms import model_to_dict
+from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 
 
 
@@ -436,20 +437,40 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """
         我的选品(不添加秒杀和卖光的产品) 这里要计算用户的佣金
         """
+        content = request.REQUEST
+        category = int(content.get('category', 0))  # 1童装2女装
         customer = get_object_or_404(Customer, user=request.user)
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(shelf_status=Product.UP_SHELF)
-        pros = []
-        for pro in queryset:
-            if pro.name.startswith('秒杀'):
-                continue
-            elif pro.is_sale_out():  # 是否卖光
-                continue
-            else:
-                prodic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price'])
-                prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
-                pros.append(prodic)
+
+        queryset = self.get_child_qs(queryset) if category == 1 else queryset
+        queryset = self.get_female_qs(queryset) if category == 2 else queryset
+
+        extra_str = 'remain_num - lock_num > 0 AND NOT name REGEXP "^秒杀"'
+        queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的
+        pros = self.choice_query_2_dict(queryset, customer, request)
         return Response(pros)
+
+    def choice_query_2_dict(self, queryset, customer, request):
+        pros = []
+        rebt = AgencyOrderRebetaScheme.objects.get(id=1)
+        content = request.REQUEST
+        sort_field = content.get('sort_field', 'id')  # 排序字段
+        try:
+            xlmm = XiaoluMama.objects.get(openid=customer.unionid)
+        except XiaoluMama.DoesNotExist:
+            xlmm = False
+        for pro in queryset:
+            kwargs = {'agencylevel': xlmm.agencylevel,
+                      'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+            rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+            prodic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'lock_num'])
+            prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
+            prodic['rebet_amount'] = rebet_amount
+            pros.append(prodic)
+        if sort_field:
+            pros = sorted(pros, key=lambda k: k[sort_field], reverse=True)
+        return pros
 
 
 class ProductShareView(generics.RetrieveAPIView):
