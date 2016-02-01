@@ -145,7 +145,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             }
             ```
     """
-    queryset = UserAddress.normal_objects.order_by('-default')
+    queryset = UserAddress.objects.all()
     serializer_class = serializers.UserAddressSerializer# Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
@@ -153,7 +153,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(cus_uid=customer.id, status='normal')
+        return self.queryset.filter(cus_uid=customer.id, status=UserAddress.NORMAL).order_by('-default')
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
