@@ -5,6 +5,7 @@ Product:系统内部商品，唯一对应多家店铺的商品外部编码,
 ProductSku:淘宝平台商品sku，
 Item:淘宝平台商品，
 """
+import collections
 import json
 import datetime
 from django.db import models
@@ -20,15 +21,13 @@ from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser,User
 from . import managers
 from auth import apis
-from flashsale.dinghuo.models_user import MyUser
-import logging
-import collections
+
 from common.modelutils import update_model_fields
 from supplychain.supplier.models import SaleProduct
 
 from flashsale.restpro.local_cache import image_watermark_cache
 
-
+import logging
 logger  = logging.getLogger('django.request')
 
 APPROVE_STATUS  = (
@@ -70,8 +69,8 @@ class Product(models.Model):
             ("invalid_product_info", u"作废库存商品信息")
         ]
     
-    cache_enabled = True
     objects = managers.ProductManager()
+    cache_enabled = True
     
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
@@ -184,6 +183,7 @@ class Product(models.Model):
 
     @property
     def sale_group(self):
+        from flashsale.dinghuo.models_user import MyUser
         myuser = MyUser.objects.filter(user__username=self.sale_charger)
         return myuser[0].group if myuser.count() > 0 else "None"
 
@@ -266,7 +266,7 @@ class Product(models.Model):
                 return self.details.head_imgs.split()[0]
             except:
                 return self.PIC_PATH
-        return pmodel.head_imgs and pmodel.head_imgs.split()[0] or self.PIC_PATH
+        return pmodel and pmodel.head_imgs.split()[0] or self.PIC_PATH
     head_img_url = property(head_img)
 
     @property

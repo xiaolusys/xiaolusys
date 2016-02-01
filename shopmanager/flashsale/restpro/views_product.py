@@ -135,7 +135,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     - /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
     - /my_choice_pro: 获取'我的选品列表'产品数据
     """
-    queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
+    queryset = Product.objects.all()
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer)
@@ -163,7 +163,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_latest_right_date(self,dt):
         ldate = dt
-        model_qs = self.get_queryset()
+        model_qs = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
         for i in xrange(0,30):
             ldate = dt - datetime.timedelta(days=i)
             product_qs = model_qs.filter(sale_time=ldate)
@@ -260,7 +260,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_custom_qs(self,queryset):
-        return queryset.filter(outer_id__endswith='1')#.exclude(details__is_seckill=True)
+        return queryset.filter(status=Product.NORMAL,outer_id__endswith='1')#.exclude(details__is_seckill=True)
 
     def get_female_qs(self,queryset):
         return self.get_custom_qs(queryset).filter(outer_id__startswith='8')
@@ -268,7 +268,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_child_qs(self,queryset):
         return self.get_custom_qs(queryset).filter(Q(outer_id__startswith='9')|Q(outer_id__startswith='1'))
 
-    @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_items_cache_key')
+#     @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_items_cache_key')
     @list_route(methods=['get'])
     def promote_today(self, request, *args, **kwargs):
         """ 获取今日推荐商品列表 """
@@ -419,7 +419,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
 #     @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_items_cache_key')
     @detail_route(methods=['get'])
-    def details(self, request, *args, **kwargs):
+    def details(self, request, pk, *args, **kwargs):
         """ 商品明细，包含详细规格信息 """
         instance = self.get_object()
         product_dict = self.get_serializer(instance).data
@@ -518,7 +518,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """
-    queryset = Product.objects.filter(status=Product.NORMAL)#,shelf_status=Product.UP_SHELF
+    queryset = Product.objects.filter()#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )

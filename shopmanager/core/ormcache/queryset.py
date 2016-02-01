@@ -21,14 +21,12 @@ class CachedQuerySet(QuerySet):
 
     __CACHE_FOREVER = 100800  # 24 * 3600
     
-    
     def get(self, *args, **kwargs):
         """
         Adds a layer of caching around the Manager's built in 'get()' method.
         Will only cache if 'pk' or 'id' is used in kwargs. Results from the
         'get()' method will be cached indefinitely (30 days) until invalidated.
         """
-
         orig_kwargs = kwargs.copy()
         
         # If this queryset is filtered by a single column and no arguments
@@ -44,7 +42,7 @@ class CachedQuerySet(QuerySet):
             if isinstance(child, Exact) and isinstance(child.lhs, Col):
                 can_ignore_filter = True
                 kwargs[child.lhs.target.attname] = child.rhs
-        
+                
         # Don't access cache if using a filtered queryset
         if self.query.where and not can_ignore_filter:
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
@@ -65,12 +63,10 @@ class CachedQuerySet(QuerySet):
             pk = kwargs["id__exact"]
         else:
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
-
         key = self.cache_key(pk)
         
         # Retrieve (or set) the item in the cache
         item = cache.get(key)
-        
         if item is None:
             cache_missed.send(sender=self.model)
             item = super(CachedQuerySet, self).get(*args, **orig_kwargs)
