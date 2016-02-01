@@ -726,7 +726,7 @@ class ProductSku(models.Model):
         psku = self.__class__.objects.get(id=self.id)
         self.quantity = psku.quantity
 
-        post_save.send(sender=self.__class__,instance=self)
+        post_save.send(sender=self.__class__,instance=self,created=False)
 
 
     def update_wait_post_num(self,num,full_update=False,dec_update=False):
@@ -742,7 +742,7 @@ class ProductSku(models.Model):
         psku = self.__class__.objects.get(id=self.id)
         self.wait_post_num = psku.wait_post_num
 
-        post_save.send(sender=self.__class__,instance=self)
+        post_save.send(sender=self.__class__,instance=self,created=False)
 
     def update_lock_num(self,num,full_update=False,dec_update=False):
         """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
@@ -769,7 +769,7 @@ class ProductSku(models.Model):
         update_model_fields(self,update_fields=['reduce_num'])
 
         self.reduce_num = self.__class__.objects.get(id=self.id).reduce_num
-        post_save.send(sender=self.__class__,instance=self)
+        post_save.send(sender=self.__class__,instance=self,created=False)
 
 
     def update_quantity_by_storage_num(self,num):
