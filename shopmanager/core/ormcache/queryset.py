@@ -112,7 +112,7 @@ class CachedQuerySet(QuerySet):
         """
         Queryset update flush model cache
         """
-        lookup_ids = self.values_list('pk')
+        lookup_ids = self.values_list('pk',flat=True)
         resp = super(CachedQuerySet,self).update(**kwargs)
         for pk in lookup_ids:
             self.invalidate(pk)

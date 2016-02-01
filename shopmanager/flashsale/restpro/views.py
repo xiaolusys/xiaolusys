@@ -27,7 +27,6 @@ from qiniu import Auth
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
     ### 退款API:
-    
     - {prefix}/method: get 获取用户的退款单列表
     - {prefix}/method: post 创建用户的退款单
         -  创建退款单
@@ -251,9 +250,9 @@ class DistrictViewSet(viewsets.ModelViewSet):
     #### 地理区域信息接口及参数：
     -   /province_list：省列表
     -   /city_list：根据省获得市
-    > 　id:即province ID
+    >  id:即province ID
     -   /country_list:根据市获得区或者县
-    > 　id:即country ID
+    >  id:即country ID
     """
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer# Create your views here.
