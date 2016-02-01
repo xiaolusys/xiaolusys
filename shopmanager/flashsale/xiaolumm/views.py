@@ -46,7 +46,7 @@ class WeixinAuthCheckView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
     def get(self, request):
         openid,unionid = self.get_openid_and_unionid(request)
-        if not valid_openid(openid) or not valid_openid(unionid):
+        if not valid_openid(openid) :
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
         
