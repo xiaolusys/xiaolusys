@@ -15,7 +15,7 @@ admin.site.register(XLFreeSample, XLFreeSampleAdmin)
 
 
 class XLSampleApplyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'outer_id', 'sku_code', 'ufrom', 'mobile', 'vipcode', 'status')
+    list_display = ('id', 'from_customer', 'outer_id', 'sku_code', 'ufrom', 'mobile', 'vipcode', 'status')
     list_filter = ('status', 'ufrom')
     list_display_links = ('id', 'outer_id', )
     search_fields = ['=id', '=outer_id', ]
@@ -26,7 +26,7 @@ admin.site.register(XLSampleApply, XLSampleApplyAdmin)
 
 
 class XLSampleOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer_id', 'outer_id', 'sku_code', 'vipcode', 'problem_score', 'status')
+    list_display = ('id', 'xlsp_apply', 'customer_id', 'outer_id', 'sku_code', 'vipcode', 'problem_score', 'status')
     list_filter = ('status',)
     list_display_links = ('id', 'customer_id', )
     search_fields = ['=id', '=customer_id', 'vipcode']
