@@ -11,6 +11,8 @@ from shopback.items.models import Product
 from django.forms import model_to_dict
 from rest_framework.decorators import detail_route, list_route
 from . import permissions as perms
+from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+from flashsale.xiaolumm.models import XiaoluMama
 
 
 class CustomerShopsViewSet(viewsets.ModelViewSet):
@@ -72,10 +74,20 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         shop_pros = self.get_owner_shop_pros(request).filter(pro_status=CuShopPros.UP_SHELF)
         data = []
+        rebt = AgencyOrderRebetaScheme.objects.get(id=1)
+        customer = get_object_or_404(Customer, user=request.user)
+        try:
+            xlmm = XiaoluMama.objects.get(openid=customer.unionid)
+        except XiaoluMama.DoesNotExist:
+            xlmm = False
         for shop_pro in shop_pros:
             pro = Product.objects.get(id=shop_pro.product)  # 产品信息
-            pro_dic = model_to_dict(pro, fields=['name', 'id'])
+            pro_dic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'lock_num'])
+            kwargs = {'agencylevel': xlmm.agencylevel,
+                      'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+            rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
             pro_dic['status'] = shop_pro.pro_status
+            pro_dic['rebet_amount'] = rebet_amount
             data.append(pro_dic)
         return Response(data)
 
