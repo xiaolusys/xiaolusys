@@ -53,46 +53,7 @@
         </div>
     </div>
     <ul class="nvzhuang">
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
+        <!-- 女装列表 -->
     </ul>
 </div>
 <div class="glist">
@@ -103,46 +64,7 @@
         </div>
     </div>
     <ul class="chaotong">
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-                <img src="#">
-                <p class="gname"></p>
-                <p class="gprice">
-                    <span class="nprice">¥  </span>
-                    <s class="oprice">¥ </s>
-                </p>
-            </a>
-        </li>
+         <!-- 童装列表 -->
     </ul>
 </div>
 <div id="loading"><span class="dots-loader"></span></div>
@@ -184,7 +106,15 @@
     //获取昨日海报
     Set_posters(GLConfig.poster_previous);
     //获取昨日推荐商品
-    Set_promotes_product(GLConfig.products_previous);
+    var paginate_product_func = Set_promotes_product_by_paging();
+    paginate_product_func(GLConfig.promote_previous_paging);
+    $(window).scroll(function () {
+        var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());//浏览器的高度加上滚动条的高度
+        var scroll_height = $(document).height() - totalheight;
+        if (($(document).height() - 600 <= totalheight) && scroll_height < 600 ) {
+            paginate_product_func(GLConfig.promote_previous_paging);
+        }
+    });
     //获取购物车商品数
     Set_shopcarts_num();
     yesterday_timer();

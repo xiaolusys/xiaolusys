@@ -120,20 +120,24 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ###特卖商品API：
-    - /promote_today[.format]: 获取今日推荐商品列表;
-    - /promote_previous[.format]: 获取昨日推荐商品列表;
-    - /promote_today_paging：获取今日推荐商品列表（分页）;
-    > 参数：page - 页码（０开始），page_size - 每页数量
-    - /childlist[.format]: 获取童装专区商品列表;
-    - /ladylist[.format]: 获取女装专区商品列表;
-    - /previous[.format]: 获取昨日特卖商品列表;
-    - /advance[.format]: 获取明日特卖商品列表;
-    - /seckill[.format]: 获取秒杀商品列表;
-    - /modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）;
-    - /{pk}/details[.format]: 商品详情;
-    - /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
-    - /my_choice_pro: 获取'我的选品列表'产品数据
+    ##特卖商品API：
+    > ### /promote_today[.format]: 获取今日推荐商品列表;
+    > ### /promote_previous[.format]: 获取昨日推荐商品列表;
+    > ### /promote_today_paging：获取今日推荐商品分页列表;
+      - `page`:页码（０开始）
+      - `page_size`：每页数量初始为10
+    > ### /promote_previous_paging：获取昨日推荐商品分页列表;
+      - `page`:页码（０开始）
+      - `page_size`：每页数量初始为10
+    > ### /childlist[.format]: 获取童装专区商品列表;
+    > ### /ladylist[.format]: 获取女装专区商品列表;
+    > ### /previous[.format]: 获取昨日特卖商品列表;
+    > ### /advance[.format]: 获取明日特卖商品列表;
+    > ### /seckill[.format]: 获取秒杀商品列表;
+    > ### /modellist/{model_id}[.format]:获取聚合商品列表（model_id:款式ID）;
+    > ### /{pk}/details[.format]: 商品详情;
+    > ### /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
+    > ### /my_choice_pro: 获取'我的选品列表'产品数据
     """
     queryset = Product.objects.all()
     serializer_class = serializers.ProductSerializer
@@ -300,7 +304,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = self.get_serializer(object_list, many=True)
             return self.get_paginated_response(serializer.data)
         
-        object_list = self.objets_from_cache(queryset)
+        object_list = self.objets_from_cache(queryset, value_keys=['pk','is_saleout'])
         serializer = self.get_serializer(object_list, many=True)
         return Response(serializer.data)
 
@@ -324,6 +328,26 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
                          'child_list':self.get_serializer(child_list, many=True).data}
 
         return Response(response_date)
+
+#     @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_items_cache_key')
+    @list_route(methods=['get'])
+    def promote_previous_paging(self, request, *args, **kwargs):
+        """ 昨日特卖列表分页接口 """
+        previous_dt = self.get_previous_date()
+        queryset = self.filter_queryset(self.get_queryset())
+        tal_queryset = self.get_custom_qs(queryset).filter(
+            sale_time=previous_dt
+        )
+        queryset = self.order_queryset(request, tal_queryset, order_by=self.INDEX_ORDER_BY)
+        pagin_query = self.paginate_queryset(queryset)
+        if pagin_query is not None:
+            object_list = self.objets_from_cache(pagin_query)
+            serializer = self.get_serializer(object_list, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        object_list = self.objets_from_cache(queryset, value_keys=['pk','is_saleout'])
+        serializer = self.get_serializer(object_list, many=True)
+        return Response(serializer.data)
 
 #     @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_items_cache_key')
     @list_route(methods=['get'])

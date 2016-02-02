@@ -69,7 +69,8 @@ var GLConfig = {
 	poster_today:'/posters/today.json',  //获取今日特卖海报
 	poster_previous:'/posters/previous.json',  //获取昨日特卖海报
 	products_today:'/products/promote_today.json',  //获取昨日特卖推荐列表
-	products_today_paging:'/products/promote_today_paging.json',  //获取昨日特卖推荐列表
+	products_today_paging:'/products/promote_today_paging.json',  //获取昨日特卖推荐分页列表
+	promote_previous_paging:'/products/promote_previous_paging.json',  //获取昨日特卖推荐分页列表
 	products_previous:'/products/promote_previous.json',  //获取昨日特卖推荐列表
 	get_childlist_url:'/products/childlist.json', //获取潮流童装商品列表
 	get_ladylist_url:'/products/ladylist.json', //获取时尚女装商品列表

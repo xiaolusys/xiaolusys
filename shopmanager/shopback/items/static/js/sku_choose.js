@@ -72,7 +72,6 @@ function dynamic_generate_sku() {
             $(e).val(prefix+count);
             count ++;
         })
-
     });
     $(".c_remainnum:first").change(function(){
         $('input[id$=remainnum]').val($(this).val());
