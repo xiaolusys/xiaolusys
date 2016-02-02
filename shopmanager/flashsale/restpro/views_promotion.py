@@ -1,4 +1,5 @@
 # coding=utf-8
+import os, settings, urlparse
 import datetime
 
 from django.forms import model_to_dict
@@ -20,6 +21,7 @@ from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample,
 import serializers
 from flashsale.pay.models import Customer
 from flashsale.promotion.models import XLReferalRelationship
+from options import gen_and_save_jpeg_pic
 
 import logging
 
@@ -81,7 +83,8 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    share_link = '/sale/promotion/xlsampleapply/?from_customer={0}'
+    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
+    PROMOTION_LINKID_PATH = 'pmt'
 
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -91,9 +94,28 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         applys = XLSampleApply.objects.filter(from_customer=customer_id, outer_id=outer_id)
         promote_count = applys.count()  # 邀请的数量　
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
-        share_link = self.share_link.format(customer_id)
-        res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link}
+        share_link = self.share_link.format(**{'customer_id': customer_id})
+        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
+        res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+               'link_qrcode': link_qrcode}
         return res
+
+    def get_share_link(self, params):
+        link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
+        return link.format(**params)
+
+    def gen_custmer_share_qrcode_pic(self, customer_id):
+        root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+        params = {'customer_id': customer_id}
+        file_name = 'custm-{customer_id}.jpg'.format(**params)
+        file_path = os.path.join(root_path, file_name)
+
+        share_link = self.get_share_link(params)
+        if not os.path.exists(file_path):
+            gen_and_save_jpeg_pic(share_link, file_path)
+        return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
 
     def create(self, request, *args, **kwargs):
         content = request.REQUEST
