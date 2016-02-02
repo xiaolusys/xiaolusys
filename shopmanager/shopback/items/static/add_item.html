@@ -470,7 +470,6 @@
                 {{ each sku as one_sku j}}
                 {{ if j==0 }}
                 <td><span class="color-name">{{ one_sku }}</span></td>
-
                 <td><input type="text" id="{{ one_color }}_{{ one_sku }}_outerid" class="form-control c_outerid"/></td>
                 <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control c_remainnum"/></td>
                 <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control c_cost"/></td>
@@ -479,8 +478,7 @@
                 {{ else }}
                 <tr>
                     <td><span class="color-name">{{ one_sku }}</span></td>
-
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_outerid" class="form-control c_outerid"/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_outerid" class="form-control "/></td>
                     <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control"/></td>
                     <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control"/></td>
                     <td><input type="text" id="{{ one_color }}_{{ one_sku }}_pricestd" class="form-control"/></td>
@@ -494,7 +492,7 @@
         </script>
         <script id="color-one" type="text/html">
             <label class="checkbox-inline">
-                <input type="checkbox" class="color-choose" value="{{ color }}">{{ color }}</label>
+            <input type="checkbox" class="color-choose" value="{{ color }}">{{ color }}</label>
         </script>
         <script id="chima-one" type="text/html">
             <label class="checkbox-inline">

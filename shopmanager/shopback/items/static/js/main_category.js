@@ -313,7 +313,6 @@ function submit_data() {
             result_data[all_color[i] + "_" + all_sku[j] + "_pricestd"] = $("#" + one_color + "_" + one_sku + "_pricestd").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_agentprice"] = $("#" + one_color + "_" + one_sku + "_agentprice").val().trim();
         }
-
     }
 
     for (var k = 0; k < all_sku.length; k++) {

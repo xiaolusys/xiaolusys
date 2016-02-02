@@ -54,19 +54,36 @@ function dynamic_generate_sku() {
         var html = template('tr-template', result);
         $('#table-id tbody').html(html);
     }
-    $(".c_remainnum").change(function(){
+    $(".c_outerid:first").change(function(){
+        var value = $(this).val();
+        if (parseInt(value) == '')return;
+        console.log('debug outerid:',value);
+        if (isNaN(value)){
+            $('input[id$=outerid]').val(value);
+        }else{
+            var count = parseInt(value);
+            $('input[id$=outerid]').each(function(n,e){
+                console.log('debug outer count:',count);
+                if ($(e).hasClass('c_outerid')){
+                    count = parseInt(value);
+                };
+                $(e).val(count);
+                count ++;
+            })
+        }
+    });
+    $(".c_remainnum:first").change(function(){
         $('input[id$=remainnum]').val($(this).val());
     });
-    $(".c_cost").change(function(){
+    $(".c_cost:first").change(function(){
         $('input[id$=cost]').val($(this).val());
     });
-    $(".c_pricestd").change(function(){
+    $(".c_pricestd:first").change(function(){
         $('input[id$=pricestd]').val($(this).val());
     });
-    $(".c_agentprice").change(function(){
+    $(".c_agentprice:first").change(function(){
         $('input[id$=agentprice]').val($(this).val());
     });
-
 }
 
 function dynamic_generate_chi() {
