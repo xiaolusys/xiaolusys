@@ -655,7 +655,7 @@ class ProductSku(models.Model):
                 result_data[p[0]] = p[1]
             return {"result": result_data, "free_num": display_num}
         except:
-            return {"result": [], "free_num": display_num}
+            return {"result": {}, "free_num": display_num}
 
     def calc_discount_fee(self,xlmm=None):
         """ 优惠折扣 """
