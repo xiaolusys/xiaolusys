@@ -56,21 +56,23 @@ function dynamic_generate_sku() {
     }
     $(".c_outerid:first").change(function(){
         var value = $(this).val();
-        if (parseInt(value) == '')return;
-        console.log('debug outerid:',value);
-        if (isNaN(value)){
-            $('input[id$=outerid]').val(value);
+        var prefix = '';
+        var count  = 1;
+        if (value.trim() == '')return;
+        if (!isNaN(value)){
+            count = parseInt(value);
         }else{
-            var count = parseInt(value);
-            $('input[id$=outerid]').each(function(n,e){
-                console.log('debug outer count:',count);
-                if ($(e).hasClass('c_outerid')){
-                    count = parseInt(value);
-                };
-                $(e).val(count);
-                count ++;
-            })
+            prefix = value.replace(/(^[\s-]*)|([\s-]*$)/g, "");
+            prefix += '-';
         }
+        $('input[id$=outerid]').each(function(n,e){
+            if (!isNaN(value) && $(e).hasClass('c_outerid')){
+                count = parseInt(value);
+            };
+            $(e).val(prefix+count);
+            count ++;
+        })
+
     });
     $(".c_remainnum:first").change(function(){
         $('input[id$=remainnum]').val($(this).val());
