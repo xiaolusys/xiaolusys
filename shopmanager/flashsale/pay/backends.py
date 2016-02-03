@@ -92,16 +92,16 @@ class WeixinPubBackend(RemoteUserBackend):
 
         if openid and not unionid:
             logger.warn('weixin unionid not return:openid=%s'%openid)
-            unionid = self.get_unoinid(unionid,settings.WXPAY_APPID)
+            unionid = self.get_unoinid(openid,settings.WXPAY_APPID)
         
-        if not valid_openid(openid) or not valid_openid(unionid):
+        if not valid_openid(openid):
             return AnonymousUser()
             
         try:
-            profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
+            profile = Customer.objects.get(openid=openid,status=Customer.NORMAL)
             
             #如果openid有误，则重新更新openid
-            if profile.openid != openid:
+            if unionid and (profile.openid != openid or not profile.unionid):
                 task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
                 
             if profile.user:
@@ -115,13 +115,13 @@ class WeixinPubBackend(RemoteUserBackend):
                 profile.save()
             
         except Customer.DoesNotExist:
-            if not self.create_unknown_user:
+            if not self.create_unknown_user or not unionid:
                 return AnonymousUser()
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             
-        task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
+            task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
         return user
     
 
