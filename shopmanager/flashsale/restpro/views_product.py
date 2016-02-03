@@ -97,7 +97,6 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
                                    active_time__day=target_date.day)
         return posters.count() and posters[0] or None
     
-    @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_items_cache_key')
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException(u'该接口暂未提供数据')
     
