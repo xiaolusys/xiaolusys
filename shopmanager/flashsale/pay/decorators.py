@@ -84,7 +84,6 @@ def weixin_xlmm_auth(redirecto=None):
                 if not user or user.is_anonymous():
                     return HttpResponseRedirect(redirecto)
                     
-                request.session[SESSION_KEY] = user.id
                 auth_login(request, user)
                 
                 return view_func(request, *args, **kwargs)
