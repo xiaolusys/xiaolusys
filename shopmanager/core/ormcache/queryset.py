@@ -1,3 +1,5 @@
+# encoding:utf-8
+import hashlib
 import collections
 import logging
 
@@ -64,7 +66,6 @@ class CachedQuerySet(QuerySet):
         else:
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
         key = self.cache_key(pk)
-        
         # Retrieve (or set) the item in the cache
         item = cache.get(key)
         if item is None:
@@ -102,7 +103,7 @@ class CachedQuerySet(QuerySet):
         """
         Generate the cache key for an individual model
         """
-        return "{}-{}-pk:{}".format(self.model._meta.app_label,self.model.__name__, pk)
+        return hashlib.md5("{}-{}-pk:{}".format(self.model._meta.app_label.strip(),self.model.__name__.strip(), pk)).hexdigest()
     
     def update(self, **kwargs):
         """
