@@ -185,6 +185,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         clgs = groupclgs[0:100] if len(groupclgs) > 100 else groupclgs
         for i in clgs:
             xlmm = i['xlmm']
+            i['sum_value'] = i['sum_value'] / 100.0
             carry_date = i['carry_date']
             if i['log_type'] == CarryLog.CLICK_REBETA:  # 点击类型获取点击数量
                 clks = ClickCount.objects.filter(linkid=xlmm, date=carry_date)
