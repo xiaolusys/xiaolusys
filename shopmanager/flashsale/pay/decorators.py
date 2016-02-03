@@ -42,7 +42,7 @@ def sale_buyer_required(view_func):
                 auth_login(request, user)
                 
                 return view_func(request, *args, **kwargs)
-        
+            
         defaults = {
             "title":u'登录',
             REDIRECT_FIELD_NAME: request.build_absolute_uri().split('#')[0]
@@ -85,6 +85,50 @@ def weixin_xlmm_auth(redirecto=None):
                     return HttpResponseRedirect(redirecto)
                     
                 request.session[SESSION_KEY] = user.id
+                auth_login(request, user)
+                
+                return view_func(request, *args, **kwargs)
+        
+        return wraps(view_func, assigned=available_attrs(view_func))(_checklogin)
+    return _decorator
+
+import logging
+logger = logging.getLogger('django.request')
+
+def weixin_test_auth(redirecto=None):
+    """
+    Decorator for views that checks that the user is logged in and is a staff
+    member, displaying the login page if necessary.
+    """
+    def _decorator(view_func):
+        
+        assert redirecto ,u'redirecto 参数必须'
+        def _checklogin(request, *args, **kwargs):
+            if request.user.is_active :
+                # The user is valid. Continue to the admin page.
+                return view_func(request, *args, **kwargs)
+            
+            code   = request.GET.get('code')
+            user_agent = request.META.get('HTTP_USER_AGENT')
+            logger.error('auth test:%s,%s'%(code,user_agent))
+            if not user_agent or user_agent.find('MicroMessenger') < 0:
+                return HttpResponseRedirect(redirecto)
+            
+            if not code :
+                params = {'appid':settings.WXPAY_APPID,
+                          'redirect_uri':request.build_absolute_uri().split('#')[0],
+                          'response_type':'code',
+                          'scope':'snsapi_base',
+                          'state':'135'}
+                redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+                return HttpResponseRedirect(redirect_url)
+            
+            else :
+                user = authenticate(request=request)
+                logger.error('auth user:%s'%(user))
+                if not user or user.is_anonymous():
+                    return HttpResponseRedirect(redirecto)
+                
                 auth_login(request, user)
                 
                 return view_func(request, *args, **kwargs)

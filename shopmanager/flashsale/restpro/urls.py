@@ -14,7 +14,7 @@ from . import views_trade
 from . import views_share
 from . import views_coupon
 from . import views_integral
-from flashsale.pay.views_login import weixin_login,weixin_auth_and_redirect
+from flashsale.pay.views_login import weixin_login, weixin_test, weixin_auth_and_redirect
 from flashsale.complain.views import ComplainViewSet
 from flashsale.push import views as views_push
 
@@ -82,6 +82,7 @@ router_urls_promotion = promotion_router.urls
 
 router_urls += format_suffix_patterns([
         url(r'^users/weixin_login/$',weixin_login,name='weixin-login'),
+        url(r'^users/weixin_test/$',weixin_test,name='weixin-test'),
         url(r'^users/weixin_auth/$',weixin_auth_and_redirect,name='xlmm-wxauth'),
 
         url(r'^products/modellist/(?P<model_id>[0-9]+)$',

@@ -41,10 +41,17 @@ def productlist_redirect(request):
 
 import urllib
 from urlparse import urljoin
-from .decorators import weixin_xlmm_auth
+from .decorators import weixin_xlmm_auth,weixin_test_auth
 
 @weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL,'/pages/denglu.html'))
 def weixin_login(request):
+    next_url = request.REQUEST.get('next')
+    if next_url:
+        return HttpResponseRedirect(next_url)
+    return HttpResponseRedirect('/')
+
+@weixin_test_auth(redirecto=urljoin(settings.M_SITE_URL,'/pages/denglu.html'))
+def weixin_test(request):
     next_url = request.REQUEST.get('next')
     if next_url:
         return HttpResponseRedirect(next_url)

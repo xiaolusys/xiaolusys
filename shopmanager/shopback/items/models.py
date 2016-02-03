@@ -6,6 +6,7 @@ ProductSku:淘宝平台商品sku，
 Item:淘宝平台商品，
 """
 import collections
+import re
 import json
 import datetime
 from django.db import models
@@ -592,7 +593,7 @@ class ProductSku(models.Model):
     
     def __unicode__(self):
         return '<%s,%s:%s>'%(self.id,self.outer_id,self.properties_alias or self.properties_name)
-
+    
     def clean(self):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
@@ -601,12 +602,15 @@ class ProductSku(models.Model):
     @property
     def name(self):
         return self.properties_alias or self.properties_name
-
+    
     @property
     def BARCODE(self):
         return self.barcode.strip() or '%s%s'%(self.product.outer_id.strip(),
                                                self.outer_id.strip())
-
+    
+    def get_supplier_outerid(self):
+        return re.sub('-[0-9]$', '', self.outer_id)
+        
     @property
     def realnum(self):
         if self.remain_num >= self.sale_num:

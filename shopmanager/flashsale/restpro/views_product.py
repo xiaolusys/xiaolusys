@@ -174,6 +174,16 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             if product_qs.count() > 0:
                 break
         return ldate
+    
+    def get_preview_right_date(self,dt):
+        ldate = dt
+        model_qs = self.get_queryset()
+        for i in xrange(0,30):
+            ldate = dt - datetime.timedelta(days=i)
+            product_qs = model_qs.filter(sale_time=ldate)
+            if product_qs.count() > 0:
+                break
+        return ldate
 
     def get_today_date(self):
         """ 获取今日上架日期 """
@@ -195,7 +205,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         tdays  = int(request.GET.get('days','0'))
         tnow   = datetime.datetime.now()
         tlast  = tnow + datetime.timedelta(days=tdays)
-        return self.get_latest_right_date(tlast.date())
+        return self.get_preview_right_date(tlast.date())
     
     def objets_from_cache(self,queryset,value_keys=['pk']):
         if type(queryset) is list:

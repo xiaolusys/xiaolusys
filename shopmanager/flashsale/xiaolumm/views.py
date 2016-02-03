@@ -493,7 +493,6 @@ class StatsView(View):
 import urllib
 from urlparse import urljoin
 from django.core.urlresolvers import reverse
-from . import tasks
 
 def logclicks(request, linkid):
     content = request.REQUEST
