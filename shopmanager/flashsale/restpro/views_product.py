@@ -537,7 +537,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
         except XiaoluMama.DoesNotExist:
             xlmm = False
+        model_ids = []
         for pro in queryset:
+            if pro.model_id in model_ids:
+                continue
             kwargs = {'agencylevel': xlmm.agencylevel,
                       'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
             rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
@@ -545,6 +548,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
             prodic['rebet_amount'] = rebet_amount
             pros.append(prodic)
+            model_ids.append(pro.model_id)
         if sort_field:
             pros = sorted(pros, key=lambda k: k[sort_field], reverse=True)
         return pros

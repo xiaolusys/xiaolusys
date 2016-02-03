@@ -1,4 +1,5 @@
-# -*- coding:utf8 -*-
+# coding=utf-8
+import os, settings, urlparse
 import datetime
 
 from django.forms import model_to_dict
@@ -20,6 +21,7 @@ from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample,
 import serializers
 from flashsale.pay.models import Customer
 from flashsale.promotion.models import XLReferalRelationship
+from options import gen_and_save_jpeg_pic
 
 import logging
 
@@ -74,74 +76,79 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
   `txwb `: 腾讯微博   
   `web  `: 网页  
   }  
+  `from_customer:` 分享用户customer id  
     """
     queryset = XLSampleOrder.objects.all()
     serializer_class = serializers.XLSampleOrderSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    share_link = '/sale/promotion/xlsampleapply/'
+    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
+    PROMOTION_LINKID_PATH = 'pmt'
 
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-    def get_promotion_result(self, vipcode):
-        """ 返回自己的邀请链接　和邀请结果　推荐数量　和下载数量 """
-        promote_count = XLSampleApply.objects.filter(vipcode=vipcode).count()  # 邀请的数量
-        app_down_count = XLSampleOrder.objects.filter(vipcode=vipcode).count()  # 下载appd 的数量
-        return promote_count, app_down_count, self.share_link
+    def get_promotion_result(self, customer_id, outer_id):
+        """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
+        applys = XLSampleApply.objects.filter(from_customer=customer_id, outer_id=outer_id)
+        promote_count = applys.count()  # 邀请的数量　
+        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
+        share_link = self.share_link.format(**{'customer_id': customer_id})
+        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
+        res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+               'link_qrcode': link_qrcode}
+        return res
+
+    def get_share_link(self, params):
+        link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
+        return link.format(**params)
+
+    def gen_custmer_share_qrcode_pic(self, customer_id):
+        root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+        params = {'customer_id': customer_id}
+        file_name = 'custm-{customer_id}.jpg'.format(**params)
+        file_path = os.path.join(root_path, file_name)
+
+        share_link = self.get_share_link(params)
+        if not os.path.exists(file_path):
+            gen_and_save_jpeg_pic(share_link, file_path)
+        return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
 
     def create(self, request, *args, **kwargs):
         content = request.REQUEST
         customer = get_object_or_404(Customer, user=request.user)
-        vipcode = content.get('vipcode', None)
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', None)
         mobile = content.get('mobile', None)
-        if mobile is None:
-            return Response({"code": 1})  # 缺少参数
-        xlin_codes = XLInviteCode.objects.filter(mobile=customer.mobile)  # 查看自己的邀请码记录
-        try:
-            XLSampleOrder.objects.get(customer_id=customer.id, vipcode=vipcode)
-            # 返回自己的邀请链接　和邀请结果
-            if xlin_codes.exists():
-                cus_vicode = xlin_codes[0].vipcode
-                promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
-                return Response(
-                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-                     'vipcode': cus_vicode})
-            else:
-                return Response({'share_link': self.share_link})
-        except XLSampleOrder.DoesNotExist:
-            if not (sku_code and customer.id and vipcode and outer_id):
-                return Response({"code": 1})  # 缺少参数
-            # 参数不缺创建正式申请记录
-            XLSampleOrder.objects.create(customer_id=customer.id, vipcode=vipcode, outer_id=outer_id, sku_code=sku_code)
 
-            try:  # 激活预申请中的字段
-                apply_salm = XLSampleApply.objects.get(vipcode=vipcode, mobile=mobile)
-                apply_salm.status = XLSampleApply.ACTIVED
-                apply_salm.save()
-            except:
-                pass
-            # 创建自己的邀请链接
-            expiried = datetime.datetime(2016, 2, 29)
-            cus_vicode = XLInviteCode.objects.genVIpCode(mobile, expiried)
-            # 返回自己的邀请链接　和邀请结果　推荐数量　和下载数量
-            promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
-            return Response(
-                {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-                 'vipcode': cus_vicode})
-        except XLSampleOrder.MultipleObjectsReturned:
-            # 返回自己的邀请链接　和邀请结果
-            if xlin_codes.exists():
-                cus_vicode = xlin_codes[0].vipcode
-                promote_count, app_down_count, share_link = self.get_promotion_result(cus_vicode)
-                return Response(
-                    {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-                     'vipcode': cus_vicode})
-            else:
-                return Response({'share_link': self.share_link})
+        if mobile is None or not (sku_code and outer_id):
+            return Response({"code": 1})  # 缺少参数
+        xlapplys = XLSampleApply.objects.filter(mobile=mobile, outer_id=outer_id).order_by('-created')
+        xlapply = None
+
+        if xlapplys.exists():
+            xlapply = xlapplys[0]
+
+        # 获取自己的正式使用订单
+        xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
+
+        if len(xls_orders) > 1:  # 已经有试用订单
+            xls_order = xls_orders[0]
+            xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
+            xls_order.save()
+        else:  # 没有　试用订单　创建　正式　订单记录
+            if xlapply:  # 有　试用申请　记录的
+                XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
+                                             outer_id=outer_id, sku_code=sku_code)
+                xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
+                xlapply.save()
+            else:  # 没有试用申请记录的（返回申请页面链接）　提示
+                return Response({"code": 2, "share_link": self.share_link.format(1)})  # 和申请页面的链接
+        res = self.get_promotion_result(customer.id, outer_id)
+        return Response(res)
 
     def update(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
