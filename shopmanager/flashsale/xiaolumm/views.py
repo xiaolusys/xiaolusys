@@ -44,13 +44,17 @@ def landing(request):
 
 class WeixinAuthCheckView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
+    
     def get(self, request):
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) :
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
         
-        xlmm_qs   = XiaoluMama.objects.filter(openid=unionid)
+        xlmm    = None
+        wxuser  = None
+        xlmm_qs = XiaoluMama.objects.filter(openid=unionid)
         if xlmm_qs.exists():
             xlmm = xlmm_qs[0]
         wxuser_qs = WeiXinUser.objects.filter(openid=openid)

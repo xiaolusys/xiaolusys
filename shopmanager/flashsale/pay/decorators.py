@@ -110,7 +110,6 @@ def weixin_test_auth(redirecto=None):
             
             code   = request.GET.get('code')
             user_agent = request.META.get('HTTP_USER_AGENT')
-            logger.error('auth test:%s,%s'%(code,user_agent))
             if not user_agent or user_agent.find('MicroMessenger') < 0:
                 return HttpResponseRedirect(redirecto)
             
@@ -125,7 +124,6 @@ def weixin_test_auth(redirecto=None):
             
             else :
                 user = authenticate(request=request)
-                logger.error('auth user:%s'%(user))
                 if not user or user.is_anonymous():
                     return HttpResponseRedirect(redirecto)
                 
