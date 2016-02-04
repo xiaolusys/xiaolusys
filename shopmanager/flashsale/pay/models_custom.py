@@ -160,7 +160,7 @@ POSTER_DEFAULT =(
 
 class GoodShelf(PayBaseModel):
     
-    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报说明')
+    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报名称')
     
     wem_posters   = JSONCharMyField(max_length=10240, blank=True, 
                                     default=POSTER_DEFAULT, 
@@ -179,6 +179,40 @@ class GoodShelf(PayBaseModel):
         verbose_name_plural = u'特卖商品/海报列表'
     
     def __unicode__(self):
-        return u'<海报：%s>'%(self.title)
+        return u'<%s,%s>'%(self.id, self.title)
     
+    def get_activity(self):
+        return ActivityEntry.get_default_activity()
+
+
+class ActivityEntry(PayBaseModel):
+    """ 商城活动入口 """
+    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'活动名称')
+    
+    act_desc = models.TextField(max_length=512, blank=True, verbose_name=u'活动描述')
+    act_img  = models.CharField(max_length=256, blank=True, verbose_name=u'活动图片')
+    act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动网页链接')
+    act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议')
+    
+    start_time  = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
+    end_time    = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
+    
+    is_active   = models.BooleanField(default=True,verbose_name=u'上线')
+    
+    class Meta:
+        db_table = 'flashsale_activity_entry'
+        verbose_name=u'特卖/商城活动入口'
+        verbose_name_plural = u'特卖/商城活动入口'
+    
+    def __unicode__(self):
+        return u'<%s,%s>'%(self.id, self.title)
+    
+    @classmethod
+    def get_default_activity(cls):
+        acts = cls.objects.filter(is_active=True).order_by('-modified')
+        if acts.exists():
+            return acts[0]
+        return None
+
+
 
