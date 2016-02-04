@@ -1,4 +1,5 @@
 #-*- coding:utf-8 -*-
+import json
 from django.db import models
 from django.db.models import F
 
@@ -147,26 +148,35 @@ def create_Model_Product(sender, obj, **kwargs):
 
 signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
 
-POSTER_DEFAULT =(
-'''
-[
-  {
-    "subject":["2折起","Joan&David  女装专场"],
-    "item_link":"商品链接",
-    "pic_link":"海报图片"
-  }
-]
-''')
 
 class GoodShelf(PayBaseModel):
+    
+    DEFAULT_WEN_POSTER = [
+      {
+        "subject":['2折起', '小鹿美美  女装专场'],
+        "item_link":"http://m.xiaolumeimei.com/nvzhuang.html",
+        "app_link":"app:/",
+        "pic_link":""
+      }
+    ]
+
+    
+    DEFAULT_CHD_POSTER = [
+      {
+        "subject":['2折起', '小鹿美美  童装专场'],
+        "item_link":"http://m.xiaolumeimei.com/chaotong.html",
+        "app_link":"app:/",
+        "pic_link":""
+      }
+    ]
     
     title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报名称')
     
     wem_posters   = JSONCharMyField(max_length=10240, blank=True, 
-                                    default=POSTER_DEFAULT, 
+                                    default=json.dumps(DEFAULT_WEN_POSTER,indent=2), 
                                     verbose_name=u'女装海报')
     chd_posters   = JSONCharMyField(max_length=10240, blank=True, 
-                                    default=POSTER_DEFAULT,
+                                    default=json.dumps(DEFAULT_CHD_POSTER,indent=2),
                                     verbose_name=u'童装海报')
     
     is_active    = models.BooleanField(default=True,verbose_name=u'上线')
