@@ -11,6 +11,7 @@ from flashsale.pay.models import (
     Customer,
     Register,
     GoodShelf,
+    ActivityEntry,
     CustomShare
 )
 from shopback.trades.models import TradeWuliu
@@ -90,6 +91,13 @@ class ModelProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModelProduct
         fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
+        
+        
+class ActivityEntrySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ActivityEntry
+        fields = ( 'id','title', 'act_desc', 'act_img', 'act_link', 'act_applink', 'start_time', 'end_time')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -140,10 +148,11 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
     wem_posters = JSONParseField(read_only=True,required=False)
     chd_posters = JSONParseField(read_only=True,required=False)
-
+    activity    = ActivityEntrySerializer(source='get_activity',read_only=True)
+    
     class Meta:
         model = GoodShelf
-        fields = ('id','url','wem_posters','chd_posters','active_time')
+        fields = ('id','url','wem_posters','chd_posters','active_time','activity')
 
 #####################################################################################
 

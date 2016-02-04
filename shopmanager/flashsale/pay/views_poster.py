@@ -44,15 +44,13 @@ class PostGoodShelf(View):
             goodshelf, state = GoodShelf.objects.get_or_create(active_time__gte=active_time_from,
                                                                active_time__lte=active_time_to)
             if categray == "child":
-                chd_posters = [{"item_link": "http://m.xiaolumeimei.com/chaotong.html",
-                                "pic_link": pic_link, "subject": ['2折起', '小鹿美美　童装专场']}]
+                chd_posters = GoodShelf.DEFAULT_CHD_POSTER[0]['pic_link'] = pic_link
                 goodshelf.chd_posters = chd_posters
                 update_model_fields(goodshelf, update_fields=['chd_posters'])
                 data = {"code": 1}  # 修改童装海报成功
                 log_action(request.user.id, goodshelf, CHANGE, u'修改童装海报成功')
             elif categray == "female":
-                wem_posters = [{"item_link": "http://m.xiaolumeimei.com/nvzhuang.html",
-                                "pic_link": pic_link, "subject": ['2折起', '小鹿美美　女装专场']}]
+                wem_posters = GoodShelf.DEFAULT_WEN_POSTER[0]['pic_link'] = pic_link
                 goodshelf.wem_posters = wem_posters
                 update_model_fields(goodshelf, update_fields=['wem_posters'])
                 log_action(request.user.id, goodshelf, CHANGE, u'修改女装海报成功')
