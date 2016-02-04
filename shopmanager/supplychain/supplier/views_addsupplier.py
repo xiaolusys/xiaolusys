@@ -29,8 +29,10 @@ class AddSupplierView(generics.ListCreateAPIView):
         process_choice = SaleSupplier.PROGRESS_CHOICES
         all_category = SaleCategory.objects.filter()
         zones = SupplierZone.objects.all()
-        return Response({"platform_choice": platform_choice, "all_category": all_category,
-                         "process_choice": process_choice, "supplier_types": SaleSupplier.SUPPLIER_TYPE,
+        return Response({"platform_choice": platform_choice, 
+                         "all_category": all_category,
+                         "process_choice": process_choice, 
+                         "supplier_types": SaleSupplier.SUPPLIER_TYPE,
                          "zones": zones})
 
     @transaction.commit_on_success
