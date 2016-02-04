@@ -28,6 +28,8 @@ urlpatterns = [
     url(r'^sale_product_api/$', views_addsupplier.SaleProductAPIView.as_view()),
     url(r'^change_list_fields/$', views_change_fields.SupplierFieldsChange.as_view()),
     url(r'^product_change/([0-9]+)/$', views.SaleProductChange.as_view()),
+    
+    
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

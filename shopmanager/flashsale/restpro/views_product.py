@@ -433,7 +433,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         model_id = kwargs.get('model_id',None)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(model_id=model_id)
+        queryset = queryset.filter(model_id=model_id, status=Product.NORMAL)
         
         object_list = self.objets_from_cache(queryset)
         serializer = self.get_serializer(object_list, many=True)
@@ -446,7 +446,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取款式商品列表-同款预览页面 """
         model_id = kwargs.get('model_id', None)
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(model_id=model_id)
+        queryset = queryset.filter(model_id=model_id, status=Product.NORMAL)
         
         object_list = self.objets_from_cache(queryset)
         serializer = serializers.ProductPreviewSerializer(object_list, 
