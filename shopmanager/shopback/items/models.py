@@ -31,7 +31,7 @@ from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser,User
 from supplychain.supplier.models import SaleProduct
 
-from . import constants, manager
+from . import constants, managers
 logger = logging.getLogger('django.request')
 
 
