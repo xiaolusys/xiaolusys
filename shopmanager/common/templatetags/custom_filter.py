@@ -4,6 +4,7 @@
 import json
 import re
 from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 @register.filter(name='displayName')
@@ -32,4 +33,4 @@ def stringBlur(value,start=3,end=-3):
 
 @register.filter()
 def jsonify(data):
-    return json.dumps(data)
+    return mark_safe(json.dumps(data))

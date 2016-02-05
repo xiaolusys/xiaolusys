@@ -11,14 +11,17 @@ class LocalCacheable(object):
 
     @staticmethod
     def reload(f):
+
         @wraps(f)
         def _wrapper(self, *args, **kwargs):
             now = datetime.now()
-            if self.last_updated(*args, **kwargs) + timedelta(seconds = self.interval) < now:
+            if self.last_updated(*args, **kwargs) + timedelta(
+                    seconds=self.interval) < now:
                 with self.lock:
                     self.load(*args, **kwargs)
                     self.set_last_updated(now, *args, **kwargs)
             return f(self, *args, **kwargs)
+
         return _wrapper
 
     def __init__(self):

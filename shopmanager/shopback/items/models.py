@@ -1,35 +1,38 @@
-#-*- coding:utf-8 -*-
+# coding: utf-8
+
 """
 淘宝普通平台模型:
 Product:系统内部商品，唯一对应多家店铺的商品外部编码,
 ProductSku:淘宝平台商品sku，
 Item:淘宝平台商品，
 """
-import json
+import collections
 import datetime
+import json
+import logging
+
 from django.db import models
 from django.db.models import Sum,Avg,F
 from django.db.models.signals import pre_save,post_save
 from django.core.urlresolvers import reverse
 
+from auth import apis
+from common.modelutils import update_model_fields
+from core.models import AdminModel
+from flashsale.dinghuo.models_user import MyUser
+from flashsale.restpro.local_cache import image_watermark_cache
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser,User
-from .managers import ProductManager
-from auth import apis
-from flashsale.dinghuo.models_user import MyUser
-import logging
-import collections
-from common.modelutils import update_model_fields
 from supplychain.supplier.models import SaleProduct
 
-from flashsale.restpro.local_cache import image_watermark_cache
+from .managers import ProductManager
+from . import constants
 
-
-logger  = logging.getLogger('django.request')
+logger = logging.getLogger('django.request')
 
 APPROVE_STATUS  = (
     (pcfg.ONSALE_STATUS,u'在售'),
@@ -115,6 +118,7 @@ class Product(models.Model):
     is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告')
     post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
     is_watermark = models.BooleanField(default=False, verbose_name=u'图片水印')
+    is_seckill = models.BooleanField(default=False, verbose_name=u'是否秒杀')
     status       = models.CharField(max_length=16,db_index=True,
                                     choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name=u'商品状态')
@@ -167,15 +171,15 @@ class Product(models.Model):
         except:
             return None
         return pmodel
-    
+
     product_model = property(get_product_model)
-    
+
     def get_product_detail(self):
         try:
             return self.details
         except:
             return None
-    
+
     detail = product_detail = property(get_product_detail)
 
     @property
@@ -243,6 +247,14 @@ class Product(models.Model):
     @property
     def PIC_PATH(self):
         return self.pic_path.strip() or self.NO_PIC_PATH
+
+    @property
+    def thumbnail(self):
+        url = self.pic_path.strip()
+        if url:
+            return '%s?%s' % (url, 'imageMogr2/thumbnail/289/format/jpg/quality/90')
+        else:
+            return self.NO_PIC_PATH
 
     @property
     def watermark_op(self):
@@ -1255,3 +1267,35 @@ class ImageWaterMark(models.Model):
         db_table = u'image_watermark'
         verbose_name = u'图片水印'
         verbose_name_plural = u'图片水印'
+
+
+
+class ProductSchedule(AdminModel):
+    r"""
+    商品排期
+    """
+    SCHEDULE_TYPE_CHOICES = [
+        (1, u'原始排期'),
+        (2, u'秒杀排期')
+    ]
+
+    STATUS_CHOICES = [
+        (0, u'无效'),
+        (1, u'有效')
+    ]
+
+    product = models.ForeignKey('Product', related_name='schedules', verbose_name=u'关联商品')
+    onshelf_datetime = models.DateTimeField(verbose_name=u'上架时间')
+    onshelf_date = models.DateField(verbose_name=u'上架日期')
+    onshelf_hour = models.IntegerField(verbose_name=u'上架时间')
+    offshelf_datetime = models.DateTimeField(verbose_name=u'下架时间')
+    offshelf_date = models.DateField(verbose_name=u'下架日期')
+    offshelf_hour = models.IntegerField(verbose_name=u'下架时间')
+    schedule_type = models.SmallIntegerField(choices=SCHEDULE_TYPE_CHOICES, default=1, verbose_name=u'排期类型')
+    status = models.SmallIntegerField(choices=STATUS_CHOICES, default=1, verbose_name=u'状态')
+    sale_type = models.SmallIntegerField(choices=constants.SALE_TYPES, default=1, verbose_name=u'促销类型')
+
+    class Meta:
+        db_table = 'shop_items_schedule'
+        verbose_name = u'商品上下架排期管理'
+        verbose_name_plural = u'商品上下架排期管理列表'

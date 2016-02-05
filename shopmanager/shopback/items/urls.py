@@ -42,7 +42,7 @@ from shopback.items.views import (ProductListView,
 from shopback.base.authentication import login_required_ajax
 from shopback.items.views_rest import ProductInvalidConfirmView
 from .select_sale_time import change_Sale_Time
-from .views_add import AddItemView, GetCategory, GetSupplier, GetSkuDetail, PreviewSkuDetail, BatchSetTime
+from .views_add import AddItemView, GetCategory, GetSupplier, GetSkuDetail, PreviewSkuDetail, BatchSetTime, ProductScheduleView, ProductScheduleAPIView
 
 urlpatterns = patterns('shopback.items.views',
 
@@ -151,4 +151,7 @@ urlpatterns = patterns('shopback.items.views',
     url(r'^get_sku/$', GetSkuDetail.as_view(), name='get_sku'),
     url(r'^preview_sku/$', PreviewSkuDetail.as_view(), name='preview_sku'),
     url(r'^batch_settime/$', BatchSetTime.as_view(), name='batch_settime'),
+    url(r'^product_schedule/$', ProductScheduleView.as_view(), name='product_schedule'),
+    url(r'^product_schedule/(?P<p>\d+)/$', ProductScheduleView.as_view(), name='product_schedule'),
+    url(r'^product_schedule_api/$', ProductScheduleAPIView.as_view(), name='product_schedule_api')
 )
