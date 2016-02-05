@@ -54,19 +54,37 @@ function dynamic_generate_sku() {
         var html = template('tr-template', result);
         $('#table-id tbody').html(html);
     }
-    $(".c_remainnum").change(function(){
+    $(".c_outerid:first").change(function(){
+        var value = $(this).val();
+        var prefix = '';
+        var count  = 1;
+        if (value.trim() == '')return;
+        if (!isNaN(value)){
+            count = parseInt(value);
+        }else{
+            prefix = value.replace(/(^[\s-]*)|([\s-]*$)/g, "");
+            prefix += '-';
+        }
+        $('input[id$=outerid]').each(function(n,e){
+            if (!isNaN(value) && $(e).hasClass('c_outerid')){
+                count = parseInt(value);
+            };
+            $(e).val(prefix+count);
+            count ++;
+        })
+    });
+    $(".c_remainnum:first").change(function(){
         $('input[id$=remainnum]').val($(this).val());
     });
-    $(".c_cost").change(function(){
+    $(".c_cost:first").change(function(){
         $('input[id$=cost]').val($(this).val());
     });
-    $(".c_pricestd").change(function(){
+    $(".c_pricestd:first").change(function(){
         $('input[id$=pricestd]').val($(this).val());
     });
-    $(".c_agentprice").change(function(){
+    $(".c_agentprice:first").change(function(){
         $('input[id$=agentprice]').val($(this).val());
     });
-
 }
 
 function dynamic_generate_chi() {

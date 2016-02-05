@@ -10,6 +10,8 @@ from shopback.trades.models import MergeTrade
 from .models_base import WeixinUnionID
 from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
+from core.models import CacheModel
+
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
 TOKEN_EXPIRED_IN  = 15 * 60
@@ -147,7 +149,7 @@ class AnonymousWeixinUser():
         return False
     
     
-class WeiXinUser(models.Model): 
+class WeiXinUser(CacheModel): 
     
     MAX_MOBILE_VALID_COUNT = 3 
     
@@ -208,9 +210,6 @@ class WeiXinUser(models.Model):
     
     subscribe   = models.BooleanField(default=False,verbose_name=u"订阅该号")
     subscribe_time = models.DateTimeField(blank=True,null=True,verbose_name=u"订阅时间")
-    
-    created    = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')
-    modified   = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     
     referal_count = models.IntegerField(default=0,verbose_name=u'F码次数')
     charge_status = models.CharField(max_length=16,blank=True,db_index=True,

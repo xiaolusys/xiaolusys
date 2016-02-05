@@ -10,8 +10,12 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from celery import chain
 
+from rest_framework import generics
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
+
 from shopapp.weixin.views import get_user_openid,valid_openid
-from shopapp.weixin.models import WXOrder
+from shopapp.weixin.models import WXOrder, WeiXinUser
 from shopapp.weixin.service import WeixinUserService
 from shopback.base import log_action, ADDITION, CHANGE
 from django.conf import settings
@@ -23,12 +27,9 @@ from common.modelutils import update_model_fields
 
 from .models import XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
-
 from .serializers import CashOutSerializer,CarryLogSerializer
-from rest_framework import generics
-from rest_framework.renderers import JSONRenderer
-from rest_framework.response import Response
 from models_advertis import XlmmAdvertis
+from core.mixins import WeixinAuthMixin
 
 import logging
 logger = logging.getLogger('django.request')
@@ -40,6 +41,34 @@ WEB_SHARE_URL = "{site_url}/index.html?mm_linkid={mm_linkid}&ufrom=web"
 
 def landing(request):
     return render_to_response("mama_landing.html", context_instance=RequestContext(request))
+
+class WeixinAuthCheckView(WeixinAuthMixin, View):
+    """ 微信授权参数检查 """
+    
+    def get(self, request):
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not valid_openid(openid) :
+            redirect_url = self.get_wxauth_redirct_url(request)
+            return redirect(redirect_url)
+        
+        xlmm    = None
+        wxuser  = None
+        xlmm_qs = XiaoluMama.objects.filter(openid=unionid)
+        if xlmm_qs.exists():
+            xlmm = xlmm_qs[0]
+        wxuser_qs = WeiXinUser.objects.filter(openid=openid)
+        if wxuser_qs.exists():
+            wxuser = wxuser_qs[0]
+        
+        return render_to_response('wxauth_checkview.html',
+                                  {'openid':openid,
+                                   'unionid':unionid,
+                                   'xlmm':xlmm,
+                                   'wxuser':wxuser,
+                                   },
+                                  context_instance=RequestContext(request))
+    
 
 def get_xlmm_cash_iters(xlmm,cash_outable=False):
     
@@ -468,7 +497,6 @@ class StatsView(View):
 import urllib
 from urlparse import urljoin
 from django.core.urlresolvers import reverse
-from . import tasks
 
 def logclicks(request, linkid):
     content = request.REQUEST

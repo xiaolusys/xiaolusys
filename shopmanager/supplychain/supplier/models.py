@@ -61,14 +61,18 @@ class SaleSupplier(models.Model):
         (CHARGED, u'已接管'),
         (FROZEN, u'已冻结'),
     )
-
-    LEVEL_GOOD = 100
+    
+    LEVEL_BEST = 100
+    LEVEL_BETTER = 80
+    LEVEL_GOOD = 60
     LEVEL_NORMAL = 50
     LEVEL_INFERIOR = 0
     LEVEL_CHOICES = (
-        (LEVEL_GOOD, u'优质'),
-        (LEVEL_NORMAL, u'普通'),
-        (LEVEL_INFERIOR, u'劣质'),
+        (LEVEL_BEST, u'特级'),
+        (LEVEL_BETTER, u'一级'),
+        (LEVEL_GOOD, u'二级'),
+        (LEVEL_NORMAL, u'三级'),
+        (LEVEL_INFERIOR, u'四级'),
     )
 
     MANUAL = 'manual'

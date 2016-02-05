@@ -1,4 +1,27 @@
-######## 2016-01-022 ########
+######## 2016-02-03 ########
+alter table shop_weixin_unionid add column modified datetime NOT NULL;
+
+update shop_weixin_unionid set modified=created where id != 0;
+######## 2016-01-31 ########
+alter table flashsale_cushops_detail add column modified datetime NOT NULL;
+
+update flashsale_cushops_detail set modified=now() where id != 0;
+
+alter table flashsale_district add column created datetime NOT NULL;
+alter table flashsale_district add column modified datetime NOT NULL;
+
+update flashsale_district set created=now(),modified=now() where id != 0;
+
+alter table flashsale_productdetail add column created datetime NOT NULL;
+alter table flashsale_productdetail add column modified datetime NOT NULL;
+
+update flashsale_productdetail set created=now(),modified=now() where product_id != 0;
+
+alter table flashsale_trade_charge add column created datetime NOT NULL;
+alter table flashsale_trade_charge add column modified datetime NOT NULL;
+
+update flashsale_trade_charge set created=time_paid,modified=time_paid where id != 0;
+######## 2016-01-22 ########
 alter table supplychain_supply_schedule_manage_detail add column pic_rating double precision default NULL;
 ######## 2016-01-22 ########
 alter table flashsale_productdetail add column rebeta_scheme_id int(11) default 0 NOT NULL;

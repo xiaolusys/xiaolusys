@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
+from rest_framework import exceptions
 from .views_refund import refund_Handler
 
 from flashsale.pay.models import SaleTrade,Customer
@@ -17,7 +18,7 @@ from flashsale.pay.models import SaleTrade,Customer
 from . import permissions as perms
 from . import serializers 
 
-from flashsale.pay.models import SaleRefund,District,UserAddress
+from flashsale.pay.models import SaleRefund,District,UserAddress,SaleOrder
 from django.forms import model_to_dict
 import json
 
@@ -26,7 +27,6 @@ from qiniu import Auth
 class SaleRefundViewSet(viewsets.ModelViewSet):
     """
     ### 退款API:
-    
     - {prefix}/method: get 获取用户的退款单列表
     - {prefix}/method: post 创建用户的退款单
         -  创建退款单
@@ -83,6 +83,16 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        content = request.REQUEST
+        oid = int(content.get("id", 0))
+        order = get_object_or_404(SaleOrder, id=oid)
+        # 如果Order已经付款 refund_type = BUYER_NOT_RECEIVED
+        # 如果Order 仅仅签收状态才可以退货  refund_type = BUYER_RECEIVED
+        second_kill = order.second_kill_title()
+        if second_kill:
+            raise exceptions.APIException(u'秒杀商品暂不支持退单，请见谅！')
+        elif order.status not in (SaleOrder.TRADE_BUYER_SIGNED, SaleOrder.WAIT_SELLER_SEND_GOODS):
+            raise exceptions.APIException(u'订单状态不予退款或退货')
 
         res = refund_Handler(request)
         return Response(res)
@@ -135,7 +145,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             }
             ```
     """
-    queryset = UserAddress.normal_objects.order_by('-default')
+    queryset = UserAddress.objects.all()
     serializer_class = serializers.UserAddressSerializer# Create your views here.
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
@@ -143,7 +153,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
-        return self.queryset.filter(cus_uid=customer.id, status='normal')
+        return self.queryset.filter(cus_uid=customer.id, status=UserAddress.NORMAL).order_by('-default')
     
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -240,9 +250,9 @@ class DistrictViewSet(viewsets.ModelViewSet):
     #### 地理区域信息接口及参数：
     -   /province_list：省列表
     -   /city_list：根据省获得市
-    > 　id:即province ID
+    >  id:即province ID
     -   /country_list:根据市获得区或者县
-    > 　id:即country ID
+    >  id:即country ID
     """
     queryset = District.objects.all()
     serializer_class = serializers.DistrictSerializer# Create your views here.

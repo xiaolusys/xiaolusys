@@ -6,15 +6,18 @@ from django.db.models import Q,Sum
 from django.db.models.signals import post_save
 
 from shopback import paramconfig as pcfg
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .signals import signal_saletrade_refund_confirm
 from .options import uniqid
+
+from core.fields import JSONCharMyField
+from .base import PayBaseModel
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
-from shopback.base.models import JSONCharMyField
 
 
-class SaleRefund(models.Model):
+
+class SaleRefund(PayBaseModel):
     
     NO_REFUND = 0
     REFUND_CLOSED = 1
@@ -90,10 +93,8 @@ class SaleRefund(models.Model):
     payment      = models.FloatField(default=0.0,verbose_name='实付')
     refund_fee   = models.FloatField(default=0.0,verbose_name='退款费用')
     
-    created   = models.DateTimeField(db_index=True,auto_now_add=True,verbose_name='创建时间')
     success_time = models.DateTimeField(db_index=True,blank=True,null=True,verbose_name='退款成功时间')
-    modified  = models.DateTimeField(auto_now=True,verbose_name='修改时间')
-
+    
     company_name = models.CharField(max_length=64,blank=True,verbose_name='退回快递公司')
     sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='退回快递单号')
 
@@ -110,7 +111,7 @@ class SaleRefund(models.Model):
 
     status       = models.IntegerField(db_index=True,choices=REFUND_STATUS,
                                     default=REFUND_WAIT_SELLER_AGREE,blank=True,verbose_name='退款状态')
-
+    
     class Meta:
         db_table = 'flashsale_refund'
         unique_together = ("trade_id","order_id")

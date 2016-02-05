@@ -2,11 +2,12 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+
 from shopback import paramconfig as pcfg
-from common.utils import update_model_fields
-
-
-class ProductManager(models.Manager):
+from core.ormcache.managers import CacheManager
+    
+    
+class ProductManager(CacheManager):
     
     def getProductByOuterid(self,outer_id):
         

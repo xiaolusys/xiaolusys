@@ -1,13 +1,17 @@
 #-*- coding:utf-8 -*-
+import json
 from django.db import models
-from shopback.items.models import Product,ProductSku
+from django.db.models import F
+
+from common.utils import update_model_fields
+from core.fields import JSONCharMyField
+from .base import PayBaseModel
+
+from shopback.items.models import Product
 from . signals import signal_record_supplier_models
 from shopback import paramconfig as pcfg
-from django.db.models import F
-from common.utils import update_model_fields
 
-
-class Productdetail(models.Model):
+class Productdetail(PayBaseModel):
     
     WASH_INSTRUCTION = '''洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。'''
     OUT_PERCENT  = 0 #未设置代理返利比例
@@ -70,7 +74,7 @@ class Productdetail(models.Model):
         return rate 
     
     
-class ModelProduct(models.Model):
+class ModelProduct(PayBaseModel):
     
     NORMAL = '0'
     DELETE = '1'
@@ -87,9 +91,6 @@ class ModelProduct(models.Model):
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
     
     sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
-    
-    created      = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-    modified     = models.DateTimeField(auto_now=True,verbose_name=u'修改时间')
     
     status       = models.CharField(max_length=16,db_index=True,
                                     choices=STATUS_CHOICES,
@@ -148,35 +149,39 @@ def create_Model_Product(sender, obj, **kwargs):
 signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
 
 
-from shopback.base.models import JSONCharMyField
-
-POSTER_DEFAULT =(
-'''
-[
-  {
-    "subject":["2折起","Joan&David  女装专场"],
-    "item_link":"商品链接",
-    "pic_link":"海报图片"
-  }
-]
-''')
-
-class GoodShelf(models.Model):
+class GoodShelf(PayBaseModel):
     
-    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报说明')
+    DEFAULT_WEN_POSTER = [
+      {
+        "subject":['2折起', '小鹿美美  女装专场'],
+        "item_link":"http://m.xiaolumeimei.com/nvzhuang.html",
+        "app_link":"app:/",
+        "pic_link":""
+      }
+    ]
+
+    
+    DEFAULT_CHD_POSTER = [
+      {
+        "subject":['2折起', '小鹿美美  童装专场'],
+        "item_link":"http://m.xiaolumeimei.com/chaotong.html",
+        "app_link":"app:/",
+        "pic_link":""
+      }
+    ]
+    
+    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报名称')
     
     wem_posters   = JSONCharMyField(max_length=10240, blank=True, 
-                                    default=POSTER_DEFAULT, 
+                                    default=json.dumps(DEFAULT_WEN_POSTER,indent=2), 
                                     verbose_name=u'女装海报')
     chd_posters   = JSONCharMyField(max_length=10240, blank=True, 
-                                    default=POSTER_DEFAULT,
+                                    default=json.dumps(DEFAULT_CHD_POSTER,indent=2),
                                     verbose_name=u'童装海报')
     
     is_active    = models.BooleanField(default=True,verbose_name=u'上线')
     active_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'上线日期')
     
-    created      = models.DateTimeField(null=True,auto_now_add=True,db_index=True,blank=True,verbose_name=u'生成日期')
-    modified     = models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     
     class Meta:
         db_table = 'flashsale_goodshelf'
@@ -184,6 +189,40 @@ class GoodShelf(models.Model):
         verbose_name_plural = u'特卖商品/海报列表'
     
     def __unicode__(self):
-        return u'<海报：%s>'%(self.title)
+        return u'<%s,%s>'%(self.id, self.title)
     
+    def get_activity(self):
+        return ActivityEntry.get_default_activity()
+
+
+class ActivityEntry(PayBaseModel):
+    """ 商城活动入口 """
+    title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'活动名称')
+    
+    act_desc = models.TextField(max_length=512, blank=True, verbose_name=u'活动描述')
+    act_img  = models.CharField(max_length=256, blank=True, verbose_name=u'活动图片')
+    act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动网页链接')
+    act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议')
+    
+    start_time  = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
+    end_time    = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
+    
+    is_active   = models.BooleanField(default=True,verbose_name=u'上线')
+    
+    class Meta:
+        db_table = 'flashsale_activity_entry'
+        verbose_name=u'特卖/商城活动入口'
+        verbose_name_plural = u'特卖/商城活动入口'
+    
+    def __unicode__(self):
+        return u'<%s,%s>'%(self.id, self.title)
+    
+    @classmethod
+    def get_default_activity(cls):
+        acts = cls.objects.filter(is_active=True).order_by('-modified')
+        if acts.exists():
+            return acts[0]
+        return None
+
+
 

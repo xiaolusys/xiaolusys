@@ -185,6 +185,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         clgs = groupclgs[0:100] if len(groupclgs) > 100 else groupclgs
         for i in clgs:
             xlmm = i['xlmm']
+            i['sum_value'] = i['sum_value'] / 100.0
             carry_date = i['carry_date']
             if i['log_type'] == CarryLog.CLICK_REBETA:  # 点击类型获取点击数量
                 clks = ClickCount.objects.filter(linkid=xlmm, date=carry_date)
@@ -349,7 +350,7 @@ class StatisticsShoppingViewSet(viewsets.ModelViewSet):
         # 获取当天的点击佣金
         mmclgs = CarryLog.objects.filter(xlmm=xlmm.id, carry_date=target_date, log_type=CarryLog.CLICK_REBETA,
                                          status__in=(CarryLog.CONFIRMED, CarryLog.PENDING))  # 点击佣金
-        click_income = mmclgs.aggregate(sum_value=Sum('value')).get('value') or 0
+        click_income = mmclgs.aggregate(sum_value=Sum('value')).get('sum_value') or 0
         click_money = click_income / 100.0 if click_income > 0 else 0
         qses = queryset.filter(shoptime__gte=target_date, shoptime__lt=target_date_end,
                                status__in=(StatisticsShopping.FINISHED, StatisticsShopping.WAIT_SEND))
@@ -489,7 +490,7 @@ class ClickViewSet(viewsets.ModelViewSet):
         xlmm = self.get_owner_xlmm(request)
         mmclgs = CarryLog.objects.filter(xlmm=xlmm.id, log_type=CarryLog.CLICK_REBETA,
                                          status__in=(CarryLog.CONFIRMED, CarryLog.PENDING))  # 总计点击佣金
-        mmclgs_all_income = mmclgs.aggregate(sum_value=Sum('value')).get('value') or 0
+        mmclgs_all_income = mmclgs.aggregate(sum_value=Sum('value')).get('sum_value') or 0
         all_income = mmclgs_all_income / 100.0 if mmclgs_all_income > 0 else 0
         return Response({"all_income": all_income, "results": data})
 

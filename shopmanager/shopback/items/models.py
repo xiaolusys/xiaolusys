@@ -6,10 +6,12 @@ Product:系统内部商品，唯一对应多家店铺的商品外部编码,
 ProductSku:淘宝平台商品sku，
 Item:淘宝平台商品，
 """
+
 import collections
 import datetime
 import json
 import logging
+import re
 
 from django.db import models
 from django.db.models import Sum,Avg,F
@@ -29,10 +31,9 @@ from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser,User
 from supplychain.supplier.models import SaleProduct
 
-from .managers import ProductManager
-from . import constants
-
+from . import constants, manager
 logger = logging.getLogger('django.request')
+
 
 APPROVE_STATUS  = (
     (pcfg.ONSALE_STATUS,u'在售'),
@@ -57,7 +58,24 @@ class ProductDefectException(Exception):
 
 
 class Product(models.Model):
-    """ 系统商品（根据淘宝外部编码) """
+    """ 记录库存属性及加上排期信息的商品类 """
+
+    class Meta:
+        db_table = 'shop_items_product'
+        verbose_name = u'库存商品'
+        verbose_name_plural = u'库存商品列表'
+        permissions = [
+            ("change_product_skunum", u"修改库存信息"),
+            ("change_product_shelf",  u"特卖商品上架/下架"),
+            ("sync_product_stock", u"商品库存同步/取消"),
+            ("regular_product_order", u"商品订单定时/释放"),
+            ("create_product_purchase", u"创建商品订货单"),
+            ("export_product_info", u"导出库存商品信息"),
+            ("invalid_product_info", u"作废库存商品信息")
+        ]
+
+    objects = managers.ProductManager()
+    cache_enabled = True
 
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
@@ -137,19 +155,6 @@ class Product(models.Model):
                                        default=DOWN_SHELF,verbose_name=u'上架状态')
     ware_by        = models.IntegerField(default=WARE_SH,choices=WARE_CHOICES,
                                          db_index=True,verbose_name=u'所属仓库')
-    objects = ProductManager()
-
-    class Meta:
-        db_table = 'shop_items_product'
-        verbose_name = u'库存商品'
-        verbose_name_plural = u'库存商品列表'
-        permissions = [("change_product_skunum", u"修改库存信息"),
-                       ("change_product_shelf",  u"特卖商品上架/下架"),
-                       ("sync_product_stock", u"商品库存同步/取消"),
-                       ("regular_product_order", u"商品订单定时/释放"),
-                       ("create_product_purchase", u"创建商品订货单"),
-                       ("export_product_info", u"导出库存商品信息"),
-                       ("invalid_product_info", u"作废库存商品信息")]
 
     def __unicode__(self):
         return '%s'%self.id
@@ -184,6 +189,7 @@ class Product(models.Model):
 
     @property
     def sale_group(self):
+        from flashsale.dinghuo.models_user import MyUser
         myuser = MyUser.objects.filter(user__username=self.sale_charger)
         return myuser[0].group if myuser.count() > 0 else "None"
 
@@ -274,7 +280,7 @@ class Product(models.Model):
                 return self.details.head_imgs.split()[0]
             except:
                 return self.PIC_PATH
-        return pmodel.head_imgs and pmodel.head_imgs.split()[0] or self.PIC_PATH
+        return pmodel and pmodel.head_imgs.split()[0] or self.PIC_PATH
     head_img_url = property(head_img)
 
     @property
@@ -461,7 +467,9 @@ class Product(models.Model):
         if self.model_id == 0 or self.model_id == None:
             skus = self.normal_skus.all()
         else:
-            skus = ProductSku.objects.filter(product__model_id=self.model_id, product__status=Product.NORMAL)
+            skus = ProductSku.objects.filter(product__model_id=self.model_id,
+                                             product__status=Product.NORMAL,
+                                             status=ProductSku.NORMAL)
         for sku in skus:
             prcs.append(sku.agent_price)
         return min(prcs) if prcs else 0
@@ -541,12 +549,16 @@ def custom_sort(a, b):
 
 
 class ProductSku(models.Model):
+    """ 记录库存商品规格属性类 """
 
-    """
-        抽象商品规格（根据淘宝规格外部编码），描述：
-        1,映射淘宝出售商品规格与采购商品规格桥梁；
-        2,库存管理的规格核心类；
-    """
+    class Meta:
+        db_table = 'shop_items_productsku'
+        unique_together = ("outer_id", "product")
+        verbose_name=u'库存商品规格'
+        verbose_name_plural = u'库存商品规格列表'
+
+    cache_enabled = True
+    objects = managers.CacheManager()
 
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
@@ -593,11 +605,6 @@ class ProductSku(models.Model):
     match_reason = models.CharField(max_length=80,blank=True,verbose_name='匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
-    class Meta:
-        db_table = 'shop_items_productsku'
-        unique_together = ("outer_id", "product")
-        verbose_name=u'库存商品规格'
-        verbose_name_plural = u'库存商品规格列表'
 
     def __unicode__(self):
         return '<%s,%s:%s>'%(self.id,self.outer_id,self.properties_alias or self.properties_name)
@@ -615,6 +622,9 @@ class ProductSku(models.Model):
     def BARCODE(self):
         return self.barcode.strip() or '%s%s'%(self.product.outer_id.strip(),
                                                self.outer_id.strip())
+
+    def get_supplier_outerid(self):
+        return re.sub('-[0-9]$', '', self.outer_id)
 
     @property
     def realnum(self):
@@ -664,7 +674,7 @@ class ProductSku(models.Model):
                 result_data[p[0]] = p[1]
             return {"result": result_data, "free_num": display_num}
         except:
-            return {"result": "None", "free_num": display_num}
+            return {"result": {}, "free_num": display_num}
 
     def calc_discount_fee(self,xlmm=None):
         """ 优惠折扣 """
@@ -735,7 +745,7 @@ class ProductSku(models.Model):
         psku = self.__class__.objects.get(id=self.id)
         self.quantity = psku.quantity
 
-        post_save.send(sender=self.__class__,instance=self)
+        post_save.send(sender=self.__class__,instance=self,created=False)
 
 
     def update_wait_post_num(self,num,full_update=False,dec_update=False):
@@ -751,7 +761,7 @@ class ProductSku(models.Model):
         psku = self.__class__.objects.get(id=self.id)
         self.wait_post_num = psku.wait_post_num
 
-        post_save.send(sender=self.__class__,instance=self)
+        post_save.send(sender=self.__class__,instance=self,created=False)
 
     def update_lock_num(self,num,full_update=False,dec_update=False):
         """ 更新规格待发数:full_update:是否全量更新 dec_update:是否减库存 """
@@ -778,7 +788,7 @@ class ProductSku(models.Model):
         update_model_fields(self,update_fields=['reduce_num'])
 
         self.reduce_num = self.__class__.objects.get(id=self.id).reduce_num
-        post_save.send(sender=self.__class__,instance=self)
+        post_save.send(sender=self.__class__,instance=self,created=False)
 
 
     def update_quantity_by_storage_num(self,num):
@@ -859,7 +869,7 @@ def calculate_product_stock_num(sender, instance, *args, **kwargs):
         return
 
     product_skus = product.pskus
-    if product_skus.count()>0:
+    if product_skus.exists():
         product_dict  = product_skus.aggregate(total_collect_num=Sum('quantity'),
                                                total_warn_num=Sum('warn_num'),
                                                total_remain_num=Sum('remain_num'),

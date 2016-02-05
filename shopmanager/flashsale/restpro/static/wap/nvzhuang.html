@@ -54,7 +54,17 @@
   if (!isNone(order_by)){
   	req_url += '?'+$.param({order_by:order_by})
   }
-  Set_category_product(req_url);
+  //Set_category_product(req_url);
+  var paginate_category_product_func = Set_category_product();
+  paginate_category_product_func(req_url);
+  $(window).scroll(function () {
+    //浏览器的高度加上滚动条的高度
+    var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());
+    var scroll_height = $(document).height() - totalheight;
+    if (($(document).height() - 600 <= totalheight) && scroll_height < 600 ) {
+        paginate_category_product_func(req_url);
+    }
+  });
   Set_shopcarts_num();
   need_set_info();
 })(jQuery); 

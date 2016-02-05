@@ -11,7 +11,7 @@ from .models import Customer,Register
 from .options import get_user_unionid
 from .tasks import task_Update_Sale_Customer
 from shopapp.weixin.views import valid_openid
-from shopapp.weixin.models import WeiXinUser
+from shopapp.weixin.models import WeiXinUser,WeixinUnionID
 
 import logging
 logger = logging.getLogger('django.request')
@@ -71,7 +71,13 @@ class WeixinPubBackend(RemoteUserBackend):
     create_unknown_user = True
     upports_inactive_user = False
     supports_object_permissions = False
-
+    
+    def get_unoinid(self, openid, appkey):
+        try:
+            return WeixinUnionID.objects.get(openid=openid,app_key=appkey).unionid
+        except WeixinUnionID.DoesNotExist:
+            return ''
+        
     def authenticate(self, request, **kwargs):
         
         content = request.REQUEST
@@ -83,14 +89,18 @@ class WeixinPubBackend(RemoteUserBackend):
         code = content.get('code')
         openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,
                                           secret=settings.WXPAY_SECRET,request=request)
+
+        if openid and not unionid:
+            logger.warn('weixin unionid not return:openid=%s'%openid)
+            unionid = self.get_unoinid(openid,settings.WXPAY_APPID)
         
-        if not valid_openid(openid) or not valid_openid(unionid):
+        if not valid_openid(openid):
             return AnonymousUser()
-        
+            
         try:
-            profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
+            profile = Customer.objects.get(openid=openid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
-            if profile.openid != openid:
+            if unionid and (profile.openid != openid or not profile.unionid):
                 task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
                 
             if profile.user:
@@ -104,13 +114,13 @@ class WeixinPubBackend(RemoteUserBackend):
                 profile.save()
             
         except Customer.DoesNotExist:
-            if not self.create_unknown_user:
+            if not self.create_unknown_user or not unionid:
                 return AnonymousUser()
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
+            task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
             
-        task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
         return user
     
 
@@ -135,6 +145,7 @@ class WeixinAppBackend(RemoteUserBackend):
         openid  = content.get('openid')
         unionid = content.get('unionid')
         nickname = content.get('nickname')
+        headimgurl = content.get('headimgurl')
         if not valid_openid(openid) or not valid_openid(unionid):
             return AnonymousUser()
         
@@ -162,6 +173,7 @@ class WeixinAppBackend(RemoteUserBackend):
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             if not profile.nick.strip():
                 profile.nick = nickname
+                profile.thumbnail = headimgurl
                 profile.save()
                 
         task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXAPP_ID)()

@@ -171,7 +171,7 @@ class ChangeDetailExportView(View):
             item = model_to_dict(o)
             item['pic_path'] = Product.objects.get(id=o.product_id).pic_path
             item['supplier_outer_id'] = ProductSku.objects.get(
-                id=o.chichu_id).outer_id
+                id=o.chichu_id).get_supplier_outerid()
             items.append(item)
 
         items = [map(unicode, [i['outer_id'], i['supplier_outer_id'], i['product_name'],

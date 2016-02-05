@@ -387,19 +387,25 @@ class XiaoluMama(models.Model):
   
         update_model_fields(self,update_fields=['cash','pending'])
         
-    def cashout_able_check(self):
-        """ 提现前提条件 点击数了和专属订单数量检查　"""
-        if self.agencylevel not in(self.A_LEVEL, self.VIP_LEVEL) or self.charge_status != self.CHARGED:
-            raise AssertionError(u"身份核实有误无法提现")
+    def get_base_deposite(self):
+        """ 获取妈妈实际押金金额 """
         from flashsale.clickrebeta.models import StatisticsShopping
         shopscount = StatisticsShopping.objects.filter(linkid=self.id).count()
         clickcounts = ClickCount.objects.filter(linkid=self.id)
         click_nums = clickcounts.aggregate(total_count=Sum('valid_num')).get('total_count') or 0
         if (click_nums >= 150 and shopscount >= 1) or shopscount >= 6:
-            return True
-        return False
-
+            return self.get_Mama_Deposite() 
+        return self.get_Mama_Deposite_Amount()
+    
+    def is_cashoutable(self):
+        if self.agencylevel not in(self.A_LEVEL, self.VIP_LEVEL) \
+            or self.charge_status != self.CHARGED:
+            return False
+        return True
+        
     def get_cash_iters(self):
+        if not self.is_cashoutable():
+            return 0
         cash = self.cash / 100.0
         clog_outs = CarryLog.objects.filter(xlmm=self.id, log_type=CarryLog.ORDER_BUY,
                                             carry_type=CarryLog.CARRY_OUT, status=CarryLog.CONFIRMED)
@@ -407,9 +413,9 @@ class XiaoluMama(models.Model):
         clog_refunds = CarryLog.objects.filter(xlmm=self.id, log_type=CarryLog.REFUND_RETURN,
                                                carry_type=CarryLog.CARRY_IN, status=CarryLog.CONFIRMED)
         refund_value = (clog_refunds.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
-        cash_outable = self.cashout_able_check()
-        payment = consume_value - refund_value
-        x_choice = cash_outable and self.get_Mama_Deposite() or self.get_Mama_Deposite_Amount()
+       
+        payment  = consume_value - refund_value
+        x_choice = self.get_base_deposite()
         mony_without_pay = cash + payment  # 从未消费情况下的金额
         leave_cash_out = mony_without_pay - x_choice - self.lowest_uncoushout  # 减去代理的最低不可提现金额(充值) = 可提现金额
         could_cash_out = cash

@@ -17,30 +17,71 @@
     <div class="col-xs-2"></div>
     <div class="col-xs-8">
         <form action="" method="post">
-            <input type="text" name="mobile" class="form-control" placeholder="{{ mobile_message }}"
+            <input type="text" hidden="hidden" name="ufrom" id="ufrom"/>
+            <input type="text" hidden="hidden" name="from_customer" id="from_customer" value="{{ from_customer }}"/>
+
+            <select name="sku_code" id="choose_sku" size="{{ option_length }}">
+                {% for sku in skus %}
+                    <option value="{{ sku.sku_code }}">{{ sku.sku_name }}</option>
+                {% endfor %}
+            </select><br/>
+            {% if mobile_message %}
+                <span>
+                {{ mobile_message }}
+                </span>
+            {% endif %}
+            <input type="number" name="mobile" class="form-control"
+                    {% if mobile %}
+                   value="{{ mobile }}"
+                    {% endif %}
                    aria-describedby="basic-addon1" style="text-align: center">
+
+            {% if vipcode_message %}
+                <span>
+                    {{ vipcode_message }}
+                 </span>
+            {% endif %}
             <input type="text" name="vipcode" class="form-control"
-                    {% ifnotequal vipcode 'None' %}
-                   placeholder="{{ vipcode_message }}"
-                    {% else %}
+                    {% if vipcode %}
                    value="{{ vipcode }}"
-                    {% endifnotequal %}
+                    {% endif %}
                    aria-describedby="basic-addon2" style="text-align: center">
+
+
             <button class="btn btn-default form-control" type="submit">立即活动</button>
         </form>
     </div>
     <div class="col-xs-2"></div>
 
-    <div class="col-xs-12" style="text-align: center;height: 180px">
-        <p style="padding: 10px">
+    <div class="col-xs-12" style="text-align: center;">
         <hr/>
-        活动细节<br>
-        活动细节<br>
-        活动细节<br>
-        活动细节<br>
+        <h4>活动细则</h4>
+    </div>
+    <div class="col-xs-12">
+        <ul class="list-group" style="font-size: 1px">
+            <li class="list-group-item">1 免费试用活动参加需要在小鹿美美APP进行申请，</li>
+            <li class="list-group-item">2 本次活动发放睡袋1000组，邀请参加人数越多越容易抽取睡袋，1000组送完截至。</li>
+            <li class="list-group-item">3 申请人可邀请微信好友，朋友圈，QQ好友,QQ空间，微博等社交平台参加，帮你增加几率。</li>
+            <li class="list-group-item">4 活动可通过申请人的连接，二维码，VIP邀请码等方式进行参加。</li>
+            <li class="list-group-item">5 活动持续时间为7天：2016-02-22 10:00至2016-02-29 10:00 每天10:00公布抽取睡袋成功名单（小鹿美美APP公布）。</li>
+            <li class="list-group-item">6 小鹿美美保留法律范围内允许的对活动的解释权。</li>
+        </ul>
         <hr/>
-        </p>
     </div>
 {% endblock %}
 {% block tail_script %}
+    <script>
+        function getUrlParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+            if (r != null) return unescape(r[2]);
+            return null; //返回参数值
+        }
+        $(document).ready(function () {
+            var ufrom = getUrlParam("ufrom");
+            var ufrom_dom = $("#ufrom").val(ufrom);
+            console.log(ufrom_dom);
+
+        })
+    </script>
 {% endblock %}

@@ -11,6 +11,7 @@ from flashsale.pay.models import (
     Customer,
     Register,
     GoodShelf,
+    ActivityEntry,
     CustomShare
 )
 from shopback.trades.models import TradeWuliu
@@ -90,13 +91,20 @@ class ModelProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModelProduct
         fields = ( 'id','name','head_imgs', 'content_imgs', 'is_single_spec', 'is_sale_out', 'buy_limit', 'per_limit')
+        
+        
+class ActivityEntrySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ActivityEntry
+        fields = ( 'id','title', 'act_desc', 'act_img', 'act_link', 'act_applink', 'start_time', 'end_time')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='v1:product-detail')
     category = ProductCategorySerializer(read_only=True)
 #     normal_skus = ProductSkuSerializer(many=True, read_only=True)
-    product_model = ModelProductSerializer(read_only=True)
+    product_model = ModelProductSerializer(source="get_product_model",read_only=True)
     is_saleout    = serializers.BooleanField(source='sale_out', read_only=True)
     is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
     is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
@@ -140,10 +148,11 @@ class PosterSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='v1:goodshelf-detail')
     wem_posters = JSONParseField(read_only=True,required=False)
     chd_posters = JSONParseField(read_only=True,required=False)
-
+    activity    = ActivityEntrySerializer(source='get_activity',read_only=True)
+    
     class Meta:
         model = GoodShelf
-        fields = ('id','url','wem_posters','chd_posters','active_time')
+        fields = ('id','url','wem_posters','chd_posters','active_time','activity')
 
 #####################################################################################
 
@@ -443,3 +452,19 @@ class CuShopProsSerialize(serializers.ModelSerializer):
         model = CuShopPros
 
 
+from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
+
+
+class XLSampleOrderSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XLSampleOrder
+
+
+class XLFreeSampleSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XLFreeSample
+
+
+class XLSampleSkuSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = XLSampleSku

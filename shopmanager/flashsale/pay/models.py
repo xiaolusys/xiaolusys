@@ -6,22 +6,23 @@ from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
 
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from .base import PayBaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
 from .models_user import Register,Customer
 from .models_addr import District,UserAddress
-from .models_custom import Productdetail,GoodShelf,ModelProduct
+from .models_custom import Productdetail,GoodShelf,ModelProduct,ActivityEntry
 from .models_refund import SaleRefund
 from .models_envelope import Envelop
 from .models_coupon import Integral,IntegralLog
 from .models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
 from .models_share import CustomShare
-from .managers import SaleTradeManager
+from . import managers
 
 from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
-from shopback.base.models import JSONCharMyField
-from shopback.base import log_action, ADDITION, CHANGE
+from core.fields import JSONCharMyField
+from core.options import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
 import logging
 
@@ -38,7 +39,7 @@ def genUUID():
 def genTradeUniqueid():
     return uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.date.today().strftime('%y%m%d')))
 
-class SaleTrade(models.Model):
+class SaleTrade(PayBaseModel):
     """ payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额) """
     PREFIX_NO  = 'xd'
     WX         = 'wx'
@@ -116,9 +117,7 @@ class SaleTrade(models.Model):
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name=u'买家留言')
     seller_memo   = models.TextField(max_length=1000,blank=True,verbose_name=u'卖家备注')
     
-    created      = models.DateTimeField(null=True,auto_now_add=True,blank=True,verbose_name=u'生成日期')
     pay_time     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
-    modified     = models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     consign_time = models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
     
     trade_type = models.IntegerField(choices=TRADE_TYPE_CHOICES,default=PREPAY,verbose_name=u'订单类型')
@@ -148,9 +147,8 @@ class SaleTrade(models.Model):
 #     is_part_consign  = models.BooleanField(db_index=True,default=False,verbose_name=u'分单发货')
 #     consign_parmas   = JSONCharMyField(max_length=512, blank=True, default='[]', verbose_name=u'发货信息')
     
-    objects = models.Manager()
-    normal_objects = SaleTradeManager()
-    
+    normal_objects = managers.NormalSaleTradeManager()
+    cache_enabled = True
     class Meta:
         db_table = 'flashsale_trade'
         verbose_name=u'特卖/订单'
@@ -345,7 +343,12 @@ def category_trade_stat(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
 
-class SaleOrder(models.Model):
+class SaleOrder(PayBaseModel):
+    """ 特卖订单明细 """
+    class Meta:
+        db_table = 'flashsale_order'
+        verbose_name=u'特卖/订单明细'
+        verbose_name_plural = u'特卖/订单明细列表'
     
     PREFIX_NO  = 'xo'
     TRADE_NO_CREATE_PAY = 0
@@ -398,8 +401,6 @@ class SaleOrder(models.Model):
                                            verbose_name=u'购买规格')
     pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
     
-    created       =  models.DateTimeField(null=True,auto_now_add=True,blank=True,verbose_name=u'创建日期')
-    modified      =  models.DateTimeField(null=True,auto_now=True,blank=True,verbose_name=u'修改日期')
     pay_time      =  models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
     consign_time  =  models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
     sign_time     =  models.DateTimeField(null=True,blank=True,verbose_name=u'签收日期')
@@ -412,11 +413,7 @@ class SaleOrder(models.Model):
     
     status = models.IntegerField(choices=ORDER_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'订单状态')
-
-    class Meta:
-        db_table = 'flashsale_order'
-        verbose_name=u'特卖/订单明细'
-        verbose_name_plural = u'特卖/订单明细列表'
+    
         
     def __unicode__(self):
         return '<%s>'%(self.id)
@@ -487,7 +484,7 @@ def refresh_sale_trade_status(sender,instance,*args,**kwargs):
     
 post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
 
-class TradeCharge(models.Model):
+class TradeCharge(PayBaseModel):
     
     order_no    = models.CharField(max_length=40,verbose_name=u'订单ID')
     charge      = models.CharField(max_length=28,verbose_name=u'支付编号')
@@ -521,7 +518,7 @@ class TradeCharge(models.Model):
     
 from shopback.items.models import Product,ProductSku
 
-class ShoppingCart(models.Model):
+class ShoppingCart(PayBaseModel):
     """ 购物车 """
     
     NORMAL = 0
@@ -546,9 +543,6 @@ class ShoppingCart(models.Model):
     sku_name = models.CharField(max_length=256,blank=True, verbose_name=u'规格名称')
     
     pic_path = models.CharField(max_length=512,blank=True,verbose_name=u'商品图片')
-    
-    created       =  models.DateTimeField(null=True,auto_now_add=True,db_index=True,blank=True,verbose_name=u'创建日期')
-    modified      =  models.DateTimeField(null=True,auto_now=True,db_index=True,blank=True,verbose_name=u'修改日期')
     remain_time   =  models.DateTimeField(null=True, blank=True, verbose_name=u'保留时间')
 
     status = models.IntegerField(choices=STATUS_CHOICE,default=NORMAL,

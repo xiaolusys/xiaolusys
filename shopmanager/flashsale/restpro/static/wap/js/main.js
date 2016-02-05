@@ -309,27 +309,27 @@ function Set_promotes_product(suffix){
 }
 
 function Set_promotes_product_by_paging(suffix){
-	//通过分页获取商品数据，闭包实现
-	var pageNum  = 1;
-	var nextPage = true;
-	var loading  = false;
-	function get_products(suffix){
-		if (nextPage == null){
-		   drawToast("没有更多商品了");
-		   return;
-		};
-		if (loading == true){
-			return;
-		}
-		loading = true;
-	    var promoteUrl = GLConfig.baseApiUrl + suffix + '?page='+pageNum+'&page_size=10';
-	    var promoteCallBack = function (data) {
+    //通过分页获取商品数据，闭包实现
+    var pageNum  = 1;
+    var nextPage = true;
+    var loading  = false;
+    function get_products(suffix){
+        if (nextPage == null){
+           drawToast("没有更多商品了");
+           return;
+        };
+        if (loading == true){
+            return;
+        }
+        loading = true;
+        var promoteUrl = GLConfig.baseApiUrl + suffix + '?page='+pageNum+'&page_size=10';
+        var promoteCallBack = function (data) {
             $("#loading").hide();
             loading = false;
             // 这里判断　next　的页数　如果大于　pageNum　一样才去加载
             if (isNone(data.results)) {
-            	nextPage = null;
-            	return;
+                nextPage = null;
+                return;
             }
             pageNum += 1;
             nextPage = data.next;
@@ -348,54 +348,77 @@ function Set_promotes_product_by_paging(suffix){
                     }
                 }
             );
-	    };
-	    // 请求推荐数据
-		$.ajax({
-			type:'get',
-			url:promoteUrl,
-			data:{},
-			dataType:'json',
-	        beforeSend: function () {
-	            $("#loading").show();
-	        },
-			success:promoteCallBack,
-	        error: function (data) {
-	            drawToast("数据没有加载成功！");
-	            $("#loading").hide();
-	            loading = false;
-	        }
-		});
-	}
-	return get_products;
+        };
+        // 请求推荐数据
+        $.ajax({
+            type:'get',
+            url:promoteUrl,
+            data:{},
+            dataType:'json',
+            beforeSend: function () {
+                $("#loading").show();
+            },
+            success:promoteCallBack,
+            error: function (data) {
+                drawToast("数据没有加载成功！");
+                $("#loading").hide();
+                loading = false;
+            }
+        });
+    }
+    return get_products;
 }
 
-
 function Set_category_product(suffix){
-    //获取潮流童装商品
-    var promoteUrl = GLConfig.baseApiUrl + suffix;
-    var promoteCallBack = function(data){
-        if (!isNone(data.results)){
+    //通过分页获取分类商品数据，闭包实现
+    var pageNum  = 1;
+    var nextPage = true;
+    var loading  = false;
+    function get_products(suffix){
+        if (nextPage == null){
+           drawToast("没有更多商品了");
+           return;
+        };
+        if (loading == true){
+            return;
+        }
+        loading = true;
+        var promoteUrl = GLConfig.baseApiUrl + suffix ;
+        if (suffix.indexOf('?') > 0){
+            promoteUrl = promoteUrl + 'page='+pageNum+'&page_size=10';
+        }else{
+            promoteUrl = promoteUrl + '?page='+pageNum+'&page_size=10';
+        }
+        var promoteCallBack = function (data) {
             $("#loading").hide();
-            //设置女装推荐链接及图片
+            loading = false;
+            pageNum += 1;
+            nextPage = data.next;
             $.each(data.results,
                 function(index,p_obj){
                     var item_dom = Create_item_dom(p_obj,false);
                     $('.glist').append(item_dom);
                 }
             );
-        }
-    };
-    // 请求推荐数据
-    $.ajax({
-        type:'get',
-        url:promoteUrl,
-        data:{},
-        dataType:'json',
-        beforeSend: function () {
-            $("#loading").show();
-        },
-        success:promoteCallBack
-    });
+        };
+        // 请求推荐数据
+        $.ajax({
+            type:'get',
+            url:promoteUrl,
+            data:{},
+            dataType:'json',
+            beforeSend: function () {
+                $("#loading").show();
+            },
+            success:promoteCallBack,
+            error: function (data) {
+                drawToast("数据没有加载成功！");
+                $("#loading").hide();
+                loading = false;
+            }
+        });
+    }
+    return get_products;
 }
 
 function Set_model_product(suffix){

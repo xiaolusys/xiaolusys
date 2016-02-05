@@ -3,8 +3,9 @@ import datetime
 from django.db import models
 
 from common.utils import url_utf8_quote
+from .base import PayBaseModel
 
-class CustomShare(models.Model):
+class CustomShare(PayBaseModel):
     
     SHOP_SHARE = 'shop'
     MODEL_SHARE = 'model'
@@ -23,9 +24,6 @@ class CustomShare(models.Model):
                                     choices=SHARE_TYPE,verbose_name=u'分享类型')
     
     active_at    = models.DateField(default=datetime.date.today,verbose_name=u'生效时间')
-    created      = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')
-    modified     = models.DateTimeField(auto_now=True,verbose_name=u'修改时间')
-    
     status       = models.BooleanField(default=False,verbose_name=u'使用')
     
     class Meta:

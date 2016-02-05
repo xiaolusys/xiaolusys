@@ -518,7 +518,7 @@ class ModelProductAdmin(admin.ModelAdmin):
 
 admin.site.register(ModelProduct, ModelProductAdmin)
 
-from flashsale.pay.models_custom import GoodShelf
+from flashsale.pay.models_custom import GoodShelf,ActivityEntry
 
 class GoodShelfAdmin(admin.ModelAdmin):
     
@@ -538,6 +538,21 @@ class GoodShelfAdmin(admin.ModelAdmin):
     preview_link.short_description = u"预览"
 
 admin.site.register(GoodShelf, GoodShelfAdmin)
+
+class ActivityEntryAdmin(admin.ModelAdmin):
+    
+    list_display = ('id','title','start_time','end_time','created','is_active')
+    
+    list_filter = ('is_active',('start_time',DateFieldListFilter),('created',DateFieldListFilter))
+    search_fields = ['title']
+    list_per_page = 25
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': 128})},
+        models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
+    }
+    
+admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
 
 from models_coupon import Integral, IntegralLog
@@ -607,7 +622,6 @@ from django.contrib import messages
 
 
 class UserCouponChangeList(ChangeList):
-
     def get_query_set(self, request):
         search_q = request.GET.get('q', '').strip()
         # add_RMB118?customer=123

@@ -67,7 +67,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     - {prefix}/now_payinfo[.formt]: 根据立即购买获取支付信息;
     > sku_id：要立即购买的商品规格ID
     """
-    queryset = ShoppingCart.objects.filter(status=ShoppingCart.NORMAL).order_by('-created')
+    queryset = ShoppingCart.objects.all()
     serializer_class = serializers.ShoppingCartSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
@@ -76,7 +76,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
-        return self.queryset.filter(buyer_id=customer.id)
+        return self.queryset.filter(buyer_id=customer.id,status=ShoppingCart.NORMAL).order_by('-created')
         
     def list(self, request, *args, **kwargs):
         """列出购物车中所有的状态为正常的数据"""
