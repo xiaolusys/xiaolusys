@@ -40,12 +40,14 @@ class NinepicView(APIView):
         pic_arry = pic_arry.split(',')
         auther = request.user.get_full_name()
         cate_gory = content.get("cate_gory", 9)
+        description = content.get("description", None)
+
         try:
             start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d%H:%M:%S')
         except ValueError:
             return Response({"code": 2})
         ninepic = NinePicAdver.objects.create(title=title, start_time=start_time, pic_arry=pic_arry,
-                                              turns_num=turns_num, cate_gory=cate_gory,
+                                              turns_num=turns_num, cate_gory=cate_gory, description=description,
                                               auther=auther)
         log_action(request.user.id, ninepic, ADDITION, "添加九张图")
         return Response({"code": 1})

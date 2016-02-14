@@ -436,7 +436,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = NinePicAdver
-        fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share')
+        fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share', 'description')
 
 
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
