@@ -1,3 +1,4 @@
+# coding:utf-8
 __author__ = 'imeron'
 import re
 import json
@@ -5,6 +6,8 @@ import urllib
 from django.conf import settings
 from django.contrib.admin.models import LogEntry,User, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
+
+from . import exceptions
 
 def log_action(user_id,obj,action,msg):
     try:
@@ -20,7 +23,12 @@ def log_action(user_id,obj,action,msg):
         import logging 
         logger =  logging.getLogger('django.request')
         logger.error(exc.message,exc_info=True)
-    
+
+def gen_weixin_redirect_url(params):
+    list_params = ['appid','redirect_uri','response_type','scope','state']
+    param_string = '&'.join([urllib.urlencode({t:params.get(t,'')}) for t in list_params])
+    redirect_url = "{0}?{1}#wechat_redirect"
+    return redirect_url.format(settings.WEIXIN_AUTHORIZE_URL,param_string)
 
 def get_cookie_openid(cookies,appid):
     x = cookies.get('sopenid','').split('|')
@@ -36,12 +44,15 @@ def get_user_unionid(code,
 
     debug_m   = settings.DEBUG
     content   = request and request.REQUEST or {}
+    state     = content.get('state',None)
     if not debug_m and request: 
         debug_m = content.get('debug')
     if debug_m:
         openid  = content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c')
         unionid = content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4')
         return (openid, unionid)
+    if state and not code:
+        raise exceptions.WeixinAutherizeFail('(用户取消授权,%s)'%content)
     if not code and not request:
         return ('','')
     if not code and request:
