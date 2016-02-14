@@ -46,6 +46,19 @@ class SaleOrderInline(admin.TabularInline):
         return tuple(readonly_fields)
 
 
+class SaleOrderAdmin(admin.ModelAdmin):
+    list_display = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 
+                    'num','discount_fee', 'refund_fee', 'refund_status', 'status','item_id')
+    list_display_links = ('oid',)
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    search_fields = ['=oid', '=sale_trade__tid', '=outer_id']
+
+
+admin.site.register(SaleOrder, SaleOrderAdmin)
+
+
 class SaleTradeAdmin(admin.ModelAdmin):
     list_display = ('id', 'tid', 'buyer_nick', 'channel', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
     list_display_links = ('id', 'tid', 'buyer_id')
