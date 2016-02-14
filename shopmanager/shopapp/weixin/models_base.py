@@ -16,3 +16,16 @@ class WeixinUnionID(CacheModel):
     
     def __unicode__(self):
         return u'<%s>'%self.openid
+    
+from core.weixin import signals
+
+def fetch_weixin_userinfo(sender, resp_data, *args, **kwargs):
+    openid, access_token = resp_data.get('openid',None),resp_data.get('access_token',None)
+    if not openid or not access_token:
+        return
+    
+    from .tasks import task_Update_Weixin_Userinfo
+    task_Update_Weixin_Userinfo.s(openid,accessToken=access_token)()
+
+    
+signals.signal_weixin_snsauth_response.connect(fetch_weixin_userinfo)

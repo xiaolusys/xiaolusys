@@ -10,7 +10,7 @@ from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku
 from .models import XLInviteCode
 from django.http import HttpResponse
 import json
-from core.mixins import WeixinAuthMixin
+from core.weixin.mixins import WeixinAuthMixin
 from flashsale.pay.models import Customer
 
 
