@@ -3,10 +3,10 @@ import json
 import urllib
 from django.conf import settings
 
-from .options import get_user_unionid
-
+from . import options 
 
 OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+
 
 class WeixinAuthMixin(object):
     
@@ -26,21 +26,24 @@ class WeixinAuthMixin(object):
 
     def get_openid_and_unionid(self, request):
         code    = request.GET.get('code')
-        return get_user_unionid(
+        return options.get_user_unionid(
             code,
             appid=self._wxpubid,
             secret=self._wxpubsecret,
             request=request
         )
     
-    def get_wxauth_redirct_url(self,request):
+    def get_wxauth_redirct_url(self,request,scope="snsapi_base"):
         absolute_url = request.build_absolute_uri().split('#')[0]
-        params = {'appid':self._wxpubid,
-                  'redirect_uri':absolute_url,
-                  'response_type':'code',
-                  'scope':'snsapi_base',
-                  'state':'135'}
-        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?{0}"
-        return redirect_url.format(urllib.urlencode(params))
+        absolute_url = re.sub('&?(code|state)=[\w]+','',absolute_url)
+        params = dict([('appid',self._wxpubid),
+                      ('redirect_uri',absolute_url),
+                      ('response_type','code'),
+                      ('scope',scope),
+                      ('state','135')])
+        return options.gen_weixin_redirect_url(params)
+    
+    def get_snsuserinfo_redirct_url(self,request):
+        return self.get_wxauth_redirct_url(request,scope="snsapi_userinfo")
     
     

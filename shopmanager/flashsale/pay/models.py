@@ -267,7 +267,9 @@ class SaleTrade(PayBaseModel):
     
     def close_trade(self):
         """ 关闭待付款订单 """
-        urows = SaleTrade.objects.filter(id=self.id,status=SaleTrade.WAIT_BUYER_PAY).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
+        urows = SaleTrade.objects.filter(id=self.id,
+                                         status=SaleTrade.WAIT_BUYER_PAY
+                                         ).update(status=SaleTrade.TRADE_CLOSED_BY_SYS)
         if urows == 0:
             return
         self.status = SaleTrade.TRADE_CLOSED_BY_SYS
@@ -279,7 +281,9 @@ class SaleTrade(PayBaseModel):
         
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
-        UserCoupon.objects.filter(sale_trade=self.id, status=UserCoupon.USED).update(status=UserCoupon.UNUSED)
+        UserCoupon.objects.filter(sale_trade=self.id, 
+                                  status=UserCoupon.USED
+                                  ).update(status=UserCoupon.UNUSED)
     
     @property
     def unsign_orders(self):
