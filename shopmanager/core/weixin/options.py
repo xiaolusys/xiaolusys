@@ -50,7 +50,7 @@ def get_user_unionid(code,
     if r.has_key("errcode"):
         return ('','')
     
-    signals.signal_weixin_snsauth_response.send(resp_data=r)
+    signals.signal_weixin_snsauth_response.send(sender="access_token",resp_data=r)
     
     return (r.get('openid'),r.get('unionid'))
 

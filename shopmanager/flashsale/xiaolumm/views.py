@@ -521,12 +521,10 @@ class ClickLogView(WeixinAuthMixin, View):
         
         if not self.valid_openid(unionid):
             unionid = get_unoinid_by_openid(openid, settings.WEIXIN_APPID)
-            if not self.valid_openid():
+            if not self.valid_openid(unionid):
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
-        
-        
-        
+            
         click_time = datetime.datetime.now()
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
               ctasks.task_Update_User_Click.s())()
