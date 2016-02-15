@@ -21,7 +21,7 @@
         }
 
         .submit-order {
-        margin-top: 30px;
+            margin-top: 30px;
         }
     </style>
 {% endblock %}
@@ -79,13 +79,13 @@
         <h4>活动细则</h4>
     </div>
     <div class="col-xs-12" id="active_detail" hidden="hidden">
-        <ul class="list-group" style="font-size: 1px">
-            <li class="list-group-item">1 免费试用活动参加需要在小鹿美美APP进行申请，</li>
-            <li class="list-group-item">2 本次活动发放睡袋1000组，邀请参加人数越多越容易抽取睡袋，1000组送完截至。</li>
-            <li class="list-group-item">3 申请人可邀请微信好友，朋友圈，QQ好友,QQ空间，微博等社交平台参加，帮你增加几率。</li>
-            <li class="list-group-item">4 活动可通过申请人的连接，二维码等方式进行参加。</li>
-            <li class="list-group-item">5 活动持续时间为7天：2016-02-22 10:00至2016-02-29 10:00 每天10:00公布抽取睡袋成功名单（小鹿美美APP公布）。</li>
-            <li class="list-group-item">6 小鹿美美保留法律范围内允许的对活动的解释权。</li>
+        <ul class="list-group" style="font-size: 12px">
+            <li class="list-group-item">1 免费试用活动参加需在小鹿美美APP中申请.</li>
+            <li class="list-group-item">2 本活动发放睡袋1000组，邀请参加人数越多越易抽取睡袋,1000组送完截至.</li>
+            <li class="list-group-item">3 申请人可邀请微信好友,朋友圈,QQ好友,QQ空间,微博等社交平台参加,帮你增加几率.</li>
+            <li class="list-group-item">4 活动可通过申请人的连接,二维码等方式进行参加.</li>
+            <li class="list-group-item">5 活动持续7天:2016-02-22 10:00至2016-02-29 10:00 每天10:00公布抽取睡袋成功名单(小鹿美美APP公布).</li>
+            <li class="list-group-item">6 小鹿美美保留法律范围内允许的对活动的解释权.</li>
         </ul>
     </div>
     <div id="nativeShare"></div>
@@ -108,40 +108,48 @@
                 return 'web'
             }
         };
+        function share_to(uform) {
+            var os = OSTest();
+            var share_link = $("#share_link").attr('cid');
+            if (os == 'iOS') {
+                window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link;
+            }
+        }
+
         $(document).ready(function () {
             $(".active_detail").click(function () {
                 $("#active_detail").toggle();
             });
 
-            // 调用　客户端　分享　方法
-            var os = OSTest();
-            //alert(os);
-            var share_link = $("#share_link").attr('cid');
-            console.log("share_link:", share_link);
-
             $("#sharecopylink").click(function () {
                 console.log("复制链接");
-                window.location = "wx25fcb32689872499://channel" + 1 + '/link/' + share_link;
+                var uform = 1;
+                share_to(uform);
             });
             $("#sharefirends").click(function () {
                 console.log("朋友圈");
-
+                var uform = 2;
+                share_to(uform);
             });
             $("#shareqq").click(function () {
                 console.log("qq");
-
+                var uform = 3;
+                share_to(uform);
             });
             $("#shareqqspace").click(function () {
                 console.log("qq空间");
-
+                var uform = 4;
+                share_to(uform);
             });
             $("#shareweibo").click(function () {
                 console.log("微博");
-
+                var uform = 5;
+                share_to(uform);
             });
             $("#shareweixin").click(function () {
                 console.log("微信");
-
+                var uform = 6;
+                share_to(uform);
             });
         })
     </script>
