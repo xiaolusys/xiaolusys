@@ -7,9 +7,10 @@ from celery.task.sets import subtask
 from django.conf import settings
 
 from common.utils import update_model_fields, replace_utf8mb4
+from core.weixin import options
 from .models import WeiXinUser,WXOrder,WXProduct,WXProductSku,WXLogistic,WeixinUnionID
 from .service import WxShopService
-from .weixin_apis import WeiXinAPI,WeiXinRequestException,get_weixin_snsuserinfo
+from .weixin_apis import WeiXinAPI,WeiXinRequestException
 from shopback.items.models import Product,ItemNumTaskLog
 
 import logging
@@ -63,14 +64,14 @@ def update_weixin_productstock():
 
 
 @task(max_retry=3,default_retry_delay=60)
-def task_Update_Weixin_Userinfo(openId,unionId=None,accessToken=None):
+def task_Update_Weixin_Userinfo(openId,unionId=None,userinfo={},accessToken=None):
     """ 通过接口获取用户信息 """
     _wx_api  = WeiXinAPI()
-    if accessToken is None:
+    if accessToken and not userinfo:
+        userinfo =  options.get_weixin_snsuserinfo(openId,accessToken)
+    elif not userinfo:
         userinfo =  _wx_api.getUserInfo(openId)
-    else:
-        userinfo =  get_weixin_snsuserinfo(openId,accessToken)
-    
+
     wx_user,state = WeiXinUser.objects.get_or_create(openid=openId) 
     pre_subscribe_time = wx_user.subscribe_time
     

@@ -52,7 +52,7 @@ from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
 from django.http import HttpResponse, HttpResponseRedirect, Http404,HttpResponseForbidden
 from . import  serializers
-from renderers import *
+from .renderers import *
 ###########7-27
 import logging
 
