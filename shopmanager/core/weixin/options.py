@@ -78,7 +78,7 @@ def get_user_unionid(code,
         r = get_weixin_snsuserinfo(openid, r.get('access_token'))
         if r.has_key("errcode"):
             return (openid,'')
-        signals.signal_weixin_snsauth_response.send(sender="access_token",resp_data=r)
+        signals.signal_weixin_snsauth_response.send(sender="access_token",appid=appid,resp_data=r)
         
     return (r.get('openid'),r.get('unionid'))
 

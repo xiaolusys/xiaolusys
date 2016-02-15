@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
+from django.conf import settings
 from core.models import CacheModel
 
 class WeixinUnionID(CacheModel):
@@ -19,11 +20,15 @@ class WeixinUnionID(CacheModel):
     
 from core.weixin import signals
 
-def fetch_weixin_userinfo(sender, resp_data, *args, **kwargs):
+def fetch_weixin_userinfo(sender, appid, resp_data, *args, **kwargs):
     
     from .tasks import task_Update_Weixin_Userinfo
     openid = resp_data.get('openid')
-    if not openid:
+    if not openid or not appid:
+        return 
+    
+    #只对WEIXIN_APPID的公众号授权抓取用户信息
+    if appid != settings.WEIXIN_APPID:
         return 
     
     if resp_data.has_key('access_token'):

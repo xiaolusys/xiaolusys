@@ -412,11 +412,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 class CustomerViewSet(viewsets.ModelViewSet):
     """
     ## 特卖平台 用户操作API：
-    > ###/profile: 获取用户信息;
-    >
+    > ###　/profile: 获取用户信息;
+    > ###　/islogin: 判断用户是否登陆;
+    -code:0　表示已登陆，返回http:403,错误表示登陆失效
     > ###/need_set_info: 获取该用户是否需要设置密码;
     - code: 0,不需要设置密码;1: 已经有手机，需要设置密码;2:需要设置密码，并且需要绑定手机;
-    >
     > ### /customer_logout: 用户注销api;
     - code: 0,退出成功；
     > ### /bang_mobile_code: `params={vmobile}`绑定手机时候获取验证码;
@@ -477,7 +477,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     
     @list_route(methods=['get'])
     def islogin(self,request, *args, **kwargs):
-        return Response({'result': 'login'})
+        return Response({"code":0, 'result': 'login'})
 
     @list_route(methods=['get'])
     def need_set_info(self, request):
