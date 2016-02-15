@@ -112,7 +112,10 @@
             var os = OSTest();
             var share_link = $("#share_link").attr('cid');
             if (os == 'iOS') {
-                window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link;
+                window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
+            }
+            else if(os == 'Android'){
+               // window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
             }
         }
 
@@ -120,35 +123,36 @@
             $(".active_detail").click(function () {
                 $("#active_detail").toggle();
             });
+            //'wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa'
 
             $("#sharecopylink").click(function () {
                 console.log("复制链接");
-                var uform = 1;
+                var uform = 'web';
                 share_to(uform);
             });
             $("#sharefirends").click(function () {
                 console.log("朋友圈");
-                var uform = 2;
+                var uform = 'pyq';
                 share_to(uform);
             });
             $("#shareqq").click(function () {
                 console.log("qq");
-                var uform = 3;
+                var uform = 'qq';
                 share_to(uform);
             });
             $("#shareqqspace").click(function () {
                 console.log("qq空间");
-                var uform = 4;
+                var uform = 'qqspa';
                 share_to(uform);
             });
             $("#shareweibo").click(function () {
                 console.log("微博");
-                var uform = 5;
+                var uform = 'sinawb';
                 share_to(uform);
             });
             $("#shareweixin").click(function () {
                 console.log("微信");
-                var uform = 6;
+                var uform = 'wxapp';
                 share_to(uform);
             });
         })

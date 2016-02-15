@@ -45,7 +45,7 @@ class XLSampleapplyView(View):
     mobile_default_message = u'请输入手机号'
     mobile_error_message = u'手机号码有误'
 
-    PLANTFORM = ('wxapp', 'pyq', 'qq', 'txwb', 'web')
+    PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
 
     def get(self, request):
         content = request.REQUEST
