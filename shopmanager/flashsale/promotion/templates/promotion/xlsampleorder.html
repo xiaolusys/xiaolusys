@@ -58,10 +58,9 @@
 
         <div class="col-xs-12" style="text-align: center">
             <img src="{{ res.link_qrcode }}" alt="" width="100px" height="100px" cid="{{ res.share_link }}"
-                 id="share_link"/>
+                 style="display: none" id="share_link"/>
         </div>
-
-        <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/>
+        <div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/>
         </div>
         <div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/>
         </div>
@@ -69,8 +68,9 @@
         <div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/>
         </div>
         <div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
-        <div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/>
+        <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/>
         </div>
+
     {% endif %}
 
 
@@ -114,8 +114,8 @@
             if (os == 'iOS') {
                 window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
             }
-            else if(os == 'Android'){
-               // window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
+            else if (os == 'Android') {
+                // window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
             }
         }
 
