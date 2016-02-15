@@ -9,7 +9,7 @@ from django.conf import settings
 from common.utils import update_model_fields, replace_utf8mb4
 from .models import WeiXinUser,WXOrder,WXProduct,WXProductSku,WXLogistic,WeixinUnionID
 from .service import WxShopService
-from .weixin_apis import WeiXinAPI,WeiXinRequestException
+from .weixin_apis import WeiXinAPI,WeiXinRequestException,get_weixin_snsuserinfo
 from shopback.items.models import Product,ItemNumTaskLog
 
 import logging
@@ -63,37 +63,38 @@ def update_weixin_productstock():
 
 
 @task(max_retry=3,default_retry_delay=60)
-def task_Update_Weixin_Userinfo(openId,unionId=None):
-    
-    try:  
-        _wx_api  = WeiXinAPI()
+def task_Update_Weixin_Userinfo(openId,unionId=None,accessToken=None):
+    """ 通过接口获取用户信息 """
+    _wx_api  = WeiXinAPI()
+    if accessToken is None:
         userinfo =  _wx_api.getUserInfo(openId)
-        
-        wx_user,state = WeiXinUser.objects.get_or_create(openid=openId) 
-        pre_subscribe_time = wx_user.subscribe_time
-        
-        pre_nickname = wx_user.nickname
-        for k, v in userinfo.iteritems():
-            if hasattr(wx_user, k) :
-                setattr(wx_user, k, v or getattr(wx_user, k))
-        
-        wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
-        wx_user.unionid  = wx_user.unionid or unionId or ''
-        subscribe_time   = userinfo.get('subscribe_time', None)
-        if subscribe_time:
-            wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
-                .fromtimestamp(int(subscribe_time))
-        
-        key_list = ['openid','sex','language','headimgurl','country','province','nickname','unionid','subscribe_time','sceneid']
-        update_model_fields(wx_user,update_fields=key_list)
-        
-        if not wx_user.unionid:
-            return 
-        
-        app_key = _wx_api._wx_account.app_id
-        WeixinUnionID.objects.get_or_create(openid=openId,app_key=app_key,unionid=wx_user.unionid)
-    except Exception, exc:
-        raise task_Update_Weixin_Userinfo.retry(exc=exc)
+    else:
+        userinfo =  get_weixin_snsuserinfo(openId,accessToken)
+    
+    wx_user,state = WeiXinUser.objects.get_or_create(openid=openId) 
+    pre_subscribe_time = wx_user.subscribe_time
+    
+    pre_nickname = wx_user.nickname
+    for k, v in userinfo.iteritems():
+        if hasattr(wx_user, k) and v:
+            setattr(wx_user, k, v or getattr(wx_user, k))
+    
+    wx_user.nickname = pre_nickname or replace_utf8mb4(wx_user.nickname.decode('utf8'))
+    wx_user.unionid  = wx_user.unionid or unionId or ''
+    subscribe_time   = userinfo.get('subscribe_time', None)
+    if subscribe_time:
+        wx_user.subscribe_time = pre_subscribe_time or datetime.datetime\
+            .fromtimestamp(int(subscribe_time))
+    
+    key_list = ['openid','sex','language','headimgurl','country','province','nickname','unionid','subscribe_time','sceneid']
+    update_model_fields(wx_user,update_fields=key_list)
+    
+    if not wx_user.unionid:
+        return 
+    
+    app_key = _wx_api._wx_account.app_id
+    WeixinUnionID.objects.get_or_create(openid=openId,app_key=app_key,unionid=wx_user.unionid)
+
 
 
 @task(max_retry=3,default_retry_delay=60)

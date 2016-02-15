@@ -23,7 +23,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import WeiXinUser
 from flashsale.xiaolumm import xlmm_kefukeys as kfkeys
 
-from core.mixins import WeixinAuthMixin
+from core.weixin.mixins import WeixinAuthMixin
 
 import logging
 logger = logging.getLogger('django.request')

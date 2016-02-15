@@ -204,6 +204,7 @@ class ActivityEntry(PayBaseModel):
     act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动网页链接')
     act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议')
     
+    login_required = models.BooleanField(default=False,verbose_name=u'需要登陆')
     start_time  = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time    = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
     

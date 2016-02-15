@@ -2,6 +2,9 @@
 import re
 import json
 import datetime
+import urllib
+from urlparse import urljoin
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse,Http404,HttpResponseRedirect
 from django.shortcuts import redirect,render_to_response
 from django.views.generic import View
@@ -14,9 +17,13 @@ from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
+from core.weixin.mixins import WeixinAuthMixin
+
 from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder, WeiXinUser
 from shopapp.weixin.service import WeixinUserService
+from shopapp.weixin.options import get_unoinid_by_openid
+from shopapp.weixin.tasks import task_Update_Weixin_Userinfo
 from shopback.base import log_action, ADDITION, CHANGE
 from django.conf import settings
 from flashsale.pay.options import set_cookie_openid,get_cookie_openid,get_user_unionid
@@ -25,11 +32,12 @@ from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopp
 from flashsale.clickcount import tasks as ctasks
 from common.modelutils import update_model_fields
 
+
 from .models import XiaoluMama, AgencyLevel, CashOut, CarryLog, UserGroup, ORDER_RATEUP_START
 from flashsale.pay.models import SaleTrade,Customer,SaleRefund
 from .serializers import CashOutSerializer,CarryLogSerializer
 from models_advertis import XlmmAdvertis
-from core.mixins import WeixinAuthMixin
+
 
 import logging
 logger = logging.getLogger('django.request')
@@ -49,7 +57,7 @@ class WeixinAuthCheckView(WeixinAuthMixin, View):
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) :
-            redirect_url = self.get_wxauth_redirct_url(request)
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
         xlmm    = None
@@ -493,32 +501,35 @@ class StatsView(View):
                                   {'pk':int(pk),"data":data,"managers":managers,"prev_day":prev_day,
                                    "target_date":target_date, "next_day":next_day}, 
                                   context_instance=RequestContext(request))
+        
 
-import urllib
-from urlparse import urljoin
-from django.core.urlresolvers import reverse
-
-def logclicks(request, linkid):
-    content = request.REQUEST
-    code = content.get('code',None)
+class ClickLogView(WeixinAuthMixin, View):
+    """ 微信授权参数检查 """
     
-    user_agent = request.META.get('HTTP_USER_AGENT')
-    if not user_agent or user_agent.find('MicroMessenger') < 0:
-        share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
-        return redirect(share_url)
-    
-    openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
-                                          secret=settings.WEIXIN_SECRET)
-
-    if not valid_openid(openid) :
-        redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/%d/&response_type=code&scope=snsapi_base&state=135#wechat_redirect" % int(linkid)
-        return redirect(redirect_url)
-
-    click_time = datetime.datetime.now()
-    chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
-          ctasks.task_Update_User_Click.s())()
-    
-    return redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+    def get(self, request, linkid):
+        
+        user_agent = request.META.get('HTTP_USER_AGENT')
+        if not user_agent or user_agent.find('MicroMessenger') < 0:
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
+            return redirect(share_url)
+        
+        #self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not valid_openid(openid):
+            redirect_url = self.get_wxauth_redirct_url(request)
+            return redirect(redirect_url)
+        
+        if not self.valid_openid(unionid):
+            unionid = get_unoinid_by_openid(openid, settings.WEIXIN_APPID)
+            if not self.valid_openid(unionid):
+                redirect_url = self.get_snsuserinfo_redirct_url(request)
+                return redirect(redirect_url)
+            
+        click_time = datetime.datetime.now()
+        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
+              ctasks.task_Update_User_Click.s())()
+        
+        return redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
 
 def logChannelClicks(request, linkid):
     content = request.REQUEST

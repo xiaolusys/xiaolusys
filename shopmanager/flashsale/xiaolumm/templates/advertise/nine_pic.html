@@ -79,6 +79,7 @@
                 </h3>
             </div>
             <div class="panel-body">
+                <p>文案：{{ nine.description }}</p>
                 {% for pic in nine.pic_arry %}
                     <img src="{{ pic }}" style="width: 110px;height: 160px;margin-left: 8px"/>
                 {% endfor %}
@@ -91,7 +92,7 @@
             <h3 class="panel-title">新建区域</h3>
 
             <div class="panel-body">
-                <p style="color:red;">注意：标题可以为空,注意时间对应轮数的选择; 选择文件的时候请一次性选择对应类型的张数，否则将导致上传失败</p>
+                <p style="color:red;">注意：标题可以为空,注意时间对应轮数的选择; 文案内容可以为空，建议填写方便用户分享；选择文件的时候请一次性选择对应类型的张数，否则将导致上传失败</p>
             </div>
         </div>
         <div class="panel-body">
@@ -104,10 +105,16 @@
                            class="form-control datepicker" value="{{ start_t }}"
                            aria-describedby="basic-addon1">
                 </div>
+                <div class="col-xs-6 panel panel-default" style="margin-top: 30px">
+                    <div class="panel-heading">填写描述文案</div>
+                    <div class="panel-body">
+                        <textarea style="font-size: 10px" rows="7" cols="80" id="description"></textarea>
+                    </div>
+                </div>
                 <div class="col-xs-2" style="margin-top: 30px">
                     <select name="ware_by" id="category_choices" class="file">
                         {% for k , v in category_choices %}
-                        <option value="{{ k }}">{{ v }}</option>
+                            <option value="{{ k }}">{{ v }}</option>
                         {% endfor %}
                     </select>
                 </div>

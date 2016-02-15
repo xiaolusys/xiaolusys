@@ -77,13 +77,17 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
   `web  `: 网页  
   }  
   `from_customer:` 分享用户customer id  
+- {prefix}/get_share_content [method:post]
+`link_qrcode`: 二维码图片地址
+`title`: 活动主题
+`active_dec`: 活动描述
     """
     queryset = XLSampleOrder.objects.all()
     serializer_class = serializers.XLSampleOrderSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
+    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}&ufrom={ufrom}'
     PROMOTION_LINKID_PATH = 'pmt'
 
     def list(self, request, *args, **kwargs):
@@ -95,7 +99,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         promote_count = applys.count()  # 邀请的数量　
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
         share_link = self.share_link.format(**{'customer_id': customer_id})
-        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
+        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, 'web')
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
                'link_qrcode': link_qrcode}
         return res
@@ -104,18 +108,30 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
 
-    def gen_custmer_share_qrcode_pic(self, customer_id):
+    def gen_custmer_share_qrcode_pic(self, customer_id, ufrom):
         root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
         if not os.path.exists(root_path):
             os.makedirs(root_path)
-        params = {'customer_id': customer_id}
-        file_name = 'custm-{customer_id}.jpg'.format(**params)
+        params = {'customer_id': customer_id, "ufrom": ufrom}
+        file_name = 'custm-{customer_id}-{ufrom}.jpg'.format(**params)
         file_path = os.path.join(root_path, file_name)
 
         share_link = self.get_share_link(params)
         if not os.path.exists(file_path):
             gen_and_save_jpeg_pic(share_link, file_path)
         return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
+
+    @list_route(methods=['post'])
+    def get_share_content(self, request):
+        """ 返回要分享的内容 """
+        content = request.REQUEST
+        ufrom = content.get('ufrom', None)
+        customer = get_object_or_404(Customer, user=request.user)
+        customer_id = customer.id
+        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
+        title = "开年活动－红包不停发"
+        active_dec = "开年活动－开年有好礼，红包不停发，免费等你拿！"
+        return Response({"link_qrcode": link_qrcode, "title": title, "active_dec": active_dec})
 
     def create(self, request, *args, **kwargs):
         content = request.REQUEST
@@ -135,7 +151,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         # 获取自己的正式使用订单
         xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
 
-        if len(xls_orders) > 1:  # 已经有试用订单
+        if len(xls_orders) >= 1:  # 已经有试用订单
             xls_order = xls_orders[0]
             xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
             xls_order.save()

@@ -54,12 +54,15 @@
     <span id="weixin_label" hidden="hidden">可以点击右上角在浏览器中打开</span>
     <div id="download">
         <div class="col-xs-12" style="text-align: center;height: 180px">
-            <h1 style="padding: 30px">下载页面</h1>
+            <h3 style="padding: 30px">下载客户端查看提交订单和邀请结果</h3>
         </div>
 
         <div class="col-xs-2"></div>
-        <div class="col-xs-8">
-            <button class="btn btn-default form-control" type="submit">下载app</button>
+        <div class="col-xs-8" hidden="hidden" id="click_download">
+            <a class="btn btn-default form-control" type="submit"
+                    href="https://www.baidu.com">Android客户端下载</a>
+            <a class="btn btn-default form-control" type="submit"
+               href="https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985">iOS客户端下载</a>
         </div>
         <div class="col-xs-2"></div>
     </div>
@@ -79,6 +82,9 @@
                 }
                 else if (os == "iOS") {
                     startiOSAPP();//启动ios app
+                }
+                else {
+                    $("#click_download").show();
                 }
             }
         });

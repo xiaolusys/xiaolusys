@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from django.conf import settings
 
+from core.weixin import options
 
 def sale_buyer_required(view_func):
     """
@@ -30,7 +31,7 @@ def sale_buyer_required(view_func):
                           'response_type':'code',
                           'scope':'snsapi_base',
                           'state':'135'}
-                redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+                redirect_url = options.gen_weixin_redirect_url(params)
                 return HttpResponseRedirect(redirect_url)
             
             else :
@@ -76,7 +77,7 @@ def weixin_xlmm_auth(redirecto=None):
                           'response_type':'code',
                           'scope':'snsapi_base',
                           'state':'135'}
-                redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+                redirect_url = options.gen_weixin_redirect_url(params)
                 return HttpResponseRedirect(redirect_url)
             
             else :
@@ -118,7 +119,7 @@ def weixin_test_auth(redirecto=None):
                           'response_type':'code',
                           'scope':'snsapi_base',
                           'state':'135'}
-                redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+                redirect_url = options.gen_weixin_redirect_url(params)
                 return HttpResponseRedirect(redirect_url)
             
             else :

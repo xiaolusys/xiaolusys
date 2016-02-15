@@ -46,6 +46,19 @@ class SaleOrderInline(admin.TabularInline):
         return tuple(readonly_fields)
 
 
+class SaleOrderAdmin(admin.ModelAdmin):
+    list_display = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 
+                    'num','discount_fee', 'refund_fee', 'refund_status', 'status','item_id')
+    list_display_links = ('oid',)
+    #list_editable = ('update_time','task_type' ,'is_success','status')
+
+    list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    search_fields = ['=oid', '=sale_trade__tid', '=outer_id']
+
+
+admin.site.register(SaleOrder, SaleOrderAdmin)
+
+
 class SaleTradeAdmin(admin.ModelAdmin):
     list_display = ('id', 'tid', 'buyer_nick', 'channel', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
     list_display_links = ('id', 'tid', 'buyer_id')
@@ -108,10 +121,10 @@ admin.site.register(SaleTrade, SaleTradeAdmin)
 
 
 class TradeChargeAdmin(admin.ModelAdmin):
-    list_display = ('order_no', 'charge', 'channel', 'amount', 'time_paid', 'paid', 'refunded')
+    list_display = ('order_no', 'charge', 'channel', 'amount', 'time_paid', 'paid','created', 'refunded')
     list_display_links = ('order_no', 'charge',)
 
-    list_filter = (('time_paid', DateFieldListFilter),)
+    list_filter = (('time_paid', DateFieldListFilter), 'paid', 'refunded')
     search_fields = ['order_no', 'charge']
 
 

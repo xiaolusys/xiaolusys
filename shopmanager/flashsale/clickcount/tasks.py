@@ -51,9 +51,11 @@ def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
 def task_Update_User_Click(click, *args, **kwargs):
     
     openid = click.openid
-    wxunoin = WeixinUnionID.objects.get(openid=openid,app_key=settings.WEIXIN_APPID)
+    wxunoins = WeixinUnionID.objects.filter(openid=openid,app_key=settings.WEIXIN_APPID)
+    if not wxunoins.exists():
+        return 
     
-    user_click,state = UserClicks.objects.get_or_create(unoinid=wxunoin.unionid)
+    user_click,state = UserClicks.objects.get_or_create(unoinid=wxunoins[0].unionid)
     params  = {}
     if (not user_click.click_end_time or 
         (click.click_time > user_click.click_end_time and

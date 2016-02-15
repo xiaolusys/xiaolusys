@@ -1,56 +1,69 @@
 {% extends "promotion_base.html" %}
 
 {% block title %}{{ title }}{% endblock %}
+{% block head_style %}
+    <style>
+        .active_detail {
+            margin-top: 50px;
+            text-align: center;
+        }
 
+        .form-content {
+            text-align: center;
+        }
+
+        .submit-apply {
+            margin-top: 30px;
+        }
+    </style>
+{% endblock %}
 {% block container %}
-    <div class="col-xs-12" style="text-align: center;">
-        <h1 style="padding: 10px">{{ xlsample.name }}</h1>
-    </div>
-    <div class="col-xs-12" style="text-align: center;">
-        <img src="{{ xlsample.pic_url }}" alt="" style="width: 80px;height: 80px"/>
-    </div>
-    <div class="col-xs-12" style="text-align: center;margin-bottom: 20px">
-        <span>SKU编码:{{ zl_aku.sku_code }}</span><br/>
-        <span>款式尺寸:{{ zl_aku.sku_name }}</span>
-    </div>
+    {% for pro in data %}
+        <div class="col-xs-12" style="text-align: center;">
+            <h1 style="padding: 10px">{{ pro.sample.name }}</h1>
+        </div>
+        <div class="col-xs-12" style="text-align: center;">
+            <img src="{{ pro.sample.pic_url }}" alt="" style="width: 80px;height: 80px"/>
+        </div>
 
-    <div class="col-xs-2"></div>
-    <div class="col-xs-8">
-        <form action="" method="post">
-            <input type="text" hidden="hidden" name="ufrom" id="ufrom"/>
-            <input type="text" hidden="hidden" name="from_customer" id="from_customer" value="{{ from_customer }}"/>
+        <div class="col-xs-2"></div>
+        <div class="col-xs-8 form-content">
+            <form action="" method="post">
+                <input type="text" hidden="hidden" name="ufrom" id="ufrom"/>
+                <input type="text" hidden="hidden" name="from_customer" id="from_customer" value="{{ from_customer }}"/>
+                <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
 
-            <select name="sku_code" id="choose_sku" size="{{ option_length }}">
-                {% for sku in skus %}
-                    <option value="{{ sku.sku_code }}">{{ sku.sku_name }}</option>
-                {% endfor %}
-            </select><br/>
-            {% if mobile_message %}
-                <span>
+                <span>请选择尺码：</span>
+                <select name="sku_code" size="{{ pro.skus|length }}">
+                    {% for sku in pro.skus %}
+                        <option value="{{ sku.sku_code }}">{{ sku.sku_name }}</option>
+                    {% endfor %}
+                </select><br/>
+
+                {% if mobile_message %}
+                    <span>
                 {{ mobile_message }}
                 </span>
-            {% endif %}
-            <input type="number" name="mobile" class="form-control"
-                    {% if mobile %}
-                   value="{{ mobile }}"
-                    {% endif %}
-                   aria-describedby="basic-addon1" style="text-align: center">
+                {% endif %}
 
-            {% if vipcode_message %}
-                <span>
+                <input type="number" name="mobile" class="form-control"
+                        {% if mobile %}
+                       value="{{ mobile }}"
+                        {% endif %}
+                       aria-describedby="basic-addon1" style="text-align: center">
+
+                {% if vipcode_message %}
+                    <span>
                     {{ vipcode_message }}
                  </span>
-            {% endif %}
-            <input type="text" name="vipcode" class="form-control"
-                    {% if vipcode %}
-                   value="{{ vipcode }}"
-                    {% endif %}
-                   aria-describedby="basic-addon2" style="text-align: center">
+                {% endif %}
+
+                <button class="btn btn-default form-control submit-apply " type="submit">立即活动</button>
+            </form>
+        </div>
+    {% endfor %}
 
 
-            <button class="btn btn-default form-control" type="submit">立即活动</button>
-        </form>
-    </div>
     <div class="col-xs-2"></div>
 
     <div class="col-xs-12" style="text-align: center;">
@@ -58,7 +71,7 @@
         <h4>活动细则</h4>
     </div>
     <div class="col-xs-12">
-        <ul class="list-group" style="font-size: 1px">
+        <ul class="list-group" style="font-size: 12px">
             <li class="list-group-item">1 免费试用活动参加需要在小鹿美美APP进行申请，</li>
             <li class="list-group-item">2 本次活动发放睡袋1000组，邀请参加人数越多越容易抽取睡袋，1000组送完截至。</li>
             <li class="list-group-item">3 申请人可邀请微信好友，朋友圈，QQ好友,QQ空间，微博等社交平台参加，帮你增加几率。</li>

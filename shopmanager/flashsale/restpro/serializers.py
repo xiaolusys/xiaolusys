@@ -97,7 +97,7 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActivityEntry
-        fields = ( 'id','title', 'act_desc', 'act_img', 'act_link', 'act_applink', 'start_time', 'end_time')
+        fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'act_link', 'act_applink', 'start_time', 'end_time')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -436,7 +436,7 @@ class NinePicAdverSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = NinePicAdver
-        fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share')
+        fields = ('id', "title", "start_time", "turns_num", "pic_arry", 'could_share', 'description')
 
 
 from flashsale.pay.models_shops import CustomerShops, CuShopPros

@@ -110,6 +110,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         pending = carry_logs.filter(status=CarryLog.PENDING)
         nmc_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status__in=(CarryLog.CONFIRMED, CarryLog.PENDING),
                                    carry_date=today)
+        nmc_clk = carry_logs.filter(status__in=(CarryLog.CONFIRMED, CarryLog.PENDING), log_type=CarryLog.CLICK_REBETA)
 
         mci = (cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定收入
         mco = (cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定支出
@@ -117,7 +118,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         ymco = (yst_cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 昨日确定支出
         pdc = (pending.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 总待确定金额
         nmci = (nmc_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 今日收入(含待收入)
-        mmclog = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc, "nmci": nmci}
+        clki = (nmc_clk.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 历史点击收入(含待收入)
+        mmclog = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc, "nmci": nmci, 'clki': clki}
 
         # 今日有效点击数量
         clks = ClickCount.objects.filter(linkid=xlmm.id, date=today)
@@ -125,14 +127,19 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         # 今日订单
         t_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
         t_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
-        all_shops = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
+        all_shops = StatisticsShopping.objects.filter(linkid=xlmm.id, status__in=(StatisticsShopping.FINISHED,
+                                                                                  StatisticsShopping.WAIT_SEND))
         all_shop_num = all_shops.count()
         shop_num = all_shops.filter(shoptime__gte=t_from, shoptime__lte=t_to).count()  # 今日订单数量
+
+        # 计算今日点击金额
+        clk_money = xlmm.get_Mama_Click_Price(shop_num) * clk_num
+
         mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
         share_mmcode = self.gen_xlmm_share_qrcode_pic(xlmm.id)
         data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
                 "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num,
-                "share_mmcode": share_mmcode}
+                "share_mmcode": share_mmcode, "clk_money": clk_money}
         return Response(data)
 
 
@@ -202,6 +209,17 @@ class CarryLogViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def get_clk_list(self, request):
+        queryset = self.filter_queryset(self.get_owner_queryset(request))
+        queryset = queryset.filter(log_type=CarryLog.CLICK_REBETA).exclude(status=CarryLog.CANCELED)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
