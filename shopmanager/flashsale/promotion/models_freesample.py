@@ -48,14 +48,15 @@ class XLSampleApply(BaseModel):
     FROM_WXAPP = 'wxapp'
     FROM_PYQ  = 'pyq'
     FROM_QQ   = 'qq'
-    FROM_WB   = 'txwb'
+    FROM_WB   = 'sinawb'
     FROM_WEB  = 'web'
+    FROM_QQSPA = 'qqspa'
 
     FROM_CHOICES = (
         (FROM_WXAPP,u'微信好友'),
         (FROM_PYQ,u'朋友圈'),
         (FROM_QQ,u'QQ'),
-        (FROM_WB,u'腾讯微博'),
+        (FROM_WB,u'新浪微博'),
         (FROM_WEB,u'外部网页'),
     )
 

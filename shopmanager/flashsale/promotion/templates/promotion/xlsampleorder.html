@@ -1,0 +1,160 @@
+{% extends "promotion_base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block head_style %}
+    <style>
+        .share-icon {
+            text-align: center;
+        }
+
+        .share-icon img {
+            width: 40px;
+        }
+
+        .active_detail {
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .form-content {
+            text-align: center;
+        }
+
+        .submit-order {
+            margin-top: 30px;
+        }
+    </style>
+{% endblock %}
+
+{% block container %}
+    {% for pro in data %}
+        <div class="col-xs-12" style="text-align: center;">
+            <h1 style="padding: 10px">{{ pro.sample.name }}</h1>
+        </div>
+        <div class="col-xs-12" style="text-align: center;">
+            <img src="{{ pro.sample.pic_url }}" alt="" style="width: 80px;height: 80px"/>
+        </div>
+        <div class="col-xs-2"></div>
+        <div class="col-xs-8 form-content">
+            <form action="" method="post">
+                <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
+
+                <span>请选择尺码：</span>
+                <select name="sku_code" size="{{ pro.skus|length }}">
+                    {% for sku in pro.skus %}
+                        <option value="{{ sku.sku_code }}">{{ sku.sku_name }}</option>
+                    {% endfor %}
+                </select><br/>
+                <span style="color: red">{{ error_message }}</span>
+                <button class="btn btn-default form-control submit-order" type="submit">提交订单</button>
+            </form>
+        </div>
+    {% endfor %}
+
+    <!-- 申请结果 -->
+    {% if res %}
+        <div class="col-xs-6"><span>推荐数量：{{ res.promote_count }}</span></div>
+        <div class="col-xs-6"><span>下载数量：{{ res.app_down_count }}</span></div>
+
+        <div class="col-xs-12" style="text-align: center">
+            <img src="{{ res.link_qrcode }}" alt="" width="100px" height="100px" cid="{{ res.share_link }}"
+                 style="display: none" id="share_link"/>
+        </div>
+        <div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/>
+        </div>
+        <div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/>
+        </div>
+        <div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
+        <div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/>
+        </div>
+        <div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
+        <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/>
+        </div>
+
+    {% endif %}
+
+
+    <div class="col-xs-2"></div>
+    <div class="col-xs-12 active_detail">
+        <h4>活动细则</h4>
+    </div>
+    <div class="col-xs-12" id="active_detail" hidden="hidden">
+        <ul class="list-group" style="font-size: 12px">
+            <li class="list-group-item">1 免费试用活动参加需在小鹿美美APP中申请.</li>
+            <li class="list-group-item">2 本活动发放睡袋1000组，邀请参加人数越多越易抽取睡袋,1000组送完截至.</li>
+            <li class="list-group-item">3 申请人可邀请微信好友,朋友圈,QQ好友,QQ空间,微博等社交平台参加,帮你增加几率.</li>
+            <li class="list-group-item">4 活动可通过申请人的连接,二维码等方式进行参加.</li>
+            <li class="list-group-item">5 活动持续7天:2016-02-22 10:00至2016-02-29 10:00 每天10:00公布抽取睡袋成功名单(小鹿美美APP公布).</li>
+            <li class="list-group-item">6 小鹿美美保留法律范围内允许的对活动的解释权.</li>
+        </ul>
+    </div>
+    <div id="nativeShare"></div>
+
+{% endblock %}
+
+{% block tail_script %}
+    <script>
+        var OSTest = function () {// 客户端平台检测　返回
+            var u = navigator.userAgent;
+            var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端
+            var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+            if (isAndroid == true) {
+                return 'Android';
+            }
+            else if (isiOS == true) {
+                return 'iOS';
+            }
+            else {
+                return 'web'
+            }
+        };
+        function share_to(uform) {
+            var os = OSTest();
+            var share_link = $("#share_link").attr('cid');
+            if (os == 'iOS') {
+                window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
+            }
+            else if (os == 'Android') {
+                // window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
+            }
+        }
+
+        $(document).ready(function () {
+            $(".active_detail").click(function () {
+                $("#active_detail").toggle();
+            });
+            //'wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa'
+
+            $("#sharecopylink").click(function () {
+                console.log("复制链接");
+                var uform = 'web';
+                share_to(uform);
+            });
+            $("#sharefirends").click(function () {
+                console.log("朋友圈");
+                var uform = 'pyq';
+                share_to(uform);
+            });
+            $("#shareqq").click(function () {
+                console.log("qq");
+                var uform = 'qq';
+                share_to(uform);
+            });
+            $("#shareqqspace").click(function () {
+                console.log("qq空间");
+                var uform = 'qqspa';
+                share_to(uform);
+            });
+            $("#shareweibo").click(function () {
+                console.log("微博");
+                var uform = 'sinawb';
+                share_to(uform);
+            });
+            $("#shareweixin").click(function () {
+                console.log("微信");
+                var uform = 'wxapp';
+                share_to(uform);
+            });
+        })
+    </script>
+{% endblock %}

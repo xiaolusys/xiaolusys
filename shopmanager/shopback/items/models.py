@@ -1,35 +1,39 @@
-#-*- coding:utf-8 -*-
+# coding: utf-8
+
 """
 淘宝普通平台模型:
 Product:系统内部商品，唯一对应多家店铺的商品外部编码,
 ProductSku:淘宝平台商品sku，
 Item:淘宝平台商品，
 """
+
 import collections
-import re
-import json
 import datetime
+import json
+import logging
+import re
+
 from django.db import models
 from django.db.models import Sum,Avg,F
 from django.db.models.signals import pre_save,post_save
 from django.core.urlresolvers import reverse
 
+from auth import apis
+from common.modelutils import update_model_fields
+from core.models import AdminModel
+from flashsale.dinghuo.models_user import MyUser
+from flashsale.restpro.local_cache import image_watermark_cache
 from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
 from shopback.users.models import DjangoUser,User
-from . import managers
-from auth import apis
-
-from common.modelutils import update_model_fields
 from supplychain.supplier.models import SaleProduct
 
-from flashsale.restpro.local_cache import image_watermark_cache
+from . import constants, managers
+logger = logging.getLogger('django.request')
 
-import logging
-logger  = logging.getLogger('django.request')
 
 APPROVE_STATUS  = (
     (pcfg.ONSALE_STATUS,u'在售'),
@@ -55,7 +59,7 @@ class ProductDefectException(Exception):
 
 class Product(models.Model):
     """ 记录库存属性及加上排期信息的商品类 """
-    
+
     class Meta:
         db_table = 'shop_items_product'
         verbose_name = u'库存商品'
@@ -69,10 +73,10 @@ class Product(models.Model):
             ("export_product_info", u"导出库存商品信息"),
             ("invalid_product_info", u"作废库存商品信息")
         ]
-    
+
     objects = managers.ProductManager()
     cache_enabled = True
-    
+
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
@@ -150,7 +154,7 @@ class Product(models.Model):
                                        default=DOWN_SHELF,verbose_name=u'上架状态')
     ware_by        = models.IntegerField(default=WARE_SH,choices=WARE_CHOICES,
                                          db_index=True,verbose_name=u'所属仓库')
-    
+
     def __unicode__(self):
         return '%s'%self.id
         #return '<%s,%s>'%(self.outer_id,self.name)
@@ -171,15 +175,15 @@ class Product(models.Model):
         except:
             return None
         return pmodel
-    
+
     product_model = property(get_product_model)
-    
+
     def get_product_detail(self):
         try:
             return self.details
         except:
             return None
-    
+
     detail = product_detail = property(get_product_detail)
 
     @property
@@ -248,6 +252,14 @@ class Product(models.Model):
     @property
     def PIC_PATH(self):
         return self.pic_path.strip() or self.NO_PIC_PATH
+
+    @property
+    def thumbnail(self):
+        url = self.pic_path.strip()
+        if url:
+            return '%s?%s' % (url, 'imageMogr2/thumbnail/289/format/jpg/quality/90')
+        else:
+            return self.NO_PIC_PATH
 
     @property
     def watermark_op(self):
@@ -454,7 +466,7 @@ class Product(models.Model):
         if self.model_id == 0 or self.model_id == None:
             skus = self.normal_skus.all()
         else:
-            skus = ProductSku.objects.filter(product__model_id=self.model_id, 
+            skus = ProductSku.objects.filter(product__model_id=self.model_id,
                                              product__status=Product.NORMAL,
                                              status=ProductSku.NORMAL)
         for sku in skus:
@@ -537,20 +549,20 @@ def custom_sort(a, b):
 
 class ProductSku(models.Model):
     """ 记录库存商品规格属性类 """
-    
+
     class Meta:
         db_table = 'shop_items_productsku'
         unique_together = ("outer_id", "product")
         verbose_name=u'库存商品规格'
         verbose_name_plural = u'库存商品规格列表'
-    
+
     cache_enabled = True
     objects = managers.CacheManager()
-    
+
     NORMAL = pcfg.NORMAL
     REMAIN = pcfg.REMAIN
     DELETE = pcfg.DELETE
-    
+
     outer_id = models.CharField(max_length=64,blank=False,verbose_name=u'供应商货号/编码')
 
     barcode  = models.CharField(max_length=64,blank=True,db_index=True,verbose_name='条码')
@@ -592,10 +604,10 @@ class ProductSku(models.Model):
     match_reason = models.CharField(max_length=80,blank=True,verbose_name='匹配原因')
     buyer_prompt = models.CharField(max_length=60,blank=True,verbose_name='客户提示')
     memo         = models.TextField(max_length=1000,blank=True,verbose_name='备注')
-    
+
     def __unicode__(self):
         return '<%s,%s:%s>'%(self.id,self.outer_id,self.properties_alias or self.properties_name)
-    
+
     def clean(self):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
@@ -604,15 +616,15 @@ class ProductSku(models.Model):
     @property
     def name(self):
         return self.properties_alias or self.properties_name
-    
+
     @property
     def BARCODE(self):
         return self.barcode.strip() or '%s%s'%(self.product.outer_id.strip(),
                                                self.outer_id.strip())
-    
+
     def get_supplier_outerid(self):
         return re.sub('-[0-9]$', '', self.outer_id)
-        
+
     @property
     def realnum(self):
         if self.remain_num >= self.sale_num:
@@ -1264,3 +1276,35 @@ class ImageWaterMark(models.Model):
         db_table = u'image_watermark'
         verbose_name = u'图片水印'
         verbose_name_plural = u'图片水印'
+
+
+
+class ProductSchedule(AdminModel):
+    r"""
+    商品排期
+    """
+    SCHEDULE_TYPE_CHOICES = [
+        (1, u'原始排期'),
+        (2, u'秒杀排期')
+    ]
+
+    STATUS_CHOICES = [
+        (0, u'无效'),
+        (1, u'有效')
+    ]
+
+    product = models.ForeignKey('Product', related_name='schedules', verbose_name=u'关联商品')
+    onshelf_datetime = models.DateTimeField(verbose_name=u'上架时间')
+    onshelf_date = models.DateField(verbose_name=u'上架日期')
+    onshelf_hour = models.IntegerField(verbose_name=u'上架时间')
+    offshelf_datetime = models.DateTimeField(verbose_name=u'下架时间')
+    offshelf_date = models.DateField(verbose_name=u'下架日期')
+    offshelf_hour = models.IntegerField(verbose_name=u'下架时间')
+    schedule_type = models.SmallIntegerField(choices=SCHEDULE_TYPE_CHOICES, default=1, verbose_name=u'排期类型')
+    status = models.SmallIntegerField(choices=STATUS_CHOICES, default=1, verbose_name=u'状态')
+    sale_type = models.SmallIntegerField(choices=constants.SALE_TYPES, default=1, verbose_name=u'促销类型')
+
+    class Meta:
+        db_table = 'shop_items_schedule'
+        verbose_name = u'商品上下架排期管理'
+        verbose_name_plural = u'商品上下架排期管理列表'

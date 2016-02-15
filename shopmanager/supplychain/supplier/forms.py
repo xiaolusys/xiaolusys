@@ -1,6 +1,9 @@
-# -*- coding:utf8 -*-
-from django.core.validators import RegexValidator
+# coding: utf-8
+
 from django import forms
+from django.core.validators import RegexValidator
+
+from core.forms import BaseForm
 from .models import SaleSupplier, SupplierZone
 
 
@@ -32,3 +35,17 @@ class SaleSupplierForm(forms.ModelForm):
 
     class Meta:
         model = SaleSupplier
+
+
+class ScheduleBatchSetForm(BaseForm):
+    is_watermark = forms.BooleanField(required=False)
+    cancel_watermark = forms.BooleanField(required=False)
+    is_seckill = forms.BooleanField(required=False)
+    cancel_seckill = forms.BooleanField(required=False)
+    is_recommend = forms.BooleanField(required=False)
+    cancel_recommend = forms.BooleanField(required=False)
+    rebeta_schema_id = forms.IntegerField(required=False)
+    price = forms.FloatField(required=False)
+    order_weight = forms.IntegerField(required=False)
+    sync_stock = forms.BooleanField(required=False)
+    sale_product_ids = forms.CharField(required=False, initial='[]')

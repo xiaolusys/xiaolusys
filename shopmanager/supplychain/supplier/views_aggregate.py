@@ -1,7 +1,10 @@
-# -*- encoding:utf8 -*-
+# coding: utf-8
+
 from django.views.generic import View
 from django.shortcuts import HttpResponse, render_to_response, redirect
 from django.template import RequestContext
+from django.utils.safestring import mark_safe
+
 from flashsale.pay.models_custom import ModelProduct, Productdetail
 from shopback.items.models import Product
 from django.db import transaction
@@ -11,9 +14,26 @@ from supplychain.supplier.models import SaleProduct
 
 class AggregateProductView(View):
     def get(self, request, pk):
+        from shopback.items.local_cache import rebeta_schema_cache
+
+        schema_mapping = {i['id']:i['name'] for i in rebeta_schema_cache.schemas}
         s = SaleProduct.objects.filter(id=pk)
 
         all_product = Product.objects.filter(sale_product=pk, status=Product.NORMAL)
+        #Todo: 给每个product设置misc
+        for p in all_product:
+            miscs = []
+            miscs.append('<span>库存数：%s</span>' % p.collect_num)
+            miscs.append('<span>预留数：%s</span>' % p.remain_num)
+            miscs.append('<span>水印：%s</span>' % ('是' if p.is_watermark else '否', ))
+            if hasattr(p, 'details'):
+                miscs.append('<span>秒杀：%s</span>' % ('是' if p.details.is_seckill else '否', ))
+                miscs.append('<span>专区推荐：%s</span>' % ('是' if p.details.is_recommend else '否', ))
+                if p.details.rebeta_scheme_id:
+                    schema = schema_mapping.get(p.details.rebeta_scheme_id) or ''
+                    if schema:
+                        miscs.append('<span>返利计划：%s</span>' % schema)
+            p.misc = mark_safe('<br>'.join(miscs))
         return render_to_response("aggregate_product.html",
                                   {"sale_product": s[0] if s.count() > 0 else None, "all_product": all_product},
                                   context_instance=RequestContext(request))
@@ -42,4 +62,3 @@ class GetProductView(View):
         return render_to_response("aggregate_product.html",
                                   {"sale_product": s[0] if s.count() > 0 else None},
                                   context_instance=RequestContext(request))
-
