@@ -1,3 +1,5 @@
+######## 2016-02-15 ########
+alter table flashsale_activity_entry add column login_required tinyint(1) NOT NULL;
 ######## 2016-02-03 ########
 alter table shop_weixin_unionid add column modified datetime NOT NULL;
 
