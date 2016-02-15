@@ -23,6 +23,9 @@ def fetch_weixin_userinfo(sender, resp_data, *args, **kwargs):
     
     from .tasks import task_Update_Weixin_Userinfo
     openid = resp_data.get('openid')
+    if not openid:
+        return 
+    
     if resp_data.has_key('access_token'):
         task_Update_Weixin_Userinfo.s(openid,
                                       accessToken=resp_data.get('access_token'))()
