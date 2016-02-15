@@ -136,7 +136,6 @@ class Product(models.Model):
     is_assign    = models.BooleanField(default=False,verbose_name=u'取消警告')
     post_check   = models.BooleanField(default=False,verbose_name=u'需扫描')
     is_watermark = models.BooleanField(default=False, verbose_name=u'图片水印')
-    is_seckill = models.BooleanField(default=False, verbose_name=u'是否秒杀')
     status       = models.CharField(max_length=16,db_index=True,
                                     choices=ONLINE_PRODUCT_STATUS,
                                     default=pcfg.NORMAL,verbose_name=u'商品状态')

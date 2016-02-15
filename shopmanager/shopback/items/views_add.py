@@ -23,8 +23,7 @@ from shopback.categorys.models import ProductCategory
 from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    ProductSkuContrast, ContrastContent)
 from shopback.base import log_action, ADDITION, CHANGE
-from supplychain.supplier.models import SaleSupplier
-from supplychain.supplier.models import SaleProduct
+from supplychain.supplier.models import SaleSupplier, SaleProduct
 
 from . import constants, forms, local_cache
 
@@ -510,7 +509,6 @@ class ProductScheduleView(generics.ListCreateAPIView):
         row.outer_id = row.product.outer_id
         row.model_id = row.product.model_id
         row.product_id = 0
-        row.is_seckill = row.product.is_seckill
         row.is_watermark = row.product.is_watermark
         row.sale_name = cls.sale_type_mapping.get(row.sale_type) or ''
         return row
@@ -776,12 +774,12 @@ class ProductScheduleAPIView(generics.ListCreateAPIView):
                 return Response({'success': False})
             row = rows[0]
             if form.cleaned_attrs.flag:
-                row.is_seckill = True
+                #row.is_seckill = True
                 if not row.name.startswith('秒杀'):
                     row.name = '秒杀' + row.name
                     row.memo += u'秒杀商品，一经售出，概不退换'
             else:
-                row.is_seckill = False
+                #row.is_seckill = False
                 if row.name.startswith('秒杀'):
                     row.name = row.name.replace('秒杀', '').lstrip()
                     row.memo = row.memo.replace(u'秒杀商品，一经售出，概不退换', u'')

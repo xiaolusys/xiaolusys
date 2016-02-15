@@ -38,11 +38,24 @@
              border-radius: 5px;
              border: 1px solid #c6c5c2;
          }
-
+         #panel-batch-set {
+	     position: fixed;
+	     height: 190px;
+	     bottom: 0px;
+	     width: 100%;
+	     text-align: center;
+	     z-index: 1;
+         }
+         #panel-batch-set form {
+             background-color: #fff68f;
+         }
+         a.buyer-takeover {
+             margin-top: 20px;
+         }
         </style>
     </head>
     <body>
-        <div class="container" style="margin-top: 20px">
+        <div class="container" style="margin-top:20px;margin-bottom:80px">
             <form action="/supplychain/supplier/manage_schedule/" method="get">
                 <div class="row">
                     <div class="col-xs-2">
@@ -87,20 +100,34 @@
                     </div>
                     <table class="table table-bordered" id="content_{{ one_data.date }}">
                         <thead>
-                            <th width="2%">计数</th>
+                        <tr class="mine">
+                            <th width="3%" style="text-align:center">
+                                计数
+                                <input type="checkbox" class="check-all">
+                            </th>
                             <th width="4%">类别</th>
                             <th width="4%">图片/链接</th>
                             <th width="4%">选品备注</th>
                             <th width="10%">名称</th>
                             <th width="10%">平面信息</th>
-                            <th width="10%">尺码</th>
+                            <th width="14%">
+                                尺码
+                                {% if show_buyer_btn %}
+                                <a href="javascript:;" class="btn btn-warning btn-sm buyer-mine">看我的</a>
+                                <a href="javascript:;" class="btn btn-primary btn-sm buyer-all">看全部</a>
+                                {% endif %}
+                            </th>
                             <th width="10%">上架名称</th>
                             <th width="3%">主图</th>
                             <th width="10%">操作</th>
+                        </tr>
                         </thead>
                         {% for data1 in one_data.data %}
                         <tr {% if data1.design_complete %}bgcolor="#CCFFFF"{% endif %}>
-                            <td><span style="font-size: 20px">{{ forloop.counter }}</span></td>
+                            <td style="text-align:center">
+                                <span style="font-size: 20px">{{ forloop.counter }}</span>
+                                <input type="checkbox" class="check-item" data-sale-product="{{data1.sale_product_id}}">
+                            </td>
                             <td>{{ data1.sale_category }}</td>
                             <td>
                                 <a href="{{ data1.product_link }}" target="_blank">
@@ -116,8 +143,16 @@
                                       class="color_{{ data1.sale_product_id }}"></span><br><br>
                                 <span style="color: #008000" class="low_price_{{ data1.sale_product_id }}"></span><br>
                                 <span style="color: #0000ff" class="purchase_price_{{ data1.sale_product_id }}">标准采购价：{{data1.std_purchase_price}}</span><br>
+                                <span style="color:#8b008b" class="sale_product_price_{{ data1.sale_product_id }}"></span><br>
+                                <br>
+                                <span style="color:#008000" class="sale_product_is_watermark_{{ data1.sale_product_id }}"></span><br>
+                                <span style="color:#0000ff" class="sale_product_is_seckill_{{ data1.sale_product_id }}"></span><br>
+                                <span style="color:#8b008b" class="sale_product_is_recommend_{{ data1.sale_product_id }}"></span><br>
+                                <br>
+                                <span style="color:#008000" class="sale_product_order_weight_{{ data1.sale_product_id }}"></span><br>
+                                <span style="color:#0000ff" class="sale_product_rebeta_schema_{{ data1.sale_product_id }}"></span><br>
                             </td>
-                            <td><span class="sku_{{ data1.sale_product_id }}"></span><br>
+                            <td class="buyer_{{ data1.sale_product_id }}"><span class="sku_{{ data1.sale_product_id }}"></span><br>
                                 <span style="color: #1c020b" class="sale_charger_{{ data1.sale_product_id }}"></span>
                             </td>
                             <td>
@@ -200,7 +235,7 @@
             <div class="modal-dialog modal-sm">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <form id="form-pic-rating">
+                        <form id="form-pic-rating" method="post">
                             <div class="form-group">
                                 <label for="input-pic-rating" class="control-label">评分:</label>
                                 <input class="form-control" id="input-pic-rating" type="number">
@@ -217,8 +252,93 @@
                 </div>
             </div><!-- modal-dialog -->
         </div><!-- modal -->
+        <div id="panel-batch-set" class="collapse">
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <form class="form well" id="batch-set-form" action="/supplychain/supplier/schedule_batch_set/" method="post">
+                        <input type="hidden" name="sale_product_ids" id="sale-product-ids" value="[]">
+                        <div class="form-group row">
+                            <div class="col-md-1">
+                                <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="is_watermark">设置水印</label></div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="cancel_watermark">取消水印</label></div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <span class="input-group-addon">￥</span>
+                                    <input type="text" class="form-control" placeholder="售价" name="price">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <select class="form-control" name="rebeta_schema_id">
+                                    <option selected="selected" value>选择返利计划</option>
+                                    {% for item in schemas %}
+                                    <option value="{{item.id}}">{{item.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-1">
+                                <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="is_seckill">设置秒杀</label></div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="cancel_seckill">取消秒杀</label></div>
+                            </div>
+                            <div class="col-md-5">
+                                <select class="form-control" name="order_weight">
+                                    <option selected="selected" value>选择权重</option>
+                                    {% for item in order_weights %}
+                                    <option value="{{item.id}}">{{item.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-1">
+                                <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="is_recommend">专区推荐</label></div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="cancel_recommend">取消专区</label></div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="sync_stock">同步库存</label></div>
+                            </div>
+                            <div class="col-md-4"></div>
+                            <div class="col-md-2">
+                                <a class="btn btn-block btn-default" id="btn-cancel-batchset" href="javascript:;" role="button">取消</a>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary btn-block" id="btn-batchset">确定</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         <script src="/static/wap/js/sweet-alert.min.js"></script>
         <script>
+         function buyerTakeOver(sale_product_id){
+             swal({
+                 title: "接管",
+                 text: "要接管吗？",
+                 type: "warning",
+                 showCancelButton: true,
+                 confirmButtonText: "确认接管",
+                 cancelButtonText: "取消"
+             }, function(){
+                 $.ajax({
+                     url: '/supplychain/supplier/sale_product_api/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {sale_product: sale_product_id, type: 5},
+                     complete: function(){
+                         window.location.reload();
+                     }
+                 });
+             });
+         }
          $(function () {
              $(".datepicker").datepicker({
                  dateFormat: "yy-mm-dd"
@@ -368,6 +488,9 @@
          function ajaxProduct(sale_product_id) {
              var requestUrl = "/supplychain/supplier/sale_product_api/";
              var data = {"sale_product": sale_product_id};
+             var TAKEOVER_BTN_TPL = _.template('<a href="javascript:buyerTakeOver(<%= sale_product_id %>);" class="btn btn-danger btn-block buyer-takeover">接管</a>');
+             var ADD_PRODUCT_BTN_TPL = _.template('<a href="<%= add_product_url %>" target="_blank" class="btn btn-success btn-block">录入资料</a>');
+             var SPAN_TPL = _.template('<span><%= value %></span>');
              $.ajax({
                  async: true,
                  type: "GET",
@@ -378,20 +501,47 @@
                  error: function () {
                  },
                  success: function (result) {
+                     var buyer_spans = [];
                      if (result.flag == "done") {
                          $(".name_" + sale_product_id).html(result.name);
-                         $(".sku_" + sale_product_id).html(result.sku_list);
+                         //$(".sku_" + sale_product_id).html(result.sku_list);
                          $(".color_" + sale_product_id).html(result.color_list);
-                         $(".sale_charger_" + sale_product_id).html("资料负责：" + result.sale_charger);
+                         //$(".sale_charger_" + sale_product_id).html("资料负责：" + result.sale_charger);
                          $(".zhutu_" + sale_product_id).attr("src", result.zhutu);
                          $(".low_price_" + sale_product_id).html("出售最低价：" + result.lowest_price);
+
+                         $('.sale_product_is_watermark_' + sale_product_id).html(result.sale_product_is_watermark);
+                         $('.sale_product_is_seckill_' + sale_product_id).html(result.sale_product_is_seckill);
+                         $('.sale_product_is_recommend_' + sale_product_id).html(result.sale_product_is_recommend);
+                         $('.sale_product_order_weight_' + sale_product_id).html(result.sale_product_order_weight);
+                         $('.sale_product_price_' + sale_product_id).html(result.sale_product_price);
+                         $('.sale_product_rebeta_schema_' + sale_product_id).html(result.sale_product_rebeta_schema);
                          if (result.single_model) {
                              $(".preview_page_" + sale_product_id).attr("href", "/static/wap/pages/shangpinxq.html?id=" + result.product_id);
                          } else {
                              $(".preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id=" + result.model_id);
                          }
                          $(".chuantu_page_" + sale_product_id).attr("href", "/mm/add_aggregeta/?search_model=" + result.model_id);
+                         buyer_spans.push(SPAN_TPL({value: result.sku_list}));
+                         buyer_spans.push(SPAN_TPL({value: '资料负责：' + result.sale_charger}));
                      }
+                     else if(result.flag == 'working'){
+                         if(result.librarian){
+                             buyer_spans.push(SPAN_TPL({value: '接管人：' + result.librarian}));
+                             if(result.librarian == result.username){
+                                 buyer_spans.push(ADD_PRODUCT_BTN_TPL({add_product_url: result.add_product_url}));
+                             }
+                         }
+                         else{
+                             if(result.show_buyer_btn){
+                                 buyer_spans.push(TAKEOVER_BTN_TPL({sale_product_id: sale_product_id}));
+                             }
+                         }
+                     }
+                     if(result.librarian && result.librarian == result.username){
+                         $('.name_' + sale_product_id).closest('tr').addClass('mine');
+                     }
+                     $('td.buyer_' + sale_product_id).html(buyer_spans.join('<br>'));
                  }
              });
          }
@@ -473,6 +623,48 @@
                          }
                      });
                  }
+             });
+             $('.check-item').change(function(){
+                 if($(this).closest('table').find(':checked').length)
+                     $('#panel-batch-set').collapse('show');
+                 else
+                     $('#panel-batch-set').collapse('hide');
+             });
+
+             $('.check-all').change(function(){
+                 var items = $(this).closest('table').find('.check-item');
+                 items.prop('checked', $(this).prop('checked'));
+                 items.first().trigger('change');
+             });
+
+             $('#batch-set-form').submit(function(){
+                 var sale_product_ids = [];
+                 $('.check-item:checked').each(function(){
+                     sale_product_ids.push($(this).attr('data-sale-product') - 0)
+                 });
+                 $('#sale-product-ids').val(JSON.stringify(sale_product_ids));
+                 $.ajax({
+                     url: '/supplychain/supplier/schedule_batch_set/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: $('#batch-set-form').serialize(),
+                     complete: function(){
+                         window.location.reload();
+                     }
+                 });
+                 return false;
+             });
+             $('#btn-cancel-batchset').click(function(){
+                 $('.check-item:checked').prop('checked', false);
+                 $('.check-all:checked').prop('checked', false);
+                 $('#panel-batch-set').collapse('hide');
+             });
+
+             $('a.buyer-mine').click(function(){
+                 $(this).closest('table').find('tr:not(.mine)').hide();
+             });
+             $('a.buyer-all').click(function(){
+                 $(this).closest('table').find('tr').show();
              });
          });
         </script>

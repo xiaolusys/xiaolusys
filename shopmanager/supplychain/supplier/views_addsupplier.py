@@ -1,6 +1,7 @@
 # coding: utf-8
-
+import datetime
 import json
+import urllib
 
 from rest_framework import generics
 from shopback.categorys.models import ProductCategory
@@ -10,13 +11,15 @@ from rest_framework import permissions
 from rest_framework.response import Response
 
 from django.db import transaction
-
-from shopback.base import log_action, ADDITION, CHANGE
 from django.db.models import F, Q
+
+from flashsale.pay.models_custom import Productdetail
+from shopback.base import log_action, ADDITION, CHANGE
 from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail, \
     SupplierZone, SaleProductPicRatingMemo
-import datetime
 from supplychain.supplier.models import SaleProduct
+
+from . import forms
 
 
 class AddSupplierView(generics.ListCreateAPIView):
@@ -29,9 +32,9 @@ class AddSupplierView(generics.ListCreateAPIView):
         process_choice = SaleSupplier.PROGRESS_CHOICES
         all_category = SaleCategory.objects.filter()
         zones = SupplierZone.objects.all()
-        return Response({"platform_choice": platform_choice, 
+        return Response({"platform_choice": platform_choice,
                          "all_category": all_category,
-                         "process_choice": process_choice, 
+                         "process_choice": process_choice,
                          "supplier_types": SaleSupplier.SUPPLIER_TYPE,
                          "zones": zones})
 
@@ -52,10 +55,19 @@ class AddSupplierView(generics.ListCreateAPIView):
         supplier_type = post.get("supplier_type", 0)
         supplier_zone = post.get("supplier_zone", 0)
 
-        new_supplier = SaleSupplier(supplier_name=supplier_name, supplier_code=supplier_code, main_page=main_page,
-                                    platform=platform, category_id=category, contact=contact_name, mobile=mobile,
-                                    address=address, memo=memo, progress=progress, speciality=speciality,
-                                    supplier_type=supplier_type, supplier_zone=supplier_zone)
+        new_supplier = SaleSupplier(supplier_name=supplier_name,
+                                    supplier_code=supplier_code,
+                                    main_page=main_page,
+                                    platform=platform,
+                                    category_id=category,
+                                    contact=contact_name,
+                                    mobile=mobile,
+                                    address=address,
+                                    memo=memo,
+                                    progress=progress,
+                                    speciality=speciality,
+                                    supplier_type=supplier_type,
+                                    supplier_zone=supplier_zone)
         new_supplier.save()
         log_action(request.user.id, new_supplier, ADDITION, u'新建'.format(""))
         return Response({"supplier_id": new_supplier.id})
@@ -68,11 +80,13 @@ class CheckSupplierView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         post = request.POST
         supplier_name = post.get("supplier_name", "")
-        suppliers = SaleSupplier.objects.filter(supplier_name__contains=supplier_name)
+        suppliers = SaleSupplier.objects.filter(
+            supplier_name__contains=supplier_name)
         if suppliers.count() > 10:
             return Response({"result": "more"})
         if suppliers.count() > 0:
-            return Response({"result": "10", "supplier": [s.supplier_name for s in suppliers]})
+            return Response({"result": "10",
+                             "supplier": [s.supplier_name for s in suppliers]})
         return Response({"result": "0"})
 
 
@@ -87,7 +101,8 @@ def get_target_date_detail(target_date, category):
     except:
         return "", "", ""
     try:
-        goodshelf = GoodShelf.objects.get(active_time__range=(target_date, end_time))
+        goodshelf = GoodShelf.objects.get(
+            active_time__range=(target_date, end_time))
         wem_posters_list = goodshelf.wem_posters
         if wem_posters_list:
             wem_posters = wem_posters_list[0]["pic_link"]
@@ -116,16 +131,32 @@ class ScheduleManageView(generics.ListCreateAPIView):
     template_name = "schedulemanage.html"
 
     def get(self, request, *args, **kwargs):
-        target_date_str = request.GET.get("target_date", datetime.date.today().strftime("%Y-%m-%d"))
+        from shopback.items.local_cache import rebeta_schema_cache
+
+        target_date_str = request.GET.get(
+            "target_date", datetime.date.today().strftime("%Y-%m-%d"))
         category = request.GET.get("category", "0")
         result_data = []
         target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
         for i in range(0, 6):
             temp_date = target_date + datetime.timedelta(days=i)
-            one_data, wem_posters, chd_posters, target_sch = get_target_date_detail(temp_date, category)
-            result_data.append({"data": one_data, "date": temp_date.strftime("%Y-%m-%d"),
-                                "wem_posters": wem_posters, "chd_posters": chd_posters})
-        return Response({"result_data": result_data, "target_date": target_date_str, "category": category, 'show_pic_rating_btn': request.user.has_perm('supplier.pic_rating')})
+            one_data, wem_posters, chd_posters, target_sch = get_target_date_detail(
+                temp_date, category)
+            result_data.append({"data": one_data,
+                                "date": temp_date.strftime("%Y-%m-%d"),
+                                "wem_posters": wem_posters,
+                                "chd_posters": chd_posters})
+
+        return Response(
+            {"result_data": result_data,
+             "target_date": target_date_str,
+             "category": category,
+             'show_pic_rating_btn': request.user.has_perm(
+                 'supplier.pic_rating'),
+             'schemas': rebeta_schema_cache.schemas,
+             'order_weights': [{'id': i,
+                                'name': i} for i in range(1, 17)[::-1]],
+             'show_buyer_btn': request.user.has_perm('supplier.add_product')})
 
 
 class ScheduleCompareView(generics.ListCreateAPIView):
@@ -135,7 +166,8 @@ class ScheduleCompareView(generics.ListCreateAPIView):
     template_name = "schedulecompare.html"
 
     def get(self, request, *args, **kwargs):
-        target_date_str = request.GET.get("target_date", datetime.date.today().strftime("%Y-%m-%d"))
+        target_date_str = request.GET.get(
+            "target_date", datetime.date.today().strftime("%Y-%m-%d"))
         target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
         try:
             end_time = target_date + datetime.timedelta(days=1)
@@ -144,12 +176,15 @@ class ScheduleCompareView(generics.ListCreateAPIView):
         lock_schedule = SaleProductManage.objects.filter(sale_time=target_date)
         if lock_schedule.count() == 0:
             return Response({"result": "0", "target_date": target_date_str})
-        now_sachedule = SaleProduct.objects.filter(sale_time__gte=target_date, sale_time__lt=end_time,
+        now_sachedule = SaleProduct.objects.filter(sale_time__gte=target_date,
+                                                   sale_time__lt=end_time,
                                                    status=SaleProduct.SCHEDULE)
-        lock_list = set([one_product.sale_product_id for one_product in lock_schedule[0].normal_detail])
+        lock_list = set([one_product.sale_product_id
+                         for one_product in lock_schedule[0].normal_detail])
         now_list = set([one_product.id for one_product in now_sachedule])
         result_list = (lock_list | now_list) - (lock_list & now_list)
-        return Response({"result_data": result_list, "target_date": target_date_str})
+        return Response({"result_data": result_list,
+                         "target_date": target_date_str})
 
 
 class SaleProductAPIView(generics.ListCreateAPIView):
@@ -165,12 +200,29 @@ class SaleProductAPIView(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
+        from shopback.items.local_cache import rebeta_schema_cache
+
         sale_product_id = request.GET.get("sale_product")
         if not sale_product_id:
             return Response({"flag": "error"})
-        all_product = Product.objects.filter(status=Product.NORMAL, sale_product=sale_product_id)
+        sale_product = SaleProduct.objects.get(pk=sale_product_id)
+        librarian = sale_product.librarian or ''
+        supplier_id = sale_product.sale_supplier_id
+        add_product_url = '%s?%s' % (
+            '/static/add_item.html',
+            urllib.urlencode({'supplier_id': supplier_id,
+                              'saleproduct': sale_product_id}))
+
+        all_product = Product.objects.filter(status=Product.NORMAL,
+                                             sale_product=sale_product_id)
         if all_product.count() == 0:
-            return Response({"flag": "working"})
+            return Response({
+                'flag': 'working',
+                'librarian': librarian,
+                'username': request.user.username,
+                'add_product_url': add_product_url,
+                'show_buyer_btn': request.user.has_perm('supplier.add_product')
+            })
         color_list = all_product[0].details.color
         sku_list = ""
         for one_sku in all_product[0].normal_skus:
@@ -195,22 +247,96 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                 zhutu = all_product[0].details.head_imgs.split()[0]
             except:
                 zhutu = ""
-        return Response({"flag": "done",
-                         "color_list": color_list,
-                         "sku_list": sku_list,
-                         "name": name,
-                         "zhutu": zhutu,
-                         "lowest_price": lowest_price,
-                         "std_sale_price": std_sale_price,
-                         "sale_charger": sale_charger,
-                         "std_purchase_price": std_purchase_price,
-                         "model_id": model_id,
-                         "single_model": single_model,
-                         "product_id": product_id})
+
+        # productdetail
+        schema_mapping = {i['id']: i['name']
+                          for i in rebeta_schema_cache.schemas}
+        watermark_set = set()
+        seckill_set = set()
+        recommend_set = set()
+        order_weights = []
+        total_price = []
+        schema_set = set()
+        for p in all_product:
+            watermark_set.add(p.is_watermark)
+            if p.agent_price:
+                total_price.append(p.agent_price)
+            if hasattr(p, 'details'):
+                seckill_set.add(p.details.is_seckill)
+                recommend_set.add(p.details.is_recommend)
+                order_weights.append(p.details.order_weight or 0)
+                schema = schema_mapping.get(p.details.rebeta_scheme_id) or ''
+                if schema:
+                    schema_set.add(schema)
+
+        sale_product_is_watermark = ''
+        sale_product_is_seckill = ''
+        sale_product_is_recommend = ''
+        sale_product_order_weight = ''
+        sale_product_price = ''
+        sale_product_rebeta_schema = ''
+        if len(watermark_set) > 1:
+            sale_product_is_watermark = '水印：不一致'
+        elif len(watermark_set) == 1:
+            sale_product_is_watermark = '水印：%s' % ('是' if watermark_set.pop()
+                                                   else '否',)
+        if len(seckill_set) > 1:
+            sale_product_is_seckill = '秒杀：不一致'
+        elif len(seckill_set) == 1:
+            sale_product_is_seckill = '秒杀：%s' % ('是'
+                                                 if seckill_set.pop() else '否',)
+        if len(recommend_set) > 1:
+            sale_product_is_recommend = '专区推荐：不一致'
+        elif len(recommend_set) == 1:
+            sale_product_is_recommend = '专区推荐：%s' % ('是' if recommend_set.pop()
+                                                     else '否',)
+        if len(schema_set) > 1:
+            sale_product_rebeta_schema = '返利计划：不一致'
+        elif len(schema_set) == 1:
+            sale_product_rebeta_schema = '返利计划：%s' % schema_set.pop()
+
+        order_weights = filter(None, order_weights)
+        if order_weights:
+            avg_order_weight = round(sum(order_weights) / len(order_weights), 2)
+        if avg_order_weight:
+            sale_product_order_weight = '权值：%.2f' % avg_order_weight
+        total_price = filter(None, total_price)
+        if total_price:
+            sale_product_price = '出售平均价：%.2f' % (sum(total_price) /
+                                                 len(total_price),)
+        return Response(
+            {"flag": "done",
+             "color_list": color_list,
+             "sku_list": sku_list,
+             "name": name,
+             "zhutu": zhutu,
+             "lowest_price": lowest_price,
+             "std_sale_price": std_sale_price,
+             "sale_charger": sale_charger,
+             "std_purchase_price": std_purchase_price,
+             "model_id": model_id,
+             "single_model": single_model,
+             "product_id": product_id,
+             'sale_product_is_watermark': sale_product_is_watermark,
+             'sale_product_is_seckill': sale_product_is_seckill,
+             'sale_product_is_recommend': sale_product_is_recommend,
+             'sale_product_order_weight': sale_product_order_weight,
+             'sale_product_price': sale_product_price,
+             'sale_product_rebeta_schema': sale_product_rebeta_schema,
+             'librarian': librarian,
+             'show_buyer_btn': request.user.has_perm('supplier.add_product'),
+             'add_product_url': add_product_url,
+             'username': request.user.username})
 
     def post(self, request, *args, **kwargs):
         detail = request.POST.get("detail_id")
         type = request.POST.get("type")
+        sale_product_id = request.POST.get('sale_product')
+        if type == '5':
+            SaleProduct.objects.filter(pk=int(sale_product_id), librarian__isnull=True).update(
+                librarian=request.user.username)
+            return Response({'result': u'ok'})
+
         try:
             detail_product = SaleProductManageDetail.objects.get(id=detail)
         except:
@@ -222,7 +348,8 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             detail_product.design_take_over = SaleProductManageDetail.TAKEOVER
             detail_product.save()
             log_action(request.user.id, detail_product, CHANGE, u'接管')
-            return Response({"result": u"success", "username": request.user.username})
+            return Response({"result": u"success",
+                             "username": request.user.username})
         elif type == "2":
             if detail_product.design_complete:
                 return Response({"result": u"alreadycomplete"})
@@ -254,12 +381,80 @@ class SaleProductAPIView(generics.ListCreateAPIView):
 
             pic_rating_memo = None
             if memo:
-                pic_rating_memo = SaleProductPicRatingMemo(memo=memo, user=request.user, schedule_detail=detail_product)
+                pic_rating_memo = SaleProductPicRatingMemo(
+                    memo=memo,
+                    user=request.user,
+                    schedule_detail=detail_product)
                 pic_rating_memo.save()
 
             detail_product.pic_rating = rating
             detail_product.save()
-            result = {} if not pic_rating_memo else {'memo': unicode(pic_rating_memo)}
+            result = {} if not pic_rating_memo else {'memo':
+                                                     unicode(pic_rating_memo)}
             return Response(result)
 
         return Response({"result": u"error"})
+
+
+class ScheduleBatchSetView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        form = forms.ScheduleBatchSetForm(request.POST)
+        if not form.is_valid():
+            return Response('fail')
+
+        sale_product_ids = json.loads(form.cleaned_attrs.sale_product_ids)
+        for row in Product.objects.filter(sale_product__in=sale_product_ids):
+            is_dirty = False
+            if form.cleaned_attrs.price:
+                is_dirty = True
+                row.agent_price = form.cleaned_attrs.price
+            if form.cleaned_attrs.is_watermark:
+                is_dirty = True
+                row.is_watermark = True
+            if form.cleaned_attrs.cancel_watermark:
+                is_dirty = True
+                row.is_watermark = False
+
+            if form.cleaned_attrs.sync_stock:
+                is_dirty = True
+                row.remain_num = row.collect_num
+            if is_dirty:
+                row.save()
+
+            is_dirty = False
+            product_detail, _ = Productdetail.objects.get_or_create(product=row)
+            if form.cleaned_attrs.is_recommend:
+                is_dirty = True
+                product_detail.is_recommend = True
+            if form.cleaned_attrs.cancel_recommend:
+                is_dirty = True
+                product_detail.is_recommend = False
+
+            if form.cleaned_attrs.rebeta_schema_id:
+                is_dirty = True
+                product_detail.rebeta_scheme_id = form.cleaned_attrs.rebeta_schema_id
+            if form.cleaned_attrs.order_weight:
+                is_dirty = True
+                product_detail.order_weight = form.cleaned_attrs.order_weight
+            if form.cleaned_attrs.is_seckill:
+                is_dirty = True
+                product_detail.is_seckill = True
+                if not row.name.startswith('秒杀'):
+                    row.name = '秒杀 ' + row.name
+                row.memo = row.memo.replace(u'秒杀商品，一经售出，概不退换', u'')
+                row.memo += u'秒杀商品，一经售出，概不退换'
+                row.save()
+            if form.cleaned_attrs.cancel_seckill:
+                is_dirty = True
+                product_detail.is_seckill = False
+                if row.name.startswith('秒杀'):
+                    row.name = row.name.replace('秒杀', '').lstrip()
+                row.memo = row.memo.replace(u'秒杀商品，一经售出，概不退换', u'')
+                row.save()
+
+            if is_dirty:
+                product_detail.save()
+        return Response('ok')

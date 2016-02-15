@@ -61,7 +61,7 @@ class SaleSupplier(models.Model):
         (CHARGED, u'已接管'),
         (FROZEN, u'已冻结'),
     )
-    
+
     LEVEL_BEST = 100
     LEVEL_BETTER = 80
     LEVEL_GOOD = 60
@@ -113,9 +113,9 @@ class SaleSupplier(models.Model):
     WHOLESALER = 2
     BRAND_OWNER = 3
     CLOTHING_FACTORY = 4
-    SUPPLIER_TYPE = ((NO_TYPE, u'未分类'), 
-                     (MANUFACTURER, u'生产加工'), 
-                     (WHOLESALER, u'经销批发'), 
+    SUPPLIER_TYPE = ((NO_TYPE, u'未分类'),
+                     (MANUFACTURER, u'生产加工'),
+                     (WHOLESALER, u'经销批发'),
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
 
@@ -427,6 +427,7 @@ class SaleProductManageDetail(models.Model):
         permissions = [
             ("revert_done", u"反完成"),
             ('pic_rating', u'作图评分'),
+            ('add_product', u'加入库存商品'),
             ('reset_head_img', u'重置头图')
         ]
     def __unicode__(self):
