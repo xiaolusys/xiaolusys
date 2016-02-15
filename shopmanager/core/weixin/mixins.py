@@ -14,6 +14,13 @@ class WeixinAuthMixin(object):
     _wxpubid = settings.WEIXIN_APPID
     _wxpubsecret = settings.WEIXIN_SECRET
     
+    def is_from_weixin(self, request):
+        if hasattr(self, '_isfromweixin'):
+            return self._isfromweixin
+        agent = request.META.get('HTTP_USER_AGENT', None)
+        self._isfromweixin = "MicroMessenger" in agent
+        return self._isfromweixin
+    
     def set_appid_and_secret(self,appid,appsecret):
         self._wxpubid = appid
         self._wxpubsecret = appsecret

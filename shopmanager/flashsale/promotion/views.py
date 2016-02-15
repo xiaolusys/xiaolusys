@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404
 
 from flashsale.restpro.options import gen_and_save_jpeg_pic
 from core.weixin.mixins import WeixinAuthMixin
+from core.weixin.options import set_cookie_openid
 
 from flashsale.pay.models import Customer
 from shopapp.weixin.views import get_user_openid, valid_openid
@@ -37,7 +38,7 @@ def get_active_pros_data():
     return data
 
 
-class XLSampleapplyView(View):
+class XLSampleapplyView(WeixinAuthMixin, View):
     xlsampleapply = 'promotion/xlsampleapply.html'
 
     vipcode_default_message = u'请输入邀请码'
@@ -52,19 +53,22 @@ class XLSampleapplyView(View):
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
-        if "MicroMessenger" in agent:  # 如果是在微信里面
-            weixi = WeixinAuthMixin()
-            openid, unionid = weixi.get_openid_and_unionid(request)  # 获取用户的openid, unionid
-            if not weixi.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
-                return redirect(weixi.get_wxauth_redirct_url(request))
+        if self.is_from_weixin(request):  # 如果是在微信里面
+            openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
+            if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
+                return redirect(self.get_wxauth_redirct_url(request))
 
         # 商品sku信息  # 获取商品信息到页面
         data = get_active_pros_data()  # 获取活动产品数据
         response = render_to_response(self.xlsampleapply,
-                                      {"vipcode": vipcode, 'from_customer': from_customer,
+                                      {"vipcode": vipcode, 
+                                       "from_customer": from_customer,
                                        "data": data,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
+        if self.is_from_weixin(request):
+            set_cookie_openid(response, self._wxpubid, openid, unionid)
+            
         return response
 
     def post(self, request):
@@ -77,11 +81,7 @@ class XLSampleapplyView(View):
         ufrom = content.get("ufrom", None)
         openid = None
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        if "MicroMessenger" in agent:  # 如果是在微信里面
-            weixi = WeixinAuthMixin()
-            openid, unionid = weixi.get_openid_and_unionid(request)  # 获取用户的openid, unionid
-            if not weixi.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
-                return redirect(weixi.get_wxauth_redirct_url(request))
+        openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
 
         data = get_active_pros_data()  # 获取活动产品数据
 

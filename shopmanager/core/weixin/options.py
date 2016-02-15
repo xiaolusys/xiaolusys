@@ -25,6 +25,13 @@ def get_cookie_openid(cookies,appid):
         return ('','')
     return (x[1], y[1])
 
+def set_cookie_openid(response,appid,openid,unionid):
+    sopenid = '%s|%s'%(appid,openid)
+    sunionid = '%s|%s'%(appid,unionid)
+    response.set_cookie("sopenid",sopenid)
+    response.set_cookie("sunionid",sunionid)
+    return response
+
 def get_weixin_userbaseinfo(code, appid, secret):
     """ 根据code获取用户openid信息 """
     userinfo_url = WEIXIN_SNS_BASEINFO_URI.format(
