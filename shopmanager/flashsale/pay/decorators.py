@@ -10,7 +10,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from django.conf import settings
 
-from core import options
+from core.weixin import options
 
 def sale_buyer_required(view_func):
     """

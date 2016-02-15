@@ -12,8 +12,8 @@ from django.http import HttpResponse
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 
-from core.mixins import WeixinAuthMixin
 from flashsale.restpro.options import gen_and_save_jpeg_pic
+from core.weixin.mixins import WeixinAuthMixin
 
 from flashsale.pay.models import Customer
 from shopapp.weixin.views import get_user_openid, valid_openid

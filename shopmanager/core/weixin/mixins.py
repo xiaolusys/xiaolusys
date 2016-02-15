@@ -1,3 +1,4 @@
+# coding:utf-8
 import re
 import json
 import urllib
@@ -23,7 +24,7 @@ class WeixinAuthMixin(object):
         if not OPENID_RE.match(openid):
             return False
         return True
-
+    
     def get_openid_and_unionid(self, request):
         code    = request.GET.get('code')
         return options.get_user_unionid(
@@ -34,6 +35,7 @@ class WeixinAuthMixin(object):
         )
     
     def get_wxauth_redirct_url(self,request,scope="snsapi_base"):
+        """ 微信网页基本授权 """
         absolute_url = request.build_absolute_uri().split('#')[0]
         absolute_url = re.sub('&?(code|state)=[\w]+','',absolute_url)
         params = dict([('appid',self._wxpubid),
@@ -44,6 +46,7 @@ class WeixinAuthMixin(object):
         return options.gen_weixin_redirect_url(params)
     
     def get_snsuserinfo_redirct_url(self,request):
+        """ 微信网页高级授权 """
         return self.get_wxauth_redirct_url(request,scope="snsapi_userinfo")
     
     
