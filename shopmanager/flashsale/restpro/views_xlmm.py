@@ -125,14 +125,19 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         # 今日订单
         t_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
         t_to = datetime.datetime(today.year, today.month, today.day, 23, 59, 59)
-        all_shops = StatisticsShopping.objects.filter(linkid=xlmm.id, status=StatisticsShopping.FINISHED)
+        all_shops = StatisticsShopping.objects.filter(linkid=xlmm.id, status__in=(StatisticsShopping.FINISHED,
+                                                                                  StatisticsShopping.WAIT_SEND))
         all_shop_num = all_shops.count()
         shop_num = all_shops.filter(shoptime__gte=t_from, shoptime__lte=t_to).count()  # 今日订单数量
+
+        # 计算今日点击金额
+        clk_money = xlmm.get_Mama_Click_Price(shop_num) * clk_num
+
         mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
         share_mmcode = self.gen_xlmm_share_qrcode_pic(xlmm.id)
         data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
                 "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num,
-                "share_mmcode": share_mmcode}
+                "share_mmcode": share_mmcode, "clk_money": clk_money}
         return Response(data)
 
 
