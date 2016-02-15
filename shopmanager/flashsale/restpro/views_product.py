@@ -547,7 +547,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             kwargs = {'agencylevel': xlmm.agencylevel,
                       'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
             rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
-            prodic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'lock_num'])
+            prodic = model_to_dict(pro,
+                                   fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
+            # 预留数 * 5 = (模拟)销量　
+            prodic['sale_num'] = prodic['remain_num'] * 8
             prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
             prodic['rebet_amount'] = rebet_amount
             pros.append(prodic)

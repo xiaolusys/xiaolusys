@@ -88,16 +88,16 @@ class XLSampleapplyView(View):
             xls = XLSampleApply.objects.filter(outer_id=xlsample.outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
             if not xls.exists():  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
+                sample_apply = XLSampleApply()
+                sample_apply.outer_id = xlsample.outer_id
+                sample_apply.mobile = mobile
+                sample_apply.sku_code = sku_code_r
+                sample_apply.vipcode = vipcode
+                sample_apply.user_openid = openid
+                sample_apply.from_customer = from_customer  # 保存分享人的客户id
                 if ufrom in self.PLANTFORM:
-                    sample_apply = XLSampleApply()
-                    sample_apply.outer_id = xlsample.outer_id
-                    sample_apply.mobile = mobile
-                    sample_apply.sku_code = sku_code_r
                     sample_apply.ufrom = ufrom
-                    sample_apply.vipcode = vipcode
-                    sample_apply.user_openid = openid
-                    sample_apply.from_customer = from_customer  # 保存分享人的客户id
-                    sample_apply.save()
+                sample_apply.save()
             return redirect(url)  # 跳转到下载页面
 
         return render_to_response(self.xlsampleapply,

@@ -65,14 +65,16 @@ function saveLinkDb(nine_pics) {
     var start_time = $("#current_date").html() + $("#start_ime").val();//开始展示时间
     var turns_num = $(".turns_num").length + 1;//第几轮 新建在现有轮数加１
     var cate_gory = $("#category_choices").val();
-    console.log(title, start_time, turns_num);
+    var description = $("#description").val();
+    console.log(title, start_time, turns_num, description);
 
     var data = {
         "title": title,
         "start_time": start_time,
         "turns_num": turns_num,
         "pic_arry": pic_arry,
-        "cate_gory": cate_gory
+        "cate_gory": cate_gory,
+        "description": description
     };
 
     function requestCallbck(res) {

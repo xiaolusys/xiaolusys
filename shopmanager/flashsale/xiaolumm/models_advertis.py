@@ -53,6 +53,7 @@ class NinePicAdver(models.Model):
     CATEGORY_CHOICE = ((Nine_PIC, u"九张图类型"),)
     auther = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'作者')
     title = models.CharField(max_length=512, db_index=True, verbose_name=u'标题')
+    description = models.TextField(max_length=1024, blank=True, null=True, verbose_name=u'文案描述')
     cate_gory = models.IntegerField(choices=CATEGORY_CHOICE, default=Nine_PIC, verbose_name=u"类型")
     pic_arry = JSONCharMyField(max_length=2048, blank=True, null=True, verbose_name=u'图片链接')
     start_time = models.DateTimeField(null=True, blank=True, verbose_name=u'开始时间')
