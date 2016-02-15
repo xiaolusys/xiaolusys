@@ -135,7 +135,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         # 获取自己的正式使用订单
         xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
 
-        if len(xls_orders) > 1:  # 已经有试用订单
+        if len(xls_orders) >= 1:  # 已经有试用订单
             xls_order = xls_orders[0]
             xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
             xls_order.save()
