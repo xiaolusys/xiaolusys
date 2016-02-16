@@ -1,0 +1,1 @@
+MALL_LOGIN_URL = '/pages/denglu.html'

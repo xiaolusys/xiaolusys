@@ -45,6 +45,11 @@
                         <option value="{{ sku.sku_code }}">{{ sku.sku_name }}</option>
                     {% endfor %}
                 </select><br/>
+                <!--  每有申请记录的情况　-->
+                {% if not_apply %}
+                    <span style="color: red">{{ not_apply }}</span>
+                    <input type="text" name="vipcode"/>
+                {% endif %}
                 <span style="color: red">{{ error_message }}</span>
                 <button class="btn btn-default form-control submit-order" type="submit">提交订单</button>
             </form>
@@ -70,14 +75,19 @@
         <div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
         <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/>
         </div>
-
+        <span>您的邀请码是：{{ res.vipcode }}</span>
     {% endif %}
 
 
+
     <div class="col-xs-2"></div>
-    <div class="col-xs-12 active_detail">
-        <h4>活动细则</h4>
+    <div class="col-xs-6 active_detail">
+        <a href="/sale/promotion/pmt_res/1/1/1602/">中奖名单</a>
     </div>
+    <div class="col-xs-6 active_detail">
+        <a>活动细则</a>
+    </div>
+
     <div class="col-xs-12" id="active_detail" hidden="hidden">
         <ul class="list-group" style="font-size: 12px">
             <li class="list-group-item">1 免费试用活动参加需在小鹿美美APP中申请.</li>
@@ -115,7 +125,12 @@
                 window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
             }
             else if (os == 'Android') {
-                // window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
+                // 调用android客户端接口内容
+                if (window.AndroidBridge) {
+                    window.AndroidBridge.getPromotionParams(uform, share_link);
+                }
+            }
+            else {
             }
         }
 

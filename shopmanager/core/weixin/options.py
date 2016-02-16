@@ -3,10 +3,14 @@ __author__ = 'imeron'
 import re
 import json
 import urllib
+import urllib2
 from django.conf import settings
 
 from . import exceptions
 from . import signals
+
+WEIXIN_SNS_USERINFO_URI = '{0}/sns/userinfo?access_token={1}&openid={2}&lang=zh_CN'
+WEIXIN_SNS_BASEINFO_URI = '{0}/sns/oauth2/access_token?appid={1}&secret={2}&code={3}&grant_type=authorization_code'
 
 def gen_weixin_redirect_url(params):
     list_params = ['appid','redirect_uri','response_type','scope','state']
@@ -21,11 +25,41 @@ def get_cookie_openid(cookies,appid):
         return ('','')
     return (x[1], y[1])
 
+def set_cookie_openid(response,appid,openid,unionid):
+    sopenid = '%s|%s'%(appid,openid)
+    sunionid = '%s|%s'%(appid,unionid)
+    response.set_cookie("sopenid",sopenid)
+    response.set_cookie("sunionid",sunionid)
+    return response
+
+def get_weixin_userbaseinfo(code, appid, secret):
+    """ 根据code获取用户openid信息 """
+    userinfo_url = WEIXIN_SNS_BASEINFO_URI.format(
+        settings.WEIXIN_API_HOST,
+        appid,
+        secret,
+        code
+    )
+    req = urllib2.urlopen(userinfo_url)
+    resp = req.read()
+    return json.loads(resp)
+
+def get_weixin_snsuserinfo(openid, access_token):
+    """ 根据access_token获取用户昵称头像信息 """
+    userinfo_url = WEIXIN_SNS_USERINFO_URI.format(
+        settings.WEIXIN_API_HOST,
+        access_token,
+        openid
+    )
+    req = urllib2.urlopen(userinfo_url)
+    resp = req.read()
+    return json.loads(resp)
+
 def get_user_unionid(code, 
                     appid='', 
                     secret='',
                     request=None):
-
+    """ 根据code获取用户openid,unoinid,或access_token """
     debug_m   = settings.DEBUG
     content   = request and request.REQUEST or {}
     state     = content.get('state',None)
@@ -42,15 +76,16 @@ def get_user_unionid(code,
     if not code and request:
         return get_cookie_openid(request.COOKIES, appid)
     
-    url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'
-    get_openid_url = url % (appid, secret, code)
-    r = urllib.urlopen(get_openid_url).read()
-    r = json.loads(r)
-    
+    r = get_weixin_userbaseinfo(code, appid, secret)
     if r.has_key("errcode"):
         return ('','')
     
-    signals.signal_weixin_snsauth_response.send(sender="access_token",resp_data=r)
-    
+    openid = r.get('openid')
+    if not r.has_key('unionid') and r.has_key('access_token'):
+        r = get_weixin_snsuserinfo(openid, r.get('access_token'))
+        if r.has_key("errcode"):
+            return (openid,'')
+        signals.signal_weixin_snsauth_response.send(sender="access_token",appid=appid,resp_data=r)
+        
     return (r.get('openid'),r.get('unionid'))
 

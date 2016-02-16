@@ -1,0 +1,43 @@
+{% extends "mama_base.html" %}
+
+{% block head_script %}
+<link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />    
+<style type="text/css" >
+    tfoot input{
+        width:50%;
+    }
+    .container p{
+        font-size:16px;
+    }
+    .phone-container{
+	    margin:0px auto;
+	    width: 640px;
+	}
+    
+    .wrapper{ text-aligin:center;height:50px;}
+    .flow-steps{ position:relative; padding:0px; list-style:none; font-size:14px; overflow:hidden;}
+    .flow-steps li{ float:left; padding:10px;}
+    .flow-steps a {padding:5px;width:100%;}
+    .flow-steps .on a{ background:#ff6600; color:#fff;}
+    .flow-steps .on a:after{ border-left-color:#ff6600;}
+    .flow-steps li.on:first-child a:before{ border-color:#ff6600;}
+</style>
+{% block apply_script %}
+{% endblock %}
+</style>
+
+{% endblock %}
+
+{% block container %}
+<div class="phone-container">
+
+{% block phone-container %}
+{% endblock %}
+
+</div>
+{% endblock %}
+
+{% block tail_script %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/sweet-alert.css">
+<script src="{{ STATIC_URL }}/js/sweet-alert.min.js"></script>
+{% endblock %}

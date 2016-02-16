@@ -1084,7 +1084,6 @@ class ResultView(View):
         return response
 
 
-
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 class FinalListView(View):

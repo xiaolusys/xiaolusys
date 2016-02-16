@@ -33,6 +33,7 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         profile.nick   = profile.nick.strip() or wxuser.nickname
         profile.mobile = profile.mobile.strip() or wxuser.mobile
         profile.openid = profile.openid or openid  
+        profile.thumbnail = profile.thumbnail or wxuser.headimgurl
         profile.save()
             
     except Exception,exc:
@@ -47,7 +48,7 @@ def task_Merge_Sale_Customer(user, code):
     app_secret  = settings.WXPAY_SECRET
     
     openid,unionid = get_user_unionid(code,appid=app_key,secret=app_secret)
-    if not openid:
+    if not openid or not unionid:
         return 
     
     WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)

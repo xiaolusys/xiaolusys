@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from flashsale.pay.options import get_user_unionid,valid_openid
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import WeiXinUser
-from flashsale.xiaolumm import xlmm_kefukeys as kfkeys
+from shopback.items.models import Product
 
 from core.weixin.mixins import WeixinAuthMixin
 
@@ -32,40 +32,36 @@ class MamaRegisterView(WeixinAuthMixin,APIView):
     
 #     authentication_classes = (authentication.TokenAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.JSONRenderer,renderers.TemplateHTMLRenderer)
-    template_name = "mama_profile.html"
-        
+    renderer_classes = (renderers.TemplateHTMLRenderer,)
+    template_name = "apply/mama_profile.html"
+    
+    def get_deposite_product(self):
+        return Product.objects.get(id=2731)
+    
     def get(self, request, mama_id):
         openid,unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) or not valid_openid(unionid):
-            redirect_url = self.get_wxauth_redirct_url(request)
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
         wx_user,state = WeiXinUser.objects.get_or_create(openid=openid)
-        kf_url = ''
         try:
+            product = None
             xiaolumm = XiaoluMama.objects.get(openid=unionid)
             if xiaolumm.progress == XiaoluMama.PASS:
                 return redirect(reverse('mama_homepage'))
             
             if xiaolumm.progress == XiaoluMama.PROFILE:
-                self.template_name = 'mama_deposit.html'
-            elif xiaolumm.progress == XiaoluMama.PAY:
-                self.template_name = 'mama_contact.html'
+                self.template_name = 'apply/mama_deposit.html'
+                product = self.get_deposite_product()
                 
+            elif xiaolumm.progress == XiaoluMama.PAY:
+                self.template_name = 'apply/mama_contact.html'
                 try:
                     referal_mama = XiaoluMama.objects.get(mobile=xiaolumm.referal_from)
                     username = User.objects.get(id=referal_mama.manager).username
-                except (XiaoluMama.DoesNotExist,User.DoesNotExist):
+                except (XiaoluMama.DoesNotExist, User.DoesNotExist):
                     username = ''
-                    
-                kf_name = kfkeys.NAME_KEY_MAP.get(username,None)
-                if not kf_name:
-                    rindex = xiaolumm.id % len(kfkeys.KEY_LIST)
-                    kf_key = kfkeys.KEY_LIST[rindex] - 1
-                    kf_name = kfkeys.KEY_MAP[kf_key]
-                
-                kf_url = '%s%s'%(kfkeys.IMG_URL_PREFIX,kfkeys.KEY_URLS_MAP.get(kf_name))
             
         except XiaoluMama.DoesNotExist: 
             xiaolumm = None
@@ -73,7 +69,7 @@ class MamaRegisterView(WeixinAuthMixin,APIView):
             logger.error(exc.message,exc_info=True)
             raise exc
         
-        return Response({'wxuser':wx_user,'xlmm':xiaolumm,'kefu_url':kf_url})
+        return Response({'wxuser':wx_user,'xlmm':xiaolumm,'product':product})
         
     def post(self,request, mama_id):
         content = request.REQUEST
@@ -82,7 +78,6 @@ class MamaRegisterView(WeixinAuthMixin,APIView):
 #         nickname  = content.get('nickname')
 
         wx_user = get_object_or_404(WeiXinUser,openid=openid)
-        
         if not wx_user.isValid() or not valid_openid(unionid) :#or not nickname
             return redirect('./')
         
@@ -92,7 +87,6 @@ class MamaRegisterView(WeixinAuthMixin,APIView):
             parent_xlmm = get_object_or_404(XiaoluMama,id=mama_id)
             parent_mobile = parent_xlmm.mobile
             
-#         xlmm.weikefu = nickname
         xlmm.progress = XiaoluMama.PROFILE
         xlmm.referal_from = parent_mobile
         xlmm.save()
@@ -107,7 +101,7 @@ class MamaConfirmView(APIView):
 #     authentication_classes = (authentication.TokenAuthentication,)
 #     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer,renderers.TemplateHTMLRenderer)
-    template_name = "mama_profile.html"
+    template_name = "apply/mama_profile.html"
         
     def post(self,request):
         content = request.REQUEST

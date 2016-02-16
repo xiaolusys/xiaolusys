@@ -33,7 +33,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from django.forms import model_to_dict
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 
-CACHE_VIEW_TIMEOUT = 30
+CACHE_VIEW_TIMEOUT = 15
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     """

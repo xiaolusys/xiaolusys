@@ -15,17 +15,7 @@ from common.utils import (randomString,
                           cache_lock)
 
 REFRESH_WX_TOKEN_CACHE_KEY = 'REFRESH_WX_TOKEN_KEY'
-WEIXIN_SNS_USERINFO_URI = '{0}/sns/userinfo?access_token={1}&openid={2}&lang=zh_CN'
 
-def get_weixin_snsuserinfo(openid, access_token):
-    userinfo_url = WEIXIN_SNS_USERINFO_URI.format(
-        settings.WEIXIN_API_HOST,
-        access_token,
-        openid
-    )
-    req = urllib2.urlopen(userinfo_url)
-    resp = req.read()
-    return json.loads(resp)
 
 class WeiXinRequestException(Exception):
     

@@ -1,3 +1,5 @@
+######## 2016-02-16 ########
+alter table flashsale_activity_entry add column mask_link varchar(256) default null ;
 ######## 2016-02-15 ########
 alter table flashsale_activity_entry add column login_required tinyint(1) NOT NULL;
 ######## 2016-02-14 ########
