@@ -61,14 +61,14 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         # 商品sku信息  # 获取商品信息到页面
         data = get_active_pros_data()  # 获取活动产品数据
         response = render_to_response(self.xlsampleapply,
-                                      {"vipcode": vipcode, 
+                                      {"vipcode": vipcode,
                                        "from_customer": from_customer,
                                        "data": data,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
             set_cookie_openid(response, self._wxpubid, openid, unionid)
-            
+
         return response
 
     def post(self, request):
@@ -215,4 +215,16 @@ class XlSampleOrderView(View):
                 return render_to_response({"res": res})  # 和申请页面的链接
         res = self.get_promotion_result(customer.id, outer_id)
         return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
+
+
+class PromotionResult(View):
+    """
+    活动中奖结果展示
+    """
+    result_page = 'promotion/pmt_result.html'
+
+    def get(self, request):
+        res = []
+        response = render_to_response(self.result_page, {"res": res}, context_instance=RequestContext(request))
+        return response
 
