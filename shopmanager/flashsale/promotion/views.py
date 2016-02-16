@@ -16,6 +16,7 @@ from flashsale.restpro.options import gen_and_save_jpeg_pic
 from core.weixin.mixins import WeixinAuthMixin
 from core.weixin.options import set_cookie_openid
 
+
 from flashsale.pay.models import Customer
 from shopapp.weixin.views import get_user_openid, valid_openid
 from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder
@@ -129,7 +130,8 @@ class APPDownloadView(View):
         content = request.REQUEST
         vipcode = content.get("vipcode", None)  # 活动邀请码
         from_customer = content.get("from_customer", None)  # 分享人的用户id
-        return render_to_response(self.download_page, {"vipcode": vipcode, "from_customer": from_customer},
+        return render_to_response(self.download_page, 
+                                  {"vipcode": vipcode, "from_customer": from_customer},
                                   context_instance=RequestContext(request))
 
 
@@ -140,7 +142,7 @@ class XlSampleOrderView(View):
     order_page = 'promotion/xlsampleorder.html'
     share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
     PROMOTION_LINKID_PATH = 'pmt'
-
+    
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
@@ -183,13 +185,21 @@ class XlSampleOrderView(View):
             customer = None
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', None)
-        mobile = customer.mobile if customer else None
+        mobile   = customer.mobile if customer else None
 
         data = get_active_pros_data()  # 获取活动产品数据
         title = "活动正式订单"
         if mobile is None or not (sku_code and outer_id):
-            error_message = "请选择尺寸"
-            return render_to_response(self.order_page, {"data": data, "title": title, "error_message": error_message},
+            if mobile:
+                error_message = "请选择尺寸"
+            else:
+                error_message = "请验证手机"
+            return render_to_response(self.order_page, 
+                                      { 
+                                        "data": data, 
+                                        "title": title, 
+                                        "error_message": error_message
+                                       },
                                       context_instance=RequestContext(request))  # 缺少参数
         xlapplys = XLSampleApply.objects.filter(mobile=mobile, outer_id=outer_id).order_by('-created')
         xlapply = None
