@@ -185,7 +185,8 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_carryinlog(self, request):
         """获取收入内容"""
-        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(carry_type=CarryLog.CARRY_IN))
+        queryset = self.filter_queryset(self.get_owner_queryset(request).filter(carry_type=CarryLog.CARRY_IN)).exclude(
+            log_type__in=(CarryLog.THOUSAND_REBETA, CarryLog.COST_FLUSH, CarryLog.RECHARGE))
         groupclgs = queryset.values("carry_date", "log_type", "xlmm"
                                     ).annotate(sum_value=Sum('value'),
                                                type_count=Count('log_type')).order_by('-carry_date')
@@ -205,6 +206,8 @@ class CarryLogViewSet(viewsets.ModelViewSet):
                                                                status__in=(StatisticsShopping.FINISHED,
                                                                            StatisticsShopping.WAIT_SEND)).count()
                 i['type_count'] = shopscount
+            else:
+                i['type_count'] = 0
         return Response(clgs)
 
     def list(self, request, *args, **kwargs):
