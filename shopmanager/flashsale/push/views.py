@@ -44,7 +44,7 @@ class PushViewSet(viewsets.ModelViewSet):
             return Response({'user_account': ''})
         # 验证表单数据
         now = time.time()
-        raw_data = request.data
+        raw_data = copy.copy(request.data)
         raw_data['update_time'] = now
         serializer = serializers.PushTopicSerializer(data=raw_data)
         if not serializer.is_valid():
