@@ -266,7 +266,9 @@ class XlSampleOrderView(View):
                     return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
 
                 not_apply_message = "您还没有申请记录,请填写邀请码"
-                return render_to_response(self.order_page, {"not_apply": not_apply_message},
+                return render_to_response(self.order_page, {"data": data,
+                                                            "title": title,
+                                                            "not_apply": not_apply_message},
                                           context_instance=RequestContext(request))
         res = self.get_promotion_result(customer.id, outer_id, mobile)
         print "debug res:", res
