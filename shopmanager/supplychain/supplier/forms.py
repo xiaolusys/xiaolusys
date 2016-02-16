@@ -48,4 +48,6 @@ class ScheduleBatchSetForm(BaseForm):
     price = forms.FloatField(required=False)
     order_weight = forms.IntegerField(required=False)
     sync_stock = forms.BooleanField(required=False)
-    sale_product_ids = forms.CharField(required=False, initial='[]')
+    #sale_product_ids = forms.CharField(required=False, initial='[]')
+    detail_ids = forms.CharField(required=False, initial='[]')
+    onshelf_date = forms.DateField(required=False)
