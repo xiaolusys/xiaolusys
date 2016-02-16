@@ -11,6 +11,11 @@ from django.template import RequestContext
 from django.http import HttpResponse
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from rest_framework.views import APIView
+from rest_framework import permissions, authentication
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from flashsale.restpro.options import gen_and_save_jpeg_pic
 from core.weixin.mixins import WeixinAuthMixin
@@ -217,14 +222,59 @@ class XlSampleOrderView(View):
         return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
 
 
-class PromotionResult(View):
+class PromotionResult(APIView):
     """
     活动中奖结果展示
     """
     result_page = 'promotion/pmt_result.html'
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,)
 
-    def get(self, request):
-        res = []
-        response = render_to_response(self.result_page, {"res": res}, context_instance=RequestContext(request))
+    def get_mobile_show(self, customer):
+        mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
+        applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
+        promote_count = applys.count()  # 邀请的数量　
+        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
+        res = (mobile, promote_count, app_down_count)
+        return res
+
+    def get(self, request, *args, **kwargs):
+        page = int(kwargs.get('page', 1))
+        batch = int(kwargs.get('batch', 1))
+        month = int(kwargs.get('month', 1))
+
+        order_list = XLSampleOrder.objects.none()
+
+        if month == 1602 and batch == 1:
+            start_time = datetime.datetime(2016, 1, 22)
+            order_list = XLSampleOrder.objects.filter(created__gt=start_time)
+
+        num_per_page = 20  # Show 20 contacts per page
+        paginator = Paginator(order_list, num_per_page)
+
+        try:
+            items = paginator.page(page)
+        except PageNotAnInteger:  # If page is not an integer, deliver first page.
+            items = paginator.page(1)
+        except EmptyPage:  # If page is out of range (e.g. 9999), deliver last page of results.
+            items = paginator.page(paginator.num_pages)
+
+        customer_ids = [item.customer_id for item in items]
+        wx_users = Customer.objects.filter(id__in=customer_ids)
+        items = []
+        for user in wx_users:
+            items.append(self.get_mobile_show(user))
+
+        total = order_list.count()  # 总条数
+        num_pages = paginator.num_pages  # 当前页
+
+        next_page = min(page + 1, num_pages)
+        prev_page = max(page - 1, 1)
+        res = {"items": items, 'num_pages': num_pages,
+               'total': total, 'num_per_page': num_per_page,
+               'prev_page': prev_page, 'next_page': next_page,
+               'page': page, 'batch': batch, 'month': month}
+        response = render_to_response(self.result_page, res, context_instance=RequestContext(request))
         return response
 
