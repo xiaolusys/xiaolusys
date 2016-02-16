@@ -69,13 +69,15 @@ class WeixinAuthCheckView(WeixinAuthMixin, View):
         if wxuser_qs.exists():
             wxuser = wxuser_qs[0]
         
-        return render_to_response('wxauth_checkview.html',
-                                  {'openid':openid,
-                                   'unionid':unionid,
-                                   'xlmm':xlmm,
-                                   'wxuser':wxuser,
-                                   },
-                                  context_instance=RequestContext(request))
+        return render_to_response(
+            'wxauth_checkview.html',
+            {'openid':openid,
+             'unionid':unionid,
+             'xlmm':xlmm,
+             'wxuser':wxuser,
+             },
+            context_instance=RequestContext(request)
+        )
     
 
 def get_xlmm_cash_iters(xlmm,cash_outable=False):
@@ -508,8 +510,7 @@ class ClickLogView(WeixinAuthMixin, View):
     
     def get(self, request, linkid):
         
-        user_agent = request.META.get('HTTP_USER_AGENT')
-        if not user_agent or user_agent.find('MicroMessenger') < 0:
+        if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
             return redirect(share_url)
         
