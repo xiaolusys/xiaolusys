@@ -8,18 +8,17 @@
     <ul class="object-tools">
       {% block object-tools-items %}
         <li>
-          <a href="{% url 'order_flashsale' %}" class="historylink" target="_blank">
-             特卖订单详细
+          <a href="/supplychain/supplier/manage_schedule/" target="_blank">
+            排期管理
           </a>
         </li>
         <li>
-          <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
-            {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+          <a href="/supplychain/supplier/compare_schedule/" target="_blank">
+            排期比较
           </a>
         </li>
       {% endblock %}
     </ul>
   {% endif %}
 {% endblock %}
-
 
