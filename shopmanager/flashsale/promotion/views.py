@@ -96,7 +96,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         if mobile:
             custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
             cust = custs[0] if custs.exists() else ''
-            if cust:  # 用户存在则计数
+            if cust:  # 给分享人（存在）则计数邀请数量
                 participates = XLInviteCode.objects.filter(mobile=cust.mobile)
                 if participates.exists():
                     participate = participates[0]
@@ -117,6 +117,11 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 if ufrom in self.PLANTFORM:
                     sample_apply.ufrom = ufrom
                 sample_apply.save()
+
+                # 生成自己的邀请码
+                expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
+                XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
+
             return redirect(url)  # 跳转到下载页面
 
         return render_to_response(self.xlsampleapply,
@@ -134,7 +139,7 @@ class APPDownloadView(View):
         content = request.REQUEST
         vipcode = content.get("vipcode", None)  # 活动邀请码
         from_customer = content.get("from_customer", None)  # 分享人的用户id
-        return render_to_response(self.download_page, 
+        return render_to_response(self.download_page,
                                   {"vipcode": vipcode, "from_customer": from_customer},
                                   context_instance=RequestContext(request))
 
@@ -144,29 +149,33 @@ class XlSampleOrderView(View):
     免费申请试用活动，生成正式订单页面
     """
     order_page = 'promotion/xlsampleorder.html'
-    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
+    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}&vipcode={vipcode}'
     PROMOTION_LINKID_PATH = 'pmt'
 
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
 
-    def get_promotion_result(self, customer_id, outer_id):
+    def get_promotion_result(self, customer_id, outer_id, mobile):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
         applys = XLSampleApply.objects.filter(from_customer=customer_id, outer_id=outer_id)
         promote_count = applys.count()  # 邀请的数量　
+        xlcodes = XLInviteCode.objects.filter(mobile=mobile)
+        vipcode = None
+        if xlcodes.exists():
+            vipcode = xlcodes[0].vipcode
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
-        share_link = self.share_link.format(**{'customer_id': customer_id})
-        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
+        share_link = self.share_link.format(**{'customer_id': customer_id, "vipcode": vipcode})
+        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, vipcode)
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-               'link_qrcode': link_qrcode}
+               'link_qrcode': link_qrcode, "vipcode": vipcode}
         return res
 
-    def gen_custmer_share_qrcode_pic(self, customer_id):
+    def gen_custmer_share_qrcode_pic(self, customer_id, vipcode):
         root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
         if not os.path.exists(root_path):
             os.makedirs(root_path)
-        params = {'customer_id': customer_id}
+        params = {'customer_id': customer_id, 'vipcode': vipcode}
         file_name = 'custm-{customer_id}.jpg'.format(**params)
         file_path = os.path.join(root_path, file_name)
 
@@ -174,6 +183,31 @@ class XlSampleOrderView(View):
         if not os.path.exists(file_path):
             gen_and_save_jpeg_pic(share_link, file_path)
         return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
+
+    def handler_with_vipcode(self, vipcode, mobile, outer_id, sku_code, customer):
+        xlcodes = XLInviteCode.objects.filter(vipcode=vipcode)
+        res = None
+        if xlcodes.exists():  # 邀请码对应的邀请人存在
+            xlcode = xlcodes[0]
+            from_mobile = xlcode.mobile
+            customers = Customer.objects.filter(mobile=from_mobile, status=Customer.NORMAL)
+            if customers.exists():  # 推荐人用户存在
+                from_customer = customers[0].id
+                expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
+                # 生成自己的邀请码
+                new_vipcode = XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
+                # 生成自己申请记录
+                new_xlapply = XLSampleApply.objects.create(outer_id=outer_id, sku_code=sku_code,
+                                                           from_customer=from_customer, mobile=mobile,
+                                                           vipcode=new_vipcode,
+                                                           status=XLSampleApply.ACTIVED)
+                xlcode.usage_count += 1  # 推荐人的邀请码使用次数加１
+                xlcode.save()
+                # 生成自己的正式订单
+                XLSampleOrder.objects.create(xlsp_apply=new_xlapply.id, customer_id=customer.id,
+                                             outer_id=outer_id, sku_code=sku_code)
+                res = self.get_promotion_result(customer.id, outer_id, mobile)
+        return res
 
     def get(self, request):
         title = "活动正式订单"
@@ -189,7 +223,9 @@ class XlSampleOrderView(View):
             customer = None
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', None)
-        mobile   = customer.mobile if customer else None
+        vipcode = content.get('vipcode', None)
+
+        mobile = customer.mobile if customer else None
 
         data = get_active_pros_data()  # 获取活动产品数据
         title = "活动正式订单"
@@ -198,12 +234,12 @@ class XlSampleOrderView(View):
                 error_message = "请选择尺寸"
             else:
                 error_message = "请验证手机"
-            return render_to_response(self.order_page, 
-                                      { 
-                                        "data": data, 
-                                        "title": title, 
-                                        "error_message": error_message
-                                       },
+            return render_to_response(self.order_page,
+                                      {
+                                          "data": data,
+                                          "title": title,
+                                          "error_message": error_message
+                                      },
                                       context_instance=RequestContext(request))  # 缺少参数
         xlapplys = XLSampleApply.objects.filter(mobile=mobile, outer_id=outer_id).order_by('-created')
         xlapply = None
@@ -225,10 +261,15 @@ class XlSampleOrderView(View):
                 xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
                 xlapply.save()
             else:  # 没有试用申请记录的（返回申请页面链接）　提示
-                not_apply_message = "您还没有申请记录无法验证"
+                if vipcode not in (None, ""):  # 有邀请码的情况下 根据邀请码生成用户的申请记录和订单记录
+                    res = self.handler_with_vipcode(vipcode, mobile, outer_id, sku_code, customer)
+                    return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
+
+                not_apply_message = "您还没有申请记录,请填写邀请码"
                 return render_to_response(self.order_page, {"not_apply": not_apply_message},
                                           context_instance=RequestContext(request))
-        res = self.get_promotion_result(customer.id, outer_id)
+        res = self.get_promotion_result(customer.id, outer_id, mobile)
+        print "debug res:", res
         return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
 
 
