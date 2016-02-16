@@ -428,6 +428,7 @@ class SaleProductManageDetail(models.Model):
             ("revert_done", u"反完成"),
             ('pic_rating', u'作图评分'),
             ('add_product', u'加入库存商品'),
+            ('eliminate_product', u'淘汰排期商品'),
             ('reset_head_img', u'重置头图')
         ]
     def __unicode__(self):
