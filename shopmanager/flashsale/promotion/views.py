@@ -138,13 +138,16 @@ class APPDownloadView(View):
                                   context_instance=RequestContext(request))
 
 
-class XlSampleOrderView(View):
+class XlSampleOrderView(APIView):
     """
     免费申请试用活动，生成正式订单页面
     """
     order_page = 'promotion/xlsampleorder.html'
     share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
     PROMOTION_LINKID_PATH = 'pmt'
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,)
 
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
@@ -216,8 +219,9 @@ class XlSampleOrderView(View):
                 xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
                 xlapply.save()
             else:  # 没有试用申请记录的（返回申请页面链接）　提示
-                res = {"share_link": self.share_link.format(1)}
-                return render_to_response({"res": res})  # 和申请页面的链接
+                not_apply_message = "您还没有申请记录无法验证"
+                return render_to_response(self.order_page, {"not_apply": not_apply_message},
+                                          context_instance=RequestContext(request))
         res = self.get_promotion_result(customer.id, outer_id)
         return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
 

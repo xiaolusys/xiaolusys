@@ -72,6 +72,10 @@
         </div>
 
     {% endif %}
+    <!--  每有申请记录的情况　-->
+    {% if not_apply %}
+        <span style="color: red">{{ not_apply }}</span>
+    {% endif%}
 
 
     <div class="col-xs-2"></div>
