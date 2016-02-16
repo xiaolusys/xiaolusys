@@ -75,7 +75,7 @@
     <!--  每有申请记录的情况　-->
     {% if not_apply %}
         <span style="color: red">{{ not_apply }}</span>
-    {% endif%}
+    {% endif %}
 
 
     <div class="col-xs-2"></div>
@@ -123,7 +123,12 @@
                 window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
             }
             else if (os == 'Android') {
-                // window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
+                // 调用android客户端接口内容
+                if (window.AndroidBridge) {
+                    window.AndroidBridge.getPromotionParams(uform, share_link);
+                }
+            }
+            else{
             }
         }
 
