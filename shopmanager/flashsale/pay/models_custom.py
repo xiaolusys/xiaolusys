@@ -202,6 +202,7 @@ class ActivityEntry(PayBaseModel):
     act_desc = models.TextField(max_length=512, blank=True, verbose_name=u'活动描述')
     act_img  = models.CharField(max_length=256, blank=True, verbose_name=u'活动图片')
     act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动网页链接')
+    mask_link = models.CharField(max_length=256, blank=True, verbose_name=u'遮罩图片')
     act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议')
     
     login_required = models.BooleanField(default=False,verbose_name=u'需要登陆')

@@ -97,7 +97,8 @@ class ActivityEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActivityEntry
-        fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'act_link', 'act_applink', 'start_time', 'end_time')
+        fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link', 'act_applink',
+                   'start_time', 'end_time')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
