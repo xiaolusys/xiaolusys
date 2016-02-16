@@ -10,11 +10,13 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
 
+from django.contrib import messages
 from django.db import transaction
 from django.db.models import F, Q
 
 from flashsale.pay.models_custom import Productdetail
 from shopback.base import log_action, ADDITION, CHANGE
+from shopback import paramconfig as pcfg
 from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail, \
     SupplierZone, SaleProductPicRatingMemo
 from supplychain.supplier.models import SaleProduct
@@ -156,7 +158,9 @@ class ScheduleManageView(generics.ListCreateAPIView):
              'schemas': rebeta_schema_cache.schemas,
              'order_weights': [{'id': i,
                                 'name': i} for i in range(1, 17)[::-1]],
-             'show_buyer_btn': request.user.has_perm('supplier.add_product')})
+             'show_buyer_btn': request.user.has_perm('supplier.add_product'),
+             'show_eliminate_btn': request.user.has_perm(
+                 'supplier.eliminate_product')})
 
 
 class ScheduleCompareView(generics.ListCreateAPIView):
@@ -283,8 +287,8 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         if len(seckill_set) > 1:
             sale_product_is_seckill = '秒杀：不一致'
         elif len(seckill_set) == 1:
-            sale_product_is_seckill = '秒杀：%s' % ('是'
-                                                 if seckill_set.pop() else '否',)
+            sale_product_is_seckill = '秒杀：%s' % ('是' if seckill_set.pop() else
+                                                 '否',)
         if len(recommend_set) > 1:
             sale_product_is_recommend = '专区推荐：不一致'
         elif len(recommend_set) == 1:
@@ -333,8 +337,9 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         type = request.POST.get("type")
         sale_product_id = request.POST.get('sale_product')
         if type == '5':
-            SaleProduct.objects.filter(pk=int(sale_product_id), librarian__isnull=True).update(
-                librarian=request.user.username)
+            SaleProduct.objects.filter(pk=int(sale_product_id),
+                                       librarian__isnull=True).update(
+                                           librarian=request.user.username)
             return Response({'result': u'ok'})
 
         try:
@@ -392,6 +397,48 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             result = {} if not pic_rating_memo else {'memo':
                                                      unicode(pic_rating_memo)}
             return Response(result)
+        elif type == '6':
+            sale_product_id = detail_product.sale_product_id
+            mlist = []
+            for p in Product.objects.filter(
+                    Q(sale_product=sale_product_id),
+                    Q(collect_num__gt=0) | Q(wait_post_num__gt=0)
+                    | Q(shelf_status=Product.UP_SHELF)):
+                s = '商品编码：%s 不能作废原因：' % p.outer_id
+                mitems = []
+                if p.collect_num > 0:
+                    mitems.append('库存不为0')
+                if p.wait_post_num > 0:
+                    mitems.append('待发数不为0')
+                if p.shelf_status == Product.UP_SHELF:
+                    mitems.append('商品未下架')
+                message = '%s%s' % (s, ','.join(mitems))
+                mlist.append(message)
+                messages.add_message(request, messages.INFO, message)
+            if mlist:
+                return Response({'result': 'fail'})
+            # 先作废库存商品
+            for p in Product.objects.filter(sale_product=sale_product_id, status__in=[pcfg.NORMAL, pcfg.REMAIN]):
+                cnt = 0
+                success = False
+                invalid_outerid = p.outer_id
+                while cnt < 10:
+                    invalid_outerid += '_del'
+                    if Product.objects.filter(outer_id=invalid_outerid).count() == 0:
+                        success = True
+                        break
+                    cnt += 1
+                if not success:
+                    continue
+                p.outer_id = invalid_outerid
+                p.status = Product.DELETE
+                p.save()
+            # 作废SaleProduct
+            SaleProduct.objects.filter(pk=sale_product_id).update(status=SaleProduct.REJECTED)
+
+            # 删除排期记录
+            SaleProductManageDetail.objects.filter(id=detail).delete()
+            return Response({'result': 'success'})
 
         return Response({"result": u"error"})
 
@@ -405,7 +452,46 @@ class ScheduleBatchSetView(generics.ListCreateAPIView):
         if not form.is_valid():
             return Response('fail')
 
-        sale_product_ids = json.loads(form.cleaned_attrs.sale_product_ids)
+        detail_ids = map(int, json.loads(form.cleaned_attrs.detail_ids))
+        sale_product_ids = []
+        for row in SaleProductManageDetail.objects.filter(pk__in=detail_ids):
+            sale_product_ids.append(row.sale_product_id)
+        sale_product_ids = list(set(sale_product_ids))
+
+        if form.cleaned_attrs.onshelf_date:
+            mgr_p, state = SaleProductManage.objects.get_or_create(sale_time=form.cleaned_attrs.onshelf_date)
+            if not state and mgr_p.lock_status:
+                messages.add_message(request, messages.INFO, '%s排期已经被锁定' % form.cleaned_attrs.onshelf_date.strftime('%Y%m%d'))
+            else:
+                SaleProductManageDetail.objects.filter(pk__in=detail_ids).update(today_use_status=SaleProductManageDetail.DELETE)
+                for row in SaleProduct.objects.filter(pk__in=sale_product_ids):
+                    #　生成one_detail
+                    one_detail, _ = SaleProductManageDetail.objects.get_or_create(schedule_manage=mgr_p, sale_product_id=row.id)
+                    one_detail.name = row.title
+                    one_detail.today_use_status = SaleProductManageDetail.NORMAL
+                    one_detail.pic_path = row.pic_url
+                    one_detail.product_link = row.product_link
+                    try:
+                        category = row.sale_category.full_name
+                    except:
+                        category = ''
+                    one_detail.sale_category = category
+                    one_detail.save()
+                    # 设置saleproduct的sale_time
+                    row.sale_time = datetime.datetime.combine(form.cleaned_attrs.onshelf_date,
+                                                                  datetime.datetime.min.time())
+                    row.save()
+                    # 设置product上架时间
+                    Product.objects.filter(sale_product=row.id, status=Product.NORMAL).update(sale_time=form.cleaned_attrs.onshelf_date)
+                # 统计mgr_p的数量
+                mgr_p.product_num = mgr_p.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL).count()
+                # 更新负责人名称
+                if not mgr_p.responsible_people_id:
+                    mgr_p.responsible_people_id = request.user.id
+                    mgr_p.responsible_person_name = request.user.username
+                mgr_p.save()
+
+
         for row in Product.objects.filter(sale_product__in=sale_product_ids):
             is_dirty = False
             if form.cleaned_attrs.price:

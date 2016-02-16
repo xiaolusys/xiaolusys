@@ -23,6 +23,8 @@
         <script src="{{ STATIC_URL }}jquery/jquery-ui-1.8.13.min.js"></script>
         <script src="{{ STATIC_URL }}jquery-timepicker-addon/timepicker/jquery-ui-timepicker-addon.js"
                 type="text/javascript"></script>
+        <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery.ui.datepicker-zh-CN.js.js"
+                type="text/javascript"></script>
         <script src="{{ STATIC_URL }}jquery-timepicker-addon/js/jquery-ui-timepicker-zh-CN.js"
                 type="text/javascript"></script>
         <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
@@ -52,9 +54,26 @@
          a.buyer-takeover {
              margin-top: 20px;
          }
+         #panel-message {
+             position: fixed;
+             width: 100%;
+             z-index: 1;
+             text-align: center;
+             top: 0px;
+         }
+         #panel-message .panel-body {
+             padding: 0;
+         }
         </style>
     </head>
     <body>
+        <div id="panel-message" class="panel">
+            <div class="panel-body">
+                {% for message in messages %}
+                <p class="bg-danger">{{ message }}</p>
+                {% endfor %}
+            </div>
+        </div>
         <div class="container" style="margin-top:20px;margin-bottom:80px">
             <form action="/supplychain/supplier/manage_schedule/" method="get">
                 <div class="row">
@@ -126,7 +145,7 @@
                         <tr {% if data1.design_complete %}bgcolor="#CCFFFF"{% endif %}>
                             <td style="text-align:center">
                                 <span style="font-size: 20px">{{ forloop.counter }}</span>
-                                <input type="checkbox" class="check-item" data-sale-product="{{data1.sale_product_id}}">
+                                <input type="checkbox" class="check-item" data-product="{{data1.id}}">
                             </td>
                             <td>{{ data1.sale_category }}</td>
                             <td>
@@ -206,6 +225,11 @@
                                                 <a href="javascript:;" data-product="{{ data1.id }}" style="margin-top: 5px" class="btn btn-sm btn-success pic-rating">评分</a>
                                             </div>
                                             {% endif %}
+                                            {% if show_eliminate_btn %}
+                                            <div class="row">
+                                                <a href="javascript:;" data-product="{{ data1.id }}" style="margin-top: 5px" class="btn btn-sm btn-danger eliminate-product">淘汰</a>
+                                            </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="row">
@@ -252,11 +276,11 @@
                 </div>
             </div><!-- modal-dialog -->
         </div><!-- modal -->
-        <div id="panel-batch-set" class="collapse">
+        <div id="panel-batch-set" class="panel collapse">
             <div class="panel-body">
                 <div class="container-fluid">
                     <form class="form well" id="batch-set-form" action="/supplychain/supplier/schedule_batch_set/" method="post">
-                        <input type="hidden" name="sale_product_ids" id="sale-product-ids" value="[]">
+                        <input type="hidden" name="detail_ids" id="detail-ids" value="[]">
                         <div class="form-group row">
                             <div class="col-md-1">
                                 <div class="checkbox" style="margin-top:0"><label><input type="checkbox" name="is_watermark">设置水印</label></div>
@@ -293,6 +317,9 @@
                                     <option value="{{item.id}}">{{item.name}}</option>
                                     {% endfor %}
                                 </select>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" id="onshelf-date" name="onshelf_date" class="form-control" placeholder="上架日期">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -638,11 +665,11 @@
              });
 
              $('#batch-set-form').submit(function(){
-                 var sale_product_ids = [];
+                 var detail_ids = [];
                  $('.check-item:checked').each(function(){
-                     sale_product_ids.push($(this).attr('data-sale-product') - 0)
+                     detail_ids.push($(this).attr('data-product') - 0)
                  });
-                 $('#sale-product-ids').val(JSON.stringify(sale_product_ids));
+                 $('#detail-ids').val(JSON.stringify(detail_ids));
                  $.ajax({
                      url: '/supplychain/supplier/schedule_batch_set/',
                      type: 'post',
@@ -665,6 +692,30 @@
              });
              $('a.buyer-all').click(function(){
                  $(this).closest('table').find('tr').show();
+             });
+             $('a.eliminate-product').click(function(){
+                 var _id = $(this).attr('data-product') - 0;
+                 swal({
+                     title: "淘汰",
+                     text: "要淘汰吗？",
+                     type: "warning",
+                     showCancelButton: true,
+                     confirmButtonText: "确认淘汰",
+                     cancelButtonText: "取消"
+                 }, function(){
+                     $.ajax({
+                         url: '/supplychain/supplier/sale_product_api/',
+                         type: 'post',
+                         dataType: 'json',
+                         data: {detail_id: _id, type: 6},
+                         complete: function(){
+                             window.location.reload();
+                         }
+                     });
+                 });
+             });
+             $('#onshelf-date').datepicker({
+                 dateFormat: 'yy-mm-dd'
              });
          });
         </script>
