@@ -149,7 +149,7 @@ class XlSampleOrderView(View):
     免费申请试用活动，生成正式订单页面
     """
     order_page = 'promotion/xlsampleorder.html'
-    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}&vipcode={vipcode}'
+    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
     PROMOTION_LINKID_PATH = 'pmt'
 
     def get_share_link(self, params):
@@ -165,17 +165,17 @@ class XlSampleOrderView(View):
         if xlcodes.exists():
             vipcode = xlcodes[0].vipcode
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
-        share_link = self.share_link.format(**{'customer_id': customer_id, "vipcode": vipcode})
-        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, vipcode)
+        share_link = self.share_link.format(**{'customer_id': customer_id})
+        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
                'link_qrcode': link_qrcode, "vipcode": vipcode}
         return res
 
-    def gen_custmer_share_qrcode_pic(self, customer_id, vipcode):
+    def gen_custmer_share_qrcode_pic(self, customer_id):
         root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
         if not os.path.exists(root_path):
             os.makedirs(root_path)
-        params = {'customer_id': customer_id, 'vipcode': vipcode}
+        params = {'customer_id': customer_id}
         file_name = 'custm-{customer_id}.jpg'.format(**params)
         file_path = os.path.join(root_path, file_name)
 
