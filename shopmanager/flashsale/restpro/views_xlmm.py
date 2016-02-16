@@ -219,7 +219,8 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_clk_list(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
-        queryset = queryset.filter(log_type=CarryLog.CLICK_REBETA).exclude(status=CarryLog.CANCELED)
+        queryset = queryset.filter(log_type=CarryLog.CLICK_REBETA).exclude(status=CarryLog.CANCELED).order_by(
+            '-carry_date')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
