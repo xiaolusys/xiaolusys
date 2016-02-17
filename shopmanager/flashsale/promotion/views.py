@@ -55,7 +55,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
     PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
 
     def get(self, request):
-        print "-------------"
         content = request.REQUEST
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
@@ -95,10 +94,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         regex = re.compile(r'^1[34578]\d{9}$', re.IGNORECASE)
         mobiles = re.findall(regex, vmobile)
         mobile = mobiles[0] if len(mobiles) >= 1 else None
-        print "mobile: ", mobile
 
         if mobile:
-            print "mobile: ", mobile
             xls = XLSampleApply.objects.filter(outer_id=outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
             if not xls.exists():  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
