@@ -53,9 +53,9 @@ class XLSampleapplyView(WeixinAuthMixin, View):
     mobile_error_message = u'手机号码有误'
 
     PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
-    QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
     def get(self, request):
+        print "-------------"
         content = request.REQUEST
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
@@ -95,14 +95,10 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         regex = re.compile(r'^1[34578]\d{9}$', re.IGNORECASE)
         mobiles = re.findall(regex, vmobile)
         mobile = mobiles[0] if len(mobiles) >= 1 else None
+        print "mobile: ", mobile
+
         if mobile:
-            url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
-
-            if "MicroMessenger" in agent:  # 如果是微信则跳转到应用宝下载
-                url = self.QQ_YINYONGBAO_URL
-                if "Android" in agent:
-                    url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
-
+            print "mobile: ", mobile
             xls = XLSampleApply.objects.filter(outer_id=outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
             if not xls.exists():  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
@@ -129,7 +125,10 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                         participate = participates[0]
                         participate.usage_count += 1
                         participate.save()  # 使用次数累加
-            return redirect(url)  # 跳转到下载页面
+            return render_to_response(self.xlsampleapply,
+                                      {"vipcode": vipcode, "data": data,
+                                       "mobile": vmobile, "download": True},
+                                      context_instance=RequestContext(request))
 
         return render_to_response(self.xlsampleapply,
                                   {"vipcode": vipcode, "data": data,
@@ -141,11 +140,17 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 class APPDownloadView(View):
     """ 下载页面 """
     download_page = 'promotion/download.html'
+    QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
     def get(self, request):
         content = request.REQUEST
         vipcode = content.get("vipcode", None)  # 活动邀请码
         from_customer = content.get("from_customer", None)  # 分享人的用户id
+        url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
+        agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
+        if "MicroMessenger" and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
+            url = self.QQ_YINYONGBAO_URL
+            return redirect(url)
         return render_to_response(self.download_page,
                                   {"vipcode": vipcode, "from_customer": from_customer},
                                   context_instance=RequestContext(request))
@@ -287,7 +292,8 @@ class XlSampleOrderView(View):
                 if vipcode not in (None, ""):  # 有邀请码的情况下 根据邀请码生成用户的申请记录和订单记录
                     res = self.handler_with_vipcode(vipcode, mobile, outer_id, sku_code, customer)
                     if res is not None:
-                        return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
+                        return render_to_response(self.order_page, {"res": res},
+                                                  context_instance=RequestContext(request))
                     else:
                         not_apply_message = "您的邀请码有误，尝试重新填写"
                 return render_to_response(self.order_page, {"data": data,
