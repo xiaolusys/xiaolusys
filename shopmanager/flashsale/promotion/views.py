@@ -52,11 +52,13 @@ class XLSampleapplyView(WeixinAuthMixin, View):
     mobile_error_message = u'手机号码有误'
 
     PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
+    QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
     def get(self, request):
         content = request.REQUEST
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
+        print "agent:", agent
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
         if self.is_from_weixin(request):  # 如果是在微信里面
             openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
@@ -95,6 +97,12 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = mobiles[0] if len(mobiles) >= 1 else None
         if mobile:
             url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
+
+            if "MicroMessenger" in agent:  # 如果是微信则跳转到应用宝下载
+                url = self.QQ_YINYONGBAO_URL
+                if "Android" in agent:
+                    url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
+
             xls = XLSampleApply.objects.filter(outer_id=outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
             if not xls.exists():  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
