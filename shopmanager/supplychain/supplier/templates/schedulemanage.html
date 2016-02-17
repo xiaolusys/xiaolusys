@@ -107,9 +107,37 @@
                                cid="/mm/post_poster/?date={{ one_data.date }}&categray=female">传女装海报</a>
                         </div>
                         <div class="col-xs-4">
-                            <div style="border: 1px solid rgba(255, 255, 188, 0);">
-                                <span style="font-size: 30px">{{ one_data.date }}排期</span>
+                            <div class="row">
+                                <div style="border: 1px solid rgba(255, 255, 188, 0);">
+                                    <span style="font-size: 30px">{{ one_data.date }}排期</span>
+                                    <a href="javascript:;" data-date="{{ one_data.date }}" class="switch" target="_self">收起</a>
+                                </div>
                             </div>
+                            {% if one_data.n_total %}
+                            <div class="row">
+                                <table class="table table-condensed" style="width:260px">
+                                    <tr class="warning">
+                                        <td width="40%">50元以下</td>
+                                        <td width="30%">{{ one_data.n_50 }}</td>
+                                        <td width="30%">{{ one_data.p_50 }}%</td>
+                                    </tr>
+                                    <tr class="info">
+                                        <td>50-150元</td>
+                                        <td>{{ one_data.n_50_150 }}</td>
+                                        <td>{{ one_data.p_50_150 }}%</td>
+                                    </tr>
+                                    <tr class="danger">
+                                        <td>150以上</td>
+                                        <td>{{ one_data.n_150 }}</td>
+                                        <td>{{ one_data.p_150 }}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>总计</td>
+                                        <td>{{ one_data.n_total }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="col-xs-4">
                             <img class="preview_img" src="{{ one_data.chd_posters }}" style="float: right" width="400px">
