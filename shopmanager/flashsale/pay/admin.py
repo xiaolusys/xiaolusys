@@ -60,11 +60,11 @@ admin.site.register(SaleOrder, SaleOrderAdmin)
 
 
 class SaleTradeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tid', 'buyer_nick', 'channel', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
+    list_display = ('id', 'tid', 'buyer_nick', 'channel','order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
     list_display_links = ('id', 'tid', 'buyer_id')
     #list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status', 'channel', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    list_filter = ('status', 'channel','order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
     search_fields = ['=tid', '=id', '=receiver_mobile','=buyer_id']
 
     inlines = [SaleOrderInline]
@@ -73,7 +73,8 @@ class SaleTradeAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单基本信息:', {
                 'classes': ('expand',),
                 'fields': (('tid', 'buyer_nick', 'channel', 'status')
-                           , ('trade_type', 'total_fee', 'payment', 'post_fee')
+                           , ('trade_type','order_type',)
+                           ,( 'total_fee', 'payment', 'post_fee','discount_fee')
                            , ('pay_time', 'consign_time', 'charge')
                            , ('buyer_id', 'openid','extras_info')
                            , ('buyer_message', 'seller_memo',)
