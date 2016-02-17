@@ -760,7 +760,6 @@ class MergeOrder(models.Model):
         return total_num,user_order_num
     
     @classmethod
-    @transaction.commit_on_success
     def gen_new_order(cls,trade_id,outer_id,outer_sku_id,num,
                       gift_type=pcfg.REAL_ORDER_GIT_TYPE,
                       status=pcfg.WAIT_SELLER_SEND_GOODS,

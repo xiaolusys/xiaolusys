@@ -95,7 +95,7 @@ class Product(models.Model):
 
     ProductCodeDefect = ProductDefectException
     PRODUCT_CODE_DELIMITER = '.'
-    NO_PIC_PATH = '/media/img/nopic.jpg'
+    NO_PIC_PATH = '/static/img/nopic.jpg'
 
     outer_id     = models.CharField(max_length=64,unique=True,null=False,
                                     blank=True,verbose_name=u'外部编码')
