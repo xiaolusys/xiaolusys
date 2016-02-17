@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from core.weixin.mixins import WeixinAuthMixin
 
 from flashsale.pay.options import get_user_unionid,valid_openid
-from flashsale.pay.models import PayInfoMethodMixin
+from flashsale.pay.mixins import PayInfoMethodMixin
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import WeiXinUser
 from shopback.items.models import Product
