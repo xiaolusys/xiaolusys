@@ -169,6 +169,11 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         `ymco`: 昨天确认支出  
         `pdc`: 待确认金额  
     - {prefix}/get_carryinlog method: get : 获取用户自己的收入记录  
+    `type_count`: 点击或者订单条数　如果为0　为非点击或订单收入记录类型  
+    `xlmm`: 代理的专属链接  
+    `sum_value`: 收入金额  
+    `log_type`: 收入类型('click':返,'rebeta':佣,'recruit':奖,'subsidy':提,'暂定':团,'暂定':粉)  
+    `carry_date`: 业务时间  
 
     """
     queryset = CarryLog.objects.all()
