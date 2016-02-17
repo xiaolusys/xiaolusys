@@ -16,9 +16,9 @@ class VipCodeManager(models.Manager):
 
     def genCode(self):
         """ 生成邀请码 """
-        l = random.randint(0, 6)
-        xx = random.sample(CHARANGE_STR, l) + random.sample(NUMBER_STR, 6 - l)
-        return ''.join(xx)
+        xx = random.randint(1000000, 9999999)
+        print "xx:", xx
+        return str(xx)
 
     def genVIpCode(self, mobile, expiried):
         new_code = self.genCode()

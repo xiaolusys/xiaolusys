@@ -144,10 +144,35 @@ class ScheduleManageView(generics.ListCreateAPIView):
             temp_date = target_date + datetime.timedelta(days=i)
             one_data, wem_posters, chd_posters, target_sch = get_target_date_detail(
                 temp_date, category)
+            sale_product_ids = []
+            for item in one_data:
+                sale_product_ids.append(item.sale_product_id)
+
+            n_total, n_50, n_50_150, n_150 = (0,) * 4
+            for row in SaleProduct.objects.filter(pk__in=sale_product_ids):
+                n_total += 1
+                if row.on_sale_price <= 50:
+                    n_50 += 1
+                elif row.on_sale_price <= 150:
+                    n_50_150 += 1
+                else:
+                    n_150 += 1
+            p_50, p_50_150, p_150 = (0,) * 3
+            if n_total:
+                p_50 = 100 * n_50 / n_total
+                p_50_150 = 100 * n_50_150 / n_total
+                p_150 = 100 - p_50 - p_50_150
             result_data.append({"data": one_data,
                                 "date": temp_date.strftime("%Y-%m-%d"),
                                 "wem_posters": wem_posters,
-                                "chd_posters": chd_posters})
+                                "chd_posters": chd_posters,
+                                'n_total': n_total,
+                                'n_50': n_50,
+                                'n_50_150': n_50_150,
+                                'n_150': n_150,
+                                'p_50': p_50,
+                                'p_50_150': p_50_150,
+                                'p_150': p_150})
 
         return Response(
             {"result_data": result_data,
@@ -418,13 +443,16 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             if mlist:
                 return Response({'result': 'fail'})
             # 先作废库存商品
-            for p in Product.objects.filter(sale_product=sale_product_id, status__in=[pcfg.NORMAL, pcfg.REMAIN]):
+            for p in Product.objects.filter(
+                    sale_product=sale_product_id,
+                    status__in=[pcfg.NORMAL, pcfg.REMAIN]):
                 cnt = 0
                 success = False
                 invalid_outerid = p.outer_id
                 while cnt < 10:
                     invalid_outerid += '_del'
-                    if Product.objects.filter(outer_id=invalid_outerid).count() == 0:
+                    if Product.objects.filter(
+                            outer_id=invalid_outerid).count() == 0:
                         success = True
                         break
                     cnt += 1
@@ -434,7 +462,8 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                 p.status = Product.DELETE
                 p.save()
             # 作废SaleProduct
-            SaleProduct.objects.filter(pk=sale_product_id).update(status=SaleProduct.REJECTED)
+            SaleProduct.objects.filter(pk=sale_product_id).update(
+                status=SaleProduct.REJECTED)
 
             # 删除排期记录
             SaleProductManageDetail.objects.filter(id=detail).delete()
@@ -459,14 +488,21 @@ class ScheduleBatchSetView(generics.ListCreateAPIView):
         sale_product_ids = list(set(sale_product_ids))
 
         if form.cleaned_attrs.onshelf_date:
-            mgr_p, state = SaleProductManage.objects.get_or_create(sale_time=form.cleaned_attrs.onshelf_date)
+            mgr_p, state = SaleProductManage.objects.get_or_create(
+                sale_time=form.cleaned_attrs.onshelf_date)
             if not state and mgr_p.lock_status:
-                messages.add_message(request, messages.INFO, '%s排期已经被锁定' % form.cleaned_attrs.onshelf_date.strftime('%Y%m%d'))
+                messages.add_message(
+                    request, messages.INFO, '%s排期已经被锁定' %
+                    form.cleaned_attrs.onshelf_date.strftime('%Y%m%d'))
             else:
-                SaleProductManageDetail.objects.filter(pk__in=detail_ids).update(today_use_status=SaleProductManageDetail.DELETE)
+                SaleProductManageDetail.objects.filter(
+                    pk__in=detail_ids).update(
+                        today_use_status=SaleProductManageDetail.DELETE)
                 for row in SaleProduct.objects.filter(pk__in=sale_product_ids):
                     #　生成one_detail
-                    one_detail, _ = SaleProductManageDetail.objects.get_or_create(schedule_manage=mgr_p, sale_product_id=row.id)
+                    one_detail, _ = SaleProductManageDetail.objects.get_or_create(
+                        schedule_manage=mgr_p,
+                        sale_product_id=row.id)
                     one_detail.name = row.title
                     one_detail.today_use_status = SaleProductManageDetail.NORMAL
                     one_detail.pic_path = row.pic_url
@@ -478,19 +514,23 @@ class ScheduleBatchSetView(generics.ListCreateAPIView):
                     one_detail.sale_category = category
                     one_detail.save()
                     # 设置saleproduct的sale_time
-                    row.sale_time = datetime.datetime.combine(form.cleaned_attrs.onshelf_date,
-                                                                  datetime.datetime.min.time())
+                    row.sale_time = datetime.datetime.combine(
+                        form.cleaned_attrs.onshelf_date,
+                        datetime.datetime.min.time())
                     row.save()
                     # 设置product上架时间
-                    Product.objects.filter(sale_product=row.id, status=Product.NORMAL).update(sale_time=form.cleaned_attrs.onshelf_date)
+                    Product.objects.filter(
+                        sale_product=row.id,
+                        status=Product.NORMAL).update(
+                            sale_time=form.cleaned_attrs.onshelf_date)
                 # 统计mgr_p的数量
-                mgr_p.product_num = mgr_p.manage_schedule.filter(today_use_status=SaleProductManageDetail.NORMAL).count()
+                mgr_p.product_num = mgr_p.manage_schedule.filter(
+                    today_use_status=SaleProductManageDetail.NORMAL).count()
                 # 更新负责人名称
                 if not mgr_p.responsible_people_id:
                     mgr_p.responsible_people_id = request.user.id
                     mgr_p.responsible_person_name = request.user.username
                 mgr_p.save()
-
 
         for row in Product.objects.filter(sale_product__in=sale_product_ids):
             is_dirty = False
