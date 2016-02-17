@@ -33,13 +33,14 @@ def genCode():
 
 
 def get_active_pros_data():
-    free_samples = (1, )
+    free_samples = (1, 2)
     queryset = XLFreeSample.objects.filter(id__in=free_samples)  # 要加入活动的产品
     data = []
     for sample in queryset:
         dic = model_to_dict(sample, exclude=['id'])
         data.append({"sample": dic,
                      "skus": [model_to_dict(sku, fields=['sku_name', 'sku_code']) for sku in sample.skus.all()]})
+
     return data
 
 
@@ -58,7 +59,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         content = request.REQUEST
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        print "agent:", agent
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
         if self.is_from_weixin(request):  # 如果是在微信里面
             openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
@@ -193,7 +193,7 @@ class XlSampleOrderView(View):
 
     def handler_with_vipcode(self, vipcode, mobile, outer_id, sku_code, customer):
         xlcodes = XLInviteCode.objects.filter(vipcode=vipcode)
-        res = None
+
         if xlcodes.exists():  # 邀请码对应的邀请人存在
             xlcode = xlcodes[0]
             from_mobile = xlcode.mobile
@@ -222,7 +222,8 @@ class XlSampleOrderView(View):
                 referal_uid = customer.id  # 被推荐人ID
                 referal_from_uid = from_customer  # 推荐人ID
                 XLReferalRelationship.objects.create(referal_uid=referal_uid, referal_from_uid=referal_from_uid)
-
+        else:
+            res = None
         return res
 
     def get(self, request):
@@ -282,17 +283,18 @@ class XlSampleOrderView(View):
                 xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
                 xlapply.save()
             else:  # 没有试用申请记录的（返回申请页面链接）　提示
+                not_apply_message = "您还没有申请记录,请填写邀请码"
                 if vipcode not in (None, ""):  # 有邀请码的情况下 根据邀请码生成用户的申请记录和订单记录
                     res = self.handler_with_vipcode(vipcode, mobile, outer_id, sku_code, customer)
-                    return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
-
-                not_apply_message = "您还没有申请记录,请填写邀请码"
+                    if res is not None:
+                        return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
+                    else:
+                        not_apply_message = "您的邀请码有误，尝试重新填写"
                 return render_to_response(self.order_page, {"data": data,
                                                             "title": title,
                                                             "not_apply": not_apply_message},
                                           context_instance=RequestContext(request))
         res = self.get_promotion_result(customer.id, outer_id, mobile)
-        print "debug res:", res
         return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
 
 
