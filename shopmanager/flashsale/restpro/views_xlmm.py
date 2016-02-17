@@ -172,9 +172,17 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     `type_count`: 点击或者订单条数　如果为0　为非点击或订单收入记录类型  
     `xlmm`: 代理的专属链接  
     `sum_value`: 收入金额  
-    `log_type`: 收入类型('click':返,'rebeta':佣,'recruit':奖,'subsidy':提,'暂定':团,'暂定':粉)  
-    `carry_date`: 业务时间  
-
+    `carry_date`: 业务时间      
+    `log_type`: 收入类型  
+    >`click`: 点击补贴　分享返现  返  
+    `rebeta`: 订单返利　订单佣金　佣  
+    `recruit`:招募奖金  招募奖金  奖  
+    `subsidy`:代理补贴  推荐提成　　提  
+    `thousand`:千元提成　　额外奖励　 奖  
+    `ordred`:订单红包 　红包奖励　　奖  
+    '暂定':团  
+    '暂定':粉  
+    
     """
     queryset = CarryLog.objects.all()
     serializer_class = serializers.CarryLogSerialize
