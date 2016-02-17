@@ -3,10 +3,10 @@
 {% block title %} 中奖名单 {% endblock %}
 
 {% block container %}
-
+    <a href="/sale/promotion/xlsampleorder/">返回上一页</a>
 <div class="container-fluid">
   <div class="panel panel-default" style="margin-top:5px">
-    {% if month < 1508 %}
+    {% if month < 1602 %}
     <div class="panel-heading">详细名单</div>
     {% else %}
     <div class="panel-heading">详细名单 (第{{ batch }}批)</div>
@@ -14,7 +14,7 @@
     <div class="panel-body">
 
     <div class="row">
-	{% if month < 1508 %}
+	{% if month < 1602 %}
 	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖手机号。</p>
 	{% else %}
 	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖手机号，邀请参加人数和被邀请人APP下载验证活动数。</p>
