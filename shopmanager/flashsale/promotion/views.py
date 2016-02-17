@@ -94,15 +94,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobiles = re.findall(regex, vmobile)
         mobile = mobiles[0] if len(mobiles) >= 1 else None
         if mobile:
-            custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
-            cust = custs[0] if custs.exists() else ''
-            if cust:  # 给分享人（存在）则计数邀请数量
-                participates = XLInviteCode.objects.filter(mobile=cust.mobile)
-                if participates.exists():
-                    participate = participates[0]
-                    participate.usage_count += 1
-                    participate.save()  # 使用次数累加
-
             url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
             xls = XLSampleApply.objects.filter(outer_id=outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
             if not xls.exists():  # 如果没有申请记录则创建记录
@@ -122,6 +113,14 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
                 XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
 
+                custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
+                cust = custs[0] if custs.exists() else ''
+                if cust:  # 给分享人（存在）则计数邀请数量
+                    participates = XLInviteCode.objects.filter(mobile=cust.mobile)
+                    if participates.exists():
+                        participate = participates[0]
+                        participate.usage_count += 1
+                        participate.save()  # 使用次数累加
             return redirect(url)  # 跳转到下载页面
 
         return render_to_response(self.xlsampleapply,
@@ -195,7 +194,11 @@ class XlSampleOrderView(View):
                 from_customer = customers[0].id
                 expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
                 # 生成自己的邀请码
-                new_vipcode = XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
+                try:
+                    xincode = XLInviteCode.objects.get(mobile=mobile)
+                    new_vipcode = xincode.vipcode
+                except XLInviteCode.DoesNotExist:
+                    new_vipcode = XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
                 # 生成自己申请记录
                 new_xlapply = XLSampleApply.objects.create(outer_id=outer_id, sku_code=sku_code,
                                                            from_customer=from_customer, mobile=mobile,
