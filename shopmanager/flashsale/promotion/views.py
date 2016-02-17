@@ -24,7 +24,7 @@ from core.weixin.options import set_cookie_openid
 from flashsale.pay.models import Customer
 from shopapp.weixin.views import get_user_openid, valid_openid
 from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder
-from .models import XLInviteCode
+from .models import XLInviteCode, XLReferalRelationship
 
 
 def genCode():
@@ -210,6 +210,11 @@ class XlSampleOrderView(View):
                 XLSampleOrder.objects.create(xlsp_apply=new_xlapply.id, customer_id=customer.id,
                                              outer_id=outer_id, sku_code=sku_code)
                 res = self.get_promotion_result(customer.id, outer_id, mobile)
+
+                referal_uid = customer.id  # 被推荐人ID
+                referal_from_uid = from_customer  # 推荐人ID
+                XLReferalRelationship.objects.create(referal_uid=referal_uid, referal_from_uid=referal_from_uid)
+
         return res
 
     def get(self, request):
@@ -261,6 +266,11 @@ class XlSampleOrderView(View):
             if xlapply:  # 有　试用申请　记录的
                 XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
                                              outer_id=outer_id, sku_code=sku_code)
+                # 生成邀请关系记录
+                referal_uid = customer.id  # 被推荐人ID
+                referal_from_uid = xlapply.from_customer  # 推荐人ID
+                XLReferalRelationship.objects.create(referal_uid=referal_uid, referal_from_uid=referal_from_uid)
+
                 xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
                 xlapply.save()
             else:  # 没有试用申请记录的（返回申请页面链接）　提示
