@@ -6,7 +6,7 @@ from django.db.models import Q
 from flashsale.xiaolumm.models import UserGroup
 from django.contrib.admin.views.main import ChangeList
 
-from shopback.base.admin import MyAdmin
+from core.admin import ApproxAdmin
 from shopback.base.options import DateFieldListFilter
 
 from .models import (
@@ -27,7 +27,7 @@ from django.contrib.auth.models import User
 from .filters import UserNameFilter
 
 
-class XiaoluMamaAdmin(MyAdmin):
+class XiaoluMamaAdmin(ApproxAdmin):
     
     user_groups = []
     
@@ -175,7 +175,7 @@ class AgencyLevelAdmin(admin.ModelAdmin):
 admin.site.register(AgencyLevel, AgencyLevelAdmin) 
 
 
-class CashOutAdmin(admin.ModelAdmin):
+class CashOutAdmin(ApproxAdmin):
     
     form = forms.CashOutForm
     list_display = ('xlmm','get_cashout_verify','get_value_display','get_xlmm_history_cashin','get_xlmm_history_cashout','get_xlmm_history_cashout_record','get_xlmm_total_click','get_xlmm_total_order','status','approve_time','created','get_cash_out_xlmm_manager')
@@ -259,7 +259,7 @@ class CashOutAdmin(admin.ModelAdmin):
 admin.site.register(CashOut, CashOutAdmin) 
 
 
-class CarryLogAdmin(MyAdmin):
+class CarryLogAdmin(ApproxAdmin):
     
     form = forms.CarryLogForm
     list_display = ('xlmm', 'buyer_nick', 'get_value_display', 'log_type', 
@@ -271,7 +271,7 @@ class CarryLogAdmin(MyAdmin):
 admin.site.register(CarryLog, CarryLogAdmin)
 
 
-class OrderRedPacketAdmin(admin.ModelAdmin):
+class OrderRedPacketAdmin(ApproxAdmin):
 
     list_display = ('xlmm', 'first_red', 'ten_order_red', 'created', 'modified')
     search_fields = ['=xlmm']
@@ -281,7 +281,7 @@ admin.site.register(OrderRedPacket, OrderRedPacketAdmin)
 
 from .forms import MamaDayStatsForm
 
-class MamaDayStatsAdmin(admin.ModelAdmin):
+class MamaDayStatsAdmin(ApproxAdmin):
     
     list_display = ('xlmm', 'day_date', 'get_base_click_price_display','get_lweek_roi_display',
                     'get_tweek_roi_display','lweek_clicks', 'lweek_buyers', 'get_lweek_payment_display',

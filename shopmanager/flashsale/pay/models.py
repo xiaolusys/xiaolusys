@@ -64,6 +64,16 @@ class SaleTrade(PayBaseModel):
         (POSTPAY,"货到付款"),
     )
     
+    SALE_ORDER     = 0
+    RESERVE_ORDER  = 1
+    DEPOSITE_ORDER = 2
+    ORDER_TYPE_CHOICES = (
+        (SALE_ORDER,u"特卖订单"),
+        (RESERVE_ORDER,"预订制"),
+        (DEPOSITE_ORDER,"押金订单"),
+    )
+    
+    
     TRADE_NO_CREATE_PAY = 0
     WAIT_BUYER_PAY = 1
     WAIT_SELLER_SEND_GOODS = 2
@@ -107,7 +117,7 @@ class SaleTrade(PayBaseModel):
     buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
     
-    channel     = models.CharField(max_length=16,choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款类型')
+    channel     = models.CharField(max_length=16,choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
     
     payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
     post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
@@ -120,7 +130,8 @@ class SaleTrade(PayBaseModel):
     pay_time     = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'付款日期')
     consign_time = models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
     
-    trade_type = models.IntegerField(choices=TRADE_TYPE_CHOICES,default=PREPAY,verbose_name=u'订单类型')
+    trade_type = models.IntegerField(choices=TRADE_TYPE_CHOICES,default=PREPAY,verbose_name=u'交易类型')
+    order_type = models.IntegerField(choices=ORDER_TYPE_CHOICES,default=SALE_ORDER,verbose_name=u'订单类型')
     
     out_sid         = models.CharField(max_length=64,blank=True,verbose_name=u'物流编号')
     logistics_company  = models.ForeignKey(LogisticsCompany,null=True,
@@ -219,6 +230,7 @@ class SaleTrade(PayBaseModel):
         return self.status == self.TRADE_CLOSED
     
     def is_Deposite_Order(self):
+        
         
         for order in self.sale_orders.all():
             if order.outer_id.startswith(AGENCY_DIPOSITE_CODE):

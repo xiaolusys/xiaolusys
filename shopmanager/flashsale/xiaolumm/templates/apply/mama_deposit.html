@@ -4,8 +4,14 @@
 
 {% block apply_script %}
 <style>
+.thumbnail img{
+    width:100%;
+}
 .label-text{
     color:red;
+}
+.address span{
+    font-size:24px;
 }
 </style>
 {% endblock %}
@@ -36,16 +42,48 @@
       </div>
      </div>
     <div>
-    <form action="" class="form-horizontal">
+    <div class="well well-lg row address">
+        {% if user_addr %}
+        <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self">
+        <div >
+        <div class="pull-left glyphicon glyphicon-map-marker" ></div>
+        <div class="col-xs-9">
+            <div><label>收货人:</label><span>{{ user_addr.receiver_name }}</span><span class="pull-right">{{ user_addr.receiver_mobile }}</span></div>
+            <div class="address-detail"><label>收货地址:</label><span>{{ user_addr.receiver_state }}&nbsp;{{ user_addr.receiver_city }}
+            &nbsp;{{ user_addr.receiver_district }}&nbsp;{{ user_addr.receiver_address }}</span></div>
+        </div>
+        <div class="glyphicon glyphicon-chevron-right" target="_self"></div>
+        </div>
+        </a>
+        {% else %}
+        <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self"><div class="col-xs-offset-1 col-xs-9 "><span>您还没有添加收货地址，点击添加</span></div></a>
+        {% endif %}
+    </div>
+    <form action="/m/register/deposite/" class="form-horizontal" method="POST">
         <input type="hidden" name="product_id" value="">
         <input type="hidden" name="sku_id" value="">
         <input type="hidden" name="uuid" value="">
         <input type="hidden" name="num" value="1">
+        <input type="hidden" name="addr_id" value="1">
+        <div class="form-group　well well-sm">
+            <div class="radio">
+              <label>
+                <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+                微信支付
+              </label>
+            </div>
+            <div class="radio">
+              <label>
+                <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
+                支付宝
+              </label>
+            </div>
+        </div>
         <div class="form-group">
             <div class="col-xs-offset-4 col-xs-10">
               <div class="checkbox">
                 <label>
-                  <input type="checkbox"> 同意小鹿妈妈条款<a href=""><span class="label-text">点击查看</span></a>
+                  <input type="checkbox"> 同意小鹿妈妈条款<a href="{{ STATIC_URL }}tiaokuan.html"><span class="label-text">点击查看</span></a>
                 </label>
               </div>
             </div>

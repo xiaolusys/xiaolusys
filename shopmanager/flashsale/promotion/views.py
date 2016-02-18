@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 import os, settings, urlparse
 import datetime
 import re
@@ -45,7 +45,7 @@ def get_active_pros_data():
 
 
 class XLSampleapplyView(WeixinAuthMixin, View):
-    xlsampleapply = 'promotion/xlsampleapply.html'
+    xlsampleapply = 'promotion/apply.html'
 
     vipcode_default_message = u'请输入邀请码'
     vipcode_error_message = u'邀请码不正确'

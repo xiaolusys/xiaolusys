@@ -1,0 +1,224 @@
+{% extends "promotion_base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block head_style %}
+    <style>
+        .active_detail {
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .form-content {
+            text-align: center;
+        }
+
+        .submit-apply {
+            margin-top: 30px;
+        }
+	
+	.choice {
+          padding: 0px 2px;
+	}
+	
+	.choice span{
+	  display: block;
+	  padding: 8px 1px;
+	  font-size: 14px;
+	  #font-weight: 700;
+	  line-height: 1.1;
+	  text-align: center;
+	  border-radius: 4px;
+	}
+	.visible-border {
+	  color: #999;
+	  border: 1px solid #ddd;
+	}
+	.highlight-border {
+	  color: orange;
+	  border: 1px solid orange;
+	}
+    </style>
+{% endblock %}
+{% block container %}
+    {% for pro in data %}
+    <div class="row">
+      <div class="col-xs-12" style="text-align: center;">
+        <h3>{{ pro.sample.name }}</h3>
+	<h4>约上好友 抢红包 赢睡袋！</h4>
+	<p>活动时间</br>2月22日10:00 - 2月29日10:00</p>
+	<p>天猫热销10万件的睡袋，包邮免费送啦！</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-xs-2" style="text-align: center;"></div>
+      <div class="col-xs-8" style="text-align: center;">
+	<a href="" class="thumbnail">
+          <img src="{{ pro.sample.pic_url }}" alt="全棉多功能睡袋" />
+	</a>
+      </div>
+      <div class="col-xs-2"></div>
+    </div>
+
+
+    <div class="row">
+      <div class="col-xs-2 choice"></div>
+      <div class="col-xs-2 choice" style="padding: 1px 1px">
+	<span>颜色 :</span>
+      </div>
+      <div class="col-xs-2 choice">
+	<span id="id-color-yellow" class="highlight-border">黄色</span>
+      </div>
+      <div class="col-xs-2 choice">
+	<span id="id-color-blue" class="visible-border">蓝色</span>
+      </div>
+      <div class="col-xs-2 choice">
+	<span id="id-color-pink" class="visible-border">粉色</span>
+      </div>
+      <div class="col-xs-2 choice"></div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div class="col-xs-2 choice"></div>
+      <div class="col-xs-2 choice">
+	<span>尺码 :</span>
+      </div>
+      <div class="col-xs-2 choice">
+	<span id="id-size-3" class="highlight-border">0-3岁</span>
+      </div>
+      <div class="col-xs-2 choice">
+	<span id="id-size-5" class="visible-border">3-5岁</span>
+      </div>
+      <div class="col-xs-2 choice"></div>
+      <div class="col-xs-2 choice"></div>
+    </div>
+
+    <div class="row" style="margin-top:20px">
+      <div class="col-xs-2"></div>
+      <div class="col-xs-8 form-content">
+        <form action="" method="post" onsubmit="return check()">
+          <input type="text" hidden="hidden" name="ufrom" id="ufrom"/>
+          <input type="text" hidden="hidden" name="from_customer" id="from_customer" value="{{ from_customer }}"/>
+          <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
+	  <input type="text" value="1" name="sku_code" hidden="hidden"/>
+
+          <p id="id-errmsg" style="color:red">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
+
+          <input id="id-mobile" type="number" name="mobile" class="form-control"
+                 {% if mobile %} value="{{ mobile }}" {% endif %}
+                 aria-describedby="basic-addon1" style="text-align: center">
+
+          {% if vipcode_message %}
+          <span> {{ vipcode_message }} </span>
+          {% endif %}
+
+          <button class="btn btn-default form-control submit-apply " type="submit">提交申请</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+
+
+    <div class="row">
+      <div class="col-xs-12" style="margin-left:10px">
+	<hr/>
+        <ul class="list-group" style="font-size: 12px">
+	    <li class="list-group-item list-group-item-info" style="text-align:center">活动细则</li>
+	    <li class="list-group-item">活动提供免费睡袋1000组，送完即止！快抢！</li>
+	    <li class="list-group-item">活动另提供600万吉利数现金红包，全年运势发发发！</li>
+	    <li class="list-group-item">睡袋中奖名单将在2月29日10:00前全部公布，请注意APP推送消息！</li>
+	    <li class="list-group-item">小鹿美美保留对活动的最终解释权。</li>
+        </ul>
+      </div>
+    </div>
+{% endblock %}
+{% block tail_script %}
+    <script>
+        function getUrlParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+            if (r != null) return unescape(r[2]);
+            return null; //返回参数值
+        }
+        $(document).ready(function () {
+            var ufrom = getUrlParam("ufrom");
+            var ufrom_dom = $("#ufrom").val(ufrom);
+            console.log(ufrom_dom);
+
+        });
+
+	var selectedColorElement = $("#id-color-yellow");
+	var selectedSizeElement = $("#id-size-3");
+	
+	function clearColorSelection() {
+          selectedColorElement.removeClass("highlight-border");
+	  selectedColorElement.addClass("visible-border");
+	}
+
+	function clearSizeSelection() {
+          selectedSizeElement.removeClass("highlight-border");
+	  selectedSizeElement.addClass("visible-border");
+	}
+	
+	$("#id-color-yellow").click(function () {
+	  var target = $("#id-color-yellow");
+	  if (target != selectedColorElement) {
+	    clearColorSelection();
+	    target.addClass("highlight-border");
+	    selectedColorElement = target;
+	  }
+	});
+
+	$("#id-color-blue").click(function () {
+	  var target = $("#id-color-blue");
+	  if (target != selectedColorElement) {
+	    clearColorSelection();
+	    target.addClass("highlight-border");
+	    selectedColorElement = target;
+	  }
+	});
+
+	$("#id-color-pink").click(function () {
+	  var target = $("#id-color-pink");
+	  if (target != selectedColorElement) {
+	    clearColorSelection();
+	    target.addClass("highlight-border");
+	    selectedColorElement = target;
+	  }
+	});
+
+	$("#id-size-3").click(function () {
+	  var target = $("#id-size-3");
+	  if (target != selectedColorElement) {
+	    clearSizeSelection();
+	    target.addClass("highlight-border");
+	    selectedSizeElement = target;
+	  }
+	});
+
+	$("#id-size-5").click(function () {
+	  var target = $("#id-size-5");
+	  if (target != selectedColorElement) {
+	    clearSizeSelection();
+	    target.addClass("highlight-border");
+	    selectedSizeElement = target;
+	  }
+	});
+
+	function validateMobile(mobile) {
+	  var reg = /^1[34578]\d{9}$/;
+	  return reg.test(mobile);
+	}
+	
+	function check() {
+	  var mobile = $("#id-mobile").val();
+	  if (!validateMobile(mobile)) {
+	    console.log("wrong");
+	    $("#id-errmsg")[0].innerHTML = "哎呀呀～手机号错啦～～";
+	    return false;
+	  }
+	  return true;
+	}
+	
+    </script>
+{% endblock %}
