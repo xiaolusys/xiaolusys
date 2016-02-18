@@ -276,11 +276,8 @@ class XlSampleOrderView(View):
 
         data = get_active_pros_data()  # 获取活动产品数据
         title = "活动正式订单"
-        if mobile is None or not outer_id:
-            if mobile:
-                error_message = "请选择尺寸"
-            else:
-                error_message = "请验证手机"
+        if mobile is None:
+            error_message = "请验证手机"
             return render_to_response(self.order_page,
                                       {
                                           "data": data,
@@ -351,7 +348,6 @@ def get_orders(month=None, batch=None):
     if not (month and batch):
         start_time = datetime.datetime(2016, 1, 22)
         orders = XLSampleOrder.objects.filter(created__gt=start_time)
-        print("orders", orders)
         order_list = orders[:30] if len(orders) > 30 else orders  # 只是取30条
     return order_list
 
@@ -361,11 +357,20 @@ class PromotionShortResult(APIView):
         items = []
         order_list = get_orders(None, None)
         customer_ids = [item.customer_id for item in order_list]
-        print '----XLSampleOrder:', customer_ids
         wx_users = Customer.objects.filter(id__in=customer_ids)
         for user in wx_users:
             items.append(get_mobile_show(user))
         return HttpResponse(json.dumps(items))
+
+
+class RedPacket(APIView):
+    """
+    满足条件后，发放红包
+    """
+
+    def get(self, request):
+        # 计算用户
+        return HttpResponse(json.dumps({}))
 
 
 class PromotionResult(APIView):
