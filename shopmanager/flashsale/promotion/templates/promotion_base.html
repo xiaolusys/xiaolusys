@@ -20,10 +20,10 @@
 
   <div class="container">
     {% block content1 %}
-    {% for pro in data %}
+
     <div class="row">
       <div class="col-xs-12" style="text-align: center;">
-        <h3>{{ pro.sample.name }}</h3>
+        <h3>{{ pro.name }}</h3>
 	<h4>约上好友 抢红包 赢睡袋！</h4>
 	<p>活动时间</br>2月22日10:00 - 2月29日10:00</p>
 	<p>天猫热销10万件的睡袋，包邮免费送啦！</p>
@@ -34,12 +34,12 @@
       <div class="col-xs-2" style="text-align: center;"></div>
       <div class="col-xs-8" style="text-align: center;">
 	<a href="" class="thumbnail">
-          <img src="{{ pro.sample.pic_url }}" alt="全棉多功能睡袋" />
+          <img src="{{ pro.pic_url }}" alt="全棉多功能睡袋" />
 	</a>
       </div>
       <div class="col-xs-2"></div>
     </div>
-    {% endfor %}
+
     {% endblock %}
 
     {% block content2 %}{% endblock %}
