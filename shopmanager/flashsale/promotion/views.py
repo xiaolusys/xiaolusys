@@ -276,7 +276,7 @@ class XlSampleOrderView(View):
             error_message = "请验证手机"
             return render_to_response(self.order_page,
                                       {
-                                          "data": pro,
+                                          "pro": pro,
                                           "title": title,
                                           "error_message": error_message
                                       },
@@ -316,14 +316,14 @@ class XlSampleOrderView(View):
                                                   context_instance=RequestContext(request))
                     else:
                         not_apply_message = "您的邀请码有误，尝试重新填写"
-                return render_to_response(self.order_page, {"data": data,
+                return render_to_response(self.order_page, {"pro": pro,
                                                             "title": title,
                                                             "not_apply": not_apply_message},
                                           context_instance=RequestContext(request))
         outer_ids = ['', ]
         outer_ids[0] = outer_id
         res = self.get_promotion_result(customer.id, outer_ids, mobile)
-        return render_to_response(self.order_page, {"data": data, "res": res}, context_instance=RequestContext(request))
+        return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
 
 
 def get_mobile_show(customer):
