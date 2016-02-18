@@ -43,7 +43,7 @@ class WeixinAuthMixin(object):
             request=request
         )
     
-    def set_cookie_openid_and_unionid(self,response,appid,openid,unionid):
+    def set_cookie_openid_and_unionid(self,response,openid,unionid):
         options.set_cookie_openid(response,self._wxpubid,openid,unionid)
     
     def get_wxauth_redirct_url(self,request,scope="snsapi_base"):

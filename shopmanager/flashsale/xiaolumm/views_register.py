@@ -62,23 +62,22 @@ class MamaRegisterView(WeixinAuthMixin,PayInfoMethodMixin,APIView):
             logger.error(exc.message,exc_info=True)
             raise exc
 
-        if xiaolumm.progress == XiaoluMama.PROFILE:
+        if xiaolumm.progress == XiaoluMama.NONE:
+            response = Response({
+                        'openid':openid,
+                        'unionid':unionid,
+                        'wxuser':wx_user,
+                    })
+            self.set_cookie_openid_and_unionid(response, openid, unionid)
+            return response
+        
+        elif xiaolumm.need_pay_deposite():
             return redirect(reverse('mama_deposite',kwargs={'mama_id':mama_id}))
         
-        if xiaolumm.progress == XiaoluMama.PASS:
+        else:
             return redirect(reverse('mama_homepage'))
         
-        elif xiaolumm.progress == XiaoluMama.PAY:
-            self.template_name = 'apply/mama_contact.html'
-            try:
-                referal_mama = XiaoluMama.objects.get(mobile=xiaolumm.referal_from)
-            except (XiaoluMama.DoesNotExist, User.DoesNotExist):
-                referal_mama = None
-            return Response({'openid':openid,
-                             'unionid':unionid,
-                             'wxuser':wx_user,
-                             'xlmm':xiaolumm,
-                             'referal_mama':referal_mama})
+
             
             
     def post(self,request, mama_id):
@@ -98,12 +97,10 @@ class MamaRegisterView(WeixinAuthMixin,PayInfoMethodMixin,APIView):
             parent_mobile = parent_xlmm.mobile
             
         xlmm.progress = XiaoluMama.PROFILE
-        xlmm.referal_from = parent_mobile
+#         xlmm.referal_from = parent_mobile
         xlmm.save()
         
-        return render_to_response("mama_deposit.html", 
-                                  {'wxuser':wx_user,'xlmm':xlmm},
-                                  context_instance=RequestContext(request))
+        return redirect(reverse('mama_deposite',kwargs={'mama_id':mama_id}))
 
 
 class PayDepositeView(PayInfoMethodMixin, APIView):
@@ -122,7 +119,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
     def get(self, request, mama_id):
         xlmm = self.get_xiaolumm(request)
         if not xlmm:
-            return redirect(reverse('mama_register',args=(mama_id,)))
+            return redirect(reverse('mama_register',kwargs={'mama_id':mama_id}))
         
         if not xlmm.need_pay_deposite():
             return redirect(reverse('mama_homepage'))
@@ -182,7 +179,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
             raise exceptions.APIException(u'订单生成异常')
         
         response_charge = self.pingpp_charge(sale_trade,**CONTENT)
-        print response_charge
+        
         return Response(response_charge)
         
         
