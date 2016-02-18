@@ -54,7 +54,9 @@
     <div class="row" style="margin-top:20px">
       <div class="col-xs-2"></div>
       <div class="col-xs-8 form-content">
+      {% if not res %}
 	<p style="color:#FF8800">您的申请已提交，请立即激活！</p>
+      {% endif %}
         <form action="" method="post">
           <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
           <!--  没有申请记录的情况　-->
