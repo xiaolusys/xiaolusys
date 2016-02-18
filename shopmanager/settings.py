@@ -207,7 +207,6 @@ LOGOUT_URL = '/accounts/logout/'
 
 
 TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
-NO_PIC_PATH = 'img/nopic.jpg'
 
 try:
     from prod_settings import *
@@ -250,5 +249,5 @@ REST_FRAMEWORK_EXTENSIONS = {
 
 if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                        'middleware.middleware.QueryCountDebugMiddleware',
+                          'middleware.middleware.QueryCountDebugMiddleware',
                           ) + MIDDLEWARE_CLASSES

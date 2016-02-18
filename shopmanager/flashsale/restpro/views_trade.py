@@ -259,10 +259,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
         content = request.GET
-        method  = request.method.lower()
-        if format == 'html' and method == 'get':
-            return Response({})
-        
         cartid_list =  content.get('cart_ids','')
         cart_ids = [int(i) for i in cartid_list.split(',') if i.isdigit()]
         if len(cart_ids) == 0:
@@ -321,11 +317,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'coupon_ticket':coupon_ticket,
                     'cart_ids':','.join([str(c) for c in cart_ids]),
                     'cart_list':serializer.data}
-
-        if format == 'html':
-            self.template_name    = 'confirmpay.html' 
-            addr_list = UserAddress.normal_objects.filter(cus_uid=customer.id)
-            response['addr_list'] = serializers.UserAddressSerializer(addr_list)
         
         return Response(response)
     
@@ -333,9 +324,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def now_payinfo(self, request, format=None, *args, **kwargs):
         """ 立即购买获取支付信息 """
         content     = request.REQUEST
-        method  = request.method.lower()
-        if format == 'html' and method == 'get':
-            return Response({})
         sku_id      = content.get('sku_id','')
         if not sku_id.isdigit():
             raise exceptions.APIException(u'传入规格ID不合法')
@@ -366,8 +354,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
         coupon_id      = content.get('coupon_id','')
         coupon_ticket  = None
-        if coupon_id:
-            coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
+        if not has_deposite and coupon_id:
+            coupon       = get_object_or_404(UserCoupon, id=coupon_id, 
+                                             customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
             try:
                 coupon.check_usercoupon()
@@ -402,11 +391,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'wallet_payable':wallet_payable,
                     'coupon_ticket':coupon_ticket,
                     'sku':product_sku_dict }
-        
-        if format == 'html':
-            self.template_name    = 'confirmpay.html' 
-            addr_list = UserAddress.normal_objects.filter(cus_uid=customer.id)
-            response['addr_list'] = serializers.UserAddressSerializer(addr_list)
         
         return Response(response)
 
@@ -612,14 +596,14 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return {'channel':channel,'success':True,'id':sale_trade.id}
     
     @rest_exception(errmsg=u'订单支付异常')
-    def pingpp_charge(self,sale_trade):
+    def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
         payment       = int(sale_trade.payment * 100)
         buyer_openid  = sale_trade.openid
         order_no      = sale_trade.tid
         channel       = sale_trade.channel
-        payback_url = urlparse.urljoin(settings.M_SITE_URL,'/pages/zhifucg.html')
-        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,'/pages/daizhifu-dd.html')
+        payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url','/pages/zhifucg.html'))
+        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
@@ -710,7 +694,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  pic_path=product.pic_path,
                  sku_name=sku.properties_alias,
                  status=SaleTrade.WAIT_BUYER_PAY
-            )
+            )  
         #清除购物车
         if not settings.DEBUG:
             cart_qs.delete()
@@ -815,7 +799,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
         CONTENT  = request.REQUEST
-        item_id   = CONTENT.get('item_id')
+        item_id  = CONTENT.get('item_id')
         sku_id   = CONTENT.get('sku_id')
         sku_num  = int(CONTENT.get('num','1'))
         
@@ -835,7 +819,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         coupon_id = CONTENT.get('coupon_id','')
         if coupon_id:
             # 对应用户的未使用的优惠券
-            coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
+            coupon       = get_object_or_404(UserCoupon, id=coupon_id, 
+                                             customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
             try:  # 优惠券条件检查
                 coupon.check_usercoupon()

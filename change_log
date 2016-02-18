@@ -1,14 +1,18 @@
 ######## 2016-02-17 ########
 alter table suplychain_flashsale_orderlist add column pay_status varchar(32) default '正常' ;
 ######## 2016-02-16 ########
+
 alter table flashsale_activity_entry add column mask_link varchar(256) default null ;
+alter table flashsale_trade add column order_type int(11) NOT NULL;
 ######## 2016-02-15 ########
+
 alter table flashsale_activity_entry add column login_required tinyint(1) NOT NULL;
 ######## 2016-02-14 ########
+
 alter table flashsale_xlmm_nine_pic add column description varchar(1024) default null ;
 ######## 2016-02-03 ########
-alter table shop_weixin_unionid add column modified datetime NOT NULL;
 
+alter table shop_weixin_unionid add column modified datetime NOT NULL;
 update shop_weixin_unionid set modified=created where id != 0;
 ######## 2016-01-31 ########
 alter table flashsale_cushops_detail add column modified datetime NOT NULL;

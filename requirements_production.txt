@@ -47,7 +47,6 @@ qiniu==7.0.5
 django-chartit==0.1
   
 ##########extra package(not install in the virtualenv)##########
-#sudo apt-get install python-mysqldb
 #virtualenv==1.8.2
 #South==1.0
 #raven==2.0.6
@@ -57,10 +56,13 @@ django-chartit==0.1
 #kombu==2.4.7
 pyExcelerator==0.6.4.1
 
+# sudo apt-get install gcc
+#sudo apt-get install libxml2-dev libxslt1-dev python-dev
+#sudo apt-get install libmysqld-dev
 #IOError: encoder jpeg not available
 #PIL==1.1.7 --allow-external PIL --allow-unverified PIL
 # install libjpeg-dev with apt
-sudo apt-get install libjpeg-dev
+#sudo apt-get install libjpeg-dev
 # reinstall pillow
-pip install --no-cache-dir -I pillow
+#pip install --no-cache-dir -I pillow
   
