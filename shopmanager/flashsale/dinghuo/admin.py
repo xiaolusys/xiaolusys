@@ -37,10 +37,10 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_name', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'receiver', 'display_pic', 'created', 'shenhe',
+        'id', 'buyer_name', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'receiver', 'display_pic', 'created', 'shenhe', 'pay_status',
         'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
     )
-    list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'buyer_name')
+    list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'pay_status', 'buyer_name')
     search_fields = ['id', '=supplier_name', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
@@ -158,7 +158,17 @@ class ordelistAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(request.get_full_path())
 
     action_quick_complete.short_description = u"处理过期订货单（批量 ）"
-    actions = ['test_order_action', 'action_quick_complete']
+
+    def action_receive_money(self, request, queryset):
+        for order in queryset:
+            if order.pay_status != u'正常':
+                order.pay_status = u'正常'
+                order.save()
+                log_action(request.user.id, order, CHANGE, u'已收款')
+        return HttpResponseRedirect(request.get_full_path())
+    action_receive_money.short_description = u'收款（批量）'
+
+    actions = ['test_order_action', 'action_quick_complete', 'action_receive_money']
 
     def get_actions(self, request):
 
