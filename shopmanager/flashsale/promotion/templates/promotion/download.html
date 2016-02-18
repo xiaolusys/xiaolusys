@@ -50,23 +50,42 @@
 {% endblock %}
 
 
-{% block container %}
+    {% block content1 %}
     <span id="weixin_label" hidden="hidden">可以点击右上角在浏览器中打开</span>
-    <div id="download">
-        <div class="col-xs-12" style="text-align: center;height: 180px">
-            <h3 style="padding: 30px">下载客户端查看提交订单和邀请结果</h3>
-        </div>
-
+    <div id="download" style="text-align: center">
+      <div class="col-xs-12" style="text-align: center;height: 180px; margin-bottom: 100px">
+        <h3 style="padding: 30px">下载APP客户端</h3>
+        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg" alt=""/>
+      </div>
+      <div class="row" style="margin-top: 60px">
         <div class="col-xs-2"></div>
-        <div class="col-xs-8" hidden="hidden" id="click_download">
-            <a class="btn btn-default form-control" type="submit"
-                    href="https://www.baidu.com">Android客户端下载</a>
-            <a class="btn btn-default form-control" type="submit"
-               href="https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985">iOS客户端下载</a>
+        <!--添加二维码图片-->
+        <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="qrcode_android_download">
+          <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/appstore_download_link.svg" alt="" width="100px"/>
+        </div>
+        <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="qrcode_ios_download">
+          <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/appstore_download_link.svg" alt="" width="100px"/>
         </div>
         <div class="col-xs-2"></div>
+      </div>
     </div>
-{% endblock %}
+    <div class="row">
+      <div class="col-xs-2"></div>
+      <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="click_android_download">
+        <!--添加二维码图片-->
+        <a class="btn btn-default form-control" type="submit"
+           href="http://7xogkj.com2.z0.glb.qiniucdn.com/Xlmm_v1.0_2016-02-17_huawei.apk" style="background:#FFB329;color:white">Android下载</a>
+      </div>
+      <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="click_ios_download">
+        <a class="btn btn-default form-control" type="submit"
+           href="https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985" style="background:#FFB329;color:white">iOS下载</a>
+        <div class="col-xs-2"></div>
+      </div>
+    </div>
+    {% endblock %}
+    {% block content4 %} {% endblock %}
+    
+    
 {% block footer %}
     <script>
         $(document).ready(function () {
@@ -84,7 +103,10 @@
                     startiOSAPP();//启动ios app
                 }
                 else {
-                    $("#click_download").show();
+                    $("#qrcode_android_download").show();
+                    $("#qrcode_ios_download").show();
+                    $("#click_android_download").show();
+                    $("#click_ios_download").show();
                 }
             }
         });

@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 import os, settings, urlparse
 import datetime
 import re
@@ -35,17 +35,13 @@ def genCode():
 def get_active_pros_data():
     free_samples = (1, 2)
     queryset = XLFreeSample.objects.filter(id__in=free_samples)  # 要加入活动的产品
-    data = []
-    for sample in queryset:
-        dic = model_to_dict(sample, exclude=['id'])
-        data.append({"sample": dic,
-                     "skus": [model_to_dict(sku, fields=['sku_name', 'sku_code']) for sku in sample.skus.all()]})
-
-    return data
+    if queryset.exists():
+        return queryset[0]
+    return None
 
 
 class XLSampleapplyView(WeixinAuthMixin, View):
-    xlsampleapply = 'promotion/xlsampleapply.html'
+    xlsampleapply = 'promotion/apply.html'
 
     vipcode_default_message = u'请输入邀请码'
     vipcode_error_message = u'邀请码不正确'
@@ -53,7 +49,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
     mobile_error_message = u'手机号码有误'
 
     PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
-    QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
     def get(self, request):
         content = request.REQUEST
@@ -66,11 +61,11 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 return redirect(self.get_wxauth_redirct_url(request))
 
         # 商品sku信息  # 获取商品信息到页面
-        data = get_active_pros_data()  # 获取活动产品数据
+        pro = get_active_pros_data()  # 获取活动产品数据
         response = render_to_response(self.xlsampleapply,
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
-                                       "data": data,
+                                       "pro": pro,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -90,19 +85,13 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
 
-        data = get_active_pros_data()  # 获取活动产品数据
+        pro = get_active_pros_data()  # 获取活动产品数据
 
         regex = re.compile(r'^1[34578]\d{9}$', re.IGNORECASE)
         mobiles = re.findall(regex, vmobile)
         mobile = mobiles[0] if len(mobiles) >= 1 else None
+
         if mobile:
-            url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
-
-            if "MicroMessenger" in agent:  # 如果是微信则跳转到应用宝下载
-                url = self.QQ_YINYONGBAO_URL
-                if "Android" in agent:
-                    url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
-
             xls = XLSampleApply.objects.filter(outer_id=outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
             if not xls.exists():  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
@@ -129,10 +118,13 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                         participate = participates[0]
                         participate.usage_count += 1
                         participate.save()  # 使用次数累加
-            return redirect(url)  # 跳转到下载页面
+            return render_to_response(self.xlsampleapply,
+                                      {"vipcode": vipcode, "pro": pro,
+                                       "mobile": vmobile, "download": True},
+                                      context_instance=RequestContext(request))
 
         return render_to_response(self.xlsampleapply,
-                                  {"vipcode": vipcode, "data": data,
+                                  {"vipcode": vipcode, "pro": pro,
                                    "mobile": vmobile,
                                    "mobile_message": self.mobile_error_message},
                                   context_instance=RequestContext(request))
@@ -141,11 +133,17 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 class APPDownloadView(View):
     """ 下载页面 """
     download_page = 'promotion/download.html'
+    QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
     def get(self, request):
         content = request.REQUEST
         vipcode = content.get("vipcode", None)  # 活动邀请码
         from_customer = content.get("from_customer", None)  # 分享人的用户id
+        url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
+        agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
+        if "MicroMessenger" and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
+            url = self.QQ_YINYONGBAO_URL
+            return redirect(url)
         return render_to_response(self.download_page,
                                   {"vipcode": vipcode, "from_customer": from_customer},
                                   context_instance=RequestContext(request))
@@ -158,6 +156,7 @@ class XlSampleOrderView(View):
     order_page = 'promotion/xlsampleorder.html'
     share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
     PROMOTION_LINKID_PATH = 'pmt'
+    PROMOTE_CONDITION = 20
 
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
@@ -166,7 +165,8 @@ class XlSampleOrderView(View):
     def get_promotion_result(self, customer_id, outer_id, mobile):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
         applys = XLSampleApply.objects.filter(from_customer=customer_id, outer_id=outer_id)
-        promote_count = applys.count()  # 邀请的数量　
+        promote_count = applys.count()  # 邀请的数量
+        is_get_order = True if promote_count >= self.PROMOTE_CONDITION else False
         xlcodes = XLInviteCode.objects.filter(mobile=mobile)
         vipcode = None
         if xlcodes.exists():
@@ -174,8 +174,16 @@ class XlSampleOrderView(View):
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
         share_link = self.share_link.format(**{'customer_id': customer_id})
         link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
+
+        # 返回邀请关系表中是自己邀请的用户的头像和手机号码
+
+        ships = XLReferalRelationship.objects.filter(referal_from_uid=customer_id)
+        referal_uids = ships.values('referal_uid')
+        referals_sus = Customer.objects.filter(id__in=referal_uids)
+
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-               'link_qrcode': link_qrcode, "vipcode": vipcode}
+               'link_qrcode': link_qrcode, "vipcode": vipcode, 'is_get_order': is_get_order,
+               "referals_sus": referals_sus}
         return res
 
     def gen_custmer_share_qrcode_pic(self, customer_id):
@@ -221,39 +229,54 @@ class XlSampleOrderView(View):
 
                 referal_uid = customer.id  # 被推荐人ID
                 referal_from_uid = from_customer  # 推荐人ID
-                XLReferalRelationship.objects.create(referal_uid=referal_uid, referal_from_uid=referal_from_uid)
+                XLReferalRelationship.objects.get_or_create(referal_uid=str(referal_uid),
+                                                            referal_from_uid=str(referal_from_uid))
         else:
             res = None
         return res
 
-    def get(self, request):
-        title = "活动正式订单"
-        data = get_active_pros_data()  # 获取活动产品数据
-        return render_to_response(self.order_page, {"data": data, "title": title},
-                                  context_instance=RequestContext(request))
-
-    def post(self, request):
-        content = request.REQUEST
+    def get_customer(self, request):
         try:
             customer = Customer.objects.get(user=request.user)
         except Customer.DoesNotExist:
             customer = None
+        return customer
+
+    def get(self, request):
+        title = "活动正式订单"
+        pro = get_active_pros_data()  # 获取活动产品数据
+
+        # 如果用户已经有正式订单存在 则 直接返回分享页
+        customer = self.get_customer(request)
+        if customer:
+            outer_id = pro.outer_id
+            xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by(
+                '-created')
+            if xls_orders.exists():
+                customer_id = customer.id
+                mobile = customer.mobile
+                res = self.get_promotion_result(customer_id, outer_id, mobile)
+                return render_to_response(self.order_page, {'pro': pro, 'res': res},
+                                          context_instance=RequestContext(request))
+        return render_to_response(self.order_page, {"pro": pro, "title": title},
+                                  context_instance=RequestContext(request))
+
+    def post(self, request):
+        content = request.REQUEST
+        customer = self.get_customer(request)
         outer_id = content.get('outer_id', None)
-        sku_code = content.get('sku_code', None)
+        sku_code = content.get('sku_code', 0)
         vipcode = content.get('vipcode', None)
 
         mobile = customer.mobile if customer else None
 
-        data = get_active_pros_data()  # 获取活动产品数据
+        pro = get_active_pros_data()  # 获取活动产品数据
         title = "活动正式订单"
-        if mobile is None or not (sku_code and outer_id):
-            if mobile:
-                error_message = "请选择尺寸"
-            else:
-                error_message = "请验证手机"
+        if mobile is None:
+            error_message = "请验证手机"
             return render_to_response(self.order_page,
                                       {
-                                          "data": data,
+                                          "pro": pro,
                                           "title": title,
                                           "error_message": error_message
                                       },
@@ -267,18 +290,20 @@ class XlSampleOrderView(View):
         # 获取自己的正式使用订单
         xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
 
-        if len(xls_orders) >= 1:  # 已经有试用订单
-            xls_order = xls_orders[0]
-            xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
-            xls_order.save()
-        else:  # 没有　试用订单　创建　正式　订单记录
+        # if len(xls_orders) >= 1:  # 已经有试用订单
+        # xls_order = xls_orders[0]
+        # xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
+        # xls_order.save()
+        # else:  # 没有　试用订单　创建　正式　订单记录
+        if not xls_orders.exists():  # 没有　试用订单　创建　正式　订单记录
             if xlapply:  # 有　试用申请　记录的
                 XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
                                              outer_id=outer_id, sku_code=sku_code)
                 # 生成邀请关系记录
                 referal_uid = customer.id  # 被推荐人ID
                 referal_from_uid = xlapply.from_customer  # 推荐人ID
-                XLReferalRelationship.objects.create(referal_uid=referal_uid, referal_from_uid=referal_from_uid)
+                XLReferalRelationship.objects.get_or_create(referal_uid=str(referal_uid),
+                                                            referal_from_uid=str(referal_from_uid))
 
                 xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
                 xlapply.save()
@@ -287,15 +312,61 @@ class XlSampleOrderView(View):
                 if vipcode not in (None, ""):  # 有邀请码的情况下 根据邀请码生成用户的申请记录和订单记录
                     res = self.handler_with_vipcode(vipcode, mobile, outer_id, sku_code, customer)
                     if res is not None:
-                        return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
+                        return render_to_response(self.order_page, {"res": res},
+                                                  context_instance=RequestContext(request))
                     else:
                         not_apply_message = "您的邀请码有误，尝试重新填写"
-                return render_to_response(self.order_page, {"data": data,
+                return render_to_response(self.order_page, {"pro": pro,
                                                             "title": title,
                                                             "not_apply": not_apply_message},
                                           context_instance=RequestContext(request))
-        res = self.get_promotion_result(customer.id, outer_id, mobile)
-        return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
+        outer_ids = ['', ]
+        outer_ids[0] = outer_id
+        res = self.get_promotion_result(customer.id, outer_ids, mobile)
+        return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
+
+
+def get_mobile_show(customer):
+    mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
+    thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
+    applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
+    promote_count = applys.count()  # 邀请的数量　
+    app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
+    res = (mobile, promote_count, app_down_count, thumbnail)
+    return res
+
+
+def get_orders(month=None, batch=None):
+    order_list = XLSampleOrder.objects.none()
+    if month == 1602 and batch == 1:
+        start_time = datetime.datetime(2016, 1, 22)
+        order_list = XLSampleOrder.objects.filter(created__gt=start_time)
+    if not (month and batch):
+        start_time = datetime.datetime(2016, 1, 22)
+        orders = XLSampleOrder.objects.filter(created__gt=start_time)
+        order_list = orders[:30] if len(orders) > 30 else orders  # 只是取30条
+    return order_list
+
+
+class PromotionShortResult(APIView):
+    def get(self, request):
+        items = []
+        order_list = get_orders(None, None)
+        customer_ids = [item.customer_id for item in order_list]
+        wx_users = Customer.objects.filter(id__in=customer_ids)
+        for user in wx_users:
+            items.append(get_mobile_show(user))
+        return HttpResponse(json.dumps(items))
+
+
+class RedPacket(APIView):
+    """
+    满足条件后，发放红包
+    """
+
+    def get(self, request):
+        # 计算用户
+        return HttpResponse(json.dumps({}))
 
 
 class PromotionResult(APIView):
@@ -307,25 +378,11 @@ class PromotionResult(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
     renderer_classes = (BrowsableAPIRenderer,)
 
-    def get_mobile_show(self, customer):
-        mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
-        applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
-        promote_count = applys.count()  # 邀请的数量　
-        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
-        res = (mobile, promote_count, app_down_count)
-        return res
-
     def get(self, request, *args, **kwargs):
         page = int(kwargs.get('page', 1))
         batch = int(kwargs.get('batch', 1))
         month = int(kwargs.get('month', 1))
-
-        order_list = XLSampleOrder.objects.none()
-
-        if month == 1602 and batch == 1:
-            start_time = datetime.datetime(2016, 1, 22)
-            order_list = XLSampleOrder.objects.filter(created__gt=start_time)
-
+        order_list = get_orders(month=month, batch=batch)
         num_per_page = 20  # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page)
 
@@ -340,7 +397,7 @@ class PromotionResult(APIView):
         wx_users = Customer.objects.filter(id__in=customer_ids)
         items = []
         for user in wx_users:
-            items.append(self.get_mobile_show(user))
+            items.append(get_mobile_show(user))
 
         total = order_list.count()  # 总条数
         num_pages = paginator.num_pages  # 当前页
