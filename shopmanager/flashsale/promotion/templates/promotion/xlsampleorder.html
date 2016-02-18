@@ -50,128 +50,70 @@
     </style>
 {% endblock %}
 
-{% block container %}
-    {% for pro in data %}
-        <div class="row">
-            <div class="col-xs-12" style="text-align: center;">
-                <h3>{{ pro.sample.name }}</h3>
-                <h4>约上好友 抢红包 赢睡袋！</h4>
-
-                <p>活动时间</br>2月22日10:00 - 2月29日10:00</p>
-
-                <p>天猫热销10万件的睡袋，包邮免费送啦！</p>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-xs-2" style="text-align: center;"></div>
-            <div class="col-xs-8" style="text-align: center;">
-                <a href="" class="thumbnail">
-                    <img src="{{ pro.sample.pic_url }}" alt="全棉多功能睡袋"/>
-                </a>
-            </div>
-            <div class="col-xs-2"></div>
-        </div>
-        {% if res %}
-        {% else %}
-
-            <div class="row">
-                <div class="col-xs-2 choice"></div>
-                <div class="col-xs-2 choice" style="padding: 1px 1px">
-                    <span>颜色 :</span>
-                </div>
-                <div class="col-xs-2 choice">
-                    <span id="id-color-yellow" class="highlight-border">黄色</span>
-                </div>
-                <div class="col-xs-2 choice">
-                    <span id="id-color-blue" class="visible-border">蓝色</span>
-                </div>
-                <div class="col-xs-2 choice">
-                    <span id="id-color-pink" class="visible-border">粉色</span>
-                </div>
-                <div class="col-xs-2 choice"></div>
-            </div>
-
-            <div class="row" style="margin-top:10px">
-                <div class="col-xs-2 choice"></div>
-                <div class="col-xs-2 choice">
-                    <span>尺码 :</span>
-                </div>
-                <div class="col-xs-2 choice">
-                    <span id="id-size-3" class="highlight-border">0-3岁</span>
-                </div>
-                <div class="col-xs-2 choice">
-                    <span id="id-size-5" class="visible-border">3-5岁</span>
-                </div>
-                <div class="col-xs-2 choice"></div>
-                <div class="col-xs-2 choice"></div>
-            </div>
-
-        {% endif %}
-
-
-
-
-        <div class="row" style="margin-top:20px">
-            <div class="col-xs-2"></div>
-            <div class="col-xs-8 form-content">
-                <form action="" method="post">
-                    <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
-                    <!--  没有申请记录的情况　-->
-                    {% if not_apply %}
-                        <span style="color: red">{{ not_apply }}</span>
-                        <input type="text" name="vipcode"/>
-                    {% endif %}
-                    <span style="color: red">{{ error_message }}</span>
-                    {% if res %}
-                    {% else %}
-                        <button class="btn btn-default form-control submit-order" type="submit">提交订单</button>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
-    {% endfor %}
+{% block content2 %}
+    {% if not res %}
+    <div class="row">
+      <div class="col-xs-2 choice"></div>
+      <div class="col-xs-2 choice" style="padding: 1px 1px"><span>颜色 :</span></div>
+      <div class="col-xs-2 choice"><span id="id-color-yellow" class="highlight-border">黄色</span></div>
+      <div class="col-xs-2 choice"><span id="id-color-blue" class="visible-border">蓝色</span></div>
+      <div class="col-xs-2 choice"><span id="id-color-pink" class="visible-border">粉色</span></div>
+      <div class="col-xs-2 choice"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="col-xs-2 choice"></div>
+      <div class="col-xs-2 choice"><span>尺码 :</span></div>
+      <div class="col-xs-2 choice"><span id="id-size-3" class="highlight-border">0-3岁</span></div>
+      <div class="col-xs-2 choice"><span id="id-size-5" class="visible-border">3-5岁</span></div>
+      <div class="col-xs-2 choice"></div>
+      <div class="col-xs-2 choice"></div>
+    </div>
+    {% endif %}
+    
+    <div class="row" style="margin-top:20px">
+      <div class="col-xs-2"></div>
+      <div class="col-xs-8 form-content">
+        <form action="" method="post">
+          <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
+          <!--  没有申请记录的情况　-->
+          {% if not_apply %}
+          <span style="color: red">{{ not_apply }}</span>
+          <input type="text" name="vipcode"/>
+          {% endif %}
+          <span style="color: red">{{ error_message }}</span>
+          {% if not res %}
+          <button class="btn btn-default form-control submit-order" type="submit">提交订单</button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
 
     <!-- 申请结果 -->
     {% if res %}
-        <div class="col-xs-12" style="text-align: center;font-size: 20px">
-            <span>{{ res.app_down_count }}</span>
-        </div>
+    <div class="col-xs-12" style="text-align: center;font-size: 20px"><span>{{ res.app_down_count }}</span></div>
+    <div class="col-xs-12" style="text-align: center;font-size: 20px"><span>邀请码：{{ res.vipcode }}</span></div>
+    <div class="col-xs-12">
+      {% for i in res.referals_sus %}
+      <div class="col-xs-2"></div>
+      <div class="col-xs-9"><span>{{ i.mobile }}</span><img src="{{ i.thumbnail }}" alt="" width="40px"/></div>
+      {% endfor %}
+    </div>
 
-        <div class="col-xs-12" style="text-align: center;font-size: 20px">
-            <span>邀请码：{{ res.vipcode }}</span>
-        </div>
-        <div class="col-xs-12">
-        {% for i in res.referals_sus %}
-            <div class="col-xs-2"></div>
-            <div class="col-xs-9">
-            <span>{{ i.mobile }}</span>
-                <img src="{{ i.thumbnail }}" alt="" width="40px"/>
-            </div>
-        {% endfor %}
-        </div>
-
-        <!--
+    <!--
         <div class="col-xs-4"><span>推荐量：{{ res.promote_count }}</span></div>
         <div class="col-xs-4"><span>下载量：{{ res.app_down_count }}</span></div>
         -->
 
 
-        <div class="col-xs-12" style="text-align: center">
-            <img src="{{ res.link_qrcode }}" alt="" width="100px" height="100px" cid="{{ res.share_link }}"
-                 style="display: none" id="share_link"/>
-        </div>
-        <div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/>
-        </div>
-        <div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/>
-        </div>
-        <div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
-        <div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/>
-        </div>
-        <div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
-        <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/>
-        </div>
-
+    <div class="col-xs-12" style="text-align: center">
+      <img src="{{ res.link_qrcode }}" alt="" width="100px" height="100px" cid="{{ res.share_link }}" style="display: none" id="share_link"/>
+    </div>
+    <div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
+    <div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/></div>
+    <div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
+    <div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/></div>
+    <div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
+    <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/></div>
     {% endif %}
 
 
@@ -188,28 +130,14 @@
     <div class="col-xs-12 active_detail" style="text-align: center">
         <a href="/sale/promotion/pmt_res/1/1/1602/">更多中奖名单</a>
     </div>
-
-
-
-    <div class="col-xs-12 active_detail" style="text-align: center">
-        <a>活动内容</a>
-    </div>
-
-    <div class="col-xs-12" id="active_detail">
-        <ul class="list-group" style="font-size: 12px">
-            <li class="list-group-item">1 免费试用活动参加需在小鹿美美APP中申请.</li>
-            <li class="list-group-item">2 本活动发放睡袋1000组，邀请参加人数越多越易抽取睡袋,1000组送完截至.</li>
-            <li class="list-group-item">3 申请人可邀请微信好友,朋友圈,QQ好友,QQ空间,微博等社交平台参加,帮你增加几率.</li>
-            <li class="list-group-item">4 活动可通过申请人的连接,二维码等方式进行参加.</li>
-            <li class="list-group-item">5 活动持续7天:2016-02-22 10:00至2016-02-29 10:00 每天10:00公布抽取睡袋成功名单(小鹿美美APP公布).</li>
-            <li class="list-group-item">6 小鹿美美保留法律范围内允许的对活动的解释权.</li>
-        </ul>
-    </div>
+<!--
     <div id="nativeShare"></div>
-
+-->
 {% endblock %}
 
+
 {% block tail_script %}
+
     <script>
         var OSTest = function () {// 客户端平台检测　返回
             var u = navigator.userAgent;
