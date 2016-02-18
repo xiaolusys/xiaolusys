@@ -54,7 +54,7 @@ function showImg( url ) {
     <td rowspan="{{ product.pskus|length }}">{{ forloop.parentloop.counter }}</td>
     <td rowspan="{{ product.pskus|length }}">
         <a href="/admin/items/product/{{ product.id }}/">
-        <img src="{% if product.pic_path %}{{ product.pic_path }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}" height="60px" width="80px"/>
+        <img src="{% if product.pic_path %}{{ product.pic_path }}{% else %}{{ STATIC_URL }}img/nopic.jpg{% endif %}" height="60px" width="80px"/>
         </a>
     </td>
     <td rowspan="{{ product.pskus|length }}">{{ product.name }}</td>
@@ -71,7 +71,7 @@ function showImg( url ) {
     {% endif %}
     <td>
         {% for wsku in psku.wskus %}
-        <script type="text/javascript">showImg('{% if wsku.sku_image %}{{ wsku.sku_image }}{% else %}{{ MEDIA_URL }}img/nopic.jpg{% endif %}');</script>
+        <script type="text/javascript">showImg('{% if wsku.sku_image %}{{ wsku.sku_image }}{% else %}{{ STATIC_URL }}img/nopic.jpg{% endif %}');</script>
         {% endfor %}
     </td>
 </tr>

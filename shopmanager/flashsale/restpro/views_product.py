@@ -555,6 +555,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             prodic['rebet_amount'] = rebet_amount
             pros.append(prodic)
             model_ids.append(pro.model_id)
+        if sort_field not in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:
+            return {"code": 2}
         if sort_field:
             pros = sorted(pros, key=lambda k: k[sort_field], reverse=True)
         return pros

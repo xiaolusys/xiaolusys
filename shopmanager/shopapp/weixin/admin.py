@@ -12,6 +12,7 @@ from django.forms import TextInput, Textarea
 
 from shopback.base.admin import MyAdmin
 from shopback.base.options import DateFieldListFilter
+from shopback.items.models import Product
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopapp.weixin.models import (WeiXinAccount,
                                    WeixinUnionID,
@@ -275,7 +276,7 @@ class WXProductSkuAdmin(admin.ModelAdmin):
     search_fields = ['sku_id','product__product_id','outer_id','outer_sku_id']
     
     def pic_link(self, obj):
-        abs_pic_url = obj.sku_img or '%s%s'%(settings.MEDIA_URL,settings.NO_PIC_PATH)
+        abs_pic_url = obj.sku_img or Product.NO_PIC_PATH 
         return (u'<img src="%s" width="100px" height="80px" title="%s"/></a>')%(abs_pic_url,
                                                                                 obj.product.product_name)
     

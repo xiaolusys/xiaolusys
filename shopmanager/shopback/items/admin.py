@@ -157,15 +157,12 @@ class ProductAdmin(MyAdmin):
 
     def outer_id_link(self, obj):
 
-        NO_PIC_URL = '%s%s' % (settings.MEDIA_URL, settings.NO_PIC_PATH)
         try:
             product_detail = obj.details
-        except:
+        except :
             product_detail = None
-
-        head_img_url = product_detail and product_detail.head_imgs.split('\n')[
-            0] or NO_PIC_URL
-
+        head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or Product.NO_PIC_PATH
+        
         return u'<p>%s</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />' % (
             obj.outer_id, head_img_url)
 
@@ -174,8 +171,7 @@ class ProductAdmin(MyAdmin):
 
     def pic_link(self, obj):
 
-        NO_PIC_URL = '%s%s' % (settings.MEDIA_URL, settings.NO_PIC_PATH)
-        abs_pic_url = obj.pic_path or NO_PIC_URL
+        abs_pic_url = obj.pic_path or Product.NO_PIC_PATH
 
         str_list = []
         str_list.append('<a href="/items/product/%d/" target="_blank">' %

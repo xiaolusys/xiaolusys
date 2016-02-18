@@ -4,7 +4,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.generic import TemplateView
 
 from . import views ,views_duokefu,views_top100_iter,views_xlmminfo,views_order_percent, top_view_api
-from .views_register import MamaRegisterView,MamaConfirmView
+from .views_register import MamaRegisterView,MamaConfirmView,PayDepositeView
 from rest_framework import routers
 from . import views_xlmm_active, views_xlmm_adver, views_cashout
 
@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     url(r'^$',views.landing),
     url(r'^m/$',views.MamaStatsView.as_view(),name="mama_homepage"),
     url(r'^register/(?P<mama_id>\d+)/$',MamaRegisterView.as_view(),name="mama_register"),
+    url(r'^register/deposite/$',PayDepositeView.as_view(),name="mama_deposite"),
     url(r'^register/confirm/$',MamaConfirmView.as_view(),name="mama_confirm"),
     url(r'^help/sharewx/$', TemplateView.as_view(template_name="mama_sharewx.html"), name='mama_sharewx'),
     url(r'^help/recruit/$', TemplateView.as_view(template_name="mama_recruit.html"), name='mama_recruit'),

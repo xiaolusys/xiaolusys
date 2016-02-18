@@ -382,7 +382,7 @@ def gradCalcProductSaleTask():
 
 ###########################################################  商品库存管理  ########################################################
 
-@transaction.commit_on_success
+# @transaction.commit_on_success
 def updateItemNum(user_id,num_iid):
     """
     taobao_item_quantity_update response:
@@ -548,7 +548,7 @@ def getPurchaseSkuNum(product,product_sku):
     return int(sync_num)
 
 
-@transaction.commit_on_success
+# @transaction.commit_on_success
 def updatePurchaseItemNum(user_id,pid):
     """
     {"fenxiao_sku": [{"outer_id": "10410", 

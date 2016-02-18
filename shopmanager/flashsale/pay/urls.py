@@ -65,10 +65,10 @@ urlpatterns = (
     
     url(r'^test/$', TemplateView.as_view(template_name="pay/maddress.html")),
     ####fangkaineng  5-22
-    url(r'^order_flashsale/$', order_flashsale,name="order_flashsale"),           
+    url(r'^order_flashsale/$', order_flashsale,name="order_flashsale"),
     url(r'^time_rank/(?P<time_id>\d+)/$',time_rank,name="time_rank"),
     url(r'^sale_state/(?P<state_id>\d+)/$',sale_state,name="sale_state"),
-    url(r'^refund_state/(?P<state_id>\d+)/$',refund_state,name="refund_state"),  
+    url(r'^refund_state/(?P<state_id>\d+)/$',refund_state,name="refund_state"),
     url(r'^refunding_state/(?P<state_id>\d+)/$',refunding_state,name="refunding_state"),
 #
     url(r'^preorder_flashsale/$', preorder_flashsale,name="preorder_flashsale"),  

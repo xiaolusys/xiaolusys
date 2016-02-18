@@ -76,3 +76,5 @@ class NinePicAdver(models.Model):
             return 0
         return 1  # 否则可以分享
 
+    def description_title(self):
+        return self.description

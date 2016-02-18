@@ -434,6 +434,7 @@ class XlmmAdvertisSerialize(serializers.ModelSerializer):
 class NinePicAdverSerialize(serializers.ModelSerializer):
     pic_arry = JSONParseField()
     could_share = serializers.IntegerField(source='is_share', read_only=True)
+    title = serializers.CharField(source='description_title', read_only=True)
 
     class Meta:
         model = NinePicAdver
