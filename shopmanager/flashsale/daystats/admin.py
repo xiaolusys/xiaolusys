@@ -4,6 +4,7 @@ from shopback.base.options import DateFieldListFilter
 from .models import DailyStat, PopularizeCost
 from django import forms
 
+from core.admin import ApproxAdmin
 
 class DailyStatForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -20,7 +21,7 @@ class DailyStatForm(forms.ModelForm):
         return int(total_payment * 100)
 
 
-class DailyStatAdmin(admin.ModelAdmin):
+class DailyStatAdmin(ApproxAdmin):
     
     form = DailyStatForm
     list_display = ('day_date', 'total_click_count', 'total_valid_count','total_visiter_num', 'total_new_visiter_num',

@@ -3,7 +3,8 @@ from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
 from django import forms
 
-from shopback.base.options import DateFieldListFilter
+from core.admin   import ApproxAdmin
+from core.filters import DateFieldListFilter
 from .models import StatisticsShopping, OrderDetailRebeta, StatisticsShoppingByDay
 
 class OrderDetailRebetaInline(admin.TabularInline):
@@ -78,7 +79,7 @@ class StatisticsShoppingChangeList(ChangeList):
         return super(StatisticsShoppingChangeList,self).get_query_set(request)
 
 
-class StatisticsShoppingAdmin(admin.ModelAdmin):
+class StatisticsShoppingAdmin(ApproxAdmin):
     
     form = StatisticsShoppingForm
     list_display = ('linkid', 'linkname', 'openid','wxordernick', 'wxorderid', 'order_cash', 'ticheng_cash', 'shoptime','status')
@@ -117,7 +118,7 @@ class StatisticsShoppingByDayAdminForm(forms.ModelForm):
         return int(todayamountcount * 100)
     
 
-class StatisticsShoppingByDayAdmin(admin.ModelAdmin):
+class StatisticsShoppingByDayAdmin(ApproxAdmin):
     form = StatisticsShoppingByDayAdminForm
     list_display = ('linkid', 'linkname','buyercount', 'ordernumcount', 'order_cash', 'today_cash', 'tongjidate')
     list_filter = (('tongjidate',DateFieldListFilter),)

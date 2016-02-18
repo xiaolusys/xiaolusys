@@ -3,7 +3,7 @@ import re
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
 
-from shopback.base.admin import MyAdmin
+from core.admin import ApproxAdmin
 from shopback.base.options import DateFieldListFilter
 from shopapp.weixin.models import WXOrder
 from .models import Clicks, UserClicks, ClickCount, WeekCount
@@ -35,7 +35,7 @@ class ClicksChangeList(ChangeList):
         return super(ClicksChangeList,self).get_query_set(request)
 
 
-class ClicksAdmin(MyAdmin):
+class ClicksAdmin(ApproxAdmin):
     list_display = ('linkid','openid','isvalid','click_time')
     list_filter = ('isvalid',('click_time',DateFieldListFilter),)
     search_fields = ['=linkid', '=openid']
@@ -46,7 +46,7 @@ class ClicksAdmin(MyAdmin):
 admin.site.register(Clicks, ClicksAdmin) 
 
 
-class UserClicksAdmin(MyAdmin):
+class UserClicksAdmin(ApproxAdmin):
     list_display = ('unoinid','visit_days','click_start_time','click_end_time')
     list_filter = (('click_start_time',DateFieldListFilter),('click_end_time',DateFieldListFilter),)
     search_fields = ['=unoinid', ]
@@ -55,7 +55,7 @@ class UserClicksAdmin(MyAdmin):
 admin.site.register(UserClicks, UserClicksAdmin) 
 
 
-class ClickCountAdmin(admin.ModelAdmin):
+class ClickCountAdmin(ApproxAdmin):
 
     list_display = ('linkid', 'weikefu','mobile', 'user_num', 'valid_num', 
                     'click_num','date', 'write_time', 'username')
@@ -68,7 +68,7 @@ class ClickCountAdmin(admin.ModelAdmin):
     
 admin.site.register(ClickCount, ClickCountAdmin)
 
-class WeekCountAdmin(admin.ModelAdmin):
+class WeekCountAdmin(ApproxAdmin):
 
     list_display = ('linkid', 'weikefu', 'buyercount', 'user_num', 'valid_num', 'ordernumcount',
                     'conversion_rate', 'week_code', 'write_time')
