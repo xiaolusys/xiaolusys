@@ -51,28 +51,10 @@
 {% endblock %}
 
 {% block content2 %}
-    {% if not res %}
-    <div class="row">
-      <div class="col-xs-2 choice"></div>
-      <div class="col-xs-2 choice" style="padding: 1px 1px"><span>颜色 :</span></div>
-      <div class="col-xs-2 choice"><span id="id-color-yellow" class="highlight-border">黄色</span></div>
-      <div class="col-xs-2 choice"><span id="id-color-blue" class="visible-border">蓝色</span></div>
-      <div class="col-xs-2 choice"><span id="id-color-pink" class="visible-border">粉色</span></div>
-      <div class="col-xs-2 choice"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div class="col-xs-2 choice"></div>
-      <div class="col-xs-2 choice"><span>尺码 :</span></div>
-      <div class="col-xs-2 choice"><span id="id-size-3" class="highlight-border">0-3岁</span></div>
-      <div class="col-xs-2 choice"><span id="id-size-5" class="visible-border">3-5岁</span></div>
-      <div class="col-xs-2 choice"></div>
-      <div class="col-xs-2 choice"></div>
-    </div>
-    {% endif %}
-    
     <div class="row" style="margin-top:20px">
       <div class="col-xs-2"></div>
       <div class="col-xs-8 form-content">
+	<p style="color:#FF8800">您的申请已提交，请立即激活！</p>
         <form action="" method="post">
           <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
           <!--  没有申请记录的情况　-->
@@ -82,10 +64,11 @@
           {% endif %}
           <span style="color: red">{{ error_message }}</span>
           {% if not res %}
-          <button class="btn btn-default form-control submit-order" type="submit">提交订单</button>
+          <button class="btn btn-default form-control submit-order" type="submit" style="background: #FF8800;color:white">激活申请</button>
           {% endif %}
         </form>
       </div>
+      <div class="col-xs-2"></div>
     </div>
 
     <!-- 申请结果 -->
