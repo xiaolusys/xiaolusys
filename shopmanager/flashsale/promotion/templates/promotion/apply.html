@@ -118,7 +118,7 @@
             {% if download %}
                 <!-- 提示申请成功 -->
             {% else %}
-          <p id="id-errmsg" style="color:red">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
+          <p id="id-errmsg" style="color:#FF8800">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
 
           <input id="id-mobile" type="number" name="mobile" class="form-control"
                  {% if mobile %} value="{{ mobile }}" {% endif %}
@@ -128,7 +128,7 @@
           <span> {{ vipcode_message }} </span>
           {% endif %}
                 {% if download %}
-                    <a class="btn btn-default form-control submit-apply " style="background: #FFB329" href="/sale/promotion/appdownload/">立即激活</a>
+                    <a class="btn btn-default form-control submit-apply " style="background: #FF8800" href="/sale/promotion/appdownload/">立即激活</a>
                 {% else %}
                     <button class="btn btn-default form-control submit-apply " type="submit">提交申请</button>
                 {% endif %}

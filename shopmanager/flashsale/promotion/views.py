@@ -178,8 +178,16 @@ class XlSampleOrderView(View):
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
         share_link = self.share_link.format(**{'customer_id': customer_id})
         link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
+
+        # 返回邀请关系表中是自己邀请的用户的头像和手机号码
+
+        ships = XLReferalRelationship.objects.filter(referal_from_uid=customer_id)
+        referal_uids = ships.values('referal_uid')
+        referals_sus = Customer.objects.filter(id__in=referal_uids)
+
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-               'link_qrcode': link_qrcode, "vipcode": vipcode, 'is_get_order': is_get_order}
+               'link_qrcode': link_qrcode, "vipcode": vipcode, 'is_get_order': is_get_order,
+               "referals_sus": referals_sus}
         return res
 
     def gen_custmer_share_qrcode_pic(self, customer_id):
@@ -225,7 +233,8 @@ class XlSampleOrderView(View):
 
                 referal_uid = customer.id  # 被推荐人ID
                 referal_from_uid = from_customer  # 推荐人ID
-                XLReferalRelationship.objects.create(referal_uid=referal_uid, referal_from_uid=referal_from_uid)
+                XLReferalRelationship.objects.get_or_create(referal_uid=str(referal_uid),
+                                                            referal_from_uid=str(referal_from_uid))
         else:
             res = None
         return res
@@ -260,14 +269,14 @@ class XlSampleOrderView(View):
         content = request.REQUEST
         customer = self.get_customer(request)
         outer_id = content.get('outer_id', None)
-        sku_code = content.get('sku_code', None)
+        sku_code = content.get('sku_code', 0)
         vipcode = content.get('vipcode', None)
 
         mobile = customer.mobile if customer else None
 
         data = get_active_pros_data()  # 获取活动产品数据
         title = "活动正式订单"
-        if mobile is None or not (sku_code and outer_id):
+        if mobile is None or not outer_id:
             if mobile:
                 error_message = "请选择尺寸"
             else:
@@ -288,18 +297,20 @@ class XlSampleOrderView(View):
         # 获取自己的正式使用订单
         xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
 
-        if len(xls_orders) >= 1:  # 已经有试用订单
-            xls_order = xls_orders[0]
-            xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
-            xls_order.save()
-        else:  # 没有　试用订单　创建　正式　订单记录
+        # if len(xls_orders) >= 1:  # 已经有试用订单
+        # xls_order = xls_orders[0]
+        # xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
+        # xls_order.save()
+        # else:  # 没有　试用订单　创建　正式　订单记录
+        if not xls_orders.exists():  # 没有　试用订单　创建　正式　订单记录
             if xlapply:  # 有　试用申请　记录的
                 XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
                                              outer_id=outer_id, sku_code=sku_code)
                 # 生成邀请关系记录
                 referal_uid = customer.id  # 被推荐人ID
                 referal_from_uid = xlapply.from_customer  # 推荐人ID
-                XLReferalRelationship.objects.create(referal_uid=referal_uid, referal_from_uid=referal_from_uid)
+                XLReferalRelationship.objects.get_or_create(referal_uid=str(referal_uid),
+                                                            referal_from_uid=str(referal_from_uid))
 
                 xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
                 xlapply.save()
@@ -316,10 +327,45 @@ class XlSampleOrderView(View):
                                                             "title": title,
                                                             "not_apply": not_apply_message},
                                           context_instance=RequestContext(request))
-        outer_ids = []
+        outer_ids = ['', ]
         outer_ids[0] = outer_id
         res = self.get_promotion_result(customer.id, outer_ids, mobile)
-        return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
+        return render_to_response(self.order_page, {"data": data, "res": res}, context_instance=RequestContext(request))
+
+
+def get_mobile_show(customer):
+    mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
+    thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
+    applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
+    promote_count = applys.count()  # 邀请的数量　
+    app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
+    res = (mobile, promote_count, app_down_count, thumbnail)
+    return res
+
+
+def get_orders(month=None, batch=None):
+    order_list = XLSampleOrder.objects.none()
+    if month == 1602 and batch == 1:
+        start_time = datetime.datetime(2016, 1, 22)
+        order_list = XLSampleOrder.objects.filter(created__gt=start_time)
+    if not (month and batch):
+        start_time = datetime.datetime(2016, 1, 22)
+        orders = XLSampleOrder.objects.filter(created__gt=start_time)
+        print("orders", orders)
+        order_list = orders[:30] if len(orders) > 30 else orders  # 只是取30条
+    return order_list
+
+
+class PromotionShortResult(APIView):
+    def get(self, request):
+        items = []
+        order_list = get_orders(None, None)
+        customer_ids = [item.customer_id for item in order_list]
+        print '----XLSampleOrder:', customer_ids
+        wx_users = Customer.objects.filter(id__in=customer_ids)
+        for user in wx_users:
+            items.append(get_mobile_show(user))
+        return HttpResponse(json.dumps(items))
 
 
 class PromotionResult(APIView):
@@ -331,25 +377,11 @@ class PromotionResult(APIView):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
     renderer_classes = (BrowsableAPIRenderer,)
 
-    def get_mobile_show(self, customer):
-        mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
-        applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
-        promote_count = applys.count()  # 邀请的数量　
-        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
-        res = (mobile, promote_count, app_down_count)
-        return res
-
     def get(self, request, *args, **kwargs):
         page = int(kwargs.get('page', 1))
         batch = int(kwargs.get('batch', 1))
         month = int(kwargs.get('month', 1))
-
-        order_list = XLSampleOrder.objects.none()
-
-        if month == 1602 and batch == 1:
-            start_time = datetime.datetime(2016, 1, 22)
-            order_list = XLSampleOrder.objects.filter(created__gt=start_time)
-
+        order_list = get_orders(month=month, batch=batch)
         num_per_page = 20  # Show 20 contacts per page
         paginator = Paginator(order_list, num_per_page)
 
@@ -364,7 +396,7 @@ class PromotionResult(APIView):
         wx_users = Customer.objects.filter(id__in=customer_ids)
         items = []
         for user in wx_users:
-            items.append(self.get_mobile_show(user))
+            items.append(get_mobile_show(user))
 
         total = order_list.count()  # 总条数
         num_pages = paginator.num_pages  # 当前页

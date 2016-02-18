@@ -72,41 +72,42 @@
             </div>
             <div class="col-xs-2"></div>
         </div>
+        {% if res %}
+        {% else %}
 
+            <div class="row">
+                <div class="col-xs-2 choice"></div>
+                <div class="col-xs-2 choice" style="padding: 1px 1px">
+                    <span>颜色 :</span>
+                </div>
+                <div class="col-xs-2 choice">
+                    <span id="id-color-yellow" class="highlight-border">黄色</span>
+                </div>
+                <div class="col-xs-2 choice">
+                    <span id="id-color-blue" class="visible-border">蓝色</span>
+                </div>
+                <div class="col-xs-2 choice">
+                    <span id="id-color-pink" class="visible-border">粉色</span>
+                </div>
+                <div class="col-xs-2 choice"></div>
+            </div>
 
-        <div class="row">
-            <div class="col-xs-2 choice"></div>
-            <div class="col-xs-2 choice" style="padding: 1px 1px">
-                <span>颜色 :</span>
+            <div class="row" style="margin-top:10px">
+                <div class="col-xs-2 choice"></div>
+                <div class="col-xs-2 choice">
+                    <span>尺码 :</span>
+                </div>
+                <div class="col-xs-2 choice">
+                    <span id="id-size-3" class="highlight-border">0-3岁</span>
+                </div>
+                <div class="col-xs-2 choice">
+                    <span id="id-size-5" class="visible-border">3-5岁</span>
+                </div>
+                <div class="col-xs-2 choice"></div>
+                <div class="col-xs-2 choice"></div>
             </div>
-            <div class="col-xs-2 choice">
-                <span id="id-color-yellow" class="highlight-border">黄色</span>
-            </div>
-            <div class="col-xs-2 choice">
-                <span id="id-color-blue" class="visible-border">蓝色</span>
-            </div>
-            <div class="col-xs-2 choice">
-                <span id="id-color-pink" class="visible-border">粉色</span>
-            </div>
-            <div class="col-xs-2 choice"></div>
-        </div>
 
-        <div class="row" style="margin-top:10px">
-            <div class="col-xs-2 choice"></div>
-            <div class="col-xs-2 choice">
-                <span>尺码 :</span>
-            </div>
-            <div class="col-xs-2 choice">
-                <span id="id-size-3" class="highlight-border">0-3岁</span>
-            </div>
-            <div class="col-xs-2 choice">
-                <span id="id-size-5" class="visible-border">3-5岁</span>
-            </div>
-            <div class="col-xs-2 choice"></div>
-            <div class="col-xs-2 choice"></div>
-        </div>
-
-
+        {% endif %}
 
 
 
@@ -133,8 +134,28 @@
 
     <!-- 申请结果 -->
     {% if res %}
-        <div class="col-xs-6"><span>推荐数量：{{ res.promote_count }}</span></div>
-        <div class="col-xs-6"><span>下载数量：{{ res.app_down_count }}</span></div>
+        <div class="col-xs-12" style="text-align: center;font-size: 20px">
+            <span>{{ res.app_down_count }}</span>
+        </div>
+
+        <div class="col-xs-12" style="text-align: center;font-size: 20px">
+            <span>邀请码：{{ res.vipcode }}</span>
+        </div>
+        <div class="col-xs-12">
+        {% for i in res.referals_sus %}
+            <div class="col-xs-2"></div>
+            <div class="col-xs-9">
+            <span>{{ i.mobile }}</span>
+                <img src="{{ i.thumbnail }}" alt="" width="40px"/>
+            </div>
+        {% endfor %}
+        </div>
+
+        <!--
+        <div class="col-xs-4"><span>推荐量：{{ res.promote_count }}</span></div>
+        <div class="col-xs-4"><span>下载量：{{ res.app_down_count }}</span></div>
+        -->
+
 
         <div class="col-xs-12" style="text-align: center">
             <img src="{{ res.link_qrcode }}" alt="" width="100px" height="100px" cid="{{ res.share_link }}"
@@ -150,20 +171,31 @@
         <div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
         <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/>
         </div>
-        <span>您的邀请码是：{{ res.vipcode }}</span>
+
     {% endif %}
 
 
-
-    <div class="col-xs-2"></div>
-    <div class="col-xs-6 active_detail">
-        <a href="/sale/promotion/pmt_res/1/1/1602/">中奖名单</a>
-    </div>
-    <div class="col-xs-6 active_detail">
-        <a>活动细则</a>
+    <div class="col-xs-12" style="text-align: center">
+        <h4>中奖名单</h4>
     </div>
 
-    <div class="col-xs-12" id="active_detail" hidden="hidden">
+    <div class="col-xs-12" style="text-align: center" id="short_result">
+
+    </div>
+
+
+
+    <div class="col-xs-12 active_detail" style="text-align: center">
+        <a href="/sale/promotion/pmt_res/1/1/1602/">更多中奖名单</a>
+    </div>
+
+
+
+    <div class="col-xs-12 active_detail" style="text-align: center">
+        <a>活动内容</a>
+    </div>
+
+    <div class="col-xs-12" id="active_detail">
         <ul class="list-group" style="font-size: 12px">
             <li class="list-group-item">1 免费试用活动参加需在小鹿美美APP中申请.</li>
             <li class="list-group-item">2 本活动发放睡袋1000组，邀请参加人数越多越易抽取睡袋,1000组送完截至.</li>
@@ -208,11 +240,34 @@
             else {
             }
         }
+        // 显示中奖结果30名
+        function show_short_rest() {
+            console.log('short res');
+            var Url = "/sale/promotion/pmt_short_res/";
+            $.ajax({
+                type: 'get',
+                url: Url,
+                dataType: 'json',
+                success: resCallBack
+            });
+
+
+            function resCallBack(res) {
+                console.log(res);
+                $.each(res, function (index, da) {
+                    var html = '<div class="col-xs-2"></div>' +
+                            '<div class="col-xs-9">' +
+                            '<img src="' + da[3] + '" alt="" width="40px"/>' +
+                            '<span>' + da[0] + '</span></div>';
+                    $("#short_result").append(html);
+
+                })
+            }
+        }
+
 
         $(document).ready(function () {
-            $(".active_detail").click(function () {
-                $("#active_detail").toggle();
-            });
+            show_short_rest();
             //'wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa'
 
             $("#sharecopylink").click(function () {
@@ -245,6 +300,67 @@
                 var uform = 'wxapp';
                 share_to(uform);
             });
-        })
+        });
+
+
+        var selectedColorElement = $("#id-color-yellow");
+        var selectedSizeElement = $("#id-size-3");
+
+        function clearColorSelection() {
+            selectedColorElement.removeClass("highlight-border");
+            selectedColorElement.addClass("visible-border");
+        }
+
+        function clearSizeSelection() {
+            selectedSizeElement.removeClass("highlight-border");
+            selectedSizeElement.addClass("visible-border");
+        }
+
+        $("#id-color-yellow").click(function () {
+            var target = $("#id-color-yellow");
+            if (target != selectedColorElement) {
+                clearColorSelection();
+                target.addClass("highlight-border");
+                selectedColorElement = target;
+            }
+        });
+
+        $("#id-color-blue").click(function () {
+            var target = $("#id-color-blue");
+            if (target != selectedColorElement) {
+                clearColorSelection();
+                target.addClass("highlight-border");
+                selectedColorElement = target;
+            }
+        });
+
+        $("#id-color-pink").click(function () {
+            var target = $("#id-color-pink");
+            if (target != selectedColorElement) {
+                clearColorSelection();
+                target.addClass("highlight-border");
+                selectedColorElement = target;
+            }
+        });
+
+        $("#id-size-3").click(function () {
+            var target = $("#id-size-3");
+            if (target != selectedColorElement) {
+                clearSizeSelection();
+                target.addClass("highlight-border");
+                selectedSizeElement = target;
+            }
+        });
+
+        $("#id-size-5").click(function () {
+            var target = $("#id-size-5");
+            if (target != selectedColorElement) {
+                clearSizeSelection();
+                target.addClass("highlight-border");
+                selectedSizeElement = target;
+            }
+        });
+
+
     </script>
 {% endblock %}
