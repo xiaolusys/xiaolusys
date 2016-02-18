@@ -65,10 +65,10 @@
         <div class="row">
         <div class="col-xs-2">
         </div>
-            <div class="col-xs-8" style="text-align: center">
-                <span>您的申请已经提交</span>
+            <div class="col-xs-8" style="text-align: center; color:#FFB329">
+                <span>提交成功。</span>
                 <br/>
-                <span>请下载APP激活申请！</span>
+                <span>快下载APP激活申请吧！</span>
             </div>
         </div>
 
@@ -128,7 +128,7 @@
           <span> {{ vipcode_message }} </span>
           {% endif %}
                 {% if download %}
-                    <a class="btn btn-default form-control submit-apply " style="background: #FFB329" href="/sale/promotion/appdownload/">立即激活</a>
+                    <a class="btn btn-default form-control submit-apply " style="background: #FFB329;color:white" href="/sale/promotion/appdownload/">立即激活</a>
                 {% else %}
                     <button class="btn btn-default form-control submit-apply " type="submit">提交申请</button>
                 {% endif %}
