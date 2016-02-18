@@ -2,9 +2,11 @@
 __author__ = 'yann'
 from django.shortcuts import render_to_response, HttpResponse
 import datetime
+import json
 from django.template import RequestContext
 from django.views.generic import View
 from django.db import connection
+from django.forms.models import model_to_dict
 import functions
 from flashsale.dinghuo.tasks import task_ding_huo_optimize, task_ding_huo
 
@@ -71,7 +73,6 @@ class DailyDingHuoView(View):
                           "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
                           "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
                 target_date, group_sql)
-        print product_sql
         ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' or A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
                        "sum(if(status='5' or status='6' or status='有问题' or status='验货完成' or status='已处理',B.arrival_quantity,0)) as arrival_quantity,B.effect_quantity,A.status" \
                        " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created between '{0}' and '{1}') as A " \
@@ -133,9 +134,13 @@ class DailyDingHuoView2(View):
     def get(self, request):
         content = request.REQUEST
         today = datetime.date.today()
+        # 上架日期
         shelve_fromstr = content.get("df", None)
+        # 订单结束时间
         shelve_to_str = content.get("dt", None)
+        # 订货结束日期
         query_time_str = content.get("showt", None)
+        # 订货开始日期
         dinghuo_begin_str = content.get("showt_begin", None)
         groupname = content.get("groupname", 0)
         dhstatus = content.get("dhstatus", '1')
@@ -236,7 +241,8 @@ def get_product_dict(shelve_from, time_to, groupname, search_text, target_date, 
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
     # result_dict = {"trade_dict": trade_dict}
     return trade_dict
-from flashsale.dinghuo.models import OrderDetail
+from flashsale.dinghuo import functions2view
+from flashsale.dinghuo.models import OrderDetail, orderdraft
 from shopback.items.models import Product, ProductSku
 from django.core import serializers
 
@@ -261,7 +267,7 @@ class ShowPicView(View):
 
 
 from rest_framework import generics
-from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
 import function_of_task_optimize
@@ -292,3 +298,21 @@ class SkuAPIView(generics.ListCreateAPIView):
 
         return Response(
             {"flag": "done", "sale_num": sale_num, "ding_huo_num": ding_huo_num, "arrival_num": arrival_num})
+
+
+class AddDingHuoView(generics.ListCreateAPIView):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated, )
+    template_name = 'dinghuo/addpurchasedetail.html'
+
+    def get(self, request):
+        outer_ids = json.loads(request.GET.get('outer_ids') or '[]')
+        productres = []
+        for product in Product.objects.filter(outer_id__in=outer_ids):
+            product_dict = model_to_dict(product)
+            for sku in ProductSku.objects.filter(product_id=product.id).exclude(status=u'delete'):
+                sku_dict = model_to_dict(sku)
+                sku_dict['wait_post_num'] = functions2view.get_lack_num_by_product(product, sku)
+                product_dict.setdefault('prod_skus', []).append(sku_dict)
+            productres.append(product_dict)
+        return Response({'productRestult': productres, 'drafts': orderdraft.objects.all().filter(buyer_name=request.user)})

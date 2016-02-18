@@ -468,20 +468,23 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
             str(groupname))
     if len(search_text) > 0:
         search_text = str(search_text)
-        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num,E.id as supplier_id,E.supplier_name from " \
                       "(select id,name as product_name,outer_id,pic_path from " \
                       "shop_items_product where outer_id like '%%{0}%%' or name like '%%{0}%%' ) as A " \
                       "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
-                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
-            search_text)
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku " \
+                      "left join supplychain_supply_product as D on A.sale_product=D.id " \
+                      "left join supplychain_supply_supplier as E on D.sale_supplier_id=E.id".format(search_text)
     else:
-        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
-                      "(select id,name as product_name,outer_id,pic_path from " \
+        product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num,E.id as supplier_id,E.supplier_name from " \
+                      "(select id,name as product_name,outer_id,pic_path,sale_product from " \
                       "shop_items_product where  sale_time='{0}' " \
                       "and status!='delete' {1}) as A " \
                       "left join (select id,product_id,outer_id,properties_alias,quantity from shop_items_productsku where status!='delete') as B " \
-                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku".format(
-            target_date, group_sql)
+                      "on A.id=B.product_id left join flash_sale_product_sku_detail as C on B.id=C.product_sku " \
+                      "left join supplychain_supply_product as D on A.sale_product=D.id " \
+                      "left join supplychain_supply_supplier as E on D.sale_supplier_id=E.id".format(target_date, group_sql)
+
     ding_huo_sql = "select B.outer_id,B.chichu_id,sum(if(A.status='草稿' or A.status='审核',B.buy_quantity,0)) as buy_quantity,sum(if(A.status='7',B.buy_quantity,0)) as sample_quantity," \
                    "sum(if(status='5' or status='6' or status='有问题' or status='验货完成' or status='已处理',B.arrival_quantity,0)) as arrival_quantity,B.effect_quantity,A.status" \
                    " from (select id,status from suplychain_flashsale_orderlist where status not in ('作废') and created between '{0}' and '{1}') as A " \
@@ -490,7 +493,7 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
         dinghuo_begin, query_time)
     sql = "select product.outer_id,product.product_name,product.outer_sku_id,product.pic_path,product.properties_alias," \
           "order_info.sale_num,ding_huo_info.buy_quantity,ding_huo_info.effect_quantity,product.sku_id,product.exist_stock_num," \
-          "product.id,ding_huo_info.arrival_quantity,ding_huo_info.sample_quantity " \
+          "product.id,ding_huo_info.arrival_quantity,ding_huo_info.sample_quantity,product.supplier_id,product.supplier_name " \
           "from (" + product_sql + ") as product left join (" + order_sql + ") as order_info on product.outer_id=order_info.outer_id and product.outer_sku_id=order_info.outer_sku_id left join (" + ding_huo_sql + ") as ding_huo_info on product.outer_id=ding_huo_info.outer_id and product.sku_id=ding_huo_info.chichu_id"
     cursor = connection.cursor()
     cursor.execute(sql)
@@ -515,16 +518,23 @@ def task_ding_huo(shelve_from, time_to, groupname, search_text, target_date, din
                      "ding_huo_status": ding_huo_status, "sample_num": sample_num,
                      "flag_of_more": flag_of_more, "flag_of_less": flag_of_less,
                      "sku_id": product[8], "ku_cun_num": int(product[9] or 0),
-                     "arrival_num": arrival_num}
+                     "arrival_num": arrival_num,'supplier_id': int(product[13] or 0), 'supplier_name': product[14] or ''}
         if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
                     flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
             if product[0] not in trade_dict:
                 trade_dict[product[0]] = [temp_dict]
             else:
                 trade_dict[product[0]].append(temp_dict)
+    supplier_dict = {}
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
-    result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "trade_dict": trade_dict}
+    for item in trade_dict:
+        supplier_id = item[1][0]['supplier_id']
+        items = supplier_dict.setdefault(supplier_id, [])
+        items.append(item)
+    supplier_dict = sorted(supplier_dict.items(), key=lambda x: x[0], reverse=True)
+    result_dict = {"total_more_num": total_more_num, "total_less_num": total_less_num, "supplier_dict": supplier_dict}
     return result_dict
+
 import function_of_task_optimize
 @task()
 def task_ding_huo_optimize(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
