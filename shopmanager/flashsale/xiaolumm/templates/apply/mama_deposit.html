@@ -2,7 +2,7 @@
 
 {% block title %} 小鹿妈妈-支付押金 {% endblock %}
 
-{% block apply_script %}
+{% block head_apply_script %}
 <style>
 .thumbnail img{
     width:100%;
@@ -30,6 +30,7 @@
 
 <div class="panel panel-default">
   <div class="panel-body">
+    <!-- 押金商品信息填写区域 -->
     <div class="thumbnail">
       <img src="{{product.pic_path}}" alt="{{product.name}}">
       <div class="caption">
@@ -42,7 +43,8 @@
       </div>
      </div>
     <div>
-    <div class="well well-lg row address">
+    <!-- 押金订单地址填写区域 -->
+    <!--<div class="well well-lg row address">
         {% if user_addr %}
         <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self">
         <div >
@@ -58,23 +60,33 @@
         {% else %}
         <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self"><div class="col-xs-offset-1 col-xs-9 "><span>您还没有添加收货地址，点击添加</span></div></a>
         {% endif %}
-    </div>
-    <form action="/m/register/deposite/" class="form-horizontal" method="POST">
-        <input type="hidden" name="product_id" value="">
-        <input type="hidden" name="sku_id" value="">
-        <input type="hidden" name="uuid" value="">
+    </div>-->
+    <!-- 押金订单提交表单 -->
+    <form id="deposite-form" action="#" class="form-horizontal" method="POST">
+        <input type="hidden" name="format" value="json">
+        <input type="hidden" name="item_id" value="{{product.id}}">
+        <input type="hidden" name="sku_id" value="{% if product.normal_skus|length == 1 %}{{product.normal_skus.0.id}}{% endif %}">
+        <input type="hidden" name="uuid" value="{{uuid}}">
+        <input type="hidden" name="mm_linkid" value="{{referal_mamaid}}">
+        <input type="hidden" name="success_url" value="{{success_url}}">
+        <input type="hidden" name="cancel_url" value="{{cancel_url}}">
+        <input type="hidden" name="payment" value="{{payinfos.total_payment}}">
+        <input type="hidden" name="total_fee" value="{{payinfos.total_fee}}">
+        <input type="hidden" name="post_fee" value="{{payinfos.post_fee}}">
+        <input type="hidden" name="discount_fee" value="{{payinfos.discount_fee}}">
         <input type="hidden" name="num" value="1">
-        <input type="hidden" name="addr_id" value="1">
+        <input type="hidden" name="addr_id" value="">
         <div class="form-group　well well-sm">
-            <div class="radio">
+            <div class="radio {% if not payinfos.weixin_payable %}disabled{% endif %}">
               <label>
-                <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+                <input type="radio" name="channel" id="optionsRadios1" value="wx_pub" 
+                    {% if not payinfos.alipay_payable and payinfos.weixin_payable %}checked{%else%}disabled{% endif %}>
                 微信支付
               </label>
             </div>
-            <div class="radio">
+            <div class="radio {% if not payinfos.alipay_payable %}disabled{% endif %}">
               <label>
-                <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
+                <input type="radio" name="channel" id="optionsRadios2" value="alipay_wap" {% if not payinfos.weixin_payable %}checked{% endif %}>
                 支付宝
               </label>
             </div>
@@ -90,7 +102,7 @@
         </div>
         <div class="form-group">
             <div class="col-sm-offset-4 col-sm-10">
-              <button type="submit" class="btn btn-default">确认支付押金</button>
+              <a class="btn btn-primary" href="javascript:void(0);" onclick="Confirm_charge()">确认支付押金</a>
             </div>
         </div>
     </form>
@@ -98,4 +110,51 @@
   </div>
 </div>
 
+{% endblock %}
+
+
+{% block tail_apply_script %}
+<script src="{{ STATIC_URL }}js/pingpp_pay.js"></script>
+<script src="{{ STATIC_URL }}js/pingpp_ap.js"></script>
+<script type="text/javascript">
+function Confirm_charge(){
+    var CHARGE_URL = window.location.href;
+    var params  = $('#deposite-form').serialize();
+    console.log('pay info:',params)
+    var callBack = function(data){
+      console.log('charge resp:', data);
+      var redirect_url = './';
+      pingpp.createPayment(data, function(result, err) {
+        alert('err:'+err);
+        console.log(err);
+        if (result == "success") {
+            redirect_url = '{{success_url}}?out_trade_no='+params['uuid'];
+        } else if (result == "fail") {
+            redirect_url = '{{cancel_url}}?mama_id={{referal_mamaid}}';
+        } else if (result == "cancel") {
+            redirect_url = '{{cancel_url}}?mama_id={{referal_mamaid}}';
+        }
+        //window.location.href = redirect_url;
+      });
+    }
+    // 调用接口
+    $.ajax({ 
+        type:'post', 
+        url:CHARGE_URL, 
+        data:params, 
+        dataType:'json', 
+        success:callBack,
+        error:function(err){
+            click_paybtn = false;
+            console.log("err is here ", err);
+            var resp = JSON.parse(err.responseText);
+            if (!isNone(resp.detail)){
+                alert(resp.detail);
+            }else{
+                alert('支付异常!');
+            }
+        } 
+    });
+};
+</script>
 {% endblock %}

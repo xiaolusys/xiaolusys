@@ -266,7 +266,7 @@ class Product(models.Model):
         if not self.is_watermark:
             return ''
         return image_watermark_cache.latest_qs or ''
-
+    
     def head_img(self):
         """ 获取商品款式 """
         if self.model_id == 0:
@@ -480,7 +480,23 @@ class Product(models.Model):
         for sku in skus:
             prcs.append(sku.agent_price)
         return min(prcs) if prcs else 0
+    
+    def calc_discount_fee(self,xlmm=None):
+        """ 优惠折扣 """
+        if not xlmm or xlmm.agencylevel < 2:
+            return 0
 
+        try:
+            discount = int(self.product.details.mama_discount)
+            if discount > 100:
+                discount = 100
+
+            if discount < 0:
+                discount = 0
+            return float('%.2f'%((100 - discount) / 100.0 * float(self.agent_price)))
+        except:
+            return 0
+    
     def same_model_pros(self):
         """ 同款产品　"""
         if self.model_id == 0 or self.model_id is None:
@@ -677,7 +693,7 @@ class ProductSku(models.Model):
 
     def calc_discount_fee(self,xlmm=None):
         """ 优惠折扣 """
-        if not xlmm or xlmm.agencylevel != 2:
+        if not xlmm or xlmm.agencylevel < 2:
             return 0
 
         try:

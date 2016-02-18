@@ -28,6 +28,7 @@ DATABASES = {
     }
 }
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 TIME_ZONE = 'Asia/Shanghai'
 
@@ -248,6 +249,7 @@ REST_FRAMEWORK_EXTENSIONS = {
 }
 
 if DEBUG:
-    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',
-                          ) + MIDDLEWARE_CLASSES
+    MIDDLEWARE_CLASSES = (
+        'middleware.middleware.ProfileMiddleware',
+        'middleware.middleware.QueryCountDebugMiddleware',
+    ) + MIDDLEWARE_CLASSES

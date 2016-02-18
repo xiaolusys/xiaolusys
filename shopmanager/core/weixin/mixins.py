@@ -43,6 +43,9 @@ class WeixinAuthMixin(object):
             request=request
         )
     
+    def set_cookie_openid_and_unionid(self,response,appid,openid,unionid):
+        options.set_cookie_openid(response,self._wxpubid,openid,unionid)
+    
     def get_wxauth_redirct_url(self,request,scope="snsapi_base"):
         """ 微信网页基本授权 """
         absolute_url = request.build_absolute_uri().split('#')[0]

@@ -152,6 +152,10 @@ class XiaoluMama(models.Model):
 #             return True
 #         return False
     
+    def need_pay_deposite(self):
+        """ 是否需要支付押金 """
+        return self.progress in (self.NONE,self.PROFILE) and self.agencylevel < 2
+        
     def can_send_redenvelop(self):
         """ 是否可以发送订单红包 """
         if not self.charge_time or self.charge_time > datetime.datetime(2015,8,25):
