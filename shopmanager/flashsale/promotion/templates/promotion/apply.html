@@ -65,10 +65,10 @@
         <div class="row">
         <div class="col-xs-2">
         </div>
-            <div class="col-xs-8" style="text-align: center">
-                <span>您的申请已经提交</span>
+            <div class="col-xs-8" style="text-align: center; color:#FFB329">
+                <span>提交成功。</span>
                 <br/>
-                <span>请下载APP激活申请！</span>
+                <span>快下载APP激活申请吧！</span>
             </div>
         </div>
 
@@ -118,7 +118,9 @@
             {% if download %}
                 <!-- 提示申请成功 -->
             {% else %}
+
           <p id="id-errmsg" style="color:#FF8800">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
+
 
           <input id="id-mobile" type="number" name="mobile" class="form-control"
                  {% if mobile %} value="{{ mobile }}" {% endif %}
@@ -128,9 +130,10 @@
           <span> {{ vipcode_message }} </span>
           {% endif %}
                 {% if download %}
-                    <a class="btn btn-default form-control submit-apply " style="background: #FF8800" href="/sale/promotion/appdownload/">立即激活</a>
+
+                    <a class="btn btn-default form-control submit-apply " style="background: #FF8800;color:white" href="/sale/promotion/appdownload/">立即激活</a>
                 {% else %}
-                    <button class="btn btn-default form-control submit-apply " type="submit">提交申请</button>
+                    <button class="btn btn-default form-control submit-apply" style="background: #FF8800;color:white" type="submit">提交申请</button>
                 {% endif %}
         </form>
       </div>
@@ -142,7 +145,7 @@
       <div class="col-xs-12" style="margin-left:10px">
 	<hr/>
         <ul class="list-group" style="font-size: 12px">
-	    <li class="list-group-item list-group-item-info" style="text-align:center">活动细则</li>
+	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">活动细则</li>
 	    <li class="list-group-item">活动提供免费睡袋1000组，送完即止！快抢！</li>
 	    <li class="list-group-item">活动另提供600万吉利数现金红包，全年运势发发发！</li>
 	    <li class="list-group-item">睡袋中奖名单将在2月29日10:00前全部公布，请注意APP推送消息！</li>

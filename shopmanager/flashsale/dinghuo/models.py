@@ -74,6 +74,7 @@ class OrderList(models.Model):
     receiver = models.CharField(default="", max_length=32, verbose_name=u'负责人')
     costofems = models.IntegerField(default=0, verbose_name=u'快递费用')
     status = models.CharField(max_length=32, db_index=True, verbose_name=u'订货单状态', choices=ORDER_PRODUCT_STATUS)
+    pay_status = models.CharField(max_length=32, db_index=True, verbose_name=u'收款状态')
     p_district = models.CharField(max_length=32, default=NEAR, verbose_name=u'地区', choices=ORDER_DISTRICT)
     reach_standard = models.BooleanField(default=False, verbose_name=u"达标")
     created = models.DateField(auto_now_add=True, db_index=True, verbose_name=u'订货日期')
@@ -284,4 +285,3 @@ class SaleInventoryStat(models.Model):
 
     def __unicode__(self):
         return u'<%s>' % self.stat_date
-

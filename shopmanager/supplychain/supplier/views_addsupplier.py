@@ -148,12 +148,17 @@ class ScheduleManageView(generics.ListCreateAPIView):
             for item in one_data:
                 sale_product_ids.append(item.sale_product_id)
 
+            lowest_prices = {}
             n_total, n_50, n_50_150, n_150 = (0,) * 4
-            for row in SaleProduct.objects.filter(pk__in=sale_product_ids):
+            for row in Product.objects.filter(status=Product.NORMAL, sale_product__in=sale_product_ids):
+                if row.sale_product in lowest_prices:
+                    continue
                 n_total += 1
-                if row.on_sale_price <= 50:
+                lowest_price = row.lowest_price()
+                lowest_prices[row.sale_product] = lowest_price
+                if lowest_price <= 50:
                     n_50 += 1
-                elif row.on_sale_price <= 150:
+                elif lowest_price <= 150:
                     n_50_150 += 1
                 else:
                     n_150 += 1
@@ -461,10 +466,14 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                 p.outer_id = invalid_outerid
                 p.status = Product.DELETE
                 p.save()
+                log_action(request.user.id, p, CHANGE, u'淘汰')
             # 作废SaleProduct
             SaleProduct.objects.filter(pk=sale_product_id).update(
                 status=SaleProduct.REJECTED)
-
+            try:
+                log_action(request.user.id, SaleProduct.objects.get(pk=sale_product_id), CHANGE, u'淘汰')
+            except:
+                pass
             # 删除排期记录
             SaleProductManageDetail.objects.filter(id=detail).delete()
             return Response({'result': 'success'})

@@ -7,7 +7,7 @@ from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, ChangeDetailExportView
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
-from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView, DailyDingHuoOptimizeView, SkuAPIView
+from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView, DailyDingHuoOptimizeView, SkuAPIView, AddDingHuoView
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
 from .view_refund_supplier import StatisRefundSupView, change_duihuo_status, change_sum_price
@@ -66,4 +66,5 @@ urlpatterns = [
     url(r'^product_category/$', staff_member_required(views.ProductCategoryAPIView.as_view()), name="product_category"), #商品分类api
     url(r'^skuapi/$', staff_member_required(SkuAPIView.as_view()), name="product_category"), #商品分类api
     url(r'^stats/$', staff_member_required(views_line_show.InventoryDataLineShow.as_view()), name="line_show"),  # 折线图显示数据
+    url(r'^add_ding_huo/$', staff_member_required(AddDingHuoView.as_view()), name="add_ding_huo")
 ]

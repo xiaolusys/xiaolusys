@@ -58,6 +58,8 @@ class ChangeDetailView(View):
         status = post.get("status", "").strip()
         remarks = post.get("remarks", "").strip()
         if len(status) > 0 and len(remarks) > 0:
+            if status == '已处理(需收款)':
+                order_list.pay_status = '需收款'
             order_list.status = status
             order_list.note = order_list.note + "\n" + "-->" + datetime.datetime.now(
             ).strftime('%m月%d %H:%M') + request.user.username + ":" + remarks
