@@ -160,15 +160,17 @@ class XlSampleOrderView(View):
     order_page = 'promotion/xlsampleorder.html'
     share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}'
     PROMOTION_LINKID_PATH = 'pmt'
+    PROMOTE_CONDITION = 20
 
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
 
-    def get_promotion_result(self, customer_id, outer_id, mobile):
+    def get_promotion_result(self, customer_id, outer_ids, mobile):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
-        applys = XLSampleApply.objects.filter(from_customer=customer_id, outer_id=outer_id)
-        promote_count = applys.count()  # 邀请的数量　
+        applys = XLSampleApply.objects.filter(from_customer=customer_id, outer_id__in=outer_ids)
+        promote_count = applys.count()  # 邀请的数量
+        is_get_order = True if promote_count >= self.PROMOTE_CONDITION else False
         xlcodes = XLInviteCode.objects.filter(mobile=mobile)
         vipcode = None
         if xlcodes.exists():
@@ -177,7 +179,7 @@ class XlSampleOrderView(View):
         share_link = self.share_link.format(**{'customer_id': customer_id})
         link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-               'link_qrcode': link_qrcode, "vipcode": vipcode}
+               'link_qrcode': link_qrcode, "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
 
     def gen_custmer_share_qrcode_pic(self, customer_id):
@@ -228,18 +230,35 @@ class XlSampleOrderView(View):
             res = None
         return res
 
+    def get_customer(self, request):
+        try:
+            customer = Customer.objects.get(user=request.user)
+        except Customer.DoesNotExist:
+            customer = None
+        return customer
+
     def get(self, request):
         title = "活动正式订单"
         data = get_active_pros_data()  # 获取活动产品数据
+
+        # 如果用户已经有正式订单存在 则 直接返回分享页
+        customer = self.get_customer(request)
+        if customer:
+            outer_ids = [i['sample']['outer_id'] for i in data]
+            xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id__in=outer_ids).order_by(
+                '-created')
+            if xls_orders.exists():
+                customer_id = customer.id
+                mobile = customer.mobile
+                res = self.get_promotion_result(customer_id, outer_ids, mobile)
+                return render_to_response(self.order_page, {'data': data, 'res': res},
+                                          context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"data": data, "title": title},
                                   context_instance=RequestContext(request))
 
     def post(self, request):
         content = request.REQUEST
-        try:
-            customer = Customer.objects.get(user=request.user)
-        except Customer.DoesNotExist:
-            customer = None
+        customer = self.get_customer(request)
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', None)
         vipcode = content.get('vipcode', None)
@@ -297,7 +316,9 @@ class XlSampleOrderView(View):
                                                             "title": title,
                                                             "not_apply": not_apply_message},
                                           context_instance=RequestContext(request))
-        res = self.get_promotion_result(customer.id, outer_id, mobile)
+        outer_ids = []
+        outer_ids[0] = outer_id
+        res = self.get_promotion_result(customer.id, outer_ids, mobile)
         return render_to_response(self.order_page, {"res": res}, context_instance=RequestContext(request))
 
 

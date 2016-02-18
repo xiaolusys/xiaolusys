@@ -51,7 +51,10 @@
                     <input type="text" name="vipcode"/>
                 {% endif %}
                 <span style="color: red">{{ error_message }}</span>
-                <button class="btn btn-default form-control submit-order" type="submit">提交订单</button>
+                {% if res %}
+                {% else %}
+                    <button class="btn btn-default form-control submit-order" type="submit">提交订单</button>
+                {% endif %}
             </form>
         </div>
     {% endfor %}
