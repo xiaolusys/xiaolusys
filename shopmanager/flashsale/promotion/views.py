@@ -250,8 +250,7 @@ class XlSampleOrderView(View):
         customer = self.get_customer(request)
         if customer:
             outer_id = pro.outer_id
-            xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by(
-                '-created')
+            xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id).order_by('-created')
             if xls_orders.exists():
                 customer_id = customer.id
                 mobile = customer.mobile
