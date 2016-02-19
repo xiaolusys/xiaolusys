@@ -121,7 +121,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
         if not xlmm:
             return redirect(reverse('mama_register',kwargs={'mama_id':mama_id}))
         
-        if not xlmm.need_pay_deposite():
+        if mama_id == xlmm.id or not xlmm.need_pay_deposite():
             return redirect(reverse('mama_homepage'))
         
         product = self.get_deposite_product()

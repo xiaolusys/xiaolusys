@@ -683,7 +683,7 @@ def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
         order_buyer = obj.order_buyer 
         mm_linkid   = obj.extras_info.get('mm_linkid') or None
         xlmms = XiaoluMama.objects.filter(openid=order_buyer.unionid)
-        if xlmms.exists() :
+        if xlmms.exists():
             xlmm  = xlmms[0]
             referal_mms = XiaoluMama.objects.filter(id=mm_linkid)
             if referal_mms.exists():

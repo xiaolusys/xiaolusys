@@ -111,7 +111,7 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
 
 class CashoutView(WeixinAuthMixin, View):
     def get(self, request):
-        
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) or not valid_openid(unionid) :
             redirect_url = self.get_wxauth_redirct_url(request)
@@ -203,7 +203,7 @@ class CarryLogList(generics.ListAPIView):
 
 class MamaStatsView(WeixinAuthMixin, View):
     def get(self, request):
-        
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) or not valid_openid(unionid) :
             redirect_url = self.get_wxauth_redirct_url(request)
@@ -299,6 +299,7 @@ class MamaStatsView(WeixinAuthMixin, View):
 class MamaIncomeDetailView(WeixinAuthMixin, View):
     def get(self, request):
         content = request.REQUEST
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) or not valid_openid(unionid) :
             redirect_url = self.get_wxauth_redirct_url(request)
