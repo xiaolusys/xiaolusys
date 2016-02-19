@@ -92,3 +92,20 @@ class XLSampleOrder(BaseModel):
         verbose_name_plural = u'推广/试用订单列表'
         
         
+class ReadPacket(BaseModel):
+    """ 红包记录 """
+
+    EXCHANGE = 1
+    NOT_EXCHANGE = 0
+    EXCHANGE_STATUS = ((EXCHANGE, u'已兑换'), (NOT_EXCHANGE, u'未兑换'))
+
+    customer = models.CharField(max_length=64, db_index=True, verbose_name=u"用户ID")
+    value = models.FloatField(default=0, verbose_name=u'金额')
+    status = models.IntegerField(default=0, choices=EXCHANGE_STATUS, verbose_name=u'是否兑换')
+
+    class Meta:
+        db_table = 'flashsale_promotion_red_packet'
+        verbose_name = u'推广/活动红包表'
+        verbose_name_plural = u'推广/活动红包列表'
+
+

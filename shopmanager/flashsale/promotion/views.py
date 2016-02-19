@@ -65,7 +65,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
                 return redirect(self.get_snsuserinfo_redirct_url(request))
 
-            signal_weixin_snsauth_response.send(sender="snsauth",appid=self._wxpubid,resp_data=res)
+            signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=res)
 
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
@@ -77,7 +77,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
                                        "pro": pro,
-                                       "referal":referal,
+                                       "referal": referal,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -174,31 +174,21 @@ class XlSampleOrderView(View):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
         applys = XLSampleApply.objects.filter(from_customer=customer_id)
         promote_count = applys.count()  # 邀请的数量
+        # 是否可以购买睡袋　邀请数量达到要求即可以跳转购买睡袋
         is_get_order = True if promote_count >= self.PROMOTE_CONDITION else False
         xlcodes = XLInviteCode.objects.filter(mobile=mobile)
         vipcode = None
         if xlcodes.exists():
             vipcode = xlcodes[0].vipcode
-        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
+        # 下载appd 的数量(激活的数量)
+        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()
+        download_str = str('%02.f' % app_down_count)
+        inactive_count = applys.filter(status=XLSampleApply.INACTIVE).count()
+        print "inactive_count:", inactive_count
         share_link = self.share_link.format(**{'customer_id': customer_id})
-
-        # 返回邀请关系表中是自己邀请的用户的头像和手机号码
-
-        ships = XLReferalRelationship.objects.filter(referal_from_uid=customer_id)
-        referal_uids = ships.values('referal_uid')
-        referals_sus = Customer.objects.filter(id__in=referal_uids)
-
-        # 计算当前用户的邀请情况　和　激活情况
-        inactives = []
-        inactive_applys = applys.filter(status=XLSampleApply.INACTIVE)  # 没有激活情况
-        for inactive in inactive_applys:
-            mobile = inactive.mobile
-            condition = {"mobile": mobile, "thumbnail": ''}
-            inactives.append(condition)
-
-        res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-               'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order,
-               "referals_sus": referals_sus, 'inactives': inactives}
+        res = {'promote_count': promote_count, 'fist_num': download_str[0],
+               'second_num': download_str[1], "inactive_count": inactive_count,
+               'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
 
     def handler_with_vipcode(self, vipcode, mobile, outer_id, sku_code, customer):
@@ -239,19 +229,12 @@ class XlSampleOrderView(View):
             res = None
         return res
 
-    def get_customer(self, request):
-        try:
-            customer = Customer.objects.get(user=request.user)
-        except Customer.DoesNotExist:
-            customer = None
-        return customer
-
     def get(self, request):
         title = "元宵好兆头 抢红包 赢睡袋"
         pro = get_active_pros_data()  # 获取活动产品数据
 
         # 如果用户已经有正式订单存在 则 直接返回分享页
-        customer = self.get_customer(request)
+        customer = get_customer(request)
         if customer:
             outer_id = pro.outer_id
             xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id).order_by('-created')
@@ -266,7 +249,7 @@ class XlSampleOrderView(View):
 
     def post(self, request):
         content = request.REQUEST
-        customer = self.get_customer(request)
+        customer = get_customer(request)
         outer_id = content.get('outer_id', None)
         sku_code = content.get('sku_code', 0)
         vipcode = content.get('vipcode', None)
@@ -328,12 +311,50 @@ class XlSampleOrderView(View):
         return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
 
 
+def get_customer(request):
+    try:
+        customer = Customer.objects.get(user=request.user)
+    except Customer.DoesNotExist:
+        customer = None
+    return customer
+
+
+class CusApplyOrdersView(APIView):
+    """
+     获取用户的推荐申请　和　激活　信息
+    """
+    promote_condition = 'promotion/firendlist.html'
+
+    def get(self, request):
+        customer = get_customer(request)
+        customer_id = customer.id if customer else 0
+
+        applys = XLSampleApply.objects.filter(from_customer=customer_id)
+        # 计算当前用户的邀请情况　和　激活情况
+        inactives = []
+        inactive_applys = applys.filter(status=XLSampleApply.INACTIVE)  # 没有激活情况
+        for inactive in inactive_applys:
+            mobile = inactive.mobile
+            condition = {"mobile": mobile, "thumbnail": ''}
+            inactives.append(condition)
+        # 返回邀请关系表中是自己邀请的用户的头像和手机号码
+
+        ships = XLReferalRelationship.objects.filter(referal_from_uid=customer_id)
+        referal_uids = ships.values('referal_uid')
+        referals_sus = Customer.objects.filter(id__in=referal_uids)
+        condition = {"referals_sus": referals_sus, 'inactives': inactives}
+
+        return render_to_response(self.promote_condition, condition,
+                                  context_instance=RequestContext(request))
+
+
 def get_mobile_show(customer):
     mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
     thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
     applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
     promote_count = applys.count()  # 邀请的数量　
     app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
+
     res = (mobile, promote_count, app_down_count, thumbnail)
     return res
 
