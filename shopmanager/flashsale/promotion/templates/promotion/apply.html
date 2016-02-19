@@ -37,17 +37,32 @@
 	  color: orange;
 	  border: 1px solid orange;
 	}
+	.referal {
+	  padding: 6px 6px;
+	  border-radius: 4px;
+	  border: 1px solid #ddd;
+	}
     </style>
 {% endblock %}
 
-{% block content2 %}
 
-    <span>
-        手机号：{{ referal.mobile }}
-    </span>
-     <span>头像：<img src="{{ referal.thumbnail }}" alt=""/></span>
+    {% block content2 %}
+    {% if not download %}
+    <div class="row" style="margin-bottom:8px">
+      <div class="col-xs-2"></div>
+      <div class="col-xs-8" style="text-align:center">
+	<div class="referal">
+	  <img {% if referal %} src="{{ referal.thumbnail }}" {% else %} src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg"{% endif %} style="width:36px;height:36px;margin-right:6px" alt="..." class="img-rounded"/><label style="color:orange;font-size:12px">{% if referal %}{{ referal.nick }}{% else %}小鹿妈妈{% endif %}</label>
+	  <span style="display:block;margin-top:6px;font-size:10px;color:gray">啊哈哈，我刚抢完睡袋和红包，好运一路发发发哦～～!</span>
+	</div>
+      </div>
+      <div class="col-xs-2"></div>
+    </div>
+    {% endif %}
+    {% endblock %}
 
 
+    {% block content4 %}
     {% if download %}
     <!-- 提示申请成功 -->
     <div class="row">

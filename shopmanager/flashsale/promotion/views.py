@@ -19,6 +19,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from flashsale.restpro.options import gen_and_save_jpeg_pic
 from core.weixin.mixins import WeixinAuthMixin
+from core.weixin.signals import signal_weixin_snsauth_response
 from core.weixin.options import set_cookie_openid
 
 from flashsale.pay.models import Customer
@@ -56,11 +57,18 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
         if self.is_from_weixin(request):  # 如果是在微信里面
-            openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
+            res = self.get_auth_userinfo(request)
+            openid = res.get("openid")
+            unionid = res.get("unionid")
+
             if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
-                return redirect(self.get_wxauth_redirct_url(request))
+                return redirect(self.get_snsuserinfo_redirct_url(request))
+
+            signal_weixin_snsauth_response.send(sender="snsauth",appid=self._wxpubid,resp_data=res)
+
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
+
 
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
