@@ -1,6 +1,7 @@
 {% extends "mama_base.html" %}
 
 {% block head_script %}
+
 <link href='{{ STATIC_URL }}jquery/jquery-ui-1.10.1.css' rel='stylesheet'  />    
 <style type="text/css" >
     tfoot input{
@@ -22,7 +23,7 @@
     .flow-steps .on a:after{ border-left-color:#ff6600;}
     .flow-steps li.on:first-child a:before{ border-color:#ff6600;}
 </style>
-{% block apply_script %}
+{% block head_apply_script %}
 {% endblock %}
 </style>
 
@@ -40,4 +41,7 @@
 {% block tail_script %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/css/sweet-alert.css">
 <script src="{{ STATIC_URL }}/js/sweet-alert.min.js"></script>
+{% block tail_apply_script %}
+
+{% endblock %}
 {% endblock %}

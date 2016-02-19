@@ -13,6 +13,7 @@ from common.modelutils import update_model_fields
 from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
+from .models_fans import XlmmFans, FansNumberRecord
 
 import logging
 logger = logging.getLogger('django.request')
@@ -152,6 +153,10 @@ class XiaoluMama(models.Model):
 #             return True
 #         return False
     
+    def need_pay_deposite(self):
+        """ 是否需要支付押金 """
+        return self.progress in (self.NONE,self.PROFILE) and self.agencylevel < 2
+        
     def can_send_redenvelop(self):
         """ 是否可以发送订单红包 """
         if not self.charge_time or self.charge_time > datetime.datetime(2015,8,25):
@@ -657,7 +662,22 @@ class CarryLog(models.Model):
     def status_name(self):
         return self.get_status_display()
     
-    
+    def dayly_in_value(self):
+        """ 计算当天的收入总额 """
+        log_types = [CarryLog.ORDER_REBETA, CarryLog.CLICK_REBETA,
+                     CarryLog.THOUSAND_REBETA, CarryLog.AGENCY_SUBSIDY, CarryLog.MAMA_RECRUIT, CarryLog.ORDER_RED_PAC]
+        cls = self.__class__.objects.filter(xlmm=self.xlmm, carry_date=self.carry_date, log_type__in=log_types)
+        cls = cls.exclude(carry_type=CarryLog.CARRY_OUT).exclude(status=CarryLog.CANCELED)
+        sum_value = cls.aggregate(sum_value=Sum('value')).get('sum_value') or 0
+        return sum_value / 100.0
+
+    def dayly_clk_value(self):
+        cls = self.__class__.objects.filter(xlmm=self.xlmm,
+                                            carry_date=self.carry_date,
+                                            log_type=CarryLog.CLICK_REBETA).exclude(status=CarryLog.CANCELED)
+        sum_value = cls.aggregate(sum_value=Sum('value')).get('sum_value') or 0
+        return sum_value / 100.0
+
 from . import signals
 
 def push_Pending_Carry_To_Cash(obj,*args,**kwargs):
@@ -677,11 +697,15 @@ def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
     if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS 
         and obj.is_Deposite_Order()):
         order_buyer = obj.order_buyer 
+        mm_linkid   = obj.extras_info.get('mm_linkid') or None
         xlmms = XiaoluMama.objects.filter(openid=order_buyer.unionid)
-        if xlmms.count() > 0 :
-            xlmm = xlmms[0]
+        if xlmms.exists():
+            xlmm  = xlmms[0]
+            referal_mms = XiaoluMama.objects.filter(id=mm_linkid)
+            if referal_mms.exists():
+                xlmm.referal_from = referal_mms[0].mobile
             xlmm.progress = XiaoluMama.PAY
-            update_model_fields(xlmm,update_fields=['progress'])
+            update_model_fields(xlmm,update_fields=['progress','referal_from'])
             
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
 

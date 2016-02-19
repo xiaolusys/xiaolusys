@@ -1,7 +1,20 @@
 # coding:utf-8
-from .models import Customer,SaleTrade,genTradeUniqueid
+import re
+import urlparse
+
+from django.conf import settings
+import pingpp
+
+from rest_framework import exceptions
+
+from . import sale_settings
+from .models import Customer, SaleTrade, SaleOrder, genTradeUniqueid
 from shopback.items.models import ProductSku
 from flashsale.xiaolumm.models import XiaoluMama
+
+from common.modelutils import update_model_fields
+
+UUID_RE = re.compile('^[a-z]{2}[0-9]{6}[a-z0-9-]{10,14}$')
 
 class PayInfoMethodMixin(object):
     """ 支付信息方法Mixin类 """
@@ -43,7 +56,7 @@ class PayInfoMethodMixin(object):
     def calc_mama_discount_fee(self, product_sku, xlmm):
         return product_sku.calc_discount_fee(xlmm=xlmm)
     
-    def calc_product_sku_amount_params(self, request, product_sku, **kwargs):
+    def calc_deposite_amount_params(self, request, product, **kwargs):
         """ 计算商品规格支付信息 """
         def get_payable_channel_params(customer, xlmm, is_deposite_order, total_payment):
             wallet_payable = False
@@ -64,7 +77,7 @@ class PayInfoMethodMixin(object):
                     'wallet_payable':wallet_payable,
                     }
         
-        product     = product_sku.product
+        product_sku = product
         total_fee    = float(product_sku.agent_price) * 1
         post_fee = 0
         discount_fee = 0
@@ -82,16 +95,118 @@ class PayInfoMethodMixin(object):
             is_deposite_order = True
         
         payable_params = get_payable_channel_params(customer, xlmm, is_deposite_order, total_payment)
-        
-        return payable_params.update({
+        payable_params.update({
                 'order_type':order_type,
                 'total_fee':round(total_fee,2),
                 'post_fee':round(post_fee,2),
                 'discount_fee':round(discount_fee,2),
                 'total_payment':round(total_payment,2),
                 })
+        return payable_params
         
 
- 
+    def is_valid_uuid(self,uuid):
+        return UUID_RE.match(uuid)
+    
+    def pingpp_charge(self, sale_trade, **kwargs):
+        """ pingpp支付实现 """
+        payment       = int(sale_trade.payment * 100)
+        buyer_openid  = sale_trade.openid
+        order_no      = sale_trade.tid
+        channel       = sale_trade.channel
+        success_url = urlparse.urljoin(settings.M_SITE_URL,
+                                       kwargs.get('success_url',sale_settings.MAIL_PAY_SUCCESS_URL))
+        cancel_url  = urlparse.urljoin(settings.M_SITE_URL,
+                                       kwargs.get('cancel_url',sale_settings.MAIL_PAY_CANCEL_URL))
+        extra = {}
+        if channel == SaleTrade.WX_PUB:
+            extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
+
+        elif channel == SaleTrade.ALIPAY_WAP:
+            extra = {"success_url":success_url,
+                     "cancel_url":cancel_url}
+
+        elif channel == SaleTrade.UPMP_WAP:
+            extra = {"result_url":success_url}
+
+        params ={ 'order_no':'%s'%order_no,
+                  'app':dict(id=settings.PINGPP_APPID),
+                  'channel':channel,
+                  'currency':'cny',
+                  'amount':'%d'%payment,
+                  'client_ip':settings.PINGPP_CLENTIP,
+                  'subject':u'小鹿美美平台交易',
+                  'body':u'订单ID(%s),订单金额(%.2f)'%(sale_trade.id,sale_trade.payment),
+                  'metadata':dict(color='red'),
+                  'extra':extra}
+        charge = pingpp.Charge.create(api_key=settings.PINGPP_APPKEY,**params)
+        sale_trade.charge = charge.id
+        update_model_fields(sale_trade,update_fields=['charge'])
+        return charge
+    
+    def create_Saletrade(self,form,address,customer,order_type=SaleTrade.SALE_ORDER):
+        """ 创建特卖订单方法 """
+        tuuid = form.get('uuid')
+        if not self.is_valid_uuid(tuuid):
+            raise exceptions.APIException(u'订单UUID异常')
+        sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
+                                                           buyer_id=customer.id)
+        if sale_trade.status not in (SaleTrade.WAIT_BUYER_PAY,
+                                     SaleTrade.TRADE_NO_CREATE_PAY):
+            raise exceptions.APIException(u'订单不可支付') 
+        params = {'channel':form.get('channel')}
+        if address:
+            params.update({
+                'receiver_name':address.receiver_name,
+                'receiver_state':address.receiver_state,
+                'receiver_city':address.receiver_city,
+                'receiver_district':address.receiver_district,
+                'receiver_address':address.receiver_address,
+                'receiver_zip':address.receiver_zip,
+                'receiver_phone':address.receiver_phone,
+                'receiver_mobile':address.receiver_mobile,
+            })
+        if state:
+            params.update({
+                'buyer_nick':customer.nick,
+                'buyer_message':form.get('buyer_message',''),
+                'payment':float(form.get('payment')),
+                'total_fee':float(form.get('total_fee')),
+                'post_fee':float(form.get('post_fee')),
+                'discount_fee':float(form.get('discount_fee')),
+                'charge':'',
+                'status':SaleTrade.WAIT_BUYER_PAY,
+                'openid':customer.openid,
+                'extras_info':{'mm_linkid':form.get('mm_linkid','0'),'ufrom':form.get('ufrom','')}
+                })
+        for k,v in params.iteritems():
+            hasattr(sale_trade,k) and setattr(sale_trade,k,v)
+        sale_trade.save()
+        return sale_trade,state
+    
+    def create_deposite_trade(self,form,address,customer):
+        return self.create_Saletrade(form,address,customer,order_type=SaleTrade.DEPOSITE_ORDER)
+        
+    def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
+        """ 根据商品明细创建订单明细方法 """
+        total_fee = saletrade.total_fee
+        rnow_payment = saletrade.payment - saletrade.post_fee
+        discount_fee = saletrade.discount_fee
+        SaleOrder.objects.create(
+             sale_trade=saletrade,
+             item_id=product.id,
+             sku_id=sku.id,
+             num=num,
+             outer_id=product.outer_id,
+             outer_sku_id=sku.outer_id,
+             title=product.name,
+             payment=rnow_payment,
+             total_fee=total_fee,
+             price=sku.agent_price,
+             discount_fee=discount_fee,
+             pic_path=product.pic_path,
+             sku_name=sku.properties_alias,
+             status=SaleTrade.WAIT_BUYER_PAY
+        )
         
         

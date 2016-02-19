@@ -42,9 +42,21 @@ class WeixinAuthMixin(object):
             secret=self._wxpubsecret,
             request=request
         )
+        
+    def get_auth_userinfo(self, request):
+        code    = request.GET.get('code')
+        return options.get_auth_userinfo(
+            code,
+            appid=self._wxpubid,
+            secret=self._wxpubsecret,
+            request=request
+        )
+    
+    def set_cookie_openid_and_unionid(self,response,openid,unionid):
+        options.set_cookie_openid(response,self._wxpubid,openid,unionid)
     
     def get_wxauth_redirct_url(self,request,scope="snsapi_base"):
-        """ 微信网页基本授权 """
+        """ 微信网页基本授权可获取 openid """
         absolute_url = request.build_absolute_uri().split('#')[0]
         absolute_url = re.sub('&?(code|state)=[\w]+','',absolute_url)
         params = dict([('appid',self._wxpubid),
@@ -55,7 +67,9 @@ class WeixinAuthMixin(object):
         return options.gen_weixin_redirect_url(params)
     
     def get_snsuserinfo_redirct_url(self,request):
-        """ 微信网页高级授权 """
+        """ 微信网页高级授权 可获取openid, unoinid"""
         return self.get_wxauth_redirct_url(request,scope="snsapi_userinfo")
+    
+    
     
     

@@ -16,7 +16,7 @@ elif django.VERSION >= (1, 7):
 
 from .signals import cache_hit, cache_missed, cache_invalidated
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__.split('.')[-1])
 
 
 class CachedQuerySet(QuerySet):
@@ -126,7 +126,7 @@ class CachedQuerySet(QuerySet):
                 entry = super(CachedQuerySet, self).get(pk=pk)
             except (self.model.DoesNotExist,
                     self.model.MultipleObjectsReturned):
-                log.error(
+                logger.error(
                     'Error retrieving single entry from database',
                     exc_info=True,
                     extra={'data': {'model': self.model, 'pk': pk}})

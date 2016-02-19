@@ -18,10 +18,52 @@
 </head>
 <body>
 
-{% block container %}
-    <div class="container">
+  <div class="container">
+    {% block content1 %}
+
+    <div class="row">
+      <div class="col-xs-12" style="text-align: center;">
+        <h3>{{ pro.name }}</h3>
+	<h4>约上好友 抢红包 赢睡袋！</h4>
+	<p>活动时间</br>2月22日10:00 - 2月29日10:00</p>
+	<p>天猫热销10万件的睡袋，包邮免费送啦！</p>
+      </div>
     </div>
-{% endblock %}
+    {% endblock %}
+    
+    {% block content2 %}
+    {% endblock %}
+    
+    {% block content3 %}
+    <div class="row">
+      <div class="col-xs-2" style="text-align: center;"></div>
+      <div class="col-xs-8" style="text-align: center;">
+	<a href="" class="thumbnail">
+          <img src="{{ pro.pic_url }}" alt="全棉多功能睡袋" />
+	</a>
+      </div>
+      <div class="col-xs-2"></div>
+    </div>
+    {% endblock %}
+
+    {% block content4 %}{% endblock %}
+
+    {% block content9 %}
+    <div class="row">
+      <div class="col-xs-12">
+	<hr/>
+        <ul class="list-group" style="font-size: 12px">
+	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">活动细则</li>
+	    <li class="list-group-item">活动提供免费睡袋1000组，送完即止！快抢！</li>
+	    <li class="list-group-item">活动另提供600万吉利数现金红包，全年运势发发发！</li>
+	    <li class="list-group-item">睡袋中奖名单将在2月29日10:00前全部公布，请注意APP推送消息！</li>
+	    <li class="list-group-item">小鹿美美保留对活动的最终解释权。</li>
+        </ul>
+      </div>
+    </div>
+    {% endblock %}
+  </div>
+
 
 <script src="http://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
 <script src="http://cdn.bootcss.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>

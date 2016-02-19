@@ -109,16 +109,12 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
     return (cash,payment,could_cash_out)
 
 
-class CashoutView(View):
+class CashoutView(WeixinAuthMixin, View):
     def get(self, request):
-        content = request.REQUEST
-        code = content.get('code',None)
-        openid,unionid = get_user_unionid(code,
-                                          appid=settings.WEIXIN_APPID,
-                                          secret=settings.WEIXIN_SECRET,
-                                          request=request)
-        if not valid_openid(openid) or not valid_openid(unionid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/cashout/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not valid_openid(openid) or not valid_openid(unionid) :
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
         xlmm = XiaoluMama.objects.get(openid=unionid)
@@ -205,18 +201,11 @@ class CarryLogList(generics.ListAPIView):
     filter_fields = ("xlmm",)
     
 
-class MamaStatsView(View):
+class MamaStatsView(WeixinAuthMixin, View):
     def get(self, request):
-        
-        content = request.REQUEST
-        code = content.get('code',None)
-        openid,unionid = get_user_unionid(code,
-                                          appid=settings.WEIXIN_APPID,
-                                          secret=settings.WEIXIN_SECRET,
-                                          request=request)
-
-        if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not valid_openid(openid) or not valid_openid(unionid):
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
         service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
@@ -306,18 +295,12 @@ class MamaStatsView(View):
         response = set_cookie_openid(response,settings.WEIXIN_APPID,openid,unionid)
         return response
     
-class MamaIncomeDetailView(View):
+class MamaIncomeDetailView(WeixinAuthMixin, View):
     def get(self, request):
-        
         content = request.REQUEST
-        code = content.get('code',None)
-        
-        openid,unionid = get_user_unionid(code,
-                                          appid=settings.WEIXIN_APPID,
-                                          secret=settings.WEIXIN_SECRET,
-                                          request=request)
-        if not valid_openid(openid):
-            redirect_url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxc2848fa1e1aa94b5&redirect_uri=http://m.xiaolumeimei.com/m/m/&response_type=code&scope=snsapi_base&state=135#wechat_redirect"
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not valid_openid(openid) or not valid_openid(unionid) :
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
         service = WeixinUserService(settings.WEIXIN_APPID,openId=openid,unionId=unionid)
