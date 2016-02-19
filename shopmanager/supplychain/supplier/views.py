@@ -242,9 +242,12 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
+        sale_time = ''
+        if instance.sale_time:
+            sale_time = instance.sale_time.strftime('%Y-%m-%d')
         return Response({
             'pic_url': instance.pic_url,
-            'sale_time': instance.sale_time.strftime('%Y-%m-%d'),
+            'sale_time': sale_time,
             'product_category': self.get_category_mapping().get(instance.sale_category_id) or {}
         })
 

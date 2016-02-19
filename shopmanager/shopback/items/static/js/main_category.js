@@ -29,7 +29,8 @@ function get_sale_product(saleproduct){
         dataType: 'json',
         url: '/supplychain/supplier/product/' + saleproduct,
         success: function(result){
-            $('#shelf_time').val(result.sale_time);
+            if(result.sale_time)
+                $('#shelf_time').val(result.sale_time);
             $('#header_img_content').val(result.pic_url);
             productCategory = result.product_category;
         }
