@@ -3,6 +3,8 @@ from django.db import models
 from core.models import BaseModel
 from django.contrib.auth.models import User
 from shopback.base.models import JSONCharMyField
+from .managers import ReadPacketManager
+
 
 class XLFreeSample(BaseModel):
     """ 试用商品 """
@@ -102,6 +104,8 @@ class ReadPacket(BaseModel):
     customer = models.CharField(max_length=64, db_index=True, verbose_name=u"用户ID")
     value = models.FloatField(default=0, verbose_name=u'金额')
     status = models.IntegerField(default=0, choices=EXCHANGE_STATUS, verbose_name=u'是否兑换')
+    content = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'文字内容')
+    objects = ReadPacketManager()
 
     class Meta:
         db_table = 'flashsale_promotion_red_packet'

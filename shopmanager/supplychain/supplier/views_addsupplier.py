@@ -242,6 +242,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
         sale_product = SaleProduct.objects.get(pk=sale_product_id)
         librarian = sale_product.librarian or ''
         supplier_id = sale_product.sale_supplier_id
+        contactor_name = sale_product.contactor.username
         add_product_url = '%s?%s' % (
             '/static/add_item.html',
             urllib.urlencode({'supplier_id': supplier_id,
@@ -255,7 +256,8 @@ class SaleProductAPIView(generics.ListCreateAPIView):
                 'librarian': librarian,
                 'username': request.user.username,
                 'add_product_url': add_product_url,
-                'show_buyer_btn': request.user.has_perm('supplier.add_product')
+                'show_buyer_btn': request.user.has_perm('supplier.add_product'),
+                'contactor_name': contactor_name
             })
         color_list = all_product[0].details.color
         sku_list = ""
@@ -360,7 +362,9 @@ class SaleProductAPIView(generics.ListCreateAPIView):
              'librarian': librarian,
              'show_buyer_btn': request.user.has_perm('supplier.add_product'),
              'add_product_url': add_product_url,
-             'username': request.user.username})
+             'username': request.user.username,
+             'contactor_name': contactor_name
+            })
 
     def post(self, request, *args, **kwargs):
         detail = request.POST.get("detail_id")

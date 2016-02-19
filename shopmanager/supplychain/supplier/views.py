@@ -1,23 +1,24 @@
-# -*- encoding:utf-8 -*-
-import re
+# coding: utf-8
 import json
+import re
 import time
+
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework import authentication
-from rest_framework import permissions
+from rest_framework import authentication, exceptions, generics, permissions
 from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework import exceptions
-
-from shopback.base import log_action, ADDITION, CHANGE
-from .models import SaleSupplier, SaleCategory, SaleProduct
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from shopback.base import log_action, ADDITION, CHANGE
+from shopback.categorys.models import ProductCategory
+
+from . import constants
+from .models import SaleSupplier, SaleCategory, SaleProduct
 from .serializers import (
     SaleSupplierSerializer,
     SaleCategorySerializer,
@@ -239,6 +240,63 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
         log_action(request.user.id, instance, CHANGE,'%s(%s)'%(status_label,','.join(update_field_labels)))
         return Response(serializer.data)
 
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        sale_time = ''
+        if instance.sale_time:
+            sale_time = instance.sale_time.strftime('%Y-%m-%d')
+        return Response({
+            'pic_url': instance.pic_url,
+            'sale_time': sale_time,
+            'product_category': self.get_category_mapping().get(instance.sale_category_id) or {}
+        })
+
+    @classmethod
+    def get_category_mapping(cls):
+        cache_key = 'category_mapping'
+        def _load():
+            parent_product_categories = {}
+            for product_category in ProductCategory.objects.filter(parent_cid=constants.XIAOLU_ROOT_CATEGORY_ID,
+                                                                   is_parent=True, status='normal'):
+                parent_product_categories[product_category.cid] = product_category
+
+            product_categories = {}
+            for product_category in ProductCategory.objects.filter(is_parent=False, status='normal'):
+                parent_category = parent_product_categories.get(product_category.parent_cid)
+                if not parent_category:
+                    continue
+                full_name = '%s/%s' % (parent_category.name, product_category.name)
+                product_categories[full_name] = {
+                    'level_3_id': product_category.cid,
+                    'level_2_id': parent_category.cid,
+                    'level_1_id': constants.XIAOLU_ROOT_CATEGORY_ID
+                }
+            for parent_id, parent_product_category in parent_product_categories.iteritems():
+                product_categories[parent_product_category.name] = {
+                    'level_3_id': 0,
+                    'level_2_id': parent_product_category.cid,
+                    'level_1_id': constants.XIAOLU_ROOT_CATEGORY_ID
+                }
+
+            parent_sale_categories = {}
+            for sale_category in SaleCategory.objects.filter(parent_cid=0, is_parent=True, status='normal'):
+                parent_sale_categories[sale_category.id] = sale_category
+
+            sale_categories = {}
+            for sale_category in SaleCategory.objects.filter(status='normal'):
+                parent_category = parent_sale_categories.get(sale_category.parent_cid)
+                if not parent_category:
+                    full_name = sale_category.name
+                else:
+                    full_name = '%s/%s' % (parent_category.name, sale_category.name)
+                sale_categories[sale_category.id] = product_categories.get(full_name) or {}
+            return sale_categories
+        data = cache.get(cache_key)
+        if not data:
+            data = _load()
+            cache.set(cache_key, data, 3600)
+        return data
+
 from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
 
 
@@ -250,21 +308,21 @@ class FetchAndCreateProduct(APIView):
 
     def getItemPrice(self, soup):
         return 0
-    
+
     def get_img_src(self,img):
         attr_map = dict(img.attrs)
         img_src = attr_map and attr_map.get('src') or attr_map.get('data-src')
         if img_src and img_src.split('?')[0].endswith('.jpg'):
             return img_src
         return ''
-        
+
     def get_link_img_src(self, link):
         for img in link.findAll('img'):
             return self.get_img_src(img)
         return ''
 
     def getItemPic(self, soup):
-        
+
         container = soup.findAll(attrs={'class':re.compile('^(container|florid-goods-page-container|m-item-grid)')})
         for c in container:
             for img in c.findAll('img'):
@@ -400,5 +458,37 @@ class SaleProductChange(APIView):
         status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过', u'排期')[index_map.get(instance.status, 0)]
         log_action(request.user.id, instance, CHANGE, '%s(%s)' % (status_label, ','.join(update_field_labels)))
         return Response({"ok"})
-    
-    
+
+class CategoryMappingView(APIView):
+    renderer_classes = (JSONRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        parent_product_categories = {}
+        for product_category in ProductCategory.objects.filter(parent_cid=constants.XIAOLU_ROOT_CATEGORY_ID,
+                                                               is_parent=True, status='normal'):
+            parent_product_categories[product_category.cid] = product_category
+
+        product_categories = {}
+        for product_category in ProductCategory.objects.filter(is_parent=False, status='normal'):
+            parent_category = parent_product_categories.get(product_category.parent_cid)
+            if not parent_category:
+                continue
+            full_name = '%s/%s' % (parent_category.name, product_category.name)
+            product_categories[full_name] = {
+                'level_3_id': product_category.cid,
+                'level_2_id': parent_category.cid,
+                'level_1_id': constants.XIAOLU_ROOT_CATEGORY_ID
+            }
+
+        parent_sale_categories = {}
+        for sale_category in SaleCategory.objects.filter(parent_cid=0, is_parent=True, status='normal'):
+            parent_sale_categories[sale_category.id] = sale_category
+
+        sale_categories = {}
+        for sale_category in SaleCategory.objects.filter(is_parent=False, status='normal'):
+            parent_category = parent_sale_categories.get(sale_category.parent_cid)
+            if not parent_category:
+                continue
+            sale_categories[sale_category.id] = product_categories.get('%s/%s' % (parent_category.name, sale_category.name)) or {}
+        return Response(sale_categories)
