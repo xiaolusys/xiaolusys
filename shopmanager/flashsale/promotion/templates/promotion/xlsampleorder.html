@@ -78,34 +78,37 @@
       </div>
       <div class="col-xs-2"></div>
     </div>
-    {% endif %}
-    
-    <!-- 申请结果 -->
-    {% if res %}
-    <div class="col-xs-12" style="text-align: center;font-size: 20px"><span>{{ res.app_down_count }}</span></div>
-    <div class="col-xs-12">
-      <!--缺省头像　　http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png　-->
-      <!--  没有激活的用户　-->
-      {% for i in res.inactives %}
-      <div class="col-xs-2"><span>没有激活:</span></div>
-      <div class="col-xs-9"><span>{{ i.mobile }}</span><img src="http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png" alt="" width="40px"/></div>
-      {% endfor %}
-      <!-- 激活的用户　-->
-      {% for i in res.referals_sus %}
-      <div class="col-xs-2"><span>已经激活:</span></div>
-      <div class="col-xs-9"><span>{{ i.mobile }}</span><img src="{{ i.thumbnail }}" alt="" width="40px"/></div>
-      {% endfor %}
+    {% else %}
+    <div class="row">
+
+    </div>
+    <div class="highlight-border" style="border-radius:6px;margin:0px 6px;padding:6px 0px">
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center"><p style="font-weight:bold">一键分享</p><p style="font-size:12px">快快一键分享到各大平台，好友点您分享的链接可进入活动首页。（越多越给力哦～）</p></div>
+      </div>
+      <div class="row">
+	<div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
+      </div>
+      <div class="row" style="margin-top:4px">
+	<div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/></div>
+      </div>
     </div>
 
-    <div class="col-xs-12" style="text-align: center">
-      <img src="{{ res.link_qrcode }}" alt="" width="100px" height="100px" cid="{{ res.share_link }}" style="display: none" id="share_link"/>
+    <div class="row" style="margin-top:16px">
+      <div class="col-xs-12">
+        <ul class="list-group" style="font-size: 12px">
+	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">我的红包：4.84元</li>
+	    <li class="list-group-item"><span>2016-02-22 12:13:06</span><br/><span>大王，您又吸引了三位好友，获得现金红包1.88元。</span></li>
+	    <li class="list-group-item"><span>2016-02-22 12:13:06</span><br/><span>亲亲，您魅力引来三位好友，奖励现金红包1.68元。</span>
+	    <li class="list-group-item"><span>2016-02-22 12:13:06</span><br/><span>美女，您就是真白富美的命，现金红包拿去1.28元。</span></li>
+        </ul>
+      </div>
     </div>
-    <div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
-    <div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/></div>
-    <div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
-    <div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/></div>
-    <div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
-    <div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/></div>
+    
     {% endif %}
 
 <!--
