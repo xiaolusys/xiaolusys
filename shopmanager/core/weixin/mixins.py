@@ -17,7 +17,7 @@ class WeixinAuthMixin(object):
     def is_from_weixin(self, request):
         agent = request.META.get('HTTP_USER_AGENT', None)
         if agent and agent.find('MicroMessenger') > -1:
-            self._isfromweixin = True
+            return True
         return False
     
     def set_appid_and_secret(self,appid,appsecret):
