@@ -8,8 +8,8 @@ from .managers import XlmmFansManager
 class XlmmFans(BaseModel):
     xlmm = models.BigIntegerField(db_index=True, verbose_name='小鹿妈妈id')
     xlmm_cusid = models.BigIntegerField(db_index=True, verbose_name='小鹿妈妈用户id')
-    refreal_cusid = models.BigIntegerField(db_index=True, blank=True, verbose_name='推荐人用户id')
-    fans_cusid = models.BigIntegerField(blank=True, verbose_name='粉丝用户id')
+    refreal_cusid = models.BigIntegerField(db_index=True, blank=True, null=True, verbose_name='推荐人用户id')
+    fans_cusid = models.BigIntegerField(blank=True, null=True, verbose_name='粉丝用户id')
     objects = XlmmFansManager()
 
     class Meta:

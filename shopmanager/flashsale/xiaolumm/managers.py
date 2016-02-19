@@ -65,10 +65,11 @@ class XlmmFansManager(models.Manager):
         from_customer: 推荐人用户id
         customer: 当前用户id
         """
+        # print "from_customer", from_customer, "customer", customer
         from flashsale.pay.models import Customer
 
-        current_cus = Customer.objects.filter(id=customer).exists(status=Customer.DELETE)
-        from_cus = Customer.objects.filter(id=from_customer).exists(status=Customer.DELETE)
+        current_cus = Customer.objects.filter(id=customer).exclude(status=Customer.DELETE)
+        from_cus = Customer.objects.filter(id=from_customer).exclude(status=Customer.DELETE)
 
         if current_cus.exists():
             cu = current_cus[0]

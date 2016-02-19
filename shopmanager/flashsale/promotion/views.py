@@ -26,6 +26,7 @@ from flashsale.pay.models import Customer
 from shopapp.weixin.views import get_user_openid, valid_openid
 from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder
 from .models import XLInviteCode, XLReferalRelationship
+from flashsale.xiaolumm.models_fans import XlmmFans
 
 
 def genCode():
@@ -169,10 +170,6 @@ class XlSampleOrderView(View):
     PROMOTION_LINKID_PATH = 'pmt'
     PROMOTE_CONDITION = 20
 
-    def get_share_link(self, params):
-        link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
-        return link.format(**params)
-
     def get_promotion_result(self, customer_id, outer_id, mobile):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
         applys = XLSampleApply.objects.filter(from_customer=customer_id)
@@ -184,7 +181,6 @@ class XlSampleOrderView(View):
             vipcode = xlcodes[0].vipcode
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
         share_link = self.share_link.format(**{'customer_id': customer_id})
-        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id)
 
         # 返回邀请关系表中是自己邀请的用户的头像和手机号码
 
@@ -199,25 +195,11 @@ class XlSampleOrderView(View):
             mobile = inactive.mobile
             condition = {"mobile": mobile, "thumbnail": ''}
             inactives.append(condition)
-        print "inactives:", inactives
 
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
-               'link_qrcode': link_qrcode, "vipcode": vipcode, 'is_get_order': is_get_order,
+               'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order,
                "referals_sus": referals_sus, 'inactives': inactives}
         return res
-
-    def gen_custmer_share_qrcode_pic(self, customer_id):
-        root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
-        params = {'customer_id': customer_id}
-        file_name = 'custm-{customer_id}.jpg'.format(**params)
-        file_path = os.path.join(root_path, file_name)
-
-        share_link = self.get_share_link(params)
-        if not os.path.exists(file_path):
-            gen_and_save_jpeg_pic(share_link, file_path)
-        return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
 
     def handler_with_vipcode(self, vipcode, mobile, outer_id, sku_code, customer):
         xlcodes = XLInviteCode.objects.filter(vipcode=vipcode)
@@ -251,6 +233,8 @@ class XlSampleOrderView(View):
                 referal_from_uid = from_customer  # 推荐人ID
                 XLReferalRelationship.objects.get_or_create(referal_uid=str(referal_uid),
                                                             referal_from_uid=str(referal_from_uid))
+                # 记录粉丝
+                XlmmFans.objects.createFansRecord(referal_from_uid, referal_uid)
         else:
             res = None
         return res
@@ -309,11 +293,6 @@ class XlSampleOrderView(View):
         # 获取自己的正式使用订单
         xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
 
-        # if len(xls_orders) >= 1:  # 已经有试用订单
-        # xls_order = xls_orders[0]
-        # xls_order.sku_code = sku_code  # 将最后一个的sku修改为当前的sku
-        # xls_order.save()
-        # else:  # 没有　试用订单　创建　正式　订单记录
         if not xls_orders.exists():  # 没有　试用订单　创建　正式　订单记录
             if xlapply:  # 有　试用申请　记录的
                 XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
@@ -326,6 +305,10 @@ class XlSampleOrderView(View):
 
                 xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
                 xlapply.save()
+
+                # 记录粉丝列表信息
+                XlmmFans.objects.createFansRecord(xlapply.from_customer, customer.id)
+
             else:  # 没有试用申请记录的（返回申请页面链接）　提示
                 not_apply_message = "您还没有申请记录,请填写邀请码"
                 if vipcode not in (None, ""):  # 有邀请码的情况下 根据邀请码生成用户的申请记录和订单记录
