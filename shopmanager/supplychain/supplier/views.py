@@ -1,5 +1,4 @@
 # coding: utf-8
-import chardet
 import json
 import re
 import time
@@ -306,21 +305,21 @@ class FetchAndCreateProduct(APIView):
 
     def getItemPrice(self, soup):
         return 0
-    
+
     def get_img_src(self,img):
         attr_map = dict(img.attrs)
         img_src = attr_map and attr_map.get('src') or attr_map.get('data-src')
         if img_src and img_src.split('?')[0].endswith('.jpg'):
             return img_src
         return ''
-        
+
     def get_link_img_src(self, link):
         for img in link.findAll('img'):
             return self.get_img_src(img)
         return ''
 
     def getItemPic(self, soup):
-        
+
         container = soup.findAll(attrs={'class':re.compile('^(container|florid-goods-page-container|m-item-grid)')})
         for c in container:
             for img in c.findAll('img'):
