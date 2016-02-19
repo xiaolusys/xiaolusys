@@ -390,9 +390,13 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
 
 
 class CarryLogSerialize(serializers.ModelSerializer):
+    dayly_in_amount = serializers.FloatField(source='dayly_in_value', read_only=True)
+    dayly_clk_amount = serializers.FloatField(source='dayly_clk_value', read_only=True)
+
     class Meta:
         model = CarryLog
-        fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type", "carry_date", "created")
+        fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type", "carry_date", "created",
+                  'dayly_in_amount', 'dayly_clk_amount')
 
 
 class ClickCountSerialize(serializers.ModelSerializer):
@@ -410,10 +414,12 @@ class ClickSerialize(serializers.ModelSerializer):
 class StatisticsShoppingSerialize(serializers.ModelSerializer):
     pic_path = serializers.CharField(source='pro_pic', read_only=True)
     time_display = serializers.CharField(source='day_time', read_only=True)
+    dayly_amount = serializers.FloatField(source='dayly_ticheng', read_only=True)
+
     class Meta:
         model = StatisticsShopping
         fields = ("linkid", "linkname", "wxorderid", "wxordernick", "order_cash", "rebeta_cash", "ticheng_cash",
-                  "shoptime", "status", "get_status_display", "pic_path", "time_display")
+                  "shoptime", "status", "get_status_display", "pic_path", "time_display", "dayly_amount")
 
 
 class CashOutSerialize(serializers.ModelSerializer):

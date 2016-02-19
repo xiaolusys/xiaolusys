@@ -4,7 +4,7 @@ from django.db import models
 from core.models import BaseModel
 from django.contrib.auth.models import User
 from shopback.base.models import JSONCharMyField
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
 import random, string
 from managers import VipCodeManager
 
