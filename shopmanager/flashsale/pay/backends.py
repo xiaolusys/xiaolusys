@@ -8,8 +8,8 @@ from django.contrib.auth.backends import RemoteUserBackend
 from django.core.urlresolvers import reverse
 
 from .models import Customer,Register
-from .options import get_user_unionid
-from .tasks import task_Update_Sale_Customer
+from core.weixin import options
+from .tasks import task_Update_Sale_Customer,task_Refresh_Sale_Customer
 from shopapp.weixin.views import valid_openid
 from shopapp.weixin.models import WeiXinUser,WeixinUnionID
 
@@ -87,9 +87,11 @@ class WeixinPubBackend(RemoteUserBackend):
             return None
         
         code = content.get('code')
-        openid,unionid = get_user_unionid(code,appid=settings.WXPAY_APPID,
-                                          secret=settings.WXPAY_SECRET,request=request)
-
+        userinfo = options.get_auth_userinfo(code,
+                                             appid=settings.WXPAY_APPID,
+                                             secret=settings.WXPAY_SECRET,
+                                             request=request)
+        openid, unionid = userinfo.get('openid'), userinfo.get('unoinid')
         if openid and not unionid:
             logger.warn('weixin unionid not return:openid=%s'%openid)
             unionid = self.get_unoinid(openid,settings.WXPAY_APPID)
@@ -101,7 +103,7 @@ class WeixinPubBackend(RemoteUserBackend):
             profile = Customer.objects.get(openid=openid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if unionid and (profile.openid != openid or not profile.unionid):
-                task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
+                task_Refresh_Sale_Customer.s(userinfo,app_key=settings.WXPAY_APPID)()
                 
             if profile.user:
                 if not profile.user.is_active:
@@ -119,7 +121,7 @@ class WeixinPubBackend(RemoteUserBackend):
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
-            task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXPAY_APPID)()
+            task_Refresh_Sale_Customer.s(userinfo,app_key=settings.WXPAY_APPID)()
             
         return user
     
@@ -153,7 +155,7 @@ class WeixinAppBackend(RemoteUserBackend):
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if profile.openid != openid:
-                task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXAPP_ID)()
+                task_Refresh_Sale_Customer.s(kwargs,app_key=settings.WXAPP_ID)()
                 
             if profile.user:
                 if not profile.user.is_active:
@@ -175,8 +177,8 @@ class WeixinAppBackend(RemoteUserBackend):
                 profile.nick = nickname
                 profile.thumbnail = headimgurl
                 profile.save()
-                
-        task_Update_Sale_Customer.s(unionid,openid=openid,app_key=settings.WXAPP_ID)()
+            task_Refresh_Sale_Customer.s(kwargs,app_key=settings.WXAPP_ID)()
+            
         return user
     
 
