@@ -13,6 +13,7 @@ from common.modelutils import update_model_fields
 from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
+from .models_fans import XlmmFans, FansNumberRecord
 
 import logging
 logger = logging.getLogger('django.request')
