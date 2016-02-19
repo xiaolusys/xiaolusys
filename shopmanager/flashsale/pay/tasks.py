@@ -28,13 +28,14 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         
     try:
         profile, state = Customer.objects.get_or_create(unionid=unionid)
-        
-        wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
-        profile.nick   = profile.nick.strip() or wxuser.nickname
-        profile.mobile = profile.mobile.strip() or wxuser.mobile
-        profile.openid = profile.openid or openid  
-        profile.thumbnail = profile.thumbnail or wxuser.headimgurl
-        update_model_fields(profile,update_fields=['nick','mobile','openid','thumbnail'])
+        wxusers = WeiXinUser.objects.filter(models.Q(unionid=unionid))
+        if wxusers.exists():
+            wxuser = wxusers[0]
+            profile.openid = profile.openid or openid or ''
+            profile.nick   = profile.nick.strip() or wxuser.nickname
+            profile.mobile = profile.mobile.strip() or wxuser.mobile
+            profile.thumbnail = profile.thumbnail or wxuser.headimgurl
+            update_model_fields(profile,update_fields=['nick','mobile','openid','thumbnail'])
             
     except Exception,exc:
         logger.debug(exc.message,exc_info=True)
@@ -49,8 +50,8 @@ def task_Refresh_Sale_Customer(user_params,app_key=None):
     try:
         profile, state = Customer.objects.get_or_create(unionid=unionid)
         wxusers = WeiXinUser.objects.filter(unionid=unionid)
-        if not profile.mobile or wxusers.exists():
-            profile.mobile = profile.mobile.strip() or wxusers[0].mobile
+        if not profile.mobile and wxusers.exists():
+            profile.mobile =  wxusers[0].mobile
             
         profile.nick   = profile.nick.strip() or user_params.get('nickname')
         profile.openid = profile.openid or user_params.get('openid')
