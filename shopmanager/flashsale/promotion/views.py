@@ -184,7 +184,6 @@ class XlSampleOrderView(View):
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()
         download_str = str('%02.f' % app_down_count)
         inactive_count = applys.filter(status=XLSampleApply.INACTIVE).count()
-        print "inactive_count:", inactive_count
         share_link = self.share_link.format(**{'customer_id': customer_id})
         res = {'promote_count': promote_count, 'fist_num': download_str[0],
                'second_num': download_str[1], "inactive_count": inactive_count,
@@ -323,7 +322,7 @@ class CusApplyOrdersView(APIView):
     """
      获取用户的推荐申请　和　激活　信息
     """
-    promote_condition = 'promotion/firendlist.html'
+    promote_condition = 'promotion/friendlist.html'
 
     def get(self, request):
         customer = get_customer(request)
