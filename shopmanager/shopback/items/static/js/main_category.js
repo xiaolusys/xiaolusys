@@ -14,16 +14,28 @@ $(function () {
     saleproduct = urlParams["saleproduct"];
     if(!supplier_id || !saleproduct){
         alert("请从选品列表进来");
-        return
+        return;
     }
-    get_category();
+    get_category(get_sale_product(saleproduct));
     get_supplier();
-    //get_sale_product();
     $('#new-product').bind("click", submit_data);
 });
-function get_sale_product(){
+function get_sale_product(saleproduct){
     //获取选品信息
-
+    var productCategory = {};
+    $.ajax({
+        async: false,
+        type: 'get',
+        dataType: 'json',
+        url: '/supplychain/supplier/product/' + saleproduct,
+        success: function(result){
+            if(result.sale_time)
+                $('#shelf_time').val(result.sale_time);
+            $('#header_img_content').val(result.pic_url);
+            productCategory = result.product_category;
+        }
+    });
+    return productCategory;
 }
 function parseUrlParams(myUrl) {
     var vars = [], hash;
@@ -43,6 +55,7 @@ function showCategory(first_cate, second_cate, third_cate) {
     $.each(title, function (k, v) {
         title[k] = '<option value="">' + v + '</option>';
     });
+
 
     $('#first_category').append(title[0]);
     $('#second_category').append(title[1]);
@@ -73,21 +86,11 @@ function showCategory(first_cate, second_cate, third_cate) {
         $('input[name=location_id]').val($(this).val());
     });
 
-    if (first_cate) {
-        loc.fillOption('first_category', '0', first_cate);
-
-        if (second_cate) {
-            loc.fillOption('second_category', '0,' + first_cate, second_cate);
-
-            if (third_cate) {
-                loc.fillOption('third_category', '0,' + first_cate + ',' + second_cate, third_cate);
-            }
-        }
-
-    } else {
-        loc.fillOption('first_category', '0');
-    }
-
+    loc.fillOption('first_category', '0', first_cate);
+    if(first_cate)
+        loc.fillOption('second_category', '0,' + first_cate, second_cate);
+    if(second_cate)
+        loc.fillOption('third_category', '0,' + first_cate + ',' + second_cate, third_cate);
 
 }
 
@@ -97,14 +100,16 @@ function showSupplier() {
     $("#supplier").select2();
     supplier.fillOption('supplier', '0');
 }
-function get_category() {
+function get_category(productCategory) {
     //获取分类信息
     var requestUrl = "/items/get_category/";
 
     //请求成功回调函数
     var requestCallBack = function (data) {
         items = data;
-        showCategory();
+        showCategory(productCategory.level_1_id,
+                     productCategory.level_2_id,
+                     productCategory.level_3_id);
     };
     // 发送请求
     $.ajax({
