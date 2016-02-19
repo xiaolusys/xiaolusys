@@ -59,6 +59,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
             if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
                 return redirect(self.get_wxauth_redirct_url(request))
+        cus = Customer.objects.filter(id=from_customer)
+        referal = cus[0] if cus.exists() else None
 
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
@@ -66,6 +68,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
                                        "pro": pro,
+                                       "referal":referal,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -164,7 +167,7 @@ class XlSampleOrderView(View):
 
     def get_promotion_result(self, customer_id, outer_id, mobile):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
-        applys = XLSampleApply.objects.filter(from_customer=customer_id, outer_id=outer_id)
+        applys = XLSampleApply.objects.filter(from_customer=customer_id)
         promote_count = applys.count()  # 邀请的数量
         is_get_order = True if promote_count >= self.PROMOTE_CONDITION else False
         xlcodes = XLInviteCode.objects.filter(mobile=mobile)
@@ -181,9 +184,18 @@ class XlSampleOrderView(View):
         referal_uids = ships.values('referal_uid')
         referals_sus = Customer.objects.filter(id__in=referal_uids)
 
+        # 计算当前用户的邀请情况　和　激活情况
+        inactives = []
+        inactive_applys = applys.filter(status=XLSampleApply.INACTIVE)  # 没有激活情况
+        for inactive in inactive_applys:
+            mobile = inactive.mobile
+            condition = {"mobile": mobile, "thumbnail": ''}
+            inactives.append(condition)
+        print "inactives:", inactives
+
         res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
                'link_qrcode': link_qrcode, "vipcode": vipcode, 'is_get_order': is_get_order,
-               "referals_sus": referals_sus}
+               "referals_sus": referals_sus, 'inactives': inactives}
         return res
 
     def gen_custmer_share_qrcode_pic(self, customer_id):

@@ -41,6 +41,13 @@
 {% endblock %}
 
 {% block content2 %}
+
+    <span>
+        手机号：{{ referal.mobile }}
+    </span>
+     <span>头像：<img src="{{ referal.thumbnail }}" alt=""/></span>
+
+
     {% if download %}
     <!-- 提示申请成功 -->
     <div class="row">
