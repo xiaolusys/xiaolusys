@@ -145,6 +145,27 @@ WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
 QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
 
+
+LOGGER_HANDLERS = [
+    'models',
+    'queryset',
+    'django.request',
+    'sentry.errors',
+    'celery.handler',
+    'notifyserver.handler',
+    'yunda.handler',
+    'mail.handler',
+    'xhtml2pdf',
+    'restapi.errors',
+    'weixin.proxy',
+]
+
+LOGGER_TEMPLATE = {
+    'handlers': ['sentry'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -178,51 +199,5 @@ LOGGING = {
             'include_html': True,
         }
     },
-    'loggers': {
-        'django.request': {
-            'handlers': ['sentry'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'sentry.errors': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'celery.handler': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'weixin.proxy': {
-            'handlers': ['sentry'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'notifyserver.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'yunda.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'mail.handler':{
-            'handlers': ['mail_admins','sentry'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'xhtml2pdf':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'restapi.errors': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
-    }
+    'loggers': dict([(handler,LOGGER_TEMPLATE) for handler in LOGGER_HANDLERS]),
 }

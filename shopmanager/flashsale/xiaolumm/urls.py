@@ -2,18 +2,25 @@ from django.conf.urls.defaults import patterns, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required  
 from django.views.generic import TemplateView
+from django.views.decorators.cache import cache_page
+
+from rest_framework import routers
 
 from . import views ,views_duokefu,views_top100_iter,views_xlmminfo,views_order_percent, top_view_api
-from .views_register import MamaRegisterView,MamaConfirmView,PayDepositeView
-from rest_framework import routers
+from . import views_register 
 from . import views_xlmm_active, views_xlmm_adver, views_cashout
+from flashsale.pay.decorators import weixin_xlmm_auth
+from flashsale.pay import sale_settings 
 
 urlpatterns = patterns('',
     url(r'^$',views.landing),
     url(r'^m/$',views.MamaStatsView.as_view(),name="mama_homepage"),
-    url(r'^register/(?P<mama_id>\d+)/$',MamaRegisterView.as_view(),name="mama_register"),
-    url(r'^register/deposite/$',PayDepositeView.as_view(),name="mama_deposite"),
-    url(r'^register/confirm/$',MamaConfirmView.as_view(),name="mama_confirm"),
+    url(r'^register/(?P<mama_id>\d+)/$',views_register.MamaRegisterView.as_view(),name="mama_register"),
+    url(r'^register/deposite/(?P<mama_id>\d+)/$',
+        weixin_xlmm_auth(redirecto=sale_settings.MALL_LOGIN_URL)(views_register.PayDepositeView.as_view()),name="mama_deposite"),
+    url(r'^register/deposite/(?P<mama_id>\d+)/pay.htm$',cache_page(TemplateView.as_view(template_name="apply/pay.htm"),24*60*60)),
+    url(r'^register/success/$',views_register.MamaSuccessView.as_view(),name="mama_registerok"),
+    url(r'^register/fail/$',views_register.MamaFailView.as_view(),name="mama_registerfail"),
     url(r'^help/sharewx/$', TemplateView.as_view(template_name="mama_sharewx.html"), name='mama_sharewx'),
     url(r'^help/recruit/$', TemplateView.as_view(template_name="mama_recruit.html"), name='mama_recruit'),
     url(r'^help/term_service/$', TemplateView.as_view(template_name="term_service.html"), name='term_service'),

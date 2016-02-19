@@ -23,6 +23,7 @@ DATABASES = {
     }
 }
 
+
 if DEBUG:
     STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT, "site_media", "static"),
@@ -30,6 +31,8 @@ if DEBUG:
     STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "local")
 else:
     STATIC_ROOT = os.path.join(PROJECT_ROOT, "site_media", "static")
+    
+M_STATIC_URL = '/static/wap/'
 
 MIDDLEWARE_CLASSES = (
     'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
@@ -56,13 +59,13 @@ CACHES = {
 }
     
 RAVEN_CONFIG = {
-    'dsn': 'http://ada7dc70824c43fd8ba430db3827cd62:283aaec97585411ca9e66bb8bb1a9c63@sentry.huyi.so/3',
+    'dsn': 'http://ada7dc70824c43fd8ba430db3827cd62:283aaec97585411ca9e66bb8bb1a9c63@sentry.huyi.so:8089/3',
     'register_signals': True,
 }
 
 #################### change this site to yourself test domain #######################
-SITE_URL = 'http://mytest.huyi.so:8089/' 
-M_SITE_URL = 'http://127.0.0.1:8000' 
+SITE_URL = 'http://192.168.1.11:9000/' 
+M_SITE_URL = 'http://192.168.1.11:9000' 
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
@@ -85,12 +88,12 @@ TRADE_HANDLERS_PATH = (
 # APPKEY = '21532915'   #app name super ERP test ,younixiaoxiao
 # APPSECRET = '7232a740a644ee9ad370b08a1db1cf2d'
 
-APPKEY = '12545735'  # app name guanyi erp ,younishijie
-APPSECRET = '2b966d4f5f05d201a48a75fe8b5251af'
+APPKEY = '1012545735'  # app name guanyi erp ,younishijie
+APPSECRET = 'sandbox4a7f3927e06af6931eefb37f3'
 
-TAOBAO_API_HOSTNAME = 'eco.taobao.com'
-AUTHRIZE_URL = 'https://oauth.taobao.com/authorize'
-AUTHRIZE_TOKEN_URL = 'https://oauth.taobao.com/token'
+TAOBAO_API_HOSTNAME = 'gw.api.tbsandbox.com'
+AUTHRIZE_URL = 'https://oauth.tbsandbox.com/authorize'
+AUTHRIZE_TOKEN_URL = 'https://oauth.tbsandbox.com/token'
 REDIRECT_URI = '/accounts/login/auth/'
 TAOBAO_API_ENDPOINT = 'https://%s/router/rest' % TAOBAO_API_HOSTNAME
 TAOBAO_NOTIFY_URL = 'http://stream.api.taobao.com/stream'
@@ -125,8 +128,8 @@ WEIXIN_API_HOST = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST = "http://file.api.weixin.qq.com"
 WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
-WEIXIN_APPID  = 'wxc2848fa1e1aa94b5'
-WEIXIN_SECRET = 'eb3bfe8e9a36a61176fa5cafe341c81f'
+WEIXIN_APPID  = 'wx91b20565c83072f6'
+WEIXIN_SECRET = '38e6b5f94c0f4966460913b5c11284a9'
 #for weixin pub xiaolumm,just for pay
 WXPAY_APPID    = "wx3f91056a2928ad2d"
 WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
@@ -163,6 +166,26 @@ WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
 QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
 
+LOGGER_HANDLERS = [
+    'models',
+    'queryset',
+    'django.request',
+    'sentry.errors',
+    'celery.handler',
+    'notifyserver.handler',
+    'yunda.handler',
+    'mail.handler',
+    'xhtml2pdf',
+    'restapi.errors',
+    'weixin.proxy',
+]
+
+LOGGER_TEMPLATE = {
+    'handlers': ['sentry','console'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -196,46 +219,6 @@ LOGGING = {
             'include_html': True,
         }
     },
-    'loggers': {
-        'django.request': {
-            'handlers': ['sentry'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'sentry.errors': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'celery.handler': {
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'notifyserver.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'yunda.handler':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'mail.handler':{
-            'handlers': ['mail_admins','sentry'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'xhtml2pdf':{
-            'handlers': ['sentry'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'restapi.errors': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
-    }
+    'loggers': dict([(handler,LOGGER_TEMPLATE) for handler in LOGGER_HANDLERS]),
 }
+

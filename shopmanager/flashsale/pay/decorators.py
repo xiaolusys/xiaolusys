@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from django.conf import settings
 
 from core.weixin import options
+from . import sale_settings
 
 def sale_buyer_required(view_func):
     """
@@ -48,8 +49,11 @@ def sale_buyer_required(view_func):
             "title":u'登录',
             REDIRECT_FIELD_NAME: request.build_absolute_uri().split('#')[0]
         }
-        return render_to_response("pay/mlogin.html", defaults,
-                                  context_instance=RequestContext(request))
+        return render_to_response(
+            sale_settings.MALL_LOGIN_URL , 
+            defaults,
+            context_instance=RequestContext(request)
+        )
         
     return wraps(view_func, assigned=available_attrs(view_func))(_checklogin)
 

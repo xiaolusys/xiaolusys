@@ -152,6 +152,10 @@ class XiaoluMama(models.Model):
 #             return True
 #         return False
     
+    def need_pay_deposite(self):
+        """ 是否需要支付押金 """
+        return self.progress in (self.NONE,self.PROFILE) and self.agencylevel < 2
+        
     def can_send_redenvelop(self):
         """ 是否可以发送订单红包 """
         if not self.charge_time or self.charge_time > datetime.datetime(2015,8,25):
@@ -692,11 +696,15 @@ def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
     if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS 
         and obj.is_Deposite_Order()):
         order_buyer = obj.order_buyer 
+        mm_linkid   = obj.extras_info.get('mm_linkid') or None
         xlmms = XiaoluMama.objects.filter(openid=order_buyer.unionid)
-        if xlmms.count() > 0 :
-            xlmm = xlmms[0]
+        if xlmms.exists():
+            xlmm  = xlmms[0]
+            referal_mms = XiaoluMama.objects.filter(id=mm_linkid)
+            if referal_mms.exists():
+                xlmm.referal_from = referal_mms[0].mobile
             xlmm.progress = XiaoluMama.PAY
-            update_model_fields(xlmm,update_fields=['progress'])
+            update_model_fields(xlmm,update_fields=['progress','referal_from'])
             
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
 

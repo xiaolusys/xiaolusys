@@ -20,16 +20,8 @@
 
 <div class="jumbotron" style="padding:5px;">
   <div class="container">
-    <p>恭喜{{ xlmm.weikefu }}，您离成为正式小鹿妈妈就差一步了，请扫描二维码加客服(<span class="text-warning">并提醒设置正式妈妈权限哦</span>)：</p>
-    <a href="#" class="thumbnail">
-      <img src="{{ kefu_url }}" alt="...">
-    </a>
-    <form action="{% url mama_confirm %}" method="POST">
-	  {% csrf_token %}
-	  <input type="hidden"  name="openid" value="{{ wxuser.openid }}">
-	  <input type="hidden"  name="unionid" value="{{ wxuser.unionid }}">
-	  <button type="submit" class="btn btn-primary btn-lg">确认已添加管理员微信号</button>
-	</form>
+    <p>恭喜，您已成为小鹿妈妈家族一员!</p>
+    <p><a class="btn btn-success" href="/m/m/">前往小鹿妈妈专属页</a></p>
   </div>
 </div>
 

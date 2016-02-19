@@ -55,37 +55,46 @@ def get_weixin_snsuserinfo(openid, access_token):
     resp = req.read()
     return json.loads(resp)
 
-def get_user_unionid(code, 
-                    appid='', 
-                    secret='',
-                    request=None):
-    """ 根据code获取用户openid,unoinid,或access_token """
+def get_auth_userinfo(code, appid='', secret='', request=None):
+    """ 根据code获取用户openid,unoinid,nickname,headimgurl  """
     debug_m   = settings.DEBUG
     content   = request and request.REQUEST or {}
     state     = content.get('state',None)
+    userinfo  = {}
     if not debug_m and request: 
         debug_m = content.get('debug')
     if debug_m:
-        openid  = content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c')
-        unionid = content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4')
-        return (openid, unionid)
+        userinfo.update(openid=content.get('sopenid','oMt59uE55lLOV2KS6vYZ_d0dOl5c'))
+        userinfo.update(unionid=content.get('sunionid','o29cQs9QlfWpL0v0ZV_b2nyTOM-4'))
+        return userinfo
+    
     if state and not code:
-        raise exceptions.WeixinAutherizeFail('(用户取消授权,%s)'%content)
-    if not code and not request:
-        return ('','')
-    if not code and request:
-        return get_cookie_openid(request.COOKIES, appid)
+        return {'errcode':9999,'msg':'The user cancel authorized!'}
+    
+    if not code :
+        return userinfo
     
     r = get_weixin_userbaseinfo(code, appid, secret)
     if r.has_key("errcode"):
-        return ('','')
+        return r
     
     openid = r.get('openid')
-    if not r.has_key('unionid') and r.has_key('access_token'):
-        r = get_weixin_snsuserinfo(openid, r.get('access_token'))
-        if r.has_key("errcode"):
-            return (openid,'')
-        signals.signal_weixin_snsauth_response.send(sender="access_token",appid=appid,resp_data=r)
+    if r.has_key('unionid') and r.has_key('access_token'):
+        rs = get_weixin_snsuserinfo(openid, r.get('access_token'))
+        if rs.has_key("errcode"):
+            return r
+#         signals.signal_weixin_snsauth_response.send(sender="access_token",appid=appid,resp_data=r)
+        return rs
+    
+    return r
+
+def get_user_unionid(code, appid='', secret='', request=None):
+    """ 根据code获取用户openid,unoinid,或access_token """
+    if not code and request:
+        return get_cookie_openid(request.COOKIES, appid)
+    
+    r = get_auth_userinfo(code, appid='', secret='', request=None)
         
-    return (r.get('openid'),r.get('unionid'))
+    return (r.get('openid',''),r.get('unionid',''))
+
 
