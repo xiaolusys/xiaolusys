@@ -93,7 +93,7 @@ def get_user_unionid(code, appid='', secret='', request=None):
     if not code and request:
         return get_cookie_openid(request.COOKIES, appid)
     
-    r = get_auth_userinfo(code, appid='', secret='', request=None)
+    r = get_auth_userinfo(code, appid=appid, secret=secret, request=request)
         
     return (r.get('openid',''),r.get('unionid',''))
 
