@@ -24,7 +24,7 @@ from core.weixin.options import set_cookie_openid
 
 from flashsale.pay.models import Customer
 from shopapp.weixin.views import get_user_openid, valid_openid
-from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder
+from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder, ReadPacket
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 
@@ -224,9 +224,18 @@ class XlSampleOrderView(View):
                                                             referal_from_uid=str(referal_from_uid))
                 # 记录粉丝
                 XlmmFans.objects.createFansRecord(referal_from_uid, referal_uid)
+                # 给推荐人发红包
+                self.release_packet_for_refreal(from_customer)
         else:
             res = None
         return res
+
+    def release_packet_for_refreal(self, refreal_from):
+        refreal_from = str(refreal_from)
+        # 计算推荐人的下载激活数量
+        applys = XLSampleApply.objects.filter(from_customer=refreal_from)  # 推荐人的邀请记录
+        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 推荐人的激活记录
+        ReadPacket.objects.release133_packet(refreal_from, app_down_count)
 
     def get(self, request):
         title = "元宵好兆头 抢红包 赢睡袋"
@@ -290,6 +299,8 @@ class XlSampleOrderView(View):
 
                 # 记录粉丝列表信息
                 XlmmFans.objects.createFansRecord(xlapply.from_customer, customer.id)
+                # 给推荐人发红包
+                self.release_packet_for_refreal(referal_uid)
 
             else:  # 没有试用申请记录的（返回申请页面链接）　提示
                 not_apply_message = "您还没有申请记录,请填写邀请码"
@@ -379,16 +390,6 @@ class PromotionShortResult(APIView):
         for user in wx_users:
             items.append(get_mobile_show(user))
         return HttpResponse(json.dumps(items))
-
-
-class RedPacket(APIView):
-    """
-    满足条件后，发放红包
-    """
-
-    def get(self, request):
-        # 计算用户
-        return HttpResponse(json.dumps({}))
 
 
 class PromotionResult(APIView):

@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
 from .models import XLInviteCode, XLReferalRelationship
 
 
@@ -65,3 +65,14 @@ class XLReferalRelationshipAdmin(admin.ModelAdmin):
 
 
 admin.site.register(XLReferalRelationship, XLReferalRelationshipAdmin)
+
+
+class ReadPacketAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer', 'value', 'status', 'content', 'created')
+    list_display_links = ('id', 'customer')
+    list_filter = ('created', 'status')
+    search_fields = ['id', 'customer']
+    list_per_page = 40
+
+
+admin.site.register(ReadPacket, ReadPacketAdmin)
