@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from shopapp.weixin.models import WXOrder
 from flashsale.clickcount.models import Clicks
 from flashsale.xiaolumm.models import XiaoluMama, AgencyLevel,CarryLog
+from django.db.models import Sum
 
 CLICK_VALID_DAYS = 2
 
@@ -105,6 +106,16 @@ class StatisticsShopping(models.Model):
 
     def day_time(self):
         return self.shoptime.strftime("%H:%M")
+
+    def dayly_ticheng(self):
+        """ 计算当天的提成总额 """
+        df = self.shoptime.date()
+        dt = df + datetime.timedelta(days=1)
+        shops = self.__class__.objects.filter(linkid=self.linkid,
+                                              shoptime__gte=df,
+                                              shoptime__lt=dt).exclude(status=StatisticsShopping.REFUNDED)
+        sum_value = shops.aggregate(sum_value=Sum('tichengcount')).get('sum_value')/100.0 or 0
+        return sum_value
 
 
 class OrderDetailRebeta(models.Model):

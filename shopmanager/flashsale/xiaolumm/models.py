@@ -661,7 +661,22 @@ class CarryLog(models.Model):
     def status_name(self):
         return self.get_status_display()
     
-    
+    def dayly_in_value(self):
+        """ 计算当天的收入总额 """
+        log_types = [CarryLog.ORDER_REBETA, CarryLog.CLICK_REBETA,
+                     CarryLog.THOUSAND_REBETA, CarryLog.AGENCY_SUBSIDY, CarryLog.MAMA_RECRUIT, CarryLog.ORDER_RED_PAC]
+        cls = self.__class__.objects.filter(xlmm=self.xlmm, carry_date=self.carry_date, log_type__in=log_types)
+        cls = cls.exclude(carry_type=CarryLog.CARRY_OUT).exclude(status=CarryLog.CANCELED)
+        sum_value = cls.aggregate(sum_value=Sum('value')).get('sum_value') or 0
+        return sum_value / 100.0
+
+    def dayly_clk_value(self):
+        cls = self.__class__.objects.filter(xlmm=self.xlmm,
+                                            carry_date=self.carry_date,
+                                            log_type=CarryLog.CLICK_REBETA).exclude(status=CarryLog.CANCELED)
+        sum_value = cls.aggregate(sum_value=Sum('value')).get('sum_value') or 0
+        return sum_value / 100.0
+
 from . import signals
 
 def push_Pending_Carry_To_Cash(obj,*args,**kwargs):
