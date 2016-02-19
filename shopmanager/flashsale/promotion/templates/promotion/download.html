@@ -26,7 +26,7 @@
             setTimeout(
                     function () {
                         window.location = "http://7xogkj.com2.z0.glb.qiniucdn.com/Xlmm_v1.0_2016-02-17_huawei.apk";//超时则去下载
-                    }, 50);
+                    }, 150);
         }
         function startiOSAPP() {
             console.log("start iOS app...");
@@ -35,7 +35,7 @@
             setTimeout(
                     function () {//超时则去下载
                         window.location = "https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985";
-                    }, 50);
+                    }, 150);
         }
 
         function isWeiXin() {//判断当前浏览器是否是微信内置浏览器
@@ -51,39 +51,42 @@
 
 
     {% block content1 %}
-    <span id="weixin_label" hidden="hidden">可以点击右上角在浏览器中打开</span>
+        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/weixin_tip" alt="" width="100%"/>
     <div id="download" style="text-align: center">
       <div class="col-xs-12" style="text-align: center;height: 180px; margin-bottom: 100px">
         <h3 style="padding: 30px">下载APP客户端</h3>
         <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg" alt=""/>
       </div>
       <div class="row" style="margin-top: 60px">
-        <div class="col-xs-2"></div>
+        <div class="col-xs-1"></div>
         <!--添加二维码图片-->
         <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="qrcode_android_download">
           <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/appstore_download_link.svg" alt="" width="100px"/>
         </div>
+        <div class="col-xs-2"></div>
         <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="qrcode_ios_download">
           <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/appstore_download_link.svg" alt="" width="100px"/>
         </div>
-        <div class="col-xs-2"></div>
+        <div class="col-xs-1"></div>
       </div>
     </div>
     <div class="row">
-      <div class="col-xs-2"></div>
+      <div class="col-xs-1"></div>
       <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="click_android_download">
         <!--添加二维码图片-->
         <a class="btn btn-default form-control" type="submit"
            href="http://7xogkj.com2.z0.glb.qiniucdn.com/Xlmm_v1.0_2016-02-17_huawei.apk" style="background:#FFB329;color:white">Android下载</a>
       </div>
+      <div class="col-xs-2"></div>
       <div class="col-xs-4" hidden="hidden" style="margin-top: 30px" id="click_ios_download">
         <a class="btn btn-default form-control" type="submit"
            href="https://itunes.apple.com/us/app/xiao-lu-mei-mei/id1051166985" style="background:#FFB329;color:white">iOS下载</a>
-        <div class="col-xs-2"></div>
+        <div class="col-xs-1"></div>
       </div>
     </div>
     {% endblock %}
-    {% block content4 %} {% endblock %}
+    {% block content3 %} {% endblock %}
+    {% block content9 %} {% endblock %}
     
     
 {% block footer %}
@@ -93,6 +96,7 @@
             if (isWeiXin()) {//如果是微信内置浏览器则提示在外部浏览器打开
                 $("#download").hide();
                 $("#weixin_label").show();
+                $("body").css("background","#FF0033");
             }
             else {
                 console.log("not in weixin, is in " + os);

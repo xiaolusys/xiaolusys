@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 import string, random
 from django.db import models
-
+from random import choice
 
 CHARANGE_STR = string.ascii_lowercase
 NUMBER_STR = '0123456789'
@@ -17,7 +17,6 @@ class VipCodeManager(models.Manager):
     def genCode(self):
         """ 生成邀请码 """
         xx = random.randint(1000000, 9999999)
-        print "xx:", xx
         return str(xx)
 
     def genVIpCode(self, mobile, expiried):
@@ -38,3 +37,38 @@ class VipCodeManager(models.Manager):
                 return xl_invite_code.vipcode
             if cnt > 20:
                 raise Exception(u'邀请码生成异常')
+
+
+class ReadPacketManager(models.Manager):
+    content = ['美女，您就是真白富美的命，现金红包拿去{0}元。', '亲亲，您魅力引来三位好友，奖励现金红包{0}元。',
+               '大王，您又吸引了三位好友，获得现金红包{0}元。']
+    values = [1.18, 1.28, 1.38, 1.58, 1.68, 1.78, 1.88]
+
+    def get_queryset(self):
+        super_pac = super(ReadPacketManager, self)
+        if hasattr(super_pac, 'get_query_set'):
+            return super_pac.get_query_set()
+        return super_pac.get_queryset()
+
+    def releasepacket(self, customer):
+        content = choice(self.content)
+        value = choice(self.values)
+        vcontent = content.format(value)
+        self.create(customer=customer, value=value, content=vcontent)
+        return
+
+    def release133_packet(self, customer, downcount):
+        """
+        激活数量为１的时候发放一个红包，以后每增加３个发放一个红包
+        """
+        customer = str(customer)
+        r_packerscount = self.filter(customer=customer).count()  # 已经发放的红包数量
+        if downcount in (1, 2, 3) and r_packerscount == 0:
+            self.releasepacket(customer)
+            return
+        else:
+            packet_count = (downcount - 1) / 3  # 计算应该要发送红包的数量
+            for i in range(packet_count - r_packerscount):
+                self.releasepacket(customer)
+            return
+

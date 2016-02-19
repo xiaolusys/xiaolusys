@@ -4,7 +4,6 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
         <title>排期管理</title>
         <style type="text/css" title="currentStyle">
          @import "{{ STATIC_URL }}jquery-datatable-addon/css/demo_page.css";
@@ -61,6 +60,13 @@
              text-align: center;
              top: 0px;
          }
+         #panel-dashboard {
+             position: fixed;
+             width: 30%;
+             z-index: 1,
+             top: 200px;
+             padding-left: 30px;
+         }
          #panel-message .panel-body {
              padding: 0;
          }
@@ -73,6 +79,9 @@
                 <p class="bg-danger">{{ message }}</p>
                 {% endfor %}
             </div>
+        </div>
+        <div id="panel-dashboard">
+            <h2 class="text-danger" id="num-selected"></h2>
         </div>
         <div class="container" style="margin-top:20px;margin-bottom:80px">
             <form action="/supplychain/supplier/manage_schedule/" method="get">
@@ -577,10 +586,12 @@
                              $(".preview_page_" + sale_product_id).attr("href", "/static/wap/tongkuan.html?id=" + result.model_id);
                          }
                          $(".chuantu_page_" + sale_product_id).attr("href", "/mm/add_aggregeta/?search_model=" + result.model_id);
+                         buyer_spans.push(SPAN_TPL({value: '选品负责：' + result.contactor_name}));
                          buyer_spans.push(SPAN_TPL({value: result.sku_list}));
                          buyer_spans.push(SPAN_TPL({value: '资料负责：' + result.sale_charger}));
                      }
                      else if(result.flag == 'working'){
+                         buyer_spans.push(SPAN_TPL({value: '选品负责：' + result.contactor_name}));
                          if(result.librarian){
                              buyer_spans.push(SPAN_TPL({value: '接管人：' + result.librarian}));
                              if(result.librarian == result.username){
@@ -680,10 +691,16 @@
                  }
              });
              $('.check-item').change(function(){
-                 if($(this).closest('table').find(':checked').length)
+                 var n = $('.check-item:checked').length || 0;
+                 if(n){
                      $('#panel-batch-set').collapse('show');
-                 else
+                     $('#panel-dashboard').show();
+                     $('#num-selected').html(n);
+                 }
+                 else{
                      $('#panel-batch-set').collapse('hide');
+                     $('#panel-dashboard').hide();
+                 }
              });
 
              $('.check-all').change(function(){
@@ -713,6 +730,7 @@
                  $('.check-item:checked').prop('checked', false);
                  $('.check-all:checked').prop('checked', false);
                  $('#panel-batch-set').collapse('hide');
+                 $('#panel-dashboard').hide();
              });
 
              $('a.buyer-mine').click(function(){
