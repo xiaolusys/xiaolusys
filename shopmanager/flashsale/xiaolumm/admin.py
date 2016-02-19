@@ -325,3 +325,21 @@ class AgencyOrderRebetaSchemeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AgencyOrderRebetaScheme, AgencyOrderRebetaSchemeAdmin)
+
+
+from .models_fans import FansNumberRecord, XlmmFans
+
+
+class XlmmFansAdmin(admin.ModelAdmin):
+    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid')
+    search_fields = ['xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid']
+
+
+admin.site.register(XlmmFans, XlmmFansAdmin)
+
+
+class FansNumberRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'xlmm', 'xlmm_cusid', 'fans_num')
+    search_fields = ['xlmm', 'xlmm_cusid']
+
+admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
