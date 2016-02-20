@@ -101,7 +101,7 @@
     <div class="row" style="margin-top:16px">
       <div class="col-xs-12">
         <ul class="list-group" style="font-size: 12px">
-	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">我的红包</li>
+	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">我的红包{{ res.reds_money }}元</li>
             {% for red in res.reds %}
         	    <li class="list-group-item"><span>{{ red.created }}</span><br/><span>{{ red.content }}</span></li>
             {% endfor %}

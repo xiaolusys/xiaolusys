@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Sum
 
 from rest_framework.views import APIView
 from rest_framework import permissions, authentication
@@ -187,7 +188,8 @@ class XlSampleOrderView(View):
         share_link = self.share_link.format(**{'customer_id': customer_id})
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
-        res = {'promote_count': promote_count, 'fist_num': download_str[0], "reds": reds,
+        reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
+        res = {'promote_count': promote_count, 'fist_num': download_str[0], "reds": reds,"reds_money":reds_money,
                'second_num': download_str[1], "inactive_count": inactive_count,
                'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
