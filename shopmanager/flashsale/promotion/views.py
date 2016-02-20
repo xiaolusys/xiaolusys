@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Sum
 
 from rest_framework.views import APIView
 from rest_framework import permissions, authentication
@@ -185,7 +186,10 @@ class XlSampleOrderView(View):
         download_str = str('%02.f' % app_down_count)
         inactive_count = applys.filter(status=XLSampleApply.INACTIVE).count()
         share_link = self.share_link.format(**{'customer_id': customer_id})
-        res = {'promote_count': promote_count, 'fist_num': download_str[0],
+        # 用户活动红包
+        reds = self.my_red_packets(customer_id)
+        reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
+        res = {'promote_count': promote_count, 'fist_num': download_str[0], "reds": reds,"reds_money":reds_money,
                'second_num': download_str[1], "inactive_count": inactive_count,
                'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
@@ -236,6 +240,13 @@ class XlSampleOrderView(View):
         applys = XLSampleApply.objects.filter(from_customer=refreal_from)  # 推荐人的邀请记录
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 推荐人的激活记录
         ReadPacket.objects.release133_packet(refreal_from, app_down_count)
+
+    def my_red_packets(self, customer):
+        """
+        用户活动红包
+        """
+        reds = ReadPacket.objects.filter(customer=customer)
+        return reds
 
     def get(self, request):
         title = "元宵好兆头 抢红包 赢睡袋"

@@ -1,27 +1,30 @@
 # coding=utf-8
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut
-from flashsale.clickcount.models import ClickCount
-from flashsale.clickrebeta.models import StatisticsShopping
+import os, settings, urlparse
 import datetime
+
 from django.shortcuts import get_object_or_404
+from django.forms import model_to_dict
+from django.db.models import Sum, Count
+from options import gen_and_save_jpeg_pic
+
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import authentication
+from rest_framework import exceptions
 from rest_framework import status
-from flashsale.pay.models import Customer
+from rest_framework.exceptions import APIException
 from . import permissions as perms
 from . import serializers
-from django.forms import model_to_dict
-from django.db.models import Sum, Count
-from shopback.base import log_action, ADDITION
-from rest_framework.exceptions import APIException
-from options import gen_and_save_jpeg_pic
-import os, settings, urlparse
+
 from flashsale.clickcount.models import Clicks
-from rest_framework import exceptions
+from shopback.base import log_action, ADDITION
+from flashsale.pay.models import Customer
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans
+from flashsale.clickcount.models import ClickCount
+from flashsale.clickrebeta.models import StatisticsShopping
 
 
 class XiaoluMamaViewSet(viewsets.ModelViewSet):
@@ -137,9 +140,14 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
 
         mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
         share_mmcode = self.gen_xlmm_share_qrcode_pic(xlmm.id)
+
+        # 代理的粉丝数量
+        fans = XlmmFans.objects.filter(xlmm_cusid=customer.id)
+        fans_num = fans[0].fans_num if fans.exists() else 0
+
         data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
                 "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num,
-                "share_mmcode": share_mmcode, "clk_money": clk_money}
+                "share_mmcode": share_mmcode, "clk_money": clk_money, "fans_num": fans_num}
         return Response(data)
 
 
