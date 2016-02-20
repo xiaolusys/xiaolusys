@@ -47,7 +47,7 @@ class ReadPacketManager(models.Manager):
     content = ['美女，您就是真白富美的命，现金红包拿去{0}元。', '亲亲，您魅力引来三位好友，奖励现金红包{0}元。',
                '大王，您又吸引了三位好友，获得现金红包{0}元。']
     descs = ['美女，您就是真白富美的命，现金红包拿去。', '亲亲，您魅力引来三位好友，奖励现金红包。',
-               '大王，您又吸引了三位好友，获得现金红包。']
+             '大王，您又吸引了三位好友，获得现金红包。']
     values = [1.18, 1.28, 1.38, 1.58, 1.68, 1.78, 1.88]
 
     def get_queryset(self):
@@ -70,8 +70,8 @@ class ReadPacketManager(models.Manager):
                                       {'target_url': target_url},
                                       description=desc)
 
-    def releasepacket(self, customer):
-        content = choice(self.content)
+    def releasepacket(self, customer, content):
+
         value = choice(self.values)
         vcontent = content.format(value)
         self.create(customer=customer, value=value, content=vcontent)
@@ -85,11 +85,13 @@ class ReadPacketManager(models.Manager):
         customer = str(customer)
         r_packerscount = self.filter(customer=customer).count()  # 已经发放的红包数量
         if downcount in (1, 2, 3) and r_packerscount == 0:
-            self.releasepacket(customer)
+            content = self.content[0]
+            self.releasepacket(customer, content)
             return
         else:
             packet_count = (downcount - 1) / 3  # 计算应该要发送红包的数量
             for i in range(packet_count - r_packerscount):
-                self.releasepacket(customer)
+                content = choice(self.content)
+                self.releasepacket(customer, content)
             return
 
