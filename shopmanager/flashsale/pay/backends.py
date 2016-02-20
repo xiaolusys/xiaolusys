@@ -4,7 +4,6 @@ from django.db import models
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User,AnonymousUser
-from django.contrib.auth.backends import ModelBackend
 from django.core.urlresolvers import reverse
 
 from .models import Customer,Register
@@ -17,7 +16,7 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-class FlashSaleBackend(ModelBackend):
+class FlashSaleBackend(object):
     """ 微信用户名，密码授权登陆 """
     create_unknown_user = True
     supports_inactive_user = False
@@ -57,9 +56,13 @@ class FlashSaleBackend(ModelBackend):
             pass 
         return user
     
-        
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
 
-class WeixinPubBackend(ModelBackend):
+class WeixinPubBackend(object):
     """ 微信公众号授权登陆 """
     create_unknown_user = True
     supports_inactive_user = False
@@ -118,9 +121,13 @@ class WeixinPubBackend(ModelBackend):
             
         return user
     
-
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
         
-class WeixinAppBackend(ModelBackend):
+class WeixinAppBackend(object):
     """ 微信APP授权登陆 """
     create_unknown_user = True
     supports_inactive_user = False
@@ -169,8 +176,13 @@ class WeixinAppBackend(ModelBackend):
             
         return user
     
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
   
-class SMSLoginBackend(ModelBackend):
+class SMSLoginBackend(object):
     """ 短信验证码登陆后台 """
     create_unknown_user = True
     supports_inactive_user = False
@@ -209,6 +221,9 @@ class SMSLoginBackend(ModelBackend):
             profile,state = Customer.objects.get_or_create(mobile=mobile,user=user)
         return user
     
-        
-        
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
         
