@@ -28,17 +28,39 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         
     try:
         profile, state = Customer.objects.get_or_create(unionid=unionid)
-        
-        wxuser = WeiXinUser.objects.get(models.Q(openid=openid)|models.Q(unionid=unionid))
-        profile.nick   = profile.nick.strip() or wxuser.nickname
-        profile.mobile = profile.mobile.strip() or wxuser.mobile
-        profile.openid = profile.openid or openid  
-        profile.thumbnail = profile.thumbnail or wxuser.headimgurl
-        profile.save()
+        wxusers = WeiXinUser.objects.filter(models.Q(unionid=unionid))
+        if wxusers.exists():
+            wxuser = wxusers[0]
+            profile.openid = profile.openid or openid or ''
+            profile.nick   = profile.nick.strip() or wxuser.nickname
+            profile.mobile = profile.mobile.strip() or wxuser.mobile
+            profile.thumbnail = profile.thumbnail or wxuser.headimgurl
+            update_model_fields(profile,update_fields=['nick','mobile','openid','thumbnail'])
             
     except Exception,exc:
         logger.debug(exc.message,exc_info=True)
         
+@task()
+def task_Refresh_Sale_Customer(user_params,app_key=None):
+    """ 更新特卖用户　微信授权信息 """
+    openid, unionid = user_params.get('openid'),user_params.get('unionid')
+    if openid and app_key:
+        WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
+        
+    try:
+        profile, state = Customer.objects.get_or_create(unionid=unionid)
+        wxusers = WeiXinUser.objects.filter(unionid=unionid)
+        if not profile.mobile and wxusers.exists():
+            profile.mobile =  wxusers[0].mobile
+            
+        profile.nick   = profile.nick.strip() or user_params.get('nickname')
+        profile.openid = profile.openid or user_params.get('openid')
+        profile.thumbnail = profile.thumbnail or user_params.get('headimgurl')
+        update_model_fields(profile,update_fields=['nick','mobile','openid','thumbnail'])
+            
+    except Exception,exc:
+        logger.debug(exc.message, exc_info=True)
+
 
 @task()
 def task_Merge_Sale_Customer(user, code):

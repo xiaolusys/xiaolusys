@@ -15,24 +15,19 @@ class WeixinAuthMixin(object):
     _wxpubsecret = settings.WEIXIN_SECRET
     
     def is_from_weixin(self, request):
-        if hasattr(self, '_isfromweixin'):
-            return self._isfromweixin
-        agent = request.META.get('HTTP_USER_AGENT', None)
-        self._isfromweixin = False
+        agent = request.META.get('HTTP_USER_AGENT')
         if agent and agent.find('MicroMessenger') > -1:
-            self._isfromweixin = True
-        return self._isfromweixin
+            return True
+        return False
     
     def set_appid_and_secret(self,appid,appsecret):
         self._wxpubid = appid
         self._wxpubsecret = appsecret
         
     def valid_openid(self, openid):
-        if not openid:
-            return False
-        if not OPENID_RE.match(openid):
-            return False
-        return True
+        if openid and OPENID_RE.match(openid):
+            return True
+        return False
     
     def get_openid_and_unionid(self, request):
         code    = request.GET.get('code')
