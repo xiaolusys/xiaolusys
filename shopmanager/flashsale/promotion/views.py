@@ -366,9 +366,11 @@ class XlSampleOrderView(View):
             else:
                 # 查找存在的申请，　如果有存在的申请则直接为用户激活
                 xlapply = get_customer_apply(**{"mobile": mobile})
-                xlorder = self.active_order(xlapply, customer, outer_id, '1')
-                customer_id = xlorder.customer_id
-                res = self.get_promotion_result(customer_id, outer_id, mobile)
+                res = None
+                if xlapply:  # 有申请
+                    xlorder = self.active_order(xlapply, customer, outer_id, '1')
+                    customer_id = xlorder.customer_id
+                    res = self.get_promotion_result(customer_id, outer_id, mobile)
                 return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title},
                                           context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
