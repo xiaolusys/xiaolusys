@@ -20,7 +20,7 @@ from django.forms.models import model_to_dict
 
 from auth import apis
 from common.modelutils import update_model_fields
-from core.models import AdminModel, CacheModel
+from core.models import AdminModel
 from flashsale.dinghuo.models_user import MyUser
 from flashsale.restpro.local_cache import image_watermark_cache
 from shopback.base.fields import BigIntegerAutoField
