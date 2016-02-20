@@ -3,18 +3,18 @@
 #cd /var/www/deploy/taobao/taobao-backend/shopmanager
 #git pull origin master
 #\cp -r -a ../prod_settings.py .
-#python manager.py collectstatic
+#python manage.py collectstatic
 #supervisorctl restart gunicorn
 #supervisorctl restart celery
 ################################################
 
 PUBLISH_HOST=(
+root@proxy.huyi.so
 root@youni.huyi.so 
 root@sale.huyi.so 
-root@proxy.huyi.so
 )
 
-CMD="cd /var/www/deploy/taobao/taobao-backend/shopmanager && git pull origin master && \cp -r -a ../prod_settings.py . && python manager.py collectstatic && supervisorctl restart gunicorn &&  (supervisorctl restart celery || true)" 
+CMD="cd /var/www/deploy/taobao/taobao-backend/shopmanager && git pull origin master && \cp -r -a ../prod_settings.py . && ../ve/bin/python manage.py collectstatic --noinput && supervisorctl restart gunicorn &&  (supervisorctl restart celery || true)" 
 
 #CMD="lsb_release -a"
 
