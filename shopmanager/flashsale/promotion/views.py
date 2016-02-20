@@ -42,6 +42,22 @@ def get_active_pros_data():
     return None
 
 
+def get_customer_apply(**kwargs):
+    """
+    获取用户的试用申请
+    """
+    mobile = kwargs.get('mobile', None)
+    user_openid = kwargs.get('openid', None)
+    xls = XLSampleApply.objects.filter(mobile=mobile).order_by('-created')  # 记录来自平台设申请的sku选项
+    if xls.exists():
+        return xls[0]
+    else:
+        xls = XLSampleApply.objects.filter(user_openid=user_openid).order_by('-created')  # 记录来自平台设申请的sku选项
+        if xls.exists():
+            return xls[0]
+    return xls
+
+
 def get_customer(request):
     """
     根据http request 对象　返回 特卖用户，不存在则返回None, 存在返回用户对象
@@ -103,6 +119,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
+        openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
+
         if self.is_from_weixin(request):  # 如果是在微信里面
             res = self.get_auth_userinfo(request)
             openid = res.get("openid")
@@ -118,11 +136,17 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
+
+        xls = get_customer_apply(**{"openid": openid})
+        if xls:
+            download = True
+        download = False
         response = render_to_response(self.xlsampleapply,
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
-                                       "pro": pro,
+                                       "pro": pro, "openid": openid,
                                        "referal": referal,
+                                       "download": download,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -134,13 +158,14 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         content = request.REQUEST
         vmobile = content.get("mobile", None)  # 参与活动的手机号
         vipcode = content.get("vipcode", None)  # 活动邀请码
+
         from_customer = content.get('from_customer') or 0  # 分享人的用户id
         outer_id = content.get('outer_id', None)
         sku_code = content.get("sku_code", None)  # 产品sku码
         ufrom = content.get("ufrom", None)
-        openid = None
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
+        # openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
+        openid = content.get('openid', None)  # 获取提交的openid
 
         pro = get_active_pros_data()  # 获取活动产品数据
 
@@ -149,8 +174,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = mobiles[0] if len(mobiles) >= 1 else None
 
         if mobile:
-            xls = XLSampleApply.objects.filter(outer_id=outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
-            if not xls.exists():  # 如果没有申请记录则创建记录
+            xls = get_customer_apply(**{"mobile": mobile})
+            if not xls:  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
                 sample_apply = XLSampleApply()
                 sample_apply.outer_id = outer_id
