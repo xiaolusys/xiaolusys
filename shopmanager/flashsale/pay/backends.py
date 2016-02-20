@@ -4,7 +4,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User,AnonymousUser
-from django.contrib.auth.backends import RemoteUserBackend
+from django.contrib.auth.backends import ModelBackend
 from django.core.urlresolvers import reverse
 
 from .models import Customer,Register
@@ -17,10 +17,10 @@ import logging
 logger = logging.getLogger('django.request')
 
 
-class FlashSaleBackend(RemoteUserBackend):
+class FlashSaleBackend(ModelBackend):
     """ 微信用户名，密码授权登陆 """
-    create_unknown_user = False
-    upports_inactive_user = False
+    create_unknown_user = True
+    supports_inactive_user = False
     supports_object_permissions = False
 
     def authenticate(self, request, **kwargs):
@@ -55,21 +55,14 @@ class FlashSaleBackend(RemoteUserBackend):
             customer.save()
         except:
             pass 
-
         return user
     
-
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except:
-            return None
         
 
-class WeixinPubBackend(RemoteUserBackend):
+class WeixinPubBackend(ModelBackend):
     """ 微信公众号授权登陆 """
     create_unknown_user = True
-    upports_inactive_user = False
+    supports_inactive_user = False
     supports_object_permissions = False
     
     def get_unoinid(self, openid, appkey):
@@ -103,7 +96,7 @@ class WeixinPubBackend(RemoteUserBackend):
             profile = Customer.objects.get(openid=openid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if unionid and (profile.openid != openid or not profile.unionid):
-                task_Refresh_Sale_Customer.s(userinfo,app_key=settings.WXPAY_APPID)()
+                task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
                 
             if profile.user:
                 if not profile.user.is_active:
@@ -121,21 +114,16 @@ class WeixinPubBackend(RemoteUserBackend):
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
-            task_Refresh_Sale_Customer.s(userinfo,app_key=settings.WXPAY_APPID)()
+            task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
             
         return user
     
 
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except:
-            return None
         
-class WeixinAppBackend(RemoteUserBackend):
+class WeixinAppBackend(ModelBackend):
     """ 微信APP授权登陆 """
     create_unknown_user = True
-    upports_inactive_user = False
+    supports_inactive_user = False
     supports_object_permissions = False
 
     def authenticate(self, request, **kwargs):
@@ -181,17 +169,11 @@ class WeixinAppBackend(RemoteUserBackend):
             
         return user
     
-
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except:
-            return None
   
-class SMSLoginBackend(RemoteUserBackend):
+class SMSLoginBackend(ModelBackend):
     """ 短信验证码登陆后台 """
     create_unknown_user = True
-    upports_inactive_user = False
+    supports_inactive_user = False
     supports_object_permissions = False
 
     def authenticate(self, request, **kwargs):
@@ -227,12 +209,6 @@ class SMSLoginBackend(RemoteUserBackend):
             profile,state = Customer.objects.get_or_create(mobile=mobile,user=user)
         return user
     
-
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except:
-            return None
         
         
         

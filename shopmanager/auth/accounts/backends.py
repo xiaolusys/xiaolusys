@@ -7,7 +7,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import SiteProfileNotAvailable
 from django.core.exceptions import ImproperlyConfigured
-from common.utils import verifySignature,decodeBase64String,parse_urlparams
+from django.contrib.auth.models import User,AnonymousUser
+from django.contrib.auth.backends import RemoteUserBackend
 from django.conf import settings
 from auth import apis
 
@@ -32,11 +33,11 @@ token {
 """
 
 
-class TaoBaoBackend:
+class TaoBaoBackend(RemoteUserBackend):
     supports_anonymous_user = False
     supports_object_permissions = False
 
-    def authenticate(self, request, user=None,**kwargs):
+    def authenticate(self, request, user=None, **kwargs):
         """{u'state': [u''], u'code': [u'sVT2F1nZtnkVLaEnhKiy5gS832237']}"""
         
         if not request.path.endswith(settings.REDIRECT_URI):
