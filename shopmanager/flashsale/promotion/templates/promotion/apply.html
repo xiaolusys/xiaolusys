@@ -73,9 +73,24 @@
 	  border:0px;
 	  margin-top:20px;
 	}
-	
-	.product-background {
+
+	.download-button{
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-download-button.png);
+	  background-repeat:no-repeat;
+	  background-size:100%;
+	  background-color:transparent;
+	  border:0px;
+	  margin-top:20px;
+	}
+
+	.product-background-start {
 	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-sleepingbag-background.png?imageMogr2/thumbnail/400/format/png/quality/100);
+	  background-size:100%;
+	  background-repeat:no-repeat;
+	}
+
+	.product-background-done {
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-applictiondone-bg.png?imageMogr2/thumbnail/400/format/png/quality/100);
 	  background-size:100%;
 	  background-repeat:no-repeat;
 	}
@@ -98,15 +113,15 @@
 
 
     {% block content3 %}
-    <div class="product-background" style="padding-bottom:10px">
+    {% if download %}
+    <div class="product-background-done" style="padding-bottom:10px">
+    {% else %}
+    <div class="product-background-start" style="padding-bottom:10px">
+    {% endif %}
       <div class="row">
 	<div class="col-xs-12" >
-	  <div style="margin-top:60px">
-	    {% if download %}
+	  <div style="margin-top:50px">
 	    <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/sleepingbag-blue-222.png?imageMogr2/thumbnail/400/format/png/quality/100" style="width:100%"/>
-	    {% else %}
-	    <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/sleepingbag-blue-222.png?imageMogr2/thumbnail/400/format/png/quality/100" style="width:100%"/>
-	    {% endif %}
 	  </div>
 	</div>
       </div>
@@ -119,7 +134,7 @@
 	<div class="col-xs-2 choice"><span id="id-color-pink" class="visible-border">粉色</span></div>
 	<div class="col-xs-2 choice"></div>
       </div>
-      <div class="row" style="margin-top:10px;">
+      <div class="row" style="margin-top:20px;">
 	<div class="col-xs-2 choice"></div>
 	<div class="col-xs-2 choice" style="padding: 1px 1px; color:white"><span>尺码 :</span></div>
 	<div class="col-xs-2 choice"><span id="id-size-3" class="highlight-border">0-3岁</span></div>
@@ -132,17 +147,7 @@
     {% endblock %}
 
     {% block content4 %}
-    {% if download %}
-    <!-- 提示申请成功 -->
-    <div class="row">
-      <div class="col-xs-2"></div>
-      <div class="col-xs-8" style="text-align: center; color:#FFB329">
-	<span>提交成功。</span><br/><span>快下载APP激活申请吧！</span>
-      </div>
-    </div>
-    {% endif %}
-    
-    <div class="row" style="margin-top:20px">
+    <div class="row" style="margin-top:10px">
       <div class="col-xs-2"></div>
       <div class="col-xs-8 form-content">
         <form action="" method="post" onsubmit="return check()">
@@ -158,7 +163,7 @@
           {% endif %}
           {% if vipcode_message %}<span> {{ vipcode_message }}</span>{% endif %}
           {% if download %}
-          <a class="btn btn-default form-control submit-apply " style="background: #FF8800;color:white" href="/sale/promotion/appdownload/">立即激活</a>
+          <a class="download-button form-control" href="/sale/promotion/appdownload/" value="what's" type="button"></a>
           {% else %}
           <input class="application-button form-control" value="" type="submit"/>
           {% endif %}
@@ -167,7 +172,7 @@
     </div>
     {% endblock %}
 
-{% block tail_script %}
+    {% block tail_script %}
     <script>
         function getUrlParam(name) {
             var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
