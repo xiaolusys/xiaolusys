@@ -116,7 +116,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
 
-
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
         response = render_to_response(self.xlsampleapply,

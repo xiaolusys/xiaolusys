@@ -51,11 +51,11 @@
 
 
     {% block content1 %}
-        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/weixin_tip" alt="" width="100%"/>
+        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/weixin_tip" alt="" width="100%" id="weixin_label" hidden="hidden"/>
     <div id="download" style="text-align: center">
       <div class="col-xs-12" style="text-align: center;height: 180px; margin-bottom: 100px">
-        <h3 style="padding: 30px">下载APP客户端</h3>
-        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg" alt=""/>
+        <h3 style="padding: 30px;color: white">下载APP</h3>
+        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg" alt="" class="img-circle"/>
       </div>
       <div class="row" style="margin-top: 60px">
         <div class="col-xs-1"></div>
@@ -95,6 +95,7 @@
             var os = OSTest();
             if (isWeiXin()) {//如果是微信内置浏览器则提示在外部浏览器打开
                 $("#download").hide();
+                alert('ssss');
                 $("#weixin_label").show();
                 $("body").css("background","#FF0033");
             }
