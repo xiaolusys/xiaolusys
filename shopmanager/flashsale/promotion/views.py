@@ -93,7 +93,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
     vipcode_default_message = u'请输入邀请码'
     vipcode_error_message = u'邀请码不正确'
-    mobile_default_message = u'请输入手机号'
+    mobile_default_message = u''
     mobile_error_message = u'手机号码有误'
 
     PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
@@ -115,7 +115,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
-
+        title = u'小鹿美美邀您闹元宵'
 
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
@@ -124,6 +124,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                                        "from_customer": from_customer,
                                        "pro": pro,
                                        "referal": referal,
+                                       "title": title,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
