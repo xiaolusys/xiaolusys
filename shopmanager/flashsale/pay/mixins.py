@@ -7,7 +7,7 @@ import pingpp
 
 from rest_framework import exceptions
 
-from . import sale_settings
+from . import constants
 from .models import Customer, SaleTrade, SaleOrder, genTradeUniqueid
 from shopback.items.models import ProductSku
 from flashsale.xiaolumm.models import XiaoluMama
@@ -115,9 +115,9 @@ class PayInfoMethodMixin(object):
         order_no      = sale_trade.tid
         channel       = sale_trade.channel
         success_url = urlparse.urljoin(settings.M_SITE_URL,
-                                       kwargs.get('success_url',sale_settings.MAIL_PAY_SUCCESS_URL))
+                                       kwargs.get('success_url',constants.MAIL_PAY_SUCCESS_URL))
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,
-                                       kwargs.get('cancel_url',sale_settings.MAIL_PAY_CANCEL_URL))
+                                       kwargs.get('cancel_url',constants.MAIL_PAY_CANCEL_URL))
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
