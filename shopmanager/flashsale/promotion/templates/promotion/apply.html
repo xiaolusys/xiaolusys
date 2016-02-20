@@ -84,13 +84,12 @@
     <div class="greetings">
       <div class="row">
 	<div class="col-xs-12">
-	  <img {% if referal %} src="{{ referal.thumbnail }}" {% else %} src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg"{% endif %} style="width:36px;height:36px;" alt="..." class="img-circle referal"/><span style="color:orange;font-size:12px;padding-left:36px">{% if referal %}{{ referal.nick }}{% else %}小鹿妈妈{% endif %}</span><br/><span style="margin-top:6px;padding-left:10px;font-size:12px;color:white">哈哈，我刚抢完睡袋和红包，好运发发发哦～～</span>
+	  <img {% if referal %} src="{{ referal.thumbnail }}" {% else %} src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg"{% endif %} style="width:36px;height:36px;" alt="..." class="img-circle referal"/><span style="color:orange;font-size:12px;padding-left:36px;font-weight:bold">{% if referal %}{{ referal.nick }}{% else %}小鹿妈妈{% endif %}</span><p style="padding:0px 10px;font-size:12px;color:white">啊哈哈，我刚抢完睡袋和红包，你也来吧，好运发发发哦～～</p>
 	</div>
       </div>
     </div>
     {% endif %}
     {% endblock %}
-
 
     {% block content4 %}
     {% if download %}
@@ -100,24 +99,6 @@
       <div class="col-xs-8" style="text-align: center; color:#FFB329">
 	<span>提交成功。</span><br/><span>快下载APP激活申请吧！</span>
       </div>
-    </div>
-    {% else %}
-
-    <div class="row" style="margin-top:10px">
-      <div class="col-xs-2 choice"></div>
-      <div class="col-xs-2 choice" style="padding: 1px 1px; color:white"><span>颜色 :</span></div>
-      <div class="col-xs-2 choice"><span id="id-color-yellow" class="highlight-border">黄色</span></div>
-      <div class="col-xs-2 choice"><span id="id-color-blue" class="visible-border">蓝色</span></div>
-      <div class="col-xs-2 choice"><span id="id-color-pink" class="visible-border">粉色</span></div>
-      <div class="col-xs-2 choice"></div>
-    </div>
-    <div class="row" style="margin-top:10px;">
-      <div class="col-xs-2 choice"></div>
-      <div class="col-xs-2 choice" style="padding: 1px 1px; color:white"><span>尺码 :</span></div>
-      <div class="col-xs-2 choice"><span id="id-size-3" class="highlight-border">0-3岁</span></div>
-      <div class="col-xs-2 choice"><span id="id-size-5" class="visible-border">3-5岁</span></div>
-      <div class="col-xs-2 choice"></div>
-      <div class="col-xs-2 choice"></div>
     </div>
     {% endif %}
     
