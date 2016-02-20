@@ -129,10 +129,13 @@ class XLSampleapplyView(WeixinAuthMixin, View):
     mobile_default_message = u''
     mobile_error_message = u'手机号码有误'
 
-    PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
+    PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa', 'app')
 
     def get(self, request):
         content = request.REQUEST
+        customer = get_customer(request)
+        mobile = customer.mobile if customer else None
+
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
@@ -167,7 +170,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                                        "from_customer": from_customer,
                                        "pro": pro, "openid": openid,
                                        "referal": referal,
-                                       "title": title,
+                                       "title": title, "mobile": mobile,
                                        "download": download, "img_src": img_src,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
@@ -222,6 +225,9 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                         participate = participates[0]
                         participate.usage_count += 1
                         participate.save()  # 使用次数累加
+                if ufrom == 'app':
+                    url = '/sale/promotion/xlsampleorder/'
+                    return redirect(url)
             else:
                 img_src = get_product_img(xls.sku_code)  # 获取sku图片
             return render_to_response(self.xlsampleapply,
@@ -391,6 +397,9 @@ class XlSampleOrderView(View):
                     xlorder = self.active_order(xlapply, customer, outer_id, xlapply.sku_code)
                     customer_id = xlorder.customer_id
                     res = self.get_promotion_result(customer_id, outer_id, mobile)
+                else:
+                    url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
+                    return redirect(url)
                 return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title},
                                           context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
