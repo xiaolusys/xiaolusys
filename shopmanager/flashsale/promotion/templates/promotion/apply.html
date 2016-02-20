@@ -156,7 +156,8 @@
 	  <input type="text" value="1" name="sku_code" hidden="hidden"/>
           {% if not download %}
           <p id="id-errmsg" style="color:#FF8800">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
-          <input id="id-mobile" type="number" name="mobile" class="form-control mobileinput"
+          <input type="hidden" value="{{ openid }}" name="openid"/>
+          <input id="id-mobile" type="tel" name="mobile" class="form-control mobileinput" align="center"
                  {% if mobile %} value="{{ mobile }}" {% endif %} placeholder="{{ mobile_message }}"
                  aria-describedby="basic-addon1">
           {% endif %}

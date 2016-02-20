@@ -133,7 +133,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
             'payinfos':deposite_params,
             'referal_mamaid':mama_id,
             'success_url':self.get_full_link(reverse('mama_registerok')),
-            'cancel_url':self.get_full_link(reverse('mama_registerfail'))
+            'cancel_url':self.get_full_link(reverse('mama_registerfail')+'?mama_id='+mama_id)
         })
         
     def post(self, request, *args, **kwargs):

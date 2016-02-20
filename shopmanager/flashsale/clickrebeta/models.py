@@ -114,8 +114,8 @@ class StatisticsShopping(models.Model):
         shops = self.__class__.objects.filter(linkid=self.linkid,
                                               shoptime__gte=df,
                                               shoptime__lt=dt).exclude(status=StatisticsShopping.REFUNDED)
-        sum_value = shops.aggregate(sum_value=Sum('tichengcount')).get('sum_value')/100.0 or 0
-        return sum_value
+        sum_value = shops.aggregate(sum_value=Sum('tichengcount')).get('sum_value') or 0
+        return sum_value/100.0
 
 
 class OrderDetailRebeta(models.Model):

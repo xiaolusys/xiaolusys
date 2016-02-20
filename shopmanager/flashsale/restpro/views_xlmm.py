@@ -22,7 +22,7 @@ from . import serializers
 from flashsale.clickcount.models import Clicks
 from shopback.base import log_action, ADDITION
 from flashsale.pay.models import Customer
-from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans
+from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, FansNumberRecord
 from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 
@@ -142,7 +142,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         share_mmcode = self.gen_xlmm_share_qrcode_pic(xlmm.id)
 
         # 代理的粉丝数量
-        fans = XlmmFans.objects.filter(xlmm_cusid=customer.id)
+        fans = FansNumberRecord.objects.filter(xlmm_cusid=customer.id)
         fans_num = fans[0].fans_num if fans.exists() else 0
 
         data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,

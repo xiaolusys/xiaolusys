@@ -1,7 +1,7 @@
 MySQL-python==1.2.3
 PyMySQL==0.6.7
-Django==1.4.11
-gunicorn==0.14.6
+Django==1.4.22
+gunicorn==19.4.5
 httplib2==0.9
 raven==2.0.6
 celery==3.0.19
