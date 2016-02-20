@@ -75,6 +75,7 @@ class ReadPacketManager(models.Manager):
         value = choice(self.values)
         vcontent = content.format(value)
         self.create(customer=customer, value=value, content=vcontent)
+        customer = int(customer)
         self.push_message_to_app(customer)
         return
 

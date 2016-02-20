@@ -53,6 +53,7 @@ class XLSampleApply(BaseModel):
     FROM_WB   = 'sinawb'
     FROM_WEB  = 'web'
     FROM_QQSPA = 'qqspa'
+    XLMM_APP = 'app'
 
     FROM_CHOICES = (
         (FROM_WXAPP,u'微信好友'),
@@ -60,6 +61,7 @@ class XLSampleApply(BaseModel):
         (FROM_QQ,u'QQ'),
         (FROM_WB,u'新浪微博'),
         (FROM_WEB,u'外部网页'),
+        (XLMM_APP,u'小鹿美美APP')
     )
 
     outer_id = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'商品编码')
