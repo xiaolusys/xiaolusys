@@ -321,7 +321,6 @@ class XlSampleOrderView(View):
     def get(self, request):
         title = "元宵好兆头 抢红包 赢睡袋"
         pro = get_active_pros_data()  # 获取活动产品数据
-
         # 如果用户已经有正式订单存在 则 直接返回分享页
         customer = get_customer(request)
         if customer:
