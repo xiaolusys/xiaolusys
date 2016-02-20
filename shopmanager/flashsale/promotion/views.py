@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 from rest_framework.views import APIView
 from rest_framework import permissions, authentication
@@ -30,17 +30,62 @@ from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 
 
-def genCode():
-    NUM_CHAR_LIST = list('1234567890')
-    return ''.join(random.sample(NUM_CHAR_LIST, 7))
-
-
 def get_active_pros_data():
-    free_samples = (1, 2)
+    """
+    获取活动产品数据　　
+    返回活动产品对象
+    """
+    free_samples = (1, )  # 指定id的产品
     queryset = XLFreeSample.objects.filter(id__in=free_samples)  # 要加入活动的产品
     if queryset.exists():
         return queryset[0]
     return None
+
+
+def get_customer(request):
+    """
+    根据http request 对象　返回 特卖用户，不存在则返回None, 存在返回用户对象
+    """
+    try:
+        customer = Customer.objects.get(user=request.user)
+    except Customer.DoesNotExist:
+        customer = None
+    return customer
+
+
+def get_mobile_show(customer):
+    """
+    根据用户对象返回　用户的
+    (手机号，　活动推荐数量，　活动激活数量，　头像)
+    """
+    start_time = datetime.datetime(2016, 2, 20, 0, 0, 0)  # 活动开始时间
+    promotion = get_active_pros_data()  # 活动截止时间
+    end_time = promotion.expiried if promotion else start_time
+
+    mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
+    thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
+    applys = XLSampleApply.objects.filter(from_customer=customer.id, created__gte=start_time, created__lte=end_time)
+    promote_count = applys.count()  # 邀请的数量　
+    app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 活动激活（下载app）的数量
+    res = (mobile, promote_count, app_down_count, thumbnail)
+    return res
+
+
+def get_orders(month=None, batch=None):
+    """
+    根据月份和批次获取活动的中奖名单，pass_num:表示满足的中奖条件(激活数)
+    """
+    order_list = XLSampleOrder.objects.none()
+    promotion = get_active_pros_data()  # 活动截止时间
+    if month == 1602 and batch == 1:
+        start_time = datetime.datetime(2016, 2, 20)
+        end_time = promotion.expiried if promotion else start_time
+        order_list = XLSampleOrder.objects.filter(created__gte=start_time, created__lte=end_time)
+    if not (month and batch):
+        start_time = datetime.datetime(2016, 1, 22)
+        orders = XLSampleOrder.objects.filter(created__gt=start_time)
+        order_list = orders[:30] if len(orders) > 30 else orders  # 只是取30条
+    return order_list
 
 
 class XLSampleapplyView(WeixinAuthMixin, View):
@@ -189,7 +234,7 @@ class XlSampleOrderView(View):
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
         reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
-        res = {'promote_count': promote_count, 'fist_num': download_str[0], "reds": reds,"reds_money":reds_money,
+        res = {'promote_count': promote_count, 'fist_num': download_str[0], "reds": reds, "reds_money": reds_money,
                'second_num': download_str[1], "inactive_count": inactive_count,
                'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
@@ -332,14 +377,6 @@ class XlSampleOrderView(View):
         return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
 
 
-def get_customer(request):
-    try:
-        customer = Customer.objects.get(user=request.user)
-    except Customer.DoesNotExist:
-        customer = None
-    return customer
-
-
 class CusApplyOrdersView(APIView):
     """
      获取用户的推荐申请　和　激活　信息
@@ -367,29 +404,6 @@ class CusApplyOrdersView(APIView):
 
         return render_to_response(self.promote_condition, condition,
                                   context_instance=RequestContext(request))
-
-
-def get_mobile_show(customer):
-    mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
-    thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
-    applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
-    promote_count = applys.count()  # 邀请的数量　
-    app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
-
-    res = (mobile, promote_count, app_down_count, thumbnail)
-    return res
-
-
-def get_orders(month=None, batch=None):
-    order_list = XLSampleOrder.objects.none()
-    if month == 1602 and batch == 1:
-        start_time = datetime.datetime(2016, 1, 22)
-        order_list = XLSampleOrder.objects.filter(created__gt=start_time)
-    if not (month and batch):
-        start_time = datetime.datetime(2016, 1, 22)
-        orders = XLSampleOrder.objects.filter(created__gt=start_time)
-        order_list = orders[:30] if len(orders) > 30 else orders  # 只是取30条
-    return order_list
 
 
 class PromotionShortResult(APIView):
