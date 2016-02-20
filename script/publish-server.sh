@@ -25,7 +25,7 @@ fi
 
 for i in "${PUBLISH_HOST[@]}"; 
 do
-     echo -e '..................Start publish server:' $i 
+     echo -e '..................Start publish server:' $i `date "+%Y-%m-%d %H:%M:%S"`
      ssh $i $CMD || exit 1
 done
  

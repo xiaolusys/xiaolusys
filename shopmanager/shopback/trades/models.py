@@ -1110,7 +1110,7 @@ REPLAY_TRADE__WULIU_STATUS = (
 class TradeWuliu(models.Model):
     """ 已发货清单 """
 
-    tid = models.CharField(max_length=32, default=lambda: 'DD%d' % int(time.time() * 10 ** 5), verbose_name=u'原单ID')
+    tid = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'原单ID')
     out_sid = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流编号')
     logistics_company = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'物流公司')
     status = models.IntegerField(default=0, db_index=True, choices=REPLAY_TRADE__WULIU_STATUS, verbose_name=u'物流状态')
@@ -1118,8 +1118,8 @@ class TradeWuliu(models.Model):
     content = models.CharField(max_length=640, blank=True, verbose_name=u'物流详情')
     created = models.DateTimeField(null=True, db_index=True, auto_now_add=True, verbose_name=u'记录日期')
     modified = models.DateTimeField(null=True, auto_now=True, blank=True, verbose_name=u'修改日期')
-    errcode = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'错误代码')
-    remark = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'备注')
+    errcode = models.CharField(max_length=64, blank=True, verbose_name=u'错误代码')
+    remark = models.CharField(max_length=64,  blank=True, verbose_name=u'备注')
 
     class Meta:
         db_table = 'shop_trades_wuliudetail'

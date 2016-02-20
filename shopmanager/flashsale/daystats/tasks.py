@@ -13,7 +13,6 @@ from flashsale.xiaolumm.models import CarryLog
 from flashsale.pay.models import Customer
 from  flashsale.pay.models_refund import SaleRefund
 from .models import DailyStat, PopularizeCost
-
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import get_Unionid
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
@@ -24,6 +23,7 @@ import logging
 logger = logging.getLogger('celery.handler')
 
 
+    
 @task()
 def task_Push_Sales_To_DailyStat(target_date):
     df = datetime.datetime(target_date.year, target_date.month, target_date.day, 0, 0, 0)
