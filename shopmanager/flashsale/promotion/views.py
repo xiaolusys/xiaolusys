@@ -109,7 +109,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
     vipcode_default_message = u'请输入邀请码'
     vipcode_error_message = u'邀请码不正确'
-    mobile_default_message = u'请输入手机号'
+    mobile_default_message = u''
     mobile_error_message = u'手机号码有误'
 
     PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa')
@@ -133,6 +133,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
+        title = u'小鹿美美邀您闹元宵'
+
 
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
@@ -147,6 +149,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                                        "from_customer": from_customer,
                                        "pro": pro, "openid": openid,
                                        "referal": referal,
+                                       "title": title,
                                        "download": download,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
@@ -305,6 +308,9 @@ class XlSampleOrderView(View):
         return res
 
     def release_packet_for_refreal(self, refreal_from):
+        """
+        给推荐人发红包, 首次有激活发送红包，　以后每增加３个激活　发送一个红包
+        """
         refreal_from = str(refreal_from)
         # 计算推荐人的下载激活数量
         applys = XLSampleApply.objects.filter(from_customer=refreal_from)  # 推荐人的邀请记录
@@ -318,19 +324,54 @@ class XlSampleOrderView(View):
         reds = ReadPacket.objects.filter(customer=customer)
         return reds
 
+    def active_order(self, xlapply, customer, outer_id, sku_code):
+        """
+        激活申请：
+        1.生成订单记录
+        2.生成邀请关系记录
+        3.记录粉丝列表信息
+        4.给推荐人发红包
+        """
+        xlorder = XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
+                                               outer_id=outer_id, sku_code=sku_code)
+        # 生成邀请关系记录
+        referal_uid = customer.id  # 被推荐人ID
+        referal_from_uid = xlapply.from_customer  # 推荐人ID
+        XLReferalRelationship.objects.get_or_create(referal_uid=str(referal_uid),
+                                                    referal_from_uid=str(referal_from_uid))
+        xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
+        xlapply.save()
+        # 记录粉丝列表信息
+        XlmmFans.objects.createFansRecord(xlapply.from_customer, customer.id)
+        # 给推荐人发红包
+        self.release_packet_for_refreal(referal_from_uid)
+        return xlorder
+
     def get(self, request):
         title = "元宵好兆头 抢红包 赢睡袋"
         pro = get_active_pros_data()  # 获取活动产品数据
         # 如果用户已经有正式订单存在 则 直接返回分享页
         customer = get_customer(request)
+        mobile = customer.mobile if customer else None
         if customer:
             outer_id = pro.outer_id
             xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id).order_by('-created')
+
             if xls_orders.exists():
                 customer_id = customer.id
                 mobile = customer.mobile
                 res = self.get_promotion_result(customer_id, outer_id, mobile)
-                return render_to_response(self.order_page, {'pro': pro, 'res': res},
+                return render_to_response(self.order_page, {'pro': pro, 'res': res, "title": title},
+                                          context_instance=RequestContext(request))
+            else:
+                # 查找存在的申请，　如果有存在的申请则直接为用户激活
+                xlapply = get_customer_apply(**{"mobile": mobile})
+                res = None
+                if xlapply:  # 有申请
+                    xlorder = self.active_order(xlapply, customer, outer_id, '1')
+                    customer_id = xlorder.customer_id
+                    res = self.get_promotion_result(customer_id, outer_id, mobile)
+                return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title},
                                           context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
                                   context_instance=RequestContext(request))
@@ -355,32 +396,15 @@ class XlSampleOrderView(View):
                                           "error_message": error_message
                                       },
                                       context_instance=RequestContext(request))  # 缺少参数
-        xlapplys = XLSampleApply.objects.filter(mobile=mobile, outer_id=outer_id).order_by('-created')
-        xlapply = None
-
-        if xlapplys.exists():
-            xlapply = xlapplys[0]
+        xlapply = get_customer_apply(**{"mobile": mobile})
 
         # 获取自己的正式使用订单
         xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
 
         if not xls_orders.exists():  # 没有　试用订单　创建　正式　订单记录
             if xlapply:  # 有　试用申请　记录的
-                XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
-                                             outer_id=outer_id, sku_code=sku_code)
-                # 生成邀请关系记录
-                referal_uid = customer.id  # 被推荐人ID
-                referal_from_uid = xlapply.from_customer  # 推荐人ID
-                XLReferalRelationship.objects.get_or_create(referal_uid=str(referal_uid),
-                                                            referal_from_uid=str(referal_from_uid))
-
-                xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
-                xlapply.save()
-
-                # 记录粉丝列表信息
-                XlmmFans.objects.createFansRecord(xlapply.from_customer, customer.id)
-                # 给推荐人发红包
-                self.release_packet_for_refreal(referal_uid)
+                # 激活申请
+                self.active_order(xlapply, customer, outer_id, sku_code)
 
             else:  # 没有试用申请记录的（返回申请页面链接）　提示
                 not_apply_message = "您还没有申请记录,请填写邀请码"

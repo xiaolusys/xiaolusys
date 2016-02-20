@@ -20,11 +20,13 @@
 <body style="background-color:#220a3d">
   <div class="container">
     {% block content1 %}
+    {% if not download %}
     <div class="row">
       <div class="col-xs-12" style="text-align: center;padding-left:0px;padding-right:0px">
-	<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222event-header.png?imageMogr2/thumbnail/400/format/png/quality/100" style="width:100%"/>
+	<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222event-header.png" style="width:100%"/>
       </div>
     </div>
+    {% endif %}
     {% endblock %}
     
     {% block content2 %}
@@ -36,7 +38,7 @@
     {% block content4 %}{% endblock %}
 
     {% block content9 %}
-    <div class="row" style="margin-top:20px">
+    <div class="row" style="margin-top:30px">
       <div class="col-xs-12" style="text-align: center;">
 	<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/rules.jpg" style="width:100%"/>
       </div>
