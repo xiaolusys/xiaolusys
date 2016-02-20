@@ -140,7 +140,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         xls = get_customer_apply(**{"openid": openid})
         if xls:
             download = True
-        download = False
         response = render_to_response(self.xlsampleapply,
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
