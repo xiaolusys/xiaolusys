@@ -1,7 +1,11 @@
 # -*- coding:utf8 -*-
 import string, random
-from django.db import models
 from random import choice
+from django.db import models
+
+from flashsale.protocol import get_target_url
+from flashsale.protocol.constants import TARGET_TYPE_WEBVIEW
+from flashsale.push.mipush import mipush_of_ios, mipush_of_android
 
 CHARANGE_STR = string.ascii_lowercase
 NUMBER_STR = '0123456789'
@@ -42,6 +46,8 @@ class VipCodeManager(models.Manager):
 class ReadPacketManager(models.Manager):
     content = ['美女，您就是真白富美的命，现金红包拿去{0}元。', '亲亲，您魅力引来三位好友，奖励现金红包{0}元。',
                '大王，您又吸引了三位好友，获得现金红包{0}元。']
+    descs = ['美女，您就是真白富美的命，现金红包拿去。', '亲亲，您魅力引来三位好友，奖励现金红包。',
+               '大王，您又吸引了三位好友，获得现金红包。']
     values = [1.18, 1.28, 1.38, 1.58, 1.68, 1.78, 1.88]
 
     def get_queryset(self):
@@ -50,11 +56,26 @@ class ReadPacketManager(models.Manager):
             return super_pac.get_query_set()
         return super_pac.get_queryset()
 
+    def push_message_to_app(self, customer_id):
+        """
+        给用户客户端推送消息
+        """
+        site_url = 'http://m.xiaolumeimei.com/sale/promotion/xlsampleorder/'
+        desc = choice(self.descs)
+        target_url = get_target_url(TARGET_TYPE_WEBVIEW, {'is_native': 1, 'url': site_url})
+        mipush_of_android.push_to_account(customer_id,
+                                          {'target_url': target_url},
+                                          description=desc)
+        mipush_of_ios.push_to_account(customer_id,
+                                      {'target_url': target_url},
+                                      description=desc)
+
     def releasepacket(self, customer):
         content = choice(self.content)
         value = choice(self.values)
         vcontent = content.format(value)
         self.create(customer=customer, value=value, content=vcontent)
+        self.push_message_to_app(customer)
         return
 
     def release133_packet(self, customer, downcount):

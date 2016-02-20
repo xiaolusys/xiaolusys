@@ -308,6 +308,9 @@ class XlSampleOrderView(View):
         return res
 
     def release_packet_for_refreal(self, refreal_from):
+        """
+        给推荐人发红包, 首次有激活发送红包，　以后每增加３个激活　发送一个红包
+        """
         refreal_from = str(refreal_from)
         # 计算推荐人的下载激活数量
         applys = XLSampleApply.objects.filter(from_customer=refreal_from)  # 推荐人的邀请记录
