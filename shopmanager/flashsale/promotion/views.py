@@ -42,6 +42,23 @@ def get_active_pros_data():
     return None
 
 
+def get_product_img(sku_code):
+    """ 获取用户颜色
+    1: yellow
+    2: blue
+    3: pink
+    """
+    try:
+        sku_code = int(sku_code)
+    except:
+        sku_code = 0
+    bluebag = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-blue.png"
+    pinkbag = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-pink.png"
+    yellowbag = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-yellow.png"
+    img = ['', yellowbag, bluebag, pinkbag]
+    return img[sku_code] if sku_code in (1, 2, 3) else yellowbag
+
+
 def get_customer_apply(**kwargs):
     """
     获取用户的试用申请
@@ -135,22 +152,23 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         referal = cus[0] if cus.exists() else None
         title = u'小鹿美美邀您闹元宵'
 
-
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
 
         xls = get_customer_apply(**{"openid": openid})
         if xls:
+            img_src = get_product_img(xls.sku_code)  # 获取sku图片
             download = True
         else:
             download = False
+            img_src = get_product_img(0)  # 获取默认图片图片
         response = render_to_response(self.xlsampleapply,
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
                                        "pro": pro, "openid": openid,
                                        "referal": referal,
                                        "title": title,
-                                       "download": download,
+                                       "download": download, "img_src": img_src,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -191,7 +209,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 if ufrom in self.PLANTFORM:
                     sample_apply.ufrom = ufrom
                 sample_apply.save()
-
+                img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
                 # 生成自己的邀请码
                 expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
                 XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
@@ -204,8 +222,10 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                         participate = participates[0]
                         participate.usage_count += 1
                         participate.save()  # 使用次数累加
+            else:
+                img_src = get_product_img(xls.sku_code)  # 获取sku图片
             return render_to_response(self.xlsampleapply,
-                                      {"vipcode": vipcode, "pro": pro,
+                                      {"vipcode": vipcode, "pro": pro, "img_src": img_src,
                                        "mobile": vmobile, "download": True},
                                       context_instance=RequestContext(request))
 
@@ -368,7 +388,7 @@ class XlSampleOrderView(View):
                 xlapply = get_customer_apply(**{"mobile": mobile})
                 res = None
                 if xlapply:  # 有申请
-                    xlorder = self.active_order(xlapply, customer, outer_id, '1')
+                    xlorder = self.active_order(xlapply, customer, outer_id, xlapply.sku_code)
                     customer_id = xlorder.customer_id
                     res = self.get_promotion_result(customer_id, outer_id, mobile)
                 return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title},

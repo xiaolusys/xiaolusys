@@ -278,12 +278,14 @@
 	$("#id-color-blue").click(function () {
 	  var target = $("#id-color-blue");
 	  if (target != selectedColorElement) {
+          console.log('----------', sku)
 	    clearColorSelection();
 	    target.addClass("highlight-border");
 	    target.removeClass("visible-border");
 	    selectedColorElement = target;
 	    bagimage.attr("src", bluebag);
 	    sku.val("2");
+           console.log('----------', sku.val())
 	  }
 	});
 
