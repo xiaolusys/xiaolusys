@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Sum, Count
 
 from rest_framework.views import APIView
 from rest_framework import permissions, authentication
@@ -29,17 +30,78 @@ from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 
 
-def genCode():
-    NUM_CHAR_LIST = list('1234567890')
-    return ''.join(random.sample(NUM_CHAR_LIST, 7))
-
-
 def get_active_pros_data():
-    free_samples = (1, 2)
+    """
+    获取活动产品数据　　
+    返回活动产品对象
+    """
+    free_samples = (1, )  # 指定id的产品
     queryset = XLFreeSample.objects.filter(id__in=free_samples)  # 要加入活动的产品
     if queryset.exists():
         return queryset[0]
     return None
+
+
+def get_customer_apply(**kwargs):
+    """
+    获取用户的试用申请
+    """
+    mobile = kwargs.get('mobile', None)
+    user_openid = kwargs.get('openid', None)
+    xls = XLSampleApply.objects.filter(mobile=mobile).order_by('-created')  # 记录来自平台设申请的sku选项
+    if xls.exists():
+        return xls[0]
+    else:
+        xls = XLSampleApply.objects.filter(user_openid=user_openid).order_by('-created')  # 记录来自平台设申请的sku选项
+        if xls.exists():
+            return xls[0]
+    return xls
+
+
+def get_customer(request):
+    """
+    根据http request 对象　返回 特卖用户，不存在则返回None, 存在返回用户对象
+    """
+    try:
+        customer = Customer.objects.get(user=request.user)
+    except Customer.DoesNotExist:
+        customer = None
+    return customer
+
+
+def get_mobile_show(customer):
+    """
+    根据用户对象返回　用户的
+    (手机号，　活动推荐数量，　活动激活数量，　头像)
+    """
+    start_time = datetime.datetime(2016, 2, 20, 0, 0, 0)  # 活动开始时间
+    promotion = get_active_pros_data()  # 活动截止时间
+    end_time = promotion.expiried if promotion else start_time
+
+    mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
+    thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
+    applys = XLSampleApply.objects.filter(from_customer=customer.id, created__gte=start_time, created__lte=end_time)
+    promote_count = applys.count()  # 邀请的数量　
+    app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 活动激活（下载app）的数量
+    res = (mobile, promote_count, app_down_count, thumbnail)
+    return res
+
+
+def get_orders(month=None, batch=None):
+    """
+    根据月份和批次获取活动的中奖名单，pass_num:表示满足的中奖条件(激活数)
+    """
+    order_list = XLSampleOrder.objects.none()
+    promotion = get_active_pros_data()  # 活动截止时间
+    if month == 1602 and batch == 1:
+        start_time = datetime.datetime(2016, 2, 20)
+        end_time = promotion.expiried if promotion else start_time
+        order_list = XLSampleOrder.objects.filter(created__gte=start_time, created__lte=end_time)
+    if not (month and batch):
+        start_time = datetime.datetime(2016, 1, 22)
+        orders = XLSampleOrder.objects.filter(created__gt=start_time)
+        order_list = orders[:30] if len(orders) > 30 else orders  # 只是取30条
+    return order_list
 
 
 class XLSampleapplyView(WeixinAuthMixin, View):
@@ -57,6 +119,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
+        openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
+
         if self.is_from_weixin(request):  # 如果是在微信里面
             res = self.get_auth_userinfo(request)
             openid = res.get("openid")
@@ -70,14 +134,19 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
 
-
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
+
+        xls = get_customer_apply(**{"openid": openid})
+        if xls:
+            download = True
+        download = False
         response = render_to_response(self.xlsampleapply,
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
-                                       "pro": pro,
+                                       "pro": pro, "openid": openid,
                                        "referal": referal,
+                                       "download": download,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -89,13 +158,14 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         content = request.REQUEST
         vmobile = content.get("mobile", None)  # 参与活动的手机号
         vipcode = content.get("vipcode", None)  # 活动邀请码
+
         from_customer = content.get('from_customer') or 0  # 分享人的用户id
         outer_id = content.get('outer_id', None)
         sku_code = content.get("sku_code", None)  # 产品sku码
         ufrom = content.get("ufrom", None)
-        openid = None
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
+        # openid, unionid = self.get_openid_and_unionid(request)  # 获取用户的openid, unionid
+        openid = content.get('openid', None)  # 获取提交的openid
 
         pro = get_active_pros_data()  # 获取活动产品数据
 
@@ -104,8 +174,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = mobiles[0] if len(mobiles) >= 1 else None
 
         if mobile:
-            xls = XLSampleApply.objects.filter(outer_id=outer_id, mobile=mobile)  # 记录来自平台设申请的sku选项
-            if not xls.exists():  # 如果没有申请记录则创建记录
+            xls = get_customer_apply(**{"mobile": mobile})
+            if not xls:  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
                 sample_apply = XLSampleApply()
                 sample_apply.outer_id = outer_id
@@ -185,7 +255,10 @@ class XlSampleOrderView(View):
         download_str = str('%02.f' % app_down_count)
         inactive_count = applys.filter(status=XLSampleApply.INACTIVE).count()
         share_link = self.share_link.format(**{'customer_id': customer_id})
-        res = {'promote_count': promote_count, 'fist_num': download_str[0],
+        # 用户活动红包
+        reds = self.my_red_packets(customer_id)
+        reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
+        res = {'promote_count': promote_count, 'fist_num': download_str[0], "reds": reds, "reds_money": reds_money,
                'second_num': download_str[1], "inactive_count": inactive_count,
                'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
@@ -236,6 +309,13 @@ class XlSampleOrderView(View):
         applys = XLSampleApply.objects.filter(from_customer=refreal_from)  # 推荐人的邀请记录
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 推荐人的激活记录
         ReadPacket.objects.release133_packet(refreal_from, app_down_count)
+
+    def my_red_packets(self, customer):
+        """
+        用户活动红包
+        """
+        reds = ReadPacket.objects.filter(customer=customer)
+        return reds
 
     def get(self, request):
         title = "元宵好兆头 抢红包 赢睡袋"
@@ -321,14 +401,6 @@ class XlSampleOrderView(View):
         return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
 
 
-def get_customer(request):
-    try:
-        customer = Customer.objects.get(user=request.user)
-    except Customer.DoesNotExist:
-        customer = None
-    return customer
-
-
 class CusApplyOrdersView(APIView):
     """
      获取用户的推荐申请　和　激活　信息
@@ -356,29 +428,6 @@ class CusApplyOrdersView(APIView):
 
         return render_to_response(self.promote_condition, condition,
                                   context_instance=RequestContext(request))
-
-
-def get_mobile_show(customer):
-    mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
-    thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
-    applys = XLSampleApply.objects.filter(from_customer=customer.id, outer_id='90061232563')
-    promote_count = applys.count()  # 邀请的数量　
-    app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
-
-    res = (mobile, promote_count, app_down_count, thumbnail)
-    return res
-
-
-def get_orders(month=None, batch=None):
-    order_list = XLSampleOrder.objects.none()
-    if month == 1602 and batch == 1:
-        start_time = datetime.datetime(2016, 1, 22)
-        order_list = XLSampleOrder.objects.filter(created__gt=start_time)
-    if not (month and batch):
-        start_time = datetime.datetime(2016, 1, 22)
-        orders = XLSampleOrder.objects.filter(created__gt=start_time)
-        order_list = orders[:30] if len(orders) > 30 else orders  # 只是取30条
-    return order_list
 
 
 class PromotionShortResult(APIView):
