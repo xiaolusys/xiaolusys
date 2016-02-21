@@ -200,7 +200,7 @@
     </div>
 
     <div id="id-share-section" class="share-section" style="display:none">
-      <div class="row share-platforms">
+      <div class="row share-platforms" id="share_link" cid="{{ res.share_link }}">
 	<div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
 	<div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/></div>
 	<div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
@@ -258,27 +258,6 @@
       </div>
       <div class="col-xs-2"></div>
     </div>
-    {% else %}
-    <div class="row">
-
-    </div>
-
-    <div class="highlight-border" style="border-radius:6px;margin:0px 6px;padding:6px 0px">
-      <div class="row">
-	<div class="col-xs-12" style="text-align:center"><p style="font-weight:bold" id="share_link" cid="{{ res.share_link }}">一键分享</p><p style="font-size:12px">快快一键分享到各大平台，好友点您分享的链接可进入活动首页。（越多越给力哦～）</p></div>
-      </div>
-      <div class="row">
-	<div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
-      </div>
-      <div class="row" style="margin-top:4px">
-	<div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/></div>
-      </div>
-    </div>
-        
     {% endif %}
 
 <!--
