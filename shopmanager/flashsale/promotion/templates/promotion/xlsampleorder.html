@@ -56,19 +56,202 @@
 	  background-color:transparent;
 	  border:0px;
 	}
+
+	.invite-count-section {}
+	
+	.digit {
+	  display: inline-block;
+	  width: 15%;
+	}
+
+	.border-show {
+	  border: 1px solid green;
+	}
+
+	.border-show-red {
+	  border: 1px solid red;
+	}
+
+
+	.hongbao-record {
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao.png);
+	  background-color:transparent;
+	  background-size:auto 100%;
+	  background-repeat: no-repeat;
+	  margin-bottom: 14px;
+	  margin-left: 6px;
+	  margin-right: 6px;
+	  padding-left: 40px;
+	  font-size: 12px;
+	}
+	.hongbao-total{
+	  color: #ffcf00;
+	  top: -10px;
+	  text-align: center;
+	}
+	.hongbao-text{
+	  color:white;
+	}
+	.hongbao-time {
+	  color:#ffcf00;
+	  display: inline-block;
+	  margin-bottom: 6px;
+	}
+	.hongbao-record-bg {
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-body-bg.png);
+	  background-color:transparent;
+	  background-size:100% 1px;
+	}
+	
+	.mix-head-image {
+	  width:100%;
+	  vertical-align:bottom;
+	}
+	.mix-tail-image {
+	  width:100%;
+	  vertical-align:top;
+	}
+	.hongbao-section {
+	}
+	.share-button-section {
+	  text-algin:center;
+	  margin-top: 26px;
+	  margin-bottom: 26px;
+	}
+	.share-text {
+	  text-align:center;
+	  color: white;
+	  font-size: 12px;
+	  margin-bottom: 6px;
+	}
+
+	.share-section{
+	  width:100%;
+	  border-radius: 6px;
+	  position: fixed;
+	  left: 0px;
+	  bottom: 0px;
+	  background-color: white;
+	  padding-bottom: 20px;
+	  z-index: 1000;
+	}
+	.share-platforms {
+	  margin-top: 10px;
+	  margin-bottom: 10px;
+	}
+	.share-greetings-text {
+	  text-align:center;
+	  color: #470d88;
+	  font-size: 14px;
+	  margin:20px 16px;
+	  display: inline-block;
+	}
+	.share-cancel {
+	  margin-top:20px;
+	  color: gray;
+	  text-align: center;
+	  font-size: 12px;
+	}
+	.sleepingbag-section {
+	  margin-top:30px;
+	}
     </style>
     {% endblock %}
 
     {% block content2 %}
     {% if res %}
-    <div class="row">
-      <div class="col-xs-12" style="text-align:center">
-	  <p style="font-size:10px;margin-top:4px">我邀请的好友</p>
-	  <span id="id-1" class="highlight-border counting">{{ res.fist_num }}</span>
-	  <span id="id-2" class="highlight-border counting">{{ res.second_num }}</span><br/>
-	  <a style="font-size:10px;margin-top:6px" href="/sale/promotion/cus_cdt/">有{{ res.inactive_count }}位好友未激活，查看 >></a>
+    <div style="position:relative;top:-90px"> 
+    <div class="invite-count">
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <div class="digit"><img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-0.png" style="width:100%"/></div>
+	  <div class="digit"><img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-1.png" style="width:100%"/></div>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  <span style="font-size:10px;color:white">有{{ res.inactive_count }}位好友未激活，查看 >></span>
+	</div>
       </div>
     </div>    
+
+    <div class="sleepingbag-section">
+      <div class="row">
+	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-head-start.png"/>
+      </div>
+      <div class="row">
+	<div class="col-xs-12 hongbao-record-bg">
+	  <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-yellow.png" style="width:100%"/>
+	</div>
+      </div>
+      <div class="row">
+	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-tail.png"/>
+      </div>
+
+    </div>
+
+    <div class="share-button-section">
+      <div class="share-text">
+	<span>加油哦～预计再邀请 <font style="color:#ffcf00">20</font> 位好友就可得睡袋啦～～</span>
+      </div>
+      <div>
+	<img id="id-share-button" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-share-button.png" style="width:100%"/>
+      </div>
+    </div>
+
+    <div id="id-share-section" class="share-section" style="display:none">
+      <div class="row">
+	<div class="col-xs-12">
+	  <span class="share-greetings-text">快快一键分享，好友点击您分享的链接可进入活动首页。分享越多越给力哦～</span>
+	</div>
+      </div>
+      <div class="row share-platforms">
+	<div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
+      </div>
+      <div class="row share-platforms">
+	<div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
+	<div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/></div>
+      </div>
+      <div class="share-cancel">
+	<span id="id-cancel-button">取消分享</span>
+      </div>
+    </div>
+
+    <div class="hongbao-section">
+      <div class="row">
+	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-head.png"/>
+      </div>
+      <div class="row">
+	<div class="col-xs-12 hongbao-record-bg">
+	  <div class="hongbao-total"><span>总额: ￥{{ res.reds_money }}</span></div>
+	  <!--
+	  {% for red in res.reds %}
+	  <div class="hongbao-record ">
+	    <span class="hongbao-time">{{ red.created }}</span></br>
+	    <span class="hongbao-text">{{ red.content }}</span>
+	  </div>
+	  {% endfor %}
+	  -->
+	  <div class="hongbao-record">
+	    <span class="hongbao-time">2016-02-22 10:30:21</span></br>
+	    <span class="hongbao-text">亲亲，您魅力引来三位好友，奖励现金红包 ￥1.68</span>
+	  </div>
+	  <div class="hongbao-record">
+	    <span class="hongbao-time">2016-02-22 10:30:21</span></br>
+	    <span class="hongbao-text">美女，您就是真白富美的命，现金红包拿去 ￥1.28</span>
+	  </div>
+	</div>
+      </div>
+      <div class="row">
+	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
+      </div>
+    </div>
+    </div>
+
+
     {% endif %}
     {% endblock %}
 
@@ -91,32 +274,6 @@
     {% else %}
     <div class="row">
 
-    </div>
-    <div class="highlight-border" style="border-radius:6px;margin:0px 6px;padding:6px 0px">
-      <div class="row">
-	<div class="col-xs-12" style="text-align:center"><p style="font-weight:bold" id="share_link" cid="{{ res.share_link }}">一键分享</p><p style="font-size:12px">快快一键分享到各大平台，好友点您分享的链接可进入活动首页。（越多越给力哦～）</p></div>
-      </div>
-      <div class="row">
-	<div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="sharefirends" src="{{ STATIC_URL }}images/shareFirends.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="shareqq" src="{{ STATIC_URL }}images/shareqq.png" alt=""/></div>
-      </div>
-      <div class="row" style="margin-top:4px">
-	<div class="col-xs-4 share-icon"><img id="shareqqspace" src="{{ STATIC_URL }}images/shareQQSpacing.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="shareweibo" src="{{ STATIC_URL }}images/shareweibo.png" alt=""/></div>
-	<div class="col-xs-4 share-icon"><img id="sharecopylink" src="{{ STATIC_URL }}images/sharecopylink.png" alt=""/></div>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:16px">
-      <div class="col-xs-12">
-        <ul class="list-group" style="font-size: 12px">
-	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">我的红包{{ res.reds_money }}元</li>
-            {% for red in res.reds %}
-        	    <li class="list-group-item"><span>{{ red.created }}</span><br/><span>{{ red.content }}</span></li>
-            {% endfor %}
-        </ul>
-      </div>
     </div>
     
     {% endif %}
@@ -294,6 +451,14 @@
             }
         });
 
+        $("#id-share-button").click(function () {
+	  $("#id-share-section").slideDown();
+	});
 
+        $("#id-cancel-button").click(function () {
+	  $("#id-share-section").slideUp();
+	});
+
+	
     </script>
 {% endblock %}

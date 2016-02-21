@@ -44,11 +44,6 @@
 
 	}
 
-	.greetings {
-	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-greetings.png?imageMogr2/thumbnail/400/format/png/quality/100);
-	  background-repeat:no-repeat;
-	  background-size:100%;
-	}
 
 	.mobileinput{
 	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-mobileinput.png);
@@ -123,12 +118,19 @@
 	  margin-top:20px;
 	}
 
+	.greetings {
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-greetings.png?imageMogr2/thumbnail/400/format/png/quality/100);
+	  background-repeat:no-repeat;
+	  background-size:100%;
+	  margin-top:-8px;
+	}
+
 	.mama-label {
 	  color: #ffcf00;
 	  font-weight: bold;
 	  padding-left: 36px;
 	  position:relative;
-	  top: -6px;
+	  top: -10px;
 	}
 	.mama-greeting-text {
 	  color: white;
@@ -141,7 +143,7 @@
 	.mama-profile-image {
 	  position:relative;
 	  left:30px;
-	  top: -20px;
+	  top: -24px;
 	  width: 46px;
 	  height: 46px;
 	}
@@ -156,7 +158,7 @@
     <div class="greetings" >
       <div class="row">
 	<div class="col-xs-12">
-	  <div style="height:30px">
+	  <div style="height:26px">
 	    <img {% if referal %} src="{{ referal.thumbnail }}" {% else %} src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg"{% endif %} alt="..." class="img-circle mama-profile-image"/>
 	    <span class="mama-label">{% if referal %}{{ referal.nick }}{% else %}小鹿妈妈{% endif %}</span>
 	  </div>
