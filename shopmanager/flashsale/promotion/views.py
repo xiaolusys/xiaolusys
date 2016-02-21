@@ -29,6 +29,7 @@ from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampl
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.pay.models_coupon_new import UserCoupon
+import constants
 
 
 CARTOON_DIGIT_IMAGES = [
@@ -497,33 +498,49 @@ class XlSampleOrderView(View):
         return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
 
 
+from shopapp.weixin.models import WeiXinUser, get_Unionid
+
+from settings import WEIXIN_APPID
+
+
 class CusApplyOrdersView(APIView):
     """
      获取用户的推荐申请　和　激活　信息
     """
     promote_condition = 'promotion/friendlist.html'
 
+    def get_info(self, openid, mobile):
+        """
+        获取访问用户的信息，　头像和昵称
+        """
+        unionid = get_Unionid(openid, WEIXIN_APPID)
+        wx_user = WeiXinUser.objects.get(unionid=unionid)
+        if wx_user:
+            nick = wx_user.nickname or constants.DEFAULT_NICK
+            profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
+            return nick, profile_image
+        else:
+            return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
+
     def get(self, request):
         customer = get_customer(request)
         customer_id = customer.id if customer else 0
-
         applys = XLSampleApply.objects.filter(from_customer=customer_id)
-        # 计算当前用户的邀请情况　和　激活情况
+        actives = []
         inactives = []
-        inactive_applys = applys.filter(status=XLSampleApply.INACTIVE)  # 没有激活情况
-        for inactive in inactive_applys:
-            mobile = inactive.mobile
-
-
-            condition = {"mobile": mobile, "thumbnail": ''}
-            inactives.append(condition)
-        # 返回邀请关系表中是自己邀请的用户的头像和手机号码
-
-        ships = XLReferalRelationship.objects.filter(referal_from_uid=customer_id)
-        referal_uids = ships.values('referal_uid')
-        referals_sus = Customer.objects.filter(id__in=referal_uids)
-        condition = {"referals_sus": referals_sus, 'inactives': inactives}
-
+        for appl in applys:
+            apply_time = appl.created
+            user_openid = appl.user_openid
+            mobile = appl.mobile
+            if appl.status == XLSampleApply.INACTIVE:  # 没有激活
+                nick, profile_image = self.get_info(user_openid, mobile)
+                inactive = {"apply_time": apply_time, "profile_image": profile_image, 'nick': nick}
+                inactives.append(inactive)
+            else:
+                nick, profile_image = self.get_info(user_openid, mobile)
+                active = {"apply_time": apply_time, "profile_image": profile_image, 'nick': nick}
+                actives.append(active)
+        condition = {"actives": actives, 'inactives': inactives}
         return render_to_response(self.promote_condition, condition,
                                   context_instance=RequestContext(request))
 
