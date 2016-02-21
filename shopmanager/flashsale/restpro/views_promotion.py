@@ -25,9 +25,19 @@ from flashsale.promotion.models import XLReferalRelationship
 from options import gen_and_save_jpeg_pic
 from flashsale.promotion import constants
 import logging
+import random
 
 logger = logging.getLogger('django.request')
 
+PYQ_TITLES = [
+    '告诉你，今年元宵其实要这样过。。。#脸红心跳',
+    '哈哈，老公好不好，抢了睡袋就知道！',
+    '哈哈，只有1%的人知道，原来这两个我都想要～'
+]
+
+def get_random_title():
+    n = int(random.random()*3) % 3
+    return PYQ_TITLES[n], n
 
 class XLFreeSampleViewSet(viewsets.ModelViewSet):
     """ 获取免费申请试用　产品信息接口　"""
@@ -134,9 +144,15 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         ufrom = content.get('ufrom', None)
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id
+        nick = customer.nick
         link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
-        title = "开年活动－红包不停发"
-        active_dec = "开年活动－开年有好礼，红包不停发，免费等你拿！"
+        title,n = get_random_title()
+
+        # add nick to title shared to PengYouQuan
+        if n == 0:
+            title = nick + title
+
+        active_dec = '天猫热销10万件的全棉睡袋，现在免费送啦！还全国包邮！宝宝用很好，送人也特别有面子！还有百万现金红包。。。不多说啦，抢抢抢去了！'
 
         params = {'customer_id': customer_id, "ufrom": ufrom}
         share_link = self.get_share_link(params)
