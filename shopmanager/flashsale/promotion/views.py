@@ -570,11 +570,11 @@ class ExchangeRedToCoupon(APIView):
         status_2 = ''
         for i in range(coupon_10_count):
             user_coupon = UserCoupon()
-            kwargs = {"buyer_id": customer, "template_id": 17}
+            kwargs = {"buyer_id": customer, "template_id": 21}
             status_1 = user_coupon.release_by_template(**kwargs)
         for j in range(coupon_5_count):
             user_coupon = UserCoupon()
-            kwargs = {"buyer_id": customer, "template_id": 18}
+            kwargs = {"buyer_id": customer, "template_id": 20}
             status_2 = user_coupon.release_by_template(**kwargs)
         if status_1 == 'success' or status_2 == 'success':
             reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
