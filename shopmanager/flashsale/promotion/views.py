@@ -513,6 +513,8 @@ class CusApplyOrdersView(APIView):
         inactive_applys = applys.filter(status=XLSampleApply.INACTIVE)  # 没有激活情况
         for inactive in inactive_applys:
             mobile = inactive.mobile
+
+
             condition = {"mobile": mobile, "thumbnail": ''}
             inactives.append(condition)
         # 返回邀请关系表中是自己邀请的用户的头像和手机号码
