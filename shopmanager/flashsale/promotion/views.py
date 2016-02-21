@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 
 from rest_framework.views import APIView
 from rest_framework import permissions, authentication
@@ -29,7 +29,7 @@ from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampl
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.pay.models_coupon_new import UserCoupon
-import constants
+from . import constants
 
 
 CARTOON_DIGIT_IMAGES = [
@@ -86,14 +86,11 @@ def get_customer_apply(**kwargs):
     """
     mobile = kwargs.get('mobile', None)
     user_openid = kwargs.get('openid', None)
-    xls = XLSampleApply.objects.filter(mobile=mobile).order_by('-created')  # 记录来自平台设申请的sku选项
+    xls = XLSampleApply.objects.filter(Q(mobile=mobile) | Q(user_openid=user_openid)).order_by(
+        '-created')  # 记录来自平台设申请的sku选项
     if xls.exists():
         return xls[0]
-    else:
-        xls = XLSampleApply.objects.filter(user_openid=user_openid).order_by('-created')  # 记录来自平台设申请的sku选项
-        if xls.exists():
-            return xls[0]
-    return xls
+    return None
 
 
 def get_customer(request):
@@ -172,14 +169,17 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
 
         if self.is_from_weixin(request):  # 如果是在微信里面
-            res = self.get_auth_userinfo(request)
-            openid = res.get("openid")
-            unionid = res.get("unionid")
+            openid, unionid = self.get_cookie_openid_and_unoinid(request)
+            auth_resp = None
+            if not self.valid_openid(openid) or not self.valid_openid(unionid):
+                auth_resp = self.get_auth_userinfo(request)
+                openid, unionid = auth_resp.get("openid"), auth_resp.get("unionid")
 
-            if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
+            if not self.valid_openid(unionid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
                 return redirect(self.get_snsuserinfo_redirct_url(request))
 
-            signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=res)
+            if auth_resp:
+                signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=auth_resp)
         else:
             openid, unionid = self.get_openid_and_unionid_by_customer(request)
 
@@ -190,7 +190,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
 
-        xls = get_customer_apply(**{"openid": openid})
+        xls = get_customer_apply(**{"openid": openid, "mobile":mobile})
         if xls:
             img_src = get_product_img(xls.sku_code)  # 获取sku图片
             download = True
@@ -207,7 +207,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
-            set_cookie_openid(response, self._wxpubid, openid, unionid)
+            self.set_cookie_openid_and_unionid(response, openid, unionid)
 
         return response
 
@@ -230,49 +230,55 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobiles = re.findall(regex, vmobile)
         mobile = mobiles[0] if len(mobiles) >= 1 else None
 
-        if mobile:
-            xls = get_customer_apply(**{"mobile": mobile, 'openid': openid})
-            if not xls:  # 如果没有申请记录则创建记录
-                sku_code_r = '' if sku_code is None else sku_code
-                sample_apply = XLSampleApply()
-                sample_apply.outer_id = outer_id
-                sample_apply.mobile = mobile
-                sample_apply.sku_code = sku_code_r
-                sample_apply.vipcode = vipcode
-                sample_apply.user_openid = openid
-                sample_apply.from_customer = from_customer  # 保存分享人的客户id
-                if ufrom in self.PLANTFORM:
-                    sample_apply.ufrom = ufrom
-                sample_apply.save()
-                img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
-                # 生成自己的邀请码
-                expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
-                XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
-
-                custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
-                cust = custs[0] if custs.exists() else ''
-                if cust:  # 给分享人（存在）则计数邀请数量
-                    participates = XLInviteCode.objects.filter(mobile=cust.mobile)
-                    if participates.exists():
-                        participate = participates[0]
-                        participate.usage_count += 1
-                        participate.save()  # 使用次数累加
-                if ufrom == 'app':
-                    # 如果用户来自app内部则跳转到活动激活页面
-                    url = '/sale/promotion/xlsampleorder/'
-                    return redirect(url)
-            else:
-                img_src = get_product_img(xls.sku_code)  # 获取sku图片
+        if not mobile:
             return render_to_response(self.xlsampleapply,
-                                      {"vipcode": vipcode, "pro": pro, "img_src": img_src,
-                                       "mobile": vmobile, "download": True},
-                                      context_instance=RequestContext(request))
-
-        return render_to_response(self.xlsampleapply,
                                   {"vipcode": vipcode, "pro": pro,
                                    "mobile": vmobile,
                                    "mobile_message": self.mobile_error_message},
                                   context_instance=RequestContext(request))
+
+        xls = get_customer_apply(**{"mobile": mobile, 'openid': openid})
+        if not xls:  # 如果没有申请记录则创建记录
+            sku_code_r = '' if sku_code is None else sku_code
+            sample_apply = XLSampleApply()
+            sample_apply.outer_id = outer_id
+            sample_apply.mobile = mobile
+            sample_apply.sku_code = sku_code_r
+            sample_apply.vipcode = vipcode
+            sample_apply.user_openid = openid
+            sample_apply.from_customer = from_customer  # 保存分享人的客户id
+            if ufrom in self.PLANTFORM:
+                sample_apply.ufrom = ufrom
+            sample_apply.save()
+            img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
+            # 生成自己的邀请码
+            expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
+            XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
+
+            custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
+            cust = custs[0] if custs.exists() else ''
+            if cust:  # 给分享人（存在）则计数邀请数量
+                participates = XLInviteCode.objects.filter(mobile=cust.mobile)
+                if participates.exists():
+                    participate = participates[0]
+                    participate.usage_count += 1
+                    participate.save()  # 使用次数累加
+            if ufrom == 'app':
+                # 如果用户来自app内部则跳转到活动激活页面
+                url = '/sale/promotion/xlsampleorder/'
+                return redirect(url)
+        else:
+            if ufrom == 'app':  # 如果存在订单并且是app来的就跳转到激活页面
+                # 如果用户来自app内部则跳转到活动激活页面
+                url = '/sale/promotion/xlsampleorder/'
+                return redirect(url)
+            img_src = get_product_img(xls.sku_code)  # 获取sku图片
+        return render_to_response(self.xlsampleapply,
+                                  {"vipcode": vipcode, "pro": pro, "img_src": img_src,
+                                   "mobile": vmobile, "download": True},
+                                  context_instance=RequestContext(request))
+
+
 
 
 class APPDownloadView(View):
@@ -675,7 +681,7 @@ class QrCodeView(APIView):
 
     share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}&ufrom={ufrom}'
     PROMOTION_LINKID_PATH = 'pmt'
-    
+
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
