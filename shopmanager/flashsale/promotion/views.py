@@ -29,7 +29,7 @@ from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampl
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.pay.models_coupon_new import UserCoupon
-import constants
+from . import constants
 
 
 CARTOON_DIGIT_IMAGES = [
