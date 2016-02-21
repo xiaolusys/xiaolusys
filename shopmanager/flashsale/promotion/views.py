@@ -394,9 +394,10 @@ class XlSampleOrderView(View):
         """
         refreal_from = str(refreal_from)
         # 计算推荐人的下载激活数量
-        applys = XLSampleApply.objects.filter(from_customer=refreal_from)  # 推荐人的邀请记录
-        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 推荐人的激活记录
-        ReadPacket.objects.release133_packet(refreal_from, app_down_count)
+        active_count = XLSampleApply.objects.filter(from_customer=refreal_from,
+                                                    status=XLSampleApply.ACTIVED).count()  # 推荐人的邀请记录
+        # app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 推荐人的激活记录
+        ReadPacket.objects.release133_packet(refreal_from, active_count)
 
     def my_red_packets(self, customer):
         """
