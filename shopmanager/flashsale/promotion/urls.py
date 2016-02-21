@@ -2,7 +2,7 @@
 
 from django.conf.urls import patterns, url
 from .views import XLSampleapplyView, APPDownloadView, XlSampleOrderView, PromotionResult, \
-    PromotionShortResult, CusApplyOrdersView, ExchangeRedToCoupon, ErCodeView
+    PromotionShortResult, CusApplyOrdersView, ExchangeRedToCoupon, QrCodeView
 from flashsale.pay.decorators import weixin_xlmm_auth
 from flashsale.pay import constants
 
@@ -18,5 +18,5 @@ urlpatterns = patterns('',
    url(r'^pmt_short_res/$', PromotionShortResult.as_view(), name="pmt_short_res_view"),
    url(r'^xlsampleorder/$', weixin_xlmm_auth(redirecto=constants.MALL_LOGIN_URL)(XlSampleOrderView.as_view()),
        name="xlsampleorder_view"),
-   url(r'^ercode/$', ErCodeView.as_view(), name="er_code_view")
+   url(r'^ercode/$', QrCodeView.as_view(), name="qr_code_view")
 )
