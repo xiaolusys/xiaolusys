@@ -99,6 +99,9 @@ def get_customer(request):
     """
     根据http request 对象　返回 特卖用户，不存在则返回None, 存在返回用户对象
     """
+    user = request.user
+    if not user or user.is_anonymous():
+        return None
     try:
         customer = Customer.objects.get(user_id=request.user.id)
     except Customer.DoesNotExist:
@@ -151,6 +154,12 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
     PLANTFORM = ('wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa', 'app')
 
+    def get_openid_and_unionid_by_customer(self, request):
+        customer = get_customer(request)
+        if not customer:
+            return '', ''
+        return customer.openid, customer.unionid
+
     def get(self, request):
         content = request.REQUEST
         customer = get_customer(request)
@@ -170,6 +179,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 return redirect(self.get_snsuserinfo_redirct_url(request))
 
             signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=res)
+        else:
+            openid, unionid = self.get_openid_and_unionid_by_customer(request)
 
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
@@ -219,7 +230,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = mobiles[0] if len(mobiles) >= 1 else None
 
         if mobile:
-            xls = get_customer_apply(**{"mobile": mobile})
+            xls = get_customer_apply(**{"mobile": mobile, 'openid': openid})
             if not xls:  # 如果没有申请记录则创建记录
                 sku_code_r = '' if sku_code is None else sku_code
                 sample_apply = XLSampleApply()

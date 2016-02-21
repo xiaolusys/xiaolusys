@@ -123,7 +123,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post'])
     def get_share_content(self, request):
-        """ 返回要分享的内容 """
+        """ 返回要分享的内容 share_type: picture and link"""
         content = request.REQUEST
         ufrom = content.get('ufrom', None)
         customer = get_object_or_404(Customer, user=request.user)
@@ -131,7 +131,16 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
         title = "开年活动－红包不停发"
         active_dec = "开年活动－开年有好礼，红包不停发，免费等你拿！"
-        return Response({"link_qrcode": link_qrcode, "title": title, "active_dec": active_dec})
+
+        params = {'customer_id': customer_id, "ufrom": ufrom}
+        share_link = self.get_share_link(params)
+
+        return Response({"link_qrcode": link_qrcode,
+                         "title": title,
+                         "share_link": share_link,
+                         "share_img": "",
+                         "share_type": "link",
+                         "active_dec": active_dec})
 
     def create(self, request, *args, **kwargs):
         content = request.REQUEST
