@@ -48,7 +48,10 @@ def task_Refresh_Sale_Customer(user_params,app_key=None):
         WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
         
     try:
-        profile, state = Customer.objects.get_or_create(unionid=unionid)
+        profiles = Customer.objects.filter(unionid=unionid,status=Customer.NORMAL)
+        if not profiles.exists():
+            return
+        profile = profiles[0]
         wxusers = WeiXinUser.objects.filter(unionid=unionid)
         if not profile.mobile and wxusers.exists():
             profile.mobile =  wxusers[0].mobile
