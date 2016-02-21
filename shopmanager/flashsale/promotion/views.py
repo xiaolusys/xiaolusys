@@ -516,8 +516,8 @@ class CusApplyOrdersView(APIView):
         unionid = get_Unionid(openid, WEIXIN_APPID)
         wx_user = WeiXinUser.objects.get(unionid=unionid)
         if wx_user:
-            nick = wx_user.nickname
-            profile_image = wx_user.headimgurl
+            nick = wx_user.nickname or constants.DEFAULT_NICK
+            profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
             return nick, profile_image
         else:
             return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
