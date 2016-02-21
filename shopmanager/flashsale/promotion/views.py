@@ -322,13 +322,16 @@ class XlSampleOrderView(View):
         second_digit_imgsrc = get_cartoon_digit(second_num)
 
         inactive_count = applys.filter(status=XLSampleApply.INACTIVE).count()
+        active_count = applys.filter(status=XLSampleApply.ACTIVED).count()
         share_link = self.share_link.format(**{'customer_id': customer_id})
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
         reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
         res = {'promote_count': promote_count, 'first_digit_imgsrc': first_digit_imgsrc, "reds": reds,
                "reds_money": reds_money,
-               'second_digit_imgsrc': second_digit_imgsrc, "inactive_count": inactive_count,
+               'second_digit_imgsrc': second_digit_imgsrc,
+               "inactive_count": inactive_count,
+               "active_count": active_count,
                'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
 
@@ -669,6 +672,7 @@ class QrCodeView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
     renderer_classes = (BrowsableAPIRenderer,)
+
     share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}&ufrom={ufrom}'
     PROMOTION_LINKID_PATH = 'pmt'
     
@@ -688,7 +692,7 @@ class QrCodeView(APIView):
         if not os.path.exists(file_path):
             gen_and_save_jpeg_pic(share_link, file_path)
         return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
-                              
+
     def get(self, request, *args, **kwargs):
         customer = get_customer(request)
         qrimg = self.gen_custmer_share_qrcode_pic(customer.id, 'wxapp')

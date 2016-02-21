@@ -18,7 +18,7 @@ class XLSampleApplyAdmin(admin.ModelAdmin):
     list_display = ('id', 'from_customer', 'outer_id', 'sku_code', 'ufrom', 'mobile', 'vipcode', 'status')
     list_filter = ('status', 'ufrom')
     list_display_links = ('id', 'outer_id', )
-    search_fields = ['=id', '=outer_id', ]
+    search_fields = ['=id', '=outer_id', '=mobile', '=user_openid' ,'=vipcode' ]
     list_per_page = 40
 
 
