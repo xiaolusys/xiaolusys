@@ -598,7 +598,7 @@ from models_coupon_new import CouponsPool, UserCoupon, CouponTemplate
 
 
 class CouponTemplateAdmin(admin.ModelAdmin):
-    list_display = ("title", "value", "valid", "nums","preset_days","active_days","created", "modified","deadline")
+    list_display = ('id', "title", "value", "valid", "nums","preset_days","active_days","created", "modified","deadline")
     list_filter = ("valid", "created")
 
 admin.site.register(CouponTemplate, CouponTemplateAdmin)
