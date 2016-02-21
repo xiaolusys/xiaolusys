@@ -566,15 +566,18 @@ class ExchangeRedToCoupon(APIView):
         coupon_10_count = int(sum_value / 10)  # 十元优惠券条数
         leave_mony = sum_value - coupon_10_count * 10  # 发完十元后还剩下多少钱
         coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
+        status_1 = ''
+        status_2 = ''
         for i in range(coupon_10_count):
             user_coupon = UserCoupon()
             kwargs = {"buyer_id": customer, "template_id": 17}
-            user_coupon.release_by_template(**kwargs)
+            status_1 = user_coupon.release_by_template(**kwargs)
         for j in range(coupon_5_count):
             user_coupon = UserCoupon()
             kwargs = {"buyer_id": customer, "template_id": 18}
-            user_coupon.release_by_template(**kwargs)
-        reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
+            status_2 = user_coupon.release_by_template(**kwargs)
+        if status_1 == 'success' or status_2 == 'success':
+            reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
         coupon_value = coupon_10_count * 10 + coupon_5_count * 5
         return code, coupon_value
 
