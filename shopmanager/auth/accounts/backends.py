@@ -12,9 +12,6 @@ from django.contrib.auth.backends import RemoteUserBackend
 from django.conf import settings
 from auth import apis
 
-import logging
-logger = logging.getLogger('django.request')
-
 """
 token {
     "w2_expires_in": 0,
@@ -62,6 +59,8 @@ class TaoBaoBackend(RemoteUserBackend):
             req    = urllib2.urlopen(settings.AUTHRIZE_TOKEN_URL,urllib.urlencode(params))
             top_parameters = json.loads(req.read())
         except Exception,exc:
+            import logging
+            logger = logging.getLogger('django.request')
             logger.error(exc.message+'400',exc_info=True)
             return None
         

@@ -14,7 +14,7 @@ root@youni.huyi.so
 root@sale.huyi.so 
 )
 
-CMD="cd /var/www/deploy/taobao/taobao-backend/shopmanager && git pull origin master && \cp -r -a ../prod_settings.py . && ../ve/bin/python manage.py collectstatic --noinput && supervisorctl restart gunicorn &&  (supervisorctl restart celery || true)" 
+CMD="cd /var/www/deploy/taobao/taobao-backend/shopmanager && git pull origin master && \cp -r -a ../prod_settings.py . && ../ve/bin/python manage.py collectstatic --noinput && supervisorctl update && supervisorctl restart gunicorn &&  (supervisorctl restart celery || true)" 
 
 #CMD="lsb_release -a"
 
