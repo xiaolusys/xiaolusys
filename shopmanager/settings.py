@@ -209,17 +209,11 @@ LOGOUT_URL = '/accounts/logout/'
 
 TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
 
-try:
-    from prod_settings import *
-except ImportError:
-    if not DEBUG:
-        raise Exception("PROD SETTINGS IS REQUIRED!")
-
-try:
+if DEBUG:
     from local_settings import *
-except ImportError:
-    if DEBUG:
-        raise Exception("LOCAL SETTINGS IS REQUIRED!")
+else:
+    from prod_settings import *
+
 
 from task_settings import *
 
