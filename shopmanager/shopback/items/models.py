@@ -16,14 +16,13 @@ import re
 from django.db import models
 from django.db.models import Sum,Avg,F
 from django.db.models.signals import pre_save,post_save
-from django.core.urlresolvers import reverse
+from django.forms.models import model_to_dict
 
 from auth import apis
 from common.modelutils import update_model_fields
 from core.models import AdminModel
 from flashsale.dinghuo.models_user import MyUser
 from flashsale.restpro.local_cache import image_watermark_cache
-from shopback.base.models import BaseModel
 from shopback.base.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
@@ -287,37 +286,14 @@ class Product(models.Model):
         skus_json = []
         for sku in self.pskus:
             skus_json.append(sku.json)
-
-        return {
-                'id':self.id,
-                'outer_id':self.outer_id,
-                'name':self.name,
-                'category':self.category or {},
-                'collect_num':self.collect_num,
-                'remain_num':self.remain_num,
-                'warn_num':self.warn_num,
-                'wait_post_num':self.wait_post_num,
-                'cost':self.cost,
-                'std_purchase_price':self.std_purchase_price,
-                'std_sale_price':self.std_sale_price,
-                'agent_price':self.agent_price,
-                'staff_price':self.staff_price,
-                'weight':self.weight,
-                'sync_stock':self.sync_stock,
-                'is_split':self.is_split,
-                'is_match':self.is_match,
-                'is_assign':self.is_assign,
-                'is_stock_warn':self.is_stock_warn,
-                'is_warning':self.is_warning,
-                'post_check':self.post_check,
-                'status':dict(ONLINE_PRODUCT_STATUS).get(self.status,''),
-                'buyer_prompt':self.buyer_prompt,
-                'memo':self.memo,
-                'districts':self.get_district_list(),
-                'barcode':self.BARCODE,
-                'match_reason':self.match_reason,
-                'skus':skus_json
-                }
+        model_dict = model_to_dict(self)
+        model_dict.update({'category':self.category or {},
+                           'status':dict(ONLINE_PRODUCT_STATUS).get(self.status,''),
+                           'districts':self.get_district_list(),
+                           'barcode':self.BARCODE,
+                           'skus':skus_json
+                           })
+        return model_dict
 
     def title(self):
         return self.name
@@ -715,36 +691,12 @@ class ProductSku(models.Model):
 
     @property
     def json(self):
-        sku = self
-        return {'id':sku.id,
-                'outer_id':sku.outer_id,
-                'properties_name':sku.properties_name,
-                'properties_alias':sku.properties_alias,
-                'name':sku.name,
-                'cost':sku.cost,
-                'std_purchase_price':sku.std_purchase_price,
-                'std_sale_price':sku.std_sale_price,
-                'agent_price':sku.agent_price,
-                'staff_price':sku.staff_price,
-                'weight':sku.weight,
-                'quantity':sku.quantity,
-                'warn_num':sku.warn_num,
-                'wait_post_num':sku.wait_post_num,
-                'remain_num':sku.remain_num,
-                'sync_stock':sku.sync_stock,
-                'is_split':sku.is_split,
-                'is_match':sku.is_match,
-                'post_check':sku.post_check,
-                'status':sku.status,
-                'is_stock_warn':sku.is_stock_warn,
-                'is_assign':sku.is_assign,
-                'is_warning':sku.is_warning,
-                'status':sku.status,
-                'buyer_prompt':sku.buyer_prompt,
-                'memo':sku.memo,
-                'match_reason':sku.match_reason,
-                'districts':sku.get_district_list(),
-                'barcode':sku.BARCODE}
+        model_dict = model_to_dict(self)
+        model_dict.update({
+            'districts':self.get_district_list(),
+            'barcode':self.BARCODE
+        })
+        return model_dict
 
 
     def update_quantity(self,num,full_update=False,dec_update=False):
@@ -1103,7 +1055,9 @@ class ProductLocation(models.Model):
     district     = models.ForeignKey(DepositeDistrict,
                                      related_name='product_locations',
                                      verbose_name='关联库位')
-
+    
+    
+    
     class Meta:
         db_table = 'shop_items_productlocation'
         unique_together = ("product_id", "sku_id", "district")
@@ -1227,12 +1181,15 @@ SKU_DEFAULT = (
 
 
 class ProductSkuContrast(models.Model):
+    """ 商品规格尺寸参数 """
     product = models.OneToOneField(Product, primary_key=True, related_name='contrast',
                                       verbose_name=u'商品ID')
     contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=SKU_DEFAULT, verbose_name=u'对照表详情')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
-
+    
+    cache_enabled = True
+    objects = managers.CacheManager()
     class Meta:
         db_table = 'shop_items_productskucontrast'
         verbose_name = u'对照内容表'
@@ -1267,7 +1224,9 @@ class ContrastContent(models.Model):
                               db_index=True, default=NORMAL, verbose_name=u'状态')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
-
+    
+    cache_enabled = True
+    objects = managers.CacheManager()
     class Meta:
         db_table = 'shop_items_contrastcontent'
         unique_together = ("cid", "name")
@@ -1287,7 +1246,9 @@ class ImageWaterMark(models.Model):
     remark = models.TextField(blank=True, default='', verbose_name=u'备注')
     update_time = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     status = models.SmallIntegerField(choices=STATUSES, verbose_name=u'状态')
-
+    
+    cache_enabled = True
+    objects = managers.CacheManager()
     class Meta:
         db_table = u'image_watermark'
         verbose_name = u'图片水印'
@@ -1308,7 +1269,7 @@ class ProductSchedule(AdminModel):
         (0, u'无效'),
         (1, u'有效')
     ]
-
+    
     product = models.ForeignKey('Product', related_name='schedules', verbose_name=u'关联商品')
     onshelf_datetime = models.DateTimeField(verbose_name=u'上架时间')
     onshelf_date = models.DateField(verbose_name=u'上架日期')
@@ -1319,7 +1280,9 @@ class ProductSchedule(AdminModel):
     schedule_type = models.SmallIntegerField(choices=SCHEDULE_TYPE_CHOICES, default=1, verbose_name=u'排期类型')
     status = models.SmallIntegerField(choices=STATUS_CHOICES, default=1, verbose_name=u'状态')
     sale_type = models.SmallIntegerField(choices=constants.SALE_TYPES, default=1, verbose_name=u'促销类型')
-
+    
+    cache_enabled = True
+    objects = managers.CacheManager()
     class Meta:
         db_table = 'shop_items_schedule'
         verbose_name = u'商品上下架排期管理'

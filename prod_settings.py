@@ -17,7 +17,7 @@ DATABASES = {
         'PASSWORD': 'youni_2014qy',                  # Not used with sqlite3.
         'HOST': 'jconnfymhz868.mysql.rds.aliyuncs.com',                      # Set to empty string for localhost. Not used with sqlite3. #192.168.0.28
         'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
-        'OPTIONS':  {'init_command': 'SET storage_engine=MyISAM;', 
+        'OPTIONS':  {#'init_command': 'SET storage_engine=Innodb;', 
                      'charset': 'utf8'}, #storage_engine need mysql>5.4,and table_type need mysql<5.4
     }
 }

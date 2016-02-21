@@ -9,6 +9,7 @@ from flashsale.xiaolumm.models import XiaoluMama, CarryLog, AgencyLevel
 from .models import Clicks, UserClicks, ClickCount, WeekCount
 from shopapp.weixin.models import WeixinUnionID
 from common.modelutils import update_model_change_fields
+from . import constants
 import logging
 
 __author__ = 'linjie'
@@ -71,47 +72,6 @@ def task_Update_User_Click(click, *args, **kwargs):
     update_model_change_fields(user_click,update_params=params)
     
     
-
-def task_patch_mamacash_61():
-    
-    time_end = datetime.datetime(2015,6,15,23,59,59)
-    carry_no = int(time_end.strftime('%y%m%d'))
-    
-    total_rebeta = 0
-    mm_clickcounts = ClickCount.objects.filter(date=time_end.date(),valid_num__gt=0)
-    for mm_cc in mm_clickcounts:
-        xlmms = XiaoluMama.objects.filter(id=mm_cc.linkid)
-        if xlmms.count() == 0:
-            continue
-        
-        xlmm = xlmms[0]
-        agency_levels = AgencyLevel.objects.filter(id=xlmm.agencylevel)
-        if agency_levels.count() == 0:
-            continue
-        agency_level = agency_levels[0]
-        if agency_level.id != 2:
-            continue
-        
-        click_qs = Clicks.objects.filter(linkid=mm_cc.linkid,click_time__range=(CLICK_ACTIVE_START_TIME,time_end),isvalid=True)
-        ten_click_num = click_qs.values('openid').distinct().count()
-        ten_click_price = 30
-        
-        click_rebeta = ten_click_num * ten_click_price
-        if mm_cc.valid_num == 0 or click_rebeta <= 0:
-            continue
-        
-#         c_log,state = CarryLog.objects.get_or_create(xlmm=xlmm.id,
-#                                                       order_num=carry_no,
-#                                                       log_type=CarryLog.CLICK_REBETA)
-# #
-#         c_log.value = c_log.value + click_rebeta
-#         c_log.save()
-#         
-#         urows = xlmms.update(cash=F('cash') + click_rebeta)
-#         total_rebeta += click_rebeta
-    
-    print 'debug total_rebeta:',total_rebeta
-
 
 def calc_Xlmm_ClickRebeta(xlmm,time_from,time_to,xlmm_cc=None):
     
@@ -183,6 +143,11 @@ def task_Push_ClickCount_To_MamaCash(target_date):
         
         XiaoluMama.objects.filter(id=mm_cc.linkid).update(pending=F('pending') + click_rebeta)
 
+@task 
+def task_Delete_Mamalink_Clicks(pre_date):
+    
+    clicks = Clicks.objects.filter(created__lt=pre_date)
+    clicks.delete()
 
 @task(max_retry=3, default_retry_delay=5)
 def task_Record_User_Click(pre_day=1):
@@ -213,7 +178,10 @@ def task_Record_User_Click(pre_day=1):
     
     #update xlmm click rebeta
     task_Push_ClickCount_To_MamaCash(pre_date)
-    
+    #delete ximm click some days ago
+    pre_delete_date = (datetime.datetime.today() - 
+                       datetime.timedelta(days=constants.CLICK_RECORDS_REMAIN_DAYS))
+    task_Delete_Mamalink_Clicks(pre_delete_date)
 
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 
@@ -224,7 +192,7 @@ def task_Record_User_Click_Weekly(date_from, date_to, week_code):
         写数据：WeekCount（linkid 、weikefu 、user_num 、valid_num 、buyercount 、ordernumcount  、conversion_rate）
     """
     # 只是对2级并且已经接管的代理做统计
-    xlmms = XiaoluMama.objects.filter(agencylevel=2, charge_status=XiaoluMama.CHARGED)
+    xlmms = XiaoluMama.objects.filter(charge_status=XiaoluMama.CHARGED)
     for xlmm in xlmms:
         click_count = ClickCount.objects.filter(linkid=xlmm.id, date__gt=date_from, date__lt=date_to)
         shoppings = StatisticsShoppingByDay.objects.filter(linkid=xlmm.id, tongjidate__gt=date_from,
@@ -273,31 +241,6 @@ def week_Count_week_Handdle(pre_week_start_dt=None):
     
     task_Record_User_Click_Weekly(time_from, time_to, week_code)
     
-#     today_b = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)  # 今天的 开始时间
-#     prev_day = today_b - datetime.timedelta(days=1)  # 昨天的开始
-#     x_day = prev_day.strftime('%w')  # 获取昨天的星期数
-#     # 判断昨天是不是这一周最后一天
-#     if x_day == '6':
-#     # 如果是则执行
-#         if prev_day.strftime('%U') == '00':
-#         # 判断昨天是不是一年中的第一周 00
-#             date_from = datetime.datetime(today.year, today.month, 1, 0, 0, 0)
-#             # 开始时间 是 这一年的第一天
-#             date_to = datetime.datetime(prev_day.year,prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
-#             # 结束时间就是昨天的结束时间（因为上面已经判断了昨天是不是周末）
-#             week_code = str(today.year) + '00'
-#             # week_code = year+ '00'
-#             task_Record_User_Click_Weekly(date_from, date_to, week_code)
-#             # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
-#         else:
-#         # 如果昨天不是这一年的第一周
-#             date_from = prev_day - datetime.timedelta(days=6)
-#             # 开始时间是 昨天的开始时间 - 6 个整天
-#             date_to = datetime.datetime(prev_day.year, prev_day.month, prev_day.day, 23, 59, 59)  # 包含第七天
-#             
-#             # 结束时间是昨天的结束时间
-#             task_Record_User_Click_Weekly(date_from, date_to, week_code)
-#             # 调用 task_Record_User_Click_Weekly (date_from, date_to, week_code) 函数
 
 
 def push_history_week_data():  # 初始执行

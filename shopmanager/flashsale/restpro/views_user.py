@@ -470,7 +470,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         instance.status = Customer.DELETE
         instance.save()
     
-    @list_route(methods=['post'])
+    @list_route(methods=['get','post'])
     def customer_logout(self, request, *args, **kwargs):
         logout(request)
         return Response({"code":0, "result": 'logout'})

@@ -9,11 +9,11 @@ timeout=20
 worker_connections=multiprocessing.cpu_count() * 400 #all worker handle max connects a time
 #The maximum number of requests a worker will process before restarting.
 #This is a simple method to help limit the damage of memory leaks
-max_requests=400 
+max_requests=600 
 #The maximum number of pending connections.
 #Exceeding this number results in the client getting an error when attempting to connect. 
 #It should only affect servers under significant load.
-backlog=multiprocessing.cpu_count() * 300 
+backlog=multiprocessing.cpu_count() * 400 
 
 #accesslog='/var/log/taobao/gunicorn.out'
 #access_log_format="%(h)s %(l)s %(t)s %(r)s %(l)s %(s)s %(l)s %(b)s %(l)s %(D)s "

@@ -1,5 +1,7 @@
 #-*- coding:utf8 -*-
 from django.db import models
+
+from core.ormcache.managers import CacheManager
 from shopback import paramconfig as pcfg
 from auth import apis
 import logging
@@ -59,7 +61,9 @@ class ProductCategory(models.Model):
     is_parent  = models.BooleanField(default=True,verbose_name=u'有子类目')
     status  = models.CharField(max_length=7,choices=CAT_STATUS,default=pcfg.NORMAL,verbose_name=u'状态')
     sort_order = models.IntegerField(default=0,db_index=True,verbose_name=u'优先级')
-
+    
+    cache_enabled = True
+    objects = CacheManager()
     class Meta:
         db_table = 'shop_categorys_productcategory'
         verbose_name = u'产品类目'

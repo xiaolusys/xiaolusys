@@ -48,6 +48,14 @@
             color: orange;
             border: 1px solid orange;
         }
+
+	.join-button {
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/join-btn.png);
+	  background-repeat:no-repeat;
+	  background-size:100%;	
+	  background-color:transparent;
+	  border:0px;
+	}
     </style>
     {% endblock %}
 
@@ -66,15 +74,17 @@
 
     {% block content4 %}
     {% if not res %}
-    <div class="row" style="margin-top:20px">
+    <div class="row">
       <div class="col-xs-2"></div>
-      <div class="col-xs-8 form-content">
-	<span style="color:#FF8800">Hello，快激活您的申请吧！</span>
+      <div class="col-xs-8">
+	<a class="join-button form-control" href="" value="" type="button"></a>
+	<!--
         <form action="" method="post">
           <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
           <span style="color: red">{{ error_message }}</span>
           <button class="btn btn-default form-control submit-order" type="submit" style="background: #FF8800;color:white">激活申请</button>
         </form>
+	-->
       </div>
       <div class="col-xs-2"></div>
     </div>
@@ -84,7 +94,7 @@
     </div>
     <div class="highlight-border" style="border-radius:6px;margin:0px 6px;padding:6px 0px">
       <div class="row">
-	<div class="col-xs-12" style="text-align:center"><p style="font-weight:bold">一键分享</p><p style="font-size:12px">快快一键分享到各大平台，好友点您分享的链接可进入活动首页。（越多越给力哦～）</p></div>
+	<div class="col-xs-12" style="text-align:center"><p style="font-weight:bold" id="share_link" cid="{{ res.share_link }}">一键分享</p><p style="font-size:12px">快快一键分享到各大平台，好友点您分享的链接可进入活动首页。（越多越给力哦～）</p></div>
       </div>
       <div class="row">
 	<div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
@@ -101,10 +111,10 @@
     <div class="row" style="margin-top:16px">
       <div class="col-xs-12">
         <ul class="list-group" style="font-size: 12px">
-	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">我的红包：4.84元</li>
-	    <li class="list-group-item"><span>2016-02-22 12:13:06</span><br/><span>大王，您又吸引了三位好友，获得现金红包1.88元。</span></li>
-	    <li class="list-group-item"><span>2016-02-22 12:13:06</span><br/><span>亲亲，您魅力引来三位好友，奖励现金红包1.68元。</span>
-	    <li class="list-group-item"><span>2016-02-22 12:13:06</span><br/><span>美女，您就是真白富美的命，现金红包拿去1.28元。</span></li>
+	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">我的红包{{ res.reds_money }}元</li>
+            {% for red in res.reds %}
+        	    <li class="list-group-item"><span>{{ red.created }}</span><br/><span>{{ red.content }}</span></li>
+            {% endfor %}
         </ul>
       </div>
     </div>

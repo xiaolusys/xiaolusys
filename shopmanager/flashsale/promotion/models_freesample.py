@@ -3,6 +3,8 @@ from django.db import models
 from core.models import BaseModel
 from django.contrib.auth.models import User
 from shopback.base.models import JSONCharMyField
+from .managers import ReadPacketManager
+
 
 class XLFreeSample(BaseModel):
     """ 试用商品 """
@@ -51,6 +53,7 @@ class XLSampleApply(BaseModel):
     FROM_WB   = 'sinawb'
     FROM_WEB  = 'web'
     FROM_QQSPA = 'qqspa'
+    XLMM_APP = 'app'
 
     FROM_CHOICES = (
         (FROM_WXAPP,u'微信好友'),
@@ -58,6 +61,7 @@ class XLSampleApply(BaseModel):
         (FROM_QQ,u'QQ'),
         (FROM_WB,u'新浪微博'),
         (FROM_WEB,u'外部网页'),
+        (XLMM_APP,u'小鹿美美APP')
     )
 
     outer_id = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'商品编码')
@@ -102,6 +106,8 @@ class ReadPacket(BaseModel):
     customer = models.CharField(max_length=64, db_index=True, verbose_name=u"用户ID")
     value = models.FloatField(default=0, verbose_name=u'金额')
     status = models.IntegerField(default=0, choices=EXCHANGE_STATUS, verbose_name=u'是否兑换')
+    content = models.CharField(max_length=512, blank=True, null=True, verbose_name=u'文字内容')
+    objects = ReadPacketManager()
 
     class Meta:
         db_table = 'flashsale_promotion_red_packet'

@@ -44,11 +44,11 @@ class RefundCouponView(APIView):
         if coupon.exists():
             raise APIException(u"已经发放过优惠券")
 
-    def memo_trade(self, user, trade, memo):
+    def memo_trade(self, user_id, trade, memo):
         """ 备注特卖订单信息　"""
         trade.seller_memo += memo
         update_model_fields(trade, update_fields=['seller_memo'])
-        log_action(user, trade, CHANGE, u'退货退款问题发放优惠券修改卖家备注')
+        log_action(user_id, trade, CHANGE, u'退货退款问题发放优惠券修改卖家备注')
 
     def check_trade_status(self, trade):
         if trade.status in (SaleTrade.TRADE_NO_CREATE_PAY, SaleTrade.WAIT_BUYER_PAY):
@@ -65,13 +65,13 @@ class RefundCouponView(APIView):
         trade_id = content.get("trade_tid", None)
         template_type = content.get("template", None)
         memo = content.get("memo", None)
-        user = request.user.id
+        user_id = request.user.id
 
         trade = self.get_trade(trade_id)
         self.check_trade_status(trade)
         self.check_order_coupon(trade)
         template = self.get_template(template_type)
-        self.memo_trade(user, trade, memo)
+        self.memo_trade(user_id, trade, memo)
 
         kwargs = {"buyer_id": trade.buyer_id, "trade_id": trade.id, "template_id": template.id}
         ucr = UserCoupon()

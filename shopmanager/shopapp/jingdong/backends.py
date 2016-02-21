@@ -7,7 +7,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import SiteProfileNotAvailable
 from django.core.exceptions import ImproperlyConfigured
-from common.utils import verifySignature,decodeBase64String,parse_urlparams
+from django.contrib.auth.backends import RemoteUserBackend
 from django.conf import settings
 from shopback.users.models import User as Seller
 from auth import apis
@@ -17,7 +17,7 @@ logger = logging.getLogger('django.request')
 
 JINGDONG_PREFFIX = 'jd'
 
-class JingDongBackend:
+class JingDongBackend(RemoteUserBackend):
     supports_anonymous_user = False
     supports_object_permissions = False
 
