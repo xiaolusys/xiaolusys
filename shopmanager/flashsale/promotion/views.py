@@ -641,3 +641,18 @@ class PromotionResult(APIView):
         response = render_to_response(self.result_page, res, context_instance=RequestContext(request))
         return response
 
+
+class ErCodeView(APIView):
+    """
+    得到个人专属二维码以便分享
+    """
+    template = "promotion/ercode.html"
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
+    renderer_classes = (BrowsableAPIRenderer,)
+    
+                              
+    def get(self, request, *args, **kwargs):
+        data = {}
+        response = render_to_response(self.template, data, context_instance=RequestContext(request))
+        return response
