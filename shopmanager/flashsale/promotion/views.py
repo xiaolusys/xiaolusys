@@ -42,13 +42,14 @@ CARTOON_DIGIT_IMAGES = [
     "http://7xogkj.com2.z0.glb.qiniucdn.com/222-7.png",
     "http://7xogkj.com2.z0.glb.qiniucdn.com/222-8.png",
     "http://7xogkj.com2.z0.glb.qiniucdn.com/222-9.png"
-    ]
+]
+
 
 def get_cartoon_digit(n):
     n = int(n) % 10
     return CARTOON_DIGIT_IMAGES[n]
-    
-    
+
+
 def get_active_pros_data():
     """
     获取活动产品数据　　
@@ -71,9 +72,9 @@ def get_product_img(sku_code):
         sku_code = int(sku_code)
     except:
         sku_code = 0
+    yellowbag = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-yellow.png"
     bluebag = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-blue.png"
     pinkbag = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-pink.png"
-    yellowbag = "http://7xogkj.com2.z0.glb.qiniucdn.com/222-bag-yellow.png"
     img = ['', yellowbag, bluebag, pinkbag]
     return img[sku_code] if sku_code in (1, 2, 3) else yellowbag
 
@@ -302,7 +303,7 @@ class XlSampleOrderView(View):
             vipcode = xlcodes[0].vipcode
         # 下载appd 的数量(激活的数量)
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()
-        
+
         second_num = app_down_count % 10
         first_num = (app_down_count % 100 - second_num) / 10
         first_digit_imgsrc = get_cartoon_digit(first_num)
@@ -313,7 +314,8 @@ class XlSampleOrderView(View):
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
         reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
-        res = {'promote_count': promote_count, 'first_digit_imgsrc': first_digit_imgsrc, "reds": reds, "reds_money": reds_money,
+        res = {'promote_count': promote_count, 'first_digit_imgsrc': first_digit_imgsrc, "reds": reds,
+               "reds_money": reds_money,
                'second_digit_imgsrc': second_digit_imgsrc, "inactive_count": inactive_count,
                'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
@@ -411,22 +413,26 @@ class XlSampleOrderView(View):
             if xls_orders.exists():
                 customer_id = customer.id
                 mobile = customer.mobile
+                sku_code = xls_orders[0].sku_code
+                img_src = get_product_img(sku_code)
                 res = self.get_promotion_result(customer_id, outer_id, mobile)
-                return render_to_response(self.order_page, {'pro': pro, 'res': res, "title": title},
+                return render_to_response(self.order_page, {'pro': pro, 'res': res, "title": title, "img_src": img_src},
                                           context_instance=RequestContext(request))
             else:
                 # 查找存在的申请，　如果有存在的申请则直接为用户激活
                 xlapply = get_customer_apply(**{"mobile": mobile})
                 res = None
+                img_src = get_product_img(None)
                 if xlapply:  # 有申请
                     xlorder = self.active_order(xlapply, customer, outer_id, xlapply.sku_code)
+                    img_src = get_product_img(xlapply.sku_code)
                     customer_id = xlorder.customer_id
                     res = self.get_promotion_result(customer_id, outer_id, mobile)
                 else:
                     # 如果当前用户没有申请过则跳转到申请页面并且指定来自平台，和推荐用户
                     url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
                     return redirect(url)
-                return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title},
+                return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title, "img_src": img_src},
                                           context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
                                   context_instance=RequestContext(request))

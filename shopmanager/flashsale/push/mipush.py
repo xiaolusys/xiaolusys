@@ -33,8 +33,8 @@ class MiPush(object):
 
     # app_secret
     IOS_APP_SECRET = 'UN+ohC2HYHUlDECbvVKefA=='
-    ANDROID_APP_SECRET = '5jZErBkrZ+Wl3ASRhJOIXg=='
-    RESTRICTED_PACKAGE_NAME = 'com.jimei.xlmm'
+    ANDROID_APP_SECRET = 'WHdmdNYgnXWokStntg87sg=='
+    RESTRICTED_PACKAGE_NAME = 'com.jimei.xiaolumeimei'
 
     # notify_id
     MAX_TOPIC_NID = 1 << 8
