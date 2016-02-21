@@ -24,14 +24,17 @@ class CouponTemplate(PayBaseModel):
     DOUBLE_12 = 8
     USUAL = 9
     NEW_YEAR = 10
+    PROMMOTION_TYPE = 11
     COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"), (POST_FEE_20, u"20元退货补邮费"),
                    (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"),
-                   (USUAL, u"普通"), (NEW_YEAR, u"元旦专用"))
+                   (USUAL, u"普通"), (NEW_YEAR, u"元旦专用"), (PROMMOTION_TYPE, u"活动类型"))
     CLICK_WAY = 0
     BUY_WAY = 1
     XMM_LINK = 2
-    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"),(XMM_LINK ,u"购买专属链接"))
+    PROMOTION = 3
+    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"),(XMM_LINK, u"购买专属链接"),
+                  (PROMOTION, u"活动发放"))
     ALL_USER = 1
     AGENCY_VIP = 2
     AGENCY_A = 3

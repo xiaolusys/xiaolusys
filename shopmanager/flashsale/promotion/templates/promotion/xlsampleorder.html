@@ -52,7 +52,7 @@
 	.join-button {
 	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/join-btn.png);
 	  background-repeat:no-repeat;
-	  background-size:100%;	
+	  background-size:100%;
 	  background-color:transparent;
 	  border:0px;
 	}
@@ -68,7 +68,7 @@
 	  <span id="id-2" class="highlight-border counting">{{ res.second_num }}</span><br/>
 	  <a style="font-size:10px;margin-top:6px" href="/sale/promotion/cus_cdt/">有{{ res.inactive_count }}位好友未激活，查看 >></a>
       </div>
-    </div>    
+    </div>
     {% endif %}
     {% endblock %}
 
@@ -113,12 +113,13 @@
         <ul class="list-group" style="font-size: 12px">
 	    <li class="list-group-item list-group-item-warning" style="text-align:center;color:#FFB329">我的红包{{ res.reds_money }}元</li>
             {% for red in res.reds %}
-        	    <li class="list-group-item"><span>{{ red.created }}</span><br/><span>{{ red.content }}</span></li>
+        	    <li class="list-group-item reds_content" cid="{{ red.id }}"><span>{{ red.created }}</span><br/><span>{{ red.content }}</span></li>
             {% endfor %}
+        <li class="list-group-item list-group-item-warning" id="exchange_reds" style="text-align:center;color:#FFB329">点击兑换</li>
         </ul>
       </div>
     </div>
-    
+
     {% endif %}
 
 <!--
@@ -199,10 +200,41 @@
         }
 
 
+        function test(a){
+            console.log($(a));
+        }
+
+        // 兑换红包
+        function exchange_reds(){
+            var reds = $(".reds_content");
+            var data = new FormData();
+
+            $.each(reds,function(index,red){
+                var cid = $(red).attr('cid');
+                data.append('ids', cid);
+            });
+            console.log('data:', data);
+
+            var Url = "/sale/promotion/exchange_reds/";
+            $.ajax({
+                type: 'post',
+                url: Url,
+                data: data,
+                processData: false,
+                contentType: false,
+                success: resCallBack
+            });
+            function resCallBack(res){
+                console.log(res);
+            }
+        }
+
         $(document).ready(function () {
             //show_short_rest();
             //'wxapp', 'pyq', 'qq', 'sinawb', 'web', 'qqspa'
-
+            $("#exchange_reds").click(function(){// 点击兑换
+                exchange_reds();
+            });
             $("#sharecopylink").click(function () {
                 console.log("复制链接");
                 var uform = 'web';

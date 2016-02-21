@@ -28,6 +28,7 @@ from shopapp.weixin.views import get_user_openid, valid_openid
 from .models_freesample import XLSampleApply, XLFreeSample, XLSampleSku, XLSampleOrder, ReadPacket
 from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.pay.models_coupon_new import UserCoupon
 
 
 def get_active_pros_data():
@@ -226,6 +227,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                         participate.usage_count += 1
                         participate.save()  # 使用次数累加
                 if ufrom == 'app':
+                    # 如果用户来自app内部则跳转到活动激活页面
                     url = '/sale/promotion/xlsampleorder/'
                     return redirect(url)
             else:
@@ -398,6 +400,7 @@ class XlSampleOrderView(View):
                     customer_id = xlorder.customer_id
                     res = self.get_promotion_result(customer_id, outer_id, mobile)
                 else:
+                    # 如果当前用户没有申请过则跳转到申请页面并且指定来自平台，和推荐用户
                     url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
                     return redirect(url)
                 return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title},
@@ -492,6 +495,62 @@ class PromotionShortResult(APIView):
         for user in wx_users:
             items.append(get_mobile_show(user))
         return HttpResponse(json.dumps(items))
+
+
+class ExchangeRedToCoupon(APIView):
+    """
+    将用户活动红包兑换成优惠券
+    """
+
+    def get_red_ids(self, request):
+        """
+        获取请求中的红包id
+        """
+        ids = request.POST.getlist('ids')
+
+        try:
+            ids = [int(i) for i in ids]
+        except:
+            return []
+        return ids
+
+    def exchange_redpackets(self, ids=None, customer=None):
+        code = 0
+        reds = ReadPacket.objects.filter(id__in=ids, customer=customer, status=ReadPacket.NOT_EXCHANGE)
+        sum_value = reds.aggregate(s_v=Sum('value')).get('s_v') or 0
+        reds_count = reds.count()  # 红包条数
+        if reds_count < 1:
+            code = 2
+            return code  # 小于３条不予兑换
+        coupon_10_count = int(sum_value / 10)  # 十元优惠券条数
+        leave_mony = sum_value - coupon_10_count * 10  # 发完十元后还剩下多少钱
+        coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
+        for i in range(coupon_10_count):
+            user_coupon = UserCoupon()
+            kwargs = {"buyer_id": customer, "template_id": 17}
+            user_coupon.release_by_template(**kwargs)
+        for j in range(coupon_5_count):
+            user_coupon = UserCoupon()
+            kwargs = {"buyer_id": customer, "template_id": 18}
+            user_coupon.release_by_template(**kwargs)
+        reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
+        coupon_value = coupon_10_count * 10 + coupon_5_count * 5
+        return code, coupon_value
+
+    def post(self, request):
+        """
+        code : 0 兑换成功
+        code : 1 没有注册用户
+        code : 2 没有满足兑换条件
+        """
+        code = 0
+        customer = get_customer(request)
+        customer_id = str(customer.id) if customer else customer
+        # 获取红包id
+        ids = self.get_red_ids(request)
+        code, coupon_value = self.exchange_redpackets(ids=ids, customer=customer_id)
+        res = {"code": code, "coupon_value": coupon_value}
+        return HttpResponse(json.dumps(res))
 
 
 class PromotionResult(APIView):
