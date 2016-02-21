@@ -144,7 +144,7 @@ class Customer(PayBaseModel):
             return None
         from flashsale.xiaolumm.models import XiaoluMama
         try:
-            return XiaoluMama.objects.get(openid=self.unionid)
+            return XiaoluMama.objects.get(openid=self.unionid, charge_status=XiaoluMama.CHARGED)
         except XiaoluMama.DoesNotExist:
             return None
         
