@@ -209,12 +209,13 @@ LOGOUT_URL = '/accounts/logout/'
 
 TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
 
-if DEBUG:
-    from local_settings import *
-else:
+try:
     from prod_settings import *
-
-
+except ImportError,err:
+    if not DEBUG:
+        raise err
+    from local_settings import *
+  
 from task_settings import *
 
 if DEBUG:
