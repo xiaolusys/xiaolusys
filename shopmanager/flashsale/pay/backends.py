@@ -148,10 +148,6 @@ class WeixinAppBackend(object):
         
         try:
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
-            #如果openid有误，则重新更新openid
-            if profile.openid != openid:
-                task_Refresh_Sale_Customer.s(kwargs,app_key=settings.WXAPP_ID)()
-                
             if profile.user:
                 if not profile.user.is_active:
                     profile.user.is_active = True
@@ -172,8 +168,8 @@ class WeixinAppBackend(object):
                 profile.nick = nickname
                 profile.thumbnail = headimgurl
                 profile.save()
-            task_Refresh_Sale_Customer.s(kwargs,app_key=settings.WXAPP_ID)()
-            
+        
+        task_Refresh_Sale_Customer.s(kwargs,app_key=settings.WXAPP_ID)()    
         return user
     
     def get_user(self, user_id):
