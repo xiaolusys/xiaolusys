@@ -51,13 +51,18 @@ class XlmmFansManager(models.Manager):
             return super_fans.get_query_set()
         return super_fans.get_queryset()
 
-    def record_fans_num(self, xlmm, xlmm_cusid):
+    def record_fans_num(self, xlmm, xlmm_cusid, layer):
         from flashsale.xiaolumm.models_fans import FansNumberRecord
 
         recod, state = FansNumberRecord.objects.get_or_create(xlmm=xlmm, xlmm_cusid=xlmm_cusid)
         if not state:
             recod.fans_num += 1
             recod.save()
+            return
+        else:  # 是新建的情况下
+            if layer == 2:  # 推荐人是代理
+                recod.fans_num += 1
+                recod.save()
         return
 
     def createFansRecord(self, from_customer, customer):
@@ -74,11 +79,11 @@ class XlmmFansManager(models.Manager):
         if current_cus.exists():
             cu = current_cus[0]
             xlmm = cu.getXiaolumm()
-
+            layer = 1
             if xlmm:  # 如果当前用户是代理
                 self.get_or_create(xlmm=xlmm.id, xlmm_cusid=cu.id)
                 # 记录数量
-                self.record_fans_num(xlmm.id, cu.id)
+                self.record_fans_num(xlmm.id, cu.id, layer)
             else:  # 当前用户不是代理
                 if from_cus.exists():
                     from_cu = from_cus[0]
@@ -86,9 +91,9 @@ class XlmmFansManager(models.Manager):
 
                     if from_xlmm:  # 推荐人是代理
                         self.get_or_create(xlmm=from_xlmm.id, xlmm_cusid=from_cu.id, refreal_cusid=cu.id)
-
+                        layer = 2
                         # 记录数量
-                        self.record_fans_num(from_xlmm.id, from_cu.id)
+                        self.record_fans_num(from_xlmm.id, from_cu.id, layer)
 
                     else:   # 推荐人也不是代理
                         fanses = self.filter(refreal_cusid=from_cu.id)  # 找到含有该推荐人的粉丝表记录
@@ -96,8 +101,8 @@ class XlmmFansManager(models.Manager):
                             fans = fanses[0]  # 提取记录中的　推荐人和代理创建粉丝记录
                             self.get_or_create(xlmm=fans.xlmm, xlmm_cusid=fans.xlmm_cusid,
                                                refreal_cusid=fans.refreal_cusid, fans_cusid=cu.id)
-
+                            layer = 2
                             # 记录数量
-                            self.record_fans_num(fans.xlmm, fans.fans.xlmm_cusid)
+                            self.record_fans_num(fans.xlmm, fans.fans.xlmm_cusid, layer)
         return
 
