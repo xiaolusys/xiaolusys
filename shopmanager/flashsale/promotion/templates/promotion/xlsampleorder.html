@@ -97,7 +97,7 @@
 	  display: inline-block;
 	  margin-bottom: 6px;
 	}
-	.hongbao-record-bg {
+	.mix-body-bg {
 	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-body-bg.png);
 	  background-color:transparent;
 	  background-size:100% 1px;
@@ -170,7 +170,11 @@
       </div>
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
-	  <span style="font-size:10px;color:white">有{{ res.inactive_count }}位好友未激活，查看 >></span>
+	  {% if res.inactive_count > 0 %}
+	  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">您有{{ res.inactive_count }}位好友未激活，查看 >></a>
+	  {% else %}
+	  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">点击查看邀请好友 >></a>
+	  {% endif %}
 	</div>
       </div>
     </div>    
@@ -180,7 +184,7 @@
 	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-head-start.png"/>
       </div>
       <div class="row">
-	<div class="col-xs-12 hongbao-record-bg">
+	<div class="col-xs-12 mix-body-bg">
 	  <img src="{{ img_src }}" style="width:100%"/>
 	</div>
       </div>
@@ -221,7 +225,7 @@
 	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-head.png"/>
       </div>
       <div class="row">
-	<div class="col-xs-12 hongbao-record-bg">
+	<div class="col-xs-12 mix-body-bg">
 	  <div class="hongbao-total"><span>总额: ￥{{ res.reds_money }}</span></div>
 	  {% for red in res.reds %}
 	  <div class="hongbao-record ">
