@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
 from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
-from .models import XLInviteCode, XLReferalRelationship,XLInviteCount
+from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
 
 
 class XLFreeSampleAdmin(admin.ModelAdmin):
@@ -52,7 +52,8 @@ class XLInviteCodeAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'mobile', 'vipcode', )
     search_fields = ['id', 'mobile', 'vipcode', ]
     list_per_page = 40
-
+    
+    
 
 admin.site.register(XLInviteCode, XLInviteCodeAdmin)
 
@@ -61,7 +62,11 @@ class XLInviteCountAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer', 'invite_count', 'click_count')
     search_fields = ['id', 'customer__mobile', 'customer__openid']
     list_per_page = 40
-
+    
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + ('customer',)
+        return self.readonly_fields
 
 admin.site.register(XLInviteCount, XLInviteCountAdmin)
 
