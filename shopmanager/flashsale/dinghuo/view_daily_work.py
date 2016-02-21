@@ -150,9 +150,10 @@ class DailyDingHuoView2(View):
         if shelve_fromstr:
             year, month, day = shelve_fromstr.split('-')
             target_date = datetime.date(int(year), int(month), int(day))
+            """
             if target_date > today:
                 target_date = today
-
+            """
         shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
         time_to = self.parseEndDt(shelve_to_str)
         if time_to - shelve_from < datetime.timedelta(0):

@@ -67,7 +67,7 @@ class MiPush(object):
         }
 
         # 初始化接口地址
-        if settings.DEBUG:
+        if self.platform == 'ios' and settings.DEBUG:
             self.broadcast_url = self.SANDBOX_BROADCAST_URL
             self.topic_url = self.SANDBOX_TOPIC_URL
             self.account_url = self.SANDBOX_ACCOUNT_URL

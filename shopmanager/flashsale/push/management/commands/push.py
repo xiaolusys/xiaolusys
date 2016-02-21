@@ -48,7 +48,7 @@ class Command(BaseCommand):
 
         if push_type == PUSH_BY_REGID:
             regid, desc = args[2:4]
-            mipush.push_to_regid(regid,
+            mipush.push_to_regid(regid.strip(),
                                  {'target_url': target_url},
                                  description=desc)
         elif push_type == PUSH_BY_ACCOUNT:
