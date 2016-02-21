@@ -68,9 +68,10 @@ class XLReferalRelationship(BaseModel):
 # def sampleorder_create_and_update_sample(sender,instance,created,*args,**kwargs):
 #     if not created:
 #         return
-#     referal_customer_id = instance
-#     XLInviteCount.objects.get_or_create()
-#  
+#     xlapply = XLSampleApply.objects.get(id=instance.xlsp_apply)
+#     xlcount,state = XLInviteCount.objects.get_or_create(customer=xlapply.id)
+#     xlcount.
+#     
 # post_save.connect(sampleorder_create_and_update_sample, sender=XLSampleOrder)
 
 

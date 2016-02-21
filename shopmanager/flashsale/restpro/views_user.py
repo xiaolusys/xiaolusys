@@ -194,6 +194,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
     
+    def is_login(self,request):
+        if request.user and request.user.is_authenticated():
+            return True
+        return False
+    
     @list_route(methods=['post'])
     def change_user_pwd(self, request):
         """手机校验修改密码"""
@@ -203,13 +208,17 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         verify_code = request.data['valid_code']
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-
+        
         if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
                 or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
             return Response({"result": "2"})
         already_exist = Customer.objects.filter(mobile=mobile)
-        if already_exist.count() == 0:
-            return Response({"result": "1"})  # 尚无用户或者手机未绑定
+        if not already_exist.exists():
+            user = request.user
+            if not user or user.is_anonymous():
+                return Response({"result": "1"})  # 尚无用户或者手机未绑定
+            already_exist = Customer.objects.filter(user=user)
+        customer = already_exist[0]
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() == 0:
             return Response({"result": "3"})  # 未获取验证码
@@ -222,11 +231,14 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if verify_code_server != verify_code:
             return Response({"result": "3"})  # 验证码不对
         try:
-            system_user = already_exist[0].user
+            system_user = customer.user
             system_user.set_password(passwd1)
             system_user.save()
             reg_temp.cus_uid = already_exist[0].id
             reg_temp.save()
+            if self.is_login(request):
+                customer.mobile = mobile
+                customer.save()
             DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
             log_action(DJUSER.id, already_exist[0], CHANGE, u'忘记密码，修改成功')
             log_action(DJUSER.id, reg_temp, CHANGE, u'忘记密码，修改成功')
