@@ -86,10 +86,14 @@ def get_customer_apply(**kwargs):
     """
     mobile = kwargs.get('mobile', None)
     user_openid = kwargs.get('openid', None)
-    xls = XLSampleApply.objects.filter(Q(mobile=mobile) | Q(user_openid=user_openid)).order_by(
-        '-created')  # 记录来自平台设申请的sku选项
-    if xls.exists():
-        return xls[0]
+    if mobile:
+        xls = XLSampleApply.objects.filter(mobile=mobile).order_by('-created')  # 记录来自平台设申请的sku选项
+        if xls.exists():
+            return xls[0]
+    if user_openid:
+        xls = XLSampleApply.objects.filter(user_openid=user_openid).order_by('-created')  # 记录来自平台设申请的sku选项
+        if xls.exists():
+            return xls[0]
     return None
 
 
@@ -164,7 +168,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = customer.mobile if customer else None
 
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
-        agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         from_customer = content.get('from_customer', 0)  # 分享人的用户id
         openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
 
@@ -189,7 +192,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
-
         xls = get_customer_apply(**{"openid": openid, "mobile":mobile})
         if xls:
             img_src = get_product_img(xls.sku_code)  # 获取sku图片
@@ -232,11 +234,12 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
         if not mobile:
             return render_to_response(self.xlsampleapply,
-                                  {"vipcode": vipcode, "pro": pro,
+                                  {"vipcode": vipcode,
+                                   "pro": pro,
                                    "mobile": vmobile,
                                    "mobile_message": self.mobile_error_message},
                                   context_instance=RequestContext(request))
-
+            
         xls = get_customer_apply(**{"mobile": mobile, 'openid': openid})
         if not xls:  # 如果没有申请记录则创建记录
             sku_code_r = '' if sku_code is None else sku_code
@@ -252,17 +255,17 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             sample_apply.save()
             img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
             # 生成自己的邀请码
-            expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
-            XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
-
+#             expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
+#             XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
+            
             custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
             cust = custs[0] if custs.exists() else ''
-            if cust:  # 给分享人（存在）则计数邀请数量
-                participates = XLInviteCode.objects.filter(mobile=cust.mobile)
-                if participates.exists():
-                    participate = participates[0]
-                    participate.usage_count += 1
-                    participate.save()  # 使用次数累加
+#             if cust:  # 给分享人（存在）则计数邀请数量
+#                 participates = XLInviteCode.objects.filter(mobile=cust.mobile)
+#                 if participates.exists():
+#                     participate = participates[0]
+#                     participate.usage_count += 1
+#                     participate.save()  # 使用次数累加
             if ufrom == 'app':
                 # 如果用户来自app内部则跳转到活动激活页面
                 url = '/sale/promotion/xlsampleorder/'
@@ -315,10 +318,7 @@ class XlSampleOrderView(View):
         promote_count = applys.count()  # 邀请的数量
         # 是否可以购买睡袋　邀请数量达到要求即可以跳转购买睡袋
         is_get_order = True if promote_count >= self.PROMOTE_CONDITION else False
-        xlcodes = XLInviteCode.objects.filter(mobile=mobile)
         vipcode = None
-        if xlcodes.exists():
-            vipcode = xlcodes[0].vipcode
         # 下载appd 的数量(激活的数量)
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()
 
@@ -333,12 +333,17 @@ class XlSampleOrderView(View):
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
         reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
-        res = {'promote_count': promote_count, 'first_digit_imgsrc': first_digit_imgsrc, "reds": reds,
+        res = {'promote_count': promote_count, 
+               'first_digit_imgsrc': first_digit_imgsrc, 
+               "reds": reds,
                "reds_money": reds_money,
                'second_digit_imgsrc': second_digit_imgsrc,
                "inactive_count": inactive_count,
                "active_count": active_count,
-               'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
+               'share_link': share_link, 
+               'link_qrcode': '', 
+               "vipcode": vipcode, 
+               'is_get_order': is_get_order}
         return res
 
     def handler_with_vipcode(self, vipcode, mobile, outer_id, sku_code, customer):
@@ -380,16 +385,19 @@ class XlSampleOrderView(View):
         else:
             res = None
         return res
-
+    
+    
+    
     def release_packet_for_refreal(self, refreal_from):
         """
         给推荐人发红包, 首次有激活发送红包，　以后每增加３个激活　发送一个红包
         """
         refreal_from = str(refreal_from)
         # 计算推荐人的下载激活数量
-        applys = XLSampleApply.objects.filter(from_customer=refreal_from)  # 推荐人的邀请记录
-        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 推荐人的激活记录
-        ReadPacket.objects.release133_packet(refreal_from, app_down_count)
+        active_count = XLSampleApply.objects.filter(from_customer=refreal_from,
+                                                    status=XLSampleApply.ACTIVED).count()  # 推荐人的邀请记录
+        # app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 推荐人的激活记录
+        ReadPacket.objects.release133_packet(refreal_from, active_count)
 
     def my_red_packets(self, customer):
         """
@@ -406,6 +414,9 @@ class XlSampleOrderView(View):
         3.记录粉丝列表信息
         4.给推荐人发红包
         """
+        sample_orders = XLSampleOrder.objects.filter(xlsp_apply=xlapply.id,customer_id=customer.id)
+        if sample_orders.exists():
+            return sample_orders[0]
         xlorder = XLSampleOrder.objects.create(xlsp_apply=xlapply.id, customer_id=customer.id,
                                                outer_id=outer_id, sku_code=sku_code)
         # 生成邀请关系记录
@@ -430,7 +441,6 @@ class XlSampleOrderView(View):
         if customer:
             outer_id = pro.outer_id
             xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id).order_by('-created')
-
             if xls_orders.exists():
                 customer_id = customer.id
                 mobile = customer.mobile
@@ -466,7 +476,6 @@ class XlSampleOrderView(View):
         vipcode = content.get('vipcode', None)
 
         mobile = customer.mobile if customer else None
-
         pro = get_active_pros_data()  # 获取活动产品数据
         title = "活动正式订单"
         if mobile is None:
@@ -479,34 +488,22 @@ class XlSampleOrderView(View):
                                       },
                                       context_instance=RequestContext(request))  # 缺少参数
         xlapply = get_customer_apply(**{"mobile": mobile})
-
-        # 获取自己的正式使用订单
-        xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id, outer_id=outer_id).order_by('-created')
-
-        if not xls_orders.exists():  # 没有　试用订单　创建　正式　订单记录
-            if xlapply:  # 有　试用申请　记录的
-                # 激活申请
-                self.active_order(xlapply, customer, outer_id, sku_code)
-
-            else:  # 没有试用申请记录的（返回申请页面链接）　提示
-                not_apply_message = "您还没有申请记录,请填写邀请码"
-                if vipcode not in (None, ""):  # 有邀请码的情况下 根据邀请码生成用户的申请记录和订单记录
-                    res = self.handler_with_vipcode(vipcode, mobile, outer_id, sku_code, customer)
-                    if res is not None:
-                        return render_to_response(self.order_page, {"res": res},
-                                                  context_instance=RequestContext(request))
-                    else:
-                        not_apply_message = "您的邀请码有误，尝试重新填写"
-                return render_to_response(self.order_page, {"pro": pro,
-                                                            "title": title,
-                                                            "not_apply": not_apply_message},
-                                          context_instance=RequestContext(request))
-        outer_ids = ['', ]
-        outer_ids[0] = outer_id
-        res = self.get_promotion_result(customer.id, outer_ids, mobile)
-        return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
-
-
+        if xlapply:  # 有　试用申请　记录的
+            # 激活申请
+            self.active_order(xlapply, customer, outer_id, sku_code)
+            outer_ids = ['', ]
+            outer_ids[0] = outer_id
+            res = self.get_promotion_result(customer.id, outer_ids, mobile)
+            return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
+        
+        not_apply_message = "您还没有试用申请，请先申请再激活．．．"
+        return render_to_response(self.order_page, {"pro": pro,
+                                                    "title": title,
+                                                    "not_apply": not_apply_message},
+                                      context_instance=RequestContext(request))
+        
+        
+        
 from shopapp.weixin.models import WeiXinUser, get_Unionid
 
 from settings import WEIXIN_APPID
@@ -523,12 +520,13 @@ class CusApplyOrdersView(APIView):
         获取访问用户的信息，　头像和昵称
         """
         unionid = get_Unionid(openid, WEIXIN_APPID)
-        wx_user = WeiXinUser.objects.get(unionid=unionid)
-        if wx_user:
-            nick = wx_user.nickname or constants.DEFAULT_NICK
-            profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
-            return nick, profile_image
-        else:
+        try:
+            wx_user = WeiXinUser.objects.get(unionid=unionid)
+            if wx_user:
+                nick = wx_user.nickname or constants.DEFAULT_NICK
+                profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
+                return nick, profile_image
+        except:
             return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
 
     def get(self, request):
