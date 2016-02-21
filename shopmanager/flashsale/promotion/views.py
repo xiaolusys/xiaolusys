@@ -168,21 +168,22 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = customer.mobile if customer else None
 
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
-        from_customer = content.get('from_customer', 0)  # 分享人的用户id
+        from_customer = content.get('from_customer', 1)  # 分享人的用户id
         openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
-
+        
+        wxprofile = {}
         if self.is_from_weixin(request):  # 如果是在微信里面
             openid, unionid = self.get_cookie_openid_and_unoinid(request)
-            auth_resp = None
+            
             if not self.valid_openid(openid) or not self.valid_openid(unionid):
-                auth_resp = self.get_auth_userinfo(request)
-                openid, unionid = auth_resp.get("openid"), auth_resp.get("unionid")
+                wxprofile = self.get_auth_userinfo(request)
+                openid, unionid = wxprofile.get("openid"), wxprofile.get("unionid")
 
             if not self.valid_openid(unionid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
                 return redirect(self.get_snsuserinfo_redirct_url(request))
 
-            if auth_resp:
-                signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=auth_resp)
+            if wxprofile:
+                signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=wxprofile)
         else:
             openid, unionid = self.get_openid_and_unionid_by_customer(request)
 
@@ -202,7 +203,9 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         response = render_to_response(self.xlsampleapply,
                                       {"vipcode": vipcode,
                                        "from_customer": from_customer,
-                                       "pro": pro, "openid": openid,
+                                       "pro": pro, 
+                                       "openid": openid,
+                                       "wxprofile":wxprofile,
                                        "referal": referal,
                                        "title": title, "mobile": mobile,
                                        "download": download, "img_src": img_src,
@@ -242,16 +245,10 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             
         xls = get_customer_apply(**{"mobile": mobile, 'openid': openid})
         if not xls:  # 如果没有申请记录则创建记录
-            sku_code_r = '' if sku_code is None else sku_code
             sample_apply = XLSampleApply()
-            sample_apply.outer_id = outer_id
-            sample_apply.mobile = mobile
-            sample_apply.sku_code = sku_code_r
-            sample_apply.vipcode = vipcode
-            sample_apply.user_openid = openid
-            sample_apply.from_customer = from_customer  # 保存分享人的客户id
-            if ufrom in self.PLANTFORM:
-                sample_apply.ufrom = ufrom
+            for k,v in content.iteritems():
+                if hasattr(sample_apply,k):
+                    setattr(sample_apply,k,v)
             sample_apply.save()
             img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
             # 生成自己的邀请码
@@ -302,7 +299,7 @@ class APPDownloadView(View):
                                   {"vipcode": vipcode, "from_customer": from_customer},
                                   context_instance=RequestContext(request))
 
-
+from .models import XLInviteCount
 class XlSampleOrderView(View):
     """
     免费申请试用活动，生成正式订单页面
@@ -314,21 +311,21 @@ class XlSampleOrderView(View):
 
     def get_promotion_result(self, customer_id, outer_id, mobile):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
-        applys = XLSampleApply.objects.filter(from_customer=customer_id)
-        promote_count = applys.count()  # 邀请的数量
+        inv_count ,state= XLInviteCount.objects.get_or_create(from_customer=customer_id)
+        promote_count = inv_count.apply_count # 邀请的数量
         # 是否可以购买睡袋　邀请数量达到要求即可以跳转购买睡袋
         is_get_order = True if promote_count >= self.PROMOTE_CONDITION else False
         vipcode = None
         # 下载appd 的数量(激活的数量)
-        app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()
+        app_down_count = inv_count.invite_count
 
         second_num = app_down_count % 10
         first_num = (app_down_count % 100 - second_num) / 10
         first_digit_imgsrc = get_cartoon_digit(first_num)
         second_digit_imgsrc = get_cartoon_digit(second_num)
 
-        inactive_count = applys.filter(status=XLSampleApply.INACTIVE).count()
-        active_count = applys.filter(status=XLSampleApply.ACTIVED).count()
+        inactive_count = inv_count.apply_count - inv_count.invite_count
+        active_count = inv_count.invite_count
         share_link = self.share_link.format(**{'customer_id': customer_id})
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
@@ -515,41 +512,13 @@ class CusApplyOrdersView(APIView):
     """
     promote_condition = 'promotion/friendlist.html'
 
-    def get_info(self, openid, mobile):
-        """
-        获取访问用户的信息，　头像和昵称
-        """
-        unionid = get_Unionid(openid, WEIXIN_APPID)
-        try:
-            wx_user = WeiXinUser.objects.get(unionid=unionid)
-            if wx_user:
-                nick = wx_user.nickname or constants.DEFAULT_NICK
-                profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
-                return nick, profile_image
-            return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
-        except:
-            return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
 
     def get(self, request):
         customer = get_customer(request)
         customer_id = customer.id if customer else 0
-        applys = XLSampleApply.objects.filter(from_customer=customer_id)
-        actives = []
-        inactives = []
-        for appl in applys:
-            apply_time = appl.created
-            user_openid = appl.user_openid
-            mobile = appl.mobile
-            if appl.status == XLSampleApply.INACTIVE:  # 没有激活
-                nick, profile_image = self.get_info(user_openid, mobile)
-                inactive = {"apply_time": apply_time, "profile_image": profile_image, 'nick': nick}
-                inactives.append(inactive)
-            else:
-                nick, profile_image = self.get_info(user_openid, mobile)
-                active = {"apply_time": apply_time, "profile_image": profile_image, 'nick': nick}
-                actives.append(active)
-        condition = {"actives": actives, 'inactives': inactives}
-        return render_to_response(self.promote_condition, condition,
+        applys = XLSampleApply.objects.filter(from_customer=customer_id).exclude(user_openid='')
+        apply_results = applys.values('headimgurl','nick','created','status')
+        return render_to_response(self.promote_condition, {'apply_results':apply_results},
                                   context_instance=RequestContext(request))
 
 

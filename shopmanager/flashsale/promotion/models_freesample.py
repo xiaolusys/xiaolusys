@@ -72,7 +72,9 @@ class XLSampleApply(BaseModel):
     mobile   = models.CharField(max_length=11,null=False,db_index=True,blank=False,verbose_name=u'试用手机')
     vipcode  = models.CharField(max_length=16,db_index=True,blank=True,null=True,verbose_name=u'试用邀请码')
     status   = models.IntegerField(default=INACTIVE,choices=STATUS_CHOICES,db_index=True, verbose_name=u"状态")
-
+    
+    headimgurl = models.CharField(max_length=256,null=False,blank=True,verbose_name=u'头图')
+    nick = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'昵称')
     class Meta:
         db_table = 'flashsale_promotion_sampleapply'
         verbose_name = u'推广/试用申请'

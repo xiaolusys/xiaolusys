@@ -59,7 +59,7 @@ admin.site.register(XLInviteCode, XLInviteCodeAdmin)
 
 
 class XLInviteCountAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'invite_count', 'click_count')
+    list_display = ('id', 'customer','apply_count', 'invite_count', 'click_count')
     search_fields = ['id', 'customer__mobile', 'customer__openid']
     list_per_page = 40
     

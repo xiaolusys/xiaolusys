@@ -209,8 +209,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         
-        if not mobile or not passwd1 or not passwd2 or not verify_code or len(mobile) == 0 \
-                or len(passwd1) == 0 or len(verify_code) == 0 or passwd2 != passwd1:
+        if not mobile or not passwd1 or not passwd2 or not verify_code or passwd2 != passwd1:
             return Response({"result": "2"})
         already_exist = Customer.objects.filter(mobile=mobile)
         if not already_exist.exists():

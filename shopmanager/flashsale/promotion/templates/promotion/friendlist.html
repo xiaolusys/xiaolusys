@@ -28,7 +28,7 @@
 
 
 .profile {
-  width: 12%;
+  width: 5%;
   display: inline-block;
   vertical-align:top;
 }
@@ -74,24 +74,24 @@
   </div>
   <div class="row">
     <div class="col-xs-12 mix-body-bg">
-      {% for user in inactives %}
+      {% for user in apply_results %}
+      {% if user.status == 0 %}
       <div class="nonactive">
-	<div class="profile"><img class="img-circle" src="{{ user.profile_image }}" style="width:100%;"/></div>
+	<div class="profile"><img class="img-circle" src="{% if user.headimgurl %}{{ user.headimgurl }}{%else%}http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg{% endif %}" style="width:100%;"/></div>
 	<div class="apply-info">
-	  <span class="apply-time">{{ user.apply_time }}</span><br/>
+	  <span class="apply-time">{{ user.created }}</span><br/>
 	  <span class="apply-text"><font style="color:#ffcf00">{{ user.nick }}</font> 还未激活申请，快去提醒她吧～</span>
 	</div>
       </div>
-      {% endfor %}
-      
-      {% for user in actives %}
-      <div class="active">
-	<div class="profile"><img class="img-circle" src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg" style="width:100%;"/></div>
-	<div class="apply-info">
-	  <span class="apply-time" style="color:grey">{{ user.apply_time }}</span><br/>
-	  <span class="apply-text" style="color:grey">{{ user.nick }} 通过您邀请成功加入活动，您人品真好！</span>
-	</div>
+     {% else %}
+      　　<div class="active">
+		<div class="profile"><img class="img-circle" src="{% if user.headimgurl %}{{ user.headimgurl }}{%else%}http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg{% endif %}" style="width:100%;"/></div>
+		<div class="apply-info">
+		  <span class="apply-time" style="color:grey">{{ user.created }}</span><br/>
+		  <span class="apply-text" style="color:grey">{{ user.nick }} ，通过您的邀请成功加入活动，您人品真好！</span>
+		</div>
       </div>
+      {% endif %}
       {% endfor %}
     </div>
   </div>

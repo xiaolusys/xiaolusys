@@ -44,7 +44,8 @@ class XLInviteCode(BaseModel):
 class XLInviteCount(BaseModel):
     
     customer     = models.OneToOneField(Customer,verbose_name=u'特卖用户')
-    invite_count = models.IntegerField(default=0, verbose_name=u'使用次数')
+    apply_count  = models.IntegerField(default=0, verbose_name=u'邀请次数')
+    invite_count = models.IntegerField(default=0, verbose_name=u'下载次数')
     click_count  = models.IntegerField(default=0, verbose_name=u'点击次数')
     
     class Meta:
@@ -64,14 +65,28 @@ class XLReferalRelationship(BaseModel):
         verbose_name = u'推广/用户邀请关系'
         verbose_name_plural = u'推广/用户邀请关系'
 
-# from django.db.models.signals import post_save
-# def sampleorder_create_and_update_sample(sender,instance,created,*args,**kwargs):
-#     if not created:
-#         return
-#     xlapply = XLSampleApply.objects.get(id=instance.xlsp_apply)
-#     xlcount,state = XLInviteCount.objects.get_or_create(customer=xlapply.id)
-#     xlcount.
-#     
-# post_save.connect(sampleorder_create_and_update_sample, sender=XLSampleOrder)
+from django.db.models.signals import post_save
+def sampleorder_create_and_update_count(sender,instance,created,*args,**kwargs):
+    """ 试用订单更新邀请数 """
+    if not created:
+        return
+    xlapply = XLSampleApply.objects.get(id=instance.xlsp_apply)
+    inv_count,state = XLInviteCount.objects.get_or_create(customer_id=xlapply.from_customer)
+    inv_count.invite_count = models.F('invite_count') + 1
+    inv_count.save()
+     
+post_save.connect(sampleorder_create_and_update_count, sender=XLSampleOrder)
+
+
+from django.db.models.signals import post_save
+def sampleapply_create_and_update_count(sender,instance,created,*args,**kwargs):
+    """ 试用订单更新邀请数 """
+    if not created:
+        return
+    inv_count,state = XLInviteCount.objects.get_or_create(customer_id=instance.from_customer)
+    inv_count.apply_count = models.F('apply_count') + 1
+    inv_count.save()
+     
+post_save.connect(sampleapply_create_and_update_count, sender=XLSampleApply)
 
 
