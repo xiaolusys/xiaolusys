@@ -87,7 +87,7 @@ class XlmmFansManager(models.Manager):
             self.record_fans_num(from_xlmm.id, from_cu.id)
 
         else:   # 推荐人也不是代理
-            fanses = self.filter(refreal_cusid=from_cu.id)  # 找到含有该推荐人的粉丝表记录
+            fanses = self.filter(fans_cusid=from_cu.id)  # 找到含有该推荐人的粉丝表记录
             if fanses.exists():
                 fans = fanses[0]  # 提取记录中的　推荐人和代理创建粉丝记录
                 self.create(xlmm=fans.xlmm,
