@@ -189,7 +189,6 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
-
         xls = get_customer_apply(**{"openid": openid, "mobile":mobile})
         if xls:
             img_src = get_product_img(xls.sku_code)  # 获取sku图片
@@ -232,7 +231,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
         if not mobile:
             return render_to_response(self.xlsampleapply,
-                                  {"vipcode": vipcode, "pro": pro,
+                                  {"vipcode": vipcode,
+                                   "pro": pro,
                                    "mobile": vmobile,
                                    "mobile_message": self.mobile_error_message},
                                   context_instance=RequestContext(request))
@@ -252,17 +252,17 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             sample_apply.save()
             img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
             # 生成自己的邀请码
-            expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
-            XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
+#             expiried = datetime.datetime(2016, 2, 29, 0, 0, 0)
+#             XLInviteCode.objects.genVIpCode(mobile=mobile, expiried=expiried)
 
             custs = Customer.objects.filter(id=from_customer)  # 用户是否存在
             cust = custs[0] if custs.exists() else ''
-            if cust:  # 给分享人（存在）则计数邀请数量
-                participates = XLInviteCode.objects.filter(mobile=cust.mobile)
-                if participates.exists():
-                    participate = participates[0]
-                    participate.usage_count += 1
-                    participate.save()  # 使用次数累加
+#             if cust:  # 给分享人（存在）则计数邀请数量
+#                 participates = XLInviteCode.objects.filter(mobile=cust.mobile)
+#                 if participates.exists():
+#                     participate = participates[0]
+#                     participate.usage_count += 1
+#                     participate.save()  # 使用次数累加
             if ufrom == 'app':
                 # 如果用户来自app内部则跳转到活动激活页面
                 url = '/sale/promotion/xlsampleorder/'
@@ -333,12 +333,17 @@ class XlSampleOrderView(View):
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
         reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
-        res = {'promote_count': promote_count, 'first_digit_imgsrc': first_digit_imgsrc, "reds": reds,
+        res = {'promote_count': promote_count, 
+               'first_digit_imgsrc': first_digit_imgsrc, 
+               "reds": reds,
                "reds_money": reds_money,
                'second_digit_imgsrc': second_digit_imgsrc,
                "inactive_count": inactive_count,
                "active_count": active_count,
-               'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
+               'share_link': share_link, 
+               'link_qrcode': '', 
+               "vipcode": vipcode, 
+               'is_get_order': is_get_order}
         return res
 
     def handler_with_vipcode(self, vipcode, mobile, outer_id, sku_code, customer):
@@ -430,7 +435,6 @@ class XlSampleOrderView(View):
         if customer:
             outer_id = pro.outer_id
             xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id).order_by('-created')
-
             if xls_orders.exists():
                 customer_id = customer.id
                 mobile = customer.mobile
@@ -466,7 +470,6 @@ class XlSampleOrderView(View):
         vipcode = content.get('vipcode', None)
 
         mobile = customer.mobile if customer else None
-
         pro = get_active_pros_data()  # 获取活动产品数据
         title = "活动正式订单"
         if mobile is None:

@@ -1,7 +1,7 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
 from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
-from .models import XLInviteCode, XLReferalRelationship
+from .models import XLInviteCode, XLReferalRelationship,XLInviteCount
 
 
 class XLFreeSampleAdmin(admin.ModelAdmin):
@@ -55,6 +55,15 @@ class XLInviteCodeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(XLInviteCode, XLInviteCodeAdmin)
+
+
+class XLInviteCountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer', 'invite_count', 'click_count')
+    search_fields = ['id', 'customer__mobile', 'customer__openid']
+    list_per_page = 40
+
+
+admin.site.register(XLInviteCount, XLInviteCountAdmin)
 
 
 class XLReferalRelationshipAdmin(admin.ModelAdmin):
