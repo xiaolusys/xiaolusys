@@ -57,6 +57,11 @@
   text-align: center;
   margin-top: 10px;
 }
+.qrcode-info {
+  margin-top: 10px;
+  text-align:center;
+  display:none;
+}
 </style>
 {% endblock %}
 
@@ -85,7 +90,15 @@
       <span>长按扫描二维码参加活动</span>
     </div>
   </div>
+
+  <div id="id-qrcode-info" class="qrcode-info">
+    <span style="color:white">亲，此页是您的专属二维码页面。</span><br/>
+    <span style="color:#ffcf00">您可以截图保存，然后分享，所有通过您专属二维码参与活动的好友均为您的邀请。</span><br/>
+    <span style="color:white">文字消失后，就可以截图啦 :)~</span>
+  </div>
+
 </div>
+
 
 {% endblock %}
 
@@ -98,3 +111,8 @@
 
 {% endblock %}
 
+{% block tail_script %}
+<script type="text/javascript">
+$("#id-qrcode-info").slideUp(10000);
+</script>
+{% endblock %}
