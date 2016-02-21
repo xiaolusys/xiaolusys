@@ -257,8 +257,9 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             customer = customers[0]
         else:
             duser,state = DjangoUser.objects.get_or_create(username=mobile, is_active=True)
-            customer,state = Customer.objects.get_or_create(mobile=mobile,user=duser)
-
+            customer,state = Customer.objects.get_or_create(user=duser)
+            customer.mobile = mobile
+            customer.save()
         return Response({'result':0,'mobile':mobile,'valid_code':vcode,'uid':customer.id})
     
     @list_route(methods=['post'])
