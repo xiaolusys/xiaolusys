@@ -80,7 +80,7 @@ def get_customer(request):
     根据http request 对象　返回 特卖用户，不存在则返回None, 存在返回用户对象
     """
     try:
-        customer = Customer.objects.get(user=request.user)
+        customer = Customer.objects.get(user_id=request.user.id)
     except Customer.DoesNotExist:
         customer = None
     return customer
