@@ -520,12 +520,13 @@ class CusApplyOrdersView(APIView):
         获取访问用户的信息，　头像和昵称
         """
         unionid = get_Unionid(openid, WEIXIN_APPID)
-        wx_user = WeiXinUser.objects.get(unionid=unionid)
-        if wx_user:
-            nick = wx_user.nickname or constants.DEFAULT_NICK
-            profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
-            return nick, profile_image
-        else:
+        try:
+            wx_user = WeiXinUser.objects.get(unionid=unionid)
+            if wx_user:
+                nick = wx_user.nickname or constants.DEFAULT_NICK
+                profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
+                return nick, profile_image
+        except:
             return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
 
     def get(self, request):
