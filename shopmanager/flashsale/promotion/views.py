@@ -295,7 +295,7 @@ class APPDownloadView(View):
         from_customer = content.get("from_customer", None)  # 分享人的用户id
         url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        if "MicroMessenger" and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
+        if "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
             url = self.QQ_YINYONGBAO_URL
             return redirect(url)
         return render_to_response(self.download_page,
