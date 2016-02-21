@@ -526,6 +526,7 @@ class CusApplyOrdersView(APIView):
                 nick = wx_user.nickname or constants.DEFAULT_NICK
                 profile_image = wx_user.headimgurl or constants.DEFAULT_PROFILE_IMAGE
                 return nick, profile_image
+            return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
         except:
             return constants.DEFAULT_NICK, constants.DEFAULT_PROFILE_IMAGE
 
