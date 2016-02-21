@@ -30,6 +30,24 @@ from .models import XLInviteCode, XLReferalRelationship
 from flashsale.xiaolumm.models_fans import XlmmFans
 
 
+CARTOON_DIGIT_IMAGES = [
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-0.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-1.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-2.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-3.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-4.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-5.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-6.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-7.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-8.png",
+    "http://7xogkj.com2.z0.glb.qiniucdn.com/222-9.png"
+    ]
+
+def get_cartoon_digit(n):
+    n = int(n) % 10
+    return CARTOON_DIGIT_IMAGES[n]
+    
+    
 def get_active_pros_data():
     """
     获取活动产品数据　　
@@ -282,14 +300,19 @@ class XlSampleOrderView(View):
             vipcode = xlcodes[0].vipcode
         # 下载appd 的数量(激活的数量)
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()
-        download_str = str('%02.f' % app_down_count)
+        
+        second_num = app_down_count % 10
+        first_num = (app_down_count % 100 - second_num) / 10
+        first_digit_imgsrc = get_cartoon_digit(first_num)
+        second_digit_imgsrc = get_cartoon_digit(second_num)
+
         inactive_count = applys.filter(status=XLSampleApply.INACTIVE).count()
         share_link = self.share_link.format(**{'customer_id': customer_id})
         # 用户活动红包
         reds = self.my_red_packets(customer_id)
         reds_money = reds.aggregate(sum_value=Sum('value')).get('sum_value') or 0
-        res = {'promote_count': promote_count, 'fist_num': download_str[0], "reds": reds, "reds_money": reds_money,
-               'second_num': download_str[1], "inactive_count": inactive_count,
+        res = {'promote_count': promote_count, 'first_digit_imgsrc': first_digit_imgsrc, "reds": reds, "reds_money": reds_money,
+               'second_digit_imgsrc': second_digit_imgsrc, "inactive_count": inactive_count,
                'share_link': share_link, 'link_qrcode': '', "vipcode": vipcode, 'is_get_order': is_get_order}
         return res
 
