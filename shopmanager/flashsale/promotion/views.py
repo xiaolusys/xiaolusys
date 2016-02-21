@@ -702,6 +702,6 @@ class QrCodeView(APIView):
     def get(self, request, *args, **kwargs):
         customer = get_customer(request)
         qrimg = self.gen_custmer_share_qrcode_pic(customer.id, 'wxapp')
-        data = {"qrimg": qrimg}
+        data = {"qrimg": qrimg, "thumbnail":customer.thumbnail, "nick":customer.nick}
         response = render_to_response(self.template, data, context_instance=RequestContext(request))
         return response
