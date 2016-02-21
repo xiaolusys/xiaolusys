@@ -82,7 +82,7 @@ class XLSampleApply(BaseModel):
 class XLSampleOrder(BaseModel):
     """ 正式试用订单 """
 
-    xlsp_apply = models.IntegerField(db_index=True, verbose_name=u'使用申请id', default=0, blank=True)
+    xlsp_apply = models.IntegerField(db_index=True, verbose_name=u'试用申请id', default=0, blank=True)
     customer_id = models.CharField(max_length=64,db_index=True,verbose_name=u"用户ID")
     outer_id = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'商品编码')
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
@@ -95,7 +95,7 @@ class XLSampleOrder(BaseModel):
         verbose_name = u'推广/试用订单'
         verbose_name_plural = u'推广/试用订单列表'
         
-        
+
 class ReadPacket(BaseModel):
     """ 红包记录 """
 
@@ -113,5 +113,7 @@ class ReadPacket(BaseModel):
         db_table = 'flashsale_promotion_red_packet'
         verbose_name = u'推广/活动红包表'
         verbose_name_plural = u'推广/活动红包列表'
+
+
 
 

@@ -51,7 +51,7 @@ class XLInviteCount(BaseModel):
         db_table = 'flashsale_promotion_invitecount'
         verbose_name = u'推广/活动邀请数'
         verbose_name_plural = u'推广/活动邀请数列表'
-
+        
 
 class XLReferalRelationship(BaseModel):
     """ 用户邀请引用关系 """
@@ -63,4 +63,14 @@ class XLReferalRelationship(BaseModel):
         db_table = 'flashsale_promotion_relationship'
         verbose_name = u'推广/用户邀请关系'
         verbose_name_plural = u'推广/用户邀请关系'
+
+# from django.db.models.signals import post_save
+# def sampleorder_create_and_update_sample(sender,instance,created,*args,**kwargs):
+#     if not created:
+#         return
+#     referal
+#     XLInviteCount.objects.get_or_create()
+# 
+# post_save.connect(sampleorder_create_and_update_sample, sender=XLSampleOrder)
+
 
