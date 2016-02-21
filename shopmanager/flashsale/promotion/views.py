@@ -414,9 +414,7 @@ class XlSampleOrderView(View):
                 customer_id = customer.id
                 mobile = customer.mobile
                 sku_code = xls_orders[0].sku_code
-                print "xls_orders[0]:", xls_orders[0].id
                 img_src = get_product_img(sku_code)
-                print "img_src", img_src, 'sku_code:', sku_code
                 res = self.get_promotion_result(customer_id, outer_id, mobile)
                 return render_to_response(self.order_page, {'pro': pro, 'res': res, "title": title, "img_src": img_src},
                                           context_instance=RequestContext(request))
