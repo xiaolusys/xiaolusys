@@ -521,7 +521,8 @@ class ExchangeRedToCoupon(APIView):
         reds_count = reds.count()  # 红包条数
         if reds_count < 1:
             code = 2
-            return code  # 小于３条不予兑换
+            coupon_value = 0
+            return code, coupon_value  # 小于３条不予兑换
         coupon_10_count = int(sum_value / 10)  # 十元优惠券条数
         leave_mony = sum_value - coupon_10_count * 10  # 发完十元后还剩下多少钱
         coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
@@ -548,8 +549,10 @@ class ExchangeRedToCoupon(APIView):
         customer_id = str(customer.id) if customer else customer
         # 获取红包id
         ids = self.get_red_ids(request)
-        code, coupon_value = self.exchange_redpackets(ids=ids, customer=customer_id)
-        res = {"code": code, "coupon_value": coupon_value}
+        res = None
+        if ids:
+            code, coupon_value = self.exchange_redpackets(ids=ids, customer=customer_id)
+            res = {"code": code, "coupon_value": coupon_value}
         return HttpResponse(json.dumps(res))
 
 

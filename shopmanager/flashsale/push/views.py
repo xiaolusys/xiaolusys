@@ -40,7 +40,6 @@ class PushViewSet(viewsets.ModelViewSet):
         from flashsale.xiaolumm.models import XiaoluMama
         if not request.user or request.user.is_anonymous():
             # 未登录用户不做处理
-            print request.user
             return Response({'user_account': ''})
         # 验证表单数据
         now = time.time()
