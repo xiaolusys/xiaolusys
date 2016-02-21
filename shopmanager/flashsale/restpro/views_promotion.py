@@ -138,7 +138,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         return Response({"link_qrcode": link_qrcode,
                          "title": title,
                          "share_link": share_link,
-                         "share_img": "",
+                         "share_img": "http://7xogkj.com2.z0.glb.qiniucdn.com/222-share-pyq2.png",
                          "share_type": "link",
                          "active_dec": active_dec})
 
