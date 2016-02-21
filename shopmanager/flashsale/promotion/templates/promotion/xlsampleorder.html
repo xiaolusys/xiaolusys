@@ -177,7 +177,8 @@
 	<div class="col-xs-12" style="text-align:center">
 	  {% if res.inactive_count > 0 %}
 	  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">您有{{ res.inactive_count }}位好友未激活，查看 >></a>
-	  {% else %}
+	  {% endif %}
+      {% if res.active_count > 0 %}
 	  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">点击查看邀请好友 >></a>
 	  {% endif %}
 	</div>
@@ -241,7 +242,7 @@
 	    <span class="hongbao-text">{{ red.content }}</span>
 	  </div>
 	  {% endfor %}
-    <span id="exchange_reds">点击兑换</span>
+    <span id="exchange_reds" hidden="hidden">点击兑换</span>
 	</div>
       </div>
       <div class="row">

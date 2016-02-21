@@ -211,16 +211,11 @@ TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
 
 try:
     from prod_settings import *
-except ImportError:
+except ImportError,err:
     if not DEBUG:
-        raise Exception("PROD SETTINGS IS REQUIRED!")
-
-try:
+        raise err
     from local_settings import *
-except ImportError:
-    if DEBUG:
-        raise Exception("LOCAL SETTINGS IS REQUIRED!")
-
+  
 from task_settings import *
 
 if DEBUG:

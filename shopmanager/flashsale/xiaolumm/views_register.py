@@ -63,6 +63,7 @@ class MamaRegisterView(WeixinAuthMixin,PayInfoMethodMixin,APIView):
             raise exc
 
         if xiaolumm.progress == XiaoluMama.NONE:
+            print 'debug user:',openid,unionid,wx_user
             response = Response({
                         'openid':openid,
                         'unionid':unionid,

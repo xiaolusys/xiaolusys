@@ -1,5 +1,7 @@
-#pidfile='/var/www/deploy/taobao/gunicorn.pid'
 #daemon=True
+# use gunicorn run django low version should use gunicorn_django commond, but will raise 
+# Exception KeyError: KeyError(46012208,) in <module 'threading' from '/usr/lib/python2.7/threading.pyc'> ignored
+
 import multiprocessing
 
 workers=multiprocessing.cpu_count() * 2 + 1
