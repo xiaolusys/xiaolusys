@@ -215,6 +215,7 @@
       </div>
     </div>
 
+    {% if res.reds %}
     <div class="hongbao-section">
       <div class="row">
 	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-head.png"/>
@@ -222,28 +223,19 @@
       <div class="row">
 	<div class="col-xs-12 hongbao-record-bg">
 	  <div class="hongbao-total"><span>总额: ￥{{ res.reds_money }}</span></div>
-	  <!--
 	  {% for red in res.reds %}
 	  <div class="hongbao-record ">
 	    <span class="hongbao-time">{{ red.created }}</span></br>
 	    <span class="hongbao-text">{{ red.content }}</span>
 	  </div>
 	  {% endfor %}
-	  -->
-	  <div class="hongbao-record">
-	    <span class="hongbao-time">2016-02-22 10:30:21</span></br>
-	    <span class="hongbao-text">亲亲，您魅力引来三位好友，奖励现金红包 ￥1.68</span>
-	  </div>
-	  <div class="hongbao-record">
-	    <span class="hongbao-time">2016-02-22 10:30:21</span></br>
-	    <span class="hongbao-text">美女，您就是真白富美的命，现金红包拿去 ￥1.28</span>
-	  </div>
 	</div>
       </div>
       <div class="row">
 	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
       </div>
     </div>
+    {% endif %}
     </div>
 
 
