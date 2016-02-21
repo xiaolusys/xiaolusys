@@ -260,13 +260,13 @@
             <input type="text" hidden="hidden" name="ufrom" id="ufrom"/>
             <input type="text" hidden="hidden" name="from_customer" id="from_customer" value="{{ from_customer }}"/>
             <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
-	    <input id="id-sku" type="text" value="1" name="sku_code" hidden="hidden"/>
+	        <input id="id-sku" type="text" value="1" name="sku_code" hidden="hidden"/>
             <p id="id-errmsg" style="color:#FF8800; text-align:center">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
             <input type="hidden" value="{{ openid }}" name="openid"/>
 
             <input id="id-mobile"  name="mobile" class="mobileinput" align="center"
-		   {% if mobile %} type="hidden" {% else %} type="tel" {% endif %}
-                   {% if mobile %} value="{{ mobile }}" {% endif %} placeholder="请输入您的手机号">
+		    {% if mobile %} type="hidden" {% else %} type="tel" {% endif %}
+            {% if mobile %} value="{{ mobile }}" {% endif %} placeholder="请输入您的手机号">
 	    
             {% if vipcode_message %}<span> {{ vipcode_message }}</span>{% endif %}
             <input class="submit-button" value="" type="submit"/>

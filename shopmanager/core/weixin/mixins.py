@@ -29,7 +29,11 @@ class WeixinAuthMixin(object):
         if openid and OPENID_RE.match(openid):
             return True
         return False
-    
+
+    def get_cookie_openid_and_unoinid(self, request):
+        return options.get_cookie_openid(request.COOKIES,self._wxpubid)
+
+
     def get_openid_and_unionid(self, request):
         code    = request.GET.get('code')
         return options.get_user_unionid(

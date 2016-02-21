@@ -19,6 +19,10 @@ def gen_weixin_redirect_url(params):
     return redirect_url.format(settings.WEIXIN_AUTHORIZE_URL,param_string)
 
 def get_cookie_openid(cookies,appid):
+    """
+
+    :rtype : object
+    """
     x = cookies.get('sopenid','').split('|')
     y = cookies.get('sunionid','').split('|')
     if len(x) < 2 or len(y) <2 or x[0] != y[0] or y[0] != appid:
