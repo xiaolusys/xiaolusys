@@ -311,7 +311,7 @@ class XlSampleOrderView(View):
 
     def get_promotion_result(self, customer_id, outer_id, mobile):
         """ 返回自己的用户id　　返回邀请结果　推荐数量　和下载数量 """
-        inv_count ,state= XLInviteCount.objects.get_or_create(from_customer=customer_id)
+        inv_count ,state= XLInviteCount.objects.get_or_create(customer_id=customer_id)
         promote_count = inv_count.apply_count # 邀请的数量
         # 是否可以购买睡袋　邀请数量达到要求即可以跳转购买睡袋
         is_get_order = True if promote_count >= self.PROMOTE_CONDITION else False
