@@ -50,7 +50,7 @@ class PushViewSet(viewsets.ModelViewSet):
             return Response({'user_account': ''})
         validated_data = serializer.validated_data
         platform = validated_data['platform']
-        device_id = validated_data['device_id']
+        device_id = validated_data.get('device_id') or ''
         regid = validated_data['regid']
 
         customer = None
