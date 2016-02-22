@@ -18,7 +18,7 @@ from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft
 import functions
 from shopback.items.models import Product, ProductSku
-
+from supplychain.supplier.models import SaleProduct
 
 class ChangeDetailView(View):
 
@@ -30,13 +30,22 @@ class ChangeDetailView(View):
         flag_of_question = False
         flag_of_sample = False
         order_list_list = []
+        product_links = []
         for order in order_details:
+            product = Product.objects.get(id=order.product_id)
             order_dict = model_to_dict(order)
-            order_dict['pic_path'] = Product.objects.get(
-                id=order.product_id).pic_path
+            order_dict['pic_path'] = product.pic_path
             order_dict['supplier_outer_id'] = ProductSku.objects.get(
                 id=order.chichu_id).outer_id
+            if product.sale_product:
+                try:
+                    saleproduct = SaleProduct.objects.get(id=product.sale_product)
+                    order_dict['product_link'] = saleproduct.product_link or ''
+                except:
+                    pass
             order_list_list.append(order_dict)
+
+        product_link = product_links[0] if product_links else ''
         if order_list.status == "草稿":
             flag_of_status = True
         elif order_list.status == u'有问题' or order_list.status == u'5' or order_list.status == u'6':
@@ -48,7 +57,7 @@ class ChangeDetailView(View):
                                    "flagofstatus": flag_of_status,
                                    "flagofquestion": flag_of_question,
                                    "flag_of_sample": flag_of_sample,
-                                   "orderdetails": order_list_list},
+                                   "orderdetails": order_list_list, 'product_link': product_link},
                                   context_instance=RequestContext(request))
 
     @staticmethod
