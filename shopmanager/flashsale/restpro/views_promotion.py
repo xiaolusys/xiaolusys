@@ -145,7 +145,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id
         nick = customer.nick
-        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
+        #link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
         title,n = get_random_title()
 
         # add nick to title shared to PengYouQuan
@@ -157,7 +157,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         params = {'customer_id': customer_id, "ufrom": ufrom}
         share_link = self.get_share_link(params)
 
-        return Response({"link_qrcode": link_qrcode,
+        return Response({"link_qrcode": constants.SAHRE_ICON,
                          "title": title,
                          "share_link": share_link,
                          "share_img": constants.SAHRE_ICON,
