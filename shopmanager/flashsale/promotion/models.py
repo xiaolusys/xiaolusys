@@ -46,8 +46,8 @@ class XLInviteCode(BaseModel):
 class XLInviteCount(CacheModel):
     
     customer     = models.OneToOneField(Customer,verbose_name=u'特卖用户')
-    apply_count  = models.IntegerField(default=0, verbose_name=u'邀请次数')
-    invite_count = models.IntegerField(default=0, verbose_name=u'下载次数')
+    apply_count  = models.IntegerField(default=0, verbose_name=u'申请人数')
+    invite_count = models.IntegerField(default=0, verbose_name=u'激活人数')
     click_count  = models.IntegerField(default=0, verbose_name=u'点击次数')
     
     

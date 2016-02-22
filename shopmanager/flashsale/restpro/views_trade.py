@@ -660,7 +660,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'charge':'',
                 'status':SaleTrade.WAIT_BUYER_PAY,
                 'openid':customer.openid,
-                'extras_info':{'mm_linkid':form.get('mm_linkid','0'),'ufrom':form.get('ufrom','')}
+                'extras_info':{'mm_linkid':form.get('mm_linkid','0'),
+                               'ufrom':form.get('ufrom',''),
+                               'coupon':form.get('coupon_id','')}
                 })
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)

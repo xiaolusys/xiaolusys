@@ -147,7 +147,7 @@ class SaleTrade(PayBaseModel):
     receiver_mobile    =  models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u'手机')
     receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name=u'电话')
 
-    openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信用户ID')
+    openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信OpenID')
     charge  = models.CharField(max_length=28,verbose_name=u'支付编号')
     
     extras_info  = JSONCharMyField(max_length=256, blank=True, default='{}', verbose_name=u'附加信息')

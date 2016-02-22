@@ -221,7 +221,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         vmobile = content.get("mobile", None)  # 参与活动的手机号
         vipcode = content.get("vipcode", None)  # 活动邀请码
 
-        from_customer = content.get('from_customer') or 0  # 分享人的用户id
+        from_customer = content.get('from_customer') or '1'  # 分享人的用户id
         outer_id = content.get('outer_id', None)
         sku_code = content.get("sku_code", None)  # 产品sku码
         ufrom = content.get("ufrom", None)
@@ -249,6 +249,8 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             for k,v in content.iteritems():
                 if hasattr(sample_apply,k):
                     setattr(sample_apply,k,v)
+            if not sample_apply.from_customer:
+                sample_apply.from_customer = from_customer
             sample_apply.save()
             img_src = get_product_img(sample_apply.sku_code)  # 获取sku图片
             # 生成自己的邀请码
