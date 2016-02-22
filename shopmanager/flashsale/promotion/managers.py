@@ -3,6 +3,8 @@ import string, random
 from random import choice
 from django.db import models
 
+from core.ormcache.managers import CacheManager
+
 from flashsale.protocol import get_target_url
 from flashsale.protocol.constants import TARGET_TYPE_WEBVIEW
 from flashsale.push.mipush import mipush_of_ios, mipush_of_android
@@ -43,7 +45,7 @@ class VipCodeManager(models.Manager):
                 raise Exception(u'邀请码生成异常')
 
 
-class ReadPacketManager(models.Manager):
+class ReadPacketManager(CacheManager):
     content = ['美女，您就是真白富美的命，现金红包拿去{0}元。', '亲亲，您魅力引来三位好友，奖励现金红包{0}元。',
                '大王，您又吸引了三位好友，获得现金红包{0}元。']
     descs = ['美女，您就是真白富美的命，现金红包拿去。', '亲亲，您魅力引来三位好友，奖励现金红包。',

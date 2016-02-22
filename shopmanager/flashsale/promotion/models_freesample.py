@@ -1,12 +1,12 @@
 #-*- coding:utf8 -*-
 from django.db import models
-from core.models import BaseModel
+from core.models import BaseModel,CacheModel
 from django.contrib.auth.models import User
-from shopback.base.models import JSONCharMyField
+
 from .managers import ReadPacketManager
 
 
-class XLFreeSample(BaseModel):
+class XLFreeSample(CacheModel):
     """ 试用商品 """
     outer_id = models.CharField(max_length=64,blank=True,verbose_name=u'商品编码')
     name     = models.CharField(max_length=64,blank=True,verbose_name=u'活动名称')
@@ -24,7 +24,7 @@ class XLFreeSample(BaseModel):
         return self.name
 
 
-class XLSampleSku(BaseModel):
+class XLSampleSku(CacheModel):
     """ 试用商品规格 """
     sample_product = models.ForeignKey(XLFreeSample, verbose_name=u'试用商品', related_name="skus")
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
@@ -39,7 +39,7 @@ class XLSampleSku(BaseModel):
         return '-'.join([str(self.sample_product), self.sku_name])
 
 
-class XLSampleApply(BaseModel):
+class XLSampleApply(CacheModel):
     """ 试用申请 """
     INACTIVE = 0
     ACTIVED  = 1
@@ -81,7 +81,7 @@ class XLSampleApply(BaseModel):
         verbose_name_plural = u'推广/试用申请列表'
 
 
-class XLSampleOrder(BaseModel):
+class XLSampleOrder(CacheModel):
     """ 正式试用订单 """
 
     xlsp_apply = models.IntegerField(db_index=True, verbose_name=u'试用申请id', default=0, blank=True)
@@ -98,7 +98,7 @@ class XLSampleOrder(BaseModel):
         verbose_name_plural = u'推广/试用订单列表'
         
 
-class ReadPacket(BaseModel):
+class ReadPacket(CacheModel):
     """ 红包记录 """
 
     EXCHANGE = 1

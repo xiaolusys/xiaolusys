@@ -10,8 +10,8 @@ from .base import PayBaseModel
 
 class Register(PayBaseModel):
     
-    MAX_VALID_COUNT   = 3
-    MAX_SUBMIT_TIMES  = 6
+    MAX_VALID_COUNT   = 6
+    MAX_SUBMIT_TIMES  = 20
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
     cus_uid      = models.BigIntegerField(db_index=True,default=0,null=True,verbose_name=u"客户ID")

@@ -1,12 +1,14 @@
 # -*- coding:utf8 -*-
+import random, string
 import datetime
 from django.db import models
 from core.models import BaseModel
 from django.contrib.auth.models import User
-from shopback.base.models import JSONCharMyField
+
+from core.models import CacheModel
 from flashsale.pay.models import Customer
 from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
-import random, string
+
 from managers import VipCodeManager
 
 
@@ -41,12 +43,13 @@ class XLInviteCode(BaseModel):
         verbose_name = u'推广/活动邀请码'
         verbose_name_plural = u'推广/活动邀请码列表'
 
-class XLInviteCount(BaseModel):
+class XLInviteCount(CacheModel):
     
     customer     = models.OneToOneField(Customer,verbose_name=u'特卖用户')
     apply_count  = models.IntegerField(default=0, verbose_name=u'邀请次数')
     invite_count = models.IntegerField(default=0, verbose_name=u'下载次数')
     click_count  = models.IntegerField(default=0, verbose_name=u'点击次数')
+    
     
     class Meta:
         db_table = 'flashsale_promotion_invitecount'
