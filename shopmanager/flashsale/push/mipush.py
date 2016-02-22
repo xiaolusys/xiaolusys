@@ -192,7 +192,7 @@ class MiPush(object):
                           notify_id,
                           time_to_send,
                           extra=extra)
-        data['user_account'] = 'user-%d' % customer_id
+        data['user_account'] = 'customer-%d' % customer_id
         return self.post(self.account_url, data)
 
     @retry()
