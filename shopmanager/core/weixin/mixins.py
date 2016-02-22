@@ -1,4 +1,5 @@
 # coding:utf-8
+import os
 import re
 import json
 import urllib
@@ -28,7 +29,11 @@ class WeixinAuthMixin(object):
         if openid and OPENID_RE.match(openid):
             return True
         return False
-    
+
+    def get_cookie_openid_and_unoinid(self, request):
+        return options.get_cookie_openid(request.COOKIES,self._wxpubid)
+
+
     def get_openid_and_unionid(self, request):
         code    = request.GET.get('code')
         return options.get_user_unionid(
@@ -64,7 +69,6 @@ class WeixinAuthMixin(object):
     def get_snsuserinfo_redirct_url(self,request):
         """ 微信网页高级授权 可获取openid, unoinid"""
         return self.get_wxauth_redirct_url(request,scope="snsapi_userinfo")
-    
     
     
     

@@ -85,14 +85,20 @@ class ReadPacketManager(models.Manager):
         """
         customer = str(customer)
         r_packerscount = self.filter(customer=customer).count()  # 已经发放的红包数量
+
         if downcount in (1, 2, 3) and r_packerscount == 0:
             content = self.content[0]
             self.releasepacket(customer, content)
             return
+        # else:
+        #     packet_count = (downcount - 1) / 3 + 1  # 计算应该要发送红包的数量
+        #     li = range(packet_count - r_packerscount)
+        #     for i in li:
+        #         content = choice(self.content)
+        #         self.releasepacket(customer, content)
+        #     return
+        #
         else:
-            packet_count = (downcount - 1) / 3  # 计算应该要发送红包的数量
-            for i in range(packet_count - r_packerscount):
+            if (downcount - 1) % 3 == 0:
                 content = choice(self.content)
                 self.releasepacket(customer, content)
-            return
-

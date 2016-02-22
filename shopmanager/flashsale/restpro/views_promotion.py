@@ -5,6 +5,7 @@ import datetime
 from django.forms import model_to_dict
 from django.db.models import Sum, Count
 from django.shortcuts import get_object_or_404
+from django.core.urlresolvers import reverse
 
 from rest_framework.decorators import detail_route, list_route
 from rest_framework import exceptions
@@ -18,15 +19,25 @@ from rest_framework import viewsets
 
 from . import permissions as perms
 from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode
-import serializers
+from . import serializers
 from flashsale.pay.models import Customer
 from flashsale.promotion.models import XLReferalRelationship
 from options import gen_and_save_jpeg_pic
-
+from flashsale.promotion import constants
 import logging
+import random
 
 logger = logging.getLogger('django.request')
 
+PYQ_TITLES = [
+    '告诉你，今年元宵其实要这样过。。。#脸红心跳',
+    '哈哈，老公好不好，抢了睡袋就知道！',
+    '哈哈，只有1%的人知道，原来这两个我都想要～'
+]
+
+def get_random_title():
+    n = int(random.random()*3) % 3
+    return PYQ_TITLES[n], n
 
 class XLFreeSampleViewSet(viewsets.ModelViewSet):
     """ 获取免费申请试用　产品信息接口　"""
@@ -87,8 +98,8 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}&ufrom={ufrom}'
-    PROMOTION_LINKID_PATH = 'pmt'
+    share_link = constants.SHARE_LINK
+    PROMOTION_LINKID_PATH = constants.PROMOTION_LINKID_PATH
 
     def list(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -100,14 +111,19 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
         share_link = self.share_link.format(**{'customer_id': customer_id})
         link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, 'web')
-        res = {'promote_count': promote_count, 'app_down_count': app_down_count, 'share_link': share_link,
+        res = {'promote_count': promote_count, 
+               'app_down_count': app_down_count, 
+               'share_link': share_link,
                'link_qrcode': link_qrcode}
         return res
 
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
-
+    
+    def get_qrcode_page_link(self):
+        return urlparse.urljoin(settings.M_SITE_URL,reverse('qr_code_view'))
+        
     def gen_custmer_share_qrcode_pic(self, customer_id, ufrom):
         root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
         if not os.path.exists(root_path):
@@ -121,17 +137,33 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
             gen_and_save_jpeg_pic(share_link, file_path)
         return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
 
-    @list_route(methods=['post'])
+    @list_route(methods=['get','post'])
     def get_share_content(self, request):
-        """ 返回要分享的内容 """
+        """ 返回要分享的内容 share_type: picture and link"""
         content = request.REQUEST
         ufrom = content.get('ufrom', None)
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id
+        nick = customer.nick
         link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, ufrom)
-        title = "开年活动－红包不停发"
-        active_dec = "开年活动－开年有好礼，红包不停发，免费等你拿！"
-        return Response({"link_qrcode": link_qrcode, "title": title, "active_dec": active_dec})
+        title,n = get_random_title()
+
+        # add nick to title shared to PengYouQuan
+        if n == 0:
+            title = nick + title
+
+        active_dec = '天猫热销10万件的全棉睡袋，现在免费送啦！还全国包邮！宝宝用很好，送人也特别有面子！还有百万现金红包。。。不多说啦，抢抢抢去了！'
+
+        params = {'customer_id': customer_id, "ufrom": ufrom}
+        share_link = self.get_share_link(params)
+
+        return Response({"link_qrcode": link_qrcode,
+                         "title": title,
+                         "share_link": share_link,
+                         "share_img": constants.SAHRE_ICON,
+                         "qrcode_link":self.get_qrcode_page_link(),
+                         "share_type": "link",
+                         "active_dec": active_dec})
 
     def create(self, request, *args, **kwargs):
         content = request.REQUEST

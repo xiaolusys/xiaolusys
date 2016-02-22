@@ -56,7 +56,7 @@ class XlmmFansManager(models.Manager):
 
         recod, state = FansNumberRecord.objects.get_or_create(xlmm=xlmm, xlmm_cusid=xlmm_cusid)
         if not state:
-            recod.fans_num += 1
+            recod.fans_num = models.F('fans_num') + 1
             recod.save()
         return
 
@@ -68,36 +68,32 @@ class XlmmFansManager(models.Manager):
         # print "from_customer", from_customer, "customer", customer
         from flashsale.pay.models import Customer
 
-        current_cus = Customer.objects.filter(id=customer).exclude(status=Customer.DELETE)
-        from_cus = Customer.objects.filter(id=from_customer).exclude(status=Customer.DELETE)
+        if from_customer == customer:
+            return
 
-        if current_cus.exists():
-            cu = current_cus[0]
-            xlmm = cu.getXiaolumm()
+        current_cu = Customer.objects.get(pk=customer)
+        from_cu = Customer.objects.get(pk=from_customer)
 
-            if xlmm:  # 如果当前用户是代理
-                self.get_or_create(xlmm=xlmm.id, xlmm_cusid=cu.id)
-                # 记录数量
-                self.record_fans_num(xlmm.id, cu.id)
-            else:  # 当前用户不是代理
-                if from_cus.exists():
-                    from_cu = from_cus[0]
-                    from_xlmm = from_cu.getXiaolumm()
+        xlmm = current_cu.getXiaolumm()
+        if xlmm:  # 如果申请人自己是小鹿妈妈，不做处理
+            return
 
-                    if from_xlmm:  # 推荐人是代理
-                        self.get_or_create(xlmm=from_xlmm.id, xlmm_cusid=from_cu.id, refreal_cusid=cu.id)
+        from_xlmm = from_cu.getXiaolumm()
+        if from_xlmm:  # 推荐人是代理
+            self.create(xlmm=from_xlmm.id,
+                        xlmm_cusid=from_cu.id,
+                        refreal_cusid=from_customer,
+                        fans_cusid=customer)
+            self.record_fans_num(from_xlmm.id, from_cu.id)
 
-                        # 记录数量
-                        self.record_fans_num(from_xlmm.id, from_cu.id)
-
-                    else:   # 推荐人也不是代理
-                        fanses = self.filter(refreal_cusid=from_cu.id)  # 找到含有该推荐人的粉丝表记录
-                        if fanses.exists():
-                            fans = fanses[0]  # 提取记录中的　推荐人和代理创建粉丝记录
-                            self.get_or_create(xlmm=fans.xlmm, xlmm_cusid=fans.xlmm_cusid,
-                                               refreal_cusid=fans.refreal_cusid, fans_cusid=cu.id)
-
-                            # 记录数量
-                            self.record_fans_num(fans.xlmm, fans.fans.xlmm_cusid)
+        else:   # 推荐人也不是代理
+            fanses = self.filter(fans_cusid=from_cu.id)  # 找到含有该推荐人的粉丝表记录
+            if fanses.exists():
+                fans = fanses[0]  # 提取记录中的　推荐人和代理创建粉丝记录
+                self.create(xlmm=fans.xlmm,
+                            xlmm_cusid=fans.xlmm_cusid,
+                            refreal_cusid=from_customer,
+                            fans_cusid=current_cu.id)
+                self.record_fans_num(fans.xlmm, fans.xlmm_cusid)
         return
 

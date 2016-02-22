@@ -30,19 +30,6 @@
 	  padding-bottom: 4px;
 	}
 
-	.visible-border {
-	  color: white;
-	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-unselected.png);
-	  background-repeat:no-repeat;
-	  background-size:100%;	
-	}
-	.highlight-border {
-	  color: #220a3d;
-	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-selected.png);
-	  background-repeat:no-repeat;
-	  background-size:100%;
-
-	}
 
 
 	.mobileinput{
@@ -57,6 +44,7 @@
 	  height: 40px;
 	  color: white;
 	  font-size:16px;
+	  margin-bottom: 20px;
 	}
 	.submit-button{
 	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-submit-application.png);
@@ -64,7 +52,6 @@
 	  background-size:100%;
 	  background-color:transparent;
 	  border:0px;
-	  margin-top:20px;
 	  width: 230px;
 	  height: 40px;
 	  display: block;
@@ -118,117 +105,177 @@
 	  margin-top:20px;
 	}
 
-	.greetings {
-	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-greetings.png?imageMogr2/thumbnail/400/format/png/quality/100);
-	  background-repeat:no-repeat;
-	  background-size:100%;
-	  margin-top:-8px;
+	.mama-profile-image {
+	  position:relative;
+	  left: 10%;
+	  top: -16px;
+	  width: 12%;
 	}
-
 	.mama-label {
 	  color: #ffcf00;
 	  font-weight: bold;
-	  padding-left: 36px;
 	  position:relative;
-	  top: -10px;
+	  left: 10%;
+	  top: -8px;
+	}
+
+	.border-show {
+	  border:1px solid green;
+	}
+	.border-show-red {
+	  border:1px solid red;
+	}
+
+	.mix-head-image {
+	  width:100%;
+	  vertical-align:bottom;
+	}
+	.mix-head-image-bg {
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-head-plain.png);
+	  background-color:transparent;
+	  background-size:100%;
+	  background-repeat: no-repeat;
+	}
+	.mix-tail-image {
+	  width:100%;
+	  vertical-align:top;
+	}
+	.mix-body-bg {
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-body-bg.png);
+	  background-color:transparent;
+	  background-size:100% 1px;
 	}
 	.mama-greeting-text {
+	  width:100%;
+	  display:inline-block;
 	  color: white;
 	  font-size: 12px;
-	  padding-left:10px;
-	  padding-right:10px;
-	  height: 52px;
 	  text-align:center;
+	  margin:auto;
 	}
-	.mama-profile-image {
-	  position:relative;
-	  left:30px;
-	  top: -24px;
-	  width: 46px;
-	  height: 46px;
+	.color-choice {
+	  display: inline-block;
+	  width:18%;
+	  margin-left: 6px;
+	  margin-right: 6px;
+	  padding: 6px;
+	  font-size: 14px;
+	  text-align: center;
+	  border-radius: 4px;
 	}
 
+	.visible-border {
+	  color: white;
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-unselected.png);
+	  background-repeat:no-repeat;
+	  background-size:100%;	
+	}
+	.highlight-border {
+	  color: #220a3d;
+	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-selected.png);
+	  background-repeat:no-repeat;
+	  background-size:100%;
 
+	}
+	.color-size {
+	  margin-top: 10px;
+	}
+	.sleepingbag-section {
+	  margin-top: 20px;
+	}
+	.apply-button-section {
+	  margin-top: 20px;
+	}
     </style>
 {% endblock %}
 
 
     {% block content2 %}
+    <div {% if not download %} style="position:relative; top:-60px" {% endif %}>
     {% if not download %}
-    <div class="greetings" >
+    <div class="greetings-section">
       <div class="row">
-	<div class="col-xs-12">
-	  <div style="height:26px">
-	    <img {% if referal %} src="{{ referal.thumbnail }}" {% else %} src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg"{% endif %} alt="..." class="img-circle mama-profile-image"/>
-	    <span class="mama-label">{% if referal %}{{ referal.nick }}{% else %}小鹿妈妈{% endif %}</span>
-	  </div>
+	<div class="col-xs-12 mix-head-image-bg">
+	  <img {% if referal %} src="{{ referal.thumbnail }}" {% else %} src="http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg"{% endif %} alt="..." class="img-circle mama-profile-image"/>
+	  <span class="mama-label">{% if referal %}{{ referal.nick }}{% else %}小鹿妈妈{% endif %}</span>
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-xs-12 mix-body-bg">
 	  <div class="mama-greeting-text">
 	    <span>啊哈哈，我刚抢完睡袋和红包，你也来吧，<br/>好运发发发哦～～</span>
 	  </div>
 	</div>
       </div>
+      <div class="row">
+	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-tail.png"/>
+      </div>
     </div>
     {% endif %}
-    {% endblock %}
 
-
-    {% block content3 %}
-    {% if download %}
-    <div class="product-background-done" style="padding-bottom:30px">
-    {% else %}
-    <div class="product-background-start" style="padding-bottom:10px">
-    {% endif %}
+    <div class="sleepingbag-section">
       <div class="row">
-	<div class="col-xs-12" >
-	  <div style="margin-top:50px">
+	{% if download %}
+	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-header-applied.png"/>
+	{% else %}
+	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-head-start.png"/>
+	{% endif %}
+      </div>
+      <div class="row">
+	<div class="col-xs-12 mix-body-bg">
+	  <div>
 	    <img id="id-bag" src="{{ img_src }}" style="width:100%"/>
-	    
 	  </div>
+	  {% if not download %}
+	  <div class="color-size">
+	    <div class="color-choice"><span style="color:white">颜色 :</span></div>
+	    <div id="id-color-yellow" class="highlight-border color-choice" ><span >黄色</span></div>
+	    <div id="id-color-blue" class="visible-border color-choice"><span>蓝色</span></div>
+	    <div id="id-color-pink" class="visible-border color-choice"><span>粉色</span></div>
+	  </div>
+	  <div class="color-size">
+	    <div class="color-choice"><span style="color:white">尺码 :</span></div>
+	    <div id="id-size-3" class="highlight-border color-choice"><span >0-3岁</span></div>
+	    <div id="id-size-5" class="visible-border color-choice"><span >3-5岁</span></div>
+	  </div>
+	  {% endif %}
 	</div>
       </div>
-      {% if not download %}
-      <div class="row" style="margin-top:20px">
-	<div class="col-xs-2 choice"></div>
-	<div class="col-xs-2 choice" style="padding: 1px 1px; color:white"><span>颜色 :</span></div>
-	<div class="col-xs-2 choice"><span id="id-color-yellow" class="highlight-border">黄色</span></div>
-	<div class="col-xs-2 choice"><span id="id-color-blue" class="visible-border">蓝色</span></div>
-	<div class="col-xs-2 choice"><span id="id-color-pink" class="visible-border">粉色</span></div>
-	<div class="col-xs-2 choice"></div>
-      </div>
-      <div class="row" style="margin-top:20px;margin-bottom:10px">
-	<div class="col-xs-2 choice"></div>
-	<div class="col-xs-2 choice" style="padding: 1px 1px; color:white"><span>尺码 :</span></div>
-	<div class="col-xs-2 choice"><span class="highlight-border" id="id-size-3">0-3岁</span></div>
-	<div class="col-xs-2 choice"><span class="visible-border" id="id-size-5">3-5岁</span></div>
-	<div class="col-xs-2 choice"></div>
-	<div class="col-xs-2 choice"></div>
-      </div>
-      {% endif %}
-    </div>
-    {% endblock %}
-
-    {% block content4 %}
-    <div class="row" style="margin-top:20px">
-      <div class="col-xs-12" style="text-align:center">
+      <div class="row">
 	{% if download %}
-        <a class="download-button" href="/sale/promotion/appdownload/" value="" type="button"></a>
+	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-tail-applied.png"/>
 	{% else %}
-        <form action="" method="post" onsubmit="return check()">
-          <input type="text" hidden="hidden" name="ufrom" id="ufrom"/>
-          <input type="text" hidden="hidden" name="from_customer" id="from_customer" value="{{ from_customer }}"/>
-          <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
-	  <input id="id-sku" type="text" value="1" name="sku_code" hidden="hidden"/>
-          <p id="id-errmsg" style="color:#FF8800; text-align:center">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
-          <input type="hidden" value="{{ openid }}" name="openid"/>
-
-          <input id="id-mobile" type="tel" name="mobile" class="mobileinput" align="center"
-                 {% if mobile %} value="{{ mobile }}" {% endif %} placeholder="请输入您的手机号">
-	  
-          {% if vipcode_message %}<span> {{ vipcode_message }}</span>{% endif %}
-          <input class="submit-button" value="" type="submit"/>
-        </form>
-
+	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-tail.png"/>
 	{% endif %}
+      </div>
+    </div>
+
+    <div class="apply-button-section">
+      <div class="row">
+	<div class="col-xs-12" style="text-align:center">
+	  {% if download %}
+          <a class="download-button" href="/sale/promotion/appdownload/" value="" type="button"></a>
+	  {% else %}
+          <form action="" method="post" onsubmit="return check()">
+            <input type="text" hidden="hidden" name="ufrom" id="ufrom"/>
+            <input type="text" hidden="hidden" name="from_customer" id="from_customer" value="{{ from_customer }}"/>
+            <input type="text" value="{{ pro.sample.outer_id }}" name="outer_id" hidden="hidden"/>
+	        <input id="id-sku" type="text" value="1" name="sku_code" hidden="hidden"/>
+            <p id="id-errmsg" style="color:#FF8800; text-align:center">{% if mobile_message %}{{ mobile_message }}{% endif %}</p>
+            <input type="hidden" value="{{ openid }}" name="user_openid"/>
+            <input id="id-img" type="hidden" value="{{wxprofile.headimgurl}}" name="headimgurl" />
+            <input id="id-nick" type="hidden" value="{{wxprofile.nickname}}" name="nick" />
+            <input id="id-mobile"  name="mobile" class="mobileinput" align="center"
+		    {% if mobile %} type="hidden" {% else %} type="tel" {% endif %}
+            {% if mobile %} value="{{ mobile }}" {% endif %} placeholder="请输入您的手机号">
+	    
+            {% if vipcode_message %}<span> {{ vipcode_message }}</span>{% endif %}
+            <input class="submit-button" value="" type="submit"/>
+          </form>
+
+	  {% endif %}
+	</div>
+      </div>
       </div>
     </div>
     {% endblock %}

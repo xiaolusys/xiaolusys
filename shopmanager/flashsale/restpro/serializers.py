@@ -44,7 +44,7 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone',
-                  'status', 'created', 'modified', 'xiaolumm', 'has_usable_password')
+                  'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password')
 
 
 #####################################################################################
