@@ -232,7 +232,6 @@ FileProgress.prototype.setStatus = function(status, isUploading) {
 
 
 FileProgress.prototype.appear = function() {
-    console.log("fff");
     if (this.getTimer() !== null) {
         clearTimeout(this.getTimer());
         this.setTimer(null);

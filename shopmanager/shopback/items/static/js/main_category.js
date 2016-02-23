@@ -9,6 +9,14 @@ $(function () {
         dateFormat: "yy-mm-dd"
     });
 
+    $('.checkbox-group-choose').change(function(){
+        var checkbox_group_id = '#' + $(this).val();
+        if($(this).prop('checked'))
+            $(checkbox_group_id).show();
+        else
+            $(checkbox_group_id).hide();
+    });
+
     var urlParams = parseUrlParams(window.location.href);
     supplier_id = urlParams["supplier_id"];
     saleproduct = urlParams["saleproduct"];
@@ -86,12 +94,34 @@ function showCategory(first_cate, second_cate, third_cate) {
         $('input[name=location_id]').val($(this).val());
     });
 
+    var level_2_name = '', level_3_name= '';
     loc.fillOption('first_category', '0', first_cate);
-    if(first_cate)
+    if(first_cate){
         loc.fillOption('second_category', '0,' + first_cate, second_cate);
-    if(second_cate)
+        level_2_name = loc.getName('0,' + first_cate, second_cate);
+    }
+    if(second_cate){
         loc.fillOption('third_category', '0,' + first_cate + ',' + second_cate, third_cate);
-
+        level_3_name = loc.getName('0,' + first_cate + ',' + second_cate, third_cate);
+    }
+    if(level_3_name == '内衣'){
+        $('#sku-group-2-choose').trigger('click');
+        $('#chima-group-3-choose').trigger('click');
+    }
+    else{
+        if(level_2_name == '女装')
+            $('#sku-group-1-choose').trigger('click');
+        else if(level_2_name == '童装')
+            $('#sku-group-3-choose').trigger('click');
+    }
+    if(['上装', '外套', '连衣裙'].indexOf(level_3_name) != -1)
+        $('#chima-group-1-choose').trigger('click');
+    else if(level_3_name == '下装')
+        $('#chima-group-2-choose').trigger('click');
+    else if(level_3_name == '套装'){
+        $('#chima-group-1-choose').trigger('click');
+        $('#chima-group-2-choose').trigger('click');
+    }
 }
 
 function showSupplier() {

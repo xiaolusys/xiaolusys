@@ -6,24 +6,32 @@ $(function () {
     $("#chima-add").click(function () {
         var chimatext = $(".chima-add").val().trim();
         if (chimatext.length > 0) {
-            $(".chima-content").append(template("chima-one", {"chima": chimatext}));
+            $("#sku-group-5 .panel-body").append(template("chima-one", {"chima": chimatext}));
+            if($('#sku-group-5').is(':hidden'))
+                $('#sku-group-5').show();
             $(".sku-choose").click(dynamic_generate_chi);
             $(".sku-choose").click(dynamic_generate_sku);
         }else{
-             swal("填写空白", "(^_^)", "warning");
+            swal("填写空白", "(^_^)", "warning");
         }
     });
     $("#color-add").click(function () {
         var colortext = $(".color-add").val().trim();
-        console.log(colortext.length)
         if (colortext.length > 0) {
-            $(".color-content").append(template("color-one", {"color": colortext}));
+            $("#other-colors").append(template("color-one", {"color": colortext}));
             $(".color-choose").click(dynamic_generate_sku);
         }else{
             swal("填写空白", "(^_^)", "warning");
         }
     });
-})
+    $('#duizhao-add').click(function(){
+        var duizhaotext = $('.duizhao-add').val();
+        if(duizhaotext && duizhaotext.length > 0){
+            $('#chima-group-4 .panel-body').append(template('duizhao-one', {duizhao: duizhaotext.trim()}));
+            $('.chima-choose').click(dynamic_generate_chi);
+        }
+    });
+});
 function dynamic_generate_sku() {
     var all_color = $(".color-choose");
     var all_sku = $(".sku-choose");
@@ -71,7 +79,7 @@ function dynamic_generate_sku() {
             };
             $(e).val(prefix+count);
             count ++;
-        })
+        });
     });
     $(".c_remainnum:first").change(function(){
         $('input[id$=remainnum]').val($(this).val());
@@ -122,5 +130,14 @@ function dynamic_generate_chi() {
         var thead = template('thead-template', result);
         $('#chima-table thead').html(thead);
         $('#chima-table tbody').html(html);
+        $('#chima-table td:nth-child(3) input').unbind().bind('blur', function(){
+            var step = $(this).closest('tr').find('select option:selected').val() - 0;
+            var base = $(this).val() - 0;
+            if(base){
+                $(this).closest('td').nextAll().find('input').each(function(i, el){
+                    $(el).val(base + step * (i + 1));
+                });
+            }
+        });
     }
 }

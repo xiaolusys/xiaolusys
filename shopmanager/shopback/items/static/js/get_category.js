@@ -29,6 +29,14 @@ Category.prototype.find	= function(id) {
     return this.items[id];
 };
 
+Category.prototype.getName = function(loc_id, selected_id){
+    var json = this.find(loc_id);
+    if(json)
+        return json[selected_id] || '';
+    return '';
+};
+
+
 Category.prototype.fillOption = function(el_id, loc_id, selected_id) {
     var el = $('#'+el_id);
     var json = this.find(loc_id);
