@@ -149,10 +149,10 @@ class WeixinAppBackend(object):
         try:
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             if profile.user:
-                if not profile.user.is_active:
-                    profile.user.is_active = True
-                    profile.user.save()
-                return profile.user
+                user = profile.user
+                if not user.is_active:
+                    user.is_active = True
+                    user.save()
             else:
                 user,state = User.objects.get_or_create(username=unionid,is_active=True)
                 profile.user = user
@@ -163,7 +163,7 @@ class WeixinAppBackend(object):
                 return AnonymousUser()
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
-            profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
+            profile,state = Customer.objects.get_or_create(unionid=unionid,user=user)
             if not profile.nick.strip():
                 profile.nick = nickname
                 profile.thumbnail = headimgurl
