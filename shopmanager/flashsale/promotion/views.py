@@ -406,6 +406,7 @@ class XlSampleOrderView(View):
         mobile = customer.mobile if customer else None
         if customer:
             outer_id = pro.outer_id
+            sample_order = None
             xls_orders = XLSampleOrder.objects.filter(customer_id=customer.id).order_by('-created')
             if xls_orders.exists():
                 sample_order = xls_orders[0]
@@ -414,8 +415,6 @@ class XlSampleOrderView(View):
                 sku_code = xls_orders[0].sku_code
                 img_src = get_product_img(sku_code)
                 res = self.get_promotion_result(customer_id, outer_id, mobile, sample_order)
-                return render_to_response(self.order_page, {'pro': pro, 'res': res, "title": title, "img_src": img_src},
-                                          context_instance=RequestContext(request))
             else:
                 # 查找存在的申请，　如果有存在的申请则直接为用户激活
                 xlapply = get_customer_apply(**{"mobile": mobile})
@@ -430,8 +429,13 @@ class XlSampleOrderView(View):
                     # 如果当前用户没有申请过则跳转到申请页面并且指定来自平台，和推荐用户
                     url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
                     return redirect(url)
-                return render_to_response(self.order_page, {"pro": pro, "res": res, "title": title, "img_src": img_src},
-                                          context_instance=RequestContext(request))
+                
+            return render_to_response(self.order_page, {"pro": pro, 
+                                                        "res": res, 
+                                                        "title": title, 
+                                                        "img_src": img_src,
+                                                        "sample_order":sample_order},
+                                      context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
                                   context_instance=RequestContext(request))
 
@@ -642,9 +646,9 @@ class ReceiveAwardView(PromotionResultMixin, APIView):
         sampleorder_id = request.POST.get('sampleorder_id')
         sampleorder = get_object_or_404(XLSampleOrder,id=sampleorder_id)
         if sampleorder.is_award_complete():
-            return Response({'code':1,'message':'award has receive!'})
+            return Response({'code':1,'message':'已领取优惠券.'})
         sampleorder.award_confirm()
-        return Response({'code':0,'message':'receive award success!'})
+        return Response({'code':0,'message':'领取成功!'})
 
 
 class QrCodeView(APIView):
