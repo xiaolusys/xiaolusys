@@ -8,19 +8,18 @@ from django.db import connection
 from flashsale.promotion.models import XLInviteCount
 
 def get_award_sql():
-    return 
-    """ 
-    SELECT 
-        fps.id
-    FROM
-        flashsale_promotion_sampleorder fps
-            LEFT JOIN
-        flashsale_promotion_invitecount fpi ON fps.customer_id = fpi.customer_id
-    WHERE
-        fps.status = 0
-            AND fpi.invite_count >= {}
-                AND fps.created > '2016-02-22'
-    ORDER BY fpi.invite_count desc;
+    return """ 
+        SELECT 
+            fps.id
+        FROM
+            flashsale_promotion_sampleorder fps
+                LEFT JOIN
+            flashsale_promotion_invitecount fpi ON fps.customer_id = fpi.customer_id
+        WHERE
+            fps.status = 0
+                AND fpi.invite_count >= {0}
+                    AND fps.created > '2016-02-22'
+        ORDER BY fpi.invite_count desc;
     """
     
 def awards(invite_cnt,awdcode):
