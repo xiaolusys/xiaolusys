@@ -53,8 +53,8 @@ class XLInviteCount(CacheModel):
     
     class Meta:
         db_table = 'flashsale_promotion_invitecount'
-        verbose_name = u'推广/活动邀请数'
-        verbose_name_plural = u'推广/活动邀请数列表'
+        verbose_name = u'推广/活动邀请结果'
+        verbose_name_plural = u'推广/活动邀请结果列表'
         
 
 class XLReferalRelationship(BaseModel):
