@@ -5,7 +5,7 @@ setup_environ(settings)
 
 from django.db import connection
 
-from flashsale.promotion.models import XLInviteCount
+from flashsale.promotion.models import XLSampleOrder
 
 def get_award_sql():
     return """ 
@@ -33,7 +33,7 @@ def awards(invite_cnt,awdcode):
     cursor.close()
     update_rows = 0
     for sid in sids:
-        row = XLInviteCount.objects.filter(id=sid[0],status=0).update(status=awdcode)
+        row = XLSampleOrder.objects.filter(id=sid[0],status=0).update(status=awdcode)
         update_rows += row
     
     print "update total:",update_rows
