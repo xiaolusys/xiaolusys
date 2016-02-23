@@ -524,7 +524,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         mobile = request.data['vmobile']
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile): 
             return Response({"code":4,"result": "false","info":"请输入正确的手机号"})
-        already_exist = Customer.objects.filter(mobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(user__username=mobile)
         if already_exist.count() > 0:
             return Response({"code":1,"result": "1","info":"手机已经绑定"})  
 
