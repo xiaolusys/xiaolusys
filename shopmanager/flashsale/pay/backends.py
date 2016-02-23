@@ -197,24 +197,18 @@ class SMSLoginBackend(object):
             if not register.is_submitable() or not register.check_code(sms_code):
                 return AnonymousUser()
             
-            profile = Customer.objects.get(mobile=mobile)
-            if profile.user:
-                if not profile.user.is_active:
-                    profile.user.is_active = True
-                    profile.user.save()
-                return profile.user
-            else:
-                user,state = User.objects.get_or_create(username=mobile,is_active=True)
-                profile.user = user
-                profile.save()
-        
+            user = User.objects.get(username=mobile)
+            if not user.is_active:
+                user.is_active = True
+                user.save()
+
         except Register.DoesNotExist:
             return AnonymousUser()
-        except Customer.DoesNotExist:
+        except User.DoesNotExist:
             if not self.create_unknown_user:
                 return AnonymousUser()
             user,state = User.objects.get_or_create(username=mobile,is_active=True)
-            profile,state = Customer.objects.get_or_create(mobile=mobile,user=user)
+            Customer.objects.create(user=user,mobile=mobile)
         return user
     
     def get_user(self, user_id):

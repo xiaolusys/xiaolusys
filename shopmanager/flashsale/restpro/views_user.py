@@ -565,7 +565,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response({"code":2,"info":"手机号密码不对","result": "2"})
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"code":2,"info":"手机号码不对","result": "2"})
-        already_exist = Customer.objects.filter(mobile=mobile)
+        #用户避免用户手机号绑定多个微信账号
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(user__username=mobile)
         if already_exist.count() > 0:
             return Response({"code":1,"info":"手机已经绑定","result": "1"})
         django_user = request.user
