@@ -749,18 +749,21 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
             cart_total_fee  = 0
             cart_discount   = 0
+
+            item_ids = []
             for cart in cart_qs:
                 if not cart.is_good_enough():
                     raise exceptions.ParseError(u'抱歉,商品已被抢光')
                 cart_total_fee += cart.price * cart.num * 100
                 cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
-            
+                item_ids.append(cart.item_id)
+
             if coupon_id:
                 # 对应用户的未使用的优惠券
                 coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
                                                  status=UserCoupon.UNUSED)
                 try:  # 优惠券条件检查
-                    coupon.check_usercoupon()
+                    coupon.check_usercoupon(product_ids=item_ids)
                     coupon.cp_id.template.usefee_check((cart_total_fee - cart_discount) / 100.0)  # 检查消费金额是否满足
                     coupon_pool = coupon.cp_id
                 except Exception, exc:
@@ -825,7 +828,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                              customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
             try:  # 优惠券条件检查
-                coupon.check_usercoupon()
+                coupon.check_usercoupon(product_ids=[product.id, ])
                 coupon.cp_id.template.usefee_check((bn_totalfee - bn_discount) / 100.0)  # 检查消费金额是否满足
                 coupon_pool = coupon.cp_id
             except Exception, exc:

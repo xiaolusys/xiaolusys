@@ -49,6 +49,7 @@ class CouponTemplate(PayBaseModel):
     preset_days = models.IntegerField(default=0, verbose_name=u"预置天数")
     active_days = models.IntegerField(default=0, verbose_name=u"有效天数")
     use_fee = models.FloatField(default=0.0, verbose_name=u'满单额')  # 满多少可以使用
+    bind_pros = models.CharField(max_length=256, null=True, blank=True, verbose_name=u'绑定产品')  # 指定产品可用
     deadline = models.DateTimeField(blank=True, verbose_name=u'截止日期')
     use_notice = models.TextField(blank=True, verbose_name=u"使用须知")
     way_type = models.IntegerField(default=0, choices=COUPON_WAY, verbose_name=u"领取途径")
@@ -88,6 +89,13 @@ class CouponTemplate(PayBaseModel):
         vas_t = self.deadline - datetime.timedelta(days=self.active_days)
         if now < vas_t:
             raise AssertionError(u'%s至%s启动使用' % (vas_t, self.deadline))
+
+    def check_bind_pros(self, product_ids=None):
+        """ 检查绑定的产品 """
+        tpl_bind_pros = self.bind_pros.strip().split(',') if self.bind_pros else []
+        for pro_id in product_ids:
+            if str(pro_id) not in tpl_bind_pros:
+                raise AssertionError(u'产品不支持使用优惠券')
 
 
 class CouponsPool(PayBaseModel):
@@ -172,12 +180,14 @@ class UserCoupon(PayBaseModel):
         self.status = self.UNUSED
         self.save()
 
-    def check_usercoupon(self, product_id=None):
+    def check_usercoupon(self, product_ids=None):
         """  验证并检查 用户优惠券 """
         self.cp_id.template.template_check()
         self.cp_id.poll_check()
         self.coupon_check()
         self.cp_id.template.check_date()
+        if product_ids is not None:
+            self.cp_id.template.check_bind_pros(product_ids=product_ids)
         return
 
     def release_deposit_coupon(self, **kwargs):

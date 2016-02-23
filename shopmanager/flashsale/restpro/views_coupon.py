@@ -123,7 +123,7 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)
         try:
-            coupon.check_usercoupon()  # 验证优惠券
+            coupon.check_usercoupon(product_ids=[item, ])  # 验证优惠券
             coupon.cp_id.template.usefee_check(price)
         except Exception, exc:
             raise APIException(u"错误:%s" % exc.message)
