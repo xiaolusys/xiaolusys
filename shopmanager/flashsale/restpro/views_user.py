@@ -600,7 +600,53 @@ class CustomerViewSet(viewsets.ModelViewSet):
             logger.error(exc.message or 'empty error',exc_info=True)
             return Response({"code":5, "result": "5", 'info':exc.message})
         return Response({"code":0, "result": "0",'info':'success'})
-    
+
+
+    @list_route(methods=['post'])
+    def bang_mobile_unpassword(self, request):
+        """绑定手机,并初始化密码"""
+        mobile = request.data['username']
+        verify_code = request.data['valid_code']
+        current_time = datetime.datetime.now()
+        last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
+        if not mobile or not verify_code or len(mobile) == 0 or len(verify_code) == 0:
+            return Response({"code":2,"info":"手机号密码不对","result": "2"})
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
+            return Response({"code":2,"info":"手机号码不对","result": "2"})
+        already_exist = Customer.objects.filter(mobile=mobile)
+        if already_exist.count() > 0:
+            return Response({"code":1,"info":"手机已经绑定","result": "1"})
+        django_user = request.user
+        customer = get_object_or_404(Customer, user=django_user)
+        if len(customer.mobile) != 0:
+            raise exceptions.APIException(u'账户异常，请联系客服～')
+        reg = Register.objects.filter(vmobile=mobile)
+        if reg.count() == 0:
+            return Response({"code":3,"info":"验证码不对","result": "3"})
+        reg_temp = reg[0]
+        reg_temp.submit_count += 1     #提交次数加一
+        reg_temp.save()
+        if reg_temp.code_time and reg_temp.code_time < last_send_time:
+            log_action(request.user.id, reg_temp, CHANGE, u'验证码过期')
+            return Response({"code":4,"info":"验证码过期","result": "4"})
+        verify_code_server = reg_temp.verify_code
+        if verify_code_server != verify_code:
+            log_action(request.user.id, reg_temp, CHANGE, u'验证码不对')
+            return Response({"code":3,"info":"验证码不对","result": "3"})
+        try:
+            customer.mobile = mobile
+            customer.save()
+            log_action(request.user.id, customer, CHANGE, u'手机绑定成功')
+            reg_temp.cus_uid = customer.id
+            reg_temp.mobile_pass = True
+            reg_temp.save()
+            log_action(request.user.id, reg_temp, CHANGE, u'手机绑定成功')
+        except Exception,exc:
+            logger.error(exc.message or 'empty error',exc_info=True)
+            return Response({"code":5, "result": "5", 'info':exc.message})
+        return Response({"code":0, "result": "0",'info':'success'})
+
+
     @list_route(methods=['post'])
     def passwd_set(self, request):
         """初始化密码"""

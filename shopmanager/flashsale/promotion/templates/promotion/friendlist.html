@@ -28,11 +28,12 @@
 
 
 .profile {
-  width: 5%;
+  width: 15%;
   display: inline-block;
   vertical-align:top;
 }
 .apply-info {
+  width:80%;
   color: white;
   font-size: 12px;
   display:inline-block;
@@ -70,10 +71,8 @@
 {% block content1 %}
 <div class="friendlist-section">
   <div class="row">
-    <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-head-plain.png"/>
-  </div>
-  <div class="row">
-    <div class="col-xs-12 mix-body-bg">
+    <div class="col-xs-12">
+
       {% for user in apply_results %}
       {% if user.status == 0 %}
       <div class="nonactive">
@@ -94,9 +93,6 @@
       {% endif %}
       {% endfor %}
     </div>
-  </div>
-  <div class="row">
-    <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
   </div>
 </div>
 {% endblock %}
