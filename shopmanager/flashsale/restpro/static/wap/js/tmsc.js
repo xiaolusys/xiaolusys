@@ -179,7 +179,7 @@ function get_remain_time() {
         url: requestUrl,
         data: "",
         beforeSend: function () {
-
+            
         },
         success: requestCallBack,
         error: function (data) {

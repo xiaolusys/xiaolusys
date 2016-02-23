@@ -3,7 +3,6 @@
 {% block title %} 中奖名单 {% endblock %}
 
 {% block container %}
-    <a href="/sale/promotion/xlsampleorder/">返回上一页</a>
 <div class="container-fluid">
   <div class="panel panel-default" style="margin-top:5px">
     {% if month < 1602 %}
@@ -12,12 +11,11 @@
     <div class="panel-heading">详细名单 (第{{ batch }}批)</div>
     {% endif %}
     <div class="panel-body">
-
     <div class="row">
 	{% if month < 1602 %}
 	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖手机号。</p>
 	{% else %}
-	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖手机号，邀请参加人数和被邀请人APP下载验证活动数。</p>
+	<p>总共{{ total }}条记录，{{ num_pages }}页（每页{{ num_per_page }}条）。名单包含中奖手机号，APP邀请激活数。</p>
 	{% endif %}
 	<div class="col-xs-4">
 	  <a href="/sale/promotion/pmt_res/{{ batch }}/{{ prev_page }}/{{ month }}/"><< 上一页</a>
@@ -36,8 +34,8 @@
 	<a href="#" class="list-group-item">{{ forloop.counter }}: {{ item.0 }}</a>
 	{% else %}
 	<a href="#" class="list-group-item">
-		{{ forloop.counter }}: {{ item.0 }}
-		<span class="badge">{{ item.1 }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ item.2 }}</span>
+		{{ forloop.counter }}:{{ item.0 }}
+		<span class="badge">{{ item.1 }}</span>
 	</a>
 	{% endif %}
 	{% endfor %}
@@ -46,7 +44,7 @@
   </div>
   
   <div class="footer">
-    <p>Copyright © 2014-2016 小鹿美美</p>
+    <p>Copyright © 2015-2016 小鹿美美</p>
   </div>
   
 </div>

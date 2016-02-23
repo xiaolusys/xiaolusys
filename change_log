@@ -1,5 +1,6 @@
 ######## 2016-02-23 ########
 alter table pay_coupon_template add column bind_pros varchar(256) default null ;
+alter table flashsale_promotion_sampleorder add award_status tinyint(1) NOT NULL;
 ######## 2016-02-17 ########
 alter table suplychain_flashsale_orderlist add column pay_status varchar(32) default '正常' ;
 ######## 2016-02-16 ########

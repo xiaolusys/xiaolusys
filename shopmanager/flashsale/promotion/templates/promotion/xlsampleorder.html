@@ -2,52 +2,53 @@
 
 {% block title %}{{ title }}{% endblock %}
 {% block head_style %}
-    <style>
-        .share-icon {
-            text-align: center;
-        }
+<link href="//cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.css" rel="stylesheet">
+<style>
+    .share-icon {
+        text-align: center;
+    }
 
-        .share-icon img {
-            width: 40px;
-        }
+    .share-icon img {
+        width: 40px;
+    }
 
-        .active_detail {
-            margin-top: 50px;
-            text-align: center;
-        }
+    .active_detail {
+        margin-top: 50px;
+        text-align: center;
+    }
 
-        .form-content {
-            text-align: center;
-        }
+    .form-content {
+        text-align: center;
+    }
 
-        .submit-order {
-            margin-top: 30px;
-        }
+    .submit-order {
+        margin-top: 30px;
+    }
 
-        .choice {
-            padding: 0px 2px;
-        }
+    .choice {
+        padding: 0px 2px;
+    }
 
-        .counting {
-            display: inline-block;
-            padding: 2px 2px;
-	    #margin: 4px 12px;
-            font-size: 36px;
-            #font-weight: 700;
-            line-height: 1.1;
-            text-align: center;
-            border-radius: 4px;
-        }
+    .counting {
+        display: inline-block;
+        padding: 2px 2px;
+        #margin: 4px 12px;
+        font-size: 36px;
+        #font-weight: 700;
+        line-height: 1.1;
+        text-align: center;
+        border-radius: 4px;
+    }
 
-        .visible-border {
-            color: #999;
-            border: 1px solid #ddd;
-        }
+    .visible-border {
+        color: #999;
+        border: 1px solid #ddd;
+    }
 
-        .highlight-border {
-            color: orange;
-            border: 1px solid orange;
-        }
+    .highlight-border {
+        color: orange;
+        border: 1px solid orange;
+    }
 
 	.join-button {
 	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/join-btn.png);
@@ -71,8 +72,6 @@
 	.border-show-red {
 	  border: 1px solid red;
 	}
-
-
 	.hongbao-record {
 	  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao.png);
 	  background-color:transparent;
@@ -154,18 +153,60 @@
 	}
 	.sleepingbag-section {
 	  margin-top:30px;
+	  position:relative;
 	}
 	.qrcode {
 	  margin-top: 10px;
 	  text-align: center;
           color: white;
 	}
-    </style>
-    {% endblock %}
+	.good-mask{
+		background:rgba(0,0,0,0.4);
+		position: absolute;
+		left:0;
+		top:0;
+		right: 0;
+		bottom: 0;
+	}
+	.good-btn{
+	    background-color: #403B3B;
+	    position: absolute;
+	    width: 170px;
+	    height: 170px;
+	    line-height: 100px;
+	    border-radius: 50%;
+	    left: 50%;
+	    top: 40%;
+	    margin-left: -50px;
+	    margin-top: -50px;
+	    text-align: center;
+	    color: #fff;
+	    font-size: 22px;
+	}
+	.zhongjiang-record{
+	   background-image:url(//7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%8C%89%E9%94%AE-%E9%A2%86.png);
+      background-color:transparent;
+      background-size:auto 100%;
+      background-repeat: no-repeat;
+      margin-bottom: 14px;
+      margin-left: 6px;
+      margin-right: 6px;
+      padding-left: 40px;
+	   font-size:20px;
+	}
+	.zhongjiang-record .zj-text{
+	   margin:5px;
+	   color: #ffcf00;
+	   font-size:26px;
+	}
+</style>
+{% endblock %}
 
-    {% block content2 %}
+{% block content2 %}
+    {% csrf_token %}
     {% if res %}
     <div style="position:relative;top:-90px"> 
+    <!-- 邀请图及邀请结果 -->
     <div class="invite-count">
       <div class="row">
 	<div class="col-xs-12" style="text-align:center">
@@ -176,47 +217,64 @@
 	  <div class="digit"><img src="{{ res.first_digit_imgsrc }}" style="width:100%"/></div>
 	  <div class="digit"><img src="{{ res.second_digit_imgsrc }}" style="width:100%"/></div>
 	</div>
+
       </div>
       <div class="row">
-	<div class="col-xs-12" style="text-align:center">
-	  {% if res.inactive_count > 0 %}
-	  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">您有{{ res.inactive_count }}位好友未激活，查看 >></a>
-	  {% else %}
-	  {% if res.active_count > 0 %}
-	  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">点击查看邀请好友 >></a>
-	  {% endif %}
-	  {% endif %}
-	</div>
+		<div class="col-xs-12" style="text-align:center">
+		  {% if res.inactive_count > 0 %}
+		  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">您有{{ res.inactive_count }}位好友未激活，查看 >></a>
+		  {% else %}
+		  {% if res.active_count > 0 %}
+		  <a href="/sale/promotion/cus_cdt/" style="font-size:12px;color:white">点击查看邀请好友 >></a>
+		  {% endif %}
+		  {% endif %}
+		</div>
       </div>
     </div>    
-
+    <!-- 睡袋展示区 -->
     <div class="sleepingbag-section">
       <div class="row">
-	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-head-start.png"/>
+	   <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-head-start.png"/>
       </div>
       <div class="row">
-	<div class="col-xs-12 mix-body-bg">
-	  <img src="{{ img_src }}" style="width:100%"/>
-	</div>
+		<div class="col-xs-12 mix-body-bg">
+		  <img src="{{ img_src }}" style="width:100%"/>
+		</div>
       </div>
       <div class="row">
-	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-tail.png"/>
+	   <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-tail.png"/>
       </div>
-
+      {% if res.invite_pass %}
+      <div class="good-mask"></div>
+      <div class="good-btn">
+        {% if res.award_receive %}
+            <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%89%93%E9%92%A9-%E5%9C%86%E8%A7%92.png" ></img>
+        {% else %}
+            <a id="receve_award" href="javascript:void(0);">
+	            <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%8C%89%E9%94%AE-%E9%A2%86.png"></img>
+	        </a>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
-
     <div class="share-button-section">
+      {% if res.invite_pass %}
       <div class="share-text">
-	<span>加油哦～只要邀请 <font style="color:#ffcf00">10</font> 位好友就可得睡袋啦～～</span>
+       <span>恭喜你!您邀请了<font style="color:#ffcf00">{{res.active_count}}</font> 位好友下载APP并激活,可以领奖了～～</span>
       </div>
+      {%else%}
+      <div class="share-text">
+       <span>加油哦～只要邀请 <font style="color:#ffcf00">10</font> 位好友就可得睡袋啦～～</span>
+      </div>
+      {% endif %}
       <div>
-	<img id="id-share-button" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-share-button.png" style="width:100%"/>
+	   <img id="id-share-button" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-share-button.png" style="width:100%"/>
       </div>
       <div class="qrcode">
-	<a href="/sale/promotion/ercode/">查看我的专属二维码</a>
+	   <a href="/sale/promotion/ercode/">查看我的专属二维码</a>
       </div>
     </div>
-
+    <!-- start 分享区域 -->
     <div id="id-share-section" class="share-section" style="display:none">
       <div class="row share-platforms" id="share_link" cid="{{ res.share_link }}">
 	<div class="col-xs-4 share-icon"><img id="shareweixin" src="{{ STATIC_URL }}images/shareweixin.png" alt=""/></div>
@@ -232,11 +290,12 @@
 	<span id="id-cancel-button">取消分享</span>
       </div>
     </div>
-
+    <!-- end 分享区域 -->
+    <!-- start 红包区域 -->
     {% if res.reds %}
     <div class="hongbao-section">
       <div class="row">
-	<img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-head.png"/>
+	   <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-head.png"/>
       </div>
       <div class="row">
 	<div class="col-xs-12 mix-body-bg">
@@ -255,7 +314,26 @@
       </div>
     </div>
     {% endif %}
+    <!-- start 中奖列表 -->
+    <!-- 
+    <div class="zhongjiang-section">
+      <div class="row">
+    <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-award-header.png"/>
+      </div>
+      <div class="row">
+    <div class="col-xs-12 mix-body-bg">
+      <div class="zhongjiang-record ">
+        <p><a href="/sale/promotion/pmt_res/1/1/201602/">第一批中奖名单,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
+      </div>
     </div>
+      </div>
+      <div class="row">
+        <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
+      </div>
+    </div>
+    </div>
+     -->
+     <!-- end 中奖列表 -->
 
     {% endif %}
     {% endblock %}
@@ -282,12 +360,8 @@
     <div class="col-xs-12" style="text-align: center">
         <h4>中奖名单</h4>
     </div>
-
     <div class="col-xs-12" style="text-align: center" id="short_result">
-
     </div>
-
-
 
     <div class="col-xs-12 active_detail" style="text-align: center">
         <a href="/sale/promotion/pmt_res/1/1/1602/">更多中奖名单</a>
@@ -297,9 +371,8 @@
 -->
 {% endblock %}
 
-
 {% block tail_script %}
-
+    <script src="//cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.js"></script>
     <script>
         var OSTest = function () {// 客户端平台检测　返回
             var u = navigator.userAgent;
@@ -477,14 +550,41 @@
             }
         });
 
-        $("#id-share-button").click(function () {
+    $("#id-share-button").click(function () {
 	  $("#id-share-section").slideDown();
 	});
 
-        $("#id-cancel-button").click(function () {
+    $("#id-cancel-button").click(function () {
 	  $("#id-share-section").slideUp();
 	});
-
-	
+    
+    $('#receve_award').click(function(){
+        var requestCallBack = function(resp){
+            $('.good-btn').html('<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%89%93%E9%92%A9-%E5%9C%86%E8%A7%92.png" ></img>');
+        };
+        var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+        swal({
+            title: "睡袋专用优惠券188元",
+            text: "点击即可领取188元睡袋专用优惠,领取优惠券后,请到商城首页,潮童专区选择下面这款睡袋后支付使用.",
+            type: "",
+            showCancelButton: true,
+            imageUrl: "http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%B4%BB%E5%8A%A8%E7%9D%A1%E8%A2%8B-%E5%9C%86%E8%A7%92.png",
+            confirmButtonColor: '#DD6B55',
+            confirmButtonText: '领取优惠券',
+            cancelButtonText: '等会再领'
+        },
+        function () {
+            //发送请求
+            $.ajax({
+                type: 'post',
+                url: '/sale/promotion/receive_award/',
+                data: {"csrfmiddlewaretoken": csrf_token,'sampleorder_id':{{sample_order.id}}},
+                success: requestCallBack,
+                error: function (res) {
+                    alert('领取异常,请联系管理员');
+                }
+            });
+        });
+    });
     </script>
 {% endblock %}
