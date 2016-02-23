@@ -93,6 +93,8 @@ class CouponTemplate(PayBaseModel):
     def check_bind_pros(self, product_ids=None):
         """ 检查绑定的产品 """
         tpl_bind_pros = self.bind_pros.strip().split(',') if self.bind_pros else []
+        if tpl_bind_pros == []:  # 如果优惠券没有绑定产品
+            return
         for pro_id in product_ids:
             if str(pro_id) not in tpl_bind_pros:
                 raise AssertionError(u'产品不支持使用优惠券')
