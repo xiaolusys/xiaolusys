@@ -95,9 +95,11 @@ class CouponTemplate(BaseModel):
         tpl_bind_pros = self.bind_pros.strip().split(',') if self.bind_pros else []
         if tpl_bind_pros == []:  # 如果优惠券没有绑定产品
             return
-        for pro_id in product_ids:
-            if str(pro_id) not in tpl_bind_pros:
-                raise AssertionError(u'该产品不支持使用该优惠券')
+        product_ids = [str(i) for i in product_ids]
+        tpl_binds = set(tpl_bind_pros)
+        pro_set = set(product_ids)
+        if len(tpl_binds & pro_set) == 0:
+            raise AssertionError(u'该产品不支持使用优惠券')
 
 
 class CouponsPool(BaseModel):
