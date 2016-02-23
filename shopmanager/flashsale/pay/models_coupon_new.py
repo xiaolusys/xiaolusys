@@ -7,12 +7,12 @@
 from django.db import models
 import datetime
 
-from .base import PayBaseModel
+from core.models import BaseModel
 from options import uniqid
 from flashsale.pay.models import Customer
 
 
-class CouponTemplate(PayBaseModel):
+class CouponTemplate(BaseModel):
     RMB118 = 0
     POST_FEE_5 = 1
     POST_FEE_10 = 4
@@ -97,10 +97,10 @@ class CouponTemplate(PayBaseModel):
             return
         for pro_id in product_ids:
             if str(pro_id) not in tpl_bind_pros:
-                raise AssertionError(u'产品不支持使用优惠券')
+                raise AssertionError(u'该产品不支持使用该优惠券')
 
 
-class CouponsPool(PayBaseModel):
+class CouponsPool(BaseModel):
     RELEASE = 1
     UNRELEASE = 0
     PAST = 2
@@ -137,7 +137,7 @@ class CouponsPool(PayBaseModel):
         self.save()
 
 
-class UserCoupon(PayBaseModel):
+class UserCoupon(BaseModel):
     USED = 1
     UNUSED = 0
     FREEZE = 2
