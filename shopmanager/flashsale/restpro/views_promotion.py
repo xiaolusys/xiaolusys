@@ -156,8 +156,13 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
 
         params = {'customer_id': customer_id, "ufrom": ufrom}
         share_link = self.get_share_link(params)
+        # agent = request.META.get('HTTP_USER_AGENT', None)
+        # link_qrcode = constants.SAHRE_ICON
+        # if 'iPhone' in agent:
+        #     # 之前版本的ipthon app 版本是拼接站点地址获取图片的
+        link_qrcode = '/media/share-222-pyq2.png'
 
-        return Response({"link_qrcode": constants.SAHRE_ICON,
+        return Response({"link_qrcode": link_qrcode,
                          "title": title,
                          "share_link": share_link,
                          "share_img": constants.SAHRE_ICON,
