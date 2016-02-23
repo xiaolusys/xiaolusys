@@ -128,6 +128,7 @@ class AddItemView(generics.ListCreateAPIView):
                 chima_model.save()
                 count = 1
                 for sku in all_sku:
+                    barcode = one_product.outer_id + str(count)
                     outer_id = content.get(color + "_" + sku + "_outerid", "") or count
                     remain_num = content.get(color + "_" + sku + "_remainnum", "")
                     cost = content.get(color + "_" + sku + "_cost", "")
@@ -135,7 +136,7 @@ class AddItemView(generics.ListCreateAPIView):
                     agentprice = content.get(color + "_" + sku + "_agentprice", "")
                     one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num, cost=cost,
                                          std_sale_price=price, agent_price=agentprice,
-                                         properties_name=sku, properties_alias=sku)
+                                         properties_name=sku, properties_alias=sku, barcode=barcode)
                     one_sku.save()
                     log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
                     count += 1
