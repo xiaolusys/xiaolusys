@@ -172,7 +172,7 @@ class UserCoupon(PayBaseModel):
         self.status = self.UNUSED
         self.save()
 
-    def check_usercoupon(self):
+    def check_usercoupon(self, product_id=None):
         """  验证并检查 用户优惠券 """
         self.cp_id.template.template_check()
         self.cp_id.poll_check()
