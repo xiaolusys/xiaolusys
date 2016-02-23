@@ -26,8 +26,8 @@ admin.site.register(XLSampleApply, XLSampleApplyAdmin)
 
 
 class XLSampleOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'xlsp_apply', 'customer_id', 'outer_id', 'sku_code', 'vipcode', 'problem_score', 'status')
-    list_filter = ('status',)
+    list_display = ('id', 'xlsp_apply', 'customer_id', 'outer_id', 'sku_code', 'vipcode', 'created', 'problem_score','award_status', 'status')
+    list_filter = ('status','award_status')
     list_display_links = ('id', 'customer_id', )
     search_fields = ['=id', '=customer_id', 'vipcode']
     list_per_page = 40
