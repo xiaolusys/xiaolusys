@@ -5,22 +5,21 @@ setup_environ(settings)
 
 from django.db import connection
 
-from flashsale.promotion.models import XLInviteCount
+from flashsale.promotion.models import XLSampleOrder
 
 def get_award_sql():
-    return 
-    """ 
-    SELECT 
-        fps.id
-    FROM
-        flashsale_promotion_sampleorder fps
-            LEFT JOIN
-        flashsale_promotion_invitecount fpi ON fps.customer_id = fpi.customer_id
-    WHERE
-        fps.status = 0
-            AND fpi.invite_count >= {}
-                AND fps.created > '2016-02-22'
-    ORDER BY fpi.invite_count desc;
+    return """ 
+        SELECT 
+            fps.id
+        FROM
+            flashsale_promotion_sampleorder fps
+                LEFT JOIN
+            flashsale_promotion_invitecount fpi ON fps.customer_id = fpi.customer_id
+        WHERE
+            fps.status = 0
+                AND fpi.invite_count >= {0}
+                    AND fps.created > '2016-02-22'
+        ORDER BY fpi.invite_count desc;
     """
     
 def awards(invite_cnt,awdcode):
@@ -34,7 +33,7 @@ def awards(invite_cnt,awdcode):
     cursor.close()
     update_rows = 0
     for sid in sids:
-        row = XLInviteCount.objects.filter(id=sid[0],status=0).update(status=awdcode)
+        row = XLSampleOrder.objects.filter(id=sid[0],status=0).update(status=awdcode)
         update_rows += row
     
     print "update total:",update_rows

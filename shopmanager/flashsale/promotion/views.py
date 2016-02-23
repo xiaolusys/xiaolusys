@@ -19,10 +19,11 @@ from rest_framework import permissions, authentication
 from rest_framework import renderers
 from rest_framework.response import Response
 
-from flashsale.restpro.options import gen_and_save_jpeg_pic
+from core.weixin.options import gen_and_save_jpeg_pic
 from core.weixin.mixins import WeixinAuthMixin
 from core.weixin.signals import signal_weixin_snsauth_response
-from core.weixin.options import set_cookie_openid
+from core.utils.modelutils import update_model_fields
+
 
 from flashsale.pay.models import Customer
 from shopapp.weixin.views import get_user_openid, valid_openid
@@ -392,10 +393,17 @@ class XlSampleOrderView(View):
                                                     referal_from_uid=str(referal_from_uid))
         xlapply.status = XLSampleApply.ACTIVED  # 激活预申请中的字段
         xlapply.save()
+
         # 记录粉丝列表信息
         XlmmFans.objects.createFansRecord(xlapply.from_customer, customer.id)
         # 给推荐人发红包
         self.release_packet_for_refreal(referal_from_uid)
+        #检查用户头像昵称
+        if xlapply.headimgurl and xlapply.nick:
+            customer.nick = xlapply.nick
+            customer.thumbnail = xlapply.headimgurl
+            update_model_fields(customer,update_fields=['nick','thumbnail'])
+        
         return xlorder
 
     def get(self, request):
