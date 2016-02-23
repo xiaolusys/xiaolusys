@@ -245,17 +245,16 @@
 	   <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-bg-tail.png"/>
       </div>
       {% if res.invite_pass %}
-      {% if res.award_receive %}
-      <label class="text-info">领取成功</label>
-      {% else %}
-      <div class="good-mask">
-      </div>
+      <div class="good-mask"></div>
       <div class="good-btn">
-          <a id="receve_award" href="javascript:void(0);">
-            <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%8C%89%E9%94%AE-%E9%A2%86.png"></img>
-          </a>
+        {% if res.award_receive %}
+            <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%89%93%E9%92%A9-%E5%9C%86%E8%A7%92.png" ></img>
+        {% else %}
+            <a id="receve_award" href="javascript:void(0);">
+	            <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%8C%89%E9%94%AE-%E9%A2%86.png"></img>
+	        </a>
+        {% endif %}
       </div>
-      {% endif %}
       {% endif %}
     </div>
     <div class="share-button-section">
@@ -315,6 +314,7 @@
       </div>
     </div>
     {% endif %}
+    <!-- start 中奖列表 -->
     <!-- 
     <div class="zhongjiang-section">
       <div class="row">
@@ -333,6 +333,7 @@
     </div>
     </div>
      -->
+     <!-- end 中奖列表 -->
     {% endif %}
     {% endblock %}
 
@@ -370,7 +371,6 @@
 {% endblock %}
 
 {% block tail_script %}
-    <script src="//cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.min.js"></script>
     <script src="//cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.js"></script>
     <script>
         var OSTest = function () {// 客户端平台检测　返回
@@ -559,7 +559,7 @@
     
     $('#receve_award').click(function(){
         var requestCallBack = function(resp){
-            $('.good-btn').html('<label class="text-info">'+resp.message+'</label>');
+            $('.good-btn').html('<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%89%93%E9%92%A9-%E5%9C%86%E8%A7%92.png" ></img>');
         };
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
         swal({
@@ -567,7 +567,7 @@
             text: "点击即可领取188元睡袋专用优惠,领取优惠券后,请到商城首页,潮童专区选择下面这款睡袋后支付使用.",
             type: "",
             showCancelButton: true,
-            imageUrl: "http://image.xiaolu.so/MG-1449715292604-%E5%B0%8F%E5%B0%8F%E6%B4%BE%E9%BD%90.png?imageMogr2/thumbnail/289/format/jpg/quality/90",
+            imageUrl: "http://7xogkj.com2.z0.glb.qiniucdn.com/222-%E6%B4%BB%E5%8A%A8%E7%9D%A1%E8%A2%8B-%E5%9C%86%E8%A7%92.png",
             confirmButtonColor: '#DD6B55',
             confirmButtonText: '领取优惠券',
             cancelButtonText: '等会再领'
@@ -577,7 +577,7 @@
             $.ajax({
                 type: 'post',
                 url: '/sale/promotion/receive_award/',
-                data: {"csrfmiddlewaretoken": csrf_token},
+                data: {"csrfmiddlewaretoken": csrf_token,'sampleorder_id':{{sample_order.id}}},
                 success: requestCallBack,
                 error: function (res) {
                     alert('领取异常,请联系管理员');

@@ -102,11 +102,11 @@ class XLSampleOrder(CacheModel):
         return self.status > 0
         
     def is_award_complete(self):
-        return self.award_status
+        return self.award_status == True
     
     def award_confirm(self):
         self.award_status = True
-        self.status
+        self.save()
         
         from flashsale.pay.models_coupon_new import UserCoupon
         from flashsale.pay import constants
