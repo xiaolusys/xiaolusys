@@ -76,7 +76,7 @@ class CouponTemplate(BaseModel):
         if self.use_fee == 0:
             return
         elif self.use_fee > fee:
-            raise AssertionError(u'满%s使用' % self.use_fee)
+            raise AssertionError(u'该优惠券满%s使用' % self.use_fee)
 
     def check_date(self):
         """ 检查有效天数　（匹配截止日期）"""
@@ -184,14 +184,16 @@ class UserCoupon(BaseModel):
         self.status = self.UNUSED
         self.save()
 
-    def check_usercoupon(self, product_ids=None):
+    def check_usercoupon(self, product_ids=None, use_fee=None):
         """  验证并检查 用户优惠券 """
         self.cp_id.template.template_check()
         self.cp_id.poll_check()
         self.coupon_check()
         self.cp_id.template.check_date()
-        if product_ids is not None:
-            self.cp_id.template.check_bind_pros(product_ids=product_ids)
+        # 绑定产品检查
+        self.cp_id.template.check_bind_pros(product_ids=product_ids)
+        # 满单金额检查
+        self.cp_id.template.usefee_check(use_fee)
         return
 
     def release_deposit_coupon(self, **kwargs):

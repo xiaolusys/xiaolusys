@@ -46,7 +46,7 @@ var NTKF_PARAM = {
     <p class="label3">收货人：{{ receiver_name }}&nbsp;{{ receiver_mobile }}</p>
     <p class="label4">收货地址：{{ receiver_state }} - {{ receiver_city }} - {{ receiver_district }}</p>
     <i class="icon-radio" addrid={{ id }}></i>
-    </div class="">
+    </div>
     <div><a class="icon-edit" onclick="modify_current_addr({{ id }})"></a></div>
     </a>
 </li>
@@ -129,7 +129,7 @@ $(document).ready(function(){
   //支付方式切换
   $(document).on({
   	//touchend:change_paytype,
-  	tap:change_paytype,
+  	tap:change_paytype
   	//click:change_paytype
   },'#js-pay-type li');
   //获取用户地址
@@ -143,7 +143,7 @@ $(document).ready(function(){
   $(document).on({
   	tap:Confirm_charge,
   	touchstart:btnPresse,
-  	touchend:btnUnpresse,
+  	touchend:btnUnpresse
   	},'.buy .btn-buy');
   	
   get_Coupon_On_Buy();  //获取优惠券数量
