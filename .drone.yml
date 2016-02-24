@@ -8,3 +8,5 @@ publish:
     tag: latest
     file: Dockerfile
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
+    when:
+	event: tag
