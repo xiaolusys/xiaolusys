@@ -5,7 +5,8 @@ run apt-get install -y gcc libxml2-dev libxslt1-dev python-dev libmysqld-dev lib
 run mkdir -p /var/log/taobao
 run mkdir -p /var/www/deploy/taobao
 add . /var/www/deploy/taobao/taobao-backend
-run cp /var/www/deploy/taobao/taobao-backend/prod_settings.py.bk /var/www/deploy/taobao/taobao-backend/shopmanager/
+run cp /var/www/deploy/taobao/taobao-backend/prod_settings.py.bk /var/www/deploy/taobao/taobao-backend/shopmanager/prod_settings.py
+run cp /var/www/deploy/taobao/taobao-backend/stage_settings.py.bk /var/www/deploy/taobao/taobao-backend/shopmanager/override_settings.py
 run pip install virtualenv -i http://pypi.douban.com/simple
 workdir /var/www/deploy/taobao/taobao-backend
 run virtualenv ve
