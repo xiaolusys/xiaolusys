@@ -600,14 +600,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
         payment       = int(sale_trade.payment * 100)
-        buyer_unoind  = sale_trade.unionid
         order_no      = sale_trade.tid
+        buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
         payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url','/pages/zhifucg.html'))
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
         extra = {}
         if channel == SaleTrade.WX_PUB:
-            buyer_openid =  options.get_openid_by_unionid(buyer_unoind,settings.WXPAY_APPID)
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
             
         elif channel == SaleTrade.ALIPAY_WAP:
@@ -640,8 +639,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
                                                            buyer_id=customer.id)
         assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
+        channel = form.get('channel')
         params = {
-            'channel':form.get('channel'),
+            'channel':channel,
             'receiver_name':address.receiver_name,
             'receiver_state':address.receiver_state,
             'receiver_city':address.receiver_city,
@@ -652,6 +652,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile':address.receiver_mobile,
             }
         if state:
+            buyer_openid = ''
+            if channel == SaleTrade.WX_PUB:
+                buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -661,7 +664,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'discount_fee':float(form.get('discount_fee')),
                 'charge':'',
                 'status':SaleTrade.WAIT_BUYER_PAY,
-                'openid':customer.openid,
+                'openid':buyer_openid,
                 'extras_info':{'mm_linkid':form.get('mm_linkid','0'),
                                'ufrom':form.get('ufrom',''),
                                'coupon':form.get('coupon_id','')}
