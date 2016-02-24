@@ -496,12 +496,12 @@ class CustomerViewSet(viewsets.ModelViewSet):
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         has_set_passwd = True
-        try:
-            user = customer.user
-            authenticate(username=user.username, password=u"testxiaolummpasswd")
-            # authenticate(username="testxiaolu", password=u"testxiaolummpasswd")
-        except ValueError, exc:
-            has_set_passwd = False
+        # try:
+        #     user = customer.user
+        #     # authenticate(username=user.username, password=u"testxiaolummpasswd")
+        #     # authenticate(username="testxiaolu", password=u"testxiaolummpasswd")
+        # except ValueError, exc:
+        #     # has_set_passwd = False
 
         if customer.mobile and len(customer.mobile) == 11:
             if has_set_passwd:
