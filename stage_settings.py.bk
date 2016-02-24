@@ -38,7 +38,7 @@ CACHES = {
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
-        'options':{
+        'OPTIONS':{
             'DB': 1,
             'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
         }
