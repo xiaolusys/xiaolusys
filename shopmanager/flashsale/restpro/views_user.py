@@ -286,8 +286,10 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not username or not password:
             return Response({"code":1, "result": "null"})
         try:
-            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username)
-                                                ,status=Customer.NORMAL)
+            customers = Customer.objects.filter(
+                models.Q(email=username)|models.Q(user__username=username)
+                ,status=Customer.NORMAL
+            )
             if customers.count() > 0:
                 username = customers[0].user.username
             user1 = authenticate(username=username, password=password)

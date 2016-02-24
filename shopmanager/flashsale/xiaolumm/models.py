@@ -333,11 +333,15 @@ class XiaoluMama(models.Model):
         if self.agencylevel < 2:
             return 0
         
+        if  datetime.date(2016,2,24) < day_date < datetime.date(2016,2,26):
+            return 30
+        
         if  datetime.date(2016,1,17) < day_date < datetime.date(2016,1,20):
             return 30
         #2015-11-01取消点击补贴
         if  datetime.date(2015,12,30) < day_date < datetime.date(2016,1,3):
             return 20
+        
         if ROI_CLICK_START <= day_date < datetime.date(2015,11,1):
             return 10
         
