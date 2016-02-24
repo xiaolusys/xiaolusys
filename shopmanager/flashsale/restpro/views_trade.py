@@ -1,4 +1,4 @@
-buyer_unoind#-*- coding:utf8 -*-
+#-*- coding:utf8 -*-
 import time
 import datetime
 from django.db.models.query import QuerySet
