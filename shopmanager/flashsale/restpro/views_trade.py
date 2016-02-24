@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+buyer_unoind#-*- coding:utf8 -*-
 import time
 import datetime
 from django.db.models.query import QuerySet
@@ -34,6 +34,7 @@ from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from django.forms.models import model_to_dict
 from shopback.items.models import Product, ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
+from shopapp.weixin import options
 from common.utils import update_model_fields
 import logging
 import decimal
@@ -599,15 +600,16 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
         payment       = int(sale_trade.payment * 100)
-        buyer_openid  = sale_trade.openid
+        buyer_unoind  = sale_trade.unionid
         order_no      = sale_trade.tid
         channel       = sale_trade.channel
         payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url','/pages/zhifucg.html'))
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
         extra = {}
         if channel == SaleTrade.WX_PUB:
+            buyer_openid =  options.get_openid_by_unionid(buyer_unoind,settings.WXPAY_APPID)
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
-
+            
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
                      "cancel_url":cancel_url}
