@@ -8,5 +8,12 @@ publish:
     tag: latest
     file: Dockerfile
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
-    when:
-      event: tag
+deploy:
+  ssh:
+    host: dev.huyi.so
+    user: root
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys
+      - docker run --rm --volumes-from=static registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py collectstatic --noinput
+      - docker rm -f gunicorn 
+      - docker run --name=gunicorn -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 registry.aliyuncs.com/xiaolu-img/xiaolusys gunicorn_django -k gevent -c taobao_gunicorn_conf.py
