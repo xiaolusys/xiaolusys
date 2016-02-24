@@ -30,7 +30,7 @@ $(function () {
     $('#duizhao-add').click(function(){
         var duizhaotext = $('.duizhao-add').val();
         if(duizhaotext && duizhaotext.length > 0){
-            $('#chima-group-4 .panel-body').append(template('duizhao-one', {duizhao: duizhaotext.trim()}));
+            $('#chima-group-4').parent().append(template('duizhao-one', {duizhao: duizhaotext.trim()}));
             $('.chima-choose').click(dynamic_generate_chi);
         }
     });
