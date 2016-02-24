@@ -1,0 +1,10 @@
+publish:
+  docker:
+    username: $$DOCKER_USERNAME
+    password: $$DOCKER_PASSWORD
+    email: $$DOCKER_EMAIL
+    registry: registry.aliyuncs.com
+    repo: xiaolu-img/xiaolusys
+    tag: latest
+    file: Dockerfile
+    mirror: https://n5fb0zgg.mirror.aliyuncs.com

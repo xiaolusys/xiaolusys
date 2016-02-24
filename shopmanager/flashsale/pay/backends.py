@@ -98,7 +98,7 @@ class WeixinPubBackend(object):
         try:
             profile = Customer.objects.get(openid=openid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
-            if unionid and (profile.openid != openid or not profile.unionid):
+            if unionid :
                 task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
                 
             if profile.user:

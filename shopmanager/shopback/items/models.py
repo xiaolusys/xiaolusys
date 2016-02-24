@@ -694,7 +694,8 @@ class ProductSku(models.Model):
         model_dict = model_to_dict(self)
         model_dict.update({
             'districts':self.get_district_list(),
-            'barcode':self.BARCODE
+            'barcode':self.BARCODE,
+            'name':self.name
         })
         return model_dict
 
