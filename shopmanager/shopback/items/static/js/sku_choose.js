@@ -1,3 +1,6 @@
+var SGCM_OF_CHILDREN = ['52-59', '59-73', '73-80', '75-85', '85-95', '95-105', '105-115',
+                        '115-125', '125-135', '135-145', '145-155', '155-165'];
+
 $(function () {
     $(".color-choose").click(dynamic_generate_sku);
     $(".sku-choose").click(dynamic_generate_sku);
@@ -96,7 +99,6 @@ function dynamic_generate_sku() {
 }
 
 function dynamic_generate_chi() {
-
     var all_sku = $(".sku-choose");
     var all_check = $(".chima-choose");
     var sku = [];
@@ -131,9 +133,19 @@ function dynamic_generate_chi() {
         $('#chima-table thead').html(thead);
         $('#chima-table tbody').html(html);
         $('#chima-table td:nth-child(3) input').unbind().bind('blur', function(){
+            var value = $(this).val().trim();
             var step = $(this).closest('tr').find('select option:selected').val() - 0;
             var base = $(this).val() - 0;
-            if(base){
+            //建议身高单独判断
+            if($(this).prop('id').indexOf('建议身高') != -1){
+                var indexOfCM = SGCM_OF_CHILDREN.indexOf(value);
+                if(indexOfCM != -1){
+                    $(this).closest('td').nextAll().find('input').each(function(i, el){
+                        $(el).val(SGCM_OF_CHILDREN[indexOfCM + i + 1]);
+                    });
+                }
+            }
+            else if(base){
                 $(this).closest('td').nextAll().find('input').each(function(i, el){
                     $(el).val(base + step * (i + 1));
                 });
