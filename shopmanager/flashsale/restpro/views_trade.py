@@ -365,10 +365,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         coupon_ticket  = None
         coupon_message = ''
         if not has_deposite and coupon_id:
-            coupon       = get_object_or_404(UserCoupon, id=coupon_id, 
+            try:
+                coupon       = get_object_or_404(UserCoupon, id=coupon_id,
                                              customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
-            try:
+
                 check_use_fee = total_fee - discount_fee
                 coupon.check_usercoupon(product_ids=[product.id, ], use_fee=check_use_fee)
                 coupon_pool  = coupon.cp_id
