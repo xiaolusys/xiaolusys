@@ -149,10 +149,10 @@ class WeixinAppBackend(object):
         try:
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             if profile.user:
-                if not profile.user.is_active:
-                    profile.user.is_active = True
-                    profile.user.save()
-                return profile.user
+                user = profile.user
+                if not user.is_active:
+                    user.is_active = True
+                    user.save()
             else:
                 user,state = User.objects.get_or_create(username=unionid,is_active=True)
                 profile.user = user
@@ -163,7 +163,7 @@ class WeixinAppBackend(object):
                 return AnonymousUser()
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
-            profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
+            profile,state = Customer.objects.get_or_create(unionid=unionid,user=user)
             if not profile.nick.strip():
                 profile.nick = nickname
                 profile.thumbnail = headimgurl
@@ -197,24 +197,18 @@ class SMSLoginBackend(object):
             if not register.is_submitable() or not register.check_code(sms_code):
                 return AnonymousUser()
             
-            profile = Customer.objects.get(mobile=mobile)
-            if profile.user:
-                if not profile.user.is_active:
-                    profile.user.is_active = True
-                    profile.user.save()
-                return profile.user
-            else:
-                user,state = User.objects.get_or_create(username=mobile,is_active=True)
-                profile.user = user
-                profile.save()
-        
+            user = User.objects.get(username=mobile)
+            if not user.is_active:
+                user.is_active = True
+                user.save()
+
         except Register.DoesNotExist:
             return AnonymousUser()
-        except Customer.DoesNotExist:
+        except User.DoesNotExist:
             if not self.create_unknown_user:
                 return AnonymousUser()
             user,state = User.objects.get_or_create(username=mobile,is_active=True)
-            profile,state = Customer.objects.get_or_create(mobile=mobile,user=user)
+            Customer.objects.create(user=user,mobile=mobile)
         return user
     
     def get_user(self, user_id):

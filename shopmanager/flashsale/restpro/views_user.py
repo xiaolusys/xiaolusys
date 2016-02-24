@@ -496,12 +496,12 @@ class CustomerViewSet(viewsets.ModelViewSet):
         django_user = request.user
         customer = get_object_or_404(Customer, user=django_user)
         has_set_passwd = True
-        try:
-            user = customer.user
-            authenticate(username=user.username, password=u"testxiaolummpasswd")
-            # authenticate(username="testxiaolu", password=u"testxiaolummpasswd")
-        except ValueError, exc:
-            has_set_passwd = False
+        # try:
+        #     user = customer.user
+        #     # authenticate(username=user.username, password=u"testxiaolummpasswd")
+        #     # authenticate(username="testxiaolu", password=u"testxiaolummpasswd")
+        # except ValueError, exc:
+        #     # has_set_passwd = False
 
         if customer.mobile and len(customer.mobile) == 11:
             if has_set_passwd:
@@ -524,7 +524,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         mobile = request.data['vmobile']
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile): 
             return Response({"code":4,"result": "false","info":"请输入正确的手机号"})
-        already_exist = Customer.objects.filter(mobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(user__username=mobile)
         if already_exist.count() > 0:
             return Response({"code":1,"result": "1","info":"手机已经绑定"})  
 
@@ -565,7 +565,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response({"code":2,"info":"手机号密码不对","result": "2"})
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"code":2,"info":"手机号码不对","result": "2"})
-        already_exist = Customer.objects.filter(mobile=mobile)
+        #用户避免用户手机号绑定多个微信账号
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(user__username=mobile)
         if already_exist.count() > 0:
             return Response({"code":1,"info":"手机已经绑定","result": "1"})
         django_user = request.user
@@ -613,7 +614,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response({"code":2,"info":"手机号密码不对","result": "2"})
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断，待写
             return Response({"code":2,"info":"手机号码不对","result": "2"})
-        already_exist = Customer.objects.filter(mobile=mobile)
+        already_exist = Customer.objects.filter(mobile=mobile).exclude(user__username=mobile)
         if already_exist.count() > 0:
             return Response({"code":1,"info":"手机已经绑定","result": "1"})
         django_user = request.user
