@@ -22,7 +22,7 @@ from core.weixin.mixins import WeixinAuthMixin
 from shopapp.weixin.views import get_user_openid,valid_openid
 from shopapp.weixin.models import WXOrder, WeiXinUser
 from shopapp.weixin.service import WeixinUserService
-from shopapp.weixin.options import get_unoinid_by_openid
+from shopapp.weixin.options import get_unionid_by_openid
 from shopapp.weixin.tasks import task_Update_Weixin_Userinfo
 from shopback.base import log_action, ADDITION, CHANGE
 from django.conf import settings
@@ -504,7 +504,7 @@ class ClickLogView(WeixinAuthMixin, View):
             return redirect(redirect_url)
         
         if not self.valid_openid(unionid):
-            unionid = get_unoinid_by_openid(openid, settings.WEIXIN_APPID)
+            unionid = get_unionid_by_openid(openid, settings.WEIXIN_APPID)
             if not self.valid_openid(unionid):
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)

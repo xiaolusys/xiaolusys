@@ -111,8 +111,10 @@ function showCategory(first_cate, second_cate, third_cate) {
     else{
         if(level_2_name == '女装')
             $('#sku-group-1-choose').trigger('click');
-        else if(level_2_name == '童装')
+        else if(level_2_name == '童装'){
             $('#sku-group-3-choose').trigger('click');
+            $('#jysg-choose').trigger('click');
+        }
     }
     if(['上装', '外套', '连衣裙'].indexOf(level_3_name) != -1)
         $('#chima-group-1-choose').trigger('click');
