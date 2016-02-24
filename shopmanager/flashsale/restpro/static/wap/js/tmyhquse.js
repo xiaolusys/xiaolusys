@@ -34,20 +34,49 @@ function Coupon_Nums_Show(nums) {
         $("#coupon_nums").click(function () {
             //判断是否是确认页面
 
-            var cart_ids = getUrlParam('cart_ids');
+            var cart_ids = getUrlParam('cart_ids');//获取购物车的ids
             var item_id = getUrlParam('item_id');// 获取购买产品
+            var sku_id = getUrlParam('sku_id');// 获取购买产品
+
+            var mm_linkid = getUrlParam('mm_linkid');
+            var ufrom = getUrlParam('ufrom');
+
             console.log("cart_ids :", cart_ids);
+            console.log("item_id :", item_id);
+
             if (cart_ids) {
-                var total_money = ($("#total_money").html().split(">")[2]);
-                var pro_num = $(".pro_num").html();
-                console.log("pro_num :", pro_num, total_money);
-                location.href = "./choose-coupon.html?price=" + total_money + "&pro_num=" + pro_num;
+                var choose_coupon_url = "./choose-coupon.html?cart_ids=" + cart_ids;
+                if (mm_linkid != null) {
+                    choose_coupon_url += "&mm_linkid=" + mm_linkid;
+                }
+                if (ufrom != null) {
+                    choose_coupon_url += "&ufrom=" + ufrom;
+                }
+                location.href = choose_coupon_url;
+            }
+            else if (item_id) {
+                var pro_num = document.getElementsByName("num")[0].value;
+                var chosse_url = "./choose-coupon.html?item_id=" + item_id + "&pro_num=" + pro_num + "&sku_id=" + sku_id;
+
+                if (mm_linkid != null) {
+                    chosse_url += "&mm_linkid=" + mm_linkid;
+                }
+                if (ufrom != null) {
+                    chosse_url += "&ufrom=" + ufrom;
+                }
+                location.href = chosse_url
             }
             else {
-                var total_money = ($("#total_money").html().split(">")[2]);
-                var pro_num = document.getElementsByName("num")[0].value;
-                console.log("pro_num :", pro_num);
-                location.href = "./choose-coupon.html?price=" + total_money + "&pro_num=" + pro_num + "&item_id=" + item_id;
+                //var total_money = ($("#total_money").html().split(">")[2]);
+                //var pro_num = document.getElementsByName("num")[0].value;
+                //console.log("pro_num :", pro_num);
+                //if (mm_linkid != null) {
+                //    new_url += "&mm_linkid=" + mm_linkid;
+                //}
+                //if (ufrom != null) {
+                //    new_url += "&ufrom=" + ufrom;
+                //}
+                //location.href = "./choose-coupon.html?price=" + total_money + "&pro_num=" + pro_num + "&item_id=" + item_id;
             }
         });
     }
@@ -103,23 +132,57 @@ function copon_judeg(coupon_id, pro_num) {
         },
         function () {//确定　则跳转
             console.log(document.referrer);
-            var buy_nuw_url = document.referrer.split("&")[0] + "&" + document.referrer.split("&")[1];
-            var include_coupon = buy_nuw_url + "&coupon_id=" + coupon_id + "&pro_num=" + pro_num;
-            location.href = include_coupon;
+            // 如果是购物车来
+            var mm_linkid = getUrlParam('mm_linkid');
+            var ufrom = getUrlParam('ufrom');
+            console.log(document.referrer.indexOf('cart_ids'),'debug problem ');
+            if (document.referrer.indexOf('cart_ids') >= 0) {
+                var cart_ids = getUrlParam('cart_ids');
+                var new_url = document.referrer.split("cart_ids")[0] + 'cart_ids=' + cart_ids + '&coupon_id=' + coupon_id;
+                if (mm_linkid != null) {
+                    new_url += "&mm_linkid=" + mm_linkid;
+                }
+                if (ufrom != null) {
+                    new_url += "&ufrom=" + ufrom;
+                }
+                location.href = new_url;
+            }
+            else {//　否则
+                var item_id = getUrlParam('item_id');
+                var pro_num = getUrlParam('pro_num');
+                var sku_id = getUrlParam('sku_id');
+
+                var buy_nuw_url = document.referrer.split("item_id")[0] + "item_id=" + item_id +
+                    '&pro_num=' + pro_num + "&coupon_id=" + coupon_id + '&sku_id=' + sku_id;
+
+                if (mm_linkid != null) {
+                    buy_nuw_url += "&mm_linkid=" + mm_linkid;
+                }
+                if (ufrom != null) {
+                    buy_nuw_url += "&ufrom=" + ufrom;
+                }
+                location.href = buy_nuw_url;
+            }
         });
 }
 function choose_Coupon(coupon_id, coupon_type) {
-    var price = parseFloat(getUrlParam('price'));
     var pro_num = parseFloat(getUrlParam('pro_num'));
     var item_id = parseInt(getUrlParam('item_id'));
+    var cart_ids = getUrlParam('cart_ids');
+    console.log("pro_num",pro_num, "item_id",item_id,'cart_ids',cart_ids, isNaN(item_id));
     console.log("choose coupon_type:", coupon_type);
     var couponUrl = GLConfig.baseApiUrl + GLConfig.choose_coupon.template({"coupon_id": coupon_id});
     var data = {};
-    if (isNaN(item_id)) {
-        data = {"price": price, "pro_num": pro_num};
+    if (isNaN(item_id)||isNaN(pro_num)) {
+        if(!cart_ids){
+            drawToast('页面异常');
+        }
+    }
+    if(cart_ids){
+        data = {"cart_ids": cart_ids};
     }
     else {
-        data = {"price": price, "pro_num": pro_num, "item_id": item_id};
+        data = {"pro_num": pro_num, "item_id": item_id};
     }
     $.ajax({
         "url": couponUrl,
@@ -136,8 +199,11 @@ function choose_Coupon(coupon_id, coupon_type) {
     });
     function couponcallback(res) {
         console.log(res);
-        if (res.res == 'ok') {
-            copon_judeg(coupon_id, pro_num)
+        if (res.res == 0) {
+            copon_judeg(coupon_id, pro_num);
+        }
+        else if(res.res == 1) {
+            drawToast(res.coupon_message);
         }
     }
 }
