@@ -655,6 +655,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             buyer_openid = ''
             if channel == SaleTrade.WX_PUB:
                 buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
+                buyer_openid = buyer_openid or customer.openid
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
