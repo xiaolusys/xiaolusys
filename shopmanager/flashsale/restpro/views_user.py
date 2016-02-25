@@ -9,6 +9,9 @@ from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.contrib.auth import authenticate, login, logout
+
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -16,11 +19,9 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
-from rest_framework import status
-from django.core.urlresolvers import reverse
-from shopapp.weixin.models import WeiXinUser
-from django.db import models
-from django.contrib.auth import authenticate, login, logout
+
+from core.weixin.options import gen_weixin_redirect_url
+
 from flashsale.pay.models import Register, Customer,Integral
 from rest_framework import exceptions
 from shopback.base import log_action, ADDITION, CHANGE
@@ -304,7 +305,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
               'response_type':'code',
               'scope':'snsapi_base',
               'state':'135'}
-            redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+            redirect_url = gen_weixin_redirect_url(params)
             return Response({"code":0,"result": "login", "next": redirect_url})  #如果用户没有微信授权则直接微信授权后跳转
             
         except Customer.DoesNotExist:
