@@ -192,7 +192,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     '暂定':粉  
     
     """
-    queryset = CarryLog.objects.all()
+    queryset = CarryLog.objects.all().order_by('-carry_date')
     serializer_class = serializers.CarryLogSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)

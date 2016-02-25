@@ -392,11 +392,12 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
 class CarryLogSerialize(serializers.ModelSerializer):
     dayly_in_amount = serializers.FloatField(source='dayly_in_value', read_only=True)
     dayly_clk_amount = serializers.FloatField(source='dayly_clk_value', read_only=True)
+    desc = serializers.CharField(source='get_carry_desc', read_only=True)
 
     class Meta:
         model = CarryLog
         fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type", "carry_date", "created",
-                  'dayly_in_amount', 'dayly_clk_amount')
+                  'dayly_in_amount', 'dayly_clk_amount', 'desc', 'get_log_type_display')
 
 
 class ClickCountSerialize(serializers.ModelSerializer):
