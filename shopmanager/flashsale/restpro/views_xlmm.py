@@ -219,7 +219,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
             if i['log_type'] == CarryLog.CLICK_REBETA:  # 点击类型获取点击数量
                 clks = ClickCount.objects.filter(linkid=xlmm, date=carry_date)
                 i['type_count'] = clks.aggregate(cliknum=Sum('valid_num')).get('cliknum') or 0
-            if i['log_type'] == CarryLog.ORDER_REBETA:  # 订单返利　则获取返利单数
+            elif i['log_type'] == CarryLog.ORDER_REBETA:  # 订单返利　则获取返利单数
                 lefttime = carry_date
                 righttime = carry_date + datetime.timedelta(days=1)
                 shopscount = StatisticsShopping.objects.filter(linkid=xlmm, shoptime__gte=lefttime,

@@ -87,6 +87,9 @@ function Set_user_orderinfo(suffix){
         if(cart_ids==null){//表示
             update_total_price();
         }
+        if(data.coupon_message){// 如果优惠券的提示信息不是''，则提示优惠券信息　且不能提交当前页面
+            drawToast(data.coupon_message);
+        }
 //        小能客服订单转化对接
 //        var params = {
 //            'profile':JSON.parse(getCookie(PROFILE_COOKIE_NAME) || '{}'),

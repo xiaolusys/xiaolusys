@@ -1,17 +1,19 @@
 # coding=utf-8
-from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
+import datetime
+from django.shortcuts import get_object_or_404
+
 from rest_framework import viewsets
 from . import serializers
 from rest_framework import authentication
 from rest_framework import permissions
 from rest_framework import renderers
-from django.shortcuts import get_object_or_404
-from flashsale.pay.models import Customer
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import APIException
+
 from shopback.items.models import Product
-import datetime
+from flashsale.pay.models_coupon_new import UserCoupon, CouponsPool, CouponTemplate
+from flashsale.pay.models import Customer, ShoppingCart
 
 
 class UserCouponsViewSet(viewsets.ModelViewSet):
@@ -108,26 +110,52 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         else:
             return Response({"res": "not_release"})
 
+    def check_by_coupon(self, coupon, product_ids=None, use_fee=None):
+        coupon_message = ''
+        try:
+            coupon.check_usercoupon(product_ids=product_ids, use_fee=use_fee)  # 验证优惠券
+        except Exception, exc:
+            coupon_message = exc.message
+        return coupon_message
+
     @detail_route(methods=["post"])
     def choose_coupon(self, request, pk=None):
-        content = request.REQUEST
-        price = float(content.get("price", 0))
-        item = int(content.get("item_id", 0))
-        try:
-            pro = Product.objects.get(id=item)
-            if item and (pro.details.is_seckill or str(pro.name).startswith("秒杀")):
-                raise APIException(u"秒杀产品不支持使用优惠券")
-        except Product.DoesNotExist:
-            pass
+
         coupon_id = pk  # 获取order_id
         queryset = self.filter_queryset(self.get_owner_queryset(request)).filter(id=coupon_id)
         coupon = queryset.get(id=pk)
-        try:
-            coupon.check_usercoupon()  # 验证优惠券
-            coupon.cp_id.template.usefee_check(price)
-        except Exception, exc:
-            raise APIException(u"错误:%s" % exc.message)
-        return Response({"res": "ok"})
+
+        content = request.REQUEST
+        cart_ids = content.get("cart_ids", None)
+        pro_num = content.get("pro_num", None)
+        item = content.get("item_id", None)
+
+        coupon_message = ''
+        res = 0
+        if item and pro_num:  # 立即购买页面判断
+            try:
+                pro = Product.objects.get(id=item)
+
+                total_fee = pro.agent_price * int(pro_num)  # 满单金额
+                coupon_message = self.check_by_coupon(coupon, product_ids=[item, ], use_fee=total_fee)
+                if coupon_message != '':  # 有提示信息
+                    res = 1
+            except Exception, exc:
+                res = 1
+                coupon_message = exc.message
+
+        elif cart_ids:  # 购物车页面判断
+            cart_ids = cart_ids.split(',')  # 购物车id
+            carts = ShoppingCart.objects.filter(id__in=cart_ids)
+            product_ids = []
+            total_fee = 0
+            for cart in carts:
+                total_fee += cart.price * cart.num
+                product_ids.append(cart.item_id)
+            coupon_message = self.check_by_coupon(coupon, product_ids=product_ids, use_fee=total_fee)
+            if coupon_message != '':
+                res = 1
+        return Response({"res": res, "coupon_message": coupon_message})
 
 
 class CouponTemplateViewSet(viewsets.ModelViewSet):

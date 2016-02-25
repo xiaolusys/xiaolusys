@@ -270,10 +270,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         discount_fee = 0
         post_fee = 0
         has_deposite = 0 
-        wallet_cash  = 0 
+        wallet_cash  = 0
+        item_ids = []
         for cart in queryset:
             total_fee +=  cart.price * cart.num
             has_deposite |= cart.is_deposite()
+            item_id = cart.item_id
+            item_ids.append(item_id)
         xlmm = None
         weixin_payable = False
         customer = get_object_or_404(Customer, user=request.user)
@@ -289,17 +292,21 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
         coupon_id      = content.get('coupon_id','')
         coupon_ticket  = None
+        coupon_message = ''
         if coupon_id:
             coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id))
-            try:    # 优惠券条件检查
-                coupon.check_usercoupon()
+            try:    # 优惠券条件检查 绑定产品　和满单金额
+                check_use_fee = total_fee - discount_fee
+                coupon.check_usercoupon(product_ids=item_ids, use_fee=check_use_fee)
                 coupon_pool  = coupon.cp_id
                 discount_fee    += coupon_pool.template.value
             except Exception, exc:
-                raise exceptions.APIException(exc.message)
-            coupon_ticket = serializers.UsersCouponSerializer(coupon).data
-            coupon_ticket['receive_date'] = coupon.created
-            coupon_ticket['coupon_id'] = coupon_id
+                coupon_message = exc.message  # 返回优惠券的校验提示信息
+                # raise exceptions.APIException(exc.message)
+            if coupon_message == '':
+                coupon_ticket = serializers.UsersCouponSerializer(coupon).data
+                coupon_ticket['receive_date'] = coupon.created
+                coupon_ticket['coupon_id'] = coupon_id
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -317,7 +324,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'wallet_payable':wallet_payable,
                     'coupon_ticket':coupon_ticket,
                     'cart_ids':','.join([str(c) for c in cart_ids]),
-                    'cart_list':serializer.data}
+                    'cart_list':serializer.data,
+                    'coupon_message': coupon_message}
         
         return Response(response)
     
@@ -355,20 +363,24 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         
         coupon_id      = content.get('coupon_id','')
         coupon_ticket  = None
+        coupon_message = ''
         if not has_deposite and coupon_id:
-            coupon       = get_object_or_404(UserCoupon, id=coupon_id, 
+            try:
+                coupon       = get_object_or_404(UserCoupon, id=coupon_id,
                                              customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
-            try:
-                coupon.check_usercoupon()
+
+                check_use_fee = total_fee - discount_fee
+                coupon.check_usercoupon(product_ids=[product.id, ], use_fee=check_use_fee)
                 coupon_pool  = coupon.cp_id
                 discount_fee    += coupon_pool.template.value
             except Exception, exc:
-                raise exceptions.APIException(exc.message)
-            
-            coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
-            coupon_ticket['receive_date'] = coupon.created
-            coupon_ticket['coupon_id'] = coupon_id
+                # raise exceptions.APIException(exc.message)
+                coupon_message = exc.message  # 返回优惠券的校验提示信息
+            if coupon_message == '':
+                coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
+                coupon_ticket['receive_date'] = coupon.created
+                coupon_ticket['coupon_id'] = coupon_id
 
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
@@ -391,7 +403,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'alipay_payable':alipay_payable,
                     'wallet_payable':wallet_payable,
                     'coupon_ticket':coupon_ticket,
-                    'sku':product_sku_dict }
+                    'sku':product_sku_dict,
+                    'coupon_message': coupon_message}
         
         return Response(response)
 
@@ -600,14 +613,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
         payment       = int(sale_trade.payment * 100)
-        buyer_unoind  = sale_trade.unionid
         order_no      = sale_trade.tid
+        buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
         payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url','/pages/zhifucg.html'))
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
         extra = {}
         if channel == SaleTrade.WX_PUB:
-            buyer_openid =  options.get_openid_by_unionid(buyer_unoind,settings.WXPAY_APPID)
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
             
         elif channel == SaleTrade.ALIPAY_WAP:
@@ -640,8 +652,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sale_trade,state = SaleTrade.objects.get_or_create(tid=tuuid,
                                                            buyer_id=customer.id)
         assert sale_trade.status in (SaleTrade.WAIT_BUYER_PAY,SaleTrade.TRADE_NO_CREATE_PAY), u'订单不可支付'
+        channel = form.get('channel')
         params = {
-            'channel':form.get('channel'),
+            'channel':channel,
             'receiver_name':address.receiver_name,
             'receiver_state':address.receiver_state,
             'receiver_city':address.receiver_city,
@@ -652,6 +665,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile':address.receiver_mobile,
             }
         if state:
+            buyer_openid = ''
+            if channel == SaleTrade.WX_PUB:
+                buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
+                buyer_openid = buyer_openid or customer.openid
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -661,7 +678,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'discount_fee':float(form.get('discount_fee')),
                 'charge':'',
                 'status':SaleTrade.WAIT_BUYER_PAY,
-                'openid':customer.openid,
+                'openid':buyer_openid,
                 'extras_info':{'mm_linkid':form.get('mm_linkid','0'),
                                'ufrom':form.get('ufrom',''),
                                'coupon':form.get('coupon_id','')}
@@ -765,8 +782,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
                                                  status=UserCoupon.UNUSED)
                 try:  # 优惠券条件检查
-                    coupon.check_usercoupon(product_ids=item_ids)
-                    coupon.cp_id.template.usefee_check((cart_total_fee - cart_discount) / 100.0)  # 检查消费金额是否满足
+                    check_use_fee = (cart_total_fee - cart_discount) / 100.0
+                    coupon.check_usercoupon(product_ids=item_ids, use_fee=check_use_fee)
+                    # coupon.cp_id.template.usefee_check((cart_total_fee - cart_discount) / 100.0)  # 检查消费金额是否满足
                     coupon_pool = coupon.cp_id
                 except Exception, exc:
                     raise exceptions.APIException(exc.message)
@@ -830,8 +848,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                              customer=str(customer.id),
                                              status=UserCoupon.UNUSED)
             try:  # 优惠券条件检查
-                coupon.check_usercoupon(product_ids=[product.id, ])
-                coupon.cp_id.template.usefee_check((bn_totalfee - bn_discount) / 100.0)  # 检查消费金额是否满足
+                check_use_fee = (bn_totalfee - bn_discount) / 100.0
+                coupon.check_usercoupon(product_ids=[product.id, ], use_fee=check_use_fee)
+                # coupon.cp_id.template.usefee_check((bn_totalfee - bn_discount) / 100.0)  # 检查消费金额是否满足
                 coupon_pool = coupon.cp_id
             except Exception, exc:
                 raise exceptions.APIException(exc.message)

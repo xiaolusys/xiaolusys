@@ -218,6 +218,11 @@ except ImportError,err:
   
 from task_settings import *
 
+try:
+    from override_settings import *
+except ImportError,err:
+    pass
+
 if DEBUG:
     BROKER_URL = 'amqp://usera:passwda@192.168.1.101:5672/vhosta'
 
