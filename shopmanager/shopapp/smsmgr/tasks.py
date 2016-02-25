@@ -191,7 +191,7 @@ def task_register_code(mobile, send_type="1"):
     except:
         return
     try:
-        register_v = Register.objects.get(vmobile=mobile)
+        register_v = Register.objects.filter(vmobile=mobile).order_by('-modified')[0]
         if send_type == "1":
             content = u"验证码：" + register_v.verify_code + "，请在注册页面输入完成验证。如非本人操作请忽略。【小鹿美美】"
         elif send_type == "2":

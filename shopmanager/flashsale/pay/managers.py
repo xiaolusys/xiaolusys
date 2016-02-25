@@ -4,10 +4,10 @@ from django.db.models import Q,Sum
 
 from core.ormcache.managers import CacheManager
 
-class NormalSaleTradeManager(CacheManager):
+class NormalSaleTradeManager(models.Manager):
     
     def get_query_set(self):
-        queryset = super(NormalSaleTradeManager,self).get_queryset()
+        queryset = super(NormalSaleTradeManager,self).get_query_set()
         return queryset.filter(
             status__in=self.model.NORMAL_TRADE_STATUS
         ).order_by('-created')
