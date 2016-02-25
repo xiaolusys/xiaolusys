@@ -293,6 +293,7 @@ from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
 
 class UsersCouponSerializer(serializers.ModelSerializer):
     coupon_type = serializers.IntegerField(source='cp_id.template.type', read_only=True)
+    coupon_type_display = serializers.CharField(source='cp_id.template.get_type_display', read_only=True)
     deadline = serializers.CharField(source='cp_id.template.deadline', read_only=True)
     title = serializers.CharField(source='cp_id.template.title', read_only=True)
     coupon_no = serializers.CharField(source='cp_id.coupon_no', read_only=True)
@@ -305,7 +306,8 @@ class UsersCouponSerializer(serializers.ModelSerializer):
         model = UserCoupon
         # remove the "cp_id" field, test for browser solwly
         fields = ("id",  "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
-                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee')
+                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee',
+                  'coupon_type_display')
 
 
 class CouponTemplateSerializer(serializers.ModelSerializer):
