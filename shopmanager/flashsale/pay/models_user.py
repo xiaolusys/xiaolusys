@@ -1,6 +1,7 @@
 #-*- coding:utf-8 -*-
 import random
 import datetime
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
     
@@ -148,7 +149,14 @@ class Customer(PayBaseModel):
         except XiaoluMama.DoesNotExist:
             return None
         
-    
-    
+    def get_openid_and_unoinid_by_appkey(self,appkey):
+        if not self.unionid.strip():
+            return ('','')
+        from shopapp.weixin import options
+        openid = options.get_openid_by_unionid(self.unionid,appkey)
+        if not openid and appkey == settings.WXPAY_APPID:
+            return self.openid, self.unionid
+        return openid, self.unionid
+        
         
     
