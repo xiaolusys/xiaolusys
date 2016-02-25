@@ -1,0 +1,113 @@
+{% extends "app_release_base.html" %}
+{% block meta %}
+    <style>
+        .file {
+            position: relative;
+            display: inline-block;
+            background: #D0EEFF;
+            border: 1px solid #99D3F5;
+            border-radius: 4px;
+            padding: 4px 12px;
+            overflow: hidden;
+            color: #1E88C7;
+            text-decoration: none;
+            text-indent: 0;
+            line-height: 20px;
+        }
+
+        .file input {
+            position: absolute;
+            font-size: 100px;
+            right: 0;
+            top: 0;
+            opacity: 0;
+        }
+
+        .file:hover {
+            background: #AADFFD;
+            border-color: #78C3F3;
+            color: #004974;
+            text-decoration: none;
+        }
+    </style>
+{% endblock %}
+<title>
+    {% block title %}
+        app版本提交
+    {% endblock %}
+</title>
+
+{% block container %}
+    <div class="panel panel-info" style="margin-bottom: 200px">
+        <div class="panel-heading">
+            <h3 class="panel-title">app版本提交</h3>
+
+            <div class="panel-body">
+                <p style="color:red;">{{ message }}</p>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div style="margin-top: 30px">
+                <form action="" method="post" onsubmit="return check()">
+                    <div class="input-group col-md-12">
+                        <span class="input-group-addon">版本号</span>
+                        <input type="text" name="version" id="version" class="form-control">
+                        <span class="input-group-addon">发布时间</span>
+                        <input type="text" name="release_time" id="release_time" readonly="readonly"
+                               class="form-control datepicker" aria-describedby="basic-addon1">
+                    </div>
+                    <div class="input-group col-md-6" style="margin-top: 20px">
+                        <a id="uploadfile" class="nput-group-addon file">选择发布app包文件
+                            <input class="btn btn-info" type="file" name="poster" id="pickfiles">
+                        </a>
+                        <input type="text" name="download_link" id="download_link" readonly="readonly"
+                               value="{{ download_link }}"
+                               class="form-control">
+                    </div>
+
+                    <div class="col-xs-12 panel panel-default" style="margin-top: 30px">
+                        <div class="panel-heading">备注</div>
+                        <div class="panel-body">
+                            <textarea style="font-size: 10px" rows="7" cols="150" name="memo"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-xs-6" style="float: right">
+                        <input class="btn btn-warning" type="submit" value="提交">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- 获取qiniu uptoken -->
+    <input hidden="" id="domain" value="http://image.xiaolu.so/">
+    <input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
+{% endblock %}
+
+{% block tail_script %}
+    <script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
+    <script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/ui.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/qiniu.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/upload_app_release.js"></script>
+    <script src="{{ STATIC_URL }}layer-v1.9.2/layer/layer.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#release_time").datetimepicker({
+                dateFormat: "yy-mm-dd",
+                timeFormat: "HH:mm:ss"
+            });
+        });
+        function check() {
+            var version = $("#version").val();
+            var release_time = $("#release_time").val();
+            var download_link = $("#download_link").val();
+            console.log(version, release_time, download_link);
+            if (version && release_time && download_link) {
+                return true;
+            }
+            layer.msg('不能为空');
+            return false;
+        }
+
+    </script>
+{% endblock %}
