@@ -162,4 +162,68 @@ class Customer(PayBaseModel):
         return openid, self.unionid
         
         
+class UserBudget(PayBaseModel):
+    """ 特卖用户钱包 """
+    class Meta:
+        db_table = 'flashsale_userbudget'
+        verbose_name=u'特卖/用户钱包'
+        verbose_name_plural = u'特卖/用户钱包列表'
+    
+    user        = models.OneToOneField(Customer,verbose_name= u'原始用户')
+    amount      = models.IntegerField(default=0,verbose_name=u'账户余额(分)')
+    
+    total_redenvelope = models.CharField(max_length=32,blank=True,verbose_name=u'累计获取红包')
+    total_consumption = models.CharField(max_length=32,blank=True,verbose_name=u'累计消费') 
+    total_refund      = models.CharField(max_length=32,blank=True,verbose_name=u'累计退款') 
+    
+    def __unicode__(self):
+        return u'<%s,%s>'%(self.customer, self.amount)
+    
+    
+class BudgetLog(PayBaseModel):
+    """ 特卖用户钱包记录 """
+    class Meta:
+        db_table = 'flashsale_userbudgetlog'
+        verbose_name=u'特卖/用户钱包收支记录'
+        verbose_name_plural = u'特卖/用户钱包收支记录'
+    
+    BUDGET_IN  = 0
+    BUDGET_OUT = 1
+    
+    BUDGET_CHOICES = (
+        (BUDGET_IN,u'收入'),
+        (BUDGET_OUT,u'支出'),
+    )
+    
+    BG_ENVELOPE = 'envelop'
+    BG_REFUND   = 'refund'
+    BG_CONSUM   = 'consum'
+    BG_CASHOUT  = 'cashout'
+    
+    BUDGET_LOG_CHOICES = (
+        (BG_ENVELOPE,u'红包'),
+        (BG_REFUND,u'退款'),
+        (BG_CONSUM,u'消费'),
+        (BG_CASHOUT,u'提现'),
+    )
+    
+    CONFIRMED = 0
+    CANCELED  = 1
+
+    STATUS_CHOICES = (
+        (CONFIRMED,u'已确定'),
+        (CANCELED,u'已取消'),
+    )
+    
+    user        = models.OneToOneField(Customer,verbose_name= u'原始用户')
+    flow_amount = models.IntegerField(default=0,verbose_name=u'流水金额(分)')
+    budget_type = models.IntegerField(choices=BUDGET_CHOICES,db_index=True,null=False,verbose_name=u"收支类型")
+    budget_log_type = models.CharField(max_length=8,choices=BUDGET_LOG_CHOICES,db_index=True,null=False,verbose_name=u"记录类型")
+    
+    status     = models.IntegerField(choices=STATUS_CHOICES,db_index=True,default=CONFIRMED,verbose_name=u'状态')
+    
+    def __unicode__(self):
+        return u'<%s,%s>'%(self.customer, self.amount)
+    
+    
     

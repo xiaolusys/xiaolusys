@@ -25,7 +25,7 @@ def get_award_sql():
         ORDER BY fpi.invite_count desc;
     """
 
-award_msg = ""
+award_msg = "实况战报：卡通睡袋中奖名单已经出炉，您可以享用了，600万红包还剩余345万，快快抢吧！！！"
 
 def push_phone_account(account_id):
     mipush.mipush_of_ios.push_to_account(
