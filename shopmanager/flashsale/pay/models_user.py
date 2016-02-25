@@ -91,8 +91,8 @@ class Customer(PayBaseModel):
         verbose_name=u'特卖用户/客户'
         verbose_name_plural = u'特卖用户/客户列表'
     
-    NORMAL = 1     #正常
     INACTIVE = 0   #未激活
+    NORMAL = 1     #正常
     DELETE = 2     #删除
     FREEZE = 3     #冻结
     SUPERVISE = 4  #监管
@@ -123,6 +123,9 @@ class Customer(PayBaseModel):
     
     def __unicode__(self):
         return '%s(%s)'%(self.nick,self.id) 
+    
+    def is_loginable(self):
+        return self.status == self.NORMAL
     
     def is_wxauth(self):
         """ 是否微信授权 """

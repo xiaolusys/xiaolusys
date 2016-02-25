@@ -34,26 +34,22 @@ class FlashSaleBackend(object):
             return AnonymousUser()
         
         try:
-            customer = Customer.objects.get(models.Q(email=username)|models.Q(mobile=username)
-                                            ,status=Customer.NORMAL)
-            user = customer.user 
-            
+            user = User.objects.get(username=username)
+            customer = Customer.objects.get(user=user)
+            if not customer.is_loginable():
+                messages.add_message(request, messages.ERROR, u'用户状态异常')
+                return AnonymousUser()
             if not user.check_password(password):
                 messages.add_message(request, messages.ERROR, u'用户名或密码错误')
                 return AnonymousUser()
         except Customer.DoesNotExist:
+            messages.add_message(request, messages.ERROR, u'用户信息异常')
+            return AnonymousUser()
+        
+        except User.DoesNotExist:
             messages.add_message(request, messages.ERROR, u'用户名或密码错误')
             return AnonymousUser()
-        except Customer.MultipleObjectsReturned:
-            messages.add_message(request, messages.ERROR, u'帐号异常，请联系管理员')
-            return AnonymousUser()
             
-        try:
-            wxuser = WeiXinUser.objects.get(mobile=username)
-            customer.nick   = wxuser.nickname
-            customer.save()
-        except:
-            pass 
         return user
     
     def get_user(self, user_id):
