@@ -293,6 +293,7 @@ from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate
 
 class UsersCouponSerializer(serializers.ModelSerializer):
     coupon_type = serializers.IntegerField(source='cp_id.template.type', read_only=True)
+    coupon_type_display = serializers.CharField(source='cp_id.template.get_type_display', read_only=True)
     deadline = serializers.CharField(source='cp_id.template.deadline', read_only=True)
     title = serializers.CharField(source='cp_id.template.title', read_only=True)
     coupon_no = serializers.CharField(source='cp_id.coupon_no', read_only=True)
@@ -305,7 +306,8 @@ class UsersCouponSerializer(serializers.ModelSerializer):
         model = UserCoupon
         # remove the "cp_id" field, test for browser solwly
         fields = ("id",  "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
-                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee')
+                  'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee',
+                  'coupon_type_display')
 
 
 class CouponTemplateSerializer(serializers.ModelSerializer):
@@ -392,11 +394,12 @@ class XiaoluMamaSerialize(serializers.ModelSerializer):
 class CarryLogSerialize(serializers.ModelSerializer):
     dayly_in_amount = serializers.FloatField(source='dayly_in_value', read_only=True)
     dayly_clk_amount = serializers.FloatField(source='dayly_clk_value', read_only=True)
+    desc = serializers.CharField(source='get_carry_desc', read_only=True)
 
     class Meta:
         model = CarryLog
         fields = ("id", "carry_type", "xlmm", "value_money", "carry_type_name", "log_type", "carry_date", "created",
-                  'dayly_in_amount', 'dayly_clk_amount')
+                  'dayly_in_amount', 'dayly_clk_amount', 'desc', 'get_log_type_display')
 
 
 class ClickCountSerialize(serializers.ModelSerializer):

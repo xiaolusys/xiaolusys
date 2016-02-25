@@ -1,5 +1,6 @@
 #-*- coding:utf-8 -*-
 import datetime
+from random import choice
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth.models import User as DjangoUser
@@ -14,6 +15,7 @@ from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 from .models_fans import XlmmFans, FansNumberRecord
+import constants
 
 import logging
 logger = logging.getLogger('django.request')
@@ -677,6 +679,42 @@ class CarryLog(models.Model):
                                             log_type=CarryLog.CLICK_REBETA).exclude(status=CarryLog.CANCELED)
         sum_value = cls.aggregate(sum_value=Sum('value')).get('sum_value') or 0
         return sum_value / 100.0
+
+    def get_type_clk_cnt(self):
+        """ 计算点击类型的当天点击数量"""
+        clks = ClickCount.objects.filter(linkid=self.xlmm, date=self.carry_date)
+        cnt = clks.aggregate(cliknum=Sum('valid_num')).get('cliknum') or 0
+        return cnt
+
+    def get_type_shop_cnt(self):
+        """ 计算订单补贴类型的当天订单数量"""
+        from flashsale.clickrebeta.models import StatisticsShopping
+        lefttime = self.carry_date
+        righttime = lefttime + datetime.timedelta(days=1)
+        cnt = StatisticsShopping.objects.filter(linkid=self.xlmm,
+                                                shoptime__gte=lefttime, shoptime__lt=righttime,
+                                                status__in=(StatisticsShopping.FINISHED,
+                                                            StatisticsShopping.WAIT_SEND)).count()
+        return cnt
+
+    def get_carry_desc(self):
+        """
+        如果是点击类型，计算当天的点击数量添加到描述
+        如果是订单类型，计算当天的订单数量添加到描述
+        其他类型，返回相应的描述
+        """
+        if self.carry_type == CarryLog.CARRY_IN:
+            if self.log_type == CarryLog.CLICK_REBETA:
+                clk_cnt = self.get_type_clk_cnt()
+                des = choice(constants.CARRY_LOG_CLK_DESC).format(clk_cnt, self.get_status_display())
+            elif self.log_type == CarryLog.ORDER_REBETA:
+                shop_cnt = self.get_type_shop_cnt()
+                des = choice(constants.CARRY_LOG_SHOP_DESC).format(shop_cnt, self.get_status_display())
+            else:
+                des = constants.CARRY_IN_DEFAULT_DESC.format(self.get_status_display())
+        else:
+            des = constants.CARRY_OUT_DES.format(self.get_status_display())
+        return des
 
 from . import signals
 
