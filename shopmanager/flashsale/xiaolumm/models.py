@@ -587,7 +587,10 @@ class CarryLog(models.Model):
     ORDER_RED_PAC = 'ordred'
     COST_FLUSH    = 'flush'
     RECHARGE      = 'recharge'
-    
+    FANSCARRY     = 'fan_cary' # fans_carry
+    GROUPBONUS    = 'grp_bns'  # group_bonus
+    ACTIVITY      = 'activity' # activity bonus
+
     LOG_TYPE_CHOICES = (
         (ORDER_REBETA,u'订单返利'),
         (ORDER_BUY,u'消费支出'),
@@ -601,7 +604,10 @@ class CarryLog(models.Model):
         (MAMA_RECRUIT,u'招募奖金'),
         (ORDER_RED_PAC,u'订单红包'),
         (COST_FLUSH,u'补差额'),
-        (RECHARGE, u'充值')
+        (RECHARGE, u'充值'),
+        (FANSCARRY, u'粉丝提成'),
+        (GROUPBONUS, u'团员奖金'),
+        (ACTIVITY, u'活动奖金')
     )
     
     CARRY_OUT = 'out'
