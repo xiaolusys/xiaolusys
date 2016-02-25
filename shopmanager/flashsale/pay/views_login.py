@@ -83,7 +83,7 @@ def weixin_auth_and_redirect(request):
                   'response_type':'code',
                   'scope':'snsapi_base',
                   'state':'135'}
-        redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+        redirect_url = options.gen_weixin_redirect_url(params)
         return HttpResponseRedirect(redirect_url)
     else :
         task_Merge_Sale_Customer.s(user,code)()
