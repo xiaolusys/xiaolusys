@@ -51,7 +51,7 @@ def awards(invite_cnt,awdcode):
     for sid in sids:
         row = XLSampleOrder.objects.filter(id=sid[0],status=0).update(status=awdcode)
         if row > 0:
-            push_phone_account(sid[1])
+            push_phone_account(int(sid[1]))
         update_rows += row
     
     print "update total:",update_rows
@@ -64,4 +64,4 @@ if __name__ == "__main__":
         
     print 'params:', args[1],args[2]
     
-    awards(args[1],args[2]) 
+    awards(int(args[1]),int(args[2])) 
