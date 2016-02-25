@@ -15,7 +15,7 @@ from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 from .models_fans import XlmmFans, FansNumberRecord
-import constants
+from . import constants
 
 import logging
 logger = logging.getLogger('django.request')
@@ -54,13 +54,13 @@ class XiaoluMama(models.Model):
         (UNCHARGE,u'待接管'),
         (CHARGED,u'已接管'),
         )
-
+    
     INNER_LEVEL = 1
     VIP_LEVEL = 2
     A_LEVEL = 3
 
     AGENCY_LEVEL = (
-        (INNER_LEVEL, u"内部"),
+        (INNER_LEVEL, u"普通"),
         (VIP_LEVEL, u"VIP类"),
         (A_LEVEL, u"A类"),
     )
@@ -80,7 +80,7 @@ class XiaoluMama(models.Model):
     
     hasale  = models.BooleanField(default=False,verbose_name=u"有购买")
     
-    agencylevel = models.IntegerField(default=1, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
+    agencylevel = models.IntegerField(default=INNER_LEVEL, choices=AGENCY_LEVEL, verbose_name=u"代理类别")
     target_complete = models.FloatField(default=0.0, verbose_name=u"升级指标完成额")
     lowest_uncoushout = models.FloatField(default=0.0, verbose_name=u"最低不可提金额")
     user_group  = BigIntegerForeignKey(UserGroup,null=True,verbose_name=u"分组")

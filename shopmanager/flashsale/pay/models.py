@@ -9,7 +9,7 @@ from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .base import PayBaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
-from .models_user import Register,Customer
+from .models_user import Register,Customer,UserBudget,BudgetLog
 from .models_addr import District,UserAddress
 from .models_custom import Productdetail,GoodShelf,ModelProduct,ActivityEntry
 from .models_refund import SaleRefund

@@ -18,22 +18,19 @@ def gen_weixin_redirect_url(params):
     redirect_url = "{0}?{1}#wechat_redirect"
     return redirect_url.format(settings.WEIXIN_AUTHORIZE_URL,param_string)
 
+def parse_cookie_key(ckey,appid):
+    return '%s_%s'%(ckey,appid.replace('gh_',''))
+    
 def get_cookie_openid(cookies,appid):
-    """
-
-    :rtype : object
-    """
-    x = cookies.get('sopenid','').split('|')
-    y = cookies.get('sunionid','').split('|')
-    if len(x) < 2 or len(y) <2 or x[0] != y[0] or y[0] != appid:
-        return ('','')
-    return (x[1], y[1])
+    """ 根据cookie获取用户openid,unionid """
+    x = cookies.get(parse_cookie_key("openid",appid),'')
+    y = cookies.get(parse_cookie_key("unionid",appid),'')
+    return (x, y)
 
 def set_cookie_openid(response,appid,openid,unionid):
-    sopenid = '%s|%s'%(appid,openid)
-    sunionid = '%s|%s'%(appid,unionid)
-    response.set_cookie("sopenid",sopenid)
-    response.set_cookie("sunionid",sunionid)
+    """ 设置cookie用户openid,unionid """
+    response.set_cookie(parse_cookie_key("openid",appid),openid)
+    response.set_cookie(parse_cookie_key("unionid",appid),unionid)
     return response
 
 def get_weixin_userbaseinfo(code, appid, secret):

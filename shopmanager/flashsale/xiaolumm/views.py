@@ -509,7 +509,9 @@ class ClickLogView(WeixinAuthMixin, View):
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
               ctasks.task_Update_User_Click.s())()
         
-        return redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+        response = redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
+        return response
 
 def logChannelClicks(request, linkid):
     content = request.REQUEST
