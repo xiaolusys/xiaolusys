@@ -128,13 +128,13 @@ function showCategory(first_cate, second_cate, third_cate) {
     }
     else if(level_3_name == '下装'){
         $('#chima-group-2-choose').trigger('click');
-        $('input[value="裤长"], input[value="腰围"]').trigger('click');
+        $('input[value="裤长"], input[value="腰围"]', '#chima-group-2').trigger('click');
     }
     else if(level_3_name == '套装'){
         $('#chima-group-1-choose').trigger('click');
         $('#chima-group-2-choose').trigger('click');
         $('input[value="衣长"], input[value="肩宽"], input[value="袖长"]').trigger('click');
-        $('input[value="裤长"], input[value="腰围"]').trigger('click');
+        $('input[value="裤长"], input[value="腰围"]', '#chima-group-2').trigger('click');
 
     }
 }
