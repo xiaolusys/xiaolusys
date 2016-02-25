@@ -58,10 +58,19 @@
                     </div>
                     <div class="input-group col-md-6" style="margin-top: 20px">
                         <a id="uploadfile" class="nput-group-addon file">选择发布app包文件
-                            <input class="btn btn-info" type="file" name="poster" id="pickfiles">
+                            <input class="btn btn-info" type="file" id="pickfiles">
                         </a>
                         <input type="text" name="download_link" id="download_link" readonly="readonly"
                                value="{{ download_link }}"
+                               class="form-control">
+                    </div>
+
+                    <div class="input-group col-md-6" style="margin-top: 20px">
+                        <a id="upload_qrcode_file" class="nput-group-addon file">选择对应二维码图片文件
+                            <input class="btn btn-info" type="file" id="pick_qrcode_files">
+                        </a>
+                        <input type="text" name="qrcode_link" id="qrcode_link" readonly="readonly"
+                               value="{{ qrcode_link }}"
                                class="form-control">
                     </div>
 
@@ -101,12 +110,13 @@
             var version = $("#version").val();
             var release_time = $("#release_time").val();
             var download_link = $("#download_link").val();
+            var qrcode_link = $("#qrcode_link").val();
             console.log(version, release_time, download_link);
-            if (version && release_time && download_link) {
-                return true;
+            if (version && release_time && download_link && qrcode_link) {
+                return true
             }
             layer.msg('不能为空');
-            return false;
+            return false
         }
 
     </script>

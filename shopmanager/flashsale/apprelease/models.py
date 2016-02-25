@@ -17,6 +17,7 @@ class AppRelease(BaseModel):
     INVALID = 1
     RELEASE_STATUS = ((VALID, u'有效'), (INVALID, u'无效'))
     download_link = models.CharField(max_length=512, verbose_name=u'存储链接地址')
+    qrcode_link = models.CharField(max_length=512, verbose_name=u'二维码链接地址')
     version = models.CharField(max_length=128, db_index=True, verbose_name=u'客户端版本号')
     status = models.IntegerField(default=0, verbose_name=u'投放状态', db_index=True, choices=RELEASE_STATUS)
     release_time = models.DateTimeField(blank=True, null=True, verbose_name=u'投放时间')
