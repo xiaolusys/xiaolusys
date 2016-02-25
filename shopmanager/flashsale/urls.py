@@ -16,5 +16,6 @@ urlpatterns = patterns('',
     (r'^daystats/',include('flashsale.daystats.urls')),
     (r'^kefu/', include('flashsale.kefu.urls')),
     (r'^promotion/', include('flashsale.promotion.urls')),
+    (r'^apprelease/', include('flashsale.apprelease.urls')),
 
 )
