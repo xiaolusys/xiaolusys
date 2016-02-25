@@ -287,12 +287,13 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not username or not password:
             return Response({"code":1, "result": "null"})
         try:
-            customers = Customer.objects.filter(
-                models.Q(email=username)|models.Q(user__username=username)
-                ,status=Customer.NORMAL
-            )
-            if customers.count() > 0:
-                username = customers[0].user.username
+            try:
+                customer = Customer.objects.get(mobile=username)
+            except (Customer.DoesNotExist,Customer.MultipleObjectsReturned):
+                pass
+            else:
+                username = customer.user.username
+
             user1 = authenticate(username=username, password=password)
             if not user1 or user1.is_anonymous():
                 return Response({"code":2,"result": "p_error"})  # 密码错误
