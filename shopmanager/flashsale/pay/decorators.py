@@ -64,7 +64,6 @@ def weixin_xlmm_auth(redirecto=None):
     member, displaying the login page if necessary.
     """
     def _decorator(view_func):
-        
         assert redirecto ,u'redirecto 参数必须'
         def _checklogin(request, *args, **kwargs):
             if request.user.is_active :
