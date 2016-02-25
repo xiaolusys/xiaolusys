@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
 
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
-from .base import PayBaseModel
+from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
 from .models_user import Register,Customer,UserBudget,BudgetLog
@@ -39,7 +39,7 @@ def genUUID():
 def genTradeUniqueid():
     return uniqid('%s%s'%(SaleTrade.PREFIX_NO,datetime.date.today().strftime('%y%m%d')))
 
-class SaleTrade(PayBaseModel):
+class SaleTrade(BaseModel):
     """ payment (实付金额) = total_fee (商品总金额) + post_fee (邮费) - discount_fee (优惠金额) """
     PREFIX_NO  = 'xd'
     WX         = 'wx'
@@ -157,9 +157,8 @@ class SaleTrade(PayBaseModel):
     
 #     is_part_consign  = models.BooleanField(db_index=True,default=False,verbose_name=u'分单发货')
 #     consign_parmas   = JSONCharMyField(max_length=512, blank=True, default='[]', verbose_name=u'发货信息')
-    
+    objects = models.Manager()
     normal_objects = managers.NormalSaleTradeManager()
-    cache_enabled = True
     class Meta:
         db_table = 'flashsale_trade'
         verbose_name=u'特卖/订单'
@@ -572,7 +571,7 @@ class ShoppingCart(PayBaseModel):
     def __unicode__(self):
         return '%s'%(self.id)
     
-    def close_cart(self):
+    def close_cart(self,release_locknum=True):
         """ 关闭购物车 """
         try:
             ShoppingCart.objects.get(id=self.id, status=ShoppingCart.NORMAL)
@@ -581,8 +580,9 @@ class ShoppingCart(PayBaseModel):
     
         self.status = self.CANCEL
         self.save()
-        sku = get_object_or_404(ProductSku, pk=self.sku_id)
-        Product.objects.releaseLockQuantity(sku,self.num)
+        if release_locknum:
+            sku = get_object_or_404(ProductSku, pk=self.sku_id)
+            Product.objects.releaseLockQuantity(sku,self.num)
     
     def std_sale_price(self):
         sku = ProductSku.objects.get(id=self.sku_id)
