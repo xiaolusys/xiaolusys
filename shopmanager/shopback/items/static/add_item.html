@@ -86,16 +86,7 @@
                             <select id="supplier" style="width: 200px">
                             </select>
                         </div>
-                        <!--
-                             <div class="col-md-1">
-                             <input type="button" class="btn" value="款式编码:"/>
-                             </div>
-                             <div class="col-md-3">
-                             <input type="text" id="outer_id" class="form-control"/>
-                             </div>
-                           -->
                     </div>
-
                     <div class="row">
                         <div class="col-md-1">
                             <input type="button" class="btn" value="款式名称:"/>
@@ -191,7 +182,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="col-md-10 color-content checkbox-group" style="padding-left:31px">
                             <div class="row" style="background:#ff6a6a;width:685px">
                                 <label class="checkbox-inline">
@@ -739,7 +729,44 @@
                             </div>
                         </div>
                     </div>
-                    <hr>
+                    <div class="row">
+                        <table class="table table-striped" id="table-id">
+                            <thead>
+                                <th>
+                                    商品颜色名称
+                                </th>
+                                <th>
+                                    系统规格名称
+                                </th>
+                                <th>
+                                    供应商货号/编码
+                                </th>
+                                <th width="15%">
+                                    预留数
+                                </th>
+                                <th width="15%">
+                                    成本价
+                                </th>
+                                <th width="15%">
+                                    吊牌价
+                                </th>
+                                <th width="15%">
+                                    出售价
+                                </th>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        尺码表填写
+                    </h3>
+                </div>
+                <div class="panel-body">
                     <div class="row">
                         <div class="col-md-1">
                             <div class="row slight">
@@ -937,56 +964,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <table class="table table-striped" id="chima-table">
+                            <thead style="height: 20px">
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div class="panel panel-info">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        价格&库存
-                    </h3>
-                </div>
-                <table class="table table-striped" id="table-id">
-                    <thead>
-                        <th>
-                            商品颜色名称
-                        </th>
-                        <th>
-                            系统规格名称
-                        </th>
-                        <th>
-                            供应商货号/编码
-                        </th>
-                        <th width="15%">
-                            预留数
-                        </th>
-                        <th width="15%">
-                            成本价
-                        </th>
-                        <th width="15%">
-                            吊牌价
-                        </th>
-                        <th width="15%">
-                            出售价
-                        </th>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-            <div class="panel panel-info">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        尺码表填写
-                    </h3>
-                </div>
-                <table class="table table-striped" id="chima-table">
-                    <thead style="height: 20px">
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-
             <input type="button" id="new-product" class="btn btn-danger" value="生成新款"/>
 
             <div style="display:none" id="success" class="col-md-12">
