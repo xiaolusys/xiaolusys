@@ -87,7 +87,7 @@ class WeixinPubBackend(object):
                                              appid=settings.WXPAY_APPID,
                                              secret=settings.WXPAY_SECRET,
                                              request=request)
-        openid, unionid = userinfo.get('openid'), userinfo.get('unoinid')
+        openid, unionid = userinfo.get('openid'), userinfo.get('unionid')
         if not openid or not unionid:
             openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
             
