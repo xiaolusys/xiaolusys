@@ -42,13 +42,19 @@ def productlist_redirect(request):
 import urllib
 from urlparse import urljoin
 from .decorators import weixin_xlmm_auth,weixin_test_auth
+from core.weixin import options
+from flashsale.pay.models_user import Customer
 
 @weixin_xlmm_auth(redirecto=urljoin(settings.M_SITE_URL,'/pages/denglu.html'))
 def weixin_login(request):
-    next_url = request.REQUEST.get('next')
-    if next_url:
-        return HttpResponseRedirect(next_url)
-    return HttpResponseRedirect('/')
+    next_url = request.REQUEST.get('next','/')
+    response = HttpResponseRedirect(next_url)
+    
+    customer = Customer.objects.get(user=request.user.id)
+    openid,unionid = customer.get_openid_and_unoinid_by_appkey(settings.WXPAY_APPID)
+    
+    options.set_cookie_openid(response,settings.WXPAY_APPID,openid,unionid)
+    return response
 
 @weixin_test_auth(redirecto=urljoin(settings.M_SITE_URL,'/pages/denglu.html'))
 def weixin_test(request):

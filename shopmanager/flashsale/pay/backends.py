@@ -88,15 +88,18 @@ class WeixinPubBackend(object):
                                              secret=settings.WXPAY_SECRET,
                                              request=request)
         openid, unionid = userinfo.get('openid'), userinfo.get('unoinid')
+        if not openid or not unionid:
+            openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
+            
         if openid and not unionid:
             logger.warn('weixin unionid not return:openid=%s'%openid)
             unionid = self.get_unoinid(openid,settings.WXPAY_APPID)
         
-        if not valid_openid(openid):
+        if not valid_openid(unionid):
             return AnonymousUser()
             
         try:
-            profile = Customer.objects.get(openid=openid,status=Customer.NORMAL)
+            profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if unionid :
                 task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
@@ -139,13 +142,17 @@ class WeixinAppBackend(object):
         if not (request.path.startswith("/rest/") and content.get('unionid')):
             return None
         
-        openid  = content.get('openid')
+        openid = content.get('openid') 
         unionid = content.get('unionid')
-        nickname = content.get('nickname')
-        headimgurl = content.get('headimgurl')
         if not valid_openid(openid) or not valid_openid(unionid):
             return AnonymousUser()
         
+        params = {
+            'openid':content.get('openid'),
+            'unionid':content.get('unionid'),
+            'nickname':content.get('nickname'),
+            'headimgurl':content.get('headimgurl'),
+        }
         try:
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             if profile.user:
@@ -165,11 +172,11 @@ class WeixinAppBackend(object):
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,user=user)
             if not profile.nick.strip():
-                profile.nick = nickname
-                profile.thumbnail = headimgurl
+                profile.nick = params.get('nickname')
+                profile.thumbnail = params.get('headimgurl')
                 profile.save()
         
-        task_Refresh_Sale_Customer.s(kwargs,app_key=settings.WXAPP_ID)()    
+        task_Refresh_Sale_Customer.s(params,app_key=settings.WXAPP_ID)()    
         return user
     
     def get_user(self, user_id):

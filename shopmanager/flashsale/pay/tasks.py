@@ -44,6 +44,9 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
 def task_Refresh_Sale_Customer(user_params,app_key=None):
     """ 更新特卖用户　微信授权信息 """
     openid, unionid = user_params.get('openid'),user_params.get('unionid')
+    if not unionid:
+        return 
+    
     if openid and app_key:
         WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
         
