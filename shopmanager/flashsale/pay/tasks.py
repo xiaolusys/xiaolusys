@@ -4,6 +4,7 @@ import datetime
 import calendar
 from django.conf import settings
 from django.db import models
+from django.db import transaction
 from celery.task import task
 from celery.task.sets import subtask
 
@@ -152,6 +153,7 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
             
 
 @task(max_retry=3,default_retry_delay=60)
+@transaction.commit_on_success
 def notifyTradePayTask(notify):
     """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
     try:
@@ -176,13 +178,13 @@ def notifyTradePayTask(notify):
             hasattr(tcharge,k) and setattr(tcharge,k,v)
         tcharge.save()
         
-        order_no_tuple  = order_no.split('-')
-        is_post_confirm = False
-        if len(order_no_tuple) > 1:
-            is_post_confirm = True
+#         order_no_tuple  = order_no.split('-')
+#         is_post_confirm = False
+#         if len(order_no_tuple) > 1:
+#             is_post_confirm = True
             
         charge_time = tcharge.time_paid
-        strade = SaleTrade.objects.get(tid=order_no_tuple[0])
+        strade = SaleTrade.objects.get(tid=order_no)
         confirmTradeChargeTask(strade.id, charge_time=charge_time)
     
     except Exception,exc:
