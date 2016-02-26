@@ -7,6 +7,10 @@ from django.contrib.auth.models import User as DjangoUser
     
 from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .base import PayBaseModel
+from flashsale.pay.models_envelope import Envelop
+from shopback.base import log_action, ADDITION, CHANGE
+import constants
+from shopapp.weixin.models import WeixinUnionID
 
 
 class Register(PayBaseModel):
@@ -189,6 +193,57 @@ class UserBudget(PayBaseModel):
     def get_amount_display(self):
         """ 返回金额　"""
         return self.amount / 100.0
+
+    def action_budget_cashout(self, cash_out_amount):
+        """
+        用户钱包提现
+        cash_out_amount　整型　以分为单位
+        """
+        code = 0
+        if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
+            code = 3
+            return code
+        # 如果提现金额小于0　code 1
+        if cash_out_amount < 0:
+            code = 1
+        # 如果提现金额大于当前用户钱包的金额 code 2
+        elif cash_out_amount > self.amount:
+            code = 2
+        # 提现操作
+        else:
+            # 提现前金额
+            try:
+                wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
+            except WeixinUnionID.DoesNotExist:
+                code = 4  # 用户没有公众号提现账户
+                return code
+            before_cash_amount = self.amount
+            # 减去当前用户的账户余额
+            amount = self.amount - cash_out_amount
+            self.amount = amount
+            self.save()  # 保存提现后金额
+            # 创建钱包提现记录
+            budgelog = BudgetLog.objects.create(customer_id=self.user.id,
+                                                flow_amount=cash_out_amount,
+                                                budget_type=BudgetLog.BUDGET_OUT,
+                                                budget_log_type=BudgetLog.BG_CASHOUT,
+                                                budget_date=datetime.date.today(),
+                                                status=BudgetLog.CONFIRMED)
+            # 发放公众号红包
+            recipient = wx_union.openid  # 接收人的openid
+            body = constants.ENVELOP_BODY  # 红包祝福语
+            description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id,
+                                                                before_cash_amount)  # 备注信息 用户id, 提现前金额
+            Envelop.objects.create(amount=cash_out_amount,
+                                   platform=Envelop.XLMMAPP,
+                                   recipient=recipient,
+                                   subject=Envelop.XLAPP_CASHOUT,
+                                   body=body,
+                                   description=description,
+                                   referal_id=budgelog.id)
+            log_action(self.user.user.id, self, CHANGE, u'用户提现')
+        return code
+
     
 class BudgetLog(PayBaseModel):
     """ 特卖用户钱包记录 """
