@@ -811,9 +811,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
         customer = get_object_or_404(Customer, user=request.user)
         budget = get_object_or_404(UserBudget, user=customer)
-        amount = int(cashout_amount * 100)  # 以分为单位(提现金额乘以100取整)
+        amount = int(cashout_amount) * 100  # 以分为单位(提现金额乘以100取整)
         code, message = budget.action_budget_cashout(amount)
         qrcode = ''
-        if code in (3, 4):
+        if code in (4, 5):
             qrcode = ''
         return Response({'code': code, "message": message, "qrcode": qrcode})
