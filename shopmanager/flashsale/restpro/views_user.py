@@ -808,10 +808,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         cashout_amount = content.get('cashout_amount', None)
         if not cashout_amount:
-            code = 3  # 参数错误
-            return Response({'code': code})
+            return Response({'code': 3, 'message': '参数错误'})
         customer = get_object_or_404(Customer, user=request.user)
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(cashout_amount * 100)  # 以分为单位(提现金额乘以100取整)
-        code = budget.action_budget_cashout(amount)
-        return Response({'code': code})
+        code, message = budget.action_budget_cashout(amount)
+        return Response({'code': code, "message": message})

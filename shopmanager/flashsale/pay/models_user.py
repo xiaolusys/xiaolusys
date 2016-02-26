@@ -198,25 +198,22 @@ class UserBudget(PayBaseModel):
         用户钱包提现
         cash_out_amount　整型　以分为单位
         """
-        code = 0
+        from shopapp.weixin.models import WeixinUnionID
         if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
-            code = 3
-            return code
+            return 3, '参数错误'
         # 如果提现金额小于0　code 1
         if cash_out_amount < 0:
-            code = 1
+            return 1, '提现金额小于0'
         # 如果提现金额大于当前用户钱包的金额 code 2
         elif cash_out_amount > self.amount:
-            code = 2
+            return 2, '提现金额大于账户金额'
         # 提现操作
         else:
             # 提现前金额
             try:
-                from shopapp.weixin.models import WeixinUnionID
                 wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
             except WeixinUnionID.DoesNotExist:
-                code = 4  # 用户没有公众号提现账户
-                return code
+                return 4, '用户没有公众号账号'  # 用户没有公众号提现账户
             before_cash_amount = self.amount
             # 减去当前用户的账户余额
             amount = self.amount - cash_out_amount
@@ -242,7 +239,7 @@ class UserBudget(PayBaseModel):
                                    description=description,
                                    referal_id=budgelog.id)
             log_action(self.user.user.id, self, CHANGE, u'用户提现')
-        return code
+        return 0, '提现成功'
 
     
 class BudgetLog(PayBaseModel):
