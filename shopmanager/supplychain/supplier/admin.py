@@ -34,12 +34,12 @@ class SaleSupplierChangeList(ChangeList):
         if re.compile('^[\w]+[\.][\w]+$').match(search_q):
             (self.filter_specs, self.has_filters, remaining_lookup_params,
              use_distinct) = self.get_filters(request)
-             
+
             for filter_spec in self.filter_specs:
                 new_qs = filter_spec.queryset(request, qs)
                 if new_qs is not None:
                     qs = new_qs
-            
+
             ordering = self.get_ordering(request, qs)
             qs = qs.order_by(*ordering)
             scharge = SupplierCharge.objects.filter(employee__username=search_q, status=SupplierCharge.EFFECT)
@@ -113,7 +113,7 @@ class SaleSupplierAdmin(MyAdmin):
 
     charge_link.allow_tags = True
     charge_link.short_description = u"接管/操作"
-    
+
     def supplier_name_link(self, obj):
         span_style="font-size:16px;"
         if obj.level == SaleSupplier.LEVEL_GOOD:
@@ -154,14 +154,14 @@ class SaleSupplierAdmin(MyAdmin):
 
     category_select.allow_tags = True
     category_select.short_description = u"所属类目"
-    
+
     def memo_well(self, obj):
         return u'<div style="width:200px;"><div class="well well-content">[特长]：{0}</div><br><div class="well well-content">[备注]：{1}</div></div>'.format(
             obj.speciality, obj.memo)
 
     memo_well.allow_tags = True
     memo_well.short_description = u"特长及备注"
-    
+
     # --------设置页面布局----------------
     fieldsets = ((u'供应商基本信息:', {
                     'classes': ('expand',),
@@ -184,13 +184,13 @@ class SaleSupplierAdmin(MyAdmin):
                                , ('speciality',)
                                )
                  }))
-    
+
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size':64, 'maxlength': '256',})},
         models.FloatField: {'widget': TextInput(attrs={'size':24})},
         models.TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
     }
-    
+
     class Media:
         css = {
             "all": (
@@ -221,11 +221,11 @@ class SaleSupplierAdmin(MyAdmin):
         """ 商家批量接管 """
         employee = request.user
         queryset = queryset.filter(status=SaleSupplier.UNCHARGE)
-        
+
         for supplier in queryset:
             if SaleSupplier.objects.charge(supplier, employee):
                 log_action(request.user.id, supplier, CHANGE, u'接管成功')
-        
+
         self.message_user(request, u"======= 商家批量接管成功 =======")
         return HttpResponseRedirect("./")
 
@@ -316,6 +316,7 @@ class SaleProductAdmin(MyAdmin):
                    , ('pic_url', 'product_link')
                    , ('price', 'sale_price')
                    , ('on_sale_price', 'std_sale_price')
+                   , ('supplier_sku', 'remain_num')
                    , ('sale_supplier', 'sale_category')
                    , ('platform', 'hot_value','status','is_changed')
                    , ('sale_time', 'reserve_time', 'contactor')
@@ -503,7 +504,7 @@ class SaleProductAdmin(MyAdmin):
 
     status_link.allow_tags = True
     status_link.short_description = u"状态／操作"
-    
+
     def select_Contactor(self, obj):
         from models_buyer_group import BuyerGroup
 
@@ -532,7 +533,7 @@ class SaleProductAdmin(MyAdmin):
         return res
     memo_display.allow_tags = True
     memo_display.short_description = u"备注"
-    
+
     class Media:
         css = {
             "all": (
@@ -597,9 +598,9 @@ class SaleProductAdmin(MyAdmin):
         no_votigs.update(voting=True)
         mes = u"设置选品参与投票完成"
         self.message_user(request, mes)
-    
+
     voting_action.short_description = u"设置选品投票"
-    
+
     def cancel_voting_action(self, request, queryset):
         """  取消选品投票  """
         votigs = queryset.filter(voting=True)
@@ -608,7 +609,7 @@ class SaleProductAdmin(MyAdmin):
         self.message_user(request, mes)
 
     cancel_voting_action.short_description = u"取消选品投票"
-    
+
     def rejected_action(self,request,queryset):
         """ 批量淘汰选品 """
         sproducts = queryset.exclude(status__in=(SaleProduct.REJECTED,SaleProduct.IGNORED))
@@ -618,9 +619,9 @@ class SaleProductAdmin(MyAdmin):
             log_action(request.user.id,sproduct,CHANGE,u'淘汰选品')
         mes = u"已淘汰%s个选品"%sproducts.count()
         self.message_user(request, mes)
-        
+
     rejected_action.short_description = u"淘汰选品"
-    
+
     def schedule_manage_action(self, request, queryset):
         """  排期管理  """
         try:
@@ -761,7 +762,7 @@ class SaleProductManageDetailInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser:
             return self.readonly_fields + (
-                'sale_product_id', 'name', 'design_person', 'design_take_over', 'pic_path', 
+                'sale_product_id', 'name', 'design_person', 'design_take_over', 'pic_path',
                 'sale_category', 'product_link', 'material_status','today_use_status')
         return self.readonly_fields
 
@@ -781,4 +782,3 @@ class SaleProductManageAdmin(admin.ModelAdmin):
     custom_product_list.allow_tags = True
     custom_product_list.short_description = "商品列表"
 admin.site.register(SaleProductManage, SaleProductManageAdmin)
-

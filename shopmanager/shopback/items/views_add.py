@@ -111,6 +111,9 @@ class AddItemView(generics.ListCreateAPIView):
                     price = content.get(color + "_" + sku + "_pricestd", "")
                     agentprice = content.get(color + "_" + sku + "_agentprice", "")
                     total_remain_num += int(remain_num)
+                # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
+                if (pro_count % 10) == 1 and pro_count > 1:
+                    pro_count += 1
 
                 one_product = Product(name=product_name + "/" + color, outer_id=inner_outer_id + str(pro_count),
                                       model_id=model_pro.id, sale_charger=user.username,
