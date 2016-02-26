@@ -814,6 +814,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
         amount = int(cashout_amount * 100)  # 以分为单位(提现金额乘以100取整)
         code, message = budget.action_budget_cashout(amount)
         qrcode = ''
-        if code in (3, 4):
+        if code in (4, 5):
             qrcode = ''
         return Response({'code': code, "message": message, "qrcode": qrcode})
