@@ -1,4 +1,5 @@
 # coding: utf-8
+import datetime
 import json
 import re
 import time
@@ -82,7 +83,7 @@ class SaleProductList(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "product_screen.html"
     permission_classes = (permissions.IsAuthenticated,)
-
+    ordering = ('-modified', )
     paginate_by = 15
     page_query_param = 'page'
     paginate_by_param = 'page_size'
@@ -90,7 +91,7 @@ class SaleProductList(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
 
-        queryset = self.filter_queryset(self.queryset)
+        queryset = self.filter_queryset(self.queryset.order_by(*self.ordering))
         page = self.paginate_queryset(queryset)
         sale_category = SaleCategory.objects.all()
         sale_category = SaleCategorySerializer(sale_category, many=True).data
@@ -388,6 +389,10 @@ class FetchAndCreateProduct(APIView):
         sproduct.platform = SaleProduct.MANUAL
         sproduct.contactor = request.user
         sproduct.save()
+
+        # sale_time如果是unicode需要转换成datetime
+        if isinstance(sproduct.sale_time, basestring):
+            sproduct.sale_time = datetime.datetime.strptime(sproduct.sale_time, '%Y-%m-%d %H:%M:%S')
 
         data = {'record': SaleProductSerializer(sproduct, context={'request': request}).data}
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')

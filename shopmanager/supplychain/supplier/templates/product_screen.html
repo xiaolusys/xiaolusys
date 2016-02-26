@@ -1,6 +1,7 @@
 {% extends "supplier_base.html" %}
 
 {% load mathfilters %}
+{% load custom_filter %}
 
 {% block title %}
 品牌供应商
@@ -97,8 +98,8 @@
     <form action="/supplychain/supplier/product/?status={{ request_data.status }}&sale_supplier={{ request_data.sale_supplier }}" method="post">
     {% csrf_token %}
     <input value="{{supplier.id}}" hidden="hidden" name="supplier">
-    <input hidden="" id="domain" value="http://7xkyoy.com1.z0.glb.clouddn.com/">
-    <input hidden=""  id="uptoken_url" value="/supplychain/supplier/qiniu/?format=json">
+    <input hidden="" id="domain" value="http://image.xiaolu.so/">
+    <input hidden="" id="uptoken_url" value="/mm/qiniu/?format=json">
         <!-- Default panel contents -->
         <div class="panel-heading">新建商品</div>
         <div class="panel-body">
@@ -111,11 +112,17 @@
                         <div class="col-md-4" style="text-align:left;display:inline;">
                             <input class="form-control" name="title">
                         </div>
-                        <div class="col-md-2" style="text-align:left;display:inline;">
+                        <div class="col-md-1" style="text-align:left;display:inline;">
                             <label>进货价：</label>
                         </div>
-                        <div class="col-md-2" style="text-align:left;display:inline;">
+                        <div class="col-md-1" style="text-align:left;display:inline;">
                             <input class="form-control" name="sale_price">
+                        </div>
+                        <div class="col-md-1" style="text-align:left;display:inline;">
+                            <label>预留数：</label>
+                        </div>
+                        <div class="col-md-1" style="text-align:left;display:inline;">
+                            <input class="form-control" name="remain_num">
                         </div>
                     </div>
                 </li>
@@ -142,7 +149,6 @@
                                 {%endfor%}
                             </select>
                         </div>
-
                     </div>
                 </li>
                 <li class="list-group-item">
@@ -158,6 +164,38 @@
                         </div>
                         <div class="col-md-4" style="text-align:left;display:inline;">
                             <input class="form-control" id="reserve_time_id" name="reserve_time">
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>吊牌价：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" name="std_sale_price">
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>出售价：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" name="on_sale_price">
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>货号：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input class="form-control" name="supplier_sku">
+                        </div>
+                        <div class="col-md-2" style="text-align:left;display:inline;">
+                            <label>上架日期：</label>
+                        </div>
+                        <div class="col-md-4" style="text-align:left;display:inline;">
+                            <input type="text" class="form-control datepicker" name="sale_time">
                         </div>
                     </div>
                 </li>
@@ -208,14 +246,14 @@
     </li>
     <li class="list-group-item">
     	<div class="row">
-  		<div class="col-md-6" style="text-align:left;display:inline;"><label>邮编：</label><span>{{ supplier.zip_code }}</span></div>
-  		<div class="col-md-5" style="text-align:left;display:inline;"><label>邮箱：</label><span>{{ supplier.email }}</span></div>
-  		</div>
+  	    <div class="col-md-6" style="text-align:left;display:inline;"><label>邮编：</label><span>{{ supplier.zip_code }}</span></div>
+  	    <div class="col-md-5" style="text-align:left;display:inline;"><label>邮箱：</label><span>{{ supplier.email }}</span></div>
+  	</div>
     </li>
     <li class="list-group-item">
     	<div class="row">
-  		<div class="col-md-12" ><label>地址：</label><span>{{ supplier.address }}</span></div>
-  		</div>
+  	    <div class="col-md-12" ><label>地址：</label><span>{{ supplier.address }}</span></div>
+  	</div>
     </li>
   </ul>
 </div>
@@ -238,16 +276,21 @@
 	</div>
 	<div class="col-xs-4">
 	  <p>{{ record.title }}</p>
-	  <p>售价: <font style="color:red" id="id-price-{{ forloop.counter }}">{{ record.price }}</font></p>
+          <p>货号: <input id="id-supplier-sku-{{ forloop.counter }}" class="form-control" placeholder="请填写货号" value="{{ record.supplier_sku }}"></p>
 	  <p>商家: {{ record.sale_supplier.supplier_name }}</p>
 	  <p>平台: {{ record.platform }}</p>
 	  <p>类别: {{ record.sale_category.name }}</p>
-	  <p>热卖指数：{{ record.hot_value }}</p>
 	  <p>状态: <label class="label label-danger">{{ record.status }}</label></p>
 	</div>
 	<div class="col-xs-4">
-	  <p>指导价: <font style="color:red;font-size:20px" id="id-target-price-{{ forloop.counter }}">{{ record.price|mul:1.5}}</font></p>
 	  <p>进货价：<input id="id-buy-price-{{ forloop.counter }}" class="form-control" placeholder="进货价(必须)" value="{{ record.sale_price }}"></p>
+	  <p>吊牌价: <input id="id-target-price-{{ forloop.counter }}" class="form-control" placeholder="吊牌价" value="{{ record.std_sale_price }}"></p>
+          <p>出售价: <input id="id-sale-price-{{ forloop.counter }}" class="form-control" placeholder="出售价" value="{{ record.on_sale_price }}"></p>
+	  <p>
+	      <label   class="label label-success">上架时间:</label>
+	      <input type="text" id="id-sale-time-{{ forloop.counter }}" name="dt" class="datepicker " value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/>
+	  </p>
+          <p>预留数: <input id="id-remain-num-{{ forloop.counter }}" class="form-control" placeholder="请填写预留数" value="{{ record.remain_num }}"></p>
 	  {% if request_data.status %}
 	  {% ifequal record.status '待选' %}
 	  <p style="margin-top:10px">选择 初选结果：</p>
@@ -276,64 +319,13 @@
 	     <option value="rejected">淘汰</option>
 	     {% endifequal %}
 	  </select></p>
-	 {% ifequal record.status '通过' %}
-	  <p>
-	    <label class="label label-success">上架时间:</label>
-	    <input type="text" id="id-sale-time-{{ forloop.counter }}" class="datepicker " value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/>
-	  </p>
-	   {% endifequal %}
-	   {% ifequal record.status '排期' %}
-	  <p>
-	    <label   class="label label-success">上架时间:</label>
-	    <input type="text" id="id-sale-time-{{ forloop.counter }}" name="dt" class="datepicker " value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/>
-	  </p>
-	   {% endifequal %}
 	  {% endif %}
 	  <p style="margin-top:10px">备注：</p><textarea rows="1" cols="20" class="form-control" id="id-memo-{{ forloop.counter}}" >{{ record.memo }}</textarea>
 	  <p>
-      {% ifequal record.status '入围' %}
-          <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supplychain/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
-          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=selected&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
-          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
-          {% if request_data.status %}
-	        <button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>
-          {% endif %}
-      {% endifequal %}
-	  {% ifequal record.status '取样' %}
-          <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supplychain/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
-          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=purchase&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
-          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
-          {% if request_data.status %}
-	        <button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>
-          {% endif %}
-	  {% endifequal %}
-	  {% ifequal record.status '通过' %}
-          <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supplychain/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
-          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=passed&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
-          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
-          {% if request_data.status %}
-	        <button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>
-          {% endif %}
-      {% endifequal %}
-      {% ifequal record.status '排期' %}
-          <a class="btn btn-success" target="_blank" style="margin-top:20px" href="/supply/sample/add_sample/?outer_id={{record.outer_id}}&title={{record.title}}&pic_url={{record.pic_url}}
-          &sale_supplier={{ record.sale_supplier.supplier_name }}&status=scheduling&id={{record.sale_supplier.id}}&sale_price={{ record.sale_price }}
-          &std_sale_price={{ record.std_sale_price }}">加入样品库</a>
-          {% if request_data.status %}
-	        <button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>
-          {% endif %}
-      {% endifequal %}
-      {% ifequal record.status '待选' %}
-          {% if request_data.status %}
-	        <button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>
-          {% endif %}
-      {% endifequal %}
-	  <!--{% if request_data.status %}-->
-	  <!--<button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>-->
-	  <!--{% endif %}-->
-	  <a href="/admin/supplier/saleproduct/{{ record.id }}/" class="glyphicon glyphicon-edit"
-	  	style="display:inline;float:right;margin-top:20px;" onclick="return showAddAnotherPopup(this);">修改</a></p>
-	  </p>
+	      <button type="button" class="btn btn-primary" style="margin-top:20px" onclick="screen('{{ record.id }}', '{{ forloop.counter }}')";>确定</button>
+	      <a href="/admin/supplier/saleproduct/{{ record.id }}/" class="glyphicon glyphicon-edit"
+	  	 style="display:inline;float:right;margin-top:20px;" onclick="return showAddAnotherPopup(this);">修改</a>
+          </p>
 	  <p id="id-msg-{{ forloop.counter }}"></p>
 	</div>
     </div>
@@ -352,8 +344,10 @@
 <script type="text/javascript">
     function screen(id, counter) {
         var buyPrice = parseFloat($("#id-buy-price-" + counter).val());
-        var stdSalePrice = parseFloat($("#id-std-sale-price-" + counter).val());
-        var onSalePrice = parseFloat($("#id-on-sale-price-" + counter).val());
+        var stdSalePrice = parseFloat($("#id-target-price-" + counter).val());
+        var onSalePrice = parseFloat($("#id-sale-price-" + counter).val());
+        var supplierSku = $('#id-supplier-sku-' + counter).val() || '';
+        var remainNum = $('#id-remain-num-' + counter).val() || 0;
         if (isNaN(buyPrice) || buyPrice < 0) {
             $("#id-msg-" + counter)[0].innerHTML = "请输入进货价：";
             $("#id-msg-" + counter).css("color", "red");
@@ -368,9 +362,14 @@
             stdSalePrice = onSalePrice = '0';
         }
         var url = "/supplychain/supplier/product/" + id + "/";
+        var request_status = '{{ request_data.status|default:"" }}';
         var callback = function (res) {
-            if (res["status"]) {
-                $("#id-item-" + id).slideUp();
+            if(!request_status || request_status == 'scheduling')
+                window.location.reload();
+            else{
+                if (res["status"]) {
+                    $("#id-item-" + id).slideUp();
+                }
             }
         };
         var sale_time = "";
@@ -389,13 +388,15 @@
 
         var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
         var data = {
-            "status": selection,
-            "csrfmiddlewaretoken": csrf_token,
-            "sale_price": buyPrice,
-            "std_sale_price": stdSalePrice,
-            "on_sale_price": onSalePrice,
-            "sale_time": sale_time,
-            "memo": memo
+            status: selection,
+            csrfmiddlewaretoken: csrf_token,
+            sale_price: buyPrice,
+            std_sale_price: stdSalePrice,
+            on_sale_price: onSalePrice,
+            sale_time: sale_time,
+            memo: memo,
+            supplier_sku: supplierSku,
+            remain_num: remainNum
         };
 
         var headers = {
@@ -431,10 +432,10 @@
         };
         var data = {"fetch_url": fetch_url, 'status': status};
         $.ajax({
-            url: url, 
+            url: url,
             method: "GET",
-            data: data, 
-            success: callback, 
+            data: data,
+            success: callback,
         });
     });
     $(function () {
@@ -445,8 +446,47 @@
 <script type="text/javascript" src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/plupload.full.min.js"></script>
 <script type="text/javascript" src="//cdn.bootcss.com/plupload/2.1.7/i18n/zh_CN.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_ui.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_qiniu.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}js/supplier_main.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/ui.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}script/qiniu.js"></script>
+<script>
+ $(function(){
+     $('.product_add').slideToggle();
+     var uploader = Qiniu.uploader({
+         runtimes: 'html5,flash,html4',
+         browse_button: 'pickfiles',
+         container: 'container',
+         drop_element: 'container',
+         max_file_size: '100mb',
+         flash_swf_url: 'js/plupload/Moxie.swf',
+         dragdrop: true,
+         chunk_size: '4mb',
+         uptoken_url: $('#uptoken_url').val(),
+         domain: $('#domain').val(),
+         auto_start: true,
+         init: {
+             'FilesAdded': function (up, files) {
+             },
+             'BeforeUpload': function (up, file) {
+             },
+             'UploadProgress': function (up, file) {
+             },
+             'UploadComplete': function () {
+             },
+             'FileUploaded': function (up, file, info) {
+                 var domain = up.getOption('domain');
+                 var res = jQuery.parseJSON(info);
+                 var sourceLink = domain + res.key; //获取上传成功后的文件的Url
+                 $("#pic_path").val(sourceLink);
+             },
+             'Error': function (up, err, errTip) {
+             },
+             'Key': function (up, file) {
+                 var name = file.name.replace(/[^\u4E00-\u9FA5\w\.]/g, '');
+                 var timestamp = new Date().getTime();// 添加上传时间戳
+                 return 'TT' + timestamp + name;
+             }
+         }
+     });
+ });
+</script>
 {% endblock %}
-    

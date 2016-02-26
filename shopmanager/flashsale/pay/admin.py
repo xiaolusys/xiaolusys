@@ -761,7 +761,7 @@ class BudgetLogAdmin(admin.ModelAdmin):
     list_display_links = ('id', )
     
     list_filter = ('budget_type','budget_log_type','status',)
-    search_fields = ['=id', '=user__mobile']
+    search_fields = ['=id', '=customer_id']
     
     # def get_readonly_fields(self, request, obj=None):
     #     return self.readonly_fields + ('user',)
