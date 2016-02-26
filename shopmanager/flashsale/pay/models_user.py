@@ -8,9 +8,8 @@ from django.contrib.auth.models import User as DjangoUser
 from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .base import PayBaseModel
 from flashsale.pay.models_envelope import Envelop
-from shopback.base import log_action, ADDITION, CHANGE
 import constants
-from shopapp.weixin.models import WeixinUnionID
+from shopback.base import log_action, CHANGE
 
 
 class Register(PayBaseModel):
@@ -213,6 +212,7 @@ class UserBudget(PayBaseModel):
         else:
             # 提现前金额
             try:
+                from shopapp.weixin.models import WeixinUnionID
                 wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
             except WeixinUnionID.DoesNotExist:
                 code = 4  # 用户没有公众号提现账户
