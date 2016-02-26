@@ -34,7 +34,7 @@ $(function () {
             'Key': function (up, file) {
                 var timestamp = new Date().getTime();
                 var version = $("#version").val();
-                var key = "xlmm_apk_version_" + version + '_' + timestamp;
+                var key = "xlmm_" + timestamp + file.name;
                 return key
             }
         }
@@ -74,7 +74,7 @@ $(function () {
             'Key': function (up, file) {
                 var timestamp = new Date().getTime();
                 var version = $("#version").val();
-                var key = "xlmm_apk_version_" + version + '_' + timestamp;
+                var key = "xlmm_" + timestamp + file.name;
                 return key
             }
         }
