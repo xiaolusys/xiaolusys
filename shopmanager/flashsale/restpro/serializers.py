@@ -493,5 +493,7 @@ class XLSampleSkuSerialize(serializers.ModelSerializer):
 from flashsale.pay.models_user import BudgetLog
 
 class BudgetLogSerialize(serializers.ModelSerializer):
+    budeget_detail_cash = serializers.FloatField(source='get_flow_amount_display', read_only=True)
     class Meta:
         model = BudgetLog
+        fields = ('budget_type', 'budget_log_type', 'budget_date', 'status', 'budeget_detail_cash')

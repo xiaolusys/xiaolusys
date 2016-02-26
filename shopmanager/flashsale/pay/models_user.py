@@ -225,15 +225,18 @@ class BudgetLog(PayBaseModel):
         (CANCELED,u'已取消'),
     )
     
-    user        = models.OneToOneField(Customer,verbose_name= u'原始用户')
+    customer_id = models.BigIntegerField(db_index=True, verbose_name=u'用户id')
     flow_amount = models.IntegerField(default=0,verbose_name=u'流水金额(分)')
     budget_type = models.IntegerField(choices=BUDGET_CHOICES,db_index=True,null=False,verbose_name=u"收支类型")
     budget_log_type = models.CharField(max_length=8,choices=BUDGET_LOG_CHOICES,db_index=True,null=False,verbose_name=u"记录类型")
     budget_date = models.DateField(default=datetime.date.today,verbose_name=u'业务日期')
-    status     = models.IntegerField(choices=STATUS_CHOICES,db_index=True,default=CONFIRMED,verbose_name=u'状态')
-    
+    status     = models.IntegerField(choices=STATUS_CHOICES, db_index=True, default=CONFIRMED, verbose_name=u'状态')
+
     def __unicode__(self):
-        return u'<%s,%s>'%(self.user, self.flow_amount)
-    
+        return u'<%s,%s>' % (self.customer_id, self.flow_amount)
+
+    def get_flow_amount_display(self):
+        """ 返回金额　"""
+        return self.flow_amount / 100.0
     
     

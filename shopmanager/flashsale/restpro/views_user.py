@@ -22,7 +22,7 @@ from rest_framework import authentication
 
 from core.weixin.options import gen_weixin_redirect_url
 
-from flashsale.pay.models import Register, Customer,Integral
+from flashsale.pay.models import Register, Customer,Integral, BudgetLog
 from rest_framework import exceptions
 from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
@@ -784,4 +784,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if verify_code_server != verify_code:
             return Response({"code":5, "result": "5", "info":"验证码不对"})
         return Response({"code":0, "result": "OK", "info":"success"})
-    
+
+    @list_route(methods=['get'])
+    def get_budget_detail(self, request):
+        """ 特卖用户钱包明细记录"""
+        customer = get_object_or_404(Customer, user=request.user)
+        budget_logs = BudgetLog.objects.filter(customer_id=customer.id)
+        page = self.paginate_queryset(budget_logs)
+        if page is not None:
+            serializer = serializers.BudgetLogSerialize(page,
+                                                        many=True,
+                                                        context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.BudgetLogSerialize(budget_logs, many=True)
+        return Response(serializer.data)
