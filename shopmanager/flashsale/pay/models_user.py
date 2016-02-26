@@ -163,7 +163,7 @@ class Customer(PayBaseModel):
             xlmm_fan = XlmmFans.objects.get(fans_cusid=self.id)
         except XlmmFans.DoesNotExist:
             return None
-        return XiaoluMama.objects.get(xlmm_fan.xlmm)
+        return XiaoluMama.objects.get(id=xlmm_fan.xlmm)
             
             
         

@@ -215,6 +215,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         instance.close_cart()
     
     @detail_route(methods=['post'])
+    @transaction.commit_on_success
     def plus_product_carts(self, request, pk=None):
         customer = get_object_or_404(Customer, user=request.user)
         cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id, status=ShoppingCart.NORMAL)
@@ -230,6 +231,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response({"status": update_status})
 
     @detail_route(methods=['post'])
+    @transaction.commit_on_success
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
