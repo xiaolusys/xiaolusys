@@ -12,7 +12,8 @@ from flashsale.pay.models import (
     Register,
     GoodShelf,
     ActivityEntry,
-    CustomShare
+    CustomShare,
+    UserBudget
 )
 from shopback.trades.models import TradeWuliu
 from flashsale.xiaolumm.models import XiaoluMama
@@ -33,18 +34,27 @@ class XiaoluMamaSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','cash','agencylevel','created','status')
 
 
+class UserBudgetSerialize(serializers.HyperlinkedModelSerializer):
+    budget_cash = serializers.FloatField(source='get_amount_display', read_only=True)
+
+    class Meta:
+        model = UserBudget
+        fields = ('budget_cash', )
+
 class CustomerSerializer(serializers.HyperlinkedModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='v1:customer-detail')
     user_id  = serializers.CharField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     xiaolumm = XiaoluMamaSerializer(source='getXiaolumm', read_only=True)
+    user_budget = UserBudgetSerialize(source='getBudget', read_only=True)
     has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
 
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone',
-                  'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password')
+                  'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password',
+                  'user_budget')
 
 
 #####################################################################################
@@ -479,3 +489,9 @@ class XLFreeSampleSerialize(serializers.ModelSerializer):
 class XLSampleSkuSerialize(serializers.ModelSerializer):
     class Meta:
         model = XLSampleSku
+
+from flashsale.pay.models_user import BudgetLog
+
+class BudgetLogSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = BudgetLog
