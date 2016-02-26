@@ -4,6 +4,7 @@ import datetime
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.db import transaction
 
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -645,6 +646,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return charge
     
     @rest_exception(errmsg=u'特卖订单创建异常')
+    @transaction.commit_on_success
     def create_Saletrade(self,form,address,customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')

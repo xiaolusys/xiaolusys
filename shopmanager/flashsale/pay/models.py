@@ -150,7 +150,7 @@ class SaleTrade(BaseModel):
     openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信OpenID')
     charge  = models.CharField(max_length=28,verbose_name=u'支付编号')
     
-    extras_info  = JSONCharMyField(max_length=256, blank=True, default='{}', verbose_name=u'附加信息')
+    extras_info  = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'附加信息')
     
     status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'交易状态')
