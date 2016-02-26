@@ -4,6 +4,7 @@ import datetime
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.db import transaction
 
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -46,7 +47,7 @@ UUID_RE = re.compile('^[a-z]{2}[0-9]{6}[a-z0-9-]{10,14}$')
 
 def isFromWeixin(request):
     user_agent = request.META.get('HTTP_USER_AGENT')
-    if user_agent and user_agent.find('MicroMessenger') > 0:
+    if user_agent and re.search('MicroMessenger', user_agent, re.IGNORECASE):
         return True
     return False
         
@@ -645,6 +646,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return charge
     
     @rest_exception(errmsg=u'特卖订单创建异常')
+    @transaction.commit_on_success
     def create_Saletrade(self,form,address,customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')
