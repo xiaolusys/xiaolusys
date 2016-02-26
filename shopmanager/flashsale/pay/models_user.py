@@ -211,9 +211,11 @@ class UserBudget(PayBaseModel):
         else:
             # 提现前金额
             try:
+                if not self.user.unionid:
+                    return 5, '请扫描二维码'
                 wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
             except WeixinUnionID.DoesNotExist:
-                return 4, '用户没有公众号账号'  # 用户没有公众号提现账户
+                return 4, '请扫描二维码'  # 用户没有公众号提现账户
             before_cash_amount = self.amount
             # 减去当前用户的账户余额
             amount = self.amount - cash_out_amount
@@ -290,5 +292,9 @@ class BudgetLog(PayBaseModel):
     def get_flow_amount_display(self):
         """ 返回金额　"""
         return self.flow_amount / 100.0
+
+    def log_desc(self):
+        """ 预留记录的描述字段 """
+        return ''
     
     

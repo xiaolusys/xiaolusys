@@ -803,14 +803,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def budget_cash_out(self, request):
         """
         普通用户提现接口
-        - 返回`code`: 0 成功; 1　提现金额小于0;  2 提现金额大于当前账户金额;  3 参数错误;  4　用户没有公众号账号;
+        - 返回`code`: 0 成功; 1　提现金额小于0;  2 提现金额大于当前账户金额;  3 参数错误;  4　用户没有公众号账号;5　用户unionid不存在
         """
         content = request.REQUEST
         cashout_amount = content.get('cashout_amount', None)
         if not cashout_amount:
-            return Response({'code': 3, 'message': '参数错误'})
+            return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
         customer = get_object_or_404(Customer, user=request.user)
         budget = get_object_or_404(UserBudget, user=customer)
         amount = int(cashout_amount * 100)  # 以分为单位(提现金额乘以100取整)
         code, message = budget.action_budget_cashout(amount)
-        return Response({'code': code, "message": message})
+        qrcode = ''
+        if code in (3, 4):
+            qrcode = ''
+        return Response({'code': code, "message": message, "qrcode": qrcode})
