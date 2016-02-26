@@ -1,6 +1,7 @@
 var items;
 var suppliers;
 var supplier_id;
+var saleproduct_id;
 var saleproduct;
 var wash_tip = "洗涤时请深色、浅色衣物分开洗涤。最高洗涤温度不要超过40度，不可漂白。有涂层、印花表面不能进行熨烫，会导致表面剥落。不可干洗，悬挂晾干。";
 $(function () {
@@ -19,31 +20,32 @@ $(function () {
 
     var urlParams = parseUrlParams(window.location.href);
     supplier_id = urlParams["supplier_id"];
-    saleproduct = urlParams["saleproduct"];
-    if(!supplier_id || !saleproduct){
+    saleproduct_id = urlParams["saleproduct"];
+    if(!supplier_id || !saleproduct_id){
         alert("请从选品列表进来");
         return;
     }
-    get_category(get_sale_product(saleproduct));
+    saleproduct = get_sale_product(saleproduct_id);
+    get_category(saleproduct.product_category);
     get_supplier();
     $('#new-product').bind("click", submit_data);
 });
-function get_sale_product(saleproduct){
+function get_sale_product(saleproduct_id){
     //获取选品信息
-    var productCategory = {};
+    var obj;
     $.ajax({
         async: false,
         type: 'get',
         dataType: 'json',
-        url: '/supplychain/supplier/product/' + saleproduct,
+        url: '/supplychain/supplier/product/' + saleproduct_id,
         success: function(result){
             if(result.sale_time)
                 $('#shelf_time').val(result.sale_time);
             $('#header_img_content').val(result.pic_url);
-            productCategory = result.product_category;
+            obj = result;
         }
     });
-    return productCategory;
+    return obj;
 }
 function parseUrlParams(myUrl) {
     var vars = [], hash;
@@ -350,7 +352,7 @@ function submit_data() {
         wash_instroduce: wash_instroduce,
         shelf_time: shelf_time,
         ware_by: ware_by,
-        saleproduct: saleproduct
+        saleproduct: saleproduct_id
     };
     for (var i = 0; i < all_color.length; i++) {
         var one_color = all_color[i].replace(/\+/g,"\\+").replace(/\[/g,"\\[").replace(/\]/g,"\\]").replace(/\*/g,"\\*");

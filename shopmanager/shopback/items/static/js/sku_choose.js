@@ -6,6 +6,7 @@ $(function () {
     $(".sku-choose").click(dynamic_generate_sku);
     $(".sku-choose").click(dynamic_generate_chi);
     $(".chima-choose").click(dynamic_generate_chi);
+
     $("#chima-add").click(function () {
         var chimatext = $(".chima-add").val().trim();
         if (chimatext.length > 0) {
@@ -49,12 +50,14 @@ function dynamic_generate_sku() {
     var count2 = 0;
     $.each(all_sku, function (i, one_sku) {
         if (one_sku.checked) {
-            sku[count2++] = one_sku.defaultValue;
+            sku[count2++] = isNaN(one_sku.defaultValue) ? one_sku.defaultValue : parseInt(one_sku.defaultValue);
         }
     });
     if (count1 == 0 || count2 == 0) {
         $('#table-id tbody').html("");
     } else {
+        if(_.every(sku, _.isNumber))
+            sku = _.sortBy(sku);
         var result = {
             title: '渲染',
             color: color,
@@ -96,6 +99,30 @@ function dynamic_generate_sku() {
     $(".c_agentprice:first").change(function(){
         $('input[id$=agentprice]').val($(this).val());
     });
+    if(saleproduct.supplier_sku){
+        var prefix = '';
+        var count = 1;
+        if(!isNaN(saleproduct.supplier_sku))
+            count = parseInt(saleproduct.supplier_sku);
+        else
+            prefix = saleproduct.supplier_sku.replace(/(^[\s-]*)|([\s-]*$)/g, "")+'-';
+        $('input[id$=outerid]').each(function(i, el){
+            $(el).val(prefix+count);
+            count++;
+        });
+    }
+    if(!isNaN(saleproduct.remain_num)){
+        $('input[id$=remainnum]').val(saleproduct.remain_num);
+    }
+    if(!isNaN(saleproduct.sale_price)){
+        $('input[id$=cost]').val(saleproduct.sale_price);
+    }
+    if(!isNaN(saleproduct.on_sale_price)){
+        $('input[id$=agentprice]').val(saleproduct.on_sale_price);
+    }
+    if(!isNaN(saleproduct.std_sale_price)){
+        $('input[id$=pricestd]').val(saleproduct.std_sale_price);
+    }
 }
 
 function dynamic_generate_chi() {
