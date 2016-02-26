@@ -382,6 +382,8 @@ class FetchAndCreateProduct(APIView):
         for k, v in content.iteritems():
             if k == 'sale_category':
                 v = SaleCategory.objects.get(id=v)
+            if k == 'sale_time' and not v:
+                continue
             hasattr(sproduct, k) and setattr(sproduct, k, v)
 
         sproduct.sale_supplier = supplier
