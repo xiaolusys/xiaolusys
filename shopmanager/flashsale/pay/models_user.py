@@ -160,8 +160,15 @@ class Customer(PayBaseModel):
         if not openid and appkey == settings.WXPAY_APPID:
             return self.openid, self.unionid
         return openid, self.unionid
-        
-        
+
+    def getBudget(self):
+        """特卖用户钱包"""
+        try:
+            budget = UserBudget.objects.get(user_id=self.id)
+            return budget
+        except UserBudget.DoesNotExist:
+            return None
+
 class UserBudget(PayBaseModel):
     """ 特卖用户钱包 """
     class Meta:
@@ -177,8 +184,11 @@ class UserBudget(PayBaseModel):
     total_refund      = models.CharField(max_length=32,blank=True,verbose_name=u'累计退款') 
     
     def __unicode__(self):
-        return u'<%s,%s>'%(self.customer, self.amount)
-    
+        return u'<%s,%s>'%(self.user, self.amount)
+
+    def get_amount_display(self):
+        """ 返回金额　"""
+        return self.amount / 100.0
     
 class BudgetLog(PayBaseModel):
     """ 特卖用户钱包记录 """
@@ -215,15 +225,18 @@ class BudgetLog(PayBaseModel):
         (CANCELED,u'已取消'),
     )
     
-    user        = models.OneToOneField(Customer,verbose_name= u'原始用户')
+    customer_id = models.BigIntegerField(db_index=True, verbose_name=u'用户id')
     flow_amount = models.IntegerField(default=0,verbose_name=u'流水金额(分)')
     budget_type = models.IntegerField(choices=BUDGET_CHOICES,db_index=True,null=False,verbose_name=u"收支类型")
     budget_log_type = models.CharField(max_length=8,choices=BUDGET_LOG_CHOICES,db_index=True,null=False,verbose_name=u"记录类型")
-    
-    status     = models.IntegerField(choices=STATUS_CHOICES,db_index=True,default=CONFIRMED,verbose_name=u'状态')
-    
+    budget_date = models.DateField(default=datetime.date.today,verbose_name=u'业务日期')
+    status     = models.IntegerField(choices=STATUS_CHOICES, db_index=True, default=CONFIRMED, verbose_name=u'状态')
+
     def __unicode__(self):
-        return u'<%s,%s>'%(self.customer, self.amount)
-    
+        return u'<%s,%s>' % (self.customer_id, self.flow_amount)
+
+    def get_flow_amount_display(self):
+        """ 返回金额　"""
+        return self.flow_amount / 100.0
     
     
