@@ -185,6 +185,7 @@ INSTALLED_APPS = (
     'mathfilters',
     'flashsale.promotion',
     'flashsale.apprelease',
+    'flashsale.protocol',
 
     #'test.celery',
     #'shopapp.notify',
