@@ -267,8 +267,6 @@ def tongji_wxorder(sender, obj, **kwargs):
 
     ordertime = obj.order_create_time
     order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS)
-    time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
-    time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     mm_order_amount = obj.order_total_price
     mm_rebeta_amount = 0
     mm_order_rebeta = 0
@@ -354,39 +352,28 @@ def tongji_wxorder(sender, obj, **kwargs):
 
 signals.signal_wxorder_pay_confirm.connect(tongji_wxorder, sender=WXOrder)
 
-from flashsale.pay.models import SaleTrade,SaleOrder
+from flashsale.pay.models import SaleTrade,SaleOrder,Customer
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
-
-
-def tongji_saleorder(sender, obj, **kwargs):
-    """ 统计特卖订单提成 """
-    #如果订单试用钱包付款，或是押金订单则不处理
-    if obj.is_Deposite_Order():
-        return 
-    
-    today = datetime.date.today()
-    target_time = obj.pay_time.date()
-    if target_time > today:
-        target_time = today
-
-    buyer_openid = obj.get_buyer_openid() 
-    mm_order_amount   = int(obj.payment * 100)
-    mm_order_rebeta	  = 0
-    mm_rebeta_amount  = 0
-    order_id          = obj.tid
-    order_buyer_nick  = obj.buyer_nick or '%s(%s)'%(obj.receiver_name[0:24],obj.receiver_mobile[8:11])
-    ordertime       = obj.pay_time
-    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS) 
-    
+def get_wxopenid(sale_trade):
+    buyer_openid = sale_trade.openid
     wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
     if not wx_unionid:
-        wx_unionid = obj.receiver_mobile or str(obj.buyer_id)
+        wx_unionid = sale_trade.receiver_mobile or str(sale_trade.buyer_id)
     xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
     xd_openid  = wx_unionid
     if xd_unoins.count() > 0:
         xd_openid = xd_unoins[0].openid
+    return xd_openid,wx_unionid
+
+def get_xiaolumm(sale_trade, customer):
+    """ 获取小鹿妈妈 """
+    obj = sale_trade
+    ordertime       = obj.pay_time
+    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS) 
+    xd_openid, wx_unionid = get_wxopenid(sale_trade)
+    
     #计算订单所属小鹿妈妈ID
     xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,charge_status=XiaoluMama.CHARGED)
     mm_linkid = 0
@@ -406,9 +393,40 @@ def tongji_saleorder(sender, obj, **kwargs):
             openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
         mm_linkid   = get_xlmm_linkid(mm_clicks)
         xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
-        
     if xiaolu_mmset.exists():
-        xiaolu_mm = xiaolu_mmset[0]
+        return xiaolu_mmset[0]
+    return None
+
+def tongji_saleorder(sender, obj, **kwargs):
+    """ 统计特卖订单提成 """
+    #如果订单试用钱包付款，或是押金订单则不处理
+    if obj.is_Deposite_Order():
+        return 
+    
+    today = datetime.date.today()
+    target_time = obj.pay_time.date()
+    if target_time > today:
+        target_time = today
+    ordertime       = obj.pay_time
+    
+    customer = Customer.objects.get(id=obj.buyer_id)
+    xd_openid, wx_unionid = get_wxopenid(obj)
+    
+    mm_order_amount   = int(obj.payment * 100)
+    mm_order_rebeta	  = 0
+    mm_rebeta_amount  = 0
+    order_id          = obj.tid
+    order_buyer_nick  = obj.buyer_nick or '%s(%s)'%(
+                            obj.receiver_name[0:24],
+                            obj.receiver_mobile[8:11]
+                        )
+    
+    xiaolu_mm = customer.get_referal_xlmm()
+    if not xiaolu_mm:
+        xiaolu_mm = get_xiaolumm(obj, customer)
+    mm_linkid = xiaolu_mm and xiaolu_mm.id or 0
+    
+    if xiaolu_mm:
         #计算小鹿妈妈订单返利
         mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj)
         mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj)
@@ -433,7 +451,6 @@ def tongji_saleorder(sender, obj, **kwargs):
             daytongji.orderamountcount = mm_order_amount
             daytongji.todayamountcount = mm_order_rebeta
             daytongji.save()
-
     else:
         StatisticsShopping(linkid=0,
                            openid=xd_openid,

@@ -68,7 +68,7 @@ class XlmmFansManager(models.Manager):
         # print "from_customer", from_customer, "customer", customer
         from flashsale.pay.models import Customer
 
-        if from_customer == customer:
+        if int(from_customer) == int(customer):
             return
 
         current_cu = Customer.objects.get(pk=customer)
