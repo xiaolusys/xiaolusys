@@ -229,7 +229,7 @@ class BudgetLog(PayBaseModel):
     flow_amount = models.IntegerField(default=0,verbose_name=u'流水金额(分)')
     budget_type = models.IntegerField(choices=BUDGET_CHOICES,db_index=True,null=False,verbose_name=u"收支类型")
     budget_log_type = models.CharField(max_length=8,choices=BUDGET_LOG_CHOICES,db_index=True,null=False,verbose_name=u"记录类型")
-
+    budget_date = models.DateField(default=datetime.date.today,verbose_name=u'业务日期')
     status     = models.IntegerField(choices=STATUS_CHOICES,db_index=True,default=CONFIRMED,verbose_name=u'状态')
     
     def __unicode__(self):
