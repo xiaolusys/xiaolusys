@@ -15,10 +15,10 @@ class NormalSaleTradeManager(models.Manager):
     get_queryset = get_query_set
 
 
-class NormalUserAddressManager(CacheManager):
+class NormalUserAddressManager(models.Manager):
     
     def get_query_set(self):
-        queryset = super(NormalUserAddressManager,self).get_queryset()
+        queryset = super(NormalUserAddressManager,self).get_query_set()
         return queryset.filter(status=self.model.NORMAL).order_by('-created')
         
     

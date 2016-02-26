@@ -47,7 +47,7 @@ UUID_RE = re.compile('^[a-z]{2}[0-9]{6}[a-z0-9-]{10,14}$')
 
 def isFromWeixin(request):
     user_agent = request.META.get('HTTP_USER_AGENT')
-    if user_agent and user_agent.find('MicroMessenger') > 0:
+    if user_agent and re.search('MicroMessenger', user_agent, re.IGNORECASE):
         return True
     return False
         

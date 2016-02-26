@@ -2,7 +2,7 @@
 from django.db import models
 from django.db.models.signals import  post_save
 
-from .base import PayBaseModel
+from .base import PayBaseModel,BaseModel
 from . import managers
 
 
@@ -24,8 +24,6 @@ class District(PayBaseModel):
     
     grade   = models.IntegerField(default=0,choices=STAGE_CHOICES,verbose_name=u'等级')
     sort_order = models.IntegerField(default=0,verbose_name=u'优先级')
-    
-    
     
     class Meta:
         db_table = 'flashsale_district' 
@@ -49,7 +47,7 @@ class District(PayBaseModel):
         return self.name
     
     
-class UserAddress(PayBaseModel):
+class UserAddress(BaseModel):
     
     NORMAL = 'normal'
     DELETE = 'delete'
@@ -75,6 +73,7 @@ class UserAddress(PayBaseModel):
     status          = models.CharField(max_length=8,blank=True,db_index=True,default=NORMAL,
                                        choices=STATUS_CHOICES,verbose_name=u'状态')
     
+    objects = models.Manager()
     normal_objects = managers.NormalUserAddressManager()
     class Meta:
         db_table = 'flashsale_address' 

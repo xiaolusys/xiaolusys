@@ -16,10 +16,7 @@ class WeixinAuthMixin(object):
     _wxpubsecret = settings.WEIXIN_SECRET
     
     def is_from_weixin(self, request):
-        agent = request.META.get('HTTP_USER_AGENT')
-        if agent and agent.find('MicroMessenger') > -1:
-            return True
-        return False
+        return options.is_from_weixin(request)
     
     def set_appid_and_secret(self,appid,appsecret):
         self._wxpubid = appid
