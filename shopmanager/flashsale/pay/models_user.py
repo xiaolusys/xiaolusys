@@ -190,7 +190,6 @@ class UserBudget(PayBaseModel):
         """ 返回金额　"""
         return self.amount / 100.0
     
-    
 class BudgetLog(PayBaseModel):
     """ 特卖用户钱包记录 """
     class Meta:
@@ -234,7 +233,7 @@ class BudgetLog(PayBaseModel):
     status     = models.IntegerField(choices=STATUS_CHOICES,db_index=True,default=CONFIRMED,verbose_name=u'状态')
     
     def __unicode__(self):
-        return u'<%s,%s>'%(self.customer, self.amount)
+        return u'<%s,%s>'%(self.user, self.flow_amount)
     
     
     

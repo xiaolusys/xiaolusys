@@ -716,9 +716,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                  sku_name=sku.properties_alias,
                  status=SaleTrade.WAIT_BUYER_PAY
             )  
-        #清除购物车
-        if not settings.DEBUG:
-            cart_qs.delete()
+        #关闭购物车
+        for cart in cart_qs:
+            cart.close_cart(release_locknum=False)
             
     @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
