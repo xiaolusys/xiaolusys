@@ -297,7 +297,7 @@ class SaleProductAdmin(MyAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'librarian_select',
                     'select_Contactor', 'supplier_link', 'category_select',
-                    'sale_price', 'sale_time_select',  'status_link')
+                    'sale_price', 'on_sale_price', 'sale_time_select',  'status_link')
     # list_display_links = ('outer_id',)
     # list_editable = ('update_time','task_type' ,'is_success','status')
 
