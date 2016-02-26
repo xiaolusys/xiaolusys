@@ -296,6 +296,8 @@ class SaleProduct(models.Model):
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     sale_time = models.DateTimeField(null=True, blank=True, verbose_name=u'上架日期')
     reserve_time = models.DateTimeField(null=True, blank=True, verbose_name=u'预留时间')
+    supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
+    remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
 
     class Meta:
         db_table = 'supplychain_supply_product'
