@@ -199,8 +199,14 @@ class SMSLoginBackend(object):
             register = Register.objects.get(vmobile=mobile)
             if not register.is_submitable() or not register.check_code(sms_code):
                 return AnonymousUser()
-            
-            user = User.objects.get(username=mobile)
+            try:
+                user = User.objects.get(username=mobile)
+            except User.DoesNotExist,err:
+                customers = Customer.objects.filter(mobile=mobile)
+                if not customers.exists():
+                    raise err
+                user = customers[0].user
+                
             if not user.is_active:
                 user.is_active = True
                 user.save()
