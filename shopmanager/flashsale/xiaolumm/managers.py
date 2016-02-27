@@ -50,7 +50,8 @@ class XlmmFansManager(models.Manager):
         if hasattr(super_fans, 'get_query_set'):
             return super_fans.get_query_set()
         return super_fans.get_queryset()
-
+    
+        
     def record_fans_num(self, xlmm, xlmm_cusid):
         from flashsale.xiaolumm.models_fans import FansNumberRecord
 
