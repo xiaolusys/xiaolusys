@@ -356,14 +356,13 @@ from flashsale.pay.models import SaleTrade,SaleOrder,Customer
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
-def get_wxopenid(sale_trade):
-    buyer_openid = sale_trade.openid
-    wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
+def get_wxopenid(sale_trade,customer):
+    wx_unionid = customer.unionid
     if not wx_unionid:
         wx_unionid = sale_trade.receiver_mobile or str(sale_trade.buyer_id)
     xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
     xd_openid  = wx_unionid
-    if xd_unoins.count() > 0:
+    if xd_unoins.exists():
         xd_openid = xd_unoins[0].openid
     return xd_openid,wx_unionid
 
@@ -372,20 +371,16 @@ def get_xiaolumm(sale_trade, customer):
     obj = sale_trade
     ordertime       = obj.pay_time
     order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS) 
-    xd_openid, wx_unionid = get_wxopenid(sale_trade)
+    xd_openid, wx_unionid = get_wxopenid(sale_trade,customer)
     
     #计算订单所属小鹿妈妈ID
-    xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,charge_status=XiaoluMama.CHARGED)
+    xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,
+                                          charge_status=XiaoluMama.CHARGED)
     mm_linkid = 0
     if xiaolumms.exists():
-        mm_linkid = xiaolumms[0].id
+        return xiaolumms[0]
     else:
-        if isinstance(obj.extras_info,dict):
-            mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
-        else:
-            import logging
-            logger = logging.getLogger('django.request')
-            logger.error('tongji saletrade.extras_info error:%s'%obj)
+        mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
             
     xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
     if not xiaolu_mmset.exists():
@@ -410,7 +405,7 @@ def tongji_saleorder(sender, obj, **kwargs):
     ordertime       = obj.pay_time
     
     customer = Customer.objects.get(id=obj.buyer_id)
-    xd_openid, wx_unionid = get_wxopenid(obj)
+    xd_openid, wx_unionid = get_wxopenid(obj,customer)
     
     mm_order_amount   = int(obj.payment * 100)
     mm_order_rebeta	  = 0
