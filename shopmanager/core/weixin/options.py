@@ -12,28 +12,31 @@ from . import signals
 WEIXIN_SNS_USERINFO_URI = '{0}/sns/userinfo?access_token={1}&openid={2}&lang=zh_CN'
 WEIXIN_SNS_BASEINFO_URI = '{0}/sns/oauth2/access_token?appid={1}&secret={2}&code={3}&grant_type=authorization_code'
 
+def is_from_weixin(request):
+    user_agent = request.META.get('HTTP_USER_AGENT')
+    if user_agent and re.search('MicroMessenger', user_agent, re.IGNORECASE):
+        return True
+    return False
+
 def gen_weixin_redirect_url(params):
     list_params = ['appid','redirect_uri','response_type','scope','state']
     param_string = '&'.join([urllib.urlencode({t:params.get(t,'')}) for t in list_params])
     redirect_url = "{0}?{1}#wechat_redirect"
     return redirect_url.format(settings.WEIXIN_AUTHORIZE_URL,param_string)
 
+def parse_cookie_key(ckey,appid):
+    return '%s_%s'%(ckey,appid.replace('gh_',''))
+    
 def get_cookie_openid(cookies,appid):
-    """
-
-    :rtype : object
-    """
-    x = cookies.get('sopenid','').split('|')
-    y = cookies.get('sunionid','').split('|')
-    if len(x) < 2 or len(y) <2 or x[0] != y[0] or y[0] != appid:
-        return ('','')
-    return (x[1], y[1])
+    """ 根据cookie获取用户openid,unionid """
+    x = cookies.get(parse_cookie_key("openid",appid),'')
+    y = cookies.get(parse_cookie_key("unionid",appid),'')
+    return (x, y)
 
 def set_cookie_openid(response,appid,openid,unionid):
-    sopenid = '%s|%s'%(appid,openid)
-    sunionid = '%s|%s'%(appid,unionid)
-    response.set_cookie("sopenid",sopenid)
-    response.set_cookie("sunionid",sunionid)
+    """ 设置cookie用户openid,unionid """
+    response.set_cookie(parse_cookie_key("openid",appid),openid)
+    response.set_cookie(parse_cookie_key("unionid",appid),unionid)
     return response
 
 def get_weixin_userbaseinfo(code, appid, secret):

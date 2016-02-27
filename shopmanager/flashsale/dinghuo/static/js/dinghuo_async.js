@@ -155,7 +155,7 @@ function create_first_normal_dom(obj) {
          <div class="checkbox" style="margin-top:0"><label><input type="checkbox" class="check-item" onchange="onCheckItemChange(this);">选择</label></div>
          </td>
          <td rowspan="{{ sku_len }}">
-         <div class="portfolio-box"><div class="portfolio-box"><img src="{{ pic_path }}" width="100px"
+         <div class="portfolio-box"><div class="portfolio-box"><img src="{{ pic_path }}?imageView2/0/w/100" width="100px"
          class="img-circle"></div></td>
          */
     };

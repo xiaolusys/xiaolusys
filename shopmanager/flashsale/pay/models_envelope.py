@@ -10,7 +10,8 @@ import pingpp
 class Envelop(PayBaseModel):
     
     WXPUB  = 'wx_pub'
-    ENVELOP_CHOICES = ((WXPUB,u'微信公众'),)
+    XLMMAPP = 'xl_app'
+    ENVELOP_CHOICES = ((WXPUB, u'微信公众'), (XLMMAPP, u'小鹿美美APP'))
     
     WAIT_SEND = 'wait'
     CONFIRM_SEND = 'confirm'
@@ -24,7 +25,8 @@ class Envelop(PayBaseModel):
     
     CASHOUT = 'cashout'
     ORDER_RED_PAC = 'ordred'
-    SUBJECT_CHOICES = ((CASHOUT,u'钱包提现'),(ORDER_RED_PAC,u'订单红包'))
+    XLAPP_CASHOUT = 'xlapp'
+    SUBJECT_CHOICES = ((CASHOUT, u'钱包提现'), (ORDER_RED_PAC, u'订单红包'), (XLAPP_CASHOUT, u'小鹿APP提现'))
     
     UNSEND      = ''
     SENDING     = 'sending'

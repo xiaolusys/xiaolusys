@@ -3,7 +3,7 @@ import urllib
 from functools import wraps
 from django.http import HttpResponseRedirect
 from django.utils.decorators import available_attrs
-from django.shortcuts import render_to_response
+from django.shortcuts import redirect,render_to_response
 from django.template import RequestContext
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.urlresolvers import reverse
@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from django.conf import settings
 
 from core.weixin import options
+from shopapp.weixin.options import get_unionid_by_openid
 from . import constants
 
 def sale_buyer_required(view_func):
@@ -63,7 +64,6 @@ def weixin_xlmm_auth(redirecto=None):
     member, displaying the login page if necessary.
     """
     def _decorator(view_func):
-        
         assert redirecto ,u'redirecto 参数必须'
         def _checklogin(request, *args, **kwargs):
             if request.user.is_active :
@@ -76,20 +76,22 @@ def weixin_xlmm_auth(redirecto=None):
                 return HttpResponseRedirect(redirecto)
             
             if not code :
-                params = {'appid':settings.WXPAY_APPID,
-                          'redirect_uri':request.build_absolute_uri().split('#')[0],
-                          'response_type':'code',
-                          'scope':'snsapi_base',
-                          'state':'135'}
-                redirect_url = options.gen_weixin_redirect_url(params)
-                return HttpResponseRedirect(redirect_url)
+                openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
+                if not openid or not unionid:
+                    params = {'appid':settings.WXPAY_APPID,
+                      'redirect_uri':request.build_absolute_uri().split('#')[0],
+                      'response_type':'code',
+                      'scope':'snsapi_userinfo',
+                      'state':'135'}
+                    redirect_url = options.gen_weixin_redirect_url(params)
+                    return redirect(redirect_url)
+                
+            user = authenticate(request=request)
+            if not user or user.is_anonymous():
+                return HttpResponseRedirect(redirecto)
             
-            else :
-                user = authenticate(request=request)
-                if not user or user.is_anonymous():
-                    return HttpResponseRedirect(redirecto)
-                auth_login(request, user)
-                return view_func(request, *args, **kwargs)
+            auth_login(request, user)
+            return view_func(request, *args, **kwargs)
         
         return wraps(view_func, assigned=available_attrs(view_func))(_checklogin)
     return _decorator

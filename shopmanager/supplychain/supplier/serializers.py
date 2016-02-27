@@ -69,13 +69,14 @@ class SaleProductSerializer(serializers.ModelSerializer):
     sale_category = SaleCategorySerializer()
     status = StatusField()
     platform = PlatformField()
+    sale_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = SaleProduct
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
-            'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 
-            'memo', 'status','sale_time', 'created', 'modified', 'reserve_time')
+            'sale_category','platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price',
+            'memo', 'status', 'sale_time', 'created', 'modified', 'reserve_time', 'supplier_sku', 'remain_num')
 
 
 class SaleProductSampleSerializer(serializers.ModelSerializer):
@@ -88,6 +89,4 @@ class SaleProductSampleSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'outer_id', 'title', 'price', 'pic_url', 'product_link', 'sale_supplier', 'contactor',
             'sale_category', 'platform', 'hot_value', 'sale_price', 'on_sale_price', 'std_sale_price', 'memo', 'status',
-            'sale_time', 'created', 'modified')
-
-
+            'sale_time', 'created', 'modified', 'supplier_sku', 'remain_num')

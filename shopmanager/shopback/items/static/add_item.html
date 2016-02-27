@@ -10,6 +10,7 @@
 
         <script src="/static/jquery/jquery-1.8.13.min.js">
         </script>
+        <script src="/static/underscore/underscore-min.js"></script>
         <script type="text/javascript" src="js/main_category.js">
         </script>
         <script type="text/javascript" src="js/get_category.js">
@@ -86,16 +87,7 @@
                             <select id="supplier" style="width: 200px">
                             </select>
                         </div>
-                        <!--
-                             <div class="col-md-1">
-                             <input type="button" class="btn" value="款式编码:"/>
-                             </div>
-                             <div class="col-md-3">
-                             <input type="text" id="outer_id" class="form-control"/>
-                             </div>
-                           -->
                     </div>
-
                     <div class="row">
                         <div class="col-md-1">
                             <input type="button" class="btn" value="款式名称:"/>
@@ -191,7 +183,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="col-md-10 color-content checkbox-group" style="padding-left:31px">
                             <div class="row" style="background:#ff6a6a;width:685px">
                                 <label class="checkbox-inline">
@@ -670,15 +661,15 @@
                                         59
                                     </label>
                                     <label class="checkbox-inline">
-                                        <input type="checkbox" class="sku-choose" value="59">
+                                        <input type="checkbox" class="sku-choose" value="66">
                                         66
                                     </label>
                                     <label class="checkbox-inline">
-                                        <input type="checkbox" class="sku-choose" value="59">
+                                        <input type="checkbox" class="sku-choose" value="73">
                                         73
                                     </label>
                                     <label class="checkbox-inline">
-                                        <input type="checkbox" class="sku-choose" value="59">
+                                        <input type="checkbox" class="sku-choose" value="80">
                                         80
                                     </label>
                                 </div>
@@ -739,7 +730,44 @@
                             </div>
                         </div>
                     </div>
-                    <hr>
+                    <div class="row">
+                        <table class="table table-striped" id="table-id">
+                            <thead>
+                                <th>
+                                    商品颜色名称
+                                </th>
+                                <th>
+                                    系统规格名称
+                                </th>
+                                <th>
+                                    供应商货号/编码
+                                </th>
+                                <th width="15%">
+                                    预留数
+                                </th>
+                                <th width="15%">
+                                    成本价
+                                </th>
+                                <th width="15%">
+                                    吊牌价
+                                </th>
+                                <th width="15%">
+                                    出售价
+                                </th>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        尺码表填写
+                    </h3>
+                </div>
+                <div class="panel-body">
                     <div class="row">
                         <div class="col-md-1">
                             <div class="row slight">
@@ -779,6 +807,10 @@
                                     </label>
                                     <label class="checkbox-inline">
                                         <input type="checkbox" class="checkbox-group-choose" value="chima-group-4" id="chima-group-4-choose">
+                                        连衣裙套装
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="checkbox-group-choose" value="chima-group-5" id="chima-group-5-choose" checked>
                                         其他
                                     </label>
                                 </div>
@@ -799,17 +831,18 @@
                                         肩宽
                                     </label>
                                     <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="胸围">
+                                        胸围
+                                    </label>
+                                    <label class="checkbox-inline">
                                         <input type="checkbox" class="chima-choose" value="袖长">
                                         袖长
                                     </label>
                                     <label class="checkbox-inline">
-                                        <input type="checkbox" class="chima-choose" value="插肩袖">
-                                        插肩袖
+                                        <input type="checkbox" class="chima-choose" value="袖口">
+                                        袖口
                                     </label>
-                                    <label class="checkbox-inline">
-                                        <input type="checkbox" class="chima-choose" value="胸围">
-                                        胸围
-                                    </label>
+
                                 </div>
                             </div>
                             <div class="panel panel-info checkbox-group" id="chima-group-2" style="width:400px;display:none">
@@ -850,6 +883,43 @@
                                     </label>
                                 </div>
                             </div>
+                            <div class="panel panel-info checkbox-group" id="chima-group-4" style="width:505px;display:none">
+                                <div class="panel-heading">连衣裙套装</div>
+                                <div class="panel-body">
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="上衣胸围">
+                                        上衣胸围
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="上衣腰围">
+                                        上衣腰围
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="上衣衣长">
+                                        上衣衣长
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="上衣袖长">
+                                        上衣袖长
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="裙胸围">
+                                        裙胸围
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="裙腰围">
+                                        裙腰围
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="裙臀围">
+                                        裙臀围
+                                    </label>
+                                    <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="裙长">
+                                        裙长
+                                    </label>
+                                </div>
+                            </div>
                             <div class="panel panel-danger checkbox-group" style="width:400px">
                                 <div class="panel-heading">其他</div>
                                 <div class="panel-body">
@@ -858,7 +928,7 @@
                                         建议身高
                                     </label>
                                     <br>
-                                    <div id="chima-group-4" style="display:none">
+                                    <div id="chima-group-5">
                                         <label class="checkbox-inline">
                                             <input type="checkbox" class="chima-choose" value="前中长">
                                             前中长
@@ -908,12 +978,12 @@
                                         </label>
                                         <br>
                                         <label class="checkbox-inline">
-                                            <input type="checkbox" class="chima-choose" value="袖口">
-                                            袖口
-                                        </label>
-                                        <label class="checkbox-inline">
                                             <input type="checkbox" class="chima-choose" value="袖肥">
                                             袖肥
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" class="chima-choose" value="插肩袖">
+                                            插肩袖
                                         </label>
                                         <label class="checkbox-inline">
                                             <input type="checkbox" class="chima-choose" value="领围">
@@ -937,56 +1007,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <table class="table table-striped" id="chima-table">
+                            <thead style="height: 20px">
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div class="panel panel-info">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        价格&库存
-                    </h3>
-                </div>
-                <table class="table table-striped" id="table-id">
-                    <thead>
-                        <th>
-                            商品颜色名称
-                        </th>
-                        <th>
-                            系统规格名称
-                        </th>
-                        <th>
-                            供应商货号/编码
-                        </th>
-                        <th width="15%">
-                            预留数
-                        </th>
-                        <th width="15%">
-                            成本价
-                        </th>
-                        <th width="15%">
-                            吊牌价
-                        </th>
-                        <th width="15%">
-                            出售价
-                        </th>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-            <div class="panel panel-info">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        尺码表填写
-                    </h3>
-                </div>
-                <table class="table table-striped" id="chima-table">
-                    <thead style="height: 20px">
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-
             <input type="button" id="new-product" class="btn btn-danger" value="生成新款"/>
 
             <div style="display:none" id="success" class="col-md-12">
@@ -1021,7 +1051,7 @@
             <th></th>
             <th style="width:80px"></th>
             {{ each sku as one_sku k}}
-            <th>{{ one_sku }}</th>
+            <th>{{ one_sku.label }}</th>
             {{/each}}
         </script>
         <script id="chi-template" type="text/html">
@@ -1041,7 +1071,7 @@
                     </select>
                 </td>
                 {{ each sku as one_sku j}}
-                <td><input type="text" id="{{ one_sku }}_{{ one_chi }}_size" class="form-control"/></td>
+                <td><input type="text" id="{{ one_sku.id }}_{{ one_chi }}_size" class="form-control"/></td>
                 {{/each}}
             </tr>
             {{/each}}
@@ -1054,20 +1084,20 @@
                 </td>
                 {{ each sku as one_sku j}}
                 {{ if j==0 }}
-                <td><span class="color-name">{{ one_sku }}</span></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_outerid" class="form-control c_outerid"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control c_remainnum"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control c_cost"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_pricestd" class="form-control c_pricestd"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_agentprice" class="form-control c_agentprice"/></td>
+                <td><span class="color-name">{{ one_sku.label }}</span></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_outerid" class="form-control c_outerid"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_remainnum" class="form-control c_remainnum"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_cost" class="form-control c_cost"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_pricestd" class="form-control c_pricestd"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_agentprice" class="form-control c_agentprice"/></td>
                 {{ else }}
                 <tr>
-                    <td><span class="color-name">{{ one_sku }}</span></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_outerid" class="form-control "/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control"/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control"/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_pricestd" class="form-control"/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_agentprice" class="form-control"/></td>
+                    <td><span class="color-name">{{ one_sku.label }}</span></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_outerid" class="form-control "/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_remainnum" class="form-control"/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_cost" class="form-control"/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_pricestd" class="form-control"/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_agentprice" class="form-control"/></td>
                 </tr>
                 {{ /if }}
                 {{/each}}

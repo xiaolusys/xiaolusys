@@ -389,11 +389,17 @@ def tongji_saleorder(sender, obj, **kwargs):
         xd_openid = xd_unoins[0].openid
     #计算订单所属小鹿妈妈ID
     xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,charge_status=XiaoluMama.CHARGED)
+    mm_linkid = 0
     if xiaolumms.exists():
         mm_linkid = xiaolumms[0].id
     else:
-        mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
-        
+        if isinstance(obj.extras_info,dict):
+            mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
+        else:
+            import logging
+            logger = logging.getLogger('django.request')
+            logger.error('tongji saletrade.extras_info error:%s'%obj)
+            
     xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
     if not xiaolu_mmset.exists():
         mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(

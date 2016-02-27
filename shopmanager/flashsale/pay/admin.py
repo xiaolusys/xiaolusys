@@ -17,7 +17,9 @@ from .models import (SaleTrade,
                      Register,
                      District,
                      UserAddress,
-                     SaleRefund)
+                     SaleRefund,
+                     UserBudget,
+                     BudgetLog)
 
 import logging
 
@@ -738,4 +740,32 @@ class CustomShopadmin(admin.ModelAdmin):
 
 
 admin.site.register(CustomerShops, CustomShopadmin)
+
+
+class UserBudgetAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'amount', 'total_redenvelope', 'total_consumption', 'total_refund')
+    list_display_links = ('id', )
+    
+#     list_filter = ('status',)
+    search_fields = ['=id', '=user__mobile']
+    
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields + ('user',)
+
+
+admin.site.register(UserBudget, UserBudgetAdmin)
+
+
+class BudgetLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'status')
+    list_display_links = ('id', )
+    
+    list_filter = ('budget_type','budget_log_type','status',)
+    search_fields = ['=id', '=customer_id']
+    
+    # def get_readonly_fields(self, request, obj=None):
+    #     return self.readonly_fields + ('user',)
+
+
+admin.site.register(BudgetLog, BudgetLogAdmin)
 

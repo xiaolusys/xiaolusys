@@ -1,11 +1,15 @@
 #-*- coding:utf-8 -*-
 import random
 import datetime
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
     
 from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .base import PayBaseModel
+from flashsale.pay.models_envelope import Envelop
+import constants
+from shopback.base import log_action, CHANGE
 
 
 class Register(PayBaseModel):
@@ -90,8 +94,8 @@ class Customer(PayBaseModel):
         verbose_name=u'特卖用户/客户'
         verbose_name_plural = u'特卖用户/客户列表'
     
-    NORMAL = 1     #正常
     INACTIVE = 0   #未激活
+    NORMAL = 1     #正常
     DELETE = 2     #删除
     FREEZE = 3     #冻结
     SUPERVISE = 4  #监管
@@ -123,6 +127,9 @@ class Customer(PayBaseModel):
     def __unicode__(self):
         return '%s(%s)'%(self.nick,self.id) 
     
+    def is_loginable(self):
+        return self.status == self.NORMAL
+    
     def is_wxauth(self):
         """ 是否微信授权 """
         if (self.unionid.strip() and 
@@ -148,7 +155,147 @@ class Customer(PayBaseModel):
         except XiaoluMama.DoesNotExist:
             return None
         
+    def get_openid_and_unoinid_by_appkey(self,appkey):
+        if not self.unionid.strip():
+            return ('','')
+        from shopapp.weixin import options
+        openid = options.get_openid_by_unionid(self.unionid,appkey)
+        if not openid and appkey == settings.WXPAY_APPID:
+            return self.openid, self.unionid
+        return openid, self.unionid
+
+    def getBudget(self):
+        """特卖用户钱包"""
+        try:
+            budget = UserBudget.objects.get(user_id=self.id)
+            return budget
+        except UserBudget.DoesNotExist:
+            return None
+
+class UserBudget(PayBaseModel):
+    """ 特卖用户钱包 """
+    class Meta:
+        db_table = 'flashsale_userbudget'
+        verbose_name=u'特卖/用户钱包'
+        verbose_name_plural = u'特卖/用户钱包列表'
     
+    user        = models.OneToOneField(Customer,verbose_name= u'原始用户')
+    amount      = models.IntegerField(default=0,verbose_name=u'账户余额(分)')
     
-        
+    total_redenvelope = models.CharField(max_length=32,blank=True,verbose_name=u'累计获取红包')
+    total_consumption = models.CharField(max_length=32,blank=True,verbose_name=u'累计消费') 
+    total_refund      = models.CharField(max_length=32,blank=True,verbose_name=u'累计退款') 
+    
+    def __unicode__(self):
+        return u'<%s,%s>'%(self.user, self.amount)
+
+    def get_amount_display(self):
+        """ 返回金额　"""
+        return self.amount / 100.0
+
+    def action_budget_cashout(self, cash_out_amount):
+        """
+        用户钱包提现
+        cash_out_amount　整型　以分为单位
+        """
+        from shopapp.weixin.models import WeixinUnionID
+        if not isinstance(cash_out_amount, int):  # 参数类型错误(如果不是整型)
+            return 3, '参数错误'
+        # 如果提现金额小于0　code 1
+        if cash_out_amount < 0:
+            return 1, '提现金额小于0'
+        # 如果提现金额大于当前用户钱包的金额 code 2
+        elif cash_out_amount > self.amount:
+            return 2, '提现金额大于账户金额'
+        # 提现操作
+        else:
+            # 提现前金额
+            try:
+                if not self.user.unionid:
+                    return 5, '请扫描二维码'
+                wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.user.unionid)
+            except WeixinUnionID.DoesNotExist:
+                return 4, '请扫描二维码'  # 用户没有公众号提现账户
+            before_cash_amount = self.amount
+            # 减去当前用户的账户余额
+            amount = self.amount - cash_out_amount
+            self.amount = amount
+            self.save()  # 保存提现后金额
+            # 创建钱包提现记录
+            budgelog = BudgetLog.objects.create(customer_id=self.user.id,
+                                                flow_amount=cash_out_amount,
+                                                budget_type=BudgetLog.BUDGET_OUT,
+                                                budget_log_type=BudgetLog.BG_CASHOUT,
+                                                budget_date=datetime.date.today(),
+                                                status=BudgetLog.CONFIRMED)
+            # 发放公众号红包
+            recipient = wx_union.openid  # 接收人的openid
+            body = constants.ENVELOP_BODY  # 红包祝福语
+            description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id,
+                                                                before_cash_amount)  # 备注信息 用户id, 提现前金额
+            Envelop.objects.create(amount=cash_out_amount,
+                                   platform=Envelop.XLMMAPP,
+                                   recipient=recipient,
+                                   subject=Envelop.XLAPP_CASHOUT,
+                                   body=body,
+                                   description=description,
+                                   referal_id=budgelog.id)
+            log_action(self.user.user.id, self, CHANGE, u'用户提现')
+        return 0, '提现成功'
+
+    
+class BudgetLog(PayBaseModel):
+    """ 特卖用户钱包记录 """
+    class Meta:
+        db_table = 'flashsale_userbudgetlog'
+        verbose_name=u'特卖/用户钱包收支记录'
+        verbose_name_plural = u'特卖/用户钱包收支记录'
+    
+    BUDGET_IN  = 0
+    BUDGET_OUT = 1
+    
+    BUDGET_CHOICES = (
+        (BUDGET_IN,u'收入'),
+        (BUDGET_OUT,u'支出'),
+    )
+    
+    BG_ENVELOPE = 'envelop'
+    BG_REFUND   = 'refund'
+    BG_CONSUM   = 'consum'
+    BG_CASHOUT  = 'cashout'
+    
+    BUDGET_LOG_CHOICES = (
+        (BG_ENVELOPE,u'红包'),
+        (BG_REFUND,u'退款'),
+        (BG_CONSUM,u'消费'),
+        (BG_CASHOUT,u'提现'),
+    )
+    
+    CONFIRMED = 0
+    CANCELED  = 1
+
+    STATUS_CHOICES = (
+        (CONFIRMED,u'已确定'),
+        (CANCELED,u'已取消'),
+    )
+    
+    customer_id = models.BigIntegerField(db_index=True, verbose_name=u'用户id')
+    flow_amount = models.IntegerField(default=0,verbose_name=u'流水金额(分)')
+    budget_type = models.IntegerField(choices=BUDGET_CHOICES,db_index=True,null=False,verbose_name=u"收支类型")
+    budget_log_type = models.CharField(max_length=8,choices=BUDGET_LOG_CHOICES,db_index=True,null=False,verbose_name=u"记录类型")
+    budget_date = models.DateField(default=datetime.date.today,verbose_name=u'业务日期')
+    referal_id = models.CharField(max_length=32, db_index=True, blank=True, verbose_name=u'引用id')
+    status     = models.IntegerField(choices=STATUS_CHOICES, db_index=True, default=CONFIRMED, verbose_name=u'状态')
+
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.customer_id, self.flow_amount)
+
+    def get_flow_amount_display(self):
+        """ 返回金额　"""
+        return self.flow_amount / 100.0
+
+    def log_desc(self):
+        """ 预留记录的描述字段 """
+        return ''
+    
     

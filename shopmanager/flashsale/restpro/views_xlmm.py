@@ -150,6 +150,21 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
                 "share_mmcode": share_mmcode, "clk_money": clk_money, "fans_num": fans_num}
         return Response(data)
 
+    @list_route(methods=['get'])
+    def get_fans_list(self, request):
+        """ 获取小鹿妈妈的粉丝列表 """
+        customer = get_object_or_404(Customer, user=request.user)
+        fans_cuids = XlmmFans.objects.filter(xlmm_cusid=customer.id).values('fans_cusid')
+        fanscus_queryset = Customer.objects.filter(id__in=fans_cuids)
+        page = self.paginate_queryset(fanscus_queryset)
+        if page is not None:
+            serializer = serializers.XlmmFansCustomerInfoSerialize(page,
+                                                                   many=True,
+                                                                   context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.XlmmFansCustomerInfoSerialize(fanscus_queryset, many=True)
+        return Response(serializer.data)
+
 
 class CarryLogViewSet(viewsets.ModelViewSet):
     """
@@ -192,7 +207,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     `group_bonus:` 团队新增成员奖金 团  
     `activity`: 参加活动收益 奖
     """
-    queryset = CarryLog.objects.all()
+    queryset = CarryLog.objects.all().order_by('-carry_date')
     serializer_class = serializers.CarryLogSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)

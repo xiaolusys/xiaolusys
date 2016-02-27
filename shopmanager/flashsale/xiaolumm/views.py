@@ -499,10 +499,6 @@ class ClickLogView(WeixinAuthMixin, View):
         
         #self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
-        if not valid_openid(openid):
-            redirect_url = self.get_wxauth_redirct_url(request)
-            return redirect(redirect_url)
-        
         if not self.valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WEIXIN_APPID)
             if not self.valid_openid(unionid):
@@ -513,7 +509,9 @@ class ClickLogView(WeixinAuthMixin, View):
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
               ctasks.task_Update_User_Click.s())()
         
-        return redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+        response = redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
+        return response
 
 def logChannelClicks(request, linkid):
     content = request.REQUEST

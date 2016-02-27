@@ -4,11 +4,15 @@ import re
 import urllib
 import time
 import datetime
+import decimal
 
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.contrib.auth import authenticate, login, logout
+
 from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -16,12 +20,10 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import authentication
-from rest_framework import status
-from django.core.urlresolvers import reverse
-from shopapp.weixin.models import WeiXinUser
-from django.db import models
-from django.contrib.auth import authenticate, login, logout
-from flashsale.pay.models import Register, Customer,Integral
+
+from core.weixin.options import gen_weixin_redirect_url
+
+from flashsale.pay.models import Register, Customer,Integral, BudgetLog, UserBudget
 from rest_framework import exceptions
 from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
@@ -286,10 +288,13 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not username or not password:
             return Response({"code":1, "result": "null"})
         try:
-            customers = Customer.objects.filter(models.Q(email=username) | models.Q(mobile=username)
-                                                ,status=Customer.NORMAL)
-            if customers.count() > 0:
-                username = customers[0].user.username
+            try:
+                customer = Customer.objects.get(mobile=username)
+            except (Customer.DoesNotExist,Customer.MultipleObjectsReturned):
+                pass
+            else:
+                username = customer.user.username
+
             user1 = authenticate(username=username, password=password)
             if not user1 or user1.is_anonymous():
                 return Response({"code":2,"result": "p_error"})  # 密码错误
@@ -308,7 +313,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
               'response_type':'code',
               'scope':'snsapi_base',
               'state':'135'}
-            redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
+            redirect_url = gen_weixin_redirect_url(params)
             return Response({"code":0,"result": "login", "next": redirect_url})  #如果用户没有微信授权则直接微信授权后跳转
             
         except Customer.DoesNotExist:
@@ -780,4 +785,36 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if verify_code_server != verify_code:
             return Response({"code":5, "result": "5", "info":"验证码不对"})
         return Response({"code":0, "result": "OK", "info":"success"})
-    
+
+    @list_route(methods=['get'])
+    def get_budget_detail(self, request):
+        """ 特卖用户钱包明细记录"""
+        customer = get_object_or_404(Customer, user=request.user)
+        budget_logs = BudgetLog.objects.filter(customer_id=customer.id)
+        page = self.paginate_queryset(budget_logs)
+        if page is not None:
+            serializer = serializers.BudgetLogSerialize(page,
+                                                        many=True,
+                                                        context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.BudgetLogSerialize(budget_logs, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['post'])
+    def budget_cash_out(self, request):
+        """
+        普通用户提现接口
+        - 返回`code`: 0 成功; 1　提现金额小于0;  2 提现金额大于当前账户金额;  3 参数错误;  4　用户没有公众号账号;5　用户unionid不存在
+        """
+        content = request.REQUEST
+        cashout_amount = content.get('cashout_amount', None)
+        if not cashout_amount:
+            return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
+        customer = get_object_or_404(Customer, user=request.user)
+        budget = get_object_or_404(UserBudget, user=customer)
+        amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
+        code, message = budget.action_budget_cashout(amount)
+        qrcode = ''
+        if code in (4, 5):
+            qrcode = ''
+        return Response({'code': code, "message": message, "qrcode": qrcode})
