@@ -62,13 +62,13 @@ function dynamic_generate_sku() {
     if (count1 == 0 || count2 == 0) {
         $('#table-id tbody').html("");
     } else {
-        sku = _.sortBy(sku_of_number).concat(_.sortBy(sku_of_character));
+        sku = _.sortBy(sku_of_number).concat(sku_of_character);
         var result = {
             title: '渲染',
             color: color,
             color_size: count1,
             sku: _.map(sku, function(el){
-                return {id: el.replace(/[\/ 　:]/g, ''), label: el};
+                return {id: String(el).replace(/[\/ 　:]/g, ''), label: el};
             }),
             sku_size: count2
         };
@@ -80,16 +80,9 @@ function dynamic_generate_sku() {
         var prefix = '';
         var count  = 1;
         if (value.trim() == '')return;
-        if (!isNaN(value)){
-            count = parseInt(value);
-        }else{
-            prefix = value.replace(/(^[\s-]*)|([\s-]*$)/g, "");
-            prefix += '-';
-        }
+        prefix = value.replace(/(^[\s-]*)|([\s-]*$)/g, "");
+        prefix += '-';
         $('input[id$=outerid]').each(function(n,e){
-            if (!isNaN(value) && $(e).hasClass('c_outerid')){
-                count = parseInt(value);
-            };
             $(e).val(prefix+count);
             count ++;
         });
@@ -109,10 +102,7 @@ function dynamic_generate_sku() {
     if(saleproduct.supplier_sku){
         var prefix = '';
         var count = 1;
-        if(!isNaN(saleproduct.supplier_sku))
-            count = parseInt(saleproduct.supplier_sku);
-        else
-            prefix = saleproduct.supplier_sku.replace(/(^[\s-]*)|([\s-]*$)/g, "")+'-';
+        prefix = saleproduct.supplier_sku.replace(/(^[\s-]*)|([\s-]*$)/g, "")+'-';
         $('input[id$=outerid]').each(function(i, el){
             $(el).val(prefix+count);
             count++;
@@ -161,11 +151,11 @@ function dynamic_generate_chi() {
         $('#chima-table thead').html("");
         $('#chima-table tbody').html("");
     } else {
-        sku = _.sortBy(sku_of_number).concat(_.sortBy(sku_of_character));
+        sku = _.sortBy(sku_of_number).concat(sku_of_character);
         var result = {
             title: '渲染',
             sku: _.map(sku, function(el){
-                return {id: el.replace(/[\/ 　:]/g, ''), label: el};
+                return {id: String(el).replace(/[\/ 　:]/g, ''), label: el};
             }),
             sku_size: count1,
             chi_ma: chi_ma,
