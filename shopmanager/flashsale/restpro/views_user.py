@@ -4,6 +4,7 @@ import re
 import urllib
 import time
 import datetime
+import decimal
 
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import User, AnonymousUser
@@ -811,7 +812,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response({'code': 3, 'message': '参数错误', 'qrcode': ''})
         customer = get_object_or_404(Customer, user=request.user)
         budget = get_object_or_404(UserBudget, user=customer)
-        amount = int(cashout_amount) * 100  # 以分为单位(提现金额乘以100取整)
+        amount = int(decimal.Decimal(cashout_amount) * 100)  # 以分为单位(提现金额乘以100取整)
         code, message = budget.action_budget_cashout(amount)
         qrcode = ''
         if code in (4, 5):

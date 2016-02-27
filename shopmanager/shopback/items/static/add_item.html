@@ -810,7 +810,7 @@
                                         连衣裙套装
                                     </label>
                                     <label class="checkbox-inline">
-                                        <input type="checkbox" class="checkbox-group-choose" value="chima-group-5" id="chima-group-5-choose">
+                                        <input type="checkbox" class="checkbox-group-choose" value="chima-group-5" id="chima-group-5-choose" checked>
                                         其他
                                     </label>
                                 </div>
@@ -831,17 +831,18 @@
                                         肩宽
                                     </label>
                                     <label class="checkbox-inline">
+                                        <input type="checkbox" class="chima-choose" value="胸围">
+                                        胸围
+                                    </label>
+                                    <label class="checkbox-inline">
                                         <input type="checkbox" class="chima-choose" value="袖长">
                                         袖长
                                     </label>
                                     <label class="checkbox-inline">
-                                        <input type="checkbox" class="chima-choose" value="插肩袖">
-                                        插肩袖
+                                        <input type="checkbox" class="chima-choose" value="袖口">
+                                        袖口
                                     </label>
-                                    <label class="checkbox-inline">
-                                        <input type="checkbox" class="chima-choose" value="胸围">
-                                        胸围
-                                    </label>
+
                                 </div>
                             </div>
                             <div class="panel panel-info checkbox-group" id="chima-group-2" style="width:400px;display:none">
@@ -927,7 +928,7 @@
                                         建议身高
                                     </label>
                                     <br>
-                                    <div id="chima-group-5" style="display:none">
+                                    <div id="chima-group-5">
                                         <label class="checkbox-inline">
                                             <input type="checkbox" class="chima-choose" value="前中长">
                                             前中长
@@ -977,12 +978,12 @@
                                         </label>
                                         <br>
                                         <label class="checkbox-inline">
-                                            <input type="checkbox" class="chima-choose" value="袖口">
-                                            袖口
-                                        </label>
-                                        <label class="checkbox-inline">
                                             <input type="checkbox" class="chima-choose" value="袖肥">
                                             袖肥
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input type="checkbox" class="chima-choose" value="插肩袖">
+                                            插肩袖
                                         </label>
                                         <label class="checkbox-inline">
                                             <input type="checkbox" class="chima-choose" value="领围">
@@ -1050,7 +1051,7 @@
             <th></th>
             <th style="width:80px"></th>
             {{ each sku as one_sku k}}
-            <th>{{ one_sku }}</th>
+            <th>{{ one_sku.label }}</th>
             {{/each}}
         </script>
         <script id="chi-template" type="text/html">
@@ -1070,7 +1071,7 @@
                     </select>
                 </td>
                 {{ each sku as one_sku j}}
-                <td><input type="text" id="{{ one_sku }}_{{ one_chi }}_size" class="form-control"/></td>
+                <td><input type="text" id="{{ one_sku.id }}_{{ one_chi }}_size" class="form-control"/></td>
                 {{/each}}
             </tr>
             {{/each}}
@@ -1083,20 +1084,20 @@
                 </td>
                 {{ each sku as one_sku j}}
                 {{ if j==0 }}
-                <td><span class="color-name">{{ one_sku }}</span></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_outerid" class="form-control c_outerid"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control c_remainnum"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control c_cost"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_pricestd" class="form-control c_pricestd"/></td>
-                <td><input type="text" id="{{ one_color }}_{{ one_sku }}_agentprice" class="form-control c_agentprice"/></td>
+                <td><span class="color-name">{{ one_sku.label }}</span></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_outerid" class="form-control c_outerid"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_remainnum" class="form-control c_remainnum"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_cost" class="form-control c_cost"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_pricestd" class="form-control c_pricestd"/></td>
+                <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_agentprice" class="form-control c_agentprice"/></td>
                 {{ else }}
                 <tr>
-                    <td><span class="color-name">{{ one_sku }}</span></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_outerid" class="form-control "/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_remainnum" class="form-control"/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_cost" class="form-control"/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_pricestd" class="form-control"/></td>
-                    <td><input type="text" id="{{ one_color }}_{{ one_sku }}_agentprice" class="form-control"/></td>
+                    <td><span class="color-name">{{ one_sku.label }}</span></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_outerid" class="form-control "/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_remainnum" class="form-control"/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_cost" class="form-control"/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_pricestd" class="form-control"/></td>
+                    <td><input type="text" id="{{ one_color }}_{{ one_sku.id }}_agentprice" class="form-control"/></td>
                 </tr>
                 {{ /if }}
                 {{/each}}

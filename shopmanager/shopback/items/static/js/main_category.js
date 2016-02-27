@@ -1,3 +1,4 @@
+
 var items;
 var suppliers;
 var supplier_id;
@@ -122,10 +123,10 @@ function showCategory(first_cate, second_cate, third_cate) {
     if(['上装', '外套', '连衣裙'].indexOf(level_3_name) != -1){
         $('#chima-group-1-choose').trigger('click');
         if(['上装', '外套'].indexOf(level_3_name) != -1){
-            $('input[value="衣长"], input[value="肩宽"], input[value="袖长"]').trigger('click');
+            $('input[value="衣长"], input[value="肩宽"], input[value="袖长"], input[value="胸围"]').trigger('click');
         }
         else{
-            $('input[value="裙长"], input[value="肩宽"], input[value="袖长"]').trigger('click');
+            $('input[value="裙长"], input[value="肩宽"], input[value="袖长"], input[value="胸围"]').trigger('click');
         }
     }
     else if(level_3_name == '下装'){
@@ -137,7 +138,6 @@ function showCategory(first_cate, second_cate, third_cate) {
         $('#chima-group-2-choose').trigger('click');
         $('input[value="衣长"], input[value="肩宽"], input[value="袖长"]').trigger('click');
         $('input[value="裤长"], input[value="腰围"]', '#chima-group-2').trigger('click');
-
     }
 }
 
@@ -358,7 +358,7 @@ function submit_data() {
         var one_color = all_color[i].replace(/\+/g,"\\+").replace(/\[/g,"\\[").replace(/\]/g,"\\]").replace(/\*/g,"\\*");
         //console.log(one_color)
         for (var j = 0; j < all_sku.length; j++) {
-            var one_sku = all_sku[j].replace("/","\\/").replace(/\*/g,"\\*");
+            var one_sku = all_sku[j].replace(/[\/ 　:]/g, '');
             result_data[all_color[i] + "_" + all_sku[j] + "_outerid"] = $("#" + one_color + "_" + one_sku + "_outerid").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + one_sku + "_remainnum").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + one_color + "_" + one_sku + "_cost").val().trim();
@@ -368,7 +368,7 @@ function submit_data() {
     }
 
     for (var k = 0; k < all_sku.length; k++) {
-        var one_sku = all_sku[k].replace("/","\\/");
+        var one_sku = all_sku[k].replace(/[\/ 　:]/g, '');
         for (var h = 0; h < all_chi_ma.length; h++) {
             result_data[all_sku[k] + "_" + all_chi_ma[h] + "_size"] = $("#" + one_sku + "_" + all_chi_ma[h] + "_size").val().trim();
         }
