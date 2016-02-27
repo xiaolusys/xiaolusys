@@ -62,7 +62,7 @@ function dynamic_generate_sku() {
     if (count1 == 0 || count2 == 0) {
         $('#table-id tbody').html("");
     } else {
-        sku = _.sortBy(sku_of_number).concat(_.sortBy(sku_of_character));
+        sku = _.sortBy(sku_of_number).concat(sku_of_character);
         var result = {
             title: '渲染',
             color: color,
@@ -151,7 +151,7 @@ function dynamic_generate_chi() {
         $('#chima-table thead').html("");
         $('#chima-table tbody').html("");
     } else {
-        sku = _.sortBy(sku_of_number).concat(_.sortBy(sku_of_character));
+        sku = _.sortBy(sku_of_number).concat(sku_of_character);
         var result = {
             title: '渲染',
             sku: _.map(sku, function(el){
