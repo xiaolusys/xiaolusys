@@ -6,6 +6,7 @@ $(function () {
     $(".sku-choose").click(dynamic_generate_sku);
     $(".sku-choose").click(dynamic_generate_chi);
     $(".chima-choose").click(dynamic_generate_chi);
+
     $("#chima-add").click(function () {
         var chimatext = $(".chima-add").val().trim();
         if (chimatext.length > 0) {
@@ -41,6 +42,8 @@ function dynamic_generate_sku() {
     var color = [];
     var count1 = 0;
     var sku = [];
+    var sku_of_number = [];
+    var sku_of_character = [];
     $.each(all_color, function (index, one_color) {
         if (one_color.checked) {
             color[count1++] = one_color.defaultValue;
@@ -49,12 +52,17 @@ function dynamic_generate_sku() {
     var count2 = 0;
     $.each(all_sku, function (i, one_sku) {
         if (one_sku.checked) {
-            sku[count2++] = one_sku.defaultValue;
+            if(isNaN(one_sku.defaultValue))
+                sku_of_character.push(one_sku.defaultValue);
+            else
+                sku_of_number.push(parseInt(one_sku.defaultValue));
+            count2++;
         }
     });
     if (count1 == 0 || count2 == 0) {
         $('#table-id tbody').html("");
     } else {
+        sku = _.sortBy(sku_of_number).concat(_.sortBy(sku_of_character));
         var result = {
             title: '渲染',
             color: color,
@@ -96,6 +104,30 @@ function dynamic_generate_sku() {
     $(".c_agentprice:first").change(function(){
         $('input[id$=agentprice]').val($(this).val());
     });
+    if(saleproduct.supplier_sku){
+        var prefix = '';
+        var count = 1;
+        if(!isNaN(saleproduct.supplier_sku))
+            count = parseInt(saleproduct.supplier_sku);
+        else
+            prefix = saleproduct.supplier_sku.replace(/(^[\s-]*)|([\s-]*$)/g, "")+'-';
+        $('input[id$=outerid]').each(function(i, el){
+            $(el).val(prefix+count);
+            count++;
+        });
+    }
+    if(!isNaN(saleproduct.remain_num)){
+        $('input[id$=remainnum]').val(saleproduct.remain_num);
+    }
+    if(!isNaN(saleproduct.sale_price)){
+        $('input[id$=cost]').val(saleproduct.sale_price);
+    }
+    if(!isNaN(saleproduct.on_sale_price)){
+        $('input[id$=agentprice]').val(saleproduct.on_sale_price);
+    }
+    if(!isNaN(saleproduct.std_sale_price)){
+        $('input[id$=pricestd]').val(saleproduct.std_sale_price);
+    }
 }
 
 function dynamic_generate_chi() {

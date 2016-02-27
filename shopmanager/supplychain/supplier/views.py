@@ -249,7 +249,12 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
         return Response({
             'pic_url': instance.pic_url,
             'sale_time': sale_time,
-            'product_category': self.get_category_mapping().get(instance.sale_category_id) or {}
+            'product_category': self.get_category_mapping().get(instance.sale_category_id) or {},
+            'on_sale_price': instance.on_sale_price or '',
+            'std_sale_price': instance.std_sale_price or '',
+            'sale_price': instance.sale_price or '',
+            'supplier_sku': instance.supplier_sku,
+            'remain_num': instance.remain_num or 10
         })
 
     @classmethod
