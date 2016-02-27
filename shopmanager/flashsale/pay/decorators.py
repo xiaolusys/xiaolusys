@@ -19,6 +19,7 @@ def sale_buyer_required(view_func):
     Decorator for views that checks that the user is logged in and is a staff
     member, displaying the login page if necessary.
     """
+    @wraps(view_func)
     def _checklogin(request, *args, **kwargs):
         if request.user.is_active :
             # The user is valid. Continue to the admin page.
@@ -56,7 +57,7 @@ def sale_buyer_required(view_func):
             context_instance=RequestContext(request)
         )
         
-    return wraps(view_func, assigned=available_attrs(view_func))(_checklogin)
+    return _checklogin
 
 def weixin_xlmm_auth(redirecto=None):
     """
@@ -65,6 +66,7 @@ def weixin_xlmm_auth(redirecto=None):
     """
     def _decorator(view_func):
         assert redirecto ,u'redirecto 参数必须'
+        @wraps(view_func)
         def _checklogin(request, *args, **kwargs):
             if request.user.is_active :
                 # The user is valid. Continue to the admin page.
@@ -93,7 +95,7 @@ def weixin_xlmm_auth(redirecto=None):
             auth_login(request, user)
             return view_func(request, *args, **kwargs)
         
-        return wraps(view_func, assigned=available_attrs(view_func))(_checklogin)
+        return _checklogin
     return _decorator
 
 import logging

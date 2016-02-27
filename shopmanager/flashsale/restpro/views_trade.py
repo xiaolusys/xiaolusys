@@ -185,8 +185,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def show_carts_history(self, request, *args, **kwargs):
-        """显示该用户12个小时内购物清单历史"""
-        before = datetime.datetime.now() - datetime.timedelta(hours=12)
+        """显示该用户28个小时内购物清单历史"""
+        before = datetime.datetime.now() - datetime.timedelta(hours=28)
         customer = get_object_or_404(Customer, user=request.user)
         queryset = ShoppingCart.objects.filter(buyer_id=customer.id, status=ShoppingCart.CANCEL,
                                                modified__gt=before).order_by('-modified')
@@ -215,6 +215,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         instance.close_cart()
     
     @detail_route(methods=['post'])
+    @transaction.commit_on_success
     def plus_product_carts(self, request, pk=None):
         customer = get_object_or_404(Customer, user=request.user)
         cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id, status=ShoppingCart.NORMAL)
@@ -230,6 +231,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response({"status": update_status})
 
     @detail_route(methods=['post'])
+    @transaction.commit_on_success
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:

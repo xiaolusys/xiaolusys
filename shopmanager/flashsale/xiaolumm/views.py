@@ -513,30 +513,30 @@ class ClickLogView(WeixinAuthMixin, View):
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
-def logChannelClicks(request, linkid):
-    content = request.REQUEST
-    code = content.get('code',None)
-
-    user_agent = request.META.get('HTTP_USER_AGENT')
-    if not user_agent or user_agent.find('MicroMessenger') < 0:
-        return redirect(settings.M_SITE_URL)
+class ClickChannelLogView(WeixinAuthMixin, View):
+    """ 微信授权参数检查 """
     
-    if not code:
-        params = {'appid':settings.WXPAY_APPID,
-                  'redirect_uri':request.build_absolute_uri().split('#')[0],
-                  'response_type':'code',
-                  'scope':'snsapi_base',
-                  'state':'135'}
-        redirect_url = ('{0}?{1}').format(settings.WEIXIN_AUTHORIZE_URL,urllib.urlencode(params))
-        return HttpResponseRedirect(redirect_url)
-    
-    openid,unionid = get_user_unionid(code,appid=settings.WEIXIN_APPID,
-                                      secret=settings.WEIXIN_SECRET)
-    click_time = datetime.datetime.now()
-    chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
-          ctasks.task_Update_User_Click.s())()
-          
-    return redirect(settings.M_SITE_URL)
+    def get(self, request, linkid):
+        
+        if not self.is_from_weixin(request):
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
+            return redirect(share_url)
+        
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not self.valid_openid(unionid):
+            unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
+            if not self.valid_openid(unionid):
+                redirect_url = self.get_snsuserinfo_redirct_url(request)
+                return redirect(redirect_url)
+            
+#         click_time = datetime.datetime.now()
+#         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
+#               ctasks.task_Update_User_Click.s())()
+        
+        response = redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
+        return response
 
 
 from django.shortcuts import get_object_or_404

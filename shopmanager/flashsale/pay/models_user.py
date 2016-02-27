@@ -146,7 +146,7 @@ class Customer(PayBaseModel):
         return None
     
     def getXiaolumm(self):
-        
+        """ 获取当前用户对应的小鹿妈妈 """
         if not self.unionid:
             return None
         from flashsale.xiaolumm.models import XiaoluMama
@@ -154,6 +154,18 @@ class Customer(PayBaseModel):
             return XiaoluMama.objects.get(openid=self.unionid, charge_status=XiaoluMama.CHARGED)
         except XiaoluMama.DoesNotExist:
             return None
+    
+    def get_referal_xlmm(self):
+        """ 获取当前用户被推荐小鹿妈妈 """
+        from flashsale.xiaolumm.models_fans import XlmmFans
+        from flashsale.xiaolumm.models import XiaoluMama
+        try:
+            xlmm_fan = XlmmFans.objects.get(fans_cusid=self.id)
+        except XlmmFans.DoesNotExist:
+            return None
+        return XiaoluMama.objects.get(id=xlmm_fan.xlmm)
+            
+            
         
     def get_openid_and_unoinid_by_appkey(self,appkey):
         if not self.unionid.strip():

@@ -82,11 +82,11 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
 
     def create(self, request, *args, **kwargs):
         """发送验证码时候新建register对象"""
-        mobile = request.data['vmobile']
+        mobile = request.data.get('vmobile')
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
-            raise exceptions.APIException(u'手机号码有误')
+        if not mobile or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
+            raise exceptions.APIException(u'手机号码格式不对')
         reg = Register.objects.filter(vmobile=mobile)
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
