@@ -1,7 +1,7 @@
 {% load mathfilters %}
 
 <li id="id-item-{% if record %}{{ record.id }}{% endif %}" class="list-group-item">
-    <div class="row">
+    <div class="row fetched">
         {% if code %}
             <div class="col-xs-12 ">
                 <div class="alert alert-danger">{{ error_response }}</div>
@@ -57,6 +57,23 @@
                 <script>
                  $(function(){
                      $('#id-sale-time-{{ record.id }}').datepicker({dateFormat: "yy-mm-dd 00:00:00"});
+                     $('.fetched input[id|="id-buy-price"]').change(function(){
+                         var v = $(this).val();
+                         console.log(v);
+                         var result = undefined;
+                         if(!isNaN(v)){
+                             var onSalePrice = Math.round(parseFloat(v) / .65 + 8);
+                             var onSalePriceStr = String(onSalePrice);
+                             var lastDigit = parseInt(onSalePriceStr[onSalePriceStr.length - 1]);
+                             if(lastDigit < 5)
+                                 result =  Math.max(Math.floor(onSalePrice / 10) - 1, 0) * 10 + 9.9;
+                             else
+                                 result = Math.floor(onSalePrice / 10) * 10 + 9.9;
+                         }
+                         if(result){
+                             $('.fetched input[id|="id-sale-price"]').val(result);
+                         }
+                     });
                  });
                 </script>
             {% else %}
@@ -112,6 +129,22 @@
                          $("#items-group li:first").remove();
                      });
                      $('#fetch-form input.datepicker').datepicker({dateFormat: "yy-mm-dd 00:00:00"});
+                     $('#fetch-form input[name=sale_price]').change(function(){
+                         var v = $(this).val();
+                         var result = undefined;
+                         if(!isNaN(v)){
+                             var onSalePrice = Math.round(parseFloat(v) / .65 + 8);
+                             var onSalePriceStr = String(onSalePrice);
+                             var lastDigit = parseInt(onSalePriceStr[onSalePriceStr.length - 1]);
+                             if(lastDigit < 5)
+                                 result =  Math.max(Math.floor(onSalePrice / 10) - 1, 0) * 10 + 9.9;
+                             else
+                                 result = Math.floor(onSalePrice / 10) * 10 + 9.9;
+                         }
+                         if(result){
+                             $('#fetch-form input[name=on_sale_price]').val(result);
+                         }
+                     });
                  });
                 </script>
             {% endif %}

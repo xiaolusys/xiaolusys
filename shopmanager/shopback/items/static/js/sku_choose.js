@@ -42,6 +42,8 @@ function dynamic_generate_sku() {
     var color = [];
     var count1 = 0;
     var sku = [];
+    var sku_of_number = [];
+    var sku_of_character = [];
     $.each(all_color, function (index, one_color) {
         if (one_color.checked) {
             color[count1++] = one_color.defaultValue;
@@ -50,14 +52,17 @@ function dynamic_generate_sku() {
     var count2 = 0;
     $.each(all_sku, function (i, one_sku) {
         if (one_sku.checked) {
-            sku[count2++] = isNaN(one_sku.defaultValue) ? one_sku.defaultValue : parseInt(one_sku.defaultValue);
+            if(isNaN(one_sku.defaultValue))
+                sku_of_character.push(one_sku.defaultValue);
+            else
+                sku_of_number.push(parseInt(one_sku.defaultValue));
+            count2++;
         }
     });
     if (count1 == 0 || count2 == 0) {
         $('#table-id tbody').html("");
     } else {
-        if(_.every(sku, _.isNumber))
-            sku = _.sortBy(sku);
+        sku = _.sortBy(sku_of_number).concat(_.sortBy(sku_of_character));
         var result = {
             title: '渲染',
             color: color,
