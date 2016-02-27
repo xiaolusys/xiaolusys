@@ -358,7 +358,7 @@ function submit_data() {
         var one_color = all_color[i].replace(/\+/g,"\\+").replace(/\[/g,"\\[").replace(/\]/g,"\\]").replace(/\*/g,"\\*");
         //console.log(one_color)
         for (var j = 0; j < all_sku.length; j++) {
-            var one_sku = all_sku[j].replace("/","\\/").replace(/\*/g,"\\*");
+            var one_sku = all_sku[j].replace(/[\/ 　:]/g, '');
             result_data[all_color[i] + "_" + all_sku[j] + "_outerid"] = $("#" + one_color + "_" + one_sku + "_outerid").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_remainnum"] = $("#" + one_color + "_" + one_sku + "_remainnum").val().trim();
             result_data[all_color[i] + "_" + all_sku[j] + "_cost"] = $("#" + one_color + "_" + one_sku + "_cost").val().trim();
@@ -368,7 +368,7 @@ function submit_data() {
     }
 
     for (var k = 0; k < all_sku.length; k++) {
-        var one_sku = all_sku[k].replace("/","\\/");
+        var one_sku = all_sku[k].replace(/[\/ 　:]/g, '');
         for (var h = 0; h < all_chi_ma.length; h++) {
             result_data[all_sku[k] + "_" + all_chi_ma[h] + "_size"] = $("#" + one_sku + "_" + all_chi_ma[h] + "_size").val().trim();
         }
