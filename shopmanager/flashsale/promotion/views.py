@@ -429,6 +429,7 @@ class XlSampleOrderView(View):
         # 如果用户已经有正式订单存在 则 直接返回分享页
         customer = get_customer(request)
         mobile = customer.mobile if customer else None
+        active_start = False
         if customer:
             outer_id = pro.outer_id
             sample_order = None
@@ -455,12 +456,15 @@ class XlSampleOrderView(View):
                     url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
                     return redirect(url)
                 
-            return render_to_response(self.order_page, {"pro": pro, 
-                                                        "res": res, 
-                                                        "title": title, 
-                                                        "img_src": img_src,
-                                                        "sample_order":sample_order},
-                                      context_instance=RequestContext(request))
+            return render_to_response(self.order_page, 
+                                      {"pro": pro, 
+                                       "res": res, 
+                                       "title": title, 
+                                       "img_src": img_src,
+                                       "active_start":active_start,
+                                       "sample_order":sample_order
+                                    },
+                                    context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
                                   context_instance=RequestContext(request))
 

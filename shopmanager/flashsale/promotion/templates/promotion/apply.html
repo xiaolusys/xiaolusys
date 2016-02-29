@@ -272,7 +272,7 @@
             {% if vipcode_message %}<span> {{ vipcode_message }}</span>{% endif %}
             <input class="submit-button" value="" type="submit"/>
             {% else %}
-            <a class="btn btn-default" disabled>本次试用活动已结束</a>
+            <div class="alert alert-danger" >本次试用活动已结束</div><br>
             <a class="download-button" href="/sale/promotion/appdownload/" value="" type="button"></a>
             {% endif %}
           </form>
