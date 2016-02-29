@@ -304,10 +304,20 @@
 	  {% for red in res.reds %}
 	  <div class="hongbao-record ">
 	    <span class="hongbao-time reds_content" cid="{{ red.id }}">{{ red.created }}</span></br>
-	    <span class="hongbao-text">{{ red.content }}</span>
+	    <span class="hongbao-text">{{ red.content }}；{{ red.get_status_display }}</span>
 	  </div>
 	  {% endfor %}
-    <span id="exchange_reds" hidden="hidden">点击兑换</span>
+    <div style="text-align: center;color: red"><span id="exchange_reds">兑换优惠券</span></div>
+    <div style="text-align: left;color: white;font-size: 10px">
+        <p>
+            兑换说明 <br/>
+            1. 兑换优惠券是将没有兑换过的红包全部兑换成优惠券; <br/>
+            2. 红包金额不足5元则兑换为5元优惠券; <br/>
+            3. 红包金额不足10元但是超过5元则兑换两张5元优惠券; <br/>
+            4. 红包金额大于10元则先以红包总金额发放10元的优惠券,后(按照1,2)发放优惠券到优惠券总金额大于红包总金额为止. <br/>
+        </p>
+    </div>
+
 	</div>
       </div>
       <div class="row">
@@ -447,10 +457,14 @@
                 data: data,
                 processData: false,
                 contentType: false,
+                dataType: 'json',
                 success: resCallBack
             });
-            function resCallBack(res){
+            function resCallBack(res) {
                 console.log(res);
+                alert("您已经兑换" + res.count + "张优惠券,共" + res.coupon_value + "元.");
+                location.reload();
+
             }
         }
 
