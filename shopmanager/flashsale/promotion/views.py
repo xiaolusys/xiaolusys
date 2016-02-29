@@ -546,10 +546,15 @@ class ExchangeRedToCoupon(APIView):
         code = 0
         reds = ReadPacket.objects.filter(id__in=ids, customer=customer, status=ReadPacket.NOT_EXCHANGE)
         sum_value = reds.aggregate(s_v=Sum('value')).get('s_v') or 0
-        
+        reds_count = reds.count()  # 红包条数
+        if reds_count <= 0:  # 如果红包个数小于0则直接返回
+            return 2, 0, 0
         coupon_10_count = int(sum_value / 10)  # 十元优惠券条数
         leave_mony = sum_value - coupon_10_count * 10  # 发完十元后还剩下多少钱
-        coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
+        if leave_mony > 0:
+            coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
+        else:
+            coupon_5_count = 0
         status_1 = ''
         status_2 = ''
         for i in range(coupon_10_count):
