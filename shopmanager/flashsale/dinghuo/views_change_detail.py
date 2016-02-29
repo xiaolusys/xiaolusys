@@ -44,6 +44,25 @@ class ChangeDetailView(View):
                 except:
                     pass
             order_list_list.append(order_dict)
+        def _sort(x):
+            _M = {
+                'XS': 1001,
+                'S': 1002,
+                'M': 1003,
+                'L': 1004,
+                'XL': 1005,
+                'XXL': 1006,
+                '3XL': 1007,
+                '4XL': 1008,
+                u'均码': 9999
+            }
+            chicun = x.get('product_chicun') or ''
+            try:
+                w = float(chicun)
+            except:
+                w = _M.get(chicun) or w
+            return x.get('product_id') or 0, w
+        order_list_list = sorted(order_list_list, key=_sort)
 
         product_link = product_links[0] if product_links else ''
         if order_list.status == "草稿":
