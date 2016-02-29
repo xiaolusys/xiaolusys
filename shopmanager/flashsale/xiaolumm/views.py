@@ -496,9 +496,12 @@ class ClickLogView(WeixinAuthMixin, View):
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
             return redirect(share_url)
-        
         #self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
+        if not valid_openid(openid):
+            redirect_url = self.get_wxauth_redirct_url(request)
+            return redirect(redirect_url)
+        
         if not self.valid_openid(unionid):
             unionid = get_unionid_by_openid(openid, settings.WEIXIN_APPID)
             if not self.valid_openid(unionid):

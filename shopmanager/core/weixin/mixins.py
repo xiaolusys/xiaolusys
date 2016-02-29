@@ -7,7 +7,7 @@ from django.conf import settings
 
 from . import options 
 
-OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+
 
 
 class WeixinAuthMixin(object):
@@ -23,9 +23,7 @@ class WeixinAuthMixin(object):
         self._wxpubsecret = appsecret
         
     def valid_openid(self, openid):
-        if openid and OPENID_RE.match(openid):
-            return True
-        return False
+        return options.valid_openid(openid)
 
     def get_cookie_openid_and_unoinid(self, request):
         return options.get_cookie_openid(request.COOKIES,self._wxpubid)

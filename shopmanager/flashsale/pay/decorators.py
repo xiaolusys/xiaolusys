@@ -79,7 +79,7 @@ def weixin_xlmm_auth(redirecto=None):
             
             if not code :
                 openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
-                if not openid or not unionid:
+                if not options.valid_openid(unionid):
                     params = {'appid':settings.WXPAY_APPID,
                       'redirect_uri':request.build_absolute_uri().split('#')[0],
                       'response_type':'code',
