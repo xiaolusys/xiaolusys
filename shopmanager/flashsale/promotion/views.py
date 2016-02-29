@@ -519,6 +519,14 @@ class CusApplyOrdersView(APIView):
                                   context_instance=RequestContext(request))
 
 
+def update_red_packet():
+    """ 修复bug 跟新活动红包到没有兑换状态　"""
+    reds = ReadPacket.objects.filter(status=ReadPacket.EXCHANGE)
+    print "条数:", reds.count()
+    reds.update(status=ReadPacket.NOT_EXCHANGE)
+    return
+
+
 class ExchangeRedToCoupon(APIView):
     """
     将用户活动红包兑换成优惠券
