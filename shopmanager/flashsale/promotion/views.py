@@ -545,7 +545,7 @@ class ExchangeRedToCoupon(APIView):
         #     code = 2
         #     coupon_value = 0
         #     return code, 0, coupon_value  # 小于3条不予兑换
-        if reds_count < 0:  # 如果红包个数小于0则直接返回
+        if reds_count <= 0:  # 如果红包个数小于0则直接返回
             return 2, 0, 0
         coupon_10_count = int(sum_value / 10)  # 十元优惠券条数
         leave_mony = sum_value - coupon_10_count * 10  # 发完十元后还剩下多少钱
