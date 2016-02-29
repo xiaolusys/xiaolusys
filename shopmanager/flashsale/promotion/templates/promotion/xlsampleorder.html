@@ -443,6 +443,11 @@
         function exchange_reds(){
             var reds = $(".reds_content");
             var data = new FormData();
+            var exchange = $('#exchange_reds');
+            if(exchange.hasClass('loading')){
+                return
+            }
+            exchange.addClass('loading');
 
             $.each(reds,function(index,red){
                 var cid = $(red).attr('cid');
@@ -464,6 +469,7 @@
                 console.log(res);
                 alert("您已经兑换" + res.count + "张优惠券,共" + res.coupon_value + "元.");
                 location.reload();
+                exchange.removeClass('loading');
 
             }
         }
