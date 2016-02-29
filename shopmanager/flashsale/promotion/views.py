@@ -590,11 +590,11 @@ class PromotionResultMixin(object):
         根据月份和批次获取活动的中奖名单，pass_num:表示满足的中奖条件(激活数)
         """
         order_list = XLSampleOrder.objects.none()
-        if month == 1602 and batch == 1:
+        if month == 1602 :
             start_time = datetime.datetime(2016, 2, 22)
             end_time   = datetime.datetime(2016, 3, 1)
-            order_list = XLSampleOrder.objects.filter(created__range=(start_time,end_time),status=1)
-            print 'in:',order_list
+            order_list = XLSampleOrder.objects.filter(created__range=(start_time,end_time),status=batch)
+
         return order_list
     
     def get_date_tuple(self, item):
