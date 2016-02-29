@@ -511,3 +511,9 @@ class XlmmFansCustomerInfoSerialize(serializers.ModelSerializer):
         model = Customer
         fields = ('nick', 'thumbnail', 'status', 'get_status_display')
 
+from flashsale.apprelease.models import AppRelease
+
+
+class AppReleaseSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = AppRelease
