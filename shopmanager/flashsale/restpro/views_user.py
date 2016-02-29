@@ -824,6 +824,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         """
         提示用户关注公众账号接口
         """
+        customer = get_object_or_404(Customer, user=request.user)
+        # 这里的公众账号　访问地址要带上用户的信息　例如customer
         return Response({'auth_link': 'http://www.baidu.com',
                          'auth_msg': '将图片二维码图片保存本地后，打开微信扫一扫从相册选取二维码图片'})
 
