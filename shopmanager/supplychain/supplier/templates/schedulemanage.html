@@ -399,6 +399,11 @@
                      type: 'post',
                      dataType: 'json',
                      data: {sale_product: sale_product_id, type: 5},
+                     success: function(result){
+                         if(result.add_product_url){
+                             window.open(result.add_product_url);
+                         }
+                     },
                      complete: function(){
                          window.location.reload();
                      }
