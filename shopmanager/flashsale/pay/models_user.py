@@ -184,6 +184,16 @@ class Customer(PayBaseModel):
         except UserBudget.DoesNotExist:
             return None
 
+    def is_attention_wx_public(self):
+        """ 是否关注微信公众号 ,存在关注记录返回1否则返回0 """
+        from shopapp.weixin.models import WeixinUnionID
+        try:
+            wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.unionid)
+            return 1
+        except WeixinUnionID.DoesNotExist:
+            return 0
+
+
 class UserBudget(PayBaseModel):
     """ 特卖用户钱包 """
     class Meta:
@@ -204,6 +214,10 @@ class UserBudget(PayBaseModel):
     def get_amount_display(self):
         """ 返回金额　"""
         return self.amount / 100.0
+
+    def is_could_cashout(self):
+        """ 设置普通用户钱包是否可以提现控制字段 """
+        return constants.IS_USERBUDGET_COULD_CASHOUT
 
     def action_budget_cashout(self, cash_out_amount):
         """
