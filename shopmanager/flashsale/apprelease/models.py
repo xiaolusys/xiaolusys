@@ -7,8 +7,9 @@ class AppRelease(BaseModel):
     """
     存储release过的客户端地址，方便下载页面调用，和后台及时更换
     """
-
+    
     class Meta:
+        app_label = 'apprelease'
         db_table = 'flashsale_app_release'
         verbose_name = u'特卖/App下载版本表'
         verbose_name_plural = u'特卖/App下载版本列表'

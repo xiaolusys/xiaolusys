@@ -249,14 +249,25 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         return Response(clgs)
 
     def list(self, request, *args, **kwargs):
+        """
+        2016-2-29 ，　由于前端接口判定为收益接口，　本接口只能过滤处收益内容！！！
+        """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        queryset = queryset.filter(carry_type=CarryLog.CARRY_IN,
+                                   log_type__in=(
+                                       CarryLog.ORDER_REBETA, CarryLog.CLICK_REBETA,
+                                       CarryLog.THOUSAND_REBETA, CarryLog.AGENCY_SUBSIDY,
+                                       CarryLog.MAMA_RECRUIT, CarryLog.ORDER_RED_PAC,
+                                       CarryLog.FANSCARRY, CarryLog.GROUPBONUS,
+                                       CarryLog.ACTIVITY
+                                   ))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     @list_route(methods=['get'])
     def get_clk_list(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -268,10 +279,10 @@ class CarryLogViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     def create(self, request, *args, **kwargs):
         return Response()
-    
+
     @list_route(methods=['get'])
     def list_base_data(self, request):
         """  账户基本信息页面显示　"""
@@ -292,7 +303,8 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         pdc = (qst_pending.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
         data = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc}
         return Response(data)
-    
+
+
 class ClickCountViewSet(viewsets.ModelViewSet):
     """
     ## 特卖平台－小鹿妈妈点击API:
