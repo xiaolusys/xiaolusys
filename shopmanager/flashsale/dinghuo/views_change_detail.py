@@ -174,7 +174,8 @@ class ChangeDetailExportView(View):
 
     @staticmethod
     def get(request, order_detail_id):
-        headers = [u'商品编码', u'供应商编码', u'商品名称', u'图片地址', u'规格', u'购买数量', u'买入价格', u'单项价格']
+        headers = [u'商品编码', u'供应商编码', u'商品名称', u'图片地址', u'规格',
+                   u'购买数量', u'买入价格', u'单项价格', u'已入库数', u'次品数']
         order_list = OrderList.objects.get(id=order_detail_id)
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         items = []
@@ -187,9 +188,9 @@ class ChangeDetailExportView(View):
 
         items = [map(unicode, [i['outer_id'], i['supplier_outer_id'], i['product_name'],
                   i['pic_path'], i['product_chicun'], i['buy_quantity'],
-                  i['buy_unitprice'], i['total_price']]) for i in items]
-        sum_of_total_price = round(sum(map(lambda x: float(x[-1]), items)), 2)
-        items.append([''] * 6 + [u'总计', unicode(sum_of_total_price)])
+                  i['buy_unitprice'], i['total_price'], i['arrival_quantity'], i['inferior_quantity']]) for i in items]
+        sum_of_total_price = round(sum(map(lambda x: float(x[-3]), items)), 2)
+        items.append([''] * 6 + [u'总计', unicode(sum_of_total_price)] + [''] * 2)
         items.insert(0, headers)
         buff = StringIO()
         is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1
