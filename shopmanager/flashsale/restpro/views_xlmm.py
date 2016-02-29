@@ -436,7 +436,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    cashout_type = {"c1": 100, "c2": 200}
+    cashout_type = {"c1": 10000, "c2": 20000}
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -469,7 +469,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         try:
-            could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+            could_cash_out = xlmm.get_cash_iters() * 100  # 可以提现的金额(分为单位)
         except Exception, exc:
             raise APIException(u'{0}'.format(exc.message))
         queryset = self.filter_queryset(self.get_owner_queryset(request))
