@@ -203,9 +203,9 @@ class CarryLogViewSet(viewsets.ModelViewSet):
     `subsidy`:代理补贴  推荐提成　　提  
     `thousand`:千元提成　　额外奖励　 奖  
     `ordred`:订单红包 　红包奖励　　奖  
-    '暂定':团  
-    '暂定':粉  
-    
+    `fans_carry`: 粉丝购买提成 粉  
+    `group_bonus:` 团队新增成员奖金 团  
+    `activity`: 参加活动收益 奖
     """
     queryset = CarryLog.objects.all().order_by('-carry_date')
     serializer_class = serializers.CarryLogSerialize
@@ -254,7 +254,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
+    
     @list_route(methods=['get'])
     def get_clk_list(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -266,10 +266,10 @@ class CarryLogViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
+    
     def create(self, request, *args, **kwargs):
         return Response()
-
+    
     @list_route(methods=['get'])
     def list_base_data(self, request):
         """  账户基本信息页面显示　"""
@@ -290,8 +290,7 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         pdc = (qst_pending.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
         data = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc}
         return Response(data)
-
-
+    
 class ClickCountViewSet(viewsets.ModelViewSet):
     """
     ## 特卖平台－小鹿妈妈点击API:
