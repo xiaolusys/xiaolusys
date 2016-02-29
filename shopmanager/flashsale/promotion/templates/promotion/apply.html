@@ -265,12 +265,16 @@
             <input type="hidden" value="{{ openid }}" name="user_openid"/>
             <input id="id-img" type="hidden" value="{{wxprofile.headimgurl}}" name="headimgurl" />
             <input id="id-nick" type="hidden" value="{{wxprofile.nickname}}" name="nick" />
-            <input id="id-mobile"  name="mobile" class="mobileinput" align="center"
-		    {% if mobile %} type="hidden" {% else %} type="tel" {% endif %}
+	        {% if active_start %}
+	        <input id="id-mobile"  name="mobile" class="mobileinput" align="center"
+            {% if mobile %} type="hidden" {% else %} type="tel" {% endif %}
             {% if mobile %} value="{{ mobile }}" {% endif %} placeholder="请输入您的手机号">
-	    
             {% if vipcode_message %}<span> {{ vipcode_message }}</span>{% endif %}
             <input class="submit-button" value="" type="submit"/>
+            {% else %}
+            <a class="btn btn-default" disabled>本次试用活动已结束</a>
+            <a class="download-button" href="/sale/promotion/appdownload/" value="" type="button"></a>
+            {% endif %}
           </form>
 
 	  {% endif %}

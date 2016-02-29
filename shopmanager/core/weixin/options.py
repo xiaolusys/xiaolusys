@@ -9,6 +9,8 @@ from django.conf import settings
 from . import exceptions
 from . import signals
 
+OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+
 WEIXIN_SNS_USERINFO_URI = '{0}/sns/userinfo?access_token={1}&openid={2}&lang=zh_CN'
 WEIXIN_SNS_BASEINFO_URI = '{0}/sns/oauth2/access_token?appid={1}&secret={2}&code={3}&grant_type=authorization_code'
 
@@ -18,6 +20,12 @@ def is_from_weixin(request):
         return True
     return False
 
+def valid_openid(openid):
+    """ 验证微信授权ID是否有效 """
+    if openid and OPENID_RE.match(openid):
+        return True
+    return False
+    
 def gen_weixin_redirect_url(params):
     list_params = ['appid','redirect_uri','response_type','scope','state']
     param_string = '&'.join([urllib.urlencode({t:params.get(t,'')}) for t in list_params])
