@@ -15,6 +15,8 @@ $(function () {
                 $('#sku-group-5').show();
             $(".sku-choose").click(dynamic_generate_chi);
             $(".sku-choose").click(dynamic_generate_sku);
+            dynamic_generate_chi();
+            dynamic_generate_sku();
         }else{
             swal("填写空白", "(^_^)", "warning");
         }
@@ -24,6 +26,7 @@ $(function () {
         if (colortext.length > 0) {
             $("#other-colors").append(template("color-one", {"color": colortext}));
             $(".color-choose").click(dynamic_generate_sku);
+            dynamic_generate_sku();
         }else{
             swal("填写空白", "(^_^)", "warning");
         }
@@ -33,6 +36,7 @@ $(function () {
         if(duizhaotext && duizhaotext.length > 0){
             $('#chima-group-4').parent().append(template('duizhao-one', {duizhao: duizhaotext.trim()}));
             $('.chima-choose').click(dynamic_generate_chi);
+            dynamic_generate_chi();
         }
     });
 });
