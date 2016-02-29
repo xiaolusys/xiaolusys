@@ -118,7 +118,8 @@ class SaleTrade(BaseModel):
     buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
     
-    channel     = models.CharField(max_length=16,choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
+    channel     = models.CharField(max_length=16,db_index=True,
+                                   choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
     
     payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
     post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
