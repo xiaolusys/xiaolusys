@@ -19,17 +19,17 @@ class Register(PayBaseModel):
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
     cus_uid      = models.BigIntegerField(db_index=True,default=0,null=True,verbose_name=u"客户ID")
-    vmobile      = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
+    vmobile      = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"待验证手机")
     verify_code  = models.CharField(max_length=8,blank=True,verbose_name=u"验证码")
     
-    vemail       = models.CharField(max_length=8,blank=True,verbose_name=u"待验证邮箱")
+    vemail       = models.CharField(max_length=8,db_index=True,blank=True,verbose_name=u"待验证邮箱")
     mail_code     = models.CharField(max_length=128,blank=True,verbose_name=u"邮箱验证码")
     
     verify_count  = models.IntegerField(default=0,verbose_name=u'验证次数')
     submit_count  = models.IntegerField(default=0,verbose_name=u'提交次数')
     
-    mobile_pass   = models.BooleanField(default=False,verbose_name=u"手机验证通过")
-    mail_pass     = models.BooleanField(default=False,verbose_name=u"邮箱验证通过")
+    mobile_pass   = models.BooleanField(default=False,db_index=True,verbose_name=u"手机验证通过")
+    mail_pass     = models.BooleanField(default=False,db_index=True,verbose_name=u"邮箱验证通过")
     
     code_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')
     mail_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'邮件发送时间')
