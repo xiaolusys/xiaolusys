@@ -123,10 +123,10 @@ function showCategory(first_cate, second_cate, third_cate) {
     if(['上装', '外套', '连衣裙'].indexOf(level_3_name) != -1){
         $('#chima-group-1-choose').trigger('click');
         if(['上装', '外套'].indexOf(level_3_name) != -1){
-            $('input[value="衣长"], input[value="肩宽"], input[value="袖长"], input[value="胸围"]').trigger('click');
+            $('input[value="衣长"], input[value="肩宽"], input[value="袖长"], #chima-group-1 input[value="胸围"]').trigger('click');
         }
         else{
-            $('input[value="裙长"], input[value="肩宽"], input[value="袖长"], input[value="胸围"]').trigger('click');
+            $('input[value="裙长"], input[value="肩宽"], input[value="袖长"], #chima-group-1 input[value="胸围"]').trigger('click');
         }
     }
     else if(level_3_name == '下装'){
