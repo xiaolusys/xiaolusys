@@ -166,7 +166,6 @@ class Customer(PayBaseModel):
         return XiaoluMama.objects.get(id=xlmm_fan.xlmm)
             
             
-        
     def get_openid_and_unoinid_by_appkey(self,appkey):
         if not self.unionid.strip():
             return ('','')
@@ -188,7 +187,7 @@ class Customer(PayBaseModel):
         """ 是否关注微信公众号 ,存在关注记录返回1否则返回0 """
         from shopapp.weixin.models import WeixinUnionID
         try:
-            wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.unionid)
+            WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.unionid)
             return 1
         except WeixinUnionID.DoesNotExist:
             return 0

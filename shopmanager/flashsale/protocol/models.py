@@ -40,7 +40,7 @@ class APPFullPushMessge(BaseModel):
         (constants.TARGET_TYPE_ORDER_DETAIL, '订单详情页'),
         (constants.TARGET_TYPE_AVAILABLE_COUPONS, '优惠券列表'),
         (constants.TARGET_TYPE_WEBVIEW, 'APP活动页'),
-        (constants.TARGET_TYPE_VIP_HOME, '个人中心页'),
+        (constants.TARGET_TYPE_VIP_HOME, '小鹿妈妈首页'),
     )
     
     
@@ -51,9 +51,11 @@ class APPFullPushMessge(BaseModel):
         verbose_name_plural = u'特卖/APP全站推送'
     
     desc     = models.TextField(max_length=256, verbose_name=u'推送内容(限200字)')
-    target_url = models.IntegerField(choices=TARGET_CHOICES,verbose_name='跳转页面')
+    target_url = models.IntegerField(default=constants.TARGET_TYPE_HOME_TAB_1,
+                                     choices=TARGET_CHOICES,verbose_name='跳转页面')
+    params   = JSONCharMyField(max_length=512, default={}, blank=True,verbose_name=u'推送参数')
     cat      = models.PositiveIntegerField(blank=True, default=0, verbose_name=u'分类')
     platform = models.CharField(db_index=True,choices=PLATFORM_CHOICES, max_length=16, verbose_name=u'平台')
     regid    = models.CharField(max_length=512, blank=True, verbose_name=u'小米regid')
-    result   = JSONCharMyField(max_length=512, blank=True,verbose_name=u'推送结果')
+    result   = JSONCharMyField(max_length=2048, blank=True,verbose_name=u'推送结果')
     status = models.SmallIntegerField(db_index=True,choices=STATUSES, default=FAIL, verbose_name=u'状态')

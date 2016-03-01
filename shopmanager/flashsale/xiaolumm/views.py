@@ -44,7 +44,7 @@ logger = logging.getLogger('django.request')
 
 
 SHOPURL = "http://mp.weixin.qq.com/bizmall/mallshelf?id=&t=mall/list&biz=MzA5NTI1NjYyNg==&shelf_id=2&showwxpaytitle=1#wechat_redirect"
-WEB_SHARE_URL = "{site_url}/index.html?mm_linkid={mm_linkid}&ufrom=web"
+WEB_SHARE_URL = "{site_url}/index.html?mm_linkid={mm_linkid}&ufrom={ufrom}"
 # SHOPURL = "http://m.xiaolumeimei.com/mm/plist/"
 
 def landing(request):
@@ -494,7 +494,7 @@ class ClickLogView(WeixinAuthMixin, View):
     def get(self, request, linkid):
         
         if not self.is_from_weixin(request):
-            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             return redirect(share_url)
         #self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
@@ -522,22 +522,27 @@ class ClickChannelLogView(WeixinAuthMixin, View):
     def get(self, request, linkid):
         
         if not self.is_from_weixin(request):
-            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid)
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             return redirect(share_url)
         
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
-        if not self.valid_openid(unionid):
-            unionid = get_unionid_by_openid(openid, settings.WXPAY_APPID)
-            if not self.valid_openid(unionid):
-                redirect_url = self.get_snsuserinfo_redirct_url(request)
-                return redirect(redirect_url)
+        if not valid_openid(openid):
+            redirect_url = self.get_wxauth_redirct_url(request)
+            return redirect(redirect_url)
             
-#         click_time = datetime.datetime.now()
-#         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
-#               ctasks.task_Update_User_Click.s())()
+        click_time = datetime.datetime.now()
+        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time,settings.WXPAY_APPID),
+              ctasks.task_Update_User_Click.s())()
         
-        response = redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
+        if not valid_openid(unionid):
+            unionid = get_unionid_by_openid(openid,settings.WXPAY_APPID)
+        xlmms   = XiaoluMama.objects.filter(openid=unionid)
+        if xlmms.exists():
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id,ufrom='')
+        else:
+            share_url = settings.M_SITE_URL
+        response  = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 

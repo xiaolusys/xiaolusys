@@ -87,19 +87,21 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
         if not mobile or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             raise exceptions.APIException(u'手机号码格式不对')
-        reg = Register.objects.filter(vmobile=mobile)
+        
         already_exist = Customer.objects.filter(mobile=mobile)
         if already_exist.count() > 0:
-            return Response({"result": "0"})  # 已经有用户了
+            return Response({"result": "0","code":0,"info":"手机已注册"})  # 已经有用户了
+        
+        reg = Register.objects.filter(vmobile=mobile)
         if reg.count() > 0:
             temp_reg = reg[0]
             reg_pass = reg.filter(mobile_pass=True)
             if reg_pass.count() > 0:
-                return Response({"result": "0"})  # 已经注册过
+                return Response({"result": "0","code":0,"info":"手机已注册"})  # 已经注册过
             if check_day_limit(temp_reg):
-                return Response({"result": "2"})  #当日验证次数超过5
+                return Response({"result":"2","code":2,"info":"当日验证次数超过5"})  #当日验证次数超过5
             if temp_reg.code_time and temp_reg.code_time > last_send_time:
-                return Response({"result": "1"})  # 180s内已经发送过
+                return Response({"result":"1","code":1,"info":"180s内已经发送过"})  # 180s内已经发送过
             else:
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.code_time = current_time

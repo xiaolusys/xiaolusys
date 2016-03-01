@@ -33,15 +33,17 @@ class APPFullPushMessgeAdmin(admin.ModelAdmin):
         """
         try:
             from flashsale.push import mipush
+            from flashsale.protocol import get_target_url
             resp = {}
+            params =  {'target_url': get_target_url(self.target_url,self.params)}
             if obj.platform == APPFullPushMessge.PL_IOS:
-                resp = mipush.mipush_of_ios.push_to_all()
+                resp = mipush.mipush_of_ios.push_to_all(params,description=self.desc)
             else:
-                resp = mipush.mipush_of_android.push_to_all()
+                resp = mipush.mipush_of_android.push_to_all(params,description=self.desc)
         except Exception,exc:
             resp = {'error':exc.message}
-        success = resp.get('result','').lower()
-        if success == 'ok':
+        success = resp.get('result')
+        if success and success.lower() == 'ok':
             obj.status = APPFullPushMessge.SUCCESS
             self.message_user(request, u"=======, %s用户全推成功." % obj.get_platform_display())
         else:
