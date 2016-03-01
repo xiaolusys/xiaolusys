@@ -720,6 +720,8 @@ class CarryLog(models.Model):
             elif self.log_type == CarryLog.ORDER_REBETA:
                 shop_cnt = self.get_type_shop_cnt()
                 des = choice(constants.CARRY_LOG_SHOP_DESC).format(shop_cnt, self.get_status_display())
+            elif self.log_type == CarryLog.AGENCY_SUBSIDY:
+                des = choice(constants.CARRY_LOG_AGENCY_SUBSIDY).format(self.order_num, self.get_status_display())
             else:
                 des = constants.CARRY_IN_DEFAULT_DESC.format(self.get_status_display())
         else:
