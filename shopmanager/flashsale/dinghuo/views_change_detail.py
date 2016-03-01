@@ -60,7 +60,7 @@ class ChangeDetailView(View):
             try:
                 w = float(chicun)
             except:
-                w = _M.get(chicun) or w
+                w = _M.get(chicun) or chicun
             return x.get('product_id') or 0, w
         order_list_list = sorted(order_list_list, key=_sort)
 
