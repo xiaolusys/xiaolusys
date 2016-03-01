@@ -1,7 +1,6 @@
 ######## 2016-02-29 ########
-alter table flashsale_refund add column channel varchar(16) NOT NULL,
-ADD index flashsale_refund_c3f32c33(channel);
-
+alter table flashsale_refund add column channel varchar(16) NOT NULL,ADD index flashsale_refund_c3f32c33(channel);
+alter table xiaolumm_clicks add column app_key varchar(20) NOT NULL;
 ######## 2016-02-27 ########
 alter table flashsale_userbudgetlog add column referal_id varchar(32) NOT NULL;
 CREATE INDEX `flashsale_userbudgetlog_26941be2` ON `flashsale_userbudgetlog` (`referal_id`);
