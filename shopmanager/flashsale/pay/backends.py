@@ -167,12 +167,12 @@ class WeixinAppBackend(object):
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,user=user)
-            if not profile.nick.strip():
+            if profile.nick == '':
                 profile.nick = params.get('nickname')
                 profile.thumbnail = params.get('headimgurl')
                 profile.save()
         
-        task_Refresh_Sale_Customer.s(params,app_key=settings.WXAPP_ID)()    
+        task_Refresh_Sale_Customer.s(params,app_key=settings.WXAPP_ID)()
         return user
     
     def get_user(self, user_id):

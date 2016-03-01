@@ -15,6 +15,7 @@ from flashsale.clickcount.models import ClickCount
 from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 from .models_fans import XlmmFans, FansNumberRecord
+from . import ccp_schema
 from . import constants
 
 import logging
@@ -329,50 +330,39 @@ class XiaoluMama(models.Model):
         return self.get_Mama_Click_Price_By_Day(ordernum,day_date=cur_date)
     
     def get_Mama_Click_Price_By_Day(self, ordernum, day_date=None):
-        """ 按日期获取小鹿妈妈点击价格 """
+        """ 按日期获取小鹿妈妈点击价格 
+            agency_level = agency_levels[0]
+            if not day_date or day_date < ROI_CLICK_START:
+                return base_price + agency_level.get_Click_Price(ordernum)
+            return 0
+            
+            pre_date = day_date - datetime.timedelta(days=1)
+            mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
+            if mm_stats.count() > 0:
+                base_price = mm_stats[0].base_click_price
+             
+            return base_price + agency_level.get_Click_Price(ordernum)
+        """
         if self.agencylevel < 2:
             return 0
         
-        if  datetime.date(2016,2,24) < day_date < datetime.date(2016,2,26):
-            return 30
+        cc_price = ccp_schema.get_ccp_price(day_date, ordernum)
+        if cc_price is not None:
+            return cc_price
         
-        if  datetime.date(2016,1,17) < day_date < datetime.date(2016,1,20):
-            return 30
-        #2015-11-01取消点击补贴
-        if  datetime.date(2015,12,30) < day_date < datetime.date(2016,1,3):
-            return 20
-        
-        if ROI_CLICK_START <= day_date < datetime.date(2015,11,1):
-            return 10
-        
-        if day_date > datetime.date(2016,1,5):
-            return 10
-        return 0
+        return 10
     
-        """ 
-        agency_level = agency_levels[0]
-        if not day_date or day_date < ROI_CLICK_START:
-            return base_price + agency_level.get_Click_Price(ordernum)
-        return 0
         
-        pre_date = day_date - datetime.timedelta(days=1)
-        mm_stats = MamaDayStats.objects.filter(xlmm=self.id,day_date=pre_date)
-        if mm_stats.count() > 0:
-            base_price = mm_stats[0].base_click_price
-         
-        return base_price + agency_level.get_Click_Price(ordernum)
-        """
-    
     def get_Mama_Max_Valid_Clickcount(self, ordernum, day_date):
         """ 获取小鹿妈妈最大有效点击数  """
-        agency_levels = AgencyLevel.objects.filter(id=self.agencylevel)
-        if agency_levels.count() == 0:
+        if self.agencylevel < 2:
             return 0
-        agency_level = agency_levels[0]
-        click_num = agency_level.get_Max_Valid_Clickcount(ordernum)
-#         if day_date and day_date > datetime.date(2015,12,31,10):
-#             click_num += 20
-        return click_num
+        
+        cc_count = ccp_schema.get_ccp_count(day_date, ordernum)
+        if cc_count is not None:
+            return cc_count
+        
+        return MM_CLICK_DAY_BASE_COUNT + MM_CLICK_PER_ORDER_PLUS_COUNT * ordernum
     
     def push_carrylog_to_cash(self,clog):
         
