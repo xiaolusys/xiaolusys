@@ -509,7 +509,7 @@ class ClickLogView(WeixinAuthMixin, View):
                 return redirect(redirect_url)
             
         click_time = datetime.datetime.now()
-        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time),
+        chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time,settings.WXPAY_APPID),
               ctasks.task_Update_User_Click.s())()
         
         response = redirect(urljoin(settings.M_SITE_URL,reverse('v1:weixin-login')))
