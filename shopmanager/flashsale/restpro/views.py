@@ -11,6 +11,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+from flashsale.apprelease.models import AppRelease
 from .views_refund import refund_Handler
 
 from flashsale.pay.models import SaleTrade,Customer
@@ -318,5 +319,37 @@ class DistrictViewSet(viewsets.ModelViewSet):
         else:
             queryset = District.objects.filter(parent_id=city_id)
             serializer = self.get_serializer(queryset, many=True)
-            return Response({"result":True,"data":serializer.data})   
+            return Response({"result":True,"data":serializer.data})
 
+
+class AppDownloadLinkViewSet(viewsets.ModelViewSet):
+    """
+    获取有效App下载地址
+    """
+    queryset = AppRelease.objects.all()
+    serializer_class = serializers.DistrictSerializer
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def list(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+    def update(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+    def partial_update(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+    @list_route(methods=['get'])
+    def get_app_download_link(self, request):
+        """ 返回有效的app下载地址 """
+        queryset = self.queryset.filter(status=AppRelease.VALID).order_by('-release_time')
+        qrcode_link = ''
+        download_link = ''
+        if queryset.exists():
+            app = queryset[0]
+            download_link = app.download_link
+            qrcode_link = app.qrcode_link
+        return Response({'download_link': download_link, 'qrcode_link': qrcode_link})

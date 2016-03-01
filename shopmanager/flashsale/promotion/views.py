@@ -356,7 +356,7 @@ class XlSampleOrderView(View):
                 sample_order = XLSampleOrder.objects.create(xlsp_apply=new_xlapply.id,
                                               customer_id=customer.id,
                                              outer_id=outer_id, sku_code=sku_code)
-                res = self.get_promotion_result(customer.id, outer_id, mobile,sample_order)
+                res = self.get_promotion_result(customer.id, outer_id, mobile, sample_order)
 
                 referal_uid = customer.id  # 被推荐人ID
                 referal_from_uid = from_customer  # 推荐人ID
@@ -490,10 +490,10 @@ class XlSampleOrderView(View):
         xlapply = get_customer_apply(**{"mobile": mobile})
         if xlapply:  # 有　试用申请　记录的
             # 激活申请
-            self.active_order(xlapply, customer, outer_id, sku_code)
+            xlorder = self.active_order(xlapply, customer, outer_id, sku_code)
             outer_ids = ['', ]
             outer_ids[0] = outer_id
-            res = self.get_promotion_result(customer.id, outer_ids, mobile)
+            res = self.get_promotion_result(customer.id, outer_ids, mobile, xlorder)
             return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
         
         not_apply_message = "您还没有试用申请，请先申请再激活．．．"
