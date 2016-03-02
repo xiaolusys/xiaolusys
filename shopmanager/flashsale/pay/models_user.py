@@ -19,7 +19,7 @@ class Register(PayBaseModel):
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
     cus_uid      = models.BigIntegerField(db_index=True,default=0,null=True,verbose_name=u"客户ID")
-    vmobile      = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"待验证手机")
+    vmobile      = models.CharField(max_length=11,unique=True,blank=True,verbose_name=u"待验证手机")
     verify_code  = models.CharField(max_length=8,blank=True,verbose_name=u"验证码")
     
     vemail       = models.CharField(max_length=8,db_index=True,blank=True,verbose_name=u"待验证邮箱")
