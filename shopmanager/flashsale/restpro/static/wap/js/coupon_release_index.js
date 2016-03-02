@@ -71,6 +71,13 @@ function Set_coupon_tpls() {
     });
     function callback(res) {
         var img_num = 0;
+        if (res.length > 0) {
+            var html = '<div>' +
+                '<div class="glist_cou" id="coupon_release"><ul id="tpl_ul_show"></ul></div>' +
+                '<script type="text/html" id="coupon_tpl"><li cid="{{ id }}"><img src="{{ post_img }}"></li></script>' +
+                '</div>';
+            $(".fixed-nav").after(html);
+        }
         $.each(res, function (i, v) {
             if (v.post_img != "") {
                 var tplhml = create_tpl_show(v);
