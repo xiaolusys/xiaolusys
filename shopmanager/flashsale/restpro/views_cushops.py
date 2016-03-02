@@ -1,18 +1,21 @@
 # coding=utf-8
+import os, settings, urlparse
 import datetime
 from rest_framework import viewsets, permissions, authentication, renderers
 from rest_framework.response import Response
 from rest_framework import exceptions
 from . import serializers
-from flashsale.pay.models_shops import CustomerShops, CuShopPros
-from flashsale.pay.models import Customer
 from django.shortcuts import get_object_or_404
-from shopback.items.models import Product
+from django.forms import model_to_dict
 from django.forms import model_to_dict
 from rest_framework.decorators import detail_route, list_route
+
+from shopback.items.models import Product
 from . import permissions as perms
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.pay.models import Customer
+from flashsale.pay.models_shops import CustomerShops, CuShopPros
 
 
 class CustomerShopsViewSet(viewsets.ModelViewSet):
@@ -39,6 +42,24 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         shops = self.queryset.filter(customer=customer.id)  # 获取店铺
         return shops
+
+    @list_route(methods=['get'])
+    def customer_shop(self, request):
+        queryset = self.filter_queryset(self.get_owner_shop(request))
+        mm_linkid = 44
+        shop_info = None
+        if queryset.exists():
+            shop = queryset[0]
+            customer = shop.get_customer()
+            if customer:
+                xlmm = customer.getXiaolumm()
+                if xlmm:
+                    mm_linkid = xlmm.id
+            shop_info = model_to_dict(shop)
+            settings.M_SITE_URL = 'http://192.168.1.31/static/wap/'
+            link = urlparse.urljoin(settings.M_SITE_URL, 'mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
+            shop_info['shop_link'] = link
+        return Response({"shop_info": shop_info})
 
 
 class CuShopProsViewSet(viewsets.ModelViewSet):
