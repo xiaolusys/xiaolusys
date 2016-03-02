@@ -51,12 +51,13 @@ def task_Create_Click_Record(xlmmid,openid,unionid,click_time,app_key):
     )
     if unionid:
         WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
-    
-    return click
+        
+    return click.id
 
 @task()
-def task_Update_User_Click(click, *args, **kwargs):
+def task_Update_User_Click(click_id, *args, **kwargs):
     
+    click = Clicks.objects.get(id=click_id)
     openid  = click.openid
     app_key = click.app_key
     click_time = click.click_time

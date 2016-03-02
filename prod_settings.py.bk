@@ -204,5 +204,8 @@ LOGGING = {
             'include_html': True,
         }
     },
-    'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE) for handler in LOGGER_HANDLERS]),
+    'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
 }
+# for disable urllib3 ssl warning
+import logging
+logging.captureWarnings(True)
