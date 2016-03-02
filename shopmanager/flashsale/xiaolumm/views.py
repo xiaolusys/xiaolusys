@@ -4,6 +4,7 @@ import json
 import datetime
 import urllib
 from urlparse import urljoin
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse,Http404,HttpResponseRedirect
 from django.shortcuts import redirect,render_to_response
@@ -25,7 +26,6 @@ from shopapp.weixin.service import WeixinUserService
 from shopapp.weixin.options import get_unionid_by_openid
 from shopapp.weixin.tasks import task_Update_Weixin_Userinfo
 from shopback.base import log_action, ADDITION, CHANGE
-from django.conf import settings
 from flashsale.pay.options import set_cookie_openid,get_cookie_openid,get_user_unionid
 from flashsale.clickcount.models import Clicks, ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
