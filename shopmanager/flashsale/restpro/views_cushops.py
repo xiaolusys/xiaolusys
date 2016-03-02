@@ -1,5 +1,5 @@
 # coding=utf-8
-import os, settings, urlparse
+import os, settings, urlparse, random
 import datetime
 from rest_framework import viewsets, permissions, authentication, renderers
 from rest_framework.response import Response
@@ -45,6 +45,8 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def customer_shop(self, request):
+        decs = ['赶快到我的店铺看看为你准备了哪些漂亮的衣服吧！',
+                '外贸原单，天天精选，买买买！', '遮不住的美艳，挡不了的诱惑！']
         queryset = self.filter_queryset(self.get_owner_shop(request))
         mm_linkid = 44
         shop_info = None
@@ -59,6 +61,8 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             settings.M_SITE_URL = 'http://192.168.1.31/static/wap/'
             link = urlparse.urljoin(settings.M_SITE_URL, 'mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
             shop_info['shop_link'] = link
+            shop_info['thumbnail'] = customer.thumbnail  # 提供用户头像
+            shop_info['desc'] = random.choice(decs)
         return Response({"shop_info": shop_info})
 
 
