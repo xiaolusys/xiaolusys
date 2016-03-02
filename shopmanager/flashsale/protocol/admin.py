@@ -1,7 +1,9 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
 from .models import APPFullPushMessge
+import logging
 
+logger = logging.getLogger('django.request')
 
 class APPFullPushMessgeAdmin(admin.ModelAdmin):
     list_display = ('id', 'target_url', 'platform','desc', 'created', 'status')
@@ -35,12 +37,13 @@ class APPFullPushMessgeAdmin(admin.ModelAdmin):
             from flashsale.push import mipush
             from flashsale.protocol import get_target_url
             resp = {}
-            params =  {'target_url': get_target_url(self.target_url,self.params)}
+            params =  {'target_url': get_target_url(obj.target_url,obj.params)}
             if obj.platform == APPFullPushMessge.PL_IOS:
-                resp = mipush.mipush_of_ios.push_to_all(params,description=self.desc)
+                resp = mipush.mipush_of_ios.push_to_all(params,description=obj.desc)
             else:
-                resp = mipush.mipush_of_android.push_to_all(params,description=self.desc)
+                resp = mipush.mipush_of_android.push_to_all(params,description=obj.desc)
         except Exception,exc:
+            logger.error(exc.message or 'app push error',exc_info=True)
             resp = {'error':exc.message}
         success = resp.get('result')
         if success and success.lower() == 'ok':
