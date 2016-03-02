@@ -502,7 +502,7 @@ class ClickLogView(WeixinAuthMixin, View):
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
-            
+        
         click_time = datetime.datetime.now()
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time,settings.WXPAY_APPID),
               ctasks.task_Update_User_Click.s())()
@@ -526,17 +526,18 @@ class ClickChannelLogView(WeixinAuthMixin, View):
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             return redirect(share_url)
-        
+        logger.debug('debug channel 1:%s'%linkid)
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
+        logger.debug('debug channel 2:%s,%s,%s'%(linkid,openid,unionid))
         if not valid_openid(openid):
             redirect_url = self.get_wxauth_redirct_url(request)
             return redirect(redirect_url)
-            
+        logger.debug('debug channel 3:%s,%s,%s'%(linkid,openid,unionid))
         click_time = datetime.datetime.now()
         chain(ctasks.task_Create_Click_Record.s(linkid, openid, unionid, click_time,settings.WXPAY_APPID),
               ctasks.task_Update_User_Click.s())()
-        
+        logger.debug('debug channel 4:%s,%s,%s'%(linkid,openid,unionid))
         if not valid_openid(unionid):
             unionid = get_unionid_by_openid(openid,settings.WXPAY_APPID)
         xlmms   = XiaoluMama.objects.filter(openid=unionid)
@@ -544,6 +545,7 @@ class ClickChannelLogView(WeixinAuthMixin, View):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id,ufrom='wx')
         else:
             share_url = settings.M_SITE_URL
+        logger.debug('debug channel 5:%s,%s,%s'%(linkid,openid,share_url))
         response  = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
