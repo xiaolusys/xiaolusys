@@ -249,7 +249,7 @@ def get_xlmm_linkid(click_set):
         if cc.linkid in exclude_xlmmids:
             continue
         return cc.linkid
-    return 0
+    return 44
 
 from django.db.models import F
 from django.conf import settings
@@ -354,14 +354,12 @@ signals.signal_wxorder_pay_confirm.connect(tongji_wxorder, sender=WXOrder)
 
 from flashsale.pay.models import SaleTrade,SaleOrder,Customer
 from shopapp.weixin.models import WeixinUnionID
+from shopapp.weixin.options import get_openid_by_unionid
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
 def get_wxopenid(sale_trade,customer):
     wx_unionid = customer.unionid
-    xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
-    xd_openid  = ''
-    if xd_unoins.exists():
-        xd_openid = xd_unoins[0].openid
+    xd_openid  = get_openid_by_unionid(wx_unionid,settings.WXPAY_APPID)
     return xd_openid,wx_unionid
 
 def get_xiaolumm(sale_trade, customer):

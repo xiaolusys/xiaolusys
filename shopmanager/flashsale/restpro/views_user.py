@@ -110,16 +110,16 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 log_action(DJUSER.id, temp_reg, CHANGE, u'修改，注册手机验证码')
                 task_register_code.s(mobile, "1")()
                 return Response({"result": "OK"})
-
-        new_reg = Register(vmobile=mobile)
-        new_reg.verify_code = new_reg.genValidCode()
-        new_reg.verify_count = 0
-        new_reg.code_time = current_time
-        new_reg.save()
-        DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
-        log_action(DJUSER.id, new_reg, ADDITION, u'新建，注册手机验证码')
-        task_register_code.s(mobile, "1")()
-        return Response({"result": "OK"})
+        else:
+            new_reg = Register(vmobile=mobile)
+            new_reg.verify_code = new_reg.genValidCode()
+            new_reg.verify_count = 0
+            new_reg.code_time = current_time
+            new_reg.save()
+            DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+            log_action(DJUSER.id, new_reg, ADDITION, u'新建，注册手机验证码')
+            task_register_code.s(mobile, "1")()
+            return Response({"result": "OK"})
 
     def list(self, request, *args, **kwargs):
         return Response("not open")
