@@ -30,7 +30,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
 from . import options 
-from core.utils.geoutils import get_client_ip
+from core.utils.httputils import get_client_ip
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
 import logging
@@ -81,7 +81,17 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     authentication_classes = ()
     permission_classes = ()
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-
+    
+    def get_agent_src(self, request):
+        user_agent = request.META.get('HTTP_USER_AGENT').lower()
+        if user_agent.find('windows') > 0:
+            return 'windows'
+        if user_agent.find('iphone') > 0:
+            return 'iphone'
+        if user_agent.find('android') > 0:
+            return 'android'
+        return user_agent
+        
     def create(self, request, *args, **kwargs):
         """发送验证码时候新建register对象"""
         mobile = request.data.get('vmobile')
@@ -91,9 +101,21 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             raise exceptions.APIException(u'手机号码格式不对')
         
         ip = get_client_ip(request)
-        logger.debug('register: %s, %s'%(ip,mobile))
+        get_agent_src = self.get_agent_src(request)
+        logger.debug('register: %s, %s, '%(ip, mobile, get_agent_src))
         
-        return Response({"result": "0","code":0,"info":"手机已注册"})
+        if get_agent_src == 'windows':
+            import random
+            rnum = random.randint(1,10)
+            if rnum % 2 ==1:
+                return Response({"result": "0","code":0,"info":"手机已注册"})
+            else:
+                return Response({"result": "OK","code":0,"info":"OK"})
+        
+        customers = Customer.objects.filter(mobile=mobile)
+        if customers.exists():
+            return Response({"result": "0","code":0,"info":"手机已注册"})
+            
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() > 0:
             temp_reg = reg[0]

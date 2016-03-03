@@ -7,9 +7,6 @@ from django.conf import settings
 
 from . import options 
 
-
-
-
 class WeixinAuthMixin(object):
     
     _wxpubid = settings.WEIXIN_APPID
