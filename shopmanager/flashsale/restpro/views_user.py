@@ -93,7 +93,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         ip = get_client_ip(request)
         logger.debug('register: %s, %s'%(ip,mobile))
         
-        return Response({"result": "OK","code":0,"info":"OK"})
+        return Response({"result": "0","code":0,"info":"手机已注册"})
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() > 0:
             temp_reg = reg[0]
