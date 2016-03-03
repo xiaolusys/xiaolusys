@@ -64,8 +64,11 @@ class ActiveValue(BaseModel):
 class OrderCarry(BaseModel):
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     order_id = models.BigIntegerField(default=0, verbose_name=u'订单ID')
+    order_value = models.IntegerField(default=0, verbose_name=u'订单金额')
     carry_num = models.IntegerField(default=0, verbose_name=u'提成金额')
     carry_type = models.IntegerField(default=0, verbose_name=u'提成类型') #直接订单提成/粉丝订单提成/下属订单提成
+    sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'sku名称')
+    sku_img  = models.CharField(max_length=256, blank=True, verbose_name=u'sku图片')
     contributor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     contributor_img  = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')
     contributor_id  = models.BigIntegerField(default=0, verbose_name=u'贡献者ID')
@@ -101,11 +104,11 @@ class AwardCarry(BaseModel):
 class ClickCarry(BaseModel):
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     init_click_num = models.IntegerField(default=0, verbose_name=u'初始点击数')
-    init_order_num = models.IntegerField(default=0, verbose_name=u'初始订单数') 
+    init_order_num = models.IntegerField(default=0, verbose_name=u'初始订单人数') 
     init_click_price = models.IntegerField(default=0, verbose_name=u'初始点击价')
     init_click_limit = models.IntegerField(default=0, verbose_name=u'初始点击上限')
     confirmed_click_num = models.IntegerField(default=0, verbose_name=u'确定点击数')
-    confirmed_order_num = models.IntegerField(default=0, verbose_name=u'确定订单数') 
+    confirmed_order_num = models.IntegerField(default=0, verbose_name=u'确定订单人数') 
     confirmed_click_price = models.IntegerField(default=0, verbose_name=u'确定点击价')
     confirmed_click_limit = models.IntegerField(default=0, verbose_name=u'确定点击上限')
     total_value = models.IntegerField(default=0, verbose_name=u'点击总价')
