@@ -343,3 +343,12 @@ class FansNumberRecordAdmin(admin.ModelAdmin):
     search_fields = ['xlmm', 'xlmm_cusid']
 
 admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
+
+from models_fortune import MamaFortune
+
+
+class MamaFortuneAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'mama_name')
+    search_fields = ['mama_id', 'mama_name']
+
+admin.site.register(MamaFortune, MamaFortuneAdmin)

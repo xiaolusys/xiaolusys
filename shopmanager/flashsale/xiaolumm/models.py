@@ -16,6 +16,7 @@ from .models_rebeta import AgencyOrderRebetaScheme
 from .models_advertis import XlmmAdvertis, TweetAdvertorial, NinePicAdver
 from .models_fans import XlmmFans, FansNumberRecord
 from . import constants
+from .models_fortune import MamaFortune
 
 import logging
 logger = logging.getLogger('django.request')

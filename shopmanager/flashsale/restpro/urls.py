@@ -117,6 +117,15 @@ router_urls += format_suffix_patterns([
     ])
 
 
+# 2016-3-2 v2
+from flashsale.restpro.v2 import views_mama_v2
+v2_router = routers.DefaultRouter(trailing_slash=False)
+v2_router.register(r'mama', views_mama_v2.MamaFortuneViewSet)
+v2_router_urls = v2_router.urls
+v2_router_urls += ([
+
+])
+
 urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name="rest_base.html")),
     url(r'^v1/', include(router_urls,namespace='v1')),
@@ -125,4 +134,7 @@ urlpatterns = patterns('',
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
     
     #url(r'^test/',views_wuliu.test),
+
+    url(r'^v2/', include(v2_router_urls, namespace='v2')),
+
 )
