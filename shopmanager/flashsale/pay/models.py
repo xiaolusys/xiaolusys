@@ -260,6 +260,9 @@ class SaleTrade(BaseModel):
             logger.error(exc.message,exc_info=True)
     
     def confirm_payment(self):
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.postpay_count')
+        statsd.incr('xiaolumm.postpay_amount',self.payment)
         signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
             
     def charge_confirm(self,charge_time=None):

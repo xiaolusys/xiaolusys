@@ -304,6 +304,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'])
     def promote_today_paging(self, request, *args, **kwargs):
         """ 　　商品列表分页接口 """
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.home_page')
         today_dt = self.get_today_date()
         queryset = self.filter_queryset(self.get_queryset())
         tal_queryset = self.get_custom_qs(queryset).filter(

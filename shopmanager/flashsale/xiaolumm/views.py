@@ -18,6 +18,8 @@ from rest_framework import generics
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
+from django_statsd.clients import statsd
+
 from core.weixin.mixins import WeixinAuthMixin
 
 from shopapp.weixin.views import get_user_openid,valid_openid
@@ -492,7 +494,8 @@ class ClickLogView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
     
     def get(self, request, linkid):
-        
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.weixin_click')
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             return redirect(share_url)
