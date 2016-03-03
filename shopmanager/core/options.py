@@ -1,10 +1,6 @@
 # coding:utf-8
 __author__ = 'imeron'
-import re
-import json
-import urllib
-from django.conf import settings
-from django.contrib.admin.models import LogEntry,User, ADDITION, CHANGE
+from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 
 

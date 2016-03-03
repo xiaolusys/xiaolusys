@@ -76,7 +76,7 @@ class Logs(models.Model):
     cat_name = models.CharField(max_length=64)
     outer_id = models.CharField(max_length=64)
     title = models.CharField(max_length=128)
-    pic_url = models.URLField(verify_exists=False)
+    pic_url = models.URLField()
 
     list_weekday = models.IntegerField()
     list_time = models.CharField(max_length=8)

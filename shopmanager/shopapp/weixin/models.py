@@ -181,7 +181,7 @@ class WeiXinUser(CacheModel):
     sex        = models.IntegerField(default=0,choices=SEX_TYPE,verbose_name=u"性别")
     language   = models.CharField(max_length=10,blank=True,verbose_name=u"语言")
     
-    headimgurl = models.URLField(verify_exists=False,blank=True,verbose_name=u"头像")
+    headimgurl = models.URLField(blank=True,verbose_name=u"头像")
     country    = models.CharField(max_length=24,blank=True,verbose_name=u"国家")
     province   = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
     city       = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
@@ -569,8 +569,8 @@ class FreeSample(models.Model):
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
     stock = models.IntegerField(default=0,verbose_name=u'库存')
 
-    pic_url = models.URLField(verify_exists=False,blank=True,verbose_name='商品图片')
-    sale_url = models.URLField(verify_exists=False,blank=True,verbose_name='销售链接')
+    pic_url = models.URLField(blank=True,verbose_name='商品图片')
+    sale_url = models.URLField(blank=True,verbose_name='销售链接')
 
     class Meta:
         db_table = 'shop_weixin_free_sample'
@@ -641,7 +641,7 @@ class VipCode(models.Model):
 
 class Coupon(models.Model):
     description = models.CharField(max_length=256,null=False,blank=True,verbose_name=u'描述')
-    coupon_url = models.URLField(verify_exists=False,blank=True,verbose_name='领取链接')    
+    coupon_url = models.URLField(blank=True,verbose_name='领取链接')    
     face_value = models.IntegerField(default=0,verbose_name=u'面值')
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
     created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
@@ -793,7 +793,7 @@ class WeixinScoreBuy(models.Model):
 
 class WeixinClickScore(models.Model):
     description = models.CharField(max_length=64,verbose_name=u"描述")
-    redirect_link = models.URLField(verify_exists=False,blank=True,verbose_name=u"跳转链接")
+    redirect_link = models.URLField(blank=True,verbose_name=u"跳转链接")
     score = models.IntegerField(default=0,verbose_name=u"积分数")
     expiry = models.DateTimeField(blank=True,null=True,verbose_name=u'过期时间')
     created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')

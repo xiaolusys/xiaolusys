@@ -13,8 +13,8 @@ class XLFreeSample(CacheModel):
     name     = models.CharField(max_length=64,blank=True,verbose_name=u'活动名称')
     expiried = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
 
-    pic_url  = models.URLField(verify_exists=False,blank=True,verbose_name='商品图片')
-    sale_url = models.URLField(verify_exists=False,blank=True,verbose_name='销售链接')
+    pic_url  = models.URLField(blank=True,verbose_name='商品图片')
+    sale_url = models.URLField(blank=True,verbose_name='销售链接')
 
     class Meta:
         db_table = 'flashsale_promotion_freesample'

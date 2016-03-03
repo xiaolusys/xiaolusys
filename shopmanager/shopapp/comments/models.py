@@ -23,8 +23,8 @@ class Comment(models.Model):
     oid     = models.BigIntegerField(null=False,db_index=True,verbose_name=u'订单ID')
     
     item_title  = models.CharField(max_length=148,blank=True,verbose_name=u'商品标题')
-    item_pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
-    detail_url   = models.URLField(verify_exists=False,blank=True,verbose_name=u'详情链接')
+    item_pic_url = models.URLField(blank=True,verbose_name=u'商品图片')
+    detail_url   = models.URLField(blank=True,verbose_name=u'详情链接')
     item_price  = models.DecimalField(max_digits=10,null=True,decimal_places=2,verbose_name=u'商品价格')
     
     valid_score = models.BooleanField(default=True,verbose_name=u'是否记分')
@@ -77,8 +77,8 @@ class CommentItem(models.Model):
     num_iid  = models.BigIntegerField(primary_key=True,verbose_name=u'商品ID')
     
     title    = models.CharField(max_length=64,blank=True,verbose_name=u'标题')
-    pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
-    detail_url   = models.URLField(verify_exists=False,blank=True,verbose_name=u'详情链接')
+    pic_url = models.URLField(blank=True,verbose_name=u'商品图片')
+    detail_url   = models.URLField(blank=True,verbose_name=u'详情链接')
     
     updated  = models.DateTimeField(blank=True,null=True,verbose_name=u'更新日期')
     is_active = models.BooleanField(default=True,verbose_name=u'有效')
@@ -113,10 +113,6 @@ class CommentGrade(models.Model):
     grade   = models.IntegerField(default=GRADE_BAD,choices=GRADE_CHOICE,verbose_name=u'评价打分')
     
     
-#    item_pic_url = models.URLField(verify_exists=False,blank=True,verbose_name=u'商品图片')
-#    detail_url   = models.URLField(verify_exists=False,blank=True,verbose_name=u'详情链接')
-#    content = models.CharField(max_length=1500,blank=True,verbose_name=u'评价内容')
-
     class Meta:
         db_table = 'shop_comments_grade'
         unique_together = ('num_iid', 'tid', 'oid')
