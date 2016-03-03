@@ -30,6 +30,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
 from . import options 
+from core.utils.geoutils import get_client_ip
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
 import logging
@@ -89,10 +90,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if not mobile or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             raise exceptions.APIException(u'手机号码格式不对')
         
-        already_exist = Customer.objects.filter(mobile=mobile)
-        if already_exist.count() > 0:
-            return Response({"result": "0","code":0,"info":"手机已注册"})  # 已经有用户了
-        
+        ip = get_client_ip(request)
+        logger.debug('register: %s, %s'%(ip,mobile))
         reg = Register.objects.filter(vmobile=mobile)
         if reg.count() > 0:
             temp_reg = reg[0]
