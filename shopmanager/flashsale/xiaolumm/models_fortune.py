@@ -22,3 +22,11 @@ class MamaFortune(BaseModel):
 
     def __unicode__(self):
         return '%s,%s' % (self.mama_id, self.mama_name)
+
+    def cash_display(self):
+        return self.cash_num * 0.01
+
+    def carry_display(self):
+        return self.carry_num * 0.01
+
+
