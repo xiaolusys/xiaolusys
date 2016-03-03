@@ -23,6 +23,12 @@ class MamaFortune(BaseModel):
     def __unicode__(self):
         return '%s,%s' % (self.mama_id, self.mama_name)
 
+    def cash_display(self):
+        return self.cash_num * 0.01
+
+    def carry_display(self):
+        return self.carry_num * 0.01
+
 
 class CarryRecord(BaseModel):
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
@@ -113,4 +119,7 @@ class ClickCarry(BaseModel):
 
     def __unicode__(self):
         return '%s,%s,%s' % (self.mama_id, self.award_type, self.award_num)
+
+
+
 
