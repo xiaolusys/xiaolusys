@@ -51,6 +51,25 @@ SITE_URL = 'http://youni.huyi.so/'
 #WAP DNS
 M_SITE_URL = 'http://m.xiaolumeimei.com'  
 
+MIDDLEWARE_CLASSES = (
+    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+    'middleware.middleware.SecureRequiredMiddleware',
+    'middleware.middleware.DisableDRFCSRFCheck',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
+########################### ONEAPM Statsd ##############################
+STATSD_CLIENT = 'shopmanager.statsd.oneapm'
+MIDDLEWARE_CLASSES = (
+        'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+        'django_statsd.middleware.GraphiteMiddleware',
+        ) + MIDDLEWARE_CLASSES
+
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
    'shopback.trades.handlers.InitHandler',
