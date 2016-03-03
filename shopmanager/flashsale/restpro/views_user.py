@@ -102,7 +102,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         
         ip = get_client_ip(request)
         get_agent_src = self.get_agent_src(request)
-        logger.debug('register: %s, %s, '%(ip, mobile, get_agent_src))
+        logger.debug('register: %s, %s, %s'%(ip, mobile, get_agent_src))
         
         if get_agent_src == 'windows':
             import random
