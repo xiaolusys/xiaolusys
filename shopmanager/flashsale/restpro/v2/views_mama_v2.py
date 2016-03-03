@@ -47,13 +47,6 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
 
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
-
-    def create(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
-
-    @list_route(methods=['get'])
-    def mama_fortune(self, request):
         fortunes = self.get_owner_queryset(request)
         serializer = serializers.MamaFortuneSerializer(fortunes, many=True)
         data = serializer.data
@@ -62,6 +55,10 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         else:
             res = None
         return Response({"mama_fortune": res})
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
 
 
 class CarryRecordViewSet(viewsets.ModelViewSet):
@@ -78,21 +75,12 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
     
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        datalist = self.get_owner_queryset(request)
+        serializer = serializers.CarryRecordSerializer(datalist, many=True)
+        return Response({"carryrecord_list": serializer.data})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
-
-    @list_route(methods=['get'])
-    def carryrecord_list(self, request):
-        datalist = self.get_owner_queryset(request)
-        serializer = serializers.CarryRecordSerializer(datalist, many=True)
-        data = serializer.data
-        if len(data) > 0:
-            res = data[0]
-        else:
-            res = None
-        return Response({"carryrecord_list": res})
 
 
 class OrderCarryViewSet(viewsets.ModelViewSet):
@@ -109,22 +97,12 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
     
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        datalist = self.get_owner_queryset(request)
+        serializer = serializers.OrderCarrySerializer(datalist, many=True)
+        return Response({"ordercarry_list": serializer.data})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
-
-    @list_route(methods=['get'])
-    def ordercarry_list(self, request):
-        datalist = self.get_owner_queryset(request)
-        serializer = serializers.OrderCarrySerializer(datalist, many=True)
-        data = serializer.data
-        if len(data) > 0:
-            res = data[0]
-        else:
-            res = None
-        return Response({"ordercarry_list": res})
-
     
 
 class ClickCarryViewSet(viewsets.ModelViewSet):
@@ -141,21 +119,12 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
     
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        datalist = self.get_owner_queryset(request)
+        serializer = serializers.ClickCarrySerializer(datalist, many=True)
+        return Response({"clickcarry_list": serializer.data})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
-
-    @list_route(methods=['get'])
-    def clickcarry_list(self, request):
-        datalist = self.get_owner_queryset(request)
-        serializer = serializers.ClickCarrySerializer(datalist, many=True)
-        data = serializer.data
-        if len(data) > 0:
-            res = data[0]
-        else:
-            res = None
-        return Response({"clickcarry_list": res})
 
 
 class AwardCarryViewSet(viewsets.ModelViewSet):
@@ -172,23 +141,13 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
     
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        datalist = self.get_owner_queryset(request)
+        serializer = serializers.AwardCarrySerializer(datalist, many=True)
+        return Response({"awardcarry_list": serializer.data})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-    @list_route(methods=['get'])
-    def awardcarry_list(self, request):
-        datalist = self.get_owner_queryset(request)
-        serializer = serializers.AwardCarrySerializer(datalist, many=True)
-        data = serializer.data
-        if len(data) > 0:
-            res = data[0]
-        else:
-            res = None
-        return Response({"awardcarry_list": res})
-
-    
 
 class ClickCarryViewSet(viewsets.ModelViewSet):
     """
@@ -204,21 +163,12 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
     
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        datalist = self.get_owner_queryset(request)
+        serializer = serializers.ClickCarrySerializer(datalist, many=True)
+        return Response({"clickcarry_list": serializer.data})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
-
-    @list_route(methods=['get'])
-    def clickcarry_list(self, request):
-        datalist = self.get_owner_queryset(request)
-        serializer = serializers.ClickCarrySerializer(datalist, many=True)
-        data = serializer.data
-        if len(data) > 0:
-            res = data[0]
-        else:
-            res = None
-        return Response({"clickcarry_list": res})
 
 
 class ActiveValueViewSet(viewsets.ModelViewSet):
@@ -235,19 +185,11 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
     
     def list(self, request, *args, **kwargs):
-        raise exceptions.APIException('METHOD NOT ALLOWED')
+        datalist = self.get_owner_queryset(request)
+        serializer = serializers.ActiveValueSerializer(datalist, many=True)
+        return Response({"activevalue_list": serializer.data})
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
-    @list_route(methods=['get'])
-    def activevalue_list(self, request):
-        datalist = self.get_owner_queryset(request)
-        serializer = serializers.ActiveValueSerializer(datalist, many=True)
-        data = serializer.data
-        if len(data) > 0:
-            res = data[0]
-        else:
-            res = None
-        return Response({"activevalue_list": res})
 
