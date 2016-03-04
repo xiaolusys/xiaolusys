@@ -50,7 +50,7 @@ class SaleTrade(BaseModel):
     UPMP_WAP   = 'upmp_wap'
     WALLET     = 'wallet'
     BUDGET     = 'budget'
-    APPLE      = 'apple'
+    APPLE      = 'applepay_upacp'
     CHANNEL_CHOICES = (
         (BUDGET,u'小鹿钱包'),
         (WALLET,u'妈妈钱包'),

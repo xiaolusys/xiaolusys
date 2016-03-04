@@ -84,7 +84,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     
     def get_agent_src(self, request):
         user_agent = request.META.get('HTTP_USER_AGENT').lower()
-        if user_agent.find('windows') > 0:
+        if not user_agent or user_agent.find('windows') > 0:
             return 'windows'
         if user_agent.find('iphone') > 0:
             return 'iphone'

@@ -607,7 +607,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         urows = XiaoluMama.objects.filter(
             openid=buyer_unionid,
             cash__gte=payment).update(cash=models.F('cash')-payment)
-        assert urows > 0 , u'小鹿钱包余额不足'
+        if urows == 0 :
+            return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'小鹿钱包余额不足'}
         CarryLog.objects.create(xlmm=xlmm.id,
                                 order_num=strade_id,
                                 buyer_nick=buyer_nick,
@@ -616,7 +617,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                 carry_type=CarryLog.CARRY_OUT)
         #确认付款后保存
         confirmTradeChargeTask.s(strade_id)()
-        return {'channel':channel,'success':True,'id':sale_trade.id}
+        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
     @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self, sale_trade, **kwargs):
