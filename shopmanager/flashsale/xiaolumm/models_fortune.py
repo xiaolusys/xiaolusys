@@ -198,3 +198,16 @@ class ActiveValue(BaseModel):
         this must exists to bypass serializer check
         """
         return None
+
+
+class GroupRelationship(BaseModel):
+    leader_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'领队妈妈id')
+    refer_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'推荐妈妈id')
+    member_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'成员妈妈id')    
+    member_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
+    member_mama_img  = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')    
+
+    class Meta:
+        db_table = 'flashsale_xlmm_group_relationship'
+        verbose_name = u'团队关系'
+        verbose_name_plural = u'团队关系列表'
