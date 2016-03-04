@@ -7,7 +7,6 @@ from shopback import paramconfig as pcfg
 
 from core.filters import SimpleListFilter
 
-
 class TradeStatusFilter(SimpleListFilter):
     # Human-readable title which will be displayed in the
     title = u'系统状态'

@@ -2,6 +2,7 @@
 # __author__ = 'linjie'
 from django.conf.urls import patterns, include, url
 
+
 from django.contrib.admin.views.decorators import staff_member_required
 
 from rest_framework import routers, viewsets

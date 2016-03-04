@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from .ormcache import managers
+
 from .managers import BaseManager
+
 
 class BaseModel(models.Model):
     created  = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'创建日期')

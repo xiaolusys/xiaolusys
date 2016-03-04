@@ -3,7 +3,6 @@
 from django.db import models
 from core.managers import BaseManager
 
-
 class XiaoluMamaManager(BaseManager):
 
     def  charge(self,xlmm,user,*args,**kwargs):

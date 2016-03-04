@@ -2,7 +2,7 @@
 from django.db import models
 
 from django.contrib.auth.models import User
-from core.fields import BigIntegerAutoField, BigIntegerForeignKey
+from core.fields import BigIntegerAutoField
 
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund

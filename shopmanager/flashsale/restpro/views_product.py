@@ -9,6 +9,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.forms import model_to_dict
 
 from rest_framework import generics
 from rest_framework import viewsets
@@ -31,10 +32,10 @@ from flashsale.mmexam.models import DressProduct
 
 from . import permissions as perms
 from . import serializers
+
 from core.options import log_action, ADDITION, CHANGE
 
 from . import constants
-from django.forms import model_to_dict
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
 

@@ -27,7 +27,6 @@ from flashsale.dinghuo.models import (orderdraft, OrderDetail, OrderList,
                                       InBound, InBoundDetail, OrderListInBound,
                                       OrderDetailInBoundDetail)
 
-
 from flashsale.dinghuo.models_stats import SupplyChainDataStats
 from shopback.items.models import Product, ProductCategory, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier

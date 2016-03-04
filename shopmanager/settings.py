@@ -247,6 +247,7 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
 }
 
+
 if os.environ.get('TARGET') == 'staging':
     DEBUG = False
     DATABASES = {
@@ -505,4 +506,3 @@ try:
     from local_settings import *
 except ImportError,err:
     pass
-
