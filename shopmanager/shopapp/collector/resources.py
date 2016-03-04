@@ -1,5 +1,5 @@
 # from djangorestframework.resources import ModelResource
-# from shopback.base.serializer import ChartSerializer
+# from core.options.serializer import ChartSerializer
 #
 # class SearchResource(ModelResource):
 #     """ docstring for SearchResource ModelResource """

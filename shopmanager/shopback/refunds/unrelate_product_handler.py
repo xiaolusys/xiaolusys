@@ -2,7 +2,7 @@
 from shopback import paramconfig as pcfg
 from .models import RefundProduct, Refund, GOOD_STATUS_CHOICES
 from shopback.trades.models import MergeOrder, MergeTrade
-from shopback.base import log_action,User, ADDITION, CHANGE
+from core.options import log_action,User, ADDITION, CHANGE
 import logging
 
 logger = logging.getLogger('django.request')

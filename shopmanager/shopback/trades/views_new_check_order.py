@@ -39,13 +39,13 @@ class ChaiTradeView(APIView):
 
 
 from shopback.paramconfig import INVALID_STATUS, IN_EFFECT
-from shopback.base import log_action, CHANGE, ADDITION
+from core.options import log_action, CHANGE, ADDITION
 from django.db import transaction
 from shopback.items.models import Product
 from django.db.models import Q
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def split_merge_trade(merger_order_id, modify_user):
     """
         批量拆单功能实现

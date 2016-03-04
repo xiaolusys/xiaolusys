@@ -4,7 +4,8 @@ import datetime
 from django.db import models
 from shopback.trades.models import MergeTrade, SYS_TRADE_STATUS
 from shopback import paramconfig as pcfg
-from shopback.base.options import DateFieldListFilter, BitFieldListFilter, SimpleListFilter
+
+from core.filters import SimpleListFilter
 
 
 class TradeStatusFilter(SimpleListFilter):

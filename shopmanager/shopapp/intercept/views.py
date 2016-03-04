@@ -10,7 +10,7 @@ from django.db.models import Sum,Count,Max
 #from djangorestframework import status
 #from djangorestframework.response import Response,ErrorResponse
 from shopback import paramconfig as pcfg
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopback.base.views import FileUploadView_intercept
 from .models import InterceptTrade
 

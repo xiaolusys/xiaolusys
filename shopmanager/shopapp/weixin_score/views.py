@@ -16,7 +16,7 @@ logger = logging.getLogger("django.request")
 
 class FrozenScoreView(View):
     
-    @transaction.commit_manually
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         content  = request.REQUEST
         commited = False 

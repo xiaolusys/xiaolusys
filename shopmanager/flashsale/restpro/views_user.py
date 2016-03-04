@@ -26,7 +26,7 @@ from core.weixin.options import gen_weixin_redirect_url
 
 from flashsale.pay.models import Register, Customer,Integral, BudgetLog, UserBudget
 from rest_framework import exceptions
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE, SYSTEMOA_USER
 from . import permissions as perms
 from . import serializers
 from . import options 
@@ -38,7 +38,6 @@ logger = logging.getLogger('django.request')
 
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
-SYSTEMOA_UID = 641
 
 def check_day_limit(reg_bean):
     if reg_bean.code_time and datetime.datetime.now().strftime('%Y-%m-%d') == reg_bean.code_time.strftime('%Y-%m-%d'):
@@ -130,7 +129,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.code_time = current_time
                 temp_reg.save()
-                log_action(SYSTEMOA_UID, temp_reg, CHANGE, u'修改，注册手机验证码')
+                log_action(SYSTEMOA_USER.id, temp_reg, CHANGE, u'修改，注册手机验证码')
                 task_register_code.s(mobile, "1")()
                 return Response({"result": "OK","code":0,"info":"OK"})
         else:
@@ -142,7 +141,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
                 new_reg.save()
             except IntegrityError:
                 return Response({"result": "0","code":0,"info":"请勿重复点击"})
-            log_action(SYSTEMOA_UID, new_reg, ADDITION, u'新建，注册手机验证码')
+            log_action(SYSTEMOA_USER.id, new_reg, ADDITION, u'新建，注册手机验证码')
             task_register_code.s(mobile, "1")()
             return Response({"result": "OK","code":0,"info":"OK"})
 
@@ -206,7 +205,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.mobile_pass = True
             new_reg.code_time = current_time
             new_reg.save()
-            log_action(SYSTEMOA_UID, new_reg, ADDITION, u'新建，忘记密码验证码')
+            log_action(SYSTEMOA_USER.id, new_reg, ADDITION, u'新建，忘记密码验证码')
             task_register_code.s(mobile, "2")()
             return Response({"result": "0"})
         else:
@@ -218,7 +217,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
-            log_action(SYSTEMOA_UID, reg_temp, CHANGE, u'修改，忘记密码验证码')
+            log_action(SYSTEMOA_USER.id, reg_temp, CHANGE, u'修改，忘记密码验证码')
             task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
     
@@ -266,8 +265,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             if self.is_login(request):
                 customer.mobile = mobile
                 customer.save()
-            log_action(SYSTEMOA_UID, already_exist[0], CHANGE, u'忘记密码，修改成功')
-            log_action(SYSTEMOA_UID, reg_temp, CHANGE, u'忘记密码，修改成功')
+            log_action(SYSTEMOA_USER.id, already_exist[0], CHANGE, u'忘记密码，修改成功')
+            log_action(SYSTEMOA_USER.id, reg_temp, CHANGE, u'忘记密码，修改成功')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})

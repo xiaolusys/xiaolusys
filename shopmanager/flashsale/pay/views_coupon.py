@@ -9,9 +9,9 @@ from django.forms import model_to_dict
 from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund, Customer
 from rest_framework.exceptions import APIException
 from common.modelutils import update_model_fields
-from shopback.base import log_action, CHANGE
-import datetime
 
+import datetime
+from core.options import log_action, CHANGE
 
 class RefundCouponView(APIView):
     queryset = SaleTrade.objects.all()

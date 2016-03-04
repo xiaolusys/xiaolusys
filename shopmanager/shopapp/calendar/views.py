@@ -3,7 +3,7 @@ import datetime
 import json
 from django.http import HttpResponse,HttpResponseNotFound
 from django.db.models import Q,Sum
-from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
+from core.options import log_action,User as DjangoUser, ADDITION, CHANGE
 from shopapp.calendar.models import StaffEvent
 from common.utils import parse_datetime,format_datetime
 from rest_framework.views import APIView

@@ -3,7 +3,6 @@
 爆款表
 """
 from django.db import models
-from shopback.base.fields import BigIntegerForeignKey
 from django.contrib.auth.models import User
 
 

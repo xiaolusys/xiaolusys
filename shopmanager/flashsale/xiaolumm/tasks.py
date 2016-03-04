@@ -113,7 +113,7 @@ def buyer_Num(xlmm, finish=False):
     return buyercount
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def order_Red_Packet_Pending_Carry(xlmm, target_date):
     
     today = datetime.date.today()
@@ -154,7 +154,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
             red_packet.ten_order_red = True  # 已经发放10单红包
             red_packet.save()   # 保存红包状态
 
-@transaction.commit_on_success
+@transaction.atomic
 def order_Red_Packet(xlmm):
     mama = XiaoluMama.objects.get(id=xlmm)
     if mama.can_send_redenvelop():
@@ -635,7 +635,7 @@ from .tasks_manager_summary import task_make_Manager_Summary_Cvs
 @task()
 def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, weikefu=None):
     from .views import get_Deposit_Trade, create_coupon
-    from shopback.base import log_action, ADDITION, CHANGE
+    from core.options import log_action, ADDITION, CHANGE
     from flashsale.pay.models import SaleOrder, SaleTrade
     xlmm = XiaoluMama.objects.get(id=mama_id)
     openid = xlmm.openid
@@ -720,7 +720,7 @@ def task_mama_Verify_Action(user_id=None, mama_id=None, referal_mobile=None, wei
 from common.modelutils import update_model_fields
 @task()
 def xlmm_upgrade_A_to_VIP():
-    from shopback.base import log_action, CHANGE
+    from core.options import log_action, CHANGE
     from django.contrib.auth.models import User
     systemoa = User.objects.get(username="systemoa")
     # 找出所有代理级别为３ 已经接管　的代理

@@ -10,7 +10,7 @@ from django.db import models
 
 from django.forms import TextInput, Textarea
 from shopback.items.models import Product,ProductSku
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopapp.memorule.models import (
                                      TradeRule,
                                      RuleFieldType,

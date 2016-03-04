@@ -382,7 +382,7 @@ def gradCalcProductSaleTask():
 
 ###########################################################  商品库存管理  ########################################################
 
-# @transaction.commit_on_success
+# @transaction.atomic
 def updateItemNum(user_id,num_iid):
     """
     taobao_item_quantity_update response:
@@ -548,7 +548,7 @@ def getPurchaseSkuNum(product,product_sku):
     return int(sync_num)
 
 
-# @transaction.commit_on_success
+# @transaction.atomic
 def updatePurchaseItemNum(user_id,pid):
     """
     {"fenxiao_sku": [{"outer_id": "10410", 
@@ -966,7 +966,7 @@ def get_product_logsign(product):
 def task_Auto_Upload_Shelf():
     """ 自动上架商品　"""
     logger = logging.getLogger('celery.handler')
-    from shopback.base import log_action, CHANGE
+    from core.options import log_action, CHANGE
     from django.contrib.auth.models import User as DjangoUser
     systemoa, state = DjangoUser.objects.get_or_create(username="systemoa", is_active=True)  # 系统用户
     today = datetime.date.today()   # 上架日期
@@ -991,7 +991,7 @@ def task_Auto_Download_Shelf():
     """ 自动下架商品 """
     logger = logging.getLogger('celery.handler')
     from shopback import signals
-    from shopback.base import log_action, CHANGE
+    from core.options import log_action, CHANGE
     from django.contrib.auth.models import User as DjangoUser
     systemoa, state = DjangoUser.objects.get_or_create(username="systemoa", is_active=True)
     yestoday = datetime.date.today() - datetime.timedelta(days=1)

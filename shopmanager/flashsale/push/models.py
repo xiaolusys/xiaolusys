@@ -3,7 +3,7 @@
 from django.db import models
 
 from flashsale.pay import models_user
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 
 class PushTopic(models.Model):
     STATUSES = (

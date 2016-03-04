@@ -40,16 +40,16 @@ urlpatterns = (
     
     ##############order urls################
     url(r'^orderbuy/$',sale_buyer_required(views.OrderBuyReview.as_view())),
-    url(r'^orderbuy/pay.htm$',cache_page(TemplateView.as_view(template_name="pay/pay.html"),24*60*60)),
+    url(r'^orderbuy/pay.htm$',cache_page(24*60*60)(TemplateView.as_view(template_name="pay/pay.html"))),
     url(r'^orderlist/$', sale_buyer_required(views.SaleOrderList.as_view()),name="user_orderlist"),
     url(r'^order/(?P<pk>[0-9]+)/$', sale_buyer_required(views.SaleOrderDetail.as_view()),name="user_orderdetail"),
     url(r'^payresult/$',sale_buyer_required(views.PayResultView.as_view()),name="user_payresult"),
-    url(r'^logistic/(?P<pk>[0-9]+)/$',sale_buyer_required(cache_page(views.SaleTradeLogistic.as_view(),60*60)),name="order_logistic"),
+    url(r'^logistic/(?P<pk>[0-9]+)/$',sale_buyer_required(cache_page(60*60)(views.SaleTradeLogistic.as_view())),name="order_logistic"),
     
     #############address urls############
     url(r'^addr/list/$',sale_buyer_required(AddressList.as_view()),name="address_list"),
     url(r'^addr/$', sale_buyer_required(UserAddressDetail.as_view()),name="address_ins"),
-    url(r'^addr/area/$', cache_page(DistrictList.as_view(),24*60*60),name="address_area"),
+    url(r'^addr/area/$', cache_page(24*60*60)(DistrictList.as_view()),name="address_area"),
     
     #############refund urls############
     url(r'^refund/$',sale_buyer_required(RefundApply.as_view()),name="refund_apply"),

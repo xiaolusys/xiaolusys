@@ -1,11 +1,11 @@
 __author__ = 'meixqhi'
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from shopapp.memorule.views import (UpdateTradeMemoView,
                                     ProductRuleFieldsView,
                                     ComposeRuleByCsvFileView)
-# from shopback.base.authentication import UserLoggedInAuthentication
-# from shopback.base.permissions import IsAuthenticated
-# from shopback.base.renderers import BaseJsonRenderer
+# from core.options.authentication import UserLoggedInAuthentication
+# from core.options.permissions import IsAuthenticated
+# from core.options.renderers import BaseJsonRenderer
 # from shopapp.memorule.resources import TradeRuleResource
 
 

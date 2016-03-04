@@ -3,7 +3,8 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail
 from django.http import HttpResponseRedirect
-from flashsale.dinghuo import log_action, CHANGE
+
+from core.options import log_action, CHANGE
 from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, PayToPackStats

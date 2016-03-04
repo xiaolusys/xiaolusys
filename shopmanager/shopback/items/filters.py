@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from shopback import paramconfig as pcfg
-from shopback.base.options import SimpleListFilter,FieldListFilter
+from core.filters import SimpleListFilter,FieldListFilter
 from shopback.items.models import Product
 
 

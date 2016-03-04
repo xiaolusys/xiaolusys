@@ -5,7 +5,7 @@ from common.utils import parse_datetime
 from django.db import models
 from shopback.users.models import User
 from shopback.items.models import Item
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 import logging
 
 logger = logging.getLogger('amounts.handler')

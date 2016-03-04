@@ -17,7 +17,7 @@ from shopback.refunds.models import RefundProduct,Refund,REFUND_STATUS,CS_STATUS
 from common.utils import parse_datetime,parse_date,format_time,map_int2str
 from shopback.refunds.tasks import updateAllUserRefundOrderTask
 from shopback import paramconfig as pcfg
-from shopback.base import log_action,User, ADDITION, CHANGE
+from core.options import log_action,User, ADDITION, CHANGE
 from shopback.base.new_renders import new_BaseJSONRenderer
 import logging
 from rest_framework import authentication

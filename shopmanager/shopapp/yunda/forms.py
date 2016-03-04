@@ -22,6 +22,7 @@ class YundaCustomerForm(forms.ModelForm):
     
     class Meta:
         model = YundaCustomer
+        exclude = ()
 #         widgets = {
 #             'ware_by' : forms.Select(choices=((1,'abc'),))
 #         }

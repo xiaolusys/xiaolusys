@@ -2,10 +2,11 @@
 """
 代理广告处理
 """
-from django.db import models
-from shopback.base.models import JSONCharMyField
-from django.db.models.signals import post_save
 import datetime
+from django.db import models
+
+from core.fields import JSONCharMyField
+from django.db.models.signals import post_save
 
 
 class XlmmAdvertis(models.Model):
@@ -36,7 +37,7 @@ class XlmmAdvertis(models.Model):
 class TweetAdvertorial(models.Model):
     title = models.CharField(max_length=128, db_index=True, verbose_name=u'推文标题')
     content = models.TextField(max_length=6400, verbose_name=u'推文文字内容')
-    pic_arry = JSONCharMyField(max_length=6400, null=True, blank=True, verbose_name=u'推文图片')
+    pic_arry = JSONCharMyField(max_length=6400, default=lambda:{}, null=True, blank=True, verbose_name=u'推文图片')
     release_date = models.DateField(blank=True, null=True, verbose_name=u"投放日期")
 
     class Meta:
@@ -69,7 +70,7 @@ class NinePicAdver(models.Model):
     title = models.CharField(max_length=512, db_index=True, verbose_name=u'标题')
     description = models.TextField(max_length=1024, blank=True, null=True, verbose_name=u'文案描述')
     cate_gory = models.IntegerField(choices=CATEGORY_CHOICE, default=Nine_PIC, verbose_name=u"类型")
-    pic_arry = JSONCharMyField(max_length=2048, blank=True, null=True, verbose_name=u'图片链接')
+    pic_arry = JSONCharMyField(max_length=2048, default=lambda:{}, blank=True, null=True, verbose_name=u'图片链接')
     start_time = models.DateTimeField(null=True, blank=True, verbose_name=u'开始时间')
     turns_num = models.IntegerField(verbose_name=u'轮数(第几轮)')
 

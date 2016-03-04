@@ -1,7 +1,7 @@
-from django.conf.urls.defaults import patterns, include, url
-# from shopback.base.renderers  import BaseJsonRenderer
+from django.conf.urls import patterns, include, url
+# from core.options.renderers  import BaseJsonRenderer
 # 
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.permissions import IsAuthenticated
 from shopback.base.authentication import login_required_ajax
 
 #from .resources import InterceptTradeResource

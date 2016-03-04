@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
 from shopback.items.views import (ProductListView,
                                   ProductItemView,
@@ -37,8 +37,8 @@ from shopback.items.views import (ProductListView,
 #                                       ProductWarnHtmlRenderer,
 #                                       ProductSaleHtmlRenderer,
 #                                       ProductScanRenderer)
-# from shopback.base.renderers  import BaseJsonRenderer
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.renderers  import BaseJsonRenderer
+# from core.options.permissions import IsAuthenticated
 from shopback.base.authentication import login_required_ajax
 from shopback.items.views_rest import ProductInvalidConfirmView
 from .select_sale_time import change_Sale_Time

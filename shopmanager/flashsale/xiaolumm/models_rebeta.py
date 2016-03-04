@@ -1,6 +1,6 @@
 #-*- encoding:utf-8 -*-
 from django.db import models
-from shopback.base.models import JSONCharMyField
+from core.fields import JSONCharMyField
 
 
 class AgencyOrderRebetaScheme(models.Model):
@@ -14,10 +14,10 @@ class AgencyOrderRebetaScheme(models.Model):
     name = models.CharField(max_length=64, blank=True, verbose_name=u'计划名称')
     
     agency_rebetas = JSONCharMyField(max_length=10240, blank=True, 
-                                default='{"1":[0,0]}', 
+                                default=lambda:{"1":[0,0]}, 
                                 verbose_name=u'代理等级返利设置')
     price_rebetas = JSONCharMyField(max_length=10240, blank=True, 
-                                default='[{"100":{"1":[0,0]}}]', 
+                                default=lambda:[{"100":{"1":[0,0]}}], 
                                 verbose_name=u'商品价格返利设置')
     price_active = models.BooleanField(default=False,verbose_name=u'价格返利生效')
     

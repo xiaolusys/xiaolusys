@@ -1,9 +1,16 @@
 # coding:utf-8
 __author__ = 'imeron'
-from django.contrib.admin.models import LogEntry
+from django.contrib.auth.models import User
+from django.contrib.admin.models import LogEntry,ADDITION,CHANGE,DELETION
 from django.contrib.contenttypes.models import ContentType
 
 
+def get_systemoa_user():
+    user,state = User.objects.get_or_create(username='systemoa')
+    return user
+
+SYSTEMOA_USER = get_systemoa_user()
+    
 def log_action(user_id,obj,action,msg):
     try:
         LogEntry.objects.log_action(

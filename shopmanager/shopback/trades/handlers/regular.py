@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from .handler import BaseHandler
 from shopback import paramconfig as pcfg
-from shopback.base import log_action,User, ADDITION, CHANGE
+from core.options import log_action,User, ADDITION, CHANGE
 from shopback.trades.models import MergeOrder
 from shopback.items.models import Product
 from common.modelutils import  update_model_fields

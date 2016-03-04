@@ -1,8 +1,8 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from django.contrib.admin.views.decorators import staff_member_required
 
-# from shopback.base.authentication import UserLoggedInAuthentication
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.authentication import UserLoggedInAuthentication
+# from core.options.permissions import IsAuthenticated
 #from shopapp.asynctask.renderers import BaseJsonRenderer,AsyncPrintHtmlRenderer
 from shopapp.asynctask.views import (AsyncCategoryView,
                                      AsyncOrderView,

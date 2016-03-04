@@ -11,7 +11,7 @@ from shopapp.yunda.models import (ClassifyZone,
                                   ParentPackageWeight,
                                   TodaySmallPackageWeight,
                                   TodayParentPackageWeight)
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from django.contrib import messages
 
 from .forms import YundaCustomerForm

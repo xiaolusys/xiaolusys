@@ -4,7 +4,7 @@ from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponse
 from shopapp.comments.models import Comment,CommentItem,CommentGrade
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 
 class CommentAdmin(admin.ModelAdmin):
     

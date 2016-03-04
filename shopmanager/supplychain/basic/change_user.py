@@ -1,7 +1,7 @@
 __author__ = 'yann'
 from supplychain.supplier.models import SupplierCharge, SaleProduct
 from django.contrib.auth.models import User as DjangoUser
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 NEED_CHANGE = """
 {'employee_id': 80L, 'employee__username': u'aileen.zhang'}!
 {'employee_id': 99L, 'employee__username': u'bing.luo'}!

@@ -2,8 +2,8 @@
 import json
 import time
 from django.db import models
-from shopback.base.models import BaseModel
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.models import BaseModel
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.items.models import Item
 from shopback import paramconfig as pcfg

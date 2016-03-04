@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput, Textarea
-from shopback.trades.filters import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from .models import JDShop,JDOrder,JDProduct,JDLogistic
 
 class JDShopAdmin(admin.ModelAdmin):

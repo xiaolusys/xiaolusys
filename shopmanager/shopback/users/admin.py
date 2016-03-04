@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from shopback.users.models import User,Customer
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from shopback import paramconfig as pcfg
 from shopback.users import permissions as perms 
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter

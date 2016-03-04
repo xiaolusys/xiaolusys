@@ -1,6 +1,6 @@
-from django.conf.urls.defaults import patterns, include, url
-# from shopback.base.authentication import UserLoggedInAuthentication
-# from shopback.base.permissions import IsAuthenticated
+from django.conf.urls import patterns, include, url
+# from core.options.authentication import UserLoggedInAuthentication
+# from core.options.permissions import IsAuthenticated
 
 
 urlpatterns = patterns('shopapp.report.views',

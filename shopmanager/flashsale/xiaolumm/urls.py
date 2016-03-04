@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required  
 from django.views.generic import TemplateView
@@ -18,7 +18,6 @@ urlpatterns = patterns('',
     url(r'^$',views.landing),
     url(r'^m/$',views.MamaStatsView.as_view(),name="mama_homepage"),
 
-
     url(r'^register/$',
         weixin_authlogin_required(redirecto=constants.MALL_LOGIN_URL)(views_register.MamaRegisterView.as_view()), name="mama_register"),
     # url(r'^register/$', (views_register.MamaRegisterView.as_view()), name="mama_register"),
@@ -29,6 +28,7 @@ urlpatterns = patterns('',
     url(r'^register/deposite/$',
         weixin_xlmm_auth(redirecto=constants.MALL_LOGIN_URL)(views_register.PayDepositeView.as_view()),name="mama_deposite"),
     url(r'^register/deposite/pay.htm$',cache_page(TemplateView.as_view(template_name="apply/pay.htm"),24*60*60)),
+
     url(r'^register/success/$',views_register.MamaSuccessView.as_view(),name="mama_registerok"),
     url(r'^register/res/$',views_register.MamaInvitationRes.as_view(),name="mama_invitation_res"),
     url(r'^register/fail/$',views_register.MamaFailView.as_view(),name="mama_registerfail"),

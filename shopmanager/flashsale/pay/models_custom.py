@@ -112,7 +112,6 @@ class ModelProduct(PayBaseModel):
     #shelf_status   = models.IntegerField(choices=Product.SHELF_CHOICES,db_index=True,
     #                                     default=Product.DOWN_SHELF,verbose_name=u'上架状态')
 
-
     status       = models.CharField(max_length=16,db_index=True,
                                     choices=STATUS_CHOICES,
                                     default=NORMAL,verbose_name=u'状态')
@@ -172,9 +171,7 @@ def create_Model_Product(sender, obj, **kwargs):
 signal_record_supplier_models.connect(create_Model_Product, sender=ModelProduct)
 
 
-class GoodShelf(PayBaseModel):
-
-    DEFAULT_WEN_POSTER = [
+DEFAULT_WEN_POSTER = [
       {
         "subject":['2折起', '小鹿美美  女装专场'],
         "item_link":"http://m.xiaolumeimei.com/nvzhuang.html",
@@ -182,23 +179,28 @@ class GoodShelf(PayBaseModel):
         "pic_link":""
       }
     ]
+    
+DEFAULT_CHD_POSTER = [
+  {
+    "subject":['2折起', '小鹿美美  童装专场'],
+    "item_link":"http://m.xiaolumeimei.com/chaotong.html",
+    "app_link":"app:/",
+    "pic_link":""
+  }
+]
 
-    DEFAULT_CHD_POSTER = [
-      {
-        "subject":['2折起', '小鹿美美  童装专场'],
-        "item_link":"http://m.xiaolumeimei.com/chaotong.html",
-        "app_link":"com.jimei.xlmm://app/v1/products/childlist",
-        "pic_link":""
-      }
-    ]
+class GoodShelf(PayBaseModel):
+    
+    DEFAULT_WEN_POSTER = DEFAULT_WEN_POSTER
+    DEFAULT_CHD_POSTER = DEFAULT_CHD_POSTER
 
     title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'海报名称')
-
-    wem_posters   = JSONCharMyField(max_length=10240, blank=True,
-                                    default=json.dumps(DEFAULT_WEN_POSTER,indent=2),
+    
+    wem_posters   = JSONCharMyField(max_length=10240, blank=True, 
+                                    default=lambda:json.dumps(DEFAULT_WEN_POSTER,indent=2), 
                                     verbose_name=u'女装海报')
-    chd_posters   = JSONCharMyField(max_length=10240, blank=True,
-                                    default=json.dumps(DEFAULT_CHD_POSTER,indent=2),
+    chd_posters   = JSONCharMyField(max_length=10240, blank=True, 
+                                    default=lambda:json.dumps(DEFAULT_CHD_POSTER,indent=2),
                                     verbose_name=u'童装海报')
 
     is_active    = models.BooleanField(default=True,verbose_name=u'上线')

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User as DjangoUser
 
 from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 # Create your models here.
 from shopback.items.models import Product
 from shopapp.weixin.models_sale import WXProductSku

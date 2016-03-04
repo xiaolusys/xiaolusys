@@ -1,5 +1,5 @@
 # from djangorestframework.renderers import TemplateRenderer,JSONRenderer
-# from shopback.base.renderers  import BaseJsonRenderer
+# from core.options.renderers  import BaseJsonRenderer
 # 
 # 
 # class PackageDiffHtmlRenderer(TemplateRenderer):

@@ -32,12 +32,15 @@ from shopback.trades.tasks import sendTaobaoTradeTask,sendTradeCallBack
 from shopback.trades import permissions as perms
 from .forms import YundaCustomerForm
 from shopback.logistics.models import LogisticsCompany
-from shopback.trades.filters import (DateFieldListFilter,
-                                     BitFieldListFilter,
-                                     TradeStatusFilter, OrderPendingStatusFilter)
+
+from shopback.trades.filters import (TradeStatusFilter,
+                                     OrderPendingStatusFilter)
+
+from core.filters import DateFieldListFilter
+
 from shopback.trades.service import TradeService
-from shopback.base.admin import MyAdmin
-from shopback.base import log_action,User, ADDITION, CHANGE
+from core.admin import ApproxAdmin
+from core.options import log_action,User, ADDITION, CHANGE
 from shopback.trades import permissions as perms
 from common.utils import (gen_cvs_tuple,
                           update_model_fields,
@@ -134,7 +137,7 @@ class MergeTradeChangeList(ChangeList):
         return super(MergeTradeChangeList,self).get_query_set(request)
 
 
-class MergeTradeAdmin(MyAdmin):
+class MergeTradeAdmin(ApproxAdmin):
     list_display = ('trade_id_link','popup_tid_link','buyer_nick_link','type',
                     'payment','pay_time','consign_time','trade_ding_huo','sys_status','status',
                     'reason_code','is_picking_print','is_express_print'#
@@ -1049,7 +1052,8 @@ class MergeOrderChangeList(ChangeList):
         return super(MergeOrderChangeList,self).get_query_set(request)
 
 
-class MergeOrderAdmin(MyAdmin):
+class MergeOrderAdmin(ApproxAdmin):
+
     list_display = ('id','oid','merge_trade_link','outer_id','outer_sku_id','sku_properties_name','price','num',
                     'payment','gift_type','pay_time','refund_status','trade_status_link','sys_status')
     list_display_links = ('oid','id')

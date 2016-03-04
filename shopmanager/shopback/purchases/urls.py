@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from shopback.purchases.views import PurchaseItemView,PurchaseView,PurchaseInsView,PurchasePaymentView,\
     PurchaseStorageItemView,PurchaseStorageView,PurchaseStorageInsView,StorageDistributeView,\
     ConfirmStorageView,PurchaseShipStorageView,PaymentDistributeView
@@ -6,9 +6,9 @@ from shopback.purchases.views import PurchaseItemView,PurchaseView,PurchaseInsVi
 #     PurchaseStorageItemResource,PurchasePaymentResource
 # from shopback.purchases.renderers import PurchaseItemHtmlRenderer,JSONRenderer,PurchaseHtmlRenderer,\
 #     PurchaseStorageHtmlRenderer,StorageDistributeRenderer,PurchaseShipStorageRenderer,PurchasePaymentRenderer,PaymentDistributeRenderer
-# from shopback.base.renderers  import BaseJsonRenderer
+# from core.options.renderers  import BaseJsonRenderer
 from django.views.decorators.csrf import csrf_exempt
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.permissions import IsAuthenticated
 from shopback.base.authentication import login_required_ajax
 
 

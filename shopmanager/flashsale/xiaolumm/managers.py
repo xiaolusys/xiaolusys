@@ -1,21 +1,10 @@
-# coding:utf-8 
+# coding:utf-8
+
 from django.db import models
-from django.db.models import Q,Sum
-from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
-from django.forms.models import model_to_dict
+from core.managers import BaseManager
 
 
-class XiaoluMamaManager(models.Manager):
-
-    def get_queryset(self):
-
-        super_tm = super(XiaoluMamaManager,self)
-        #adapt to higer version django(>1.4)
-        if hasattr(super_tm,'get_query_set'):
-            return super_tm.get_query_set()
-        return super_tm.get_queryset()
-
+class XiaoluMamaManager(BaseManager):
 
     def  charge(self,xlmm,user,*args,**kwargs):
 
@@ -50,15 +39,8 @@ class XiaoluMamaManager(models.Manager):
         return None
         
 
-class XlmmFansManager(models.Manager):
+class XlmmFansManager(BaseManager):
 
-    def get_queryset(self):
-        super_fans = super(XlmmFansManager, self)
-        if hasattr(super_fans, 'get_query_set'):
-            return super_fans.get_query_set()
-        return super_fans.get_queryset()
-    
-        
     def record_fans_num(self, xlmm, xlmm_cusid):
         from flashsale.xiaolumm.models_fans import FansNumberRecord
 

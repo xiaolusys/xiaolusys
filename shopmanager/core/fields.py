@@ -31,10 +31,7 @@ class BigIntegerForeignKey(models.ForeignKey):
             return models.BigIntegerField().db_type(connection=connection)
         return rel_field.db_type(connection=connection)
     
-    
-from jsonfield import JSONField
-from jsonfield.fields import JSONCharFormField
+
+from jsonfield import JSONField as JSONCharMyField
 
 
-class JSONCharMyField(JSONField, models.CharField):
-    form_class = JSONCharFormField

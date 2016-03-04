@@ -4,7 +4,7 @@ from celery.task import task
 from flashsale.pay.models import ShoppingCart, SaleTrade
 from shopback.items.models import Product
 from django.contrib.auth.models import User as DjangoUser
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 import logging
 
 import json

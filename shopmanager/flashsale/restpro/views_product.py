@@ -31,9 +31,9 @@ from flashsale.mmexam.models import DressProduct
 
 from . import permissions as perms
 from . import serializers
-from .options import gen_and_save_jpeg_pic
+from core.options import log_action, ADDITION, CHANGE
+
 from . import constants
-from shopback.base import log_action, ADDITION, CHANGE
 from django.forms import model_to_dict
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.pay.models_shops import CustomerShops, CuShopPros

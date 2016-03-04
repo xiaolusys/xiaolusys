@@ -16,7 +16,7 @@ from django.db.models import F, Q
 from django.forms import model_to_dict
 
 from flashsale.pay.models_custom import Productdetail
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopback import paramconfig as pcfg
 from supplychain.supplier.models import SaleSupplier, SaleCategory, SaleProductManage, SaleProductManageDetail, \
     SupplierZone, SaleProductPicRatingMemo
@@ -43,7 +43,7 @@ class AddSupplierView(generics.ListCreateAPIView):
                          "supplier_types": SaleSupplier.SUPPLIER_TYPE,
                          "zones": zones, 'ware_bys': ware_bys})
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         post = request.POST
         supplier_name = post.get("supplier_name")

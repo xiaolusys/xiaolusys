@@ -8,7 +8,7 @@ from shopback import paramconfig as pcfg
 from shopback.items.models import Product
 from shopback.trades.models import MergeTrade,MergeOrder
 from shopapp.memorule.models import ComposeRule,ComposeItem
-from shopback.base import log_action,User, ADDITION, CHANGE
+from core.options import log_action,User, ADDITION, CHANGE
 from common.utils import update_model_fields
 import logging
 

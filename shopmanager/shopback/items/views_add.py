@@ -22,7 +22,7 @@ from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import (Product, ProductSku, ProductSchedule,
                                    ProductSkuContrast, ContrastContent)
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from supplychain.supplier.models import SaleSupplier, SaleProduct
 
 from . import constants, forms, local_cache
@@ -37,7 +37,7 @@ class AddItemView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         return Response({"v": "v"})
 
-    # @transaction.commit_on_success
+    # @transaction.atomic
     def post(self, request, *args, **kwargs):
         """ 新增库存商品　新增款式
         """
@@ -429,7 +429,7 @@ class BatchSetTime(generics.ListCreateAPIView):
             pass
         return
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         content = request.POST
         target_product = content.get("product_list", None)

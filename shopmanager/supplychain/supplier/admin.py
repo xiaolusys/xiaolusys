@@ -5,8 +5,8 @@ from django.db import models
 from django.forms import TextInput, Textarea
 from django.http import HttpResponseRedirect
 
-from shopback.base import log_action, ADDITION, CHANGE
-from shopback.base.admin import MyAdmin
+from core.options import log_action, ADDITION, CHANGE
+from core.admin import ApproxAdmin
 from .models import (
     SaleProduct,
     SaleSupplier,
@@ -16,7 +16,7 @@ from .models import (
 
 from .forms import SaleSupplierForm
 from .filters import DateScheduleFilter, CategoryFilter, BuyerGroupFilter, SupplierZoneFilter
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from . import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from models_hots import HotProduct
@@ -49,7 +49,7 @@ class SaleSupplierChangeList(ChangeList):
         return super(SaleSupplierChangeList, self).get_query_set(request)
 
 
-class SaleSupplierAdmin(MyAdmin):
+class SaleSupplierAdmin(ApproxAdmin):
     list_display = ('id', 'supplier_code', 'supplier_name_link', 'charge_link',
                     'total_select_num', 'total_sale_amount', 'total_refund_amount', 'avg_post_days',
                     'category_select', 'progress', 'last_select_time', 'last_schedule_time',
@@ -293,7 +293,7 @@ class SupplierZoneAdmin(admin.ModelAdmin):
 admin.site.register(SupplierZone, SupplierZoneAdmin)
 
 
-class SaleProductAdmin(MyAdmin):
+class SaleProductAdmin(ApproxAdmin):
     category_list = []
     list_display = ('outer_id_link', 'pic_link', 'title_link', "memo_display", 'librarian_select',
                     'select_Contactor', 'supplier_link', 'category_select',

@@ -7,8 +7,8 @@ from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea, FloatField
 from django.http import HttpResponseRedirect
 
-from shopback.base import log_action, User, ADDITION, CHANGE
-from shopback.trades.filters import DateFieldListFilter
+from core.options import log_action, User, ADDITION, CHANGE
+from core.filters import DateFieldListFilter
 from .service import FlashSaleService
 from .models import (SaleTrade,
                      SaleOrder,

@@ -3,10 +3,10 @@ import time
 import json
 import datetime
 from django.db import models
-from shopback.base.models import BaseModel
+from core.models import BaseModel
 from django.contrib.auth.models import User as DjangoUser
 from shopback.signals import user_logged_in
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 from shopback import paramconfig as pcfg
 from auth import apis
 import logging

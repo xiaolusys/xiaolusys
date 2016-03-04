@@ -3,6 +3,7 @@ import string, random
 from random import choice
 from django.db import models
 
+from core.managers import BaseManager
 from core.ormcache.managers import CacheManager
 
 from flashsale.protocol import get_target_url
@@ -13,7 +14,7 @@ CHARANGE_STR = string.ascii_lowercase
 NUMBER_STR = '0123456789'
 
 
-class VipCodeManager(models.Manager):
+class VipCodeManager(BaseManager):
     def get_queryset(self):
         super_tm = super(VipCodeManager, self)
         if hasattr(super_tm, 'get_query_set'):

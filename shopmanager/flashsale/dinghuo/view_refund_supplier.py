@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import permissions
 import logging
 import datetime
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from tasks import calcu_refund_info_by_pro_v2
 
 logger = logging.getLogger('django.request')

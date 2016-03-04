@@ -548,7 +548,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.db.models import Sum
 from .models_envelope import Envelop
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
       
 class EnvelopConfirmSendView(View):
     

@@ -12,6 +12,7 @@ class EnvelopForm( forms.ModelForm ):
     
     class Meta:
         model = Envelop
+        exclude = ()
     
     def  clean_amount(self):
         amount = self.cleaned_data['amount']
@@ -23,6 +24,7 @@ class CustomShareForm( forms.ModelForm ):
     desc = forms.CharField( widget=forms.Textarea )
     class Meta:
         model = CustomShare
+        exclude = ()
     
 from .models_custom import Productdetail
 
@@ -48,5 +50,6 @@ class ProductdetailForm(forms.ModelForm):
     
     class Meta:
         model = Productdetail
+        exclude = ()
         
         

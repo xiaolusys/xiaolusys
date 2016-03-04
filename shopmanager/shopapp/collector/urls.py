@@ -1,12 +1,12 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 #from shopapp.collector.resources  import RankResource
 from shopapp.collector.views import ShopsRankView,KeywordsMapItemsRankView,ItemsMapKeywordsRankView,KeywordsMapItemsRankPivotView,ItemsMapKeywordsRankPivotView,ShopMapKeywordsTopTradeView,ShopMapKeywordsTradePivotView
 # from shopapp.collector.renderers import JSONRenderer,SearchRankHTMLRenderer,RankChartHtmlRenderer\
 #     ,KeysChartHtmlRenderer,RankPivotChartHtmlRenderer,AvgRankPivotChartHtmlRenderer,TradePivotChartHtmlRenderer,TradeTopChartHtmlRenderer
-# from shopback.base.resources import ChartsResource
-# from shopback.base.renderers  import ChartJSONRenderer,ChartTemplateRenderer
-# from shopback.base.authentication import UserLoggedInAuthentication
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.resources import ChartsResource
+# from core.options.renderers  import ChartJSONRenderer,ChartTemplateRenderer
+# from core.options.authentication import UserLoggedInAuthentication
+# from core.options.permissions import IsAuthenticated
 
 __author__ = 'meixqhi'
 

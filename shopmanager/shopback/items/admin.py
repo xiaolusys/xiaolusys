@@ -6,7 +6,7 @@ import cStringIO as StringIO
 from django.contrib import admin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.db import models
-from django.db import settings
+from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
@@ -22,11 +22,11 @@ from shopback.users.models import User
 from shopback.categorys.models import ProductCategory
 # from shopback.purchases import getProductWaitReceiveNum
 from shopback import paramconfig as pcfg
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopback.items import permissions as perms
-from shopback.base.admin import MyAdmin
+from core.admin import ApproxAdmin
 from shopback.items.forms import ProductModelForm
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from shopback.items.filters import ChargerFilter, DateScheduleFilter, GroupNameFilter, CategoryFilter
 from common.utils import gen_cvs_tuple, CSVUnicodeWriter, update_model_fields
 from flashsale.pay.models_custom import Productdetail
@@ -114,7 +114,7 @@ admin.site.register(Item, ItemAdmin)
 from flashsale.dinghuo.models import OrderDetail
 
 
-class ProductAdmin(MyAdmin):
+class ProductAdmin(ApproxAdmin):
 
     category_list = []
     ware_list = []
@@ -999,7 +999,7 @@ class ProductLocationAdmin(admin.ModelAdmin):
 admin.site.register(ProductLocation, ProductLocationAdmin)
 
 
-class ItemNumTaskLogAdmin(MyAdmin):
+class ItemNumTaskLogAdmin(ApproxAdmin):
     list_display = ('id', 'user_id', 'outer_id', 'sku_outer_id', 'num',
                     'start_at', 'end_at')
     list_display_links = ('outer_id', 'sku_outer_id')

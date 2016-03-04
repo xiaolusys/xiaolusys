@@ -39,7 +39,7 @@ from shopapp.weixin_examination.models import ExamUserPaper
 from shopback.trades.models import MergeTrade
 from shopback.items.models import Product,ItemNumTaskLog
 from shopback import paramconfig as pcfg
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 
 from shopapp.signals import (weixin_readclick_signal,
                              weixin_verifymobile_signal,
@@ -1495,20 +1495,15 @@ class GiftView(View):
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-# from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
+# from core.options.views import ModelView,ListOrCreateModelView,ListModelView
  
-from rest_framework import authentication
-from rest_framework import generics
+
 from rest_framework.response import Response
-from rest_framework import authentication
 from rest_framework import permissions
-from rest_framework.compat import OrderedDict
-from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer,BrowsableAPIRenderer
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
-from rest_framework import filters
 from rest_framework import authentication
 from . import serializers 
-from rest_framework import status
 from shopback.base.new_renders import new_BaseJSONRenderer
 
 LINK_RE = re.compile('^.+pid=(?P<pid>[\w-]{16,64})')            

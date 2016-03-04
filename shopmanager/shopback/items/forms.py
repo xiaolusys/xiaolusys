@@ -20,6 +20,7 @@ class ProductModelForm(forms.ModelForm):
 
     class Meta:
         model = Product
+        exclude = ()
 
 
 class ProductScanForm(forms.Form):

@@ -13,7 +13,7 @@ from django.template import RequestContext
 #from djangorestframework.mixins import CreateModelMixin
 #from djangorestframework.views import ModelView
 from django.contrib.auth.decorators import login_required
-# from shopback.base.views import ListModelView
+# from core.options.views import ListModelView
 from shopback import paramconfig as pcfg
 from shopback.categorys.models import Category
 from shopback.items.models import Item,Product

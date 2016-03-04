@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
+from core.fields import BigIntegerAutoField, BigIntegerForeignKey
 from flashsale.signals import signal_kefu_operate_record
 
 

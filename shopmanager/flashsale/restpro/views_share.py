@@ -24,7 +24,7 @@ from shopapp.weixin.models import WeixinUnionID
 from shopapp.weixin.weixin_apis import WeiXinAPI,WeiXinRequestException
 from . import permissions as perms
 from . import serializers 
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 
 
 class CustomShareViewSet(viewsets.ModelViewSet):

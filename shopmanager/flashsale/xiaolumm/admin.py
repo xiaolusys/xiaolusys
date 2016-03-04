@@ -7,7 +7,7 @@ from flashsale.xiaolumm.models import UserGroup
 from django.contrib.admin.views.main import ChangeList
 
 from core.admin import ApproxAdmin
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 
 from .models import (
     XiaoluMama,

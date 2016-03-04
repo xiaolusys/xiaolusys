@@ -19,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 import common.utils
 from common.utils import CSVUnicodeWriter
-from flashsale.dinghuo import log_action, CHANGE
+from core.options import log_action, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft
 import functions
 from shopback.items.models import Product, ProductSku, ProductStock

@@ -3,7 +3,7 @@ from .models import SupplierZone, SaleSupplier
 from django.views.generic import View
 from django.http import HttpResponse
 from common.modelutils import update_model_fields
-from shopback.base import log_action, CHANGE
+from core.options import log_action, CHANGE
 import json
 
 

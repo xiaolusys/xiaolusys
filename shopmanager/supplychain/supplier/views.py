@@ -23,8 +23,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from flashsale.pay.models_custom import ModelProduct, Productdetail
+from core.options import log_action, ADDITION, CHANGE
 
-from shopback.base import log_action, ADDITION, CHANGE
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product, ProductSku
 

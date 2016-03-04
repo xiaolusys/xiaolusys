@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
 
 from core.admin import ApproxAdmin
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from shopapp.weixin.models import WXOrder
 from .models import Clicks, UserClicks, ClickCount, WeekCount
 
@@ -32,13 +32,18 @@ class ClicksChangeList(ChangeList):
             qs = qs.filter(openid=search_q)
             return qs
         
-        return super(ClicksChangeList,self).get_query_set(request)
+        super_ = super(ClicksChangeList,self)
+        if hasattr(super_, 'get_query_set'):
+            return super_.get_query_set(request)
+        return super_.get_queryset(request) 
 
-
+    get_queryset = get_query_set
+    
 class ClicksAdmin(ApproxAdmin):
     list_display = ('linkid','openid','isvalid','click_time')
     list_filter = ('isvalid',('click_time',DateFieldListFilter),)
     search_fields = ['=linkid', '=openid']
+    date_hierarchy = 'click_time'
     
     def get_changelist(self, request, **kwargs):
         return ClicksChangeList

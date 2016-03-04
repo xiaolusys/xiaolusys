@@ -14,6 +14,7 @@ class XiaoluMamaForm( forms.ModelForm ):
     
     class Meta:
         model = XiaoluMama
+        exclude = ()
     
     def  clean_cash(self):
         cash = self.cleaned_data['cash']
@@ -33,6 +34,7 @@ class AgencyLevelForm( forms.ModelForm ):
     
     class Meta:
         model = AgencyLevel
+        exclude = ()
     
     def  clean_basic_rate(self):
         basic_rate = self.cleaned_data['basic_rate']
@@ -53,6 +55,7 @@ class CashOutForm( forms.ModelForm ):
     
     class Meta:
         model = CashOut
+        exclude = ()
     
     def  clean_value(self):
         value = self.cleaned_data['value']
@@ -69,6 +72,7 @@ class CarryLogForm( forms.ModelForm ):
     
     class Meta:
         model = CarryLog
+        exclude = ()
     
     def  clean_value(self):
         value = self.cleaned_data['value']
@@ -88,6 +92,7 @@ class MamaDayStatsForm( forms.ModelForm ):
     
     class Meta:
         model = MamaDayStats
+        exclude = ()
     
     def  clean_base_click_price(self):
         value = self.cleaned_data['base_click_price']

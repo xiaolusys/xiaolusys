@@ -4,10 +4,7 @@ import urllib
 import urllib2
 import urlparse
 from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.auth.models import SiteProfileNotAvailable
 from django.core.exceptions import ImproperlyConfigured
-from django.contrib.auth.models import User,AnonymousUser
 from django.contrib.auth.backends import RemoteUserBackend
 from django.conf import settings
 from auth import apis

@@ -1,10 +1,10 @@
 #coding:utf-8
-from django.conf.urls.defaults import patterns, url,include
-# from shopback.base.authentication import UserLoggedInAuthentication
+from django.conf.urls import patterns, url,include
+# from core.options.authentication import UserLoggedInAuthentication
 #fangkaineng  7-29好像没有用这个方法，就删掉了
-##    from shopback.base.views import InstanceModelView
+##    from core.options.views import InstanceModelView
 #kaineng 
-# from shopback.base.permissions import IsAuthenticated, PerUserThrottling
+# from core.options.permissions import IsAuthenticated, PerUserThrottling
 from shopapp.autolist.views import ListItemTaskView,CreateListItemTaskModelView
 # from shopapp.autolist.resources import ItemListTaskResource
 

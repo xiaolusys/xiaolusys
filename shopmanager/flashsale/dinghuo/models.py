@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
 from django.db import models
-from django.contrib.auth.models import User
 
-from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
+from django.contrib.auth.models import User
+from core.fields import BigIntegerAutoField, BigIntegerForeignKey
+
 from shopback.items.models import ProductSku, Product
 from shopback.refunds.models import Refund
 from supplychain.supplier.models import SaleSupplier

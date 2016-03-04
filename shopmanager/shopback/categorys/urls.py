@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from shopback.categorys.views import crawFullCategories, getCategoryIds, getCategoryTree
 from views_stats import CategoryStatViewSet
 

@@ -3,21 +3,13 @@ import random
 import datetime
 from django.db import models
 from django.db.models import Q,Sum
-from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
 from django.forms.models import model_to_dict
 
+from core.managers import BaseManager
 from shopapp.signals import weixin_referal_signal
 
-class WeixinProductManager(models.Manager):
+class WeixinProductManager(BaseManager):
     
-    def get_queryset(self):
-        
-        super_tm = super(WeixinProductManager,self)
-        #adapt to higer version django(>1.4)
-        if hasattr(super_tm,'get_query_set'):
-            return super_tm.get_query_set()
-        return super_tm.get_queryset()
     
     def getOrCreate(self,product_id,force_update=False):
         
@@ -72,8 +64,8 @@ class WeixinProductManager(models.Manager):
             self.createSkuByDict(product, sku_dict)
             sku_ids.append(sku_dict['sku_id'])
         
-        WXProductSku.objects.filter(product=product).exclude(sku_id__in=sku_ids)\
-            .update(status=WXProductSku.DOWN_SHELF)
+        WXProductSku.objects.filter(product=product).exclude(
+            sku_id__in=sku_ids).update(status=WXProductSku.DOWN_SHELF)
         
         return product
     
@@ -149,15 +141,7 @@ class WeixinProductManager(models.Manager):
         return self.get_query_set().filter(status=self.model.DOWN_SHELF)
 
 
-class WeixinUserManager(models.Manager):   
-    
-    def get_queryset(self):
-        
-        super_tm = super(WeixinUserManager,self)
-        #adapt to higer version django(>1.4)
-        if hasattr(super_tm,'get_query_set'):
-            return super_tm.get_query_set()
-        return super_tm.get_queryset()
+class WeixinUserManager(BaseManager):   
     
     
     def createReferalShip(self,referal_openid,referal_from_openid):
@@ -229,15 +213,8 @@ class WeixinUserManager(models.Manager):
         
 NUM_CHAR_LIST = list('1234567890')
     
-class VipCodeManager(models.Manager):   
+class VipCodeManager(BaseManager):   
     
-    def get_queryset(self):
-        
-        super_tm = super(VipCodeManager,self)
-        #adapt to higer version django(>1.4)
-        if hasattr(super_tm,'get_query_set'):
-            return super_tm.get_query_set()
-        return super_tm.get_queryset()
     
     def genCode(self):
         return ''.join(random.sample(NUM_CHAR_LIST,7))

@@ -8,8 +8,7 @@ class BaseAdmin(admin.ModelAdmin):
     
     list_display   = ('id',)
     search_fields  =('id')
-    ordering       = ('-id',)
-    date_hierarchy = ''
+    date_hierarchy = None
     save_on_top    = True
     readonly_fields =()
     

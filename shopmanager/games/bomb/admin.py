@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
-from shopback.trades.filters import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from .models import WeixinBomb
 
 class WeixinBombAdmin(admin.ModelAdmin):

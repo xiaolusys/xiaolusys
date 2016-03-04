@@ -10,8 +10,8 @@ from django.conf import settings
 from django.contrib.admin.views.main import ChangeList
 from django.forms import TextInput, Textarea
 
-from shopback.base.admin import MyAdmin
-from shopback.base.options import DateFieldListFilter
+from core.admin import ApproxAdmin
+from core.filters import DateFieldListFilter
 from shopback.items.models import Product
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter
 from shopapp.weixin.models import (WeiXinAccount,
@@ -44,7 +44,7 @@ from shopapp.weixin.models import (WeiXinAccount,
 import logging
 logger = logging.getLogger("django.request")
 
-class WeixinUnionIDAdmin(MyAdmin):
+class WeixinUnionIDAdmin(ApproxAdmin):
     
     list_display = ('openid','app_key','unionid','created')
     
@@ -143,7 +143,7 @@ class UserGroupAdmin(admin.ModelAdmin):
 
 admin.site.register(UserGroup, UserGroupAdmin) 
 
-class WeiXinUserAdmin(MyAdmin):
+class WeiXinUserAdmin(ApproxAdmin):
     
     user_groups = []
     list_per_page = 25
@@ -286,7 +286,7 @@ class WXProductSkuAdmin(admin.ModelAdmin):
 admin.site.register(WXProductSku, WXProductSkuAdmin) 
 
 
-class WXOrderAdmin(MyAdmin):
+class WXOrderAdmin(ApproxAdmin):
     
     list_display = ('order_id','buyer_nick','order_total_price','order_create_time',
                     'delivery_id','delivery_company','order_status')
@@ -434,7 +434,7 @@ class SampleOrderChangeList(ChangeList):
         
         return super(SampleOrderChangeList,self).get_query_set(request)
 
-class SampleOrderAdmin(MyAdmin):
+class SampleOrderAdmin(ApproxAdmin):
 
     
     list_display = ('product_name','sku_code','user_openid','problem_score','vipcode','created','status')
@@ -495,7 +495,7 @@ class VipCodeChangeList(ChangeList):
         return super(VipCodeChangeList,self).get_query_set(request)
     
     
-class VipCodeAdmin(MyAdmin):
+class VipCodeAdmin(ApproxAdmin):
 
     list_display = ('owner_openid','code','expiry','code_type',
                     'code_rule', 'max_usage', 'usage_count','created')

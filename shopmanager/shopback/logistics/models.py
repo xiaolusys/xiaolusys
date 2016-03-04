@@ -5,8 +5,8 @@ import time
 import random
 from django.db import models
 from django.db.models import Sum
-from shopback.base.models import BaseModel
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.models import BaseModel
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 from shopback.users.models import User
 from shopback.monitor.models import TradeExtraInfo
 from common.utils import parse_datetime

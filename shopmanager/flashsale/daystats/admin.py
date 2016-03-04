@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from .models import DailyStat, PopularizeCost
 from django import forms
 
@@ -15,6 +15,7 @@ class DailyStatForm(forms.ModelForm):
 
     class Meta:
         model = DailyStat
+        exclude = ()
 
     def clean_total_payment(self):
         total_payment = self.cleaned_data['total_payment']

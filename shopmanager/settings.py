@@ -39,9 +39,7 @@ DATETIME_FORMAT    = 'Y-m-d H:i:s'
 DATE_FORMAT        = 'Y-m-d'
 
 LANGUAGE_CODE = 'en-us'
-
 SITE_ID = 1
-
 USE_I18N = True
 
 #USE_L10N = True
@@ -122,7 +120,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'chartit',
-    'south',
     'gunicorn',
     'raven.contrib.django',
     'rest_framework',
@@ -508,3 +505,4 @@ try:
     from local_settings import *
 except ImportError,err:
     pass
+

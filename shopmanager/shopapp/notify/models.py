@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 import datetime
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 from common.utils import parse_datetime
 
 

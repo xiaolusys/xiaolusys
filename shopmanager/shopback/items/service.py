@@ -5,7 +5,7 @@ from shopback.items.models import Product
 from shopback.trades.models import MergeTrade,MergeOrder
 from common.utils import update_model_fields
 from shopback.users.models import User
-from shopback.base import log_action,User as DjangoUser, ADDITION, CHANGE
+from core.options import log_action,User as DjangoUser, ADDITION, CHANGE
 
 def releaseRegularOutstockTrade(trade,num_maps=None):
     """ 释放特卖定时订单 """

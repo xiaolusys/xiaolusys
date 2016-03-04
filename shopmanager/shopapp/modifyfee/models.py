@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 import datetime
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 from shopapp.signals import modify_fee_signal
 from auth import apis
 

@@ -6,10 +6,10 @@ from django.db import transaction
 from django.template import RequestContext
 from django.http import HttpResponse
 import datetime
-from flashsale.dinghuo import log_action, CHANGE
+from core.options import log_action, CHANGE
 
 @csrf_exempt
-@transaction.commit_on_success
+@transaction.atomic
 def change_Sale_Time(request):
     # sale_time 上架日期
     content = request.POST

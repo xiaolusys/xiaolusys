@@ -4,7 +4,7 @@ import datetime
 from django.db import models
 from shopback.signals import change_addr_signal
 from shopback.trades.models import MergeTrade
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 import logging
 
 logger = logging.getLogger('yunda.handler')

@@ -36,7 +36,7 @@ from django.db.models import F
 from flashsale.pay.saledao import getUserSkuNumByLast24Hours
 from django.forms.models import model_to_dict
 from shopback.items.models import Product, ProductSku
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopapp.weixin import options
 from common.utils import update_model_fields
 from . import constants as CONS
@@ -218,7 +218,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         instance.close_cart()
     
     @detail_route(methods=['post'])
-    @transaction.commit_on_success
+    @transaction.atomic
     def plus_product_carts(self, request, pk=None):
         customer = get_object_or_404(Customer, user=request.user)
         cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id, status=ShoppingCart.NORMAL)
@@ -234,7 +234,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response({"status": update_status})
 
     @detail_route(methods=['post'])
-    @transaction.commit_on_success
+    @transaction.atomic
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
@@ -728,7 +728,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return charge
     
     @rest_exception(errmsg=u'特卖订单创建异常')
-    @transaction.commit_on_success
+    @transaction.atomic
     def create_Saletrade(self,form,address,customer):
         """ 创建特卖订单方法 """
         tuuid = form.get('uuid')

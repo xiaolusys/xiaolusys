@@ -1,5 +1,5 @@
 __author__ = 'meixqhi'
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 from django.db import models
 
 

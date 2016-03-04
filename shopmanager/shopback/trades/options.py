@@ -7,7 +7,7 @@ from shopback.trades.models import (MergeTrade,
                                     MergeBuyerTrade)
 from shopback import paramconfig as pcfg
 from django.db import transaction
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopback.signals import recalc_fee_signal
 from common.utils import update_model_fields,cache_lock
 import logging
@@ -62,7 +62,7 @@ def _createAndCalcOrderFee(trade,sub_trade):
                                               'post_fee'])
         
 @cache_lock(cache_time=12*60*60)
-@transaction.commit_on_success
+@transaction.atomic
 def mergeMaker(trade,sub_trade):
     
     if not isinstance(trade,MergeTrade):
@@ -147,7 +147,7 @@ def mergeMaker(trade,sub_trade):
     return True
 
 @cache_lock(cache_time=12*60*60)    
-@transaction.commit_on_success    
+@transaction.atomic 
 def mergeRemover(trade):
     
     from shopapp.memorule import ruleMatchPayment

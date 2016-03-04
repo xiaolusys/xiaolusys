@@ -1,4 +1,4 @@
-from django.conf.urls.defaults    import patterns, include, url
+from django.conf.urls    import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
@@ -13,7 +13,7 @@ from .views import (PackageByCsvFileView,
 #                         LogisticOrderResource,
 #                         BranchZoneResource)
 # # from .renderers import BaseJsonRenderer,PackageDiffHtmlRenderer
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.permissions import IsAuthenticated
 from shopback.base.authentication import login_required_ajax
 
 urlpatterns = patterns('shopapp.yunda.views',
@@ -49,10 +49,10 @@ urlpatterns = patterns('shopapp.yunda.views',
        # permissions=(IsAuthenticated,)
     )), 
                        
-    (r'^branchzone/$',cache_page(BranchZoneView.as_view(
+    (r'^branchzone/$',cache_page(24*60*60)(BranchZoneView.as_view(
         #resource=BranchZoneResource,
         #renderers=(BaseJsonRenderer,),
 #        authentication=(UserLoggedInAuthentication,),##yuanlai   ##you fang 
 #        permissions=(IsAuthenticated,)   ##yuanlai ##
-    ),24*60*60)),  
+    ))),  
 )

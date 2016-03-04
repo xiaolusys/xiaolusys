@@ -4,8 +4,7 @@ import json
 import time
 from common.utils import parse_datetime
 from django.db import models
-from shopback.base.models import BaseModel
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField
 from shopback import paramconfig as pcfg
 from shopback.users.models import User
 from django.db.models.signals import post_save

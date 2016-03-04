@@ -8,6 +8,7 @@ from django.db import transaction
 from celery.task import task
 from celery.task.sets import subtask
 
+from core.options import log_action, ADDITION, CHANGE 
 from shopback.users.models import User
 from shopapp.weixin.models import WeiXinUser,WeixinUnionID
 from flashsale.pay.models import TradeCharge,SaleTrade,SaleOrder,SaleRefund,Customer
@@ -152,7 +153,7 @@ def confirmTradeChargeTask(sale_trade_id,charge_time=None):
 
 
 @task(max_retry=3,default_retry_delay=60)
-@transaction.commit_on_success
+@transaction.atomic
 def notifyTradePayTask(notify):
     """ 订单确认支付通知消息，如果订单分阶段支付，则在原单ID后追加:[tid]-[数字] """
     try:
@@ -191,7 +192,6 @@ def notifyTradePayTask(notify):
         raise notifyTradePayTask.retry(exc=exc)
 
 
-from shopback.base import log_action, ADDITION, CHANGE 
 from .options import getOrCreateSaleSeller
 
 @task(max_retry=3,default_retry_delay=60)
@@ -367,7 +367,7 @@ from django.db import transaction
 
 
 @task
-@transaction.commit_on_success
+@transaction.atomic
 def task_Update_CouponPoll_Status():
     """ 定时更新券池中的优惠券到过期过期状态　"""
     today = datetime.datetime.today()

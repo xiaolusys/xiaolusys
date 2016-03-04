@@ -37,6 +37,7 @@ class SaleSupplierForm(forms.ModelForm):
 
     class Meta:
         model = SaleSupplier
+        exclude = ()
 
 
 class ScheduleBatchSetForm(BaseForm):

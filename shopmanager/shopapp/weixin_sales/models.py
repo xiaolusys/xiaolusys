@@ -1,8 +1,6 @@
 #-*- coding:utf8 -*-
 import datetime
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField
-from shopback.base.models import JSONCharMyField
 
 
 class WeixinUserPicture(models.Model): 
@@ -84,35 +82,28 @@ from shopapp.weixin.models import WeiXinUser,WeixinScoreItem,WeixinUserScore
 
 
 #推荐关系增加积分
-@transaction.commit_manually
+@transaction.atomic
 def convert_awardreferal2score(sender,user_openid,referal_from_openid,*args,**kwargs):
     
     transaction.commit()
     invite_score = 1
-    try:
-        wx_user = WeiXinUser.objects.get(openid=user_openid)
-        if not wx_user.referal_from_openid:
-            wx_user.referal_from_openid = referal_from_openid
-            wx_user.save()
+    
+    wx_user = WeiXinUser.objects.get(openid=user_openid)
+    if not wx_user.referal_from_openid:
+        wx_user.referal_from_openid = referal_from_openid
+        wx_user.save()
+    
+    WeixinScoreItem.objects.create(user_openid=referal_from_openid,
+                                   score=invite_score,
+                                   score_type=WeixinScoreItem.INVITE,
+                                   expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                   memo=u"邀请好友(%s)获得积分。"%(user_openid))
+    
+    wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
+    wx_user_score.user_score  = models.F('user_score') + invite_score
+    wx_user_score.save()
         
-        WeixinScoreItem.objects.create(user_openid=referal_from_openid,
-                                       score=invite_score,
-                                       score_type=WeixinScoreItem.INVITE,
-                                       expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
-                                       memo=u"邀请好友(%s)获得积分。"%(user_openid))
-        
-        wx_user_score,state = WeixinUserScore.objects.get_or_create(user_openid=referal_from_openid)
-        wx_user_score.user_score  = models.F('user_score') + invite_score
-        wx_user_score.save()
-        
-    except Exception,exc:
-        transaction.rollback()
-        
-        import logging
-        logger = logging.getLogger("celery.handler")
-        logger.error(u'邀请好友积分保存失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
 
 weixin_referal_signal.connect(convert_awardreferal2score, sender=WeixinUserAward)
 

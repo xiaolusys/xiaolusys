@@ -31,6 +31,7 @@ class StatisticsShoppingForm(forms.ModelForm):
 
     class Meta:
         model = StatisticsShopping
+        exclude = ()
 
     def clean_wxorderamount(self):
         wxorderamount = self.cleaned_data['wxorderamount']
@@ -76,8 +77,12 @@ class StatisticsShoppingChangeList(ChangeList):
                 qs = qs.filter(Q(openid=search_q)|Q(wxorderid=search_q))
             return qs
         
-        return super(StatisticsShoppingChangeList,self).get_query_set(request)
-
+        super_ = super(StatisticsShoppingChangeList,self)
+        if hasattr(super_, 'get_query_set'):
+            return super_.get_query_set(request)
+        return super_.get_queryset(request) 
+    
+    get_queryset = get_query_set
 
 class StatisticsShoppingAdmin(ApproxAdmin):
     
@@ -108,6 +113,7 @@ class StatisticsShoppingByDayAdminForm(forms.ModelForm):
 
     class Meta:
         model = StatisticsShopping
+        exclude = ()
 
     def clean_orderamountcount(self):
         orderamountcount = self.cleaned_data['orderamountcount']

@@ -141,7 +141,7 @@ class RefundConfirm(APIView):
 
         return Response({})
 
-from shopback.base import log_action, User, ADDITION, CHANGE
+from core.options import log_action, User, ADDITION, CHANGE
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from flashsale.pay.models_user import UserBudget,BudgetLog
 from django.db import models

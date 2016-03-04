@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models.signals import post_save
 from django.db import transaction
 
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 from .base import PayBaseModel, BaseModel
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import DIPOSITE_CODE_PREFIX
@@ -24,7 +24,6 @@ from . import managers
 from .signals import signal_saletrade_pay_confirm
 from .options import uniqid
 from core.fields import JSONCharMyField
-from core.options import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
 import logging
 
@@ -160,7 +159,7 @@ class SaleTrade(BaseModel):
     openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信OpenID')
     charge  = models.CharField(max_length=28,verbose_name=u'支付编号')
     
-    extras_info  = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'附加信息')
+    extras_info  = JSONCharMyField(max_length=256, blank=True, default=lambda:{}, verbose_name=u'附加信息')
     
     status  = models.IntegerField(choices=TRADE_STATUS,default=TRADE_NO_CREATE_PAY,
                               db_index=True,blank=True,verbose_name=u'交易状态')
@@ -309,7 +308,7 @@ class SaleTrade(BaseModel):
             self.increase_lock_skunum() 
         self.confirm_payment()
     
-    @transaction.commit_on_success
+    @transaction.atomic
     def close_trade(self):
         """ 关闭待付款订单 """
         try:
@@ -707,7 +706,7 @@ class ShoppingCart(BaseModel):
     def __unicode__(self):
         return '%s'%(self.id)
     
-    @transaction.commit_on_success
+    @transaction.atomic
     def close_cart(self,release_locknum=True):
         """ 关闭购物车 """
         try:
@@ -740,24 +739,23 @@ class ShoppingCart(BaseModel):
     
     
 from signals_coupon import *
-import logging
 from shopback import signals
 from django.contrib.auth.models import User as DjangoUser
 
 
 def off_the_shelf_func(sender, product_list, *args, **kwargs):
-
-    djuser, state = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
+    
+    from core.options import log_action,CHANGE,SYSTEMOA_USER
     for pro_bean in product_list:
         all_cart = ShoppingCart.objects.filter(item_id=pro_bean.id, status=ShoppingCart.NORMAL)
         for cart in all_cart:
             cart.close_cart()
-            log_action(djuser.id, cart, CHANGE, u'下架后更新')
+            log_action(SYSTEMOA_USER.id, cart, CHANGE, u'下架后更新')
         all_trade = SaleTrade.objects.filter(sale_orders__item_id=pro_bean.id, status=SaleTrade.WAIT_BUYER_PAY)
         for trade in all_trade:
             try:
                 trade.close_trade()
-                log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
+                log_action(SYSTEMOA_USER.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
             except Exception, exc:
                 logger.error(exc.message, exc_info=True)
 

@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from auth.accounts.views import request_taobao,login_taobao
 from django.contrib.auth.views import logout
 

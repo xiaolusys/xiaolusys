@@ -12,7 +12,7 @@ from django.db.models import Sum,Count,Max
 from shopback import paramconfig as pcfg
 from shopback.logistics.models import LogisticsCompany
 from shopback.base.views import FileUploadView_intercept
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from .service import YundaPackageService,DEFUALT_CUSTOMER_CODE
 from .models import (BranchZone,
                      YundaCustomer,

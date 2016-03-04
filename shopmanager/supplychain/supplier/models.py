@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 import common.utils
 from models_praise import SalePraise
 from models_hots import HotProduct
-from shopback.base.fields import BigIntegerForeignKey
+from core.fields import BigIntegerForeignKey
 
 from .managers import SaleSupplierManager
 from .models_buyer_group import BuyerGroup

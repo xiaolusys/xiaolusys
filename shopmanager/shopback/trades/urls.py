@@ -1,5 +1,5 @@
 #coding=utf-8
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -40,7 +40,7 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       DirtyOrderViewSet
                                       )
 from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test,select_Stock
-# from shopback.base.renderers  import BaseJsonRenderer
+# from core.options.renderers  import BaseJsonRenderer
 # from shopback.trades.renderers import (CheckOrderRenderer,
 #                                        ReviewOrderRenderer,
 #                                        ExchangeOrderRender,
@@ -56,7 +56,7 @@ from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test,se
 #                                        ExchangeOrderResource,
 #                                        MergeTradeResource,
 #                                        StatisticMergeOrderResource)
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.permissions import IsAuthenticated
 from shopback.base.authentication import login_required_ajax
 
 

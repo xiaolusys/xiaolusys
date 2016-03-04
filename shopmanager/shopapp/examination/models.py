@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class ExamUser(models.Model):
     
     user  = models.ForeignKey(User,null=True,default=None,verbose_name=u'答题人')
-    exam_grade = models.IntegerField(max_length=10,blank=True,verbose_name=u'考试得分')
+    exam_grade = models.IntegerField(default=0,verbose_name=u'考试得分')
     paper_id = models.CharField(max_length=100,blank=True,verbose_name=u'卷')
     exam_selected_num = models.IntegerField(null=True,db_index=True,verbose_name=u'答题人答题数')
     exam_date  = models.DateTimeField(blank=True,null=True,auto_now_add=True,verbose_name='答题日期')

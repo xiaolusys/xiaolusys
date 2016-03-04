@@ -23,7 +23,7 @@ from common.modelutils import update_model_fields
 from core.models import AdminModel
 from flashsale.dinghuo.models_user import MyUser
 from flashsale.restpro.local_cache import image_watermark_cache
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 from shopback.categorys.models import Category,ProductCategory
 from shopback.archives.models import Deposite,DepositeDistrict
 from shopback import paramconfig as pcfg
@@ -1285,30 +1285,27 @@ class ProductScanStorage(models.Model):
                              self.scan_num)
 
 
-from shopback.base.models import JSONCharMyField
+from core.fields import JSONCharMyField
 
-SKU_DEFAULT = (
-    '''
-      {
-        "L":{
-            "1":1,
-            "2":"2",
-            "3":"3"
-            },
-        "M":{
-            "1":1,
-            "2":"2",
-            "3":"3"
-            }
-    }
-    ''')
+SKU_DEFAULT = {
+    "L":{
+        "1":1,
+        "2":"2",
+        "3":"3"
+        },
+    "M":{
+        "1":1,
+        "2":"2",
+        "3":"3"
+        }
+}
 
 
 class ProductSkuContrast(models.Model):
     """ 商品规格尺寸参数 """
     product = models.OneToOneField(Product, primary_key=True, related_name='contrast',
                                       verbose_name=u'商品ID')
-    contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=SKU_DEFAULT, verbose_name=u'对照表详情')
+    contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=lambda:SKU_DEFAULT, verbose_name=u'对照表详情')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
 

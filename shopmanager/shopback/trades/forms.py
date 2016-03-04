@@ -13,6 +13,7 @@ class YundaCustomerForm(forms.ModelForm):
 
     class Meta:
         model = MergeTrade
+        exclude = ()
 
 class ExchangeTradeForm(forms.Form):
     trade_id  = forms.IntegerField(min_value=0,max_value=sys.float_info.max,required=True)

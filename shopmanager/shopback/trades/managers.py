@@ -2,21 +2,13 @@
 from django.db import models
 from django.db.models import Q,Sum
 
+from core.managers import BaseManager
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product,ProductSku
 from common.utils import update_model_fields
 
 
-class MergeTradeManager(models.Manager):
-    
-    def get_queryset(self):
-        
-        super_tm = super(MergeTradeManager,self)
-        #adapt to higer version django(>1.4)
-        if hasattr(super_tm,'get_query_set'):
-            return super_tm.get_query_set()
-        return super_tm.get_queryset()
-        
+class MergeTradeManager(BaseManager):
     
     def getMergeQueryset(self,buyer_nick, 
                           receiver_name, 

@@ -1,7 +1,7 @@
 #-*- coding:utf8 -*-
 __author__ = 'meixqhi'
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField,BigIntegerForeignKey
 
 class BabyPhone(models.Model):
     

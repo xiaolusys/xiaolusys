@@ -1,6 +1,6 @@
 #-*- coding:utf8 -*-
 from django.db import models
-from shopback.base.models import JSONCharMyField
+from core.fields import JSONCharMyField
 
 from .managers import WeixinProductManager
 
@@ -22,28 +22,17 @@ class WXProduct(models.Model):
     product_name = models.CharField(max_length=64,verbose_name=u'商品标题')
     product_img  = models.CharField(max_length=512,verbose_name=u'商品图片')
     
-    product_base = JSONCharMyField(max_length=3000,blank=True,
-                                 load_kwargs={},default='{}'
-                                 ,verbose_name=u'图文信息')
+    product_base = JSONCharMyField(max_length=3000,blank=True, default=lambda:{},verbose_name=u'图文信息')
     
-    sku_list     = JSONCharMyField(max_length=3000,blank=True,
-                                 load_kwargs={},default='{}'
-                                 ,verbose_name=u'规格信息') 
+    sku_list     = JSONCharMyField(max_length=3000,blank=True, default=lambda:{},verbose_name=u'规格信息') 
     
-    attrext      = JSONCharMyField(max_length=1000,blank=True,
-                                 load_kwargs={},default='{}'
-                                 ,verbose_name=u'附加信息') 
+    attrext      = JSONCharMyField(max_length=1000,blank=True, default=lambda:{},verbose_name=u'附加信息') 
     
-    delivery_info   = JSONCharMyField(max_length=200,blank=True,
-                                    load_kwargs={},default='{}'
-                                    ,verbose_name=u'发货信息') 
+    delivery_info   = JSONCharMyField(max_length=200,blank=True, default=lambda:{},verbose_name=u'发货信息') 
     
-    sync_stock   = models.BooleanField(default=True,
-                                       verbose_name=u'同步库存')
+    sync_stock   = models.BooleanField(default=True, verbose_name=u'同步库存')
     
-    status       = models.IntegerField(null=False,default=0,
-                                       choices=PRODUCT_STATUS,
-                                       verbose_name=u'是否上架')
+    status       = models.IntegerField(null=False,default=0, choices=PRODUCT_STATUS, verbose_name=u'是否上架')
     
     modified  = models.DateTimeField(auto_now=True,verbose_name=u'修改日期')
     created   = models.DateTimeField(auto_now_add=True,verbose_name=u'创建日期')

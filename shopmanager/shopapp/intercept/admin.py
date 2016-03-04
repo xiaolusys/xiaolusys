@@ -9,8 +9,8 @@ from django.contrib import messages
 from django.forms import TextInput, Textarea
 from django.core.urlresolvers import reverse
 
-from shopback.base import log_action,User, ADDITION, CHANGE
-from shopback.base.options import DateFieldListFilter
+from core.options import log_action,User, ADDITION, CHANGE
+from core.filters import DateFieldListFilter
 from shopback import paramconfig as pcfg
 from .models import InterceptTrade
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter,update_model_fields

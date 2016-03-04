@@ -14,7 +14,7 @@ class Question(BaseModel):
     question = models.CharField(max_length=200, verbose_name=u'问题')
     pub_date = models.DateTimeField(null=True, auto_now_add=True, verbose_name=u'出卷日期')
     real_answer = models.CharField(max_length=200, verbose_name=u'正确选项(请按照顺序输入)')
-    single_many = models.IntegerField(choices=NUM_CHOICES, max_length=100, verbose_name=u'单选/多选')
+    single_many = models.IntegerField(choices=NUM_CHOICES, verbose_name=u'单选/多选')
 
     def __unicode__(self):
         return self.question

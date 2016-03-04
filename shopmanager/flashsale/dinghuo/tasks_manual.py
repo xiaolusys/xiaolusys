@@ -11,7 +11,8 @@ import re
 from django.db import connection
 import sys
 from supplychain.supplier.models import SaleProduct
-from shopback.base import log_action, CHANGE
+from core.options import log_action, CHANGE, SYSTEMOA_USER
+
 @task()
 def task_dinghuo_supplier():
     """将供应商名字写入订货表"""
@@ -31,6 +32,6 @@ def task_dinghuo_supplier():
         if supplier != "":
             one_dinghuo.supplier_shop = supplier
             one_dinghuo.save()
-            log_action(641, one_dinghuo, CHANGE, u'修改供应商')
+            log_action(SYSTEMOA_USER.ID, one_dinghuo, CHANGE, u'修改供应商')
 
 

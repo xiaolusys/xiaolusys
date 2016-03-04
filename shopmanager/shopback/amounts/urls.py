@@ -1,8 +1,8 @@
-from django.conf.urls.defaults import patterns, include, url
-# from shopback.base.resources import ChartsResource
-# from shopback.base.authentication import UserLoggedInAuthentication
-# from shopback.base.permissions import IsAuthenticated
-# from shopback.base.renderers  import ChartJSONRenderer,ChartTemplateRenderer
+from django.conf.urls import patterns, include, url
+# from core.options.resources import ChartsResource
+# from core.options.authentication import UserLoggedInAuthentication
+# from core.options.permissions import IsAuthenticated
+# from core.options.renderers  import ChartJSONRenderer,ChartTemplateRenderer
 # from shopback.orders.renderers import OrderNumPiovtChartHtmlRenderer
 
 

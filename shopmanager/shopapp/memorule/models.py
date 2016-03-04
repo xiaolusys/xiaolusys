@@ -10,7 +10,7 @@ from shopback.items.models import Item,Product,ProductSku
 from shopback.orders.models import Trade
 from shopback.fenxiao.models import PurchaseOrder
 from shopback.trades.models import MergeTrade,MergeOrder
-from shopback.base import log_action,User, ADDITION, CHANGE
+from core.options import log_action,User, ADDITION, CHANGE
 from shopback.signals import rule_signal
 import logging
 

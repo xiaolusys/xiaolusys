@@ -22,6 +22,10 @@ from shopback.base.new_renders import new_BaseJSONRenderer
 from shopback.items.models import Product, ProductSku, ProductDaySale
 from shopback.logistics import getLogisticTrace
 from shopback.logistics.models import LogisticsCompany
+
+from shopback.items.models import Product,ProductSku,ProductDaySale
+from core.options import log_action, ADDITION, CHANGE
+
 from shopapp.memorule import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal

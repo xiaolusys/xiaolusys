@@ -9,7 +9,7 @@ from django.template import RequestContext
 from flashsale.pay.models_custom import ModelProduct, Productdetail
 from shopback.items.models import Product
 from django.db import transaction
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 
 import logging
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class AggregateProductView(View):
         return render_to_response("pay/aggregate_product.html", context_instance=RequestContext(request))
 
     @staticmethod
-    @transaction.commit_on_success
+    @transaction.atomic
     def post(request):
         post = request.POST
         m = ModelProduct()

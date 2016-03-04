@@ -53,9 +53,9 @@ class APPFullPushMessge(BaseModel):
     desc     = models.TextField(max_length=256, verbose_name=u'推送内容(限200字)')
     target_url = models.IntegerField(default=constants.TARGET_TYPE_HOME_TAB_1,
                                      choices=TARGET_CHOICES,verbose_name='跳转页面')
-    params   = JSONCharMyField(max_length=512, default={}, blank=True,verbose_name=u'推送参数')
+    params   = JSONCharMyField(max_length=512, default=lambda:{}, blank=True,verbose_name=u'推送参数')
     cat      = models.PositiveIntegerField(blank=True, default=0, verbose_name=u'分类')
     platform = models.CharField(db_index=True,choices=PLATFORM_CHOICES, max_length=16, verbose_name=u'平台')
     regid    = models.CharField(max_length=512, blank=True, verbose_name=u'小米regid')
-    result   = JSONCharMyField(max_length=2048, blank=True,verbose_name=u'推送结果')
+    result   = JSONCharMyField(max_length=2048, default=lambda:{}, blank=True, verbose_name=u'推送结果')
     status = models.SmallIntegerField(db_index=True,choices=STATUSES, default=FAIL, verbose_name=u'状态')

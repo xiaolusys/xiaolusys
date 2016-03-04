@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models_advertis import NinePicAdver
 import datetime
-from shopback.base import log_action, ADDITION
+from core.options import log_action, ADDITION
 
 
 class NinepicView(APIView):

@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from flashsale.pay.models_custom import ModelProduct, Productdetail
 from shopback.items.models import Product
 from django.db import transaction
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from supplychain.supplier.models import SaleProduct
 
 
@@ -39,7 +39,7 @@ class AggregateProductView(View):
                                   context_instance=RequestContext(request))
 
     @staticmethod
-    @transaction.commit_on_success
+    @transaction.atomic
     def post(request, pk):
         post = request.POST
         product_id_list = post.getlist("product_id")

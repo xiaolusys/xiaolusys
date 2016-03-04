@@ -6,7 +6,6 @@ import settings
 setup_environ(settings)
 
 from shopback.trades.models import MergeTrade
-from shopback.refunds.models import Refund
 from shopapp.weixin.models import WXOrder
 
 def calc_day_refund(tdate):
@@ -15,14 +14,8 @@ def calc_day_refund(tdate):
     dt = datetime.datetime(tdate.year,tdate.month,tdate.day,23,59,59)
     
     mts = MergeTrade.objects.filter(type=MergeTrade.WX_TYPE,pay_time__range=(df,dt))
-    refund_num = mts.filter(sys_status__in=(MergeTrade.INVALID_STATUS,MergeTrade.EMPTY_STATUS)).count()
-    
-    unmts = mts.exclude(sys_status__in=(MergeTrade.INVALID_STATUS,MergeTrade.EMPTY_STATUS)).values('tid').distinct()
-    tids  = [ t['tid'] for t in unmts]
-    
-    
-    refund_num += Refund.objects.filter(tid__in=tids).exclude(status__in=(Refund.NO_REFUND,Refund.REFUND_CLOSED)).values('tid').distinct().count()
-    
+    refund_num = mts.filter(sys_status=MergeTrade.INVALID_STATUS).count()
+        
     print tdate.date(),refund_num
 
 if __name__ == "__main__":

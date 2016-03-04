@@ -10,7 +10,7 @@ from flashsale.clickcount.models import ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from .models import XiaoluMama, CarryLog
 from common.modelutils import update_model_fields
-from shopback.base import log_action, CHANGE
+from core.options import log_action, CHANGE
 
 import datetime
 import logging

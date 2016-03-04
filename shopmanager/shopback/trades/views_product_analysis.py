@@ -8,7 +8,7 @@ from django.db.models import Sum
 from shopback import paramconfig as pcfg
 from flashsale.dinghuo.models import OrderDetail
 from flashsale.clickrebeta.models import StatisticsShopping
-from django.db.models import connection
+from django.db import connection
 from flashsale.xiaolumm.models import XiaoluMama
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q

@@ -2,6 +2,7 @@ from django.db import models, connections
 from django.db.models.query import QuerySet
 
 class ApproxCountQuerySet(QuerySet):
+
     def count(self):
         '''
         Override entire table count queries only. Any WHERE or other altering
@@ -32,7 +33,7 @@ class ApproxCountQuerySet(QuerySet):
         
         
 class BaseManager(models.Manager):
-    
+
     def get_query_set(self):
         _super = super(BaseManager,self)
         if hasattr(_super,'get_query_set'):
@@ -40,3 +41,4 @@ class BaseManager(models.Manager):
         return _super.get_queryset()
     
     get_queryset = get_query_set
+

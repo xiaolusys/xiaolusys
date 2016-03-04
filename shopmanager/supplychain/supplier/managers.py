@@ -1,8 +1,10 @@
 # -*- coding:utf8 -*-
 from django.db import models
 
+from core.managers import BaseManager
 
-class SaleSupplierManager(models.Manager):
+class SaleSupplierManager(BaseManager):
+    
     def charge(self, supplier, user, *args, **kwargs):
 
         from .models import SupplierCharge

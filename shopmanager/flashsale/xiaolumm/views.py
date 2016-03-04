@@ -27,7 +27,7 @@ from shopapp.weixin.models import WXOrder, WeiXinUser
 from shopapp.weixin.service import WeixinUserService
 from shopapp.weixin.options import get_unionid_by_openid
 from shopapp.weixin.tasks import task_Update_Weixin_Userinfo
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from flashsale.pay.options import set_cookie_openid,get_cookie_openid,get_user_unionid
 from flashsale.clickcount.models import Clicks, ClickCount
 from flashsale.clickrebeta.models import StatisticsShoppingByDay,StatisticsShopping
@@ -682,7 +682,7 @@ from flashsale.pay.models import Envelop
 from shopapp.weixin.models import WeixinUnionID
 from flashsale.xiaolumm.models_fortune import MamaFortune
 
-@transaction.commit_on_success
+@transaction.atomic
 def cash_modify(request, data):
     cash_id = int(data)
     if cash_id:
@@ -865,7 +865,7 @@ from .tasks import task_mama_Verify_Action
 
 
 @csrf_exempt
-@transaction.commit_on_success
+@transaction.atomic
 def mama_Verify_Action(request):
     mama_id = request.GET.get('id')
     referal_mobile = request.GET.get('tuijianren', '').strip()

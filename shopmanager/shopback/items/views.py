@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 #from djangorestframework.mixins import CreateModelMixin
 
 from shopback import paramconfig as pcfg
-#from shopback.base.views import ModelView,ListOrCreateModelView,ListModelView
+#from core.options.views import ModelView,ListOrCreateModelView,ListModelView
 from shopback.items.models import (Item,
                                    SkuProperty,
                                    Product,
@@ -33,7 +33,7 @@ from shopback.items.tasks import updateUserItemsTask,updateItemNum
 from shopback.base.authentication import login_required_ajax
 from auth import apis,staff_requried
 from common.utils  import update_model_fields,parse_date,format_date
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 
 #2015-7-27
 from rest_framework import authentication

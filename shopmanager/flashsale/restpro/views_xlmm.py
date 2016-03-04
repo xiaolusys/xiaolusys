@@ -20,7 +20,7 @@ from . import permissions as perms
 from . import serializers
 
 from flashsale.clickcount.models import Clicks
-from shopback.base import log_action, ADDITION
+from core.options import log_action, ADDITION
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog, CashOut, XlmmFans, FansNumberRecord
 from flashsale.clickcount.models import ClickCount

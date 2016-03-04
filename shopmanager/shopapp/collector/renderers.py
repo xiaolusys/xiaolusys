@@ -3,7 +3,7 @@ from django.template import RequestContext, loader
 #from djangorestframework.renderers import JSONRenderer ,TemplateRenderer
 #from djangorestframework.utils.mediatypes import get_media_type_params
 from chartit import Chart,PivotChart
-# from shopback.base.renderers import ChartTemplateRenderer
+# from core.options.renderers import ChartTemplateRenderer
 
 
 

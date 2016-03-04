@@ -3,8 +3,6 @@ __author__ = 'yann'
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
 
-from shopback.base.fields import BigIntegerForeignKey
-
 
 class MyGroup(models.Model):
     name = models.CharField(max_length=80, unique=True)
@@ -20,8 +18,8 @@ class MyGroup(models.Model):
 
 class MyUser(models.Model):
     
-    user  = BigIntegerForeignKey(DjangoUser, unique=True, verbose_name=u'原始用户')
-    group = BigIntegerForeignKey(MyGroup, verbose_name=u'组', blank=True)
+    user  = models.OneToOneField(DjangoUser, verbose_name=u'原始用户')
+    group = models.ForeignKey(MyGroup, verbose_name=u'组', blank=True)
 
     class Meta:
         db_table = 'suplychain_flashsale_myuser'

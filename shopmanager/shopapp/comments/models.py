@@ -1,7 +1,7 @@
 #-*- coding:utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 
 ROLE_CHOICES = (
                 ('seller',u'卖家'),

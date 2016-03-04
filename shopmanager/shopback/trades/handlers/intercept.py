@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from .handler import BaseHandler
 from shopback import paramconfig as pcfg
-from shopback.base import log_action,User, ADDITION, CHANGE
+from core.options import log_action,User, ADDITION, CHANGE
 from common.modelutils import  update_model_fields
 
 from shopapp.intercept.models import InterceptTrade

@@ -8,7 +8,7 @@ from flashsale.signals import signal_kefu_operate_record
 from .tasks import task_record_kefu_performance
 from flashsale.kefu.models import KefuPerformance
 import datetime
-from shopback.base import log_action, CHANGE
+from core.options import log_action, CHANGE
 
 class KefuRecordView(generics.ListCreateAPIView):
     """

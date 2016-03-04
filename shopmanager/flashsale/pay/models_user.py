@@ -10,7 +10,7 @@ from core.models import BaseModel
 from .base import PayBaseModel
 from flashsale.pay.models_envelope import Envelop
 import constants
-from shopback.base import log_action, CHANGE
+from core.options import log_action, CHANGE
 
 
 class Register(PayBaseModel):

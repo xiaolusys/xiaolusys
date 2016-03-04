@@ -50,7 +50,7 @@ class IntegralLog(PayBaseModel):
     log_type = models.IntegerField(choices=LOG_TYPE, verbose_name=u'积分类型')
     in_out = models.IntegerField(choices=IN_OUT, verbose_name=u'积分收支')
     order = JSONCharMyField(max_length=10240, blank=True,
-                            default='[{"order_id":"","pic_link":"","trade_id":"","order_status":""}]',
+                            default=lambda:'[{"order_id":"","pic_link":"","trade_id":"","order_status":""}]',
                             verbose_name=u'订单信息')
 
     class Meta:

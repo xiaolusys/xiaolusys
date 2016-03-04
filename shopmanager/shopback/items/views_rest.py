@@ -5,7 +5,7 @@ from django.contrib import messages
 from rest_framework.views import APIView
 from rest_framework import renderers
 
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopback.items.models import Product
 
 import logging

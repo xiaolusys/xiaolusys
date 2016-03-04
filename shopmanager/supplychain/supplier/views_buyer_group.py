@@ -2,7 +2,7 @@
 from models_buyer_group import BuyerGroup
 from django.http import HttpResponse
 from django.views.generic import View
-from shopback.base import log_action, CHANGE, ADDITION
+from core.options import log_action, CHANGE, ADDITION
 
 
 class BuyerGroupSave(View):

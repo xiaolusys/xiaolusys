@@ -106,7 +106,7 @@ from rest_framework import generics
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
-from shopback.base import log_action, CHANGE
+from core.options import log_action, CHANGE
 from shopback.items.models import Product
 from flashsale.dinghuo.models import ProductSkuDetail
 from django.db import transaction
@@ -139,7 +139,7 @@ class ChangeKunView(generics.ListCreateAPIView):
         except:
             return Response({"product_outer_id": product_outer_id})
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         post = request.POST
         sku_list_str = post.get("sku_list", "")

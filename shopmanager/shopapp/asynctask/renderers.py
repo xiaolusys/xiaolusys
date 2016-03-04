@@ -1,5 +1,5 @@
 #from djangorestframework.renderers import TemplateRenderer
-# ssssfrom shopback.base.renderers  import BaseJsonRenderer
+# ssssfrom core.options.renderers  import BaseJsonRenderer
 # 
 # 
 # class AsyncPrintHtmlRenderer(TemplateRenderer):

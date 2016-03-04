@@ -9,7 +9,7 @@ __author__ = 'meixqhi'
 import json
 import time
 from django.db import models
-from shopback.base.models import BaseModel
+from core.models import BaseModel
 from shopback.users.models import User
 from shopback.categorys.models import Category
 from shopback.logistics.models import Logistics

@@ -1,11 +1,11 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 # from djangorestframework.resources import ModelResource
 from django.contrib.admin.views.decorators import staff_member_required
-# from shopback.base.authentication import UserLoggedInAuthentication
-# from shopback.base.permissions import IsAuthenticated
+# from core.options.authentication import UserLoggedInAuthentication
+# from core.options.permissions import IsAuthenticated
 from shopback.refunds.views import RefundProductView,RefundView,RefundManagerView
 
-# from shopback.base.renderers  import BaseJsonRenderer
+# from core.options.renderers  import BaseJsonRenderer
 # from shopback.refunds.renderers import RefundProductRenderer,RefundManagerRenderer
 # from shopback.refunds.resources import RefundProductResource,RefundResource
 from refund_analysis import RefundReason, refund_Invalid_Create

@@ -4,7 +4,7 @@ from django.db import models
 from django.conf import settings
 
 from django.forms import TextInput, Textarea
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from .models import (
                      WeixinUserPicture,
                      WeixinUserAward,

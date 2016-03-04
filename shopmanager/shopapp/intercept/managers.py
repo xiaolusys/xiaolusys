@@ -3,22 +3,13 @@ import random
 import datetime
 from django.db import models
 from django.db.models import Q,Sum
-from django.db.models.signals import post_save
-from django.db import IntegrityError, transaction
 
+from core.managers import BaseManager
 from shopback import paramconfig as pcfg
 from shopback.trades.models import MergeTrade
         
-class InterceptTradeManager(models.Manager):
+class InterceptTradeManager(BaseManager):
     
-    def get_queryset(self):
-        
-        super_tm = super(InterceptTradeManager,self)
-        #adapt to higer version django(>1.4)
-        if hasattr(super_tm,'get_query_set'):
-            return super_tm.get_query_set()
-        
-        return super_tm.get_queryset()
     
     def getTradeByInterceptInfo(self,nick,mobile,serial_no):
         
@@ -35,10 +26,10 @@ class InterceptTradeManager(models.Manager):
             filter_dict.update(tid=serial_no)
             
         if len(filter_dict.keys()) == 1:
-            trades = MergeTrade.objects.filter(**filter_dict)\
-                                  .exclude(sys_status__in=(pcfg.FINISHED_STATUS,
-                                                           pcfg.INVALID_STATUS,
-                                                           pcfg.EMPTY_STATUS))
+            trades = MergeTrade.objects.filter(**filter_dict).exclude(
+                        sys_status__in=(pcfg.FINISHED_STATUS,
+                                        pcfg.INVALID_STATUS,
+                                        pcfg.EMPTY_STATUS))
         
         if len(filter_dict.keys()) > 1:
             
@@ -49,9 +40,9 @@ class InterceptTradeManager(models.Manager):
                     continue
                 tfilter = Q(**{k:v})
                 
-            trades = MergeTrade.objects.filter(tfilter)\
-                                  .exclude(sys_status__in=(pcfg.FINISHED_STATUS,
-                                                           pcfg.INVALID_STATUS))
+            trades = MergeTrade.objects.filter(tfilter).exclude(
+                        sys_status__in=(pcfg.FINISHED_STATUS,
+                                        pcfg.INVALID_STATUS))
         
         return trades
     

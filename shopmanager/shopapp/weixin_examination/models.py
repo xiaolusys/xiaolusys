@@ -127,105 +127,85 @@ from django.db import transaction
 from shopapp.weixin.models import WeiXinUser,WeixinUserScore,WeixinScoreItem
 from shopapp.signals import weixin_active_signal,weixin_verifymobile_signal
 
-@transaction.commit_manually
+@transaction.atomic
 def convert_examgrade2score(sender,active_id,*args,**kwargs):
+
+    exam_user_paper = ExamUserPaper.objects.get(id=active_id)
+    user_openid = exam_user_paper.user_openid
+    exam_score  = exam_user_paper.grade
+    
+    wx_user_score,state = WeixinUserScore.objects.get_or_create(
+                                    user_openid=user_openid)
+    
+    WeixinScoreItem.objects.create(user_openid=user_openid,
+                                   score=exam_score,
+                                   score_type=WeixinScoreItem.ACTIVE,
+                                   expired_at=datetime.datetime.now(),
+                                   memo=u"答题活动积分(%d)。"%(exam_user_paper.id))
+    
+    wx_user_score.user_score  = models.F('user_score') + exam_score
+    wx_user_score.save()
     
     transaction.commit()
-    try:
-        exam_user_paper = ExamUserPaper.objects.get(id=active_id)
-        user_openid = exam_user_paper.user_openid
-        exam_score  = exam_user_paper.grade
+    
+    invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
+    if invite_ships.count() > 0:
         
-        wx_user_score,state = WeixinUserScore.objects.get_or_create(
-                                        user_openid=user_openid)
-        
-        WeixinScoreItem.objects.create(user_openid=user_openid,
-                                       score=exam_score,
-                                       score_type=WeixinScoreItem.ACTIVE,
-                                       expired_at=datetime.datetime.now(),
-                                       memo=u"答题活动积分(%d)。"%(exam_user_paper.id))
-        
-        wx_user_score.user_score  = models.F('user_score') + exam_score
-        wx_user_score.save()
-        
-        transaction.commit()
-        
-        invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
-        if invite_ships.count() > 0:
-            
-            from_openid = invite_ships[0].from_openid 
-            if from_openid != exam_user_paper.user_openid:
+        from_openid = invite_ships[0].from_openid 
+        if from_openid != exam_user_paper.user_openid:
 
-                wx_user = WeiXinUser.objects.get(openid=user_openid)
-                subscribe_time  = wx_user.subscribe_time
-                new_subscribe   = not (subscribe_time and subscribe_time < datetime.datetime(2014,9,15))
-                is_invited      = wx_user.isvalid and not wx_user.referal_from_openid
-                
-                if is_invited:
-                    wx_user.referal_from_openid = from_openid
-                    wx_user.save()
-                    
-                invite_score = new_subscribe and (is_invited and 12 or 2) or 1
-                wx_user_score,state = WeixinUserScore.objects.get_or_create(
-                                            user_openid=from_openid)
+            wx_user = WeiXinUser.objects.get(openid=user_openid)
+            subscribe_time  = wx_user.subscribe_time
+            new_subscribe   = not (subscribe_time and subscribe_time < datetime.datetime(2014,9,15))
+            is_invited      = wx_user.isvalid and not wx_user.referal_from_openid
             
-                WeixinScoreItem.objects.create(user_openid=from_openid,
-                                               score=invite_score,
-                                               score_type=WeixinScoreItem.ACTIVE,
-                                               expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
-                                               memo=u"邀请好友(%s)答题积分。"%(user_openid))
+            if is_invited:
+                wx_user.referal_from_openid = from_openid
+                wx_user.save()
                 
-                wx_user_score.user_score  = models.F('user_score') + invite_score
-                wx_user_score.save()
+            invite_score = new_subscribe and (is_invited and 12 or 2) or 1
+            wx_user_score,state = WeixinUserScore.objects.get_or_create(
+                                        user_openid=from_openid)
         
-    except Exception,exc:
-        transaction.rollback()
+            WeixinScoreItem.objects.create(user_openid=from_openid,
+                                           score=invite_score,
+                                           score_type=WeixinScoreItem.ACTIVE,
+                                           expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                           memo=u"邀请好友(%s)答题积分。"%(user_openid))
+            
+            wx_user_score.user_score  = models.F('user_score') + invite_score
+            wx_user_score.save()
         
-        import logging
-        logger = logging.getLogger("celery.handler")
-        logger.error(u'活动积分更新失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+
         
 weixin_active_signal.connect(convert_examgrade2score,sender=ExamUserPaper)
 
 
-@transaction.commit_manually
+@transaction.atomic
 def convert_inviteship2score(sender,user_openid,*args,**kwargs):
     
-    transaction.commit()
-    try:
-        wx_user = WeiXinUser.objects.get(openid=user_openid)
-        invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
-        if not wx_user.referal_from_openid and invite_ships.count() > 0:
-            
-            from_openid = invite_ships[0].from_openid 
-            if from_openid != user_openid:
-                invite_score   = 10
-                
-                wx_user.referal_from_openid = from_openid
-                wx_user.save()
-                
-                wx_user_score,state = WeixinUserScore.objects.get_or_create(
-                                            user_openid=from_openid)
-            
-                WeixinScoreItem.objects.create(user_openid=from_openid,
-                                               score=invite_score,
-                                               score_type=WeixinScoreItem.ACTIVE,
-                                               expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
-                                               memo=u"邀请好友(%s)积分。"%(user_openid))
-                
-                wx_user_score.user_score  = models.F('user_score') + invite_score
-                wx_user_score.save()
+    wx_user = WeiXinUser.objects.get(openid=user_openid)
+    invite_ships = Invitationship.objects.filter(invite_openid=user_openid).order_by('-created')
+    if not wx_user.referal_from_openid and invite_ships.count() > 0:
         
-    except Exception,exc:
-        transaction.rollback()
+        from_openid = invite_ships[0].from_openid 
+        if from_openid != user_openid:
+            invite_score   = 10
+            
+            wx_user.referal_from_openid = from_openid
+            wx_user.save()
+            
+            wx_user_score,state = WeixinUserScore.objects.get_or_create(
+                                        user_openid=from_openid)
         
-        import logging
-        logger = logging.getLogger("celery.handler")
-        logger.error(u'邀请积分更新失败:%s'%exc.message,exc_info=True)
-    else:
-        transaction.commit()
+            WeixinScoreItem.objects.create(user_openid=from_openid,
+                                           score=invite_score,
+                                           score_type=WeixinScoreItem.ACTIVE,
+                                           expired_at=datetime.datetime.now()+datetime.timedelta(days=365),
+                                           memo=u"邀请好友(%s)积分。"%(user_openid))
+            
+            wx_user_score.user_score  = models.F('user_score') + invite_score
+            wx_user_score.save()
         
         
 weixin_verifymobile_signal.connect(convert_inviteship2score,sender=WeiXinUser)

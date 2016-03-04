@@ -2,15 +2,16 @@
 import datetime
 from django.db import models
 from django.contrib.auth.models import User
-from shopback.base.fields import BigIntegerAutoField
-from shopback.base.models import JSONCharMyField
+from django.utils import timezone
+
+from core.models import CacheModel
+from core.fields import BigIntegerAutoField,JSONCharMyField
 from .managers import VipCodeManager,WeixinUserManager
 
 from shopback.trades.models import MergeTrade
 from .models_base import WeixinUnionID
 from .models_sale import WXProduct,WXSkuProperty,WXProductSku,WXOrder,WXLogistic
 
-from core.models import CacheModel
 
 MIAOSHA_SELLER_ID = 'wxmiaosha'
 SAFE_CODE_SECONDS = 180
@@ -53,15 +54,13 @@ class WeiXinAccount(models.Model):
     js_ticket = models.CharField(max_length=256,blank=True,verbose_name=u'JSAPI_TICKET')
     
     expires_in = models.BigIntegerField(default=0,verbose_name="使用期限(s)")
-    expired    = models.DateTimeField(default=datetime.datetime.now(),
+    expired    = models.DateTimeField(default=timezone.now,
                                       verbose_name="上次过期时间")
     
-    js_expired    = models.DateTimeField(default=datetime.datetime.now(),
+    js_expired    = models.DateTimeField(default=timezone.now,
                                       verbose_name="TICKET上次过期时间")
     
-    jmenu     =  JSONCharMyField(max_length=4096,blank=True,
-                               load_kwargs={},default='{}',
-                               verbose_name=u'菜单代码') 
+    jmenu     =  JSONCharMyField(max_length=4096,blank=True, default=lambda:{},verbose_name=u'菜单代码') 
     
     in_voice   = models.BooleanField(default=False,verbose_name=u'开启语音')
     is_active  = models.BooleanField(default=False,verbose_name=u'激活')
@@ -366,9 +365,7 @@ class WeiXinAutoResponse(models.Model):
     music_url = models.CharField(max_length=512,blank=True,verbose_name=u'音乐链接')
     hq_music_url = models.CharField(max_length=512,blank=True,verbose_name=u'高品质音乐链接')
     
-    news_json = JSONCharMyField(max_length=8192,blank=True,
-                              load_kwargs={},default='[]',
-                              verbose_name=u'图文信息')
+    news_json = JSONCharMyField(max_length=8192,blank=True, default=lambda:{},verbose_name=u'图文信息')
     
     fuzzy_match = models.BooleanField(default=True,verbose_name=u'模糊匹配')
     
@@ -462,7 +459,7 @@ class ReferalRelationship(models.Model):
     """ 保存待确定的推荐关系 """
     referal_from_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"推荐人ID")
     referal_to_mobile   = models.CharField(max_length=12,db_index=True,verbose_name=u"被推荐人手机")
-    time_created = models.DateTimeField(default=datetime.datetime.now(), verbose_name="time created")
+    time_created = models.DateTimeField(default=timezone.now, verbose_name="time created")
 
     class Meta:
         db_table = 'shop_weixin_referal_relationship'
@@ -475,7 +472,7 @@ class ReferalBonusRecord(models.Model):
     trade_id = models.IntegerField(default=0,db_index=True,unique=True,verbose_name=u"订单号") 
     bonus_value = models.IntegerField(default=0,verbose_name=u"金额（分）") # cent
     confirmed_status = models.IntegerField(default=0, choices=REFERAL_BONUS_STATUS, verbose_name=u'状态') # 0 unconfirmed, 1 confirmed, 2 cancelled
-    created = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u"创建时间")
+    created = models.DateTimeField(default=timezone.now, verbose_name=u"创建时间")
     
     class Meta:
         db_table = 'shop_weixin_referal_bonus_record'
@@ -486,7 +483,7 @@ class ReferalBonusRecord(models.Model):
 class BonusCashoutRecord(models.Model):
     user_openid = models.CharField(max_length=64,db_index=True,verbose_name=u"ID")
     cashout_value = models.IntegerField()
-    cashout_time = models.DateTimeField(default=datetime.datetime.now(), verbose_name="cashout time")
+    cashout_time = models.DateTimeField(default=timezone.now, verbose_name="cashout time")
 
     class Meta:
         db_table = 'shop_weixin_bonus_cashout_record'
@@ -613,8 +610,7 @@ class SampleOrder(models.Model):
 class VipCode(models.Model):
     CODE_TYPES = ((0,u'试用'), (1,u'购买'))
     
-    owner_openid = models.ForeignKey(WeiXinUser,unique=True,
-                                     related_name="vipcodes", verbose_name=u"微信ID")
+    owner_openid = models.OneToOneField(WeiXinUser,related_name="vipcodes", verbose_name=u"微信ID")
     code = models.CharField(max_length=16,unique=True,null=False,blank=False,verbose_name=u'F码')
     expiry = models.DateTimeField(null=False,blank=False,verbose_name=u'过期时间')
 

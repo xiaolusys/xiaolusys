@@ -1,6 +1,6 @@
 #-*- encoding:utf8 -*-
 from django.db import models
-from shopback.base.fields import BigIntegerAutoField
+from core.fields import BigIntegerAutoField
 
 TASK_CREATED  = 'CREATED'
 TASK_ASYNCOK    = 'ASYNCOK'

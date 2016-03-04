@@ -32,7 +32,7 @@ def trade_submit_row(context):
                                          and trade.has_reason_code(pcfg.MULTIPLE_ORDERS_CODE))
         can_trade_audit = perms.has_check_order_permission(context['perms'].user)
     return {
-        'onclick_attrib': (opts.get_ordered_objects() and change
+        'onclick_attrib': ( change #opts.get_ordered_objects() and
                             and 'onclick="submitOrderForm();"' or ''),
         'show_delete_link': (not is_popup and context['has_delete_permission']
                               and (change or context['show_delete'])),

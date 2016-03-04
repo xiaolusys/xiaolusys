@@ -28,7 +28,7 @@ from shopback.items.models import Product,ProductSku
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,PurchaseStorageItem,\
     PurchaseStorageRelationship,PurchasePayment,PurchasePaymentItem,FINANCIAL_FIXED
 from shopback import paramconfig as pcfg
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from shopback.purchases import permissions as perm
 from shopback.monitor.models import SystemConfig
 from common.utils import CSVUnicodeWriter
@@ -551,7 +551,7 @@ class ConfirmStorageView(APIView):
         
         config = SystemConfig.getconfig()
         
-        with transaction.commit_on_success():
+        with transaction.atomic():
             ship_storage_items = PurchaseStorageRelationship.objects.filter(
                                                 storage_id=purchase_storage.id)
             for item in ship_storage_items:
@@ -963,7 +963,7 @@ class PaymentDistributeView(APIView):
         
 @csrf_exempt  
 @staff_requried   
-@transaction.commit_on_success  
+@transaction.atomic
 def confirm_payment_amount(request):
     
     content    = request.REQUEST

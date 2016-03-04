@@ -12,12 +12,12 @@ from django.template import RequestContext
 from django.forms import TextInput, Textarea
 from shopback import paramconfig as pcfg
 from shopback.items.models import Product,ProductSku
-from shopback.base.options import DateFieldListFilter
+from core.filters import DateFieldListFilter
 from shopback.purchases.models import Purchase,PurchaseItem,PurchaseStorage,\
     PurchaseStorageItem,PurchasePayment,PurchasePaymentItem,PurchaseStorageRelationship
 from shopback.purchases import permissions as perms
 from common.utils import gen_cvs_tuple,CSVUnicodeWriter,format_date
-from shopback.base import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 import logging 
 
 logger =  logging.getLogger('django.request')

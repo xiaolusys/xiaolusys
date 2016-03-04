@@ -1,4 +1,4 @@
-from django.conf.urls.defaults    import patterns, include, url
+from django.conf.urls    import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
@@ -9,9 +9,9 @@ from shopback.base.proxy  import ProxyView
 from shopapp.weixin_sales.decorators import record_weixin_clicks
 from shopapp.weixin import views
 
-# from shopback.base.renderers  import BaseJsonRenderer
-# from shopback.base.permissions import IsAuthenticated
-# from shopback.base.authentication import UserLoggedInAuthentication
+# from core.options.renderers  import BaseJsonRenderer
+# from core.options.permissions import IsAuthenticated
+# from core.options.authentication import UserLoggedInAuthentication
 # from .resources import WeixinProductResource
 # from .renderers import WeixinProductHtmlRenderer
 
@@ -51,7 +51,7 @@ urlpatterns = patterns('shopapp.weixin.views',
         name="weixin_sampleads"),
     url(r'^inviteresult/$', views.ResultView.as_view()),
     url(r'^finallist/(?P<batch>\d+)/(?P<page>\d+)/(?P<month>\d+)/$', 
-        cache_page(views.FinalListView.as_view(),96*60*60)),
+        cache_page(96*60*60)(views.FinalListView.as_view())),
 
     url(r'^babyinfo/$', views.BabyInfoView.as_view()),
     url(r'^orderinfo/$', views.OrderInfoView.as_view()),
@@ -68,7 +68,7 @@ urlpatterns = patterns('shopapp.weixin.views',
     url(r'^couponfaq/$', views.CouponFaqView.as_view()),
     url(r'^survey/$', views.SurveyView.as_view()),
     url(r'^samplechoose/$', views.SampleChooseView.as_view()),
-    url(r'^score/(?P<user_pk>\d+)/$', cache_page(views.ScoreView.as_view(),5*60)),
+    url(r'^score/(?P<user_pk>\d+)/$', cache_page(5*60)(views.ScoreView.as_view())),
     url(r'^clickscore/(?P<id>\d+)/$', views.ClickScoreView.as_view()),
     url(r'^scorerule/$', TemplateView.as_view(
             template_name="weixin/scorerule.html")),

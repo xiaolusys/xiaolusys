@@ -1,9 +1,9 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, include, url
 from shopback.orders.views import TimerOrderStatisticsView,ProductOrderView,RelatedOrderStateView,RefundOrderView
-# from shopback.base.resources import ChartsResource,BaseResource
-# from shopback.base.authentication import UserLoggedInAuthentication
-# from shopback.base.permissions import IsAuthenticated
-# from shopback.base.renderers  import ChartJSONRenderer,ChartTemplateRenderer,BaseJsonRenderer
+# from core.options.resources import ChartsResource,BaseResource
+# from core.options.authentication import UserLoggedInAuthentication
+# from core.options.permissions import IsAuthenticated
+# from core.options.renderers  import ChartJSONRenderer,ChartTemplateRenderer,BaseJsonRenderer
 # from shopback.orders.renderers import TimerOrderStatChartRenderer,ProductOrderTableRenderer,RelatedOrderRenderer\
 #     ,RefundOrderRenderer
 # from shopback.orders.resources import ChartJsonResource,TimeOrderStatResource
