@@ -15,6 +15,8 @@ from flashsale.restpro import permissions as perms
 from . import serializers
 from flashsale.pay.models import Customer
 
+from django.db.models import Sum,Count
+
 from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry
 
 
@@ -48,6 +50,7 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         fortunes = self.get_owner_queryset(request)
+        fortunes = self.paginate_queryset(fortunes)
         serializer = serializers.MamaFortuneSerializer(fortunes, many=True)
         data = serializer.data
         if len(data) > 0:
@@ -72,10 +75,11 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id)
+        return self.queryset.filter(mama_id=mama_id, status__gt=0)
     
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
+        datalist = self.paginate_queryset(datalist)
         serializer = serializers.CarryRecordSerializer(datalist, many=True)
         return Response({"carryrecord_list": serializer.data})
 
@@ -83,21 +87,57 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
 
+
+from django.forms.models import model_to_dict
+
+
 class OrderCarryViewSet(viewsets.ModelViewSet):
     """
     """
     queryset = OrderCarry.objects.all()
-    serializer_class = serializers.OrderCarrySerializer
+    page_size = 10
+    serializer_class = serializers.OrderCarrySerializer 
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
+    def get_recent_10days_carrysum(self, mama_id, from_date, end_date):
+        query_set = self.queryset.filter(mama_id=mama_id, date_field__gte=from_date, date_field__lte=end_date).values('date_field').annotate(today_carry=Sum('carry_num'))
+        sum_dict = {}
+        for entry in query_set:
+            key = entry["date_field"]
+            sum_dict[key] = entry["today_carry"]
+        return sum_dict
+    
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id)
+        return self.queryset.filter(mama_id=mama_id)#status__gt=0
     
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
+        datalist = self.paginate_queryset(datalist)
+
+        ### find from_date and end_date in datalist
+        mama_id, from_date, end_date = None,0,0
+        if len(datalist) > 0:
+            mama_id = datalist[0].mama_id
+            from_date = datalist[0].date_field
+            end_date = from_date
+        for entry in datalist:
+            date_field = entry.date_field
+            if date_field > end_date:
+                end_date = date_field
+            if date_field < from_date:
+                from_date = date_field
+        
+        ### search database to group dates and get carry_num for each group
+        
+        sum_dict = self.get_recent_10days_carrysum(mama_id, from_date, end_date)
+        for entry in datalist:
+            key = entry.date_field
+            if key in sum_dict:
+                entry.today_carry = sum_dict[key] * 0.01
+        
         serializer = serializers.OrderCarrySerializer(datalist, many=True)
         return Response({"ordercarry_list": serializer.data})
 
@@ -113,10 +153,10 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-
+    
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id)
+        return self.queryset.filter(mama_id=mama_id, status__gt=0)
     
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -138,7 +178,7 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id)
+        return self.queryset.filter(mama_id=mama_id, status__gt=0)
     
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -160,7 +200,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id)
+        return self.queryset.filter(mama_id=mama_id, status__gt=0)
     
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -182,7 +222,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id)
+        return self.queryset.filter(mama_id=mama_id, status__gt=0)
     
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)

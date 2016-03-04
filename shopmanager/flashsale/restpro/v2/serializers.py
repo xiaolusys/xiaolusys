@@ -28,9 +28,8 @@ class OrderCarrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderCarry
-        fields = ('mama_id', 'order_id', 'order_value', 'carry_num', 'carry_type',
-                  'sku_name', 'sku_img', 'contributor_nick', 'contributor_img',
-                  'contributor_id', 'status', 'modified', 'created')
+        extra_kwargs = {'today_carry': {'read_only': True}}
+        fields = ('mama_id', 'order_value', 'carry_num', 'today_carry',)
 
 
 class AwardCarrySerializer(serializers.ModelSerializer):
