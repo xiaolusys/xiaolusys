@@ -106,7 +106,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    def get_recent_10days_carrysum(self, mama_id, from_date, end_date):
+    def get_recent_days_carrysum(self, mama_id, from_date, end_date):
         query_set = self.queryset.filter(mama_id=mama_id, date_field__gte=from_date, date_field__lte=end_date).values('date_field').annotate(today_carry=Sum('carry_num'))
         sum_dict = {}
         for entry in query_set:
@@ -116,7 +116,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id)#status__gt=0
+        return self.queryset.filter(mama_id=mama_id,status__gte=0).order_by('-created')
     
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -127,21 +127,14 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         if len(datalist) > 0:
             mama_id = datalist[0].mama_id
             from_date = datalist[0].date_field
-            end_date = from_date
-        for entry in datalist:
-            date_field = entry.date_field
-            if date_field > end_date:
-                end_date = date_field
-            if date_field < from_date:
-                from_date = date_field
+            end_date = datalist[-1].date_field
         
-        ### search database to group dates and get carry_num for each group
-        
-        sum_dict = self.get_recent_10days_carrysum(mama_id, from_date, end_date)
-        for entry in datalist:
-            key = entry.date_field
-            if key in sum_dict:
-                entry.today_carry = sum_dict[key] * 0.01
+            ### search database to group dates and get carry_num for each group
+            sum_dict = self.get_recent_days_carrysum(mama_id, from_date, end_date)
+            for entry in datalist:
+                key = entry.date_field
+                if key in sum_dict:
+                    entry.today_carry = sum_dict[key] * 0.01
         
         serializer = serializers.OrderCarrySerializer(datalist, many=True)
         return Response({"ordercarry_list": serializer.data})
