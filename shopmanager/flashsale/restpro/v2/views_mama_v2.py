@@ -62,6 +62,11 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
+    def update(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+    def partial_update(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
 
 
 class CarryRecordViewSet(viewsets.ModelViewSet):
