@@ -375,7 +375,7 @@ class ClickCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'init_click_num', 'init_order_num', 'init_click_price',
                     'init_click_limit', 'confirmed_click_num', 'confirmed_order_num',
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
-                    'mixed_contributor', 'status')
+                    'mixed_contributor', 'status', 'date_field')
 admin.site.register(ClickCarry, ClickCarryAdmin)
 
 

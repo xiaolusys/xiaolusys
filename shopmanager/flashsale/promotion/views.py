@@ -250,8 +250,10 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
 
 
+from .models import AppDownloadRecord
 
-class APPDownloadView(View):
+
+class APPDownloadView(WeixinAuthMixin, View):
     """ 下载页面 """
     download_page = 'promotion/download.html'
     QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
@@ -265,6 +267,22 @@ class APPDownloadView(View):
         if "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
             url = self.QQ_YINYONGBAO_URL
             return redirect(url)
+        mm_linkid = content.get('mm_linkid', None)
+
+        if mm_linkid:
+            # 穿件下载记录
+            if self.is_from_weixin(request):  # 如果是在微信里面
+                openid, unionid = self.get_cookie_openid_and_unoinid(request)
+                if not self.valid_openid(openid) or not self.valid_openid(unionid):
+                    wxprofile = self.get_auth_userinfo(request)
+                    openid, unionid = wxprofile.get("openid"), wxprofile.get("unionid")
+                if not self.valid_openid(unionid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
+                    return redirect(self.get_wxauth_redirct_url(request))
+                # unionid 创建下载记录
+                download, state = AppDownloadRecord.objects.get_or_create(openid=openid)
+                if state:
+                    download.mm_linkid = mm_linkid
+                    download.save()
 
         appreleases = AppRelease.objects.filter(status=AppRelease.VALID).order_by('-release_time')
         android_download_link = constants.ANDROID_DOWNLOAD

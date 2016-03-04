@@ -1,6 +1,6 @@
 # coding=utf-8
 from rest_framework import serializers
-from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry,\
+from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
     ClickCarry, ActiveValue
 
 
@@ -19,7 +19,8 @@ class CarryRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CarryRecord
-        fields = ('mama_id', 'carry_value', 'carry_type', 'status', 'modified', 'created')
+        extra_kwargs = {'today_carry': {'read_only': True}}
+        fields = ('mama_id', 'carry_value', 'carry_type', 'status', 'today_carry', 'modified', 'created')
 
 
 class OrderCarrySerializer(serializers.ModelSerializer):
@@ -29,7 +30,7 @@ class OrderCarrySerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderCarry
         extra_kwargs = {'today_carry': {'read_only': True}}
-        fields = ('mama_id', 'order_id', 'order_value', 'carry_num', 'carry_type', 
+        fields = ('mama_id', 'order_id', 'order_value', 'carry_num', 'carry_type',
                   'sku_name', 'sku_img', 'contributor_nick', 'contributor_img',
                   'contributor_id', 'date_field', 'status', 'modified', 'created',
                   'today_carry',)
@@ -40,22 +41,23 @@ class AwardCarrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AwardCarry
+        extra_kwargs = {'today_carry': {'read_only': True}}
         fields = ('mama_id', 'award_num', 'award_type', 'contributor_nick', 'contributor_img',
-                  'contributor_id', 'status', 'modified', 'created')
-
+                  'contributor_id', 'status', 'today_carry', 'modified', 'created')
 
 
 class ClickCarrySerializer(serializers.ModelSerializer):
     init_click_price = serializers.FloatField(source='init_click_price_display', read_only=True)
-    confirmed_click_price  = serializers.FloatField(source='confirmed_click_price_display', read_only=True)
+    confirmed_click_price = serializers.FloatField(source='confirmed_click_price_display', read_only=True)
     total_value = serializers.FloatField(source='total_value_display', read_only=True)
 
     class Meta:
         model = ClickCarry
+        extra_kwargs = {'today_carry': {'read_only': True}}
         fields = ('mama_id', 'init_click_num', 'init_order_num', 'init_click_price',
                   'init_click_limit', 'confirmed_click_num', 'confirmed_order_num',
                   'confirmed_click_price', 'confirmed_click_limit', 'total_value',
-                  'mixed_contributor', 'status', 'modified', 'created')
+                  'mixed_contributor', 'status', 'today_carry', 'modified', 'created')
 
 
 class ActiveValueSerializer(serializers.ModelSerializer):
@@ -63,6 +65,7 @@ class ActiveValueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActiveValue
+        extra_kwargs = {'today_carry': {'read_only': True}}
         fields = ('mama_id', 'active_value', 'value_type', 'mixed_contributor',
-                  'status', 'modified', 'created')
+                  'status', 'today_carry', 'modified', 'created')
 

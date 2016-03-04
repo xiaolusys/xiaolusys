@@ -54,6 +54,12 @@ class CarryRecord(BaseModel):
     def carry_num_display(self):
         return self.carry_num * 0.01
 
+    def today_carry(self):
+        """
+        this must exists to bypass serializer check
+        """
+        return None
+
 
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'直接订单提成'),(2, u'粉丝订单提成'),(3, u'下属订单提成'),)
@@ -78,7 +84,7 @@ class OrderCarry(BaseModel):
         verbose_name_plural = u'订单提成列表'
 
     def __unicode__(self):
-        return '%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num)
+        return '%s,%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num,self.date_field)
 
     def order_value_display(self):
         return self.order_value * 0.01
@@ -91,6 +97,7 @@ class OrderCarry(BaseModel):
         this must exists to bypass serializer check
         """
         return None
+
 
 class AwardCarry(BaseModel):
     AWARD_TYPES = ((1, u'直接推荐奖励'),(2, u'/团队成员奖励'),)
@@ -111,11 +118,16 @@ class AwardCarry(BaseModel):
         verbose_name_plural = u'奖励列表'
 
     def __unicode__(self):
-        return '%s,%s,%s' % (self.mama_id, self.award_type, self.award_num)
+        return '%s,%s,%s,%s' % (self.mama_id, self.award_type, self.award_num, self.date_field)
 
     def award_num_display(self):
         return self.award_num * 0.01
-    
+
+    def today_carry(self):
+        """
+        this must exists to bypass serializer check
+        """
+        return None
     
 class ClickCarry(BaseModel):
     STATUS_TYPES = ((0, u'取消'), (1, u'待确定'), (2, u'已确定'),)
@@ -152,6 +164,11 @@ class ClickCarry(BaseModel):
     def total_value_display(self):
         return self.total_value * 0.01
 
+    def today_carry(self):
+        """
+        this must exists to bypass serializer check
+        """
+        return None
 
 class ActiveValue(BaseModel):
     VALUE_TYPES = ((1, u'点击'),(2, u'订单'), (3, u'推荐'), (4, u'粉丝'),)
@@ -176,3 +193,8 @@ class ActiveValue(BaseModel):
     def value_num_display(self):
         return self.value_num * 0.01
 
+    def today_carry(self):
+        """
+        this must exists to bypass serializer check
+        """
+        return None

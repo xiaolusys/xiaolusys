@@ -1,5 +1,6 @@
 #-*- coding:utf8 -*-
 import hashlib
+import os, settings, urlparse
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 
@@ -17,7 +18,7 @@ from .views_refund import refund_Handler
 from flashsale.pay.models import SaleTrade,Customer
 
 from . import permissions as perms
-from . import serializers 
+from . import serializers
 
 from flashsale.pay.models import SaleRefund,District,UserAddress,SaleOrder
 from django.forms import model_to_dict
@@ -67,11 +68,11 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
-    
+
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(buyer_id=customer.id)
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         queryset = queryset.order_by('created')[::-1]
@@ -107,7 +108,7 @@ class SaleRefundViewSet(viewsets.ModelViewSet):
             sale_refund = queryset[0]
             refund_dic = model_to_dict(sale_refund, fields=["id", "feedback", "buyer_id", "reason"])
         return Response(refund_dic)
-    
+
     @list_route(methods=["get"])
     def qiniu_token(self, request,**kwargs):
         q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)
@@ -151,18 +152,18 @@ class UserAddressViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
-    
+
     def get_owner_queryset(self,request):
         customer = get_object_or_404(Customer,user=request.user)
         return self.queryset.filter(cus_uid=customer.id, status=UserAddress.NORMAL).order_by('-default')
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)    
-    
-#fang kaineng  2015-7-31    
-        
+        return Response(serializer.data)
+
+#fang kaineng  2015-7-31
+
     @detail_route(methods=['post'])
     def update(self, request, *args, **kwargs):
         result = {}
@@ -199,7 +200,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
             return Response({'ret': True})
         except:
             return Response({'ret': False})
-    
+
     @detail_route(methods=['post'])
     def change_default(self, request, pk=None):
         id_default = pk
@@ -227,7 +228,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_name = content.get('receiver_name', None)
         receiver_mobile = content.get('receiver_mobile', None)
         try:
-            UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name, 
+            UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name,
                                        receiver_state=receiver_state,default=True,
                                        receiver_city=receiver_city, receiver_district=receiver_district,
                                        receiver_address=receiver_address, receiver_mobile=receiver_mobile)
@@ -259,7 +260,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.DistrictSerializer# Create your views here.
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
-    
+
     def calc_distirct_cache_key(self, view_instance, view_method,
                             request, args, kwargs):
         key_vals = ['id']
@@ -267,14 +268,14 @@ class DistrictViewSet(viewsets.ModelViewSet):
         for k,v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
                 key_maps[k] = v
-                
+
         return hashlib.sha256(u'.'.join([
                 view_instance.__module__,
                 view_instance.__class__.__name__,
                 view_method.__name__,
                 json.dumps(key_maps, sort_keys=True).encode('utf-8')
             ])).hexdigest()
-    
+
     @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -285,15 +286,15 @@ class DistrictViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)   
-    
+        return Response(serializer.data)
+
     @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def province_list(self, request, *args, **kwargs):
         queryset = District.objects.filter(grade=1)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def city_list(self, request, *args, **kwargs):
@@ -304,8 +305,8 @@ class DistrictViewSet(viewsets.ModelViewSet):
         else:
             queryset = District.objects.filter(parent_id=province_id)
             serializer = self.get_serializer(queryset, many=True)
-            return Response({"result":True,"data":serializer.data})  
-    
+            return Response({"result":True,"data":serializer.data})
+
     @cache_response(timeout=24*60*60,key_func='calc_distirct_cache_key')
     @list_route(methods=['get'])
     def country_list(self, request, *args, **kwargs):
@@ -345,11 +346,19 @@ class AppDownloadLinkViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_app_download_link(self, request):
         """ 返回有效的app下载地址 """
-        queryset = self.queryset.filter(status=AppRelease.VALID).order_by('-release_time')
-        qrcode_link = ''
-        download_link = ''
-        if queryset.exists():
-            app = queryset[0]
-            download_link = app.download_link
-            qrcode_link = app.qrcode_link
-        return Response({'download_link': download_link, 'qrcode_link': qrcode_link})
+        # queryset = self.queryset.filter(status=AppRelease.VALID).order_by('-release_time')
+        # qrcode_link = ''
+        # download_link = ''
+        # if queryset.exists():
+        #     app = queryset[0]
+        #     download_link = app.download_link
+        #     qrcode_link = app.qrcode_link
+        cotent = request.REQUEST
+        mm_linkid = cotent.get('mm_linkid', None)
+        download_url = 'www.baidu.com'
+        if mm_linkid:  # 有推荐代理的情况才记录
+            download_url = urlparse.urljoin('http://192.168.1.31:9000',
+                                            # settings.M_SITE_URL,
+                                            'sale/promotion/appdownload/?mm_linkid={0}'.format(mm_linkid))
+            # 带上参数跳转到下载页面
+        return Response({'download_url': download_url})
