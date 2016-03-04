@@ -72,7 +72,7 @@ class XLSampleApply(CacheModel):
     mobile   = models.CharField(max_length=11,null=False,db_index=True,blank=False,verbose_name=u'试用手机')
     vipcode  = models.CharField(max_length=16,db_index=True,blank=True,null=True,verbose_name=u'试用邀请码')
     status   = models.IntegerField(default=INACTIVE,choices=STATUS_CHOICES,db_index=True, verbose_name=u"状态")
-    
+
     headimgurl = models.CharField(max_length=256,null=False,blank=True,verbose_name=u'头图')
     nick = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'昵称')
     class Meta:
@@ -83,7 +83,7 @@ class XLSampleApply(CacheModel):
 
 class XLSampleOrder(CacheModel):
     """ 正式试用订单 """
-    
+
     xlsp_apply = models.IntegerField(db_index=True, verbose_name=u'试用申请id', default=0, blank=True)
     customer_id = models.CharField(max_length=64,db_index=True,verbose_name=u"用户ID")
     outer_id = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'商品编码')
@@ -91,23 +91,23 @@ class XLSampleOrder(CacheModel):
     vipcode  = models.CharField(max_length=16,null=False,db_index=True,blank=False,verbose_name=u'试用邀请码')
     problem_score = models.IntegerField(default=0, verbose_name=u"答题分数")
     status = models.IntegerField(default=0,db_index=True, verbose_name=u"中奖批次")
-    award_status  = models.BooleanField(default=False, db_index=True, verbose_name="领取奖品") 
-    
+    award_status  = models.BooleanField(default=False, db_index=True, verbose_name="领取奖品")
+
     class Meta:
         db_table = 'flashsale_promotion_sampleorder'
         verbose_name = u'推广/试用订单'
         verbose_name_plural = u'推广/试用订单列表'
-    
+
     def is_sampleorder_pass(self):
         return self.status > 0
-        
+
     def is_award_complete(self):
         return self.award_status == True
-    
+
     def award_confirm(self):
         self.award_status = True
         self.save()
-        
+
         from flashsale.pay.models_coupon_new import UserCoupon
         from flashsale.pay import constants
         user_coupon = UserCoupon()
@@ -133,5 +133,15 @@ class ReadPacket(CacheModel):
         verbose_name_plural = u'推广/活动红包列表'
 
 
+class AppDownloadRecord(BaseModel):
+    mm_linkid = models.CharField(max_length=32, db_index=True, verbose_name=u'代理专属')
+    openid = models.CharField(max_length=128, verbose_name=u'微信授权openid')
+    is_customer = models.BooleanField(default=False, verbose_name=u'是否是特卖用户')
 
+    class Meta:
+        db_table = 'flashsale_promotion_wxdownload_record'
+        verbose_name = u'微信下载记录表'
+        verbose_name_plural = u'微信下载记录表'
 
+    def __unicode__(self):
+        return self.mm_linkid

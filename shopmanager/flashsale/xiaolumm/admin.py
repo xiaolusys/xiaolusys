@@ -343,3 +343,45 @@ class FansNumberRecordAdmin(admin.ModelAdmin):
     search_fields = ['xlmm', 'xlmm_cusid']
 
 admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
+
+from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, ClickCarry, ActiveValue
+
+
+class MamaFortuneAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'mama_name')
+    search_fields = ['mama_id', 'mama_name']
+
+admin.site.register(MamaFortune, MamaFortuneAdmin)
+
+class CarryRecordAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'carry_num_display', 'carry_type', 'status')
+admin.site.register(CarryRecord, CarryRecordAdmin)
+
+
+class OrderCarryAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'order_id', 'order_value', 'carry_num', 'carry_type', 
+                    'sku_name', 'sku_img', 'contributor_nick', 'contributor_img',
+                    'contributor_id', 'status')
+admin.site.register(OrderCarry, OrderCarryAdmin)
+
+
+class AwardCarryAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'award_num', 'award_type', 'contributor_nick', 
+                    'contributor_img', 'contributor_id', 'status')
+admin.site.register(AwardCarry, AwardCarryAdmin)
+
+
+class ClickCarryAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'init_click_num', 'init_order_num', 'init_click_price',
+                    'init_click_limit', 'confirmed_click_num', 'confirmed_order_num',
+                    'confirmed_click_price', 'confirmed_click_limit', 'total_value',
+                    'mixed_contributor', 'status', 'date_field')
+admin.site.register(ClickCarry, ClickCarryAdmin)
+
+
+class ActiveValueAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'value_num', 'value_type', 'mixed_contributor', 'status')
+admin.site.register(ActiveValue, ActiveValueAdmin)
+
+
+

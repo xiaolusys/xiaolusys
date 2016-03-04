@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 from core.models import CacheModel
 from flashsale.pay.models import Customer
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord
 
 from managers import VipCodeManager
 

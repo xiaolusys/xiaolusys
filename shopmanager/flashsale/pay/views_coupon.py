@@ -1,11 +1,12 @@
 # coding=utf-8
+from django.db.models import Sum
 from .models_coupon_new import UserCoupon, CouponTemplate
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
 from django.forms import model_to_dict
-from flashsale.pay.models import SaleTrade
+from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
 from rest_framework.exceptions import APIException
 from common.modelutils import update_model_fields
 from shopback.base import log_action, CHANGE
@@ -77,3 +78,102 @@ class RefundCouponView(APIView):
         ucr = UserCoupon()
         ucr.release_by_template(**kwargs)
         return Response({'res': "ok"})
+
+
+import datetime
+
+
+def buyer_time_amount(time_from, time_to):
+    """ 计算用户的某个时间段的交易金额 """
+    orders = SaleOrder.objects.filter(pay_time__gte=time_from, pay_time__lt=time_to,
+                                      refund_status=SaleRefund.NO_REFUND,
+                                      status__in=(
+                                          SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                          SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                                          SaleOrder.TRADE_BUYER_SIGNED,
+                                          SaleOrder.TRADE_FINISHED))
+    res = orders.values('sale_trade__buyer_id').annotate(s_payment=Sum('payment'))
+    return res
+
+
+def release_coupon_with_limit(time_from, time_to, batch):
+    orders = SaleOrder.objects.filter(sale_trade__payment__gte=180.0,
+                                      pay_time__gte=time_from, pay_time__lt=time_to,
+                                      refund_status=SaleRefund.NO_REFUND,
+                                      status__in=(
+                                          SaleOrder.WAIT_SELLER_SEND_GOODS,
+                                          SaleOrder.WAIT_BUYER_CONFIRM_GOODS,
+                                          SaleOrder.TRADE_BUYER_SIGNED,
+                                          SaleOrder.TRADE_FINISHED))
+    for order in orders:
+        template_id = 23
+        buyer_id = str(order.sale_trade.buyer_id)
+        coups = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
+        if coups.count() >= batch:  # 如果发放过了则跳过
+            continue
+        coup = UserCoupon()
+        coup.release_by_template(buyer_id=buyer_id,
+                                 template_id=template_id)
+    return
+
+
+def daily_coupon_judge():
+    """
+     按照某天的成交金额计算发放优惠券
+     3月4号运行
+    """
+    # 3月2号 10 点　
+    date_3_2_from = datetime.datetime(2016, 3, 2, 10, 0, 0)
+    date_3_2_to = datetime.datetime(2016, 3, 2, 23, 59, 59)
+    batch = 1
+    release_coupon_with_limit(date_3_2_from, date_3_2_to, batch)
+
+    # 3月3号
+    date_3_3_from = datetime.datetime(2016, 3, 3, 0, 0, 0)
+    date_3_3_to = datetime.datetime(2016, 3, 3, 23, 59, 59)
+    batch = 2
+    release_coupon_with_limit(date_3_3_from, date_3_3_to, batch)
+
+    # 3月4号 10 点
+    date_3_4_from = datetime.datetime(2016, 3, 4, 0, 0, 0)
+    date_3_4_to = datetime.datetime(2016, 3, 4, 10, 0, 0)
+    batch = 3
+    release_coupon_with_limit(date_3_4_from, date_3_4_to, batch)
+    return
+
+
+def release_coupon_34(time_from=None, time_to=None):
+    """
+    ３天以上均成交１８０元以上的订单
+    3月４号运行
+    """
+    date_3_2_from = datetime.datetime(2016, 3, 2, 10, 0, 0)
+    date_3_4_to = datetime.datetime(2016, 3, 4, 10, 0, 0)
+    if time_from is None:
+        time_from = date_3_2_from
+    if time_to is None:
+        time_to = date_3_4_to
+
+    trades = SaleTrade.objects.filter(
+        pay_time__gte=time_from, pay_time__lt=time_to,
+        status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,
+                    SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
+                    SaleTrade.TRADE_BUYER_SIGNED,
+                    SaleTrade.TRADE_FINISHED))
+    res = trades.values('buyer_id').annotate(s_payment=Sum('payment'))
+
+    def filter_item(item):
+        if item.get('s_payment') >= 540:  # 180*3天
+            return item
+
+    result = filter(filter_item, res)
+    print "满足条件人数:", len(result)
+    count = 0
+    for i in result:
+        coupon = UserCoupon()
+        ss = coupon.release_by_template(buyer_id=i['buyer_id'], template_id=24)
+        if ss == 'success':
+            count += 1
+    print "发放优惠券张数：", count
+    return
+
