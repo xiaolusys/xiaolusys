@@ -49,13 +49,17 @@ class SaleTrade(BaseModel):
     ALIPAY_WAP = 'alipay_wap'
     UPMP_WAP   = 'upmp_wap'
     WALLET     = 'wallet'
+    BUDGET     = 'budget'
+    APPLE      = 'apple'
     CHANNEL_CHOICES = (
-        (WALLET,u'小鹿钱包'),
+        (BUDGET,u'小鹿钱包'),
+        (WALLET,u'妈妈钱包'),
         (WX,u'微信APP'),
         (ALIPAY,u'支付宝APP'),
         (WX_PUB,u'微支付'),
         (ALIPAY_WAP,u'支付宝'),
         (UPMP_WAP,u'银联'),
+        (APPLE,u'ApplePay'),
     )
     
     PREPAY  = 0
