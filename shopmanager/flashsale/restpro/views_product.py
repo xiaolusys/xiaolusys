@@ -622,3 +622,5 @@ class ProductShareView(generics.RetrieveAPIView):
         product_dict['share_qrcode'] = self.gen_item_share_qrcode_link(instance.id,linkid=xlmm and xlmm.id or 0)
 
         return Response(product_dict)
+
+
