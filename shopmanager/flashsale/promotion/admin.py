@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from django.contrib import admin
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord
 from .models import XLInviteCode, XLReferalRelationship, XLInviteCount
 
 
@@ -92,3 +92,14 @@ class ReadPacketAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ReadPacket, ReadPacketAdmin)
+
+
+class AppDownloadRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'mm_linkid', 'openid', 'is_customer', 'created')
+    list_display_links = ('id', 'mm_linkid')
+    list_filter = ('created', 'is_customer')
+    search_fields = ['id', 'mm_linkid']
+    list_per_page = 40
+
+
+admin.site.register(AppDownloadRecord, AppDownloadRecordAdmin)

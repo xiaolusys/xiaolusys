@@ -73,6 +73,12 @@ class Productdetail(PayBaseModel):
         assert rate >= 0 and rate <=1
         return rate 
     
+    def head_images(self):
+        return self.head_imgs.split()
+    
+    def content_images(self):
+        return self.content_imgs.split()
+    
     
 class ModelProduct(PayBaseModel):
     
@@ -135,7 +141,9 @@ class ModelProduct(PayBaseModel):
             return pro
         else:
             return None
-
+        
+    def content_images(self):
+        return self.content_imgs.split()
 
 def create_Model_Product(sender, obj, **kwargs):
     pro = obj.item_product()

@@ -10,7 +10,7 @@ from . import views
 from .views_login import flashsale_login,productlist_redirect
 from .views_address import AddressList,UserAddressDetail,DistrictList
 from .views_refund import RefundApply,RefundConfirm, RefundPopPageView
-from .views_product import productsku_quantity_view
+from .views_product import productsku_quantity_view,ProductDetailView
 from .views_order import order_flashsale,time_rank,sale_state,refund_state,refunding_state,preorder_flashsale,nextorder_flashsale,search_flashsale
 
 from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView,\
@@ -36,6 +36,7 @@ urlpatterns = (
         name="sale_home"),
     url(r'^p/(?P<pk>[0-9]+)/$', views.ProductDetail.as_view(),name="product_detail"),
     url(r'^locknum/$', sale_buyer_required(productsku_quantity_view),name="skuquantity_lock"),
+    url(r'^pdetail/(?P<pk>[0-9]+)/$', ProductDetailView.as_view(),name="pdetail_for_android"),
     
     ##############order urls################
     url(r'^orderbuy/$',sale_buyer_required(views.OrderBuyReview.as_view())),
