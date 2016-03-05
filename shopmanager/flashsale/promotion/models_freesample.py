@@ -4,7 +4,8 @@ from core.models import BaseModel,CacheModel
 from django.contrib.auth.models import User
 
 from .managers import ReadPacketManager
-
+from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.pay.models import Customer
 
 class XLFreeSample(CacheModel):
     """ 试用商品 """
@@ -134,14 +135,27 @@ class ReadPacket(CacheModel):
 
 
 class AppDownloadRecord(BaseModel):
-    mm_linkid = models.CharField(max_length=32, db_index=True, verbose_name=u'代理专属')
-    openid = models.CharField(max_length=128, verbose_name=u'微信授权openid')
-    is_customer = models.BooleanField(default=False, verbose_name=u'是否是特卖用户')
+    WAP = 0
+    WX = 1
+    QQ = 2
+
+    UFROM = ((WAP, u'WAP'), (WX, u'微信'), (QQ, u'QQ'))
+    UNUSE = 0
+    USED = 1
+
+    USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
+
+    from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
+    openid = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'微信授权openid')
+    status = models.BooleanField(default=UNUSE, choices=USE_STATUS, verbose_name=u'是否注册APP')
+    mobile = models.CharField(max_length=11, blank=True, null=True, verbose_name=u'手机号')
+    ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来自平台')
 
     class Meta:
-        db_table = 'flashsale_promotion_wxdownload_record'
-        verbose_name = u'微信下载记录表'
-        verbose_name_plural = u'微信下载记录表'
+        db_table = 'flashsale_promotion_download_record'
+        verbose_name = u'推广/下载记录表'
+        verbose_name_plural = u'推广/下载记录表'
 
     def __unicode__(self):
-        return self.mm_linkid
+        return str(self.from_customer)
+
