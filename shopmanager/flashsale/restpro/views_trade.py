@@ -676,10 +676,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile':address.receiver_mobile,
             }
         if state:
-            buyer_openid = ''
-            if channel == SaleTrade.WX_PUB:
-                buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
-                buyer_openid = buyer_openid or customer.openid
+            buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
+            buyer_openid = buyer_openid or customer.openid
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -697,10 +695,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
         sale_trade.save()
-        
-        from django_statsd.clients import statsd
-        statsd.incr('xiaolumm.prepay_count')
-        statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
+        if state:
+            from django_statsd.clients import statsd
+            statsd.incr('xiaolumm.prepay_count')
+            statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
         return sale_trade,state
     
     @rest_exception(errmsg=u'特卖订单明细创建异常')

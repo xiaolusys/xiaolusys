@@ -83,8 +83,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
     
     def get_agent_src(self, request):
-        user_agent = request.META.get('HTTP_USER_AGENT').lower()
-        if not user_agent or user_agent.find('windows') > 0:
+        user_agent = request.META.get('HTTP_USER_AGENT')
+        if not user_agent or user_agent.lower().find('windows') > 0:
             return 'windows'
         if user_agent.find('iphone') > 0:
             return 'iphone'
