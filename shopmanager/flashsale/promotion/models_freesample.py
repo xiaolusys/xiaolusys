@@ -143,11 +143,11 @@ class AppDownloadRecord(BaseModel):
     UNUSE = 0
     USED = 1
 
-    USE_STATUS = ((UNUSE, u'未使用'), (USED, u'已经使用'))
+    USE_STATUS = ((UNUSE, u'未注册'), (USED, u'已注册'))
 
     from_customer = models.IntegerField(default=0, db_index=True, verbose_name=u'来自用户')
     openid = models.CharField(max_length=128, blank=True, null=True, verbose_name=u'微信授权openid')
-    status = models.BooleanField(default=UNUSE, choices=USE_STATUS, verbose_name=u'是否是特卖用户')
+    status = models.BooleanField(default=UNUSE, choices=USE_STATUS, verbose_name=u'是否注册APP')
     mobile = models.CharField(max_length=11, blank=True, null=True, verbose_name=u'手机号')
     ufrom = models.IntegerField(default=0, choices=UFROM, verbose_name=u'来自平台')
 
