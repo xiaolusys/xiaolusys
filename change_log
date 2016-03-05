@@ -1,3 +1,5 @@
+######## 2016-03-05 ########
+alter table flashsale_refund add column ware_by int(11) NOT NULL;
 ######## 2016-02-29 ########
 alter table flashsale_refund add column channel varchar(16) NOT NULL,ADD index flashsale_refund_c3f32c33(channel);
 alter table xiaolumm_clicks add column app_key varchar(20) NOT NULL;
