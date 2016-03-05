@@ -47,11 +47,11 @@
     <!-- 这里添加商品图片 -->
     {% if product.detail.content_images %}
     {% for img in product.detail.content_images %}
-	    <img src="{{img}}"></img>
+	    <img src="{{img}}?imageMogr2/thumbnail/640/format/jpg/quality/90"></img>
 	{% endfor %}
 	{% else %}
 	{% for img in product.product_model.content_images %}
-        <img src="{{img}}"></img>
+        <img src="{{img}}?imageMogr2/thumbnail/640/format/jpg/quality/90"></img>
     {% endfor %}
 	{% endif %}
     </div>
