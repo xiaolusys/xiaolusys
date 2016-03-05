@@ -67,4 +67,5 @@ pyExcelerator==0.6.4.1
 #sudo apt-get install libjpeg-dev
 # reinstall pillow
 #pip install --no-cache-dir -I pillow
+#pip install -i http://pypi.oneapm.com/simple --upgrade oneapm-ci-sdk --trusted-host pypi.oneapm.com
   

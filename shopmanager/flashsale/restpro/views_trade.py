@@ -139,7 +139,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 shop_cart_temp.num += int(sku_num) if sku_num else 0
                 shop_cart_temp.total_fee = decimal.Decimal(shop_cart_temp.total_fee) + sku.agent_price
                 shop_cart_temp.save()
-                return Response({"result": "1"}) #购物车已经有了
+                return Response({"result": "1","code":1,"info":"购物车已存在"}) #购物车已经有了
 
             new_shop_cart = ShoppingCart()
             new_shop_cart.buyer_id = buyer_id
@@ -158,9 +158,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             for cart in queryset:
                 cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
                 cart.save()
-            return Response({"result": "2"}) #购物车没有
+            return Response({"result": "2","code":0,"info":"添加成功"}) #购物车没有
         else:
-            return Response({"result": "error"})  #未知错误
+            return Response({"result": "error","code":3,"info":"参数异常"})  #未知错误
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
