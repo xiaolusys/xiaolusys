@@ -20,6 +20,7 @@ import functions
 from shopback.items.models import Product, ProductSku
 from supplychain.supplier.models import SaleProduct
 
+
 class ChangeDetailView(View):
 
     @staticmethod
@@ -39,11 +40,13 @@ class ChangeDetailView(View):
                 id=order.chichu_id).outer_id
             if product.sale_product:
                 try:
-                    saleproduct = SaleProduct.objects.get(id=product.sale_product)
+                    saleproduct = SaleProduct.objects.get(
+                        id=product.sale_product)
                     order_dict['product_link'] = saleproduct.product_link or ''
                 except:
                     pass
             order_list_list.append(order_dict)
+
         def _sort(x):
             _M = {
                 'XS': 1001,
@@ -62,6 +65,7 @@ class ChangeDetailView(View):
             except:
                 w = _M.get(chicun) or chicun
             return x.get('product_id') or 0, w
+
         order_list_list = sorted(order_list_list, key=_sort)
 
         product_link = product_links[0] if product_links else ''
@@ -76,7 +80,8 @@ class ChangeDetailView(View):
                                    "flagofstatus": flag_of_status,
                                    "flagofquestion": flag_of_question,
                                    "flag_of_sample": flag_of_sample,
-                                   "orderdetails": order_list_list, 'product_link': product_link},
+                                   "orderdetails": order_list_list,
+                                   'product_link': product_link},
                                   context_instance=RequestContext(request))
 
     @staticmethod
@@ -92,8 +97,8 @@ class ChangeDetailView(View):
             order_list.note = order_list.note + "\n" + "-->" + datetime.datetime.now(
             ).strftime('%m月%d %H:%M') + request.user.username + ":" + remarks
             order_list.save()
-            log_action(request.user.id, order_list, CHANGE, u'%s 订货单' %
-                       (u'添加备注'))
+            log_action(request.user.id, order_list, CHANGE,
+                       u'%s 订货单' % (u'添加备注'))
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         order_list_list = []
         for order in order_details:
@@ -193,8 +198,8 @@ class ChangeDetailExportView(View):
 
     @staticmethod
     def get(request, order_detail_id):
-        headers = [u'商品编码', u'供应商编码', u'商品名称', u'图片地址', u'规格',
-                   u'购买数量', u'买入价格', u'单项价格', u'已入库数', u'次品数']
+        headers = [u'商品编码', u'供应商编码', u'商品名称', u'规格', u'购买数量', u'买入价格', u'单项价格',
+                   u'已入库数', u'次品数']
         order_list = OrderList.objects.get(id=order_detail_id)
         order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
         items = []
@@ -205,16 +210,23 @@ class ChangeDetailExportView(View):
                 id=o.chichu_id).get_supplier_outerid()
             items.append(item)
 
-        items = [map(unicode, [i['outer_id'], i['supplier_outer_id'], i['product_name'],
-                  i['pic_path'], i['product_chicun'], i['buy_quantity'],
-                  i['buy_unitprice'], i['total_price'], i['arrival_quantity'], i['inferior_quantity']]) for i in items]
+        items = [map(unicode,
+                     [i['outer_id'], i['supplier_outer_id'], i['product_name'],
+                      i['product_chicun'], i['buy_quantity'],
+                      i['buy_unitprice'], i['total_price'],
+                      i['arrival_quantity'], i['inferior_quantity']])
+                 for i in items]
         sum_of_total_price = round(sum(map(lambda x: float(x[-3]), items)), 2)
-        items.append([''] * 6 + [u'总计', unicode(sum_of_total_price)] + [''] * 2)
+        items.append([''] * 5 + [u'总计', unicode(sum_of_total_price)] + [''] * 2)
         items.insert(0, headers)
         buff = StringIO()
-        is_windows = request.META['HTTP_USER_AGENT'].lower().find('windows') >-1
-        writer = CSVUnicodeWriter(buff, encoding=is_windows and 'gbk' or 'utf-8')
+        is_windows = request.META['HTTP_USER_AGENT'].lower().find(
+            'windows') > -1
+        writer = CSVUnicodeWriter(buff,
+                                  encoding=is_windows and 'gbk' or 'utf-8')
         writer.writerows(items)
-        response = HttpResponse(buff.getvalue(), mimetype='application/octet-stream')
-        response['Content-Disposition'] = 'attachment;filename=dinghuodetail-%s.csv' % order_detail_id
+        response = HttpResponse(buff.getvalue(),
+                                mimetype='application/octet-stream')
+        response[
+            'Content-Disposition'] = 'attachment;filename=dinghuodetail-%s.csv' % order_detail_id
         return response

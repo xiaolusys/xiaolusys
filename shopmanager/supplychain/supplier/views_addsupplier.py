@@ -171,6 +171,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
                 p_150 = 100 - p_50 - p_50_150
             result_data.append({"data": one_data,
                                 "date": temp_date.strftime("%Y-%m-%d"),
+                                'schedule_id': target_sch.id if target_sch else 0,
                                 "wem_posters": wem_posters,
                                 "chd_posters": chd_posters,
                                 'n_total': n_total,
