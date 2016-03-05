@@ -118,8 +118,9 @@ INSTALLED_APPS = (
     'deamon',
     'httpproxy',
     'deamon.celery_sentry',
+    'django_statsd',
     'core.ormcache',
-
+    
     'common',
     'shopback.amounts',
     'shopback.categorys',
@@ -185,6 +186,7 @@ INSTALLED_APPS = (
     'mathfilters',
     'flashsale.promotion',
     'flashsale.apprelease',
+    'flashsale.protocol',
 
     #'test.celery',
     #'shopapp.notify',

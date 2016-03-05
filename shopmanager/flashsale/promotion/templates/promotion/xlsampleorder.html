@@ -123,7 +123,9 @@
 	  font-size: 12px;
 	  margin-bottom: 6px;
 	}
-
+    .share-text font{
+        font-size:20px;
+    }
 	.share-section{
 	  width:100%;
 	  border-radius: 6px;
@@ -192,12 +194,12 @@
       margin-left: 6px;
       margin-right: 6px;
       padding-left: 40px;
-	   font-size:20px;
+	  font-size:12px;
 	}
 	.zhongjiang-record .zj-text{
 	   margin:5px;
 	   color: #ffcf00;
-	   font-size:26px;
+	   font-size:12px;
 	}
 </style>
 {% endblock %}
@@ -264,8 +266,8 @@
       </div>
       {%else%}
       <div class="share-text">
-       <p><span>由于活动计划送出的1000个睡袋名额已全部放出,现追加500个睡袋</span></p>
-       <p><span>加油哦～现在邀请 <font style="color:#ffcf00">10</font> 位以上好友可得到睡袋哦～～</span></p>
+       <p><span>由于活动计划送出的<font style="color:#ffcf00">1000</font>个睡袋名额已全部放出<br>小鹿美美现追加<font style="color:#ffcf00">500</font>个睡袋</span></p>
+       <p><span>加油哦～现在邀请<font style="color:#ffcf00">10</font>位以上好友可获得睡袋<br>(邀请好友越多获得的机会就越大哦)～～</span></p>
       </div>
       {% endif %}
       <div>
@@ -292,6 +294,50 @@
       </div>
     </div>
     <!-- end 分享区域 -->
+    
+    <!-- start 中奖列表 -->
+    <div class="zhongjiang-section">
+      <div class="row">
+        <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-award-header.png"/>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/1/1/1602/">第一批中奖名单<span class="zj-text">89</span>名,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/2/1/1602/">第二批中奖名单<span class="zj-text">257</span>名,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/3/1/1602/">第三批中奖名单<span class="zj-text">652</span>名,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/4/1/1602/">第四批中奖名单<span class="zj-text">171</span>名,APP激活申请<span class="zj-text">15</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/5/1/1602/">第五批中奖名单<span class="zj-text">240</span>名,APP激活申请<span class="zj-text">22</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/6/1/1602/">第六批中奖名单<span class="zj-text">200</span>名,APP激活申请<span class="zj-text">22</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
+      </div>
+    </div>
+     <!-- end 中奖列表 -->
+    
     <!-- start 红包区域 -->
     {% if res.reds %}
     <div class="hongbao-section">
@@ -322,31 +368,12 @@
 	</div>
       </div>
       <div class="row" id="exchange_reds">
-	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
+	   <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
       </div>
     </div>
     {% endif %}
-    <!-- start 中奖列表 -->
-    <!-- 
-    <div class="zhongjiang-section">
-      <div class="row">
-    <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-award-header.png"/>
-      </div>
-      <div class="row">
-    <div class="col-xs-12 mix-body-bg">
-      <div class="zhongjiang-record ">
-        <p><a href="/sale/promotion/pmt_res/1/1/201602/">第一批中奖名单,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
-      </div>
+    
     </div>
-      </div>
-      <div class="row">
-        <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
-      </div>
-    </div>
-    </div>
-     -->
-     <!-- end 中奖列表 -->
-
     {% endif %}
     {% endblock %}
 
@@ -368,8 +395,8 @@
     </div>
     {% endif %}
 
-<!--
-    <div class="col-xs-12" style="text-align: center">
+
+<!--    <div class="col-xs-12" style="text-align: center">
         <h4>中奖名单</h4>
     </div>
     <div class="col-xs-12" style="text-align: center" id="short_result">

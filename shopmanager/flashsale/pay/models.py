@@ -49,13 +49,17 @@ class SaleTrade(BaseModel):
     ALIPAY_WAP = 'alipay_wap'
     UPMP_WAP   = 'upmp_wap'
     WALLET     = 'wallet'
+    BUDGET     = 'budget'
+    APPLE      = 'applepay_upacp'
     CHANNEL_CHOICES = (
-        (WALLET,u'小鹿钱包'),
+        (BUDGET,u'小鹿钱包'),
+        (WALLET,u'妈妈钱包'),
         (WX,u'微信APP'),
         (ALIPAY,u'支付宝APP'),
         (WX_PUB,u'微支付'),
         (ALIPAY_WAP,u'支付宝'),
         (UPMP_WAP,u'银联'),
+        (APPLE,u'ApplePay'),
     )
     
     PREPAY  = 0
@@ -118,7 +122,8 @@ class SaleTrade(BaseModel):
     buyer_id    = models.BigIntegerField(null=False,db_index=True,verbose_name=u'买家ID')
     buyer_nick  = models.CharField(max_length=64,blank=True,verbose_name=u'买家昵称')
     
-    channel     = models.CharField(max_length=16,choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
+    channel     = models.CharField(max_length=16,db_index=True,
+                                   choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
     
     payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
     post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
@@ -259,6 +264,9 @@ class SaleTrade(BaseModel):
             logger.error(exc.message,exc_info=True)
     
     def confirm_payment(self):
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.postpay_count')
+        statsd.incr('xiaolumm.postpay_amount',self.payment)
         signal_saletrade_pay_confirm.send(sender=SaleTrade,obj=self)
             
     def charge_confirm(self,charge_time=None):

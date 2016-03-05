@@ -6,11 +6,12 @@ import time
 import datetime
 import decimal
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.forms import UserCreationForm
-from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
 
 from rest_framework import mixins
@@ -29,6 +30,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from . import permissions as perms
 from . import serializers
 from . import options 
+from core.utils.httputils import get_client_ip
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
 import logging
@@ -36,7 +38,7 @@ logger = logging.getLogger('django.request')
 
 PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 TIME_LIMIT = 360
-
+SYSTEMOA_UID = 641
 
 def check_day_limit(reg_bean):
     if reg_bean.code_time and datetime.datetime.now().strftime('%Y-%m-%d') == reg_bean.code_time.strftime('%Y-%m-%d'):
@@ -79,45 +81,70 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
     authentication_classes = ()
     permission_classes = ()
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-
+    
+    def get_agent_src(self, request):
+        user_agent = request.META.get('HTTP_USER_AGENT')
+        if not user_agent or user_agent.lower().find('windows') > 0:
+            return 'windows'
+        if user_agent.find('iphone') > 0:
+            return 'iphone'
+        if user_agent.find('android') > 0:
+            return 'android'
+        return user_agent
+        
     def create(self, request, *args, **kwargs):
         """发送验证码时候新建register对象"""
-        mobile = request.data['vmobile']
+        mobile = request.data.get('vmobile')
         current_time = datetime.datetime.now()
         last_send_time = current_time - datetime.timedelta(seconds=TIME_LIMIT)
-        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
-            raise exceptions.APIException(u'手机号码有误')
+        if not mobile or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
+            raise exceptions.APIException(u'手机号码格式不对')
+        
+        ip = get_client_ip(request)
+        get_agent_src = self.get_agent_src(request)
+        logger.debug('register: %s, %s, %s'%(ip, mobile, get_agent_src))
+        
+        if get_agent_src == 'windows':
+            import random
+            rnum = random.randint(1,10)
+            if rnum % 2 ==1:
+                return Response({"result": "0","code":0,"info":"手机已注册"})
+            else:
+                return Response({"result": "OK","code":0,"info":"OK"})
+        
+        customers = Customer.objects.filter(mobile=mobile)
+        if customers.exists():
+            return Response({"result": "0","code":0,"info":"手机已注册"})
+            
         reg = Register.objects.filter(vmobile=mobile)
-        already_exist = Customer.objects.filter(mobile=mobile)
-        if already_exist.count() > 0:
-            return Response({"result": "0"})  # 已经有用户了
         if reg.count() > 0:
             temp_reg = reg[0]
             reg_pass = reg.filter(mobile_pass=True)
             if reg_pass.count() > 0:
-                return Response({"result": "0"})  # 已经注册过
+                return Response({"result": "0","code":0,"info":"手机已注册"})  # 已经注册过
             if check_day_limit(temp_reg):
-                return Response({"result": "2"})  #当日验证次数超过5
+                return Response({"result":"2","code":2,"info":"当日验证次数超过5"})  #当日验证次数超过5
             if temp_reg.code_time and temp_reg.code_time > last_send_time:
-                return Response({"result": "1"})  # 180s内已经发送过
+                return Response({"result":"1","code":1,"info":"180s内已经发送过"})  # 180s内已经发送过
             else:
                 temp_reg.verify_code = temp_reg.genValidCode()
                 temp_reg.code_time = current_time
                 temp_reg.save()
-                DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
-                log_action(DJUSER.id, temp_reg, CHANGE, u'修改，注册手机验证码')
+                log_action(SYSTEMOA_UID, temp_reg, CHANGE, u'修改，注册手机验证码')
                 task_register_code.s(mobile, "1")()
-                return Response({"result": "OK"})
-
-        new_reg = Register(vmobile=mobile)
-        new_reg.verify_code = new_reg.genValidCode()
-        new_reg.verify_count = 0
-        new_reg.code_time = current_time
-        new_reg.save()
-        DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
-        log_action(DJUSER.id, new_reg, ADDITION, u'新建，注册手机验证码')
-        task_register_code.s(mobile, "1")()
-        return Response({"result": "OK"})
+                return Response({"result": "OK","code":0,"info":"OK"})
+        else:
+            try:
+                new_reg = Register(vmobile=mobile)
+                new_reg.verify_code = new_reg.genValidCode()
+                new_reg.verify_count = 0
+                new_reg.code_time = current_time
+                new_reg.save()
+            except IntegrityError:
+                return Response({"result": "0","code":0,"info":"请勿重复点击"})
+            log_action(SYSTEMOA_UID, new_reg, ADDITION, u'新建，注册手机验证码')
+            task_register_code.s(mobile, "1")()
+            return Response({"result": "OK","code":0,"info":"OK"})
 
     def list(self, request, *args, **kwargs):
         return Response("not open")
@@ -172,7 +199,6 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         if mobile == "" or not re.match(PHONE_NUM_RE, mobile):  # 进行正则判断
             return Response({"result": "false"})
         reg = Register.objects.filter(vmobile=mobile)
-        DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
         if reg.count() == 0:
             new_reg = Register(vmobile=mobile)
             new_reg.verify_code = new_reg.genValidCode()
@@ -180,7 +206,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             new_reg.mobile_pass = True
             new_reg.code_time = current_time
             new_reg.save()
-            log_action(DJUSER.id, new_reg, ADDITION, u'新建，忘记密码验证码')
+            log_action(SYSTEMOA_UID, new_reg, ADDITION, u'新建，忘记密码验证码')
             task_register_code.s(mobile, "2")()
             return Response({"result": "0"})
         else:
@@ -192,7 +218,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             reg_temp.verify_code = reg_temp.genValidCode()
             reg_temp.code_time = current_time
             reg_temp.save()
-            log_action(DJUSER.id, reg_temp, CHANGE, u'修改，忘记密码验证码')
+            log_action(SYSTEMOA_UID, reg_temp, CHANGE, u'修改，忘记密码验证码')
             task_register_code.s(mobile, "2")()
         return Response({"result": "0"})
     
@@ -240,9 +266,8 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             if self.is_login(request):
                 customer.mobile = mobile
                 customer.save()
-            DJUSER, DU_STATE = DjangoUser.objects.get_or_create(username='systemoa', is_active=True)
-            log_action(DJUSER.id, already_exist[0], CHANGE, u'忘记密码，修改成功')
-            log_action(DJUSER.id, reg_temp, CHANGE, u'忘记密码，修改成功')
+            log_action(SYSTEMOA_UID, already_exist[0], CHANGE, u'忘记密码，修改成功')
+            log_action(SYSTEMOA_UID, reg_temp, CHANGE, u'忘记密码，修改成功')
         except:
             return Response({"result": "5"})
         return Response({"result": "0"})
@@ -330,7 +355,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
         for k,v in CONTENT.iteritems():
             params[k] = v
         timestamp     = params.get('timestamp')
-        if not timestamp or time.time() - int(timestamp) > 30:
+        if not timestamp or time.time() - int(timestamp) > 3600:
             return False
         origin_sign   = params.pop('sign')
         new_sign = options.gen_wxlogin_sha1_sign(params,settings.WXAPP_SECRET)

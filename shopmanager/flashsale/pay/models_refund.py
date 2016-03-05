@@ -14,7 +14,7 @@ from core.fields import JSONCharMyField
 from .base import PayBaseModel
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
-
+from .constants import CHANNEL_CHOICES
 
 
 class SaleRefund(PayBaseModel):
@@ -76,6 +76,8 @@ class SaleRefund(PayBaseModel):
     buyer_id    = models.BigIntegerField(db_index=True,default=0,verbose_name=u"客户ID")
     refund_id   = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++退款编号')
     charge      = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++支付编号')
+    channel     = models.CharField(max_length=16,db_index=True,
+                                   choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
     
     item_id      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
@@ -97,7 +99,7 @@ class SaleRefund(PayBaseModel):
     
     company_name = models.CharField(max_length=64,blank=True,verbose_name='退回快递公司')
     sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='退回快递单号')
-
+    
     reason = models.TextField(max_length=200, blank=True, verbose_name='退款原因')
     proof_pic = JSONCharMyField(max_length=10240, blank=True, null=True, verbose_name=u'佐证图片')
     desc = models.TextField(max_length=1000, blank=True, verbose_name='描述')

@@ -167,12 +167,12 @@ class WeixinAppBackend(object):
             
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,user=user)
-            if not profile.nick.strip():
+            if profile.nick == '':
                 profile.nick = params.get('nickname')
                 profile.thumbnail = params.get('headimgurl')
                 profile.save()
         
-        task_Refresh_Sale_Customer.s(params,app_key=settings.WXAPP_ID)()    
+        task_Refresh_Sale_Customer.s(params,app_key=settings.WXAPP_ID)()
         return user
     
     def get_user(self, user_id):
@@ -188,7 +188,11 @@ class SMSLoginBackend(object):
     supports_object_permissions = False
 
     def authenticate(self, request, **kwargs):
-        
+        """
+        1, get django user first;
+        2, if not,then get customer user;
+        3, if not else,then create django user
+        """
         content = request.POST
         mobile  = content.get('mobile')
         sms_code = content.get('sms_code')
@@ -199,8 +203,15 @@ class SMSLoginBackend(object):
             register = Register.objects.get(vmobile=mobile)
             if not register.is_submitable() or not register.check_code(sms_code):
                 return AnonymousUser()
-            
-            user = User.objects.get(username=mobile)
+
+            try:
+                user = User.objects.get(username=mobile)
+            except User.DoesNotExist,err:
+                customers = Customer.objects.filter(mobile=mobile)
+                if not customers.exists():
+                    raise err
+                user = customers[0].user
+
             if not user.is_active:
                 user.is_active = True
                 user.save()

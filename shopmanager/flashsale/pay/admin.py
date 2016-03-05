@@ -214,10 +214,10 @@ from .filters import Filte_By_Reason
 from .tasks import notifyTradeRefundTask
 
 class SaleRefundAdmin(admin.ModelAdmin):
-    list_display = ('refund_no', 'order_no', 'order_channel', 'title', 'refund_fee',
+    list_display = ('refund_no', 'order_no', 'channel', 'title', 'refund_fee',
                     'has_good_return', 'has_good_change', 'created','success_time', 'order_status', 'status')
 
-    list_filter = ('status', 'good_status', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
+    list_filter = ('status', 'good_status','channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
 
     search_fields = ['=refund_no','=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
@@ -229,13 +229,6 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     order_no.allow_tags = True
     order_no.short_description = "交易编号"
-
-    def order_channel(self, obj):
-        strade = SaleTrade.objects.get(id=obj.trade_id)
-        return strade.get_channel_display()
-
-    order_channel.allow_tags = True
-    order_channel.short_description = "支付方式"
     
     def order_status(self, obj):
         sorder = SaleOrder.objects.get(id=obj.order_id)

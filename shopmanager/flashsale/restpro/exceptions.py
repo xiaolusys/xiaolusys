@@ -1,10 +1,13 @@
 from __future__ import unicode_literals
+from functools import wraps
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.utils import six
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
+
+
 from rest_framework import status, exceptions
 from rest_framework.compat import HttpResponseBase, View, set_rollback
 from rest_framework.response import Response
@@ -57,8 +60,8 @@ def my_exception_handler(exc, context):
 
 def rest_exception(errmsg=''):
     def _func_wrapper(func):
+        @wraps(func)
         def _wrapper(*args,**kwargs):
-            
             try:
                 return func(*args,**kwargs)
             except Exception,exc:

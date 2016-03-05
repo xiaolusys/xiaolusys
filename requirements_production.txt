@@ -47,7 +47,7 @@ qiniu==7.0.5
 #guppy
 
 django-chartit==0.1
-  
+django-statsd-mozilla==0.3.16  
 ##########extra package(not install in the virtualenv)##########
 #virtualenv==1.8.2
 #South==1.0

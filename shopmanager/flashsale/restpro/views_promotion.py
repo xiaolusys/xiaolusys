@@ -226,14 +226,7 @@ class InviteReletionshipView(viewsets.mixins.ListModelMixin, viewsets.GenericVie
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer,)
-
+    
     def list(self, request, *args, **kwargs):
-        user = request.user
-        customer = get_object_or_404(Customer, user=user)
-        relationships = XLReferalRelationship.objects.filter(referal_from_uid=customer.id)
-        referal_uids = [rf[0] for rf in relationships.values_list('referal_uid')]
-        customers = Customer.objects.filter(id__in=referal_uids, status=Customer.NORMAL)
-        info_list = customers.values('id', 'nick', 'thumbnail')
-
-        return Response(info_list)
+        return Response([])
 

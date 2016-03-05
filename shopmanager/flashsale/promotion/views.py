@@ -138,7 +138,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         from_customer = content.get('from_customer', 1)  # 分享人的用户id
         openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
-        
+        active_start = False
         wxprofile = {}
         if self.is_from_weixin(request):  # 如果是在微信里面
             openid, unionid = self.get_cookie_openid_and_unoinid(request)
@@ -154,11 +154,11 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=wxprofile)
         else:
             openid, unionid = self.get_openid_and_unionid_by_customer(request)
-
+            
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
         title = u'小鹿美美邀您闹元宵'
-
+        
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
         xls = get_customer_apply(**{"openid": openid, "mobile":mobile})
@@ -169,14 +169,16 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             download = False
             img_src = get_product_img(0)  # 获取默认图片图片
         response = render_to_response(self.xlsampleapply,
-                                      {"vipcode": vipcode,
+                                      {"active_start":active_start,
+                                       "vipcode": vipcode,
                                        "from_customer": from_customer,
                                        "pro": pro, 
                                        "openid": openid,
                                        "wxprofile":wxprofile,
                                        "referal": referal,
                                        "title": title, "mobile": mobile,
-                                       "download": download, "img_src": img_src,
+                                       "download": download, 
+                                       "img_src": img_src,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -451,6 +453,7 @@ class XlSampleOrderView(View):
         # 如果用户已经有正式订单存在 则 直接返回分享页
         customer = get_customer(request)
         mobile = customer.mobile if customer else None
+        active_start = False
         if customer:
             outer_id = pro.outer_id
             sample_order = None
@@ -477,12 +480,15 @@ class XlSampleOrderView(View):
                     url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
                     return redirect(url)
                 
-            return render_to_response(self.order_page, {"pro": pro, 
-                                                        "res": res, 
-                                                        "title": title, 
-                                                        "img_src": img_src,
-                                                        "sample_order":sample_order},
-                                      context_instance=RequestContext(request))
+            return render_to_response(self.order_page, 
+                                      {"pro": pro, 
+                                       "res": res, 
+                                       "title": title, 
+                                       "img_src": img_src,
+                                       "active_start":active_start,
+                                       "sample_order":sample_order
+                                    },
+                                    context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
                                   context_instance=RequestContext(request))
 
@@ -567,16 +573,12 @@ class ExchangeRedToCoupon(APIView):
         except:
             return []
         return ids
-
+    
     def exchange_redpackets(self, ids=None, customer=None):
         code = 0
         reds = ReadPacket.objects.filter(id__in=ids, customer=customer, status=ReadPacket.NOT_EXCHANGE)
         sum_value = reds.aggregate(s_v=Sum('value')).get('s_v') or 0
         reds_count = reds.count()  # 红包条数
-        # if reds_count < 3:
-        #     code = 2
-        #     coupon_value = 0
-        #     return code, 0, coupon_value  # 小于3条不予兑换
         if reds_count <= 0:  # 如果红包个数小于0则直接返回
             return 2, 0, 0
         coupon_10_count = int(sum_value / 10)  # 十元优惠券条数
@@ -625,16 +627,16 @@ class PromotionResultMixin(object):
         根据月份和批次获取活动的中奖名单，pass_num:表示满足的中奖条件(激活数)
         """
         order_list = XLSampleOrder.objects.none()
-        if month == 1602 and batch == 1:
+        if month == 1602 :
             start_time = datetime.datetime(2016, 2, 22)
-            end_time   = datetime.datetime(2016, 2, 30)
-            order_list = XLSampleOrder.objects.filter(created__range=(start_time,end_time),status=1)
+            end_time   = datetime.datetime(2016, 3, 1)
+            order_list = XLSampleOrder.objects.filter(created__range=(start_time,end_time),status=batch)
 
         return order_list
     
     def get_date_tuple(self, item):
-        customer   = Customer.objects.filter(id=item.customer_id)
-        inv_cnt    = XLInviteCount.objects.filter(id=item.customer_id)
+        customer   = Customer.objects.get(id=item.customer_id)
+        inv_cnt    = XLInviteCount.objects.get(customer_id=item.customer_id)
         
         mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
         thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
@@ -654,14 +656,13 @@ class PromotionShortResult(PromotionResultMixin, APIView):
 
 
 class PromotionResult(PromotionResultMixin, APIView):
-    """
-    活动中奖结果展示
-    """
-    result_page = 'promotion/pmt_result.html'
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
-    renderer_classes = (renderers.BrowsableAPIRenderer,)
-
+    """ 活动中奖结果展示 """
+    
+    #permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = ()
+    renderer_classes = (renderers.TemplateHTMLRenderer, renderers.BrowsableAPIRenderer,)
+    template_name  =  'promotion/pmt_result.html'
+    
     def get(self, request, *args, **kwargs):
         page = int(kwargs.get('page', 1))
         batch = int(kwargs.get('batch', 1))
@@ -671,13 +672,14 @@ class PromotionResult(PromotionResultMixin, APIView):
         paginator = Paginator(order_list, num_per_page)
 
         try:
-            items = paginator.page(page)
+            result_page = paginator.page(page)
         except PageNotAnInteger:  # If page is not an integer, deliver first page.
-            items = paginator.page(1)
+            result_page = paginator.page(1)
         except EmptyPage:  # If page is out of range (e.g. 9999), deliver last page of results.
-            items = paginator.page(paginator.num_pages)
-
-        for item in items:
+            result_page = paginator.page(paginator.num_pages)
+        
+        items = []
+        for item in result_page:
             items.append(self.get_date_tuple(item))
 
         total = order_list.count()  # 总条数
@@ -689,8 +691,8 @@ class PromotionResult(PromotionResultMixin, APIView):
                'total': total, 'num_per_page': num_per_page,
                'prev_page': prev_page, 'next_page': next_page,
                'page': page, 'batch': batch, 'month': month}
-        response = render_to_response(self.result_page, res, context_instance=RequestContext(request))
-        return response
+        print 'debug res:',res['items']
+        return Response(res)
 
 
 class ReceiveAwardView(PromotionResultMixin, APIView):

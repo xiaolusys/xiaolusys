@@ -185,8 +185,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def show_carts_history(self, request, *args, **kwargs):
-        """显示该用户12个小时内购物清单历史"""
-        before = datetime.datetime.now() - datetime.timedelta(hours=12)
+        """显示该用户28个小时内购物清单历史"""
+        before = datetime.datetime.now() - datetime.timedelta(hours=28)
         customer = get_object_or_404(Customer, user=request.user)
         queryset = ShoppingCart.objects.filter(buyer_id=customer.id, status=ShoppingCart.CANCEL,
                                                modified__gt=before).order_by('-modified')
@@ -215,6 +215,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         instance.close_cart()
     
     @detail_route(methods=['post'])
+    @transaction.commit_on_success
     def plus_product_carts(self, request, pk=None):
         customer = get_object_or_404(Customer, user=request.user)
         cart_item = get_object_or_404(ShoppingCart, pk=pk, buyer_id=customer.id, status=ShoppingCart.NORMAL)
@@ -230,6 +231,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response({"status": update_status})
 
     @detail_route(methods=['post'])
+    @transaction.commit_on_success
     def minus_product_carts(self, request, pk=None, *args, **kwargs):
         cart_item = get_object_or_404(ShoppingCart, pk=pk)
         if cart_item.num <= 1:
@@ -320,9 +322,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'discount_fee':round(discount_fee,2),
                     'total_payment':round(total_payment,2),
                     'wallet_cash':wallet_cash,
+                    'budget_cash':0,
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
                     'wallet_payable':wallet_payable,
+                    'budget_payable':False,
+                    'apple_payable':False,
                     'coupon_ticket':coupon_ticket,
                     'cart_ids':','.join([str(c) for c in cart_ids]),
                     'cart_list':serializer.data,
@@ -400,9 +405,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'discount_fee':round(discount_fee,2),
                     'total_payment':round(total_payment,2),
                     'wallet_cash':wallet_cash,
+                    'budget_cash':0,
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
                     'wallet_payable':wallet_payable,
+                    'budget_payable':False,
+                    'apple_payable':False,
                     'coupon_ticket':coupon_ticket,
                     'sku':product_sku_dict,
                     'coupon_message': coupon_message}
@@ -599,7 +607,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         urows = XiaoluMama.objects.filter(
             openid=buyer_unionid,
             cash__gte=payment).update(cash=models.F('cash')-payment)
-        assert urows > 0 , u'小鹿钱包余额不足'
+        if urows == 0 :
+            return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'小鹿钱包余额不足'}
         CarryLog.objects.create(xlmm=xlmm.id,
                                 order_num=strade_id,
                                 buyer_nick=buyer_nick,
@@ -608,7 +617,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                 carry_type=CarryLog.CARRY_OUT)
         #确认付款后保存
         confirmTradeChargeTask.s(strade_id)()
-        return {'channel':channel,'success':True,'id':sale_trade.id}
+        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
     @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self, sale_trade, **kwargs):
@@ -667,10 +676,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile':address.receiver_mobile,
             }
         if state:
-            buyer_openid = ''
-            if channel == SaleTrade.WX_PUB:
-                buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
-                buyer_openid = buyer_openid or customer.openid
+            buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
+            buyer_openid = buyer_openid or customer.openid
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -688,6 +695,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
         sale_trade.save()
+        if state:
+            from django_statsd.clients import statsd
+            statsd.incr('xiaolumm.prepay_count')
+            statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
         return sale_trade,state
     
     @rest_exception(errmsg=u'特卖订单明细创建异常')

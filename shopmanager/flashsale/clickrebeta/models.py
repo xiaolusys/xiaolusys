@@ -267,8 +267,6 @@ def tongji_wxorder(sender, obj, **kwargs):
 
     ordertime = obj.order_create_time
     order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS)
-    time_from = datetime.datetime(target_time.year,target_time.month,target_time.day,0,0,0)
-    time_dayend  = datetime.datetime(target_time.year,target_time.month,target_time.day,23,59,59) 
     mm_order_amount = obj.order_total_price
     mm_rebeta_amount = 0
     mm_order_rebeta = 0
@@ -354,11 +352,43 @@ def tongji_wxorder(sender, obj, **kwargs):
 
 signals.signal_wxorder_pay_confirm.connect(tongji_wxorder, sender=WXOrder)
 
-from flashsale.pay.models import SaleTrade,SaleOrder
+from flashsale.pay.models import SaleTrade,SaleOrder,Customer
 from shopapp.weixin.models import WeixinUnionID
+from shopapp.weixin.options import get_openid_by_unionid
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
+def get_wxopenid(sale_trade,customer):
+    wx_unionid = customer.unionid
+    xd_openid  = get_openid_by_unionid(wx_unionid,settings.WXPAY_APPID)
+    return xd_openid,wx_unionid
 
+def get_xiaolumm(sale_trade, customer):
+    """ 获取小鹿妈妈 """
+    obj = sale_trade
+    ordertime       = obj.pay_time
+    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS) 
+    xd_openid, wx_unionid = get_wxopenid(sale_trade,customer)
+    
+    #计算订单所属小鹿妈妈ID
+    xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,
+                                          charge_status=XiaoluMama.CHARGED)
+    mm_linkid = 0
+    if xiaolumms.exists():
+        return xiaolumms[0]
+    else:
+        mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
+            
+    xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
+    if not xiaolu_mmset.exists():
+        if xd_openid:
+            mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
+                openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
+            mm_linkid   = get_xlmm_linkid(mm_clicks)
+            xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
+        
+    if xiaolu_mmset.exists():
+        return xiaolu_mmset[0]
+    return None
 
 def tongji_saleorder(sender, obj, **kwargs):
     """ 统计特卖订单提成 """
@@ -370,45 +400,27 @@ def tongji_saleorder(sender, obj, **kwargs):
     target_time = obj.pay_time.date()
     if target_time > today:
         target_time = today
-
-    buyer_openid = obj.get_buyer_openid() 
+    ordertime       = obj.pay_time
+    
+    customer = Customer.objects.get(id=obj.buyer_id)
+    xd_openid, wx_unionid = get_wxopenid(obj,customer)
+    if not xd_openid:
+        xd_openid = obj.receiver_mobile or str(obj.buyer_id)
     mm_order_amount   = int(obj.payment * 100)
     mm_order_rebeta	  = 0
     mm_rebeta_amount  = 0
     order_id          = obj.tid
-    order_buyer_nick  = obj.buyer_nick or '%s(%s)'%(obj.receiver_name[0:24],obj.receiver_mobile[8:11])
-    ordertime       = obj.pay_time
-    order_stat_from = ordertime - datetime.timedelta(days=CLICK_VALID_DAYS) 
+    order_buyer_nick  = obj.buyer_nick or '%s(%s)'%(
+                            obj.receiver_name[0:24],
+                            obj.receiver_mobile[8:11]
+                        )
     
-    wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
-    if not wx_unionid:
-        wx_unionid = obj.receiver_mobile or str(obj.buyer_id)
-    xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
-    xd_openid  = wx_unionid
-    if xd_unoins.count() > 0:
-        xd_openid = xd_unoins[0].openid
-    #计算订单所属小鹿妈妈ID
-    xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,charge_status=XiaoluMama.CHARGED)
-    mm_linkid = 0
-    if xiaolumms.exists():
-        mm_linkid = xiaolumms[0].id
-    else:
-        if isinstance(obj.extras_info,dict):
-            mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
-        else:
-            import logging
-            logger = logging.getLogger('django.request')
-            logger.error('tongji saletrade.extras_info error:%s'%obj)
-            
-    xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
-    if not xiaolu_mmset.exists():
-        mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
-            openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
-        mm_linkid   = get_xlmm_linkid(mm_clicks)
-        xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
-        
-    if xiaolu_mmset.exists():
-        xiaolu_mm = xiaolu_mmset[0]
+    xiaolu_mm = customer.get_referal_xlmm()
+    if not xiaolu_mm:
+        xiaolu_mm = get_xiaolumm(obj, customer)
+    mm_linkid = xiaolu_mm and xiaolu_mm.id or 0
+    
+    if xiaolu_mm:
         #计算小鹿妈妈订单返利
         mm_rebeta_amount    = xiaolu_mm.get_Mama_Trade_Amount(obj)
         mm_order_rebeta     = xiaolu_mm.get_Mama_Trade_Rebeta(obj)
@@ -433,7 +445,6 @@ def tongji_saleorder(sender, obj, **kwargs):
             daytongji.orderamountcount = mm_order_amount
             daytongji.todayamountcount = mm_order_rebeta
             daytongji.save()
-
     else:
         StatisticsShopping(linkid=0,
                            openid=xd_openid,

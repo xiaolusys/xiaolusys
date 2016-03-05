@@ -23,7 +23,8 @@ class Clicks(models.Model):
     CLICK_DAY_LIMIT = 1 #MM_CLICK_DAY_LIMIT
         
     linkid = models.IntegerField(default=0,db_index=True,verbose_name=u"链接ID")
-    openid = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u"OpenId")
+    openid = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u"OpenId")
+    app_key = models.CharField(max_length=20,blank=True,verbose_name=u"APP KEY")
     isvalid = models.BooleanField(default=False,verbose_name='是否有效')
     click_time = models.DateTimeField(db_index=True,verbose_name=u'点击时间')
     created = models.DateTimeField(auto_now_add=True,verbose_name=u'创建时间')

@@ -19,17 +19,17 @@ class Register(PayBaseModel):
     
     id    = BigIntegerAutoField(primary_key=True,verbose_name=u'ID')
     cus_uid      = models.BigIntegerField(db_index=True,default=0,null=True,verbose_name=u"客户ID")
-    vmobile      = models.CharField(max_length=11,blank=True,verbose_name=u"待验证手机")
+    vmobile      = models.CharField(max_length=11,unique=True,blank=True,verbose_name=u"待验证手机")
     verify_code  = models.CharField(max_length=8,blank=True,verbose_name=u"验证码")
     
-    vemail       = models.CharField(max_length=8,blank=True,verbose_name=u"待验证邮箱")
+    vemail       = models.CharField(max_length=8,db_index=True,blank=True,verbose_name=u"待验证邮箱")
     mail_code     = models.CharField(max_length=128,blank=True,verbose_name=u"邮箱验证码")
     
     verify_count  = models.IntegerField(default=0,verbose_name=u'验证次数')
     submit_count  = models.IntegerField(default=0,verbose_name=u'提交次数')
     
-    mobile_pass   = models.BooleanField(default=False,verbose_name=u"手机验证通过")
-    mail_pass     = models.BooleanField(default=False,verbose_name=u"邮箱验证通过")
+    mobile_pass   = models.BooleanField(default=False,db_index=True,verbose_name=u"手机验证通过")
+    mail_pass     = models.BooleanField(default=False,db_index=True,verbose_name=u"邮箱验证通过")
     
     code_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'短信发送时间')
     mail_time  = models.DateTimeField(blank=True,null=True,verbose_name=u'邮件发送时间')
@@ -146,7 +146,7 @@ class Customer(PayBaseModel):
         return None
     
     def getXiaolumm(self):
-        
+        """ 获取当前用户对应的小鹿妈妈 """
         if not self.unionid:
             return None
         from flashsale.xiaolumm.models import XiaoluMama
@@ -154,7 +154,18 @@ class Customer(PayBaseModel):
             return XiaoluMama.objects.get(openid=self.unionid, charge_status=XiaoluMama.CHARGED)
         except XiaoluMama.DoesNotExist:
             return None
-        
+    
+    def get_referal_xlmm(self):
+        """ 获取当前用户被推荐小鹿妈妈 """
+        from flashsale.xiaolumm.models_fans import XlmmFans
+        from flashsale.xiaolumm.models import XiaoluMama
+        try:
+            xlmm_fan = XlmmFans.objects.get(fans_cusid=self.id)
+        except XlmmFans.DoesNotExist:
+            return None
+        return XiaoluMama.objects.get(id=xlmm_fan.xlmm)
+            
+            
     def get_openid_and_unoinid_by_appkey(self,appkey):
         if not self.unionid.strip():
             return ('','')
@@ -176,7 +187,7 @@ class Customer(PayBaseModel):
         """ 是否关注微信公众号 ,存在关注记录返回1否则返回0 """
         from shopapp.weixin.models import WeixinUnionID
         try:
-            wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.unionid)
+            WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID, unionid=self.unionid)
             return 1
         except WeixinUnionID.DoesNotExist:
             return 0

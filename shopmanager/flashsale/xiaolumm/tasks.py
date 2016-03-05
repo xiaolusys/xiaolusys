@@ -125,7 +125,7 @@ def order_Red_Packet_Pending_Carry(xlmm, target_date):
 
     mama = XiaoluMama.objects.get(id=xlmm)
     # 第二批代理升级后是不发首单和十单红包　　这里要判断　接管时间　8月25　之后的妈妈　不去发放红包
-    if mama.agencylevel != 2 or mama.charge_time > endtime:
+    if mama.agencylevel != 2 or not mama.charge_time or  mama.charge_time > endtime:
         return
     red_packet, state = OrderRedPacket.objects.get_or_create(xlmm=xlmm)
     # 据要求2015-07-11 修改为 按照人数来发放红包

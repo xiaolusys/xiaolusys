@@ -50,7 +50,8 @@ class XlmmFansManager(models.Manager):
         if hasattr(super_fans, 'get_query_set'):
             return super_fans.get_query_set()
         return super_fans.get_queryset()
-
+    
+        
     def record_fans_num(self, xlmm, xlmm_cusid):
         from flashsale.xiaolumm.models_fans import FansNumberRecord
 
@@ -68,7 +69,7 @@ class XlmmFansManager(models.Manager):
         # print "from_customer", from_customer, "customer", customer
         from flashsale.pay.models import Customer
 
-        if from_customer == customer:
+        if int(from_customer) == int(customer):
             return
 
         current_cu = Customer.objects.get(pk=customer)
