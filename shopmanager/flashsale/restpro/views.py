@@ -166,31 +166,30 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 #fang kaineng  2015-7-31
 
     @detail_route(methods=['post'])
-    def update(self, request, *args, **kwargs):
+    def update(self, request, pk, *args, **kwargs):
         result = {}
         customer = get_object_or_404(Customer,user=request.user)
-        customer_id=customer.id     #  获取用户id
         content = request.REQUEST
-        id = content.get('id',None)
         receiver_state = content.get('receiver_state',None)
         receiver_city = content.get('receiver_city',None)
         receiver_district = content.get('receiver_district',None)
         receiver_address= content.get('receiver_address',None)
         receiver_name=content.get('receiver_name',None)
         receiver_mobile=content.get('receiver_mobile',None)
-        try:
-            UserAddress.objects.filter(id=id).update(
-            cus_uid=customer_id,
+
+        urows = UserAddress.objects.filter(pk=pk).update(
+            cus_uid=customer.id,
             receiver_name=receiver_name,
             receiver_state=receiver_state,
             receiver_city=receiver_city,
             receiver_district=receiver_district,
             receiver_address=receiver_address,
-            receiver_mobile=receiver_mobile)
-            result['ret'] = True
-        except:
-            result['ret'] = False
-        return Response(result)
+            receiver_mobile=receiver_mobile
+        )
+        if urows > 0:
+            return Response({'ret':True,'code':0, 'info':'更新成功'})
+        
+        return Response({'ret':False,'code':1, 'info':'更新失败'})
 
     @detail_route(methods=["post"])
     def delete_address(self, request, pk=None):
