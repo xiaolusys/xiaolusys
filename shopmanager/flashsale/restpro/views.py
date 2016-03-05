@@ -21,6 +21,7 @@ from . import permissions as perms
 from . import serializers
 
 from flashsale.pay.models import SaleRefund,District,UserAddress,SaleOrder
+from flashsale.xiaolumm.models import XiaoluMama
 from django.forms import model_to_dict
 import json
 
@@ -323,7 +324,10 @@ class DistrictViewSet(viewsets.ModelViewSet):
             return Response({"result":True,"data":serializer.data})
 
 
-class AppDownloadLinkViewSet(viewsets.ModelViewSet):
+from core.weixin.mixins import WeixinAuthMixin
+
+
+class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
     """
     获取有效App下载地址
     """
@@ -346,19 +350,22 @@ class AppDownloadLinkViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def get_app_download_link(self, request):
         """ 返回有效的app下载地址 """
-        # queryset = self.queryset.filter(status=AppRelease.VALID).order_by('-release_time')
-        # qrcode_link = ''
-        # download_link = ''
-        # if queryset.exists():
-        #     app = queryset[0]
-        #     download_link = app.download_link
-        #     qrcode_link = app.qrcode_link
         cotent = request.REQUEST
         mm_linkid = cotent.get('mm_linkid', None)
-        download_url = 'www.baidu.com'
-        if mm_linkid:  # 有推荐代理的情况才记录
+        if mm_linkid is None:
+            download_url = urlparse.urljoin('http://192.168.1.31:9000',  # settings.M_SITE_URL,
+                                            'sale/promotion/appdownload/')  # 如果没有找到
+            return Response({'download_url': download_url})
+        else:  # 有推荐代理的情况才记录
+            try:
+                xlmm = XiaoluMama.objects.get(pk=mm_linkid)
+                from_customer = Customer.objects.get(unionid=xlmm.openid)
+            except:
+                download_url = urlparse.urljoin('http://192.168.1.31:9000',  # settings.M_SITE_URL,
+                                                'sale/promotion/appdownload/')  # 如果没有找到
+                return Response({'download_url': download_url})
+            # 带上参数跳转到下载页面
             download_url = urlparse.urljoin('http://192.168.1.31:9000',
                                             # settings.M_SITE_URL,
-                                            'sale/promotion/appdownload/?mm_linkid={0}'.format(mm_linkid))
-            # 带上参数跳转到下载页面
-        return Response({'download_url': download_url})
+                                            'sale/promotion/appdownload/?from_customer={0}'.format(from_customer.id))
+            return Response({'download_url': download_url})

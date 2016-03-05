@@ -260,17 +260,9 @@ class APPDownloadView(WeixinAuthMixin, View):
 
     def get(self, request):
         content = request.REQUEST
-        vipcode = content.get("vipcode", None)  # 活动邀请码
-        from_customer = content.get("from_customer", None)  # 分享人的用户id
-        url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
-        agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
-        if "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
-            url = self.QQ_YINYONGBAO_URL
-            return redirect(url)
-        mm_linkid = content.get('mm_linkid', None)
-
-        if mm_linkid:
-            # 穿件下载记录
+        from_customer = content.get('from_customer', None)  # 分享人的用户id
+        mobile = content.get('mobile', None)
+        if from_customer:  # 创建下载记录
             if self.is_from_weixin(request):  # 如果是在微信里面
                 openid, unionid = self.get_cookie_openid_and_unoinid(request)
                 if not self.valid_openid(openid) or not self.valid_openid(unionid):
@@ -278,11 +270,25 @@ class APPDownloadView(WeixinAuthMixin, View):
                     openid, unionid = wxprofile.get("openid"), wxprofile.get("unionid")
                 if not self.valid_openid(unionid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
                     return redirect(self.get_wxauth_redirct_url(request))
-                # unionid 创建下载记录
-                download, state = AppDownloadRecord.objects.get_or_create(openid=openid)
-                if state:
-                    download.mm_linkid = mm_linkid
-                    download.save()
+                if openid:  # openid 创建下载记录
+                    download, state = AppDownloadRecord.objects.get_or_create(openid=openid)
+                    if state:
+                        download.from_customer = int(from_customer)
+                        download.ufrom = AppDownloadRecord.WX
+                        download.mobile = mobile
+                        download.save()
+                else:
+                    if mobile:
+                        download, state = AppDownloadRecord.objects.get_or_create(openid=openid)
+                        if state:
+                            download.from_customer = int(from_customer)
+                            download.ufrom = AppDownloadRecord.WAP
+                            download.save()
+
+        agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
+        if "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
+            url = self.QQ_YINYONGBAO_URL
+            return redirect(url)
 
         appreleases = AppRelease.objects.filter(status=AppRelease.VALID).order_by('-release_time')
         android_download_link = constants.ANDROID_DOWNLOAD
@@ -294,7 +300,7 @@ class APPDownloadView(WeixinAuthMixin, View):
         qrcode_ios_download = constants.APP_STORE_DOWNLOAD_QRCODE
         ios_download_link = constants.APP_STORE_DOWNLOAD
         return render_to_response(self.download_page,
-                                  {"vipcode": vipcode, "from_customer": from_customer,
+                                  {"from_customer": from_customer,
                                    "qrcode_android_download": qrcode_android_download,
                                    "android_download_link": android_download_link,
                                    "qrcode_ios_download": qrcode_ios_download,
