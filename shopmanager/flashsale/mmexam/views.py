@@ -24,7 +24,7 @@ def index(request):
     dt = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=36000),
                                     "%a, %d-%b-%Y %H:%M:%S GMT")
     data = {"start_question": START_QUESTION_NO}  # 设置开始题号
-    response = render_to_response("index.html", data, context_instance=RequestContext(request))
+    response = render_to_response("mmexam/index.html", data, context_instance=RequestContext(request))
     response.set_cookie("unionid", user_unionid, expires=dt)
     return response
 
@@ -44,7 +44,7 @@ def exam(request, question_id):
         number = request.POST.get('number')
         rightanswer = prequestion.real_answer
         if answer != rightanswer:  # 答案不正确　返回提示
-            return render(request, 'mmexam_exam.html',
+            return render(request, 'mmexam/mmexam_exam.html',
                           {'question': prequestion, 'result': "答案不正确，请参考培训资料，寻找正确答案", 'number': number})
         else:  # 回答正确
             try:
@@ -54,19 +54,19 @@ def exam(request, question_id):
                     result, state = Result.objects.get_or_create(daili_user=user)
                     result.funish_Exam()
                     xlmm_id = get_object_or_404(XiaoluMama, openid=user).id
-                    return render(request, 'success_exam.html', {"xlmm": xlmm_id})
+                    return render(request, 'mmexam/success_exam.html', {"xlmm": xlmm_id})
                 else:  # 回答正确进入下一题
                     number = int(number) + 1  # 题号加１
                     question = get_object_or_404(Question, pk=question_id)
-                    return render(request, 'mmexam_exam.html', {'question': question, 'result': "", 'number': number})
+                    return render(request, 'mmexam/mmexam_exam.html', {'question': question, 'result': "", 'number': number})
             except:  # 出现异常
                 question = get_object_or_404(Question, pk=START_QUESTION_NO)
-                return render(request, 'mmexam_exam.html',
+                return render(request, 'mmexam/mmexam_exam.html',
                               {'result': "操作异常请重新开始考试", 'number': 1, 'question': question})
     else:
         if int(question_id) == START_QUESTION_NO:
             question = get_object_or_404(Question, pk=question_id)
-            return render(request, 'mmexam_exam.html',
+            return render(request, 'mmexam/mmexam_exam.html',
                           {'question': question, 'result': "", 'number': 1})
         else:  # 如果题号不是开始题号则重定向从头开始
             return redirect("/sale/exam/")

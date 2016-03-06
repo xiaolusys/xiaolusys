@@ -3,6 +3,7 @@
 from django.db import models
 from .base import PayBaseModel
 
+
 class CustomerShops(PayBaseModel):
     """
     用户店铺: 存储用户的＂我的店铺＂信息
@@ -17,6 +18,15 @@ class CustomerShops(PayBaseModel):
 
     def __unicode__(self):
         return u'%s-%s' % (self.id, self.customer)
+
+    def get_customer(self):
+        """获取用户"""
+        from flashsale.pay.models import Customer
+        try:
+            customer = Customer.objects.get(id=self.customer)
+            return customer
+        except Customer.DoesNotExist:
+            None
 
 
 class CuShopPros(PayBaseModel):

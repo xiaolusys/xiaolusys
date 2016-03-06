@@ -9,7 +9,7 @@ function sharePage(){
         data: "",
         success: listenWeixinShareEvent,
         error: function (data) {
-            drawToast('需登陆后才能分享专属链接');
+            console.log('error:',data);
         }
     });
 }
@@ -23,7 +23,7 @@ function shareModelPage(model_id){
         data: {model_id:model_id},
         success: listenWeixinShareEvent,
         error: function (data) {
-            drawToast('需登陆后才能分享专属链接');
+            console.log('error:',data);
         }
     });
 }
@@ -37,7 +37,7 @@ function shareDetailPage(product_id){
         data: {product_id:product_id},
         success: listenWeixinShareEvent,
         error: function (data) {
-            drawToast('需登陆后才能分享专属链接');
+            console.log('error:',data);
         }
     });
 }

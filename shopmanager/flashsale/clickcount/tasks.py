@@ -20,7 +20,7 @@ CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,15,10)
 CLICK_MAX_LIMIT_DATE  = datetime.date(2015,6,5)
 
 @task()
-def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
+def task_Create_Click_Record(xlmmid,openid,unionid,click_time,app_key):
     """
     异步保存妈妈分享点击记录
     xlmm_id:小鹿妈妈id,
@@ -42,32 +42,42 @@ def task_Create_Click_Record(xlmmid,openid,unionid,click_time):
     if click_count < Clicks.CLICK_DAY_LIMIT and xlmms.count() > 0 and xlmmid not in click_linkids:
         isvalid = True
         
-    click = Clicks.objects.create(linkid=xlmmid,openid=openid,isvalid=isvalid,click_time=click_time)
+    click = Clicks.objects.create(
+        linkid=xlmmid,
+        openid=openid,
+        isvalid=isvalid,
+        click_time=click_time,
+        app_key=app_key
+    )
     if unionid:
-        WeixinUnionID.objects.get_or_create(openid=openid,app_key=settings.WEIXIN_APPID,unionid=unionid)
-    
-    return click
+        WeixinUnionID.objects.get_or_create(openid=openid,app_key=app_key,unionid=unionid)
+        
+    return click.id
 
 @task()
-def task_Update_User_Click(click, *args, **kwargs):
+def task_Update_User_Click(click_id, *args, **kwargs):
     
-    openid = click.openid
-    wxunoins = WeixinUnionID.objects.filter(openid=openid,app_key=settings.WEIXIN_APPID)
+    click = Clicks.objects.get(id=click_id)
+    openid  = click.openid
+    app_key = click.app_key
+    click_time = click.click_time
+    wxunoins = WeixinUnionID.objects.filter(openid=openid,app_key=app_key)
     if not wxunoins.exists():
         return 
     
-    user_click,state = UserClicks.objects.get_or_create(unoinid=wxunoins[0].unionid)
+    unionid = wxunoins[0].unionid
+    user_click,state = UserClicks.objects.get_or_create(unoinid=unionid)
     params  = {}
     if (not user_click.click_end_time or 
-        (click.click_time > user_click.click_end_time and
-        click.click_time.date() != user_click.click_end_time.date())):
+        (click_time > user_click.click_end_time and
+         click_time.date() != user_click.click_end_time.date())):
         params.update(visit_days = F('visit_days') + 1)
     
-    if not user_click.click_start_time or user_click.click_start_time > click.click_time:
-        params.update(click_start_time = click.click_time)
+    if not user_click.click_start_time or user_click.click_start_time > click_time:
+        params.update(click_start_time = click_time)
     
-    if not user_click.click_end_time or user_click.click_end_time < click.click_time:
-        params.update(click_end_time = click.click_time)
+    if not user_click.click_end_time or user_click.click_end_time < click_time:
+        params.update(click_end_time = click_time)
     
     update_model_change_fields(user_click,update_params=params)
     

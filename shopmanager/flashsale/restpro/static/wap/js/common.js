@@ -118,7 +118,8 @@ var GLConfig = {
     api_share_product:'/share/product.json',//分享商品详情页
     change_hot_val: "/saleproduct/{{ id }}/change_hot_val",   //添加热度值
     hot_product: "/hotproduct",   //获取特卖选品列表
-    change_hot_pro_hot_val: "/hotproduct/{{ id }}/change_hot_val"   //添加热度值
+    change_hot_pro_hot_val: "/hotproduct/{{ id }}/change_hot_val",   //添加热度值
+    app_download: "/download/get_app_download_link"   //添加热度值
 };
 
 var s;

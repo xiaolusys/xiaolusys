@@ -15,8 +15,18 @@ $(function () {
         var checkbox_group_id = '#' + $(this).val();
         if($(this).prop('checked'))
             $(checkbox_group_id).show();
-        else
+        else{
+            $(checkbox_group_id+' :checkbox').prop('checked', false);
             $(checkbox_group_id).hide();
+        }
+    });
+    $('#no-chima').change(function(){
+        if($(this).prop('checked')){
+            $('#chima-table').hide();
+        }
+        else{
+            $('#chima-table').show();
+        }
     });
 
     var urlParams = parseUrlParams(window.location.href);
@@ -123,10 +133,10 @@ function showCategory(first_cate, second_cate, third_cate) {
     if(['上装', '外套', '连衣裙'].indexOf(level_3_name) != -1){
         $('#chima-group-1-choose').trigger('click');
         if(['上装', '外套'].indexOf(level_3_name) != -1){
-            $('input[value="衣长"], input[value="肩宽"], input[value="袖长"], input[value="胸围"]').trigger('click');
+            $('input[value="衣长"], input[value="肩宽"], input[value="袖长"], #chima-group-1 input[value="胸围"]').trigger('click');
         }
         else{
-            $('input[value="裙长"], input[value="肩宽"], input[value="袖长"], input[value="胸围"]').trigger('click');
+            $('#chima-group-1 input[value="裙长"], input[value="肩宽"], input[value="袖长"], #chima-group-1 input[value="胸围"]').trigger('click');
         }
     }
     else if(level_3_name == '下装'){
@@ -332,7 +342,7 @@ function submit_data() {
         swal("tips", "请填写完整的基本信息(^_^)", "error");
         return
     }
-    var all_input = $("table input");
+    var all_input = $("table:visible input");
     for (var i = 0; i < all_input.length; i++) {
         if (all_input.eq(i).val().trim() == "") {
             swal("tips", "请填写完整的商品数据(^_^)", "error");

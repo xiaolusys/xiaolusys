@@ -154,16 +154,18 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     def get_fans_list(self, request):
         """ 获取小鹿妈妈的粉丝列表 """
         customer = get_object_or_404(Customer, user=request.user)
-        fans_cuids = XlmmFans.objects.filter(xlmm_cusid=customer.id).values('fans_cusid')
-        fanscus_queryset = Customer.objects.filter(id__in=fans_cuids)
-        page = self.paginate_queryset(fanscus_queryset)
+        xlmm_fans = XlmmFans.objects.filter(xlmm_cusid=customer.id).order_by('created')
+        page = self.paginate_queryset(xlmm_fans)
         if page is not None:
-            serializer = serializers.XlmmFansCustomerInfoSerialize(page,
-                                                                   many=True,
-                                                                   context={'request': request})
-            return self.get_paginated_response(serializer.data)
-        serializer = serializers.XlmmFansCustomerInfoSerialize(fanscus_queryset, many=True)
-        return Response(serializer.data)
+            fans_cusids = [p.fans_cusid for p in page]
+            customers = Customer.objects.filter(id__in=fans_cusids)
+            data = customers.values('id', 'nick', 'thumbnail')
+            return self.get_paginated_response(data)
+        
+        fans_cusids = [cus[0] for cus in xlmm_fans.values('fans_cusid')]
+        customers = Customer.objects.filter(id__in=fans_cusids)
+        data = customers.values('id', 'nick', 'thumbnail')
+        return Response(data)
 
 
 class CarryLogViewSet(viewsets.ModelViewSet):
@@ -247,14 +249,25 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         return Response(clgs)
 
     def list(self, request, *args, **kwargs):
+        """
+        2016-2-29 ，　由于前端接口判定为收益接口，　本接口只能过滤处收益内容！！！
+        """
         queryset = self.filter_queryset(self.get_owner_queryset(request))
+        queryset = queryset.filter(carry_type=CarryLog.CARRY_IN,
+                                   log_type__in=(
+                                       CarryLog.ORDER_REBETA, CarryLog.CLICK_REBETA,
+                                       CarryLog.THOUSAND_REBETA, CarryLog.AGENCY_SUBSIDY,
+                                       CarryLog.MAMA_RECRUIT, CarryLog.ORDER_RED_PAC,
+                                       CarryLog.FANSCARRY, CarryLog.GROUPBONUS,
+                                       CarryLog.ACTIVITY
+                                   ))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     @list_route(methods=['get'])
     def get_clk_list(self, request):
         queryset = self.filter_queryset(self.get_owner_queryset(request))
@@ -266,10 +279,10 @@ class CarryLogViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
+
     def create(self, request, *args, **kwargs):
         return Response()
-    
+
     @list_route(methods=['get'])
     def list_base_data(self, request):
         """  账户基本信息页面显示　"""
@@ -290,7 +303,8 @@ class CarryLogViewSet(viewsets.ModelViewSet):
         pdc = (qst_pending.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0
         data = {"mci": mci, "mco": mco, "ymci": ymci, "ymco": ymco, "pdc": pdc}
         return Response(data)
-    
+
+
 class ClickCountViewSet(viewsets.ModelViewSet):
     """
     ## 特卖平台－小鹿妈妈点击API:
@@ -436,7 +450,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    cashout_type = {"c1": 100, "c2": 200}
+    cashout_type = {"c1": 10000, "c2": 20000}
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -469,7 +483,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
         try:
-            could_cash_out = xlmm.get_cash_iters()  # 可以提现的金额
+            could_cash_out = xlmm.get_cash_iters() * 100  # 可以提现的金额(分为单位)
         except Exception, exc:
             raise APIException(u'{0}'.format(exc.message))
         queryset = self.filter_queryset(self.get_owner_queryset(request))

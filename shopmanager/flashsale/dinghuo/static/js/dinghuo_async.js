@@ -2,6 +2,11 @@
 function hereDoc(f) {
     return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
 }
+
+function expand(el){
+    $(el).closest('div.row').find('table').toggle();
+}
+
 //字符串模板
 String.prototype.template = function (data) {
     var str = this;
@@ -61,11 +66,15 @@ function get_data() {
                     var products = supplier[1];
                     var supplier_id = products[0][1][0].supplier_id;
                     var supplier_name = products[0][1][0].supplier_name;
+                    var supplier_contact = products[0][1][0].supplier_contact;
+                    var username = products[0][1][0].username;
                     if(!supplier_id)
                         supplier_name = '未知供应商';
                     var table_dom = $(create_table_dom({
                         supplier_id: supplier_id,
-                        supplier_name: supplier_name
+                        supplier_name: supplier_name,
+                        supplier_contact: supplier_contact,
+                        username: username
                     }));
                     var tb = table_dom.find('tbody');
                     $.each(products, function(index, product){
@@ -120,8 +129,17 @@ function create_table_dom(obj){
     function table_dom(){
         /*
          <div class="row">
-         <h2>{{ supplier_name }}</h2>
-         <table class="table table-bordered">
+         <h2>
+             {{ supplier_name }}
+             <span style="font-size:70%">
+                 {{ supplier_contact }}
+             </span>
+             <span style="font-size:70%">
+                 {{ username }}
+             </span>
+             <a href="javascript:;" onclick="expand(this);" style="font-size: 50%; color:#01b5a2">展开</a>
+         </h2>
+         <table class="table table-bordered" style="display:none">
          <thead style="background-color:#01B5A2;">
          <th width="250px">
          商品信息<br>

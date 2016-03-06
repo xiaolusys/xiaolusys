@@ -194,12 +194,12 @@
       margin-left: 6px;
       margin-right: 6px;
       padding-left: 40px;
-	   font-size:20px;
+	  font-size:12px;
 	}
 	.zhongjiang-record .zj-text{
 	   margin:5px;
 	   color: #ffcf00;
-	   font-size:26px;
+	   font-size:12px;
 	}
 </style>
 {% endblock %}
@@ -294,6 +294,50 @@
       </div>
     </div>
     <!-- end 分享区域 -->
+    
+    <!-- start 中奖列表 -->
+    <div class="zhongjiang-section">
+      <div class="row">
+        <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-award-header.png"/>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/1/1/1602/">第一批中奖名单<span class="zj-text">89</span>名,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/2/1/1602/">第二批中奖名单<span class="zj-text">257</span>名,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/3/1/1602/">第三批中奖名单<span class="zj-text">652</span>名,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/4/1/1602/">第四批中奖名单<span class="zj-text">171</span>名,APP激活申请<span class="zj-text">15</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/5/1/1602/">第五批中奖名单<span class="zj-text">240</span>名,APP激活申请<span class="zj-text">22</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+        <div class="col-xs-12 mix-body-bg">
+          <div class="zhongjiang-record ">
+            <p><a href="/sale/promotion/result/6/1/1602/">第六批中奖名单<span class="zj-text">200</span>名,APP激活申请<span class="zj-text">22</span>人数以上 &gt;&gt;</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
+      </div>
+    </div>
+     <!-- end 中奖列表 -->
+    
     <!-- start 红包区域 -->
     {% if res.reds %}
     <div class="hongbao-section">
@@ -306,38 +350,30 @@
 	  {% for red in res.reds %}
 	  <div class="hongbao-record ">
 	    <span class="hongbao-time reds_content" cid="{{ red.id }}">{{ red.created }}</span></br>
-	    <span class="hongbao-text">{{ red.content }}</span>
+	    <span class="hongbao-text">{{ red.content }}；{{ red.get_status_display }}</span>
 	  </div>
 	  {% endfor %}
-    <span id="exchange_reds" hidden="hidden">点击兑换</span>
+    <div style="text-align: center;color: red"><span >兑换优惠券</span></div>
+    <div style="text-align: left;color: white;font-size: 10px">
+        <p>
+            兑换优惠券说明: <br/>
+            1. 兑换优惠券是将没有兑换过的红包全部兑换成优惠券; <br/>
+            2. 红包金额不足5元则兑换为5元优惠券; <br/>
+            3. 红包金额不足10元但是超过5元则兑换两张5元优惠券; <br/>
+            4. 红包金额大于10元则先以红包总金额发放10元的优惠券,后(按照1,2)发放优惠券到优惠券总金额大于红包总金额为止. <br/>
+            5. 点击下方箭头兑换.
+        </p>
+    </div>
+
 	</div>
       </div>
-      <div class="row">
-	<img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
+      <div class="row" id="exchange_reds">
+	   <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
       </div>
     </div>
     {% endif %}
-    <!-- start 中奖列表 -->
-    <!-- 
-    <div class="zhongjiang-section">
-      <div class="row">
-    <img class="mix-head-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-award-header.png"/>
-      </div>
-      <div class="row">
-    <div class="col-xs-12 mix-body-bg">
-      <div class="zhongjiang-record ">
-        <p><a href="/sale/promotion/pmt_res/1/1/201602/">第一批中奖名单,APP激活申请<span class="zj-text">10</span>人数以上 &gt;&gt;</a></p>
-      </div>
+    
     </div>
-      </div>
-      <div class="row">
-        <img class="mix-tail-image" src="http://7xogkj.com2.z0.glb.qiniucdn.com/222-hongbao-tail.png"/>
-      </div>
-    </div>
-    </div>
-     -->
-     <!-- end 中奖列表 -->
-
     {% endif %}
     {% endblock %}
 
@@ -359,8 +395,8 @@
     </div>
     {% endif %}
 
-<!--
-    <div class="col-xs-12" style="text-align: center">
+
+<!--    <div class="col-xs-12" style="text-align: center">
         <h4>中奖名单</h4>
     </div>
     <div class="col-xs-12" style="text-align: center" id="short_result">
@@ -435,6 +471,11 @@
         function exchange_reds(){
             var reds = $(".reds_content");
             var data = new FormData();
+            var exchange = $('#exchange_reds');
+            if(exchange.hasClass('loading')){
+                return
+            }
+            exchange.addClass('loading');
 
             $.each(reds,function(index,red){
                 var cid = $(red).attr('cid');
@@ -449,10 +490,15 @@
                 data: data,
                 processData: false,
                 contentType: false,
+                dataType: 'json',
                 success: resCallBack
             });
-            function resCallBack(res){
+            function resCallBack(res) {
                 console.log(res);
+                alert("您已经兑换" + res.count + "张优惠券,共" + res.coupon_value + "元.");
+                location.reload();
+                exchange.removeClass('loading');
+
             }
         }
 

@@ -1,4 +1,5 @@
 # coding: utf-8
+import copy
 import datetime
 import json
 import re
@@ -15,11 +16,14 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from flashsale.pay.models_custom import ModelProduct, Productdetail
+
 from shopback.base import log_action, ADDITION, CHANGE
 from shopback.categorys.models import ProductCategory
+from shopback.items.models import Product, ProductSku
 
 from . import constants
-from .models import SaleSupplier, SaleCategory, SaleProduct
+from .models import SaleSupplier, SaleCategory, SaleProduct, SaleProductManage
 from .serializers import (
     SaleSupplierSerializer,
     SaleCategorySerializer,
@@ -328,7 +332,7 @@ class FetchAndCreateProduct(APIView):
         return ''
 
     def getItemPic(self, soup):
-
+        pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
         container = soup.findAll(attrs={'class':re.compile('^(container|florid-goods-page-container|m-item-grid)')})
         for c in container:
             for img in c.findAll('img'):
@@ -340,6 +344,9 @@ class FetchAndCreateProduct(APIView):
         alinks = soup.findAll('a')
         for a in alinks:
             img_src = self.get_link_img_src(a)
+            m = pic_path_pattern.match(img_src)
+            if m:
+                return m.group(1)
             if img_src:
                 return img_src
         return ''
@@ -361,6 +368,7 @@ class FetchAndCreateProduct(APIView):
         tsoup, response = getBeaSoupByCrawUrl(fetch_url)
         categorys = SaleCategory.objects.all()
         sale_category = SaleCategorySerializer(categorys, many=True).data
+
         data = {
             'title': self.getItemTitle(tsoup),
             'pic_url': self.getItemPic(tsoup),
@@ -504,3 +512,361 @@ class CategoryMappingView(APIView):
                 continue
             sale_categories[sale_category.id] = product_categories.get('%s/%s' % (parent_category.name, sale_category.name)) or {}
         return Response(sale_categories)
+
+
+
+class ScheduleDetailView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (TemplateHTMLRenderer,)
+    template_name = "scheduledetail.html"
+
+    def get(self, request):
+        return Response({})
+
+
+
+class ScheduleDetailAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        schedule_id = int(request.GET.get('schedule_id') or 0)
+        if not schedule_id:
+            return Response({'data': []})
+        schedule_manage = SaleProductManage.objects.filter(pk=schedule_id)
+        if not schedule_manage:
+            return Response({'data': []})
+        sale_product_ids = []
+        for detail in schedule_manage[0].manage_schedule.filter(today_use_status=u'normal'):
+            sale_product_ids.append(detail.sale_product_id)
+
+        sale_products = {}
+        for sale_product in SaleProduct.objects.select_related('sale_supplier', 'contactor').filter(pk__in=sale_product_ids):
+            contactor_name = '%s%s' % (sale_product.contactor.last_name, sale_product.contactor.first_name)
+            contactor_name = contactor_name or sale_product.contactor.username
+            sale_products[sale_product.id] = {
+                'sale_product_id': sale_product.id,
+                'name': sale_product.title,
+                'pic_path': '%s?imageView2/0/w/80' % sale_product.pic_url,
+                'supplier_id': sale_product.sale_supplier.id,
+                'supplier_name': sale_product.sale_supplier.supplier_name,
+                'contactor_name': contactor_name,
+                'product_link': sale_product.product_link,
+                'has_product': 0,
+                'sale_price': sale_product.sale_price,
+                'std_sale_price': sale_product.std_sale_price,
+                'on_sale_price': sale_product.on_sale_price,
+                'remain_num': sale_product.remain_num,
+                'collect_num': 0,
+                'order_weight': 0,
+                'model_id': 0
+            }
+        for product in Product.objects.filter(sale_product__in=sale_products.keys(), status=u'normal').only('pic_path', 'outer_id'):
+            sale_product = sale_products.get(product.sale_product)
+            if product.outer_id and product.outer_id[-1] == '1':
+                sale_product['model_id'] = product.model_id
+                if product.model_id:
+                    try:
+                        model_product = ModelProduct.objects.get(pk=product.model_id)
+                        sale_product['name'] = model_product.name
+                    except:
+                        pass
+
+                sale_product['has_product'] = 1
+                sale_product['pic_path'] = '%s?imageView2/0/w/80' % product.pic_path.strip()
+                product_detail, _ = Productdetail.objects.get_or_create(product=product)
+                sale_product['order_weight'] = product_detail.order_weight
+                # It's dirty
+                product_detail.save()
+
+            collect_num = 0
+            is_sync_stock = True
+            remain_nums = []
+            for sku in product.prod_skus.filter(status='normal'):
+                collect_num += sku.quantity
+                remain_nums.append(sku.remain_num or 0)
+                if is_sync_stock and sku.quantity != sku.remain_num:
+                    is_sync_stock = False
+            sale_product.setdefault('collect_nums', []).append(collect_num)
+            sale_product.setdefault('sync_stocks', []).append(is_sync_stock)
+            sale_product.setdefault('remain_nums', []).extend(remain_nums)
+        items = []
+        for k in sorted(sale_products.keys(), reverse=True):
+            item = sale_products[k]
+            item['remain_num'] = min(item.get('remain_nums') or [0])
+            item['collect_num'] = sum(item.get('collect_nums') or [])
+            item['is_sync_stock'] = bool(item.get('sync_stocks') and all(item.get('sync_stocks') or []))
+            item.pop('collect_nums', False)
+            item.pop('sync_stocks', False)
+            item.pop('remain_nums', False)
+            items.append(item)
+        return Response({'data': items})
+
+    def post(self, request):
+        m = None
+        pattern = re.compile(r'data\[(\w+)\]\[(\w+)\]')
+        for k in request.data:
+            m = pattern.match(k)
+            if m:
+                break
+        if not m:
+            return Response({'error': u'参数错误'})
+        typed_value = None
+        _id, field = m.group(1, 2)
+        value = request.data.get(k) or ''
+        _id = int(_id)
+        if field == 'name':
+            typed_value = value
+            if typed_value:
+                model_id = 0
+                for product in Product.objects.filter(sale_product=_id, status='normal'):
+                    if product.outer_id and product.outer_id[-1] == '1':
+                        model_id = product.model_id
+                    parts = product.name.rsplit('/', 1)
+                    if len(parts) > 1:
+                        _, color = parts[:2]
+                    else:
+                        color = ''
+                    if color:
+                        product.name = '%s/%s' % (typed_value, color)
+                    else:
+                        product.name = typed_value
+                    product.save()
+                if model_id:
+                    ModelProduct.objects.filter(pk=model_id).update(name=typed_value)
+        elif field == 'remain_num':
+            try:
+                typed_value = int(value)
+                SaleProduct.objects.filter(pk=_id).update(remain_num=typed_value)
+                for product in Product.objects.filter(sale_product=_id, status='normal'):
+                    product.remain_num = typed_value
+                    product.save()
+                    ProductSku.objects.filter(product_id=product.id, status='normal').update(remain_num=typed_value)
+            except:
+                typed_value = None
+        elif field == 'order_weight':
+            try:
+                typed_value = int(value)
+                if typed_value < 0 or typed_value > 100:
+                    return Response({'error': '参数错误'})
+                else:
+                    for product in Product.objects.filter(sale_product=_id, status='normal'):
+                        product_detail, _ = Productdetail.objects.get_or_create(product=product)
+                        product_detail.order_weight = typed_value
+                        product_detail.save()
+            except:
+                typed_value = None
+
+        elif field in ['sale_price', 'on_sale_price', 'std_sale_price']:
+            try:
+                typed_value = float(value)
+                if field == 'sale_price':
+                    SaleProduct.objects.filter(pk=_id).update(sale_price=typed_value)
+                    for product in Product.objects.filter(sale_product=_id, status='normal'):
+                        product.cost = typed_value
+                        product.save()
+                        ProductSku.objects.filter(product_id=product.id, status='normal').update(cost=typed_value)
+                elif field == 'std_sale_price':
+                    SaleProduct.objects.filter(pk=_id).update(std_sale_price=typed_value)
+                    for product in Product.objects.filter(sale_product=_id, status='normal'):
+                        product.std_sale_price = typed_value
+                        product.save()
+                        ProductSku.objects.filter(product_id=product.id, status='normal').update(std_sale_price=typed_value)
+                elif field == 'on_sale_price':
+                    SaleProduct.objects.filter(pk=_id).update(on_sale_price=typed_value)
+                    for product in Product.objects.filter(sale_product=_id, status='normal'):
+                        product.agent_price = typed_value
+                        product.save()
+                        ProductSku.objects.filter(product_id=product.id, status='normal').update(agent_price=typed_value)
+            except:
+                typed_value = None
+
+        if typed_value == None:
+            return Response({'error': u'参数错误'})
+        # 重新获取sku
+        sale_product = SaleProduct.objects.select_related('sale_supplier', 'contactor').get(pk=_id)
+        contactor_name = '%s%s' % (sale_product.contactor.last_name, sale_product.contactor.first_name)
+        contactor_name = contactor_name or sale_product.contactor.username
+        item = {
+            'sale_product_id': _id,
+            'name': sale_product.title,
+            'pic_path': '%s?imageView2/0/w/80' % sale_product.pic_url,
+            'supplier_id': sale_product.sale_supplier.id,
+            'supplier_name': sale_product.sale_supplier.supplier_name,
+            'contactor_name': contactor_name,
+            'product_link': sale_product.product_link,
+            'has_productc': 0,
+            'sale_price': sale_product.sale_price,
+            'std_sale_price': sale_product.std_sale_price,
+            'on_sale_price': sale_product.on_sale_price,
+            'remain_num': sale_product.remain_num,
+            'collect_num': 0,
+            'order_weight': 0,
+            'model_id': 0
+        }
+
+        collect_num = 0
+        is_sync_stock = True
+        remain_nums = []
+        for product in Product.objects.filter(sale_product=_id, status='normal').only('pic_path', 'outer_id'):
+            if product.outer_id and product.outer_id[-1] == '1':
+                item['model_id'] = product.model_id
+                if product.model_id:
+                    try:
+                        model_product = ModelProduct.objects.get(pk=product.model_id)
+                        item['name'] = model_product.name
+                    except:
+                        pass
+                item['has_product'] = 1
+                item['pic_path'] = '%s?imageView2/0/w/80' % product.pic_path.strip()
+                product_detail, _ = Productdetail.objects.get_or_create(product=product)
+                item['order_weight'] = product_detail.order_weight
+
+            for sku in product.prod_skus.filter(status='normal'):
+                collect_num += (sku.quantity or 0)
+                remain_nums.append(sku.remain_num or 0)
+                if is_sync_stock and sku.quantity != sku.remain_num:
+                    is_sync_stock = False
+        item['remain_num'] = min(remain_nums or [0])
+        item['collect_num'] = collect_num
+        item['is_sync_stock'] = is_sync_stock
+        return Response({'data': [item]})
+
+class CollectNumAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request, *args, **kwargs):
+        sale_product_id = int(request.GET.get('sale_product_id') or 0)
+        products = {}
+        for product in Product.objects.filter(sale_product=sale_product_id, status='normal'):
+            parts = product.name.rsplit('/', 1)
+            if len(parts) > 1:
+                name, color = parts[:2]
+            elif len(parts) == 1:
+                name, color = parts[0], u'未知'
+            else:
+                name, color = (u'未知', ) * 2
+            products[product.id] = {
+                'product_id': product.id,
+                'name': name,
+                'color': color
+            }
+
+        for sku in ProductSku.objects.filter(product_id__in=products.keys(), status='normal'):
+            product = products[sku.product_id]
+            skus = product.setdefault('skus', [])
+            skus.append({
+                'sku_id': sku.id,
+                'properties_name': sku.properties_name,
+                'quantity': sku.quantity
+            })
+        items = []
+        for k in sorted(products.keys(), reverse=True):
+            product = products[k]
+            for sku in product.get('skus', []):
+                item = copy.copy(product)
+                item.pop('skus', False)
+                item.update(sku)
+                items.append(item)
+        return Response({'data': items})
+
+
+
+class RemainNumAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request, *args, **kwargs):
+        sale_product_id = int(request.GET.get('sale_product_id') or 0)
+        products = {}
+        for product in Product.objects.filter(sale_product=sale_product_id, status='normal'):
+            parts = product.name.rsplit('/', 1)
+            if len(parts) > 1:
+                name, color = parts[:2]
+            elif len(parts) == 1:
+                name, color = parts[0], u'未知'
+            else:
+                name, color = (u'未知', ) * 2
+            products[product.id] = {
+                'product_id': product.id,
+                'name': name,
+                'color': color
+            }
+
+        for sku in ProductSku.objects.filter(product_id__in=products.keys(), status='normal'):
+            product = products[sku.product_id]
+            skus = product.setdefault('skus', [])
+            skus.append({
+                'sku_id': sku.id,
+                'properties_name': sku.properties_name,
+                'remain_num': sku.remain_num
+            })
+        items = []
+        for k in sorted(products.keys(), reverse=True):
+            product = products[k]
+            for sku in product.get('skus', []):
+                item = copy.copy(product)
+                item.pop('skus', False)
+                item.update(sku)
+                items.append(item)
+        return Response({'data': items})
+
+    def post(self, request, *args, **kwargs):
+        m = None
+        pattern = re.compile(r'data\[(\w+)\]\[(\w+)\]')
+        for k in request.data:
+            m = pattern.match(k)
+            if m:
+                break
+        if not m:
+            return Response({'error': u'参数错误'})
+
+        typed_value = None
+        _id, field = m.group(1, 2)
+        value = request.data.get(k) or ''
+        _id = int(_id)
+        sku = ProductSku.objects.get(pk=_id)
+        try:
+            typed_value = int(value)
+            if typed_value < 0:
+                return Response({'error': u'参数错误'})
+            ProductSku.objects.filter(pk=_id).update(remain_num=typed_value)
+        except:
+            return Response({'error': u'参数错误'})
+
+        parts = sku.product.name.rsplit('/', 1)
+        if len(parts) > 1:
+            name, color = parts[:2]
+        elif len(parts) == 1:
+            name, color = parts[0], u'未知'
+        else:
+            name, color = (u'未知', ) * 2
+
+        item = {
+            'product_id': sku.product.id,
+            'sku_id': sku.id,
+            'name': name,
+            'color': color,
+            'properties_name': sku.properties_name,
+            'remain_num': typed_value
+        }
+        return Response({'data': [item]})
+
+class SyncStockAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer, )
+
+    def post(self, request, *args, **kwargs):
+        sale_product_id = int(request.POST.get('sale_product_id') or 0)
+        for product in Product.objects.filter(sale_product=sale_product_id, status='normal'):
+            collect_num = 0
+            for sku in product.prod_skus.filter(status='normal'):
+                if sku.quantity:
+                    collect_num += sku.quantity
+                sku.remain_num = sku.quantity
+                sku.save()
+            product.collect_num = collect_num
+            product.remain_num = collect_num
+            product.save()
+        return Response({'msg': 'OK'})

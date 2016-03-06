@@ -229,6 +229,8 @@
             <form action="/sale/dinghuo/add_ding_huo/" method="get" id="form-dinghuo" target="_blank">
                 <input type="hidden" id="outer-ids" name="outer_ids" value="[]">
                 <button href="javascript:void(0)" class="btn btn-danger btn-lg" id="add-items">添加到订单</button>
+                <br>
+                <a href="javascript:;" class="btn btn-success btn-lg" id="expand-all">展开全部</a>
             </form>
         <span id="test_gru"></span>
     </div>
@@ -319,6 +321,9 @@
                 $('#outer-ids').val(JSON.stringify(outer_ids));
                 $(':checked').prop('checked', false);
                 return true;
+            });
+            $('#expand-all').click(function(){
+                $('.row table').show();
             });
             get_data();
         });

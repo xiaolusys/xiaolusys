@@ -19,6 +19,8 @@ from flashsale.pay.models import (
     SaleTrade,
     SaleOrder,
     Customer,
+    UserBudget,
+    BudgetLog,
     ShoppingCart,
     UserAddress,
     UserCoupon,
@@ -139,7 +141,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 shop_cart_temp.num += int(sku_num) if sku_num else 0
                 shop_cart_temp.total_fee = decimal.Decimal(shop_cart_temp.total_fee) + sku.agent_price
                 shop_cart_temp.save()
-                return Response({"result": "1"}) #购物车已经有了
+                return Response({"result": "1","code":1,"info":"购物车已存在"}) #购物车已经有了
 
             new_shop_cart = ShoppingCart()
             new_shop_cart.buyer_id = buyer_id
@@ -158,9 +160,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             for cart in queryset:
                 cart.remain_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
                 cart.save()
-            return Response({"result": "2"}) #购物车没有
+            return Response({"result": "2","code":0,"info":"添加成功"}) #购物车没有
         else:
-            return Response({"result": "error"})  #未知错误
+            return Response({"result": "error","code":3,"info":"参数异常"})  #未知错误
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -259,6 +261,13 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException(u'库存不足赶快下单')
         return Response({"sku_id": sku_id,"sku_num":sku_num})
     
+    def get_budget_info(self,customer,payment):
+        user_budgets = UserBudget.objects.filter(user=customer)
+        if user_budgets.exists():
+            user_budget = user_budgets[0]
+            return user_budget.amount >= payment ,user_budget.amount
+        return False,0
+        
     @list_route(methods=['get','post'])
     def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
@@ -316,15 +325,21 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               xlmm.cash >= int(total_payment * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash / 100.0
+        
+        budget_payable,budget_cash = self.get_budget_info(customer,total_payment)
+        
         response = {'uuid':genTradeUniqueid(),
                     'total_fee':round(total_fee,2),
                     'post_fee':round(post_fee,2),
                     'discount_fee':round(discount_fee,2),
                     'total_payment':round(total_payment,2),
                     'wallet_cash':wallet_cash,
+                    'budget_cash':budget_cash,
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
                     'wallet_payable':wallet_payable,
+                    'budget_payable':budget_payable,
+                    'apple_payable':False,
                     'coupon_ticket':coupon_ticket,
                     'cart_ids':','.join([str(c) for c in cart_ids]),
                     'cart_list':serializer.data,
@@ -396,15 +411,21 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_sku_dict = serializers.ProductSkuSerializer(product_sku).data
         product_sku_dict['product'] = serializers.ProductSerializer(product,
                                          context={'request': request}).data
+                                         
+        budget_payable,budget_cash = self.get_budget_info(customer,total_payment)
+        
         response = {'uuid':genTradeUniqueid(),
                     'total_fee':round(total_fee,2),
                     'post_fee':round(post_fee,2),
                     'discount_fee':round(discount_fee,2),
                     'total_payment':round(total_payment,2),
                     'wallet_cash':wallet_cash,
+                    'budget_cash':budget_cash,
                     'weixin_payable':weixin_payable,
                     'alipay_payable':alipay_payable,
                     'wallet_payable':wallet_payable,
+                    'budget_payable':budget_payable,
+                    'apple_payable':False,
                     'coupon_ticket':coupon_ticket,
                     'sku':product_sku_dict,
                     'coupon_message': coupon_message}
@@ -601,7 +622,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         urows = XiaoluMama.objects.filter(
             openid=buyer_unionid,
             cash__gte=payment).update(cash=models.F('cash')-payment)
-        assert urows > 0 , u'小鹿钱包余额不足'
+        if urows == 0 :
+            return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'妈妈钱包余额不足'}
         CarryLog.objects.create(xlmm=xlmm.id,
                                 order_num=strade_id,
                                 buyer_nick=buyer_nick,
@@ -610,7 +632,34 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                 carry_type=CarryLog.CARRY_OUT)
         #确认付款后保存
         confirmTradeChargeTask.s(strade_id)()
-        return {'channel':channel,'success':True,'id':sale_trade.id}
+        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
+    
+    @rest_exception(errmsg='')
+    def budget_charge(self, sale_trade):
+        """ 小鹿钱包支付实现 """
+        
+        buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
+        payment       = int(sale_trade.payment * 100) 
+        buyer_unionid = buyer.unionid
+        strade_id     = sale_trade.id
+        buyer_nick    = sale_trade.buyer_nick
+        channel       = sale_trade.channel
+        
+        urows = UserBudget.objects.filter(
+                user=buyer,
+                amount__gte=payment
+            ).update(amount=models.F('amount')-payment)
+        if urows == 0 :
+            return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'小鹿钱包余额不足'}
+        BudgetLog.objects.create(customer_id=buyer.id,
+                                referal_id=strade_id,
+                                flow_amount=payment,
+                                budget_log_type=BudgetLog.BG_CONSUM,
+                                budget_type=BudgetLog.BUDGET_OUT,
+                                status=BudgetLog.CONFIRMED)
+        #确认付款后保存
+        confirmTradeChargeTask.s(strade_id)()
+        return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
     @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self, sale_trade, **kwargs):
@@ -669,10 +718,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_mobile':address.receiver_mobile,
             }
         if state:
-            buyer_openid = ''
-            if channel == SaleTrade.WX_PUB:
-                buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
-                buyer_openid = buyer_openid or customer.openid
+            buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
+            buyer_openid = buyer_openid or customer.openid
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -690,6 +737,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for k,v in params.iteritems():
             hasattr(sale_trade,k) and setattr(sale_trade,k,v)
         sale_trade.save()
+        if state:
+            from django_statsd.clients import statsd
+            statsd.incr('xiaolumm.prepay_count')
+            statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
         return sale_trade,state
     
     @rest_exception(errmsg=u'特卖订单明细创建异常')
@@ -817,14 +868,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             coupon.sale_trade = sale_trade.id
             coupon.save()
         if channel == SaleTrade.WALLET:
-            #小鹿钱包支付
+            #妈妈钱包支付
             response_charge = self.wallet_charge(sale_trade)
+        elif channel == SaleTrade.BUDGET:
+            #小鹿钱包
+            response_charge = self.budget_charge(sale_trade)
         else:
+            #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)
-
+            
         return Response(response_charge)
     
-    @list_route(methods=['post'])
+    @list_route(methods=['get','post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
         CONTENT  = request.REQUEST
@@ -893,8 +948,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             coupon.save()
         
         if channel == SaleTrade.WALLET:
-            #小鹿钱包支付
+            #妈妈钱包支付
             response_charge = self.wallet_charge(sale_trade)
+        elif channel == SaleTrade.BUDGET:
+            #小鹿钱包
+            response_charge = self.budget_charge(sale_trade)
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(sale_trade)

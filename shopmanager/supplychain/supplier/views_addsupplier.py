@@ -140,7 +140,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
         category = request.GET.get("category", "0")
         result_data = []
         target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d')
-        for i in range(0, 6):
+        for i in range(0, 3):
             temp_date = target_date + datetime.timedelta(days=i)
             one_data, wem_posters, chd_posters, target_sch = get_target_date_detail(
                 temp_date, category)
@@ -150,7 +150,9 @@ class ScheduleManageView(generics.ListCreateAPIView):
 
             lowest_prices = {}
             n_total, n_50, n_50_150, n_150 = (0,) * 4
-            for row in Product.objects.filter(status=Product.NORMAL, sale_product__in=sale_product_ids):
+            for row in Product.objects.filter(
+                    status=Product.NORMAL,
+                    sale_product__in=sale_product_ids):
                 if row.sale_product in lowest_prices:
                     continue
                 n_total += 1
@@ -169,6 +171,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
                 p_150 = 100 - p_50 - p_50_150
             result_data.append({"data": one_data,
                                 "date": temp_date.strftime("%Y-%m-%d"),
+                                'schedule_id': target_sch.id if target_sch else 0,
                                 "wem_posters": wem_posters,
                                 "chd_posters": chd_posters,
                                 'n_total': n_total,
@@ -363,8 +366,7 @@ class SaleProductAPIView(generics.ListCreateAPIView):
              'show_buyer_btn': request.user.has_perm('supplier.add_product'),
              'add_product_url': add_product_url,
              'username': request.user.username,
-             'contactor_name': contactor_name
-            })
+             'contactor_name': contactor_name})
 
     def post(self, request, *args, **kwargs):
         detail = request.POST.get("detail_id")
@@ -374,8 +376,13 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             SaleProduct.objects.filter(pk=int(sale_product_id),
                                        librarian__isnull=True).update(
                                            librarian=request.user.username)
-            return Response({'result': u'ok'})
 
+            saleproduct = SaleProduct.objects.get(pk=int(sale_product_id))
+            add_product_url = '%s?%s' % (
+                '/static/add_item.html',
+                urllib.urlencode({'supplier_id': saleproduct.sale_supplier_id,
+                                  'saleproduct': sale_product_id}))
+            return Response({'add_product_url': add_product_url})
         try:
             detail_product = SaleProductManageDetail.objects.get(id=detail)
         except:
@@ -475,7 +482,10 @@ class SaleProductAPIView(generics.ListCreateAPIView):
             SaleProduct.objects.filter(pk=sale_product_id).update(
                 status=SaleProduct.REJECTED)
             try:
-                log_action(request.user.id, SaleProduct.objects.get(pk=sale_product_id), CHANGE, u'淘汰')
+                log_action(request.user.id,
+                           SaleProduct.objects.get(pk=sale_product_id),
+                           CHANGE,
+                           u'淘汰')
             except:
                 pass
             # 删除排期记录

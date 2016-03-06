@@ -57,6 +57,9 @@
         <ul class="object-tools">
           {% block object-tools-items %}
             <li>
+                <a href="/sale/dinghuo/dailywork/" class="addlink" target="_blank">爆款销量统计</a>
+            </li>
+            <li>
 				<a href="/trades/manybeizhu/" class="addlink" target="_blank">
                 一键备注
               </a>
@@ -71,7 +74,7 @@
                 新内售单
               </a>
             </li>
-              
+
 
             <li>
               <a href="/trades/direct/?type=reissue" class="addlink" target="_blank">
@@ -163,16 +166,16 @@
 		            var child = children[i];
 		            var classNames = child.className.split(' ');
 		            for (var j=0; j<classNames.length; j++){
-		                if (classNames[j] == className){ 
+		                if (classNames[j] == className){
 		                    elements.push(child);
 		                    break;
 		                }
 		            }
-		        } 
+		        }
 		        return elements;
 		    };
 		}
-	
+
 		var actions = document.getElementsByClassName('actions');
 		if (actions.length>0){
 			var submit_btns = document.getElementsByClassName('button',actions[0]);
@@ -183,10 +186,10 @@
 				};
 			}
 		}
-		
+
 		window.onload = function(){
 			new ordercheck.Manager();
   			new tradetag.Manager();
 		}
-	</script> 
+	</script>
 {% endblock %}

@@ -34,23 +34,6 @@ else:
     
 M_STATIC_URL = '/static/wap/'
 
-MIDDLEWARE_CLASSES = (
-    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
-
-if DEBUG:
-    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
-
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -62,6 +45,33 @@ RAVEN_CONFIG = {
     'dsn': 'http://ada7dc70824c43fd8ba430db3827cd62:283aaec97585411ca9e66bb8bb1a9c63@sentry.huyi.so:8089/3',
     'register_signals': True,
 }
+
+MIDDLEWARE_CLASSES = (
+    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+    'middleware.middleware.SecureRequiredMiddleware',
+    'middleware.middleware.DisableDRFCSRFCheck',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
+########################### DJANOG PERFORMANCE ANALYSIS ##############################
+MIDDLEWARE_CLASSES = (
+        'middleware.middleware.ProfileMiddleware',
+        'middleware.middleware.QueryCountDebugMiddleware',
+        ) + MIDDLEWARE_CLASSES
+########################### ONEAPM Statsd ##############################
+STATSD_PORT = 8251
+STATSD_CLIENT = 'statsd.oneapm'
+STATSD_CELERY_SIGNALS = True
+MIDDLEWARE_CLASSES = (
+        'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+        'django_statsd.middleware.GraphiteMiddleware',
+        ) + MIDDLEWARE_CLASSES
+
 
 #################### change this site to yourself test domain #######################
 SITE_URL = 'http://192.168.1.11:9000/' 
@@ -167,24 +177,30 @@ QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
 QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
 
 LOGGER_HANDLERS = [
-    'models',
-    'queryset',
-    'django.request',
-    'sentry.errors',
-    'celery.handler',
-    'notifyserver.handler',
-    'yunda.handler',
-    'mail.handler',
-    'xhtml2pdf',
-    'restapi.errors',
-    'weixin.proxy',
+    ('models','sentry'),
+    ('queryset','sentry'),
+    ('django.request','sentry,file'),
+    ('sentry.errors','sentry'),
+    ('celery.handler','sentry'),
+    ('notifyserver.handler','sentry'),
+    ('yunda.handler','sentry'),
+    ('mail.handler','sentry'),
+    ('xhtml2pdf','sentry'),
+    ('restapi.errors','sentry'),
+    ('weixin.proxy','sentry'),
 ]
 
 LOGGER_TEMPLATE = {
-    'handlers': ['sentry','console'],
+    'handlers': ['sentry'],
     'level': 'DEBUG',
     'propagate': True,
 }
+
+def comb_logger(log_tuple,temp):
+    if isinstance(log_tuple,(list,tuple)) and len(log_tuple) == 2:
+        temp.update(handlers=log_tuple[1].split(','))
+        return log_tuple[0],temp
+    return log_tuple[0],temp
 
 LOGGING = {
     'version': 1,
@@ -194,7 +210,7 @@ LOGGING = {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(asctime)s %(message)s'
         },
     },
     'handlers': {
@@ -219,6 +235,8 @@ LOGGING = {
             'include_html': True,
         }
     },
-    'loggers': dict([(handler,LOGGER_TEMPLATE) for handler in LOGGER_HANDLERS]),
+    'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
 }
-
+# for disable urllib3 ssl warning
+import logging
+logging.captureWarnings(True)

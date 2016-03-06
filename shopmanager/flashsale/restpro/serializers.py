@@ -230,6 +230,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
     good_status = serializers.ChoiceField(choices=SaleRefund.GOOD_STATUS_CHOICES)
     status = serializers.ChoiceField(choices=SaleRefund.REFUND_STATUS)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    return_address = serializers.CharField(source='get_return_address', read_only=True)
     proof_pic = JSONParseField()
 
     class Meta:
@@ -238,7 +239,7 @@ class SaleRefundSerializer(serializers.HyperlinkedModelSerializer):
                   'sku_id', 'sku_name', 'refund_num', 'buyer_nick', 'mobile', 'phone', 'proof_pic',
                   'total_fee', 'payment', 'created', 'modified', 'company_name', 'sid', 'reason', 'pic_path',
                   'desc', 'feedback', 'has_good_return', 'has_good_change', 'good_status', 'status', 'refund_fee',
-                  "status_display")
+                  "return_address", "status_display")
 
 
 #####################################################################################
@@ -511,3 +512,9 @@ class XlmmFansCustomerInfoSerialize(serializers.ModelSerializer):
         model = Customer
         fields = ('nick', 'thumbnail', 'status', 'get_status_display')
 
+from flashsale.apprelease.models import AppRelease
+
+
+class AppReleaseSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = AppRelease

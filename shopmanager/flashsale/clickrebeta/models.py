@@ -354,16 +354,12 @@ signals.signal_wxorder_pay_confirm.connect(tongji_wxorder, sender=WXOrder)
 
 from flashsale.pay.models import SaleTrade,SaleOrder,Customer
 from shopapp.weixin.models import WeixinUnionID
+from shopapp.weixin.options import get_openid_by_unionid
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
 def get_wxopenid(sale_trade,customer):
     wx_unionid = customer.unionid
-    if not wx_unionid:
-        wx_unionid = sale_trade.receiver_mobile or str(sale_trade.buyer_id)
-    xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
-    xd_openid  = wx_unionid
-    if xd_unoins.exists():
-        xd_openid = xd_unoins[0].openid
+    xd_openid  = get_openid_by_unionid(wx_unionid,settings.WXPAY_APPID)
     return xd_openid,wx_unionid
 
 def get_xiaolumm(sale_trade, customer):
@@ -384,10 +380,12 @@ def get_xiaolumm(sale_trade, customer):
             
     xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
     if not xiaolu_mmset.exists():
-        mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
-            openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
-        mm_linkid   = get_xlmm_linkid(mm_clicks)
-        xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
+        if xd_openid:
+            mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
+                openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
+            mm_linkid   = get_xlmm_linkid(mm_clicks)
+            xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
+        
     if xiaolu_mmset.exists():
         return xiaolu_mmset[0]
     return None
@@ -406,7 +404,8 @@ def tongji_saleorder(sender, obj, **kwargs):
     
     customer = Customer.objects.get(id=obj.buyer_id)
     xd_openid, wx_unionid = get_wxopenid(obj,customer)
-    
+    if not xd_openid:
+        xd_openid = obj.receiver_mobile or str(obj.buyer_id)
     mm_order_amount   = int(obj.payment * 100)
     mm_order_rebeta	  = 0
     mm_rebeta_amount  = 0

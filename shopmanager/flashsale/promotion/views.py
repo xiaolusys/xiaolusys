@@ -138,7 +138,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         from_customer = content.get('from_customer', 1)  # 分享人的用户id
         openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
-        
+        active_start = False
         wxprofile = {}
         if self.is_from_weixin(request):  # 如果是在微信里面
             openid, unionid = self.get_cookie_openid_and_unoinid(request)
@@ -154,11 +154,11 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 signal_weixin_snsauth_response.send(sender="snsauth", appid=self._wxpubid, resp_data=wxprofile)
         else:
             openid, unionid = self.get_openid_and_unionid_by_customer(request)
-
+            
         cus = Customer.objects.filter(id=from_customer)
         referal = cus[0] if cus.exists() else None
         title = u'小鹿美美邀您闹元宵'
-
+        
         # 商品sku信息  # 获取商品信息到页面
         pro = get_active_pros_data()  # 获取活动产品数据
         xls = get_customer_apply(**{"openid": openid, "mobile":mobile})
@@ -169,14 +169,16 @@ class XLSampleapplyView(WeixinAuthMixin, View):
             download = False
             img_src = get_product_img(0)  # 获取默认图片图片
         response = render_to_response(self.xlsampleapply,
-                                      {"vipcode": vipcode,
+                                      {"active_start":active_start,
+                                       "vipcode": vipcode,
                                        "from_customer": from_customer,
                                        "pro": pro, 
                                        "openid": openid,
                                        "wxprofile":wxprofile,
                                        "referal": referal,
                                        "title": title, "mobile": mobile,
-                                       "download": download, "img_src": img_src,
+                                       "download": download, 
+                                       "img_src": img_src,
                                        "mobile_message": self.mobile_default_message},
                                       context_instance=RequestContext(request))
         if self.is_from_weixin(request):
@@ -250,17 +252,41 @@ class XLSampleapplyView(WeixinAuthMixin, View):
 
 
 
+from .models import AppDownloadRecord
 
-class APPDownloadView(View):
+
+class APPDownloadView(WeixinAuthMixin, View):
     """ 下载页面 """
     download_page = 'promotion/download.html'
     QQ_YINYONGBAO_URL = 'http://a.app.qq.com/o/simple.jsp?pkgname=com.jimei.xiaolumeimei'  # 腾讯应用宝下载跳转链接
 
     def get(self, request):
         content = request.REQUEST
-        vipcode = content.get("vipcode", None)  # 活动邀请码
-        from_customer = content.get("from_customer", None)  # 分享人的用户id
-        url = '/sale/promotion/appdownload/?vipcode={0}&from_customer={1}'.format(vipcode, from_customer)
+        from_customer = content.get('from_customer', None)  # 分享人的用户id
+        mobile = content.get('mobile', None)
+        if from_customer:  # 创建下载记录
+            if self.is_from_weixin(request):  # 如果是在微信里面
+                openid, unionid = self.get_cookie_openid_and_unoinid(request)
+                if not self.valid_openid(openid) or not self.valid_openid(unionid):
+                    wxprofile = self.get_auth_userinfo(request)
+                    openid, unionid = wxprofile.get("openid"), wxprofile.get("unionid")
+                if not self.valid_openid(unionid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
+                    return redirect(self.get_wxauth_redirct_url(request))
+                if openid:  # openid 创建下载记录
+                    download, state = AppDownloadRecord.objects.get_or_create(openid=openid)
+                    if state:
+                        download.from_customer = int(from_customer)
+                        download.ufrom = AppDownloadRecord.WX
+                        download.mobile = mobile
+                        download.save()
+                else:
+                    if mobile:
+                        download, state = AppDownloadRecord.objects.get_or_create(openid=openid)
+                        if state:
+                            download.from_customer = int(from_customer)
+                            download.ufrom = AppDownloadRecord.WAP
+                            download.save()
+
         agent = request.META.get('HTTP_USER_AGENT', None)  # 获取浏览器类型
         if "MicroMessenger" in agent and 'iPhone' in agent:  # 如果是微信并且是iphone则跳转到应用宝下载
             url = self.QQ_YINYONGBAO_URL
@@ -276,7 +302,7 @@ class APPDownloadView(View):
         qrcode_ios_download = constants.APP_STORE_DOWNLOAD_QRCODE
         ios_download_link = constants.APP_STORE_DOWNLOAD
         return render_to_response(self.download_page,
-                                  {"vipcode": vipcode, "from_customer": from_customer,
+                                  {"from_customer": from_customer,
                                    "qrcode_android_download": qrcode_android_download,
                                    "android_download_link": android_download_link,
                                    "qrcode_ios_download": qrcode_ios_download,
@@ -354,7 +380,7 @@ class XlSampleOrderView(View):
                 sample_order = XLSampleOrder.objects.create(xlsp_apply=new_xlapply.id,
                                               customer_id=customer.id,
                                              outer_id=outer_id, sku_code=sku_code)
-                res = self.get_promotion_result(customer.id, outer_id, mobile,sample_order)
+                res = self.get_promotion_result(customer.id, outer_id, mobile, sample_order)
 
                 referal_uid = customer.id  # 被推荐人ID
                 referal_from_uid = from_customer  # 推荐人ID
@@ -427,6 +453,7 @@ class XlSampleOrderView(View):
         # 如果用户已经有正式订单存在 则 直接返回分享页
         customer = get_customer(request)
         mobile = customer.mobile if customer else None
+        active_start = False
         if customer:
             outer_id = pro.outer_id
             sample_order = None
@@ -453,12 +480,15 @@ class XlSampleOrderView(View):
                     url = '/sale/promotion/xlsampleapply/?ufrom=app&from_customer=1'
                     return redirect(url)
                 
-            return render_to_response(self.order_page, {"pro": pro, 
-                                                        "res": res, 
-                                                        "title": title, 
-                                                        "img_src": img_src,
-                                                        "sample_order":sample_order},
-                                      context_instance=RequestContext(request))
+            return render_to_response(self.order_page, 
+                                      {"pro": pro, 
+                                       "res": res, 
+                                       "title": title, 
+                                       "img_src": img_src,
+                                       "active_start":active_start,
+                                       "sample_order":sample_order
+                                    },
+                                    context_instance=RequestContext(request))
         return render_to_response(self.order_page, {"pro": pro, "title": title},
                                   context_instance=RequestContext(request))
 
@@ -484,10 +514,10 @@ class XlSampleOrderView(View):
         xlapply = get_customer_apply(**{"mobile": mobile})
         if xlapply:  # 有　试用申请　记录的
             # 激活申请
-            self.active_order(xlapply, customer, outer_id, sku_code)
+            xlorder = self.active_order(xlapply, customer, outer_id, sku_code)
             outer_ids = ['', ]
             outer_ids[0] = outer_id
-            res = self.get_promotion_result(customer.id, outer_ids, mobile)
+            res = self.get_promotion_result(customer.id, outer_ids, mobile, xlorder)
             return render_to_response(self.order_page, {"pro": pro, "res": res}, context_instance=RequestContext(request))
         
         not_apply_message = "您还没有试用申请，请先申请再激活．．．"
@@ -519,6 +549,14 @@ class CusApplyOrdersView(APIView):
                                   context_instance=RequestContext(request))
 
 
+def update_red_packet():
+    """ 修复bug 跟新活动红包到没有兑换状态　"""
+    reds = ReadPacket.objects.filter(status=ReadPacket.EXCHANGE)
+    print "条数:", reds.count()
+    reds.update(status=ReadPacket.NOT_EXCHANGE)
+    return
+
+
 class ExchangeRedToCoupon(APIView):
     """
     将用户活动红包兑换成优惠券
@@ -535,19 +573,20 @@ class ExchangeRedToCoupon(APIView):
         except:
             return []
         return ids
-
+    
     def exchange_redpackets(self, ids=None, customer=None):
         code = 0
         reds = ReadPacket.objects.filter(id__in=ids, customer=customer, status=ReadPacket.NOT_EXCHANGE)
         sum_value = reds.aggregate(s_v=Sum('value')).get('s_v') or 0
         reds_count = reds.count()  # 红包条数
-        if reds_count < 1:
-            code = 2
-            coupon_value = 0
-            return code, coupon_value  # 小于３条不予兑换
+        if reds_count <= 0:  # 如果红包个数小于0则直接返回
+            return 2, 0, 0
         coupon_10_count = int(sum_value / 10)  # 十元优惠券条数
         leave_mony = sum_value - coupon_10_count * 10  # 发完十元后还剩下多少钱
-        coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
+        if leave_mony > 0:
+            coupon_5_count = 1 if leave_mony / 5 < 1 else 2  # 剩下的红包金额除以5　大于１则发送2张５元优惠券　否则发放１张优惠券
+        else:
+            coupon_5_count = 0
         status_1 = ''
         status_2 = ''
         for i in range(coupon_10_count):
@@ -561,7 +600,7 @@ class ExchangeRedToCoupon(APIView):
         if status_1 == 'success' or status_2 == 'success':
             reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
         coupon_value = coupon_10_count * 10 + coupon_5_count * 5
-        return code, coupon_value
+        return code, coupon_10_count + coupon_5_count, coupon_value
 
     def post(self, request):
         """
@@ -576,8 +615,8 @@ class ExchangeRedToCoupon(APIView):
         ids = self.get_red_ids(request)
         res = None
         if ids:
-            code, coupon_value = self.exchange_redpackets(ids=ids, customer=customer_id)
-            res = {"code": code, "coupon_value": coupon_value}
+            code, count, coupon_value = self.exchange_redpackets(ids=ids, customer=customer_id)
+            res = {"code": code, 'count': count, "coupon_value": coupon_value}
         return HttpResponse(json.dumps(res))
 
 
@@ -588,16 +627,16 @@ class PromotionResultMixin(object):
         根据月份和批次获取活动的中奖名单，pass_num:表示满足的中奖条件(激活数)
         """
         order_list = XLSampleOrder.objects.none()
-        if month == 1602 and batch == 1:
+        if month == 1602 :
             start_time = datetime.datetime(2016, 2, 22)
-            end_time   = datetime.datetime(2016, 2, 30)
-            order_list = XLSampleOrder.objects.filter(created__range=(start_time,end_time),status=1)
+            end_time   = datetime.datetime(2016, 3, 1)
+            order_list = XLSampleOrder.objects.filter(created__range=(start_time,end_time),status=batch)
 
         return order_list
     
     def get_date_tuple(self, item):
-        customer   = Customer.objects.filter(id=item.customer_id)
-        inv_cnt    = XLInviteCount.objects.filter(id=item.customer_id)
+        customer   = Customer.objects.get(id=item.customer_id)
+        inv_cnt    = XLInviteCount.objects.get(customer_id=item.customer_id)
         
         mobile = ''.join([customer.mobile[0:3], "****", customer.mobile[7:11]])
         thumbnail = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-60%402x.png'  # 小鹿logo缺省头像
@@ -617,14 +656,13 @@ class PromotionShortResult(PromotionResultMixin, APIView):
 
 
 class PromotionResult(PromotionResultMixin, APIView):
-    """
-    活动中奖结果展示
-    """
-    result_page = 'promotion/pmt_result.html'
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
-    renderer_classes = (renderers.BrowsableAPIRenderer,)
-
+    """ 活动中奖结果展示 """
+    
+    #permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = ()
+    renderer_classes = (renderers.TemplateHTMLRenderer, renderers.BrowsableAPIRenderer,)
+    template_name  =  'promotion/pmt_result.html'
+    
     def get(self, request, *args, **kwargs):
         page = int(kwargs.get('page', 1))
         batch = int(kwargs.get('batch', 1))
@@ -634,13 +672,14 @@ class PromotionResult(PromotionResultMixin, APIView):
         paginator = Paginator(order_list, num_per_page)
 
         try:
-            items = paginator.page(page)
+            result_page = paginator.page(page)
         except PageNotAnInteger:  # If page is not an integer, deliver first page.
-            items = paginator.page(1)
+            result_page = paginator.page(1)
         except EmptyPage:  # If page is out of range (e.g. 9999), deliver last page of results.
-            items = paginator.page(paginator.num_pages)
-
-        for item in items:
+            result_page = paginator.page(paginator.num_pages)
+        
+        items = []
+        for item in result_page:
             items.append(self.get_date_tuple(item))
 
         total = order_list.count()  # 总条数
@@ -652,8 +691,8 @@ class PromotionResult(PromotionResultMixin, APIView):
                'total': total, 'num_per_page': num_per_page,
                'prev_page': prev_page, 'next_page': next_page,
                'page': page, 'batch': batch, 'month': month}
-        response = render_to_response(self.result_page, res, context_instance=RequestContext(request))
-        return response
+        print 'debug res:',res['items']
+        return Response(res)
 
 
 class ReceiveAwardView(PromotionResultMixin, APIView):

@@ -14,7 +14,7 @@ from core.fields import JSONCharMyField
 from .base import PayBaseModel
 from shopback.items.models import Product
 from supplychain.supplier.models import SaleProduct
-
+from .constants import CHANNEL_CHOICES
 
 
 class SaleRefund(PayBaseModel):
@@ -76,9 +76,12 @@ class SaleRefund(PayBaseModel):
     buyer_id    = models.BigIntegerField(db_index=True,default=0,verbose_name=u"客户ID")
     refund_id   = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++退款编号')
     charge      = models.CharField(max_length=28,blank=True,db_index=True,verbose_name=u'P++支付编号')
+    channel     = models.CharField(max_length=16,db_index=True,
+                                   choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
     
     item_id      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
+    ware_by      = models.IntegerField(db_index=True,verbose_name=u'退回仓库')
     
     sku_id       = models.BigIntegerField(null=True,default=0,verbose_name='规格ID')
     sku_name     = models.CharField(max_length=64,blank=True,verbose_name='规格标题')
@@ -97,7 +100,7 @@ class SaleRefund(PayBaseModel):
     
     company_name = models.CharField(max_length=64,blank=True,verbose_name='退回快递公司')
     sid       = models.CharField(max_length=64,db_index=True,blank=True,verbose_name='退回快递单号')
-
+    
     reason = models.TextField(max_length=200, blank=True, verbose_name='退款原因')
     proof_pic = JSONCharMyField(max_length=10240, blank=True, null=True, verbose_name=u'佐证图片')
     desc = models.TextField(max_length=1000, blank=True, verbose_name='描述')
@@ -196,7 +199,23 @@ class SaleRefund(PayBaseModel):
         except SaleOrder.DoesNotExist:
             order = None
         return order
-
+    
+    def get_return_address(self):
+        """ 退货地址 """
+        if self.status < self.REFUND_WAIT_RETURN_GOODS:
+            return '退货状态未确定'
+        from shopback.warehouse.models import WareHouse
+        from flashsale.pay.models import SaleOrder
+        from shopback.trades.models import MergeOrder
+        sorder = SaleOrder.objects.get(id=self.order_id)
+        try:
+            morders = MergeOrder.objects.filter(oid=sorder.oid).order_by('-id')
+            if morders.exists():
+                ware_by = morders[0].merge_trade.ware_by
+                return WareHouse.objects.get(id=ware_by).address
+        except WareHouse.DoesNotExist:
+            pass 
+        return '退货地址请咨询小鹿美美客服哦'
 
 def buyeridPatch():
     

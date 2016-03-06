@@ -1,3 +1,23 @@
+######## 2016-03-05 ########
+alter table flashsale_refund add column ware_by int(11) NOT NULL;
+alter table flashsale_mmexam_question add column created datetime NOT NULL;
+alter table flashsale_mmexam_question add column modified datetime NOT NULL;
+update flashsale_mmexam_question set created=now(),modified=now() where id != 0;
+
+alter table flashsale_mmexam_choice add column created datetime NOT NULL;
+alter table flashsale_mmexam_choice add column modified datetime NOT NULL;
+update flashsale_mmexam_choice set created=now(),modified=now() where id != 0;
+
+alter table flashsale_mmexam_result add column created datetime NOT NULL;
+alter table flashsale_mmexam_result add column modified datetime NOT NULL;
+update flashsale_mmexam_result set created=now(),modified=now() where id != 0;
+
+alter table flashsale_mmexam_result add column daili_age int(11) NOT NULL;
+alter table flashsale_mmexam_result add column exam_score int(11) NOT NULL;
+alter table flashsale_mmexam_choice add column choice_score int(11) NOT NULL;
+######## 2016-02-29 ########
+alter table flashsale_refund add column channel varchar(16) NOT NULL,ADD index flashsale_refund_c3f32c33(channel);
+alter table xiaolumm_clicks add column app_key varchar(20) NOT NULL;
 ######## 2016-02-27 ########
 alter table flashsale_userbudgetlog add column referal_id varchar(32) NOT NULL;
 CREATE INDEX `flashsale_userbudgetlog_26941be2` ON `flashsale_userbudgetlog` (`referal_id`);

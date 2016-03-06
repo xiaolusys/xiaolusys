@@ -103,7 +103,7 @@
                         </select>
                     </div>
                     <div class="col-xs-4">
-                        <input type="submit" class="btn btn-info" style="margin-top: 22px" value="查询后六天"></div>
+                        <input type="submit" class="btn btn-info" style="margin-top: 22px" value="查询后三天"></div>
                 </div>
             </form>
             <div class="main">
@@ -118,7 +118,11 @@
                         <div class="col-xs-4">
                             <div class="row">
                                 <div style="border: 1px solid rgba(255, 255, 188, 0);">
+                                    {% if one_data.schedule_id %}
+                                    <a style="font-size: 30px" href="/supplychain/supplier/schedule_detail/?schedule_id={{ one_data.schedule_id }}" target="_blank">{{ one_data.date }}排期</a>
+                                    {% else %}
                                     <span style="font-size: 30px">{{ one_data.date }}排期</span>
+                                    {% endif %}
                                     <a href="javascript:;" data-date="{{ one_data.date }}" class="switch" target="_self">收起</a>
                                 </div>
                             </div>
@@ -399,6 +403,11 @@
                      type: 'post',
                      dataType: 'json',
                      data: {sale_product: sale_product_id, type: 5},
+                     success: function(result){
+                         if(result.add_product_url){
+                             window.open(result.add_product_url);
+                         }
+                     },
                      complete: function(){
                          window.location.reload();
                      }

@@ -57,7 +57,6 @@ def dumpsc():
         wxusers  = WeiXinUser.objects.filter(openid=m,charge_status=WeiXinUser.UNCHARGE)
         if wxusers.count() > 0:
             wxuser = wxusers[0]
-            
             mobiles.append(wxuser.mobile)
             cnt += 1
             if cnt % 1000 == 0:

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 from core.models import CacheModel
 from flashsale.pay.models import Customer
-from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket
+from .models_freesample import XLFreeSample, XLSampleApply, XLSampleOrder, XLSampleSku, ReadPacket, AppDownloadRecord
 
 from managers import VipCodeManager
 
@@ -43,13 +43,12 @@ class XLInviteCode(BaseModel):
         verbose_name = u'推广/活动邀请码'
         verbose_name_plural = u'推广/活动邀请码列表'
 
-class XLInviteCount(CacheModel):
+class XLInviteCount(BaseModel):
     
     customer     = models.OneToOneField(Customer,verbose_name=u'特卖用户')
     apply_count  = models.IntegerField(default=0, verbose_name=u'申请人数')
     invite_count = models.IntegerField(default=0, verbose_name=u'激活人数')
     click_count  = models.IntegerField(default=0, verbose_name=u'点击次数')
-    
     
     class Meta:
         db_table = 'flashsale_promotion_invitecount'
