@@ -52,7 +52,7 @@ def task_Push_Sales_To_DailyStat(target_date):
         else:
             uclicks = UserClicks.objects.filter(unionid=unionid)
             if uclicks.exists():
-                if uclicks[0].click_start_time.date() < target_date.date():
+                if uclicks[0].click_start_time.date() < target_date:
                     total_old_visiter_num += 1
 
     shoping_stats = StatisticsShopping.objects.filter(shoptime__range=(df, dt))
