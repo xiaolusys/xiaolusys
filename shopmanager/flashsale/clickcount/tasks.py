@@ -1,4 +1,4 @@
-# -*- encoding:utf8 -*-
+#coding:utf-8 
 import datetime
 from django.db.models import F, Sum
 from django.conf import settings
@@ -61,12 +61,12 @@ def task_Update_User_Click(click_id, *args, **kwargs):
     openid  = click.openid
     app_key = click.app_key
     click_time = click.click_time
-    wxunoins = WeixinUnionID.objects.filter(openid=openid,app_key=app_key)
-    if not wxunoins.exists():
+    wxunions = WeixinUnionID.objects.filter(openid=openid,app_key=app_key)
+    if not wxunions.exists():
         return 
     
-    unionid = wxunoins[0].unionid
-    user_click,state = UserClicks.objects.get_or_create(unoinid=unionid)
+    unionid = wxunions[0].unionid
+    user_click,state = UserClicks.objects.get_or_create(unionid=unionid)
     params  = {}
     if (not user_click.click_end_time or 
         (click_time > user_click.click_end_time and

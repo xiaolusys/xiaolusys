@@ -1,4 +1,4 @@
-#-*- encoding:utf-8 -*-
+#coding:utf-8 
 import re
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
@@ -47,9 +47,9 @@ admin.site.register(Clicks, ClicksAdmin)
 
 
 class UserClicksAdmin(ApproxAdmin):
-    list_display = ('unoinid','visit_days','click_start_time','click_end_time')
+    list_display = ('unionid','visit_days','click_start_time','click_end_time')
     list_filter = (('click_start_time',DateFieldListFilter),('click_end_time',DateFieldListFilter),)
-    search_fields = ['=unoinid', ]
+    search_fields = ['=unionid', ]
     
 
 admin.site.register(UserClicks, UserClicksAdmin) 

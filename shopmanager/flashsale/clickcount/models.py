@@ -41,7 +41,7 @@ class Clicks(models.Model):
 
 class UserClicks(models.Model):
         
-    unoinid = models.CharField(max_length=64,unique=True,verbose_name=u"UnoinID")
+    unionid = models.CharField(max_length=64,unique=True,verbose_name=u"UnionID")
     visit_days = models.IntegerField(db_index=True,default=0,verbose_name=u'活跃天数')
     click_start_time = models.DateTimeField(db_index=True,null=True,verbose_name=u'首次点击时间')
     click_end_time = models.DateTimeField(db_index=True,null=True,verbose_name=u'最后点击时间')
