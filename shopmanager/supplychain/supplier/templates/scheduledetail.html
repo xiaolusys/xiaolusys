@@ -347,14 +347,14 @@
                  var tpl = _.template('tr:has([data-sale-product-id="<%= value %>"])');
                  //重新绑定事件
                  var el = $(tpl({value: sale_product_id}));
-                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(6)', el).removeClass('editable').addClass('editable');
+                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(8)', el).removeClass('editable').addClass('editable');
                  $('a.collect-num', el).click(onCollectNumClick);
                  $('a.remain-num', el).click(onRemainNumClick);
                  $('a.sync-stock', el).click(onSyncStockClick);
              });
 
              mainTable.on('init.dt', function(){
-                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(6)', 'tr:has(a.collect-num)').addClass('editable');
+                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(8)', 'tr:has(a.collect-num)').addClass('editable');
                  $('a.collect-num').click(onCollectNumClick);
                  $('a.remain-num').click(onRemainNumClick);
                  $('a.sync-stock').click(onSyncStockClick);
