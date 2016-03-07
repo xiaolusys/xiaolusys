@@ -215,6 +215,8 @@
                                 template('sale-product-tpl', {sale_product_id: full.sale_product_id, value: data}) : data;
                      }},
                      {data: 'name', width: '450px', title: '款式名'},
+                     {data: 'level_1_category_name', title: '一级分类'},
+                     {data: 'level_2_category_name', title: '二级分类'},
                      {data: 'supplier_id', width: '80px', title: '供应商', render: function(data, type, full, meta){
                          return type == 'display' && data ?
                                 template('supplier-tpl', {supplier_id: data, value: full.supplier_name}) : data;
@@ -249,7 +251,22 @@
                          return template('sync-stock-tpl', {sale_product_id: full.sale_product_id, value: '否'});
                      }}
                  ],
-                 buttons: []
+                 buttons: [],
+                 initComplete: function(){
+                     this.api().columns([2,3]).every(function(){
+                         var column = this;
+                         var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
+                             .appendTo($(column.header()))
+                             .on('change', function(){
+                                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                                 column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                             });
+                         column.data().unique().sort().each(function(d, j){
+                             select.append('<option value="'+d+'">'+d+'</option>');
+                         });
+
+                     });
+                 }
              });
              var collectNumTable = $('#collect-nums').DataTable({
                  language: {
