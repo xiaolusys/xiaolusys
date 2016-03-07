@@ -185,6 +185,9 @@ def release_Coupon_Buy_Way(sender, obj, **kwargs):
     # 有效的并且是购买方式发放的优惠券模板
     tpls = CouponTemplate.objects.filter(valid=True, way_type=CouponTemplate.BUY_WAY).exclude(
         type=CouponTemplate.NEW_YEAR)  # 排除特殊条件的优惠券
+    # 2016-3-7/8　活动发放　如单笔交易超过１２０元发放　１２０元优惠券　
+    if obj.payment < 120.0:
+        return
     for tpl in tpls:
         # 在允许发送情况下　准备发放优惠券
         # 获取该用户的该模板的优惠券
