@@ -566,7 +566,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """
-    queryset = Product.objects.filter()#,shelf_status=Product.UP_SHELF
+    queryset = Product.objects.all()#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )
