@@ -255,8 +255,8 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
 
         status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过',
                         u'排期')[index_map.get(instance.status, 0)]
-        log_action(request.user.id, instance, CHANGE, '%s(%s)' %
-                   (status_label, ','.join(update_field_labels)))
+        log_action(request.user.id, instance, CHANGE,
+                   '%s(%s)' % (status_label, ','.join(update_field_labels)))
         return Response(serializer.data)
 
     def get(self, request, *args, **kwargs):
@@ -364,7 +364,9 @@ class FetchAndCreateProduct(APIView):
 
     def getItemPic(self, soup):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
-        container = soup.findAll(attrs={'class':re.compile('^(goods-detail-pic|container|florid-goods-page-container|m-item-grid)')})
+        container = soup.findAll(attrs={'class': re.compile(
+            '^(goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
+                                       })
 
         for c in container:
             for img in c.findAll('img'):
@@ -408,9 +410,9 @@ class FetchAndCreateProduct(APIView):
             'fetch_url': fetch_url,
             'status': status,
             'categorys': sale_category,
-            'supplier':
-            SaleSupplierSerializer(supplier,
-                                   context={'request': request}).data
+            'supplier': SaleSupplierSerializer(
+                supplier,
+                context={'request': request}).data
         }
         return Response(data)
 
@@ -518,8 +520,8 @@ class SaleProductChange(APIView):
             update_model_fields(instance, update_fields=[k])
         status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过',
                         u'排期')[index_map.get(instance.status, 0)]
-        log_action(request.user.id, instance, CHANGE, '%s(%s)' %
-                   (status_label, ','.join(update_field_labels)))
+        log_action(request.user.id, instance, CHANGE,
+                   '%s(%s)' % (status_label, ','.join(update_field_labels)))
         return Response({"ok"})
 
 
@@ -587,14 +589,15 @@ class ScheduleDetailAPIView(APIView):
         categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
         if not categories:
             categories = {}
-            for category in SaleCategory.objects.filter(status=u'normal').order_by('created'):
+            for category in SaleCategory.objects.filter(
+                    status=u'normal').order_by('created'):
                 categories[category.id] = {
                     'cid': category.id,
                     'pid': category.parent_cid or 0,
                     'name': category.name
                 }
             cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
-        level_1_category_name, level_2_category_name = ('-', ) * 2
+        level_1_category_name, level_2_category_name = ('-',) * 2
         category = categories.get(cid)
         if category:
             pid = category['pid']
@@ -602,7 +605,8 @@ class ScheduleDetailAPIView(APIView):
                 level_1_category_name = category['name']
             else:
                 level_2_category_name = category['name']
-                level_1_category_name = (categories.get(pid) or {}).get('name') or ''
+                level_1_category_name = (categories.get(pid) or
+                                         {}).get('name') or ''
         return level_1_category_name, level_2_category_name
 
     def get(self, request, *args, **kwargs):
@@ -623,7 +627,8 @@ class ScheduleDetailAPIView(APIView):
             contactor_name = '%s%s' % (sale_product.contactor.last_name,
                                        sale_product.contactor.first_name)
             contactor_name = contactor_name or sale_product.contactor.username
-            level_1_category_name, level_2_category_name = self.get_category_names(sale_product.sale_category_id)
+            level_1_category_name, level_2_category_name = self.get_category_names(
+                sale_product.sale_category_id)
             sale_products[sale_product.id] = {
                 'sale_product_id': sale_product.id,
                 'name': sale_product.title,
@@ -799,9 +804,14 @@ class ScheduleDetailAPIView(APIView):
         contactor_name = '%s%s' % (sale_product.contactor.last_name,
                                    sale_product.contactor.first_name)
         contactor_name = contactor_name or sale_product.contactor.username
+        level_1_category_name, level_2_category_name = self.get_category_names(
+            sale_product.sale_category_id)
         item = {
             'sale_product_id': _id,
             'name': sale_product.title,
+            'sale_product_category_id': sale_product.sale_category_id,
+            'level_1_category_name': level_1_category_name,
+            'level_2_category_name': level_2_category_name,
             'pic_path': '%s?imageView2/0/w/120' % sale_product.pic_url,
             'supplier_id': sale_product.sale_supplier.id,
             'supplier_name': sale_product.sale_supplier.supplier_name,
