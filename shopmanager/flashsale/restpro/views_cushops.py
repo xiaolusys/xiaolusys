@@ -107,7 +107,10 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
             xlmm = False
         for shop_pro in shop_pros:
             pro = Product.objects.get(id=shop_pro.product)  # 产品信息
-            pro_dic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'lock_num'])
+            pro_dic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price',
+                                                 'remain_num'])
+            # 修改销量为0　bug 预留数量
+            pro_dic['sale_num'] = pro_dic['remain_num'] * 8
             kwargs = {'agencylevel': xlmm.agencylevel,
                       'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
             rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
