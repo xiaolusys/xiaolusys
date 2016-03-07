@@ -1,8 +1,21 @@
 # coding=utf-8
 from django.db import models
 from core.models import BaseModel
+from django.db.models import signals
+from flashsale.xiaolumm import tasks_mama
 
 import datetime
+
+
+def gen_ordercarry_unikey(mama_id, order_id):
+    return '-'.join(['order', mama_id, order_id])
+
+def gen_awardcarry_unikey(mama_id, order_id):
+    return '-'.join(['award', mama_id, order_id])
+
+def gen_clickcarry_unikey(mama_id, date):
+    return '-'.join(['click', mama_id, date])
+
 
 class MamaFortune(BaseModel):
     mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'小鹿妈妈id')
@@ -32,16 +45,17 @@ class MamaFortune(BaseModel):
 
 
 
-
 class CarryRecord(BaseModel):
     CARRY_TYPES = ((1, u'返现'),(2, u'佣金'),(3, u'奖金'),)
-    STATUS_TYPES = ((0, u'取消'), (1, u'待确定'), (2, u'已确定'),)
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
+    
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     carry_num = models.IntegerField(default=0, verbose_name=u'收益数')
     carry_type = models.IntegerField(default=0, choices=CARRY_TYPES, verbose_name=u'收益类型') #返/佣/奖
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
 
     class Meta:
         db_table = 'flashsale_xlmm_carry_record'
@@ -60,23 +74,42 @@ class CarryRecord(BaseModel):
         """
         return None
 
+    def is_carry_confirmed(self):
+        return self.status == 2
+
+    def is_carry_pending(self):
+        return self.status == 1
+
+    def is_carry_canceled(self):
+        return self.status == 0
+
+    def is_award_carry(self):
+        return self.carry_type == 3
+
+    def is_order_carry(self):
+        return self.carry_type == 2
+
+    def is_click_carry(self):
+        return self.carry_type == 1
+
 
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'直接订单提成'),(2, u'粉丝订单提成'),(3, u'下属订单提成'),)
-    STATUS_TYPES = ((0, u'取消'), (1, u'待确定'), (2, u'已确定'),)
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     order_id = models.BigIntegerField(default=0, verbose_name=u'订单ID')
     order_value = models.IntegerField(default=0, verbose_name=u'订单金额')
     carry_num = models.IntegerField(default=0, verbose_name=u'提成金额')
-    carry_type = models.IntegerField(default=0, choices=CARRY_TYPES, verbose_name=u'提成类型') #直接订单提成/粉丝订单提成/下属订单提成
+    carry_type = models.IntegerField(default=1, choices=CARRY_TYPES, verbose_name=u'提成类型') #直接订单提成/粉丝订单提成/下属订单提成
     sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'sku名称')
     sku_img  = models.CharField(max_length=256, blank=True, verbose_name=u'sku图片')
     contributor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     contributor_img  = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')
     contributor_id  = models.BigIntegerField(default=0, verbose_name=u'贡献者ID')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #
+    status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
     
     class Meta:
         db_table = 'flashsale_xlmm_order_carry'
@@ -98,19 +131,24 @@ class OrderCarry(BaseModel):
         """
         return None
 
+    def is_direct_or_fans_carry(self):
+        return carry_type == 1 or carry_type == 2
+
+
 
 class AwardCarry(BaseModel):
     AWARD_TYPES = ((1, u'直接推荐奖励'),(2, u'/团队成员奖励'),)
-    STATUS_TYPES = ((0, u'取消'), (1, u'待确定'), (2, u'已确定'),)
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
-    award_num = models.IntegerField(default=0, verbose_name=u'奖励金额')
-    award_type = models.IntegerField(default=0, choices=AWARD_TYPES, verbose_name=u'奖励类型') #直接推荐奖励/团队成员奖励
+    carry_num = models.IntegerField(default=0, verbose_name=u'奖励金额')
+    carry_type = models.IntegerField(default=0, choices=AWARD_TYPES, verbose_name=u'奖励类型') #直接推荐奖励/团队成员奖励
     contributor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     contributor_img  = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')    
     contributor_id  = models.BigIntegerField(default=0, verbose_name=u'贡献者ID')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
     
     class Meta:
         db_table = 'flashsale_xlmm_award_carry'
@@ -120,8 +158,8 @@ class AwardCarry(BaseModel):
     def __unicode__(self):
         return '%s,%s,%s,%s' % (self.mama_id, self.award_type, self.award_num, self.date_field)
 
-    def award_num_display(self):
-        return self.award_num * 0.01
+    def carry_num_display(self):
+        return self.carry_num * 0.01
 
     def today_carry(self):
         """
@@ -130,7 +168,7 @@ class AwardCarry(BaseModel):
         return None
     
 class ClickCarry(BaseModel):
-    STATUS_TYPES = ((0, u'取消'), (1, u'待确定'), (2, u'已确定'),)
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     init_click_num = models.IntegerField(default=0, verbose_name=u'初始点击数')
@@ -142,9 +180,9 @@ class ClickCarry(BaseModel):
     confirmed_click_price = models.IntegerField(default=0, verbose_name=u'确定点击价')
     confirmed_click_limit = models.IntegerField(default=0, verbose_name=u'确定点击上限')
     total_value = models.IntegerField(default=0, verbose_name=u'点击总价')
-    mixed_contributor = models.CharField(max_length=64, blank=True, unique=True, verbose_name=u'贡献者') # date+mama_id
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #date+mama_id
+    status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
     
     class Meta:
         db_table = 'flashsale_xlmm_click_carry'
@@ -172,14 +210,14 @@ class ClickCarry(BaseModel):
 
 class ActiveValue(BaseModel):
     VALUE_TYPES = ((1, u'点击'),(2, u'订单'), (3, u'推荐'), (4, u'粉丝'),)
-    STATUS_TYPES = ((0, u'取消'), (1, u'待确定'), (2, u'已确定'),)
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
     value_type = models.IntegerField(default=0, choices=VALUE_TYPES, verbose_name=u'类型') #点击/订单/推荐/粉丝
-    mixed_contributor = models.CharField(max_length=64, blank=True, unique=True, verbose_name=u'贡献者')
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
+    status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
     
     class Meta:
         db_table = 'flashsale_xlmm_active_value_record'
@@ -200,10 +238,28 @@ class ActiveValue(BaseModel):
         return None
 
 
+class ReferalRelationship(BaseModel):
+    """
+    xiaolu mama referal relationship
+    """
+    referal_from_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
+    referal_to_mama_id   = models.BigIntegerField(default=0, unique=True, verbose_name=u'被推荐妈妈id')    
+    referal_to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'被推荐者昵称')
+    referal_to_mama_img  = models.CharField(max_length=256, blank=True, verbose_name=u'被推荐者头像')    
+
+    class Meta:
+        db_table = 'flashsale_xlmm_referal_relationship'
+        verbose_name = u'推荐关系'
+        verbose_name_plural = u'推荐关系列表'
+
+
 class GroupRelationship(BaseModel):
+    """
+    xiaolu mama group relationship
+    """
     leader_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'领队妈妈id')
-    refer_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'推荐妈妈id')
-    member_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'成员妈妈id')    
+    referal_from_mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'推荐妈妈id')
+    member_mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'成员妈妈id')    
     member_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     member_mama_img  = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')    
 

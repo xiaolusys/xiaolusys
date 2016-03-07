@@ -32,9 +32,9 @@ def get_mama_id(user):
     return mama_id
 
 
-def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_sield):
+def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field):
     query_set = queryset.filter(mama_id=mama_id, date_field__gte=from_date,
-                                date_field__lte=end_date).values('date_field').annotate(today_carry=Sum(sum_sield))
+                                date_field__lte=end_date).values('date_field').annotate(today_carry=Sum(sum_field))
     sum_dict = {}
     for entry in query_set:
         key = entry["date_field"]
@@ -42,7 +42,7 @@ def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_sield):
     return sum_dict
 
 
-def add_day_carry(datalist, queryset, sum_sield):
+def add_day_carry(datalist, queryset, sum_field):
     """
     计算求和字段按
     照日期分组
@@ -52,7 +52,7 @@ def add_day_carry(datalist, queryset, sum_sield):
     end_date = datalist[0].date_field
     from_date = datalist[-1].date_field
     ### search database to group dates and get carry_num for each group
-    sum_dict = get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_sield)
+    sum_dict = get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field)
     for entry in datalist:
         key = entry.date_field
         if key in sum_dict:
@@ -109,9 +109,9 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
-        sum_sield = 'carry_num'
+        sum_field = 'carry_num'
         if len(datalist) > 0:
-            add_day_carry(datalist, self.queryset, sum_sield)
+            add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.CarryRecordSerializer(datalist, many=True)
         return Response({"carryrecord_list": serializer.data})
 
@@ -140,8 +140,8 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         ### find from_date and end_date in datalist
         mama_id, from_date, end_date = None, 0, 0
         if len(datalist) > 0:
-            sum_sield = 'carry_num'
-            add_day_carry(datalist, self.queryset, sum_sield)
+            sum_field = 'carry_num'
+            add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.OrderCarrySerializer(datalist, many=True)
         return Response({"ordercarry_list": serializer.data})
 
@@ -166,8 +166,8 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
         if len(datalist) > 0:
-            sum_sield = 'total_value'
-            add_day_carry(datalist, self.queryset, sum_sield)
+            sum_field = 'total_value'
+            add_day_carry(datalist, self.queryset, sum_field)
 
         serializer = serializers.ClickCarrySerializer(datalist, many=True)
         return Response({"clickcarry_list": serializer.data})
@@ -194,8 +194,8 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
         datalist = self.paginate_queryset(datalist)
 
         if len(datalist) > 0:
-            sum_sield = 'award_num'
-            add_day_carry(datalist, self.queryset, sum_sield)
+            sum_field = 'carry_num'
+            add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.AwardCarrySerializer(datalist, many=True)
         return Response({"awardcarry_list": serializer.data})
 
@@ -221,8 +221,8 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
         datalist = self.paginate_queryset(datalist)
 
         if len(datalist) > 0:
-            sum_sield = 'value_num'
-            add_day_carry(datalist, self.queryset, sum_sield)
+            sum_field = 'value_num'
+            add_day_carry(datalist, self.queryset, sum_field)
 
         serializer = serializers.ActiveValueSerializer(datalist, many=True)
         return Response({"activevalue_list": serializer.data})

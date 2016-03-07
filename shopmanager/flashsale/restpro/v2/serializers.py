@@ -37,12 +37,12 @@ class OrderCarrySerializer(serializers.ModelSerializer):
 
 
 class AwardCarrySerializer(serializers.ModelSerializer):
-    award_num = serializers.FloatField(source='award_num_display', read_only=True)
+    carry_num = serializers.FloatField(source='carry_num_display', read_only=True)
 
     class Meta:
         model = AwardCarry
         extra_kwargs = {'today_carry': {'read_only': True}}
-        fields = ('mama_id', 'award_num', 'award_type', 'contributor_nick', 'contributor_img',
+        fields = ('mama_id', 'carry_num', 'carry_type', 'contributor_nick', 'contributor_img',
                   'contributor_id', 'status', 'today_carry', 'modified', 'created')
 
 
