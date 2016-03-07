@@ -630,7 +630,7 @@ class ScheduleDetailAPIView(APIView):
                 'sale_product_category_id': sale_product.sale_category_id,
                 'level_1_category_name': level_1_category_name,
                 'level_2_category_name': level_2_category_name,
-                'pic_path': '%s?imageView2/0/w/80' % sale_product.pic_url,
+                'pic_path': '%s?imageView2/0/w/120' % sale_product.pic_url,
                 'supplier_id': sale_product.sale_supplier.id,
                 'supplier_name': sale_product.sale_supplier.supplier_name,
                 'contactor_name': contactor_name,
@@ -660,7 +660,7 @@ class ScheduleDetailAPIView(APIView):
 
                 sale_product['has_product'] = 1
                 sale_product[
-                    'pic_path'] = '%s?imageView2/0/w/80' % product.pic_path.strip(
+                    'pic_path'] = '%s?imageView2/0/w/120' % product.pic_path.strip(
                     )
                 product_detail, _ = Productdetail.objects.get_or_create(
                     product=product)
@@ -802,7 +802,7 @@ class ScheduleDetailAPIView(APIView):
         item = {
             'sale_product_id': _id,
             'name': sale_product.title,
-            'pic_path': '%s?imageView2/0/w/80' % sale_product.pic_url,
+            'pic_path': '%s?imageView2/0/w/120' % sale_product.pic_url,
             'supplier_id': sale_product.sale_supplier.id,
             'supplier_name': sale_product.sale_supplier.supplier_name,
             'contactor_name': contactor_name,
@@ -834,7 +834,7 @@ class ScheduleDetailAPIView(APIView):
                         pass
                 item['has_product'] = 1
                 item[
-                    'pic_path'] = '%s?imageView2/0/w/80' % product.pic_path.strip(
+                    'pic_path'] = '%s?imageView2/0/w/120' % product.pic_path.strip(
                     )
                 product_detail, _ = Productdetail.objects.get_or_create(
                     product=product)
