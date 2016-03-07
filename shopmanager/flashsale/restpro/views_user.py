@@ -851,7 +851,59 @@ class CustomerViewSet(viewsets.ModelViewSet):
         """
         customer = get_object_or_404(Customer, user=request.user)
         # 这里的公众账号　访问地址要带上用户的信息　例如customer
-        return Response({'auth_link': urlparse.urljoin(settings.M_SITE_URL,'/pages/denglu.html'),
+        return Response({'auth_link': urlparse.urljoin(settings.M_SITE_URL,
+                                                       reverse('v1:user-budget-bang',kwargs={'pk':customer.id})),
                          'auth_msg': '将图片二维码图片保存本地后，打开微信扫一扫从相册选取二维码图片'})
+
+from django.shortcuts import redirect
+from django.contrib.auth.models import User
+from rest_framework.views import APIView
+from core.weixin.mixins import WeixinAuthMixin
+from flashsale.pay.tasks import task_Refresh_Sale_Customer
+
+class UserBugetBangView(WeixinAuthMixin, APIView):
+    """ 特卖用户钱包View """
+#     serializer_class = serializers.ProductSerializer
+    authentication_classes = ()
+    permission_classes = ()
+    renderer_classes = (renderers.JSONRenderer,renderers.TemplateHTMLRenderer)
+    template_name = 'user_budget_bang.html'
+    
+    def get(self, request, pk, format=None,*args, **kwargs):
+        
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+        user_infos = self.get_auth_userinfo(request)
+        unionid = user_infos.get('unionid')
+        openid  = user_infos.get('openid')
+        if not self.valid_openid(unionid):
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
+            return redirect(redirect_url)
+        user_infos.update({'headimgurl':user_infos.get('headimgurl') or 'http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png',
+                           'nick':user_infos.get('nick') or '没有昵称'
+                           })
+        customers = Customer.objects.filter(unionid=unionid,status=Customer.NORMAL)
+        response  = None
+        if not customers.exists():
+            customer = get_object_or_404(Customer,pk=pk)
+            cus_unionid = customer.unionid
+            if cus_unionid.strip() and cus_unionid != unionid:
+                response = Response({'code':2,'info':'您的提现账号已绑定小鹿美美公众号','user_infos':user_infos})
+        else:
+            customer = customers[0]
+            if customer.pk != pk:
+                response = Response({'code':1,'info':'当前授权微信号已绑定其它提现账号，请更换微信号重试～','user_infos':user_infos})
+        
+        if not response:
+            customer.unionid = unionid
+            customer.openid  = openid
+            customer.save()
+    
+            task_Refresh_Sale_Customer.s(user_infos,app_key=self._wxpubid)()
+            response = Response({'code':0,'info':'恭喜，您成功绑定小鹿美美提众号！','user_infos':user_infos})
+        
+        self.set_cookie_openid_and_unionid(response,openid,unionid)
+        return response
+
+
 
 

@@ -114,6 +114,9 @@ router_urls += format_suffix_patterns([
         url(r'^users/integrallog',
             views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
+         url(r'^users/(?P<pk>[0-9]+)/bang_budget',
+            views_user.UserBugetBangView.as_view(),
+            name="user-budget-bang"),
     ])
 
 
