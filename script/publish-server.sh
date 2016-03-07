@@ -9,8 +9,8 @@
 ################################################
 
 PUBLISH_HOST=(
-root@proxy.huyi.so
 root@youni.huyi.so 
+root@proxy.huyi.so
 root@sale.huyi.so 
 )
 

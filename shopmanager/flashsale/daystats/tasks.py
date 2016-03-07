@@ -1,4 +1,4 @@
-# -*- encoding:utf8 -*-
+# coding:utf8 
 from __future__ import division
 import datetime
 from calendar import monthrange
@@ -11,10 +11,11 @@ from flashsale.clickcount.models import Clicks,ClickCount
 from flashsale.clickrebeta.models import StatisticsShopping
 from flashsale.xiaolumm.models import CarryLog
 from flashsale.pay.models import Customer
-from  flashsale.pay.models_refund import SaleRefund
+from flashsale.pay.models_refund import SaleRefund
 from .models import DailyStat, PopularizeCost
+from flashsale.clickcount.models import UserClicks
 from flashsale.xiaolumm.models import XiaoluMama
-from shopapp.weixin.models import get_Unionid
+from shopapp.weixin.options import get_unionid_by_openid
 from flashsale.dinghuo.models_stats import DailySupplyChainStatsOrder
 from supplychain.supplier.models import SaleProduct, SaleSupplier, SupplierCharge, SaleCategory
 from shopback.categorys.models import ProductCategory
@@ -41,11 +42,18 @@ def task_Push_Sales_To_DailyStat(target_date):
     total_valid_count = clicks.filter(isvalid=True).values('linkid', 'openid').distinct().count()
 
     total_old_visiter_num = 0
-    click_openids = clicks.values('openid').distinct()
+    click_openids = clicks.values('openid','app_key').distinct()
     for stat in click_openids:
-        last_clicks = Clicks.objects.filter(click_time__lte=df, openid=stat['openid'])
-        if last_clicks.count() > 0:
-            total_old_visiter_num += 1
+        unionid = get_unionid_by_openid(stat['openid'],stat['app_key'])
+        if not unionid:
+            last_clicks = Clicks.objects.filter(click_time__lte=df, openid=stat['openid'])
+            if last_clicks.count() > 0:
+                total_old_visiter_num += 1
+        else:
+            uclicks = UserClicks.objects.filter(unionid=unionid)
+            if uclicks.exists():
+                if uclicks[0].click_start_time.date() < target_date:
+                    total_old_visiter_num += 1
 
     shoping_stats = StatisticsShopping.objects.filter(shoptime__range=(df, dt))
     total_payment = shoping_stats.aggregate(total_payment=Sum('wxorderamount')).get('total_payment') or 0
@@ -59,13 +67,13 @@ def task_Push_Sales_To_DailyStat(target_date):
     stats_openids = shoping_stats.values('openid').distinct()
     for stat in stats_openids:
         day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=df, openid=stat['openid'])
-        if day_ago_stats.count() > 0:
+        if day_ago_stats.exists():
             total_old_buyer_num += 1
             total_old_order_num += shoping_stats.filter(openid=stat['openid']).values('wxorderid').distinct().count()
 
         seven_day_ago_stats = StatisticsShopping.objects.filter(shoptime__lte=seven_day_before,
                                                                 openid=stat['openid'])
-        if seven_day_ago_stats.count() > 0:
+        if seven_day_ago_stats.exists():
             seven_old_buyer_num += 1
 
     dstat, state = DailyStat.objects.get_or_create(day_date=target_date)
@@ -234,10 +242,10 @@ def task_calc_xlmm(start_time_str, end_time_str, old=True):
 
                 all_purchase_detail = set([val['openid'] for val in all_purchase])
                 all_purchase_detail_unionid = set(
-                    [get_Unionid(val['openid'], settings.WEIXIN_APPID) for val in all_purchase])
+                    [get_unionid_by_openid(val['openid'], settings.WEIXIN_APPID) for val in all_purchase])
 
                 repeat_user = all_purchase_detail & history_purchase_detail
-                repeat_user_unionid = set([get_Unionid(val, settings.WEIXIN_APPID) for val in repeat_user])
+                repeat_user_unionid = set([get_unionid_by_openid(val, settings.WEIXIN_APPID) for val in repeat_user])
 
                 all_xlmm = XiaoluMama.objects.filter(charge_status=u'charged', agencylevel=2).values("openid").distinct()
                 all_xlmm_detail = set([val['openid'] for val in all_xlmm])

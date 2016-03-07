@@ -81,6 +81,7 @@ class SaleRefund(PayBaseModel):
     
     item_id      = models.BigIntegerField(null=True,default=0,verbose_name='商品ID')
     title        = models.CharField(max_length=64,blank=True,verbose_name='出售标题')
+    ware_by      = models.IntegerField(db_index=True,default=0,verbose_name=u'退回仓库')
     
     sku_id       = models.BigIntegerField(null=True,default=0,verbose_name='规格ID')
     sku_name     = models.CharField(max_length=64,blank=True,verbose_name='规格标题')
@@ -198,7 +199,23 @@ class SaleRefund(PayBaseModel):
         except SaleOrder.DoesNotExist:
             order = None
         return order
-
+    
+    def get_return_address(self):
+        """ 退货地址 """
+        if self.status < self.REFUND_WAIT_RETURN_GOODS:
+            return '退货状态未确定'
+        from shopback.warehouse.models import WareHouse
+        from flashsale.pay.models import SaleOrder
+        from shopback.trades.models import MergeOrder
+        sorder = SaleOrder.objects.get(id=self.order_id)
+        try:
+            morders = MergeOrder.objects.filter(oid=sorder.oid).order_by('-id')
+            if morders.exists():
+                ware_by = morders[0].merge_trade.ware_by
+                return WareHouse.objects.get(id=ware_by).address
+        except WareHouse.DoesNotExist:
+            pass 
+        return '退货地址请咨询小鹿美美客服哦'
 
 def buyeridPatch():
     

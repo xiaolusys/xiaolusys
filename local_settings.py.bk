@@ -34,23 +34,6 @@ else:
     
 M_STATIC_URL = '/static/wap/'
 
-MIDDLEWARE_CLASSES = (
-    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
-
-if DEBUG:
-    MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
-                          'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
-
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -62,6 +45,33 @@ RAVEN_CONFIG = {
     'dsn': 'http://ada7dc70824c43fd8ba430db3827cd62:283aaec97585411ca9e66bb8bb1a9c63@sentry.huyi.so:8089/3',
     'register_signals': True,
 }
+
+MIDDLEWARE_CLASSES = (
+    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
+    'middleware.middleware.SecureRequiredMiddleware',
+    'middleware.middleware.DisableDRFCSRFCheck',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
+########################### DJANOG PERFORMANCE ANALYSIS ##############################
+MIDDLEWARE_CLASSES = (
+        'middleware.middleware.ProfileMiddleware',
+        'middleware.middleware.QueryCountDebugMiddleware',
+        ) + MIDDLEWARE_CLASSES
+########################### ONEAPM Statsd ##############################
+STATSD_PORT = 8251
+STATSD_CLIENT = 'statsd.oneapm'
+STATSD_CELERY_SIGNALS = True
+MIDDLEWARE_CLASSES = (
+        'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+        'django_statsd.middleware.GraphiteMiddleware',
+        ) + MIDDLEWARE_CLASSES
+
 
 #################### change this site to yourself test domain #######################
 SITE_URL = 'http://192.168.1.11:9000/' 
