@@ -8,6 +8,7 @@
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}Editor-1.5.5/css/editor.bootstrap.min.css">
         <style>
+         #main-table{width:100%;margin-left:auto;margin-right:auto;}
          .portfolio-box img {
              box-shadow: 2px 2px 5px rgba(187, 187, 187, 0.5);
              -webkit-transition: -webkit-transform 0.2s ease-out;
@@ -48,7 +49,7 @@
                 <p class="bg-danger"></p>
             </div>
         </div>
-        <div class="container">
+        <div class="container" style="width:90%">
             <div class="row" style="margin-top:60px">
                 <table id="main-table" class="display"></table>
             </div>
@@ -205,6 +206,7 @@
                  language: {
                      url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
                  },
+                 order: [[11, 'desc']],
                  dom: "Bfrtip",
                  pageLength: 100,
                  ajax: '/supplychain/supplier/schedule_detail_api/?schedule_id=' + scheduleId,
@@ -217,7 +219,7 @@
                      {data: 'name', width: '450px', title: '款式名'},
                      {data: 'level_1_category_name', title: '一级分类'},
                      {data: 'level_2_category_name', title: '二级分类'},
-                     {data: 'supplier_id', width: '80px', title: '供应商', render: function(data, type, full, meta){
+                     {data: 'supplier_id', width: '180px', title: '供应商', render: function(data, type, full, meta){
                          return type == 'display' && data ?
                                 template('supplier-tpl', {supplier_id: data, value: full.supplier_name}) : data;
                      }},
@@ -264,7 +266,6 @@
                          column.data().unique().sort().each(function(d, j){
                              select.append('<option value="'+d+'">'+d+'</option>');
                          });
-
                      });
                  }
              });
