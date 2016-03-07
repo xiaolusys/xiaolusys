@@ -8,7 +8,7 @@ class WareHouse(models.Model):
     
     ware_name = models.CharField(max_length=32,blank=True,verbose_name='仓库名')
     city      = models.CharField(max_length=32,blank=True,verbose_name='所在城市')
-    address   = models.CharField(max_length=32,blank=True,verbose_name='详细地址')
+    address   = models.TextField(max_length=256,blank=True,verbose_name='详细地址')
     
     in_active    = models.BooleanField(default=True,verbose_name='有效')
     extra_info   = models.TextField(blank=True,verbose_name='备注')

@@ -1,0 +1,380 @@
+{% load verbatim_templatetag %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}Editor-1.5.5/css/editor.bootstrap.min.css">
+        <style>
+         #main-table{width:100%;margin-left:auto;margin-right:auto;}
+         .portfolio-box img {
+             box-shadow: 2px 2px 5px rgba(187, 187, 187, 0.5);
+             -webkit-transition: -webkit-transform 0.2s ease-out;
+             -moz-transition: -moz-transform 0.2s ease-out;
+             -o-transition: -o-transform 0.2s ease-out;
+             transition: transform 0.2s ease-out;
+         }
+         .portfolio-box img:hover {
+             -webkit-transform: scale(1) rotate(20deg);
+             -moz-transform: scale(1) rotate(20deg);
+             -o-transform: scale(1) rotate(20deg);
+             -ms-transform: scale(1) rotate(20deg);
+             transform: scale(1) rotate(20deg);
+         }
+         #collect-nums, #remain-nums {min-height: 100px;}
+         #collect-nums td:first-child {width: 300px;}
+         #collect-nums td:nth-child(2){width: 150px;}
+         #collect-nums td:nth-child(3){width: 300px;}
+         #remain-nums td:first-child {width: 300px;}
+         #remain-nums td:nth-child(2){width: 150px;}
+         #remain-nums td:nth-child(3){width: 300px;}
+         .panel-message {
+             width: 100%;
+             z-index: 1;
+             text-align: center;
+             top: 0px;
+             height: 30px;
+         }
+         .panel-message .panel-body {
+             padding: 0;
+         }
+         tr.odd {background-color: #f1f1f1;}
+        </style>
+    </head>
+    <body>
+        <div id="m1" class="panel-message panel collapse">
+            <div class="panel-body">
+                <p class="bg-danger"></p>
+            </div>
+        </div>
+        <div class="container" style="width:90%">
+            <div class="row" style="margin-top:60px">
+                <table id="main-table" class="display"></table>
+            </div>
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}DataTables/Select-1.1.2/js/dataTables.select.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}Editor-1.5.5/js/dataTables.editor.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}Editor-1.5.5/js/editor.bootstrap.js"></script>
+        <script src="/static/wap/js/template.js"></script>
+        {% verbatim %}
+        <script id="image-tpl" type="text/html">
+            <a href="{{product_link}}" target="_blank">
+                <img src="{{pic_path}}" style="width:80px" class="img-circle">
+            </a>
+        </script>
+        <script id="supplier-tpl" type="text/html">
+            <a href="/supplychain/supplier/product/?status=passed&sale_supplier={{supplier_id}}" target="_blank">
+                {{value}}
+            </a>
+        </script>
+        <script id="sale-product-tpl" type="text/html">
+            <a href="/admin/supplier/saleproduct/?q={{sale_product_id}}" target="_blank">
+                {{value}}
+            </a>
+        </script>
+        <script id="collect-num-tpl" type="text/html">
+            <a href="javascript:;" class="collect-num" data-model-id="{{model_id}}" data-sale-product-id="{{sale_product_id}}">
+                {{value}}
+            </a>
+        </script>
+        <script id="remain-num-tpl" type="text/html">
+            <a href="javascript:;" class="remain-num" data-model-id="{{model_id}}" data-sale-product-id="{{sale_product_id}}">
+                {{value}}
+            </a>
+        </script>
+        <script id="status-tpl" type="text/html">
+            <span style="color: red">未录入</span>
+        </script>
+        <script id="sync-stock-tpl" type="text/html">
+            <a href="javascript:;" class="sync-stock" data-sale-product-id="{{sale_product_id}}">
+                {{value}}
+            </a>
+        </script>
+        {% endverbatim %}
+        <div class="modal fade" id="modal-collect-num" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div id="m2" class="panel-message panel collapse">
+                        <div class="panel-body">
+                            <p class="bg-danger"></p>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <table id="collect-nums" class="display"></table>
+                    </div>
+                </div>
+            </div><!-- modal-dialog -->
+        </div><!-- modal -->
+        <div class="modal fade" id="modal-remain-num" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div id="m3" class="panel-message panel collapse">
+                        <div class="panel-body">
+                            <p class="bg-danger"></p>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <table id="remain-nums" class="display"></table>
+                    </div>
+                </div>
+            </div><!-- modal-dialog -->
+        </div><!-- modal -->
+        <script>
+         function parseUrlParams(myUrl) {
+             var vars = [], hash;
+             var hashes = window.location.href.slice(myUrl.indexOf('?') + 1).split('&');
+             for (var i = 0; i < hashes.length; i++) {
+                 hash = hashes[i].split('=');
+                 vars.push(hash[0]);
+                 vars[hash[0]] = hash[1];
+             }
+             return vars;
+         }
+         $(function(){
+             var remainNumIsDirty = false;
+             var urlParams = parseUrlParams(window.location.href);
+             var scheduleId = urlParams['schedule_id'];
+             var mainEditor = new $.fn.dataTable.Editor({
+                 ajax: '/supplychain/supplier/schedule_detail_api/',
+                 table: '#main-table',
+                 idSrc: 'sale_product_id',
+                 fields: [
+                     {label: '款式名', name: 'name'},
+                     {label: '库存数', name: 'collect_num'},
+                     {label: '预留数', name: 'remain_num'},
+                     {label: '吊牌价', name: 'std_sale_price'},
+                     {label: '销售价', name: 'on_sale_price'},
+                     {label: '权值', name: 'order_weight'}
+                 ]
+             });
+             var remainNumEditor = new $.fn.dataTable.Editor({
+                 ajax: '/supplychain/supplier/remain_num_api/',
+                 table: '#remain-nums',
+                 idSrc: 'sku_id',
+                 fields: [
+                     {label: '预留数', name: 'remain_num'}
+                 ]
+             });
+
+             mainEditor.on('submitError', function(e, xhr, err, thrown, data){
+                 $('#m1 p.bg-danger').html(thrown);
+                 $('#m1').collapse('show');
+                 _.delay(function(){
+                     $('#m1').collapse('hide');
+                     mainEditor.close();
+                 }, 800);
+             });
+             mainEditor.on('submitComplete', function(e, json, data){
+                 if(json.error){
+                     $('#m1 p.bg-danger').html(json.error);
+                     $('#m1').collapse('show');
+                     _.delay(function(){
+                         $('#m1').collapse('hide');
+                         mainEditor.close();
+                     }, 800);
+                 }
+             });
+             remainNumEditor.on('submitError', function(e, xhr, err, thrown, data){
+                 $('#m3 p.bg-danger').html(thrown);
+                 $('#m3').collapse('show');
+                 _.delay(function(){
+                     $('#m3').collapse('hide');
+                     remainNumEditor.close();
+                 }, 800);
+             });
+             remainNumEditor.on('submitComplete', function(e, json, data){
+                 if(json.error){
+                     $('#m3 p.bg-danger').html(json.error);
+                     $('#m3').collapse('show');
+                     _.delay(function(){
+                         $('#m3').collapse('hide');
+                         remainNumEditor.close();
+                     }, 800);
+                 }
+                 else{
+                     remainNumIsDirty = true;
+                 }
+             });
+
+             var mainTable = $('#main-table').DataTable({
+                 language: {
+                     url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
+                 },
+                 order: [[11, 'desc']],
+                 dom: "Bfrtip",
+                 pageLength: 100,
+                 ajax: '/supplychain/supplier/schedule_detail_api/?schedule_id=' + scheduleId,
+                 select: false,
+                 columns: [
+                     {data: 'sale_product_id', title: '选品ID', width: '80px', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('sale-product-tpl', {sale_product_id: full.sale_product_id, value: data}) : data;
+                     }},
+                     {data: 'name', width: '450px', title: '款式名'},
+                     {data: 'level_1_category_name', title: '一级分类'},
+                     {data: 'level_2_category_name', title: '二级分类'},
+                     {data: 'supplier_id', width: '180px', title: '供应商', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('supplier-tpl', {supplier_id: data, value: full.supplier_name}) : data;
+                     }},
+                     {data: 'pic_path', title: '商品图片', width: '100px', className: 'portfolio-box', render: function(data, type, full, meta){
+                         return type == 'display' && data && data.length > 1 ?
+                                template('image-tpl', {pic_path: data, sale_product_id: full.sale_product_id, product_link: full.product_link || '#'}) : data;
+                     }},
+                     {data: 'collect_num', width: '80px', title: '库存数', render: function(data, type, full, meta){
+                         return type == 'display' && full.model_id ?
+                                template('collect-num-tpl', {value: data, model_id: full.model_id, sale_product_id: full.sale_product_id}) : data;
+                     }},
+                     {data: 'remain_num', width: '80px', title: '<a href="javascript:;" id="pop1">预留数</a>', render: function(data, type, full, meta){
+                         return type == 'display' && full.model_id ?
+                                template('remain-num-tpl', {value: data, model_id: full.model_id, sale_product_id: full.sale_product_id}) : data;
+                     }},
+                     {data: 'sale_price', width: '80px', title: '采购价'},
+                     {data: 'std_sale_price', width: '80px', title: '吊牌价', className: 'editable'},
+                     {data: 'on_sale_price', width: '80px', title: '销售价', className: 'editable'},
+                     {data: 'order_weight', width: '80px', title: '权值'},
+                     {data: 'contactor_name', width: '100px', title: '采购负责'},
+                     {data: null, width: '100px', title: '录入状态', defaultContent: '', render: function(data, type, full, meta){
+                         if(full.model_id)
+                             return '完成';
+                         return '<span style="color:red">未录入</span>'
+                     }},
+                     {data: null, width: '120px', title: '库存同步', defaultContent: '', render: function(data, type, full, meta){
+                         if(!full.model_id)
+                             return '-'
+                         if(full.is_sync_stock)
+                             return '是';
+                         return template('sync-stock-tpl', {sale_product_id: full.sale_product_id, value: '否'});
+                     }}
+                 ],
+                 buttons: [],
+                 initComplete: function(){
+                     this.api().columns([2,3,12]).every(function(){
+                         var column = this;
+                         var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
+                             .appendTo($(column.header()))
+                             .on('change', function(){
+                                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                                 column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                             });
+                         column.data().unique().sort().each(function(d, j){
+                             select.append('<option value="'+d+'">'+d+'</option>');
+                         });
+                     });
+                 }
+             });
+             var collectNumTable = $('#collect-nums').DataTable({
+                 language: {
+                     url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
+                 },
+                 pageLength: 100,
+                 select: false,
+                 columns: [
+                     {data: 'name', title: '款式名'},
+                     {data: 'color', title: '颜色'},
+                     {data: 'properties_name', title: '尺码'},
+                     {data: 'quantity', title: '库存数'}
+                 ],
+                 buttons: []
+             });
+             var remainNumTable = $('#remain-nums').DataTable({
+                 language: {
+                     url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
+                 },
+                 pageLength: 100,
+                 select: false,
+                 columns: [
+                     {data: 'name', title: '款式名'},
+                     {data: 'color', title: '颜色'},
+                     {data: 'properties_name', title: '尺码'},
+                     {data: 'remain_num', title: '预留数', className: 'editable'}
+                 ],
+                 buttons: []
+             });
+
+             function onCollectNumClick(){
+                 var sale_product_id = $(this).attr('data-sale-product-id') - 0;
+                 collectNumTable.ajax.url('/supplychain/supplier/collect_num_api/?sale_product_id='+sale_product_id).load();
+                 $('#modal-collect-num').modal();
+             }
+
+             function onRemainNumClick(){
+                 var sale_product_id = $(this).attr('data-sale-product-id') - 0;
+                 remainNumTable.ajax.url('/supplychain/supplier/remain_num_api/?sale_product_id='+sale_product_id).load();
+                 $('#modal-remain-num').modal();
+             }
+             function onSyncStockClick(){
+                 var that = this;
+                 var sale_product_id = $(this).attr('data-sale-product-id') - 0;
+                 $.ajax({
+                     url: '/supplychain/supplier/sync_stock_api/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {sale_product_id: sale_product_id},
+                     success: function(result){
+                         if(result.error){
+                             $('#m1 p.bg-danger').html(result.error);
+                             $('#m1').collapse('show');
+                             _.delay(function(){
+                                 $('#m1').collapse('hide');
+                                 mainEditor.close();
+                             }, 1500);
+                         }
+                         else{
+                             $(that).html('是');
+                             window.location.reload();
+                         }
+                     },
+                     error: function(xhr, status, thrown){
+                         $('#m1 p.bg-danger').html(thrown);
+                         $('#m1').collapse('show');
+                         _.delay(function(){
+                             $('#m1').collapse('hide');
+                             mainEditor.close();
+                         }, 1500);
+                     }
+                 });
+             }
+
+             mainEditor.on('postEdit', function(e, json, data){
+                 var sale_product_id = json.data[0].sale_product_id - 0;
+                 var tpl = _.template('tr:has([data-sale-product-id="<%= value %>"])');
+                 //重新绑定事件
+                 var el = $(tpl({value: sale_product_id}));
+                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(8)', el).removeClass('editable').addClass('editable');
+                 $('a.collect-num', el).click(onCollectNumClick);
+                 $('a.remain-num', el).click(onRemainNumClick);
+                 $('a.sync-stock', el).click(onSyncStockClick);
+             });
+
+             mainTable.on('init.dt', function(){
+                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(8)', 'tr:has(a.collect-num)').addClass('editable');
+                 $('a.collect-num').click(onCollectNumClick);
+                 $('a.remain-num').click(onRemainNumClick);
+                 $('a.sync-stock').click(onSyncStockClick);
+                 $('#pop1').popover({
+                     container: 'body',
+                     trigger: 'hover',
+                     content: '取的是各款中的最小值, 双击可以批量修改'
+                 });
+             });
+             $('#main-table').on('dblclick', 'tbody td.editable', function(el){
+                 mainEditor.inline(this);
+             });
+             $('#remain-nums').on('click', 'tbody td.editable', function(el){
+                 remainNumEditor.inline(this);
+             });
+             $('#modal-remain-num').on('hidden.bs.modal', function(e){
+                 if(remainNumIsDirty)
+                     window.location.reload();
+             });
+         });
+        </script>
+    </body>
+</html>

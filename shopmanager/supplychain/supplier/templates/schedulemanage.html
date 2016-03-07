@@ -118,7 +118,11 @@
                         <div class="col-xs-4">
                             <div class="row">
                                 <div style="border: 1px solid rgba(255, 255, 188, 0);">
+                                    {% if one_data.schedule_id %}
+                                    <a style="font-size: 30px" href="/supplychain/supplier/schedule_detail/?schedule_id={{ one_data.schedule_id }}" target="_blank">{{ one_data.date }}排期</a>
+                                    {% else %}
                                     <span style="font-size: 30px">{{ one_data.date }}排期</span>
+                                    {% endif %}
                                     <a href="javascript:;" data-date="{{ one_data.date }}" class="switch" target="_self">收起</a>
                                 </div>
                             </div>
