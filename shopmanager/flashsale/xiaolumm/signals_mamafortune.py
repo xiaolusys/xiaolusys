@@ -1,3 +1,8 @@
+
+from flashsale.xiaolumm.modes_fortune import CarryRecord,OrderCarry,AwardCarry,ClickCarry
+
+
+
 def carryrecord_creation_update_mamafortune(sender, instance, created, **kwargs):
     """
     post_save signal only deal with creation

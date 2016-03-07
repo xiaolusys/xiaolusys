@@ -366,7 +366,7 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 
 
 class AwardCarryAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'award_num', 'award_type', 'contributor_nick', 
+    list_display = ('mama_id', 'carry_num', 'carry_type', 'contributor_nick', 
                     'contributor_img', 'contributor_id', 'status')
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
@@ -375,12 +375,12 @@ class ClickCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'init_click_num', 'init_order_num', 'init_click_price',
                     'init_click_limit', 'confirmed_click_num', 'confirmed_order_num',
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
-                    'mixed_contributor', 'status', 'date_field')
+                    'status', 'date_field')
 admin.site.register(ClickCarry, ClickCarryAdmin)
 
 
 class ActiveValueAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'value_num', 'value_type', 'mixed_contributor', 'status')
+    list_display = ('mama_id', 'value_num', 'value_type', 'status')
 admin.site.register(ActiveValue, ActiveValueAdmin)
 
 
