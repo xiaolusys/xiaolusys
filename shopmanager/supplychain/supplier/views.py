@@ -333,7 +333,7 @@ class FetchAndCreateProduct(APIView):
 
     def getItemPic(self, soup):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
-        container = soup.findAll(attrs={'class':re.compile('^(container|florid-goods-page-container|m-item-grid)')})
+        container = soup.findAll(attrs={'class':re.compile('^(goods-detail-pic|container|florid-goods-page-container|m-item-grid)')})
         for c in container:
             for img in c.findAll('img'):
                 img_src = self.get_img_src(img)

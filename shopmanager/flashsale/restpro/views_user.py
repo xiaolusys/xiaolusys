@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import os
 import re
-import urllib
+import urlparse
 import time
 import datetime
 import decimal
@@ -851,7 +851,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         """
         customer = get_object_or_404(Customer, user=request.user)
         # 这里的公众账号　访问地址要带上用户的信息　例如customer
-        return Response({'auth_link': 'http://www.baidu.com',
+        return Response({'auth_link': urlparse.urljoin(settings.M_SITE_URL,'/pages/denglu.html'),
                          'auth_msg': '将图片二维码图片保存本地后，打开微信扫一扫从相册选取二维码图片'})
 
 
