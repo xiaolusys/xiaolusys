@@ -33,7 +33,7 @@
 	                <label class="label label-success">上架时间:</label>
 	                <input type="text" id="id-sale-time-{{ record.id }}" name="dt" class="datepicker " value="{% if record.sale_time %}{{ record.sale_time }}{% endif %}"/>
 	            </p>
-                    <p>预留数: <input id="id-remain-num-{{record.id}}" class="form-control" placeholder="请填写预留数" value="{{ record.remian_num|default:'0' }}"></p>
+                    <p>预留数: <input id="id-remain-num-{{record.id}}" class="form-control" placeholder="请填写预留数" value="{{ record.remain_num|default:'0' }}"></p>
                     <p style="margin-top:10px">选择 洽谈结果：</p>
                     <p><select class="form-control input" id="id-select-{{ record.id }}">
                         {% ifequal record.status '入围' %}

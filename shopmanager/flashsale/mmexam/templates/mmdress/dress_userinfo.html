@@ -1,0 +1,65 @@
+{% extends "mmdress/base_dress.html" %}
+
+{% load url from future %}
+{% block title %} 妈妈穿衣品味测试 {% endblock %}
+
+{% load static %}
+
+{% block head_script %}
+<link href="{{STATIC_URL}}css/mmdress.css" rel="stylesheet">
+<style>
+.container-nav{
+    margin-top:10%;
+}
+.head-img{
+    max-width:800px;
+    margin:0 auto;
+}
+.submit-row{
+    padding-top:10%;
+}
+</style>
+{% endblock %}
+
+{% block container-nav %}
+<!-- 页头 -->
+<div class="container-nav">
+</div>
+{% endblock %}
+
+{% block container-body %}
+<!-- 内容区 -->
+<div class="page-panel">
+  <div class="row div-center">
+    <img class="carousel-inner img-responsive img-rounded head-img" 
+    src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%82%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF-%E6%A0%87%E9%A2%98.png"/>
+  </div>
+  <form class="form-horizontal" method="POST" action="./">
+    {%csrf_token%}
+    <input type="hidden" name="user_unionid" value="{{user_info.unionid}}"/>
+    <input type="hidden" name="mama_headimg" value="{{user_info.mama_headimg}}"/>
+    <input type="hidden" name="mama_nick" value="{{user_info.mama_nick}}"/>
+    <input type="hidden" name="referal_from" value="{{referal_info.user_unionid}}"/>
+    <div class="row ">
+      <div class="col-xs-6 div-center">
+      <select name="mama_age" class="form-control">
+      {% for age in age_range %}
+        <option val="{{age}}" {% if age == 1988 %}selected{% endif %}>{{age}}</option>
+      {% endfor %}
+      </select>
+      </div>
+    </div>
+    <div class="row submit-row">
+      <button type="submit" class="div-center transparent">
+      <img class="carousel-inner img-responsive img-rounded" 
+       src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%82%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF-%E6%8C%89%E9%94%AE-%E5%AE%8C%E6%88%90.png"/>
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block container-foot %}
+<!-- 页尾 -->
+{% endblock %}
