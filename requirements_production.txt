@@ -47,7 +47,7 @@ qiniu==7.0.5
 #guppy
 
 django-chartit==0.1
-django-statsd-mozilla==0.3.16  
+django-statsd-mozilla==0.3.16
 ##########extra package(not install in the virtualenv)##########
 #virtualenv==1.8.2
 #South==1.0
@@ -57,6 +57,7 @@ django-statsd-mozilla==0.3.16
 #django-celery==3.0.10
 #kombu==2.4.7
 pyExcelerator==0.6.4.1
+XlsxWriter==0.8.4
 
 # sudo apt-get install gcc
 #sudo apt-get install libxml2-dev libxslt1-dev python-dev
@@ -68,4 +69,3 @@ pyExcelerator==0.6.4.1
 # reinstall pillow
 #pip install --no-cache-dir -I pillow
 #pip install -i http://pypi.oneapm.com/simple --upgrade oneapm-ci-sdk --trusted-host pypi.oneapm.com
-  
