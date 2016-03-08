@@ -317,7 +317,6 @@ class ChangeDetailExportView(View):
                 name = parts[0]
             return name, color
 
-
         worksheet.write('A6', '商品名称', bold)
         worksheet.write('B6', '产品货号', bold)
         worksheet.write('C6', '颜色', bold)
@@ -342,7 +341,9 @@ class ChangeDetailExportView(View):
             worksheet.write(row, 2, color)
             worksheet.write(row, 3, order_detail.product_chicun)
             if pic_path:
-                opt = {'image_data': io.BytesIO(urllib.urlopen(pic_path).read()), 'positioning': 1}
+                opt = {'image_data':
+                       io.BytesIO(urllib.urlopen(pic_path).read()),
+                       'positioning': 1}
                 if product_link:
                     opt['url'] = product_link
                 worksheet.set_row(row, image_height)
@@ -355,7 +356,7 @@ class ChangeDetailExportView(View):
             row += 1
 
         worksheet.write(row, 6, '总计:', bold)
-        worksheet.write(row, 7, all_price, money)
+        worksheet.write(row, 7, order_list.order_amount, money)
 
         row += 1
 
