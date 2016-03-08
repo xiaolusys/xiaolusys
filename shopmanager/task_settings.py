@@ -4,6 +4,7 @@ djcelery.setup_loader()
 
 CELERY_IMPORTS = (
     'shopback.trades.tasks_release',
+    'flashsale.xiaolumm.tasks_mama',
 )
 #CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -44,6 +45,7 @@ CELERY_QUEUES = (
     Queue('peroid', routing_key='peroid.#'),
     Queue('frency', routing_key='frency.#'),
     Queue('async', routing_key='async.#'),
+    Queue('mama', routing_key='mama.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -51,6 +53,23 @@ CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 CELERY_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama.increment_mamafortune_cash_and_carry': {
+            'queue': 'mama',
+            'routing_key': 'mama.increment_mamafortune_cash_and_carry',
+        },
+        'flashsale.xiaolumm.tasks_mama.update_carryrecord': {
+            'queue': 'mama',
+            'routing_key': 'mama.update_carryrecord',
+        },
+        'flashsale.xiaolumm.tasks_mama.update_carryrecord_carry_num': {
+            'queue': 'mama',
+            'routing_key': 'mama.update_carryrecord_carry_num',
+        },
+        'flashsale.xiaolumm.tasks_mama.update_second_level_ordercarry': {
+            'queue': 'mama',
+            'routing_key': 'mama.update_second_level_ordercarry',
+        },
+        
         'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
             'queue': 'peroid',
             'routing_key': 'peroid.push_xlmm_pending_cash',

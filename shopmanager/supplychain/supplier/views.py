@@ -24,12 +24,10 @@ from shopback.items.models import Product, ProductSku
 
 from . import constants
 from .models import SaleSupplier, SaleCategory, SaleProduct, SaleProductManage
-from .serializers import (
-    SaleSupplierSerializer,
-    SaleCategorySerializer,
-    SaleProductSerializer,
-    SaleProductSampleSerializer,
-)
+from .serializers import (SaleSupplierSerializer,
+                          SaleCategorySerializer,
+                          SaleProductSerializer,
+                          SaleProductSampleSerializer,)
 
 
 class SaleSupplierList(generics.ListCreateAPIView):
@@ -62,7 +60,9 @@ def chargeSupplier(request, pk):
 
     if charged:
         result = {'success': True,
-                  'brand_links': '/supplychain/supplier/product/?status=wait&sale_supplier=%s' % pk}
+                  'brand_links':
+                  '/supplychain/supplier/product/?status=wait&sale_supplier=%s'
+                  % pk}
 
         log_action(request.user.id, supplier, CHANGE, u'接管品牌')
 
@@ -87,7 +87,7 @@ class SaleProductList(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     template_name = "product_screen.html"
     permission_classes = (permissions.IsAuthenticated,)
-    ordering = ('-modified', )
+    ordering = ('-modified',)
     paginate_by = 15
     page_query_param = 'page'
     paginate_by_param = 'page_size'
@@ -106,20 +106,23 @@ class SaleProductList(generics.ListCreateAPIView):
             supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
             progress = request.GET.get('progress', '')
             if (progress and progress != supplier.progress and
-                        progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
+                    progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
                 supplier.save()
-            supplier = SaleSupplierSerializer(supplier, context={'request': request}).data
+            supplier = SaleSupplierSerializer(supplier,
+                                              context={'request': request}).data
 
         resp_data = self.get_serializer(page, many=True).data
-        result_data = {'request_data': request.GET.dict(), 'supplier': supplier
-                       , 'sale_category': sale_category, "results": resp_data}
-        if hasattr(self,'get_paginated_response'):
+        result_data = {'request_data': request.GET.dict(),
+                       'supplier': supplier,
+                       'sale_category': sale_category,
+                       "results": resp_data}
+        if hasattr(self, 'get_paginated_response'):
             result_data.update(OrderedDict([
-                            ('count', self.paginator.page.paginator.count),
-                            ('next', self.paginator.get_next_link()),
-                            ('previous', self.paginator.get_previous_link()),
-                        ]))
+                ('count', self.paginator.page.paginator.count),
+                ('next', self.paginator.get_next_link()),
+                ('previous', self.paginator.get_previous_link()),
+            ]))
 
         return Response(result_data)
 
@@ -128,7 +131,9 @@ class SaleProductList(generics.ListCreateAPIView):
         supplier_id = data["supplier"]
         supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
         if not supplier.is_active():
-            return Response({'code':1,'error_response':'供应商已被淘汰，不能添加商品','request_data': request.GET.dict()})
+            return Response({'code': 1,
+                             'error_response': '供应商已被淘汰，不能添加商品',
+                             'request_data': request.GET.dict()})
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)
@@ -148,7 +153,9 @@ class SaleProductList(generics.ListCreateAPIView):
         sproduct.save()
 
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
-        return HttpResponseRedirect("/supplychain/supplier/product/?status=%s&sale_supplier=%s"%(sproduct.status,supplier_id))
+        return HttpResponseRedirect(
+            "/supplychain/supplier/product/?status=%s&sale_supplier=%s" %
+            (sproduct.status, supplier_id))
 
 
 class SaleProductAdd(generics.ListCreateAPIView):
@@ -176,11 +183,14 @@ class SaleProductAdd(generics.ListCreateAPIView):
             supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
             progress = request.GET.get('progress', '')
             if (progress and progress != supplier.progress and
-                        progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
+                    progress in dict(SaleSupplier.PROGRESS_CHOICES).keys()):
                 supplier.progress = progress
                 supplier.save()
-            supplier = SaleSupplierSerializer(supplier, context={'request': request}).data
-        result_data = {'request_data': request.GET.dict(), 'supplier': supplier, 'sale_category': sale_category,
+            supplier = SaleSupplierSerializer(supplier,
+                                              context={'request': request}).data
+        result_data = {'request_data': request.GET.dict(),
+                       'supplier': supplier,
+                       'sale_category': sale_category,
                        "results": resp_data}
         return Response(result_data)
 
@@ -189,7 +199,9 @@ class SaleProductAdd(generics.ListCreateAPIView):
         supplier_id = data["supplier"]
         supplier = get_object_or_404(SaleSupplier, pk=supplier_id)
         if not supplier.is_active():
-            return Response({'code':1,'error_response':'供应商已被淘汰，不能添加商品','request_data': request.GET.dict()})
+            return Response({'code': 1,
+                             'error_response': '供应商已被淘汰，不能添加商品',
+                             'request_data': request.GET.dict()})
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)
@@ -208,7 +220,9 @@ class SaleProductAdd(generics.ListCreateAPIView):
         sproduct.save()
 
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
-        return HttpResponseRedirect("/supplychain/supplier/line_product/?status=%s&sale_supplier=%s"%(sproduct.status,supplier_id))
+        return HttpResponseRedirect(
+            "/supplychain/supplier/line_product/?status=%s&sale_supplier=%s" %
+            (sproduct.status, supplier_id))
 
 
 class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -223,7 +237,9 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
         if not instance.contactor:
             instance.contactor = self.request.user
 
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance,
+                                         data=request.data,
+                                         partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         index_map = {SaleProduct.SELECTED: 1,
@@ -232,17 +248,15 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                      SaleProduct.SCHEDULE: 4}
 
         update_field_labels = []
-        for k,v in request.data.iteritems():
-            if not hasattr(instance,k):continue
-            update_field_labels.append('%s:%s'%(SaleProduct._meta.get_field(k).verbose_name.title(),v))
+        for k, v in request.data.iteritems():
+            if not hasattr(instance, k): continue
+            update_field_labels.append('%s:%s' % (
+                SaleProduct._meta.get_field(k).verbose_name.title(), v))
 
-        status_label = (u'淘汰',
-                        u'初选入围',
-                        u'洽谈通过',
-                        u'审核通过',
-                        u'排期'
-                        )[index_map.get(instance.status, 0)]
-        log_action(request.user.id, instance, CHANGE,'%s(%s)'%(status_label,','.join(update_field_labels)))
+        status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过',
+                        u'排期')[index_map.get(instance.status, 0)]
+        log_action(request.user.id, instance, CHANGE,
+                   '%s(%s)' % (status_label, ','.join(update_field_labels)))
         return Response(serializer.data)
 
     def get(self, request, *args, **kwargs):
@@ -253,7 +267,8 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
         return Response({
             'pic_url': instance.pic_url,
             'sale_time': sale_time,
-            'product_category': self.get_category_mapping().get(instance.sale_category_id) or {},
+            'product_category': self.get_category_mapping().get(
+                instance.sale_category_id) or {},
             'on_sale_price': instance.on_sale_price or '',
             'std_sale_price': instance.std_sale_price or '',
             'sale_price': instance.sale_price or '',
@@ -264,24 +279,33 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
     @classmethod
     def get_category_mapping(cls):
         cache_key = 'category_mapping'
+
         def _load():
             parent_product_categories = {}
-            for product_category in ProductCategory.objects.filter(parent_cid=constants.XIAOLU_ROOT_CATEGORY_ID,
-                                                                   is_parent=True, status='normal'):
-                parent_product_categories[product_category.cid] = product_category
+            for product_category in ProductCategory.objects.filter(
+                    parent_cid=constants.XIAOLU_ROOT_CATEGORY_ID,
+                    is_parent=True,
+                    status='normal'):
+                parent_product_categories[
+                    product_category.cid] = product_category
 
             product_categories = {}
-            for product_category in ProductCategory.objects.filter(is_parent=False, status='normal'):
-                parent_category = parent_product_categories.get(product_category.parent_cid)
+            for product_category in ProductCategory.objects.filter(
+                    is_parent=False,
+                    status='normal'):
+                parent_category = parent_product_categories.get(
+                    product_category.parent_cid)
                 if not parent_category:
                     continue
-                full_name = '%s/%s' % (parent_category.name, product_category.name)
+                full_name = '%s/%s' % (parent_category.name,
+                                       product_category.name)
                 product_categories[full_name] = {
                     'level_3_id': product_category.cid,
                     'level_2_id': parent_category.cid,
                     'level_1_id': constants.XIAOLU_ROOT_CATEGORY_ID
                 }
-            for parent_id, parent_product_category in parent_product_categories.iteritems():
+            for parent_id, parent_product_category in parent_product_categories.iteritems(
+            ):
                 product_categories[parent_product_category.name] = {
                     'level_3_id': 0,
                     'level_2_id': parent_product_category.cid,
@@ -289,23 +313,30 @@ class SaleProductDetail(generics.RetrieveUpdateDestroyAPIView):
                 }
 
             parent_sale_categories = {}
-            for sale_category in SaleCategory.objects.filter(parent_cid=0, is_parent=True, status='normal'):
+            for sale_category in SaleCategory.objects.filter(parent_cid=0,
+                                                             is_parent=True,
+                                                             status='normal'):
                 parent_sale_categories[sale_category.id] = sale_category
 
             sale_categories = {}
             for sale_category in SaleCategory.objects.filter(status='normal'):
-                parent_category = parent_sale_categories.get(sale_category.parent_cid)
+                parent_category = parent_sale_categories.get(
+                    sale_category.parent_cid)
                 if not parent_category:
                     full_name = sale_category.name
                 else:
-                    full_name = '%s/%s' % (parent_category.name, sale_category.name)
-                sale_categories[sale_category.id] = product_categories.get(full_name) or {}
+                    full_name = '%s/%s' % (parent_category.name,
+                                           sale_category.name)
+                sale_categories[sale_category.id] = product_categories.get(
+                    full_name) or {}
             return sale_categories
+
         data = cache.get(cache_key)
         if not data:
             data = _load()
             cache.set(cache_key, data, 3600)
         return data
+
 
 from supplychain.basic.fetch_urls import getBeaSoupByCrawUrl
 
@@ -319,7 +350,7 @@ class FetchAndCreateProduct(APIView):
     def getItemPrice(self, soup):
         return 0
 
-    def get_img_src(self,img):
+    def get_img_src(self, img):
         attr_map = dict(img.attrs)
         img_src = attr_map and attr_map.get('src') or attr_map.get('data-src')
         if img_src and img_src.split('?')[0].endswith('.jpg'):
@@ -333,11 +364,14 @@ class FetchAndCreateProduct(APIView):
 
     def getItemPic(self, soup):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
-        container = soup.findAll(attrs={'class':re.compile('^(goods-detail-pic|container|florid-goods-page-container|m-item-grid)')})
+        container = soup.findAll(attrs={'class': re.compile(
+            '^(goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
+                                       })
+
         for c in container:
             for img in c.findAll('img'):
                 img_src = self.get_img_src(img)
-                print img,img_src
+                print img, img_src
                 if img_src:
                     return img_src
 
@@ -376,7 +410,9 @@ class FetchAndCreateProduct(APIView):
             'fetch_url': fetch_url,
             'status': status,
             'categorys': sale_category,
-            'supplier': SaleSupplierSerializer(supplier, context={'request': request}).data
+            'supplier': SaleSupplierSerializer(
+                supplier,
+                context={'request': request}).data
         }
         return Response(data)
 
@@ -387,7 +423,7 @@ class FetchAndCreateProduct(APIView):
 
         supplier = get_object_or_404(SaleSupplier, pk=pk)
         if not supplier.is_active():
-            return Response({'code':1,'error_response':'供应商已被淘汰，不能添加商品'})
+            return Response({'code': 1, 'error_response': '供应商已被淘汰，不能添加商品'})
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)
@@ -407,14 +443,19 @@ class FetchAndCreateProduct(APIView):
 
         # sale_time如果是unicode需要转换成datetime
         if isinstance(sproduct.sale_time, basestring):
-            sproduct.sale_time = datetime.datetime.strptime(sproduct.sale_time, '%Y-%m-%d %H:%M:%S')
+            sproduct.sale_time = datetime.datetime.strptime(sproduct.sale_time,
+                                                            '%Y-%m-%d %H:%M:%S')
 
-        data = {'record': SaleProductSerializer(sproduct, context={'request': request}).data}
+        data = {'record':
+                SaleProductSerializer(sproduct,
+                                      context={'request': request}).data}
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
 
         return Response(data)
 
+
 from qiniu import Auth
+
 
 class QiniuApi(APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -461,7 +502,8 @@ class SaleProductChange(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        instance = get_object_or_404(SaleProduct, id=args[0]) if len(args) == 1 else 0
+        instance = get_object_or_404(SaleProduct,
+                                     id=args[0]) if len(args) == 1 else 0
         if not instance.contactor:
             instance.contactor = self.request.user
         index_map = {SaleProduct.SELECTED: 1,
@@ -472,12 +514,16 @@ class SaleProductChange(APIView):
         for k, v in request.data.iteritems():
             k = str(k)
             if not hasattr(instance, k): continue
-            update_field_labels.append('%s:%s' % (SaleProduct._meta.get_field(k).verbose_name.title(), v))
+            update_field_labels.append('%s:%s' % (
+                SaleProduct._meta.get_field(k).verbose_name.title(), v))
             instance.__setattr__(k, v)
             update_model_fields(instance, update_fields=[k])
-        status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过', u'排期')[index_map.get(instance.status, 0)]
-        log_action(request.user.id, instance, CHANGE, '%s(%s)' % (status_label, ','.join(update_field_labels)))
+        status_label = (u'淘汰', u'初选入围', u'洽谈通过', u'审核通过',
+                        u'排期')[index_map.get(instance.status, 0)]
+        log_action(request.user.id, instance, CHANGE,
+                   '%s(%s)' % (status_label, ','.join(update_field_labels)))
         return Response({"ok"})
+
 
 class CategoryMappingView(APIView):
     renderer_classes = (JSONRenderer,)
@@ -485,13 +531,17 @@ class CategoryMappingView(APIView):
 
     def get(self, request, *args, **kwargs):
         parent_product_categories = {}
-        for product_category in ProductCategory.objects.filter(parent_cid=constants.XIAOLU_ROOT_CATEGORY_ID,
-                                                               is_parent=True, status='normal'):
+        for product_category in ProductCategory.objects.filter(
+                parent_cid=constants.XIAOLU_ROOT_CATEGORY_ID,
+                is_parent=True,
+                status='normal'):
             parent_product_categories[product_category.cid] = product_category
 
         product_categories = {}
-        for product_category in ProductCategory.objects.filter(is_parent=False, status='normal'):
-            parent_category = parent_product_categories.get(product_category.parent_cid)
+        for product_category in ProductCategory.objects.filter(is_parent=False,
+                                                               status='normal'):
+            parent_category = parent_product_categories.get(
+                product_category.parent_cid)
             if not parent_category:
                 continue
             full_name = '%s/%s' % (parent_category.name, product_category.name)
@@ -502,17 +552,21 @@ class CategoryMappingView(APIView):
             }
 
         parent_sale_categories = {}
-        for sale_category in SaleCategory.objects.filter(parent_cid=0, is_parent=True, status='normal'):
+        for sale_category in SaleCategory.objects.filter(parent_cid=0,
+                                                         is_parent=True,
+                                                         status='normal'):
             parent_sale_categories[sale_category.id] = sale_category
 
         sale_categories = {}
-        for sale_category in SaleCategory.objects.filter(is_parent=False, status='normal'):
-            parent_category = parent_sale_categories.get(sale_category.parent_cid)
+        for sale_category in SaleCategory.objects.filter(is_parent=False,
+                                                         status='normal'):
+            parent_category = parent_sale_categories.get(
+                sale_category.parent_cid)
             if not parent_category:
                 continue
-            sale_categories[sale_category.id] = product_categories.get('%s/%s' % (parent_category.name, sale_category.name)) or {}
+            sale_categories[sale_category.id] = product_categories.get(
+                '%s/%s' % (parent_category.name, sale_category.name)) or {}
         return Response(sale_categories)
-
 
 
 class ScheduleDetailView(APIView):
@@ -524,10 +578,36 @@ class ScheduleDetailView(APIView):
         return Response({})
 
 
-
 class ScheduleDetailAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
+
+    SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
+
+    @classmethod
+    def get_category_names(cls, cid):
+        categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
+        if not categories:
+            categories = {}
+            for category in SaleCategory.objects.filter(
+                    status=u'normal').order_by('created'):
+                categories[category.id] = {
+                    'cid': category.id,
+                    'pid': category.parent_cid or 0,
+                    'name': category.name
+                }
+            cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
+        level_1_category_name, level_2_category_name = ('-',) * 2
+        category = categories.get(cid)
+        if category:
+            pid = category['pid']
+            if not pid:
+                level_1_category_name = category['name']
+            else:
+                level_2_category_name = category['name']
+                level_1_category_name = (categories.get(pid) or
+                                         {}).get('name') or ''
+        return level_1_category_name, level_2_category_name
 
     def get(self, request, *args, **kwargs):
         schedule_id = int(request.GET.get('schedule_id') or 0)
@@ -537,17 +617,25 @@ class ScheduleDetailAPIView(APIView):
         if not schedule_manage:
             return Response({'data': []})
         sale_product_ids = []
-        for detail in schedule_manage[0].manage_schedule.filter(today_use_status=u'normal'):
+        for detail in schedule_manage[0].manage_schedule.filter(
+                today_use_status=u'normal'):
             sale_product_ids.append(detail.sale_product_id)
 
         sale_products = {}
-        for sale_product in SaleProduct.objects.select_related('sale_supplier', 'contactor').filter(pk__in=sale_product_ids):
-            contactor_name = '%s%s' % (sale_product.contactor.last_name, sale_product.contactor.first_name)
+        for sale_product in SaleProduct.objects.select_related(
+                'sale_supplier', 'contactor').filter(pk__in=sale_product_ids):
+            contactor_name = '%s%s' % (sale_product.contactor.last_name,
+                                       sale_product.contactor.first_name)
             contactor_name = contactor_name or sale_product.contactor.username
+            level_1_category_name, level_2_category_name = self.get_category_names(
+                sale_product.sale_category_id)
             sale_products[sale_product.id] = {
                 'sale_product_id': sale_product.id,
                 'name': sale_product.title,
-                'pic_path': '%s?imageView2/0/w/80' % sale_product.pic_url,
+                'sale_product_category_id': sale_product.sale_category_id,
+                'level_1_category_name': level_1_category_name,
+                'level_2_category_name': level_2_category_name,
+                'pic_path': '%s?imageView2/0/w/120' % sale_product.pic_url,
                 'supplier_id': sale_product.sale_supplier.id,
                 'supplier_name': sale_product.sale_supplier.supplier_name,
                 'contactor_name': contactor_name,
@@ -561,20 +649,26 @@ class ScheduleDetailAPIView(APIView):
                 'order_weight': 0,
                 'model_id': 0
             }
-        for product in Product.objects.filter(sale_product__in=sale_products.keys(), status=u'normal').only('pic_path', 'outer_id'):
+        for product in Product.objects.filter(
+                sale_product__in=sale_products.keys(),
+                status=u'normal').only('pic_path', 'outer_id'):
             sale_product = sale_products.get(product.sale_product)
             if product.outer_id and product.outer_id[-1] == '1':
                 sale_product['model_id'] = product.model_id
                 if product.model_id:
                     try:
-                        model_product = ModelProduct.objects.get(pk=product.model_id)
+                        model_product = ModelProduct.objects.get(
+                            pk=product.model_id)
                         sale_product['name'] = model_product.name
                     except:
                         pass
 
                 sale_product['has_product'] = 1
-                sale_product['pic_path'] = '%s?imageView2/0/w/80' % product.pic_path.strip()
-                product_detail, _ = Productdetail.objects.get_or_create(product=product)
+                sale_product[
+                    'pic_path'] = '%s?imageView2/0/w/120' % product.pic_path.strip(
+                    )
+                product_detail, _ = Productdetail.objects.get_or_create(
+                    product=product)
                 sale_product['order_weight'] = product_detail.order_weight
                 # It's dirty
                 product_detail.save()
@@ -595,7 +689,8 @@ class ScheduleDetailAPIView(APIView):
             item = sale_products[k]
             item['remain_num'] = min(item.get('remain_nums') or [0])
             item['collect_num'] = sum(item.get('collect_nums') or [])
-            item['is_sync_stock'] = bool(item.get('sync_stocks') and all(item.get('sync_stocks') or []))
+            item['is_sync_stock'] = bool(item.get('sync_stocks') and all(
+                item.get('sync_stocks') or []))
             item.pop('collect_nums', False)
             item.pop('sync_stocks', False)
             item.pop('remain_nums', False)
@@ -619,7 +714,8 @@ class ScheduleDetailAPIView(APIView):
             typed_value = value
             if typed_value:
                 model_id = 0
-                for product in Product.objects.filter(sale_product=_id, status='normal'):
+                for product in Product.objects.filter(sale_product=_id,
+                                                      status='normal'):
                     if product.outer_id and product.outer_id[-1] == '1':
                         model_id = product.model_id
                     parts = product.name.rsplit('/', 1)
@@ -633,15 +729,20 @@ class ScheduleDetailAPIView(APIView):
                         product.name = typed_value
                     product.save()
                 if model_id:
-                    ModelProduct.objects.filter(pk=model_id).update(name=typed_value)
+                    ModelProduct.objects.filter(pk=model_id).update(
+                        name=typed_value)
         elif field == 'remain_num':
             try:
                 typed_value = int(value)
-                SaleProduct.objects.filter(pk=_id).update(remain_num=typed_value)
-                for product in Product.objects.filter(sale_product=_id, status='normal'):
+                SaleProduct.objects.filter(pk=_id).update(
+                    remain_num=typed_value)
+                for product in Product.objects.filter(sale_product=_id,
+                                                      status='normal'):
                     product.remain_num = typed_value
                     product.save()
-                    ProductSku.objects.filter(product_id=product.id, status='normal').update(remain_num=typed_value)
+                    ProductSku.objects.filter(product_id=product.id,
+                                              status='normal').update(
+                                                  remain_num=typed_value)
             except:
                 typed_value = None
         elif field == 'order_weight':
@@ -650,8 +751,10 @@ class ScheduleDetailAPIView(APIView):
                 if typed_value < 0 or typed_value > 100:
                     return Response({'error': '参数错误'})
                 else:
-                    for product in Product.objects.filter(sale_product=_id, status='normal'):
-                        product_detail, _ = Productdetail.objects.get_or_create(product=product)
+                    for product in Product.objects.filter(sale_product=_id,
+                                                          status='normal'):
+                        product_detail, _ = Productdetail.objects.get_or_create(
+                            product=product)
                         product_detail.order_weight = typed_value
                         product_detail.save()
             except:
@@ -661,36 +764,55 @@ class ScheduleDetailAPIView(APIView):
             try:
                 typed_value = float(value)
                 if field == 'sale_price':
-                    SaleProduct.objects.filter(pk=_id).update(sale_price=typed_value)
-                    for product in Product.objects.filter(sale_product=_id, status='normal'):
+                    SaleProduct.objects.filter(pk=_id).update(
+                        sale_price=typed_value)
+                    for product in Product.objects.filter(sale_product=_id,
+                                                          status='normal'):
                         product.cost = typed_value
                         product.save()
-                        ProductSku.objects.filter(product_id=product.id, status='normal').update(cost=typed_value)
+                        ProductSku.objects.filter(product_id=product.id,
+                                                  status='normal').update(
+                                                      cost=typed_value)
                 elif field == 'std_sale_price':
-                    SaleProduct.objects.filter(pk=_id).update(std_sale_price=typed_value)
-                    for product in Product.objects.filter(sale_product=_id, status='normal'):
+                    SaleProduct.objects.filter(pk=_id).update(
+                        std_sale_price=typed_value)
+                    for product in Product.objects.filter(sale_product=_id,
+                                                          status='normal'):
                         product.std_sale_price = typed_value
                         product.save()
-                        ProductSku.objects.filter(product_id=product.id, status='normal').update(std_sale_price=typed_value)
+                        ProductSku.objects.filter(
+                            product_id=product.id,
+                            status='normal').update(std_sale_price=typed_value)
                 elif field == 'on_sale_price':
-                    SaleProduct.objects.filter(pk=_id).update(on_sale_price=typed_value)
-                    for product in Product.objects.filter(sale_product=_id, status='normal'):
+                    SaleProduct.objects.filter(pk=_id).update(
+                        on_sale_price=typed_value)
+                    for product in Product.objects.filter(sale_product=_id,
+                                                          status='normal'):
                         product.agent_price = typed_value
                         product.save()
-                        ProductSku.objects.filter(product_id=product.id, status='normal').update(agent_price=typed_value)
+                        ProductSku.objects.filter(product_id=product.id,
+                                                  status='normal').update(
+                                                      agent_price=typed_value)
             except:
                 typed_value = None
 
         if typed_value == None:
             return Response({'error': u'参数错误'})
         # 重新获取sku
-        sale_product = SaleProduct.objects.select_related('sale_supplier', 'contactor').get(pk=_id)
-        contactor_name = '%s%s' % (sale_product.contactor.last_name, sale_product.contactor.first_name)
+        sale_product = SaleProduct.objects.select_related(
+            'sale_supplier', 'contactor').get(pk=_id)
+        contactor_name = '%s%s' % (sale_product.contactor.last_name,
+                                   sale_product.contactor.first_name)
         contactor_name = contactor_name or sale_product.contactor.username
+        level_1_category_name, level_2_category_name = self.get_category_names(
+            sale_product.sale_category_id)
         item = {
             'sale_product_id': _id,
             'name': sale_product.title,
-            'pic_path': '%s?imageView2/0/w/80' % sale_product.pic_url,
+            'sale_product_category_id': sale_product.sale_category_id,
+            'level_1_category_name': level_1_category_name,
+            'level_2_category_name': level_2_category_name,
+            'pic_path': '%s?imageView2/0/w/120' % sale_product.pic_url,
             'supplier_id': sale_product.sale_supplier.id,
             'supplier_name': sale_product.sale_supplier.supplier_name,
             'contactor_name': contactor_name,
@@ -708,18 +830,24 @@ class ScheduleDetailAPIView(APIView):
         collect_num = 0
         is_sync_stock = True
         remain_nums = []
-        for product in Product.objects.filter(sale_product=_id, status='normal').only('pic_path', 'outer_id'):
+        for product in Product.objects.filter(sale_product=_id,
+                                              status='normal').only('pic_path',
+                                                                    'outer_id'):
             if product.outer_id and product.outer_id[-1] == '1':
                 item['model_id'] = product.model_id
                 if product.model_id:
                     try:
-                        model_product = ModelProduct.objects.get(pk=product.model_id)
+                        model_product = ModelProduct.objects.get(
+                            pk=product.model_id)
                         item['name'] = model_product.name
                     except:
                         pass
                 item['has_product'] = 1
-                item['pic_path'] = '%s?imageView2/0/w/80' % product.pic_path.strip()
-                product_detail, _ = Productdetail.objects.get_or_create(product=product)
+                item[
+                    'pic_path'] = '%s?imageView2/0/w/120' % product.pic_path.strip(
+                    )
+                product_detail, _ = Productdetail.objects.get_or_create(
+                    product=product)
                 item['order_weight'] = product_detail.order_weight
 
             for sku in product.prod_skus.filter(status='normal'):
@@ -732,28 +860,31 @@ class ScheduleDetailAPIView(APIView):
         item['is_sync_stock'] = is_sync_stock
         return Response({'data': [item]})
 
+
 class CollectNumAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
         sale_product_id = int(request.GET.get('sale_product_id') or 0)
         products = {}
-        for product in Product.objects.filter(sale_product=sale_product_id, status='normal'):
+        for product in Product.objects.filter(sale_product=sale_product_id,
+                                              status='normal'):
             parts = product.name.rsplit('/', 1)
             if len(parts) > 1:
                 name, color = parts[:2]
             elif len(parts) == 1:
                 name, color = parts[0], u'未知'
             else:
-                name, color = (u'未知', ) * 2
+                name, color = (u'未知',) * 2
             products[product.id] = {
                 'product_id': product.id,
                 'name': name,
                 'color': color
             }
 
-        for sku in ProductSku.objects.filter(product_id__in=products.keys(), status='normal'):
+        for sku in ProductSku.objects.filter(product_id__in=products.keys(),
+                                             status='normal'):
             product = products[sku.product_id]
             skus = product.setdefault('skus', [])
             skus.append({
@@ -772,29 +903,30 @@ class CollectNumAPIView(APIView):
         return Response({'data': items})
 
 
-
 class RemainNumAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def get(self, request, *args, **kwargs):
         sale_product_id = int(request.GET.get('sale_product_id') or 0)
         products = {}
-        for product in Product.objects.filter(sale_product=sale_product_id, status='normal'):
+        for product in Product.objects.filter(sale_product=sale_product_id,
+                                              status='normal'):
             parts = product.name.rsplit('/', 1)
             if len(parts) > 1:
                 name, color = parts[:2]
             elif len(parts) == 1:
                 name, color = parts[0], u'未知'
             else:
-                name, color = (u'未知', ) * 2
+                name, color = (u'未知',) * 2
             products[product.id] = {
                 'product_id': product.id,
                 'name': name,
                 'color': color
             }
 
-        for sku in ProductSku.objects.filter(product_id__in=products.keys(), status='normal'):
+        for sku in ProductSku.objects.filter(product_id__in=products.keys(),
+                                             status='normal'):
             product = products[sku.product_id]
             skus = product.setdefault('skus', [])
             skus.append({
@@ -841,7 +973,7 @@ class RemainNumAPIView(APIView):
         elif len(parts) == 1:
             name, color = parts[0], u'未知'
         else:
-            name, color = (u'未知', ) * 2
+            name, color = (u'未知',) * 2
 
         item = {
             'product_id': sku.product.id,
@@ -853,13 +985,15 @@ class RemainNumAPIView(APIView):
         }
         return Response({'data': [item]})
 
+
 class SyncStockAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def post(self, request, *args, **kwargs):
         sale_product_id = int(request.POST.get('sale_product_id') or 0)
-        for product in Product.objects.filter(sale_product=sale_product_id, status='normal'):
+        for product in Product.objects.filter(sale_product=sale_product_id,
+                                              status='normal'):
             collect_num = 0
             for sku in product.prod_skus.filter(status='normal'):
                 if sku.quantity:
