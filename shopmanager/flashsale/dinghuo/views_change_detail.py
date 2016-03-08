@@ -246,7 +246,7 @@ class ChangeDetailExportView(View):
         bold = workbook.add_format({'bold': True})
         money = workbook.add_format({'num_format': '0.00'})
 
-        image_width = 22.3
+        image_width = 25
         image_height = 125
 
         worksheet.set_column('A:A', 18)
@@ -344,8 +344,7 @@ class ChangeDetailExportView(View):
             worksheet.write(row, 3, order_detail.product_chicun)
             if pic_path:
                 opt = {'image_data':
-                       io.BytesIO(urllib.urlopen(pic_path).read()),
-                       'positioning': 1}
+                       io.BytesIO(urllib.urlopen(pic_path).read())}
                 if product_link:
                     opt['url'] = product_link
                 worksheet.set_row(row, image_height)
