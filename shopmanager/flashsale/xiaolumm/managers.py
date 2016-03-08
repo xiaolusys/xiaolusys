@@ -84,7 +84,9 @@ class XlmmFansManager(models.Manager):
             self.create(xlmm=from_xlmm.id,
                         xlmm_cusid=from_cu.id,
                         refreal_cusid=from_customer,
-                        fans_cusid=customer)
+                        fans_cusid=customer,
+                        fans_nick=current_cu.nick,
+                        fans_thumbnail=current_cu.thumbnail)
             self.record_fans_num(from_xlmm.id, from_cu.id)
 
         else:   # 推荐人也不是代理
@@ -94,7 +96,9 @@ class XlmmFansManager(models.Manager):
                 self.create(xlmm=fans.xlmm,
                             xlmm_cusid=fans.xlmm_cusid,
                             refreal_cusid=from_customer,
-                            fans_cusid=current_cu.id)
+                            fans_cusid=current_cu.id,
+                            fans_nick=current_cu.nick,
+                            fans_thumbnail=current_cu.thumbnail)
                 self.record_fans_num(fans.xlmm, fans.xlmm_cusid)
         return
 

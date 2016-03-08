@@ -457,4 +457,51 @@ def task_Release_Coupon_For_Mmlink():
             continue  # 有异常则查看下一笔交易
 
 
+from django.db.models import Q
+from flashsale.xiaolumm.models_fans import XlmmFans
+from flashsale.promotion.models_freesample import AppDownloadRecord
+from shopapp.weixin.models import WeixinUnionID
+import settings
+
+
+@task
+def task_Record_Mama_Fans(instance, created):
+    """
+    记录代理粉丝任务
+    1. 不是新创建的用户则不去处理
+    2. 没有unionid，则不去处理（目前APP下载记录中只是保存了通过微信授权的openid）
+    3. 没有下载记录的不去处理
+    4. 当前用户是代理的不去处理
+    5. 已经是代理粉丝的用户不去处理
+    6. 创建粉丝记录
+    """
+    if not created:
+        return
+    if not instance.unionid:
+        return
+    # 获取对应openid
+    WXAPP_ID = settings.WXAPP_ID
+    weixin_user = WeixinUnionID.objects.filter(app_key=WXAPP_ID, unionid=instance.unionid)
+    openid = ''
+    if weixin_user.exists():
+        openid = weixin_user[0].openid
+    mobile = instance.mobile
+    downloads = AppDownloadRecord.objects.filter(Q(openid=openid) |
+                                                 Q(mobile=mobile)).filter(status=False)  # 没有成为用户的记录
+    if downloads.exists():
+        download = downloads[0]
+        # 存在记录则计算当前用户到下载记录的妈妈粉丝上
+        from_customer = Customer.objects.get(pk=download.from_customer)
+        if not from_customer:  # 没有找到推荐人则返回
+            return
+        ins_xlmm = instance.getXiaolumm()
+        if ins_xlmm:  # 如果当前用户是小鹿妈妈则返回，不记录小鹿妈妈自己为自己的粉丝
+            return
+        fans = XlmmFans.objects.filter(xlmm_cusid=from_customer.id, fans_cusid=instance.id)
+        if fans.exists():  # 存在粉丝记录返回
+            return
+        else:
+            XlmmFans.objects.createFansRecord(str(from_customer.id), str(instance.id))
+            download.status = True
+            download.save()
 

@@ -32,6 +32,7 @@ from .options import gen_and_save_jpeg_pic
 from shopback.base import log_action, ADDITION, CHANGE
 from django.forms import model_to_dict
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
+from flashsale.pay.models_shops import CustomerShops, CuShopPros
 
 CACHE_VIEW_TIMEOUT = 15
 
@@ -562,6 +563,45 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if sort_field:
             pros = sorted(pros, key=lambda k: k[sort_field], reverse=True)
         return pros
+
+    @list_route(methods=['get'])
+    def get_mama_shop(self, request):
+        """
+        获取代理用户的店铺
+        """
+        content = request.REQUEST
+        mm_linkid = content.get('mm_linkid', None)
+        category = content.get('category', None)
+        self.permission_classes = ()
+        self.paginate_by = 10
+        try:
+            xlmm = XiaoluMama.objects.get(pk=mm_linkid)
+            customer = Customer.objects.get(unionid=xlmm.openid)
+            customer_id = customer.id
+            shop = CustomerShops.objects.get(customer=customer_id)
+            shop_info = model_to_dict(shop, fields=['name'])
+            shop_info['thumbnail'] = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg'
+            shop_pros = CuShopPros.objects.filter(shop=shop.id, pro_status=CuShopPros.UP_SHELF)
+        except:
+            return Response({"shop_info": None, "products": None})
+        shop_proids = shop_pros.values('product')
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        if category == 'child':
+            queryset = self.get_child_qs(queryset)
+        elif category == 'female':
+            queryset = self.get_female_qs(queryset)
+        pros = queryset.filter(id__in=shop_proids)
+
+        page = self.paginate_queryset(pros)
+
+        if page is not None:
+            object_list = self.objets_from_cache(page)
+            serializer = self.get_serializer(object_list, many=True)
+            return self.get_paginated_response({"shop_info": shop_info, "products": serializer.data})
+        object_list = self.objets_from_cache(pros, value_keys=['pk', 'is_saleout'])
+        serializer = self.get_serializer(object_list, many=True)
+        return Response({"shop_info": shop_info, "products": serializer.data})
 
 
 class ProductShareView(generics.RetrieveAPIView):

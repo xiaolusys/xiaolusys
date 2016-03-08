@@ -853,3 +853,16 @@ def mama_Verify_Action(request):
     res = task_mama_Verify_Action.s(user_id, mama_id, referal_mobile, weikefu)()
     return HttpResponse(res)
 
+from .models_fans import XlmmFans
+
+
+def handler_fans_nick():
+    """
+    保存活动中没有保存的头像和昵称，　只运行一次
+    """
+    fanss = XlmmFans.objects.all()
+    for fans in fanss:
+        cus = Customer.objects.get(pk=fans.fans_cusid)
+        fans.fans_nick = cus.nick
+        fans.fans_thumbnail = cus.thumbnail
+        fans.save()
