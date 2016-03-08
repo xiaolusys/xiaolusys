@@ -576,7 +576,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         self.paginate_by = 10
         try:
             xlmm = XiaoluMama.objects.get(pk=mm_linkid)
-            customer = Customer.objects.get(unionid=xlmm.openid)
+            customer = Customer.objects.get(unionid=xlmm.openid, status=Customer.NORMAL)
             customer_id = customer.id
             shop = CustomerShops.objects.get(customer=customer_id)
             shop_info = model_to_dict(shop, fields=['name'])
