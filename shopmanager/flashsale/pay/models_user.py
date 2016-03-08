@@ -193,6 +193,18 @@ class Customer(PayBaseModel):
             return 0
 
 
+from django.db.models.signals import post_save
+
+
+def triger_record_xlmm_fans(sender, instance, created, **kwargs):
+    """ 记录粉丝妈妈粉丝信息 """
+    from flashsale.pay.tasks import task_Record_Mama_Fans
+    task_Record_Mama_Fans.s(instance, created)()
+
+
+post_save.connect(triger_record_xlmm_fans, dispatch_uid='triger_record_xlmm_fans', sender=Customer)
+
+
 class UserBudget(PayBaseModel):
     """ 特卖用户钱包 """
     class Meta:

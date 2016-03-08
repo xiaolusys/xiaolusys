@@ -11,6 +11,8 @@ class XlmmFans(BaseModel):
     xlmm_cusid = models.BigIntegerField(db_index=True, verbose_name='小鹿妈妈用户id')
     refreal_cusid = models.BigIntegerField(db_index=True, verbose_name='推荐人用户id')
     fans_cusid = models.BigIntegerField(unique=True, verbose_name='粉丝用户id')
+    fans_nick = models.CharField(max_length=32, blank=True, null=True, verbose_name='粉丝昵称')
+    fans_thumbnail = models.CharField(max_length=256, blank=True, null=True, verbose_name='粉丝头像')
     objects = XlmmFansManager()
 
     class Meta:

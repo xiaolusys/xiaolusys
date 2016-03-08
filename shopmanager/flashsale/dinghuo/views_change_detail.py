@@ -1,9 +1,13 @@
 # coding:utf-8
 __author__ = 'yann'
 
-import datetime
-import logging
 from cStringIO import StringIO
+import datetime
+import decimal
+import io
+import logging
+import xlsxwriter
+import urllib
 
 from django.db.models import F
 from django.forms.models import model_to_dict
@@ -18,7 +22,7 @@ from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft
 import functions
 from shopback.items.models import Product, ProductSku
-from supplychain.supplier.models import SaleProduct
+from supplychain.supplier.models import SaleProduct, SaleSupplier
 
 
 class ChangeDetailView(View):
@@ -197,7 +201,7 @@ def change_inferior_num(request):
 class ChangeDetailExportView(View):
 
     @staticmethod
-    def get(request, order_detail_id):
+    def get_old(request, order_detail_id):
         headers = [u'商品编码', u'供应商编码', u'商品名称', u'规格', u'购买数量', u'买入价格', u'单项价格',
                    u'已入库数', u'次品数']
         order_list = OrderList.objects.get(id=order_detail_id)
@@ -229,4 +233,144 @@ class ChangeDetailExportView(View):
                                 mimetype='application/octet-stream')
         response[
             'Content-Disposition'] = 'attachment;filename=dinghuodetail-%s.csv' % order_detail_id
+        return response
+
+    @staticmethod
+    def get(request, order_detail_id):
+        order_detail_id = int(order_detail_id)
+        filename = 'dinghuodetail-%d.xlsx' % order_detail_id
+        buff = StringIO()
+        workbook = xlsxwriter.Workbook(buff)
+        worksheet = workbook.add_worksheet()
+        bold = workbook.add_format({'bold': True})
+        money = workbook.add_format({'num_format': '0.00'})
+
+        image_width = 22.3
+        image_height = 125
+
+        worksheet.set_column('A:A', 18)
+        worksheet.set_column('B:B', 30)
+        worksheet.set_column('E:E', image_width)
+
+        worksheet.write('A1', '供应商名称:', bold)
+        worksheet.write('A2', '供应商账号:', bold)
+        worksheet.write('A3', '供应商姓名:', bold)
+        worksheet.write('A4', '供应商联系方式:', bold)
+
+        order_list = OrderList.objects.get(id=order_detail_id)
+        buyer_name = order_list.buyer_name or ''
+
+        supplier_name = ''
+        supplier_contactor = ''
+        supplier_contact = ''
+        order_details = OrderDetail.objects.filter(orderlist_id=order_detail_id)
+
+        receiver_address = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼' if order_list.p_district == '3' else \
+          '上海市佘山镇吉业路245号5号楼'
+        receiver_name = '小鹿美美%d' % order_list.id
+        receiver_contact = '15023333762' if order_list.p_district == '3' else '021-37698479, 15026869609'
+        if order_details:
+            supplier = None
+            for order_detail in order_details:
+                try:
+                    product = Product.objects.get(pk=order_detail.product_id)
+                    sale_product = SaleProduct.objects.get(
+                        pk=product.sale_product)
+                    supplier = sale_product.sale_supplier
+                except:
+                    continue
+            if supplier:
+                supplier_name = supplier.supplier_name
+                supplier_contactor = supplier.contact
+                supplier_contact = supplier.mobile or supplier.phone or supplier.email or ''
+        worksheet.write('B1', supplier_name)
+        worksheet.write('B3', supplier_contactor)
+        worksheet.write('B4', supplier_contact)
+
+        products = {}
+        for product in Product.objects.filter(
+                pk__in=[order_detail.product_id for order_detail in
+                        order_details]):
+            products[product.id] = {
+                'sale_product_id': product.sale_product,
+                'pic_path': ('%s?imageView2/0/w/160' % product.pic_path.strip())
+                if product.pic_path else ''
+            }
+
+        sale_products = {}
+        for sale_product in SaleProduct.objects.filter(pk__in=[product[
+                'sale_product_id'] for product in products.values()]):
+            sale_products[sale_product.id] = sale_product.product_link
+
+        skus = {}
+        for sku in ProductSku.objects.filter(
+                pk__in=[order_detail.chichu_id for order_detail in order_details
+                       ]):
+            skus[sku.id] = sku.outer_id
+
+        def _parse_name(product_name):
+            name, color = ('-',) * 2
+            parts = product_name.rsplit('/', 1)
+            if len(parts) > 1:
+                name, color = parts[:2]
+            elif len(parts) == 1:
+                name = parts[0]
+            return name, color
+
+
+        worksheet.write('A6', '商品名称', bold)
+        worksheet.write('B6', '产品货号', bold)
+        worksheet.write('C6', '颜色', bold)
+        worksheet.write('D6', '规格', bold)
+        worksheet.write('E6', '图片', bold)
+        worksheet.write('F6', '购买数量', bold)
+        worksheet.write('G6', '单项价格', bold)
+        worksheet.write('H6', '总价', bold)
+
+        row = 6
+        all_price = decimal.Decimal('0')
+        for order_detail in order_details:
+            name, color = _parse_name(order_detail.product_name)
+            sku_outer_id = skus.get(int(order_detail.chichu_id)) or ''
+            product = products.get(int(order_detail.product_id)) or {}
+            pic_path = product.get('pic_path') or ''
+            product_link = sale_products.get(product.get(
+                'sale_product_id')) or ''
+
+            worksheet.write(row, 0, name)
+            worksheet.write(row, 1, sku_outer_id.rsplit('-')[0])
+            worksheet.write(row, 2, color)
+            worksheet.write(row, 3, order_detail.product_chicun)
+            if pic_path:
+                opt = {'image_data': io.BytesIO(urllib.urlopen(pic_path).read()), 'positioning': 1}
+                if product_link:
+                    opt['url'] = product_link
+                worksheet.set_row(row, image_height)
+                worksheet.insert_image(row, 4, pic_path, opt)
+
+            worksheet.write(row, 5, order_detail.buy_quantity)
+            worksheet.write(row, 6, order_detail.buy_unitprice, money)
+            worksheet.write(row, 7, order_detail.total_price, money)
+            all_price += decimal.Decimal(str(order_detail.total_price))
+            row += 1
+
+        worksheet.write(row, 6, '总计:', bold)
+        worksheet.write(row, 7, all_price, money)
+
+        row += 1
+
+        worksheet.write(row + 1, 0, '收货地址:', bold)
+        worksheet.write(row + 2, 0, '联系人:', bold)
+        worksheet.write(row + 3, 0, '联系电话:', bold)
+
+        worksheet.write(row + 1, 1, receiver_address)
+        worksheet.write(row + 2, 1, receiver_name)
+        worksheet.write(row + 3, 1, receiver_contact)
+
+        workbook.close()
+        response = HttpResponse(
+            buff.getvalue(),
+            mimetype=
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment;filename=%s' % filename
         return response

@@ -1,0 +1,199 @@
+body {
+    height: 100%;
+    display: block;
+    margin: 0;
+    background: #EFF0F0;
+}
+
+.border-show-1 {
+    border: 1px solid #008000;
+}
+
+.border-show-2 {
+    border: 1px solid red;
+}
+
+.border-show-3 {
+    border: 1px solid #0000ff;
+}
+
+.shop-head {
+    height: 430px;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCVpai80CAM0C7g_750_512.png") no-repeat;
+    background-size: 100% 100%;
+}
+
+.shop-head .shop-info {
+    height: 320px;
+}
+
+.shop-head .shop-info .action-btn {
+    position: relative;
+    top: 40px;
+    height: 50px;
+}
+
+.shop-head .shop-info .action-btn .go-back {
+    width: 80px;
+    float: left;
+    height: 100%;
+}
+
+.shop-head .shop-info .action-btn .go-share {
+    width: 80px;
+    float: right;
+    height: 100%;
+}
+
+.shop-head .shop-info .head-img-div {
+    position: relative;
+    top: 55px;
+    height: 100px;
+    width: 100px;
+    margin: 0 auto;
+}
+
+.shop-head .shop-info .head-img-div .head-img {
+    height: 100%;
+    border-radius: 50%;
+}
+
+.shop-head .shop-info .shop-name-div {
+    position: relative;
+    top: 80px;
+    height: 70px;
+    text-align: center;
+}
+
+.shop-head .shop-info .shop-name {
+    position: relative;
+    height: 100%;
+    top: 10%;
+    font-size: 25px;
+}
+
+.category-zone {
+    height: 110px;
+}
+
+.category-zone .female-zone {
+    float: left;
+    margin-left: 6%;
+    width: 43%;
+    height: 100%;
+}
+
+.category-zone .female-zone .active-bar {
+    position: relative;
+    top: 95%;
+    height: 5px;
+    width: 40%;
+    margin: 0 auto;
+    background: #000000;
+    border-radius: 5px;
+}
+
+.category-zone .child-zone {
+    float: right;
+    margin-right: 6%;
+    width: 43%;
+    height: 100%;
+}
+
+.shop-body {
+    position: relative;
+    top: 10px;
+    background: #FFFFFF;
+}
+
+.shop-body .leave-time-div {
+    height: 70px;
+    margin: 0 auto;
+    width: 50%;
+    text-align: center;
+
+}
+
+.shop-body .leave-time {
+    position: relative;
+    top: 30%;
+    font-size: 15px;
+    color: #320C08;
+}
+
+.shop-body .leave-time em {
+    font-size: 25px;
+    font-style: normal;
+    font-weight: normal;
+}
+
+.shop-body .products-div {
+    position: relative;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.shop-body .products-div .product-show {
+    width: 94%;
+    margin-left: 3%;
+    margin-right: 3%;
+}
+
+.shop-body .products-div .pro-price-div {
+    position: absolute;
+    height: 100px;
+    width: 100%;
+    bottom: 10%;
+}
+
+.shop-body .products-div .pro-price-div .sale-price {
+    position: relative;
+    top: 30%;
+    height: 100%;
+    font-size: 55px;
+    margin-left: 6%;
+    color: white;
+}
+
+.shop-body .products-div .pro-price-div .std-price {
+    position: relative;
+    top: 30%;
+    height: 100%;
+    font-size: 30px;
+    margin-left: 2%;
+    color: white;
+}
+
+.shop-body .products-div .pro-name-div {
+    position: absolute;
+    height: 50px;
+    width: 100%;
+    bottom: 1%;
+}
+
+.shop-body .products-div .pro-name-div .pro-name {
+    color: white;
+    font-size: 32px;
+    margin-left: 6%;
+}
+
+#toast {
+    position: fixed;
+    left: 50%;
+    top: 500px;
+    color: white;
+    font-size: 28px;
+    width: 260px;
+    margin-left: -130px;
+    border: 1px solid #E2E4FF;
+    background-color: #333;
+    padding: 15px 5px;
+    text-align: center;
+    opacity: .9;
+    z-index: 9999;
+    border-radius: 8px;
+    -webkit-transition: opacity 0.5s ease-out;
+    -moz-transition: opacity 0.5s ease-out;
+    -o-transition: opacity 0.5s ease-out;
+    transition: opacity 0.5s ease-out;
+}
