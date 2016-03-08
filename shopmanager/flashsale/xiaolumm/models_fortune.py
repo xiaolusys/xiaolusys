@@ -1,7 +1,7 @@
 # coding=utf-8
 from django.db import models
 from core.models import BaseModel
-from django.db.models import signals
+from django.db.models.signals import post_save
 
 import datetime
 
@@ -37,10 +37,10 @@ class MamaFortune(BaseModel):
         return '%s,%s' % (self.mama_id, self.mama_name)
 
     def cash_num_display(self):
-        return self.cash_num * 0.01
+        return '%.2f' %(self.cash_num * 0.01)
 
     def carry_num_display(self):
-        return self.carry_num * 0.01
+        return '%.2f' %(self.carry_num * 0.01)
 
 
 
@@ -65,7 +65,7 @@ class CarryRecord(BaseModel):
         return '%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num)
     
     def carry_num_display(self):
-        return self.carry_num * 0.01
+        return '%.2f' %(self.carry_num * 0.01)
 
     def today_carry(self):
         """
@@ -90,6 +90,44 @@ class CarryRecord(BaseModel):
 
     def is_click_carry(self):
         return self.carry_type == 1
+
+
+def carryrecord_creation_update_mamafortune(sender, instance, created, **kwargs):
+    """
+    post_save signal only deal with creation
+    """
+    from flashsale.xiaolumm import tasks_mama
+
+    print "carryrecord save signal +++", created
+    if not created:
+        return 
+    
+    mama_id = instance.mama_id
+    amount  = instance.carry_num
+
+    if instance.is_click_carry():
+        # dont do anything
+        return
+    
+    if instance.is_award_carry() and instance.is_carry_confirmed():
+        # award carry has to be confirmed on creation
+        action_key = "32" # increment both cash and carry
+        tasks_mama.increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
+        return
+    
+    if instance.is_order_carry():
+        if instance.is_carry_pending():
+            print "is_carry_pending"
+            action_key = "31" # increment carry only
+            tasks_mama.increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
+        if instance.is_carry_confirmed(): 
+            action_key = "32" # increment cash and carry
+            tasks_mama.increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
+        return
+
+
+post_save.connect(carryrecord_creation_update_mamafortune, 
+                  sender=CarryRecord, dispatch_uid='post_save_carry_record')
 
 
 class OrderCarry(BaseModel):
@@ -119,10 +157,10 @@ class OrderCarry(BaseModel):
         return '%s,%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num,self.date_field)
 
     def order_value_display(self):
-        return self.order_value * 0.01
+        return '%.2f' %(self.order_value * 0.01)
 
     def carry_num_display(self):
-        return self.carry_num * 0.01
+        return '%.2f' %(self.carry_num * 0.01)
 
     def today_carry(self):
         """
@@ -131,7 +169,26 @@ class OrderCarry(BaseModel):
         return None
 
     def is_direct_or_fans_carry(self):
-        return carry_type == 1 or carry_type == 2
+        return self.carry_type == 1 or self.carry_type == 2
+
+
+def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama
+
+    print "signaled ++"
+    carryrecord_type = 2 # order carry
+    tasks_mama.update_carryrecord.s(instance, carryrecord_type)()
+
+    if instance.is_direct_or_fans_carry():
+        # find out parent mama_id
+        relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id)
+        if relationships.count() > 0:
+            parent_mama_id = relationships[0].mama_id
+            tasks_mama.update_second_level_ordercarry.s(parent_mama_id, instance)()
+        
+
+post_save.connect(ordercarry_update_carryrecord,
+                  sender=OrderCarry, dispatch_uid='post_save_order_carry')
 
 
 
@@ -144,7 +201,7 @@ class AwardCarry(BaseModel):
     carry_type = models.IntegerField(default=0, choices=AWARD_TYPES, verbose_name=u'奖励类型') #直接推荐奖励/团队成员奖励
     contributor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     contributor_img  = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')    
-    contributor_id  = models.BigIntegerField(default=0, verbose_name=u'贡献者ID')
+    contributor_mama_id  = models.BigIntegerField(default=0, verbose_name=u'贡献者mama_id')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
@@ -155,16 +212,29 @@ class AwardCarry(BaseModel):
         verbose_name_plural = u'奖励列表'
 
     def __unicode__(self):
-        return '%s,%s,%s,%s' % (self.mama_id, self.award_type, self.award_num, self.date_field)
+        return '%s,%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num, self.date_field)
 
     def carry_num_display(self):
-        return self.carry_num * 0.01
+        return '%.2f' %(self.carry_num * 0.01)
 
     def today_carry(self):
         """
         this must exists to bypass serializer check
         """
         return None
+
+
+def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama
+    
+    carryrecord_type = 3 # award carry
+    tasks_mama.update_carryrecord.s(instance, carryrecord_type)()
+
+
+post_save.connect(awardcarry_update_carryrecord,
+                  sender=AwardCarry, dispatch_uid='post_save_award_carry')
+
+
     
 class ClickCarry(BaseModel):
     STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
@@ -193,19 +263,29 @@ class ClickCarry(BaseModel):
 
 
     def init_click_price_display(self):
-        return self.init_click_price * 0.01
+        return '%.2f' % (self.init_click_price * 0.01)
 
     def confirmed_click_price_display(self):
-        return self.confirmed_click_price * 0.01
+        return '%.2f' % (self.confirmed_click_price * 0.01)
 
     def total_value_display(self):
-        return self.total_value * 0.01
+        return '%.2f' % (self.total_value * 0.01)
 
     def today_carry(self):
         """
         this must exists to bypass serializer check
         """
         return None
+
+
+def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama
+    tasks_mama.update_carryrecord_carry_num.s(instance)()
+
+
+post_save.connect(clickcarry_update_carryrecord,
+                  sender=ClickCarry, dispatch_uid='post_save_click_carry')
+
 
 class ActiveValue(BaseModel):
     VALUE_TYPES = ((1, u'点击'),(2, u'订单'), (3, u'推荐'), (4, u'粉丝'),)
@@ -228,13 +308,15 @@ class ActiveValue(BaseModel):
 
 
     def value_num_display(self):
-        return self.value_num * 0.01
+        return '%.2f' %(self.value_num * 0.01)
 
     def today_carry(self):
         """
         this must exists to bypass serializer check
         """
         return None
+
+
 
 
 class ReferalRelationship(BaseModel):

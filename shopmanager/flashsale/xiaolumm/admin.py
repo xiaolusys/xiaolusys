@@ -367,7 +367,7 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'contributor_nick', 
-                    'contributor_img', 'contributor_id', 'status')
+                    'contributor_img', 'contributor_mama_id', 'status')
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
 

@@ -1,15 +1,13 @@
 #-*- encoding:utf-8 -*-
-import time
-import datetime
-from django.db.models import F,Sum,Q
-from django.conf import settings
+
+from django.db.models import F
 from celery.task import task
 
 
 import logging
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import MamaFortune
+from flashsale.xiaolumm.models_fortune import MamaFortune,CarryRecord,OrderCarry,AwardCarry,ClickCarry
 
 
 
@@ -37,6 +35,7 @@ def increment_mamafortune_cash_and_carry(mama_id, amount, action_key):
     if amount == 0: 
         return
     
+    print 'action_key:', action_key
     action_value = get_action_value(action_key)
     carry_param, cash_param = action_value['carry_param'],action_value['cash_param']
     carry_amount = amount * carry_param
@@ -44,7 +43,7 @@ def increment_mamafortune_cash_and_carry(mama_id, amount, action_key):
     
     mama_fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if mama_fortunes.count() > 0:
-        mama_fortunes.update(carry_num=F('cash_num')+carry_amount, cash_num=F('carry_num')+cash_amount)
+        mama_fortunes.update(carry_num=F('carry_num')+carry_amount, cash_num=F('cash_num')+cash_amount)
     else:
         mama_fortune = MamaFortune(mama_id=mama_id, carry_num=carry_amount, cash_num=cash_amount)
         mama_fortune.save()
@@ -91,8 +90,10 @@ def update_second_level_ordercarry(parent_mama_id, order_carry):
 def update_carryrecord(carry_data, carry_type):
     carry_records = CarryRecord.objects.filter(uni_key=carry_data.uni_key)
     if carry_records.count() > 0:
+        print "carry_record exists---"
         record = carry_records[0]
         if record.status != carry_data.status:
+            print "status change, gonna update the chain!+++"
             action_key = "%d%d" % (record.status, carry_data.status)
             
             # 1. update carryrecord
@@ -101,15 +102,20 @@ def update_carryrecord(carry_data, carry_type):
             
             # 2. update mamafortune
             increment_mamafortune_cash_and_carry.s(carry_data.mama_id, carry_data.carry_num, action_key)()
-            
+        else:
+            print "nothing to do, status' the same!+++"
         return
+    
+    print "carry_record DOESN'T exists---, gonna create new one +++"
     try:
         # create new record 
         carry_record = CarryRecord(mama_id=carry_data.mama_id,carry_num=carry_data.carry_num,
                                    carry_type=carry_type,date_field=carry_data.date_field,
                                    uni_key=carry_data.uni_key,status=carry_data.status)
         carry_record.save()
-    except:
+    except Exception, e:
+        print Exception, ":", e
+        print "severe error ++++"
         #log("severe error!+++++++++")
         pass
 
@@ -118,8 +124,10 @@ def update_carryrecord_carry_num(carry_data):
     carry_records = CarryRecord.objects.filter(uni_key=carry_data.uni_key)
     if carry_records.count() > 0:
         record = carry_records[0]
-        if record.carry_num != carry_data.carry_num:
-            record.carry_num = carry_data.carry_num
+        if record.carry_num != carry_data.total_value:
+            # we dont update status change here, because the status 
+            # change will be triggered by orders' status change.
+            record.carry_num = carry_data.total_value
             record.save()
         return
 
@@ -127,12 +135,13 @@ def update_carryrecord_carry_num(carry_data):
 
     try:
         # create new record 
-        carry_record = CarryRecord(mama_id=carry_data.mama_id,carry_num=carry_data.carry_num,
+        carry_record = CarryRecord(mama_id=carry_data.mama_id,carry_num=carry_data.total_value,
                                    carry_type=carry_type,date_field=carry_data.date_field,
                                    uni_key=carry_data.uni_key,status=carry_data.status)
         carry_record.save()
-    except:
-        #log("severe error!+++++++++")
+    except Exception, e:
+        print Exception, ":", e
+        print "severe error!+++++++++"
         pass
     
     
