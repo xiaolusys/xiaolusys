@@ -35,7 +35,7 @@ class StatisticsShopping(models.Model):
     
     linkid    = models.IntegerField(default=0,verbose_name=u"妈妈ID")
     linkname  = models.CharField(max_length=20, default="", verbose_name=u'代理人')
-    openid    = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"优尼OpenId")
+    openid    = models.CharField(max_length=64, blank=True, db_index=True, verbose_name=u"收货手机")
     wxorderid = models.CharField(max_length=64, db_index=True, verbose_name=u'微信订单')
     wxordernick   = models.CharField(max_length=32, verbose_name=u'购买昵称')
     wxorderamount = models.IntegerField(default=0, verbose_name=u'微信订单价格')
@@ -254,7 +254,7 @@ def get_xlmm_linkid(click_set):
 from django.db.models import F
 from django.conf import settings
 from shopapp import signals
-from shopapp.weixin.models import get_Unionid
+from shopapp.weixin.options import get_openid_by_unionid, get_unionid_by_openid
 
 
 def tongji_wxorder(sender, obj, **kwargs):
@@ -270,7 +270,8 @@ def tongji_wxorder(sender, obj, **kwargs):
     mm_order_amount = obj.order_total_price
     mm_rebeta_amount = 0
     mm_order_rebeta = 0
-    wx_unionid = get_Unionid(obj.buyer_openid,settings.WEIXIN_APPID)
+    buyer_mobile    = obj.receiver_mobile
+    wx_unionid = get_unionid_by_openid(obj.buyer_openid,settings.WEIXIN_APPID)
     isinxiaolumm = XiaoluMama.objects.filter(openid=wx_unionid,
                                              charge_status=XiaoluMama.CHARGED,
                                              charge_time__lte=ordertime)
@@ -283,7 +284,7 @@ def tongji_wxorder(sender, obj, **kwargs):
         tongjiorder,state   = StatisticsShopping.objects.get_or_create(linkid=xiaolumm.id,
                                                                wxorderid=str(obj.order_id))
         tongjiorder.linkname      = xiaolumm.weikefu
-        tongjiorder.openid        = obj.buyer_openid
+        tongjiorder.openid        = buyer_mobile
         tongjiorder.wxordernick   = obj.buyer_nick
         tongjiorder.wxorderamount = mm_order_amount
         tongjiorder.rebetamount   = mm_rebeta_amount
@@ -317,11 +318,11 @@ def tongji_wxorder(sender, obj, **kwargs):
             tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=mm_linkid,
                                                                    wxorderid=str(obj.order_id))
             tongjiorder.linkname = xiaolu_mm.weikefu
-            tongjiorder.openid = obj.buyer_openid
-            tongjiorder.wxordernick = obj.buyer_nick
+            tongjiorder.openid   = buyer_mobile
+            tongjiorder.wxordernick   = obj.buyer_nick
             tongjiorder.wxorderamount = mm_order_amount
             tongjiorder.rebetamount   = mm_rebeta_amount
-            tongjiorder.shoptime = obj.order_create_time
+            tongjiorder.shoptime     = obj.order_create_time
             tongjiorder.tichengcount = mm_order_rebeta
             tongjiorder.save()
              
@@ -336,7 +337,8 @@ def tongji_wxorder(sender, obj, **kwargs):
                 daytongji.save()
                                                    
         else:
-            StatisticsShopping(linkid=0, openid=obj.buyer_openid, 
+            StatisticsShopping(linkid=0, 
+                               openid=buyer_mobile, 
                                wxorderid=str(obj.order_id),
                                wxorderamount=mm_order_amount,
                                shoptime=obj.order_create_time, 
@@ -344,7 +346,7 @@ def tongji_wxorder(sender, obj, **kwargs):
 
     else:
         tongjiorder,state = StatisticsShopping.objects.get_or_create(linkid=0, wxorderid=str(obj.order_id))
-        tongjiorder.openid = obj.buyer_openid
+        tongjiorder.openid = buyer_mobile
         tongjiorder.wxorderamount = mm_order_amount
         tongjiorder.shoptime = obj.order_create_time
         tongjiorder.tichengcount=mm_order_rebeta
@@ -354,7 +356,6 @@ signals.signal_wxorder_pay_confirm.connect(tongji_wxorder, sender=WXOrder)
 
 from flashsale.pay.models import SaleTrade,SaleOrder,Customer
 from shopapp.weixin.models import WeixinUnionID
-from shopapp.weixin.options import get_openid_by_unionid
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 
 def get_wxopenid(sale_trade,customer):
@@ -400,12 +401,11 @@ def tongji_saleorder(sender, obj, **kwargs):
     target_time = obj.pay_time.date()
     if target_time > today:
         target_time = today
-    ordertime       = obj.pay_time
     
+    ordertime     = obj.pay_time
+    buyer_mobile  = obj.receiver_mobile
     customer = Customer.objects.get(id=obj.buyer_id)
-    xd_openid, wx_unionid = get_wxopenid(obj,customer)
-    if not xd_openid:
-        xd_openid = obj.receiver_mobile or str(obj.buyer_id)
+
     mm_order_amount   = int(obj.payment * 100)
     mm_order_rebeta	  = 0
     mm_rebeta_amount  = 0
@@ -428,7 +428,7 @@ def tongji_saleorder(sender, obj, **kwargs):
                                                                wxorderid=order_id)
         
         tongjiorder.linkname    = xiaolu_mm.weikefu
-        tongjiorder.openid      = xd_openid
+        tongjiorder.openid      = buyer_mobile
         tongjiorder.wxordernick = order_buyer_nick
         tongjiorder.wxorderamount = mm_order_amount
         tongjiorder.rebetamount   = mm_rebeta_amount
@@ -447,7 +447,7 @@ def tongji_saleorder(sender, obj, **kwargs):
             daytongji.save()
     else:
         StatisticsShopping(linkid=0,
-                           openid=xd_openid,
+                           openid=buyer_mobile,
                            wxorderid=order_id,
                            wxordernick=order_buyer_nick,
                            wxorderamount=mm_order_amount,
@@ -465,7 +465,7 @@ def get_strade_wxid_iter(strade):
     """ 获取特卖订单微信openid,unionid """
     buyer_openid = strade.get_buyer_openid()
     ordertime    = strade.pay_time
-    wx_unionid = get_Unionid(buyer_openid,settings.WXPAY_APPID)
+    wx_unionid = get_unionid_by_openid(buyer_openid,settings.WXPAY_APPID)
     if not wx_unionid:
         wx_unionid = strade.receiver_mobile or str(strade.buyer_id)
     xd_unoins  = WeixinUnionID.objects.filter(unionid=wx_unionid,app_key=settings.WEIXIN_APPID) #小店openid
