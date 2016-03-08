@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding: utf-8
 __author__ = 'yann'
 
 from cStringIO import StringIO
@@ -17,6 +17,7 @@ from django.template import RequestContext
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
 
+import common.utils
 from common.utils import CSVUnicodeWriter
 from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft
@@ -291,9 +292,10 @@ class ChangeDetailExportView(View):
         for product in Product.objects.filter(
                 pk__in=[order_detail.product_id for order_detail in
                         order_details]):
+            print repr(product.pic_path)
             products[product.id] = {
                 'sale_product_id': product.sale_product,
-                'pic_path': ('%s?imageView2/0/w/160' % product.pic_path.strip())
+                'pic_path': ('%s?imageMogr2/thumbnail/140/crop/140x120' % common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
                 if product.pic_path else ''
             }
 

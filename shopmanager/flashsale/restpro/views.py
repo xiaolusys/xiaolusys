@@ -351,20 +351,16 @@ class AppDownloadLinkViewSet(WeixinAuthMixin, viewsets.ModelViewSet):
         """ 返回有效的app下载地址 """
         cotent = request.REQUEST
         mm_linkid = cotent.get('mm_linkid', None)
+        download_url = urlparse.urljoin(settings.M_SITE_URL, 'sale/promotion/appdownload/')  # 如果没有找到
         if mm_linkid is None:
-            download_url = urlparse.urljoin('http://192.168.1.31:9000',  # settings.M_SITE_URL,
-                                            'sale/promotion/appdownload/')  # 如果没有找到
             return Response({'download_url': download_url})
         else:  # 有推荐代理的情况才记录
             try:
                 xlmm = XiaoluMama.objects.get(pk=mm_linkid)
                 from_customer = Customer.objects.get(unionid=xlmm.openid)
             except:
-                download_url = urlparse.urljoin('http://192.168.1.31:9000',  # settings.M_SITE_URL,
-                                                'sale/promotion/appdownload/')  # 如果没有找到
                 return Response({'download_url': download_url})
             # 带上参数跳转到下载页面
-            download_url = urlparse.urljoin('http://192.168.1.31:9000',
-                                            # settings.M_SITE_URL,
+            download_url = urlparse.urljoin(settings.M_SITE_URL,
                                             'sale/promotion/appdownload/?from_customer={0}'.format(from_customer.id))
             return Response({'download_url': download_url})
