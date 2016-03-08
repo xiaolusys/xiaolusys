@@ -1,0 +1,36 @@
+{% extends "mmdress/base_dress.html" %}
+
+{% load url from future %}
+{% block title %} 妈妈穿衣品味测试 {% endblock %}
+
+{% load static %}
+
+{% block head_script %}
+<link href="{{STATIC_URL}}css/mmdress.css" rel="stylesheet">
+<style>
+div{
+    border:0px solid black;
+}
+</style>
+{% endblock %}
+
+{% block container-nav %}
+<!-- 页头 -->
+{% endblock %}
+
+{% block container-body %}
+<!-- 内容区 -->
+<div class="page-panel">
+  <div class="row">
+    <img class="carousel-inner img-responsive img-rounded" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E9%A6%96%E9%A1%B5%E4%B8%BB%E5%9B%BE.png?imageMogr2/format/png/quality/90" />
+  </div>
+  <div class="page-mask"></div>
+  <div class="row page">
+    <a href="{% url 'dress_userinfo' %}"><div class="fullfill"></div></a>
+  </div>
+</div>
+{% endblock %}
+
+{% block container-foot %}
+<!-- 页尾 -->
+{% endblock %}

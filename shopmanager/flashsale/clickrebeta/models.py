@@ -26,7 +26,7 @@ class StatisticsShopping(models.Model):
     REFUNDED  = 2
     
     SHOPPING_STATUS = (
-        (WAIT_SEND, u'已付款'),       
+        (WAIT_SEND, u'已付款'),
         (FINISHED, u'已完成'),
         (REFUNDED, u'已取消'),
     )
