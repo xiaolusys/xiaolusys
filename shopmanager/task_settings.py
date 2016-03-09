@@ -53,6 +53,10 @@ CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 CELERY_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama.update_ordercarry': {
+            'queue': 'mama',
+            'routing_key': 'mama.update_ordercarry',
+        },
         'flashsale.xiaolumm.tasks_mama.increment_mamafortune_cash_and_carry': {
             'queue': 'mama',
             'routing_key': 'mama.increment_mamafortune_cash_and_carry',

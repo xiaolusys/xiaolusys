@@ -501,13 +501,69 @@ class SaleOrder(PayBaseModel):
     def second_kill_title(self):
         """ 判断是否秒杀标题　"""
         return True if self.title.startswith(u'秒杀') else False
-            
+
+    def is_pending(self):
+        return self.status < SaleOrder.TRADE_FINISHED and self.status >= SaleOrder.WAIT_SELLER_SEND_GOODS
+
+    def is_confirmed(self):
+        return self.status == SaleOrder.TRADE_FINISHED
+
+    def is_canceled(self):
+        return self.status > SaleOrder.TRADE_FINISHED
+
 
 def refresh_sale_trade_status(sender,instance,*args,**kwargs):
     """ 更新订单状态 """
     #TODO
     
 post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
+
+
+def add_to_mama_order_carry(sender,instance,*args,**kwargs):
+    """
+    SaleOrder save triggers adding carry to OrderCarry.
+    """
+    
+    extra = instance.sale_trade.extras_info
+    customer_id = instance.sale_trade.buyer_id
+    mama_id = None
+    if "mm_linkid" in extra:
+        # This means customer is coming from mama's share link,
+        # carry should be given to mama, regardless whether or
+        # not customer is a fan of another mama.
+        mama_id = extra["mm_linkid"]
+    else:
+        from flashsale.xiaolumm.models_fans import XlmmFans
+        
+        fans = XlmmFans.objects.filter(fans_cusid=customer_id)    
+        if fans.count() > 0:
+            mama_id = fans[0].xlmm
+    
+    if not mama_id:
+        return
+    
+    payment = instance.payment * 100
+    
+    from shopback.items.models import Product
+    products = Product.objects.filter(id=instance.item_id)
+    
+    if products.count() <= 0:
+        return
+    
+    from flashsale.xiaolumm.models import XiaoluMama
+    
+    product = products[0]
+    mama = XiaoluMama.objects.get(pk=mama_id)
+    carry_scheme = mama.get_Mama_Order_Rebeta_Scheme(product)
+    agency_level = mama.agencylevel
+    carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
+    customer = Customer.objects.get(pk=customer_id)
+
+    from flashsale.xiaolumm.tasks_mama import update_ordercarry
+    update_ordercarry.s(mama_id, instance, customer, carry_amount, agency_level, carry_scheme.name)()
+        
+post_save.connect(add_to_mama_order_carry, sender=SaleOrder)
+
 
 class TradeCharge(PayBaseModel):
     

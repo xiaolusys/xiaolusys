@@ -11,12 +11,18 @@ from flashsale.xiaolumm.models_fortune import MamaFortune,CarryRecord,OrderCarry
 
 
 
-#STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'),(3, u'取消'), )
+#STATUS_TYPES = ((0, u'未付款'), (1, u'待确定'), (2, u'已确定'),(3, u'取消'), )
 action_dict = {
+    "01": {'carry_param':  1, 'cash_param':  0},
+    "02": {'carry_param':  1, 'cash_param':  1},
+    "03": {'carry_param':  0, 'cash_param':  0},
+    "10": {'carry_param': -1, 'cash_param':  0},
     "12": {'carry_param':  0, 'cash_param':  1},
     "13": {'carry_param': -1, 'cash_param':  0},
+    "20": {'carry_param': -1, 'cash_param': -1},
     "21": {'carry_param':  0, 'cash_param': -1},
     "23": {'carry_param': -1, 'cash_param': -1},
+    "30": {'carry_param':  0, 'cash_param':  0},
     "31": {'carry_param':  1, 'cash_param':  0},
     "32": {'carry_param':  1, 'cash_param':  1}
     }
@@ -74,15 +80,19 @@ def update_second_level_ordercarry(parent_mama_id, order_carry):
     contributor_nick = order_carry.contributor_nick
     contributor_img  = order_carry.contributor_img
     contributor_id   = order_carry.contributor_id
-
+    
+    agency_level     = order_carry.agency_level
+    carry_plan_name  = order_carry.carry_plan_name
+    
     date_field  = order_carry.date_field
     status      = order_carry.status
     
     record = OrderCarry(mama_id=mama_id, order_id=order_id, order_value=order_value,
-                             carry_num=carry_num,carry_type=carry_type,sku_name=sku_name,
-                             sku_img=sku_img,contributor_nick=contributor_nick,
-                             contributor_img=contributor_img,contributor_id=contributor_id,
-                             date_field=date_field,uni_key=uni_key,status=status)
+                        carry_num=carry_num,carry_type=carry_type,sku_name=sku_name,
+                        sku_img=sku_img,contributor_nick=contributor_nick,
+                        contributor_img=contributor_img,contributor_id=contributor_id,
+                        agency_level=agency_level,carry_plan_name=carry_plan_name,
+                        date_field=date_field,uni_key=uni_key,status=status)
     record.save()
     
     
@@ -104,6 +114,10 @@ def update_carryrecord(carry_data, carry_type):
             increment_mamafortune_cash_and_carry.s(carry_data.mama_id, carry_data.carry_num, action_key)()
         else:
             print "nothing to do, status' the same!+++"
+        return
+
+    # We create CarryRecord upon two status: 1) paid(pending); 2) confirmed
+    if not (carry_data.is_pending() or carry_data.is_confirmed()):
         return
     
     print "carry_record DOESN'T exists---, gonna create new one +++"
@@ -144,4 +158,56 @@ def update_carryrecord_carry_num(carry_data):
         print "severe error!+++++++++"
         pass
     
+@task()
+def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carry_plan_name):
+    """
+    Whenever a sku order gets saved, trigger this task to update 
+    corresponding order_carry record.
+    """
+    status = 0 #unpaid
+    if order.is_pending():
+        status = 1
+    elif order.is_confirmed():
+        status = 2
+    elif order.is_canceled():
+        status = 3
     
+    
+    from flashsale.xiaolumm.models_fortune import gen_ordercarry_unikey
+    
+    order_id = order.oid    
+    uni_key = gen_ordercarry_unikey(mama_id,order_id)
+    
+    order_carrys = OrderCarry.objects.filter(uni_key=uni_key)
+    if order_carrys.count() > 0:
+        order_carry = order_carrys[0]
+        print order_carry.status, status
+        if order_carry.status != status:
+            # We only update status change. We assume no price/value change.
+            # We dont do updates on changes other than status change.
+            order_carry.status = status
+            order_carry.save()
+        return
+
+    try:
+        order_value = order.payment * 100
+        carry_num   = carry_amount
+        carry_type  = 1 # direct order
+        sku_name    = order.title
+        sku_img     = order.pic_path
+        date_field  = order.created.date()
+        
+        contributor_nick = customer.nick 
+        contributor_img  = customer.thumbnail
+        contributor_id   = customer.id
+        
+        order_carry = OrderCarry(mama_id=mama_id,order_id=order_id,order_value=order_value,
+                                 carry_num=carry_num,carry_type=carry_type,sku_name=sku_name,
+                                 sku_img=sku_img,contributor_nick=contributor_nick,
+                                 contributor_img=contributor_img,contributor_id=contributor_id,
+                                 agency_level=agency_level,carry_plan_name=carry_plan_name,
+                                 date_field=date_field,uni_key=uni_key,status=status)
+        order_carry.save()
+    except Exception, e:
+        print Exception, ":", e
+        print "severe error +++"

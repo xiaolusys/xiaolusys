@@ -42,7 +42,7 @@ def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field):
     return sum_dict
 
 
-def add_day_carry(datalist, queryset, sum_field):
+def add_day_carry(datalist, queryset, sum_field, scale=0.01):
     """
     计算求和字段按
     照日期分组
@@ -56,7 +56,7 @@ def add_day_carry(datalist, queryset, sum_field):
     for entry in datalist:
         key = entry.date_field
         if key in sum_dict:
-            entry.today_carry = sum_dict[key] * 0.01
+            entry.today_carry = sum_dict[key] * scale
 
 
 class MamaFortuneViewSet(viewsets.ModelViewSet):
@@ -222,7 +222,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 
         if len(datalist) > 0:
             sum_field = 'value_num'
-            add_day_carry(datalist, self.queryset, sum_field)
+            add_day_carry(datalist, self.queryset, sum_field, scale=1)
 
         serializer = serializers.ActiveValueSerializer(datalist, many=True)
         return Response({"activevalue_list": serializer.data})
