@@ -268,7 +268,7 @@ class ChangeDetailExportView(View):
 
         receiver_address = '广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼' if order_list.p_district == '3' else \
           '上海市佘山镇吉业路245号5号楼'
-        receiver_name = '小鹿美美%d' % order_list.id
+        receiver_name = '小鹿美美%d号工作人员' % order_list.id
         receiver_contact = '15023333762' if order_list.p_district == '3' else '021-37698479, 15026869609'
         if order_details:
             supplier = None
@@ -295,7 +295,9 @@ class ChangeDetailExportView(View):
             print repr(product.pic_path)
             products[product.id] = {
                 'sale_product_id': product.sale_product,
-                'pic_path': ('%s?imageMogr2/thumbnail/140/crop/140x120' % common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
+                'pic_path':
+                ('%s?imageMogr2/thumbnail/560/crop/560x480' %
+                 common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
                 if product.pic_path else ''
             }
 
@@ -325,11 +327,14 @@ class ChangeDetailExportView(View):
         worksheet.write('D6', '规格', bold)
         worksheet.write('E6', '图片', bold)
         worksheet.write('F6', '购买数量', bold)
-        worksheet.write('G6', '单项价格', bold)
-        worksheet.write('H6', '总价', bold)
+        worksheet.write('G6', '入库数量', bold)
+        worksheet.write('H6', '次品数量', bold)
+        worksheet.write('I6', '单项价格', bold)
+        worksheet.write('J6', '总价', bold)
 
         row = 6
         all_price = decimal.Decimal('0')
+        all_quantity = 0
         for order_detail in order_details:
             name, color = _parse_name(order_detail.product_name)
             sku_outer_id = skus.get(int(order_detail.chichu_id)) or ''
@@ -344,20 +349,28 @@ class ChangeDetailExportView(View):
             worksheet.write(row, 3, order_detail.product_chicun)
             if pic_path:
                 opt = {'image_data':
-                       io.BytesIO(urllib.urlopen(pic_path).read())}
+                       io.BytesIO(urllib.urlopen(pic_path).read()),
+                       'x_scale': 0.25,
+                       'y_scale': 0.25}
                 if product_link:
                     opt['url'] = product_link
                 worksheet.set_row(row, image_height)
                 worksheet.insert_image(row, 4, pic_path, opt)
 
             worksheet.write(row, 5, order_detail.buy_quantity)
-            worksheet.write(row, 6, order_detail.buy_unitprice, money)
-            worksheet.write(row, 7, order_detail.total_price, money)
+            worksheet.write(row, 6, order_detail.arrival_quantity)
+            worksheet.write(row, 7, order_detail.inferior_quantity)
+            worksheet.write(row, 8, order_detail.buy_unitprice, money)
+            worksheet.write(row, 9, order_detail.total_price, money)
+            all_quantity += order_detail.buy_quantity
             all_price += decimal.Decimal(str(order_detail.total_price))
             row += 1
 
-        worksheet.write(row, 6, '总计:', bold)
-        worksheet.write(row, 7, order_list.order_amount, money)
+
+        worksheet.write(row, 4, '总数:', bold)
+        worksheet.write(row, 5, all_quantity)
+        worksheet.write(row, 8, '总计:', bold)
+        worksheet.write(row, 9, order_list.order_amount, money)
 
         row += 1
 
