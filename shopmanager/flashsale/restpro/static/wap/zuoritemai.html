@@ -12,16 +12,26 @@
     <link rel="stylesheet" type="text/css" href="css/index.css">
 </head>
 <body>
+
+<div class="download-banner-div">
+    <div class="banner-image">
+        <div class="close-download" id="not_show_btn"></div>
+        <div class="download-click" id="download_app"></div>
+    </div>
+</div>
+
 <div class="top">
     <a class="user" href="pages/gerenzhongxin.html"></a>
     <a class="home"></a>
 </div>
+<!--
 <nav>
     <a href="index.html">今日上新</a>
     <a href="javascript:void(0)" class="active">昨日特卖</a>
     <a href="chaotong.html">潮童专区</a>
     <a href="nvzhuang.html">时尚女装</a>
 </nav>
+-->
 <div class="fixed-nav" id="js-fixed-nav">
     <a href="index.html">今日上新</a>
     <a href="javascript:void(0)" class="active">昨日特卖</a>
@@ -85,6 +95,7 @@
 <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="js/jquery-shopping.js"></script>
 <script src="js/main.js"></script>
+<script src="js/app_download.js"></script>
 <script>
 (function ($) {
     //返回顶部
@@ -97,9 +108,9 @@
         var endY = ev.changedTouches[0].pageY;
         var dir = startY - endY;
         if (dir > 0) {
-            $('#js-fixed-nav').hide();
+            //$('#js-fixed-nav').hide();
         } else {
-            $('#js-fixed-nav').show();
+            //$('#js-fixed-nav').show();
         }
     }, false);
 	$('.cart').listencart();
@@ -119,6 +130,12 @@
     Set_shopcarts_num();
     yesterday_timer();
     need_set_info();
+
+    // 滚动条扫描
+    Scorll_scan();
+    // 判断是否显示下载框
+    Judge_download()
+
 })(jQuery);
 function scroll_top(e){
     e.preventDefault();

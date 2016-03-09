@@ -1,5 +1,7 @@
 # coding: utf-8
 
+import datetime
+
 from django import forms
 from django.core.validators import RegexValidator
 
@@ -51,3 +53,8 @@ class ScheduleBatchSetForm(BaseForm):
     #sale_product_ids = forms.CharField(required=False, initial='[]')
     detail_ids = forms.CharField(required=False, initial='[]')
     onshelf_date = forms.DateField(required=False)
+
+
+class SaleProductManageExportForm(BaseForm):
+    from_date = forms.DateField()
+    end_date = forms.DateField(initial=datetime.date.today(), required=False)

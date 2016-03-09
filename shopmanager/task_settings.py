@@ -161,6 +161,10 @@ CELERY_ROUTES = {
             'queue': 'async',
             'routing_key': 'async.calcu_refund_info_by_pro_v2',
         },#特卖商品退款数统计
+        'flashsale.pay.tasks.task_Record_Mama_Fans': {
+            'queue': 'async',
+            'routing_key': 'async.task_Record_Mama_Fans',
+        },#特卖商品退款数统计
 }
 
 
