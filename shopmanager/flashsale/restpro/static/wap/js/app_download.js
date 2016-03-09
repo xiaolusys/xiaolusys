@@ -1,3 +1,4 @@
+setCookie('is_download_show', '1', 1);
 function Judge_download() {
     var is_download_show = getCookie('is_download_show');
     console.log('is_download_show: ', is_download_show);
@@ -13,6 +14,15 @@ function Judge_download() {
     }
 }
 
+function isWeiXin() {//判断当前浏览器是否是微信内置浏览器
+    var ua = window.navigator.userAgent.toLowerCase();
+    if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 $("#not_show_btn").click(function () {// 如果点击不显示
     setCookie('is_download_show', '0', 1);
     var is_download_show = getCookie('is_download_show');
@@ -24,17 +34,38 @@ $("#download_app").click(function () {//如果点击下载
     // 点击下载APP
     var requestUrl = GLConfig.baseApiUrl + GLConfig.app_download;
     var mm_linkid = getUrlParam("mm_linkid");
-    $.ajax({
-        type: 'get',
-        url: requestUrl,
-        data: {"mm_linkid":mm_linkid},
-        dataType: 'json',
-        success: requestCallBack
-    });
-    function requestCallBack(res) {
-        console.log("debug download link:", res);
-        window.open(res.download_url);
+    var weixin = isWeiXin();
+
+    if (weixin == false) {
+        /////// 浏览器用法 START
+        $.ajax({
+            type: 'get',
+            url: requestUrl,
+            data: {"mm_linkid": mm_linkid},
+            dataType: 'json',
+            success: loadNewPageE
+        });
+        var winRef = window.open("", "_blank");//打开一个新的页面
+
+        function loadNewPageE(res) {
+            winRef.location = res.download_url;
+        }
+
+        //// 浏览器用法　END
     }
+    else {// 微信内部直接location
+        $.ajax({
+            type: 'get',
+            url: requestUrl,
+            data: {"mm_linkid": mm_linkid},
+            dataType: 'json',
+            success: loadNewPage
+        });
+        function loadNewPage(res) {
+            window.location = res.download_url;
+        }
+    }
+
 });
 
 function Scorll_scan() {
