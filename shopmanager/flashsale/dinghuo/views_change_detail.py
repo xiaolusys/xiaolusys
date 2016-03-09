@@ -1,4 +1,4 @@
-# coding:utf-8
+# coding: utf-8
 __author__ = 'yann'
 
 from cStringIO import StringIO
@@ -17,6 +17,7 @@ from django.template import RequestContext
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
 
+import common.utils
 from common.utils import CSVUnicodeWriter
 from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft
@@ -245,7 +246,7 @@ class ChangeDetailExportView(View):
         bold = workbook.add_format({'bold': True})
         money = workbook.add_format({'num_format': '0.00'})
 
-        image_width = 22.3
+        image_width = 25
         image_height = 125
 
         worksheet.set_column('A:A', 18)
@@ -291,9 +292,10 @@ class ChangeDetailExportView(View):
         for product in Product.objects.filter(
                 pk__in=[order_detail.product_id for order_detail in
                         order_details]):
+            print repr(product.pic_path)
             products[product.id] = {
                 'sale_product_id': product.sale_product,
-                'pic_path': ('%s?imageView2/0/w/160' % product.pic_path.strip())
+                'pic_path': ('%s?imageMogr2/thumbnail/140/crop/140x120' % common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
                 if product.pic_path else ''
             }
 
@@ -342,8 +344,7 @@ class ChangeDetailExportView(View):
             worksheet.write(row, 3, order_detail.product_chicun)
             if pic_path:
                 opt = {'image_data':
-                       io.BytesIO(urllib.urlopen(pic_path).read()),
-                       'positioning': 1}
+                       io.BytesIO(urllib.urlopen(pic_path).read())}
                 if product_link:
                     opt['url'] = product_link
                 worksheet.set_row(row, image_height)
