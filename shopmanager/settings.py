@@ -119,6 +119,7 @@ INSTALLED_APPS = (
     'httpproxy',
     'deamon.celery_sentry',
     'django_statsd',
+    'statsd',
     'core.ormcache',
     
     'common',
