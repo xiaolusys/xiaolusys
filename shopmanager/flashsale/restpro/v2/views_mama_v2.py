@@ -23,12 +23,12 @@ from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveVa
 def get_mama_id(user):
     customers = Customer.objects.filter(user=user)
     mama_id = None
-    mama_id = 5  # debug test
     if customers.count() > 0:
         customer = customers[0]
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
+    mama_id = 5 # debug test
     return mama_id
 
 
