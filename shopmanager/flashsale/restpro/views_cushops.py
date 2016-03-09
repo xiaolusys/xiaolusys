@@ -58,7 +58,6 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                 if xlmm:
                     mm_linkid = xlmm.id
             shop_info = model_to_dict(shop)
-            settings.M_SITE_URL = 'http://192.168.1.31/static/wap/'
             link = urlparse.urljoin(settings.M_SITE_URL, 'mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = customer.thumbnail  # 提供用户头像

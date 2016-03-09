@@ -1,3 +1,4 @@
+# coding:utf-8
 __author__ = 'zfz'
 import os
 
@@ -127,12 +128,13 @@ WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
 WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
+#小鹿美美特卖　公众号ID
 WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET      = 'bc41b3a535b095afc55cd40d2e808d9c'
-
+#小鹿美美　公众号ID
 WXPAY_APPID    = "wx3f91056a2928ad2d"
 WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
-
+#小鹿美美 手机APP 授权应用ID
 WXAPP_ID       = "wx25fcb32689872499"
 WXAPP_SECRET   = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
