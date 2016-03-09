@@ -1004,3 +1004,9 @@ class SyncStockAPIView(APIView):
             product.remain_num = collect_num
             product.save()
         return Response({'msg': 'OK'})
+
+class SaleProductManageExport(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get(self, request, *args, **kwargs):
+        pass
