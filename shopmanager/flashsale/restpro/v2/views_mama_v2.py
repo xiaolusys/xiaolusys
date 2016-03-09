@@ -113,7 +113,7 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
         if len(datalist) > 0:
             add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.CarryRecordSerializer(datalist, many=True)
-        return Response({"carryrecord_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -143,7 +143,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
             sum_field = 'carry_num'
             add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.OrderCarrySerializer(datalist, many=True)
-        return Response({"ordercarry_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -170,7 +170,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
             add_day_carry(datalist, self.queryset, sum_field)
 
         serializer = serializers.ClickCarrySerializer(datalist, many=True)
-        return Response({"clickcarry_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -197,7 +197,7 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
             sum_field = 'carry_num'
             add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.AwardCarrySerializer(datalist, many=True)
-        return Response({"awardcarry_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -225,7 +225,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
             add_day_carry(datalist, self.queryset, sum_field, scale=1)
 
         serializer = serializers.ActiveValueSerializer(datalist, many=True)
-        return Response({"activevalue_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
