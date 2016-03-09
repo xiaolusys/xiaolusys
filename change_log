@@ -1,4 +1,4 @@
-######## 2016-03-07 ########
+######## 2016-03-09 ########
 alter table supplychain_supply_schedule_manage_detail add column is_approved tinyint(1) default 0;
 ######## 2016-03-07 ########
 alter table flashsale_xlmm_fans add column fans_nick varchar(32) default null;
