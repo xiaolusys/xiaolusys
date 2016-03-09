@@ -4,6 +4,7 @@ import json
 import datetime
 import hashlib
 import urlparse
+import random
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render_to_response
 from django.db.models import Q
@@ -553,7 +554,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             prodic = model_to_dict(pro,
                                    fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
             # 预留数 * 5 = (模拟)销量　
-            prodic['sale_num'] = prodic['remain_num'] * 8
+            prodic['sale_num'] = prodic['remain_num'] * 100 + random.choice(xrange(100))
             prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
             prodic['rebet_amount'] = rebet_amount
             pros.append(prodic)
