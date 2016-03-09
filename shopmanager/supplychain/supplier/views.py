@@ -26,7 +26,7 @@ from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product, ProductSku
 
 from . import constants, forms
-from .models import SaleSupplier, SaleCategory, SaleProduct, SaleProductManage
+from .models import SaleSupplier, SaleCategory, SaleProduct, SaleProductManage, SaleProductManageDetail
 from .serializers import (SaleSupplierSerializer,
                           SaleCategorySerializer,
                           SaleProductSerializer,
@@ -585,33 +585,6 @@ class ScheduleDetailAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
 
-    SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
-
-    @classmethod
-    def get_category_names(cls, cid):
-        categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
-        if not categories:
-            categories = {}
-            for category in SaleCategory.objects.filter(
-                    status=u'normal').order_by('created'):
-                categories[category.id] = {
-                    'cid': category.id,
-                    'pid': category.parent_cid or 0,
-                    'name': category.name
-                }
-            cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
-        level_1_category_name, level_2_category_name = ('-',) * 2
-        category = categories.get(cid)
-        if category:
-            pid = category['pid']
-            if not pid:
-                level_1_category_name = category['name']
-            else:
-                level_2_category_name = category['name']
-                level_1_category_name = (categories.get(pid) or
-                                         {}).get('name') or ''
-        return level_1_category_name, level_2_category_name
-
     def get(self, request, *args, **kwargs):
         schedule_id = int(request.GET.get('schedule_id') or 0)
         if not schedule_id:
@@ -619,21 +592,24 @@ class ScheduleDetailAPIView(APIView):
         schedule_manage = SaleProductManage.objects.filter(pk=schedule_id)
         if not schedule_manage:
             return Response({'data': []})
-        sale_product_ids = []
+        schedule_details = {}
         for detail in schedule_manage[0].manage_schedule.filter(
                 today_use_status=u'normal'):
-            sale_product_ids.append(detail.sale_product_id)
+            schedule_details[detail.sale_product_id] = (detail.id, detail.is_approved)
 
         sale_products = {}
         for sale_product in SaleProduct.objects.select_related(
-                'sale_supplier', 'contactor').filter(pk__in=sale_product_ids):
+                'sale_supplier', 'contactor').filter(pk__in=schedule_details.keys()):
             contactor_name = '%s%s' % (sale_product.contactor.last_name,
                                        sale_product.contactor.first_name)
             contactor_name = contactor_name or sale_product.contactor.username
-            level_1_category_name, level_2_category_name = self.get_category_names(
+            level_1_category_name, level_2_category_name = SaleCategory.get_category_names(
                 sale_product.sale_category_id)
+            schedule_detail_id, is_approved = schedule_details[sale_product.id]
             sale_products[sale_product.id] = {
                 'sale_product_id': sale_product.id,
+                'schedule_detail_id': schedule_detail_id,
+                'supplier_sku': sale_product.supplier_sku or '未知',
                 'name': sale_product.title,
                 'sale_product_category_id': sale_product.sale_category_id,
                 'level_1_category_name': level_1_category_name,
@@ -648,6 +624,7 @@ class ScheduleDetailAPIView(APIView):
                 'std_sale_price': sale_product.std_sale_price,
                 'on_sale_price': sale_product.on_sale_price,
                 'remain_num': sale_product.remain_num,
+                'is_approved': '是' if is_approved else '否',
                 'collect_num': 0,
                 'order_weight': 0,
                 'model_id': 0
@@ -713,6 +690,9 @@ class ScheduleDetailAPIView(APIView):
         _id, field = m.group(1, 2)
         value = request.data.get(k) or ''
         _id = int(_id)
+        schedule_detail = SaleProductManageDetail.objects.get(pk=_id)
+        _id = schedule_detail.sale_product_id
+
         if field == 'name':
             typed_value = value
             if typed_value:
@@ -807,10 +787,12 @@ class ScheduleDetailAPIView(APIView):
         contactor_name = '%s%s' % (sale_product.contactor.last_name,
                                    sale_product.contactor.first_name)
         contactor_name = contactor_name or sale_product.contactor.username
-        level_1_category_name, level_2_category_name = self.get_category_names(
+        level_1_category_name, level_2_category_name = SaleCategory.get_category_names(
             sale_product.sale_category_id)
         item = {
             'sale_product_id': _id,
+            'schedule_detail_id': schedule_detail.id,
+            'supplier_sku': sale_product.supplier_sku,
             'name': sale_product.title,
             'sale_product_category_id': sale_product.sale_category_id,
             'level_1_category_name': level_1_category_name,
@@ -825,6 +807,7 @@ class ScheduleDetailAPIView(APIView):
             'std_sale_price': sale_product.std_sale_price,
             'on_sale_price': sale_product.on_sale_price,
             'remain_num': sale_product.remain_num,
+            'is_approved': '是' if schedule_detail.is_approved else '否',
             'collect_num': 0,
             'order_weight': 0,
             'model_id': 0
@@ -1008,6 +991,17 @@ class SyncStockAPIView(APIView):
             product.save()
         return Response({'msg': 'OK'})
 
+class ScheduleDetailApproveAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (JSONRenderer,)
+
+    def post(self, request, *args, **kwargs):
+        schedule_detail_id = int(request.POST.get('schedule_detail_id') or 0)
+        is_approved = (request.POST.get('is_approved') or '是').strip()
+        is_approved = 0 if is_approved == '是' else 1
+        SaleProductManageDetail.objects.filter(pk=schedule_detail_id).update(is_approved=is_approved)
+        return Response({'is_approved': '是' if is_approved else '否'})
+
 
 class ScheduleExportView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -1041,10 +1035,13 @@ class ScheduleExportView(APIView):
                 contactor_name = contactor_name or sale_product.contactor.username
             else:
                 contactor_name = '未知'
+
+            level_1_category_name, level_2_category_name = SaleCategory.get_category_names(sale_product.sale_category_id)
             sale_products[sale_product.id] = {
                 'sale_product_name': sale_product.title,
                 'supplier_name': sale_product.sale_supplier.supplier_name,
-                'contactor_name': contactor_name
+                'contactor_name': contactor_name,
+                'level_1_category_name': level_1_category_name
             }
 
         new_items = []
@@ -1062,16 +1059,24 @@ class ScheduleExportView(APIView):
         workbook = xlsxwriter.Workbook(buff)
         worksheet = workbook.add_worksheet()
         date_format = workbook.add_format({'num_format': 'yyyymmdd'})
+        bold = workbook.add_format({'bold': True})
 
         worksheet.set_column('A:A', 100)
         worksheet.set_column('B:B', 50)
 
-        row = 0
+        worksheet.write('A1', '选品名', bold)
+        worksheet.write('B1', '类别', bold)
+        worksheet.write('C1', '供应商', bold)
+        worksheet.write('D1', '买手', bold)
+        worksheet.write('E1', '上架日期', bold)
+
+        row = 1
         for item in new_items:
             worksheet.write(row, 0, item.get('sale_product_name') or '')
-            worksheet.write(row, 1, item.get('supplier_name') or '')
-            worksheet.write(row, 2, item.get('contactor_name') or '')
-            worksheet.write(row, 3, item['date'], date_format)
+            worksheet.write(row, 1, item.get('level_1_category_name') or '')
+            worksheet.write(row, 2, item.get('supplier_name') or '')
+            worksheet.write(row, 3, item.get('contactor_name') or '')
+            worksheet.write(row, 4, item['date'], date_format)
             row += 1
         workbook.close()
 

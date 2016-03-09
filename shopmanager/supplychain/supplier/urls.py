@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'^sync_stock_api/$', views.SyncStockAPIView.as_view()),
     url(r'^compare_schedule/$', views_addsupplier.ScheduleCompareView.as_view()),
     url(r'^sale_product_api/$', views_addsupplier.SaleProductAPIView.as_view()),
+    url(r'^approve_schedule_detail_api/$', views.ScheduleDetailApproveAPIView.as_view()),
     url(r'^change_list_fields/$', views_change_fields.SupplierFieldsChange.as_view()),
     url(r'^product_change/([0-9]+)/$', views.SaleProductChange.as_view()),
     url(r'^schedule_batch_set/$', views_addsupplier.ScheduleBatchSetView.as_view()),
