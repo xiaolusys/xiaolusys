@@ -1,14 +1,17 @@
 # coding: utf-8
 import copy
+from cStringIO import StringIO
 import datetime
 import json
 import re
 import time
+import xlsxwriter
 
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.views.generic import View
 
 from rest_framework import authentication, exceptions, generics, permissions
 from rest_framework.compat import OrderedDict
@@ -22,7 +25,7 @@ from shopback.base import log_action, ADDITION, CHANGE
 from shopback.categorys.models import ProductCategory
 from shopback.items.models import Product, ProductSku
 
-from . import constants
+from . import constants, forms
 from .models import SaleSupplier, SaleCategory, SaleProduct, SaleProductManage
 from .serializers import (SaleSupplierSerializer,
                           SaleCategorySerializer,
@@ -1005,8 +1008,73 @@ class SyncStockAPIView(APIView):
             product.save()
         return Response({'msg': 'OK'})
 
-class SaleProductManageExport(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
 
-    def get(self, request, *args, **kwargs):
-        pass
+class ScheduleExportView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        form = forms.SaleProductManageExportForm(request.GET)
+        if not form.is_valid():
+            return Response('fail')
+
+        items = []
+        sale_product_ids = set()
+        for m in SaleProductManage.objects.filter(
+                sale_time__gte=form.cleaned_attrs.from_date,
+                sale_time__lte=form.cleaned_attrs.end_date):
+            date_str = m.sale_time.strftime('%Y%m%d')
+            for d in m.manage_schedule.filter(today_use_status='normal'):
+                sale_product_ids.add(d.sale_product_id)
+                items.append({
+                    'sale_product_id': d.sale_product_id,
+                    'date': date_str,
+                    'id': d.id
+                })
+
+        sale_products = {}
+        for sale_product in SaleProduct.objects.select_related(
+                'sale_supplier', 'contactor').filter(
+                    pk__in=list(sale_product_ids)):
+            if sale_product.contactor:
+                contactor_name = '%s%s' % (sale_product.contactor.last_name,
+                                           sale_product.contactor.first_name)
+                contactor_name = contactor_name or sale_product.contactor.username
+            else:
+                contactor_name = '未知'
+            sale_products[sale_product.id] = {
+                'sale_product_name': sale_product.title,
+                'supplier_name': sale_product.sale_supplier.supplier_name,
+                'contactor_name': contactor_name
+            }
+
+        new_items = []
+        for item in sorted(items,
+                           key=lambda x: (x['date'], x['id']),
+                           reverse=True):
+            sale_product = sale_products.get(item['sale_product_id']) or {}
+            item.update(sale_product)
+            new_items.append(item)
+
+        filename = 'schedule-%s-%s.xlsx' % (
+            form.cleaned_attrs.from_date.strftime('%Y%m%d'),
+            form.cleaned_attrs.end_date.strftime('%Y%m%d'))
+        buff = StringIO()
+        workbook = xlsxwriter.Workbook(buff)
+        worksheet = workbook.add_worksheet()
+        date_format = workbook.add_format({'num_format': 'yyyymmdd'})
+
+        worksheet.set_column('A:A', 100)
+        worksheet.set_column('B:B', 50)
+
+        row = 0
+        for item in new_items:
+            worksheet.write(row, 0, item.get('sale_product_name') or '')
+            worksheet.write(row, 1, item.get('supplier_name') or '')
+            worksheet.write(row, 2, item.get('contactor_name') or '')
+            worksheet.write(row, 3, item['date'], date_format)
+            row += 1
+        workbook.close()
+
+        response = HttpResponse(buff.getvalue(), mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment;filename=%s' % filename
+        return response

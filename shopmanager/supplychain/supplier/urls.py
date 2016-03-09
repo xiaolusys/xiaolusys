@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^manage_schedule/$', views_addsupplier.ScheduleManageView.as_view()),
     url(r'^schedule_detail/$', views.ScheduleDetailView.as_view()),
     url(r'^schedule_detail_api/$', views.ScheduleDetailAPIView.as_view()),
+    url(r'^schedule_export/$', views.ScheduleExportView.as_view()),
     url(r'^collect_num_api/$', views.CollectNumAPIView.as_view()),
     url(r'^remain_num_api/$', views.RemainNumAPIView.as_view()),
     url(r'^sync_stock_api/$', views.SyncStockAPIView.as_view()),
