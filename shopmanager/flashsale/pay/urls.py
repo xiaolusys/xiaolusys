@@ -16,7 +16,7 @@ from .views_order import order_flashsale,time_rank,sale_state,refund_state,refun
 from .views_aggregate import AggregateProductView, ModelProductView, CheckModelExistView,\
     AggregateProductCheckView, ChuanTuAPIView, ModelChangeAPIView
 
-from .views_coupon import RefundCouponView
+from .views_coupon import RefundCouponView, ReleaseOmissive
 from .views_ref_reason import RefundReason, RefundAnaList
 from .views_poster import PostGoodShelf
 
@@ -88,6 +88,7 @@ urlpatterns = (
     url(r'^zone_analysis/city/$', csrf_exempt(by_zone_City), name="by_zone_City"),
     url(r'^qiniu/$', views.QiniuApi.as_view()),
     url(r'^rsrc/$', csrf_exempt(RefundCouponView.as_view())),
+    url(r'^release_coupon/$', csrf_exempt(ReleaseOmissive.as_view())),
     url(r'^ref_reason/$', csrf_exempt(RefundReason.as_view())),
     url(r'^pro_ref_list/$', csrf_exempt(RefundAnaList.as_view())),
     url(r'^refund_pop_page/$', csrf_exempt(RefundPopPageView.as_view())),

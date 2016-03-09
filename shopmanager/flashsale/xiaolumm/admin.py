@@ -344,7 +344,11 @@ class FansNumberRecordAdmin(admin.ModelAdmin):
 
 admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
 
-from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, ClickCarry, ActiveValue
+
+
+from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
+    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship
+    
 
 
 class MamaFortuneAdmin(admin.ModelAdmin):
@@ -384,4 +388,12 @@ class ActiveValueAdmin(admin.ModelAdmin):
 admin.site.register(ActiveValue, ActiveValueAdmin)
 
 
+class ReferalRelationshipAdmin(admin.ModelAdmin):
+    list_display = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick')
+admin.site.register(ReferalRelationship,ReferalRelationshipAdmin)
+
+
+class GroupRelationshipAdmin(admin.ModelAdmin):
+    list_display = ('leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick')
+admin.site.register(GroupRelationship,GroupRelationshipAdmin)
 
