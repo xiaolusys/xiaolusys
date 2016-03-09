@@ -266,11 +266,9 @@ class APPDownloadView(WeixinAuthMixin, View):
         mobile = content.get('mobile', None)
         if from_customer:  # 创建下载记录
             if self.is_from_weixin(request):  # 如果是在微信里面
-                openid, unionid = self.get_cookie_openid_and_unoinid(request)
-                if not self.valid_openid(openid) or not self.valid_openid(unionid):
-                    wxprofile = self.get_auth_userinfo(request)
-                    openid, unionid = wxprofile.get("openid"), wxprofile.get("unionid")
-                if not self.valid_openid(unionid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
+                self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+                openid, unionid = self.get_openid_and_unionid(request)
+                if not self.valid_openid(openid):  # 若果是无效的openid则跳转到授权页面
                     return redirect(self.get_wxauth_redirct_url(request))
                 if openid:  # openid 创建下载记录
                     download, state = AppDownloadRecord.objects.get_or_create(openid=openid)

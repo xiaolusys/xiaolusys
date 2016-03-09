@@ -480,8 +480,8 @@ def task_Record_Mama_Fans(instance, created):
     if not instance.unionid:
         return
     # 获取对应openid
-    WXAPP_ID = settings.WXAPP_ID
-    weixin_user = WeixinUnionID.objects.filter(app_key=WXAPP_ID, unionid=instance.unionid)
+    WXPAY_APPID = settings.WXPAY_APPID
+    weixin_user = WeixinUnionID.objects.filter(app_key=WXPAY_APPID, unionid=instance.unionid)
     openid = ''
     if weixin_user.exists():
         openid = weixin_user[0].openid
