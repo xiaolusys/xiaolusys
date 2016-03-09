@@ -223,10 +223,9 @@ def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
 
     if instance.is_direct_or_fans_carry():
         # find out parent mama_id
-        relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id)
-        if relationships.count() > 0:
-            parent_mama_id = relationships[0].mama_id
-            tasks_mama.update_second_level_ordercarry.s(parent_mama_id, instance)()
+        referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id)
+        if referal_relationships.count() > 0:
+            tasks_mama.update_second_level_ordercarry.s(referal_relationships[0], instance)()
         
 
 post_save.connect(ordercarry_update_carryrecord,
@@ -377,8 +376,6 @@ class ActiveValue(BaseModel):
         this must exists to bypass serializer check
         """
         return None
-
-
 
 
 class ReferalRelationship(BaseModel):

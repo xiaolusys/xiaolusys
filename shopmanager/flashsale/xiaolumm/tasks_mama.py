@@ -9,6 +9,15 @@ logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models_fortune import MamaFortune,CarryRecord,OrderCarry,AwardCarry,ClickCarry
 
+import sys
+def get_cur_info():
+    """Return the frame object for the caller's stack frame."""
+    try:
+        raise Exception
+    except:
+        f = sys.exc_info()[2].tb_frame.f_back
+    #return (f.f_code.co_name, f.f_lineno)
+    return f.f_code.co_name
 
 
 #STATUS_TYPES = ((0, u'未付款'), (1, u'待确定'), (2, u'已确定'),(3, u'取消'), )
@@ -38,6 +47,7 @@ def increment_mamafortune_cash_and_carry(mama_id, amount, action_key):
     """
     动态更新小鹿妈妈的cash和carry，amount可以为负。
     """
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     if amount == 0: 
         return
     
@@ -58,10 +68,13 @@ def increment_mamafortune_cash_and_carry(mama_id, amount, action_key):
 
 
 @task()
-def update_second_level_ordercarry(parent_mama_id, order_carry):
+def update_second_level_ordercarry(referal_relationship, order_carry):
+    print "%s, mama_id: %s" % (get_cur_info(), order_carry.mama_id)
+    from flashsale.xiaolumm.models_fortune import gen_ordercarry_unikey
+
+    parent_mama_id = referal_relationship.referal_from_mama_id
     uni_key = gen_ordercarry_unikey(parent_mama_id, order_carry.order_id)
     records = OrderCarry.objects.filter(uni_key=uni_key)
-    
     if records.count() > 0:
         record = records[0]
         if record.status != order_carry.status:
@@ -71,15 +84,15 @@ def update_second_level_ordercarry(parent_mama_id, order_carry):
     
     mama_id     = parent_mama_id
     order_id    = order_carry.order_id
-    order_value = order_carry.order_vale
+    order_value = order_carry.order_value
     carry_num   = order_carry.carry_num * 0.1 # 10 percent carry
     carry_type  = 3 # second level
     sku_name    = order_carry.sku_name
     sku_img     = order_carry.sku_img
 
-    contributor_nick = order_carry.contributor_nick
-    contributor_img  = order_carry.contributor_img
-    contributor_id   = order_carry.contributor_id
+    contributor_nick = referal_relationship.referal_to_mama_nick
+    contributor_img  = referal_relationship.referal_to_mama_img
+    contributor_id   = referal_relationship.referal_to_mama_id
     
     agency_level     = order_carry.agency_level
     carry_plan_name  = order_carry.carry_plan_name
@@ -98,6 +111,8 @@ def update_second_level_ordercarry(parent_mama_id, order_carry):
     
 @task()
 def update_carryrecord(carry_data, carry_type):
+    print "%s, mama_id: %s" % (get_cur_info(),carry_data.mama_id)
+
     carry_records = CarryRecord.objects.filter(uni_key=carry_data.uni_key)
     if carry_records.count() > 0:
         print "carry_record exists---"
@@ -135,6 +150,8 @@ def update_carryrecord(carry_data, carry_type):
 
 @task()
 def update_carryrecord_carry_num(carry_data):
+    print "%s, mama_id: %s" % (get_cur_info(),carry_data.mama_id)
+    
     carry_records = CarryRecord.objects.filter(uni_key=carry_data.uni_key)
     if carry_records.count() > 0:
         record = carry_records[0]
@@ -159,11 +176,13 @@ def update_carryrecord_carry_num(carry_data):
         pass
     
 @task()
-def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carry_plan_name):
+def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carry_plan_name, via_app):
     """
     Whenever a sku order gets saved, trigger this task to update 
     corresponding order_carry record.
     """
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    
     status = 0 #unpaid
     if order.is_pending():
         status = 1
@@ -192,7 +211,11 @@ def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carr
     try:
         order_value = order.payment * 100
         carry_num   = carry_amount
+
         carry_type  = 1 # direct order
+        if via_app:
+            carry_type = 2 # app order
+        
         sku_name    = order.title
         sku_img     = order.pic_path
         date_field  = order.created.date()
