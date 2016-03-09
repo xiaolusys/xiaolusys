@@ -57,4 +57,4 @@ class ScheduleBatchSetForm(BaseForm):
 
 class SaleProductManageExportForm(BaseForm):
     from_date = forms.DateField()
-    to_date = forms.DateField(initial=datetime.date.today)
+    end_date = forms.DateField(initial=datetime.date.today(), required=False)
