@@ -1,15 +1,16 @@
 # coding=utf-8
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from .models_coupon_new import UserCoupon, CouponTemplate
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework import permissions
 from rest_framework.response import Response
 from django.forms import model_to_dict
-from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund
+from flashsale.pay.models import SaleTrade, SaleOrder, SaleRefund, Customer
 from rest_framework.exceptions import APIException
 from common.modelutils import update_model_fields
 from shopback.base import log_action, CHANGE
+import datetime
 
 
 class RefundCouponView(APIView):
@@ -59,7 +60,16 @@ class RefundCouponView(APIView):
         content = request.REQUEST
         trade_tid = content.get("trade_tid", None)
         trade = model_to_dict(self.get_trade(trade_tid)) if trade_tid is not None else None
-        return Response({'trade': trade})
+        now = datetime.datetime.now()
+
+        templates = CouponTemplate.objects.filter(valid=True,  # 有效，　普通类型和活动类型　排除点击领取　截止时间大于当前的
+                                                  type__in=(CouponTemplate.USUAL, CouponTemplate.PROMMOTION_TYPE),
+                                                  deadline__gte=now).exclude(way_type=CouponTemplate.CLICK_WAY)
+        tem_data = []
+        for tem in templates:
+            tem_data.append(model_to_dict(tem))
+
+        return Response({'trade': trade, "templates": tem_data})
 
     def post(self, request):
         content = request.REQUEST
@@ -80,7 +90,31 @@ class RefundCouponView(APIView):
         return Response({'res': "ok"})
 
 
-import datetime
+class ReleaseOmissive(APIView):
+    """
+    补发遗漏的优惠券
+    参数：优惠券模板
+    用户：客户信息(用户手机号，或者用户id)
+    """
+
+    def post(self, request):
+        content = request.REQUEST
+        customer = content.get('customer_info', None)
+        template_ids = content.get('template_ids', None)
+
+        if template_ids is None:
+            return Response({'code': 3, 'message': '请填选用户和优惠券'})  # 参数缺失
+        try:
+            cus = Customer.objects.get(Q(mobile=customer) | Q(pk=customer), status=Customer.NORMAL)
+        except:
+            return Response({'code': 2, "message": '客户不存在或重复'})
+        cou = UserCoupon()
+        message = 'custoemr:%s -' % str(cus.id)
+        template_ids = template_ids.split('-')
+        for templeate in template_ids:
+            res = cou.release_by_template(buyer_id=cus.id, template_id=templeate) or ''
+            message += res + '-'
+        return Response({'code': 0, "message": message})
 
 
 def buyer_time_amount(time_from, time_to):

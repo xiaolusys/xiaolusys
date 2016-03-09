@@ -23,12 +23,12 @@ from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveVa
 def get_mama_id(user):
     customers = Customer.objects.filter(user=user)
     mama_id = None
-    mama_id = 5  # debug test
     if customers.count() > 0:
         customer = customers[0]
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
+    mama_id = 5 # debug test
     return mama_id
 
 
@@ -42,7 +42,7 @@ def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field):
     return sum_dict
 
 
-def add_day_carry(datalist, queryset, sum_field):
+def add_day_carry(datalist, queryset, sum_field, scale=0.01):
     """
     计算求和字段按
     照日期分组
@@ -56,7 +56,7 @@ def add_day_carry(datalist, queryset, sum_field):
     for entry in datalist:
         key = entry.date_field
         if key in sum_dict:
-            entry.today_carry = sum_dict[key] * 0.01
+            entry.today_carry = sum_dict[key] * scale
 
 
 class MamaFortuneViewSet(viewsets.ModelViewSet):
@@ -113,7 +113,7 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
         if len(datalist) > 0:
             add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.CarryRecordSerializer(datalist, many=True)
-        return Response({"carryrecord_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -143,7 +143,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
             sum_field = 'carry_num'
             add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.OrderCarrySerializer(datalist, many=True)
-        return Response({"ordercarry_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -170,7 +170,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
             add_day_carry(datalist, self.queryset, sum_field)
 
         serializer = serializers.ClickCarrySerializer(datalist, many=True)
-        return Response({"clickcarry_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -197,7 +197,7 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
             sum_field = 'carry_num'
             add_day_carry(datalist, self.queryset, sum_field)
         serializer = serializers.AwardCarrySerializer(datalist, many=True)
-        return Response({"awardcarry_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
@@ -222,10 +222,10 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 
         if len(datalist) > 0:
             sum_field = 'value_num'
-            add_day_carry(datalist, self.queryset, sum_field)
+            add_day_carry(datalist, self.queryset, sum_field, scale=1)
 
         serializer = serializers.ActiveValueSerializer(datalist, many=True)
-        return Response({"activevalue_list": serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
