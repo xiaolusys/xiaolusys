@@ -19,7 +19,7 @@ body {
 
 .shop-head {
     height: 430px;
-    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCVpai80CAM0C7g_750_512.png") no-repeat;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/mm-shop-head.png") no-repeat;
     background-size: 100% 100%;
 }
 
@@ -47,7 +47,7 @@ body {
 
 .shop-head .shop-info .head-img-div {
     position: relative;
-    top: 55px;
+    top: 42px;
     height: 100px;
     width: 100px;
     margin: 0 auto;
@@ -69,7 +69,8 @@ body {
     position: relative;
     height: 100%;
     top: 10%;
-    font-size: 25px;
+    font-size: 40px;
+    font-weight: 800
 }
 
 .category-zone {
@@ -117,7 +118,7 @@ body {
 .shop-body .leave-time {
     position: relative;
     top: 30%;
-    font-size: 15px;
+    font-size: 25px;
     color: #320C08;
 }
 
@@ -133,8 +134,20 @@ body {
     margin-top: 15px;
 }
 
+.shop-body .products-div .product-info {
+    position: absolute;
+    height: 100%;
+    bottom: 0.8%;
+    width: 600px;
+    margin-left: 3%;
+    margin-right: 3%;
+    background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), color-stop(0.5, #FFFFFF), to(#000000));
+    opacity: 0.25;
+}
+
 .shop-body .products-div .product-show {
-    width: 94%;
+    width: 600px;
+    height: 600px;
     margin-left: 3%;
     margin-right: 3%;
 }
@@ -144,6 +157,7 @@ body {
     height: 100px;
     width: 100%;
     bottom: 10%;
+    z-index: 100;
 }
 
 .shop-body .products-div .pro-price-div .sale-price {
@@ -168,7 +182,8 @@ body {
     position: absolute;
     height: 50px;
     width: 100%;
-    bottom: 1%;
+    bottom: 0%;
+    z-index: 100;
 }
 
 .shop-body .products-div .pro-name-div .pro-name {
