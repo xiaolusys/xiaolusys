@@ -104,6 +104,8 @@ class Envelop(PayBaseModel):
         
     def send_envelop(self):
         pingpp.api_key = settings.PINGPP_APPKEY
+        if self.platform == Envelop.XLMMAPP:  # 这里如果是客户端APP提现则重新选择来自平台'wx_pub'为ping++的channel
+            self.platform = Envelop.WXPUB
         try:
             if self.envelop_id:
                 redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
