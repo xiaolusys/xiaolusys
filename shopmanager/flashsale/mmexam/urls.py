@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8 
 from django.conf.urls.defaults import patterns, url
 from django.views.generic import TemplateView
 
@@ -12,8 +12,10 @@ urlpatterns = patterns('',
     url(r'^mmexam/(?P<question_id>\d+)/$', views.exam, name='exam'),
     # url(r'^correct_problem_count/$','correct_problem_count'),
     
-    url(r'^dress/$',TemplateView.as_view(template_name="mmdress/dress_entry.html")),
-    url(r'^dress/userinfo/$',views_dress.DressUserinfoView.as_view(),name="dress_userinfo")
+    url(r'^dress/$',views_dress.DressView.as_view(),name="dress_home"),
+    url(r'^dress/result/$',views_dress.DressResultView.as_view(),name="dress_result"),
+    url(r'^dress/(?P<active>\d+)/(?P<dressid>\d+)/(?P<question_id>\d+)/$',
+        views_dress.DressQuestionView.as_view(),name="dress_question")
 )
 
 
