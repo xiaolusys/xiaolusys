@@ -75,4 +75,4 @@ deploy:
       - docker rm -f gunicorn
       - docker run --name=gunicorn -e TARGET=production -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn -k gevent -c taobao_gunicorn_conf.py shopmanager.wsgi
       - docker rm -f celery 
-      - docker run --name=celery -d -e TARGET=production -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program celery worker -A shopmanager --loglevel=ERROR -Q notify,frency,mama,activevalue,mamafortune,relationship,carryrecord
+      - docker run --name=celery --volumes-from=static -d -e TARGET=production -e C_FORCE_ROOT=1 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program celery worker -A shopmanager --loglevel=ERROR -Q notify,frency,mama,activevalue,mamafortune,relationship,carryrecord
