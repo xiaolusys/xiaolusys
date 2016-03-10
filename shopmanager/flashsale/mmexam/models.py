@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+# coding:utf-8 
 from django.db import models
 
 from core.models import BaseModel
@@ -75,10 +75,11 @@ class Result(BaseModel):
 
 
 class MamaDressResult(BaseModel):
+    """ 穿衣风格测试结果 """
     UNFINISHED = 0
     FINISHED = 1
-    STATUS_CHOICES = ((UNFINISHED, u'未通过'),
-                      (FINISHED, u'已通过'),)
+    STATUS_CHOICES = ((UNFINISHED, u'未完成'),
+                      (FINISHED, u'已完成'),)
     user_unionid = models.CharField(max_length=28, unique=True, verbose_name=u'妈妈Unionid')
     mama_age   = models.IntegerField(default=0, verbose_name=u'妈妈年龄')
     mama_headimg = models.CharField(max_length=256, verbose_name=u'头像')
@@ -96,5 +97,16 @@ class MamaDressResult(BaseModel):
 
     def __unicode__(self):
         return self.user_unionid
-
-
+    
+    def is_aged(self):
+        return self.mama_age > 0
+    
+    def is_finished(self):
+        return self.exam_state == self.FINISHED
+    
+    def confirm_finished(self,score):
+        self.exam_score = score
+        self.exam_state = self.FINISHED
+        self.save()
+    
+    

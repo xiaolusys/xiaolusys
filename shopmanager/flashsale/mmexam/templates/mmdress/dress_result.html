@@ -6,7 +6,6 @@
 {% load static %}
 
 {% block head_script %}
-<link href="{{STATIC_URL}}css/mmdress.css" rel="stylesheet">
 <style>
 .container-nav{
     margin-top:10%;
@@ -15,8 +14,11 @@
     max-width:800px;
     margin:0 auto;
 }
+.page-panel form{
+    padding-top:5%;
+}
 .submit-row{
-    padding-top:10%;
+    padding-top:15%;
 }
 </style>
 {% endblock %}
@@ -41,8 +43,8 @@
     <input type="hidden" name="mama_nick" value="{{user_info.mama_nick}}"/>
     <input type="hidden" name="referal_from" value="{{referal_info.user_unionid}}"/>
     <div class="row ">
-      <div class="col-xs-6 div-center">
-      <select name="mama_age" class="form-control">
+      <div class="col-xs-8 div-center">
+      <select name="mama_age" class="form-control " style=>
       {% for age in age_range %}
         <option val="{{age}}" {% if age == 1988 %}selected{% endif %}>{{age}}</option>
       {% endfor %}
