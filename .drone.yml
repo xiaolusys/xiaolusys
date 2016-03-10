@@ -8,10 +8,14 @@ publish:
     tag: latest
     file: Dockerfile
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
+    when:
+      branch: master
 deploy:
   ssh:
     host: dev.huyi.so
     user: root
+    when:
+      branch: master
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys
       - docker run --rm --volumes-from=static registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py collectstatic --noinput
