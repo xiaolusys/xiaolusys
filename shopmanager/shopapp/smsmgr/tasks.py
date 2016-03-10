@@ -26,7 +26,7 @@ POST_NOTIFY_TITLE = '订单发货客户提示'
 #POST_CONTENT_SEND_LATER2 = "亲爱的顾客，您订购的{0}由于商品成色原因未通过质检要求，本店正在加紧调货，如有疑问请联系我们平台客服，么么哒～"
 #POST_CONTENT_SEND_LATER3 = "亲爱的顾客，您订购的{0}在入库检查时发现包装部分污损，本店正在加紧调货，如有疑问请联系我们平台客服，么么哒～"
 
-POST_CONTENT_SEND_LATER = "【小鹿美美】亲，您购买的{0}因销售火爆库存紧，我们正在紧急调货中，我们会以最快的速度帮您补发，请亲再耐心等几天哦，么么哒"
+POST_CONTENT_SEND_LATER = '(小鹿美美)亲，您订购的{0}因订购人数众多库存紧，我们正在紧急调货中，我们会以最快的速度帮您补发，请亲再耐心等几天哦，么么哒'
 
 def get_smsg_from_trade(trade):
     """ 获取商品客户提示 """
@@ -285,6 +285,11 @@ def func2send_message(trade):
 
         #content = random.choice([POST_CONTENT_SEND_LATER]).format(
         content = POST_CONTENT_SEND_LATER.format(title.encode('utf-8'))
+        sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_GOODS_LATER, status=True)
+        if sms_tpls.exists():
+            sms_tpl = sms_tpls[0]
+            content = sms_tpl.text_tmpl or POST_CONTENT_SEND_LATER
+            content = content.format(title.encode('utf-8'))
         if not content:
             return
         params = {}
