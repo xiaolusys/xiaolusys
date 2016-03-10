@@ -288,7 +288,8 @@ def func2send_message(trade):
         sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_GOODS_LATER, status=True)
         if sms_tpls.exists():
             sms_tpl = sms_tpls[0]
-            content = sms_tpl.text_tmpl or content
+            content = sms_tpl.text_tmpl or POST_CONTENT_SEND_LATER
+            content = content.format(title.encode('utf-8'))
         if not content:
             return
         params = {}
