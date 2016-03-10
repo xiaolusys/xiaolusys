@@ -5,6 +5,7 @@ import datetime
 import json
 import re
 import time
+import urlparse
 import xlsxwriter
 
 from django.conf import settings
@@ -365,17 +366,22 @@ class FetchAndCreateProduct(APIView):
             return self.get_img_src(img)
         return ''
 
-    def getItemPic(self, soup):
+    def getItemPic(self, fetch_url, soup):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
         container = soup.findAll(attrs={'class': re.compile(
-            '^(goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
+            '^(SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
                                        })
 
         for c in container:
             for img in c.findAll('img'):
                 img_src = self.get_img_src(img)
-                print img, img_src
                 if img_src:
+                    image_url_components = urlparse.urlparse(img_src)
+                    if not image_url_components.netloc:
+                        fetch_url_components = urlparse.urlparse(fetch_url)
+                        return '%s://%s%s' % (fetch_url_components.scheme,
+                                           fetch_url_components.netloc,
+                                           image_url_components.path)
                     return img_src
 
         alinks = soup.findAll('a')
@@ -385,6 +391,12 @@ class FetchAndCreateProduct(APIView):
             if m:
                 return m.group(1)
             if img_src:
+                image_url_components = urlparse.urlparse(img_src)
+                if not image_url_components.netloc:
+                    fetch_url_components = urlparse.urlparse(fetch_url)
+                    return '%s://%s%s' % (fetch_url_components.scheme,
+                                       fetch_url_components.netloc,
+                                       image_url_components.path)
                 return img_src
         return ''
 
@@ -408,7 +420,7 @@ class FetchAndCreateProduct(APIView):
 
         data = {
             'title': self.getItemTitle(tsoup),
-            'pic_url': self.getItemPic(tsoup),
+            'pic_url': self.getItemPic(fetch_url, tsoup),
             'price': self.getItemPrice(tsoup),
             'fetch_url': fetch_url,
             'status': status,
@@ -595,11 +607,13 @@ class ScheduleDetailAPIView(APIView):
         schedule_details = {}
         for detail in schedule_manage[0].manage_schedule.filter(
                 today_use_status=u'normal'):
-            schedule_details[detail.sale_product_id] = (detail.id, detail.is_approved)
+            schedule_details[detail.sale_product_id] = (detail.id,
+                                                        detail.is_approved)
 
         sale_products = {}
         for sale_product in SaleProduct.objects.select_related(
-                'sale_supplier', 'contactor').filter(pk__in=schedule_details.keys()):
+                'sale_supplier',
+                'contactor').filter(pk__in=schedule_details.keys()):
             contactor_name = '%s%s' % (sale_product.contactor.last_name,
                                        sale_product.contactor.first_name)
             contactor_name = contactor_name or sale_product.contactor.username
@@ -991,6 +1005,7 @@ class SyncStockAPIView(APIView):
             product.save()
         return Response({'msg': 'OK'})
 
+
 class ScheduleDetailApproveAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
@@ -999,7 +1014,8 @@ class ScheduleDetailApproveAPIView(APIView):
         schedule_detail_id = int(request.POST.get('schedule_detail_id') or 0)
         is_approved = (request.POST.get('is_approved') or '是').strip()
         is_approved = 0 if is_approved == '是' else 1
-        SaleProductManageDetail.objects.filter(pk=schedule_detail_id).update(is_approved=is_approved)
+        SaleProductManageDetail.objects.filter(pk=schedule_detail_id).update(
+            is_approved=is_approved)
         return Response({'is_approved': '是' if is_approved else '否'})
 
 
@@ -1036,7 +1052,8 @@ class ScheduleExportView(APIView):
             else:
                 contactor_name = '未知'
 
-            level_1_category_name, level_2_category_name = SaleCategory.get_category_names(sale_product.sale_category_id)
+            level_1_category_name, level_2_category_name = SaleCategory.get_category_names(
+                sale_product.sale_category_id)
             sale_products[sale_product.id] = {
                 'sale_product_name': sale_product.title,
                 'supplier_name': sale_product.sale_supplier.supplier_name,
@@ -1062,7 +1079,7 @@ class ScheduleExportView(APIView):
         bold = workbook.add_format({'bold': True})
 
         worksheet.set_column('A:A', 100)
-        worksheet.set_column('B:B', 50)
+        worksheet.set_column('C:C', 50)
 
         worksheet.write('A1', '选品名', bold)
         worksheet.write('B1', '类别', bold)
@@ -1080,6 +1097,9 @@ class ScheduleExportView(APIView):
             row += 1
         workbook.close()
 
-        response = HttpResponse(buff.getvalue(), mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response = HttpResponse(
+            buff.getvalue(),
+            mimetype=
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment;filename=%s' % filename
         return response

@@ -33,6 +33,23 @@ class XlmmFans(BaseModel):
             return None
 
 
+from django.db.models.signals import post_save
+
+
+def update_activevalue(sender, instance, created, **kwargs):
+    """
+    更新妈妈活跃度
+    """
+    from flashsale.xiaolumm.tasks_mama import fans_update_activevalue
+
+    if created:
+        pass
+
+
+post_save.connect(update_activevalue,
+                  sender=XlmmFans, dispatch_uid='post_save_xlmm_fans')
+
+
 class FansNumberRecord(BaseModel):
     xlmm = models.BigIntegerField(db_index=True, verbose_name='小鹿妈妈id')
     xlmm_cusid = models.BigIntegerField(db_index=True, verbose_name='小鹿妈妈用户id')
