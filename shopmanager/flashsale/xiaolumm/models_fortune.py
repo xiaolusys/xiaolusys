@@ -346,8 +346,9 @@ post_save.connect(clickcarry_update_carryrecord,
 
 
 class ActiveValue(BaseModel):
+    VALUE_MAP = {"1":1, "2":10, "3":50, "4":5}
     VALUE_TYPES = ((1, u'点击'),(2, u'订单'), (3, u'推荐'), (4, u'粉丝'),)
-    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'已取消'), (4, u'已过期'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
@@ -370,7 +371,9 @@ class ActiveValue(BaseModel):
     def status_display(self):
         return get_choice_name(self.STATUS_TYPES, self.status)
 
-
+    def is_confirmed(self):
+        return self.status == 2
+    
     def today_carry(self):
         """
         this must exists to bypass serializer check
