@@ -2,6 +2,7 @@
 import json
 import time
 
+from django.core.cache import cache
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -20,6 +21,8 @@ class SaleCategory(models.Model):
 
     CAT_STATUS = ((NORMAL, u'正常'),
                   (DELETE, u'删除'))
+
+    SALEPRODUCT_CATEGORY_CACHE_KEY = 'xlmm_saleproduct_category_cache'
 
     name = models.CharField(max_length=64, blank=True, verbose_name=u'类别名')
 
@@ -51,6 +54,30 @@ class SaleCategory(models.Model):
     def full_name(self):
         return self.__unicode__()
 
+    @classmethod
+    def get_category_names(cls, cid):
+        categories = cache.get(cls.SALEPRODUCT_CATEGORY_CACHE_KEY)
+        if not categories:
+            categories = {}
+            for category in cls.objects.filter(
+                    status=u'normal').order_by('created'):
+                categories[category.id] = {
+                    'cid': category.id,
+                    'pid': category.parent_cid or 0,
+                    'name': category.name
+                }
+            cache.set(cls.SALEPRODUCT_CATEGORY_CACHE_KEY, categories)
+        level_1_category_name, level_2_category_name = ('-',) * 2
+        category = categories.get(cid)
+        if category:
+            pid = category['pid']
+            if not pid:
+                level_1_category_name = category['name']
+            else:
+                level_2_category_name = category['name']
+                level_1_category_name = (categories.get(pid) or
+                                         {}).get('name') or ''
+        return level_1_category_name, level_2_category_name
 
 class SaleSupplier(models.Model):
     CHARGED = 'charged'
@@ -299,6 +326,7 @@ class SaleProduct(models.Model):
     supplier_sku = models.CharField(max_length=64, blank=True, verbose_name=u'供应商货号')
     remain_num = models.IntegerField(default=0, verbose_name=u'预留数')
 
+
     class Meta:
         db_table = 'supplychain_supply_product'
         unique_together = ("outer_id", "platform")
@@ -421,6 +449,7 @@ class SaleProductManageDetail(models.Model):
     created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, verbose_name=u'修改日期')
     pic_rating = models.FloatField(blank=True, null=True, verbose_name=u'作图评分')
+    is_approved = models.SmallIntegerField(default=0, verbose_name='审核通过')
 
     class Meta:
         db_table = 'supplychain_supply_schedule_manage_detail'

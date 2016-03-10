@@ -84,6 +84,7 @@ function get_mama_shop_info() {
     });
 
     function callback(res) {
+        console.log('res:', res);
         // 当前时间　减去　　sale_time 转　时间格式　取最大时间　＝　剩余时间
         nextShopPage = res.next;
         if (mmshopHeadFlag == false) {

@@ -49,7 +49,7 @@
                 <p class="bg-danger"></p>
             </div>
         </div>
-        <div class="container" style="width:90%">
+        <div class="container" style="width:98%">
             <div class="row" style="margin-top:60px">
                 <table id="main-table" class="display"></table>
             </div>
@@ -79,12 +79,14 @@
             </a>
         </script>
         <script id="collect-num-tpl" type="text/html">
-            <a href="javascript:;" class="collect-num" data-model-id="{{model_id}}" data-sale-product-id="{{sale_product_id}}">
+            <a href="javascript:;" class="collect-num" data-sale-product-id="{{sale_product_id}}"
+               data-schedule-detail-id="{{schedule_detail_id}}">
                 {{value}}
             </a>
         </script>
         <script id="remain-num-tpl" type="text/html">
-            <a href="javascript:;" class="remain-num" data-model-id="{{model_id}}" data-sale-product-id="{{sale_product_id}}">
+            <a href="javascript:;" class="remain-num" data-sale-product-id="{{sale_product_id}}"
+               data-schedule-detail-id="{{schedule_detail_id}}">
                 {{value}}
             </a>
         </script>
@@ -92,7 +94,13 @@
             <span style="color: red">未录入</span>
         </script>
         <script id="sync-stock-tpl" type="text/html">
-            <a href="javascript:;" class="sync-stock" data-sale-product-id="{{sale_product_id}}">
+            <a href="javascript:;" class="sync-stock" data-sale-product-id="{{sale_product_id}}"
+               data-schedule-detail-id="{{schedule_detail_id}}">
+                {{value}}
+            </a>
+        </script>
+        <script id="approve-tpl" type="text/html">
+            <a href="javascript:;" class="to-approve" data-schedule-detail-id="{{schedule_detail_id}}">
                 {{value}}
             </a>
         </script>
@@ -143,11 +151,12 @@
              var mainEditor = new $.fn.dataTable.Editor({
                  ajax: '/supplychain/supplier/schedule_detail_api/',
                  table: '#main-table',
-                 idSrc: 'sale_product_id',
+                 idSrc: 'schedule_detail_id',
                  fields: [
                      {label: '款式名', name: 'name'},
                      {label: '库存数', name: 'collect_num'},
                      {label: '预留数', name: 'remain_num'},
+                     {label: '采购价', name: 'sale_price'},
                      {label: '吊牌价', name: 'std_sale_price'},
                      {label: '销售价', name: 'on_sale_price'},
                      {label: '权值', name: 'order_weight'}
@@ -161,7 +170,6 @@
                      {label: '预留数', name: 'remain_num'}
                  ]
              });
-
              mainEditor.on('submitError', function(e, xhr, err, thrown, data){
                  $('#m1 p.bg-danger').html(thrown);
                  $('#m1').collapse('show');
@@ -212,11 +220,11 @@
                  ajax: '/supplychain/supplier/schedule_detail_api/?schedule_id=' + scheduleId,
                  select: false,
                  columns: [
-                     {data: 'sale_product_id', title: '选品ID', width: '80px', render: function(data, type, full, meta){
+                     {data: 'supplier_sku', title: '供应商货号', width: '120px', render: function(data, type, full, meta){
                          return type == 'display' && data ?
                                 template('sale-product-tpl', {sale_product_id: full.sale_product_id, value: data}) : data;
                      }},
-                     {data: 'name', width: '450px', title: '款式名'},
+                     {data: 'name', width: '350px', title: '款式名'},
                      {data: 'level_1_category_name', title: '一级分类'},
                      {data: 'level_2_category_name', title: '二级分类'},
                      {data: 'supplier_id', width: '180px', title: '供应商', render: function(data, type, full, meta){
@@ -235,27 +243,37 @@
                          return type == 'display' && full.model_id ?
                                 template('remain-num-tpl', {value: data, model_id: full.model_id, sale_product_id: full.sale_product_id}) : data;
                      }},
-                     {data: 'sale_price', width: '80px', title: '采购价'},
+                     {data: 'sale_price', width: '80px', title: '采购价', className: 'editable'},
                      {data: 'std_sale_price', width: '80px', title: '吊牌价', className: 'editable'},
                      {data: 'on_sale_price', width: '80px', title: '销售价', className: 'editable'},
                      {data: 'order_weight', width: '80px', title: '权值'},
                      {data: 'contactor_name', width: '100px', title: '采购负责'},
                      {data: null, width: '100px', title: '录入状态', defaultContent: '', render: function(data, type, full, meta){
+                         if(type != 'display')
+                             return data;
                          if(full.model_id)
                              return '完成';
                          return '<span style="color:red">未录入</span>'
                      }},
                      {data: null, width: '120px', title: '库存同步', defaultContent: '', render: function(data, type, full, meta){
+                         if(type != 'display')
+                             return data;
                          if(!full.model_id)
                              return '-'
                          if(full.is_sync_stock)
                              return '是';
                          return template('sync-stock-tpl', {sale_product_id: full.sale_product_id, value: '否'});
+                     }},
+                     {data: 'is_approved', title: '审核通过', width: '80px', render: function(data, type, full, meta){
+                         if(type == 'display')
+                             return template('approve-tpl', {schedule_detail_id: full.schedule_detail_id, value: data});
+                         else
+                             return data;
                      }}
                  ],
                  buttons: [],
                  initComplete: function(){
-                     this.api().columns([2,3,12]).every(function(){
+                     this.api().columns([2,3,12,15]).every(function(){
                          var column = this;
                          var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
                              .appendTo($(column.header()))
@@ -297,6 +315,7 @@
                  ],
                  buttons: []
              });
+             var ROW_TPL = _.template('tr:has([data-schedule-detail-id="<%= value %>"])');
 
              function onCollectNumClick(){
                  var sale_product_id = $(this).attr('data-sale-product-id') - 0;
@@ -341,23 +360,47 @@
                      }
                  });
              }
+             function onApproveScheduleDetailClick(){
+                 var that = this;
+                 var schedule_detail_id = $(this).attr('data-schedule-detail-id') - 0;
+                 var is_approved = $(this).html();
+                 var cell = mainTable.cell($(this).closest('td'));
+                 $.ajax({
+                     url: '/supplychain/supplier/approve_schedule_detail_api/',
+                     type: 'post',
+                     dataType: 'json',
+                     data: {schedule_detail_id: schedule_detail_id, is_approved: is_approved},
+                     success: function(result){
+                         $(that).html(result.is_approved);
+                         cell.data(result.is_approved);
+                         var select = $(mainTable.column(15).header()).find('select').empty();
+                         select.append('<option value=""></option>');
+                         mainTable.column(15).data().unique().sort().each(function(d, j){
+                             select.append('<option value="'+d+'">'+d+'</option>');
+                         });
+                         var el = $(ROW_TPL({value: schedule_detail_id}));
+                         $('a.to-approve', el).click(onApproveScheduleDetailClick);
+                     }
+                 });
+             }
 
              mainEditor.on('postEdit', function(e, json, data){
-                 var sale_product_id = json.data[0].sale_product_id - 0;
-                 var tpl = _.template('tr:has([data-sale-product-id="<%= value %>"])');
+                 var schedule_detail_id = json.data[0].schedule_detail_id - 0;
                  //重新绑定事件
-                 var el = $(tpl({value: sale_product_id}));
-                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(8)', el).removeClass('editable').addClass('editable');
+                 var el = $(ROW_TPL({value: schedule_detail_id}));
+                 $('td:nth-child(2), td:nth-last-child(5), td:nth-child(8)', el).removeClass('editable').addClass('editable');
                  $('a.collect-num', el).click(onCollectNumClick);
                  $('a.remain-num', el).click(onRemainNumClick);
                  $('a.sync-stock', el).click(onSyncStockClick);
+                 $('a.to-approve', el).click(onApproveScheduleDetailClick);
              });
 
              mainTable.on('init.dt', function(){
-                 $('td:nth-child(2), td:nth-last-child(4), td:nth-child(8)', 'tr:has(a.collect-num)').addClass('editable');
+                 $('td:nth-child(2), td:nth-last-child(5), td:nth-child(8)', 'tr:has(a.collect-num)').addClass('editable');
                  $('a.collect-num').click(onCollectNumClick);
                  $('a.remain-num').click(onRemainNumClick);
                  $('a.sync-stock').click(onSyncStockClick);
+                 $('a.to-approve').click(onApproveScheduleDetailClick);
                  $('#pop1').popover({
                      container: 'body',
                      trigger: 'hover',
