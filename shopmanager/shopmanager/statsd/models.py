@@ -1,0 +1,3 @@
+from shopmanager.statsd.celery_stat import register_celery_events
+
+register_celery_events()
