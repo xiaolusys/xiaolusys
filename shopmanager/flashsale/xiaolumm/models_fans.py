@@ -32,19 +32,22 @@ class XlmmFans(BaseModel):
         except Customer.DoesNotExist:
             return None
 
+
 from django.db.models.signals import post_save
 
 
 def update_activevalue(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_mama import 
+    """
+    更新妈妈活跃度
+    """
+    from flashsale.xiaolumm.tasks_mama import fans_update_activevalue
+
     if created:
-        
-    
-    
+        pass
 
-post_save.connect(update_activevalue
+
+post_save.connect(update_activevalue,
                   sender=XlmmFans, dispatch_uid='post_save_xlmm_fans')
-
 
 
 class FansNumberRecord(BaseModel):
