@@ -121,6 +121,7 @@ INSTALLED_APPS = (
     'django_statsd',
     'statsd',
     'core.ormcache',
+    'core',
     
     'common',
     'shopback.amounts',

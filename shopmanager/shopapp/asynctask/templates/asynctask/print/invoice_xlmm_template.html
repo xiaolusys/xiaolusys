@@ -4,26 +4,28 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <title>发货单打印模板</title>
 <style type='text/css'>
+{% load core_tags %}
 @media print {
 	@font-face {
 		font-family: simsun;
-		src: url(/root/deploy/fonts/simsun.ttf);
+		src: url({% font_path "simsun.ttf" %});
 		font-style: italic;
 	}
 	@font-face {
 		font-family: simsun;
-		src: url(/root/deploy/fonts/simsunbd.ttf);
+		src: url({% font_path "simsunbd.ttf" %});
+
 		font-weight: bold;
 		font-style: italic;
 	}
 	@font-face {
 		font-family: msyh;
-		src: url(/root/deploy/fonts/msyh.ttf);
+		src: url({% font_path "msyh.ttf" %});
 		font-style: italic;
 	}
 	@font-face {
 		font-family: msyh;
-		src: url(/root/deploy/fonts/msyhbd.ttf);
+		src: url({% font_path "msyhbd.ttf" %});
 		font-weight: bold;
 		font-style: italic;
 	}
@@ -114,6 +116,7 @@ td {
 .order-info {
 	width: 100%;
 	margin-top: 5px;
+	height: 100%;
 }
 
 .order-info td {
@@ -200,17 +203,14 @@ td {
 		<hr/>
 		<div class='order-info'>
 			<table>
-				<thead>
-					<tr>
-						<td style="width:70%;">商品编码/全称</td>
-						<td style="width:20%;">货位</td>
-						<td style="width:10%;">数量</td>
-						<!-- <td>单价</td>
-						<td>折扣</td>
-						<td>实付</td> -->
-					</tr>
-				</thead>
-				<tbody>
+				<tr>
+					<td style="width:70%;">商品编码/全称</td>
+					<td style="width:20%;">货位</td>
+					<td style="width:10%;">数量</td>
+					<!-- <td>单价</td>
+					<td>折扣</td>
+					<td>实付</td> -->
+				</tr>
 				{% for order in trade.orders %}
 				{% with parentloop=forloop.parentloop outer_id=order.0 order=order.1 %}
 				{% with sku_len=order.skus|length %}
@@ -232,10 +232,7 @@ td {
 			    {% endwith %}
 			    {% endwith %}
 				{% endfor %}
-				</tbody>
-				<tfoot>
-					<tr><td colspan="2" ></td><td rowspan="1"><label class="order_num">{{ trade.order_nums }}</label></td></tr>
-				</tfoot>
+				<tr><td colspan="2" ></td><td rowspan="1"><label class="order_num">{{ trade.order_nums }}</label></td></tr>
 			</table>
 		</div>
 		<div class='memo-style'>
