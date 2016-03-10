@@ -129,7 +129,7 @@ INSTALLED_APPS = (
     'httpproxy',
     'deamon.celery_sentry',
     'django_statsd',
-    'statsd',
+    'shopmanager.statsd',
     'core.ormcache',
     'core',
     
