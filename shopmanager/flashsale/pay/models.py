@@ -536,8 +536,8 @@ def get_self_mama_id(unionid):
         return records[0].pk
     return None
 
-    
-def add_to_mama_order_carry(sender,instance,*args,**kwargs):
+
+def add_to_mama_order_carry(sender, instance, created, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
@@ -588,7 +588,8 @@ def add_to_mama_order_carry(sender,instance,*args,**kwargs):
     from flashsale.xiaolumm.tasks_mama import update_ordercarry
     update_ordercarry.s(mama_id, instance, customer, carry_amount, agency_level, carry_scheme.name, via_app)()
         
-post_save.connect(add_to_mama_order_carry, sender=SaleOrder)
+post_save.connect(add_to_mama_order_carry, sender=SaleOrder, dispatch_uid='post_save_add_to_mama_order_carry')
+
 
 
 class TradeCharge(PayBaseModel):

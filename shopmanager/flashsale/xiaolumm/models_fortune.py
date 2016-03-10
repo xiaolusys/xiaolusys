@@ -231,6 +231,12 @@ def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_order_carry')
 
+def ordercarry_update_activevalue(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama
+    tasks_mama.task_ordercarry_update_activevalue.s(instance)()
+
+post_save.connect(ordercarry_update_activevalue,
+                  sender=OrderCarry, dispatch_uid='post_save_order_carry_update_active_value')
 
 
 class AwardCarry(BaseModel):
@@ -379,6 +385,15 @@ class ActiveValue(BaseModel):
         this must exists to bypass serializer check
         """
         return None
+
+
+def activevalue_update_mamafortune(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm.tasks_mama import task_activevale_update_mama_fortune
+    if created and instance.status == 2:
+        task_activevale_update_mama_fortune(instance, 'incr')
+
+post_save.connect(activevalue_update_mamafortune,
+                  sender=ClickCarry, dispatch_uid='post_save_active_value')
 
 
 class ReferalRelationship(BaseModel):

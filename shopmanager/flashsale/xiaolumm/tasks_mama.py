@@ -24,18 +24,27 @@ def get_cur_info():
 
 #STATUS_TYPES = ((0, u'未付款'), (1, u'待确定'), (2, u'已确定'),(3, u'取消'), )
 action_dict = {
-    "01": {'carry_param': 1, 'cash_param': 0},
-    "02": {'carry_param': 1, 'cash_param': 1},
-    "03": {'carry_param': 0, 'cash_param': 0},
+    "01": {'carry_param':  1, 'cash_param': 0},
+    "02": {'carry_param':  1, 'cash_param': 1},
+    "03": {'carry_param':  0, 'cash_param': 0},
     "10": {'carry_param': -1, 'cash_param': 0},
-    "12": {'carry_param': 0, 'cash_param': 1},
+    "12": {'carry_param':  0, 'cash_param': 1},
     "13": {'carry_param': -1, 'cash_param': 0},
-    "20": {'carry_param': -1, 'cash_param': -1},
-    "21": {'carry_param': 0, 'cash_param': -1},
-    "23": {'carry_param': -1, 'cash_param': -1},
-    "30": {'carry_param': 0, 'cash_param': 0},
-    "31": {'carry_param': 1, 'cash_param': 0},
-    "32": {'carry_param': 1, 'cash_param': 1}
+    "20": {'carry_param': -1, 'cash_param':-1},
+    "21": {'carry_param':  0, 'cash_param':-1},
+    "23": {'carry_param': -1, 'cash_param':-1},
+    "30": {'carry_param':  0, 'cash_param': 0},
+    "31": {'carry_param':  1, 'cash_param': 0},
+    "32": {'carry_param':  1, 'cash_param': 1}
+}
+
+order_active_dict = {
+    "02":"incr",
+    "12":"incr",
+    "32":"incr",
+    "20":"decr",
+    "21":"decr",
+    "23":"decr"
 }
 
 
@@ -239,7 +248,7 @@ def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carr
 
 
 @task()
-def activevalue_update_mamafortune(active_value, action="incr"):
+def task_activevalue_update_mamafortune(active_value, action="incr"):
     """
     更新妈妈财富数值
     """
@@ -285,7 +294,7 @@ def activevalue_update_mamafortune(active_value, action="incr"):
 def fans_update_activevalue(fans_relationship):
     from flashsale.xiaolumm.models_fortune import ActiveValue, gen_activevalue_unikey
 
-    print "%s, mama_id: %s" % (get_cur_info(), fans_relationship.mama_id)
+    print "%s, mama_id: %s" % (get_cur_info(), fans_relationship.xlmm)
 
     value_type = 4  # fans
     mama_id = fans_relationship.xlmm
@@ -294,10 +303,60 @@ def fans_update_activevalue(fans_relationship):
     date_field = fans_relationship.created.date()
     base_value = ActiveValue.VALUE_MAP[str(value_type)]
     uni_key = gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
-    status = 3  # confirmed
+    status = 2  # confirmed
 
     active_value = ActiveValue(mama_id=mama_id, value_num=base_value, value_type=value_type,
                                uni_key=uni_key, date_field=date_field, status=status)
     active_value.save()
 
-    activevalue_update_mamafortune.s(active_value, "incr")()
+    #activevalue_update_mamafortune.s(active_value, "incr")()
+
+
+
+@task()
+def task_ordercarry_update_activevalue(order_carry):
+    from flashsale.xiaolumm.models_fortune import ActiveValue,gen_activevalue_unikey
+    
+    value_type = 2
+    mama_id = order_carry.mama_id
+    date_field = order_carry.date_field
+    order_id = order_carry.order_id
+    contributor_id = order_carry.contributor_id
+
+    uni_key = gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
+    
+    active_values = ActiveValue.objects.filter(uni_key=uni_key)
+    if active_values.count() > 0:
+        active_value = active_values[0]
+        if active_value.status != order_carry.status:
+            action_key = "%d%d" % (active_value.status, order_carry.status)
+            # 1
+            
+            active_value.status = order_carry.status
+            if order_carry.status == 0:
+                active_value.status = 3 # canceled
+                
+            active_value.save()
+            # 2
+            # update mama_fortune according to action_key
+            if action_key in order_active_dict:
+                action = order_active_dict[action_key]
+                task_activevalue_update_mamafortune.s(active_value, action)()
+        return
+    
+    if status == 0:
+        # dont create ActiveValue record if order status is "unpaid"
+        return
+    
+    base_value = ActiveValue.VALUE_MAP[str(value_type)]
+    status = order_carry.status
+    active_value = ActiveValue(mama_id=mama_id, value_num=base_value, value_type=value_type,
+                               uni_key=uni_key, date_field=date_field, status=status)
+    active_value.save()
+    
+    
+    
+    
+    
+    
+
