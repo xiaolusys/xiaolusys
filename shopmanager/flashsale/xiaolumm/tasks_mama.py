@@ -234,3 +234,61 @@ def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carr
     except Exception, e:
         print Exception, ":", e
         print "severe error +++"
+
+
+@task()
+def activevalue_update_mamafortune(active_value, action="incr"):
+    print "%s, mama_id: %s" % (get_cur_info(),active_value.mama_id)
+
+    from flashsale.xiaolumm.mama_fortune import MamaFortune
+    mama_id = active_value.mama_id
+    value_type = active_value.value_type
+    
+    base_num, value_num = 1, active_value.value_num
+    if action == "decr":
+        base_num = -1
+        value_num = -active_value.value_num
+    
+    mama_fortunes = MamaFortune.objects.filter(mama_id=mama_id)
+    if mama_fortunes.count() > 0:
+        if value_type == 4: #fans
+            mama_fortunes.update(fans_num=F('fans_num')+base_num, active_value_num=F('active_value_num')+value_num)
+        elif value_type == 3: # referal
+            mama_fortunes.update(invite_num=F('invite_num')+base_num, active_value_num=F('active_value_num')+value_num)
+        elif value_type == 2: # order
+            mama_fortunes.update(invite_num=F('order_num')+base_num, active_value_num=F('active_value_num')+value_num)
+        elif value_type == 1: # click
+            mama_fortunes.update(active_value_num=F('active_value_num')+value_num)
+    else:
+        if value_type == 4: #fans
+            mama_fortune = MamaFortune(fans_num=base_num, active_value_num=value_num)
+        elif value_type == 3: # referal
+            mama_fortune = MamaFortune(invite_num=base_num, active_value_num=value_num)
+        elif value_type == 2: # order
+            mama_fortune = MamaFortune(invite_num=base_num, active_value_num=value_num)
+        elif value_type == 1: # click
+            mama_fortune = MamaFortune(active_value_num=value_num)
+    
+        mama_fortune.save()    
+
+
+@task()
+def fans_update_activevalue(fans_relationship):
+    from flashsale.xiaolumm.models_fortune import ActiveValue, gen_activevalue_unikey
+
+    print "%s, mama_id: %s" % (get_cur_info(),fans_relationship.mama_id)
+
+    value_type = 4 # fans    
+    mama_id = fans_relationship.xlmm
+    contributor_id = fans_relationship.fans_cusid
+    order_id = ""
+    date_field = fans_relationship.created.date()
+    base_value = ActiveValue.VALUE_MAP[str(value_type)]
+    uni_key = gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
+    status = 3 # confirmed
+
+    active_value = ActiveValue(mama_id=mama_id,value_num=base_value,value_type=value_type,
+                               uni_key=uni_key,date_field=date_field,status=status)
+    active_value.save()
+    
+    activevalue_update_mamafortune.s(active_value, "incr")()
