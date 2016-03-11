@@ -239,7 +239,8 @@ class ChangeDetailExportView(View):
     @staticmethod
     def get(request, order_detail_id):
         order_detail_id = int(order_detail_id)
-        filename = 'dinghuodetail-%d.xlsx' % order_detail_id
+        now = datetime.datetime.now()
+
         buff = StringIO()
         workbook = xlsxwriter.Workbook(buff)
         worksheet = workbook.add_worksheet()
@@ -383,6 +384,8 @@ class ChangeDetailExportView(View):
         worksheet.write(row + 3, 1, receiver_contact)
 
         workbook.close()
+
+        filename = '%s-%d.xlsx' % (order_list.created.strftime('%Y%m%d'), order_detail_id)
         response = HttpResponse(
             buff.getvalue(),
             mimetype=

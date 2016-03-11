@@ -129,6 +129,8 @@ v2_router.register(r'ordercarry', views_mama_v2.OrderCarryViewSet)
 v2_router.register(r'awardcarry', views_mama_v2.AwardCarryViewSet)
 v2_router.register(r'clickcarry', views_mama_v2.ClickCarryViewSet)
 v2_router.register(r'activevalue', views_mama_v2.ActiveValueViewSet)
+v2_router.register(r'referal', views_mama_v2.ReferalRelationshipViewSet)
+v2_router.register(r'group', views_mama_v2.GroupRelationshipViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([

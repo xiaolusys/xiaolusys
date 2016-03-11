@@ -9,8 +9,8 @@ import datetime
 def gen_ordercarry_unikey(mama_id, order_id):
     return '-'.join(['order', str(mama_id), order_id])
 
-def gen_awardcarry_unikey(mama_id, order_id):
-    return '-'.join(['award', str(mama_id), order_id])
+def gen_awardcarry_unikey(from_mama_id, to_mama_id):
+    return '-'.join(['award', str(from_mama_id), str(to_mama_id)])
 
 def gen_clickcarry_unikey(mama_id, date):
     return '-'.join(['click', str(mama_id), date])
@@ -405,10 +405,38 @@ class ReferalRelationship(BaseModel):
     referal_to_mama_nick = models.CharField(max_length=64, blank=True, verbose_name=u'被推荐者昵称')
     referal_to_mama_img  = models.CharField(max_length=256, blank=True, verbose_name=u'被推荐者头像')    
 
+
     class Meta:
         db_table = 'flashsale_xlmm_referal_relationship'
         verbose_name = u'推荐关系'
         verbose_name_plural = u'推荐关系列表'
+
+
+def update_group_relationship(sender, instance, created, **kwargs):
+    if not created:
+        return
+    
+    from flashsale.xiaolumm.tasks_mama import task_update_group_relationship
+    records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
+    if records.count() > 0:
+        record = records[0]
+        task_update_group_relationship.s(record.referal_from_mama_id,instance)()
+
+
+post_save.connect(update_group_relationship,
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_group_relationship')
+
+
+def referal_update_awardcarry(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm.tasks_mama import task_referal_update_awardcarry
+    task_referal_update_awardcarry.s(instance)()
+
+
+post_save.connect(referal_update_awardcarry,
+                  sender=ReferalRelationship, dispatch_uid='post_save_referal_update_awardcarry')
+
 
 
 class GroupRelationship(BaseModel):
@@ -425,3 +453,13 @@ class GroupRelationship(BaseModel):
         db_table = 'flashsale_xlmm_group_relationship'
         verbose_name = u'团队关系'
         verbose_name_plural = u'团队关系列表'
+
+
+def group_update_awardcarry(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm.tasks_mama import task_group_update_awardcarry
+    task_group_update_awardcarry.s(instance)()
+
+post_save.connect(group_update_awardcarry,
+                  sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')
