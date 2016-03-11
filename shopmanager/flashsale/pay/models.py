@@ -521,12 +521,16 @@ class SaleOrder(PayBaseModel):
         return self.status > SaleOrder.TRADE_FINISHED or \
             self.refund_status > SaleRefund.REFUND_REFUSE_BUYER
     
+    def is_deposit(self):
+        return self.outer_id.startswith('RMB')
+
 
 def refresh_sale_trade_status(sender,instance,*args,**kwargs):
     """ 更新订单状态 """
     #TODO
     
 post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
+
 
 
 def get_self_mama_id(unionid):
@@ -541,12 +545,36 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
+
     
     extra = instance.sale_trade.extras_info
     customer_id = instance.sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
     mama_id = get_self_mama_id(customer.unionid)
     via_app = instance.sale_trade.is_paid_via_app()
+    
+    if instance.is_deposit():
+        if instance.is_confirmed():
+            from flashsale.xiaolumm.tasks_mama import task_update_referal_relationship,\
+                task_increment_invite_num
+            
+            if "mm_linkid" in extra:
+                from_mama_id = extra["mm_linkid"]
+
+                ## check from_mama_id is valid !!!
+                froms = XiaoluMama.objects.filter(pk=from_mama_id)
+                if froms.count() <= 0:
+                    return
+                
+                mamas = XiaoluMama.objects.filter(openid=customer.unionid)
+                if mamas.count() <= 0:
+                    return
+                mama_id = mamas[0].pk
+                task_increment_invite_num.s(from_mama_id)()
+                task_update_referal_relationship.s(from_mama_id, mama_id, customer)()
+                
+        return
+
     
     if not mama_id:
         # customer itself is not a xiaolumama, then check 
@@ -579,12 +607,16 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     from flashsale.xiaolumm.models import XiaoluMama
     
     product = products[0]
-    mama = XiaoluMama.objects.get(pk=mama_id)
+    
+    mamas = XiaoluMama.objects.filter(pk=mama_id)
+    if mamas.count() <= 0:
+        retuurn
+    mama = mamas[0]
     carry_scheme = mama.get_Mama_Order_Rebeta_Scheme(product)
     agency_level = mama.agencylevel
     carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
     
-
+    
     from flashsale.xiaolumm.tasks_mama import update_ordercarry
     update_ordercarry.s(mama_id, instance, customer, carry_amount, agency_level, carry_scheme.name, via_app)()
         
