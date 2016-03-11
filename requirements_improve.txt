@@ -9,7 +9,7 @@ Django==1.8.10
 django-bitfield==1.8.0
 django-celery==3.1.17
 django-chartit==0.1
-django-filter==0.9.1
+django-filter==0.12.0
 django-http-proxy==0.4
 django-jsonfield==0.9.19
 django-kombu==0.9.4
