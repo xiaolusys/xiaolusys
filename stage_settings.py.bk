@@ -96,6 +96,7 @@ TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
+BASE_FONT_PATH = '/data/fonts/'
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 
@@ -150,7 +151,8 @@ WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 
 QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
 QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
-
+QINIU_PRIVATE_BUCKET = 'invoiceroom' 
+QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
 
 LOGGER_HANDLERS = [
     'models',

@@ -1,0 +1,46 @@
+{% extends "mmdress/base_dress.html" %}
+
+{% load url from future %}
+{% block title %} 妈妈穿衣品味测试 {% endblock %}
+
+{% load static %}
+
+{% block head_script %}
+<style>
+div{
+    border:0px solid black;
+}
+#form1{
+    width:100%;
+    height:100%;
+}
+</style>
+{% endblock %}
+
+{% block container-nav %}
+<!-- 页头 -->
+{% endblock %}
+
+{% block container-body %}
+<!-- 内容区 -->
+<div class="page-panel">
+  <div class="row">
+    <img class="carousel-inner img-responsive img-rounded" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E9%A6%96%E9%A1%B5%E4%B8%BB%E5%9B%BE.png?imageMogr2/format/png/quality/90" />
+  </div>
+  <div class="page-mask"></div>
+  <div class="row page">
+  <form id="form1" name="form1" method="post" action="./">
+    {%csrf_token%}
+    <input type="hidden" name="user_unionid" value="{{user_info.unionid}}"/>
+    <input type="hidden" name="mama_headimg" value="{{user_info.headimgurl}}"/>
+    <input type="hidden" name="mama_nick" value="{{user_info.nick}}"/>
+    <input type="hidden" name="referal_from" value="{{referal_dress.user_unionid}}"/>
+    <a href="javascript:document.form1.submit();"><div class="fullfill"></div></a>
+  </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block container-foot %}
+<!-- 页尾 -->
+{% endblock %}

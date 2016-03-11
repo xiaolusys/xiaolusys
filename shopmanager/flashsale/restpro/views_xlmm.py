@@ -582,3 +582,4 @@ class ClickViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException("method not allowed")
+

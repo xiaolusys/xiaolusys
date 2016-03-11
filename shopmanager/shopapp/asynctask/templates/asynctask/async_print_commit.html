@@ -50,7 +50,6 @@
 		var update_task_status = function(e){
 		
 			var callback = function(data){
-					
 				try{
 					if (data == ''||data.task=='undifine'){
 						clearInterval(interval_id);
@@ -59,7 +58,7 @@
 
 					if (data.task.status == 'SUCCESS'){
 						clearInterval(interval_id);
-						window.location = '/download/print/invoice/IN'+async_print_id+'.pdf';
+						window.location = data.task.result;
 					}
 					else if(data.task.status == 'FAILURE'){
 					
@@ -81,7 +80,7 @@
 				}catch (err) {
 					clearInterval(interval_id);
 		            alert('ajax error:'+err);
-		        } 
+		        }
 			}
 			$.get(task_status_url+max_timer.toString(),{},callback,'json');
 		}

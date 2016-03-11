@@ -584,7 +584,6 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     agency_level = mama.agencylevel
     carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
     
-
     from flashsale.xiaolumm.tasks_mama import update_ordercarry
     update_ordercarry.s(mama_id, instance, customer, carry_amount, agency_level, carry_scheme.name, via_app)()
         

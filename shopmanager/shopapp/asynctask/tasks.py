@@ -303,6 +303,7 @@ class AsyncOrderTask(TaobaoAsyncBaseTask):
 
 tasks.register(AsyncOrderTask) 
 
+from core.upload.upload import upload_data_to_remote, generate_private_url
 
 class PrintAsyncTask(Task):
     ignore_result=False
@@ -399,6 +400,16 @@ class PrintAsyncTask(Task):
                 raise Exception(u'PDF 创建失败')
             
     
+    def genHtmlPDFIostream(self,html_text):
+        
+        import xhtml2pdf.pisa as pisa
+        import cStringIO as StringIO
+        result = StringIO.StringIO()
+        pdf = pisa.pisaDocument(StringIO.StringIO(html_text), result)
+        if pdf.err:
+            raise Exception(u'PDF 创建失败')
+        return StringIO.StringIO(result.getvalue())
+    
     def run(self,async_print_id,*args,**kwargs):
         
         print_async = PrintAsyncTaskModel.objects.get(pk=async_print_id)
@@ -414,18 +425,20 @@ class PrintAsyncTask(Task):
             invoice_data = self.genInvoiceData(trade_list)
             invoice_html = render_to_string('asynctask/print/invoice_%s_template.html'%user_code,
                                        {'trade_list':invoice_data})
-            
-            invoice_path = os.path.join(settings.DOWNLOAD_ROOT,'print','invoice')
-            if not os.path.exists(invoice_path):
-                os.makedirs(invoice_path)
+            print 'debug: template=',invoice_html
+#             invoice_path = os.path.join(settings.DOWNLOAD_ROOT,'print','invoice')
+#             if not os.path.exists(invoice_path):
+#                 os.makedirs(invoice_path)
                 
-            file_name    = 'IN%d.pdf'%print_async.pk
-            self.genHtmlPDF(os.path.join(invoice_path, file_name), invoice_html.encode('utf-8'))
+            file_pathname    = os.path.join('print','invoice','IN%d.pdf'%print_async.pk)
+#             self.genHtmlPDF(os.path.join(invoice_path, file_name), invoice_html.encode('utf-8'))
+            file_stream = self.genHtmlPDFIostream(invoice_html.encode('utf-8'))
+            upload_data_to_remote(file_pathname,file_stream)
             
-            print_async.file_path_to = os.path.join('print','invoice',file_name)
+            print_async.file_path_to = generate_private_url(file_pathname)
             print_async.status = PrintAsyncTaskModel.TASK_SUCCESS
             print_async.save()
-            
+            return print_async.file_path_to
         else:
             
             express_data = self.genExpressData(trade_list)

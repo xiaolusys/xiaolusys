@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>小鹿美美</title>
+<meta id="viewport" name="viewport"/>
+<script>
+    var oViewport = document.getElementById('viewport');
+    var phoneWidth = parseInt(window.screen.width);
+    var phoneScale = phoneWidth / 640;
+    var ua = navigator.userAgent.toLowerCase();
+    if (/android (\d+\.\d+)/.test(ua)) {
+        var version = parseFloat(RegExp.$1);
+        if (version > 2.3) {
+            oViewport.setAttribute('content', 'width=640, minimum-scale = ' + phoneScale + ', maximum-scale = ' + phoneScale + ', target-densitydpi=device-dpi')
+        } else {
+            oViewport.setAttribute('content', 'width=640, target-densitydpi=device-dpi');
+        }
+    } else {
+        oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
+    }
+</script>
+<link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" />
+<style>
+* {
+    text-align:center;
+}
+.panel{
+    background-color: #eee;
+}
+.alert{
+    text-align:left;
+}
+</style>
+</head>
+<body class="container">
+<div class="panel panel-default">
+  <div class="panel-body">
+	<div class="row">
+	  <div class="col-xs-12 ">
+	    <a href="#" class="">
+	      <img src="{{user_infos.headimgurl}}" alt="{{user_infos.nick}}" class="img-circle" style="background-color:white;">
+	    </a>
+	  </div>
+	  <div class="row"><label>{{user_infos.nick}}</label></div>
+	</div>
+	<div>
+	<div class="row">
+		{% if code == 0 %}
+		<div class="alert alert-success" role="alert">{{info}}</div>
+		{% else %}
+		<div class="alert alert-danger" role="alert"><label class="label" style="background-color:red;color:white;">警告:</label>{{info}}</div>
+		{% endif %}
+	</div>
+	<a href="/" class="btn btn-success">确认前往小鹿美美商城</a>
+	</div>
+  </div>
+  <div class="panel-footer">Copyright © 2014-2016 小鹿美美</div>
+</div>
+</script>
+</body>
+</html>
