@@ -75,6 +75,12 @@ function get_mama_shop_info() {
     }
 
     var data = {'mm_linkid': mm_linkid_for_shop, 'category': mmshopCategory};
+    var body = $(".shop-body");
+    if (body.hasClass('loading')) {// 如果没有返回则　return
+        return
+    }
+    body.addClass('loading');
+
     $.ajax({
         "url": url,
         "type": 'get',
@@ -85,6 +91,7 @@ function get_mama_shop_info() {
 
     function callback(res) {
         console.log('res:', res);
+        body.removeClass('loading');
         // 当前时间　减去　　sale_time 转　时间格式　取最大时间　＝　剩余时间
         nextShopPage = res.next;
         if (mmshopHeadFlag == false) {
@@ -96,7 +103,7 @@ function get_mama_shop_info() {
 
         $.each(res.results.products, function (i, val) { //默认对象
             var item_dom = createProductDom(val);
-            $('.leave-time-div').after(item_dom);
+            $('.shop-body').append(item_dom);
             var offshelf_time = new Date(val.offshelf_time.replace("T", " "));
             var ts = (new Date(
                     offshelf_time.getFullYear(),
@@ -115,7 +122,8 @@ function get_mama_shop_info() {
 
 function loadData(func) {//动态加载数据
     var totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop()); //浏览器的高度加上滚动条的高度
-    if ($(document).height() - 5 <= totalheight) //当文档的高度小于或者等于总的高度的时候，开始动态加载数据
+    var scroll_height = $(document).height() - totalheight;
+    if ($(document).height() - 600 <= totalheight && scroll_height < 600) //当文档的高度小于或者等于总的高度的时候，开始动态加载数据
     {
         func();
     }
@@ -130,7 +138,7 @@ function product_timer_new(shelf_time, is_saleopen) {
             shelf_time.getHours(),
             shelf_time.getMinutes(),
             shelf_time.getSeconds())) - (new Date());//计算剩余的毫秒数
-    console.log('ts:', ts);
+    //console.log('ts:', ts);
     var dd = parseInt(ts / 1000 / 60 / 60 / 24, 10);//计算剩余的天数
     var hh = parseInt(ts / 1000 / 60 / 60 % 24, 10);//计算剩余的小时数
     var mm = parseInt(ts / 1000 / 60 % 60, 10);//计算剩余的分钟数

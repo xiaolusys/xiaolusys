@@ -41,9 +41,9 @@ def update_activevalue(sender, instance, created, **kwargs):
     更新妈妈活跃度
     """
     from flashsale.xiaolumm.tasks_mama import fans_update_activevalue
-
+    print "created", created
     if created:
-        pass
+        fans_update_activevalue.s(instance)()
 
 
 post_save.connect(update_activevalue,
