@@ -160,7 +160,7 @@ body {
 .shop-body .products-div .pro-price-div {
     position: absolute;
     height: 60px;
-    width: 250px;
+    width: 100%;
     bottom: 8%;
     z-index: 100;
     left: 2%;
@@ -171,7 +171,7 @@ body {
     top: 1%;
     height: 100%;
     font-size: 55px;
-    margin-left: 6%;
+    margin-left: 15px;
     color: white;
 }
 
@@ -180,7 +180,7 @@ body {
     top: 1%;
     height: 100%;
     font-size: 30px;
-    margin-left: 2%;
+    margin-left: 15px;
     color: white;
 }
 
@@ -190,12 +190,14 @@ body {
     width: 100%;
     bottom: 0%;
     z-index: 100;
+    left: 2%;
 }
 
 .shop-body .products-div .pro-name-div .pro-name {
     color: white;
+    position: relative;
     font-size: 32px;
-    margin-left: 6%;
+    margin-left: 15px;
 }
 
 #toast {
