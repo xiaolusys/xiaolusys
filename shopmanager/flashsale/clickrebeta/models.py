@@ -373,22 +373,21 @@ def get_xiaolumm(sale_trade, customer):
     #计算订单所属小鹿妈妈ID
     xiaolumms = XiaoluMama.objects.filter(openid=wx_unionid,
                                           charge_status=XiaoluMama.CHARGED)
-    mm_linkid = 0
     if xiaolumms.exists():
         return xiaolumms[0]
-    else:
-        mm_linkid = obj.extras_info.get('mm_linkid',0) or 0
-            
-    xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
-    if not xiaolu_mmset.exists():
-        if xd_openid:
-            mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
-                openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
-            mm_linkid   = get_xlmm_linkid(mm_clicks)
-            xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
+    
+    xiaolumm = XiaoluMama.objects.get_by_saletrade(sale_trade)
+    if xiaolumm:
+        return xiaolumm
+    
+    if xd_openid:
+        mm_clicks = Clicks.objects.filter(click_time__range=(order_stat_from, ordertime)).filter(
+            openid=xd_openid).order_by('-click_time')#去掉0，44对应的小鹿妈妈ID
+        mm_linkid   = get_xlmm_linkid(mm_clicks)
+        xiaolu_mmset = XiaoluMama.objects.filter(id=mm_linkid)
+        if xiaolu_mmset.exists():
+            return xiaolu_mmset[0]
         
-    if xiaolu_mmset.exists():
-        return xiaolu_mmset[0]
     return None
 
 def tongji_saleorder(sender, obj, **kwargs):

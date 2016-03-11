@@ -1,6 +1,4 @@
-#-*- coding:utf-8 -*-
-import random
-import datetime
+#　coding:utf-8 
 from django.db import models
 from django.db.models import Q,Sum
 from django.db.models.signals import post_save
@@ -27,9 +25,7 @@ class XiaoluMamaManager(models.Manager):
         xlmm.manager = user.id
         xlmm.charge_status = self.model.CHARGED
         xlmm.save()
-
         return True
-
 
     def  uncharge(self,xlmm,*args,**kwargs):
 
@@ -41,7 +37,18 @@ class XiaoluMamaManager(models.Manager):
 
         queryset = self.get_queryset()
         return queryset.filter(status=self.model.EFFECT)
-
+    
+    def get_by_saletrade(self, sale_trade):
+        """ 通过特卖订单获取小鹿妈妈 """
+        extra = sale_trade.extras_info
+        mm_linkid = 0
+        if 'mm_linkid' in extra:
+            mm_linkid = int(extra['mm_linkid'] or '0')
+        qs = self.filter(id=mm_linkid)
+        if qs.exists():
+            qs[0]
+        return None
+        
 
 class XlmmFansManager(models.Manager):
 
