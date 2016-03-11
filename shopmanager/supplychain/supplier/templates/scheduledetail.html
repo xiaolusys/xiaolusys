@@ -90,8 +90,8 @@
                 {{value}}
             </a>
         </script>
-        <script id="status-tpl" type="text/html">
-            <span style="color: red">未录入</span>
+        <script id="complete-tpl" type="text/html">
+            <a href="{{preview_url}}" target="_blank">{{value}}</a>
         </script>
         <script id="sync-stock-tpl" type="text/html">
             <a href="javascript:;" class="sync-stock" data-sale-product-id="{{sale_product_id}}"
@@ -251,8 +251,12 @@
                      {data: null, width: '100px', title: '录入状态', defaultContent: '', render: function(data, type, full, meta){
                          if(type != 'display')
                              return data;
-                         if(full.model_id)
-                             return '完成';
+                         if(full.model_id){
+                             if(full.preview_url)
+                                 return template('complete-tpl', {preview_url: full.preview_url, value: '完成'});
+                             else
+                                 return '完成';
+                         }
                          return '<span style="color:red">未录入</span>'
                      }},
                      {data: null, width: '120px', title: '库存同步', defaultContent: '', render: function(data, type, full, meta){
