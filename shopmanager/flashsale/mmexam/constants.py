@@ -1,5 +1,72 @@
 # coding:utf-8
 
+DRESS_STARS = [
+    {
+     'id':1,
+     'name':'林充',
+     'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-18-24%E5%B2%81.png',
+     'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%9E%97%E5%85%81.png',
+     'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     },
+    {
+     'id':2,
+     'name':'Anglebaby',
+     'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-26-28%E5%B2%81.png',
+     'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_Angelababy.png',
+     'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     },
+    {
+     'id':3,
+     'name':'杨幂',
+     'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-29-34%E5%B2%81.png',
+     'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%9D%A8%E5%B9%82.png',
+     'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     },
+    {
+     'id':4,
+     'name':'刘涛',
+     'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-35-42%E5%B2%81.png',
+     'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%88%98%E6%B6%9B.png',
+     'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     },
+    {
+     'id':5,
+     'name':'许晴姐姐',
+     'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-42%E5%B2%81%E4%BB%A5%E4%B8%8A.png',
+     'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E8%AE%B8%E6%99%B4.png',
+     'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     }
+] 
+
+SCORE_AGES=(
+    (0,     18, 1),
+    (0.5,   20, 1),
+    (1,     21, 1),
+    (1.5,   23, 1),
+    (2,     24, 2),
+    (2.5,   25, 2),
+    (3,     26, 2),
+    (3.5,   27, 2),
+    (4,     28, 2),
+    (4.5,   29, 3),
+    (5,     30, 3),
+    (5.5,   32, 3),
+    (6,     33, 3),
+    (6.5,   34, 3),
+    (7,     35, 4),
+    (7.5,   37, 4),
+    (8,     39, 4),
+    (8.5,   41, 4),
+    (9,     42, 5),
+    (9.5,   44, 5),
+    (10,    44, 5)
+)
+
 ACTIVES=[
     {
      'id':1,

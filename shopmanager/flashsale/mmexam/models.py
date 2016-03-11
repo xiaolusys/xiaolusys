@@ -108,5 +108,15 @@ class MamaDressResult(BaseModel):
         self.exam_score = score
         self.exam_state = self.FINISHED
         self.save()
+        
+        #TODO send envelop
     
+    def get_referal_mamadress(self):
+        if not self.referal_from:
+            return None
+        
+        referals = self.__class__.objects.filter(user_unionid=self.referal_from)
+        if referals.exists():
+            return referals[0]
+        return None
     
