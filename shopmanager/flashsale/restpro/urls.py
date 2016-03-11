@@ -114,6 +114,9 @@ router_urls += format_suffix_patterns([
         url(r'^users/integrallog',
             views_integral.UserIntegralLogViewSet.as_view({'get': 'list'}),
             name="user-intergrallog"),
+         url(r'^users/(?P<pk>[0-9]+)/bang_budget',
+            views_user.UserBugetBangView.as_view(),
+            name="user-budget-bang"),
     ])
 
 
@@ -126,6 +129,8 @@ v2_router.register(r'ordercarry', views_mama_v2.OrderCarryViewSet)
 v2_router.register(r'awardcarry', views_mama_v2.AwardCarryViewSet)
 v2_router.register(r'clickcarry', views_mama_v2.ClickCarryViewSet)
 v2_router.register(r'activevalue', views_mama_v2.ActiveValueViewSet)
+v2_router.register(r'referal', views_mama_v2.ReferalRelationshipViewSet)
+v2_router.register(r'group', views_mama_v2.GroupRelationshipViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([

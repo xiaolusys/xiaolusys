@@ -1,7 +1,7 @@
 # coding=utf-8
 from rest_framework import serializers
 from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
-    ClickCarry, ActiveValue
+    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship
 
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
@@ -72,4 +72,18 @@ class ActiveValueSerializer(serializers.ModelSerializer):
         extra_kwargs = {'today_carry': {'read_only': True}}
         fields = ('mama_id', 'value_num', 'value_type', 'value_type_name','uni_key',
                   'date_field', 'status','status_display', 'today_carry','modified', 'created')
+
+
+class ReferalRelationshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReferalRelationship
+        fields = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'referal_to_mama_img',
+                  'modified', 'created')
+
+
+class GroupRelationshipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GroupRelationship
+        fields = ('leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick',
+                  'member_mama_img','modified', 'created')
 

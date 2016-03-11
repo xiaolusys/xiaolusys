@@ -35,7 +35,7 @@ from django.forms import model_to_dict
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
 
-CACHE_VIEW_TIMEOUT = 15
+CACHE_VIEW_TIMEOUT = 30
 
 class PosterViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -607,7 +607,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """
-    queryset = Product.objects.filter()#,shelf_status=Product.UP_SHELF
+    queryset = Product.objects.all()#,shelf_status=Product.UP_SHELF
     serializer_class = serializers.ProductSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, )

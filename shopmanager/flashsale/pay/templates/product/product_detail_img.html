@@ -7,6 +7,8 @@
     <meta name="format-detection" content="email=no"/>
     <meta name="format-detection" content="telephone=no"/>
     <meta id="viewport" name="viewport" >
+    <link rel="stylesheet" href="{{M_STATIC_URL}}css/common.css">
+    <link rel="stylesheet" href="{{M_STATIC_URL}}css/shangpinxq.css">
     <script>
     var oViewport = document.getElementById('viewport');
     var phoneWidth = parseInt(window.screen.width);
@@ -23,26 +25,30 @@
         oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
     }
     </script>
-    <style>
-        .goods-img {
-		    padding-top: 20px;
-		    padding-bottom: 78px;
-		    width: 640px;
-		    margin: 0 auto;
-		    background-color: #fff;
-		}
-		.goods-img .list {
-		    padding-bottom: 38px;
-		}
-		.goods-img img {
-		    display: block;
-		    width: 100%;
-		}
-    </style>
 </head>
 <body>
-<div>
 <div class="goods-img">
+    <img src="http://image.xiaolu.so/chimabiao.png?imageMogr2/format/jpg/quality/100" width="100%">
+    <div class="chi-ma-biao">
+        <table>
+        {% for sku in product.normal_skus %}
+        {% with sku.size_of_sku.result as chima %}
+            {% if forloop.first %}
+            <thead></thead><th>尺码</th>
+            {% for cm in chima %}
+            <th>{{ cm }}</th>
+            {% endfor %}
+            </thead>
+            {% endif %}
+            <tr><td>{{sku.name}}</td>
+            {% for cm,cv in chima.items %}
+            <td>{{ cv }}</td>
+            {% endfor %}
+            </tr>
+        {% endwith %}
+        {% endfor %}
+        </table>
+    </div>
     <div class="list">
     <!-- 这里添加商品图片 -->
     {% if product.detail.content_images %}
@@ -55,7 +61,6 @@
     {% endfor %}
 	{% endif %}
     </div>
-</div>
 </div>
 </body>
 </html>

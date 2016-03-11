@@ -346,7 +346,7 @@ def task_ordercarry_update_activevalue(order_carry):
                 task_activevalue_update_mamafortune.s(active_value, action)()
         return
     
-    if status == 0:
+    if order_carry.status == 0:
         # dont create ActiveValue record if order status is "unpaid"
         return
     
@@ -367,7 +367,7 @@ def task_increment_invite_num(mama_id):
     if mamas.count() > 0:
         mamas.update(invite_num=F('invite_num')+1)
     else:
-        mama = MamaFortune(mama_id=mama_id)
+        mama = MamaFortune(mama_id=mama_id,invite_num=1)
         mama.save()
 
 
@@ -382,6 +382,7 @@ def task_update_referal_relationship(from_mama_id, to_mama_id, customer):
                                      referal_to_mama_nick=customer.nick,
                                      referal_to_mama_img=customer.thumbnail)
         record.save()
+        task_increment_invite_num.s(from_mama_id)()
     else:
         print "server error++"
         pass
@@ -392,15 +393,15 @@ def task_update_referal_relationship(from_mama_id, to_mama_id, customer):
 @task()
 def task_update_group_relationship(leader_mama_id, referal_relationship):
     from flashsale.xiaolumm.models_fortune import GroupRelationship
-    print "%s, mama_id: %s" % (get_cur_info(), referal_relationship.member_mama_id)
+    print "%s, mama_id: %s" % (get_cur_info(), referal_relationship.referal_from_mama_id)
     
     records = GroupRelationship.objects.filter(member_mama_id=referal_relationship.referal_to_mama_id)
     if records.count() <= 0:
         record = GroupRelationship(leader_mama_id=leader_mama_id,
-                                   referal_from_mama_id=relationship.referal_from_mama_id,
-                                   member_mama_id=relationship.referal_to_mama_id,
-                                   member_mama_nick=relationship.referal_to_mama_nick,
-                                   member_mama_img=relationship.referal_to_mama_img)
+                                   referal_from_mama_id=referal_relationship.referal_from_mama_id,
+                                   member_mama_id=referal_relationship.referal_to_mama_id,
+                                   member_mama_nick=referal_relationship.referal_to_mama_nick,
+                                   member_mama_img=referal_relationship.referal_to_mama_img)
 
         record.save()
     else:
@@ -411,8 +412,8 @@ def task_update_group_relationship(leader_mama_id, referal_relationship):
     pass
 
 
-award_carry_array = [[0,0],[1, 30],[4, 40],[8, 50],[21, 70],[41, 90],[101,110]]
-group_carry_array = [[0,0],[50,10],[200,15],[500,20],[1000,30]]
+award_carry_array = [[0,0],[1, 3000],[4, 4000],[8, 5000],[21, 7000],[41, 9000],[101,11000]]
+group_carry_array = [[0,0],[50,1000],[200,1500],[500,2000],[1000,3000]]
 
 
 def get_award_carry_num(num):
@@ -442,6 +443,8 @@ def get_group_carry_num(num):
 def task_referal_update_awardcarry(relationship):
     from_mama_id = relationship.referal_from_mama_id
     to_mama_id = relationship.referal_to_mama_id
+    
+    from flashsale.xiaolumm.models_fortune import gen_awardcarry_unikey
     uni_key = gen_awardcarry_unikey(from_mama_id, to_mama_id)
     
     from flashsale.xiaolumm.models_fortune import AwardCarry, ReferalRelationship
@@ -452,7 +455,7 @@ def task_referal_update_awardcarry(relationship):
         carry_num = get_award_carry_num(records.count())
         carry_type = 1 # direct referal
         date_field = relationship.created.date()
-        status = 3 # confirmed
+        status = 2 # confirmed
         award_carry = AwardCarry(mama_id=from_mama_id,carry_num=carry_num,carry_type=carry_type,
                                  contributor_nick=relationship.referal_to_mama_nick,
                                  contributor_img=relationship.referal_to_mama_img,
@@ -464,7 +467,9 @@ def task_referal_update_awardcarry(relationship):
 @task()
 def task_group_update_awardcarry(relationship):
     from_mama_id = relationship.leader_mama_id
-    to_mama_id = relationship.member_to_mama_id
+    to_mama_id = relationship.member_mama_id
+
+    from flashsale.xiaolumm.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship, gen_awardcarry_unikey
     uni_key = gen_awardcarry_unikey(from_mama_id, to_mama_id)
     
     from flashsale.xiaolumm.models_fortune import AwardCarry
@@ -480,7 +485,7 @@ def task_group_update_awardcarry(relationship):
             
         carry_type = 2 # group referal
         date_field = relationship.created.date()
-        status = 3 # confirmed
+        status = 2 # confirmed
         award_carry = AwardCarry(mama_id=from_mama_id,carry_num=carry_num,carry_type=carry_type,
                                  contributor_nick=relationship.member_mama_nick,
                                  contributor_img=relationship.member_mama_img,

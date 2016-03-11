@@ -420,7 +420,7 @@ def update_group_relationship(sender, instance, created, **kwargs):
     records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
     if records.count() > 0:
         record = records[0]
-        task_update_group_relationship.s(record.referal_from_mama_id,record)()
+        task_update_group_relationship.s(record.referal_from_mama_id,instance)()
 
 
 post_save.connect(update_group_relationship,

@@ -1,4 +1,5 @@
 import json
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
@@ -39,5 +40,7 @@ class ProductDetailView(APIView):
         p_dict  = model_to_dict(product)
         p_dict['detail'] = product.detail
         p_dict['product_model'] = product.product_model
-        return Response({'product':p_dict})
+        p_dict['normal_skus'] = product.normal_skus
+       
+        return Response({'product':p_dict,'M_STATIC_URL':settings.M_STATIC_URL})
         

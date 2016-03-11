@@ -29,7 +29,7 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         
     try:
         profile, state = Customer.objects.get_or_create(unionid=unionid)
-        wxusers = WeiXinUser.objects.filter(models.Q(unionid=unionid))
+        wxusers = WeiXinUser.objects.filter(unionid=unionid)
         if wxusers.exists():
             wxuser = wxusers[0]
             profile.openid = profile.openid or openid or ''

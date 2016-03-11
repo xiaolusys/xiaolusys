@@ -17,7 +17,7 @@ from flashsale.pay.models import Customer
 
 from django.db.models import Sum, Count
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry
+from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship
 
 
 def get_mama_id(user):
@@ -225,6 +225,54 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
             add_day_carry(datalist, self.queryset, sum_field, scale=1)
 
         serializer = serializers.ActiveValueSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+
+class ReferalRelationshipViewSet(viewsets.ModelViewSet):
+    """
+    """
+    queryset = ReferalRelationship.objects.all()
+    serializer_class = serializers.ReferalRelationshipSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, request):
+        mama_id = get_mama_id(request.user)
+        return self.queryset.filter(referal_from_mama_id=mama_id).order_by('-created')
+
+    def list(self, request, *args, **kwargs):
+        datalist = self.get_owner_queryset(request)
+        datalist = self.paginate_queryset(datalist)
+
+        serializer = serializers.ReferalRelationshipSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+
+class GroupRelationshipViewSet(viewsets.ModelViewSet):
+    """
+    """
+    queryset = GroupRelationship.objects.all()
+    serializer_class = serializers.GroupRelationshipSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, request):
+        mama_id = get_mama_id(request.user)
+        return self.queryset.filter(leader_mama_id=mama_id).order_by('-created')
+
+    def list(self, request, *args, **kwargs):
+        datalist = self.get_owner_queryset(request)
+        datalist = self.paginate_queryset(datalist)
+
+        serializer = serializers.GroupRelationshipSerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
