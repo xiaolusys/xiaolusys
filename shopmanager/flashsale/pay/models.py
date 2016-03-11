@@ -586,8 +586,8 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     
     from flashsale.xiaolumm.tasks_mama import update_ordercarry
     update_ordercarry.s(mama_id, instance, customer, carry_amount, agency_level, carry_scheme.name, via_app)()
-        
-post_save.connect(add_to_mama_order_carry, sender=SaleOrder, dispatch_uid='post_save_add_to_mama_order_carry')
+#TODO　temperory remove        
+#post_save.connect(add_to_mama_order_carry, sender=SaleOrder, dispatch_uid='post_save_add_to_mama_order_carry')
 
 
 
