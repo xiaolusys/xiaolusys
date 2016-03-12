@@ -10,6 +10,9 @@
 .container-nav{
     margin-top:30px;
 }
+.container-fluid{
+    position: fixed;
+}
 .page-panel{
     min-height:80%;
 }
@@ -132,6 +135,7 @@ function submit(ele){
     
     var callback = function(resp,status,xhr){
         document.write(resp);
+        document.close();
     }
     $.ajax({ 
         type:'post', 

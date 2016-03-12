@@ -163,17 +163,16 @@ class GoodShelf(PayBaseModel):
       {
         "subject":['2折起', '小鹿美美  女装专场'],
         "item_link":"http://m.xiaolumeimei.com/nvzhuang.html",
-        "app_link":"app:/",
+        "app_link":"com.jimei.xlmm://app/v1/products/ladylist",
         "pic_link":""
       }
     ]
-
 
     DEFAULT_CHD_POSTER = [
       {
         "subject":['2折起', '小鹿美美  童装专场'],
         "item_link":"http://m.xiaolumeimei.com/chaotong.html",
-        "app_link":"app:/",
+        "app_link":"com.jimei.xlmm://app/v1/products/childlist",
         "pic_link":""
       }
     ]

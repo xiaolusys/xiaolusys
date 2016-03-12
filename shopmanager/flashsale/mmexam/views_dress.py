@@ -160,7 +160,17 @@ class DressResultView(WeixinAuthMixin, APIView):
                 return ages[1],constants.DRESS_STARS[ages[2]]
         return 
             
-            
+    def get_age_tag(self,differ_age):
+        
+        age_tags_dict = dict(constants.AGE_TAGS)
+        min_age = min(age_tags_dict.keys())
+        max_age = max(age_tags_dict.keys())
+        if differ_age < min_age:
+            differ_age = min_age
+        if differ_age > max_age:
+            differ_age = min_age
+        return (differ_age ,age_tags_dict.get(differ_age))
+        
     def get(self, request, *args, **kwargs):
         
         content = request.REQUEST
@@ -180,12 +190,20 @@ class DressResultView(WeixinAuthMixin, APIView):
         referal_dress = mama_dress.get_referal_mamadress()
         dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
         
-        
+        age_tag = None
+        referal_age, referal_star = (0, 0)
+        if referal_dress:
+            referal_age, referal_star = self.get_dress_age_and_star(referal_dress)
+            age_tag = self.get_age_tag(abs(dress_age - referal_age))
+            
         response = Response({
                     'mama_dress':mama_dress,
-                    'referal_dress':referal_dress,
                     'dress_age':dress_age,
-                    'dress_star':dress_star
+                    'dress_star':dress_star,
+                    'referal_dress':referal_dress,
+                    'referal_age':referal_age,
+                    'referal_star':referal_star,
+                    'age_tag':age_tag
                 })
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
