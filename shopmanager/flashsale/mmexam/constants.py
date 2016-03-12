@@ -3,7 +3,7 @@
 DRESS_STARS = [
     {
      'id':1,
-     'name':'林充',
+     'name':'美人鱼林充',
      'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-18-24%E5%B2%81.png',
      'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%9E%97%E5%85%81.png',
      'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
@@ -19,7 +19,7 @@ DRESS_STARS = [
      },
     {
      'id':3,
-     'name':'杨幂',
+     'name':'大幂幂',
      'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-29-34%E5%B2%81.png',
      'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%9D%A8%E5%B9%82.png',
      'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',

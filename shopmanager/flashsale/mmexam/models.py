@@ -77,9 +77,11 @@ class Result(BaseModel):
 class MamaDressResult(BaseModel):
     """ 穿衣风格测试结果 """
     UNFINISHED = 0
-    FINISHED = 1
+    FINISHED   = 1
+    SHAREDRESS = 2
     STATUS_CHOICES = ((UNFINISHED, u'未完成'),
-                      (FINISHED, u'已完成'),)
+                      (FINISHED, u'已完成'),
+                      (SHAREDRESS, u'已分享'),)
     user_unionid = models.CharField(max_length=28, unique=True, verbose_name=u'妈妈Unionid')
     mama_age   = models.IntegerField(default=0, verbose_name=u'妈妈年龄')
     mama_headimg = models.CharField(max_length=256, verbose_name=u'头像')
@@ -87,7 +89,7 @@ class MamaDressResult(BaseModel):
     referal_from = models.CharField(max_length=28,blank=True,db_index=True, verbose_name=u'推荐人Unoinid')
     exam_score = models.IntegerField(default=0, verbose_name=u'答题分数')
     exam_date = models.DateTimeField(null=True, auto_now_add=True, verbose_name=u'答题日期')
-    exam_state = models.IntegerField(choices=STATUS_CHOICES, default=UNFINISHED, verbose_name=u"是否通过")
+    exam_state = models.IntegerField(choices=STATUS_CHOICES, default=UNFINISHED, verbose_name=u"状态")
     
     class Meta:
         db_table = 'flashsale_mmexam_dressresult'
@@ -102,14 +104,14 @@ class MamaDressResult(BaseModel):
         return self.mama_age > 0
     
     def is_finished(self):
-        return self.exam_state == self.FINISHED
+        return self.exam_state in (self.SHAREDRESS, self.FINISHED)
     
     def confirm_finished(self,score):
         self.exam_score = score
         self.exam_state = self.FINISHED
         self.save()
         
-        #TODO send envelop
+       
     
     def get_referal_mamadress(self):
         if not self.referal_from:
@@ -120,3 +122,8 @@ class MamaDressResult(BaseModel):
             return referals[0]
         return None
     
+    def share_dress(self):
+        self.exam_state = self.SHAREDRESS
+        self.save()
+    
+         #TODO send envelop

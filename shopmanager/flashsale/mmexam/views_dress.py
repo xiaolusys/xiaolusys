@@ -243,3 +243,38 @@ class DressAgeView(WeixinAuthMixin, APIView):
         mm_dress.save()
         return redirect(reverse('dress_result'))
 
+class DressShareView(WeixinAuthMixin, APIView):
+    
+    authentication_classes = ()
+    permission_classes = ()
+    renderer_classes = (renderers.TemplateHTMLRenderer,)
+    template_name = "mmdress/dress_share.html"
+        
+    def get(self, request, *args, **kwargs):
+        
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not self.valid_openid(unionid):
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
+            return redirect(redirect_url)
+        
+        mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
+        if not mama_dress.is_finished():
+            return redirect(reverse('dress_home'))
+        
+        
+        
+        response = Response({
+                    'mama_dress':mama_dress,
+                    'age_range':range(1976,2001)
+                })
+        self.set_cookie_openid_and_unionid(response,openid,unionid)
+        return response
+    
+    def post(self, request, *args, **kwargs):
+#         user_unionid = request.POST['user_unionid']
+#         mm_dress,state = MamaDressResult.objects.get_or_create(user_unionid=user_unionid)
+#         mm_dress.mama_age = mama_age
+#         mm_dress.save()
+        return redirect(reverse('dress_result'))
+

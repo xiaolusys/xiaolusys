@@ -30,7 +30,10 @@
 }
 
 .page-panel{
+    max-width:640px;
     position:relative;
+    margin:0 auto;
+    text-align: center;
 	/*width: 100%;*/
 }
 

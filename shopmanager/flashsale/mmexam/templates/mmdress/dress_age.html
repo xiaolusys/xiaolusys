@@ -10,6 +10,9 @@
 .container-nav{
     margin-top:10%;
 }
+.container-fluid{
+    position: fixed;
+}
 .head-img{
     max-width:800px;
     margin:0 auto;
@@ -40,7 +43,7 @@
     {%csrf_token%}
     <input type="hidden" name="user_unionid" value="{{user_info.unionid}}"/>
     <div class="row ">
-      <div class="col-xs-8 div-center">
+      <div class="col-xs-8 col-sm-4 div-center">
       <select name="mama_age" class="form-control " style=>
       {% for age in age_range %}
         <option val="{{age}}" {% if age == 1988 %}selected{% endif %}>{{age}}</option>

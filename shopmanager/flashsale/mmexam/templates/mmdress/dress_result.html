@@ -10,17 +10,11 @@
 .container-nav{
     margin-top:0%;
 }
-.page-panel{
-    max-width:600px;
-    text-align:center;
-    margin:0 auto;
-}
 .row{
     padding:0 0px 20px;
 }
 .head-img{
     width:100%;
-    
     margin:0　auto;
 }
 .page-relate{
@@ -38,7 +32,7 @@
     position:relative;
 }
 .score-img{
-    max-width:45%;
+    max-width:35%;
 }
 .score-img-sm{
     margin-top:-10px;
@@ -49,8 +43,8 @@
     position:absolute;
     top:15%;
     left:50%;
-    width:80%; 
-    margin-left:-40%;
+    width:100%; 
+    margin-left:-50%;
 }
 .cover-img{
     position:absolute;
@@ -61,11 +55,11 @@
 }
 .head-cover-img{
     position:absolute;
-    top:5%;
+    top:2%;
     left:50%;
     width:100%; 
     margin-left:-50%;
-    font-size:20px;
+    font-size:18px;
 }
 .head-cover-img span{
     display:inline;
@@ -92,9 +86,10 @@
 			    <img class="score-img-sm" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%95%B0%E5%AD%97{{dress_age|intdiv:'10'}}.png" />
 			    {% endif %}
 			    <img class="score-img-sm" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%95%B0%E5%AD%97{{dress_age|mod:'10'}}.png" />
+                <img class="score-img-sm" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%B2%81.png" />
             </div>
             </div>
-            <div>跟我们的 <span style="color:#f967bc;">{{dress_star.name}}</span> 一样呢</div>
+            <div>跟我们的 <span style="color:#f967bc;font-size:24px;padding-top:10px;">{{dress_star.name}}</span> 一样呢</div>
         </div>
      </div>
   </div>
@@ -116,14 +111,14 @@
   </div>
   <!-- 查看答案 -->
   <div class="row">
-    <img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%9F%A5%E7%9C%8B%E7%AD%94%E6%A1%88.png" />
+    <a href="#score-age"><img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%9F%A5%E7%9C%8B%E7%AD%94%E6%A1%88.png" /></a>
   </div>
   <!-- 红包 -->
   <div class="row">
     <img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BA%A2%E5%8C%85.png" />
   </div>
   <!-- 测试年龄 -->
-  <div class="row" >
+  <div id="score-age" class="row" >
     <div class="score-block">
     <img class="score-bg" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E5%B9%B4%E9%BE%84-%E5%BA%95.png"/>
     <div class="score-cover">
@@ -131,6 +126,7 @@
     <img class="score-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%95%B0%E5%AD%97{{dress_age|intdiv:'10'}}.png" />
     {% endif %}
     <img class="score-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%95%B0%E5%AD%97{{dress_age|mod:'10'}}.png" />
+    <img class="score-img" style="width:20%;" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%B2%81.png" />
     </div>
     </div>
   </div>
