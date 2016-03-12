@@ -15,9 +15,10 @@ from django.db.models import Q, Sum
 #from djangorestframework.views import ModelView
 #from djangorestframework.response import ErrorResponse
 from shopback.logistics import getLogisticTrace
-from shopback.trades.models import (
-    MergeTrade, MergeOrder, DirtyMergeOrder, ReplayPostTrade, GIFT_TYPE, SYS_TRADE_STATUS,
-    TAOBAO_TRADE_STATUS, SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
+from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder,
+                                    ReplayPostTrade, GIFT_TYPE,
+                                    SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
+                                    SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
 from shopback.trades.forms import ExchangeTradeForm
 from shopback.logistics.models import LogisticsCompany
 from shopback.items.models import Product, ProductSku, ProductDaySale
@@ -2721,7 +2722,7 @@ def select_Stock(request):
         return HttpResponse('error')
 
 
-class PendingTradeOrderListView(APIView):
+class DirtyOrderListAPIView(APIView):
     def get(self, request):
         # mapping
         from .models import TRADE_TYPE, SYS_TRADE_STATUS
@@ -2731,27 +2732,43 @@ class PendingTradeOrderListView(APIView):
 
         threshold_datetime = datetime.datetime(2016, 1, 1)
         items = []
-        for dirty_order in DirtyMergeOrder.objects.all().order_by('-order'):
-            order = dirty_order.order
+        for order in DirtyMergeOrder.objects.all().order_by('-id'):
             items.append({
                 'order_id': order.id,
                 'order_sn': order.oid,
                 'trade_id': order.merge_trade.id,
                 'trade_sn': order.merge_trade.tid,
-                'order_type': trade_type_mapping.get(order.merge_trade.type) or '未知',
+                'order_type': trade_type_mapping.get(
+                    order.merge_trade.type) or '未知',
                 'product_name': order.title,
+                'product_outer_id': order.outer_id,
                 'num': order.num,
                 'sku_properties_name': order.sku_properties_name,
                 'payment': round(order.payment, 2),
                 'payment_time': {
                     'display': order.pay_time.strftime('%Y%m%d %H:%M:%S'),
                     'timestamp': time.mktime(order.pay_time.timetuple())
-               },
+                },
                 'created_time': {
                     'display': order.created.strftime('%Y%m%d %H:%M:%S'),
                     'timestamp': time.mktime(order.created.timetuple())
                 },
-                'sys_status': trade_sys_status_mapping.get(order.merge_trade.sys_status) or '未知',
-                'status': status_mapping.get(dirty_order.status) or '未知'
+                'sys_status': trade_sys_status_mapping.get(
+                    order.merge_trade.sys_status) or '未知',
+                'receiver_name': order.merge_trade.receiver_name or '未知',
+                'receiver_address': '%s%s%s%s' % (
+                    order.merge_trade.receiver_state,
+                    order.merge_trade.receiver_city,
+                    order.merge_trade.receiver_district,
+                    order.merge_trade.receiver_address),
+                'receiver_mobile': order.merge_trade.receiver_mobile
             })
-        return Response({'items': items, 'num': len(items)})
+        return Response({'data': items})
+
+
+class DirtyOrderListView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (TemplateHTMLRenderer, )
+    template_name = 'trades/dirty_orders.html'
+    def get(self, request):
+        return Response({})
