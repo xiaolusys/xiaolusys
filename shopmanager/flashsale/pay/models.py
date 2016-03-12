@@ -521,6 +521,9 @@ class SaleOrder(PayBaseModel):
         return self.status > SaleOrder.TRADE_FINISHED or \
             self.refund_status > SaleRefund.REFUND_REFUSE_BUYER
     
+    def is_deposit(self):
+        return self.outer_id.startswith('RMB')
+
 
 def refresh_sale_trade_status(sender,instance,*args,**kwargs):
     """ 更新订单状态 """
@@ -529,11 +532,12 @@ def refresh_sale_trade_status(sender,instance,*args,**kwargs):
 post_save.connect(refresh_sale_trade_status, sender=SaleOrder)
 
 
-def get_self_mama_id(unionid):
+
+def get_self_mama(unionid):
     from flashsale.xiaolumm.models import XiaoluMama
     records = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, progress=XiaoluMama.PASS)
     if records.count() > 0:
-        return records[0].pk
+        return records[0]
     return None
 
 
@@ -541,14 +545,31 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     """
     SaleOrder save triggers adding carry to OrderCarry.
     """
+    from flashsale.xiaolumm.models import XiaoluMama
     
-    extra = instance.sale_trade.extras_info
     customer_id = instance.sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
-    mama_id = get_self_mama_id(customer.unionid)
+
+    self_mama = get_self_mama(customer.unionid)
+    #mama_id = get_self_mama_id(customer.unionid)
     via_app = instance.sale_trade.is_paid_via_app()
+    mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(instance.sale_trade)
     
-    if not mama_id:
+    if instance.is_deposit():
+        print "deposit"
+        if instance.is_confirmed():
+            print "confirmed"
+            from flashsale.xiaolumm.tasks_mama import task_update_referal_relationship
+                
+            if mm_linkid_mama:
+                print "mm_linkid_mama true"
+                task_update_referal_relationship.s(mm_linkid_mama.pk, self_mama.pk, customer)()
+        return
+
+    
+    if self_mama:
+        mm_linkid_mama = self_mama
+    else:
         # customer itself is not a xiaolumama, then check 
         # 1) if customer is a fan of a mama and the order is paid via app; or
         # 2) if customer is coming from a mama's share link; 
@@ -559,13 +580,9 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
             fans_records = XlmmFans.objects.filter(fans_cusid=customer_id)    
             if fans_records.count() > 0:
                 mama_id = fans_records[0].xlmm
-        elif "mm_linkid" in extra:
-            # This means customer is coming from mama's share link,
-            # carry should be given to mama, regardless whether or
-            # not customer is a fan of another mama.
-            mama_id = extra["mm_linkid"]
-        
-    if not mama_id:
+                mm_linkid_mama = XiaoluMama.objects.get(pk=mama_id)
+
+    if not mm_linkid_mama:
         return
     
     payment = instance.payment * 100
@@ -576,19 +593,16 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     if products.count() <= 0:
         return
     
-    from flashsale.xiaolumm.models import XiaoluMama
-    
     product = products[0]
-    mama = XiaoluMama.objects.get(pk=mama_id)
-    carry_scheme = mama.get_Mama_Order_Rebeta_Scheme(product)
-    agency_level = mama.agencylevel
+    
+    carry_scheme = mm_linkid_mama.get_Mama_Order_Rebeta_Scheme(product)
+    agency_level = mm_linkid_mama.agencylevel
     carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
     
     from flashsale.xiaolumm.tasks_mama import update_ordercarry
-    update_ordercarry.s(mama_id, instance, customer, carry_amount, agency_level, carry_scheme.name, via_app)()
+    update_ordercarry.s(mm_linkid_mama.pk, instance, customer, carry_amount, agency_level, carry_scheme.name, via_app)()
         
 post_save.connect(add_to_mama_order_carry, sender=SaleOrder, dispatch_uid='post_save_add_to_mama_order_carry')
-
 
 
 class TradeCharge(PayBaseModel):

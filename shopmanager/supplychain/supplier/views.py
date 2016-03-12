@@ -641,7 +641,8 @@ class ScheduleDetailAPIView(APIView):
                 'is_approved': '是' if is_approved else '否',
                 'collect_num': 0,
                 'order_weight': 0,
-                'model_id': 0
+                'model_id': 0,
+                'preview_url': ''
             }
         for product in Product.objects.filter(
                 sale_product__in=sale_products.keys(),
@@ -654,6 +655,10 @@ class ScheduleDetailAPIView(APIView):
                         model_product = ModelProduct.objects.get(
                             pk=product.model_id)
                         sale_product['name'] = model_product.name
+                        if not model_product.is_single_spec():
+                            sale_product['preview_url'] = '/static/wap/tongkuan.html?id=%d' % model_product.id
+                        else:
+                            sale_product['preview_url'] = '/static/wap/pages/shangpinxq.html?id=%d' % product.id
                     except:
                         pass
 

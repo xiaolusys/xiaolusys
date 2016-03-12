@@ -46,7 +46,7 @@ class XiaoluMamaManager(models.Manager):
             mm_linkid = int(extra['mm_linkid'] or '0')
         qs = self.filter(id=mm_linkid)
         if qs.exists():
-            qs[0]
+            return qs[0]
         return None
         
 

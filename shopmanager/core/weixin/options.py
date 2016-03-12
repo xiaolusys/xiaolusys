@@ -6,8 +6,6 @@ import urllib
 import urllib2
 from django.conf import settings
 
-from . import exceptions
-from . import signals
 
 OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
 

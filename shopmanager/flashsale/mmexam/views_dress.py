@@ -97,7 +97,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         
         mama_dress = mama_dresses[0]
         if mama_dress.is_finished():
-            return redirect('./')
+            return redirect(reverse('dress_result'))
         
         question_id = 1
         question = self.get_question(question_id)
@@ -115,7 +115,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         
     def post(self, request, active, dressid, question_id, *args, **kwargs):
         
-        score_string = request.POST.get('scores','')
+        score_string = request.POST['scores']
         mama_dresses = MamaDressResult.objects.filter(id=dressid)
         if not mama_dresses.exists() :
             return redirect(reverse('dress_home'))
@@ -149,7 +149,18 @@ class DressResultView(WeixinAuthMixin, APIView):
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/dress_result.html"
-        
+    
+    def calc_score(self,mama_dress):
+        return (100 - mama_dress.exam_score) / 10
+    
+    def get_dress_age_and_star(self, mama_dress):
+        dress_score = self.calc_score(mama_dress)
+        for ages in constants.SCORE_AGES:
+            if dress_score == ages[0]:
+                return ages[1],constants.DRESS_STARS[ages[2]]
+        return 
+            
+            
     def get(self, request, *args, **kwargs):
         
         content = request.REQUEST
@@ -160,27 +171,57 @@ class DressResultView(WeixinAuthMixin, APIView):
             return redirect(redirect_url)
         
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
-        referal_id = content.get('referal_id',0)
-        dresult = MamaDressResult.objects.filter(referal_from=referal_id)
-        referal_info = None
-        if dresult.exists():
-            referal_info = dresult[0]
+        if not mama_dress.is_finished():
+            return redirect(reverse('dress_home'))
+        
+        if not mama_dress.is_aged():
+            return redirect(reverse('dress_age'))
+        
+        referal_dress = mama_dress.get_referal_mamadress()
+        dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
+        
         
         response = Response({
                     'mama_dress':mama_dress,
-                    'referal_dress':referal_info,
+                    'referal_dress':referal_dress,
+                    'dress_age':dress_age,
+                    'dress_star':dress_star
+                })
+        self.set_cookie_openid_and_unionid(response,openid,unionid)
+        return response
+    
+    
+class DressAgeView(WeixinAuthMixin, APIView):
+    
+    authentication_classes = ()
+    permission_classes = ()
+    renderer_classes = (renderers.TemplateHTMLRenderer,)
+    template_name = "mmdress/dress_age.html"
+        
+    def get(self, request, *args, **kwargs):
+        
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+        openid,unionid = self.get_openid_and_unionid(request)
+        if not self.valid_openid(unionid):
+            redirect_url = self.get_snsuserinfo_redirct_url(request)
+            return redirect(redirect_url)
+        
+        mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
+        if not mama_dress.is_finished():
+            return redirect(reverse('dress_home'))
+        
+        response = Response({
+                    'mama_dress':mama_dress,
                     'age_range':range(1976,2001)
                 })
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
     
     def post(self, request, *args, **kwargs):
-        content = request.REQUEST
-        user_unionid = content.get('user_unionid')
+        user_unionid = request.POST['user_unionid']
+        mama_age = request.POST['mama_age']
         mm_dress,state = MamaDressResult.objects.get_or_create(user_unionid=user_unionid)
-        for k,v in content.iteritems():
-            if hasattr(mm_dress, k):
-                setattr(mm_dress,k,v)
+        mm_dress.mama_age = mama_age
         mm_dress.save()
-        return redirect(reverse('dress_question',kwargs={'active':1,'dressid':mm_dress.id,'question_id':1}))
+        return redirect(reverse('dress_result'))
 
