@@ -22,7 +22,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         is_test = kwargs.get('is_test') or False
 
-        threshold_datetime = datetime.datetime(2016, 1, 1)
+        threshold_datetime = datetime.datetime(2016, 3, 1)
         trade_ids = []
         for order in MergeOrder.objects.select_related('merge_trade').filter(
                 merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
