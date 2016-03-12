@@ -45,7 +45,6 @@ class MamaRegisterView(WeixinAuthMixin,PayInfoMethodMixin,APIView):
         if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
-        
         wx_user,state = WeiXinUser.objects.get_or_create(openid=openid)
         try:
             xiaolumm = XiaoluMama.objects.get(openid=unionid)
@@ -62,8 +61,7 @@ class MamaRegisterView(WeixinAuthMixin,PayInfoMethodMixin,APIView):
             logger.error(exc.message,exc_info=True)
             raise exc
 
-        if xiaolumm.progress == XiaoluMama.NONE:
-            print 'debug user:',openid,unionid,wx_user
+        if xiaolumm.progress == XiaoluMama.NONE:  # 如果没有申请 返回填写资料页面
             response = Response({
                         'openid':openid,
                         'unionid':unionid,
@@ -71,15 +69,13 @@ class MamaRegisterView(WeixinAuthMixin,PayInfoMethodMixin,APIView):
                     })
             self.set_cookie_openid_and_unionid(response, openid, unionid)
             return response
-        
-        elif xiaolumm.need_pay_deposite():
-            return redirect(reverse('mama_deposite',kwargs={'mama_id':mama_id}))
-        
-        else:
-            return redirect(reverse('mama_homepage'))
-        
 
-            
+        elif xiaolumm.need_pay_deposite():  # 如果没有已经申请没有支付押金的跳转到支付押金页面
+            return redirect(reverse('mama_deposite',kwargs={'mama_id':mama_id}))
+
+        else:  # 如果申请了并且交付的代理押金则直接跳转到代理的主页
+            return redirect(reverse('mama_homepage'))
+
             
     def post(self,request, mama_id):
         content = request.REQUEST
@@ -121,7 +117,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
         xlmm = self.get_xiaolumm(request)
         if not xlmm:
             return redirect(reverse('mama_register',kwargs={'mama_id':mama_id}))
-        
+
         if mama_id == xlmm.id or not xlmm.need_pay_deposite():
             return redirect(reverse('mama_homepage'))
         

@@ -1,162 +1,229 @@
 {% extends "apply/apply_base.html" %}
 
-{% block title %} 小鹿妈妈-填写基本信息 {% endblock %}
+{% block title %} 小鹿妈妈-填写基本信息{% endblock %}
 
-{% block apply_script %}
+{% block head_script %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/invitation-letter.css">
 {% endblock %}
 
+{% block container-body %}
+    <!--
+    <div class="wrapper">
+        <ul class="flow-steps">
+            <li class="col-xs-4 on"><a href="#" class="btn ">填写资料 &gt;</a></li>
+            <li class="col-xs-4 "><a href="#" class="btn btn-default">支付押金 &gt;</a></li>
+            <li class="col-xs-4 "><a href="#" class="btn btn-default">加入小鹿 &gt;</a></li>
+        </ul>
+        <div class="arr"></div>
+    </div>
+    -->
+    <div class="page-panel">
+        <div class="row">
+            <img class="carousel-inner img-responsive img-rounded head-img "
+                 src="http://7xogkj.com2.z0.glb.qiniucdn.com/invitation.png">
+        </div>
 
-{% block phone-container %}
+        <div class="row content-img">
+            <img class="carousel-inner img-responsive img-rounded"
+                 src="http://7xogkj.com2.z0.glb.qiniucdn.com/content.png"/>
+        </div>
 
-<div class="wrapper">
-    <ul class="flow-steps">
-    	<li class="col-xs-4 on"><a href="#" class="btn ">填写资料 &gt;</a></li>
-        <li class="col-xs-4 "><a href="#" class="btn btn-default">支付押金 &gt;</a></li>
-        <li class="col-xs-4 "><a href="#" class="btn btn-default">加入小鹿 &gt;</a></li>
-    </ul>
-    <div class="arr"></div>
-</div>
+        <div class="inviter">
 
-<div class="jumbotron" style="padding:5px;">
-  <h2>欢迎加入小鹿妈妈</h2>
-  <div class="container">
-    <form class="form-horizontal" action="./" method="POST">
-	  {% csrf_token %}
-	  <input type="hidden" id="id_openid" name="openid" value="{{ wxuser.openid }}">
-	  <input type="hidden" id="id_unionid" name="unionid" value="{{ wxuser.unionid }}">
-	  {% if not wxuser.isvalid %}
-	  <div class="form-group">
-	  <div class="input-group ">
-		<input type="text" id="id_mobile_input" class="form-control col-xs-8"  placeholder="请输入手机号">
-	    <a href="#" id="id_requestcode_button" class=" btn btn-default input-group-addon" onclick="requestcode();">获取验证码</a>
-	  </div>
-	  </div>
-	  <div class="form-group">
-	  <p><span style="color:red;display:none;" id="id_verify_msg"></span></p>
-	  <div class="input-group ">
-	    <input type="text" id="id_code_input" class="form-control col-xs-8" placeholder="请输入验证码">
-	    <a href="#" id="id_verifycode_button" class="btn btn-default input-group-addon" onclick="verifycode();">验证手机号</a>
-	  </div>
-	  </div>
-	  {% else %}
-	  <div class="form-group">
-	     <div class="alert alert-danger" role="alert"><lable>提示：</lable>您已绑定手机号，<br>请直接点击<span class="text-success">进入下一步</span>！</div>
-	  </div>
-	  {% endif %}
-	  <div class="form-group">
-		 <button  type="submit" id="next_step" name="diposite" class="btn btn-lg btn-primary" {% if not wxuser.isvalid %}disabled{% endif %}>立即申请加入小鹿妈妈</button>
-	  </div>
-	</form>
-  </div>
-</div>
+            <form action="./" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="id_openid" name="openid" value="{{ wxuser.openid }}">
+                <input type="hidden" id="id_unionid" name="unionid" value="{{ wxuser.unionid }}">
+                {% if not wxuser.isvalid %}
+
+                    <div class="invitation-post">
+                    <div class="join-phone">
+                        <div class="phone-tag">手机号:</div>
+                        <div class="phone-value" contenteditable="true" id="id_mobile_input"></div>
+                    </div>
+                    <div class="check-code" style="margin-top: 10px">
+                        <div class="verify-tag">验证码:</div>
+                        <div class="verify-code" contenteditable="true" id="id_code_input"></div>
+                        <div class="request-verify" id="id_requestcode_button"
+                             onclick="requestcode();">获取验证码
+                        </div>
+                        <span style="color:red;display:none;" id="id_verify_msg"></span>
+                    </div>
+
+                {% else %}
+                {% endif %}
+                <div class="apply-now " {% if not wxuser.isvalid %}disabled{% endif %}>
+                    <button class="apply-now-tag " type="submit" id="next_step" name="diposite">立即申请</button>
+                </div>
+                </div>
+
+            </form>
+            <!--
+                <form class="" action="./" method="POST" style="margin-top: 5%">
+                    {% csrf_token %}
+                    <input type="hidden" id="id_openid" name="openid" value="{{ wxuser.openid }}">
+                    <input type="hidden" id="id_unionid" name="unionid" value="{{ wxuser.unionid }}">
+                    {% if not wxuser.isvalid %}
+
+                        <div class="tel-input-div border-show-b">
+                            <input type="tel" id="id_mobile_input" class="tel-input border-show-r">
+                        </div>
+
+                        <div class="requestcode">
+                            <div class="verifycode-input-div">
+                                <input type="text" id="id_code_input" class="requestcode-input border-show-r"
+                                       placeholder="请输入验证码">
+                            </div>
+
+                            <div class="requestcode-btn-div border-show-g">
+                                <a href="#" id="id_requestcode_button" class="requestcode-btn" onclick="requestcode();">
+                                    请求验证码</a>
+                            </div>
+                        </div>
+
+                        <span style="color:red;display:none;" id="id_verify_msg"></span>
+
+                        <div class="apply-subbmit">
+                            <a href="#" id="id_verifycode_button" class=""
+                               onclick="verifycode();">验证手机号</a>
+                        </div>
+
+                    {% else %}
+                        <div class="form-group">
+                            <div class="alert alert-danger" role="alert">
+                                <lable>提示：</lable>
+                                您已绑定手机号，<br>请直接点击<span class="text-success">进入下一步</span>！
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="form-group" style="display: none">
+                        <button type="submit" id="next_step" name="diposite" class=""
+                                {% if not wxuser.isvalid %}disabled{% endif %}>立即申请加入小鹿妈妈
+                        </button>
+                    </div>
+                </form>-->
+        </div>
+    </div>
 
 {% endblock %}
 
-{% block tail_script %}    
-    
+{% block tail_script %}
+
     <script type="text/javascript">
-      function validateMobile(s) {
-        var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
-        return validateReg.test(s);
-      };
 
-      function validateVerifyCode(s) {
-        var validateReg = /^\d{6}$/;
-        return validateReg.test(s);
-      };
+        $(document).ready(function () {
 
-      var global_timer;
-      function updateTime() {
-        var btn = $("#id_requestcode_button");
-        time_left = parseInt(btn[0].innerHTML) - 1;
-        if (time_left <= 0) {
-          btn.attr("status","0");
-	  	  window.clearInterval(global_timer);
-          btn[0].innerHTML = "点击重发";
-		} else {
-	          btn[0].innerHTML = time_left.toString();
-		}
-      };
+            $("#id_mobile_input").click(function () {// 点击输入手机号码框： 页面上调避免输入法挡住输入框
+                console.log("点击输入手机号码框");
+                $("body").css("margin-bottom", "300px");
+                $("body").scrollTop($("body")[0].scrollHeight);
+            });
+        });
 
-      function requestcode() {
-        var btn = $("#id_requestcode_button");
-        var status = btn.attr("status");
-        if (status == "1" || status == "2") {
-          return;
+        function validateMobile(s) {
+            var validateReg = /^((\+?86)|(\(\+86\)))?1\d{10}$/;
+            return validateReg.test(s);
         }
 
-        var mobile = $("#id_mobile_input").val();
-        if (validateMobile(mobile) == false) {
-          return;
+        function validateVerifyCode(s) {
+            var validateReg = /^\d{6}$/;
+            return validateReg.test(s);
         }
 
-        btn.attr("status","1");
-		btn[0].innerHTML = "180";
-        global_timer = window.setInterval(updateTime, 1000);
-
-	   var openid = $("#id_openid").val();
-       var url = "/weixin/requestcode/";
-	   var data = {"mobile":mobile, "openid":openid};
-
-        var callback = function (res) {
-	  if (res["code"] == "wait") {
-            $("#id_verify_msg")[0].innerHTML = "请先耐心等待60秒哦！";
-            return;
-          } 
-
-          if (res["code"] != "good") {
-	    btn.attr("status","0");
-	    window.clearInterval(global_timer);
-          }
-
-	  if (res["code"] == "locked") {
-            $("#id_verify_msg")[0].innerHTML = "验证次数达到上限，请联系微信客服处理！";
-            btn[0].innerHTML = "已达上限";
-            return;
-          } 
-	  if (res["code"] == "anony") {
-            $("#id_verify_msg")[0].innerHTML = "请从优尼世界微信登录此页面！";
-            btn[0].innerHTML = "登录有误";
-            return;
-          } 
-	  if (res["code"] == "bad") {
-            $("#id_verify_msg")[0].innerHTML = "请输入正确的手机号码！";
-            btn[0].innerHTML = "点击重发";
-            return;
-          } 
-	  if (res["code"] == "dup") {
-            $("#id_verify_msg")[0].innerHTML = "此号码已被他人验证，请重新输入！";
-            btn[0].innerHTML = "点击重发";
-            return;
-          } 
-        };
-        $.ajax({url:url, data:data, success:callback});
-      };
-
-      function verifycode() {
-        var verifycode = $("#id_code_input").val();
-        if (validateVerifyCode(verifycode) == false) {
-          $("#id_verify_msg")[0].innerHTML = "验证码错误！";
-          return;
+        var global_timer;
+        function updateTime() {
+            var btn = $("#id_requestcode_button");
+            time_left = parseInt(btn[0].innerHTML) - 1;
+            if (time_left <= 0) {
+                btn.attr("status", "0");
+                window.clearInterval(global_timer);
+                btn[0].innerHTML = "点击重发";
+            } else {
+                btn[0].innerHTML = time_left.toString();
+            }
         }
-        var url = "/weixin/verifycode/";
-        var callback = function (res) {
-          if (res["code"] == "bad") {
-            $("#id_verifycode_button")[0].innerHTML = "验证失败，刷新再试";
-            return;
-          }
-          $('#next_step').removeAttr('disabled');
-	   	  window.clearInterval(global_timer);
-          $("#id_verifycode_group").css("display","none");
-          $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML="已验证";
-          $("#id_mobile_input").attr("disabled","disabled");
-          $("#id_verifycode_button").attr("disabled","disabled");
-          $("#id_requestcode_button").attr("status", "2");
-        };
-        var openid = $("#id_openid").val();
-		var data = {"verifycode":verifycode, "openid":openid};
-        $.ajax({url:url, data:data, success:callback});
-      };
+
+        function requestcode() {
+            console.log('点击获取验证码按钮');
+            var btn = $("#id_requestcode_button");
+            var status = btn.attr("status");
+            console.log('btn status:', status);
+            if (status == "1" || status == "2") {
+                return;
+            }
+
+            var mobile = $("#id_mobile_input").val();
+            if (validateMobile(mobile) == false) {
+                return;
+            }
+
+            btn.attr("status", "1");
+            btn[0].innerHTML = "180";
+            global_timer = window.setInterval(updateTime, 1000);
+
+            var openid = $("#id_openid").val();
+            var url = "/weixin/requestcode/";
+            var data = {"mobile": mobile, "openid": openid};
+
+            var callback = function (res) {
+                if (res["code"] == "wait") {
+                    $("#id_verify_msg")[0].innerHTML = "请先耐心等待60秒哦！";
+                    return;
+                }
+
+                if (res["code"] != "good") {
+                    btn.attr("status", "0");
+                    window.clearInterval(global_timer);
+                }
+
+                if (res["code"] == "locked") {
+                    $("#id_verify_msg")[0].innerHTML = "验证次数达到上限，请联系微信客服处理！";
+                    btn[0].innerHTML = "已达上限";
+                    return;
+                }
+                if (res["code"] == "anony") {
+                    $("#id_verify_msg")[0].innerHTML = "请从优尼世界微信登录此页面！";
+                    btn[0].innerHTML = "登录有误";
+                    return;
+                }
+                if (res["code"] == "bad") {
+                    $("#id_verify_msg")[0].innerHTML = "请输入正确的手机号码！";
+                    btn[0].innerHTML = "点击重发";
+                    return;
+                }
+                if (res["code"] == "dup") {
+                    $("#id_verify_msg")[0].innerHTML = "此号码已被他人验证，请重新输入！";
+                    btn[0].innerHTML = "点击重发";
+                    return;
+                }
+            };
+            $.ajax({url: url, data: data, success: callback});
+        }
+
+        function verifycode() {
+            var verifycode = $("#id_code_input").val();
+            if (validateVerifyCode(verifycode) == false) {
+                $("#id_verify_msg")[0].innerHTML = "验证码错误！";
+                return;
+            }
+            var url = "/weixin/verifycode/";
+            var callback = function (res) {
+                if (res["code"] == "bad") {
+                    $("#id_verifycode_button")[0].innerHTML = "验证失败，刷新再试";
+                    return;
+                }
+                $('#next_step').removeAttr('disabled');
+                window.clearInterval(global_timer);
+                $("#id_verifycode_group").css("display", "none");
+                $("#id_requestcode_button").removeClass("btn-primary").addClass("btn-success")[0].innerHTML = "已验证";
+                $("#id_mobile_input").attr("disabled", "disabled");
+                $("#id_verifycode_button").attr("disabled", "disabled");
+                $("#id_requestcode_button").attr("status", "2");
+            };
+            var openid = $("#id_openid").val();
+            var data = {"verifycode": verifycode, "openid": openid};
+            $.ajax({url: url, data: data, success: callback});
+        }
 
     </script>
 {% endblock %}
