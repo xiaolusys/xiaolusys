@@ -384,6 +384,7 @@
             <th>单项价格</th>
             <th>已入库数</th>
             <th>次品数</th>
+            <th>待发数</th>
             <th>入库数量</th>
             <th>操作</th>
             </thead>
@@ -430,6 +431,7 @@
                             </a>
                         {% endif %}
                     </td>
+                    <td width="70px">{{ order.wait_post_num }}</td>
                     <td width="90px">
                         <input type="number" class="form-control" min="0" value="0" name="arrived_num"
                                id="arrived_num_{{ order.id }}">
