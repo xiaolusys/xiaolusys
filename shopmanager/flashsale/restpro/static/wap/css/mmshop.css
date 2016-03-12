@@ -18,15 +18,17 @@ body {
 }
 
 .shop-head {
-    height: 430px;
-    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/mm-shop-head.png") no-repeat;
-    background-size: 100% 100%;
-    width: 640px;
+    height: 100%;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCdKQyM0BuM0C7g_750_440.png") repeat-x;
+    width: 100%;
     margin: 0 auto;
 }
 
 .shop-head .shop-info {
+    width: 640px;
+    margin: 0 auto;
     height: 320px;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCdKQyM0BuM0C7g_750_440.png") no-repeat;
 }
 
 .shop-head .shop-info .action-btn {
@@ -57,6 +59,7 @@ body {
 
 .shop-head .shop-info .head-img-div .head-img {
     height: 100%;
+    width: 100px;
     border-radius: 50%;
 }
 
@@ -75,20 +78,34 @@ body {
     font-weight: 800
 }
 
-.category-zone {
-    height: 110px;
+.category-back {
+    width: 100%;
+    background: #FFFFFF;
 }
 
-.category-zone .female-zone {
+.category-back .category-zone {
+    height: 80px;
+    width: 640px;
+    margin: 0 auto;
+}
+
+.category-back .category-zone .female-zone {
     float: left;
     margin-left: 6%;
     width: 43%;
     height: 100%;
 }
 
-.category-zone .female-zone .active-bar {
+.category-back .category-zone .female-zone .female-icon {
+    width: 40%;
+    height: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.category-back .category-zone .female-zone .active-bar {
     position: relative;
-    top: 95%;
+    top: 1%;
     height: 5px;
     width: 40%;
     margin: 0 auto;
@@ -96,14 +113,26 @@ body {
     border-radius: 5px;
 }
 
-.category-zone .child-zone {
+.category-back .category-zone .child-zone {
     float: right;
     margin-right: 6%;
     width: 43%;
     height: 100%;
 }
 
-.shop-body {
+.category-back .category-zone .child-zone .child-icon {
+    width: 40%;
+    height: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.shop-body-back {
+    background: #FFFFFF;
+    margin-top: 10px;
+}
+
+.shop-body-back .shop-body {
     position: relative;
     top: 10px;
     background: #FFFFFF;
@@ -111,7 +140,7 @@ body {
     margin: 0 auto;
 }
 
-.shop-body .leave-time-div {
+.shop-body-back .shop-body .leave-time-div {
     height: 70px;
     margin: 0 auto;
     width: 50%;
@@ -119,27 +148,27 @@ body {
 
 }
 
-.shop-body .leave-time {
+.shop-body-back .shop-body .leave-time {
     position: relative;
     top: 30%;
     font-size: 25px;
     color: #320C08;
 }
 
-.shop-body .leave-time em {
+.shop-body-back .shop-body .leave-time em {
     font-size: 25px;
     font-style: normal;
     font-weight: normal;
 }
 
-.shop-body .products-div {
+.shop-body-back .shop-body .products-div {
     position: relative;
     width: 640px;
     margin: 0 auto;
     /*margin-top: 15px;*/
 }
 
-.shop-body .products-div .product-info {
+.shop-body-back .shop-body .products-div .product-info {
     position: absolute;
     height: 100%;
     bottom: 0.8%;
@@ -150,14 +179,14 @@ body {
     opacity: 0.25;
 }
 
-.shop-body .products-div .product-show {
+.shop-body-back .shop-body .products-div .product-show {
     width: 600px;
     height: 600px;
     margin-left: 3%;
     margin-right: 3%;
 }
 
-.shop-body .products-div .pro-price-div {
+.shop-body-back .shop-body .products-div .pro-price-div {
     position: absolute;
     height: 60px;
     width: 100%;
@@ -166,7 +195,7 @@ body {
     left: 2%;
 }
 
-.shop-body .products-div .pro-price-div .sale-price {
+.shop-body-back .shop-body .products-div .pro-price-div .sale-price {
     position: relative;
     top: 1%;
     height: 100%;
@@ -175,7 +204,7 @@ body {
     color: white;
 }
 
-.shop-body .products-div .pro-price-div .std-price {
+.shop-body-back .shop-body .products-div .pro-price-div .std-price {
     position: relative;
     top: 1%;
     height: 100%;
@@ -184,7 +213,7 @@ body {
     color: white;
 }
 
-.shop-body .products-div .pro-name-div {
+.shop-body-back .shop-body .products-div .pro-name-div {
     position: absolute;
     height: 50px;
     width: 100%;
@@ -193,7 +222,7 @@ body {
     left: 2%;
 }
 
-.shop-body .products-div .pro-name-div .pro-name {
+.shop-body-back .shop-body .products-div .pro-name-div .pro-name {
     color: white;
     position: relative;
     font-size: 32px;
