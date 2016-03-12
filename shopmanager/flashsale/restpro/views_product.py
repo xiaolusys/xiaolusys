@@ -554,7 +554,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             prodic = model_to_dict(pro,
                                    fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
             # 预留数 * 97(质数)+(97内的随机数) = (模拟)销量　
-            prodic['sale_num'] = prodic['remain_num'] * 97 + random.choice(xrange(97))
+            prodic['sale_num'] = prodic['remain_num'] * 19 + random.choice(xrange(19))
             prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
             prodic['rebet_amount'] = rebet_amount
             pros.append(prodic)
