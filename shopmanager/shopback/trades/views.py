@@ -2732,7 +2732,9 @@ class DirtyOrderListAPIView(APIView):
 
         threshold_datetime = datetime.datetime(2016, 1, 1)
         items = []
+        trade_ids = set()
         for order in DirtyMergeOrder.objects.all().order_by('-id'):
+            trade_ids.add(order.merge_trade.id)
             items.append({
                 'order_id': order.id,
                 'order_sn': order.oid,
@@ -2763,6 +2765,14 @@ class DirtyOrderListAPIView(APIView):
                     order.merge_trade.receiver_address),
                 'receiver_mobile': order.merge_trade.receiver_mobile
             })
+
+        trades = {}
+        for trade in MergeTrade.objects.filter(pk__in=list(trade_ids)):
+            trades[trade.id] = trade_sys_status_mapping.get(trade.sys_status) or '未知'
+
+        for item in items:
+            item['old_sys_status'] = trades.get(item['trade_id']) or '未知'
+
         return Response({'data': items})
 
 

@@ -62,11 +62,12 @@
                      {data: 'receiver_address', title: '收货人地址', width: '220px'},
                      {data: 'payment_time', title: '支付时间', width: '160px', render: {_: 'display', sort: 'timestamp'}},
                      {data: 'created_time', title: '创建时间', width: '160px', render: {_: 'display', sort: 'timestamp'}},
-                     {data: 'sys_status', title: '状态', width: '80px'}
+                     {data: 'sys_status', title: '原状态', width: '80px'},
+                     {data: 'old_sys_status', title: '状态', width: '80px'}
                  ],
                  buttons: [],
                  initComplete: function(){
-                     this.api().columns([2, 11]).every(function(){
+                     this.api().columns([2, 11, 12]).every(function(){
                          var column = this;
                          var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
                              .appendTo($(column.header()))
