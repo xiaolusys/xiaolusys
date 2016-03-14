@@ -20,9 +20,24 @@
 .page-panel .content-img {
     position: absolute;
     width: 100%;
+    max-width: 600px;
     margin: 0 auto;
-    z-index: 100;
-    top: 13%;
+    z-index: 101;
+    top: 16%;
+}
+
+/* 第三层显示，名称邀请人　等信息！　*/
+.page-panel .dear {
+    position: absolute;
+    width: 30%;
+    z-index: 101;
+    top: 12%;
+    left: 10%;
+    line-height: 12px;
+    text-align: left;
+}
+
+.page-panel .dear-name {
 }
 
 .inviter {
