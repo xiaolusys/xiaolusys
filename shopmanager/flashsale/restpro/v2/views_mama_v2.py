@@ -17,7 +17,7 @@ from flashsale.pay.models import Customer
 
 from django.db.models import Sum, Count
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship
+from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor
 
 
 def get_mama_id(user):
@@ -104,7 +104,7 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id, status__gt=0).order_by('-created')
+        return self.queryset.filter(mama_id=mama_id, status__gt=0).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -131,7 +131,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-created')
+        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -160,7 +160,7 @@ class ClickCarryViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-created')
+        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -187,7 +187,7 @@ class AwardCarryViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-created')
+        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -214,7 +214,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-created')
+        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -242,7 +242,7 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(referal_from_mama_id=mama_id).order_by('-created')
+        return self.queryset.filter(referal_from_mama_id=mama_id).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -266,13 +266,38 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(leader_mama_id=mama_id).order_by('-created')
+        return self.queryset.filter(leader_mama_id=mama_id).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
 
         serializer = serializers.GroupRelationshipSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+
+
+class UniqueVisitorViewSet(viewsets.ModelViewSet):
+    """
+    """
+    queryset = UniqueVisitor.objects.all()
+    serializer_class = serializers.UniqueVisitorSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, request):
+        mama_id = get_mama_id(request.user)
+        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+
+    def list(self, request, *args, **kwargs):
+        datalist = self.get_owner_queryset(request)
+        datalist = self.paginate_queryset(datalist)
+
+        serializer = serializers.UniqueVisitorSerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
 
     def create(self, request, *args, **kwargs):
