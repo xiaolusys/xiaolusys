@@ -47,7 +47,7 @@ $(document).ready(function () {
     $('.child-zone').click(function () {
         mmshopCategory = 'child';
         nextShopPage = GLConfig.baseApiUrl + GLConfig.mama_shop;//第一页初始化
-        $(".active-bar").animate({left: '105%'});// 选中条动画
+        $(".active-bar").animate({left: '196%'});// 选中条动画
 
         $('.products-div').remove();
 

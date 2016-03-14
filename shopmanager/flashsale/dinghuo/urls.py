@@ -3,7 +3,9 @@ from django.conf.urls import include, url
 from flashsale.dinghuo import views
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView
+from rest_framework import routers, viewsets
+from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView, PendingDingHuoViewSet
+
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, ChangeDetailExportView
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
@@ -15,8 +17,11 @@ import views_wuliu
 import views_sale_status
 import views_product
 import views_line_show
-urlpatterns = [
 
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'pending_dinghuo', PendingDingHuoViewSet)
+
+urlpatterns = [
     url(r'^searchproduct/$', views.search_product, name='searchProduct'),                       #搜索所有的商品 ajax
     url(r'^initdraft/$', views.init_draft, name='init_draft'),                                  #初始化草稿箱
     url(r'^dingdan/$', staff_member_required(views.new_order), name="new_order"),               #订单页面填写完成后跳转
@@ -66,5 +71,6 @@ urlpatterns = [
     url(r'^product_category/$', staff_member_required(views.ProductCategoryAPIView.as_view()), name="product_category"), #商品分类api
     url(r'^skuapi/$', staff_member_required(SkuAPIView.as_view()), name="product_category"), #商品分类api
     url(r'^stats/$', staff_member_required(views_line_show.InventoryDataLineShow.as_view()), name="line_show"),  # 折线图显示数据
-    url(r'^add_ding_huo/$', staff_member_required(AddDingHuoView.as_view()), name="add_ding_huo")
+    url(r'^add_ding_huo/$', staff_member_required(AddDingHuoView.as_view()), name="add_ding_huo"),
 ]
+urlpatterns += router.urls

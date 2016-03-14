@@ -15,16 +15,6 @@ def gen_awardcarry_unikey(from_mama_id, to_mama_id):
 def gen_clickcarry_unikey(mama_id, date):
     return '-'.join(['click', str(mama_id), date])
 
-def gen_activevalue_unikey(value_type, mama_id, date, order_id, contributor_id):
-    if value_type == 1: # click                                                                                                                                                                 
-        return '-'.join(['active',str(mama_id),str(value_type),str(date)])
-    if value_type == 2: # order                                                                                                                                                                 
-        return '-'.join(['active',str(mama_id),str(value_type),str(date),str(order_id)])
-    if value_type == 3: # referal                                                                                                                                                               
-        return '-'.join(['active',str(mama_id),str(value_type),str(contributor_id)])
-    if value_type == 4: # fans                                                                                                                                                                  
-        return '-'.join(['active',str(mama_id),str(value_type),str(contributor_id)])
-    return ""
 
 
 def get_choice_name(choices, val):
@@ -39,9 +29,10 @@ def get_choice_name(choices, val):
 
 
 class MamaFortune(BaseModel):
+    MAMA_LEVELS = ((0, u'新手妈妈'),(1, u'金牌妈妈'),(2, u'钻石妈妈'),(3, u'皇冠妈妈'),(4,u'金冠妈妈'))
     mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'小鹿妈妈id')
     mama_name = models.CharField(max_length=32, blank=True, verbose_name=u'名称')
-    mam_level = models.IntegerField(default=0, verbose_name=u'级别')
+    mama_level = models.IntegerField(default=0, choices=MAMA_LEVELS, verbose_name=u'级别')
     cash_num = models.IntegerField(default=0, verbose_name=u'余额')
     fans_num = models.IntegerField(default=0, verbose_name=u'粉丝数')
     invite_num = models.IntegerField(default=0, verbose_name=u'邀请数')
@@ -64,6 +55,8 @@ class MamaFortune(BaseModel):
     def carry_num_display(self):
         return float('%.2f' %(self.carry_num * 0.01))
 
+    def mama_level_display(self):
+        return get_choice_name(self.MAMA_LEVELS, self.mama_level)
 
 
 class CarryRecord(BaseModel):
@@ -73,6 +66,7 @@ class CarryRecord(BaseModel):
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     carry_num = models.IntegerField(default=0, verbose_name=u'收益数')
     carry_type = models.IntegerField(default=0, choices=CARRY_TYPES, verbose_name=u'收益类型') #返/佣/奖
+    carry_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
     status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
@@ -124,7 +118,7 @@ def carryrecord_creation_update_mamafortune(sender, instance, created, **kwargs)
     """
     post_save signal only deal with creation
     """
-    from flashsale.xiaolumm import tasks_mama
+    from flashsale.xiaolumm import tasks_mama_fortune
 
     print "carryrecord save signal +++", created
     if not created:
@@ -140,17 +134,17 @@ def carryrecord_creation_update_mamafortune(sender, instance, created, **kwargs)
     if instance.is_award_carry() and instance.is_carry_confirmed():
         # award carry has to be confirmed on creation
         action_key = "32" # increment both cash and carry
-        tasks_mama.increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
+        tasks_mama_fortune.task_increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
         return
     
     if instance.is_order_carry():
         if instance.is_carry_pending():
             print "is_carry_pending"
             action_key = "31" # increment carry only
-            tasks_mama.increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
+            tasks_mama_fortune.task_increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
         if instance.is_carry_confirmed(): 
             action_key = "32" # increment cash and carry
-            tasks_mama.increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
+            tasks_mama_fortune.task_increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
         return
 
 
@@ -167,6 +161,7 @@ class OrderCarry(BaseModel):
     order_value = models.IntegerField(default=0, verbose_name=u'订单金额')
     carry_num = models.IntegerField(default=0, verbose_name=u'提成金额')
     carry_type = models.IntegerField(default=1, choices=CARRY_TYPES, verbose_name=u'提成类型') #直接订单提成/粉丝订单提成/下属订单提成
+    carry_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
     sku_name = models.CharField(max_length=64, blank=True, verbose_name=u'sku名称')
     sku_img  = models.CharField(max_length=256, blank=True, verbose_name=u'sku图片')
     contributor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
@@ -229,14 +224,31 @@ def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
         
 
 post_save.connect(ordercarry_update_carryrecord,
-                  sender=OrderCarry, dispatch_uid='post_save_order_carry')
+                  sender=OrderCarry, dispatch_uid='post_save_order_carry_update_carry_record')
 
 def ordercarry_update_activevalue(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama
-    tasks_mama.task_ordercarry_update_activevalue.s(instance)()
+    from flashsale.xiaolumm import tasks_mama_activevalue
+    tasks_mama_activevalue.task_ordercarry_update_activevalue.s(instance.uni_key)()
 
 post_save.connect(ordercarry_update_activevalue,
                   sender=OrderCarry, dispatch_uid='post_save_order_carry_update_active_value')
+
+
+def ordercarry_update_order_number(sender, instance, created, **kwargs):
+    mama_id = instance.mama_id
+    date_field = instance.date_field
+
+    from flashsale.xiaolumm import tasks_mama
+    tasks_mama.task_update_clickcarry_order_number.s(mama_id, date_field)()
+
+    from flashsale.xiaolumm import tasks_mama_fortune
+    tasks_mama_fortune.task_update_mamafortune_order_num.s(mama_id)()
+
+post_save.connect(ordercarry_update_order_number,
+                  sender=OrderCarry, dispatch_uid='post_save_order_carry_update_order_number')
+
+
+
 
 
 class AwardCarry(BaseModel):
@@ -246,6 +258,7 @@ class AwardCarry(BaseModel):
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     carry_num = models.IntegerField(default=0, verbose_name=u'奖励金额')
     carry_type = models.IntegerField(default=0, choices=AWARD_TYPES, verbose_name=u'奖励类型') #直接推荐奖励/团队成员奖励
+    carry_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
     contributor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'贡献者昵称')
     contributor_img  = models.CharField(max_length=256, blank=True, verbose_name=u'贡献者头像')    
     contributor_mama_id  = models.BigIntegerField(default=0, verbose_name=u'贡献者mama_id')
@@ -300,16 +313,16 @@ class ClickCarry(BaseModel):
     STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
-    init_click_num = models.IntegerField(default=0, verbose_name=u'初始点击数')
+    click_num = models.IntegerField(default=0, verbose_name=u'初始点击数')
     init_order_num = models.IntegerField(default=0, verbose_name=u'初始订单人数') 
     init_click_price = models.IntegerField(default=0, verbose_name=u'初始点击价')
     init_click_limit = models.IntegerField(default=0, verbose_name=u'初始点击上限')
-    confirmed_click_num = models.IntegerField(default=0, verbose_name=u'确定点击数')
     confirmed_order_num = models.IntegerField(default=0, verbose_name=u'确定订单人数') 
     confirmed_click_price = models.IntegerField(default=0, verbose_name=u'确定点击价')
     confirmed_click_limit = models.IntegerField(default=0, verbose_name=u'确定点击上限')
     carry_plan_name = models.CharField(max_length=32,blank=True,verbose_name=u'佣金计划')
     total_value = models.IntegerField(default=0, verbose_name=u'点击总价')
+    carry_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #date+mama_id
     status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
@@ -322,6 +335,8 @@ class ClickCarry(BaseModel):
     def __unicode__(self):
         return '%s,%s' % (self.mama_id, self.total_value)
 
+    def is_confirmed(self):
+        return self.status == 2
 
     def init_click_price_display(self):
         return '%.2f' % (self.init_click_price * 0.01)
@@ -359,6 +374,7 @@ class ActiveValue(BaseModel):
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
     value_type = models.IntegerField(default=0, choices=VALUE_TYPES, verbose_name=u'类型') #点击/订单/推荐/粉丝
+    value_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
     uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
     status = models.IntegerField(default=3, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定/取消
@@ -388,12 +404,12 @@ class ActiveValue(BaseModel):
 
 
 def activevalue_update_mamafortune(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm.tasks_mama import task_activevale_update_mama_fortune
-    if created and instance.status == 2:
-        task_activevale_update_mama_fortune(instance, 'incr')
+    from flashsale.xiaolumm import tasks_mama_fortune
+    mama_id = instance.mama_id
+    tasks_mama_fortune.task_activevalue_update_mamafortune.s(mama_id)()
 
 post_save.connect(activevalue_update_mamafortune,
-                  sender=ClickCarry, dispatch_uid='post_save_active_value')
+                  sender=ActiveValue, dispatch_uid='post_save_activevalue_update_mamafortune')
 
 
 class ReferalRelationship(BaseModel):
@@ -412,6 +428,18 @@ class ReferalRelationship(BaseModel):
         verbose_name_plural = u'推荐关系列表'
 
 
+def update_mamafortune_invite_num(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm import tasks_mama_fortune
+    mama_id = instance.referal_from_mama_id
+    tasks_mama_fortune.task_update_mamafortune_invite_num.s(mama_id)()
+
+post_save.connect(update_mamafortune_invite_num,
+                  sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_invite_num')
+
+
+
 def update_group_relationship(sender, instance, created, **kwargs):
     if not created:
         return
@@ -425,6 +453,20 @@ def update_group_relationship(sender, instance, created, **kwargs):
 
 post_save.connect(update_group_relationship,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_group_relationship')
+
+
+def referal_update_activevalue(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm.tasks_mama_activevalue import task_referal_update_activevalue
+    mama_id = instance.referal_from_mama_id
+    date_field = instance.created.date()
+    contributor_id = instance.referal_to_mama_id
+    task_referal_update_activevalue.s(mama_id, date_field, contributor_id)()
+
+post_save.connect(referal_update_activevalue,
+                  sender=ReferalRelationship, dispatch_uid='post_save_referal_update_activevalue')
+
 
 
 def referal_update_awardcarry(sender, instance, created, **kwargs):
@@ -463,3 +505,51 @@ def group_update_awardcarry(sender, instance, created, **kwargs):
 
 post_save.connect(group_update_awardcarry,
                   sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')
+
+
+class UniqueVisitor(BaseModel):
+    mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'妈妈id')
+    visitor_unionid = models.CharField(max_length=64,verbose_name=u"访客UnionID")
+    visitor_nick = models.CharField(max_length=64, blank=True, verbose_name=u'访客昵称')
+    visitor_img  = models.CharField(max_length=256, blank=True, verbose_name=u'访客头像')    
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID') #unionid+date
+    date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
+    
+    class Meta:
+        db_table = 'flashsale_xlmm_unique_visitor'
+        verbose_name = u'独立访客'
+        verbose_name_plural = u'独立访客列表'
+
+
+def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
+    if not created:
+        return
+    
+    mama_id = instance.mama_id
+    date_field = instance.date_field
+    
+    from flashsale.xiaolumm.tasks_mama import task_visitor_increment_clickcarry
+    task_visitor_increment_clickcarry.s(mama_id, date_field)()
+
+    from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
+    task_visitor_increment_activevalue.s(mama_id, date_field)()
+
+post_save.connect(visitor_update_clickcarry_and_activevalue,
+                  sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
+
+
+from core.fields import JSONCharMyField
+class ClickPlan(BaseModel):
+    STATUS_TYPES = ((0, u'使用'), (1, u'取消'),)
+    name = models.CharField(max_length=32, verbose_name=u'名字')
+    
+    # {"0":[10, 10], "1":[20, 60], "2":[30, 110], "3":[40, 160], "4":[50, 210], "5":[60, 260]}
+    order_rules = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'规则')
+    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') 
+    
+    class Meta:
+        db_table = 'flashsale_xlmm_click_plan'
+        verbose_name = u'点击计划'
+        verbose_name_plural = u'点击计划列表'
+        
+    

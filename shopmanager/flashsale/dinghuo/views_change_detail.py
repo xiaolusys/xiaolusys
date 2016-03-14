@@ -41,8 +41,9 @@ class ChangeDetailView(View):
             product = Product.objects.get(id=order.product_id)
             order_dict = model_to_dict(order)
             order_dict['pic_path'] = product.pic_path
-            order_dict['supplier_outer_id'] = ProductSku.objects.get(
-                id=order.chichu_id).outer_id
+            product_sku = ProductSku.objects.get(id=order.chichu_id)
+            order_dict['supplier_outer_id'] = product_sku.outer_id
+            order_dict['wait_post_num'] = product_sku.wait_post_num
             if product.sale_product:
                 try:
                     saleproduct = SaleProduct.objects.get(

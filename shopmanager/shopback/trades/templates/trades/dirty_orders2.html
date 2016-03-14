@@ -1,0 +1,129 @@
+{% load verbatim_templatetag %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}Editor-1.5.5/css/editor.bootstrap.min.css">
+        <style>
+         .panel-message {
+             position: fixed;
+             width: 100%;
+             z-index: 1;
+             text-align: center;
+             top: 0px;
+             height: 30px;
+         }
+         .panel-message .panel-body {
+             padding: 0;
+         }
+         .panel-body h2{
+             margin: 0;
+             padding: 0;
+             background-color: #ffd700;
+         }
+         tr.odd {background-color: #ffd700;}
+        </style>
+    </head>
+    <body>
+        <div id="m1" class="panel-message panel collapse">
+            <div class="panel-body"></div>
+        </div>
+        <div class="container" style="width:98%">
+            <div class="row" style="margin-top:60px">
+                <table id="main-table" class="display"></table>
+            </div>
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}DataTables/datatables.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}DataTables/Select-1.1.2/js/dataTables.select.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}Editor-1.5.5/js/dataTables.editor.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}Editor-1.5.5/js/editor.bootstrap.js"></script>
+        <script src="/static/wap/js/template.js"></script>
+        {% verbatim %}
+        <script id="link-tpl" type="text/html">
+            <a href="{{url}}" target="_blank">
+                {{text}}
+            </a>
+        </script>
+        <script id="warning-tpl" type="text/html">
+            <span style="background-color: #ff1493">{{text}}</span>
+        </script>
+        <script id="h2-tpl" type="text/html">
+            <h2>
+                <span style="color: #ff1493">{{n}}</span>/<span style="color: #ff1493">{{m}}</span>
+                超过3天未处理
+            </h2>
+        </script>
+        {% endverbatim %}
+        <script>
+         $(function(){
+             var mainTable = $('#main-table').DataTable({
+                 language: {
+                     url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
+                 },
+                 dom: 'Bfrtip',
+                 pageLength: 100,
+                 ajax: '/trades/dirty_orders2',
+                 select: false,
+                 columns: [
+                     {data: 'order_id', title: '#', width: '80px', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('link-tpl', {text: data, url: '/admin/trades/mergeorder/?q='+full.order_sn}) : data;
+                     }},
+                     {data: 'trade_id', title: '订单ID', width: '80px', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('link-tpl', {text: data, url: '/admin/trades/mergetrade/?q='+full.trade_sn}) : data;
+                     }},
+                     {data: 'order_type', title: '订单类型', width: '100px'},
+                     {data: 'product_name', title: '商品名', width: '200px', render: function(data, type, full, meta){
+                         return type == 'display' && data ?
+                                template('link-tpl', {text: data, url: '/admin/items/product/?q='+full.product_outer_id}) : data;
+                     }},
+                     {data: 'sku_properties_name', title: '规格', width: '100px'},
+                     {data: 'num', title: '数量', width: '80px'},
+                     {data: 'receiver_name', title: '收货人', width: '100px'},
+                     {data: 'receiver_mobile', title: '收货人手机号', width: '100px'},
+                     {data: 'receiver_address', title: '收货人地址', width: '220px'},
+                     {data: 'payment_time', title: '支付时间', width: '160px', render: function(data, type, full, meta){
+                         if(type == 'display'){
+                             if(data.up_to_today - 0 >= 3)
+                                 return template('warning-tpl', {text: data.display});
+                         }
+                         else(type == 'sort')
+                             return data.timestamp;
+                         return data.display;
+                     }},
+                     {data: 'created_time', title: '创建时间', width: '160px', render: {_: 'display', sort: 'timestamp'}},
+                     {data: 'sys_status', title: '状态', width: '80px'}
+                 ],
+                 buttons: [],
+                 initComplete: function(settings, json){
+                     var n = _.reduce(json.data, function(memo, el){return memo + (el.payment_time.up_to_today >= 3 ? 1 : 0)}, 0);
+                     if(n){
+                         $('#m1 .panel-body').html(template('h2-tpl', {n: n, m: json.data.length}));
+                         $('#m1').collapse('show');
+                     }
+
+                     this.api().columns([2, 3, 7, 11, 12]).every(function(){
+                         var column = this;
+                         var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
+                             .appendTo($(column.header()))
+                             .on('change', function(){
+                                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                                 column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                             });
+                         column.data().unique().sort().each(function(d, j){
+                             select.append('<option value="'+d+'">'+d+'</option>');
+                         });
+                     });
+                 }
+             });
+         });
+        </script>
+    </body>
+</html>

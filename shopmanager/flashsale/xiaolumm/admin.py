@@ -347,7 +347,7 @@ admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
 
 
 from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
-    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship
+    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, UniqueVisitor
     
 
 
@@ -376,8 +376,8 @@ admin.site.register(AwardCarry, AwardCarryAdmin)
 
 
 class ClickCarryAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'init_click_num', 'init_order_num', 'init_click_price',
-                    'init_click_limit', 'confirmed_click_num', 'confirmed_order_num',
+    list_display = ('mama_id', 'click_num', 'init_order_num', 'init_click_price',
+                    'init_click_limit', 'confirmed_order_num',
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
                     'status', 'date_field')
 admin.site.register(ClickCarry, ClickCarryAdmin)
@@ -397,3 +397,12 @@ class GroupRelationshipAdmin(admin.ModelAdmin):
     list_display = ('leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick')
 admin.site.register(GroupRelationship,GroupRelationshipAdmin)
 
+
+class ClickPlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'order_rules', 'status')
+admin.site.register(ClickPlan,ClickPlanAdmin)
+
+class UniqueVisitorAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'visitor_nick', 'visitor_img')
+admin.site.register(UniqueVisitor,UniqueVisitorAdmin)
+    

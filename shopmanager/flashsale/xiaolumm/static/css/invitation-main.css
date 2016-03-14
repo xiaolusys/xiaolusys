@@ -25,13 +25,15 @@
 .container-fluid {
     height: 100%;
     width: 100%;
-    position: fixed;
     background-color: #fff;
 }
 
-.page-panel {
-    position: relative;
-    /*width: 100%;*/
+.page-panel{
+    max-width:640px;
+    position:relative;
+    margin:0 auto;
+    text-align: center;
+	/*width: 100%;*/
 }
 
 .page-mask {
