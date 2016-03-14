@@ -8,7 +8,7 @@ import random
 from django.views.generic import View
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -136,8 +136,10 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         mobile = customer.mobile if customer else None
 
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
-        from_customer = content.get('from_customer', 1)  # 分享人的用户id
+        from_customer = content.get('from_customer', '1')  # 分享人的用户id
         openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
+        if from_customer and not from_customer.isdigit():
+            raise Http404('404')
         active_start = False
         wxprofile = {}
         if self.is_from_weixin(request):  # 如果是在微信里面
@@ -147,7 +149,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
                 wxprofile = self.get_auth_userinfo(request)
                 openid, unionid = wxprofile.get("openid"), wxprofile.get("unionid")
 
-            if not self.valid_openid(unionid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
+            if not self.valid_openid(openid) or not self.valid_openid(unionid):  # 若果是无效的openid则跳转到授权页面
                 return redirect(self.get_snsuserinfo_redirct_url(request))
 
             if wxprofile:

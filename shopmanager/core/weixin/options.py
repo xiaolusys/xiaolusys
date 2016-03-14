@@ -6,10 +6,8 @@ import urllib
 import urllib2
 from django.conf import settings
 
-from . import exceptions
-from . import signals
-
 OPENID_RE = re.compile('^[a-zA-Z0-9-_]{28}$')
+AUTHCODE_RE = re.compile('^[a-zA-Z0-9]{20,40}$')
 
 WEIXIN_SNS_USERINFO_URI = '{0}/sns/userinfo?access_token={1}&openid={2}&lang=zh_CN'
 WEIXIN_SNS_BASEINFO_URI = '{0}/sns/oauth2/access_token?appid={1}&secret={2}&code={3}&grant_type=authorization_code'
@@ -86,7 +84,7 @@ def get_auth_userinfo(code, appid='', secret='', request=None):
     if state and not code:
         return {'errcode':9999,'msg':'The user cancel authorized!'}
     
-    if not code :
+    if not code or not AUTHCODE_RE.match(code):
         return userinfo
     
     r = get_weixin_userbaseinfo(code, appid, secret)

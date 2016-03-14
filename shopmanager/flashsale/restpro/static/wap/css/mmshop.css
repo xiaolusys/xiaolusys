@@ -18,77 +18,130 @@ body {
 }
 
 .shop-head {
-    height: 430px;
-    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/mm-shop-head.png") no-repeat;
-    background-size: 100% 100%;
-    width: 640px;
+    height: 100%;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCdKQyM0BuM0C7g_750_440.png") repeat-x;
+    width: 100%;
     margin: 0 auto;
 }
 
 .shop-head .shop-info {
-    height: 320px;
+    width: 640px;
+    margin: 0 auto;
+    height: 377px;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCdKQyM0BuM0C7g_750_440.png") no-repeat;
 }
 
 .shop-head .shop-info .action-btn {
     position: relative;
-    top: 40px;
-    height: 50px;
+    top: 45px;
+    height: 60px;
 }
 
 .shop-head .shop-info .action-btn .go-back {
-    width: 80px;
+    width: 60px;
     float: left;
     height: 100%;
+    margin-left: 12px;
 }
 
 .shop-head .shop-info .action-btn .go-share {
-    width: 80px;
+    width: 60px;
     float: right;
     height: 100%;
+    margin-right: 12px;
 }
 
-.shop-head .shop-info .head-img-div {
+.shop-head .shop-info .head-star-img-div {
     position: relative;
     top: 42px;
-    height: 100px;
-    width: 100px;
+    height: 120px;
+    width: 120px;
     margin: 0 auto;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/group14%403x.png") no-repeat;
+    background-size: 100%;
+    text-align: center;
 }
 
-.shop-head .shop-info .head-img-div .head-img {
-    height: 100%;
+.shop-head .shop-info .head-star-img-div .head-img {
+    position: relative;
+    top: 13%;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
+    vertical-align: middle;
 }
 
 .shop-head .shop-info .shop-name-div {
     position: relative;
     top: 80px;
-    height: 70px;
+    height: 39px;
     text-align: center;
+    margin: 0 auto;
 }
 
 .shop-head .shop-info .shop-name {
     position: relative;
     height: 100%;
-    top: 10%;
-    font-size: 40px;
-    font-weight: 800
+    width: 45%;
+    font-size: 34px;
+    font-weight: 600;
 }
 
-.category-zone {
-    height: 110px;
+.category-back {
+    width: 100%;
+    background: #FFFFFF;
 }
 
-.category-zone .female-zone {
+.category-back .category-zone {
+    height: 80px;
+    width: 640px;
+    margin: 0 auto;
+}
+
+.category-back .category-zone .category-icon-zone {
+    height: 80px;
+}
+
+.category-back .category-zone .category-icon-zone .female-zone {
     float: left;
-    margin-left: 6%;
-    width: 43%;
-    height: 100%;
+    margin-left: 10%;
+    width: 27%;
+    height: 80px;
 }
 
-.category-zone .female-zone .active-bar {
+.category-back .category-zone .category-icon-zone .female-zone .female-icon {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.category-back .category-tag {
+    height: 25px;
+    width: 640px;
+    margin: 0 auto;
+    margin-top: 5px;
+}
+
+.category-back .category-tag .icon-tag-girls {
+    display: inline-block;
+    width: 125px;
+    text-align: center;
+    float: left;
+    margin-left: 13.5%;
+}
+
+.category-back .category-tag .icon-tag-childs {
+    display: inline-block;
+    width: 125px;
+    text-align: center;
+    float: right;
+    margin-right: 13.5%;
+}
+
+.category-back .category-zone .category-icon-zone .female-zone .active-bar {
     position: relative;
-    top: 95%;
+    top: 35%;
     height: 5px;
     width: 40%;
     margin: 0 auto;
@@ -96,14 +149,26 @@ body {
     border-radius: 5px;
 }
 
-.category-zone .child-zone {
+.category-back .category-zone .category-icon-zone .child-zone {
     float: right;
-    margin-right: 6%;
-    width: 43%;
+    margin-right: 10%;
+    width: 27%;
     height: 100%;
 }
 
-.shop-body {
+.category-back .category-zone .category-icon-zone .child-zone .child-icon {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.shop-body-back {
+    background: #FFFFFF;
+    margin-top: 10px;
+}
+
+.shop-body-back .shop-body {
     position: relative;
     top: 10px;
     background: #FFFFFF;
@@ -111,93 +176,91 @@ body {
     margin: 0 auto;
 }
 
-.shop-body .leave-time-div {
-    height: 70px;
+.shop-body-back .shop-body .leave-time-div {
+    height: 51px;
     margin: 0 auto;
-    width: 50%;
+    width: 40%;
     text-align: center;
-
 }
 
-.shop-body .leave-time {
+.shop-body-back .shop-body .leave-time {
     position: relative;
-    top: 30%;
-    font-size: 25px;
+    top: 15%;
+    font-size: 20px;
     color: #320C08;
 }
 
-.shop-body .leave-time em {
-    font-size: 25px;
+.shop-body-back .shop-body .leave-time em {
+    font-size: 30px;
     font-style: normal;
-    font-weight: normal;
+    font-weight: bold;
 }
 
-.shop-body .products-div {
+.shop-body-back .shop-body .products-div {
     position: relative;
     width: 640px;
     margin: 0 auto;
     /*margin-top: 15px;*/
 }
 
-.shop-body .products-div .product-info {
+.shop-body-back .shop-body .products-div .product-info {
     position: absolute;
-    height: 100%;
+    height: 30%;
     bottom: 0.8%;
     width: 600px;
     margin-left: 3%;
     margin-right: 3%;
-    background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), color-stop(0.5, #FFFFFF), to(#000000));
-    opacity: 0.25;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/rectangle9%403x.png") no-repeat;
+    /*background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), color-stop(0.5, #FFFFFF), to(#000000));*/
+    /*opacity: 0.25;*/
 }
 
-.shop-body .products-div .product-show {
+.shop-body-back .shop-body .products-div .product-show {
     width: 600px;
     height: 600px;
     margin-left: 3%;
     margin-right: 3%;
 }
 
-.shop-body .products-div .pro-price-div {
+.shop-body-back .shop-body .products-div .pro-price-div {
     position: absolute;
-    height: 60px;
-    width: 100%;
+    height: 68px;
+    width: 70%;
     bottom: 8%;
     z-index: 100;
-    left: 2%;
+    left: 4%;
 }
 
-.shop-body .products-div .pro-price-div .sale-price {
+.shop-body-back .shop-body .products-div .pro-price-div .sale-price {
     position: relative;
-    top: 1%;
+    top: 10%;
     height: 100%;
-    font-size: 55px;
-    margin-left: 15px;
+    font-size: 60px;
     color: white;
 }
 
-.shop-body .products-div .pro-price-div .std-price {
+.shop-body-back .shop-body .products-div .pro-price-div .std-price {
     position: relative;
-    top: 1%;
+    top: 10%;
     height: 100%;
     font-size: 30px;
     margin-left: 15px;
     color: white;
 }
 
-.shop-body .products-div .pro-name-div {
+.shop-body-back .shop-body .products-div .pro-name-div {
     position: absolute;
-    height: 50px;
-    width: 100%;
-    bottom: 0%;
+    height: 34px;
+    width: 85%;
+    bottom: 1%;
     z-index: 100;
-    left: 2%;
+    left: 4%;
 }
 
-.shop-body .products-div .pro-name-div .pro-name {
-    color: white;
+.shop-body-back .shop-body .products-div .pro-name-div .pro-name {
     position: relative;
-    font-size: 32px;
-    margin-left: 15px;
+    color: white;
+    font-size: 28px;
 }
 
 #toast {

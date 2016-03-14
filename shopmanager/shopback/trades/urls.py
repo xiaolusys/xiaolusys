@@ -33,6 +33,8 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       PackageScanWeightView,
                                       InstanceModelView_new,
                                       StatisticMergeOrderAsyncView,
+                                      DirtyOrderListAPIView,
+                                      DirtyOrderListView
                                       )
 from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test,select_Stock
 # from shopback.base.renderers  import BaseJsonRenderer
@@ -59,7 +61,7 @@ from shopback.trades import views_product_analysis
 from shopback.trades import views_new_check_order
 
 urlpatterns = patterns('shopback.trades.views',
-    
+
     (r'address/$',csrf_exempt(login_required_ajax(change_trade_addr))),
     (r'order/update/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(change_trade_order))),
     (r'order/delete/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(delete_trade_order))),
@@ -67,21 +69,21 @@ urlpatterns = patterns('shopback.trades.views',
     (r'^replaysend/(?P<id>\d{1,20})/$',csrf_exempt(staff_member_required(replay_trade_send_result))),
     (r'review/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(review_order))),
     (r'logistic/$',csrf_exempt(login_required_ajax(change_logistic_and_outsid))),
-    (r'^memo/$',csrf_exempt(login_required_ajax(update_sys_memo))), 
+    (r'^memo/$',csrf_exempt(login_required_ajax(update_sys_memo))),
     (r'^priority/(?P<id>\d{1,20})/',ImprovePriorityView.as_view(
        # resource=MergeTradeResource,
        # renderers=(BaseJsonRenderer,),
        # authentication=(UserLoggedInAuthentication,),
        # permissions=(IsAuthenticated,)
     )),
-    (r'^regular/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(regular_trade))), 
-    
+    (r'^regular/(?P<id>\d{1,20})/$',csrf_exempt(login_required_ajax(regular_trade))),
+
     (r'^trade/(?P<id>\d{1,20})/$',InstanceModelView_new.as_view(
 #         resource=MergeTradeResource,
 #         renderers=(BaseJsonRenderer,CheckOrderRenderer),
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
-    )),                   
+    )),
     (r'^checkorder/(?P<id>\d{1,20})/$',csrf_exempt(CheckOrderView.as_view(
 #         resource=TradeResource,
 #         renderers=(BaseJsonRenderer,CheckOrderRenderer),
@@ -94,7 +96,7 @@ urlpatterns = patterns('shopback.trades.views',
         #authentication=(UserLoggedInAuthentication,),
         #permissions=(IsAuthenticated,)
     )),
-    
+
     (r'^revieworder/(?P<id>\d{1,20})/$',staff_member_required(ReviewOrderView.as_view(
        # resource=OrderPlusResource,
         #renderers=(BaseJsonRenderer,ReviewOrderRenderer),
@@ -127,7 +129,7 @@ urlpatterns = patterns('shopback.trades.views',
 #             authentication=(UserLoggedInAuthentication,),
 #             permissions=(IsAuthenticated,)
     )),name="direct_order_instance"),
-                       
+
     (r'^tradeplus/$',TradeSearchView.as_view(
 #         resource=OrderPlusResource,
 #         renderers=(BaseJsonRenderer,),
@@ -147,33 +149,33 @@ urlpatterns = patterns('shopback.trades.views',
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
-    
+
     (r'^order/list/(?P<id>\d{1,20})/$',OrderListView.as_view(
 #         resource=OrderPlusResource,
 #         renderers=(BaseJsonRenderer,OrderListRender),
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
-                       
+
     (r'^related/orders/$',RelatedOrderStateView.as_view(
 #         resource=BaseResource,
 #         renderers=(RelatedOrderRenderer,BaseJsonRenderer,),
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
-                       
+
     (r'^logistic/query/$',TradeLogisticView.as_view(
 #         resource=MergeTradeResource,
 #         renderers=(BaseJsonRenderer,TradeLogisticRender),
 #         authentication=(UserLoggedInAuthentication,),
 #         permissions=(IsAuthenticated,)
     )),
-    
+
     (r'fenxiao/count/$',csrf_exempt(countFenxiaoAcount)),
 
     (r'fenxiao/count/detail/$',staff_member_required(showFenxiaoDetail)),
-    
-    (r'^scancheck/$',csrf_exempt(PackageScanCheckView.as_view())), 
+
+    (r'^scancheck/$',csrf_exempt(PackageScanCheckView.as_view())),
     (r'^scanweight/$',csrf_exempt(PackageScanWeightView.as_view())),
 
     (r'^detail/$', csrf_exempt(login_required_ajax(detail))),
@@ -201,4 +203,6 @@ urlpatterns = patterns('shopback.trades.views',
     url(r'^test/$', test, name="test"),
     url(r'^open_trade/$', views_product_analysis.open_trade_time, name="open_trade"),
     url(r'^list_trade/$', views_product_analysis.list_trade_time, name="list_trade"),
+    url(r'^dirty_orders_api/$', DirtyOrderListAPIView.as_view()),
+    url(r'^dirty_orders/$', DirtyOrderListView.as_view())
 )

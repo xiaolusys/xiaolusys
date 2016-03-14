@@ -547,7 +547,6 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     """
     from flashsale.xiaolumm.models import XiaoluMama
     
-    extra = instance.sale_trade.extras_info
     customer_id = instance.sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
 
@@ -604,7 +603,6 @@ def add_to_mama_order_carry(sender, instance, created, **kwargs):
     update_ordercarry.s(mm_linkid_mama.pk, instance, customer, carry_amount, agency_level, carry_scheme.name, via_app)()
         
 post_save.connect(add_to_mama_order_carry, sender=SaleOrder, dispatch_uid='post_save_add_to_mama_order_carry')
-
 
 
 class TradeCharge(PayBaseModel):

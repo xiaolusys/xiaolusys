@@ -25,13 +25,15 @@
 .container-fluid{
   height:100%;
   width: 100%;
-  position:fixed;
   background-color:#fe9fd7;
-  background-image:url(/static/img/dress_cycle_bg.png); 
+  background-image:url(http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E8%83%8C%E6%99%AF%E5%9C%86%E7%82%B9.png?imageMogr2/thumbnail/300/); 
 }
 
 .page-panel{
+    max-width:640px;
     position:relative;
+    margin:0 auto;
+    text-align: center;
 	/*width: 100%;*/
 }
 
