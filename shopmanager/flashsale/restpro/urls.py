@@ -148,5 +148,6 @@ urlpatterns = patterns('',
     #url(r'^test/',views_wuliu.test),
 
     url(r'^v2/mama/', include(v2_router_urls, namespace='v2')),
+    url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
 
 )

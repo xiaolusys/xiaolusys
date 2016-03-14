@@ -10,6 +10,7 @@ from rest_framework import permissions
 from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import exceptions
+from rest_framework.views import APIView
 
 from flashsale.restpro import permissions as perms
 from . import serializers
@@ -303,4 +304,59 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
 
+
+def match_data(from_date, end_date, visitors, orders):
+    """
+    match visitors/orders data according to date range.
+    """
+    data = []
+    i,j = 0,0
+    maxi,maxj = len(visitors), len(orders)
+    
+    from_date = from_date + datetime.timedelta(1)
+    while from_date <= end_date:
+        visitor_num, order_num, carry = 0,0,0
+        if i < maxi and visitors[i]["date_field"] == from_date:
+            visitor_num = visitors[i]["visitor_num"]
+            i += 1
+            
+        if j < maxj and orders[j]["date_field"] == from_date:
+            order_num, carry = orders[j]["order_num"], orders[j]["carry"]
+            j += 1
+            
+        entry = {"date_field":from_date, "visitor_num":visitor_num, 
+                 "order_num": order_num, "carry":carry}
+        data.append(entry)
+        from_date += datetime.timedelta(1)
+    return data
+
+
+class OrderCarryVisitorView(APIView):
+    """
+    given from=2 and days=5, we find out all 5 days' data, starting
+    from 2 days ago, backing to 7 days ago.
+    """
+    queryset = UniqueVisitor.objects.all()
+    page_size = 10
+    serializer_class = serializers.UniqueVisitorSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get(self, request):
+        content = request.REQUEST
+        days_from = int(content.get("from",0))
+        days_length   = int(content.get("days",1))
+
+        mama_id = get_mama_id(request.user)
+
+        today_date = datetime.datetime.now().date()
+        end_date = today_date - datetime.timedelta(days_from)
+        from_date = today_date - datetime.timedelta(days_from+days_length)
+
+        visitors = self.queryset.filter(mama_id=mama_id, date_field__gt=from_date, date_field__lte=end_date).order_by('-date_field').values('date_field').annotate(visitor_num=Count('pk'))
+        orders = OrderCarry.objects.filter(mama_id=mama_id,date_field__gt=from_date,date_field__lte=end_date).order_by('-date_field').values('date_field').annotate(order_num=Count('pk'),carry=Sum('carry_num'))
+
+        data = match_data(from_date, end_date, visitors, orders)
+        return Response(data)
 
