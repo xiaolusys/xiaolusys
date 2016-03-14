@@ -1,55 +1,47 @@
-#-*- coding:utf-8 -*-
-from django.shortcuts import render_to_response, render
-import re
-import json
-import time
-import datetime
+# coding: utf-8
 import cStringIO as StringIO
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.views.generic import FormView
-from django.template import RequestContext
-from django.db.models import Q, Sum
+import datetime
+import json
+import logging
+import re
+import time
 
-#from djangorestframework.views import ModelView
-#from djangorestframework.response import ErrorResponse
+from django.core.urlresolvers import reverse
+from django.db.models import Q, Sum
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.shortcuts import render_to_response, render
+from django.template import RequestContext
+from django.views.generic import FormView
+
+from auth import apis
+from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime,
+                          format_date, format_datetime)
+from shopback import paramconfig as pcfg
+from shopback.base import log_action, ADDITION, CHANGE
+from shopback.base.new_renders import new_BaseJSONRenderer
+from shopback.items.models import Product, ProductSku, ProductDaySale
 from shopback.logistics import getLogisticTrace
+from shopback.logistics.models import LogisticsCompany
+from shopapp.memorule import ruleMatchSplit
+from shopback.refunds.models import REFUND_STATUS, Refund
+from shopback.signals import rule_signal, change_addr_signal
 from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder,
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
 from shopback.trades.forms import ExchangeTradeForm
-from shopback.logistics.models import LogisticsCompany
-from shopback.items.models import Product, ProductSku, ProductDaySale
-from shopback.base import log_action, ADDITION, CHANGE
-from shopback.refunds.models import REFUND_STATUS, Refund
-from shopback.signals import rule_signal, change_addr_signal
-from shopapp.memorule import ruleMatchSplit
 from shopback.users.models import User
-from shopback import paramconfig as pcfg
-from auth import apis
 
-from common.utils import (parse_date, CSVUnicodeWriter, parse_datetime,
-                          format_date, format_datetime)
-import logging
-
-logger = logging.getLogger('django.request')
-
-from rest_framework import authentication
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework import authentication
-from rest_framework import permissions
+from rest_framework import authentication, filters, generics, permissions, status, viewsets
 from rest_framework.compat import OrderedDict
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer, BrowsableAPIRenderer
+from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import filters
-from rest_framework import authentication
-from . import serializers
-from rest_framework import status
-from shopback.base.new_renders import new_BaseJSONRenderer
 from renderers import *
+
+from . import serializers
+
+logger = logging.getLogger('django.request')
 
 
 ############################### 缺货订单商品列表 #################################
@@ -2723,6 +2715,7 @@ def select_Stock(request):
 
 
 class DirtyOrderListAPIView(APIView):
+
     def get(self, request):
         # mapping
         from .models import TRADE_TYPE, SYS_TRADE_STATUS
@@ -2768,7 +2761,8 @@ class DirtyOrderListAPIView(APIView):
 
         trades = {}
         for trade in MergeTrade.objects.filter(pk__in=list(trade_ids)):
-            trades[trade.id] = trade_sys_status_mapping.get(trade.sys_status) or '未知'
+            trades[trade.id] = trade_sys_status_mapping.get(
+                trade.sys_status) or '未知'
 
         for item in items:
             item['old_sys_status'] = trades.get(item['trade_id']) or '未知'
@@ -2777,8 +2771,64 @@ class DirtyOrderListAPIView(APIView):
 
 
 class DirtyOrderListView(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
-    renderer_classes = (TemplateHTMLRenderer, )
+    permission_classes = (permissions.IsAuthenticated,)
+    renderer_classes = (TemplateHTMLRenderer,)
     template_name = 'trades/dirty_orders.html'
+
     def get(self, request):
         return Response({})
+
+
+class DirtyOrderViewSet(viewsets.GenericViewSet):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = 'trades/dirty_orders2.html'
+
+    def list(self, request, *args, **kwargs):
+        from .models import TRADE_TYPE, SYS_TRADE_STATUS
+        trade_type_mapping = dict(TRADE_TYPE)
+        trade_sys_status_mapping = dict(SYS_TRADE_STATUS)
+
+        items = []
+        now = datetime.datetime.now()
+        for order in MergeOrder.objects.select_related('merge_trade').filter(
+                merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                       pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+                merge_trade__sys_status__in=
+            [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
+             pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
+             pcfg.ON_THE_FLY_STATUS, pcfg.REGULAR_REMAIN_STATUS],
+                sys_status=pcfg.IN_EFFECT):
+            if not order.pay_time:
+                continue
+            items.append({
+                'order_id': order.id,
+                'order_sn': order.oid,
+                'trade_id': order.merge_trade.id,
+                'trade_sn': order.merge_trade.tid,
+                'order_type': trade_type_mapping.get(order.merge_trade.type) or '未知',
+                'product_name': order.title,
+                'product_outer_id': order.outer_id,
+                'num': order.num,
+                'sku_properties_name': order.sku_properties_name,
+                'payment': round(order.payment, 2),
+                'payment_time': {
+                    'display': order.pay_time.strftime('%Y%m%d %H:%M:%S'),
+                    'timestamp': time.mktime(order.pay_time.timetuple()),
+                    'up_to_today': (now - order.pay_time).days
+                },
+                'created_time': {
+                    'display': order.created.strftime('%Y%m%d %H:%M:%S'),
+                    'timestamp': time.mktime(order.created.timetuple())
+                },
+                'sys_status': trade_sys_status_mapping.get(
+                    order.merge_trade.sys_status) or '未知',
+                'receiver_name': order.merge_trade.receiver_name or '未知',
+                'receiver_address': '%s%s%s%s' % (
+                    order.merge_trade.receiver_state,
+                    order.merge_trade.receiver_city,
+                    order.merge_trade.receiver_district,
+                    order.merge_trade.receiver_address),
+                'receiver_mobile': order.merge_trade.receiver_mobile
+            })
+        return Response({'data': items})
