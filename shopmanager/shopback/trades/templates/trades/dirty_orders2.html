@@ -54,7 +54,10 @@
             <span style="background-color: #ff1493">{{text}}</span>
         </script>
         <script id="h2-tpl" type="text/html">
-            <h2><span style="color: #ff1493">{{n}}</span>条订单超过3天未处理</h2>
+            <h2>
+                <span style="color: #ff1493">{{n}}</span>/<span style="color: #ff1493">{{m}}</span>
+                超过3天未处理
+            </h2>
         </script>
         {% endverbatim %}
         <script>
@@ -102,7 +105,7 @@
                  initComplete: function(settings, json){
                      var n = _.reduce(json.data, function(memo, el){return memo + (el.payment_time.up_to_today >= 3 ? 1 : 0)}, 0);
                      if(n){
-                         $('#m1 .panel-body').html(template('h2-tpl', {n: n}));
+                         $('#m1 .panel-body').html(template('h2-tpl', {n: n, m: json.data.length}));
                          $('#m1').collapse('show');
                      }
 
