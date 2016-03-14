@@ -33,7 +33,8 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       PackageScanWeightView,
                                       InstanceModelView_new,
                                       StatisticMergeOrderAsyncView,
-                                      PendingTradeOrderListView
+                                      DirtyOrderListAPIView,
+                                      DirtyOrderListView
                                       )
 from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test,select_Stock
 # from shopback.base.renderers  import BaseJsonRenderer
@@ -202,5 +203,6 @@ urlpatterns = patterns('shopback.trades.views',
     url(r'^test/$', test, name="test"),
     url(r'^open_trade/$', views_product_analysis.open_trade_time, name="open_trade"),
     url(r'^list_trade/$', views_product_analysis.list_trade_time, name="list_trade"),
-    url(r'^pending_orders/$', PendingTradeOrderListView.as_view())
+    url(r'^dirty_orders_api/$', DirtyOrderListAPIView.as_view()),
+    url(r'^dirty_orders/$', DirtyOrderListView.as_view())
 )

@@ -23,6 +23,9 @@ from common.utils import (parse_datetime ,
                           update_model_fields)
 import logging
 
+
+
+
 logger = logging.getLogger('django.request')
 
 SYS_TRADE_STATUS = (
@@ -833,13 +836,6 @@ class MergeOrder(models.Model):
         except:
             return self.title +' x'+str(self.num)
 
-class DirtyMergeOrder(models.Model):
-    order = models.OneToOneField(MergeOrder, primary_key=True, related_name='dirty_copy', verbose_name=u'订单明细')
-    status = models.SmallIntegerField(choices=[(0, '待清洗'), (1, '已处理')], default=0, verbose_name=u'状态')
-    class Meta:
-        db_table = 'shop_trades_dirtymergeorder'
-        verbose_name = u'待清洗订单明细'
-        verbose_name_plural = u'待清洗订单明细列表'
 
 def refresh_trade_status(sender,instance,*args,**kwargs):
     """ 订单明细及交易状态更新：
@@ -1135,3 +1131,6 @@ class TradeWuliu(models.Model):
 
     def __unicode__(self):
         return '<%d,%s,%s,%s>' % (self.id, self.status, self.content, dict(REPLAY_TRADE_STATUS).get(self.status, ''))
+
+
+from .models_dirty import DirtyMergeTrade, DirtyMergeOrder
