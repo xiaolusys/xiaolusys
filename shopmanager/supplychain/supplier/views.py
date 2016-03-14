@@ -370,7 +370,7 @@ class FetchAndCreateProduct(APIView):
     def getItemPic(self, fetch_url, soup):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
         container = soup.findAll(attrs={'class': re.compile(
-            '^(SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
+            '^(zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
                                        })
 
         for c in container:
