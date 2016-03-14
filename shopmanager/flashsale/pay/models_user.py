@@ -335,4 +335,14 @@ class BudgetLog(PayBaseModel):
         """ 预留记录的描述字段 """
         return ''
     
-    
+    def cancel_and_return(self):
+        if self.status != self.CONFIRMED:
+            return False
+        
+        self.status = self.CANCELED
+        self.save()
+        
+        user_budgets = UserBudget.objects.filter(user=self.customer_id)
+        user_budgets.update(amount=models.F('amount') + self.flow_amount)
+        return True
+        

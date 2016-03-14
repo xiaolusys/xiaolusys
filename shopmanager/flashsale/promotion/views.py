@@ -721,26 +721,25 @@ class QrCodeView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication,)
     renderer_classes = (renderers.BrowsableAPIRenderer,)
-
+    
     share_link = 'sale/promotion/xlsampleapply/?from_customer={customer_id}&ufrom={ufrom}'
-    PROMOTION_LINKID_PATH = 'pmt'
+    PROMOTION_LINKID_PATH = 'qrcode/promote'
 
     def get_share_link(self, params):
         link = urlparse.urljoin(settings.M_SITE_URL, self.share_link)
         return link.format(**params)
 
     def gen_custmer_share_qrcode_pic(self, customer_id, ufrom):
-        root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
+        
         params = {'customer_id': customer_id, "ufrom": ufrom}
-        file_name = 'custm-{customer_id}-{ufrom}.jpg'.format(**params)
-        file_path = os.path.join(root_path, file_name)
-
+        file_name = os.path.join(self.self.PROMOTION_LINKID_PATH,
+                                 'custom-{customer_id}-{ufrom}.jpg'.format(**params))
         share_link = self.get_share_link(params)
-        if not os.path.exists(file_path):
-            gen_and_save_jpeg_pic(share_link, file_path)
-        return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
+        
+        from core.upload.xqrcode import push_qrcode_to_remote
+        qrcode_url = push_qrcode_to_remote(file_name, share_link)
+        
+        return qrcode_url
 
     def get(self, request, *args, **kwargs):
         customer = get_customer(request)
