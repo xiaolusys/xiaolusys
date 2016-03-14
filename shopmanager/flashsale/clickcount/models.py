@@ -39,6 +39,22 @@ class Clicks(models.Model):
         return '%s'%self.id
 
 
+
+def update_unique_visitor(sender, instance, created, **kwargs):
+    if created and instance.isvalid:
+        print created, instance.isvalid
+        from flashsale.xiaolumm.tasks_mama import task_update_unique_visitor
+        mama_id = instance.linkid
+        openid = instance.openid
+        app_key = instance.app_key
+        click_time = instance.click_time
+        task_update_unique_visitor.s(mama_id, openid, app_key, click_time)()
+
+
+post_save.connect(update_unique_visitor,
+                  sender=Clicks, dispatch_uid='post_save_update_unique_visitor')
+
+
 class UserClicks(models.Model):
         
     unionid = models.CharField(max_length=64,unique=True,verbose_name=u"UnionID")

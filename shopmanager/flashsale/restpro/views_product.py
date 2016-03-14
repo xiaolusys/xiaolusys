@@ -613,7 +613,7 @@ class ProductShareView(generics.RetrieveAPIView):
     permission_classes = (permissions.IsAuthenticated, )
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,renderers.TemplateHTMLRenderer)
     template_name = 'shangpin_share.html'
-    QR_IMG_PATH    = 'qr'
+    QR_IMG_PATH    = 'qrcode/product/'
 
     def get_share_link(self,params):
         link = urlparse.urljoin(settings.M_SITE_URL,'pages/shangpinxq.html?id={product_id}&mm_linkid={linkid}')
@@ -625,22 +625,18 @@ class ProductShareView(generics.RetrieveAPIView):
             return None
         xiaolumms = XiaoluMama.objects.filter(openid=customer.unionid)
         return xiaolumms.count() > 0 and xiaolumms[0] or None
-
+    
     def gen_item_share_qrcode_link(self, product_id, linkid=None):
-
-        root_path = os.path.join(settings.MEDIA_ROOT,self.QR_IMG_PATH)
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
-
+        
         params = {'product_id':product_id, 'linkid':linkid}
-        file_name = 'qr-{linkid}-{product_id}.jpg'.format(**params)
-        file_path = os.path.join(root_path,file_name)
-
+        file_name = os.path.join(self.QR_IMG_PATH,'qr-{linkid}-{product_id}.jpg'.format(**params))
+        
         share_link = self.get_share_link(params)
-        if not os.path.exists(file_path):
-            gen_and_save_jpeg_pic(share_link,file_path)
-
-        return os.path.join(settings.MEDIA_URL,self.QR_IMG_PATH,file_name)
+        
+        from core.upload.xqrcode import push_qrcode_to_remote
+        qrlink = push_qrcode_to_remote(file_name,share_link)
+        
+        return qrlink
 
     def get(self, request, format=None,*args, **kwargs):
 

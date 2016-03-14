@@ -51,7 +51,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
-    MM_LINKID_PATH = 'mm'
+    MM_LINKID_PATH = 'qrcode/xiaolumm'
 
     def get_owner_queryset(self, request):
         customer = get_object_or_404(Customer, user=request.user)
@@ -75,26 +75,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         qst = self.queryset.filter(referal_from=xlmm.mobile)
         serializer = self.get_serializer(qst, many=True)
         return Response(serializer.data)
-
-    def get_share_link(self, params):
-        link = urlparse.urljoin(settings.M_SITE_URL, 'm/{linkid}/')
-        return link.format(**params)
-
-    def gen_xlmm_share_qrcode_pic(self, linkid):
-        root_path = os.path.join(settings.MEDIA_ROOT, self.MM_LINKID_PATH)
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
-
-        params = {'linkid': linkid}
-        file_name = 'mm-{linkid}.jpg'.format(**params)
-        file_path = os.path.join(root_path, file_name)
-
-        share_link = self.get_share_link(params)
-        if not os.path.exists(file_path):
-            gen_and_save_jpeg_pic(share_link, file_path)
-
-        return os.path.join(settings.MEDIA_URL, self.MM_LINKID_PATH, file_name)
-
+    
+    
     @list_route(methods=['get'])
     def agency_info(self, request):
         """ wap 版本页面数据整理显示　"""
@@ -114,7 +96,7 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         nmc_in = carry_logs.filter(carry_type=CarryLog.CARRY_IN, status__in=(CarryLog.CONFIRMED, CarryLog.PENDING),
                                    carry_date=today)
         nmc_clk = carry_logs.filter(status__in=(CarryLog.CONFIRMED, CarryLog.PENDING), log_type=CarryLog.CLICK_REBETA)
-
+        
         mci = (cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定收入
         mco = (cfm_out.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 确定支出
         ymci = (yst_cfm_in.aggregate(total_value=Sum('value')).get('total_value') or 0) / 100.0  # 昨日确定收入
@@ -134,20 +116,22 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
                                                                                   StatisticsShopping.WAIT_SEND))
         all_shop_num = all_shops.count()
         shop_num = all_shops.filter(shoptime__gte=t_from, shoptime__lte=t_to).count()  # 今日订单数量
-
+        
         # 计算今日点击金额
         clk_money = xlmm.get_Mama_Click_Price(shop_num) * clk_num
 
-        mama_link = "http://xiaolu.so/m/{0}/".format(xlmm.id)  # 专属链接
-        share_mmcode = self.gen_xlmm_share_qrcode_pic(xlmm.id)
-
+        mama_link = os.path.join(settings.M_SITE_URL,"m/{}/".format(xlmm.id))  # 专属链接
+        share_mmcode = xlmm.get_share_qrcode_url()
         # 代理的粉丝数量
         fans = FansNumberRecord.objects.filter(xlmm_cusid=customer.id)
         fans_num = fans[0].fans_num if fans.exists() else 0
 
-        data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, "recommend_num": recommend_num, "cash": cash, "mmclog": mmclog,
-                "clk_num": clk_num, "mama_link": mama_link, "shop_num": shop_num, "all_shop_num": all_shop_num,
-                "share_mmcode": share_mmcode, "clk_money": clk_money, "fans_num": fans_num}
+        data = {"xlmm": xlmm.id, "mobile": xlmm.mobile, 
+                "recommend_num": recommend_num, "cash": cash, 
+                "mmclog": mmclog, "clk_num": clk_num, 
+                "mama_link": mama_link, "shop_num": shop_num, 
+                "all_shop_num": all_shop_num, "share_mmcode": share_mmcode, 
+                "clk_money": clk_money, "fans_num": fans_num}
         return Response(data)
 
     @list_route(methods=['get'])

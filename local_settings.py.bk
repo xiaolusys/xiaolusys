@@ -175,8 +175,12 @@ WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 
 QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
 QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
+
 QINIU_PRIVATE_BUCKET = 'invoiceroom' 
 QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
+
+QINIU_PUBLIC_BUCKET = 'xiaolumama' #七牛公开空间,保存分享二维码,及其它商品信息
+QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
 
 LOGGER_HANDLERS = [
     ('models','sentry'),

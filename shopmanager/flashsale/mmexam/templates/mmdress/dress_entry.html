@@ -30,14 +30,7 @@
   </div>
   <div class="page-mask"></div>
   <div class="row page">
-  <form id="form1" name="form1" method="post" action="./">
-    {%csrf_token%}
-    <input type="hidden" name="user_unionid" value="{{user_info.unionid}}"/>
-    <input type="hidden" name="mama_headimg" value="{{user_info.headimgurl}}"/>
-    <input type="hidden" name="mama_nick" value="{{user_info.nick}}"/>
-    <input type="hidden" name="referal_from" value="{{referal_dress.user_unionid}}"/>
-    <a href="javascript:document.form1.submit();"><div class="fullfill"></div></a>
-  </form>
+    <a href="{% url 'dress_question' active_id=active_id %}"><div class="fullfill"></div></a>
   </div>
 </div>
 {% endblock %}

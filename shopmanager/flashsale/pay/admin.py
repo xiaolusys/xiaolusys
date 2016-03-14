@@ -490,9 +490,8 @@ class EnvelopAdmin(admin.ModelAdmin):
         envelop_ids = [e.id for e in wait_envelop_qs]
 
         for envelop in wait_envelop_qs:
-            envelop.status = Envelop.CANCEL
-            envelop.save()
-            log_action(request.user.id, envelop, CHANGE, u'取消红包')
+            if envelop.cancel_envelop():
+                log_action(request.user.id, envelop, CHANGE, u'取消红包')
 
         envelop_qs = Envelop.objects.filter(id__in=envelop_ids, status=Envelop.CANCEL)
 

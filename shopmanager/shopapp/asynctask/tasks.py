@@ -398,8 +398,7 @@ class PrintAsyncTask(Task):
             pdf = pisa.pisaDocument(StringIO.StringIO(html_text), result)
             if pdf.err:
                 raise Exception(u'PDF 创建失败')
-            
-    
+        
     def genHtmlPDFIostream(self,html_text):
         
         import xhtml2pdf.pisa as pisa
@@ -425,7 +424,6 @@ class PrintAsyncTask(Task):
             invoice_data = self.genInvoiceData(trade_list)
             invoice_html = render_to_string('asynctask/print/invoice_%s_template.html'%user_code,
                                        {'trade_list':invoice_data})
-            print 'debug: template=',invoice_html
 #             invoice_path = os.path.join(settings.DOWNLOAD_ROOT,'print','invoice')
 #             if not os.path.exists(invoice_path):
 #                 os.makedirs(invoice_path)

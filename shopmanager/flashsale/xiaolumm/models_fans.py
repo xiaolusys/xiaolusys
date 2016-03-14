@@ -40,14 +40,26 @@ def update_activevalue(sender, instance, created, **kwargs):
     """
     更新妈妈活跃度
     """
-    from flashsale.xiaolumm.tasks_mama import fans_update_activevalue
-    print "created", created
+    from flashsale.xiaolumm.tasks_mama_activevalue import task_fans_update_activevalue
     if created:
-        fans_update_activevalue.s(instance)()
+        mama_id = instance.xlmm
+        fans_customer_id = instance.fans_cusid
+        date_field = instance.created.date()
+        task_fans_update_activevalue.s(mama_id, fans_customer_id, date_field)()
 
 
 post_save.connect(update_activevalue,
-                  sender=XlmmFans, dispatch_uid='post_save_xlmm_fans')
+                  sender=XlmmFans, dispatch_uid='post_save_update_activevalue')
+
+def update_mamafortune_fans_num(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from flashsale.xiaolumm.tasks_mama_fortune import task_update_mamafortune_fans_num
+    mama_id = instance.xlmm
+    task_update_mamafortune_fans_num.s(mama_id)()
+
+post_save.connect(update_mamafortune_fans_num,
+                  sender=XlmmFans, dispatch_uid='post_save_update_mamafortune_fans_num')
 
 
 class FansNumberRecord(BaseModel):

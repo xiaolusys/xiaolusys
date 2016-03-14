@@ -131,6 +131,7 @@ v2_router.register(r'clickcarry', views_mama_v2.ClickCarryViewSet)
 v2_router.register(r'activevalue', views_mama_v2.ActiveValueViewSet)
 v2_router.register(r'referal', views_mama_v2.ReferalRelationshipViewSet)
 v2_router.register(r'group', views_mama_v2.GroupRelationshipViewSet)
+v2_router.register(r'visitor', views_mama_v2.UniqueVisitorViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([
@@ -147,5 +148,6 @@ urlpatterns = patterns('',
     #url(r'^test/',views_wuliu.test),
 
     url(r'^v2/mama/', include(v2_router_urls, namespace='v2')),
+    url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
 
 )

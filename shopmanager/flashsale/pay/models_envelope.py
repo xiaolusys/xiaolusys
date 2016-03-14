@@ -128,8 +128,29 @@ class Envelop(PayBaseModel):
             raise exc
         else:
             self.handle_envelop(redenvelope)
-
-    
+            
+    def cancel_envelop(self):
+        pingpp.api_key = settings.PINGPP_APPKEY
+        if not self.envelop_id:
+            return False
+        
+        envelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
+        if  envelope['status'] in (self.SEND_FAILED,self.REFUND) and \
+            self.status in (Envelop.WAIT_SEND,Envelop.FAIL):
+            self.status = Envelop.CANCEL
+            self.save()
+            
+            if self.platform == self.WXPUB:
+                from flashsale.xiaolumm.models import CarryLog
+                clog = CarryLog.objects.get(id=self.referal_id)
+                return clog.cancel_and_return()
+            else:
+                from flashsale.pay.models import BudgetLog
+                blog = BudgetLog.objects.get(id=self.referal_id)
+                return blog.cancel_and_return()
+        
+        return False
+            
     
     
     

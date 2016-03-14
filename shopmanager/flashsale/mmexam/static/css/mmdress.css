@@ -57,6 +57,8 @@
 
 .page-footer{
     margin-top:15px;
+    max-width:640px;
+    margin:0 auto;
 }
 
 .div-center{
