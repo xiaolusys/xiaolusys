@@ -183,6 +183,7 @@ class CashOutAdmin(ApproxAdmin):
                     'get_xlmm_total_order','status','approve_time','created','get_cash_out_xlmm_manager')
     list_filter  = ('status',('approve_time',DateFieldListFilter),('created',DateFieldListFilter), UserNameFilter)
     search_fields = ['=xlmm']
+    list_per_page = 15
 
     def get_cashout_verify(self, obj):
         #return obj.xlmm  # 返回id号码
