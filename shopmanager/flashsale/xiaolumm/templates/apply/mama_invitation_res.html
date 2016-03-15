@@ -1,0 +1,66 @@
+{% extends "apply/apply_base.html" %}
+
+{% block title %} 小鹿妈妈-邀请结果页面 {% endblock %}
+
+{% block head_script %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/invitation-result.css">
+{% endblock %}
+
+{% block container-body %}
+    <div class="page-panel">
+        <div class="">
+            <img class="carousel-inner img-responsive img-rounded background-img"
+                 src="http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-friends.png">
+        </div>
+        <div class="invitation-nums-div">
+            <div class="num-handred">
+                <img class="img-responsive"
+                     src="http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-{{ num_handred }}.png"/>
+            </div>
+            <div class="num-ten">
+                <img class="img-responsive" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-{{ num_ten }}.png"/>
+            </div>
+            <div class="num-unit">
+                <img class="img-responsive" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-{{ num_unit }}.png"/>
+            </div>
+        </div>
+        <div class="mama-level-1 border-show-b"></div>
+        <div class="mama-level-2 border-show-b"></div>
+        <div class="mama-level-3 border-show-b"></div>
+        <div class="mama-level-4 border-show-b"></div>
+        <div class="invitation-btn border-show-b"></div>
+    </div>
+{% endblock %}
+
+{% block container-foot %}
+    <div class="my-invitation-friends"></div>
+    {% for referal in referals %}
+        <div class="friends-info-icon">
+            <div class="detail-info ">
+                <div class="friend-head"></div>
+                <div class="friend-desc ">
+                    <span>{{ referal.charge_time }}</span><br/>
+                    <em>{{ referal.weikefu }}</em><span class="join-mama"> 通过您的邀请加入小鹿妈妈</span>
+                </div>
+                <div class="red-packet"></div>
+            </div>
+        </div>
+    {% endfor %}
+
+<!--
+    <div class="friends-info-icon">
+        <div class="detail-info ">
+            <div class="friend-head border-show-r"></div>
+            <div class="friend-desc border-show-b ">
+                <span>2015-10-10 22:22:22</span><br/>
+                <em>S大王</em><span class="join-mama"> 通过您的邀请加入小鹿妈妈</span>
+            </div>
+            <div class="red-packet border-show-g"></div>
+        </div>
+    </div>
+-->
+{% endblock %}
+
+{% block apply_script %}
+
+{% endblock %}
