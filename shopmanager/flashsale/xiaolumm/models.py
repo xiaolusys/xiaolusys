@@ -439,7 +439,7 @@ class XiaoluMama(models.Model):
         if self.qrcode_link.strip():
             return self.qrcode_link
         
-        qr_path = self.get_share_qrcode_path()
+        qr_path = self.get_share_qrcode_path().lstrip('\/')
         share_link = constants.MAMA_SHARE_LINK.format(**{'site_url':settings.M_SITE_URL,
                                                        'mm_linkid':self.id})
         from core.upload.xqrcode import push_qrcode_to_remote
@@ -701,7 +701,7 @@ class CarryLog(models.Model):
         self.save()
         xlmm = XiaoluMama.objects.get(id=self.xlmm)
         xlmm.cash = models.F('cash') + self.value
-        update_model_fields(self,update_fields=['cash'])
+        update_model_fields(xlmm,update_fields=['cash'])
     
     def dayly_in_value(self):
         """ 计算当天的收入总额 """

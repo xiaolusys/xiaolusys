@@ -6,7 +6,7 @@ CARRY_LOG_AGENCY_SUBSIDY = ['真棒,您招募的{0}专属又带来收益了,收�
 CARRY_OUT_DES = '{0}'
 
 #妈妈二维码分享图片存储路径
-MAMA_LINK_FILEPATH = 'qrcode/xiaolumm/mm-{mm_linkid}.jpg'
+MAMA_LINK_FILEPATH = '/qrcode/xiaolumm/mm-{mm_linkid}.jpg'
 #妈妈专属链接
 MAMA_SHARE_LINK = '{site_url}m/{mm_linkid}/'
 
