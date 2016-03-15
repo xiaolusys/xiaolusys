@@ -9,32 +9,41 @@
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}Editor-1.5.5/css/editor.bootstrap.min.css">
         <style>
-         .panel-message {
-             position: fixed;
-             width: 100%;
-             z-index: 1;
-             text-align: center;
-             top: 0px;
-             height: 30px;
-         }
-         .panel-message .panel-body {
-             padding: 0;
-         }
-         .panel-body h2{
-             margin: 0;
-             padding: 0;
-             background-color: #ffd700;
-         }
-         tr.odd {background-color: #ffd700;}
+         body {font-family: SimHei;}
+         #main-table tr[role="row"] td {padding-top: 7px; padding-bottom: 8px;}
+         tr.odd {background-color: #e5ebf5;}
+         .delay-3 {color: red;}
+         #header {color: #fff;}
+         #header .panel-body {background-color: #4c525b;}
+         #header em {font-size: 180%;}
+         .stat p {text-align: center;}
+         .stat p:first-child {margin-bottom: 0; font-size: 120%;}
         </style>
     </head>
     <body>
-        <div id="m1" class="panel-message panel collapse">
-            <div class="panel-body"></div>
+        <div id="header" class="panel-message panel">
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h2>待处理订单</h2>
+                        </div>
+                        <div class="col-md-5"></div>
+                        <div class="col-md-1 stat">
+                            <p><em id="n-delay">0</em></p>
+                            <p>三天未处理</p>
+                        </div>
+                        <div class="col-md-1 stat">
+                            <p><em id="n-total">0</em></p>
+                            <p>总计</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="container" style="width:98%">
-            <div class="row" style="margin-top:60px">
-                <table id="main-table" class="display"></table>
+            <div class="row">
+                <table id="main-table" class="display" style="width:100%"></table>
             </div>
         </div>
         <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
@@ -52,13 +61,8 @@
             </a>
         </script>
         <script id="warning-tpl" type="text/html">
-            <span style="background-color: #ff1493">{{text}}</span>
-        </script>
-        <script id="h2-tpl" type="text/html">
-            <h2>
-                <span style="color: #ff1493">{{n}}</span>/<span style="color: #ff1493">{{m}}</span>
-                超过3天未处理
-            </h2>
+            <i class="glyphicon glyphicon-info-sign delay-3"></i>
+            {{text}}
         </script>
         {% endverbatim %}
         <script>
@@ -104,8 +108,8 @@
                  initComplete: function(settings, json){
                      var n = _.reduce(json.data, function(memo, el){return memo + (el.payment_date.up_to_today >= 3 ? 1 : 0)}, 0);
                      if(n){
-                         $('#m1 .panel-body').html(template('h2-tpl', {n: n, m: json.data.length}));
-                         $('#m1').collapse('show');
+                         $('#n-delay').html(n);
+                         $('#n-total').html(json.data ? json.data.length : 0);
                      }
 
                      this.api().columns([2, 3, 7, 11]).every(function(){
@@ -120,7 +124,6 @@
                              select.append('<option value="'+d+'">'+d+'</option>');
                          });
                      });
-                     //单独处理支付日期
                      var column = this.api().column(9);
                      var select = $('<select class="form-control"><option value=""></option></select>')
                              .appendTo($(column.header()))
@@ -131,6 +134,11 @@
                      var pay_dates = _.sortBy(_.uniq(_.map(column.data(), function(el){return el.display;}))).reverse();
                      _.each(pay_dates, function(el){
                          select.append('<option value="'+el+'">'+el+'</option>');
+                     });
+                     $('i.delay-3').popover({
+                         html: true,
+                         trigger: 'hover',
+                         content: '三天未处理'
                      });
                  }
              });
