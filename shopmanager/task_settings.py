@@ -7,6 +7,8 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama',
     'flashsale.xiaolumm.tasks_mama_activevalue',
     'flashsale.xiaolumm.tasks_mama_fortune',
+    'flashsale.xiaolumm.tasks_mama_relationship_visitor',
+    'flashsale.xiaolumm.tasks_mama_carryrecord',
 )
 #CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -50,6 +52,8 @@ CELERY_QUEUES = (
     Queue('mama', routing_key='mama.#'),
     Queue('activevalue', routing_key='activevalue.#'),
     Queue('mamafortune', routing_key='mamafortune.#'),
+    Queue('relationship', routing_key='relationship.#'),
+    Queue('carryrecord', routing_key='carryrecord.#'),
 )
 
 CELERY_DEFAULT_EXCHANGE = 'default'
@@ -76,13 +80,17 @@ ACTIVE_VALUE_ROUTES = {
 }
 
 MAMA_FORTUNE_ROUTES = {
-        'flashsale.xiaolumm.tasks_mama_fortune.activevalue_update_mamafortune': {
+        'flashsale.xiaolumm.tasks_mama_fortune.task_cashout_update_mamafortune': {
             'queue': 'mamafortune',
-            'routing_key': 'mamafortune.activevalue_update_mamafortune',
+            'routing_key': 'mamafortune.task_cashout_update_mamafortune',
         },
-        'flashsale.xiaolumm.tasks_mama_fortune.increment_mamafortune_cash_and_carry': {
+        'flashsale.xiaolumm.tasks_mama_fortune.task_carryrecord_update_mamafortune': {
             'queue': 'mamafortune',
-            'routing_key': 'mamafortune.increment_mamafortune_cash_and_carry',
+            'routing_key': 'mamafortune.task_carryrecord_update_mamafortune',
+        },
+        'flashsale.xiaolumm.tasks_mama_fortune.task_activevalue_update_mamafortune': {
+            'queue': 'mamafortune',
+            'routing_key': 'mamafortune.task_activevalue_update_mamafortune',
         },
         'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_invite_num': {
             'queue': 'mamafortune',
@@ -96,13 +104,28 @@ MAMA_FORTUNE_ROUTES = {
             'queue': 'mamafortune',
             'routing_key': 'mamafortune.task_update_mamafortune_order_num',
         },
+        'flashsale.xiaolumm.tasks_mama_fortune.task_update_mamafortune_mama_level': {
+            'queue': 'mamafortune',
+            'routing_key': 'mamafortune.task_update_mamafortune_mama_level',
+        },
 }
 
-CELERY_ROUTES = {
-        'flashsale.xiaolumm.tasks_mama.task_update_unique_visitor': {
-            'queue': 'mama',
-            'routing_key': 'mama.task_update_unique_visitor',
+MAMA_RELATIONSHIP_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_unique_visitor': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_update_unique_visitor',
         },
+        'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_referal_relationship': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_update_referal_relationship',
+        },
+        'flashsale.xiaolumm.tasks_mama_relationship_visitor.task_update_group_relationship': {
+            'queue': 'relationship',
+            'routing_key': 'relationship.task_update_group_relationship',
+        },
+}
+
+MAMA_CARRY_ROUTES = {
         'flashsale.xiaolumm.tasks_mama.task_visitor_increment_clickcarry': {
             'queue': 'mama',
             'routing_key': 'mama.task_visitor_increment_clickcarry',
@@ -119,31 +142,36 @@ CELERY_ROUTES = {
             'queue': 'mama',
             'routing_key': 'mama.task_group_update_awardcarry',
         },
-        'flashsale.xiaolumm.tasks_mama.task_update_referal_relationship': {
+        'flashsale.xiaolumm.tasks_mama.task_update_ordercarry': {
             'queue': 'mama',
-            'routing_key': 'mama.task_update_referal_relationship',
+            'routing_key': 'mama.task_update_ordercarry',
         },
-        'flashsale.xiaolumm.tasks_mama.task_update_group_relationship': {
+        'flashsale.xiaolumm.tasks_mama.task_update_second_level_ordercarry': {
             'queue': 'mama',
-            'routing_key': 'mama.task_update_group_relationship',
+            'routing_key': 'mama.task_update_second_level_ordercarry',
         },
-        'flashsale.xiaolumm.tasks_mama.update_ordercarry': {
+        'flashsale.xiaolumm.tasks_mama.task_order_trigger': {
             'queue': 'mama',
-            'routing_key': 'mama.update_ordercarry',
+            'routing_key': 'mama.task_order_trigger',
         },
-        'flashsale.xiaolumm.tasks_mama.update_carryrecord': {
-            'queue': 'mama',
-            'routing_key': 'mama.update_carryrecord',
+}
+
+MAMA_CARRYRECORD_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama_carryrecord.task_awardcarry_update_carryrecord': {
+            'queue': 'carryrecord',
+            'routing_key': 'carryrecord.task_awardcarry_update_carryrecord',
         },
-        'flashsale.xiaolumm.tasks_mama.update_carryrecord_carry_num': {
-            'queue': 'mama',
-            'routing_key': 'mama.update_carryrecord_carry_num',
+        'flashsale.xiaolumm.tasks_mama_carryrecord.task_ordercarry_update_carryrecord': {
+            'queue': 'carryrecord',
+            'routing_key': 'carryrecord.task_ordercarry_update_carryrecord',
         },
-        'flashsale.xiaolumm.tasks_mama.update_second_level_ordercarry': {
-            'queue': 'mama',
-            'routing_key': 'mama.update_second_level_ordercarry',
+        'flashsale.xiaolumm.tasks_mama_carryrecord.task_clickcarry_update_carryrecord': {
+            'queue': 'carryrecord',
+            'routing_key': 'carryrecord.task_clickcarry_update_carryrecord',
         },
-        
+}
+
+CELERY_ROUTES = {
         'flashsale.xiaolumm.tasks.task_Push_Pending_Carry_Cash': {
             'queue': 'peroid',
             'routing_key': 'peroid.push_xlmm_pending_cash',
@@ -239,6 +267,9 @@ CELERY_ROUTES = {
 
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
 CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)
+CELERY_ROUTES.update(MAMA_RELATIONSHIP_ROUTES)
+CELERY_ROUTES.update(MAMA_CARRY_ROUTES)
+CELERY_ROUTES.update(MAMA_CARRYRECORD_ROUTES)
 
 
 API_REQUEST_INTERVAL_TIME = 10      #(seconds)

@@ -10,9 +10,10 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MamaFortune
-        fields = ('mama_id', 'mama_name', 'mama_level', 'mama_level_display', 'cash_value', 'fans_num', 'invite_num',
-                  'order_num', 'carry_value', 'active_value_num', 'today_visitor_num', 
-                  'modified', 'created')
+        fields = ('mama_id', 'mama_name', 'mama_level', 'mama_level_display', 'cash_value', 
+                  'fans_num', 'invite_num','order_num', 'carry_value', 'active_value_num', 
+                  'carry_pending_display', 'carry_confirmed_display', 'carry_cashout_display',
+                  'today_visitor_num', 'modified', 'created')
 
 
 class CarryRecordSerializer(serializers.ModelSerializer):
@@ -93,5 +94,6 @@ class GroupRelationshipSerializer(serializers.ModelSerializer):
 class UniqueVisitorSerializer(serializers.ModelSerializer):
     class Meta:
         model = UniqueVisitor
-        fields = ('mama_id', 'visitor_nick', 'visitor_img', 'modified', 'created')
+        fields = ('mama_id', 'visitor_nick', 'visitor_img', 'uni_key', 'modified', 'created')
+
 
