@@ -2797,7 +2797,7 @@ class DirtyOrderViewSet(viewsets.GenericViewSet):
                 merge_trade__sys_status__in=
             [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
-             pcfg.ON_THE_FLY_STATUS, pcfg.REGULAR_REMAIN_STATUS],
+             pcfg.REGULAR_REMAIN_STATUS],
                 sys_status=pcfg.IN_EFFECT):
             if not order.pay_time:
                 continue
@@ -2812,14 +2812,14 @@ class DirtyOrderViewSet(viewsets.GenericViewSet):
                 'num': order.num,
                 'sku_properties_name': order.sku_properties_name,
                 'payment': round(order.payment, 2),
-                'payment_time': {
-                    'display': order.pay_time.strftime('%Y%m%d %H:%M:%S'),
+                'payment_date': {
+                    'display': order.pay_time.strftime('%Y-%m-%d'),
                     'timestamp': time.mktime(order.pay_time.timetuple()),
                     'up_to_today': (now - order.pay_time).days
                 },
-                'created_time': {
-                    'display': order.created.strftime('%Y%m%d %H:%M:%S'),
-                    'timestamp': time.mktime(order.created.timetuple())
+                'payment_time': {
+                    'display': order.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'timestamp': time.mktime(order.pay_time.timetuple())
                 },
                 'sys_status': trade_sys_status_mapping.get(
                     order.merge_trade.sys_status) or '未知',
