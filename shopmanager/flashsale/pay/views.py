@@ -586,15 +586,19 @@ class EnvelopConfirmSendView(View):
 import views_refud_status_check
 
 from qiniu import Auth
-access_key = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
-secret_key = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
-bucket_name = "xiaolumm"
 
 class QiniuApi(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (JSONRenderer,)
 
     def get(self, request):
+        
+        access_key = settings.QINIU_ACCESS_KEY
+        secret_key = settings.QINIU_SECRET_KEY
+        bucket_name = "xiaolumm"
+        
         q = Auth(access_key, secret_key)
         token = q.upload_token(bucket_name, expires=3600)
         return Response({'uptoken': token})
+    
+    

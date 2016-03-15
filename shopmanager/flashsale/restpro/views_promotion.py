@@ -110,7 +110,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         promote_count = applys.count()  # 邀请的数量　
         app_down_count = XLSampleOrder.objects.filter(xlsp_apply__in=applys.values('id')).count()  # 下载appd 的数量
         share_link = self.share_link.format(**{'customer_id': customer_id})
-        link_qrcode = self.gen_custmer_share_qrcode_pic(customer_id, 'web')
+        link_qrcode = self.gen_customer_share_qrcode_pic(customer_id, 'web')
         res = {'promote_count': promote_count, 
                'app_down_count': app_down_count, 
                'share_link': share_link,
@@ -124,18 +124,17 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
     def get_qrcode_page_link(self):
         return urlparse.urljoin(settings.M_SITE_URL,reverse('qr_code_view'))
         
-    def gen_custmer_share_qrcode_pic(self, customer_id, ufrom):
-        root_path = os.path.join(settings.MEDIA_ROOT, self.PROMOTION_LINKID_PATH)
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
+    def gen_customer_share_qrcode_pic(self, customer_id, ufrom):
+        
         params = {'customer_id': customer_id, "ufrom": ufrom}
-        file_name = 'custm-{customer_id}-{ufrom}.jpg'.format(**params)
-        file_path = os.path.join(root_path, file_name)
-
+        file_name = os.path.join(self.self.PROMOTION_LINKID_PATH,
+                                 'custom-{customer_id}-{ufrom}.jpg'.format(**params))
         share_link = self.get_share_link(params)
-        if not os.path.exists(file_path):
-            gen_and_save_jpeg_pic(share_link, file_path)
-        return os.path.join(settings.MEDIA_URL, self.PROMOTION_LINKID_PATH, file_name)
+        
+        from core.upload.xqrcode import push_qrcode_to_remote
+        qrcode_url = push_qrcode_to_remote(file_name, share_link)
+        
+        return qrcode_url
 
     @list_route(methods=['get','post'])
     def get_share_content(self, request):

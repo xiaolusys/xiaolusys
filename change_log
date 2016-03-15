@@ -1,3 +1,5 @@
+######## 2016-03-14 ########
+alter table xiaolumm_xiaolumama add column qrcode_link varchar(256) NOT NULL DEFAULT '';
 ######## 2016-03-09 ########
 alter table supplychain_supply_schedule_manage_detail add column is_approved tinyint(1) default 0;
 ######## 2016-03-07 ########

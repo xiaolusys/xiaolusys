@@ -456,9 +456,9 @@ from .forms import EnvelopForm, CustomShareForm
 class EnvelopAdmin(admin.ModelAdmin):
     list_display = ('id', 'receiver', 'get_amount_display', 'platform', 'subject',
                     'send_time', 'created', 'send_status', 'status')
-
+    
     list_filter = ('status', 'send_status', 'platform', 'subject', 'livemode', ('created', DateFieldListFilter))
-    search_fields = ['=receiver', '=envelop_id']
+    search_fields = ['=receiver', '=envelop_id', '=recipient']
     list_per_page = 50
     form = EnvelopForm
 
@@ -466,7 +466,6 @@ class EnvelopAdmin(admin.ModelAdmin):
         """ 发送红包动作 """
 
         wait_envelop_qs = queryset
-
         envelop_ids = ','.join([str(e.id) for e in wait_envelop_qs])
         envelop_count = wait_envelop_qs.count()
         total_amount = wait_envelop_qs.aggregate(total_amount=Sum('amount')).get('total_amount') or 0
@@ -486,13 +485,12 @@ class EnvelopAdmin(admin.ModelAdmin):
     def cancel_envelop_action(self, request, queryset):
         """ 取消红包动作 """
 
-        wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND, Envelop.FAIL))
+        wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND, Envelop.CONFIRM_SEND, Envelop.FAIL))
         envelop_ids = [e.id for e in wait_envelop_qs]
 
         for envelop in wait_envelop_qs:
-            envelop.status = Envelop.CANCEL
-            envelop.save()
-            log_action(request.user.id, envelop, CHANGE, u'取消红包')
+            if envelop.cancel_envelop():
+                log_action(request.user.id, envelop, CHANGE, u'取消红包')
 
         envelop_qs = Envelop.objects.filter(id__in=envelop_ids, status=Envelop.CANCEL)
 
@@ -740,7 +738,7 @@ class UserBudgetAdmin(admin.ModelAdmin):
     list_display_links = ('id', )
     
 #     list_filter = ('status',)
-    search_fields = ['=id', '=user__mobile']
+    search_fields = ['=id', '=user__mobile', '=user__id']
     
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + ('user',)

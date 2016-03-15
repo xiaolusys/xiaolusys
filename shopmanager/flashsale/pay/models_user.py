@@ -275,6 +275,7 @@ class UserBudget(PayBaseModel):
                                    recipient=recipient,
                                    subject=Envelop.XLAPP_CASHOUT,
                                    body=body,
+                                   receiver=self.user.mobile,
                                    description=description,
                                    referal_id=budgelog.id)
             log_action(self.user.user.id, self, CHANGE, u'用户提现')
@@ -335,4 +336,14 @@ class BudgetLog(PayBaseModel):
         """ 预留记录的描述字段 """
         return ''
     
-    
+    def cancel_and_return(self):
+        if self.status != self.CONFIRMED:
+            return False
+        
+        self.status = self.CANCELED
+        self.save()
+        
+        user_budgets = UserBudget.objects.filter(user=self.customer_id)
+        user_budgets.update(amount=models.F('amount') + self.flow_amount)
+        return True
+        

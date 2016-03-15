@@ -2,6 +2,8 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
+
+from rest_framework import routers
 #from djangorestframework.views import InstanceModelView
 
 from shopback.trades.views    import (StatisticMergeOrderView,
@@ -34,7 +36,8 @@ from shopback.trades.views    import (StatisticMergeOrderView,
                                       InstanceModelView_new,
                                       StatisticMergeOrderAsyncView,
                                       DirtyOrderListAPIView,
-                                      DirtyOrderListView
+                                      DirtyOrderListView,
+                                      DirtyOrderViewSet
                                       )
 from shopback.trades.views import detail,search_trade,manybeizhu, beizhu,test,select_Stock
 # from shopback.base.renderers  import BaseJsonRenderer
@@ -59,6 +62,10 @@ from shopback.base.authentication import login_required_ajax
 
 from shopback.trades import views_product_analysis
 from shopback.trades import views_new_check_order
+
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'dirty_orders2', DirtyOrderViewSet, 'dirty_orders')
 
 urlpatterns = patterns('shopback.trades.views',
 
@@ -206,3 +213,4 @@ urlpatterns = patterns('shopback.trades.views',
     url(r'^dirty_orders_api/$', DirtyOrderListAPIView.as_view()),
     url(r'^dirty_orders/$', DirtyOrderListView.as_view())
 )
+urlpatterns += router.urls

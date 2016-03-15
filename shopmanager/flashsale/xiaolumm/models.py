@@ -3,7 +3,9 @@ import datetime
 from random import choice
 from django.db import models
 from django.db.models import Sum
+from django.conf import settings
 from django.contrib.auth.models import User as DjangoUser
+
 from shopapp.weixin.models import UserGroup
 from .managers import XiaoluMamaManager
 from shopback.base.fields import BigIntegerAutoField,BigIntegerForeignKey
@@ -70,12 +72,13 @@ class XiaoluMama(models.Model):
     )
 
     mobile = models.CharField(max_length=11,db_index=True,blank=False,verbose_name=u"手机")
-    openid = models.CharField(max_length=64,blank=True,unique=True,verbose_name=u"UnionID")    
+    openid = models.CharField(max_length=64,blank=True,unique=True,verbose_name=u"UnionID")
     province = models.CharField(max_length=24,blank=True,verbose_name=u"省份")
     city     = models.CharField(max_length=24,blank=True,verbose_name=u"城市")
     address  = models.CharField(max_length=256,blank=True,verbose_name=u"地址")
     referal_from = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"推荐人")
     
+    qrcode_link = models.CharField(max_length=256,blank=True,verbose_name=u"二维码")
     weikefu = models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u"微客服")
     manager = models.IntegerField(default=0,verbose_name=u"管理员")
     
@@ -428,8 +431,22 @@ class XiaoluMama(models.Model):
         if could_cash_out < 0:
             could_cash_out = 0
         return could_cash_out
-
-
+    
+    def get_share_qrcode_path(self):
+        return constants.MAMA_LINK_FILEPATH.format(**{'mm_linkid':self.id})
+    
+    def get_share_qrcode_url(self):
+        if self.qrcode_link.strip():
+            return self.qrcode_link
+        
+        qr_path = self.get_share_qrcode_path().lstrip('\/')
+        share_link = constants.MAMA_SHARE_LINK.format(**{'site_url':settings.M_SITE_URL,
+                                                       'mm_linkid':self.id})
+        from core.upload.xqrcode import push_qrcode_to_remote
+        qrcode_url = push_qrcode_to_remote(qr_path, share_link)
+        
+        return qrcode_url
+        
 # from .clickprice import CLICK_TIME_PRICE
 
 class AgencyLevel(models.Model):
@@ -501,6 +518,7 @@ class CashOut(models.Model):
     REJECTED = 'rejected'
     COMPLETED = 'completed'
     CANCEL = 'cancel'
+    SENDFAIL   = 'fail'
 
     STATUS_CHOICES = (
         (PENDING, u'待审核'),
@@ -508,6 +526,7 @@ class CashOut(models.Model):
         (REJECTED, u'已拒绝'),
         (CANCEL, u'取消'),
         (COMPLETED, u'完成'),
+        (SENDFAIL, u'发送失败')
     )
 
     xlmm = models.IntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
@@ -557,6 +576,13 @@ class CashOut(models.Model):
         if self.status == CashOut.PENDING:  # 待审核状态才允许同意
             self.status = CashOut.APPROVED
             self.approve_time = datetime.datetime.now()  # 通过时间
+            self.save()
+            return True
+        return False
+    
+    def fail_and_return(self):
+        if self.status == CashOut.APPROVED:
+            self.status = CashOut.SENDFAIL
             self.save()
             return True
         return False
@@ -679,6 +705,16 @@ class CarryLog(models.Model):
     @property
     def status_name(self):
         return self.get_status_display()
+    
+    def cancel_and_return(self):
+        """ 取消并返回妈妈账户 """
+        if self.status not in (self.PENDING,self.CONFIRMED):
+            return False
+        self.status = self.CANCELED
+        self.save()
+        xlmm = XiaoluMama.objects.get(id=self.xlmm)
+        xlmm.cash = models.F('cash') + self.value
+        update_model_fields(xlmm,update_fields=['cash'])
     
     def dayly_in_value(self):
         """ 计算当天的收入总额 """

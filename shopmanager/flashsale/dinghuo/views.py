@@ -1,23 +1,30 @@
 # coding:utf-8
+import datetime
+import json
+import time
 
+from django.contrib.auth.models import User
+from django.core import serializers
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import F, Q, Sum, Count
+from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from django.core import serializers
-from shopback.items.models import Product, ProductSku
-from flashsale.dinghuo.models import orderdraft, OrderDetail, OrderList
-from django.forms.models import model_to_dict
-from django.core.serializers.json import DjangoJSONEncoder
-import json, datetime
-from django.views.decorators.csrf import csrf_exempt
-from flashsale.dinghuo import paramconfig as pcfg
 from django.template import RequestContext
-from flashsale.dinghuo import log_action, CHANGE
-from django.db.models import F, Q, Sum
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from django.contrib.auth.models import User
-import functions
+
+from rest_framework import generics, permissions, renderers, viewsets
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, renderer_classes, list_route
+
+from flashsale.dinghuo import paramconfig as pcfg
+from flashsale.dinghuo import log_action, CHANGE
+from flashsale.dinghuo.models import orderdraft, OrderDetail, OrderList
 from flashsale.dinghuo.models_stats import SupplyChainDataStats
-import functions2view
+from shopback.items.models import Product, ProductCategory, ProductSku
+
+from . import functions, functions2view, models
 
 
 def search_product(request):
@@ -636,12 +643,6 @@ class DailyWorkView(View):
                                    "search_text": search_text},
                                   context_instance=RequestContext(request))
 
-from rest_framework import generics
-from rest_framework.renderers import JSONRenderer
-from rest_framework import permissions
-from rest_framework.response import Response
-from shopback.items.models import ProductCategory
-
 
 def get_category(category):
     if not category.parent_cid:
@@ -656,7 +657,7 @@ class ProductCategoryAPIView(generics.ListCreateAPIView):
     """
 
     """
-    renderer_classes = (JSONRenderer,)
+    renderer_classes = (renderers.JSONRenderer,)
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
@@ -673,3 +674,61 @@ class ProductCategoryAPIView(generics.ListCreateAPIView):
         except:
             return Response({"flag": "error"})
         return Response({"flag": "done", "group": group, "category": category, "stock": kucun})
+
+
+class PendingDingHuoViewSet(viewsets.GenericViewSet):
+    renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = models.OrderList.objects.all()
+    template_name = 'dinghuo/pending_dinghuo.html'
+
+    def list(self, request, *args, **kwargs):
+        now = datetime.datetime.now()
+        items = []
+
+        status_mapping = {
+            '5': '有次品',
+            '6': '到货有问题',
+            '7': '样品'
+        }
+        for order_list in models.OrderList.objects \
+            .exclude(status__in=[models.OrderList.COMPLETED, models.OrderList.ZUOFEI]) \
+            .order_by('-updated'):
+            items.append({
+                'id': order_list.id,
+                'receiver': order_list.receiver,
+                'order_amount': round(order_list.order_amount, 2),
+                'supplier_name': order_list.supplier_name,
+                'supplier_shop': order_list.supplier_shop,
+                'status': order_list.status,
+                'pay_status': order_list.pay_status,
+                'p_district': order_list.p_district,
+                'created': order_list.created,
+                'updated': {
+                    'display': order_list.updated.strftime('%Y-%m-%d %H:%M:%S'),
+                    'timestamp': time.mktime(order_list.updated.timetuple())
+                },
+                'memo': order_list.note.replace('\r\n', '<br>').replace('\n', '<br>')
+            })
+
+        order_stat_mapping = {}
+        for stat in models.OrderDetail.objects \
+          .filter(orderlist_id__in=map(lambda x: x['id'], items)) \
+          .values('orderlist_id') \
+          .annotate(model_count=Count('outer_id', distinct=True), quantity=Sum('buy_quantity')):
+          order_stat_mapping[stat['orderlist_id']] = stat
+
+        for item in items:
+            item['up_to_today'] = (now.date() - item['created']).days
+            item['created'] = item['created'].strftime('%Y-%m-%d')
+            if item['p_district'] == '3':
+                item['warehouse'] = '广州'
+            else:
+                item['warehouse'] = '上海'
+            if item['status'] in status_mapping.keys():
+                item['status'] = status_mapping[item['status']]
+            order_list_stat = order_stat_mapping.get(item['id']) or {}
+            item['model_count'] = order_list_stat.get('model_count') or 0
+            item['quantity'] = order_list_stat.get('quantity') or 0
+            item['pay_status'] = item.get('pay_status') or '正常'
+        return Response({'data': items})

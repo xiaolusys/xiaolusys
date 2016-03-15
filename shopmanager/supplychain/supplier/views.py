@@ -10,6 +10,7 @@ import xlsxwriter
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic import View
@@ -369,7 +370,7 @@ class FetchAndCreateProduct(APIView):
     def getItemPic(self, fetch_url, soup):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
         container = soup.findAll(attrs={'class': re.compile(
-            '^(SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
+            '^(zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
                                        })
 
         for c in container:
@@ -969,7 +970,12 @@ class RemainNumAPIView(APIView):
             if typed_value < 0:
                 return Response({'error': u'参数错误'})
             ProductSku.objects.filter(pk=_id).update(remain_num=typed_value)
+            stat = sku.product.prod_skus.filter(status='normal').aggregate(remain_sum=Sum('remain_num'))
+            sku.product.remain_num = stat.get('remain_sum') or 0
+            sku.product.save()
         except:
+            import traceback
+            traceback.print_exc()
             return Response({'error': u'参数错误'})
 
         parts = sku.product.name.rsplit('/', 1)

@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+#　coding:utf-8
 import datetime
 from django.conf import settings
 from django.db import models
@@ -10,8 +10,7 @@ import pingpp
 class Envelop(PayBaseModel):
     
     WXPUB  = 'wx_pub'
-    XLMMAPP = 'xl_app'
-    ENVELOP_CHOICES = ((WXPUB, u'微信公众'), (XLMMAPP, u'小鹿美美APP'))
+    ENVELOP_CHOICES = ((WXPUB, u'微信公众红包'), )
     
     WAIT_SEND = 'wait'
     CONFIRM_SEND = 'confirm'
@@ -49,11 +48,11 @@ class Envelop(PayBaseModel):
     
     amount       = models.IntegerField(default=0,verbose_name=u'红包金额')
     
-    platform     = models.CharField(max_length=8,db_index=True,choices=ENVELOP_CHOICES,verbose_name=u'来自平台')
+    platform     = models.CharField(max_length=8,db_index=True,choices=ENVELOP_CHOICES,verbose_name=u'红包发放类型')
     livemode     = models.BooleanField(default=True,verbose_name=u'是否有效')
     
     recipient    = models.CharField(max_length=28,db_index=True,verbose_name=u'接收者OPENID')
-    receiver     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'小鹿妈妈编号')
+    receiver     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'用户标识')
     
     subject      = models.CharField(max_length=8,db_index=True,choices=SUBJECT_CHOICES,verbose_name=u'红包主题')
     body         = models.CharField(max_length=128,blank=True,verbose_name=u'红包祝福语')
@@ -98,14 +97,12 @@ class Envelop(PayBaseModel):
             self.send_time  = self.send_time or datetime.datetime.now()
             self.status     = Envelop.CONFIRM_SEND 
             
-        elif status == self.SEND_FAILED and self.status in (Envelop.WAIT_SEND,Envelop.FAIL):
+        elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL
         self.save()
         
     def send_envelop(self):
         pingpp.api_key = settings.PINGPP_APPKEY
-        if self.platform == Envelop.XLMMAPP:  # 这里如果是客户端APP提现则重新选择来自平台'wx_pub'为ping++的channel
-            self.platform = Envelop.WXPUB
         try:
             if self.envelop_id:
                 redenvelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
@@ -128,8 +125,33 @@ class Envelop(PayBaseModel):
             raise exc
         else:
             self.handle_envelop(redenvelope)
-
-    
+            
+    def cancel_envelop(self):
+        pingpp.api_key = settings.PINGPP_APPKEY
+        if not self.envelop_id:
+            return False
+        
+        envelope = pingpp.RedEnvelope.retrieve(self.envelop_id)
+        self.handle_envelop(envelope)
+        if  envelope['status'] in (self.SEND_FAILED,self.REFUND) and \
+            self.status in (Envelop.WAIT_SEND,Envelop.FAIL,Envelop.CONFIRM_SEND):
+            self.status = Envelop.CANCEL
+            self.save()
+            if self.subject == self.XLAPP_CASHOUT: #用户钱包提现
+                from flashsale.pay.models import BudgetLog
+                blog = BudgetLog.objects.get(id=self.referal_id,budget_type=BudgetLog.BG_CASHOUT)
+                blog.cancel_and_return()
+            else:
+                from flashsale.xiaolumm.models import CarryLog,CashOut
+                clog = CarryLog.objects.get(order_num=self.referal_id,log_type=CarryLog.CASH_OUT)
+                clog.cancel_and_return()
+                #取消
+                cashout = CashOut.objects.get(id=self.referal_id)
+                cashout.fail_and_return()
+            return True
+        
+        return False
+            
     
     
     
