@@ -6,6 +6,9 @@ from django.contrib import admin
 from django.conf import settings
 from django.views.static import serve
 from django.contrib.admin.views.decorators import staff_member_required
+
+from httpproxy.views import HttpProxy
+
 admin.autodiscover()
 
 
@@ -40,6 +43,7 @@ urlpatterns = patterns('',
             {'document_root': settings.DOWNLOAD_ROOT,'show_indexes':True}),
     
     url(r'^rest/', include('flashsale.restpro.urls')),
+    url(r'^qrcode/(?P<url>.*)',HttpProxy.as_view(base_url='http://%s/qrcode'%settings.QINIU_PUBLIC_DOMAIN)),
     #(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
     

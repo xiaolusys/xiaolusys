@@ -215,7 +215,6 @@ class DressAgeView(WeixinAuthMixin, APIView):
         if not self.valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
-        print 'debug:',unionid
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         if not mama_dress.is_finished():
             return redirect(reverse('dress_home'))
@@ -230,7 +229,6 @@ class DressAgeView(WeixinAuthMixin, APIView):
     def post(self, request, *args, **kwargs):
         user_unionid = request.POST['user_unionid']
         mama_age = request.POST['mama_age']
-        print 'debug:',user_unionid,mama_age
         mm_dress,state = MamaDressResult.objects.get_or_create(user_unionid=user_unionid)
         mm_dress.mama_age = mama_age
         mm_dress.save()

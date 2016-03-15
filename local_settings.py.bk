@@ -64,7 +64,7 @@ MIDDLEWARE_CLASSES = (
         'middleware.middleware.QueryCountDebugMiddleware',
         ) + MIDDLEWARE_CLASSES
 ########################### ONEAPM Statsd ##############################
-STATSD_PORT = 8251
+#STATSD_PORT = 8251
 STATSD_CLIENT = 'statsd.oneapm'
 STATSD_CELERY_SIGNALS = True
 MIDDLEWARE_CLASSES = (

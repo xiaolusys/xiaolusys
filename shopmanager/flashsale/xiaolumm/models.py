@@ -432,11 +432,14 @@ class XiaoluMama(models.Model):
             could_cash_out = 0
         return could_cash_out
     
+    def get_share_qrcode_path(self):
+        return constants.MAMA_LINK_FILEPATH.format(**{'mm_linkid':self.id})
+    
     def get_share_qrcode_url(self):
         if self.qrcode_link.strip():
             return self.qrcode_link
         
-        qr_path = constants.MAMA_LINK_FILEPATH.format(**{'mm_linkid':self.id})
+        qr_path = self.get_share_qrcode_path()
         share_link = constants.MAMA_SHARE_LINK.format(**{'site_url':settings.M_SITE_URL,
                                                        'mm_linkid':self.id})
         from core.upload.xqrcode import push_qrcode_to_remote
@@ -515,6 +518,7 @@ class CashOut(models.Model):
     REJECTED = 'rejected'
     COMPLETED = 'completed'
     CANCEL = 'cancel'
+    SENDFAIL   = 'fail'
 
     STATUS_CHOICES = (
         (PENDING, u'待审核'),
@@ -522,6 +526,7 @@ class CashOut(models.Model):
         (REJECTED, u'已拒绝'),
         (CANCEL, u'取消'),
         (COMPLETED, u'完成'),
+        (SENDFAIL, u'发送失败')
     )
 
     xlmm = models.IntegerField(default=0, db_index=True, verbose_name=u"妈妈编号")
@@ -571,6 +576,13 @@ class CashOut(models.Model):
         if self.status == CashOut.PENDING:  # 待审核状态才允许同意
             self.status = CashOut.APPROVED
             self.approve_time = datetime.datetime.now()  # 通过时间
+            self.save()
+            return True
+        return False
+    
+    def fail_and_return(self):
+        if self.status == CashOut.APPROVED:
+            self.status = CashOut.SENDFAIL
             self.save()
             return True
         return False

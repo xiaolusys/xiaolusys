@@ -121,7 +121,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         clk_money = xlmm.get_Mama_Click_Price(shop_num) * clk_num
 
         mama_link = os.path.join(settings.M_SITE_URL,"m/{}/".format(xlmm.id))  # 专属链接
-        share_mmcode = xlmm.get_share_qrcode_url()
+        share_mmcode = xlmm.get_share_qrcode_path()
+        share_qrcode = xlmm.get_share_qrcode_url()
         # 代理的粉丝数量
         fans = FansNumberRecord.objects.filter(xlmm_cusid=customer.id)
         fans_num = fans[0].fans_num if fans.exists() else 0
@@ -130,7 +131,8 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
                 "recommend_num": recommend_num, "cash": cash, 
                 "mmclog": mmclog, "clk_num": clk_num, 
                 "mama_link": mama_link, "shop_num": shop_num, 
-                "all_shop_num": all_shop_num, "share_mmcode": share_mmcode, 
+                "all_shop_num": all_shop_num, 
+                "share_mmcode": share_mmcode, 'share_qrcode':share_qrcode,
                 "clk_money": clk_money, "fans_num": fans_num}
         return Response(data)
 

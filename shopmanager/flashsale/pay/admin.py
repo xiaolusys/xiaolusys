@@ -466,7 +466,6 @@ class EnvelopAdmin(admin.ModelAdmin):
         """ 发送红包动作 """
 
         wait_envelop_qs = queryset
-
         envelop_ids = ','.join([str(e.id) for e in wait_envelop_qs])
         envelop_count = wait_envelop_qs.count()
         total_amount = wait_envelop_qs.aggregate(total_amount=Sum('amount')).get('total_amount') or 0
