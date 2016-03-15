@@ -271,7 +271,7 @@ class UserBudget(PayBaseModel):
             description = constants.ENVELOP_CASHOUT_DESC.format(self.user.id,
                                                                 before_cash_amount)  # 备注信息 用户id, 提现前金额
             Envelop.objects.create(amount=cash_out_amount,
-                                   platform=Envelop.XLMMAPP,
+                                   platform=Envelop.WXPUB,
                                    recipient=recipient,
                                    subject=Envelop.XLAPP_CASHOUT,
                                    body=body,

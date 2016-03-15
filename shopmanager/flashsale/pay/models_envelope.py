@@ -139,7 +139,7 @@ class Envelop(PayBaseModel):
             self.save()
             if self.subject == self.XLAPP_CASHOUT: #用户钱包提现
                 from flashsale.pay.models import BudgetLog
-                blog = BudgetLog.objects.get(id=self.referal_id,budget_type=BudgetLog.BG_CASHOUT)
+                blog = BudgetLog.objects.get(id=self.referal_id,budget_log_type=BudgetLog.BG_CASHOUT)
                 blog.cancel_and_return()
             else:
                 from flashsale.xiaolumm.models import CarryLog,CashOut
