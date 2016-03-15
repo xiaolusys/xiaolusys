@@ -275,6 +275,7 @@ class UserBudget(PayBaseModel):
                                    recipient=recipient,
                                    subject=Envelop.XLAPP_CASHOUT,
                                    body=body,
+                                   receiver=self.user.mobile,
                                    description=description,
                                    referal_id=budgelog.id)
             log_action(self.user.user.id, self, CHANGE, u'用户提现')

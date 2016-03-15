@@ -53,7 +53,7 @@ class Envelop(PayBaseModel):
     livemode     = models.BooleanField(default=True,verbose_name=u'是否有效')
     
     recipient    = models.CharField(max_length=28,db_index=True,verbose_name=u'接收者OPENID')
-    receiver     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'小鹿妈妈编号')
+    receiver     = models.CharField(max_length=64,blank=True,db_index=True,verbose_name=u'用户标识')
     
     subject      = models.CharField(max_length=8,db_index=True,choices=SUBJECT_CHOICES,verbose_name=u'红包主题')
     body         = models.CharField(max_length=128,blank=True,verbose_name=u'红包祝福语')
@@ -98,7 +98,7 @@ class Envelop(PayBaseModel):
             self.send_time  = self.send_time or datetime.datetime.now()
             self.status     = Envelop.CONFIRM_SEND 
             
-        elif status == self.SEND_FAILED and self.status in (Envelop.WAIT_SEND,Envelop.FAIL):
+        elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL
         self.save()
         

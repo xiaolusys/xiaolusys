@@ -456,9 +456,9 @@ from .forms import EnvelopForm, CustomShareForm
 class EnvelopAdmin(admin.ModelAdmin):
     list_display = ('id', 'receiver', 'get_amount_display', 'platform', 'subject',
                     'send_time', 'created', 'send_status', 'status')
-
+    
     list_filter = ('status', 'send_status', 'platform', 'subject', 'livemode', ('created', DateFieldListFilter))
-    search_fields = ['=receiver', '=envelop_id']
+    search_fields = ['=receiver', '=envelop_id', '=recipient']
     list_per_page = 50
     form = EnvelopForm
 

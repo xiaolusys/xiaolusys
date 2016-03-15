@@ -138,7 +138,7 @@ class XLSampleapplyView(WeixinAuthMixin, View):
         vipcode = content.get('vipcode', None)  # 获取分享用户　用来记录分享状况
         from_customer = content.get('from_customer', '1')  # 分享人的用户id
         openid = content.get('openid', None)  # 获取分享用户　用来记录分享状况
-        if from_customer and not from_customer.isdigit():
+        if from_customer is not None and not from_customer.isdigit():
             raise Http404('404')
         active_start = False
         wxprofile = {}
