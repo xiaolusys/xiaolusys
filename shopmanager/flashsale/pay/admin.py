@@ -485,7 +485,7 @@ class EnvelopAdmin(admin.ModelAdmin):
     def cancel_envelop_action(self, request, queryset):
         """ 取消红包动作 """
 
-        wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND, Envelop.FAIL))
+        wait_envelop_qs = queryset.filter(status__in=(Envelop.WAIT_SEND, Envelop.CONFIRM_SEND, Envelop.FAIL))
         envelop_ids = [e.id for e in wait_envelop_qs]
 
         for envelop in wait_envelop_qs:
@@ -738,7 +738,7 @@ class UserBudgetAdmin(admin.ModelAdmin):
     list_display_links = ('id', )
     
 #     list_filter = ('status',)
-    search_fields = ['=id', '=user__mobile']
+    search_fields = ['=id', '=user__mobile', '=user__id']
     
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + ('user',)
