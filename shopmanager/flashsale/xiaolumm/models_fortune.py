@@ -58,8 +58,8 @@ class MamaFortune(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_fortune'
-        verbose_name = u'妈妈财富表'
-        verbose_name_plural = u'妈妈财富列表'
+        verbose_name = u'V2/妈妈财富表'
+        verbose_name_plural = u'V2/妈妈财富列表'
 
     def __unicode__(self):
         return '%s,%s' % (self.mama_id, self.mama_name)
@@ -105,8 +105,8 @@ class CarryRecord(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_carry_record'
-        verbose_name = u'妈妈收入记录'
-        verbose_name_plural = u'妈妈收入记录列表'
+        verbose_name = u'V2/妈妈收入记录'
+        verbose_name_plural = u'V2/妈妈收入记录列表'
 
     def __unicode__(self):
         return '%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num)
@@ -178,8 +178,8 @@ class OrderCarry(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_order_carry'
-        verbose_name = u'订单提成'
-        verbose_name_plural = u'订单提成列表'
+        verbose_name = u'V2/订单提成'
+        verbose_name_plural = u'V2/订单提成列表'
 
     def __unicode__(self):
         return '%s,%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num,self.date_field)
@@ -275,8 +275,8 @@ class AwardCarry(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_award_carry'
-        verbose_name = u'奖励'
-        verbose_name_plural = u'奖励列表'
+        verbose_name = u'V2/妈妈邀请奖励'
+        verbose_name_plural = u'V2/妈妈邀请奖励列表'
 
     def __unicode__(self):
         return '%s,%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num, self.date_field)
@@ -333,8 +333,8 @@ class ClickCarry(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_click_carry'
-        verbose_name = u'点击返现'
-        verbose_name_plural = u'点击返现列表'
+        verbose_name = u'V2/妈妈点击返现'
+        verbose_name_plural = u'V2/妈妈点击返现列表'
 
     def __unicode__(self):
         return '%s,%s' % (self.mama_id, self.total_value)
@@ -385,8 +385,8 @@ class ActiveValue(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_active_value_record'
-        verbose_name = u'活跃值'
-        verbose_name_plural = u'活跃值列表'
+        verbose_name = u'V2/妈妈活跃值'
+        verbose_name_plural = u'V2/妈妈活跃值列表'
 
     def __unicode__(self):
         return '%s,%s,%s' % (self.mama_id, self.value_type, self.value_num)
@@ -428,8 +428,8 @@ class ReferalRelationship(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_referal_relationship'
-        verbose_name = u'推荐关系'
-        verbose_name_plural = u'推荐关系列表'
+        verbose_name = u'V2/妈妈推荐关系'
+        verbose_name_plural = u'V2/妈妈推荐关系列表'
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
@@ -498,8 +498,8 @@ class GroupRelationship(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_group_relationship'
-        verbose_name = u'团队关系'
-        verbose_name_plural = u'团队关系列表'
+        verbose_name = u'V2/妈妈团队关系'
+        verbose_name_plural = u'V2/妈妈团队关系列表'
 
 
 def group_update_awardcarry(sender, instance, created, **kwargs):
@@ -525,8 +525,8 @@ class UniqueVisitor(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_unique_visitor'
-        verbose_name = u'独立访客'
-        verbose_name_plural = u'独立访客列表'
+        verbose_name = u'V2/独立访客'
+        verbose_name_plural = u'V2/独立访客列表'
 
 
 def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
@@ -557,7 +557,7 @@ class ClickPlan(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_click_plan'
-        verbose_name = u'点击计划'
-        verbose_name_plural = u'点击计划列表'
+        verbose_name = u'V2/点击计划'
+        verbose_name_plural = u'V2/点击计划列表'
         
     
