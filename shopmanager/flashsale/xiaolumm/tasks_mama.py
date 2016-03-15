@@ -8,9 +8,13 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, ClickCarry
+from flashsale.xiaolumm.models_fortune import CarryRecord, OrderCarry, AwardCarry, ClickCarry, ReferalRelationship
+from flashsale.pay.models import SaleOrder
+from flashsale.pay.models_user import Customer
+from flashsale.xiaolumm import util_unikey
 
 import sys
+
 
 def get_click_price_and_limit(order_num):
     MAX_ORDER_NUM = 5
@@ -45,45 +49,15 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-#STATUS_TYPES = ((0, u'未付款'), (1, u'待确定'), (2, u'已确定'),(3, u'取消'), )
-action_dict = {
-    "01": {'carry_param':  1, 'cash_param': 0},
-    "02": {'carry_param':  1, 'cash_param': 1},
-    "03": {'carry_param':  0, 'cash_param': 0},
-    "10": {'carry_param': -1, 'cash_param': 0},
-    "12": {'carry_param':  0, 'cash_param': 1},
-    "13": {'carry_param': -1, 'cash_param': 0},
-    "20": {'carry_param': -1, 'cash_param':-1},
-    "21": {'carry_param':  0, 'cash_param':-1},
-    "23": {'carry_param': -1, 'cash_param':-1},
-    "30": {'carry_param':  0, 'cash_param': 0},
-    "31": {'carry_param':  1, 'cash_param': 0},
-    "32": {'carry_param':  1, 'cash_param': 1}
-}
-
-order_active_dict = {
-    "02":"incr",
-    "12":"incr",
-    "32":"incr",
-    "20":"decr",
-    "21":"decr",
-    "23":"decr"
-}
-
-
-def get_action_value(action_key):
-    if action_key in action_dict:
-        return action_dict[action_key]
-    return {'carry_param': 0, 'cash_param': 0}
-
-
 @task()
-def update_second_level_ordercarry(referal_relationship, order_carry):
+def task_update_second_level_ordercarry(referal_relationship_pk, order_carry_pk):
+    referal_relationship = ReferalRelationship.objects.get(pk=referal_relationship_pk)
+    order_carry = OrderCarry.objects.get(pk=order_carry_pk)
+    
     print "%s, mama_id: %s" % (get_cur_info(), order_carry.mama_id)
-    from flashsale.xiaolumm.models_fortune import gen_ordercarry_unikey
 
     parent_mama_id = referal_relationship.referal_from_mama_id
-    uni_key = gen_ordercarry_unikey(parent_mama_id, order_carry.order_id)
+    uni_key = util_unikey.gen_ordercarry_unikey(parent_mama_id, order_carry.order_id)
     records = OrderCarry.objects.filter(uni_key=uni_key)
     if records.count() > 0:
         record = records[0]
@@ -121,7 +95,7 @@ def update_second_level_ordercarry(referal_relationship, order_carry):
 
 
 @task()
-def update_carryrecord(carry_data, carry_type):
+def task_update_carryrecord(carry_data, carry_type):
     print "%s, mama_id: %s" % (get_cur_info(), carry_data.mama_id)
 
     carry_records = CarryRecord.objects.filter(uni_key=carry_data.uni_key)
@@ -163,16 +137,17 @@ def update_carryrecord(carry_data, carry_type):
 
 
 @task()
-def update_carryrecord_carry_num(carry_data):
-    print "%s, mama_id: %s" % (get_cur_info(), carry_data.mama_id)
-
-    carry_records = CarryRecord.objects.filter(uni_key=carry_data.uni_key)
+def task_update_carryrecord_carry_num(click_carry_pk):
+    click_carry = ClickCarry.objects.get(pk=click_carry_pk)
+    print "%s, mama_id: %s" % (get_cur_info(), click_carry.mama_id)
+    
+    carry_records = CarryRecord.objects.filter(uni_key=click_carry.uni_key)
     if carry_records.count() > 0:
         record = carry_records[0]
-        if record.carry_num != carry_data.total_value:
+        if record.carry_num != click_carry.total_value:
             # we dont update status change here, because the status 
             # change will be triggered by orders' status change.
-            record.carry_num = carry_data.total_value
+            record.carry_num = click_carry.total_value
             record.save()
         return
 
@@ -180,9 +155,10 @@ def update_carryrecord_carry_num(carry_data):
 
     try:
         # create new record 
-        carry_record = CarryRecord(mama_id=carry_data.mama_id, carry_num=carry_data.total_value,
-                                   carry_type=carry_type, date_field=carry_data.date_field,
-                                   uni_key=carry_data.uni_key, status=carry_data.status)
+        carry_record = CarryRecord(mama_id=click_carry.mama_id, carry_num=click_carry.total_value,
+                                   carry_type=carry_type, date_field=click_carry.date_field,
+                                   carry_description=click_carry.carry_description,
+                                   uni_key=click_carry.uni_key, status=click_carry.status)
         carry_record.save()
     except Exception, e:
         print Exception, ":", e
@@ -192,13 +168,15 @@ def update_carryrecord_carry_num(carry_data):
 
 
 @task()
-def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carry_plan_name, via_app):
+def task_update_ordercarry(mama_id, order_pk, customer_pk, carry_amount, agency_level, carry_plan_name, via_app):
     """
     Whenever a sku order gets saved, trigger this task to update 
     corresponding order_carry record.
     """
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
+    order = SaleOrder.objects.get(pk=order_pk)
+    
     status = 0  #unpaid
     if order.is_pending():
         status = 1
@@ -207,15 +185,12 @@ def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carr
     elif order.is_canceled():
         status = 3
 
-    from flashsale.xiaolumm.models_fortune import gen_ordercarry_unikey
-
     order_id = order.oid
-    uni_key = gen_ordercarry_unikey(mama_id, order_id)
+    uni_key = util_unikey.gen_ordercarry_unikey(mama_id, order_id)
 
     order_carrys = OrderCarry.objects.filter(uni_key=uni_key)
     if order_carrys.count() > 0:
         order_carry = order_carrys[0]
-        print order_carry.status, status
         if order_carry.status != status:
             # We only update status change. We assume no price/value change.
             # We dont do updates on changes other than status change.
@@ -236,9 +211,10 @@ def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carr
         date_field = order.created.date()
 
         carry_description = util_description.get_ordercarry_description(via_app=via_app)
+        customer = Customer.objects.get(pk=customer_id)
         contributor_nick = customer.nick
         contributor_img = customer.thumbnail
-        contributor_id = customer.id
+        contributor_id = customer_id
 
         order_carry = OrderCarry(mama_id=mama_id, order_id=order_id, order_value=order_value,
                                  carry_num=carry_num, carry_type=carry_type, sku_name=sku_name,
@@ -252,91 +228,6 @@ def update_ordercarry(mama_id, order, customer, carry_amount, agency_level, carr
         print Exception, ":", e
         print "severe error +++"
 
-
-@task()
-def task_activevalue_update_mamafortune(active_value, action="incr"):
-    """
-    更新妈妈财富数值
-    """
-    print "%s, mama_id: %s" % (get_cur_info(), active_value.mama_id)
-
-    from flashsale.xiaolumm.models_fortune import MamaFortune
-
-    mama_id = active_value.mama_id
-    value_type = active_value.value_type
-
-    base_num, value_num = 1, active_value.value_num
-    if action == "decr":
-        base_num = -1
-        value_num = -active_value.value_num
-
-    mama_fortunes = MamaFortune.objects.filter(mama_id=mama_id)
-    if mama_fortunes.count() > 0:
-        if value_type == 4:  #fans
-            mama_fortunes.update(fans_num=F('fans_num') + base_num, active_value_num=F('active_value_num') + value_num)
-        elif value_type == 3:  # referal
-            mama_fortunes.update(invite_num=F('invite_num') + base_num,
-                                 active_value_num=F('active_value_num') + value_num)
-        elif value_type == 2:  # order
-            mama_fortunes.update(invite_num=F('order_num') + base_num,
-                                 active_value_num=F('active_value_num') + value_num)
-        elif value_type == 1:  # click
-            mama_fortunes.update(active_value_num=F('active_value_num') + value_num)
-    else:
-        if value_type == 4:  #fans
-            mama_fortune = MamaFortune(fans_num=base_num, active_value_num=value_num)
-        elif value_type == 3:  # referal
-            mama_fortune = MamaFortune(invite_num=base_num, active_value_num=value_num)
-        elif value_type == 2:  # order
-            mama_fortune = MamaFortune(invite_num=base_num, active_value_num=value_num)
-        elif value_type == 1:  # click
-            mama_fortune = MamaFortune(active_value_num=value_num)
-        else:
-            return
-        mama_fortune.save()
-
-
-
-
-
-@task()
-def task_update_referal_relationship(from_mama_id, to_mama_id, customer):
-    from flashsale.xiaolumm.models_fortune import ReferalRelationship
-    print "%s, mama_id: %s" % (get_cur_info(), from_mama_id)    
-
-    records = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id)
-    if records.count() <= 0:
-        record = ReferalRelationship(referal_from_mama_id=from_mama_id,referal_to_mama_id=to_mama_id,
-                                     referal_to_mama_nick=customer.nick,
-                                     referal_to_mama_img=customer.thumbnail)
-        record.save()
-    else:
-        print "server error++"
-        pass
-        #log("something wrong")
-        
-    
-
-@task()
-def task_update_group_relationship(leader_mama_id, referal_relationship):
-    from flashsale.xiaolumm.models_fortune import GroupRelationship
-    print "%s, mama_id: %s" % (get_cur_info(), referal_relationship.referal_from_mama_id)
-    
-    records = GroupRelationship.objects.filter(member_mama_id=referal_relationship.referal_to_mama_id)
-    if records.count() <= 0:
-        record = GroupRelationship(leader_mama_id=leader_mama_id,
-                                   referal_from_mama_id=referal_relationship.referal_from_mama_id,
-                                   member_mama_id=referal_relationship.referal_to_mama_id,
-                                   member_mama_nick=referal_relationship.referal_to_mama_nick,
-                                   member_mama_img=referal_relationship.referal_to_mama_img)
-
-        record.save()
-    else:
-        print "server error++"
-        pass
-        #log("something wrong")
-
-    pass
 
 
 award_carry_array = [[0,0],[1, 3000],[4, 4000],[8, 5000],[21, 7000],[41, 9000],[101,11000]]
@@ -372,10 +263,9 @@ def task_referal_update_awardcarry(relationship):
     from_mama_id = relationship.referal_from_mama_id
     to_mama_id = relationship.referal_to_mama_id
     
-    from flashsale.xiaolumm.models_fortune import gen_awardcarry_unikey
-    uni_key = gen_awardcarry_unikey(from_mama_id, to_mama_id)
+    uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
     
-    from flashsale.xiaolumm.models_fortune import AwardCarry, ReferalRelationship
+
     award_carrys = AwardCarry.objects.filter(uni_key=uni_key)
     if award_carrys.count() <= 0:
         records = ReferalRelationship.objects.filter(referal_from_mama_id=from_mama_id)
@@ -395,12 +285,16 @@ def task_referal_update_awardcarry(relationship):
     
 
 @task()
-def task_group_update_awardcarry(relationship):
+def task_group_update_awardcarry(pk):
+    from flashsale.xiaolumm.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship
+
+    relationship = GroupRelationship.objects.get(pk=pk)
+    
     from_mama_id = relationship.leader_mama_id
     to_mama_id = relationship.member_mama_id
 
-    from flashsale.xiaolumm.models_fortune import AwardCarry, ReferalRelationship, GroupRelationship, gen_awardcarry_unikey
-    uni_key = gen_awardcarry_unikey(from_mama_id, to_mama_id)
+    
+    uni_key = util_unikey.gen_awardcarry_unikey(from_mama_id, to_mama_id)
     
     from flashsale.xiaolumm.models_fortune import AwardCarry
     award_carrys = AwardCarry.objects.filter(uni_key=uni_key)
@@ -409,9 +303,9 @@ def task_group_update_awardcarry(relationship):
         group_referal_num = GroupRelationship.objects.filter(leader_mama_id=from_mama_id).count()
         carry_num = get_group_carry_num(group_referal_num+direct_referal_num)
         
-        # if direct_referal_num >= 15, at least get 10 for group referal
+        # if direct_referal_num >= 15, at least get 1000 cents for group referal
         if carry_num <= 0 and direct_referal_num >= 15:
-            carry_num = 10
+            carry_num = 1000
             
         carry_type = 2 # group referal
         date_field = relationship.created.date()
@@ -425,43 +319,10 @@ def task_group_update_awardcarry(relationship):
 
 
 @task()
-def task_update_unique_visitor(mama_id, openid, appkey, click_time):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-
-    from flashsale.xiaolumm.models import XiaoluMama
-    if XiaoluMama.objects.filter(pk=mama_id).count() <= 0:
-        return
-
-    from shopapp.weixin.options import get_unionid_by_openid
-    nick,img = '',''
-    unionid = get_unionid_by_openid(openid, appkey)
-    if unionid:
-        customers = Customer.objects.filter(unionid=unionid)
-        if customers.count() > 0:
-            nick,img = customers[0].nick,customers[0].thumbnail
-    else:
-        # if no unionid exists, then use openid
-        unionid = openid
-    
-    date_field = click_time.date()
-    uni_key = '-'.join([openid, str(date_field)])
-    
-    try:
-        from flashsale.xiaolumm.models_fortune import UniqueVisitor
-        visitor = UniqueVisitor(mama_id=mama_id,visitor_unionid=unionid,visitor_nick=nick,
-                                visitor_img=img,uni_key=uni_key,date_field=date_field)
-        visitor.save()
-    except Exception,e:
-        print Exception, ":", e
-        pass
-    
-
-@task()
 def task_visitor_increment_clickcarry(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     
-    from flashsale.xiaolumm.util_unikey import gen_clickcarry_unikey
-    uni_key = gen_clickcarry_unikey(mama_id, date_field)
+    uni_key = util_unikey.gen_clickcarry_unikey(mama_id, date_field)
 
     click_carrys = ClickCarry.objects.filter(uni_key=uni_key)
     
@@ -492,8 +353,6 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
 def task_update_clickcarry_order_number(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
-    from flashsale.xiaolumm.models_fortune import OrderCarry, ClickCarry
-
     records = OrderCarry.objects.filter(mama_id=mama_id,date_field=date_field).exclude(status=0).exclude(status=3).exclude(carry_type=3).values('contributor_id')
     order_num = records.count()
     
@@ -511,6 +370,74 @@ def task_update_clickcarry_order_number(mama_id, date_field):
             click_carrys.update(init_order_num=order_num, init_click_price=price, 
                                 init_click_limit=limit, total_value=total_value)
                 
+
+
+
+from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_referal_relationship
+
+
+def get_self_mama(unionid):
+    records = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, progress=XiaoluMama.PASS)
+    if records.count() > 0:
+        return records[0]
+    return None
         
+
+@task()
+def task_order_trigger(saleorder_pk):
+    print "%s, saleorder_pk: %s" % (get_cur_info(), saleorder_pk)
     
-                       
+    sale_order = SaleOrder.objects.get(pk=saleorder_pk)
+    
+    customer_id = sale_order.sale_trade.buyer_id
+    customer = Customer.objects.get(pk=customer_id)
+
+    self_mama = get_self_mama(customer.unionid)
+
+    mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
+    
+    if sale_order.is_deposit():
+        if sale_order.is_confirmed():
+            if mm_linkid_mama:
+                task_update_referal_relationship.s(mm_linkid_mama.pk, self_mama.pk, customer_id)()
+        return
+
+
+    via_app = sale_order.sale_trade.is_paid_via_app()    
+    if self_mama:
+        mm_linkid_mama = self_mama
+    else:
+        # customer itself is not a xiaolumama, then check 
+        # 1) if customer is a fan of a mama and the order is paid via app; or
+        # 2) if customer is coming from a mama's share link; 
+        if via_app:
+            # check fan's relationship
+            from flashsale.xiaolumm.models_fans import XlmmFans
+            
+            fans_records = XlmmFans.objects.filter(fans_cusid=customer_id)    
+            if fans_records.count() > 0:
+                mama_id = fans_records[0].xlmm
+                mm_linkid_mama = XiaoluMama.objects.get(pk=mama_id)
+
+    if not mm_linkid_mama:
+        return
+    
+    payment = sale_order.payment * 100
+    
+    from shopback.items.models import Product
+    products = Product.objects.filter(id=sale_order.item_id)
+    
+    if products.count() <= 0:
+        return
+    
+    product = products[0]
+    
+    carry_scheme = mm_linkid_mama.get_Mama_Order_Rebeta_Scheme(product)
+    agency_level = mm_linkid_mama.agencylevel
+    carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
+    
+    task_update_ordercarry.s(mm_linkid_mama.pk, saleorder_pk, customer_id, carry_amount, agency_level, carry_scheme.name, via_app)()
+
+    
+    

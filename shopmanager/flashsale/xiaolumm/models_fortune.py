@@ -6,17 +6,6 @@ from django.db.models.signals import post_save
 import datetime
 
 
-def gen_ordercarry_unikey(mama_id, order_id):
-    return '-'.join(['order', str(mama_id), order_id])
-
-def gen_awardcarry_unikey(from_mama_id, to_mama_id):
-    return '-'.join(['award', str(from_mama_id), str(to_mama_id)])
-
-def gen_clickcarry_unikey(mama_id, date):
-    return '-'.join(['click', str(mama_id), date])
-
-
-
 def get_choice_name(choices, val):
     """
     iterate over choices and find the name for this val
@@ -27,18 +16,44 @@ def get_choice_name(choices, val):
             name = entry[1]
     return name
 
+#
+# Use from flashsale.xiaolumm.models import CashOut 
+#
+#class CashOut(BaseModel):
+#    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
+#    mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'小鹿妈妈id')
+#    amount = models.IntegerField(default=0, verbose_name=u'数额')
+#    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态')
+#
+#    class Meta:
+#        db_table = 'flashsale_xlmm_cashout'
+#        verbose_name = u'妈妈提现'
+#        verbose_name_plural = u'妈妈提现列表'
+#
+#    def is_confirmed(self):
+#        return self.status == 2
+#
+#    def amount_display(self):
+#        return float('%.2f' % (self.amount * 0.01))
+
+    
+
 
 class MamaFortune(BaseModel):
     MAMA_LEVELS = ((0, u'新手妈妈'),(1, u'金牌妈妈'),(2, u'钻石妈妈'),(3, u'皇冠妈妈'),(4,u'金冠妈妈'))
     mama_id = models.BigIntegerField(default=0, unique=True, verbose_name=u'小鹿妈妈id')
     mama_name = models.CharField(max_length=32, blank=True, verbose_name=u'名称')
     mama_level = models.IntegerField(default=0, choices=MAMA_LEVELS, verbose_name=u'级别')
-    cash_num = models.IntegerField(default=0, verbose_name=u'余额')
+
     fans_num = models.IntegerField(default=0, verbose_name=u'粉丝数')
     invite_num = models.IntegerField(default=0, verbose_name=u'邀请数')
     order_num = models.IntegerField(default=0, verbose_name=u'订单数')
-    carry_num = models.IntegerField(default=0, verbose_name=u'累计收益数')
-    active_value_num = models.IntegerField(default=0, verbose_name=u'活跃数')
+    
+    carry_pending = models.IntegerField(default=0, verbose_name=u'待确定收益')
+    carry_confirmed = models.IntegerField(default=0, verbose_name=u'已确定收益')
+    carry_cashout = models.IntegerField(default=0, verbose_name=u'已提现金额')
+    
+    active_value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
     today_visitor_num = models.IntegerField(default=0, verbose_name=u'今日访客数')
 
     class Meta:
@@ -49,14 +64,31 @@ class MamaFortune(BaseModel):
     def __unicode__(self):
         return '%s,%s' % (self.mama_id, self.mama_name)
 
-    def cash_num_display(self):
-        return float('%.2f' %(self.cash_num * 0.01))
-
-    def carry_num_display(self):
-        return float('%.2f' %(self.carry_num * 0.01))
-
     def mama_level_display(self):
         return get_choice_name(self.MAMA_LEVELS, self.mama_level)
+
+    def carry_num_display(self):
+        """
+        累计收益数
+        """
+        total = self.carry_pending + self.carry_confirmed
+        return float('%.2f' % (total * 0.01))
+
+    def cash_num_display(self):
+        """
+        余额
+        """
+        total = self.carry_confirmed - self.carry_cashout
+        return float('%.2f' % (total * 0.01))
+
+    def carry_pending_display(self):
+        return float('%.2f' % (self.carry_pending * 0.01))
+
+    def carry_confirmed_display(self):
+        return float('%.2f' % (self.carry_confirmed * 0.01))
+
+    def carry_cashout_display(self):
+        return float('%.2f' % (self.carry_cashout * 0.01))
 
 
 class CarryRecord(BaseModel):
@@ -114,42 +146,13 @@ class CarryRecord(BaseModel):
         return self.carry_type == 1
 
 
-def carryrecord_creation_update_mamafortune(sender, instance, created, **kwargs):
-    """
-    post_save signal only deal with creation
-    """
+def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-
-    print "carryrecord save signal +++", created
-    if not created:
-        return 
-    
-    mama_id = instance.mama_id
-    amount  = instance.carry_num
-
-    if instance.is_click_carry():
-        # dont do anything
-        return
-    
-    if instance.is_award_carry() and instance.is_carry_confirmed():
-        # award carry has to be confirmed on creation
-        action_key = "32" # increment both cash and carry
-        tasks_mama_fortune.task_increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
-        return
-    
-    if instance.is_order_carry():
-        if instance.is_carry_pending():
-            print "is_carry_pending"
-            action_key = "31" # increment carry only
-            tasks_mama_fortune.task_increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
-        if instance.is_carry_confirmed(): 
-            action_key = "32" # increment cash and carry
-            tasks_mama_fortune.task_increment_mamafortune_cash_and_carry.s(mama_id, amount, action_key)()
-        return
+    tasks_mama_fortune.task_carryrecord_update_mamafortune.s(instance.mama_id)()
 
 
-post_save.connect(carryrecord_creation_update_mamafortune, 
-                  sender=CarryRecord, dispatch_uid='post_save_carry_record')
+post_save.connect(carryrecord_update_mamafortune, 
+                  sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_mamafortune')
 
 
 class OrderCarry(BaseModel):
@@ -210,28 +213,31 @@ class OrderCarry(BaseModel):
 
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama
+    from flashsale.xiaolumm import tasks_mama_carryrecord
+    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.s(instance.pk)()
 
-    print "signaled ++"
-    carryrecord_type = 2 # order carry
-    tasks_mama.update_carryrecord.s(instance, carryrecord_type)()
+post_save.connect(ordercarry_update_carryrecord,
+                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')
 
+
+def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
     if instance.is_direct_or_fans_carry():
         # find out parent mama_id
         referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id)
         if referal_relationships.count() > 0:
-            tasks_mama.update_second_level_ordercarry.s(referal_relationships[0], instance)()
+            from flashsale.xiaolumm import tasks_mama
+            tasks_mama.task_update_second_level_ordercarry.s(referal_relationships[0].pk, instance.pk)()
         
+post_save.connect(ordercarry_update_ordercarry,
+                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_ordercarry')
 
-post_save.connect(ordercarry_update_carryrecord,
-                  sender=OrderCarry, dispatch_uid='post_save_order_carry_update_carry_record')
 
 def ordercarry_update_activevalue(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_activevalue
     tasks_mama_activevalue.task_ordercarry_update_activevalue.s(instance.uni_key)()
 
 post_save.connect(ordercarry_update_activevalue,
-                  sender=OrderCarry, dispatch_uid='post_save_order_carry_update_active_value')
+                  sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_activevalue')
 
 
 def ordercarry_update_order_number(sender, instance, created, **kwargs):
@@ -298,14 +304,12 @@ class AwardCarry(BaseModel):
 
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama
-    
-    carryrecord_type = 3 # award carry
-    tasks_mama.update_carryrecord.s(instance, carryrecord_type)()
+    from flashsale.xiaolumm import tasks_mama_carryrecord
+    tasks_mama_carryrecord.task_awardcarry_update_carryrecord.s(instance.pk)()
 
 
 post_save.connect(awardcarry_update_carryrecord,
-                  sender=AwardCarry, dispatch_uid='post_save_award_carry')
+                  sender=AwardCarry, dispatch_uid='post_save_awardcarry_update_carryrecord')
 
 
     
@@ -358,12 +362,12 @@ class ClickCarry(BaseModel):
 
 
 def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
-    from flashsale.xiaolumm import tasks_mama
-    tasks_mama.update_carryrecord_carry_num.s(instance)()
+    from flashsale.xiaolumm import tasks_mama_carryrecord
+    tasks_mama_carryrecord.task_clickcarry_update_carryrecord.s(instance.pk)()
 
 
 post_save.connect(clickcarry_update_carryrecord,
-                  sender=ClickCarry, dispatch_uid='post_save_click_carry')
+                  sender=ClickCarry, dispatch_uid='post_save_clickcarry_update_carryrecord')
 
 
 class ActiveValue(BaseModel):
@@ -434,7 +438,8 @@ def update_mamafortune_invite_num(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.referal_from_mama_id
     tasks_mama_fortune.task_update_mamafortune_invite_num.s(mama_id)()
-
+    tasks_mama_fortune.task_update_mamafortune_mama_level.s(mama_id)()
+    
 post_save.connect(update_mamafortune_invite_num,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_invite_num')
 
@@ -444,7 +449,7 @@ def update_group_relationship(sender, instance, created, **kwargs):
     if not created:
         return
     
-    from flashsale.xiaolumm.tasks_mama import task_update_group_relationship
+    from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_group_relationship
     records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
     if records.count() > 0:
         record = records[0]
@@ -500,8 +505,11 @@ class GroupRelationship(BaseModel):
 def group_update_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
-    from flashsale.xiaolumm.tasks_mama import task_group_update_awardcarry
-    task_group_update_awardcarry.s(instance)()
+    from flashsale.xiaolumm import tasks_mama
+    tasks_mama.task_group_update_awardcarry.s(instance.pk)()
+    
+    from flashsale.xiaolumm import tasks_mama_fortune 
+    tasks_mama_fortune.task_update_mamafortune_mama_level.s(instance.leader_mama_id)()
 
 post_save.connect(group_update_awardcarry,
                   sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')

@@ -561,6 +561,19 @@ class CashOut(models.Model):
             return True
         return False
 
+    def is_confirmed(self):
+        return self.status == CashOut.APPROVED
+
+from django.db.models.signals import post_save
+
+def cashout_update_mamafortune(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_fortune
+    if instance.is_confirmed():
+        tasks_mama_fortune.task_cashout_update_mamafortune.s(instance.xlmm)()
+
+post_save.connect(cashout_update_mamafortune, 
+                  sender=CashOut, dispatch_uid='post_save_cashout_update_mamafortune')
+
 
 class CarryLog(models.Model):
     PENDING = 'pending'
