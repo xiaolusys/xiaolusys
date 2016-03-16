@@ -527,13 +527,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     > - post_fee：快递费用
     > - discount_fee：优惠折扣
     > - total_fee：总费用
-    > - pay_extras：附加支付参数
+    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:conponid:2
     > - uuid：系统分配唯一ID
     - {path}/buynow_create[.formt]:立即支付订单接口
     > - item_id：商品ID，如 `100,101,...` 
     > - sku_id:规格ID
     > - num:购买数量
-    > - pay_extras：附加支付参数
+    > - pay_extras：附加支付参数，pid:1:value:2;pid:2:value:3:conponid:2
     > - 其它参数(不包含cart_ids)如上
     """
     queryset = SaleTrade.objects.all()
@@ -805,7 +805,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         )
     
     def parse_entry_params(self, pay_extras):
-        """ pid:1:v:2;pid:2:v:3:c:2 """
+        """ pid:1:value:2;pid:2:value:3:conponid:2 """
         if not pay_extras:
             return []
         pay_list = [e for e in pay_extras.split(';') if e.strip()]
@@ -850,7 +850,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             payment         = int(float(CONTENT.get('payment','0')) * 100)
             post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
             discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
-            pay_extras      = CONTENT.get('pay_extras','0')
+            pay_extras      = CONTENT.get('pay_extras')
             cart_total_fee  = 0
             cart_discount   = 0
 
