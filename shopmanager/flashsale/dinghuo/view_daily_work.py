@@ -1,13 +1,20 @@
-# coding:utf-8
+# coding: utf-8
 __author__ = 'yann'
-from django.shortcuts import render_to_response, HttpResponse
+
 import datetime
+import functions
 import json
-from django.template import RequestContext
-from django.views.generic import View
+
 from django.db import connection
 from django.forms.models import model_to_dict
-import functions
+from django.shortcuts import render_to_response, HttpResponse
+from django.template import RequestContext
+from django.views.generic import View
+
+from rest_framework import permissions, viewsets
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.response import Response
+
 from flashsale.dinghuo.tasks import task_ding_huo_optimize, task_ding_huo
 
 
@@ -317,3 +324,12 @@ class AddDingHuoView(generics.ListCreateAPIView):
                 product_dict.setdefault('prod_skus', []).append(sku_dict)
             productres.append(product_dict)
         return Response({'productRestult': productres, 'drafts': orderdraft.objects.all().filter(buyer_name=request.user)})
+
+
+class InstantDingHuoView(viewsets.GenericViewSet):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated, )
+    template_name = 'dinghuo/instant_dinghuo.html'
+
+    def list(self, request):
+        pass
