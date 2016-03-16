@@ -211,10 +211,10 @@ def task_update_ordercarry(mama_id, order_pk, customer_pk, carry_amount, agency_
         date_field = order.created.date()
 
         carry_description = util_description.get_ordercarry_description(via_app=via_app)
-        customer = Customer.objects.get(pk=customer_id)
+        customer = Customer.objects.get(pk=customer_pk)
         contributor_nick = customer.nick
         contributor_img = customer.thumbnail
-        contributor_id = customer_id
+        contributor_id = customer_pk
 
         order_carry = OrderCarry(mama_id=mama_id, order_id=order_id, order_value=order_value,
                                  carry_num=carry_num, carry_type=carry_type, sku_name=sku_name,

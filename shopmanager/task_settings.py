@@ -80,6 +80,10 @@ ACTIVE_VALUE_ROUTES = {
 }
 
 MAMA_FORTUNE_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama_fortune.task_xiaolumama_update_mamafortune': {
+            'queue': 'mamafortune',
+            'routing_key': 'mamafortune.task_xiaolumama_update_mamafortune',
+        },
         'flashsale.xiaolumm.tasks_mama_fortune.task_cashout_update_mamafortune': {
             'queue': 'mamafortune',
             'routing_key': 'mamafortune.task_cashout_update_mamafortune',

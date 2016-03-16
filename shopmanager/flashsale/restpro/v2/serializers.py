@@ -13,7 +13,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         fields = ('mama_id', 'mama_name', 'mama_level', 'mama_level_display', 'cash_value', 
                   'fans_num', 'invite_num','order_num', 'carry_value', 'active_value_num', 
                   'carry_pending_display', 'carry_confirmed_display', 'carry_cashout_display',
-                  'today_visitor_num', 'modified', 'created')
+                  'history_last_day', 'today_visitor_num', 'modified', 'created')
 
 
 class CarryRecordSerializer(serializers.ModelSerializer):

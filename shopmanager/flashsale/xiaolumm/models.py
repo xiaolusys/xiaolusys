@@ -20,6 +20,7 @@ from .models_fans import XlmmFans, FansNumberRecord
 from . import ccp_schema
 from . import constants
 from .models_fortune import MamaFortune
+from django.db.models.signals import post_save
 
 import logging
 logger = logging.getLogger('django.request')
@@ -446,6 +447,14 @@ class XiaoluMama(models.Model):
         qrcode_url = push_qrcode_to_remote(qr_path, share_link)
         
         return qrcode_url
+
+
+def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_fortune
+    tasks_mama_fortune.task_xiaolumama_update_mamafortune.s(instance.pk, instance.pending, instance.cash)()
+
+post_save.connect(xiaolumama_update_mamafortune, 
+                  sender=XiaoluMama, dispatch_uid='post_save_xiaolumama_update_mamafortune')
         
 # from .clickprice import CLICK_TIME_PRICE
 
@@ -590,7 +599,7 @@ class CashOut(models.Model):
     def is_confirmed(self):
         return self.status == CashOut.APPROVED
 
-from django.db.models.signals import post_save
+
 
 def cashout_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune

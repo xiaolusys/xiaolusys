@@ -36,7 +36,9 @@ def get_choice_name(choices, val):
 #    def amount_display(self):
 #        return float('%.2f' % (self.amount * 0.01))
 
-    
+
+# The time to switch to xiaolumama v2.0
+MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016,03,16)
 
 
 class MamaFortune(BaseModel):
@@ -52,7 +54,11 @@ class MamaFortune(BaseModel):
     carry_pending = models.IntegerField(default=0, verbose_name=u'待确定收益')
     carry_confirmed = models.IntegerField(default=0, verbose_name=u'已确定收益')
     carry_cashout = models.IntegerField(default=0, verbose_name=u'已提现金额')
-    
+
+    history_pending = models.IntegerField(default=0, verbose_name=u'历史待确定收益')
+    history_confirmed = models.IntegerField(default=0, verbose_name=u'历史已确定收益')
+    history_last_day = models.DateField(default=MAMA_FORTUNE_HISTORY_LAST_DAY, verbose_name=u'历史结束日期')
+
     active_value_num = models.IntegerField(default=0, verbose_name=u'活跃值')
     today_visitor_num = models.IntegerField(default=0, verbose_name=u'今日访客数')
 
@@ -71,21 +77,23 @@ class MamaFortune(BaseModel):
         """
         累计收益数
         """
-        total = self.carry_pending + self.carry_confirmed
+        total = self.carry_pending + self.carry_confirmed + self.history_pending + self.history_confirmed
         return float('%.2f' % (total * 0.01))
 
     def cash_num_display(self):
         """
         余额
         """
-        total = self.carry_confirmed - self.carry_cashout
+        total = self.carry_confirmed + self.history_confirmed - self.carry_cashout
         return float('%.2f' % (total * 0.01))
 
     def carry_pending_display(self):
-        return float('%.2f' % (self.carry_pending * 0.01))
+        total = self.carry_pending + self.history_pending
+        return float('%.2f' % (total * 0.01))
 
     def carry_confirmed_display(self):
-        return float('%.2f' % (self.carry_confirmed * 0.01))
+        total = self.carry_confirmed + self.history_confirmed
+        return float('%.2f' % (total * 0.01))
 
     def carry_cashout_display(self):
         return float('%.2f' % (self.carry_cashout * 0.01))
