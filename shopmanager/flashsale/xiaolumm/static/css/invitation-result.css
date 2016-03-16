@@ -66,7 +66,9 @@
 }
 
 .img-responsive {
-    max-width: 66%;
+    max-width: 85%;
+    margin: 0 auto;
+    margin-top: 8%;
 }
 
 .page-panel .background-img {
@@ -78,10 +80,10 @@
 
 .page-panel .invitation-nums-div {
     position: absolute;
-    top: 8.5%;
-    height: 8%;
+    top: 7.5%;
+    height: 3%;
     width: 40%;
-    left: 23%;
+    left: 21%;
 }
 
 .page-panel .invitation-nums-div .num-handred {
@@ -141,7 +143,7 @@
     position: absolute;
     width: 61%;
     height: 7%;
-    top: 82%;
+    top: 83%;
     left: 20%;
 }
 
@@ -184,7 +186,7 @@
     transform: translate(-50%, -50%);
 
     border-radius: 50%;
-    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/222-ohmydeer.png") no-repeat;
+    /*background: url("") no-repeat;*/
     background-size: 100% 100%;
     border: solid 2px #000000;
 }

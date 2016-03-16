@@ -203,6 +203,8 @@ class MamaFailView(APIView):
         response = {'mama_id': request.REQUEST.get('mama_id')}
         return Response(response)
 
+from .models_fortune import ReferalRelationship
+
 
 class MamaInvitationRes(APIView):
     """
@@ -218,7 +220,13 @@ class MamaInvitationRes(APIView):
         user = request.user
         customer = Customer.objects.get(user=user)
         xlmm = customer.getXiaolumm()
-        referals = XiaoluMama.objects.filter(referal_from=xlmm.mobile, charge_status=XiaoluMama.CHARGED)
+        if not xlmm:
+            return Response({"num_handred": 0, "num_ten": 0,
+             'num_unit': 0})
+        #
+        # referals = XiaoluMama.objects.filter(referal_from=xlmm.mobile, charge_status=XiaoluMama.CHARGED)
+        # referal_count = referals.count()
+        referals = ReferalRelationship.objects.filter(referal_from_mama_id=xlmm.id)
         referal_count = referals.count()
 
         num_handred = referal_count/100
