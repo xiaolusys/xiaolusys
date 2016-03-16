@@ -1,6 +1,7 @@
 # coding:utf-8
 import datetime
 import json
+import re
 import time
 
 from django.contrib.auth.models import User
@@ -683,6 +684,9 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
     template_name = 'dinghuo/pending_dinghuo.html'
 
     def list(self, request, *args, **kwargs):
+        if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
+            return Response()
+
         now = datetime.datetime.now()
         items = []
 

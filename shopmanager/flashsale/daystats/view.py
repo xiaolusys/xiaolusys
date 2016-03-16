@@ -1,13 +1,20 @@
-# coding=utf-8
+# coding: utf-8
 # __author__ = 'linjie'
+import datetime
 
-from .models import DailyStat, PopularizeCost
+from django.db.models import Sum
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render_to_response
 from django.template import RequestContext
-from django.db.models import Sum
+
+from rest_framework import permissions, viewsets
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.response import Response
+
 from flashsale.xiaolumm.models import CarryLog
-import datetime
+
+from .models import DailyStat, PopularizeCost
+
 
 
 # 推广成本分类统计，包含（订单返利，代理补贴，点击补贴，…）
@@ -44,3 +51,9 @@ def popularize_Cost(request):
     date_dic = {"prev_month": prev_month, "next_month": next_month}
     return render_to_response("popularize/popularize_cost.html", {"date_dic": date_dic, 'popularizes': popularizes},
                               context_instance=RequestContext(request))
+
+
+class DailyStatsView(viewsets.GenericViewSet):
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
+    permission_classes = (permissions.IsAuthenticated,)
+    template_name = 'trades/dirty_orders2.html'
