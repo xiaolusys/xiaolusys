@@ -39,7 +39,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from renderers import *
 
-from . import serializers
+from . import forms, serializers
 
 logger = logging.getLogger('django.request')
 
@@ -2756,7 +2756,8 @@ class DirtyOrderListAPIView(APIView):
                     order.merge_trade.receiver_city,
                     order.merge_trade.receiver_district,
                     order.merge_trade.receiver_address),
-                'receiver_mobile': order.merge_trade.receiver_mobile
+                'receiver_mobile': order.merge_trade.receiver_mobile,
+                'sys_memo': order.merge_trade.sys_memo
             })
 
         trades = {}
@@ -2766,7 +2767,6 @@ class DirtyOrderListAPIView(APIView):
 
         for item in items:
             item['old_sys_status'] = trades.get(item['trade_id']) or '未知'
-
         return Response({'data': items})
 
 
@@ -2784,21 +2784,35 @@ class DirtyOrderViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     template_name = 'trades/dirty_orders2.html'
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, format='json'):
         from .models import TRADE_TYPE, SYS_TRADE_STATUS
+        pay_time_start, pay_time_end = None, None
+        form = forms.PayTimeRangeForm(request.GET)
+
+        if form.is_valid() and form.cleaned_attrs.pay_time_start and form.cleaned_attrs.pay_time_end:
+            pay_time_start = datetime.datetime.combine(form.cleaned_attrs.pay_time_start, datetime.time.min)
+            pay_time_end = datetime.datetime.combine(form.cleaned_attrs.pay_time_end, datetime.time.max)
+        if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
+            return Response({'form': form.json})
+
         trade_type_mapping = dict(TRADE_TYPE)
         trade_sys_status_mapping = dict(SYS_TRADE_STATUS)
 
-        items = []
-        now = datetime.datetime.now()
-        for order in MergeOrder.objects.select_related('merge_trade').filter(
-                merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
-                                       pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
-                merge_trade__sys_status__in=
+        orders = MergeOrder.objects.select_related('merge_trade').filter(
+            merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                   pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+            merge_trade__sys_status__in=
             [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
-                sys_status=pcfg.IN_EFFECT):
+            sys_status=pcfg.IN_EFFECT)
+
+        if pay_time_start and pay_time_end and pay_time_start <= pay_time_end:
+            orders = orders.filter(pay_time__gte=pay_time_start, pay_time__lte=pay_time_end)
+
+        items = []
+        now = datetime.datetime.now()
+        for order in orders:
             if not order.pay_time:
                 continue
             items.append({
@@ -2806,7 +2820,8 @@ class DirtyOrderViewSet(viewsets.GenericViewSet):
                 'order_sn': order.oid,
                 'trade_id': order.merge_trade.id,
                 'trade_sn': order.merge_trade.tid,
-                'order_type': trade_type_mapping.get(order.merge_trade.type) or '未知',
+                'order_type': trade_type_mapping.get(
+                    order.merge_trade.type) or '未知',
                 'product_name': order.title,
                 'product_outer_id': order.outer_id,
                 'num': order.num,
@@ -2817,10 +2832,7 @@ class DirtyOrderViewSet(viewsets.GenericViewSet):
                     'timestamp': time.mktime(order.pay_time.timetuple()),
                     'up_to_today': (now - order.pay_time).days
                 },
-                'payment_time': {
-                    'display': order.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    'timestamp': time.mktime(order.pay_time.timetuple())
-                },
+                'payment_time': order.pay_time.strftime('%Y-%m-%d %H:%M:%S'),
                 'sys_status': trade_sys_status_mapping.get(
                     order.merge_trade.sys_status) or '未知',
                 'receiver_name': order.merge_trade.receiver_name or '未知',
@@ -2829,6 +2841,7 @@ class DirtyOrderViewSet(viewsets.GenericViewSet):
                     order.merge_trade.receiver_city,
                     order.merge_trade.receiver_district,
                     order.merge_trade.receiver_address),
-                'receiver_mobile': order.merge_trade.receiver_mobile
+                'receiver_mobile': order.merge_trade.receiver_mobile,
+                'sys_memo': order.merge_trade.sys_memo
             })
         return Response({'data': items})

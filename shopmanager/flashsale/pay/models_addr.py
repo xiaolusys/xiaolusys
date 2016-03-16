@@ -83,21 +83,12 @@ class UserAddress(BaseModel):
     def __unicode__(self):
         
         return '<%s,%s>'%(self.id,self.cus_uid)
-    
-def set_only_one_default(sender, instance, *args, **kwargs):
-    """ 新建一个地址后更新只有一个默认地址
-        如果正常状态并且是默认地址，则更新所有的其他地址为非默认
-        删除状态的则检查其他的是否有默认，并且有其他地址，满足条件则将第一个置为默认
-    """
-    user = instance.cus_uid
-    normal_address = UserAddress.normal_objects.filter(cus_uid=user)
-    if instance.status == UserAddress.NORMAL and instance.default:
-        UserAddress.normal_objects.filter(cus_uid=user).exclude(id=instance.id).update(default=False)
-    else:
-        if not normal_address.filter(default=True) and normal_address.count() > 0:
-            first_address = UserAddress.normal_objects.filter(cus_uid=user)[0]
-            first_address.default = True
-            first_address.save()
 
-post_save.connect(set_only_one_default, sender=UserAddress, dispatch_uid='set_only_one')
+    def set_default_address(self):
+        """ 设置默认地址 """
+        current_address = self.__class__.objects.filter(cus_uid=self.cus_uid)  # 当前用户的地址
+        current_address.update(default=False)  # 全部更新为非默认
+        self.default = True
+        self.save()  # 保存当前的为默认地址
+        return True
 

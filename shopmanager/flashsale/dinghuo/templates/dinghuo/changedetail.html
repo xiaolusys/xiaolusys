@@ -394,8 +394,12 @@
                 <tr id="orderdetail_{{ forloop.counter }}">
                     <td><a href="/admin/items/product/?q={{ order.outer_id|slice:":9" }}" target="_blank">{{ order.outer_id }}</a></td>
                     <td><a href="/admin/items/productsku/{{order.chichu_id}}/" target="_blank">{{ order.supplier_outer_id }}</a></td>
-                    <td><a href="{{ order.product_link|default:'#' }}" target="_blank">{{ order.product_name }}</a></td>
-                    <td><img src="{{ order.pic_path }}?imageView2/0/w/60" title="{{ order.product_name }}" width="60px" height="60px" class="img-circle"></td>
+                    <td><a href="/admin/dinghuo/orderdetail/?q={{ order.outer_id }}" target="_blank">{{ order.product_name }}</a></td>
+                    <td>
+                        <a href="{{ order.product_link|default:'#' }}" target="_blank">
+                            <img src="{{ order.pic_path }}?imageView2/0/w/60" title="{{ order.product_name }}" width="60px" height="60px" class="img-circle">
+                        </a>
+                    </td>
                     <td>{{ order.product_chicun }}</td>
                     <td align="center">
                         {% if flagofstatus or flagofquestion or flag_of_sample %}
