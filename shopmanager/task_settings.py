@@ -263,6 +263,10 @@ CELERY_ROUTES = {
             'queue': 'async',
             'routing_key': 'async.task_Record_Mama_Fans',
         },#特卖商品退款数统计
+        'flashsale.kefu.tasks.task_send_message':{
+            'queue': 'async',
+            'routing_key': 'async.task_send_message',
+        },  # 缺货短信任务
 }
 
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
