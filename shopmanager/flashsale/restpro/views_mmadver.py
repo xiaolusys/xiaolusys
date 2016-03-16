@@ -1,5 +1,5 @@
 # coding=utf-8
-import json
+import json, os, settings
 from flashsale.xiaolumm.models_advertis import XlmmAdvertis, NinePicAdver
 import datetime
 from rest_framework import viewsets, permissions, authentication, renderers
@@ -61,11 +61,24 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(start_time__gte=yesetoday, start_time__lt=tomorrow)
         return queryset
 
+    def get_mama_link(self, request):
+        """
+        获取代理专属链接
+        """
+        customer = Customer.objects.get(user=request.user)
+        xlmm = customer.getXiaolumm()
+        if xlmm:
+            return os.path.join(settings.M_SITE_URL, "m/{}/".format(xlmm.id))  # 专属链接
+        else:
+            return ''
+
     def list(self, request, *args, **kwargs):
         advers = []
         now = datetime.datetime.now()
         for adver in self.get_today_queryset().order_by('-start_time'):
             if now >= adver.start_time:
+                mama_link = self.get_mama_link(request)
+                adver.description += mama_link
                 advers.append(adver)
         serializer = self.get_serializer(advers, many=True)
         return Response(serializer.data)
