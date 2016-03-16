@@ -3,37 +3,54 @@
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
+        <title>待处理订货单</title>
         <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/DataTables-1.10.11/css/dataTables.bootstrap.min.css"/>
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}DataTables/Select-1.1.2/css/select.bootstrap.min.css"/>
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}Editor-1.5.5/css/editor.bootstrap.min.css">
         <style>
-         .panel-message {
-             position: fixed;
-             width: 100%;
-             z-index: 1;
-             text-align: center;
-             top: 0px;
-             height: 30px;
+         body {font-family: SimHei;}
+         tr.odd {background-color: #e5ebf5;}
+         .delay-3 {color: red;}
+         .memo {
+             display: inline-block;
+             width: 300px;
+             white-space:nowrap;
+             overflow: hidden;
+             text-overflow: ellipsis;
          }
-         .panel-message .panel-body {
-             padding: 0;
-         }
-         .panel-body h2{
-             margin: 0;
-             padding: 0;
-             background-color: #ffd700;
-         }
-         tr.odd {background-color: #ffd700;}
+         #main-table tr[role="row"] td {padding-top: 7px; padding-bottom: 8px;}
+         #header {color: #fff;}
+         #header .panel-body {background-color: #4c525b;}
+         #header em {font-size: 180%;}
+         .stat p {text-align: center;}
+         .stat p:first-child {margin-bottom: 0; font-size: 120%;}
         </style>
     </head>
     <body>
-        <div id="m1" class="panel-message panel collapse">
-            <div class="panel-body"></div>
+        <div id="header" class="panel-message panel">
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h2>待处理订货单</h2>
+                        </div>
+                        <div class="col-md-5"></div>
+                        <div class="col-md-1 stat">
+                            <p><em id="n-delay">0</em></p>
+                            <p>三天未处理</p>
+                        </div>
+                        <div class="col-md-1 stat">
+                            <p><em id="n-total">0</em></p>
+                            <p>总计</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="container" style="width:98%">
-            <div class="row" style="margin-top:60px">
-                <table id="main-table" class="display"></table>
+            <div class="row">
+                <table id="main-table" class="display" style="width:100%"></table>
             </div>
         </div>
         <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
@@ -49,15 +66,11 @@
             <a href="{{url}}" target="_blank">{{text}}</a>
         </script>
         <script id="warning-tpl" type="text/html">
-            <span style="background-color: #ff1493">{{text}}</span>
+            <i class="glyphicon glyphicon-info-sign delay-3"></i>
+            {{text}}
         </script>
         <script id="supplier-tpl" type="text/html">
             <a href="{{url}}" target="_blank">{{text}}</a>
-        </script>
-        <script id="h2-tpl" type="text/html">
-            <h2><span style="color: #ff1493">{{n}}</span>/<span style="color: #ff1493">{{m}}</span>
-                超过3天未处理
-            </h2>
         </script>
         {% endverbatim %}
         <script>
@@ -66,7 +79,8 @@
                  language: {
                      url: '{{ STATIC_URL }}DataTables/i18n/Chinese.json'
                  },
-                 pageLength: 500,
+                 pageLength: 5000,
+                 dom: 'Bfrtip',
                  ajax: '/sale/dinghuo/pending_dinghuo',
                  select: false,
                  buttons: [],
@@ -80,18 +94,16 @@
                      {data: 'quantity', title: '数量', width: '80px'},
                      {data: 'model_count', title: '款数', width: '50px'},
                      {data: 'receiver', title: '负责人', width: '80px'},
-                     {data: 'created', title: '订货日期', width: '80px', render: function(data, type, full, meta){
+                     {data: 'created', title: '订货日期', width: '120px', render: function(data, type, full, meta){
                          if(type == 'display'){
                              if(full.up_to_today - 0 >= 3)
                                  return template('warning-tpl', {text: data});
                          }
-                         else if(type=='sort')
-                             return full.up_to_today;
                          return data;
                      }},
                      {data: 'status', title: '状态', width: '80px'},
                      {data: 'pay_status', title: '付款状态', width: '80px'},
-                     {data: 'memo', title: '备注', width: '300px'},
+                     {data: 'memo', title: '备注', width: '300px', className: 'memo'},
                      {data: 'supplier_shop', title: '供应商', width: '180px', render: function(data, type, full, meta){
                          return type == 'display' && full.supplier_name ?
                                 template('supplier-tpl', {text: data, url: full.supplier_name}) : data;
@@ -102,10 +114,10 @@
                  initComplete: function(settings, json){
                      var n = _.reduce(json.data, function(memo, el){return memo + (el.up_to_today >= 3 ? 1 : 0)}, 0);
                      if(n){
-                         $('#m1 .panel-body').html(template('h2-tpl', {n: n, m: json.data.length || 0}));
-                         $('#m1').collapse('show');
+                         $('#n-delay').html(n);
+                         $('#n-total').html(json.data ? json.data.length : 0);
                      }
-                     this.api().columns([4,5,6,7,9,10]).every(function(){
+                     this.api().columns([4,6,7,9,10]).every(function(){
                          var column = this;
                          var select = $('<select class="form-control" style="width:90px"><option value=""></option></select>')
                              .appendTo($(column.header()))
@@ -116,6 +128,29 @@
                          column.data().unique().sort().each(function(d, j){
                              select.append('<option value="'+d+'">'+d+'</option>');
                          });
+                     });
+
+                     var column = this.api().column(5);
+                     var select = $('<select class="form-control" style="text-align:center"><option value=""></option></select>')
+                             .appendTo($(column.header()))
+                             .on('change', function(){
+                                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                                 column.search( val ? '^'+val+'$' : '', true, false ).draw();
+                             });
+                     _.each( _.sortBy(_.uniq(column.data())).reverse(), function(el){
+                         select.append('<option value="'+el+'">'+el+'</option>');
+                     });
+                     $('td.memo').popover({
+                         html: true,
+                         trigger: 'hover',
+                         content: function(el){
+                             return $(this).html();
+                         }
+                     });
+                     $('i.delay-3').popover({
+                         html: true,
+                         trigger: 'hover',
+                         content: '三天未处理'
                      });
                  }
              });

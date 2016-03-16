@@ -708,7 +708,7 @@ class PendingDingHuoViewSet(viewsets.GenericViewSet):
                     'display': order_list.updated.strftime('%Y-%m-%d %H:%M:%S'),
                     'timestamp': time.mktime(order_list.updated.timetuple())
                 },
-                'memo': order_list.note
+                'memo': order_list.note.replace('\r\n', '<br>').replace('\n', '<br>')
             })
 
         order_stat_mapping = {}

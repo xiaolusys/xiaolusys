@@ -215,7 +215,6 @@ class DressAgeView(WeixinAuthMixin, APIView):
         if not self.valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
-        
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         if not mama_dress.is_finished():
             return redirect(reverse('dress_home'))

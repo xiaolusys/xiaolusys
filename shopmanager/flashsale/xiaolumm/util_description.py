@@ -18,7 +18,7 @@ def get_ordercarry_description(via_app=False,second_level=False):
         "APP粉丝佣金，永远属于亲。",
         "APP粉丝佣金，真的粉丝经济。",
         "APP粉丝佣金，感谢您的粉丝号召力。",
-        "APP粉丝佣金，粉丝就是资本。",
+        "APP粉丝佣金，粉丝就是财富。",
         "APP粉丝佣金，快让粉丝更多些吧～",
         "APP粉丝佣金，抓紧机会加粉丝！",
         "APP粉丝佣金，努力每天增加粉丝哦！"
@@ -98,3 +98,16 @@ def get_clickcarry_description():
 
 
     return random.choice(desc)
+
+def gen_activevalue_description(value_type):
+    desc = [
+        "",
+        "点击活跃值 +%d",
+        "订单活跃值 +%d",
+        "推荐小鹿妈妈活跃值 +%d",
+        "粉丝活跃值 +%d",
+        ]
+    from flashsale.xiaolumm.models_fortune import ActiveValue
+    value_num = ActiveValue.VALUE_MAP[str(value_type)]
+
+    return desc[value_type] % value_num

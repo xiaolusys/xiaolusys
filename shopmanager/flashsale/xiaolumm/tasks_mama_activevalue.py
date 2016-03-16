@@ -2,7 +2,7 @@
 
 from django.db.models import F
 from celery.task import task
-from flashsale.xiaolumm import util_description
+from flashsale.xiaolumm import util_description, util_unikey
 
 from flashsale.xiaolumm.models_fortune import ActiveValue, OrderCarry
 
@@ -19,31 +19,6 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-def gen_activevalue_unikey(value_type, mama_id, date, order_id, contributor_id):
-    if value_type == 1: # click                                                                                                                                                                 
-        return '-'.join(['active',str(mama_id),str(value_type),str(date)])
-    if value_type == 2: # order                                                                                                                                                                 
-        return '-'.join(['active',str(mama_id),str(value_type),str(date),str(order_id)])
-    if value_type == 3: # referal                                                                                                                                                               
-        return '-'.join(['active',str(mama_id),str(value_type),str(contributor_id)])
-    if value_type == 4: # fans                                                                                                                                                                  
-        return '-'.join(['active',str(mama_id),str(value_type),str(contributor_id)])
-    return ""
-
-
-def gen_activevalue_description(value_type):
-    desc = [
-        "",
-        "点击活跃值 +%d",
-        "订单活跃值 +%d",
-        "推荐小鹿妈妈活跃值 +%d",
-        "粉丝活跃值 +%d",
-        ]
-    value_num = ActiveValue.VALUE_MAP[str(value_type)]
-    print value_type, value_num, desc[value_type]
-    return desc[value_type] % value_num
-
-
 @task()
 def task_fans_update_activevalue(mama_id, fans_customer_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
@@ -53,16 +28,13 @@ def task_fans_update_activevalue(mama_id, fans_customer_id, date_field):
     contributor_id = fans_customer_id
     order_id = ""
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
-    uni_key = gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
+    uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
 
-    description = gen_activevalue_description(value_type)
+    description = util_description.gen_activevalue_description(value_type)
     active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type,
                                value_description=description,
                                uni_key=uni_key, date_field=date_field, status=status)
     active_value.save()
-
-    #activevalue_update_mamafortune.s(active_value, "incr")()
-
 
 
 @task()
@@ -80,25 +52,17 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
     order_id = order_carry.order_id
     contributor_id = order_carry.contributor_id
 
-    uni_key = gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
+    uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
     
     active_values = ActiveValue.objects.filter(uni_key=uni_key)
     if active_values.count() > 0:
         active_value = active_values[0]
         if active_value.status != order_carry.status:
-            action_key = "%d%d" % (active_value.status, order_carry.status)
-            # 1
-            
             active_value.status = order_carry.status
             if order_carry.status == 0:
                 active_value.status = 3 # canceled
                 
             active_value.save()
-            # 2
-            # update mama_fortune according to action_key
-            #if action_key in order_active_dict:
-            #    action = order_active_dict[action_key]
-            #    task_activevalue_update_mamafortune.s(active_value, action)()
         return
     
     if order_carry.status == 0:
@@ -107,7 +71,7 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
     
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
     status = order_carry.status
-    description = gen_activevalue_description(value_type)
+    description = util_description.gen_activevalue_description(value_type)
     active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type,
                                value_description=description,
                                uni_key=uni_key, date_field=date_field, status=status)
@@ -120,9 +84,9 @@ def task_referal_update_activevalue(mama_id, date_field, contributor_id):
     value_type = 3 # referal
     status = 2 # confirmed
     value_num = ActiveValue.VALUE_MAP[str(value_type)]
-    description = gen_activevalue_description(value_type)
+    description = util_description.gen_activevalue_description(value_type)
     order_id = ""
-    uni_key = gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
+    uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
     active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type, 
                                value_description=description,
                                uni_key=uni_key, date_field=date_field, status=status)
@@ -135,12 +99,12 @@ def task_visitor_increment_activevalue(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     value_type = 1 # click
 
-    uni_key = gen_activevalue_unikey(value_type, mama_id, date_field, None, None)
+    uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, None, None)
     active_values = ActiveValue.objects.filter(uni_key=uni_key)
     
     if active_values.count() <= 0:
         status = 1 # pending
-        description = gen_activevalue_description(value_type)
+        description = util_description.gen_activevalue_description(value_type)
         active_value = ActiveValue(mama_id=mama_id,value_num=1, value_type=value_type, 
                                    uni_key=uni_key, value_description=description,
                                    date_field=date_field,status=status)

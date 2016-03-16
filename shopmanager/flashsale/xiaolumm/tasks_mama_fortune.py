@@ -7,7 +7,8 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship
+from flashsale.xiaolumm.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, CarryRecord, GroupRelationship
+from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.models_fans import XlmmFans
 
 import sys, datetime
@@ -23,51 +24,58 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-#STATUS_TYPES = ((0, u'未付款'), (1, u'待确定'), (2, u'已确定'),(3, u'取消'), )
-action_dict = {
-    "01": {'carry_param':  1, 'cash_param': 0},
-    "02": {'carry_param':  1, 'cash_param': 1},
-    "03": {'carry_param':  0, 'cash_param': 0},
-    "10": {'carry_param': -1, 'cash_param': 0},
-    "12": {'carry_param':  0, 'cash_param': 1},
-    "13": {'carry_param': -1, 'cash_param': 0},
-    "20": {'carry_param': -1, 'cash_param':-1},
-    "21": {'carry_param':  0, 'cash_param':-1},
-    "23": {'carry_param': -1, 'cash_param':-1},
-    "30": {'carry_param':  0, 'cash_param': 0},
-    "31": {'carry_param':  1, 'cash_param': 0},
-    "32": {'carry_param':  1, 'cash_param': 1}
-}
+@task()
+def task_cashout_update_mamafortune(mama_id):
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    cashouts = CashOut.objects.filter(xlmm=mama_id, status=CashOut.APPROVED).values('status').annotate(total=Sum('value'))
 
+    cashout_confirmed = 0
+    for entry in cashouts:
+        if entry["status"] == CashOut.APPROVED: # confirmed
+            cashout_confirmed = entry["total"]
+    
+    fortunes = MamaFortune.objects.filter(mama_id=mama_id)
+    if fortunes.count() > 0:
+        fortune = fortunes[0]
+        if fortune.carry_cashout != cashout_confirmed:
+            fortune.carry_cashout = cashout_confirmed
+            fortune.save()
+    else:
+        fortune = MamaFortune(mama_id=mama_id,carry_cashout=cashout_confirmed)
+        fortune.save()
+    
 
-def get_action_value(action_key):
-    if action_key in action_dict:
-        return action_dict[action_key]
-    return {'carry_param': 0, 'cash_param': 0}
 
 
 @task()
-def task_increment_mamafortune_cash_and_carry(mama_id, amount, action_key):
-    """
-    动态更新小鹿妈妈的cash和carry，amount可以为负。
-    """
+def task_carryrecord_update_mamafortune(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    if amount == 0:
-        return
-
-    print 'action_key:', action_key
-    action_value = get_action_value(action_key)
-    carry_param, cash_param = action_value['carry_param'], action_value['cash_param']
-    carry_amount = amount * carry_param
-    cash_amount = amount * cash_param
-
-    mama_fortunes = MamaFortune.objects.filter(mama_id=mama_id)
-    if mama_fortunes.count() > 0:
-        mama_fortunes.update(carry_num=F('carry_num') + carry_amount, cash_num=F('cash_num') + cash_amount)
+    
+    carrys = CarryRecord.objects.filter(mama_id=mama_id).values('status').annotate(carry=Sum('carry_num'))
+    carry_pending,carry_confirmed,carry_cashout = 0,0,0
+    for entry in carrys:
+        if entry["status"] == 1: # pending
+            carry_pending = entry["carry"]
+        elif entry["status"] == 2: # confirmed
+            carry_confirmed = entry["carry"]
+    
+    fortunes = MamaFortune.objects.filter(mama_id=mama_id)
+    if fortunes.count() > 0:
+        fortune = fortunes[0]
+        flag = False
+        if fortune.carry_pending != carry_pending:
+            fortune.carry_pending   = carry_pending
+            flag = True
+        if fortune.carry_confirmed != carry_confirmed:
+            fortune.carry_confirmed = carry_confirmed
+            flag = True
+        if flag:
+            fortune.save()
     else:
-        mama_fortune = MamaFortune(mama_id=mama_id, carry_num=carry_amount, cash_num=cash_amount)
-        mama_fortune.save()
-
+        fortune = MamaFortune(mama_id=mama_id,carry_pending=carry_pending,
+                              carry_confirmed=carry_confirmed)
+        fortune.save()
+        
 
 @task()
 def task_activevalue_update_mamafortune(mama_id):
@@ -102,9 +110,45 @@ def task_update_mamafortune_invite_num(mama_id):
     
     mamas = MamaFortune.objects.filter(mama_id=mama_id)
     if mamas.count() > 0:
-        mamas.update(invite_num=invite_num)
+        mama = mamas[0]
+        if mama.invite_num != invite_num:
+            mama.invite_num=invite_num
+            mama.save()
     else:
         mama = MamaFortune(mama_id=mama_id,invite_num=invite_num)
+        mama.save()
+
+
+@task()
+def task_update_mamafortune_mama_level(mama_id):
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)    
+
+    records = ReferalRelationship.objects.filter(referal_from_mama_id=mama_id)
+    invite_num = records.count()
+
+    groups = GroupRelationship.objects.filter(leader_mama_id=mama_id)
+    group_num = groups.count()
+
+    total = invite_num + group_num
+
+    level = 0
+    if invite_num >= 15 or total >= 50:
+        level = 1
+    if total >= 200:
+        level = 2
+    if total >= 500:
+        level = 3
+    if total >= 1000:
+        level = 4
+    
+    mamas = MamaFortune.objects.filter(mama_id=mama_id)
+    if mamas.count() > 0:
+        mama = mamas[0]
+        if mama.mama_level != level:
+            mama.mama_level = level
+            mama.save()
+    else:
+        mama = MamaFortune(mama_id=mama_id,mama_level=level)
         mama.save()
 
 
