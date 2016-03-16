@@ -1,4 +1,14 @@
 body {
+    /*font-family: "Noto Sans CJK SC", "Source Han Sans CN"; *//*思源黑体7种字体粗细，在 CSS 中也可以指定：*/
+    /*font-family:"Noto Sans CJK SC Thin", "Source Han Sans CN Thin";*/
+    /*font-family:"Noto Sans CJK SC Light", "Source Han Sans CN Light";*/
+    /*font-family:"Noto Sans CJK SC DemiLight", "Source Han Sans CN DemiLight";*/
+    /*font-family:"Noto Sans CJK SC Medium", "Source Han Sans CN Medium";*/
+    font-family:"Noto Sans CJK SC Blod", "Source Han Sans CN Blod";
+    /*font-family:"Noto Sans CJK SC Black", "Source Han Sans CN Black";*/
+}
+
+body {
     height: 100%;
     display: block;
     margin: 0;
@@ -25,10 +35,10 @@ body {
 }
 
 .shop-head .shop-info {
-    width: 640px;
+    width: 100%;
     margin: 0 auto;
     height: 377px;
-    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCdKQyM0BuM0C7g_750_440.png") no-repeat;
+    /*background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/lALOCdKQyM0BuM0C7g_750_440.png") no-repeat;*/
 }
 
 .shop-head .shop-info .action-btn {
@@ -93,7 +103,7 @@ body {
 }
 
 .category-back .category-zone {
-    height: 80px;
+    height: 84px;
     width: 640px;
     margin: 0 auto;
 }
@@ -106,7 +116,8 @@ body {
     float: left;
     margin-left: 10%;
     width: 27%;
-    height: 80px;
+    height: 83%;
+    margin-top: 15px;
 }
 
 .category-back .category-zone .category-icon-zone .female-zone .female-icon {
@@ -117,10 +128,10 @@ body {
 }
 
 .category-back .category-tag {
-    height: 25px;
+    height: 40px;
     width: 640px;
     margin: 0 auto;
-    margin-top: 5px;
+    font-size: 20px;
 }
 
 .category-back .category-tag .icon-tag-girls {
@@ -141,7 +152,7 @@ body {
 
 .category-back .category-zone .category-icon-zone .female-zone .active-bar {
     position: relative;
-    top: 35%;
+    top: 56%;
     height: 5px;
     width: 40%;
     margin: 0 auto;
@@ -153,7 +164,8 @@ body {
     float: right;
     margin-right: 10%;
     width: 27%;
-    height: 100%;
+    height: 83%;
+    margin-top: 15px;
 }
 
 .category-back .category-zone .category-icon-zone .child-zone .child-icon {
@@ -165,7 +177,7 @@ body {
 
 .shop-body-back {
     background: #FFFFFF;
-    margin-top: 10px;
+    margin-top: 2px;
 }
 
 .shop-body-back .shop-body {
@@ -177,7 +189,7 @@ body {
 }
 
 .shop-body-back .shop-body .leave-time-div {
-    height: 51px;
+    height: 75px;
     margin: 0 auto;
     width: 40%;
     text-align: center;
@@ -185,22 +197,24 @@ body {
 
 .shop-body-back .shop-body .leave-time {
     position: relative;
-    top: 15%;
+    top: 25%;
     font-size: 20px;
     color: #320C08;
 }
 
 .shop-body-back .shop-body .leave-time em {
-    font-size: 30px;
+    position: relative;
+    font-size: 35px;
     font-style: normal;
     font-weight: bold;
+    top: 4%;
 }
 
 .shop-body-back .shop-body .products-div {
     position: relative;
     width: 640px;
     margin: 0 auto;
-    /*margin-top: 15px;*/
+    margin-bottom: 30px;
 }
 
 .shop-body-back .shop-body .products-div .product-info {
@@ -226,7 +240,7 @@ body {
     position: absolute;
     height: 68px;
     width: 70%;
-    bottom: 8%;
+    bottom: 12%;
     z-index: 100;
     left: 4%;
 }
@@ -243,8 +257,7 @@ body {
     position: relative;
     top: 10%;
     height: 100%;
-    font-size: 30px;
-    margin-left: 15px;
+    font-size: 22px;
     color: white;
 }
 
@@ -252,9 +265,9 @@ body {
     position: absolute;
     height: 34px;
     width: 85%;
-    bottom: 1%;
+    bottom: 4%;
     z-index: 100;
-    left: 4%;
+    left: 6%;
 }
 
 .shop-body-back .shop-body .products-div .pro-name-div .pro-name {

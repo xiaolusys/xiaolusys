@@ -1,0 +1,226 @@
+.border-show-r {
+    border: solid 1px orchid;
+}
+
+.border-show-g {
+    border: solid 1px #008000;
+}
+
+.border-show-b {
+    border: solid 1px #0000ff;
+}
+
+.show-num-0 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-0.png") no-repeat;
+}
+
+.show-num-1 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-1.png") no-repeat;
+}
+
+.show-num-2 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-2.png") no-repeat;
+}
+
+.show-num-3 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-3.png") no-repeat;
+}
+
+.show-num-4 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-4.png") no-repeat;
+}
+
+.show-num-5 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-5.png") no-repeat;
+}
+
+.show-num-6 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-6.png") no-repeat;
+}
+
+.show-num-7 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-7.png") no-repeat;
+}
+
+.show-num-8 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-8.png") no-repeat;
+}
+
+.show-num-9 {
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-9.png") no-repeat;
+}
+
+.container-fluid {
+    position: absolute;
+    padding-right: 0px;
+    padding-left: 0px;
+    height: auto;
+    min-height: 100%;
+    background: #FFDF3C;
+}
+
+.page-panel {
+    background: #FFDF3C;
+    padding-bottom: 60px;
+    margin-top: 30px;
+}
+
+.img-responsive {
+    max-width: 85%;
+    margin: 0 auto;
+    margin-top: 8%;
+}
+
+.page-panel .background-img {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    /*opacity: 0.3;*/
+}
+
+.page-panel .invitation-nums-div {
+    position: absolute;
+    top: 7.5%;
+    height: 3%;
+    width: 40%;
+    left: 21%;
+}
+
+.page-panel .invitation-nums-div .num-handred {
+    position: relative;
+    display: inline-block;
+    width: 30%;
+    height: 100%;
+}
+
+.page-panel .invitation-nums-div .num-ten {
+    position: relative;
+    display: inline-block;
+    width: 30%;
+    height: 100%;
+}
+
+.page-panel .invitation-nums-div .num-unit {
+    position: relative;
+    display: inline-block;
+    width: 30%;
+    height: 100%;
+}
+
+.page-panel .mama-level-1 {
+    position: absolute;
+    width: 18%;
+    height: 10%;
+    top: 25.5%;
+    left: 70%;
+}
+
+.page-panel .mama-level-2 {
+    position: absolute;
+    width: 18%;
+    height: 10%;
+    top: 37.5%;
+    left: 14%;
+}
+
+.page-panel .mama-level-3 {
+    position: absolute;
+    width: 18%;
+    height: 10%;
+    top: 49%;
+    left: 63%;
+}
+
+.page-panel .mama-level-4 {
+    position: absolute;
+    width: 18%;
+    height: 10%;
+    top: 61%;
+    left: 41%;
+}
+
+.page-panel .invitation-btn {
+    position: absolute;
+    width: 61%;
+    height: 7%;
+    top: 83%;
+    left: 20%;
+}
+
+.my-invitation-friends {
+    margin-top: 70px;
+    height: 50px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/my-invitation-mm-icon.png") no-repeat;
+    background-size: 100% 100%;
+}
+
+.friends-info-icon {
+    width: 100%;
+    height: 81px;
+    margin: 0 auto;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/friends-info.png") no-repeat;
+    background-size: 100% 100%;
+    /*text-align: center;*/
+    margin-bottom: 5px;
+}
+
+.friends-info-icon .detail-info {
+    position: relative;
+    margin: 0 auto;
+    width: 87%;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.friends-info-icon .detail-info .friend-head {
+    position: absolute;
+    display: inline-block;
+    float: left;
+    width: 50px;
+    height: 50px;
+    left: 10%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+    /*background: url("") no-repeat;*/
+    background-size: 100% 100%;
+    border: solid 2px #000000;
+}
+
+.friends-info-icon .detail-info .friend-desc {
+    display: inline-block;
+    width: 65%;
+    height: 75%;
+    margin-left: 3%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.friends-info-icon .detail-info .friend-desc .join-mama {
+    font-size: 13px;
+}
+
+.friends-info-icon .detail-info .friend-desc em {
+    font-style: normal;
+    color: #00b0d9;
+}
+
+.friends-info-icon .detail-info .red-packet {
+    position: absolute;
+    float: right;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    bottom: 0;
+    left: 92%;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/red-packer-30.png") no-repeat;
+    background-size: 100% 100%;
+}
