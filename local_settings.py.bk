@@ -81,8 +81,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 ########################### ONEAPM Statsd ##############################
-#STATSD_PORT = 8251
-STATSD_CLIENT = 'shopmanager.statsd.oneapm'
+STATSD_PORT = 8251
+STATSD_CLIENT = 'statsd.oneapm'
 STATSD_CELERY_SIGNALS = True
 MIDDLEWARE_CLASSES = (
         'django_statsd.middleware.GraphiteRequestTimingMiddleware',
