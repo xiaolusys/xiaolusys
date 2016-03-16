@@ -59,9 +59,12 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                     mm_linkid = xlmm.id
             shop_info = model_to_dict(shop)
             link = urlparse.urljoin(settings.M_SITE_URL, 'pages/mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
+            preview_link = urlparse.urljoin(settings.M_SITE_URL,
+                                            'pages/preview-mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = customer.thumbnail  # 提供用户头像
             shop_info['desc'] = random.choice(decs)
+            shop_info['preview_shop_link'] = preview_link  # 预览链接
         return Response({"shop_info": shop_info})
 
 

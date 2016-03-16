@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+    <title>小鹿美美</title>
+    <meta charset="utf-8">
+    <meta id="viewport" name="viewport"/>
+    <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/mmshop.js"></script>
+    <link rel="stylesheet" href="../css/mmshop.css">
+</head>
+<body>
+
+<div>
+
+    <div class="shop-head">
+        <div class="shop-info">
+
+            <div class="action-btn">
+                <div class="go-back"></div>
+                <div class="go-share"></div>
+            </div>
+
+            <!--
+            <div class="head-star-img-div border-show-1 ">
+                <img class="head-img border-show-3" src="http://7xogkj.com2.z0.glb.qiniucdn.com/Icon-76%402x.png"/>
+            </div>
+            <div class="shop-name-div border-show-2">
+                <span class="shop-name border-show-1">ｘｘｘ　的店铺</span>
+            </div>
+            -->
+        </div>
+
+    </div>
+    <div class="category-back">
+        <div class="category-zone">
+            <div class="category-icon-zone">
+                <div class="female-zone">
+                    <div class="female-icon">
+                        <!-- 注意这里的样式是 七牛切图后的图片-->
+                        <!--<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6%403x.png?imageMogr2/thumbnail/80/format/jpg/crop/x100"/>-->
+                        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6%403x.png" width="80px" height="53px"/>
+                    </div>
+                    <div class="active-bar"></div>
+                </div>
+                <div class="child-zone">
+                    <div class="child-icon">
+                        <!-- 注意这里的样式是 七牛切图后的图片-->
+                        <!--<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6Copy%403x.png?imageMogr2/thumbnail/80/format/jpg/crop/x100"/>-->
+                        <img class="" src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6Copy%403x.png" width="80px"
+                             height="53px"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="category-tag">
+            <span class="icon-tag-girls">女生GIRLS</span>
+            <span class="icon-tag-childs">萌娃KIDS</span>
+        </div>
+
+    </div>
+    <div class="shop-body-back">
+        <div class="shop-body">
+            <div class="leave-time-div">
+                <span class="leave-time">剩余时间<em>15</em>时<em>15</em>分<em>15</em>秒</span>
+            </div>
+
+
+            <!--
+
+            <div class="products-div border-show-2">
+                <a href="shangpinxq.html?id={{ id }}">
+                    <div class="product-info"></div>
+                    <img class="product-show" src="http://7xogkj.com2.z0.glb.qiniucdn.com/shop-test-image.jpg"/>
+                </a>
+
+                <div class="pro-price-div border-show-1">
+                    <span class="sale-price">￥1999.99</span>
+                    <span class="std-price"> / ￥1999.99</span>
+                </div>
+                <div class="pro-name-div border-show-3">
+                    <span class="pro-name">[小鹿美美]美美很漂亮的连衣裙</span>
+                </div>
+            </div>
+            -->
+        </div>
+    </div>
+</div>
+
+
+<script type="text/html" id="shop-head">
+
+
+    <div class="head-star-img-div">
+        <img class="head-img" src="{{ thumbnail }}"/>
+    </div>
+    <div class="shop-name-div">
+        <span class="shop-name">{{ name }}</span>
+    </div>
+</script>
+
+<!--
+<div class="product-show" style="background:url('{{ pic_path }}?imageMogr2/thumbnail/289/format/jpg/quality/90') no-repeat">
+-->
+<script type="text/html" id="item_dom">
+
+
+    <div class="products-div">
+
+        <div class="product-info"></div>
+        <img class="product-show" src="{{ pic_path }}?imageMogr2/thumbnail/600/format/jpg/quality/90/crop/x600"/>
+
+
+        <div class="pro-price-div">
+            <span class="sale-price">￥{{ product_lowest_price }}</span>
+            <span class="std-price">/￥{{ std_sale_price }}</span>
+        </div>
+        <div class="pro-name-div">
+            <span class="pro-name">{{ name }}</span>
+        </div>
+    </div>
+
+
+</script>
+
+</body>
+</html>
+
