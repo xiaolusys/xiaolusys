@@ -4,7 +4,7 @@ body {
     /*font-family:"Noto Sans CJK SC Light", "Source Han Sans CN Light";*/
     /*font-family:"Noto Sans CJK SC DemiLight", "Source Han Sans CN DemiLight";*/
     /*font-family:"Noto Sans CJK SC Medium", "Source Han Sans CN Medium";*/
-    font-family:"Noto Sans CJK SC Blod", "Source Han Sans CN Blod";
+    font-family: "Noto Sans CJK SC Blod", "Source Han Sans CN Blod";
     /*font-family:"Noto Sans CJK SC Black", "Source Han Sans CN Black";*/
 }
 
@@ -191,7 +191,7 @@ body {
 .shop-body-back .shop-body .leave-time-div {
     height: 75px;
     margin: 0 auto;
-    width: 40%;
+    width: 60%;
     text-align: center;
 }
 
@@ -243,6 +243,7 @@ body {
     bottom: 12%;
     z-index: 100;
     left: 4%;
+    text-shadow: rgb(164, 164, 169) 2px 2px 15px;
 }
 
 .shop-body-back .shop-body .products-div .pro-price-div .sale-price {
@@ -268,6 +269,7 @@ body {
     bottom: 4%;
     z-index: 100;
     left: 6%;
+    text-shadow: rgb(164, 164, 169)  2px 2px 6px;
 }
 
 .shop-body-back .shop-body .products-div .pro-name-div .pro-name {

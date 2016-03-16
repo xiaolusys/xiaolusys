@@ -8,8 +8,19 @@
     <script src="../js/common.js"></script>
     <script src="../js/mmshop.js"></script>
     <link rel="stylesheet" href="../css/mmshop.css">
+    <link rel="stylesheet" href="../css/download-banner-1.css">
 </head>
 <body>
+
+<!-- 下载横幅 -->
+<div class="download-head">
+    <div class="download-banner-div">
+        <div class="banner-image">
+            <div class="close-download" id="not_show_btn"></div>
+            <div class="download-click" id="download_app"></div>
+        </div>
+    </div>
+</div>
 
 <div>
 
@@ -39,7 +50,7 @@
                     <div class="female-icon">
                         <!-- 注意这里的样式是 七牛切图后的图片-->
                         <!--<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6%403x.png?imageMogr2/thumbnail/80/format/jpg/crop/x100"/>-->
-                        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6%403x.png?imageMogr2/thumbnail/80/format/jpg/"/>
+                        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6%403x.png" width="80px" height="53px"/>
                     </div>
                     <div class="active-bar"></div>
                 </div>
@@ -47,7 +58,7 @@
                     <div class="child-icon">
                         <!-- 注意这里的样式是 七牛切图后的图片-->
                         <!--<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6Copy%403x.png?imageMogr2/thumbnail/80/format/jpg/crop/x100"/>-->
-                        <img src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6Copy%403x.png?imageMogr2/thumbnail/80/format/jpg/crop/x100"/>
+                        <img class="" src="http://7xogkj.com2.z0.glb.qiniucdn.com/group6Copy%403x.png"  width="80px" height="53px"/>
                     </div>
                 </div>
             </div>
@@ -123,5 +134,12 @@
 </script>
 
 </body>
+<script src="../js/app_download.js"></script>
+<script>
+    $(document).ready(function () {
+        // 判断是否显示下载框
+        Judge_download()
+    });
+</script>
 </html>
 
