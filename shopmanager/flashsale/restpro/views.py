@@ -163,7 +163,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-#fang kaineng  2015-7-31
+    # fang kaineng  2015-7-31
 
     @detail_route(methods=['post'])
     def update(self, request, pk, *args, **kwargs):
@@ -206,11 +206,10 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         id_default = pk
         result = {}
         try:
-            customer = get_object_or_404(Customer,user=request.user)
-            default_addr = UserAddress.objects.get(id=id_default)
-            default_addr.default = True
-            default_addr.save()
-            result['ret'] = True
+            customer = get_object_or_404(Customer, user=request.user)
+            addr = UserAddress.normal_objects.get(cus_uid=customer.id, id=id_default)
+            res = addr.set_default_address()  # 设置默认地址
+            result['ret'] = res
         except:
             result['ret'] = False
         return Response(result)
@@ -229,7 +228,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_mobile = content.get('receiver_mobile', None)
         try:
             UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name,
-                                       receiver_state=receiver_state,default=True,
+                                       receiver_state=receiver_state, default=False,
                                        receiver_city=receiver_city, receiver_district=receiver_district,
                                        receiver_address=receiver_address, receiver_mobile=receiver_mobile)
             result['ret'] = True
@@ -312,10 +311,7 @@ class DistrictViewSet(viewsets.ModelViewSet):
     def country_list(self, request, *args, **kwargs):
         content = request.REQUEST
         city_id = content.get('id',None)
-        #print city_id.encode("utf-8"),type(int(city_id.encode("utf-8")))
-        print type(city_id),city_id
         if city_id==u'0':
-            print "等于0"
             return      Response({"result":False})
         else:
             queryset = District.objects.filter(parent_id=city_id)
