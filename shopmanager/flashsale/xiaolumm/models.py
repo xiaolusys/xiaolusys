@@ -451,7 +451,7 @@ class XiaoluMama(models.Model):
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_xiaolumama_update_mamafortune.s(instance.pk, instance.pending, instance.cash)()
+    tasks_mama_fortune.task_xiaolumama_update_mamafortune.s(instance.pk, instance.cash)()
 
 post_save.connect(xiaolumama_update_mamafortune, 
                   sender=XiaoluMama, dispatch_uid='post_save_xiaolumama_update_mamafortune')

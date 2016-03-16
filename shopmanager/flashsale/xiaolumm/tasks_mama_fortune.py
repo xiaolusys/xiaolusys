@@ -25,17 +25,16 @@ def get_cur_info():
 
 
 @task()
-def task_xiaolumama_update_mamafortune(mama_id, pending, cash):
+def task_xiaolumama_update_mamafortune(mama_id, cash):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
-        fortune.history_pending = pending
         fortune.history_confirmed = cash
         fortune.save()
     else:
-        fortune = MamaFortune(mama_id=mama_id,history_pending=pending,history_confirmed=cash)
+        fortune = MamaFortune(mama_id=mama_id,history_confirmed=cash)
         fortune.save()
         
 
