@@ -92,7 +92,7 @@
                     </div>
                     <div class="col-xs-4">
                         <p><textarea rows="3" cols="20" name="title" class="form-control">{{ title }}</textarea></p>
-                        <p>货号: <input name="supplier_sku" placeholder="请填写货号" class="form-control"></p>
+                        <p>货号: <input name="supplier_sku" placeholder="请填写货号" class="form-control" value="{{supplier_sku|default:''}}"></p>
                         <p>类别:
                             <select class="form-control input" name="sale_category">
                                 {% for cat in categorys %}

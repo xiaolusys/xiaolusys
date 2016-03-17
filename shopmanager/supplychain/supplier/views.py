@@ -407,9 +407,34 @@ class FetchAndCreateProduct(APIView):
         except:
             return ''
 
+    def getSupplierSku(self, fetch_url, soup):
+        fetch_url_components = urlparse.urlparse(fetch_url)
+        host_name = fetch_url_components.netloc
+
+        def _is_1688():
+            return '1688' in host_name.split('.')
+
+        def _is_tmall():
+            return 'tmall' in host_name.split('.')
+
+        def _is_gongxiao():
+            return 'gongxiao' in host_name.split('.')
+
+        def _get_1688():
+            sku_tag = None
+            for tag in soup.findAll('td', attrs={'class': re.compile('de-feature')}):
+                if tag.text == u'货号':
+                    sku_tag = tag.findNextSibling('td', attrs={'class': re.compile('de-value')})
+            if sku_tag:
+                return sku_tag.text.strip()
+
+        if _is_1688():
+            return _get_1688()
+        return ''
+
     def get(self, request, pk):
 
-        fetch_url = request.REQUEST.get('fetch_url', '')
+        fetch_url = request.REQUEST.get('fetch_url', '').strip()
         status = request.REQUEST.get('status', '')
         if not fetch_url or not fetch_url.startswith(('http://', 'https://')):
             raise Exception(u'请输入合法的URL')
@@ -424,6 +449,7 @@ class FetchAndCreateProduct(APIView):
             'pic_url': self.getItemPic(fetch_url, tsoup),
             'price': self.getItemPrice(tsoup),
             'fetch_url': fetch_url,
+            'supplier_sku': self.getSupplierSku(fetch_url, tsoup),
             'status': status,
             'categorys': sale_category,
             'supplier': SaleSupplierSerializer(
@@ -433,13 +459,14 @@ class FetchAndCreateProduct(APIView):
         return Response(data)
 
     def post(self, request, pk, format=None):
-
         content = request.REQUEST
         category_name = content.get('category_name', '')
 
         supplier = get_object_or_404(SaleSupplier, pk=pk)
         if not supplier.is_active():
             return Response({'code': 1, 'error_response': '供应商已被淘汰，不能添加商品'})
+
+
         sproduct, state = SaleProduct.objects.get_or_create(
             outer_id='OO%d' % time.time(),
             platform=supplier.platform)

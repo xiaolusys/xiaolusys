@@ -4,6 +4,7 @@ __author__ = 'yann'
 import datetime
 import functions
 import json
+import re
 
 from django.db import connection
 from django.forms.models import model_to_dict
@@ -15,8 +16,12 @@ from rest_framework import permissions, viewsets
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 
+from flashsale.dinghuo.models import OrderDetail, OrderList
 from flashsale.dinghuo.tasks import task_ding_huo_optimize, task_ding_huo
-
+from shopback import paramconfig as pcfg
+from shopback.items.models import Product, ProductSku
+from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
+from supplychain.supplier.models import SaleProduct
 
 class DailyDingHuoView(View):
     def parseEndDt(self, end_dt):
@@ -326,10 +331,64 @@ class AddDingHuoView(generics.ListCreateAPIView):
         return Response({'productRestult': productres, 'drafts': orderdraft.objects.all().filter(buyer_name=request.user)})
 
 
-class InstantDingHuoView(viewsets.GenericViewSet):
+class InstantDingHuoViewSet(viewsets.GenericViewSet):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (permissions.IsAuthenticated, )
     template_name = 'dinghuo/instant_dinghuo.html'
 
     def list(self, request):
-        pass
+        if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
+            return Response()
+
+        orders = MergeOrder.objects.select_related('merge_trade').filter(
+            merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
+                                   pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
+            merge_trade__sys_status__in=
+            [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
+             pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
+             pcfg.REGULAR_REMAIN_STATUS],
+            sys_status=pcfg.IN_EFFECT)
+
+        products = {}
+        for order in orders:
+            skus = products.setdefault(order.outer_id, {})
+            sku = skus.setdefault(order.outer_sku_id, {'sale_num': 0})
+            sku['sale_num'] += order.num
+
+        new_products = {}
+        for product in Product.objects.filter(outer_id__in=products.keys()):
+            new_products[product.id] = {
+                'id': product.id,
+                'name': product.name,
+                'pic_path': '%s?imageView2/0/w/120' % product.pic_path.strip(),
+                'outer_id': product.outer_id,
+                'sale_product_id': product.sale_product,
+                'skus': products[product.outer_id]
+            }
+
+        dinghuo_products = {}
+        for order_detail in OrderDetail.objects.exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]):
+            pass
+
+
+        for sku in ProductSku.objects.filter(product_id__in=new_products.keys()):
+            product = new_products.get(sku.product_id)
+            if not product:
+                continue
+            product_skus = product.get('skus') or {}
+            if sku.outer_id in product_skus:
+                product_skus[sku.outer_id].update({
+                    'id': sku.id,
+                    'properties_name': sku.properties_name,
+                    'outer_id': sku.outer_id,
+                    'quantity': sku.quantity
+                })
+
+        suppliers = {}
+        sale_product_supplier_mapping = {}
+        for sale_product in SaleProduct.objects.select_related('sale_supplier') \
+          .filter(pk__in=filter(None, map(lambda x: x['sale_product_id'], new_products.values()))):
+            sale_product_supplier_mapping[sale_product.id] = sale_product.sale_supplier.id
+            suppliers[sale_product.sale_supplier.id] = sale_product.sale_supplier.supplier_name
+
+        return Response({'data': new_products})
