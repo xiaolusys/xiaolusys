@@ -20,12 +20,6 @@
          #header em {font-size: 180%;}
          .stat p {text-align: center;}
          .stat p:first-child {margin-bottom: 0; font-size: 120%;}
-         .memo {
-             display: inline-block;
-             white-space:nowrap;
-             overflow: hidden;
-             text-overflow: ellipsis;
-         }
         </style>
     </head>
     <body>
@@ -114,7 +108,7 @@
                                 template('link-tpl', {text: data, url: '/admin/trades/mergetrade/?q='+full.trade_sn}) : data;
                      }},
                      {data: 'order_type', title: '订单类型', width: '100px'},
-                     {data: 'product_name', title: '商品名', width: '300px', render: function(data, type, full, meta){
+                     {data: 'product_name', title: '商品名', width: '200px', render: function(data, type, full, meta){
                          return type == 'display' && data ?
                                 template('link-tpl', {text: data, url: '/admin/items/product/?q='+full.product_outer_id}) : data;
                      }},
@@ -132,7 +126,7 @@
                      }},
                      {data: 'payment_time', title: '支付时间', width: '160px'},
                      {data: 'sys_status', title: '状态', width: '80px'},
-                     {data: 'sys_memo', title: '备注', width: '80px', className: 'memo'}
+                     {data: 'sys_memo', title: '备注', width: '150px'}
                  ],
                  buttons: [],
                  initComplete: function(settings, json){
@@ -164,13 +158,6 @@
                      var pay_dates = _.sortBy(_.uniq(_.map(column.data(), function(el){return el.display;}))).reverse();
                      _.each(pay_dates, function(el){
                          select.append('<option value="'+el+'">'+el+'</option>');
-                     });
-                     $('td.memo').popover({
-                         html: true,
-                         trigger: 'hover',
-                         content: function(el){
-                             return $(this).html();
-                         }
                      });
                      $('i.delay-3').popover({
                          html: true,

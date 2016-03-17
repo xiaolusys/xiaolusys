@@ -9,7 +9,8 @@ from .views import DailyDingHuoStatsView, StatsByProductIdView, DailyWorkView, P
 from django.views.decorators.csrf import csrf_exempt
 from .views_change_detail import ChangeDetailView, AutoNewOrder, change_inferior_num, ChangeDetailExportView
 from .views_data_stats import DailyStatsView, StatsProductView, StatsSupplierView, StatsDinghuoView
-from .view_daily_work import DailyDingHuoView, DailyDingHuoView2, ShowPicView, DailyDingHuoOptimizeView, SkuAPIView, AddDingHuoView
+from .view_daily_work import (DailyDingHuoView, DailyDingHuoView2, ShowPicView, DailyDingHuoOptimizeView,
+                              SkuAPIView, AddDingHuoView, InstantDingHuoViewSet)
 from .point_every_day import RecordPointView
 from .views_sale_status import EntranceView, SaleHotView, TopStockView, SaleBadView
 from .view_refund_supplier import StatisRefundSupView, change_duihuo_status, change_sum_price
@@ -20,6 +21,7 @@ import views_line_show
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'pending_dinghuo', PendingDingHuoViewSet)
+router.register(r'instant_dinghuo', InstantDingHuoViewSet, 'dinghuo')
 
 urlpatterns = [
     url(r'^searchproduct/$', views.search_product, name='searchProduct'),                       #搜索所有的商品 ajax
