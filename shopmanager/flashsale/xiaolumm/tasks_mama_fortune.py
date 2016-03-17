@@ -41,8 +41,13 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
 @task()
 def task_cashout_update_mamafortune(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    cashouts = CashOut.objects.filter(xlmm=mama_id, status=CashOut.APPROVED).values('status').annotate(total=Sum('value'))
-
+    year = MAMA_FORTUNE_HISTORY_LAST_DAY.year
+    month = MAMA_FORTUNE_HISTORY_LAST_DAY.month
+    day = MAMA_FORTUNE_HISTORY_LAST_DAY.day
+    
+    history_time = datetime.datetime(year,month,day,23,59,59)
+    cashouts = CashOut.objects.filter(xlmm=mama_id, status=CashOut.APPROVED, created__gt=history_time).values('status').annotate(total=Sum('value'))
+    
     cashout_confirmed = 0
     for entry in cashouts:
         if entry["status"] == CashOut.APPROVED: # confirmed
