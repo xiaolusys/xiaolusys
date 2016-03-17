@@ -826,7 +826,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         pay_extra_list = self.parse_entry_params(pay_extras)
         pay_extra_dict = dict([(p['pid'],p) for p in pay_extra_list if p.has_key('pid')])
         discount_fee = 0
-        for param in pay_extra_dict.keys():
+        for param in pay_extra_dict.values():
             pid = param['pid']
             if pid in PAY_EXTRAS and PAY_EXTRAS[pid].get('type') == 0:
                 discount_fee += PAY_EXTRAS[pid]['value'] * 100

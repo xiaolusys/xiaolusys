@@ -9,7 +9,7 @@ publish:
     file: Dockerfile
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
     when:
-      branch: master
+      branch: staging
 deploy:
   ssh:
     host: dev.huyi.so
@@ -25,3 +25,12 @@ deploy:
       - docker run --name=celery --volumes-from=static -d registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py celery worker --loglevel=ERROR -Q default,peroid,async
       - docker rm -f celerybeat 
       - docker run --name=celerybeat -d registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py celery beat --loglevel=ERROR
+  ssh:
+    host: dev.huyi.so
+    user: root
+    when:
+      branch: staging
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys
+      - docker rm -f gunicorn-staging
+      - docker run --name=gunicorn-staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 registry.aliyuncs.com/xiaolu-img/xiaolusys gunicorn_django -k gevent -c taobao_gunicorn_conf.py
