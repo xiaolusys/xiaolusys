@@ -1,4 +1,3 @@
-# coding:utf-8
 __author__ = 'zfz'
 import os
 
@@ -6,7 +5,7 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
-SESSION_COOKIE_AGE = 24*15*60*60             
+SESSION_COOKIE_AGE = 48*60*60             
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -40,41 +39,31 @@ ALLOWED_HOSTS = ['.huyi.so','.xiaolu.so','.xiaolumeimei.com','.xiaolumm.com','12
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '10.132.179.237:11211',
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': '55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379',
+        'OPTIONS':{
+            'DB': 1,
+            'PASSWORD': '55a32ec47c8d41f7:Huyiinc12345',
+        }
     }
 }
-    
+
+BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'
+
+import raven
+
 RAVEN_CONFIG = {
-    'dsn': 'http://53382bea24ca4a1f851f1e627a8dc0a1:0c2de1f22e884835a32d1fa396487101@sentry.huyi.so:8089/10',
-    'register_signals': True,
+    'dsn': 'http://b24693ab54e6461484b277a3668ba383:ec4163971e8a4fdc98dd0a7a90a03201@sentry.xiaolumm.com/2',
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    #'release': raven.fetch_git_sha(os.path.dirname(__file__)),
 }
+
 
 #WEB DNS
 SITE_URL = 'http://youni.huyi.so/' 
 #WAP DNS
 M_SITE_URL = 'http://m.xiaolumeimei.com'  
-
-MIDDLEWARE_CLASSES = (
-    'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-    'middleware.middleware.SecureRequiredMiddleware',
-    'middleware.middleware.DisableDRFCSRFCheck',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.RemoteUserMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
-########################### ONEAPM Statsd ##############################
-STATSD_PORT = 8251
-STATSD_CLIENT = 'shopmanager.statsd.oneapm'
-STATSD_CELERY_SIGNALS = True
-MIDDLEWARE_CLASSES = (
-        'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-        'django_statsd.middleware.GraphiteMiddleware',
-        ) + MIDDLEWARE_CLASSES
 
 ####################### TRADE HANDLERS CONFIG ########################
 TRADE_HANDLERS_PATH = (
@@ -114,7 +103,7 @@ TAOBAO_NOTIFY_URL   = 'http://stream.api.taobao.com/stream'
 SCOPE = 'item,promotion,usergrade'
 REFRESH_URL = 'https://oauth.taobao.com/token'
 
-BASE_FONT_PATH = '/root/deploy/fonts/'
+BASE_FONT_PATH = '/data/fonts/'
 FONT_PATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerif-Bold.ttf'
 ASYNC_FILE_PATH = os.path.join(PROJECT_ROOT,"site_media","asyncfile")
 
@@ -131,13 +120,12 @@ WEIXIN_API_HOST    = "https://api.weixin.qq.com"
 WEIXIN_MEDIA_HOST  = "http://file.api.weixin.qq.com"
 WEIXIN_QRCODE_HOST = "https://mp.weixin.qq.com"
 WEIXIN_AUTHORIZE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize"
-#小鹿美美特卖　公众号ID
 WEIXIN_APPID       = 'wxc2848fa1e1aa94b5'
 WEIXIN_SECRET      = 'bc41b3a535b095afc55cd40d2e808d9c'
-#小鹿美美　公众号ID
+
 WXPAY_APPID    = "wx3f91056a2928ad2d"
 WXPAY_SECRET   = "e8e1f648a5e02492e1584e5413cef158"
-#小鹿美美 手机APP 授权应用ID
+
 WXAPP_ID       = "wx25fcb32689872499"
 WXAPP_SECRET   = "3c7b4e3eb5ae4cfb132b2ac060a872ee"
 
@@ -170,21 +158,21 @@ WX_MEDIA_GET_URL = 'https://api.weixin.qq.com/cgi-bin/media/get'
 
 QINIU_ACCESS_KEY = "M7M4hlQTLlz_wa5-rGKaQ2sh8zzTrdY8JNKNtvKN"
 QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
-QINIU_PRIVATE_BUCKET = 'invoiceroom' #七牛私有空间
+QINIU_PRIVATE_BUCKET = 'invoiceroom' 
 QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
 
 LOGGER_HANDLERS = [
-    ('models','sentry'),
-    ('queryset','sentry'),
-    ('django.request','sentry,file'),
-    ('sentry.errors','sentry'),
-    ('celery.handler','sentry'),
-    ('notifyserver.handler','sentry'),
-    ('yunda.handler','sentry'),
-    ('mail.handler','sentry'),
-    ('xhtml2pdf','sentry'),
-    ('restapi.errors','sentry'),
-    ('weixin.proxy','sentry'),
+    'models',
+    'queryset',
+    'django.request',
+    'sentry.errors',
+    'celery.handler',
+    'notifyserver.handler',
+    'yunda.handler',
+    'mail.handler',
+    'xhtml2pdf',
+    'restapi.errors',
+    'weixin.proxy',
 ]
 
 LOGGER_TEMPLATE = {
@@ -192,12 +180,6 @@ LOGGER_TEMPLATE = {
     'level': 'DEBUG',
     'propagate': True,
 }
-
-def comb_logger(log_tuple,temp):
-    if isinstance(log_tuple,(list,tuple)) and len(log_tuple) == 2:
-        temp.update(handlers=log_tuple[1].split(','))
-        return log_tuple[0],temp
-    return log_tuple[0],temp
 
 LOGGING = {
     'version': 1,
@@ -207,7 +189,7 @@ LOGGING = {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(asctime)s %(message)s'
+            'format': '%(levelname)s %(message)s'
         },
     },
     'handlers': {
@@ -232,8 +214,5 @@ LOGGING = {
             'include_html': True,
         }
     },
-    'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
+    'loggers': dict([(handler,LOGGER_TEMPLATE) for handler in LOGGER_HANDLERS]),
 }
-# for disable urllib3 ssl warning
-import logging
-logging.captureWarnings(True)

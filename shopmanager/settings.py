@@ -121,7 +121,7 @@ INSTALLED_APPS = (
 
     'chartit',
     'gunicorn',
-    'raven.contrib.django',
+    'raven.contrib.django.raven_compat',
     'rest_framework',
     'djcelery',
     'djkombu',
@@ -132,6 +132,7 @@ INSTALLED_APPS = (
     'shopmanager.statsd',
     'core.ormcache',
     'core',
+    'mathfilters',
     
     'common',
     'shopback.amounts',
