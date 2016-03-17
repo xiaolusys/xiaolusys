@@ -466,10 +466,21 @@ class FetchAndCreateProduct(APIView):
         if not supplier.is_active():
             return Response({'code': 1, 'error_response': '供应商已被淘汰，不能添加商品'})
 
+        sproduct = None
+        supplier_sku = content.get('supplier_sku')
+        if supplier_sku:
+            sproducts = SaleProduct.objects.filter(sale_supplier_id=pk, supplier_sku=supplier_sku)
+            if sproducts:
+                sproduct = sproducts[0]
 
-        sproduct, state = SaleProduct.objects.get_or_create(
-            outer_id='OO%d' % time.time(),
-            platform=supplier.platform)
+        if not sproduct:
+            sproduct, state = SaleProduct.objects.get_or_create(
+                outer_id='OO%d' % time.time(),
+                platform=supplier.platform)
+            sproduct.sale_supplier = supplier
+            sproduct.status = sproduct.status or SaleProduct.SELECTED
+            sproduct.platform = SaleProduct.MANUAL
+            sproduct.contactor = request.user
 
         for k, v in content.iteritems():
             if k == 'sale_category':
@@ -477,11 +488,6 @@ class FetchAndCreateProduct(APIView):
             if k == 'sale_time' and not v:
                 continue
             hasattr(sproduct, k) and setattr(sproduct, k, v)
-
-        sproduct.sale_supplier = supplier
-        sproduct.status = sproduct.status or SaleProduct.SELECTED
-        sproduct.platform = SaleProduct.MANUAL
-        sproduct.contactor = request.user
         sproduct.save()
 
         # sale_time如果是unicode需要转换成datetime
