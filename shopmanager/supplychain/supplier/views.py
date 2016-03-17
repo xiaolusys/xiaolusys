@@ -466,11 +466,13 @@ class FetchAndCreateProduct(APIView):
         if not supplier.is_active():
             return Response({'code': 1, 'error_response': '供应商已被淘汰，不能添加商品'})
 
+        is_exists = 0
         sproduct = None
         supplier_sku = content.get('supplier_sku')
         if supplier_sku:
             sproducts = SaleProduct.objects.filter(sale_supplier_id=pk, supplier_sku=supplier_sku)
             if sproducts:
+                is_exists = 1
                 sproduct = sproducts[0]
 
         if not sproduct:
@@ -478,7 +480,6 @@ class FetchAndCreateProduct(APIView):
                 outer_id='OO%d' % time.time(),
                 platform=supplier.platform)
             sproduct.sale_supplier = supplier
-            sproduct.status = sproduct.status or SaleProduct.SELECTED
             sproduct.platform = SaleProduct.MANUAL
             sproduct.contactor = request.user
 
@@ -488,6 +489,7 @@ class FetchAndCreateProduct(APIView):
             if k == 'sale_time' and not v:
                 continue
             hasattr(sproduct, k) and setattr(sproduct, k, v)
+        sproduct.status = sproduct.status or SaleProduct.SELECTED
         sproduct.save()
 
         # sale_time如果是unicode需要转换成datetime
@@ -497,7 +499,7 @@ class FetchAndCreateProduct(APIView):
 
         data = {'record':
                 SaleProductSerializer(sproduct,
-                                      context={'request': request}).data}
+                                      context={'request': request}).data, 'is_exists': is_exists}
         log_action(request.user.id, sproduct, ADDITION, u'创建品牌商品')
 
         return Response(data)
