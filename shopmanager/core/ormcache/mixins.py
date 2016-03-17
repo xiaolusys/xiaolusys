@@ -7,8 +7,7 @@ class CachedManagerMixin(object):
 
     @cached_property
     def __cache_enabled(self):
-        return False
-        #return getattr(self.model, "cache_enabled", False)
+        return getattr(self.model, "cache_enabled", False)
     
     def __require_cache(func):
         def wrapper(self, *args, **kwargs):
