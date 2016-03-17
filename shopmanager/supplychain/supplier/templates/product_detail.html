@@ -56,6 +56,10 @@
                 </div>
                 <script>
                  $(function(){
+                     var is_exists = {{is_exists}};
+                     if(is_exists)
+                         window.location.reload();
+
                      $('#id-sale-time-{{ record.id }}').datepicker({dateFormat: "yy-mm-dd 00:00:00"});
                      $('.fetched input[id|="id-buy-price"]').change(function(){
                          var v = $(this).val();

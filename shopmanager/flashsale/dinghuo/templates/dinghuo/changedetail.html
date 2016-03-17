@@ -455,7 +455,8 @@
                 <td width="100px"><input id="total_amount_num" type="text" value="0" readonly/></td>
                 <td width="100px"><input id="total_arrival_num" type="text" value="0" readonly/></td>
                 <td width="100px"><input id="total_inferior_num" type="text" value="0" readonly/></td>
-                <td colspan="2"></td>
+                <td width="100px"><input id="total_wait_post_num" type="text" value="0" readonly/></td>
+                <td colspan="1"></td>
             </tr>
             </tfoot>
         </table>
@@ -524,11 +525,13 @@
             var total_amount_num = 0;
             var total_arrival_num = 0;
             var total_inferior_num = 0;
+            var total_wait_post_num = 0;
 
             var quantity_num = 0;
             var amount_num = 0;
             var arrival_num = 0;
             var inferior_num = 0;
+            var wait_post_num = 0;
 
 
             var rows = $("#orderdetailtable > tbody > tr");
@@ -542,6 +545,7 @@
                 amount_num = row.cells[7].innerText;
                 arrival_num = row.cells[8].innerText;
                 inferior_num = row.cells[9].innerText;
+                wait_post_num = row.cells[10].innerText;
 
 
                 if (parseInt(quantity_num)) {
@@ -557,11 +561,15 @@
                 if (parseInt(inferior_num)) {
                     total_inferior_num += parseInt(inferior_num);
                 }
+                if(parseInt(wait_post_num)) {
+                    total_wait_post_num += parseInt(wait_post_num);
+                }
             }
             $('#total_quantity_num').val(total_quantity_num.toString());
             $('#total_amount_num').val(total_amount_num.toFixed(2).toString());
             $('#total_arrival_num').val(total_arrival_num.toString());
             $('#total_inferior_num').val(total_inferior_num.toString());
+            $('#total_wait_post_num').val(total_wait_post_num.toString());
         }
         $(function () {
             Calc_stats_data();
