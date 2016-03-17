@@ -48,6 +48,7 @@ CACHES = {
         }
     }
 }
+ORMCACHE_ENABLE = False
 
 BROKER_URL = 'redis://:55a32ec47c8d41f7:Huyiinc12345@55a32ec47c8d41f7.m.cnhza.kvstore.aliyuncs.com:6379/2'
 

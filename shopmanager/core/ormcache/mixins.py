@@ -1,14 +1,18 @@
+from django.conf import settings
 from django.db.models.signals import class_prepared, post_delete, post_save
 from django.utils.functional import cached_property
 
 from .queryset import CachedQuerySet
 
+SETTING_CACHE_ENABLE_KEYNAME = 'ORMCACHE_ENABLE'
+
 class CachedManagerMixin(object):
 
     @cached_property
     def __cache_enabled(self):
+        if hasattr(settings,SETTING_CACHE_ENABLE_KEYNAME) and getattr(settings,SETTING_CACHE_ENABLE_KEYNAME):
+            return getattr(self.model, "cache_enabled", False)
         return False
-        return getattr(self.model, "cache_enabled", False)
     
     def __require_cache(func):
         def wrapper(self, *args, **kwargs):
