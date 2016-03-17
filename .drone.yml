@@ -22,4 +22,6 @@ deploy:
       - docker rm -f gunicorn 
       - docker run --name=gunicorn -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 registry.aliyuncs.com/xiaolu-img/xiaolusys gunicorn_django -k gevent -c taobao_gunicorn_conf.py
       - docker rm -f celery 
-      - docker run --name=celery -d registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py celery worker --loglevel=ERROR -Q default,peroid,async
+      - docker run --name=celery --volumes-from=static -d registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py celery worker --loglevel=ERROR -Q default,peroid,async
+      - docker rm -f celerybeat 
+      - docker run --name=celerybeat -d registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py celery beat --loglevel=ERROR

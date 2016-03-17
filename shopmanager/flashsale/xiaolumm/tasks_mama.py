@@ -87,7 +87,8 @@ def task_update_second_level_ordercarry(referal_relationship_pk, order_carry_pk)
     
     record = OrderCarry(mama_id=mama_id, order_id=order_id, order_value=order_value,
                         carry_num=carry_num, carry_type=carry_type, sku_name=sku_name,
-                        sku_img=sku_img, contributor_nick=contributor_nick,
+                        carry_description=carry_description,sku_img=sku_img,
+                         contributor_nick=contributor_nick,
                         contributor_img=contributor_img, contributor_id=contributor_id,
                         agency_level=agency_level, carry_plan_name=carry_plan_name,
                         date_field=date_field, uni_key=uni_key, status=status)
@@ -197,7 +198,7 @@ def task_update_ordercarry(mama_id, order_pk, customer_pk, carry_amount, agency_
             order_carry.status = status
             order_carry.save()
         return
-
+    
     try:
         order_value = order.payment * 100
         carry_num = carry_amount
@@ -225,8 +226,7 @@ def task_update_ordercarry(mama_id, order_pk, customer_pk, carry_amount, agency_
                                  date_field=date_field, uni_key=uni_key, status=status)
         order_carry.save()
     except Exception, e:
-        print Exception, ":", e
-        print "severe error +++"
+        logger.error(e.message, exc_info=True)
 
 
 
