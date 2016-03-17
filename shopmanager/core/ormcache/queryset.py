@@ -67,7 +67,10 @@ class CachedQuerySet(QuerySet):
             return super(CachedQuerySet, self).get(*args, **orig_kwargs)
         key = self.cache_key(pk)
         # Retrieve (or set) the item in the cache
-        item = cache.get(key)
+        try:
+            item = cache.get(key)
+        except:
+            return super(CachedQuerySet, self).get(*args, **orig_kwargs)
         if item is None:
             cache_missed.send(sender=self.model)
             item = super(CachedQuerySet, self).get(*args, **orig_kwargs)
