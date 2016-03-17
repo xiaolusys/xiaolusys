@@ -52,11 +52,16 @@ class CustomerSerializer(serializers.HyperlinkedModelSerializer):
     has_usable_password = serializers.BooleanField(source='user.has_usable_password', read_only=True)
     is_attention_public = serializers.IntegerField(source='is_attention_wx_public', read_only=True)
 
+    coupon_num = serializers.IntegerField(source='get_coupon_num', read_only=True)
+    waitpay_num = serializers.IntegerField(source='get_waitpay_num', read_only=True)
+    waitgoods_num = serializers.IntegerField(source='get_waitgoods_num', read_only=True)
+    refunds_num = serializers.IntegerField(source='get_refunds_num', read_only=True)
+
     class Meta:
         model = Customer
         fields = ('id', 'url', 'user_id', 'username', 'nick', 'mobile', 'email','phone',
                   'thumbnail','status', 'created', 'modified', 'xiaolumm', 'has_usable_password',
-                  'user_budget', 'is_attention_public')
+                  'user_budget', 'is_attention_public', 'coupon_num', 'waitpay_num', 'waitgoods_num', 'refunds_num')
 
 
 #####################################################################################
