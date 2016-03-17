@@ -324,7 +324,7 @@ def match_data(from_date, end_date, visitors, orders):
             j += 1
             
         entry = {"date_field":from_date, "visitor_num":visitor_num, 
-                 "order_num": order_num, "carry":carry}
+                 "order_num": order_num, "carry":float('%.2f' % (carry * 0.01))}
         data.append(entry)
         from_date += datetime.timedelta(1)
     return data
