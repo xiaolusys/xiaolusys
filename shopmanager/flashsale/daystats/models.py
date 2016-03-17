@@ -117,3 +117,19 @@ class PopularizeCost(models.Model):
         app_label = 'xiaolumm'
         verbose_name = u'每日推广支出'
         verbose_name_plural = u'每日推广支出列表'
+
+from core.fields import JSONCharMyField
+from core.models import BaseModel
+
+class DaystatCalcResult(BaseModel):
+    
+    calc_key = models.CharField(max_length=128,db_index=True, verbose_name=u"计算结果ID")
+    
+    calc_result = JSONCharMyField(max_length=102400,default={},blank=False,verbose_name=u"计算结果ID")
+    
+    class Meta:
+        db_table = 'flashsale_daystat_result_cache'
+        app_label = 'xiaolumm'
+        verbose_name = u'小鹿妈妈／数据统计暂存结果'
+        verbose_name_plural = u'小鹿妈妈／数据统计暂存结果'
+    
