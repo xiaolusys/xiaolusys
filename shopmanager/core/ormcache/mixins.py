@@ -1,27 +1,35 @@
+from django.conf import settings
 from django.db.models.signals import class_prepared, post_delete, post_save
 from django.utils.functional import cached_property
 
 from .queryset import CachedQuerySet
 
+SETTING_CACHE_ENABLE_KEYNAME = 'ORMCACHE_ENABLE'
+
 class CachedManagerMixin(object):
 
     @cached_property
     def __cache_enabled(self):
+        if hasattr(settings,SETTING_CACHE_ENABLE_KEYNAME) and getattr(settings,SETTING_CACHE_ENABLE_KEYNAME):
+            return getattr(self.model, "cache_enabled", False)
         return False
-        #return getattr(self.model, "cache_enabled", False)
     
     def __require_cache(func):
         def wrapper(self, *args, **kwargs):
-            if not self.__cache_enabled:
-                error = "Caching is not enabled on {}".format(str(type(self)))
-                raise RuntimeError(error)
+#             if not self.__cache_enabled:
+#                 error = "Caching is not enabled on {}".format(str(type(self)))
+#                 raise RuntimeError(error)
             return func(self, *args, **kwargs)
         return wrapper
 
     @__require_cache
     def from_ids(self, ids, lookup='pk__in', **kwargs):
-        queryset = self.get_queryset()
-        return queryset.from_ids(ids, lookup=lookup, **kwargs)
+        if self.__cache_enabled:
+            queryset = self.get_queryset()
+            return queryset.from_ids(ids, lookup=lookup, **kwargs)
+        else:
+            kwargs.update({lookup:ids})
+            return self.get_queryset().filter(**kwargs)
 
     @__require_cache
     def invalidate(self, *args, **kwargs):

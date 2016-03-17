@@ -34,7 +34,7 @@
                     <div class="row" style="margin-top: 20px">
                         <div class="col-lg-3">
                             <div><h5>{{ product.name }}</h5><img class="img-responsive" src="{{ product.pic_path }}"
-                                                                 width="80px"></div>
+                                                                 width="80px"><br>{{product.supplier_sku}}</div>
                         </div>
                         <div class="col-lg-9">
                             <table class="table table-striped table-bordered">
@@ -47,7 +47,7 @@
                                     <tr>
                                         <td>
                                             <div>
-                                                <label>{{ guige.name }}</label>
+                                                <label>{{ guige.properties_name }}</label>
                                             </div>
                                         </td>
                                         <td>

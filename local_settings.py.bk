@@ -57,7 +57,8 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     }
 }
-    
+ORMCACHE_ENABLE = True
+
 RAVEN_CONFIG = {
     'dsn': 'http://ada7dc70824c43fd8ba430db3827cd62:283aaec97585411ca9e66bb8bb1a9c63@sentry.huyi.so:8089/3',
     'register_signals': True,

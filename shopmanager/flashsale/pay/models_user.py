@@ -192,6 +192,32 @@ class Customer(PayBaseModel):
         except WeixinUnionID.DoesNotExist:
             return 0
 
+    def get_coupon_num(self):
+        """ 当前用户的优惠券数量 """
+        from flashsale.pay.models_coupon_new import UserCoupon
+
+        return UserCoupon.objects.filter(customer=self.pk, status=UserCoupon.UNUSED).count()  # 未使用优惠券数量
+
+    def get_waitpay_num(self):
+        """ 当前用户的待支付订单数量 """
+        from flashsale.pay.models import SaleTrade
+
+        return SaleTrade.objects.filter(buyer_id=self.pk, status=SaleTrade.WAIT_BUYER_PAY).count()
+
+    def get_waitgoods_num(self):
+        """ 当前用户的待收货数量 """
+        from flashsale.pay.models import SaleTrade
+
+        return SaleTrade.objects.filter(buyer_id=self.pk, status__in=(SaleTrade.WAIT_SELLER_SEND_GOODS,
+                                                                      SaleTrade.WAIT_BUYER_CONFIRM_GOODS)).count()
+
+    def get_refunds_num(self):
+        """ 当前用户的退换货数量 """
+        from flashsale.pay.models import SaleRefund
+        return SaleRefund.objects.filter(buyer_id=self.pk).exclude(status__in=(SaleRefund.REFUND_CLOSED,
+                                                                               SaleRefund.REFUND_SUCCESS,
+                                                                               SaleRefund.NO_REFUND)).count()
+
 
 from django.db.models.signals import post_save
 
