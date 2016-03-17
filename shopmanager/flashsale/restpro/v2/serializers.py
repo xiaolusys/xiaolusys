@@ -18,11 +18,12 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
 
 class CarryRecordSerializer(serializers.ModelSerializer):
     carry_value = serializers.FloatField(source='carry_num_display', read_only=True)
-
+    carry_num = serializers.FloatField(source='carry_num_display', read_only=True)
+    
     class Meta:
         model = CarryRecord
         extra_kwargs = {'today_carry': {'read_only': True}}
-        fields = ('mama_id', 'carry_value', 'carry_type', 'carry_type_name',"carry_description",
+        fields = ('mama_id', 'carry_value', 'carry_num', 'carry_type', 'carry_type_name',"carry_description",
                   'status', 'status_display','today_carry', 'date_field', 
                   'modified', 'created')
 
@@ -30,11 +31,12 @@ class CarryRecordSerializer(serializers.ModelSerializer):
 class OrderCarrySerializer(serializers.ModelSerializer):
     order_value = serializers.FloatField(source='order_value_display', read_only=True)
     carry_num = serializers.FloatField(source='carry_num_display', read_only=True)
+    carry_value = serializers.FloatField(source='carry_num_display', read_only=True)
     
     class Meta:
         model = OrderCarry
         extra_kwargs = {'today_carry': {'read_only': True}}
-        fields = ('mama_id', 'order_id', 'order_value', 'carry_num', 'carry_type', 
+        fields = ('mama_id', 'order_id', 'order_value', 'carry_value', 'carry_num', 'carry_type', 
                   'carry_type_name','sku_name', 'sku_img', 'contributor_nick', "carry_description",
                   'contributor_img','contributor_id', 'agency_level', 'carry_plan_name',
                   'date_field', 'status','status_display', 'modified', 'created', 'today_carry',)
@@ -42,12 +44,13 @@ class OrderCarrySerializer(serializers.ModelSerializer):
 
 class AwardCarrySerializer(serializers.ModelSerializer):
     carry_num = serializers.FloatField(source='carry_num_display', read_only=True)
+    carry_value = serializers.FloatField(source='carry_num_display', read_only=True)
     carry_type_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = AwardCarry
         extra_kwargs = {'today_carry': {'read_only': True}}
-        fields = ('mama_id', 'carry_num', 'carry_type', 'carry_type_name', 'contributor_nick', 
+        fields = ('mama_id', 'carry_value', 'carry_num',  'carry_type', 'carry_type_name', 'contributor_nick', 
                   "carry_description",'contributor_img','contributor_mama_id', 'carry_plan_name', 
                   'status','status_display', 'today_carry', 'modified', 'created')
 
@@ -56,13 +59,15 @@ class ClickCarrySerializer(serializers.ModelSerializer):
     init_click_price = serializers.FloatField(source='init_click_price_display', read_only=True)
     confirmed_click_price = serializers.FloatField(source='confirmed_click_price_display', read_only=True)
     total_value = serializers.FloatField(source='total_value_display', read_only=True)
+    carry_value = serializers.FloatField(source='total_value_display', read_only=True)
+    carry_num = serializers.FloatField(source='total_value_display', read_only=True)
 
     class Meta:
         model = ClickCarry
         extra_kwargs = {'today_carry': {'read_only': True}}
         fields = ('mama_id', 'click_num', 'init_order_num', 'init_click_price',
                   'init_click_limit', 'confirmed_order_num','confirmed_click_price',
-                  'confirmed_click_limit', 'total_value',"carry_description",
+                  'confirmed_click_limit', 'total_value','carry_value', 'carry_num', 'carry_description',
                   'carry_plan_name','date_field', 'uni_key', 'status','status_display', 
                   'today_carry','modified', 'created')
 
