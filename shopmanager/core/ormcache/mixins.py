@@ -7,6 +7,7 @@ class CachedManagerMixin(object):
 
     @cached_property
     def __cache_enabled(self):
+        return False
         return getattr(self.model, "cache_enabled", False)
     
     def __require_cache(func):
@@ -19,8 +20,11 @@ class CachedManagerMixin(object):
 
     @__require_cache
     def from_ids(self, ids, lookup='pk__in', **kwargs):
-        queryset = self.get_queryset()
-        return queryset.from_ids(ids, lookup=lookup, **kwargs)
+        if self.__cache_enabled:
+            queryset = self.get_queryset()
+            return queryset.from_ids(ids, lookup=lookup, **kwargs)
+        else:
+            return self.get_queryset().filter(**{lookup:ids})
 
     @__require_cache
     def invalidate(self, *args, **kwargs):
