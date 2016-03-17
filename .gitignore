@@ -30,3 +30,5 @@ nosetests.xml
 .project
 .pydevproject
 *~
+local_settings.py
+.idea/
