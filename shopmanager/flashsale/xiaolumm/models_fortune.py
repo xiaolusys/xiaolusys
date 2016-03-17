@@ -38,7 +38,7 @@ def get_choice_name(choices, val):
 
 
 # The time to switch to xiaolumama v2.0
-MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016,03,16)
+MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016,03,23)
 
 
 class MamaFortune(BaseModel):
