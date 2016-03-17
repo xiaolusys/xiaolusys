@@ -12,9 +12,9 @@ class CachedManagerMixin(object):
     
     def __require_cache(func):
         def wrapper(self, *args, **kwargs):
-            if not self.__cache_enabled:
-                error = "Caching is not enabled on {}".format(str(type(self)))
-                raise RuntimeError(error)
+#             if not self.__cache_enabled:
+#                 error = "Caching is not enabled on {}".format(str(type(self)))
+#                 raise RuntimeError(error)
             return func(self, *args, **kwargs)
         return wrapper
 
@@ -24,7 +24,8 @@ class CachedManagerMixin(object):
             queryset = self.get_queryset()
             return queryset.from_ids(ids, lookup=lookup, **kwargs)
         else:
-            return self.get_queryset().filter(**{lookup:ids})
+            kwargs.update({lookup:ids})
+            return self.get_queryset().filter(**kwargs)
 
     @__require_cache
     def invalidate(self, *args, **kwargs):

@@ -124,19 +124,19 @@ class CachedQuerySet(QuerySet):
         """
         key = self.cache_key(pk)
         cache_invalidated.send(sender=self.model)
-        if recache is True:
-            try:
-                entry = super(CachedQuerySet, self).get(pk=pk)
-            except (self.model.DoesNotExist,
-                    self.model.MultipleObjectsReturned):
-                logger.error(
-                    'Error retrieving single entry from database',
-                    exc_info=True,
-                    extra={'data': {'model': self.model, 'pk': pk}})
-            else:
-                cache.set(key, entry, self.__CACHE_FOREVER)
-        else:
-            cache.delete(key)
+#         if recache is True:
+#             try:
+#                 entry = super(CachedQuerySet, self).get(pk=pk)
+#             except (self.model.DoesNotExist,
+#                     self.model.MultipleObjectsReturned):
+#                 logger.error(
+#                     'Error retrieving single entry from database',
+#                     exc_info=True,
+#                     extra={'data': {'model': self.model, 'pk': pk}})
+#             else:
+#                 cache.set(key, entry, self.__CACHE_FOREVER)
+#         else:
+        cache.delete(key)
             
             
             
