@@ -692,9 +692,9 @@ class ScheduleDetailAPIView(APIView):
                             pk=product.model_id)
                         sale_product['name'] = model_product.name
                         if not model_product.is_single_spec():
-                            sale_product['preview_url'] = '/static/wap/tongkuan.html?id=%d' % model_product.id
+                            sale_product['preview_url'] = 'http://m.xiaolumm.com/static/wap/tongkuan.html?id=%d' % model_product.id
                         else:
-                            sale_product['preview_url'] = '/static/wap/pages/shangpinxq.html?id=%d' % product.id
+                            sale_product['preview_url'] = 'http://m.xiaolumm.com/static/wap/pages/shangpinxq.html?id=%d' % product.id
                     except:
                         pass
 
