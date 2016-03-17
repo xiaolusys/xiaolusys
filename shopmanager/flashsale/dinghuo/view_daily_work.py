@@ -328,6 +328,13 @@ class AddDingHuoView(generics.ListCreateAPIView):
                 sku_dict['wait_post_num'] = functions2view.get_lack_num_by_product(product, sku)
                 product_dict.setdefault('prod_skus', []).append(sku_dict)
             productres.append(product_dict)
+
+        saleproduct_mapping = {}
+        for saleproduct in SaleProduct.objects.filter(pk__in=map(lambda x: x['sale_product'], productres)):
+            saleproduct_mapping[saleproduct.id] = saleproduct.supplier_sku or ''
+        for item in productres:
+            item['supplier_sku'] = saleproduct_mapping.get(item['sale_product']) or ''
+
         return Response({'productRestult': productres, 'drafts': orderdraft.objects.all().filter(buyer_name=request.user)})
 
 
