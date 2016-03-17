@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, CarryRecord, GroupRelationship
+from flashsale.xiaolumm.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, CarryRecord, GroupRelationship, MAMA_FORTUNE_HISTORY_LAST_DAY
 from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.models_fans import XlmmFans
 
@@ -23,6 +23,20 @@ def get_cur_info():
     #return (f.f_code.co_name, f.f_lineno)
     return f.f_code.co_name
 
+
+@task()
+def task_xiaolumama_update_mamafortune(mama_id, cash):
+    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    
+    fortunes = MamaFortune.objects.filter(mama_id=mama_id)
+    if fortunes.count() > 0:
+        fortune = fortunes[0]
+        fortune.history_confirmed = cash
+        fortune.save()
+    else:
+        fortune = MamaFortune(mama_id=mama_id,history_confirmed=cash)
+        fortune.save()
+        
 
 @task()
 def task_cashout_update_mamafortune(mama_id):
@@ -51,7 +65,7 @@ def task_cashout_update_mamafortune(mama_id):
 def task_carryrecord_update_mamafortune(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     
-    carrys = CarryRecord.objects.filter(mama_id=mama_id).values('status').annotate(carry=Sum('carry_num'))
+    carrys = CarryRecord.objects.filter(mama_id=mama_id, date_field__gt=MAMA_FORTUNE_HISTORY_LAST_DAY).values('status').annotate(carry=Sum('carry_num'))
     carry_pending,carry_confirmed,carry_cashout = 0,0,0
     for entry in carrys:
         if entry["status"] == 1: # pending

@@ -355,7 +355,9 @@ from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
 
 
 class MamaFortuneAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'mama_name')
+    list_display = ('mama_id', 'mama_name', 'mama_level', 'fans_num', 'invite_num', 
+                    'order_num', 'carry_pending', 'carry_confirmed', 'cash_num_display', 
+                    'carry_num_display', 'modified', 'created')
     search_fields = ['mama_id', 'mama_name']
 
 admin.site.register(MamaFortune, MamaFortuneAdmin)
@@ -368,7 +370,9 @@ admin.site.register(CarryRecord, CarryRecordAdmin)
 class OrderCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'order_id', 'order_value', 'carry_num', 'carry_type', 
                     'sku_name', 'sku_img', 'contributor_nick', 'contributor_img',
-                    'contributor_id', 'status')
+                    'contributor_id', 'status', 'modified', 'created')
+    list_filter = ('status', )
+    search_fields = ('mama_id',)
 admin.site.register(OrderCarry, OrderCarryAdmin)
 
 

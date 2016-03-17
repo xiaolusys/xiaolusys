@@ -34,7 +34,10 @@ class KefuRecordView(generics.ListCreateAPIView):
 from shopback.trades.models import MergeTrade, MergeOrder
 from shopback.items.models import Product
 from .tasks import task_send_message
-SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您买的{0}{1}码 因销售火爆断货了。由于我们是按照下单的先后顺序发货的，到您这里很不巧缺货了。要麻烦亲申请一下退款我们会及时处理。给您带来不便非常抱歉！么么哒～"
+from shopapp.smsmgr.models import SMSActivity, SMS_NOTIFY_GOODS_LACK
+SEND_TEMPLATE = "您好，我是小鹿美美的客服Amy。您订购{0}{1}码 因订购人数众多。由于我们是按照下单的先后顺序发货的，到您这里很不巧缺货了。要麻烦亲申请一下退款我们会及时处理。给您带来不便非常抱歉！么么哒～"
+
+
 class SendMessageView(generics.ListCreateAPIView):
     """
         客服发送短信
@@ -51,6 +54,14 @@ class SendMessageView(generics.ListCreateAPIView):
             product = Product.objects.get(outer_id=m_order.outer_id)
             product_name = product.name
             content = SEND_TEMPLATE.format(product_name, m_order.sku_properties_name)
+
+            # 根据后台短信模板设置
+            sms_tpls = SMSActivity.objects.filter(sms_type=SMS_NOTIFY_GOODS_LACK, status=True)
+            if sms_tpls.exists():  # 如果有短信模板
+                sms_tpl = sms_tpls[0]
+                tpl = sms_tpl.text_tmpl or SEND_TEMPLATE
+                content = tpl.format(product_name, m_order.sku_properties_name)
+
             mobile = m_trade.receiver_mobile
             return Response({"content": content, "mobile": mobile, "trade_id": trade_id, "order_id": order_id})
         except:

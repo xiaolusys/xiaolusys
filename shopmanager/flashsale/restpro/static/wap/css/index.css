@@ -135,35 +135,35 @@ nav {
 
 /*下载横幅*/
 
-.download-banner-div {
-    position: relative;
-    width: 640px;
-    height: 99px;
-    left: 50%;
-    margin-left: -320px;
-}
-.download_hidden{
-    display: none;
-}
+/*.download-banner-div {*/
+    /*position: relative;*/
+    /*width: 640px;*/
+    /*height: 99px;*/
+    /*left: 50%;*/
+    /*margin-left: -320px;*/
+/*}*/
+/*.download_hidden{*/
+    /*display: none;*/
+/*}*/
 
-.download-banner-div .banner-image {
-    height: 100%;
-    width: 100%;
-    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/top-download-banner.png") no-repeat;
-    background-size:100% 100%;
-}
+/*.download-banner-div .banner-image {*/
+    /*height: 100%;*/
+    /*width: 100%;*/
+    /*background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/top-download-banner.png") no-repeat;*/
+    /*background-size:100% 100%;*/
+/*}*/
 
-.download-banner-div .banner-image .close-download {
-    float: left;
-    height: 100%;
-    width: 11%;
-}
+/*.download-banner-div .banner-image .close-download {*/
+    /*float: left;*/
+    /*height: 100%;*/
+    /*width: 11%;*/
+/*}*/
 
-.download-banner-div .banner-image .download-click{
-    float: right;
-    height: 100%;
-    width: 30%;
-}
+/*.download-banner-div .banner-image .download-click{*/
+    /*float: right;*/
+    /*height: 100%;*/
+    /*width: 30%;*/
+/*}*/
 
 
 

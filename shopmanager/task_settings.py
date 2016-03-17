@@ -80,6 +80,10 @@ ACTIVE_VALUE_ROUTES = {
 }
 
 MAMA_FORTUNE_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama_fortune.task_xiaolumama_update_mamafortune': {
+            'queue': 'mamafortune',
+            'routing_key': 'mamafortune.task_xiaolumama_update_mamafortune',
+        },
         'flashsale.xiaolumm.tasks_mama_fortune.task_cashout_update_mamafortune': {
             'queue': 'mamafortune',
             'routing_key': 'mamafortune.task_cashout_update_mamafortune',
@@ -263,6 +267,10 @@ CELERY_ROUTES = {
             'queue': 'async',
             'routing_key': 'async.task_Record_Mama_Fans',
         },#特卖商品退款数统计
+        'flashsale.kefu.tasks.task_send_message':{
+            'queue': 'async',
+            'routing_key': 'async.task_send_message',
+        },  # 缺货短信任务
 }
 
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
