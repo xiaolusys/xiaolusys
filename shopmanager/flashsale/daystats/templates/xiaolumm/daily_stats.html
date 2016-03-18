@@ -109,8 +109,6 @@
         <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
         <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
         <script>
-         var INTERVAL = 60000;
-
          function reload(statsType, targetId){
              $.ajax({
                  url: '/sale/daystats/daily_stats',
@@ -132,14 +130,14 @@
                              elTotal.animate({fontSize: '-=6px'}, 500);
                          });
                      }
-                     _.delay(reload, INTERVAL, statsType, targetId);
+                     _.delay(reload, 30000, statsType, targetId);
                  }
              })
          }
          $(function(){
-             _.delay(reload, INTERVAL, 1, '#order');
-             _.delay(reload, INTERVAL, 2, '#refund');
-             _.delay(reload, INTERVAL, 3, '#dinghuo');
+             _.delay(reload, 10, 1, '#order');
+             _.delay(reload, 10, 2, '#refund');
+             _.delay(reload, 10, 3, '#dinghuo');
          });
         </script>
     </body>
