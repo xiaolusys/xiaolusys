@@ -9,7 +9,6 @@ redis==2.10.5
 django-filter==0.9.1
 django-celery==3.0.17
 django-kombu==0.9.4
-django-mathfilters==0.3.0
 python-memcached==1.53
 django-redis-cache==1.6.5
 django-http-proxy==0.4
