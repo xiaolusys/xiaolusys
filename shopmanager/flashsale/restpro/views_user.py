@@ -404,7 +404,7 @@ class RegisterViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.G
             user_score = user_scores[0].integral_value
         user_info['score'] = user_score
         
-        return Response({"code":0,"ｉs_login":True, "info":user_info})
+        return Response({"code":0,"is_login":True, "info":user_info})
     
     @list_route(methods=['post'])
     def send_code(self, request, *args, **kwargs):
