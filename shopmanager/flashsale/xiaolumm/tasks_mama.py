@@ -8,18 +8,20 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.xiaolumm.models_fortune import CarryRecord, OrderCarry, AwardCarry, ClickCarry, ReferalRelationship
+from flashsale.xiaolumm.models_fortune import CarryRecord, OrderCarry, AwardCarry, ClickCarry, ReferalRelationship, UniqueVisitor
 from flashsale.pay.models import SaleOrder
 from flashsale.pay.models_user import Customer
 from flashsale.xiaolumm import util_unikey
 
 import sys
+import datetime
 
 
-def get_click_price_and_limit(order_num):
+def get_click_plan(order_num):
     MAX_ORDER_NUM = 5
     DEFAULT_PRICE = 10
     DEFAULT_LIMIT = 10
+    DEFAULT_NAME = "Default"
     
     if order_num > MAX_ORDER_NUM:
         order_num = MAX_ORDER_NUM
@@ -33,10 +35,10 @@ def get_click_price_and_limit(order_num):
         rules = click_plan.order_rules
 
         if key in rules:
-            price, limit = rules[key]
+            price, limit, name = rules[key][0], rules[key][1], click_plan.name
         else:
-            price, limit = DEFAULT_PRICE, DEFAULT_LIMIT
-    return price, limit
+            price, limit, name = DEFAULT_PRICE, DEFAULT_LIMIT, DEFAULT_NAME
+    return price, limit, name
 
 
 def get_cur_info():
@@ -318,26 +320,67 @@ def task_group_update_awardcarry(pk):
         award_carry.save()
 
 
+
+def create_clickcarry_upon_click(mama_id, date_field):
+    # count all pending+confirmed orders
+    order_num = OrderCarry.objects.filter(mama_id=mama_id,date_field=date_field).exclude(status=0).exclude(status=3).exclude(carry_type=3).values('contributor_id').distinct().count()
+    click_num = 1
+    status = 1 #pending
+    price,limit,name = get_click_plan(order_num)        
+    uni_key = util_unikey.gen_clickcarry_unikey(mama_id, date_field)
+    carry_description = util_description.get_clickcarry_description()
+    total_value = price * click_num
+    carry = ClickCarry(mama_id=mama_id,click_num=click_num,init_order_num=order_num,
+                       init_click_price=price,init_click_limit=limit,total_value=total_value,
+                       carry_plan_name=name,carry_description=carry_description,
+                       date_field=date_field,uni_key=uni_key,status=status)
+    carry.save()
+
+
+def update_clickcarry_upon_order(click_carry, mama_id, date_field):
+    # We count all pending+confirmed orders, and simply update init fields.
+    order_num = OrderCarry.objects.filter(mama_id=mama_id,date_field=date_field).exclude(status=0).exclude(status=3).exclude(carry_type=3).values('contributor_id').distinct().count()
+    if click_carry.init_order_num != order_num:
+        # update price, limit, total_value
+        price,limit,name = get_click_plan(order_num)
+        click_num = click_carry.click_num
+        if click_num > limit:
+            click_num = limit
+        total_value = click_num * price
+        
+        click_carry.init_order_num = order_num
+        click_carry.init_click_price = price
+        click_carry.init_click_limit = limit
+        click_carry.total_value = total_value
+        click_carry.save()
+
+        
+def confirm_clickcarry(click_carry, mama_id, date_field):
+    # Get confirmed order number and write back to clickcarry
+    confirmed_order_num = OrderCarry.objects.filter(mama_id=mama_id,date_field=date_field,status=2).exclude(carry_type=3).values('contributor_id').distinct().count()
+    price,limit,name = get_click_plan(confirmed_order_num)
+    click_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
+    click_carry.click_num = click_num
+    if click_num > limit:
+        click_num = limit
+    total_value = click_num * price
+    click_carry.confirmed_order_num = confirmed_order_num
+    click_carry.confirmed_click_price = price
+    click_carry.confirmed_click_limit = limit
+    click_carry.total_value = total_value
+    click_carry.status = 2 #confirm
+    click_carry.save()
+
+
 @task()
 def task_visitor_increment_clickcarry(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     
     uni_key = util_unikey.gen_clickcarry_unikey(mama_id, date_field)
-
     click_carrys = ClickCarry.objects.filter(uni_key=uni_key)
     
     if click_carrys.count() <= 0:
-        status = 1 #pending
-        carry_description = util_description.get_clickcarry_description()
-        
-        order_num = 0
-        price,limit = get_click_price_and_limit(order_num)
-        total_value = price * 1
-        
-        click_carry = ClickCarry(mama_id=mama_id, click_num=1, init_click_price=price,
-                                 init_click_limit=limit,total_value=total_value,
-                                 uni_key=uni_key, date_field=date_field, status=status)
-        click_carry.save()
+        create_clickcarry_upon_click(mama_id, date_field)
     else:
         price = click_carrys[0].init_click_price
         limit = click_carrys[0].init_click_limit
@@ -352,24 +395,26 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
 @task()
 def task_update_clickcarry_order_number(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-
-    records = OrderCarry.objects.filter(mama_id=mama_id,date_field=date_field).exclude(status=0).exclude(status=3).exclude(carry_type=3).values('contributor_id')
-    order_num = records.count()
     
     click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field=date_field)
-    if click_carrys.count() > 0:
-        # only update order number if clickcarry record exists.
-        # if record doesnt exist, that means no click happens.
-        price, limit = get_click_price_and_limit(order_num)
-        click_num = click_carrys[0].click_num
-        total_value = click_num * price
-        if click_carrys[0].is_confirmed():
-            click_carrys.update(confirmed_order_num=order_num, confirmed_click_price=price, 
-                                confirmed_click_limit=limit, total_value=total_value)
-        else:
-            click_carrys.update(init_order_num=order_num, init_click_price=price, 
-                                init_click_limit=limit, total_value=total_value)
-                
+    if click_carrys.count() <= 0:
+        return
+    
+    # now we have click carry record exists.
+    click_carry = click_carrys[0]
+    today = datetime.datetime.now().date()
+    if today == date_field:
+        update_clickcarry_upon_order(click_carry, mama_id, date_field)
+        return
+
+    # check whether we should confirm the clickcarry
+    pending_order_num = OrderCarry.objects.filter(mama_id=mama_id,date_field=date_field,status=1).exclude(carry_type=3).values('contributor_id').distinct().count()
+    print pending_order_num
+    if pending_order_num == 0:
+        confirm_clickcarry(click_carry, mama_id, date_field)
+    else:
+        update_clickcarry_upon_order(click_carry, mama_id, date_field)
+
 
 
 

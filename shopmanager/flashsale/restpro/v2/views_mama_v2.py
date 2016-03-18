@@ -29,6 +29,7 @@ def get_mama_id(user):
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
+    mama_id=1
     return mama_id
 
 
@@ -136,7 +137,7 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         carry_type = request.REQUEST.get("carry_type", "all")
         if carry_type == "direct":
             return self.queryset.filter(mama_id=mama_id).exclude(status=3).order_by('-date_field', '-created')
-        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+        return self.queryset.filter(mama_id=mama_id).exclude(status=0).exclude(status=3).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -358,8 +359,8 @@ class OrderCarryVisitorView(APIView):
         end_date = today_date - datetime.timedelta(days_from)
         from_date = today_date - datetime.timedelta(days_from+days_length)
 
-        visitors = self.queryset.filter(mama_id=mama_id, date_field__gt=from_date, date_field__lte=end_date).order_by('-date_field').values('date_field').annotate(visitor_num=Count('pk'))
-        orders = OrderCarry.objects.filter(mama_id=mama_id,date_field__gt=from_date,date_field__lte=end_date).order_by('-date_field').values('date_field').annotate(order_num=Count('pk'),carry=Sum('carry_num'))
+        visitors = self.queryset.filter(mama_id=mama_id, date_field__gt=from_date, date_field__lte=end_date).order_by('date_field').values('date_field').annotate(visitor_num=Count('pk'))
+        orders = OrderCarry.objects.filter(mama_id=mama_id,date_field__gt=from_date,date_field__lte=end_date).order_by('date_field').values('date_field').annotate(order_num=Count('pk'),carry=Sum('carry_num'))
 
         data = match_data(from_date, end_date, visitors, orders)
         return Response(data)

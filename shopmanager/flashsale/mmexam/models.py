@@ -80,14 +80,15 @@ class MamaDressResult(BaseModel):
     FINISHED   = 1
     SHAREDRESS = 2
     STATUS_CHOICES = ((UNFINISHED, u'未完成'),
-                      (FINISHED, u'已完成'),
-                      (SHAREDRESS, u'已分享'),)
-    user_unionid = models.CharField(max_length=28, unique=True, verbose_name=u'妈妈Unionid')
+                      (FINISHED, u'已完成'))
+    user_unionid = models.CharField(max_length=28, unique=True, verbose_name=u'用户Unionid')
+    openid = models.CharField(max_length=28, verbose_name=u'用户openid')
     mama_age   = models.IntegerField(default=0, verbose_name=u'妈妈年龄')
     mama_headimg = models.CharField(max_length=256, verbose_name=u'头像')
     mama_nick  = models.CharField(max_length=32, verbose_name=u'昵称')
     referal_from = models.CharField(max_length=28,blank=True,db_index=True, verbose_name=u'推荐人Unoinid')
     exam_score = models.IntegerField(default=0, verbose_name=u'答题分数')
+    share_from = models.CharField(max_length=64, verbose_name=u'分享平台')
     exam_date = models.DateTimeField(null=True, auto_now_add=True, verbose_name=u'答题日期')
     exam_state = models.IntegerField(choices=STATUS_CHOICES, default=UNFINISHED, verbose_name=u"状态")
     
@@ -106,13 +107,20 @@ class MamaDressResult(BaseModel):
     def is_finished(self):
         return self.exam_state in (self.SHAREDRESS, self.FINISHED)
     
+    def active_id(self):
+        return 1
+    
     def confirm_finished(self,score):
+        """ 完成测试 """
         self.exam_score = score
         self.exam_state = self.FINISHED
         self.save()
         
-       
-    
+    def replay(self):
+        """ 再测一次 """
+        self.exam_state = self.UNFINISHED
+        self.save()
+        
     def get_referal_mamadress(self):
         if not self.referal_from:
             return None
@@ -122,8 +130,25 @@ class MamaDressResult(BaseModel):
             return referals[0]
         return None
     
-    def share_dress(self):
-        self.exam_state = self.SHAREDRESS
-        self.save()
+    @property
+    def is_sendenvelop(self):
+        return self.share_top.strip() == ''
     
-         #TODO send envelop
+    def add_share_type(self,share_to):
+        self.share_from += ','+share_to
+        self.save()
+        
+    def send_envelop(self):
+        
+        from flashsale.pay.models import Customer
+        from flashsale.pay.models_coupon_new import UserCoupon
+        customers = Customer.objects.filter(unionid=self.user_unionid,status=Customer.NORMAL)
+        if customers.exists():
+            customer = customers[0]
+            user_coupon = UserCoupon()
+            user_coupon.release_by_template(buyer_id=customer.id,template_id=34)
+            
+        #TODO send envelop
+         
+         
+         

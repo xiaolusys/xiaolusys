@@ -1,6 +1,8 @@
 #-*- coding:utf-8 -*-
+import urlparse
+import json
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 
@@ -18,12 +20,13 @@ class DressView(WeixinAuthMixin, APIView):
     
     authentication_classes = ()
     permission_classes = ()
-    renderer_classes = (renderers.TemplateHTMLRenderer,)
+    renderer_classes = (renderers.TemplateHTMLRenderer,renderers.JSONRenderer)
     template_name = "mmdress/dress_entry.html"
         
     def get(self, request, *args, **kwargs):
         return Response({'active_id':1})
     
+        
 
 class DressQuestionView(WeixinAuthMixin, APIView):
     
@@ -75,15 +78,20 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         if state:
+            mama_dress.openid = user_infos.get('openid') 
             mama_dress.referal_from = referal_dress and referal_dress.user_unionid or ''
             mama_dress.mama_headimg = user_infos.get('headimgurl') or ''
             mama_dress.mama_nick = user_infos.get('nick') or ''
             mama_dress.save()
-            
-        if mama_dress.is_finished():
-            response = redirect(reverse('dress_result'))
-            self.set_cookie_openid_and_unionid(response,openid,unionid)
-            return response
+        
+        replay = request.GET.get('replay','')
+        if  mama_dress.is_finished():
+            if not replay:
+                response = redirect(reverse('dress_result'))
+                self.set_cookie_openid_and_unionid(response,openid,unionid)
+                return response
+            else:
+                mama_dress.replay()
         
         question_id = 1
         question = self.get_question(question_id)
@@ -110,7 +118,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
 
         mama_dresses = MamaDressResult.objects.filter(id=dress_id)
         if not mama_dresses.exists() :
-            return redirect(reverse('dress_home'))
+            return HttpResponse('|'.join(['302',reverse('dress_result')]))
         
         mama_dress = mama_dresses[0]
         score_choices = dict(self.unserializer_scores(score_string))
@@ -122,7 +130,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         if question_id > len(constants.ACTIVES) :
             score = self.calc_score(score_choices.items())
             mama_dress.confirm_finished(score)
-            return redirect(reverse('dress_result'))
+            return HttpResponse('|'.join(['302',reverse('dress_result')]))
         
         question = self.get_question(question_id)
         return Response({
@@ -162,7 +170,29 @@ class DressResultView(WeixinAuthMixin, APIView):
         if differ_age > max_age:
             differ_age = min_age
         return (differ_age ,age_tags_dict.get(differ_age))
+    
+    def gen_wxshare_signs(self,openid ,share_url):
+        """ 生成微信分享参数 """
+        from shopapp.weixin.weixin_apis import WeiXinAPI
+        wx_api     = WeiXinAPI()
+        signparams = wx_api.getShareSignParams(share_url)
         
+        return {'openid': openid,
+                'wx_singkey': signparams}
+    
+    def render_share_params(self, openid, dress_id, **kwargs):
+        active =  constants.ACITVES[0]
+        share_url = urlparse.urljoin(settings.M_SITE_URL,reverse('dress_share',kwargs={'dress_id':dress_id}))
+        resp = {
+            'share_link':share_url,
+            'share_title':active['share_title'].format(**kwargs),
+            'share_desc':active['share_desc'].format(**kwargs),
+            'share_img':active['share_img'],
+            'callback_url':share_url
+        }
+        resp.update(self.gen_wxshare_signs(openid, share_url))
+        return resp
+    
     def get(self, request, *args, **kwargs):
         
         content = request.REQUEST
@@ -187,16 +217,19 @@ class DressResultView(WeixinAuthMixin, APIView):
         if referal_dress:
             referal_age, referal_star = self.get_dress_age_and_star(referal_dress)
             age_tag = self.get_age_tag(abs(dress_age - referal_age))
-            
-        response = Response({
-                    'mama_dress':mama_dress,
-                    'dress_age':dress_age,
-                    'dress_star':dress_star,
-                    'referal_dress':referal_dress,
-                    'referal_age':referal_age,
-                    'referal_star':referal_star,
-                    'age_tag':age_tag
-                })
+
+        resp_params = {
+            'mama_dress':mama_dress,
+            'dress_age':dress_age,
+            'dress_star':dress_star,
+            'referal_dress':referal_dress,
+            'referal_age':referal_age,
+            'referal_star':referal_star,
+            'age_tag':age_tag
+        }
+        resp_params.update({'share_params':self.render_share_params(openid, mama_dress.id,**resp_params)})
+        
+        response = Response(resp_params)
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
     
@@ -241,7 +274,7 @@ class DressShareView(WeixinAuthMixin, APIView):
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/dress_share.html"
         
-    def get(self, request, *args, **kwargs):
+    def get(self, request, dress_id, *args, **kwargs):
         
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
@@ -250,20 +283,24 @@ class DressShareView(WeixinAuthMixin, APIView):
             return redirect(redirect_url)
         
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
-        if not mama_dress.is_finished():
-            return redirect(reverse('dress_home'))
-
         response = Response({
-                    'mama_dress':mama_dress,
-                    'age_range':range(1976,2001)
+                    'referal_dress':mama_dress
                 })
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
     
-    def post(self, request, *args, **kwargs):
-#         user_unionid = request.POST['user_unionid']
-#         mm_dress,state = MamaDressResult.objects.get_or_create(user_unionid=user_unionid)
-#         mm_dress.mama_age = mama_age
-#         mm_dress.save()
-        return redirect(reverse('dress_result'))
+    def post(self, request, dress_id, *args, **kwargs):
+        share_type = request.POST.get('share_type')
+        first_sendenvelop = False
+        mama_dress= MamaDressResult.objects.get(id=dress_id)
+        if not mama_dress.is_sendenvelop():
+            mama_dress.send_envelop()
+            first_sendenvelop = True
+        mama_dress.add_share_type(share_type)
+        
+        return HttpResponse(json.dumps({
+                'code':0,
+                'is_sendenvelop':first_sendenvelop,
+                'info':'红包领取成功'}),
+                content_type="application/json")
 

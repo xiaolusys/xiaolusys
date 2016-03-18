@@ -11,6 +11,11 @@
     width:100%;
     margin:0 auto;
 }
+.bottom-img{
+    width:100%;
+    margin:65% auto 0;
+    text-aligin:bottom;
+}
 #form1{
     width:100%;
     height:100%;
@@ -30,7 +35,11 @@
   </div>
   <div class="page-mask"></div>
   <div class="row page">
-    <a href="{% url 'dress_question' active_id=active_id %}"><div class="fullfill"></div></a>
+    <a href="{% url 'dress_question' active_id=active_id %}">
+    <div class="fullfill">
+        <img class="bottom-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BA%A2%E5%8C%85.png" />
+    </div>
+    </a>
   </div>
 </div>
 {% endblock %}

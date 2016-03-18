@@ -14,15 +14,18 @@
     position: fixed;
 }
 .page-panel{
-    min-height:80%;
+    min-height:75%;
 }
 .page-footer{
     margin-top:15px;
 }
 .question-img{
     position: relative;
-    max-width:290px;
+    /*max-width:290px;*/
     margin:0 auto;
+}
+.bottom-img{
+    max-width:30%;
 }
 .choice .fullfill{
     border:1px dotted grey;
@@ -31,12 +34,15 @@
     position:absolute;
     top:0;
     left:50%;
-    width:240px; 
-    margin-left:-120px;
+    width:100%; 
+    margin-left:-50%;
 }
-
+.choice,.choice ul{
+    height:100%;
+}
 .model_1{
      top:35%;
+     margin-left:-40%;
 }
 
 .model_1 ul,.model_1 ul li{
@@ -48,15 +54,15 @@
 .model_1 ul li{
     display:inline;
     float:left;
-    height:110px;
-    width:110px;
-    margin-right:10px;
-    max-height:110px;
-    margin-bottom:38px;
+    height:28%;
+    width:38%;
+    margin-right:4%;
+    margin-bottom:12%;
 }
 
 .model_2{
     top:32%;
+    margin-left:-40%;
 }
 
 .model_2 ul,.model_2 ul li{
@@ -65,13 +71,14 @@
     list-style:none;
 }
 .model_2 ul li{
-    height:120px;
-    max-height:120px;
-    margin-bottom:35px;
+    height:29%;
+    width:80%;
+    margin-bottom:14%;
 }
 
 .model_3{
-    top:28%;
+    top:29%;
+    margin-left:-40%;
 }
 
 .model_3 ul,.model_3 ul li{
@@ -80,9 +87,9 @@
     list-style:none;
 }
 .model_3 ul li{
-    height:90px;
-    max-height:90px;
-    margin-bottom:16px;
+    height:20%;
+    width:80%;
+    margin-bottom:8%;
 }
 
 </style>
@@ -120,7 +127,7 @@
     <div class="row div-center">
         <a href="javascript:void(0);" action="{% url 'dress_question' active_id=active_id %}" onclick="submit(this);"
            dress_id="{{dress_id}}" question_id="{{pre_question_id}}"  scores="{{score_string}}" >
-        <img class="col-xs-offset-1 col-sm-offset-5 col-xs-4" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E9%A2%98%E7%9B%AE-%E6%8C%89%E9%94%AE-%E8%BF%94%E5%9B%9E%E4%B8%8A%E9%A2%98%20.png">
+        <img class="col-xs-offset-1 bottom-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E9%A2%98%E7%9B%AE-%E6%8C%89%E9%94%AE-%E8%BF%94%E5%9B%9E%E4%B8%8A%E9%A2%98%20.png">
         </a>
     </div>
 </div>
@@ -137,6 +144,11 @@ function submit(ele){
     var dress_id = $(ele).attr('dress_id');
     var question_id = $(ele).attr('question_id');
     var callback = function(resp,status,xhr){
+        if (typeof(resp) == 'string' && resp.startsWith('302')){
+            var direct_url = resp.split('|');
+            window.location.href = direct_url[1];
+            return;
+        }
         document.write(resp);
         document.close();
     }
