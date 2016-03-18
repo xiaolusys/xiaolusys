@@ -6,7 +6,9 @@ import functions
 import json
 import re
 
+from django.contrib.auth.models import User
 from django.db import connection
+from django.db.models import Sum
 from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response, HttpResponse
 from django.template import RequestContext
@@ -347,55 +349,105 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
         if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
             return Response()
 
-        orders = MergeOrder.objects.select_related('merge_trade').filter(
+        sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
             merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
                                    pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
             merge_trade__sys_status__in=
             [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
-            sys_status=pcfg.IN_EFFECT)
+            sys_status=pcfg.IN_EFFECT).values('outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
 
+        order_products = {}
+        for s in sale_stats:
+            skus = order_products.setdefault(s['outer_id'], {})
+            skus[s['outer_sku_id']] = s['sale_num']
+
+        sku_ids = set()
         products = {}
-        for order in orders:
-            skus = products.setdefault(order.outer_id, {})
-            sku = skus.setdefault(order.outer_sku_id, {'sale_num': 0})
-            sku['sale_num'] += order.num
+        for sku in ProductSku.objects.select_related('product').filter(product__outer_id__in=order_products.keys()):
+            order_skus = order_products[sku.product.outer_id]
+            if sku.outer_id in order_skus:
+                sku_ids.add(sku.id)
+                skus = products.setdefault(sku.product.id, {})
+                skus[sku.id] = {
+                    'sale_num': order_skus.get(sku.outer_id) or 0,
+                    'buy_num': 0,
+                    'arrival_num': 0,
+                    'inferior_num': 0
+                }
 
-        new_products = {}
-        for product in Product.objects.filter(outer_id__in=products.keys()):
-            new_products[product.id] = {
+        dinghuo_stats = OrderDetail.objects \
+          .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
+          .values('product_id', 'chichu_id') \
+          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'), inferior_quantity=Sum('inferior_quantity'))
+        for s in dinghuo_stats:
+            product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
+            skus = products.setdefault(product_id, {})
+            skus[sku_id] = {
+                'sale_quantity': 0,
+                'buy_quantity': s['buy_quantity'],
+                'arrival_quantity': s['arrival_quantity'],
+                'inferior_quantity': s['inferior_quantity']
+            }
+
+        for sku in ProductSku.objects.filter(pk__in=list(sku_ids)):
+            sku_dict = products[sku.product_id][sku.id]
+            sku_dict.update({
+                'id': sku.id,
+                'quantity': sku.quantity,
+                'properties_name': sku.properties_name,
+                'outer_id': sku.outer_id
+            })
+
+        saleproduct_ids = set()
+        product_mapping = {}
+        for product in Product.objects.filter(pk__in=products.keys()):
+            saleproduct_ids.add(product.sale_product)
+            product_mapping[product.id] = {
                 'id': product.id,
                 'name': product.name,
                 'pic_path': '%s?imageView2/0/w/120' % product.pic_path.strip(),
                 'outer_id': product.outer_id,
-                'sale_product_id': product.sale_product,
-                'skus': products[product.outer_id]
+                'sale_product_id': product.sale_product
             }
 
-        dinghuo_products = {}
-        for order_detail in OrderDetail.objects.exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]):
-            pass
+        buyer_ids = set()
+        supplier_mapping = {}
+        saleproduct2supplier_mapping = {}
+        for saleproduct in SaleProduct.objects.select_related('sale_supplier').filter(pk__in=list(saleproduct_ids)):
+            saleproduct2supplier_mapping[saleproduct.id] = saleproduct.sale_supplier.id
+            if saleproduct.sale_supplier.id not in supplier_mapping:
+                buyer_id = saleproduct.sale_supplier.buyer_id or 0
+                if buyer_id:
+                    buyer_ids.add(buyer_id)
+                supplier_mapping[saleproduct.sale_supplier.id] = (saleproduct.sale_supplier.supplier_name, buyer_id)
 
-
-        for sku in ProductSku.objects.filter(product_id__in=new_products.keys()):
-            product = new_products.get(sku.product_id)
-            if not product:
-                continue
-            product_skus = product.get('skus') or {}
-            if sku.outer_id in product_skus:
-                product_skus[sku.outer_id].update({
-                    'id': sku.id,
-                    'properties_name': sku.properties_name,
-                    'outer_id': sku.outer_id,
-                    'quantity': sku.quantity
-                })
+        buyer_mapping = {}
+        for user in User.objects.filter(pk__in=list(buyer_ids)):
+            buyer_name = '%s%s' % (user.last_name, user.first_name)
+            buyer_mapping[user.id] = buyer_name or user.username
 
         suppliers = {}
-        sale_product_supplier_mapping = {}
-        for sale_product in SaleProduct.objects.select_related('sale_supplier') \
-          .filter(pk__in=filter(None, map(lambda x: x['sale_product_id'], new_products.values()))):
-            sale_product_supplier_mapping[sale_product.id] = sale_product.sale_supplier.id
-            suppliers[sale_product.sale_supplier.id] = sale_product.sale_supplier.supplier_name
-
-        return Response({'data': new_products})
+        for product_id in sorted(products.keys(), reverse=True):
+            if product_id not in product_mapping:
+                continue
+            skus = products[product_id]
+            new_product = product_mapping[product_id]
+            new_product['skus'] = [skus[k] for k in sorted(skus.keys())]
+            sale_product_id = new_product['sale_product_id']
+            supplier_id = saleproduct2supplier_mapping.get(sale_product_id) or 0
+            if supplier_id not in suppliers:
+                supplier_name, buyer_id = supplier_mapping.get(supplier_id) or ('未知',  0)
+                buyer_name = buyer_mapping.get(buyer_id) or ''
+                supplier = {
+                    'id': supplier_id,
+                    'buyer_name': buyer_name,
+                    'supplier_name': supplier_name,
+                    'products': []
+                }
+                suppliers[supplier_id] = supplier
+            else:
+                supplier = suppliers[supplier_id]
+            supplier['products'].append(new_product)
+        return Response({'data': suppliers})
