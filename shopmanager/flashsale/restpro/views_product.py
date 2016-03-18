@@ -559,7 +559,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
             prodic['rebet_amount'] = rebet_amount
             prodic['sale_num_des'] = '{0}人在卖'.format(sale_num)
-            prodic['rebet_amount_des'] = '返佣 ￥{0}'.format(rebet_amount)
+            prodic['rebet_amount_des'] = '佣 ￥{0}'.format(rebet_amount)
             pros.append(prodic)
             model_ids.append(pro.model_id)
         if sort_field not in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:

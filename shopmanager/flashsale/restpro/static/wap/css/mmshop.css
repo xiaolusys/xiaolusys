@@ -1,18 +1,9 @@
 body {
-    /*font-family: "Noto Sans CJK SC", "Source Han Sans CN"; *//*思源黑体7种字体粗细，在 CSS 中也可以指定：*/
-    /*font-family:"Noto Sans CJK SC Thin", "Source Han Sans CN Thin";*/
-    /*font-family:"Noto Sans CJK SC Light", "Source Han Sans CN Light";*/
-    /*font-family:"Noto Sans CJK SC DemiLight", "Source Han Sans CN DemiLight";*/
-    /*font-family:"Noto Sans CJK SC Medium", "Source Han Sans CN Medium";*/
-    font-family: "Noto Sans CJK SC Blod", "Source Han Sans CN Blod";
-    /*font-family:"Noto Sans CJK SC Black", "Source Han Sans CN Black";*/
-}
-
-body {
     height: 100%;
     display: block;
     margin: 0;
     background: #EFF0F0;
+    font-family: STHeiti, sans-serif;
 }
 
 .border-show-1 {
