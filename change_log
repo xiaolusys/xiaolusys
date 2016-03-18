@@ -1,3 +1,5 @@
+######## 2016-03-17 ########
+alter table supplychain_supply_supplier add column buyer_id int(11) default null references auth_user(id);
 ######## 2016-03-14 ########
 alter table xiaolumm_xiaolumama add column qrcode_link varchar(256) NOT NULL DEFAULT '';
 ######## 2016-03-09 ########

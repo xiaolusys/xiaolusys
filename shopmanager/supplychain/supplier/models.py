@@ -193,6 +193,7 @@ class SaleSupplier(models.Model):
                                 default=SELECTED, verbose_name=u'进度')
     supplier_type = models.IntegerField(choices=SUPPLIER_TYPE, blank=True, default=0, verbose_name=u"供应商类型")
     supplier_zone = models.IntegerField(default=0, db_index=True, verbose_name=u'供应商所属区域')
+    buyer = models.ForeignKey(User, null=True, related_name='buyers', verbose_name=u'买手')
     objects = SaleSupplierManager()
 
     class Meta:
