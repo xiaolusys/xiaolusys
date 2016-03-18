@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <style>
+	 body {
+	     margin: 0;
+	 }
+
+	 .stat {
+	     text-align: center;
+	     vertical-align: middle;
+	 }
+
+
+	 .stat p {
+	     font-size: 150%
+	 }
+
+	 .stat p:first-child {
+	     margin-bottom: 0;
+	     font-size: 180%;
+	 }
+         .stat em.n-delay {
+             color: #ffc125;
+         }
+
+	 .row:first-child {
+	     background-color: #669999;
+	 }
+
+	 .row:nth-child(2) {
+	     background-color: #9999cc;
+	 }
+
+	 .row:last-child {
+	     background-color: #bc8f8f;
+
+	 }
+
+	 .container {
+	     top: 0;
+	     bottom: 0;
+	     position: absolute;
+	     width: 100%;
+	     display: -webkit-box;
+	     -webkit-box-orient: vertical;
+	 }
+
+	 .row {
+             font-family: STHeiti, sans-serif;
+             color: #320C08;
+	     position: relative;
+	     -webkit-box-flex: 1;
+	     display: -webkit-box;
+	     -webkit-box-align: center;
+	     -webkit-box-pack: center;
+	     -webkit-box-orient: vertical;
+	 }
+        </style>
+    </head>
+    <body>
+        <div class="container" style="top:0;bottom:0;position:absolute;width:100%;">
+            <div class="row" style="height:30%;" id="order">
+                <div class="col-md-5 stat">
+                    <h2>订单</h2>
+                </div>
+                <div class="col-md-2 stat"></div>
+                <div class="col-md-2 stat">
+                    <p><em class="n-delay">1</em></p>
+                    <p>三天未处理</p>
+                </div>
+                <div class="col-md-1 stat">
+                    <p><em class="n-total">0</em></p>
+                    <p>总计</p>
+                </div>
+            </div>
+            <div class="row" style="height:30%" id="refund">
+                <div class="col-md-5 stat">
+                    <h2>退货单</h2>
+                </div>
+                <div class="col-md-2"></div>
+                <div class="col-md-2 stat">
+                    <p><em class="n-delay">2</em></p>
+                    <p>三天未处理</p>
+                </div>
+                <div class="col-md-1 stat">
+                    <p><em class="n-total">0</em></p>
+                    <p>总计</p>
+                </div>
+            </div>
+            <div class="row" style="height:30%" id="dinghuo">
+                <div class="col-md-5 stat">
+                    <h2>订货单</h2>
+                </div>
+                <div class="col-md-2"></div>
+                <div class="col-md-2 stat">
+                    <p><em class="n-delay">3</em></p>
+                    <p>三天未处理</p>
+                </div>
+                <div class="col-md-1 stat">
+                    <p><em class="n-total">0</em></p>
+                    <p>总计</p>
+                </div>
+            </div>
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script>
+         var INTERVAL = 60000;
+
+         function reload(statsType, targetId){
+             $.ajax({
+                 url: '/sale/daystats/daily_stats',
+                 type: 'get',
+                 dataType: 'json',
+                 data: {type: statsType},
+                 success: function(result){
+                     var elDelay = $(targetId+' em.n-delay').first();
+                     var elTotal = $(targetId+' em.n-total').first();
+                     if(result.n_delay != elDelay.html() - 0){
+                         elDelay.html(result.n_delay);
+                         elDelay.animate({fontSize: '+=6px'}, 1000, function(){
+                             elDelay.animate({fontSize: '-=6px'}, 500);
+                         });
+                     }
+                     if(result.n_total != elTotal.html() - 0){
+                         elTotal.html(result.n_total);
+                         elTotal.animate({fontSize: '+=6px'}, 1000, function(){
+                             elTotal.animate({fontSize: '-=6px'}, 500);
+                         });
+                     }
+                     _.delay(reload, INTERVAL, statsType, targetId);
+                 }
+             })
+         }
+         $(function(){
+             _.delay(reload, INTERVAL, 1, '#order');
+             _.delay(reload, INTERVAL, 2, '#refund');
+             _.delay(reload, INTERVAL, 3, '#dinghuo');
+         });
+        </script>
+    </body>
+</html>
