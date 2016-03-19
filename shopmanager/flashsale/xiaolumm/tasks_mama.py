@@ -97,78 +97,6 @@ def task_update_second_level_ordercarry(referal_relationship_pk, order_carry_pk)
     record.save()
 
 
-@task()
-def task_update_carryrecord(carry_data, carry_type):
-    print "%s, mama_id: %s" % (get_cur_info(), carry_data.mama_id)
-
-    carry_records = CarryRecord.objects.filter(uni_key=carry_data.uni_key)
-    if carry_records.count() > 0:
-        print "carry_record exists---"
-        record = carry_records[0]
-        if record.status != carry_data.status:
-            print "status change, gonna update the chain!+++"
-            action_key = "%d%d" % (record.status, carry_data.status)
-
-            # 1. update carryrecord
-            record.status = carry_data.status
-            record.save()
-
-            # 2. update mamafortune
-            from flashsale.xiaolumm.tasks_mama_fortune import task_increment_mamafortune_cash_and_carry
-            task_increment_mamafortune_cash_and_carry.s(carry_data.mama_id, carry_data.carry_num, action_key)()
-        else:
-            print "nothing to do, status' the same!+++"
-        return
-
-    # We create CarryRecord upon two status: 1) paid(pending); 2) confirmed
-    if not (carry_data.is_pending() or carry_data.is_confirmed()):
-        return
-
-    print "carry_record DOESN'T exists---, gonna create new one +++"
-    try:
-        # create new record 
-        carry_record = CarryRecord(mama_id=carry_data.mama_id, carry_num=carry_data.carry_num,
-                                   carry_type=carry_type, date_field=carry_data.date_field,
-                                   carry_description=carry_data.carry_description,
-                                   uni_key=carry_data.uni_key, status=carry_data.status)
-        carry_record.save()
-    except Exception, e:
-        print Exception, ":", e
-        print "severe error ++++"
-        #log("severe error!+++++++++")
-        pass
-
-
-@task()
-def task_update_carryrecord_carry_num(click_carry_pk):
-    click_carry = ClickCarry.objects.get(pk=click_carry_pk)
-    print "%s, mama_id: %s" % (get_cur_info(), click_carry.mama_id)
-    
-    carry_records = CarryRecord.objects.filter(uni_key=click_carry.uni_key)
-    if carry_records.count() > 0:
-        record = carry_records[0]
-        if record.carry_num != click_carry.total_value:
-            # we dont update status change here, because the status 
-            # change will be triggered by orders' status change.
-            record.carry_num = click_carry.total_value
-            record.save()
-        return
-
-    carry_type = 1  # click_carry
-
-    try:
-        # create new record 
-        carry_record = CarryRecord(mama_id=click_carry.mama_id, carry_num=click_carry.total_value,
-                                   carry_type=carry_type, date_field=click_carry.date_field,
-                                   carry_description=click_carry.carry_description,
-                                   uni_key=click_carry.uni_key, status=click_carry.status)
-        carry_record.save()
-    except Exception, e:
-        print Exception, ":", e
-        print "severe error!+++++++++"
-        pass
-
-
 
 @task()
 def task_update_ordercarry(mama_id, order_pk, customer_pk, carry_amount, agency_level, carry_plan_name, via_app):
@@ -321,6 +249,36 @@ def task_group_update_awardcarry(pk):
 
 
 
+def confirm_twodays_ago_zero_order_clickcarry(mama_id, today_date_field):
+    """
+    This is how a zero order clickcarry gets confirmed:
+    everytime a new clickcarry gets created, we confirm
+    two-days-ago clickcarry, if and only if the 
+    clickcarry doesnt have an order related to it. 
+    e.g init_order_num == 0
+    """
+    date_field = today_date_field - datetime.timedelta(days=2)
+    click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field=date_field)
+    if click_carrys.count() <= 0:
+        return
+    
+    click_carry = click_carrys[0]
+    if click_carry.init_order_num > 0:
+        return
+
+    click_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
+    click_carry.click_num = click_num
+    price = click_carry.init_click_price
+    limit = click_carry.init_click_limit
+    if click_num > limit:
+        click_num = limit
+    total_value = click_num * price
+    click_carry.total_value = total_value
+    click_carry.status = 2 #confirm
+    click_carry.save()
+
+    
+
 def create_clickcarry_upon_click(mama_id, date_field):
     # count all pending+confirmed orders
     order_num = OrderCarry.objects.filter(mama_id=mama_id,date_field=date_field).exclude(status=0).exclude(status=3).exclude(carry_type=3).values('contributor_id').distinct().count()
@@ -381,6 +339,7 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
     
     if click_carrys.count() <= 0:
         create_clickcarry_upon_click(mama_id, date_field)
+        confirm_twodays_ago_zero_order_clickcarry(mama_id, date_field)
     else:
         price = click_carrys[0].init_click_price
         limit = click_carrys[0].init_click_limit
