@@ -22,7 +22,7 @@ def weixin_authlogin_required(redirecto=None):
             
             code   = request.GET.get('code')
             user_agent = request.META.get('HTTP_USER_AGENT')
-            if not user_agent or user_agent.find('MicroMessenger') < 0:
+            if not user_agent or user_agent.lower().find('micromessenger') < 0:
                 return HttpResponseRedirect(redirecto)
             
             if not code :
@@ -35,7 +35,7 @@ def weixin_authlogin_required(redirecto=None):
                       'state':'135'}
                     redirect_url = options.gen_weixin_redirect_url(params)
                     return redirect(redirect_url)
-                
+            
             user = authenticate(request=request)
             if not user or user.is_anonymous():
                 return HttpResponseRedirect(redirecto)

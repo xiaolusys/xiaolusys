@@ -31,7 +31,7 @@ class DressView(WeixinAuthMixin, APIView):
 
 class DressQuestionView(WeixinAuthMixin, APIView):
     
-    authentication_classes = ()
+    authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/active_{0}/question.html"
