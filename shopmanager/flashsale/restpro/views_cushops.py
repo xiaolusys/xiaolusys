@@ -45,8 +45,7 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def customer_shop(self, request):
-        decs = ['赶快到我的店铺看看为你准备了哪些漂亮的衣服吧！',
-                '外贸原单，天天精选，买买买！', '遮不住的美艳，挡不了的诱惑！']
+        decs = ['今天又上新啦！', '天天都有新款哦！', '上新啦赶快抢！']
         queryset = self.filter_queryset(self.get_owner_shop(request))
         mm_linkid = 44
         shop_info = None
@@ -63,8 +62,10 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                                             'pages/preview-mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = customer.thumbnail  # 提供用户头像
-            shop_info['desc'] = random.choice(decs)
+            shop_info['desc'] = '{0}の外贸店'.format(customer.nick) + random.choice(decs)
             shop_info['preview_shop_link'] = preview_link  # 预览链接
+            shop_info['name'] = '{0}の外贸店'.format(customer.nick)
+
         return Response({"shop_info": shop_info})
 
 

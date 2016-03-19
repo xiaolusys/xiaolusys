@@ -160,7 +160,10 @@ class WeixinAppBackend(object):
                 user,state = User.objects.get_or_create(username=unionid,is_active=True)
                 profile.user = user
                 profile.save()
-            
+            if profile.thumbnail != params.get('headimgurl'):  # 更新头像
+                profile.thumbnail = params.get('headimgurl')
+                profile.save()
+
         except Customer.DoesNotExist:
             if not self.create_unknown_user:
                 return AnonymousUser()
