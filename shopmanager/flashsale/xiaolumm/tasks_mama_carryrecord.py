@@ -78,11 +78,11 @@ def task_clickcarry_update_carryrecord(carry_pk):
     records = CarryRecord.objects.filter(uni_key=carry.uni_key)
     if records.count() > 0:
         record = records[0]
-        if record.carry_num != carry.total_value:
-            # we dont update status change here, because the status 
-            # change will be triggered by orders' status change.
+        if record.carry_num != carry.total_value or record.status != carry.status:
             record.carry_num = carry.total_value
+            record.status = carry.status
             record.save()
+        return
     else:
         carry_type = 1  # clickcarry
         carry_record = CarryRecord(mama_id=carry.mama_id, carry_num=carry.total_value,
