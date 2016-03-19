@@ -451,6 +451,4 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 supplier = suppliers[supplier_id]
             supplier['products'].append(new_product)
 
-
-        print [suppliers[k] for k in sorted(suppliers.keys())]
         return Response({'suppliers': [suppliers[k] for k in sorted(suppliers.keys())]})
