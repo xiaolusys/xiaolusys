@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>缺货统计</title>
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <style>
+         .portfolio-box img {
+             width: 100px;
+             box-shadow: 2px 2px 5px rgba(187, 187, 187, 0.5);
+             -webkit-transition: -webkit-transform 0.2s ease-out;
+             -moz-transition: -moz-transform 0.2s ease-out;
+             -o-transition: -o-transform 0.2s ease-out;
+             transition: transform 0.2s ease-out;
+         }
+
+         .portfolio-box img:hover {
+             -webkit-transform: scale(1) rotate(20deg);
+             -moz-transform: scale(1) rotate(20deg);
+             -o-transform: scale(1) rotate(20deg);
+             -ms-transform: scale(1) rotate(20deg);
+             transform: scale(1) rotate(20deg);
+         }
+        </style>
+    </head>
+    <body>
+        <div class="container" style="width:98%">
+            {% for supplier in suppliers %}
+            <div class="row">
+                <h2>{{ supplier.supplier_name }} <small>{{ supplier.buyer_name }}</small></h2>
+            </div>
+            <div class="row">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>商品名</th>
+                        <th>编码</th>
+                        <th>图片</th>
+                        <th>尺寸</th>
+                        <th>状态</th>
+                        <th>已拍未到数量</th>
+                        <th>已到数量</th>
+                        <th>库存数量</th>
+                    </tr>
+                    {% for product in supplier.products %}
+                    {% for sku in product.skus %}
+                    <tr>
+                        {% if forloop.first %}
+                        <td rowspan="{{ product.skus|length }}">{{ product.name }}</td>
+                        <td rowspan="{{ product.skus|length }}">{{ product.outer_id }}</td>
+                        <td rowspan="{{ product.skus|length }}">
+                            <div class="portfolio-box">
+                                <img src="{{ product.pic_path }}">
+                            </div>
+                        </td>
+                        {% endif %}
+                        <td>{{ sku.properties_name }}</td>
+                        <td></td>
+                        <td>{{ sku.buy_quantity }}</td>
+                        <td>{{ sku.arrival_quantity }}</td>
+                        <td>{{ sku.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script>
+        </script>
+    </body>
+</html>
