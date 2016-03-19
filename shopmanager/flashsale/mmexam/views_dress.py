@@ -187,22 +187,23 @@ class DressResultView(WeixinAuthMixin, APIView):
         """ 生成微信分享参数 """
         from shopapp.weixin.weixin_apis import WeiXinAPI
         wx_api     = WeiXinAPI()
-        wx_api.setAccountId(constants.XIAOLU_PUBID,settings.WXPAY_APPID)
+        wx_api.setAccountId(appKey=settings.WXPAY_APPID)
         signparams = wx_api.getShareSignParams(share_url)
         return {'openid': openid,
                 'wx_singkey': signparams}
     
-    def render_share_params(self, openid, dress_id, **kwargs):
+    def render_share_params(self, mama_dress, **kwargs):
         active =  constants.ACITVES[0]
-        share_url = urlparse.urljoin(settings.M_SITE_URL,reverse('dress_share',kwargs={'dress_id':dress_id}))
+        share_url = urlparse.urljoin(settings.M_SITE_URL,
+                                     reverse('dress_share',kwargs={'dress_id':mama_dress.id}))
         resp = {
             'share_link':share_url,
-            'share_title':active['share_title'].format(**kwargs),
-            'share_desc':active['share_desc'].format(**kwargs),
+            'share_title':active['share_title'].format(mama_dress=mama_dress,**kwargs),
+            'share_desc':active['share_desc'].format(mama_dress=mama_dress,**kwargs),
             'share_img':active['share_img'],
             'callback_url':share_url
         }
-        resp.update(self.gen_wxshare_signs(openid, share_url))
+        resp.update(self.gen_wxshare_signs(mama_dress.openid, share_url))
         return resp
     
     def get(self, request, *args, **kwargs):
@@ -238,7 +239,7 @@ class DressResultView(WeixinAuthMixin, APIView):
             'referal_star':referal_star,
             'age_tag':age_tag
         }
-        resp_params.update({'share_params':self.render_share_params(openid, mama_dress.id,**resp_params)})
+        resp_params.update({'share_params':self.render_share_params(**resp_params)})
         
         response = Response(resp_params)
         self.set_cookie_openid_and_unionid(response,openid,unionid)
