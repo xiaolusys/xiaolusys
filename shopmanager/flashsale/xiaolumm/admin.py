@@ -411,6 +411,7 @@ class ClickPlanAdmin(admin.ModelAdmin):
 admin.site.register(ClickPlan,ClickPlanAdmin)
 
 class UniqueVisitorAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'visitor_nick', 'visitor_img')
+    list_display = ('mama_id', 'visitor_nick', 'visitor_img', 'uni_key', 'date_field',
+                    'modified', 'created')
 admin.site.register(UniqueVisitor,UniqueVisitorAdmin)
     
