@@ -346,9 +346,6 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
     template_name = 'dinghuo/instant_dinghuo.html'
 
     def list(self, request):
-        if not re.search(r'application/json', request.META['HTTP_ACCEPT']):
-            return Response()
-
         sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
             merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
                                    pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
@@ -371,32 +368,35 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 sku_ids.add(sku.id)
                 skus = products.setdefault(sku.product.id, {})
                 skus[sku.id] = {
-                    'sale_num': order_skus.get(sku.outer_id) or 0,
-                    'buy_num': 0,
-                    'arrival_num': 0,
-                    'inferior_num': 0
+                    'sale_quantity': order_skus.get(sku.outer_id) or 0,
+                    'buy_quantity': 0,
+                    'arrival_quantity': 0,
+                    'inferior_quantity': 0
                 }
 
         dinghuo_stats = OrderDetail.objects \
           .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
           .values('product_id', 'chichu_id') \
-          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'), inferior_quantity=Sum('inferior_quantity'))
+          .annotate(buy_quantity=Sum('buy_quantity'), arrival_quantity=Sum('arrival_quantity'),
+                        inferior_quantity=Sum('inferior_quantity'))
         for s in dinghuo_stats:
             product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
+            sku_ids.add(sku_id)
             skus = products.setdefault(product_id, {})
-            skus[sku_id] = {
-                'sale_quantity': 0,
+            sku = skus.setdefault(sku_id, {'sale_quantity': 0})
+            sku.update({
                 'buy_quantity': s['buy_quantity'],
                 'arrival_quantity': s['arrival_quantity'],
                 'inferior_quantity': s['inferior_quantity']
-            }
+            })
+
 
         for sku in ProductSku.objects.filter(pk__in=list(sku_ids)):
             sku_dict = products[sku.product_id][sku.id]
             sku_dict.update({
                 'id': sku.id,
                 'quantity': sku.quantity,
-                'properties_name': sku.properties_name,
+                'properties_name': sku.properties_name or sku.properties_alias,
                 'outer_id': sku.outer_id
             })
 
@@ -439,7 +439,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             supplier_id = saleproduct2supplier_mapping.get(sale_product_id) or 0
             if supplier_id not in suppliers:
                 supplier_name, buyer_id = supplier_mapping.get(supplier_id) or ('未知',  0)
-                buyer_name = buyer_mapping.get(buyer_id) or ''
+                buyer_name = buyer_mapping.get(buyer_id) or '空缺'
                 supplier = {
                     'id': supplier_id,
                     'buyer_name': buyer_name,
@@ -450,4 +450,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             else:
                 supplier = suppliers[supplier_id]
             supplier['products'].append(new_product)
-        return Response({'data': suppliers})
+
+
+        print [suppliers[k] for k in sorted(suppliers.keys())]
+        return Response({'suppliers': [suppliers[k] for k in sorted(suppliers.keys())]})
