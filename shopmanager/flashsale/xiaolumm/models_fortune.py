@@ -193,6 +193,9 @@ class OrderCarry(BaseModel):
         return '%s,%s,%s,%s' % (self.mama_id, self.carry_type, self.carry_num,self.date_field)
 
     def carry_type_name(self):
+        # web order, we currently dont show name
+        if self.carry_type == 1: 
+            return ''
         return get_choice_name(self.CARRY_TYPES, self.carry_type)
 
     def order_value_display(self):
@@ -203,6 +206,11 @@ class OrderCarry(BaseModel):
 
     def status_display(self):
         return get_choice_name(self.STATUS_TYPES, self.status)
+
+    def contributor_nick(self):
+        if self.contributor_nick == "":
+            return u"匿名用户"
+        return self.contributor_nick
 
     def is_pending(self):
         return self.status == 1
