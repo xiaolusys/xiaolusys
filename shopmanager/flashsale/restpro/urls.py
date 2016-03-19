@@ -26,6 +26,7 @@ from . import views_mmadver
 from . import views_wuliu_new
 from . import views_cushops
 from . import views_promotion
+from . import views_login_v2
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -123,6 +124,9 @@ router_urls += format_suffix_patterns([
 # 2016-3-2 v2
 from flashsale.restpro.v2 import views_mama_v2
 v2_router = routers.DefaultRouter(trailing_slash=False)
+
+v2_router.register(r'login', views_login_v2.LoginViewSet)
+
 v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)
 v2_router.register(r'carry', views_mama_v2.CarryRecordViewSet)
 v2_router.register(r'ordercarry', views_mama_v2.OrderCarryViewSet)
@@ -145,10 +149,10 @@ urlpatterns = patterns('',
     url(r'^v1/pmt/', include(router_urls_promotion, namespace='v1_promote')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^wuliu/',views_wuliu.WuliuView.as_view()),
-    
-    #url(r'^test/',views_wuliu.test),
 
-    url(r'^v2/mama/', include(v2_router_urls, namespace='v2')),
+    #url(r'^test/',views_wuliu.test),
+    url(r'^v2/', include(v2_router_urls, namespace='v2')),
+    url(r'^v2/mama/', include(v2_router_urls, namespace='v2_mama')),
     url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
 
 )
