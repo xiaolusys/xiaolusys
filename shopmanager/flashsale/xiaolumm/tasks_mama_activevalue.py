@@ -6,8 +6,8 @@ from flashsale.xiaolumm import util_description, util_unikey
 
 from flashsale.xiaolumm.models_fortune import ActiveValue, OrderCarry
 
-
 import sys
+import datetime
 
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""
@@ -94,6 +94,15 @@ def task_referal_update_activevalue(mama_id, date_field, contributor_id):
     
 
 
+def confirm_twodays_ago_activevalue(mama_id, today_date_field):
+    date_field = today_date_field - datetime.timedelta(days=2)
+    active_values = ActiveValue.objects.filter(mama_id=mama_id, date_field=date_field)
+    if active_values.count() > 0:
+        value_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
+        active_values[0].value_num = value_num
+        active_values[0].save()
+        
+
 @task()
 def task_visitor_increment_activevalue(mama_id, date_field):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
@@ -109,6 +118,9 @@ def task_visitor_increment_activevalue(mama_id, date_field):
                                    uni_key=uni_key, value_description=description,
                                    date_field=date_field,status=status)
         active_value.save()
+
+        confirm_twodays_ago_activevalue(mama_id, date_field)
+        
     else:
         active_values.update(value_num=F('value_num')+1)
         

@@ -9,6 +9,7 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_fortune',
     'flashsale.xiaolumm.tasks_mama_relationship_visitor',
     'flashsale.xiaolumm.tasks_mama_carryrecord',
+    'flashsale.xiaolumm.tasks_mama_clickcarry',
 )
 #CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"

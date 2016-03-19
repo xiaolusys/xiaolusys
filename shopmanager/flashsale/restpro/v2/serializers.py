@@ -32,6 +32,7 @@ class OrderCarrySerializer(serializers.ModelSerializer):
     order_value = serializers.FloatField(source='order_value_display', read_only=True)
     carry_num = serializers.FloatField(source='carry_num_display', read_only=True)
     carry_value = serializers.FloatField(source='carry_num_display', read_only=True)
+    contributor_nick = serializers.CharField(source='contributor_nick_display', read_only=True)
     
     class Meta:
         model = OrderCarry

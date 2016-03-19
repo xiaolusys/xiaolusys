@@ -387,22 +387,23 @@ class ClickCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'click_num', 'init_order_num', 'init_click_price',
                     'init_click_limit', 'confirmed_order_num',
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
-                    'status', 'date_field')
+                    'status', 'date_field', 'modified', 'created')
 admin.site.register(ClickCarry, ClickCarryAdmin)
 
 
 class ActiveValueAdmin(admin.ModelAdmin):
-    list_display = ('mama_id', 'value_num', 'value_type', 'status')
+    list_display = ('mama_id', 'value_num', 'value_type', 'status', 'date_field', 'modified', 'created')
 admin.site.register(ActiveValue, ActiveValueAdmin)
 
 
 class ReferalRelationshipAdmin(admin.ModelAdmin):
-    list_display = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick')
+    list_display = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'modified', 'created')
+    search_fields = ('referal_from_mama_id',)
 admin.site.register(ReferalRelationship,ReferalRelationshipAdmin)
 
 
 class GroupRelationshipAdmin(admin.ModelAdmin):
-    list_display = ('leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick')
+    list_display = ('leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick', 'modified', 'created')
 admin.site.register(GroupRelationship,GroupRelationshipAdmin)
 
 
