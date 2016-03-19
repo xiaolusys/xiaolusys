@@ -73,7 +73,7 @@ class WeixinPubBackend(object):
     def authenticate(self, request, **kwargs):
         
         content = request.REQUEST
-        if (not request.path.startswith(("/mm/","/rest/")) 
+        if (not request.path.startswith(("/mm/","/rest/","/sale/")) 
             or kwargs.get('username') 
             or content.get('unionid')):
             return None

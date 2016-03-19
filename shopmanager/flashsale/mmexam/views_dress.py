@@ -13,6 +13,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
+from flashsale.pay.models_user import Customer
 from .models import MamaDressResult
 from . import constants
 
@@ -30,7 +31,7 @@ class DressView(WeixinAuthMixin, APIView):
 
 class DressQuestionView(WeixinAuthMixin, APIView):
     
-    authentication_classes = ()
+    authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/active_{0}/question.html"
@@ -58,24 +59,35 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             else:
                 return x + int(y[1])
         return reduce(tsum ,score_list)
+    
         
     def get(self, request, active_id, *args, **kwargs):
         
-        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
-        user_infos = self.get_auth_userinfo(request)
-        unionid = user_infos.get('unionid')
-        openid = user_infos.get('openid')
-        if not self.valid_openid(unionid):
-            redirect_url = self.get_snsuserinfo_redirct_url(request)
-            return redirect(redirect_url)
-        
+        customer = get_object_or_404(Customer, user=request.user.id)
+        unionid  = customer.unionid
+        if not unionid:
+            self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+            user_infos = self.get_auth_userinfo(request)
+            unionid = user_infos.get('unionid');openid = user_infos.get('openid')
+            if not self.valid_openid(unionid):
+                redirect_url = self.get_snsuserinfo_redirct_url(request)
+                return redirect(redirect_url)
+        else:
+            openid = customer.openid
+            user_infos = {
+              'openid':customer.openid,
+              'unionid':customer.unionid,
+              'nickname':customer.nick,
+              'headimgurl':customer.thumbnail,
+            }
+            
         referal_id = request.GET.get('referal_id')
         referal_dress = None
         if referal_id :
             if not referal_id.isdigit():
                 raise Http404('404')
             referal_dress = get_object_or_404(MamaDressResult,id=referal_id)
-        
+
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         if state:
             mama_dress.openid = user_infos.get('openid') 
@@ -106,7 +118,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             'post_question_id':question_id + 1,
             'score_string':''
         })
-        
+
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
         
@@ -115,7 +127,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         score_string = request.POST['scores']
         dress_id = request.POST['dress_id']
         question_id = request.POST['question_id']
-
+        
         mama_dresses = MamaDressResult.objects.filter(id=dress_id)
         if not mama_dresses.exists() :
             return HttpResponse('|'.join(['302',reverse('dress_result')]))
@@ -195,7 +207,6 @@ class DressResultView(WeixinAuthMixin, APIView):
     
     def get(self, request, *args, **kwargs):
         
-        content = request.REQUEST
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
         if not self.valid_openid(unionid):

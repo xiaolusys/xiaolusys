@@ -31,4 +31,12 @@ class ApproxCountQuerySet(QuerySet):
             return self.query.get_count(using=self.db)
         
         
-
+class BaseManager(models.Manager):
+    
+    def get_query_set(self):
+        _super = super(BaseManager,self)
+        if hasattr(_super,'get_query_set'):
+            return _super.get_query_set()
+        return _super.get_queryset()
+    
+    get_queryset = get_query_set

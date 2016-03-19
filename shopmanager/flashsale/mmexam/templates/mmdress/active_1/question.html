@@ -144,7 +144,7 @@ function submit(ele){
     var dress_id = $(ele).attr('dress_id');
     var question_id = $(ele).attr('question_id');
     var callback = function(resp,status,xhr){
-        if (typeof(resp) == 'string' && resp.startsWith('302')){
+        if (typeof(resp) == 'string' && resp.indexOf('302') == 0){
             var direct_url = resp.split('|');
             window.location.href = direct_url[1];
             return;
