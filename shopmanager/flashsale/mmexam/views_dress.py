@@ -187,7 +187,7 @@ class DressResultView(WeixinAuthMixin, APIView):
         """ 生成微信分享参数 """
         from shopapp.weixin.weixin_apis import WeiXinAPI
         wx_api     = WeiXinAPI()
-        wx_api.setAccountId(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+        wx_api.setAccountId(constants.XIAOLU_PUBID,settings.WXPAY_APPID)
         signparams = wx_api.getShareSignParams(share_url)
         return {'openid': openid,
                 'wx_singkey': signparams}
@@ -284,20 +284,27 @@ class DressShareView(WeixinAuthMixin, APIView):
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/dress_share.html"
-        
+    
+    def get_dress_age_and_star(self, mama_dress):
+        dress_score = self.calc_score(mama_dress)
+        for ages in constants.SCORE_AGES:
+            if dress_score == ages[0]:
+                return ages[1],constants.DRESS_STARS[ages[2]]
+        return 
+    
+    def calc_score(self,mama_dress):
+        return (100 - mama_dress.exam_score) / 10
+    
     def get(self, request, dress_id, *args, **kwargs):
         
-        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
-        openid,unionid = self.get_openid_and_unionid(request)
-        if not self.valid_openid(unionid):
-            redirect_url = self.get_snsuserinfo_redirct_url(request)
-            return redirect(redirect_url)
+        mama_dress,state = MamaDressResult.objects.get_or_create(id=dress_id)
+        dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
         
-        mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         response = Response({
-                    'referal_dress':mama_dress
+                    'referal_dress':mama_dress,
+                    'dress_age':dress_age,
+                    'dress_star':dress_star
                 })
-        self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
     
     def post(self, request, dress_id, *args, **kwargs):
