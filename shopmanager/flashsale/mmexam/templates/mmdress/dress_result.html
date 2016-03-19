@@ -198,17 +198,18 @@ function hidetips(){
     $('#share-panel').hide();
 }
 var shareParams = {
-    {% for k,v in share_params.items %}
-    {% if k == 'wx_singkey' %}
-      {{k}}:{ 
-        {% for m,p in v.items %}
-        {{m}}:'{{p}}',
-        {% endfor %}
+    wx_singkey:{ 
+          timestamp:{{share_params.wx_singkey.timestamp}},
+          app_id:'{{share_params.wx_singkey.app_id}}',
+          signature:'{{share_params.wx_singkey.signature}}',
+          noncestr:'{{share_params.wx_singkey.noncestr}}',
      },
-    {% else %}
-    {{k}}:'{{v}}',
-    {% endif %}
-    {% endfor %}
+    share_title:'{{share_params.share_title}}',
+    openid:'{{share_params.openid}}',
+    share_img:'{{share_params.share_img}}',
+    callback_url:'{{share_params.callback_url}}',
+    share_link:'{{share_params.share_link}}',
+    share_desc:'{{share_params.share_desc}}',
 };
 listenWeixinShareEvent(shareParams);
 </script>
