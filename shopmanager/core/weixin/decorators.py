@@ -35,7 +35,7 @@ def weixin_authlogin_required(redirecto=None):
                       'state':'135'}
                     redirect_url = options.gen_weixin_redirect_url(params)
                     return redirect(redirect_url)
-            
+
             user = authenticate(request=request)
             if not user or user.is_anonymous():
                 return HttpResponseRedirect(redirecto)
