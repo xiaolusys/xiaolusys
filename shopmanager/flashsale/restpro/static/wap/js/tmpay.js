@@ -56,7 +56,7 @@ function Set_user_orderinfo(suffix){
         $('.buy .total span').html('<em>￥</em>' + data.total_payment);
         
         if (data.wallet_payable){
-            $('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="wallet"></i>小鹿钱包</li>');
+            $('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="wallet"></i>妈妈钱包</li>');
         }
         if (data.weixin_payable){
             $('.pay-type .pay-list').append('<li class="normal" name="select-pay"><i id="wx_pub"></i>微信支付</li>');
@@ -143,7 +143,7 @@ function Ctrl_sure_charge(pay_url){
         return;
     }
     click_paybtn = true;
-    if(channel == WALLET_PAY && !confirm("确认使用小鹿钱包支付金额（￥"+params.payment+'元)吗？')){
+    if(channel == WALLET_PAY && !confirm("确认使用妈妈钱包支付金额（￥"+params.payment+'元)吗？')){
         click_paybtn = false;
         return;
     }

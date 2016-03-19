@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
-from .ormcache import managers
 
+from .ormcache import managers
+from .managers import BaseManager
 
 class BaseModel(models.Model):
     created  = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=u'创建日期')
     modified = models.DateTimeField(auto_now=True, db_index=True, verbose_name=u'修改日期')
-
+    
+    objects = BaseManager()
     class Meta:
         abstract = True
 
@@ -27,6 +29,7 @@ class AdminModel(BaseModel):
 
 class CacheModel(BaseModel):
     """ 需要对queryset结果做缓存的MODEL """
+    
     objects = managers.CacheManager()
     cache_enabled = True
     class Meta:

@@ -13,6 +13,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
+from flashsale.pay.models_user import Customer
 from .models import MamaDressResult
 from . import constants
 
@@ -58,17 +59,28 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             else:
                 return x + int(y[1])
         return reduce(tsum ,score_list)
+    
         
     def get(self, request, active_id, *args, **kwargs):
         
-        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
-        user_infos = self.get_auth_userinfo(request)
-        unionid = user_infos.get('unionid')
-        openid = user_infos.get('openid')
-        if not self.valid_openid(unionid):
-            redirect_url = self.get_snsuserinfo_redirct_url(request)
-            return redirect(redirect_url)
-        
+        customer = get_object_or_404(Customer, user=request.user.id)
+        unionid  = customer.unionid
+        if not unionid:
+            self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
+            user_infos = self.get_auth_userinfo(request)
+            unionid = user_infos.get('unionid');openid = user_infos.get('openid')
+            if not self.valid_openid(unionid):
+                redirect_url = self.get_snsuserinfo_redirct_url(request)
+                return redirect(redirect_url)
+        else:
+            openid = customer.openid
+            user_infos = {
+              'openid':customer.openid,
+              'unionid':customer.unionid,
+              'nickname':customer.nick,
+              'headimgurl':customer.thumbnail,
+            }
+            
         referal_id = request.GET.get('referal_id')
         referal_dress = None
         if referal_id :
@@ -195,7 +207,6 @@ class DressResultView(WeixinAuthMixin, APIView):
     
     def get(self, request, *args, **kwargs):
         
-        content = request.REQUEST
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         openid,unionid = self.get_openid_and_unionid(request)
         if not self.valid_openid(unionid):

@@ -5,7 +5,8 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
     
-from core.fields import BigIntegerAutoField,BigIntegerForeignKey
+from core.fields import BigIntegerAutoField
+from core.models import BaseModel
 from .base import PayBaseModel
 from flashsale.pay.models_envelope import Envelop
 import constants
@@ -87,7 +88,7 @@ class Register(PayBaseModel):
         return False
         
     
-class Customer(PayBaseModel):
+class Customer(BaseModel):
     
     class Meta:
         db_table = 'flashsale_customer'
