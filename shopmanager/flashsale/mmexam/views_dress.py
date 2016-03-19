@@ -187,8 +187,8 @@ class DressResultView(WeixinAuthMixin, APIView):
         """ 生成微信分享参数 """
         from shopapp.weixin.weixin_apis import WeiXinAPI
         wx_api     = WeiXinAPI()
+        wx_api.setAccountId(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         signparams = wx_api.getShareSignParams(share_url)
-        
         return {'openid': openid,
                 'wx_singkey': signparams}
     
