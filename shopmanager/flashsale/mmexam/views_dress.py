@@ -87,7 +87,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             if not referal_id.isdigit():
                 raise Http404('404')
             referal_dress = get_object_or_404(MamaDressResult,id=referal_id)
-        
+
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         if state:
             mama_dress.openid = user_infos.get('openid') 
@@ -118,7 +118,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             'post_question_id':question_id + 1,
             'score_string':''
         })
-        
+
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
         
@@ -127,7 +127,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         score_string = request.POST['scores']
         dress_id = request.POST['dress_id']
         question_id = request.POST['question_id']
-
+        
         mama_dresses = MamaDressResult.objects.filter(id=dress_id)
         if not mama_dresses.exists() :
             return HttpResponse('|'.join(['302',reverse('dress_result')]))
