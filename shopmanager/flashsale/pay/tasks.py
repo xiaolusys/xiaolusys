@@ -33,9 +33,9 @@ def task_Update_Sale_Customer(unionid,openid=None,app_key=None):
         if wxusers.exists():
             wxuser = wxusers[0]
             profile.openid = profile.openid or openid or ''
-            profile.nick   = profile.nick.strip() or wxuser.nickname
+            profile.nick   = wxuser.nickname or profile.nick
             profile.mobile = profile.mobile.strip() or wxuser.mobile
-            profile.thumbnail = profile.thumbnail or wxuser.headimgurl
+            profile.thumbnail = wxuser.headimgurl or profile.thumbnail
             update_model_fields(profile,update_fields=['nick','mobile','openid','thumbnail'])
             
     except Exception,exc:
@@ -60,9 +60,9 @@ def task_Refresh_Sale_Customer(user_params,app_key=None):
         if not profile.mobile and wxusers.exists():
             profile.mobile =  wxusers[0].mobile
             
-        profile.nick   = profile.nick.strip() or user_params.get('nickname')
+        profile.nick   = user_params.get('nickname') or profile.nick
         profile.openid = profile.openid or user_params.get('openid')
-        profile.thumbnail = profile.thumbnail or user_params.get('headimgurl')
+        profile.thumbnail = user_params.get('headimgurl') or profile.thumbnail
         update_model_fields(profile,update_fields=['nick','mobile','openid','thumbnail'])
             
     except Exception,exc:
