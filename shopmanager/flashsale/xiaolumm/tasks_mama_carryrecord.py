@@ -25,8 +25,7 @@ def get_cur_info():
 
 
 @task()
-def task_awardcarry_update_carryrecord(carry_pk):
-    carry = AwardCarry.objects.get(pk=carry_pk)
+def task_awardcarry_update_carryrecord(carry):
     print "%s, mama_id: %s" % (get_cur_info(), carry.mama_id)
     
     records = CarryRecord.objects.filter(uni_key=carry.uni_key)
@@ -45,11 +44,8 @@ def task_awardcarry_update_carryrecord(carry_pk):
 
         
 
-@task()
-def task_ordercarry_update_carryrecord(carry_pk):
-    carry = OrderCarry.objects.get(pk=carry_pk)
-    print "%s, mama_id: %s" % (get_cur_info(), carry.mama_id)
-    
+@task()        
+def task_ordercarry_update_carryrecord(carry):    
     records = CarryRecord.objects.filter(uni_key=carry.uni_key)
     if records.count() > 0:
         record = records[0]
@@ -71,10 +67,7 @@ def task_ordercarry_update_carryrecord(carry_pk):
     
 
 @task()
-def task_clickcarry_update_carryrecord(carry_pk):
-    carry = ClickCarry.objects.get(pk=carry_pk)
-    print "%s, mama_id: %s" % (get_cur_info(), carry.mama_id)
-    
+def task_clickcarry_update_carryrecord(carry):    
     records = CarryRecord.objects.filter(uni_key=carry.uni_key)
     if records.count() > 0:
         record = records[0]

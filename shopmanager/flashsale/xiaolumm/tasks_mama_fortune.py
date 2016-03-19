@@ -77,18 +77,13 @@ def task_carryrecord_update_mamafortune(mama_id):
             carry_pending = entry["carry"]
         elif entry["status"] == 2: # confirmed
             carry_confirmed = entry["carry"]
-    
+
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
-        flag = False
-        if fortune.carry_pending != carry_pending:
+        if fortune.carry_pending != carry_pending or fortune.carry_confirmed != carry_confirmed:
             fortune.carry_pending   = carry_pending
-            flag = True
-        if fortune.carry_confirmed != carry_confirmed:
             fortune.carry_confirmed = carry_confirmed
-            flag = True
-        if flag:
             fortune.save()
     else:
         fortune = MamaFortune(mama_id=mama_id,carry_pending=carry_pending,

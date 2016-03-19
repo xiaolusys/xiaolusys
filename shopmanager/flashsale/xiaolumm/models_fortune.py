@@ -207,7 +207,7 @@ class OrderCarry(BaseModel):
     def status_display(self):
         return get_choice_name(self.STATUS_TYPES, self.status)
 
-    def contributor_nick(self):
+    def contributor_nick_display(self):
         if self.contributor_nick == "":
             return u"匿名用户"
         return self.contributor_nick
@@ -230,7 +230,7 @@ class OrderCarry(BaseModel):
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.s(instance.pk)()
+    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.s(instance)()
 
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')
@@ -242,7 +242,8 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
         referal_relationships = ReferalRelationship.objects.filter(referal_to_mama_id=instance.mama_id)
         if referal_relationships.count() > 0:
             from flashsale.xiaolumm import tasks_mama
-            tasks_mama.task_update_second_level_ordercarry.s(referal_relationships[0].pk, instance.pk)()
+            referal_relationship = referal_relationships[0]
+            tasks_mama.task_update_second_level_ordercarry.s(referal_relationship, instance)()
         
 post_save.connect(ordercarry_update_ordercarry,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_ordercarry')
@@ -260,8 +261,8 @@ def ordercarry_update_order_number(sender, instance, created, **kwargs):
     mama_id = instance.mama_id
     date_field = instance.date_field
 
-    from flashsale.xiaolumm import tasks_mama
-    tasks_mama.task_update_clickcarry_order_number.s(mama_id, date_field)()
+    from flashsale.xiaolumm import tasks_mama_clickcarry
+    tasks_mama_clickcarry.task_update_clickcarry_order_number.s(mama_id, date_field)()
 
     from flashsale.xiaolumm import tasks_mama_fortune
     tasks_mama_fortune.task_update_mamafortune_order_num.s(mama_id)()
@@ -321,11 +322,28 @@ class AwardCarry(BaseModel):
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_awardcarry_update_carryrecord.s(instance.pk)()
+    tasks_mama_carryrecord.task_awardcarry_update_carryrecord.s(instance)()
 
 
 post_save.connect(awardcarry_update_carryrecord,
                   sender=AwardCarry, dispatch_uid='post_save_awardcarry_update_carryrecord')
+
+
+from core.fields import JSONCharMyField
+class ClickPlan(BaseModel):
+    STATUS_TYPES = ((0, u'使用'), (1, u'取消'),)
+    name = models.CharField(max_length=32, verbose_name=u'名字')
+    
+    # {"0":[10, 10], "1":[20, 60], "2":[30, 110], "3":[40, 160], "4":[50, 210], "5":[60, 260]}
+    order_rules = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'规则')
+    max_order_num = models.IntegerField(default=0, verbose_name=u'最大订单人数') 
+    
+    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') 
+    
+    class Meta:
+        db_table = 'flashsale_xlmm_click_plan'
+        verbose_name = u'V2/点击计划'
+        verbose_name_plural = u'V2/点击计划列表'
 
 
     
@@ -341,6 +359,7 @@ class ClickCarry(BaseModel):
     confirmed_click_price = models.IntegerField(default=0, verbose_name=u'确定点击价')
     confirmed_click_limit = models.IntegerField(default=0, verbose_name=u'确定点击上限')
     carry_plan_name = models.CharField(max_length=32,blank=True,verbose_name=u'佣金计划')
+    carry_plan_id = models.IntegerField(default=1, verbose_name=u'佣金计划ID')
     total_value = models.IntegerField(default=0, verbose_name=u'点击总价')
     carry_description = models.CharField(max_length=64, blank=True, verbose_name=u'描述')
     date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
@@ -376,10 +395,12 @@ class ClickCarry(BaseModel):
         """
         return None
 
+            
+        
 
 def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_clickcarry_update_carryrecord.s(instance.pk)()
+    tasks_mama_carryrecord.task_clickcarry_update_carryrecord.s(instance)()
 
 
 post_save.connect(clickcarry_update_carryrecord,
@@ -522,7 +543,7 @@ def group_update_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama
-    tasks_mama.task_group_update_awardcarry.s(instance.pk)()
+    tasks_mama.task_group_update_awardcarry.s(instance)()
     
     from flashsale.xiaolumm import tasks_mama_fortune 
     tasks_mama_fortune.task_update_mamafortune_mama_level.s(instance.leader_mama_id)()
@@ -552,7 +573,7 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     mama_id = instance.mama_id
     date_field = instance.date_field
     
-    from flashsale.xiaolumm.tasks_mama import task_visitor_increment_clickcarry
+    from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
     task_visitor_increment_clickcarry.s(mama_id, date_field)()
 
     from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
@@ -562,18 +583,5 @@ post_save.connect(visitor_update_clickcarry_and_activevalue,
                   sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
 
 
-from core.fields import JSONCharMyField
-class ClickPlan(BaseModel):
-    STATUS_TYPES = ((0, u'使用'), (1, u'取消'),)
-    name = models.CharField(max_length=32, verbose_name=u'名字')
-    
-    # {"0":[10, 10], "1":[20, 60], "2":[30, 110], "3":[40, 160], "4":[50, 210], "5":[60, 260]}
-    order_rules = JSONCharMyField(max_length=256, blank=True, default={}, verbose_name=u'规则')
-    status = models.IntegerField(default=0, choices=STATUS_TYPES, verbose_name=u'状态') 
-    
-    class Meta:
-        db_table = 'flashsale_xlmm_click_plan'
-        verbose_name = u'V2/点击计划'
-        verbose_name_plural = u'V2/点击计划列表'
         
     
