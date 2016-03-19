@@ -107,6 +107,7 @@ class MamaDressResult(BaseModel):
     def is_finished(self):
         return self.exam_state in (self.SHAREDRESS, self.FINISHED)
     
+    @property
     def active_id(self):
         return 1
     

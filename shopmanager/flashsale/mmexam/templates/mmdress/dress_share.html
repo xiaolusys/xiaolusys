@@ -7,15 +7,11 @@
 {% load mathfilters %}
 {% block head_script %}
 <style>
-.container-fluid{
-    padding-right: 0px;
-    padding-left: 0px;
-}
 .container-nav{
     margin-top:0%;
 }
 .row{
-    padding:0 0px 5px;
+    padding:0 0 10px;
 }
 .head-img{
     width:100%;
@@ -66,7 +62,7 @@
 }
 .score-img-sm{
     margin-top:-10px;
-    width:30px;
+    width:25px;
     display:inline;
 }
 .score-cover{
@@ -125,8 +121,8 @@
   </div>
   <!-- 我也要测试 -->
   <div class="row">
-    <a href="{% url 'dress_question' active_id=mama_dress.active_id %}?referal_id={{mama_dress.id}}">
-      <img class="head-img"  src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%8C%89%E9%94%AE-%E5%86%8D%E6%B5%8B%E4%B8%80%E6%AC%A1.png" />
+    <a href="{% url 'dress_question' active_id=referal_dress.active_id %}?referal_id={{referal_dress.id}}">
+      <img class="head-img"  src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%88%86%E4%BA%AB-%E6%8C%89%E9%94%AE-%E6%88%91%E4%B9%9F%E8%A6%81%E6%B5%8B%E8%AF%95.png" />
     </a>
   </div>
   <!-- 红包 -->
