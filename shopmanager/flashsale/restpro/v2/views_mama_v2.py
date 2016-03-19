@@ -105,7 +105,8 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id, status__gt=0).order_by('-date_field', '-created')
+        # we dont return canceled record
+        return self.queryset.filter(mama_id=mama_id).exclude(status=3).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -136,7 +137,8 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
         mama_id = get_mama_id(request.user)
         carry_type = request.REQUEST.get("carry_type", "all")
         if carry_type == "direct":
-            return self.queryset.filter(mama_id=mama_id).exclude(status=3).order_by('-date_field', '-created')
+            return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+        # we dont return upaid/canceled order
         return self.queryset.filter(mama_id=mama_id).exclude(status=0).exclude(status=3).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
