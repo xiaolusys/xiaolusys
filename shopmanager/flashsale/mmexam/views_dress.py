@@ -201,7 +201,7 @@ class DressResultView(WeixinAuthMixin, APIView):
 
     
     def get_referal_url(self, request):
-        referer_url  = request.build_absolute_uri().split('#')[0],
+        referer_url  = request.build_absolute_uri().split('#')[0]
         return referer_url
     
     def render_share_params(self, request, **kwargs):
@@ -216,6 +216,7 @@ class DressResultView(WeixinAuthMixin, APIView):
             'share_img':active['share_img'],
             'callback_url':share_url,
             'openid':mama_dress.openid,
+            'referer_url':self.get_referal_url(request),
             'wx_singkey':self.gen_wxshare_signs(request)
         }
         return resp

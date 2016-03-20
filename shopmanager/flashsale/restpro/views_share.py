@@ -14,6 +14,7 @@ from rest_framework import renderers
 from rest_framework import authentication
 from rest_framework import status
 from rest_framework import exceptions
+from rest_framework.views import APIView
 
 from flashsale.pay.models import CustomShare,Customer,ModelProduct
 from flashsale.xiaolumm.models import XiaoluMama
@@ -152,5 +153,4 @@ class CustomShareViewSet(viewsets.ModelViewSet):
             resp.update(wxshare_params)
 
         return Response(resp)
-    
-    
+
