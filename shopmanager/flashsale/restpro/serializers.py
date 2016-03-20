@@ -126,13 +126,25 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
     is_saleout    = serializers.BooleanField(source='sale_out', read_only=True)
     is_saleopen   = serializers.BooleanField(source='sale_open',read_only=True)
     is_newgood    = serializers.BooleanField(source='new_good',read_only=True)
-    watermark_op = serializers.CharField(read_only=True)
+    watermark_op  = serializers.CharField(read_only=True)
 
     class Meta:
         model = Product
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 'memo',
                   'lowest_price', 'product_lowest_price', 'product_model', 'ware_by', 'is_verify', "model_id", 'watermark_op')
+
+class SimpleProductSerializer(serializers.ModelSerializer):
+
+    category = ProductCategorySerializer(read_only=True)
+#     normal_skus = ProductSkuSerializer(many=True, read_only=True)
+    product_model = ModelProductSerializer(source="get_product_model",read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'outer_id', 'category', 'pic_path','head_img',
+                  'std_sale_price', 'agent_price', 'sale_time', 'offshelf_time', 
+                  'lowest_price', 'product_lowest_price', 'product_model')
 
 
 class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):

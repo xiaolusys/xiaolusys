@@ -606,7 +606,22 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         object_list = self.objets_from_cache(pros, value_keys=['pk', 'is_saleout'])
         serializer = self.get_serializer(object_list, many=True)
         return Response({"shop_info": shop_info, "products": serializer.data})
-
+    
+    @list_route(methods=['get'])
+    def promotion_ads(self, request):
+        """ 推荐展示商品信息 """
+        content = request.GET
+        category = content.get('cat')
+        list_num = int(content.get('lnum','1'))
+        filters  = content.get('filters')
+        product_qs = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
+        product_qs = self.order_queryset(request, product_qs)
+        if category and category.isdigit():
+            product_qs = product_qs.filter(category=category)
+        
+        product_list  = product_qs[0:list_num]
+        serializer = serializers.SimpleProductSerializer(product_list,many=True)
+        return Response(serializer.data)
 
 class ProductShareView(generics.RetrieveAPIView):
     """ 获取特卖商品快照 """

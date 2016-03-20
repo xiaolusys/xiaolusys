@@ -18,7 +18,8 @@ DRESS_STARS = [
      'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-18-24%E5%B2%81.png',
      'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%9E%97%E5%85%81.png',
      'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
-     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png',
+     'category_id':21,
      },
     {
      'id':2,
@@ -26,7 +27,8 @@ DRESS_STARS = [
      'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-26-28%E5%B2%81.png',
      'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_Angelababy.png',
      'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
-     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png',
+     'category_id':21,
      },
     {
      'id':3,
@@ -34,7 +36,8 @@ DRESS_STARS = [
      'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-29-34%E5%B2%81.png',
      'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%9D%A8%E5%B9%82.png',
      'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
-     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png',
+     'category_id':18,
      },
     {
      'id':4,
@@ -42,7 +45,8 @@ DRESS_STARS = [
      'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-35-42%E5%B2%81.png',
      'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%88%98%E6%B6%9B.png',
      'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
-     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png',
+     'category_id':19,
      },
     {
      'id':5,
@@ -50,7 +54,8 @@ DRESS_STARS = [
      'comment_img':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E7%AD%94%E6%A1%88-42%E5%B2%81%E4%BB%A5%E4%B8%8A.png',
      'star_image':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E8%AE%B8%E6%99%B4.png',
      'item_url':'http://m.xiaolumeimei.com/tongkuan.html?id=9337',
-     'item_img':'http://image.xiaolu.so/MG_14575974827003.png?imageMogr2/thumbnail/289/format/jpg/quality/90',
+     'item_img':'http://image.xiaolu.so/MG_14575974827003.png',
+     'category_id':20,
      }
 ] 
 

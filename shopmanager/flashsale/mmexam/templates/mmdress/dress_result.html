@@ -76,11 +76,7 @@
     margin-left:-50%;
 }
 .cover-img{
-    position:absolute;
-    top:10%;
-    left:50%;
-    width:60%; 
-    margin-left:-30%;
+    width:100%;
 }
 .head-cover-img{
     position:absolute;
@@ -92,6 +88,36 @@
 }
 .head-cover-img span{
     display:inline;
+}
+.ads-content{
+    position:absolute;
+    top:7%;
+    left:50%;
+    width:68%; 
+    margin-left:-34%;
+    text-align:left;
+    font-size:18px;
+    color: #333;
+}
+.ads-item p{
+    max-height:25px;
+    overflow:hidden;
+}
+.ads-item .gprice {
+    margin-top:5px;
+    margin-bottom:5px;
+}
+.ads-item .nprice{
+    font-size:20px;
+    color:#00CCE0;
+    padding-right:10px;
+}
+.ads-item .oprice{
+    font-size:14px;
+}
+.ads-item .gname{
+    font-size:16px;
+    text-overflow:ellipsis;
 }
 </style>
 {% endblock %}
@@ -175,9 +201,20 @@
     <img class="head-img" src="{{dress_star.comment_img}}" />
   </div>
   <!-- 推荐商品 -->
-  <div class="row page-relate ">
+  <div id="page-ads" class="row page-relate ">
     <img class="head-img " src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E9%AD%85%E5%8A%9B%E6%8E%A8%E8%8D%90%E6%90%AD%E9%85%8D-%E5%BA%95.png" />
-    <a href="{{dress_star.item_url}}"><img class="cover-img " src="{{dress_star.item_img}}" /></a>
+    <!-- <a href="{{dress_star.item_url}}">
+      <div class="ads-content">
+        <img class="cover-img" src="{{dress_star.item_img}}?imageMogr2/thumbnail/350/format/jpg/quality/90" />
+        <div class="ads-item">
+	        <p class="gprice">
+	          <span class="nprice"><em>¥</em> 99 </span>
+	          <s class="oprice"><em>¥</em> 399</s>
+	        </p>
+	        <p class="gname">双排扣修身气质风衣/图片色</p>
+	    </div>
+      </div>
+    </a> -->
   </div>
 </div>
 
@@ -204,6 +241,7 @@ var shareParams = {
           signature:'{{share_params.wx_singkey.signature}}',
           noncestr:'{{share_params.wx_singkey.noncestr}}',
      },
+    referal_url:'{{share_params.referal_url}}',
     share_title:'{{share_params.share_title}}',
     openid:'{{share_params.openid}}',
     share_img:'{{share_params.share_img}}',
@@ -211,6 +249,40 @@ var shareParams = {
     share_link:'{{share_params.share_link}}',
     share_desc:'{{share_params.share_desc}}',
 };
+
 listenWeixinShareEvent(shareParams);
+$(document).ready(function(){
+    // 加载推荐商品
+    var promotion_url = '/rest/v1/products/promotion_ads?cat={{dress_star.category_id}}';
+    $.get(
+        promotion_url,
+        function(resp){
+            console.log('dress ads:',resp);
+            if (resp.length == 0){return}
+            var product = resp[0];
+            var html = '';
+            if (product.model_product){
+                html += '<a href="/pages/tongkuan.html?id='+ product.model_product.id +'">';
+            }else{
+                html += '<a href="/pages/shangpinxq.html?id='+ product.id +'">';
+            } 
+            html +=  '<div class="ads-content">'
+		      + '<img class="cover-img" src="'+ product.head_img +'?imageMogr2/thumbnail/350/format/jpg/quality/90" />'
+		      + '<div class="ads-item">'
+		      + '<p class="gprice">'
+		      + '<span class="nprice"><em>¥</em>'+ product.lowest_price +'</span>'
+		      + '<s class="oprice"><em>¥</em> '+ product.std_sale_price +' </s>'
+		      + '</p>'
+		      + '<p class="gname">'+ product.name +'</p>'
+		      + '</div>'
+		      + '</div>'
+		      + '</a>';
+		     
+		    $('#page-ads').append(html);
+        },
+        'json'
+    );
+});
+
 </script>
 {% endblock %}

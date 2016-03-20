@@ -1,4 +1,4 @@
-#encoding:utf-8
+# coding:utf-8
 import hashlib
 import time
 import datetime
@@ -360,12 +360,12 @@ class WeiXinAPI(object):
         return content['ticket']
   
         
-    def getShareSignParams(self,share_url):
-        
+    def getShareSignParams(self,referal_url):
+        """ referal_url:用户当前停留页面（即发起分享页）的链接地址 """
         sign_params = {"noncestr":randomString(),
                        "jsapi_ticket":self.getJSTicket(),
                        "timestamp":int(time.time()),
-                       "url":share_url }
+                       "url":referal_url }
         key_pairs = ["%s=%s"%(k,v) for k,v in sign_params.iteritems()]
         key_pairs.sort()
         
