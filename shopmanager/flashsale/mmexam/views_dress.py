@@ -17,6 +17,9 @@ from flashsale.pay.models_user import Customer
 from .models import MamaDressResult
 from . import constants
 
+import logging
+logger = logging.getLogger('django.reqeust')
+
 class DressView(WeixinAuthMixin, APIView):
     
     authentication_classes = ()
@@ -68,7 +71,8 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         if not unionid:
             self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
             user_infos = self.get_auth_userinfo(request)
-            unionid = user_infos.get('unionid');openid = user_infos.get('openid')
+            unionid = user_infos.get('unionid')
+            openid  = user_infos.get('openid')
             if not self.valid_openid(unionid):
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
@@ -93,7 +97,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             mama_dress.openid = user_infos.get('openid') 
             mama_dress.referal_from = referal_dress and referal_dress.user_unionid or ''
             mama_dress.mama_headimg = user_infos.get('headimgurl') or ''
-            mama_dress.mama_nick = user_infos.get('nick') or ''
+            mama_dress.mama_nick = user_infos.get('nickname') or ''
             mama_dress.save()
         
         replay = request.GET.get('replay','')
@@ -183,27 +187,37 @@ class DressResultView(WeixinAuthMixin, APIView):
             differ_age = min_age
         return (differ_age ,age_tags_dict.get(differ_age))
     
-    def gen_wxshare_signs(self,openid ,share_url):
+    def gen_wxshare_signs(self, request):
         """ 生成微信分享参数 """
-        from shopapp.weixin.weixin_apis import WeiXinAPI
-        wx_api     = WeiXinAPI()
-        wx_api.setAccountId(appKey=settings.WXPAY_APPID)
-        signparams = wx_api.getShareSignParams(share_url)
-        return {'openid': openid,
-                'wx_singkey': signparams}
+        try:
+            from shopapp.weixin.weixin_apis import WeiXinAPI
+            wx_api     = WeiXinAPI()
+            referal_url = self.get_referal_url(request)
+            wx_api.setAccountId(appKey=settings.WXPAY_APPID)
+            return wx_api.getShareSignParams(referal_url)
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            return {'err':exc.message}
+
     
-    def render_share_params(self, mama_dress, **kwargs):
+    def get_referal_url(self, request):
+        referer_url  = request.build_absolute_uri().split('#')[0],
+        return referer_url
+    
+    def render_share_params(self, request, **kwargs):
         active =  constants.ACITVES[0]
+        mama_dress = kwargs.get('mama_dress')
         share_url = urlparse.urljoin(settings.M_SITE_URL,
                                      reverse('dress_share',kwargs={'dress_id':mama_dress.id}))
         resp = {
             'share_link':share_url,
-            'share_title':active['share_title'].format(mama_dress=mama_dress,**kwargs),
-            'share_desc':active['share_desc'].format(mama_dress=mama_dress,**kwargs),
+            'share_title':active['share_title'].format(**kwargs),
+            'share_desc':active['share_desc'].format(**kwargs),
             'share_img':active['share_img'],
-            'callback_url':share_url
+            'callback_url':share_url,
+            'openid':mama_dress.openid,
+            'wx_singkey':self.gen_wxshare_signs(request)
         }
-        resp.update(self.gen_wxshare_signs(mama_dress.openid, share_url))
         return resp
     
     def get(self, request, *args, **kwargs):
@@ -239,8 +253,7 @@ class DressResultView(WeixinAuthMixin, APIView):
             'referal_star':referal_star,
             'age_tag':age_tag
         }
-        resp_params.update({'share_params':self.render_share_params(**resp_params)})
-        
+        resp_params.update({'share_params':self.render_share_params(request,**resp_params)})
         response = Response(resp_params)
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response

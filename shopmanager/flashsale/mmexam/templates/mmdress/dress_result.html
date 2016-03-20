@@ -199,7 +199,7 @@ function hidetips(){
 }
 var shareParams = {
     wx_singkey:{ 
-          timestamp:{{share_params.wx_singkey.timestamp}},
+          timestamp:{% if share_params.wx_singkey.timestamp %}{{share_params.wx_singkey.timestamp}}{% else %}0{% endif %},
           app_id:'{{share_params.wx_singkey.app_id}}',
           signature:'{{share_params.wx_singkey.signature}}',
           noncestr:'{{share_params.wx_singkey.noncestr}}',
