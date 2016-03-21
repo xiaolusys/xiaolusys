@@ -364,6 +364,7 @@ admin.site.register(MamaFortune, MamaFortuneAdmin)
 
 class CarryRecordAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num_display', 'date_field', 'carry_description', 'carry_type', 'status', 'modified', 'created')
+    list_filter = ('status', )
 admin.site.register(CarryRecord, CarryRecordAdmin)
 
 
@@ -380,6 +381,7 @@ admin.site.register(OrderCarry, OrderCarryAdmin)
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'contributor_nick', 
                     'contributor_img', 'contributor_mama_id', 'status')
+    list_filter = ('status', )
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
 
@@ -388,11 +390,13 @@ class ClickCarryAdmin(admin.ModelAdmin):
                     'init_click_limit', 'confirmed_order_num',
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
                     'status', 'date_field', 'modified', 'created')
+    list_filter = ('status', )
 admin.site.register(ClickCarry, ClickCarryAdmin)
 
 
 class ActiveValueAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'value_num', 'value_type', 'status', 'date_field', 'modified', 'created')
+    list_filter = ('status', )
 admin.site.register(ActiveValue, ActiveValueAdmin)
 
 
