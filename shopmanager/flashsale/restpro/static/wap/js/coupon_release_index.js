@@ -3,22 +3,6 @@
  */
 var CLICK_COUPON_TIMES = 1;
 
-$("#coupon_release").click(function () {
-    //领取优惠券
-    if (CLICK_COUPON_TIMES > 1) {
-        // 第二次点击跳转到优惠券页面
-        location.href = "pages/youhuiquan.html";
-    }
-    var uldom = $("#tpl_ul_show");
-    $.each($(uldom).children(), function (i, v) {
-        var tmpid = $(v).attr("cid");
-        var data = {"template_id": tmpid};
-        var d = $("#coupon_release");
-        console.log("data :", data);
-        Action_release(data, d);
-    });
-    CLICK_COUPON_TIMES += 1; // 再次点击
-});
 
 function Action_release(data, d) {
     var url = GLConfig.baseApiUrl + GLConfig.usercoupons;
@@ -73,7 +57,7 @@ function Set_coupon_tpls() {
         var img_num = 0;
         if (res.length > 0) {
             var html = '<div>' +
-                '<div class="glist_cou" id="coupon_release"><ul id="tpl_ul_show"></ul></div>' +
+                '<div class="glist_cou" id="coupon_release" onclick="clickRelease();"><ul id="tpl_ul_show"></ul></div>' +
                 '<script type="text/html" id="coupon_tpl"><li cid="{{ id }}"><img src="{{ post_img }}"></li></script>' +
                 '</div>';
             $(".fixed-nav").after(html);
@@ -112,3 +96,46 @@ function CouponTemplateShow(dom, speed, delay, autoplay) {
         nav: false
     });
 }
+
+function clickRelease() {
+
+    //领取优惠券
+    console.log(123);
+    if (CLICK_COUPON_TIMES > 1) {
+        // 第二次点击跳转到优惠券页面
+        location.href = "pages/youhuiquan.html";
+    }
+    var uldom = $("#tpl_ul_show");
+    $.each($(uldom).children(), function (i, v) {
+        var tmpid = $(v).attr("cid");
+        var data = {"template_id": tmpid};
+        var d = $("#coupon_release");
+        console.log("data :", data);
+        Action_release(data, d);
+    });
+    CLICK_COUPON_TIMES += 1; // 再次点击
+}
+
+//console.log(123);
+//$(document).ready(
+//    function () {
+//        console.log(123123);
+//        $("#coupon_release").click(function () {
+//            //领取优惠券
+//            console.log(123);
+//            if (CLICK_COUPON_TIMES > 1) {
+//                // 第二次点击跳转到优惠券页面
+//                location.href = "pages/youhuiquan.html";
+//            }
+//            var uldom = $("#tpl_ul_show");
+//            $.each($(uldom).children(), function (i, v) {
+//                var tmpid = $(v).attr("cid");
+//                var data = {"template_id": tmpid};
+//                var d = $("#coupon_release");
+//                console.log("data :", data);
+//                Action_release(data, d);
+//            });
+//            CLICK_COUPON_TIMES += 1; // 再次点击
+//        });
+//    }
+//);
