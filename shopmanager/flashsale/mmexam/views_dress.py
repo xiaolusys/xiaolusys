@@ -68,8 +68,8 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         
         customer = get_object_or_404(Customer, user=request.user.id)
         unionid  = customer.unionid
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         if not unionid:
-            self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
             user_infos = self.get_auth_userinfo(request)
             unionid = user_infos.get('unionid')
             openid  = user_infos.get('openid')
@@ -274,6 +274,7 @@ class DressAgeView(WeixinAuthMixin, APIView):
         if not self.valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
+        
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         if not mama_dress.is_finished():
             return redirect(reverse('dress_home'))
