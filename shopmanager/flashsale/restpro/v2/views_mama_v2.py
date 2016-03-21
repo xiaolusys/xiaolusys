@@ -29,7 +29,6 @@ def get_mama_id(user):
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
-    mama_id=1
     return mama_id
 
 
