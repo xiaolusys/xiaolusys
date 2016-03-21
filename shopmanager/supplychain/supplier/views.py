@@ -474,6 +474,7 @@ class FetchAndCreateProduct(APIView):
             if sproducts:
                 is_exists = 1
                 sproduct = sproducts[0]
+                return Response({'code': 2, 'error_response': '该选品已存在, 不能重复添加'})
 
         if not sproduct:
             sproduct, state = SaleProduct.objects.get_or_create(
