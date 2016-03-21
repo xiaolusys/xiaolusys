@@ -113,9 +113,9 @@ def get_xlmm_cash_iters(xlmm,cash_outable=False):
 
 class CashoutView(WeixinAuthMixin, View):
     def get(self, request):
-
+        
         openid,unionid = self.get_openid_and_unionid(request)
-        if not valid_openid(openid) or not valid_openid(unionid) :
+        if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
@@ -147,13 +147,12 @@ class CashoutView(WeixinAuthMixin, View):
                 "could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
-        response = set_cookie_openid(response,settings.WEIXIN_APPID,openid,unionid)
+        response = self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
     def post(self, request):
         content = request.REQUEST
-        cookies = request.COOKIES
-        openid, unionid = get_cookie_openid(cookies,settings.WEIXIN_APPID)
+        openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(unionid):
             raise Http404
         could_cash_out = 0
@@ -214,7 +213,9 @@ class MamaStatsView(WeixinAuthMixin, View):
         wx_user = service._wx_user
         
         if not wx_user.isValid():
-            return render_to_response("remind.html",{"openid":openid},context_instance=RequestContext(request))
+            response = render_to_response("remind.html",{"openid":openid},context_instance=RequestContext(request))
+            response = self.set_cookie_openid_and_unionid(response, openid, unionid)
+            return response
 
         target_date = datetime.date.today()
         yesterday   = target_date - datetime.timedelta(days=1)
@@ -294,7 +295,7 @@ class MamaStatsView(WeixinAuthMixin, View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
-        response = set_cookie_openid(response,settings.WEIXIN_APPID,openid,unionid)
+        response = self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
     
 class MamaIncomeDetailView(WeixinAuthMixin, View):
@@ -413,7 +414,7 @@ class MamaIncomeDetailView(WeixinAuthMixin, View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_income.html", data, context_instance=RequestContext(request))
-        response = set_cookie_openid(response,settings.WEIXIN_APPID,openid,unionid)
+        response = self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
 
@@ -660,7 +661,9 @@ def cash_Out_Verify(request, id, xlmm):
                   'sum_carry_in':sum_carry_in, 'sum_carry_out':sum_carry_out,'carry_in_minus_out':carry_in_minus_out}
     data.append(data_entry)
 
-    return render_to_response("mama_cashout_verify.html", {"data":data}, context_instance=RequestContext(request))
+    return render_to_response("mama_cashout_verify.html", 
+                              {"data":data}, 
+                              context_instance=RequestContext(request))
 
 from django.db import transaction
 from django.db.models import F
