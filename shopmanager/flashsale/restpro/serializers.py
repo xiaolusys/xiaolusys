@@ -331,13 +331,15 @@ class UsersCouponSerializer(serializers.ModelSerializer):
     coupon_value = serializers.FloatField(source='cp_id.template.value', read_only=True)
     valid = serializers.BooleanField(source='cp_id.template.valid', read_only=True)
     use_fee = serializers.FloatField(source='cp_id.template.use_fee', read_only=True)
+    use_fee_des = serializers.CharField(source='cp_id.template.use_fee_desc', read_only=True)
+    pros_desc = serializers.CharField(source='cp_id.template.pros_desc', read_only=True)
 
     class Meta:
         model = UserCoupon
         # remove the "cp_id" field, test for browser solwly
         fields = ("id",  "coupon_type", 'title', "customer", 'coupon_no', 'coupon_value', 'valid',
                   'poll_status', "deadline", "sale_trade", "status", "created", "modified", 'use_fee',
-                  'coupon_type_display')
+                  'coupon_type_display', 'use_fee_des', 'pros_desc')
 
 
 class CouponTemplateSerializer(serializers.ModelSerializer):

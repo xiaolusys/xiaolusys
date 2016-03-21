@@ -1,5 +1,5 @@
 # coding=utf-8
-import settings, time
+import settings, time, re
 from flashsale.restpro import options
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -17,6 +17,8 @@ import serializers
 logger = logging.getLogger('django.request')
 
 from flashsale.pay.models import Customer, Integral, Register
+
+PHONE_NUM_RE = re.compile(r'^0\d{2,3}\d{7,8}$|^1[34578]\d{9}$|^147\d{8}', re.IGNORECASE)
 
 
 def in_weixin(request):
@@ -147,4 +149,23 @@ class LoginViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.Gene
             return Response({"code": 2, "message": u'登陆异常'})
 
         login(request, user)
+        return Response({"code": 0, "message": u'登陆成功'})
+
+    @list_route(methods=['post'])
+    def sms_login(self, request, *args, **kwargs):
+        """ 短信验证码登陆 """
+        req_params = request.REQUEST
+        mobile = req_params.get('mobile', '')
+
+        if mobile == "" or not re.match(PHONE_NUM_RE, mobile):
+            return Response({"code": 2, "message": u"手机号码有误"})
+        sms_code = req_params.get('sms_code', '')
+        if not sms_code or not sms_code.isdigit():
+            return Response({"code": 3, "message": u"验证码有误"})
+
+        user1 = authenticate(request=request, **req_params)
+        if not user1 or user1.is_anonymous():
+            return Response({"code": 1, "message": u"登录验证失败"})
+        login(request, user1)
+
         return Response({"code": 0, "message": u'登陆成功'})

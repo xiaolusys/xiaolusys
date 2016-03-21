@@ -1,5 +1,5 @@
 #-*- coding:utf-8 -*-
-import datetime
+import datetime, urllib
 from django.db import models
 
 from common.utils import url_utf8_quote
@@ -45,8 +45,17 @@ class CustomShare(PayBaseModel):
 
     def share_link(self,**params):
         share_link = self.share_url.format(**params)
-        return url_utf8_quote(share_link.encode('utf-8'))
-    
+        url = []
+        if 'next' in share_link:
+            url.append(share_link.split('next=')[0])
+            next_url = share_link.split('next=')[1]
+            next_url = urllib.quote(next_url)
+            url.append('next=')
+            url.append(next_url)
+            return ''.join(url)
+        else:
+            return share_link
+
     def share_title(self,**params):
         if not params:
             return self.title

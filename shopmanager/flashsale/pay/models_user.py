@@ -195,9 +195,11 @@ class Customer(BaseModel):
 
     def get_coupon_num(self):
         """ 当前用户的优惠券数量 """
-        from flashsale.pay.models_coupon_new import UserCoupon
+        from flashsale.pay.models_coupon_new import UserCoupon, CouponTemplate, CouponsPool
 
-        return UserCoupon.objects.filter(customer=self.pk, status=UserCoupon.UNUSED).count()  # 未使用优惠券数量
+        return UserCoupon.objects.filter(customer=self.pk, cp_id__status=CouponsPool.RELEASE,
+                                         cp_id__template__valid=True,
+                                         status=UserCoupon.UNUSED).count()  # 未使用优惠券数量
 
     def get_waitpay_num(self):
         """ 当前用户的待支付订单数量 """
@@ -361,7 +363,9 @@ class BudgetLog(PayBaseModel):
 
     def log_desc(self):
         """ 预留记录的描述字段 """
-        return ''
+        return '您通过{0}{1}{2}元.'.format(self.get_budget_log_type_display(),
+                                          self.get_budget_type_display(),
+                                          self.flow_amount * 0.01)
     
     def cancel_and_return(self):
         if self.status != self.CONFIRMED:

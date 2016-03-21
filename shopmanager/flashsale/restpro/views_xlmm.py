@@ -431,7 +431,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         `1`: 取消失败  
         `2`: 提现记录不存在  
     """
-    queryset = CashOut.objects.all()
+    queryset = CashOut.objects.all().order_by('-created')
     serializer_class = serializers.CashOutSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)

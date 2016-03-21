@@ -1,5 +1,5 @@
 # coding=utf-8
-import os, settings, urlparse, random
+import os, settings, urlparse, random, urllib
 import datetime
 from rest_framework import viewsets, permissions, authentication, renderers
 from rest_framework.response import Response
@@ -57,9 +57,16 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
                 if xlmm:
                     mm_linkid = xlmm.id
             shop_info = model_to_dict(shop)
-            link = urlparse.urljoin(settings.M_SITE_URL, 'pages/mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
-            preview_link = urlparse.urljoin(settings.M_SITE_URL,
-                                            'pages/preview-mmshop.html?mm_linkid={0}&ufrom=web'.format(mm_linkid))
+
+            link = 'pages/mmshop.html?mm_linkid={0}'.format(mm_linkid)
+            preview_link = 'pages/preview-mmshop.html?mm_linkid={0}'.format(mm_linkid)
+
+            link = urllib.quote(link)
+            next_link = 'm/{0}?next='.format(mm_linkid) + link
+            link = urlparse.urljoin(settings.M_SITE_URL, next_link)
+
+            preview_link = urlparse.urljoin(settings.M_SITE_URL, preview_link)
+
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = customer.thumbnail  # 提供用户头像
             shop_info['desc'] = '{0}の外贸店'.format(customer.nick) + random.choice(decs)

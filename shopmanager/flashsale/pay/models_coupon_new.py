@@ -33,7 +33,7 @@ class CouponTemplate(BaseModel):
     BUY_WAY = 1
     XMM_LINK = 2
     PROMOTION = 3
-    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"),(XMM_LINK, u"购买专属链接"),
+    COUPON_WAY = ((CLICK_WAY, u"点击方式领取"), (BUY_WAY, u"购买商品获取"), (XMM_LINK, u"购买专属链接"),
                   (PROMOTION, u"活动发放"))
     ALL_USER = 1
     AGENCY_VIP = 2
@@ -100,6 +100,17 @@ class CouponTemplate(BaseModel):
         pro_set = set(product_ids)
         if len(tpl_binds & pro_set) == 0:
             raise AssertionError(u'该产品不支持使用优惠券')
+
+    def use_fee_desc(self):
+        """ 满单额描述 """
+        return "满{0}可用".format(self.use_fee)
+
+    def pros_desc(self):
+        """ 绑定产品描述 """
+        if self.bind_pros:
+            return '指定产品可用'
+        else:
+            return '全场通用'
 
 
 class CouponsPool(BaseModel):
