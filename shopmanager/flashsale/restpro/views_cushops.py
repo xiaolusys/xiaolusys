@@ -62,12 +62,10 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
             preview_link = 'pages/preview-mmshop.html?mm_linkid={0}'.format(mm_linkid)
 
             link = urllib.quote(link)
-            preview_link = urllib.quote(preview_link)
             next_link = 'm/{0}?next='.format(mm_linkid) + link
-            next_preview_link = 'm/{0}?next='.format(mm_linkid) + preview_link
-
             link = urlparse.urljoin(settings.M_SITE_URL, next_link)
-            preview_link = urlparse.urljoin(settings.M_SITE_URL, next_preview_link)
+
+            preview_link = urlparse.urljoin(settings.M_SITE_URL, preview_link)
 
             shop_info['shop_link'] = link
             shop_info['thumbnail'] = customer.thumbnail  # 提供用户头像
