@@ -68,8 +68,8 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         
         customer = get_object_or_404(Customer, user=request.user.id)
         unionid  = customer.unionid
+        self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         if not unionid:
-            self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
             user_infos = self.get_auth_userinfo(request)
             unionid = user_infos.get('unionid')
             openid  = user_infos.get('openid')
@@ -173,7 +173,7 @@ class DressResultView(WeixinAuthMixin, APIView):
         dress_score = self.calc_score(mama_dress)
         for ages in constants.SCORE_AGES:
             if dress_score == ages[0]:
-                return ages[1],constants.DRESS_STARS[ages[2]]
+                return ages[1],constants.DRESS_STARS[ages[2]-1]
         return 
             
     def get_age_tag(self,differ_age):
@@ -274,6 +274,7 @@ class DressAgeView(WeixinAuthMixin, APIView):
         if not self.valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
+        
         mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
         if not mama_dress.is_finished():
             return redirect(reverse('dress_home'))
@@ -304,7 +305,7 @@ class DressShareView(WeixinAuthMixin, APIView):
         dress_score = self.calc_score(mama_dress)
         for ages in constants.SCORE_AGES:
             if dress_score == ages[0]:
-                return ages[1],constants.DRESS_STARS[ages[2]]
+                return ages[1],constants.DRESS_STARS[ages[2]-1]
         return 
     
     def calc_score(self,mama_dress):
@@ -326,7 +327,7 @@ class DressShareView(WeixinAuthMixin, APIView):
         share_type = request.POST.get('share_type')
         first_sendenvelop = False
         mama_dress= MamaDressResult.objects.get(id=dress_id)
-        if not mama_dress.is_sendenvelop():
+        if not mama_dress.is_sendenvelop:
             mama_dress.send_envelop()
             first_sendenvelop = True
         mama_dress.add_share_type(share_type)
