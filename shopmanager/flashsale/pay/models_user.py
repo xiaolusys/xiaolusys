@@ -361,7 +361,9 @@ class BudgetLog(PayBaseModel):
 
     def log_desc(self):
         """ 预留记录的描述字段 """
-        return ''
+        return '您通过{0}{1}{2}元.'.format(self.get_budget_log_type_display(),
+                                          self.get_budget_type_display(),
+                                          self.flow_amount * 0.01)
     
     def cancel_and_return(self):
         if self.status != self.CONFIRMED:
