@@ -499,7 +499,7 @@ class ClickLogView(WeixinAuthMixin, View):
         content = request.REQUEST
         next_page = content.get('next', None)
         # print 'next_page:', next_page
-        logger.error('next_page %s-path:%s' % (next_page, content))
+        # logger.error('next_page %s-path:%s' % (next_page, content))
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             if next_page:
