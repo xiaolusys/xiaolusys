@@ -7,7 +7,7 @@ from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, PayToPackStats
 import time
-from .filters import GroupNameFilter, OrderListStatusFilter
+from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2
 from flashsale.dinghuo import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from django.db import models
@@ -213,7 +213,7 @@ class orderdetailAdmin(admin.ModelAdmin):
         'id', 'link_order', 'product_id', 'outer_id', 'product_name', 'chichu_id', 'product_chicun', 'buy_quantity',
         'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated'
     )
-    list_filter = (('created', DateFieldListFilter),)
+    list_filter = (('created', DateFieldListFilter), OrderListStatusFilter2)
     search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id', 'chichu_id']
     date_hierarchy = 'created'
 
