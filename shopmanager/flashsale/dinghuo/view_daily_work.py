@@ -25,7 +25,9 @@ from shopback.items.models import Product, ProductSku
 from shopback.trades.models import (MergeOrder, TRADE_TYPE, SYS_TRADE_STATUS)
 from supplychain.supplier.models import SaleProduct
 
+
 class DailyDingHuoView(View):
+
     def parseEndDt(self, end_dt):
         if not end_dt:
             dt = datetime.datetime.now()
@@ -51,7 +53,8 @@ class DailyDingHuoView(View):
             if target_date > today:
                 target_date = today
 
-        shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        shelve_from = datetime.datetime(target_date.year, target_date.month,
+                                        target_date.day)
         time_to = self.parseEndDt(shelve_to_str)
         if time_to - shelve_from < datetime.timedelta(0):
             time_to = shelve_from + datetime.timedelta(1)
@@ -70,7 +73,8 @@ class DailyDingHuoView(View):
         if groupname == 0:
             group_sql = ""
         else:
-            group_sql = "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id = {0}))".format(str(groupname))
+            group_sql = "and sale_charger in (select username from auth_user where id in (select user_id from suplychain_flashsale_myuser where group_id = {0}))".format(
+                str(groupname))
         if len(search_text) > 0:
             search_text = str(search_text)
             product_sql = "select A.id,A.product_name,A.outer_id,A.pic_path,B.outer_id as outer_sku_id,B.quantity,B.properties_alias,B.id as sku_id,C.exist_stock_num from " \
@@ -109,34 +113,53 @@ class DailyDingHuoView(View):
             arrival_num = int(product[11] or 0)
             sample_num = int(product[12] or 0)
             ding_huo_status, flag_of_more, flag_of_less = functions.get_ding_huo_status(
-                sale_num, ding_huo_num, int(product[9] or 0), sample_num, arrival_num)
+                sale_num, ding_huo_num, int(product[9] or 0), sample_num,
+                arrival_num)
             if flag_of_more:
-                total_more_num += (sample_num + int(product[9] or 0) + ding_huo_num + arrival_num - sale_num)
+                total_more_num += (sample_num + int(product[9] or 0) +
+                                   ding_huo_num + arrival_num - sale_num)
             if flag_of_less:
-                total_less_num += (sale_num - sample_num - int(product[9] or 0) - arrival_num - ding_huo_num)
-            temp_dict = {"product_id": product[10], "sku_id": product[2], "product_name": product[1],
-                         "pic_path": product[3], "sale_num": sale_num or 0, "sku_name": product[4],
-                         "ding_huo_num": ding_huo_num, "effect_num": product[7] or 0,
-                         "ding_huo_status": ding_huo_status, "sample_num": sample_num,
-                         "flag_of_more": flag_of_more, "flag_of_less": flag_of_less,
-                         "sku_id": product[8], "ku_cun_num": int(product[9] or 0),
+                total_less_num += (sale_num - sample_num - int(product[9] or 0)
+                                   - arrival_num - ding_huo_num)
+            temp_dict = {"product_id": product[10],
+                         "sku_id": product[2],
+                         "product_name": product[1],
+                         "pic_path": product[3],
+                         "sale_num": sale_num or 0,
+                         "sku_name": product[4],
+                         "ding_huo_num": ding_huo_num,
+                         "effect_num": product[7] or 0,
+                         "ding_huo_status": ding_huo_status,
+                         "sample_num": sample_num,
+                         "flag_of_more": flag_of_more,
+                         "flag_of_less": flag_of_less,
+                         "sku_id": product[8],
+                         "ku_cun_num": int(product[9] or 0),
                          "arrival_num": arrival_num}
-            if dhstatus == u'0' or ((flag_of_more or flag_of_less) and dhstatus == u'1') or (
-                        flag_of_less and dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
+            if dhstatus == u'0' or (
+                (flag_of_more or flag_of_less) and dhstatus == u'1') or (
+                    flag_of_less and
+                    dhstatus == u'2') or (flag_of_more and dhstatus == u'3'):
                 if product[0] not in trade_dict:
                     trade_dict[product[0]] = [temp_dict]
                 else:
                     trade_dict[product[0]].append(temp_dict)
         trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
         return render_to_response("dinghuo/dailywork2.html",
-                                  {"target_product": trade_dict, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "search_text": search_text, "total_more_num": total_more_num,
+                                  {"target_product": trade_dict,
+                                   "shelve_from": target_date,
+                                   "time_to": time_to,
+                                   "searchDinghuo": query_time,
+                                   'groupname': groupname,
+                                   "dhstatus": dhstatus,
+                                   "search_text": search_text,
+                                   "total_more_num": total_more_num,
                                    "total_less_num": total_less_num},
                                   context_instance=RequestContext(request))
 
 
 class DailyDingHuoView2(View):
+
     def parseEndDt(self, end_dt):
         if not end_dt:
             dt = datetime.datetime.now()
@@ -168,21 +191,30 @@ class DailyDingHuoView2(View):
             if target_date > today:
                 target_date = today
             """
-        shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        shelve_from = datetime.datetime(target_date.year, target_date.month,
+                                        target_date.day)
         time_to = self.parseEndDt(shelve_to_str)
         if time_to - shelve_from < datetime.timedelta(0):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
         dinghuo_begin = self.parseEndDt(dinghuo_begin_str)
-        task_id = task_ding_huo.s(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus)()
+        task_id = task_ding_huo.s(shelve_from, time_to, groupname, search_text,
+                                  target_date, dinghuo_begin, query_time,
+                                  dhstatus)()
         return render_to_response("dinghuo/daily_work.html",
-                                  {"task_id": task_id, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo_end": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "search_text": search_text, "searchDinghuo_begin": dinghuo_begin},
-
+                                  {"task_id": task_id,
+                                   "shelve_from": target_date,
+                                   "time_to": time_to,
+                                   "searchDinghuo_end": query_time,
+                                   'groupname': groupname,
+                                   "dhstatus": dhstatus,
+                                   "search_text": search_text,
+                                   "searchDinghuo_begin": dinghuo_begin},
                                   context_instance=RequestContext(request))
 
+
 class DailyDingHuoOptimizeView(View):
+
     def parseEndDt(self, end_dt):
         if not end_dt:
             dt = datetime.datetime.now()
@@ -209,20 +241,30 @@ class DailyDingHuoOptimizeView(View):
             if target_date > today:
                 target_date = today
 
-        shelve_from = datetime.datetime(target_date.year, target_date.month, target_date.day)
+        shelve_from = datetime.datetime(target_date.year, target_date.month,
+                                        target_date.day)
         time_to = self.parseEndDt(shelve_to_str)
         if time_to - shelve_from < datetime.timedelta(0):
             time_to = shelve_from + datetime.timedelta(1)
         query_time = self.parseEndDt(query_time_str)
         dinghuo_begin = self.parseEndDt(dinghuo_begin_str)
-        product_dict = get_product_dict(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus)
+        product_dict = get_product_dict(shelve_from, time_to, groupname,
+                                        search_text, target_date, dinghuo_begin,
+                                        query_time, dhstatus)
         return render_to_response("dinghuo/daily_work_optimize.html",
-                                  {"product_dict": product_dict, "shelve_from": target_date, "time_to": time_to,
-                                   "searchDinghuo_end": query_time, 'groupname': groupname, "dhstatus": dhstatus,
-                                   "search_text": search_text, "searchDinghuo_begin": dinghuo_begin},
-
+                                  {"product_dict": product_dict,
+                                   "shelve_from": target_date,
+                                   "time_to": time_to,
+                                   "searchDinghuo_end": query_time,
+                                   'groupname': groupname,
+                                   "dhstatus": dhstatus,
+                                   "search_text": search_text,
+                                   "searchDinghuo_begin": dinghuo_begin},
                                   context_instance=RequestContext(request))
-def get_product_dict(shelve_from, time_to, groupname, search_text, target_date, dinghuo_begin, query_time, dhstatus):
+
+
+def get_product_dict(shelve_from, time_to, groupname, search_text, target_date,
+                     dinghuo_begin, query_time, dhstatus):
     """非没有退款状态的，不算作销售数,没有之前的速度快"""
     if len(search_text) > 0:
         search_text = str(search_text)
@@ -246,9 +288,13 @@ def get_product_dict(shelve_from, time_to, groupname, search_text, target_date, 
     product_raw = cursor.fetchall()
     trade_dict = {}
     for one_product in product_raw:
-        temp_dict = {"product_id": one_product[0], "outer_sku_id": one_product[4], "product_name": one_product[1],
-                     "pic_path": one_product[3], "sku_name": one_product[6],
-                     "sku_id": one_product[7],"ku_cun_num": int(one_product[8] or 0)}
+        temp_dict = {"product_id": one_product[0],
+                     "outer_sku_id": one_product[4],
+                     "product_name": one_product[1],
+                     "pic_path": one_product[3],
+                     "sku_name": one_product[6],
+                     "sku_id": one_product[7],
+                     "ku_cun_num": int(one_product[8] or 0)}
         if one_product[2] not in trade_dict:
             trade_dict[one_product[2]] = [temp_dict]
         else:
@@ -256,6 +302,8 @@ def get_product_dict(shelve_from, time_to, groupname, search_text, target_date, 
     trade_dict = sorted(trade_dict.items(), key=lambda d: d[0])
     # result_dict = {"trade_dict": trade_dict}
     return trade_dict
+
+
 from flashsale.dinghuo import functions2view
 from flashsale.dinghuo.models import OrderDetail, orderdraft
 from shopback.items.models import Product, ProductSku
@@ -263,6 +311,7 @@ from django.core import serializers
 
 
 class ShowPicView(View):
+
     def get_src_by_product(self, pro_id):
         a = Product.objects.filter(id=pro_id)
         if a.count() > 0:
@@ -277,7 +326,8 @@ class ShowPicView(View):
         for pro_id in all_order:
             if pro_id.product_id not in temp_dict:
                 temp_dict[pro_id.product_id] = "in"
-                all_order_data.append(self.get_src_by_product(pro_id.product_id))
+                all_order_data.append(self.get_src_by_product(
+                    pro_id.product_id))
         return HttpResponse(",".join(all_order_data))
 
 
@@ -305,19 +355,21 @@ class SkuAPIView(generics.ListCreateAPIView):
             one_sku = ProductSku.objects.get(id=sku_id)
         except:
             return Response({"flag": "error"})
-        sale_num = function_of_task_optimize.get_sale_num(one_sku.product.sale_time, time_to, one_sku.product.outer_id,
-                                                          one_sku.outer_id)
-        ding_huo_num, sample_num, arrival_num = function_of_task_optimize.get_dinghuo_num(dinghuo_begin, query_time,
-                                                                                          one_sku.product.outer_id,
-                                                                                          one_sku.id)
+        sale_num = function_of_task_optimize.get_sale_num(
+            one_sku.product.sale_time, time_to, one_sku.product.outer_id,
+            one_sku.outer_id)
+        ding_huo_num, sample_num, arrival_num = function_of_task_optimize.get_dinghuo_num(
+            dinghuo_begin, query_time, one_sku.product.outer_id, one_sku.id)
 
-        return Response(
-            {"flag": "done", "sale_num": sale_num, "ding_huo_num": ding_huo_num, "arrival_num": arrival_num})
+        return Response({"flag": "done",
+                         "sale_num": sale_num,
+                         "ding_huo_num": ding_huo_num,
+                         "arrival_num": arrival_num})
 
 
 class AddDingHuoView(generics.ListCreateAPIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     template_name = 'dinghuo/addpurchasedetail.html'
 
     def get(self, request):
@@ -325,24 +377,31 @@ class AddDingHuoView(generics.ListCreateAPIView):
         productres = []
         for product in Product.objects.filter(outer_id__in=outer_ids):
             product_dict = model_to_dict(product)
-            for sku in ProductSku.objects.filter(product_id=product.id).exclude(status=u'delete'):
+            for sku in ProductSku.objects.filter(product_id=product.id).exclude(
+                    status=u'delete'):
                 sku_dict = model_to_dict(sku)
-                sku_dict['wait_post_num'] = functions2view.get_lack_num_by_product(product, sku)
+                sku_dict[
+                    'wait_post_num'] = functions2view.get_lack_num_by_product(
+                        product, sku)
                 product_dict.setdefault('prod_skus', []).append(sku_dict)
             productres.append(product_dict)
 
         saleproduct_mapping = {}
-        for saleproduct in SaleProduct.objects.filter(pk__in=map(lambda x: x['sale_product'], productres)):
+        for saleproduct in SaleProduct.objects.filter(
+                pk__in=map(lambda x: x['sale_product'], productres)):
             saleproduct_mapping[saleproduct.id] = saleproduct.supplier_sku or ''
         for item in productres:
-            item['supplier_sku'] = saleproduct_mapping.get(item['sale_product']) or ''
+            item['supplier_sku'] = saleproduct_mapping.get(item[
+                'sale_product']) or ''
 
-        return Response({'productRestult': productres, 'drafts': orderdraft.objects.all().filter(buyer_name=request.user)})
+        return Response({'productRestult': productres,
+                         'drafts': orderdraft.objects.all().filter(
+                             buyer_name=request.user)})
 
 
 class InstantDingHuoViewSet(viewsets.GenericViewSet):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     template_name = 'dinghuo/instant_dinghuo.html'
 
     def list(self, request):
@@ -353,7 +412,8 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             [pcfg.WAIT_AUDIT_STATUS, pcfg.WAIT_PREPARE_SEND_STATUS,
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
-            sys_status=pcfg.IN_EFFECT).values('outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+            sys_status=pcfg.IN_EFFECT).values(
+                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
 
         order_products = {}
         for s in sale_stats:
@@ -362,7 +422,8 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
 
         sku_ids = set()
         products = {}
-        for sku in ProductSku.objects.select_related('product').filter(product__outer_id__in=order_products.keys()):
+        for sku in ProductSku.objects.select_related('product').filter(
+                product__outer_id__in=order_products.keys()):
             order_skus = order_products[sku.product.outer_id]
             if sku.outer_id in order_skus:
                 sku_ids.add(sku.id)
@@ -390,7 +451,6 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 'inferior_quantity': s['inferior_quantity']
             })
 
-
         for sku in ProductSku.objects.filter(pk__in=list(sku_ids)):
             sku_dict = products[sku.product_id][sku.id]
             sku_dict.update({
@@ -415,13 +475,16 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
         buyer_ids = set()
         supplier_mapping = {}
         saleproduct2supplier_mapping = {}
-        for saleproduct in SaleProduct.objects.select_related('sale_supplier').filter(pk__in=list(saleproduct_ids)):
-            saleproduct2supplier_mapping[saleproduct.id] = saleproduct.sale_supplier.id
+        for saleproduct in SaleProduct.objects.select_related(
+                'sale_supplier').filter(pk__in=list(saleproduct_ids)):
+            saleproduct2supplier_mapping[
+                saleproduct.id] = saleproduct.sale_supplier.id
             if saleproduct.sale_supplier.id not in supplier_mapping:
                 buyer_id = saleproduct.sale_supplier.buyer_id or 0
                 if buyer_id:
                     buyer_ids.add(buyer_id)
-                supplier_mapping[saleproduct.sale_supplier.id] = (saleproduct.sale_supplier.supplier_name, buyer_id)
+                supplier_mapping[saleproduct.sale_supplier.id] = (
+                    saleproduct.sale_supplier.supplier_name, buyer_id)
 
         buyer_mapping = {}
         for user in User.objects.filter(pk__in=list(buyer_ids)):
@@ -435,10 +498,16 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             skus = products[product_id]
             new_product = product_mapping[product_id]
             new_product['skus'] = [skus[k] for k in sorted(skus.keys())]
+            for sku in new_product.get('skus', []):
+                sku['effect_quantity'] = sku['quantity'] + sku[
+                    'buy_quantity'] - sku['arrival_quantity'] - sku[
+                        'sale_quantity']
+
             sale_product_id = new_product['sale_product_id']
             supplier_id = saleproduct2supplier_mapping.get(sale_product_id) or 0
             if supplier_id not in suppliers:
-                supplier_name, buyer_id = supplier_mapping.get(supplier_id) or ('未知',  0)
+                supplier_name, buyer_id = supplier_mapping.get(supplier_id) or (
+                    '未知', 0)
                 buyer_name = buyer_mapping.get(buyer_id) or '空缺'
                 supplier = {
                     'id': supplier_id,
@@ -451,4 +520,9 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 supplier = suppliers[supplier_id]
             supplier['products'].append(new_product)
 
-        return Response({'suppliers': [suppliers[k] for k in sorted(suppliers.keys())]})
+        now = datetime.datetime.now()
+        two_weeks_ago = now - datetime.timedelta(days=31)
+
+        return Response({'suppliers': [suppliers[k]
+                                       for k in sorted(suppliers.keys())],
+                         'two_weeks_ago': two_weeks_ago})

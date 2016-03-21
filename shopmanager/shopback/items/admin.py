@@ -72,7 +72,7 @@ class ProductdetailInline(admin.StackedInline):
 
     model = Productdetail
     form  = ProductdetailForm
-    
+
 #     fields = ('head_imgs', 'content_imgs',
 #               ('is_seckill', 'is_recommend', 'is_sale', 'order_weight',
 #                'mama_discount', 'buy_limit', 'per_limit', 'rebeta_scheme_id'),
@@ -125,9 +125,9 @@ class ProductAdmin(MyAdmin):
 
     list_display = ('id', 'outer_id_link', 'pic_link', 'collect_num',
                     'category_select', 'remain_num', 'wait_post_num',
-                    'lock_num', 'wait_receive_num', 'cost', 'std_sale_price', 
-                    'agent_price', 'model_id', 'sync_stock','is_watermark', 
-                    'sale_time_select', 'sale_charger','ware_select', 
+                    'lock_num', 'wait_receive_num', 'cost', 'std_sale_price',
+                    'agent_price', 'model_id', 'sync_stock','is_watermark',
+                    'sale_time_select', 'sale_charger','ware_select',
                     'district_link', 'shelf_status')  #'charger_select',
 
     list_display_links = ('id',)
@@ -162,7 +162,7 @@ class ProductAdmin(MyAdmin):
         except :
             product_detail = None
         head_img_url = product_detail and product_detail.head_imgs.split('\n')[0] or Product.NO_PIC_PATH
-        
+
         return u'<p>%s</p><img src="%s?imageMogr2/thumbnail/100/format/jpg/quality/90" width="50px" height="40px" />' % (
             obj.outer_id, head_img_url)
 
@@ -906,7 +906,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
 
     list_filter = ('status', 'sync_stock', 'is_split', 'is_match', 'is_assign',
                    'post_check')
-    search_fields = ['outer_id', 'product__outer_id', 'properties_name',
+    search_fields = ['id', 'outer_id', 'product__outer_id', 'properties_name',
                      'properties_alias']
 
     def district_link(self, obj):

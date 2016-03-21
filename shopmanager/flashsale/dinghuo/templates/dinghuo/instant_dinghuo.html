@@ -1,3 +1,4 @@
+{% load custom_filter %}
 <!DOCTYPE html>
 <html lang="zh-cn">
     <head>
@@ -21,25 +22,28 @@
              -ms-transform: scale(1) rotate(20deg);
              transform: scale(1) rotate(20deg);
          }
+
         </style>
     </head>
     <body>
         <div class="container" style="width:98%">
             {% for supplier in suppliers %}
-            <div class="row">
+            <div class="row" id="supplier-{{supplier.id}}">
                 <h2>{{ supplier.supplier_name }} <small>{{ supplier.buyer_name }}</small></h2>
             </div>
             <div class="row">
-                <table class="table table-bordered">
+                <table class="table table-striped">
                     <tr>
                         <th>商品名</th>
-                        <th>编码</th>
-                        <th>图片</th>
-                        <th>尺寸</th>
-                        <th>状态</th>
-                        <th>已拍未到数量</th>
-                        <th>已到数量</th>
-                        <th>库存数量</th>
+                        <th width="300px">编码</th>
+                        <th width="100px">图片</th>
+                        <th width="300px">尺寸</th>
+                        <th width="100px">状态</th>
+                        <th width="100px">销售数量</th>
+                        <th width="150px">已拍未到数量</th>
+                        <th width="120px">已到数量</th>
+                        <th width="120px">次品数量</th>
+                        <th width="120px">库存数量</th>
                     </tr>
                     {% for product in supplier.products %}
                     {% for sku in product.skus %}
@@ -49,15 +53,35 @@
                         <td rowspan="{{ product.skus|length }}">{{ product.outer_id }}</td>
                         <td rowspan="{{ product.skus|length }}">
                             <div class="portfolio-box">
-                                <img src="{{ product.pic_path }}">
+                                <img src="{{ product.pic_path }}" class="img-circle">
                             </div>
                         </td>
                         {% endif %}
                         <td>{{ sku.properties_name }}</td>
-                        <td></td>
-                        <td>{{ sku.buy_quantity }}</td>
+                        <td>
+                            {% if sku.effect_quantity > 0 %}
+                            多{{ sku.effect_quantity }}件
+                            {% elif sku.effect_quantity < 0 %}
+                            少{{ sku.effect_quantity|abs }}件
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/admin/dinghuo/orderdetail/?q={{sku.id}}" target="_blank">
+                                {{ sku.sale_quantity }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="/sale/dinghuo/statsbypid/{{product.id}}/?showt_begin={{ two_weeks_ago|date:'Y-m-d' }}" target="_blank">
+                                {{ sku.buy_quantity }}
+                            </a>
+                        </td>
                         <td>{{ sku.arrival_quantity }}</td>
-                        <td>{{ sku.quantity }}</td>
+                        <td>{{ sku.inferior_quantity }}</td>
+                        <td>
+                            <a href="/admin/items/productsku/?q={{sku.id}}" target="_blank">
+                                {{ sku.quantity }}
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                     {% endfor %}
