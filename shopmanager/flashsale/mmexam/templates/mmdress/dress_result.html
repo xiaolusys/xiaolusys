@@ -164,12 +164,14 @@
   <!-- 分享按钮 -->
   <div class="row">
     <a href="{% url 'dress_question' active_id=mama_dress.active_id %}?replay=1"><img class="share-btn-img"  src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%8C%89%E9%94%AE-%E5%86%8D%E6%B5%8B%E4%B8%80%E6%AC%A1.png" /></a>
-    <a href="javascript:void(0)" class="share-friends" onclick="showtips();"><img class="share-btn-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%8C%89%E9%94%AE-%E5%88%86%E4%BA%AB.png" /></a>
+    <a href="javascript:void(0)" class="share-friends" onclick="showtips();"><img class="share-btn-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%8C%89%E9%94%AE-%E5%91%8A%E8%AF%89%E5%B0%8F%E4%BC%99%E4%BC%B4.png" /></a>
+    <!-- <a href="javascript:void(0)" class="share-friends" onclick="showtips();"><img class="share-btn-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%8C%89%E9%94%AE-%E5%88%86%E4%BA%AB.png" /></a> -->
   </div>
   <!-- 分享弹出层 -->
   <div class="row">
 	  <div id="share-panel" class="share-panel" onclick="hidetips();">
-	    <div class="share-mask"><img class="share-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%88%86%E4%BA%AB%E6%8C%87%E7%A4%BA.png"/></div>
+	    <div class="share-mask"><img class="share-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%88%86%E4%BA%AB-%E5%91%8A%E8%AF%89%E5%B0%8F%E4%BC%99%E4%BC%B4.png"/></div>
+	    <!-- <div class="share-mask"><img class="share-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%88%86%E4%BA%AB%E6%8C%87%E7%A4%BA.png"/></div> -->
 	  </div>
   </div>
   <!-- 查看答案 -->
@@ -263,9 +265,9 @@ $(document).ready(function(){
             var product = resp[0];
             var html = '';
             if (product.model_product){
-                html += '<a href="/pages/tongkuan.html?id='+ product.model_product.id +'">';
+                html += '<a href="/pages/tongkuan.html?id='+ product.model_product.id +'&ufrom=dress&mm_linkid={{mm_linkid}}">';
             }else{
-                html += '<a href="/pages/shangpinxq.html?id='+ product.id +'">';
+                html += '<a href="/pages/shangpinxq.html?id='+ product.id +'&ufrom=dress&mm_linkid={{mm_linkid}}">';
             } 
             html +=  '<div class="ads-content">'
 		      + '<img class="cover-img" src="'+ product.head_img +'?imageMogr2/thumbnail/350/format/jpg/quality/90" />'
