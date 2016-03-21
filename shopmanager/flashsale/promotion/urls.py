@@ -4,6 +4,7 @@ from django.conf.urls import patterns, url
 from django.views.decorators.cache import cache_page
 
 from . import views 
+from . import views_activity
 from flashsale.pay.decorators import weixin_xlmm_auth
 from flashsale.pay import constants
 
@@ -22,5 +23,6 @@ urlpatterns = patterns('',
                                 views.XlSampleOrderView.as_view()
                             ), name="xlsampleorder_view"),
     url(r'^receive_award/$', views.ReceiveAwardView.as_view(), name="sample_award"),
-    url(r'^ercode/$', views.QrCodeView.as_view(), name="qr_code_view")
+    url(r'^ercode/$', views.QrCodeView.as_view(), name="qr_code_view"),
+    url(r'^activity/$', views_activity.ActivityView.as_view(), name="daily_activity"),
 )
