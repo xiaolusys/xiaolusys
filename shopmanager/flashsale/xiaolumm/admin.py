@@ -334,7 +334,7 @@ from .models_fans import FansNumberRecord, XlmmFans
 
 
 class XlmmFansAdmin(admin.ModelAdmin):
-    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid')
+    list_display = ('id', 'xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid', 'modified', 'created')
     search_fields = ['xlmm', 'xlmm_cusid', 'refreal_cusid', 'fans_cusid']
 
 
@@ -364,7 +364,8 @@ admin.site.register(MamaFortune, MamaFortuneAdmin)
 
 class CarryRecordAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num_display', 'date_field', 'carry_description', 'carry_type', 'status', 'modified', 'created')
-    list_filter = ('status', )
+    search_fields = ['mama_id', 'carry_description']
+    list_filter = ('status', 'carry_type', )
 admin.site.register(CarryRecord, CarryRecordAdmin)
 
 
@@ -373,15 +374,16 @@ class OrderCarryAdmin(admin.ModelAdmin):
                     'carry_plan_name', 'carry_description',
                     'sku_name', 'sku_img', 'contributor_nick', 'contributor_img',
                     'contributor_id', 'date_field', 'status', 'modified', 'created')
-    list_filter = ('status', )
-    search_fields = ('mama_id',)
+    list_filter = ('status', 'carry_type',)
+    search_fields = ('mama_id', 'carry_description','contributor_nick',)
 admin.site.register(OrderCarry, OrderCarryAdmin)
 
 
 class AwardCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num', 'carry_type', 'contributor_nick', 
                     'contributor_img', 'contributor_mama_id', 'status')
-    list_filter = ('status', )
+    list_filter = ('status', 'carry_type',)
+    search_fields = ('mama_id', 'contributor_nick', )
 admin.site.register(AwardCarry, AwardCarryAdmin)
 
 
@@ -390,13 +392,15 @@ class ClickCarryAdmin(admin.ModelAdmin):
                     'init_click_limit', 'confirmed_order_num',
                     'confirmed_click_price', 'confirmed_click_limit', 'total_value',
                     'status', 'date_field', 'modified', 'created')
+    search_fields = ('mama_id', )
     list_filter = ('status', )
 admin.site.register(ClickCarry, ClickCarryAdmin)
 
 
 class ActiveValueAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'value_num', 'value_type', 'status', 'date_field', 'modified', 'created')
-    list_filter = ('status', )
+    search_fields = ('mama_id',)
+    list_filter = ('status', 'value_type',)
 admin.site.register(ActiveValue, ActiveValueAdmin)
 
 
