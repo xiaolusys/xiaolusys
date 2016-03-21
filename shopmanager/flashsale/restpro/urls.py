@@ -156,5 +156,6 @@ urlpatterns = patterns('',
     url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
     url(r'^v2/send_code', views_verifycode.SendCodeView.as_view()),
     url(r'^v2/verify_code', views_verifycode.VerifyCodeView.as_view()),
-    url(r'^v2/reset_password', views_verifycode.ResetPasswordView.as_view()),
+    url(r'^v2/passwordlogin', views_verifycode.PasswordLoginView.as_view()),
+    url(r'^v2/weixinapplogin', views_verifycode.WeixinAppLoginView.as_view()),
 )
