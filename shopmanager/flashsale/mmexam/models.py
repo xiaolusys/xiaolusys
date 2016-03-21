@@ -133,7 +133,7 @@ class MamaDressResult(BaseModel):
     
     @property
     def is_sendenvelop(self):
-        return self.share_top.strip() == ''
+        return self.share_from.strip() == ''
     
     def add_share_type(self,share_to):
         self.share_from += ','+share_to
