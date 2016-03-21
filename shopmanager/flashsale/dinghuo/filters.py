@@ -52,6 +52,24 @@ class OrderListStatusFilter(SimpleListFilter):
                 return queryset.filter(status=status_id)
 
 
+class OrderListStatusFilter2(SimpleListFilter):
+    title = u'订货单状态'
+    parameter_name = 'orderlist_status'
+
+    def lookups(self, request, model_admin):
+        return OrderList.ORDER_PRODUCT_STATUS + (('待处理', u'待处理'),)
+
+    def queryset(self, request, queryset):
+        status_id = self.value()
+        if not status_id:
+            return queryset
+        else:
+            if status_id == u'待处理':
+                return queryset.exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI])
+            else:
+                return queryset.filter(orderlist__status=status_id)
+
+
 class DateFieldListFilter(FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
         self.field_generic = '%s__' % field_path

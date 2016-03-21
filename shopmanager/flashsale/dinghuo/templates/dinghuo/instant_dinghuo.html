@@ -89,12 +89,12 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="/admin/dinghuo/orderdetail/?q={{sku.id}}" target="_blank">
+                                <a href="/admin/trades/mergeorder/?outer_id={{product.outer_id}}&sku_properties_name={{sku.properties_name}}&order_pending_status=2" target="_blank">
                                     {{ sku.sale_quantity }}
                                 </a>
                             </td>
                             <td>
-                                <a href="/sale/dinghuo/statsbypid/{{product.id}}/?showt_begin={{ two_weeks_ago|date:'Y-m-d' }}" target="_blank">
+                                <a href="/admin/dinghuo/orderdetail/?q={{sku.id}}&orderlist_status=待处理" target="_blank">
                                     {{ sku.buy_quantity }}
                                 </a>
                             </td>
