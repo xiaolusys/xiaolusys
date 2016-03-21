@@ -496,8 +496,14 @@ class ClickLogView(WeixinAuthMixin, View):
     def get(self, request, linkid):
         from django_statsd.clients import statsd
         statsd.incr('xiaolumm.weixin_click')
+        content = request.REQUEST
+        next_page = content.get('next', None)
+
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
+            if next_page:
+                share_url = '{site_url}{next}&ufrom={ufrom}'.format(site_url=settings.M_SITE_URL,
+                                                                    next=next_page, ufrom='web')
             return redirect(share_url)
         
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
@@ -517,6 +523,11 @@ class ClickLogView(WeixinAuthMixin, View):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id,ufrom='wx')
         else:
             share_url = settings.M_SITE_URL
+        if next_page:
+            share_url = '{site_url}{next}&ufrom={ufrom}'.format(site_url=settings.M_SITE_URL,
+                                                                next=next_page,
+                                                                ufrom='wx')
+
         response  = redirect(share_url)
         self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
@@ -525,7 +536,7 @@ class ClickChannelLogView(WeixinAuthMixin, View):
     """ 微信授权参数检查 """
     
     def get(self, request, linkid):
-        
+
         if not self.is_from_weixin(request):
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='web')
             return redirect(share_url)
