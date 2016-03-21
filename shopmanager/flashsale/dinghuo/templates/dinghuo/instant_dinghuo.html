@@ -23,15 +23,27 @@
              transform: scale(1) rotate(20deg);
          }
 
+         .supplier {display: none;}
+
         </style>
     </head>
     <body>
-        <div class="container" style="width:98%">
+        <div class="container" style="width:98%;margin-top:10px">
+            <div class="row">
+                <div class="btn-toolbar" role="toolbar" id="supplier-btns">
+                    {% for supplier in suppliers %}
+                    <button type="button" class="btn btn-default" value="{{supplier.id}}">
+                        {{ supplier.supplier_name }}
+                        <small>{{ supplier.buyer_name }}</small>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
             {% for supplier in suppliers %}
-            <div class="row" id="supplier-{{supplier.id}}">
+            <div class="row supplier supplier-{{supplier.id}}">
                 <h2>{{ supplier.supplier_name }} <small>{{ supplier.buyer_name }}</small></h2>
             </div>
-            <div class="row">
+            <div class="row supplier supplier-{{supplier.id}}">
                 <table class="table table-striped">
                     <tr>
                         <th>商品名</th>
@@ -93,6 +105,12 @@
         <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
         <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
         <script>
+         $(function(){
+             $('#supplier-btns button[value]').click(function(){
+                 $(this).toggleClass('btn-success');
+                 $('.supplier-' + $(this).val()).slideToggle();
+             });
+         });
         </script>
     </body>
 </html>
