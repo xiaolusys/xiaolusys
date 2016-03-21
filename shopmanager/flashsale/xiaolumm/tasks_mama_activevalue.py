@@ -4,7 +4,7 @@ from django.db.models import F
 from celery.task import task
 from flashsale.xiaolumm import util_description, util_unikey
 
-from flashsale.xiaolumm.models_fortune import ActiveValue, OrderCarry
+from flashsale.xiaolumm.models_fortune import ActiveValue, OrderCarry, UniqueVisitor
 
 import sys
 import datetime
