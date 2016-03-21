@@ -14,6 +14,7 @@ from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
 from flashsale.pay.models_user import Customer
+from flashsale.xiaolumm.models import XiaoluMama
 from .models import MamaDressResult
 from . import constants
 
@@ -175,7 +176,7 @@ class DressResultView(WeixinAuthMixin, APIView):
             if dress_score == ages[0]:
                 return ages[1],constants.DRESS_STARS[ages[2]-1]
         return 
-            
+    
     def get_age_tag(self,differ_age):
         
         age_tags_dict = dict(constants.AGE_TAGS)
@@ -244,7 +245,13 @@ class DressResultView(WeixinAuthMixin, APIView):
         if referal_dress:
             referal_age, referal_star = self.get_dress_age_and_star(referal_dress)
             age_tag = self.get_age_tag(abs(dress_age - referal_age))
-
+            
+        xiaolumms = XiaoluMama.objects.filter(openid=unionid)
+        xiaolumm  = None
+        print 'debug xlmm:',unionid,xiaolumms
+        if xiaolumms.exists():
+            xiaolumm = xiaolumms[0]
+        
         resp_params = {
             'mama_dress':mama_dress,
             'dress_age':dress_age,
@@ -252,7 +259,8 @@ class DressResultView(WeixinAuthMixin, APIView):
             'referal_dress':referal_dress,
             'referal_age':referal_age,
             'referal_star':referal_star,
-            'age_tag':age_tag
+            'age_tag':age_tag,
+            'mm_linkid':xiaolumm.id,
         }
         resp_params.update({'share_params':self.render_share_params(request,**resp_params)})
         response = Response(resp_params)
