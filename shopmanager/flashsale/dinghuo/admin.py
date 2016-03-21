@@ -214,7 +214,7 @@ class orderdetailAdmin(admin.ModelAdmin):
         'arrival_quantity', 'inferior_quantity', 'non_arrival_quantity', 'created', 'updated'
     )
     list_filter = (('created', DateFieldListFilter),)
-    search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id']
+    search_fields = ['id', 'orderlist__id', 'product_id', 'outer_id', 'chichu_id']
     date_hierarchy = 'created'
 
     def link_order(self, obj):

@@ -34,3 +34,7 @@ def stringBlur(value,start=3,end=-3):
 @register.filter()
 def jsonify(data):
     return mark_safe(json.dumps(data))
+
+@register.filter(name='abs')
+def abs_(data):
+    return abs(data)
