@@ -405,6 +405,8 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
     template_name = 'dinghuo/instant_dinghuo.html'
 
     def list(self, request):
+        show_ab = int(request.GET.get('show_ab') or 0)
+
         sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
             merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
                                    pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
@@ -497,12 +499,18 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 continue
             skus = products[product_id]
             new_product = product_mapping[product_id]
-            new_product['skus'] = [skus[k] for k in sorted(skus.keys())]
-            for sku in new_product.get('skus', []):
-                sku['effect_quantity'] = sku['quantity'] + sku[
+            new_skus = []
+            for sku in [skus[k] for k in sorted(skus.keys())]:
+                effect_quantity = sku['quantity'] + sku[
                     'buy_quantity'] - sku['arrival_quantity'] - sku[
                         'sale_quantity']
-
+                if show_ab and effect_quantity == 0:
+                    continue
+                sku['effect_quantity'] = effect_quantity
+                new_skus.append(sku)
+            if show_ab and not new_skus:
+                continue
+            new_product['skus'] = new_skus
             sale_product_id = new_product['sale_product_id']
             supplier_id = saleproduct2supplier_mapping.get(sale_product_id) or 0
             if supplier_id not in suppliers:
@@ -522,7 +530,13 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
 
         now = datetime.datetime.now()
         two_weeks_ago = now - datetime.timedelta(days=31)
+        new_suppliers = []
+        for k in sorted(suppliers.keys()):
+            supplier = suppliers[k]
+            if show_ab and not supplier.get('products'):
+                continue
+            new_suppliers.append(supplier)
 
-        return Response({'suppliers': [suppliers[k]
-                                       for k in sorted(suppliers.keys())],
-                         'two_weeks_ago': two_weeks_ago})
+        return Response({'suppliers': new_suppliers,
+                         'two_weeks_ago': two_weeks_ago,
+                         'show_ab': show_ab})
