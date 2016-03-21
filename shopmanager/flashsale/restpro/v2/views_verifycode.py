@@ -6,7 +6,7 @@ import time
 import datetime
 
 from rest_framework import mixins
-from rest_framework import viewsets
+from rest_framework import views
 from rest_framework.decorators import list_route
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -20,9 +20,9 @@ from django.contrib.auth import authenticate, login, logout
 from flashsale.pay.models import Register, Customer,Integral
 from rest_framework import exceptions
 from shopback.base import log_action, ADDITION, CHANGE
-from . import permissions as perms
-from . import serializers
-from . import options 
+from flashsale.restpro import permissions as perms
+from flashsale.restpro import serializers
+from flashsale.restpro import options 
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
 import logging
@@ -53,11 +53,16 @@ def check_day_limit(reg):
 def get_register(mobile):
     """
     get register record by mobile, create one if not exists.
+    return [register, created]
+    if created == True, this means register just got created.
     """
     regs = Register.objects.filter(vmobile=mobile)
     if regs.count() > 0:
-        return regs[0]
-    return Register(vmobile=mobile)
+        return regs[0], False
+    reg = Register(vmobile=mobile)
+    reg.save()
+
+    return reg, True
 
 
 def validate_code(mobile, verify_code):
@@ -110,6 +115,16 @@ def validate_mobile(mobile):
     return False
 
 
+def validate_action(action):
+    """
+    check whether the action is legal.
+    """
+    d = ["register", "find_pwd", "change_pwd", "bind", "sms_login"]
+    if action in d:
+        return True
+    return False
+
+
 def customer_exists(mobile):
     """
     check customer existance by mobile.
@@ -135,24 +150,28 @@ def should_resend_code(reg):
 
 
     
-class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+class SendCodeView(views.APIView):
     """
     处理所有和验证码相关的请求，暂有5类：
     register，sms_login, find_pwd, change_pwd, bind.
+    
+    /send_code?mobile=xxx&action=xxx
     """
-
-    @list_route(methods=['post'])
-    def send_code(self, request):
+    
+    def get(self, request): # should be replaced by post later
         """
         send code under 5 action cases:
         register, find_pwd, change_pwd, bind, sms_login
         """
         content = request.REQUEST
-        mobile = content["mobile"]
-        action = content["action"]
+        mobile = content.get("mobile", "0")
+        action = content.get("action", "")
     
         if not validate_mobile(mobile):
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
+        
+        if not validate_action(action):
+            return Response({"rcode": 1, "msg": u"亲，操作错误！"})
         
         customer = get_customer(request, mobile)
         
@@ -163,12 +182,14 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
             if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
         
-        reg = get_register(mobile)
-        if check_day_limit(reg):
-            return Response({"rcode": 4, "msg": u"当日验证次数超过限制!"})
-        
-        if should_resend_code(reg):
-            return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
+        reg, created = get_register(mobile)
+        if not created:
+            # if reg is not just created, we have to check 
+            # day limit and resend condition.
+            if check_day_limit(reg):
+                return Response({"rcode": 4, "msg": u"当日验证次数超过限制!"})
+            if should_resend_code(reg):
+                return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
         
         reg.verify_code = reg.genValidCode()
         reg.code_time = datetime.datetime.now()
@@ -176,21 +197,31 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
         task_register_code.s(mobile, "3")()
         return Response({"rcode": 0, "msg": u"验证码已发送！"})
     
+
+class VerifyCodeView(views.APIView):    
+    """
+    Verify mobile and code:
     
-    @list_route(methods=['post'])
-    def verify_code(self, request):
+    /verify_code?mobile=xxx&action=xxx
+    """
+    def get(self, request): # should be replaced by post later
         """
         verify code under 5 action cases:
         register, find_pwd, change_pwd, bind, sms_login
+
+        /verify_code?mobile=xxx&action=xxx
         """
         
         content = request.REQUEST
-        mobile = content["mobile"]
-        action = content["action"]
-        verify_code = content["verify_code"]
+        mobile = content.get("mobile", "0")
+        action = content.get("action", "")
+        verify_code = content.get("verify_code", "")
         
         if not validate_mobile(mobile):
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
+
+        if not validate_action(action):
+            return Response({"rcode": 1, "msg": u"亲，操作错误！"})
     
         customer = get_customer(request, mobile)
         if customer:
@@ -211,29 +242,34 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
         customer.save()
     
         if action == 'register' or action == 'msm_login':
-            req_params = request.REQUEST
-            
             # force to use SMSLoginBackend for authentication
-            req_params['sms_code'] = verify_code 
+            content['sms_code'] = verify_code 
             
-            user = authenticate(request=request, **req_params) 
+            user = authenticate(request=request, **content)
+            if not user or user.is_anonymous():
+                return Response({"code": 5, "message": u'登录异常！'})
+
             login(request, user)
-            
-        ### we need to wrap up user information and send back to app client
-        ### xiuqing todo!
-        return Response({"rcode": 0, "msg": u"验证码校验通过！"})  # 验证码过期或者不对
+            return Response({"rcode": 0, "msg": u"登录成功！"})  
+        
+        return Response({"rcode": 0, "msg": u"验证码校验通过！"}) 
     
+
+class ResetPasswordView(views.APIView):    
+    """
+    Reset password:
     
-    @list_route(methods=['post'])
-    def reset_password(self, request):
+    /reset_password?mobile=xxx&password1=xxx&password2=xxx&verify_code=xxx
+    """
+    def get(self, request):
         """
         reset password after verifying code
         """
         content = request.REQUEST
-        mobile = content["mobile"]
-        pwd1 = content["password1"]
-        pwd2 = content["password2"]
-        verify_code = content["verify_code"]
+        mobile = content.get("mobile", "0")
+        pwd1 = content.get("password1", "")
+        pwd2 = content.get("password2", "")
+        verify_code = content.get("verify_code", "")
         
         if not validate_mobile(mobile):
             return Response({"rcode": 1, "msg": u"亲，手机号码错啦！"})
@@ -241,6 +277,9 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets
         if not mobile or not pwd1 or not pwd2 or not verify_code or pwd1 != pwd2:
             return Response({"rcode": 2, "msg": "提交的参数有误呀！"})
     
+        if len(pwd1) < 6:
+            return Response({"rcode": 2, "msg": "密码长度不得少于6位！"})
+        
         customer = get_customer(request, mobile)
         if not customer:
             return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})

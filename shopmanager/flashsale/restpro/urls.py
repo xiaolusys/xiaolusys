@@ -122,11 +122,11 @@ router_urls += format_suffix_patterns([
 
 
 # 2016-3-2 v2
-from flashsale.restpro.v2 import views_mama_v2
+from flashsale.restpro.v2 import views_mama_v2, views_verifycode
 v2_router = routers.DefaultRouter(trailing_slash=False)
 
-v2_router.register(r'login', views_login_v2.LoginViewSet)
-
+#v2_router.register(r'login', views_login_v2.LoginViewSet)
+#v2_router.register(r'login', views_verifycode.VerifyCodeViewSet, base_name="verify")
 v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)
 v2_router.register(r'carry', views_mama_v2.CarryRecordViewSet)
 v2_router.register(r'ordercarry', views_mama_v2.OrderCarryViewSet)
@@ -154,5 +154,7 @@ urlpatterns = patterns('',
     url(r'^v2/', include(v2_router_urls, namespace='v2')),
     url(r'^v2/mama/', include(v2_router_urls, namespace='v2_mama')),
     url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
-
+    url(r'^v2/send_code', views_verifycode.SendCodeView.as_view()),
+    url(r'^v2/verify_code', views_verifycode.VerifyCodeView.as_view()),
+    url(r'^v2/reset_password', views_verifycode.ResetPasswordView.as_view()),
 )
