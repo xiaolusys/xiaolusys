@@ -466,14 +466,19 @@ class CashOutViewSet(viewsets.ModelViewSet):
         if cash_type is None:  # 参数错误
             return Response({"code": 1})
         value = self.cashout_type.get(cash_type)
+        
         customer = get_object_or_404(Customer, user=request.user)
         xlmm = get_object_or_404(XiaoluMama, openid=customer.unionid)  # 找到xlmm
+        
+        from flashsale.xiaolumm.models_fortune import MamaFortune
+        could_cash_out = 0
         try:
-            could_cash_out = xlmm.get_cash_iters() * 100  # 可以提现的金额(分为单位)
+            fortune = MamaFortune.objects.get(mama_id=xlmm.id)
+            could_cash_out = fortune.cash_num_display()
         except Exception, exc:
             raise APIException(u'{0}'.format(exc.message))
-        queryset = self.filter_queryset(self.get_owner_queryset(request))
-        if queryset.filter(status=CashOut.PENDING).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
+        
+        if self.queryset.filter(status=CashOut.PENDING,xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
             return Response({"code": 3})
         if could_cash_out < value:  # 如果可以提现金额不足
             return Response({"code": 2})
