@@ -30,7 +30,7 @@ class ActivityView(WeixinAuthMixin, APIView):
     template_name = "promotion/discount_activity.html"
         
     def get_product_list(self):
-        return Product.objects.filter(id__in=(28232,))
+        return Product.objects.filter(id__in=(36451,36443,36249,36449,36457))
         
     def get(self, request, *args, **kwargs):
         
