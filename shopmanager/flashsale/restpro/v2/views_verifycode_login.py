@@ -146,7 +146,7 @@ class SendCodeView(views.APIView):
     action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
     
-    def get(self, request): # should be replaced by post later
+    def post(self, request): 
         content = request.REQUEST
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
@@ -192,7 +192,7 @@ class VerifyCodeView(views.APIView):
     action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
 
-    def get(self, request): # should be replaced by post later
+    def post(self, request): 
         content = request.REQUEST
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
