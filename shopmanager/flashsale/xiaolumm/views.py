@@ -524,7 +524,7 @@ class ClickLogView(WeixinAuthMixin, View):
         if xlmms.exists():
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=xlmms[0].id,ufrom='wx')
         else:
-            share_url = settings.M_SITE_URL
+            share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='wx')
         if next_page:
             share_url = '{site_url}{next}&ufrom={ufrom}'.format(site_url=settings.M_SITE_URL,
                                                                 next=next_page,

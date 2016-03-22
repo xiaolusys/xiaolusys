@@ -45,16 +45,14 @@ class CustomShare(PayBaseModel):
 
     def share_link(self,**params):
         share_link = self.share_url.format(**params)
-        url = []
-        if 'next' in share_link:
-            url.append(share_link.split('next=')[0])
-            next_url = share_link.split('next=')[1]
-            next_url = urllib.quote(next_url)
-            url.append('next=')
-            url.append(next_url)
-            return ''.join(url)
-        else:
+        if not 'next=' in share_link:
             return share_link
+        
+        tokens = share_link.split('next=')
+        base_url = tokens[0]
+        next_url = urllib.quote(tokens[1])
+        return ''.join([base_url, 'next=', next_url])
+        
 
     def share_title(self,**params):
         if not params:
