@@ -367,7 +367,7 @@ class CarryRecordAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'carry_num_display', 'date_field', 'carry_description', 'carry_type', 'status', 'modified', 'created')
     search_fields = ['mama_id', 'carry_description']
     list_filter = ('status', 'carry_type', )
-    
+
 admin.site.register(CarryRecord, CarryRecordAdmin)
 
 
