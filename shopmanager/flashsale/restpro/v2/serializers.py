@@ -98,15 +98,17 @@ class GroupRelationshipSerializer(serializers.ModelSerializer):
 
 
 class UniqueVisitorSerializer(serializers.ModelSerializer):
+    visitor_nick = serializers.CharField(source='nick_display', read_only=True)
     class Meta:
         model = UniqueVisitor
-        fields = ('mama_id', 'visitor_nick', 'visitor_img', 'uni_key', 'modified', 'created')
+        fields = ('mama_id', 'visitor_nick', 'visitor_img', 'visitor_description', 'uni_key', 'modified', 'created')
 
 
 
 from flashsale.xiaolumm.models_fans import XlmmFans
 
 class XlmmFansSerializer(serializers.ModelSerializer):
+    fans_nick = serializers.CharField(source='nick_display', read_only=True)
     class Meta:
         model = XlmmFans
         fields = ('fans_nick', 'fans_thumbnail', 'fans_description', 'created')

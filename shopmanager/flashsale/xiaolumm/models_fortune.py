@@ -565,6 +565,14 @@ class UniqueVisitor(BaseModel):
         verbose_name = u'V2/独立访客'
         verbose_name_plural = u'V2/独立访客列表'
 
+    def visitor_description(self):
+        return u"来自微信点击访问"
+
+    def nick_display(self):
+        if self.visitor_nick == '':
+            return u"匿名用户"
+        return self.visitor_nick
+
 
 def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwargs):
     if not created:
