@@ -73,11 +73,16 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 class ProductSkuSerializer(serializers.ModelSerializer):
 
     is_saleout = serializers.BooleanField(source='sale_out', read_only=True)
-
-
     class Meta:
         model = ProductSku
         fields = ('id', 'outer_id', 'name', 'remain_num', 'size_of_sku', 'is_saleout', 'std_sale_price', 'agent_price')
+
+class JSONParseField(serializers.Field):
+    def to_representation(self, obj):
+        return obj
+
+    def to_internal_value(self, data):
+        return data
 
 class JsonListField(serializers.Field):
 
@@ -111,11 +116,12 @@ class ModelProductSerializer(serializers.ModelSerializer):
         
         
 class ActivityEntrySerializer(serializers.ModelSerializer):
-
+    
+    extras = JSONParseField(read_only=True,required=False)
     class Meta:
         model = ActivityEntry
-        fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link', 'act_applink',
-                   'start_time', 'end_time')
+        fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link', 
+                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -163,15 +169,6 @@ class ProductPreviewSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','url', 'name', 'outer_id', 'category', 'pic_path','remain_num', 'is_saleout','head_img',
                   'is_saleopen', 'is_newgood','std_sale_price', 'agent_price', 'sale_time', 'memo', 'lowest_price',
                    'product_model','product_lowest_price','ware_by','is_verify',"model_id", "sale_charger",'watermark_op')
-
-
-class JSONParseField(serializers.Field):
-    def to_representation(self, obj):
-        return obj
-
-    def to_internal_value(self, data):
-        return data
-
 
 class PosterSerializer(serializers.HyperlinkedModelSerializer):
 

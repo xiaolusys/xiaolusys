@@ -36,6 +36,7 @@ router.register(r'users', views_user.CustomerViewSet)
 
 router.register(r'posters', views_product.PosterViewSet)
 router.register(r'products', views_product.ProductViewSet)
+router.register(r'activitys', views_product.ActivityViewSet)
 router.register(r'carts', views_trade.ShoppingCartViewSet)
 router.register(r'trades', views_trade.SaleTradeViewSet)
 router.register(r'wxorders', views_trade.WXOrderViewSet)
