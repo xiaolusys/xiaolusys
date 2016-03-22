@@ -197,9 +197,12 @@ function get_supplier() {
     var requestUrl = "/items/get_supplier/";
 
     //请求成功回调函数
-    var requestCallBack = function (all_supplier) {
-        suppliers = all_supplier;
+    var requestCallBack = function (result) {
+        var ware_by = result.ware_by;
+        suppliers = result.all_supplier;
         showSupplier();
+        if(ware_by)
+            $('#ware_by').val(ware_by);
     };
     // 发送请求
     $.ajax({

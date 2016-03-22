@@ -13,6 +13,7 @@ jQuery(document).ready(function () {
         var speciality = $('#speciality').val().trim();
         var supplier_type = $('#supplier_type').val().trim(); // 供应商类型
         var supplier_zone = $('#supplier_zone').val().trim(); //供应商区域
+        var ware_by = $('#ware_by').val().trim();
 
         if (supplier_name == '') {
             showtip("Tips", "供应商没有填写", "warning");
@@ -58,7 +59,8 @@ jQuery(document).ready(function () {
                 note: note,
                 speciality: speciality,
                 supplier_type: supplier_type,
-                supplier_zone: supplier_zone
+                supplier_zone: supplier_zone,
+                ware_by: ware_by
             },
             dataType: 'json',
             success: function (data) {

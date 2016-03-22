@@ -193,7 +193,10 @@ class GetSupplier(generics.ListCreateAPIView):
             all_supplier = all_supplier.filter(id=supplier_id)
         for supplier in all_supplier:
             result_data[supplier.id] = supplier.supplier_name
-        return Response({"0": result_data})
+        ware_by = 0
+        if all_supplier:
+            ware_by = all_supplier[0].ware_by
+        return Response({'all_supplier': {"0": result_data}, 'ware_by': ware_by})
 
 
 class GetSkuDetail(generics.ListCreateAPIView):

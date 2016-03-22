@@ -5,6 +5,7 @@
         <meta charset="utf-8">
         <title>缺货统计</title>
         <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}chosen_v1.5.1/chosen.min.css" rel="stylesheet">
         <style>
          .portfolio-box img {
              width: 100px;
@@ -33,26 +34,64 @@
          #supplier-btns {
              padding: 0 20px;
          }
+
+         .supplier h5 label {
+             margin-right: 5px;
+         }
         </style>
     </head>
     <body>
         <div class="container" style="width:98%;margin-top:10px">
             <div class="row">
-                <div class="btn-toolbar" role="toolbar" id="supplier-btns">
-                    {% for supplier in suppliers %}
-                    <button type="button" class="btn btn-default" value="{{supplier.id}}">
-                        {{ supplier.supplier_name }}
-                        <small>{{ supplier.buyer_name }}</small>
-                    </button>
-                    {% endfor %}
-                    <a class="btn btn-default{% if show_ab %} btn-success{% endif %}"
-                       href="/sale/dinghuo/instant_dinghuo?show_ab={% if show_ab %}0{% else %}1{% endif %}">仅显示异常</a>
+                <div class="col-md-6 form-group">
+                    <label class="control-label">供应商名</label>
+                    <select class="chosen-select form-control" id="select-suppliers" multiple data-placeholder="供应商可多选">
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}">{{ supplier.supplier_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="control-label">拍货人</label>
+                    <select class="chosen-select form-control" id="select-buyers" multiple data-placeholder="拍货人可多选">
+                        {% for buyer in buyers %}
+                        <option value="{{ buyer.id }}">{{ buyer.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="control-label">最近销售日期</label>
+                    <select class="chosen-select form-control" id="select-dates" multiple data-placeholder="最近销售日期可多选">
+                        {% for pay_date in pay_dates %}
+                        <option value="{{ pay_date }}">{{ pay_date }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 10px">
+                <div class="col-md-4">
+                    <a class="btn btn-default btn-block{% if show_ab == 1 %} btn-success{% endif %}"
+                       href="/sale/dinghuo/instant_dinghuo?show_ab={% if show_ab == 1 %}0{% else %}1{% endif %}">仅显示异常</a>
+                </div>
+                <div class="col-md-4">
+                    <a class="btn btn-default btn-block{% if show_ab == 2 %} btn-success{% endif %}"
+                       href="/sale/dinghuo/instant_dinghuo?show_ab={% if show_ab == 2 %}0{% else %}2{% endif %}">仅显示缺货</a>
+                </div>
+                <div class="col-md-4">
+                    <a class="btn btn-default btn-block{% if show_ab == 3 %} btn-success{% endif %}"
+                       href="/sale/dinghuo/instant_dinghuo?show_ab={% if show_ab == 3 %}0{% else %}3{% endif %}">仅显示多货</a>
                 </div>
             </div>
             {% for supplier in suppliers %}
-            <div class="supplier" data-supplier-id="{{ supplier.id }}" style="overflow:visible;">
-                <div class="row">
-                    <h2>{{ supplier.supplier_name }} <small>{{ supplier.buyer_name }}</small></h2>
+            <div class="supplier" data-supplier-id="{{ supplier.id }}"
+                 data-buyer-id="{{ supplier.buyer_id }}" data-last-pay-date="{{ supplier.last_pay_date }}"
+                 style="overflow:visible;">
+                <div class="row" style="line-height: 1">
+                    <h2>{{ supplier.supplier_name }}</h2>
+                    <h5><label>拍货人: </label>{{ supplier.buyer_name }}</h5>
+                    <h5><label>最近下单时间:</label>{{ supplier.last_pay_date }}</h5>
                 </div>
                 <div class="row">
                     <table class="table table-striped">
@@ -101,7 +140,7 @@
                             <td>{{ sku.arrival_quantity }}</td>
                             <td>{{ sku.inferior_quantity }}</td>
                             <td>
-                                <a href="/admin/items/productsku/?q={{sku.id}}" target="_blank">
+                                <a href="/admin/items/productsku/?id={{sku.id}}" target="_blank">
                                     {{ sku.quantity }}
                                 </a>
                             </td>
@@ -116,8 +155,57 @@
         <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
         <script type="text/javascript" src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
         <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script src="{{ STATIC_URL }}chosen_v1.5.1/chosen.jquery.js"></script>
         <script>
+         var PROP_SELECTOR_TPL = _.template('[<%= propName %>="<%= propValue %>"]');
+         function onSelectChange(e, params){
+             var supplierIds = $('#select-suppliers').val();
+             var buyerIds = $('#select-buyers').val();
+             var payDates = $('#select-dates').val();
+
+             var propArray = [
+                 _.map(supplierIds, function(el){
+                     return PROP_SELECTOR_TPL({propName: 'data-supplier-id', propValue: el});
+                 }),
+                 _.map(buyerIds, function(el){
+                     return PROP_SELECTOR_TPL({propName: 'data-buyer-id', propValue: el});
+                 }),
+                 _.map(payDates, function(el){
+                     return PROP_SELECTOR_TPL({propName: 'data-last-pay-date', propValue: el});
+                 })
+             ];
+
+             propArray = _.filter(propArray, function(el){
+                 return el.length > 0;
+             });
+
+             $('.supplier').each(function(index){
+                 var el = this;
+                 var shouldVisible = propArray.length > 0 && _.every(propArray, function(i){
+                     return $(el).is(i.join(','));
+                 });
+
+                 var isVisible = $(el).is(':visible');
+                 if(shouldVisible){
+                     if(isVisible)
+                         return;
+                     else
+                         $(el).slideDown();
+                 }
+                 else{
+                     if(isVisible)
+                         $(el).slideUp();
+                     else
+                         return;
+                 }
+             });
+         }
+
          $(function(){
+             $('#select-suppliers, #select-buyers, #select-dates').chosen({
+                 no_results_text: '无此记录'
+             }).on('change', onSelectChange);
+
              $('#supplier-btns button[value]').click(function(){
                  $(this).toggleClass('btn-success');
                  $(_.template('div[data-supplier-id="<%= id %>"]')({id: $(this).val()})).slideToggle();

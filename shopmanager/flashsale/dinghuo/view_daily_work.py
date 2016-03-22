@@ -8,7 +8,7 @@ import re
 
 from django.contrib.auth.models import User
 from django.db import connection
-from django.db.models import Sum
+from django.db.models import Max, Sum
 from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response, HttpResponse
 from django.template import RequestContext
@@ -415,12 +415,15 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
              pcfg.WAIT_CHECK_BARCODE_STATUS, pcfg.WAIT_SCAN_WEIGHT_STATUS,
              pcfg.REGULAR_REMAIN_STATUS],
             sys_status=pcfg.IN_EFFECT).values(
-                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'))
+                'outer_id', 'outer_sku_id').annotate(sale_num=Sum('num'), last_pay_time=Max('pay_time'))
 
         order_products = {}
         for s in sale_stats:
             skus = order_products.setdefault(s['outer_id'], {})
-            skus[s['outer_sku_id']] = s['sale_num']
+            skus[s['outer_sku_id']] = {
+                'sale_quantity': s['sale_num'],
+                'last_pay_time': s['last_pay_time']
+            }
 
         sku_ids = set()
         products = {}
@@ -430,12 +433,15 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             if sku.outer_id in order_skus:
                 sku_ids.add(sku.id)
                 skus = products.setdefault(sku.product.id, {})
-                skus[sku.id] = {
-                    'sale_quantity': order_skus.get(sku.outer_id) or 0,
+                sku_dict = {
+                    'sale_quantity': 0,
+                    'last_pay_time': datetime.datetime.min,
                     'buy_quantity': 0,
                     'arrival_quantity': 0,
                     'inferior_quantity': 0
                 }
+                sku_dict.update(order_skus.get(sku.outer_id) or {})
+                skus[sku.id] = sku_dict
 
         dinghuo_stats = OrderDetail.objects \
           .exclude(orderlist__status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
@@ -446,7 +452,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
             sku_ids.add(sku_id)
             skus = products.setdefault(product_id, {})
-            sku = skus.setdefault(sku_id, {'sale_quantity': 0})
+            sku = skus.setdefault(sku_id, {'sale_quantity': 0, 'last_pay_time': datetime.datetime.min})
             sku.update({
                 'buy_quantity': s['buy_quantity'],
                 'arrival_quantity': s['arrival_quantity'],
@@ -493,6 +499,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             buyer_name = '%s%s' % (user.last_name, user.first_name)
             buyer_mapping[user.id] = buyer_name or user.username
 
+        buyers = {}
         suppliers = {}
         for product_id in sorted(products.keys(), reverse=True):
             if product_id not in product_mapping:
@@ -504,21 +511,31 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 effect_quantity = sku['quantity'] + sku[
                     'buy_quantity'] - sku['arrival_quantity'] - sku[
                         'sale_quantity']
-                if show_ab and effect_quantity == 0:
+                if show_ab == 1 and effect_quantity == 0:
+                    continue
+                if show_ab == 2 and effect_quantity >= 0:
+                    continue
+                if show_ab == 3 and effect_quantity <= 0:
                     continue
                 sku['effect_quantity'] = effect_quantity
                 new_skus.append(sku)
             if show_ab and not new_skus:
                 continue
-            new_product['skus'] = new_skus
+            new_product.update({
+                'last_pay_time': max(filter(None, map(lambda x: x['last_pay_time'], new_skus)) or [datetime.datetime.min]),
+                'skus': new_skus
+            })
             sale_product_id = new_product['sale_product_id']
             supplier_id = saleproduct2supplier_mapping.get(sale_product_id) or 0
             if supplier_id not in suppliers:
                 supplier_name, buyer_id = supplier_mapping.get(supplier_id) or (
                     '未知', 0)
                 buyer_name = buyer_mapping.get(buyer_id) or '空缺'
+                if buyer_id not in buyers:
+                    buyers[buyer_id] = buyer_name
                 supplier = {
                     'id': supplier_id,
+                    'buyer_id': buyer_id,
                     'buyer_name': buyer_name,
                     'supplier_name': supplier_name,
                     'products': []
@@ -528,15 +545,35 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 supplier = suppliers[supplier_id]
             supplier['products'].append(new_product)
 
-        now = datetime.datetime.now()
-        two_weeks_ago = now - datetime.timedelta(days=31)
         new_suppliers = []
+        pay_times = set()
         for k in sorted(suppliers.keys()):
             supplier = suppliers[k]
-            if show_ab and not supplier.get('products'):
+            if not supplier.get('products'):
                 continue
+            last_pay_time = max(map(lambda x: x['last_pay_time'], supplier['products']))
+            if last_pay_time == datetime.datetime.min:
+                last_pay_date = '暂无销售'
+            else:
+                last_pay_date = last_pay_time.strftime('%Y-%m-%d')
+            pay_times.add((last_pay_time, last_pay_date))
+            supplier['last_pay_date'] = last_pay_date
             new_suppliers.append(supplier)
 
-        return Response({'suppliers': new_suppliers,
-                         'two_weeks_ago': two_weeks_ago,
-                         'show_ab': show_ab})
+        last_pay_dates = []
+        for _, d in sorted(pay_times, key=lambda x: x[0], reverse=True):
+            last_pay_dates.append(d)
+
+        new_buyers = []
+        for k in sorted(buyers):
+            new_buyers.append({
+                'id': k,
+                'name': buyers[k]
+            })
+
+        return Response({
+            'suppliers': new_suppliers,
+            'show_ab': show_ab,
+            'pay_dates': last_pay_dates,
+            'buyers': new_buyers
+        })

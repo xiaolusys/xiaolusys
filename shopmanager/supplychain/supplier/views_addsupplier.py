@@ -34,11 +34,13 @@ class AddSupplierView(generics.ListCreateAPIView):
         process_choice = SaleSupplier.PROGRESS_CHOICES
         all_category = SaleCategory.objects.filter()
         zones = SupplierZone.objects.all()
+        ware_bys = [{'value': i, 'text': j} for i, j in SaleSupplier.WARE_CHOICES]
+
         return Response({"platform_choice": platform_choice,
                          "all_category": all_category,
                          "process_choice": process_choice,
                          "supplier_types": SaleSupplier.SUPPLIER_TYPE,
-                         "zones": zones})
+                         "zones": zones, 'ware_bys': ware_bys})
 
     @transaction.commit_on_success
     def post(self, request, *args, **kwargs):
@@ -56,6 +58,7 @@ class AddSupplierView(generics.ListCreateAPIView):
         speciality = post.get("speciality", '')
         supplier_type = post.get("supplier_type", 0)
         supplier_zone = post.get("supplier_zone", 0)
+        ware_by = int(post.get('ware_by') or 0)
 
         new_supplier = SaleSupplier(supplier_name=supplier_name,
                                     supplier_code=supplier_code,
@@ -69,7 +72,8 @@ class AddSupplierView(generics.ListCreateAPIView):
                                     progress=progress,
                                     speciality=speciality,
                                     supplier_type=supplier_type,
-                                    supplier_zone=supplier_zone)
+                                    supplier_zone=supplier_zone,
+                                    ware_by=ware_by)
         new_supplier.save()
         log_action(request.user.id, new_supplier, ADDITION, u'新建'.format(""))
         return Response({"supplier_id": new_supplier.id})

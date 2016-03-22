@@ -1,3 +1,5 @@
+######## 2016-03-22 ########
+alter table supplychain_supply_supplier add column ware_by smallint default 1;
 ######## 2016-03-17 ########
 alter table supplychain_supply_supplier add column buyer_id int(11) default null references auth_user(id);
 ######## 2016-03-14 ########

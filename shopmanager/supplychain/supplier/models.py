@@ -146,6 +146,13 @@ class SaleSupplier(models.Model):
                      (BRAND_OWNER, u'品牌'),
                      (CLOTHING_FACTORY, u'源头大厂'))
 
+    WARE_NONE  = 0
+    WARE_SH    = 1
+    WARE_GZ    = 2
+    WARE_CHOICES = ((WARE_NONE,u'未选仓'),
+                    (WARE_SH,u'上海仓'),
+                    (WARE_GZ,u'广州仓'))
+
     supplier_name = models.CharField(max_length=64, unique=True, blank=False, verbose_name=u'供应商名')
     supplier_code = models.CharField(max_length=64, blank=True, verbose_name=u'品牌缩写')
 
@@ -194,6 +201,8 @@ class SaleSupplier(models.Model):
     supplier_type = models.IntegerField(choices=SUPPLIER_TYPE, blank=True, default=0, verbose_name=u"供应商类型")
     supplier_zone = models.IntegerField(default=0, db_index=True, verbose_name=u'供应商所属区域')
     buyer = models.ForeignKey(User, null=True, related_name='buyers', verbose_name=u'买手')
+    ware_by = models.SmallIntegerField(default=WARE_SH,choices=WARE_CHOICES,verbose_name=u'所属仓库')
+
     objects = SaleSupplierManager()
 
     class Meta:
