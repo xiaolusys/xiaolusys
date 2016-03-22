@@ -221,7 +221,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+        return self.queryset.filter(mama_id=mama_id,status__lt=3).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
