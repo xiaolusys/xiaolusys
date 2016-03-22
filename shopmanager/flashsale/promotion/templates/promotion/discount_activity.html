@@ -65,7 +65,7 @@
 </div>
 <div class="page-content">
 	<!-- 优惠券 -->
-	<div class="coupon" template_id="35" onclick="Action_release(this)">
+	<div class="coupon" template_id="35,37" onclick="Action_release(this)">
 	</div>
 	<!-- 内容图 -->
 	<div class="items">
@@ -91,23 +91,28 @@
 function Action_release(ele) {
     //点击领取优惠券
     var url  = 'http://m.xiaolumeimei.com/rest/v1/usercoupons.json';
-    var data = {'template_id': $(ele).attr('template_id')};
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
+    var data = {'template_id': $(ele).attr('template_id'),"csrfmiddlewaretoken": csrf_token};
     $.ajax({
         "url": url,
         "data": data,
         "success": callback,
         "type": "post",
-        "csrfmiddlewaretoken": csrf_token,
-        error: function (data) {
-            console.log('debug profile:', data);
-            if (data.status == 403) {
+        "error": function (err) {
+            console.log('debug profile:', err);
+            if (err.status == 403) {
                 alert('您还没有登陆哦!');
+            }else{
+                try{
+                    var resp = JSON.parse(err.responseText);
+                    alert(err.detail);
+                }catch(exc){
+                    alert(err.responseText);
+                }
             }
         }
     });
     function callback(res) {
-    
         if (res.res == "success") {
             alert("领取成功 赶紧去挑选商品吧 ！");
             //等待3秒跳转到优惠券页面

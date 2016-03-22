@@ -90,23 +90,22 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        """　根据参数生成不同类型的优惠券　"""
+        """　根据参数生成不同类型的优惠券,多张优惠券逗号分隔 """
         content = request.REQUEST
-        # if content:
-        # return Response({"res": "not_release"})
+        template_ids = content.get("template_id", '')
         try:
-            template_id = int(content.get("template_id", None))
-        except TypeError:
-            return Response({"res": "not_release"})
-        try:
+            template_ids = [int(i) for i in template_ids.split(',')]
             customer = Customer.objects.get(user=request.user)
-            if template_id:  # 根据模板id发放
-                uc = UserCoupon()
-                cus = {"buyer_id": customer.id, "template_id": template_id}
-                release_res = uc.release_by_template(**cus)
+            if template_ids:  # 根据模板id发放
+                for template_id in template_ids:
+                    uc = UserCoupon()
+                    cus = {"buyer_id": customer.id, "template_id": template_id}
+                    release_res = uc.release_by_template(**cus)
                 return Response({"res": release_res})
         except Customer.DoesNotExist:
             return Response({"res": "cu_not_fund"})
+        except TypeError:
+            return Response({"res": "not_release"})
         else:
             return Response({"res": "not_release"})
 
