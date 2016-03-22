@@ -21,6 +21,15 @@ from django.db.models import Sum, Count
 from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor
 
 
+def get_customer_id(user):
+    customers = Customer.objects.filter(user=user)
+    customer_id = None
+    if customers.count() > 0:
+        customer_id = customers[0].id
+    
+    return customer_id
+
+
 def get_mama_id(user):
     customers = Customer.objects.filter(user=user)
     mama_id = None
@@ -309,6 +318,34 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
+
+
+
+from flashsale.xiaolumm.models_fans import XlmmFans
+
+class XlmmFansViewSet(viewsets.ModelViewSet):
+    """
+    """
+    queryset = XlmmFans.objects.all()
+    serializer_class = serializers.XlmmFansSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, request):
+        customer_id = get_customer_id(request.user)
+        return self.queryset.filter(xlmm_cusid=customer_id).order_by('-created')
+
+    def list(self, request, *args, **kwargs):
+        datalist = self.get_owner_queryset(request)
+        datalist = self.paginate_queryset(datalist)
+
+        serializer = serializers.XlmmFansSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
 
 
 def match_data(from_date, end_date, visitors, orders):

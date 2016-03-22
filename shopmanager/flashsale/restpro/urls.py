@@ -125,8 +125,7 @@ router_urls += format_suffix_patterns([
 from flashsale.restpro.v2 import views_mama_v2, views_verifycode
 v2_router = routers.DefaultRouter(trailing_slash=False)
 
-#v2_router.register(r'login', views_login_v2.LoginViewSet)
-#v2_router.register(r'login', views_verifycode.VerifyCodeViewSet, base_name="verify")
+
 v2_router.register(r'fortune', views_mama_v2.MamaFortuneViewSet)
 v2_router.register(r'carry', views_mama_v2.CarryRecordViewSet)
 v2_router.register(r'ordercarry', views_mama_v2.OrderCarryViewSet)
@@ -136,7 +135,7 @@ v2_router.register(r'activevalue', views_mama_v2.ActiveValueViewSet)
 v2_router.register(r'referal', views_mama_v2.ReferalRelationshipViewSet)
 v2_router.register(r'group', views_mama_v2.GroupRelationshipViewSet)
 v2_router.register(r'visitor', views_mama_v2.UniqueVisitorViewSet)
-
+v2_router.register(r'fans', views_mama_v2.XlmmFansViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([
