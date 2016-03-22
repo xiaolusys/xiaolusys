@@ -26,7 +26,7 @@ def get_customer_id(user):
     customer_id = None
     if customers.count() > 0:
         customer_id = customers[0].id
-    
+    #customer_id = 19 # debug test
     return customer_id
 
 
@@ -38,6 +38,7 @@ def get_mama_id(user):
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
+    #mama_id = 5 # debug test
     return mama_id
 
 
@@ -298,7 +299,10 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
 
 class UniqueVisitorViewSet(viewsets.ModelViewSet):
     """
+    given from=0 (or omit), we return today's visitors;
+    given from=2 , we return all the visitors for 2 days ago.
     """
+    
     queryset = UniqueVisitor.objects.all()
     serializer_class = serializers.UniqueVisitorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -306,8 +310,15 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
+        content = request.REQUEST
+        days_from = int(content.get("from",0))
+        
+        date_field = datetime.datetime.now().date()
+        if days_from > 0:
+            date_field = date_field - datetime.timedelta(days=days_from)
+
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+        return self.queryset.filter(mama_id=mama_id,date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
