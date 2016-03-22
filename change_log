@@ -1,5 +1,8 @@
 ######## 2016-03-22 ########
 alter table supplychain_supply_supplier add column ware_by smallint default 1;
+alter table flashsale_activity_entry add act_type varchar(8) NOT NULL;
+alter table flashsale_activity_entry add extras varchar(5012) NOT NULL default '{}';
+alter table flashsale_activity_entry add order_val int(11) NOT NULL;
 ######## 2016-03-17 ########
 alter table supplychain_supply_supplier add column buyer_id int(11) default null references auth_user(id);
 ######## 2016-03-14 ########

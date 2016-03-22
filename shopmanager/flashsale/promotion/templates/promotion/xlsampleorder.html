@@ -432,8 +432,7 @@
             var share_link = $("#share_link").attr('cid');
             if (os == 'iOS') {
                 window.location = 'wx25fcb32689872499://?platform=' + uform + '&url=' + share_link + '&ufrom=' + uform;
-            }
-            else if (os == 'Android') {
+            }else if (os == 'Android') {
                 // 调用android客户端接口内容
                 if (window.AndroidBridge) {
                     window.AndroidBridge.getPromotionParams(uform, share_link);

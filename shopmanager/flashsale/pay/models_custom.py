@@ -204,18 +204,35 @@ class GoodShelf(PayBaseModel):
 
 class ActivityEntry(PayBaseModel):
     """ 商城活动入口 """
+    
+    ACT_COUPON = 'coupon'
+    ACT_WEBVIEW = 'webview'
+    ACT_BRAND  = 'brand'
+    
+    ACT_CHOICES = (
+        (ACT_COUPON,u'优惠券活动'),
+        (ACT_WEBVIEW,u'活动专属页'),
+        (ACT_BRAND,u'品牌专场')
+    )
+    
+    
     title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'活动名称')
-
+    
     act_desc = models.TextField(max_length=512, blank=True, verbose_name=u'活动描述')
     act_img  = models.CharField(max_length=256, blank=True, verbose_name=u'活动图片')
     act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动网页链接')
-    mask_link = models.CharField(max_length=256, blank=True, verbose_name=u'遮罩图片')
+    mask_link   = models.CharField(max_length=256, blank=True, verbose_name=u'APP提示图')
     act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议')
-
+    act_type = models.CharField(max_length=8, choices=ACT_CHOICES, 
+                                db_index=True, verbose_name=u'活动类型')
+    
     login_required = models.BooleanField(default=False,verbose_name=u'需要登陆')
     start_time  = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=u'开始时间')
     end_time    = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
-
+    
+    order_val   = models.IntegerField(default=0, verbose_name=u'排序值')
+    
+    extras      = JSONCharMyField(max_length=5120, default={}, verbose_name=u'活动数据')
     is_active   = models.BooleanField(default=True,verbose_name=u'上线')
 
     class Meta:

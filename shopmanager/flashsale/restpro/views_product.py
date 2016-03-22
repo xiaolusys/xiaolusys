@@ -23,7 +23,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 from shopback.items.models import Product
 from shopback.categorys.models import ProductCategory
 from flashsale.pay.models import GoodShelf,ModelProduct
-from flashsale.pay.models_custom import Productdetail
+from flashsale.pay.models_custom import Productdetail,ActivityEntry
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
 
@@ -123,6 +123,46 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
+class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ###特卖活动API：
+    """
+    queryset = ActivityEntry.objects.filter(is_active=True)
+    serializer_class = serializers.ActivityEntrySerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
+
+    def calc_porter_cache_key(self, view_instance, view_method,
+                            request, args, kwargs):
+        key_vals = ['days']
+        key_maps = kwargs or {}
+        for k,v in request.GET.copy().iteritems():
+            if k in key_vals and v.strip():
+                key_maps[k] = v
+        
+        return hashlib.sha1(u'.'.join([
+                view_instance.__module__,
+                view_instance.__class__.__name__,
+                view_method.__name__,
+                json.dumps(key_maps, sort_keys=True).encode('utf-8')
+            ])).hexdigest()
+    
+#     @cache_response(timeout=CACHE_VIEW_TIMEOUT,key_func='calc_porter_cache_key')
+    def list(self, request, *args, **kwargs):
+        
+        today = datetime.datetime.today()
+        queryset = self.get_queryset()
+        queryset = queryset.filter(
+                        start_time__lte=today,
+                        end_time__gte=today,
+                        is_active=True,
+                        ).order_by('-order_val')
+                        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+
+
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ##特卖商品API：
@@ -148,7 +188,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ProductSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer)
-
+    
     paginate_by = 100
     page_query_param = 'page'
     paginate_by_param = 'page_size'
