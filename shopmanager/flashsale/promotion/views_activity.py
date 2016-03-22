@@ -31,7 +31,11 @@ class ActivityView(WeixinAuthMixin, APIView):
         
     def get_product_list(self):
         products = []
-        for pid in (36451,36443,36249,36449,36457):
+        if settings.DEBUG:
+            pids = (1,2,3,4,5)
+        else:
+            pids = (36451,36443,36249,36449,36457)
+        for pid in pids:
             product = Product.objects.get(id=pid)
             products.append(product)
         return products
