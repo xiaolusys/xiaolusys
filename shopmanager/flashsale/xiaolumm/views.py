@@ -147,7 +147,7 @@ class CashoutView(WeixinAuthMixin, View):
                 "could_cash_out":int(could_cash_out)}
         
         response = render_to_response("mama_cashout.html", data, context_instance=RequestContext(request))
-        response = self.set_cookie_openid_and_unionid(response, openid, unionid)
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
     def post(self, request):
@@ -214,7 +214,7 @@ class MamaStatsView(WeixinAuthMixin, View):
         
         if not wx_user.isValid():
             response = render_to_response("remind.html",{"openid":openid},context_instance=RequestContext(request))
-            response = self.set_cookie_openid_and_unionid(response, openid, unionid)
+            self.set_cookie_openid_and_unionid(response, openid, unionid)
             return response
 
         target_date = datetime.date.today()
@@ -295,7 +295,7 @@ class MamaStatsView(WeixinAuthMixin, View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_stats.html", data, context_instance=RequestContext(request))
-        response = self.set_cookie_openid_and_unionid(response, openid, unionid)
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
     
 class MamaIncomeDetailView(WeixinAuthMixin, View):
@@ -414,7 +414,7 @@ class MamaIncomeDetailView(WeixinAuthMixin, View):
             logger.error(exc.message,exc_info=True)
         
         response = render_to_response("mama_income.html", data, context_instance=RequestContext(request))
-        response = self.set_cookie_openid_and_unionid(response, openid, unionid)
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
         return response
 
 
