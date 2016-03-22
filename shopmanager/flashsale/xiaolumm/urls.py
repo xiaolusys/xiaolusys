@@ -11,11 +11,20 @@ from . import views_register
 from . import views_xlmm_active, views_xlmm_adver, views_cashout
 from flashsale.pay.decorators import weixin_xlmm_auth
 from flashsale.pay import constants 
+from core.weixin.decorators import weixin_authlogin_required
+
 
 urlpatterns = patterns('',
     url(r'^$',views.landing),
     url(r'^m/$',views.MamaStatsView.as_view(),name="mama_homepage"),
-    url(r'^register/(?P<mama_id>\d+)/$',views_register.MamaRegisterView.as_view(),name="mama_register"),
+
+
+    url(r'^register/(?P<mama_id>\d+)/$', weixin_authlogin_required(redirecto='/pages/denglu.html')(views_register.MamaRegisterView.as_view()), name="mama_register"),
+    # url(r'^register/(?P<mama_id>\d+)/$', (views_register.MamaRegisterView.as_view()), name="mama_register"),
+    url(r'^register/sendcode/$', views_register.SendCode.as_view(), name="mama_register_sendcode"),
+    url(r'^register/verifycode/$', views_register.VerifyCode.as_view(), name="mama_register_sendcode"),
+
+
     url(r'^register/deposite/(?P<mama_id>\d+)/$',
         weixin_xlmm_auth(redirecto=constants.MALL_LOGIN_URL)(views_register.PayDepositeView.as_view()),name="mama_deposite"),
     url(r'^register/deposite/(?P<mama_id>\d+)/pay.htm$',cache_page(TemplateView.as_view(template_name="apply/pay.htm"),24*60*60)),
