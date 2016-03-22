@@ -4,6 +4,7 @@
 """
 from django.db import models
 from shopback.base.models import JSONCharMyField
+from django.db.models.signals import post_save
 import datetime
 
 
@@ -78,3 +79,25 @@ class NinePicAdver(models.Model):
 
     def description_title(self):
         return self.description.replace('\r\n', '\r')
+
+
+from flashsale.xiaolumm import util_emoji
+
+def gen_emoji(sender, instance, created, **kwargs):
+    desc = instance.description
+    import re
+    reg = re.compile('\[\d\]')
+    res_list = reg.findall(desc)
+    d = {}
+    for key in res_list:
+        if not key in d:
+            d[key] = util_emoji.gen_flower_emoji()
+    
+    for k,v in d.iteritems():
+        desc = desc.replace(k,v)
+    
+    NinePicAdver.objects.filter(id=instance.id).update(description=desc)
+        
+
+post_save.connect(gen_emoji,
+                  sender=NinePicAdver, dispatch_uid='post_save_ninpicadver_gen_emoji')

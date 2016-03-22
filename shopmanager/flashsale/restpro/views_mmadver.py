@@ -43,6 +43,9 @@ class XlmmAdvertisViewSet(viewsets.ModelViewSet):
         return Response({})
 
 
+
+
+
 class NinePicAdverViewSet(viewsets.ModelViewSet):
     """
     ### 特卖平台－九张图API:
@@ -75,13 +78,21 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         advers = []
         now = datetime.datetime.now()
+
+        from flashsale.xiaolumm import util_emoji
         for adver in self.get_today_queryset().order_by('-start_time'):
             if now >= adver.start_time:
                 mama_link = self.get_mama_link(request)
+                
+                adver.description = util_emoji.match_emoji(adver.description)
+
                 adver.description += mama_link
+
                 advers.append(adver)
         serializer = self.get_serializer(advers, many=True)
+                
         return Response(serializer.data)
+        
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException("方法不允许")
