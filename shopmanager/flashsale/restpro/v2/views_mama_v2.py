@@ -21,6 +21,15 @@ from django.db.models import Sum, Count
 from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor
 
 
+def get_customer_id(user):
+    customers = Customer.objects.filter(user=user)
+    customer_id = None
+    if customers.count() > 0:
+        customer_id = customers[0].id
+    #customer_id = 19 # debug test
+    return customer_id
+
+
 def get_mama_id(user):
     customers = Customer.objects.filter(user=user)
     mama_id = None
@@ -29,6 +38,7 @@ def get_mama_id(user):
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
+    #mama_id = 5 # debug test
     return mama_id
 
 
@@ -221,7 +231,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+        return self.queryset.filter(mama_id=mama_id,status__lt=3).order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -289,7 +299,10 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
 
 class UniqueVisitorViewSet(viewsets.ModelViewSet):
     """
+    given from=0 (or omit), we return today's visitors;
+    given from=2 , we return all the visitors for 2 days ago.
     """
+    
     queryset = UniqueVisitor.objects.all()
     serializer_class = serializers.UniqueVisitorSerializer
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
@@ -297,8 +310,15 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
     def get_owner_queryset(self, request):
+        content = request.REQUEST
+        days_from = int(content.get("from",0))
+        
+        date_field = datetime.datetime.now().date()
+        if days_from > 0:
+            date_field = date_field - datetime.timedelta(days=days_from)
+
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
+        return self.queryset.filter(mama_id=mama_id,date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -309,6 +329,34 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
+
+
+
+from flashsale.xiaolumm.models_fans import XlmmFans
+
+class XlmmFansViewSet(viewsets.ModelViewSet):
+    """
+    """
+    queryset = XlmmFans.objects.all()
+    serializer_class = serializers.XlmmFansSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, request):
+        customer_id = get_customer_id(request.user)
+        return self.queryset.filter(xlmm_cusid=customer_id).order_by('-created')
+
+    def list(self, request, *args, **kwargs):
+        datalist = self.get_owner_queryset(request)
+        datalist = self.paginate_queryset(datalist)
+
+        serializer = serializers.XlmmFansSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
 
 
 def match_data(from_date, end_date, visitors, orders):

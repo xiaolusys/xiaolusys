@@ -5,24 +5,10 @@ import urllib
 import time
 import datetime
 
-from rest_framework import mixins
 from rest_framework import views
-from rest_framework.decorators import list_route
-from rest_framework import permissions
 from rest_framework.response import Response
-from rest_framework import renderers
-from rest_framework import authentication
-from rest_framework import status
-from django.core.urlresolvers import reverse
-from shopapp.weixin.models import WeiXinUser
-from django.db import models
 from django.contrib.auth import authenticate, login, logout
-from flashsale.pay.models import Register, Customer,Integral
-from rest_framework import exceptions
-from shopback.base import log_action, ADDITION, CHANGE
-from flashsale.restpro import permissions as perms
-from flashsale.restpro import serializers
-from flashsale.restpro import options 
+from flashsale.pay.models import Register, Customer
 from shopapp.smsmgr.tasks import task_register_code
 from django.contrib.auth.models import User as DjangoUser
 import logging
@@ -155,14 +141,12 @@ class SendCodeView(views.APIView):
     处理所有和验证码相关的请求，暂有5类：
     register，sms_login, find_pwd, change_pwd, bind.
     
-    /send_code?mobile=xxx&action=xxx
+    /send_code
+    mobile: mobile number
+    action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
     
-    def get(self, request): # should be replaced by post later
-        """
-        send code under 5 action cases:
-        register, find_pwd, change_pwd, bind, sms_login
-        """
+    def post(self, request): 
         content = request.REQUEST
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
@@ -200,18 +184,15 @@ class SendCodeView(views.APIView):
 
 class VerifyCodeView(views.APIView):    
     """
-    Verify mobile and code:
+    verify code under 5 action cases:
+    register, find_pwd, change_pwd, bind, sms_login
     
-    /verify_code?mobile=xxx&action=xxx
+    /verify_code
+    mobile: mobile number
+    action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
-    def get(self, request): # should be replaced by post later
-        """
-        verify code under 5 action cases:
-        register, find_pwd, change_pwd, bind, sms_login
 
-        /verify_code?mobile=xxx&action=xxx
-        """
-        
+    def post(self, request): 
         content = request.REQUEST
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
@@ -261,7 +242,7 @@ class ResetPasswordView(views.APIView):
     
     /reset_password?mobile=xxx&password1=xxx&password2=xxx&verify_code=xxx
     """
-    def get(self, request):
+    def post(self, request):
         """
         reset password after verifying code
         """
@@ -293,3 +274,86 @@ class ResetPasswordView(views.APIView):
         
         return Response({"rcode": 0, "msg": u"密码设置成功啦！"})
     
+
+class PasswordLoginView(views.APIView):
+    """
+    User login with username and password. She can login either via APP or H5 Web.
+    
+    """
+    def get(self, request):
+        content = request.POST
+        username = content.get('username','0')
+        password = content.get('password', '')
+        next_url = content.get('next', '/index.html')
+        if not username or not password:
+            return Response({"code": 1, "message": u"用户名和密码不全呢！", 'next': ''})
+
+        customers = Customer.objects.filter(mobile=username)
+        if customers.count() == 1:
+            # 若是微信授权创建的账户，django user的username不是手机号。
+            username = customers[0].user.username
+
+        user = authenticate(username=username, password=password)
+        if not user or user.is_anonymous():
+            return Response({"code": 2, "message": u"用户名或密码错误呢！", 'next': ''})
+        login(request, user)
+        
+        return Response({"code": 0, "message": u"登录成功", "next": next_url})
+
+
+def check_sign(request):
+    """
+    功能：微信app 登录接口数据校验算法:
+    参数：params = {'a':1,'c':2,'b':3}
+    时间戳：timestamp = 1442995986
+    随机字符串：noncestr = 8位随机字符串，如abcdef45
+        　 　secret : 3c7b4e3eb5ae4c (测试值)
+
+       签名步骤:
+       1，获得所有签名参数：　sign_params = {timestamp:时间戳,noncestr:随机值,secret:密钥值}
+        如　{'timestamp':'1442995986','noncestr':'1442995986abcdef','secret':'3c7b4e3eb5ae4c'}
+       2,根据参数的字符串key，进行升序排列,并组装成新的字符串，如：
+        sign_string = '&'.join(sort([k=v for k,v in sign_params],asc=true))
+       如　'noncestr=1442995986abcdef&secret=3c7b4e3eb5ae4c&timestamp=1442995986'
+       3,签名算法
+        sign = hash.sha1(sign_string).hexdigest()
+        如　签名值＝'39ae931c59394c9b4b0973b3902956f63a35c21e'
+       4,最后传递给服务器的参数：
+       URL:~?noncestr=1442995986abcdef&timestamp=1442995986&sign=366a83819b064149a7f4e9f6c06f1e60eaeb02f7
+       POST: 'a=1&b=3&c=2'
+    """
+    CONTENT = request.GET
+    params = {}
+    for k, v in CONTENT.iteritems():
+        params[k] = v
+    timestamp = params.get('timestamp')
+    if not timestamp or time.time() - int(timestamp) > 30:
+        return False
+    origin_sign = params.pop('sign')
+    new_sign = options.gen_wxlogin_sha1_sign(params, settings.WXAPP_SECRET)
+    if origin_sign and origin_sign == new_sign:
+        return True
+    params.update({'sign': origin_sign})
+    logger.error('%s' % params)
+    return False
+
+
+class WeixinAppLoginView(views.APIView):
+    """
+    User login with Weixin authorization via APP.
+    
+    """
+    def get(self, request):
+        """
+        app客户端微信授权登陆
+        """
+        if not check_sign(request):
+            return Response({"code": 1, "message": u'登录失败'})
+
+        params = request.POST
+        user = authenticate(request=request, **params)
+        if not user or user.is_anonymous():
+            return Response({"code": 2, "message": u'登录异常'})
+
+        login(request, user)
+        return Response({"code": 0, "message": u'登录成功'})

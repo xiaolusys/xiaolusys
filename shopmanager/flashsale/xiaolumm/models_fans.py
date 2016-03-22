@@ -32,6 +32,16 @@ class XlmmFans(BaseModel):
         except Customer.DoesNotExist:
             return None
 
+    def fans_description(self):
+        if self.xlmm_cusid == self.refreal_cusid:
+            return u"通过您的分享成为粉丝"
+        return u"来自好友的分享"
+
+    def nick_display(self):
+        if self.fans_nick == '':
+            return u"匿名用户"
+        return self.fans_nick
+
 
 from django.db.models.signals import post_save
 
