@@ -123,7 +123,7 @@ router_urls += format_suffix_patterns([
 
 
 # 2016-3-2 v2
-from flashsale.restpro.v2 import views_mama_v2, views_verifycode
+from flashsale.restpro.v2 import views_mama_v2, views_verifycode_login
 v2_router = routers.DefaultRouter(trailing_slash=False)
 
 
@@ -154,10 +154,10 @@ urlpatterns = patterns('',
     url(r'^v2/', include(v2_router_urls, namespace='v2')),
     url(r'^v2/mama/', include(v2_router_urls, namespace='v2_mama')),
     url(r'^v2/mama/order_carry_visitor', views_mama_v2.OrderCarryVisitorView.as_view()),
-    url(r'^v2/send_code', views_verifycode.SendCodeView.as_view()),
-    url(r'^v2/verify_code', views_verifycode.VerifyCodeView.as_view()),
-    url(r'^v2/reset_password', views_verifycode.ResetPasswordView.as_view()),
-    url(r'^v2/passwordlogin', views_verifycode.PasswordLoginView.as_view()),
-    url(r'^v2/weixinapplogin', views_verifycode.WeixinAppLoginView.as_view()),
+    url(r'^v2/send_code', views_verifycode_login.SendCodeView.as_view()),
+    url(r'^v2/verify_code', views_verifycode_login.VerifyCodeView.as_view()),
+    url(r'^v2/reset_password', views_verifycode_login.ResetPasswordView.as_view()),
+    url(r'^v2/passwordlogin', views_verifycode_login.PasswordLoginView.as_view()),
+    url(r'^v2/weixinapplogin', views_verifycode_login.WeixinAppLoginView.as_view()),
 
 )
