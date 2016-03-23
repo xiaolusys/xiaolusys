@@ -62,6 +62,10 @@ CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 ACTIVE_VALUE_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama_activevalue.task_confirm_previous_activevalue': {
+            'queue': 'activevalue',
+            'routing_key': 'activevalue.task_confirm_previous_activevalue',
+        },
         'flashsale.xiaolumm.tasks_mama_activevalue.task_fans_update_activevalue': {
             'queue': 'activevalue',
             'routing_key': 'activevalue.task_fans_update_activevalue',
@@ -131,6 +135,10 @@ MAMA_RELATIONSHIP_ROUTES = {
 }
 
 MAMA_CARRY_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry': {
+            'queue': 'mama',
+            'routing_key': 'mama.task_confirm_previous_zero_order_clickcarry',
+        },
         'flashsale.xiaolumm.tasks_mama_clickcarry.task_visitor_increment_clickcarry': {
             'queue': 'mama',
             'routing_key': 'mama.task_visitor_increment_clickcarry',
