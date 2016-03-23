@@ -131,11 +131,11 @@ MAMA_RELATIONSHIP_ROUTES = {
 }
 
 MAMA_CARRY_ROUTES = {
-        'flashsale.xiaolumm.tasks_mama.task_visitor_increment_clickcarry': {
+        'flashsale.xiaolumm.tasks_mama_clickcarry.task_visitor_increment_clickcarry': {
             'queue': 'mama',
             'routing_key': 'mama.task_visitor_increment_clickcarry',
         },
-        'flashsale.xiaolumm.tasks_mama.task_update_clickcarry_order_number': {
+        'flashsale.xiaolumm.tasks_mama_clickcarry.task_update_clickcarry_order_number': {
             'queue': 'mama',
             'routing_key': 'mama.task_update_clickcarry_order_number',
         },
