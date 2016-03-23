@@ -110,7 +110,7 @@ def gen_emoji(desc):
     d = {}
     for key in res_list:
         if not key in d:
-            d[key] = gen_flower_emoji()
+            d[key] = gen_random_emoji()
     
     for k,v in d.iteritems():
         desc = desc.replace(k,v)
