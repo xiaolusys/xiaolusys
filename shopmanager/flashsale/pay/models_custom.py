@@ -253,6 +253,7 @@ class ActivityEntry(PayBaseModel):
         return {
             'id':self.id,
             'title':self.title.format(**params),
+            'share_type':'link',
             'share_icon':self.share_icon,
             'share_link':self.share_link.format(**params),
             'active_dec':self.act_desc.format(**params),

@@ -181,9 +181,12 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取活动分享参数 """
         content = request.REQUEST
         active_obj = self.get_object()
-        customer = get_object_or_404(Customer, user=request.user)
         
-        params = {'customer': customer}
+        params = {}
+        if active_obj.login_required:
+            customer = get_object_or_404(Customer, user=request.user)
+            params.update({'customer': customer})
+        
         share_params = active_obj.get_shareparams(**params)
         share_params.update(qrcode_link=self.get_qrcode_page_link())
         
