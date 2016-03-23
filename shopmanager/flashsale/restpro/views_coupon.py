@@ -166,17 +166,16 @@ class CouponTemplateViewSet(viewsets.ModelViewSet):
 
     def get_useful_template_query(self):
         # 点击方式领取的　有效的　在预置天数内的优惠券
-        tpls = self.queryset.filter(way_type=CouponTemplate.CLICK_WAY, valid=True).exclude(
-            type__in=(CouponTemplate.RMB118, CouponTemplate.POST_FEE_5, CouponTemplate.POST_FEE_10,
-                      CouponTemplate.POST_FEE_15, CouponTemplate.POST_FEE_20))
-        temps = []
+        tpls = self.queryset.exclude(type__in=(CouponTemplate.RMB118,
+                                               CouponTemplate.POST_FEE_5,
+                                               CouponTemplate.POST_FEE_10,
+                                               CouponTemplate.POST_FEE_15,
+                                               CouponTemplate.POST_FEE_20))
+        tpls = tpls.filter(way_type=CouponTemplate.CLICK_WAY,
+                           valid=True)
         now = datetime.datetime.now()
-        for tpl in tpls:
-            # 如果现在的时间是在截止日期减去预置天数后日期之间则加入集合
-            time_start = tpl.deadline - datetime.timedelta(days=tpl.preset_days)
-            if now >= time_start and now <= tpl.deadline:
-                temps.append(tpl)
-        return temps
+        tpls = tpls.filter(release_start_time__lte=now, release_end_time__gte=now)  # 开始发放中的优惠券模板
+        return tpls
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_useful_template_query())

@@ -46,11 +46,21 @@ class CouponTemplate(BaseModel):
     type = models.IntegerField(choices=COUPON_TYPE, verbose_name=u"优惠券类型")
     nums = models.IntegerField(default=0, verbose_name=u"发放数量")
     limit_num = models.IntegerField(default=1, verbose_name=u"每人领取数量")
-    preset_days = models.IntegerField(default=0, verbose_name=u"预置天数")
-    active_days = models.IntegerField(default=0, verbose_name=u"有效天数")
-    use_fee = models.FloatField(default=0.0, verbose_name=u'满单额')  # 满多少可以使用
-    bind_pros = models.CharField(max_length=256, null=True, blank=True, verbose_name=u'绑定产品')  # 指定产品可用
-    deadline = models.DateTimeField(blank=True, verbose_name=u'截止日期')
+
+    use_fee = models.FloatField(default=0.0, verbose_name=u'满多少元可以使用')  # 满多少可以使用
+    release_fee = models.FloatField(default=0.0, verbose_name=u'满多少元可以发放')  # 满多少可以发放
+
+    bind_pros = models.CharField(max_length=256, null=True, blank=True, verbose_name=u'绑定可以使用的产品')  # 指定产品可用
+
+    use_pro_category = models.CharField(max_length=256, blank=True, verbose_name=u'可以使用产品的类别')
+
+    release_start_time = models.DateTimeField(blank=True, verbose_name=u'开始发放的时间')
+    release_end_time = models.DateTimeField(blank=True, verbose_name=u'结束发放的时间')
+
+    start_use_time = models.DateTimeField(blank=True, verbose_name=u'开始使用的时间')
+
+    deadline = models.DateTimeField(blank=True, verbose_name=u'截止使用的时间')
+
     use_notice = models.TextField(blank=True, verbose_name=u"使用须知")
     way_type = models.IntegerField(default=0, choices=COUPON_WAY, verbose_name=u"领取途径")
     target_user = models.IntegerField(default=0, choices=TAR_USER, verbose_name=u"目标用户")
@@ -76,30 +86,46 @@ class CouponTemplate(BaseModel):
         if self.use_fee == 0:
             return
         elif self.use_fee > fee:
-            raise AssertionError(u'该优惠券满%s使用' % self.use_fee)
+            raise AssertionError(u'该优惠券满%s元可用' % self.use_fee)
 
     def check_date(self):
         """ 检查有效天数　（匹配截止日期）"""
         # 判断当前时间是否在　有效时间内
         now = datetime.datetime.now()
-        if now > self.deadline:
-            raise AssertionError(u'超过截止日期%s' % self.deadline)
-        if self.active_days == 0:  # 没有设置有效时间
+        if self.start_use_time <= now <= self.deadline:
             return
-        vas_t = self.deadline - datetime.timedelta(days=self.active_days)
-        if now < vas_t:
-            raise AssertionError(u'%s至%s启动使用' % (vas_t, self.deadline))
+        else:
+            raise AssertionError(u'%s至%s可以使用' % (self.start_use_time, self.deadline))
+
+    def check_category(self, product_ids=None):
+        """ 可用分类检查 """
+        if not self.use_pro_category:  # 没有设置分类限制信息　则为全部分类可以使用
+            return
+        from shopback.items.models import Product
+
+        tpl_categorys = self.use_pro_category.strip().split(',') if self.use_pro_category else []
+        pros_categorys = Product.objects.filter(id__in=product_ids).values('category_id')
+        category_ids = [str(i['category_id']) for i in pros_categorys]
+
+        set_tpl_categorys = set(tpl_categorys)
+        set_category = set(category_ids)
+        if len(set_tpl_categorys & set_category) == 0:  # 比较分类 如果没有存在的分类则报错
+            raise AssertionError(u'该产品不支持使用优惠券')
+        return
 
     def check_bind_pros(self, product_ids=None):
         """ 检查绑定的产品 """
         tpl_bind_pros = self.bind_pros.strip().split(',') if self.bind_pros else []
-        if tpl_bind_pros == []:  # 如果优惠券没有绑定产品
+        if not tpl_bind_pros != []:  # 如果优惠券没有绑定产品
+            self.check_category(product_ids)  # 没有限制产品则检查分类限制
             return
-        product_ids = [str(i) for i in product_ids]
+        product_str_ids = [str(i) for i in product_ids]
         tpl_binds = set(tpl_bind_pros)
-        pro_set = set(product_ids)
+        pro_set = set(product_str_ids)
         if len(tpl_binds & pro_set) == 0:
             raise AssertionError(u'该产品不支持使用优惠券')
+        # 检查产品后检查分类
+        self.check_category(product_ids)
 
     def use_fee_desc(self):
         """ 满单额描述 """
@@ -207,6 +233,19 @@ class UserCoupon(BaseModel):
         self.cp_id.template.usefee_check(use_fee)
         return
 
+    def release_for_mama(self, mama_id=None, template_id=None, trade_id=None):
+        """ 给代理发送优惠券 """
+        if not mama_id or not template_id:
+            return
+        try:
+            from flashsale.xiaolumm.models import XiaoluMama
+
+            xlmm = XiaoluMama.objects.get(id=mama_id)
+            customer = Customer.objects.get(unionid=xlmm.openid, status=Customer.NORMAL)
+            self.release_by_template(buyer_id=customer.id, template_id=template_id, trade_id=trade_id)
+        except:
+            return
+
     def release_deposit_coupon(self, **kwargs):
         """
         功能：代理接管的时候生成，优惠券
@@ -244,9 +283,8 @@ class UserCoupon(BaseModel):
         if buyer_id and trade_id and template_id:
             try:
                 tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取优惠券模板
-                start_time = tpl.deadline - datetime.timedelta(days=tpl.preset_days)
                 now = datetime.datetime.now()
-                if now <= start_time or now >= tpl.deadline:
+                if not (tpl.release_start_time < now < tpl.release_end_time):
                     return "not_release"  # 不在模板定义时间
             except CouponTemplate.DoesNotExist:
                 return "not_release"
