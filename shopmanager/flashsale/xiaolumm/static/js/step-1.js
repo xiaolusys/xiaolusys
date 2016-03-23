@@ -57,13 +57,8 @@ function requestcode() {
             btn.attr("status", "0");
             window.clearInterval(global_timer);
         }
-        else {
-            $("#id_verify_msg")[0].innerHTML = res.message;
-        }
+        $("#id_verify_msg")[0].innerHTML = res.message;
         console.log("res.code:", res.code);
-        if (res.code == 0 || res.code == 3) {// 允许提交的情况
-            //$("#next_step").attr("disabled", false);
-        }
     };
     $.ajax({url: url, type: "post", data: data, success: callback});
 }
