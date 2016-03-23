@@ -94,13 +94,27 @@ def task_referal_update_activevalue(mama_id, date_field, contributor_id):
     
 
 
-def confirm_twodays_ago_activevalue(mama_id, today_date_field):
-    date_field = today_date_field - datetime.timedelta(days=2)
-    active_values = ActiveValue.objects.filter(mama_id=mama_id, date_field=date_field)
-    if active_values.count() > 0:
+@task()
+def task_confirm_previous_activevalue(mama_id, value_type, today_date_field, num_days):
+    """
+    This is how a click-type activevalue gets confirmed:
+    everytime a new activevalue gets created, we confirm
+    any activevalue of this type generated in previous 7 days.
+    """
+
+    end_date_field = today_date_field - datetime.timedelta(days=num_days)
+    start_date_field = end_date_field - datetime.timedelta(days=7)
+
+    active_values = ActiveValue.objects.filter(mama_id=mama_id, value_type=value_type, date_field__gt=start_date_field, date_field__lte=end_date_field, status=1)
+    if active_values.count() <= 0:
+        return
+
+    for active_value in active_values:
+        date_field = active_value.date_field
         value_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
-        active_values[0].value_num = value_num
-        active_values[0].save()
+        active_value.value_num = value_num
+        active_value.status = 2 # confirm
+        active_value.save()
         
 
 @task()
@@ -119,7 +133,7 @@ def task_visitor_increment_activevalue(mama_id, date_field):
                                    date_field=date_field,status=status)
         active_value.save()
 
-        confirm_twodays_ago_activevalue(mama_id, date_field)
+        task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
         
     else:
         active_values.update(value_num=F('value_num')+1)
