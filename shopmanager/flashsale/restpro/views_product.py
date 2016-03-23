@@ -125,9 +125,11 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
+
 class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###特卖活动API：
+    > ### /{pk}/get_share_params: 获取活动分享参数;
     """
     queryset = ActivityEntry.objects.filter()
     serializer_class = serializers.ActivityEntrySerializer
@@ -179,11 +181,9 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         """ 获取活动分享参数 """
         content = request.REQUEST
         active_obj = self.get_object()
-
-        ufrom = content.get('ufrom', None)
         customer = get_object_or_404(Customer, user=request.user)
         
-        params = {'customer': customer, "ufrom": ufrom}
+        params = {'customer': customer}
         share_params = active_obj.get_shareparams(**params)
         share_params.update(qrcode_link=self.get_qrcode_page_link())
         
