@@ -6,8 +6,9 @@ import hashlib
 import urlparse
 import random
 from django.conf import settings
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 
 from rest_framework import generics
 from rest_framework import viewsets
@@ -30,6 +31,7 @@ from flashsale.xiaolumm.models import XiaoluMama
 from . import permissions as perms
 from . import serializers
 from .options import gen_and_save_jpeg_pic
+from . import constants
 from shopback.base import log_action, ADDITION, CHANGE
 from django.forms import model_to_dict
 from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
@@ -123,11 +125,13 @@ class PosterViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(poster, many=False)
         return Response(serializer.data)
 
+
 class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###特卖活动API：
+    > ### /{pk}/get_share_params: 获取活动分享参数;
     """
-    queryset = ActivityEntry.objects.filter(is_active=True)
+    queryset = ActivityEntry.objects.filter()
     serializer_class = serializers.ActivityEntrySerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
@@ -161,6 +165,29 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+    def get_random_title(self):
+        n = int(random.random()*3) % 3
+        return constants.PYQ_TITLES[n], n
+    
+    def get_share_link(self, params):
+        link = urlparse.urljoin(settings.M_SITE_URL, constants.SHARE_LINK)
+        return link.format(**params)
+    
+    def get_qrcode_page_link(self):
+        return urlparse.urljoin(settings.M_SITE_URL,reverse('qrcode_view'))
+    
+    @detail_route(methods=['get'])
+    def get_share_params(self, request, *args, **kwargs):
+        """ 获取活动分享参数 """
+        content = request.REQUEST
+        active_obj = self.get_object()
+        customer = get_object_or_404(Customer, user=request.user)
+        
+        params = {'customer': customer}
+        share_params = active_obj.get_shareparams(**params)
+        share_params.update(qrcode_link=self.get_qrcode_page_link())
+        
+        return Response(share_params)
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
