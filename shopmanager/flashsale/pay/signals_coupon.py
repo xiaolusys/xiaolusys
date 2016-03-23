@@ -182,12 +182,12 @@ def release_Coupon_Buy_Way(sender, obj, **kwargs):
     order = obj.sale_orders.all()[0] if obj.sale_orders.exists() else False  # 这里充值的交易只有一个订单
     if order and order.item_id in ['22030', '14362', '2731']:  # 列表中填写 充值产品id
         return  # 如果是充值产品 则不发放优惠券
-    # 有效的并且是购买方式发放的优惠券模板
-    tpls = CouponTemplate.objects.filter(valid=True, way_type=CouponTemplate.BUY_WAY).exclude(
-        type=CouponTemplate.NEW_YEAR)  # 排除特殊条件的优惠券
-    # 2016-3-7/8　活动发放　如单笔交易超过１２０元发放　１２０元优惠券　
-    if obj.payment < 120.0:
-        return
+
+    now = datetime.datetime.now()
+    tpls = CouponTemplate.objects.filter(valid=True, way_type=CouponTemplate.BUY_WAY)  # 有效的并且是购买方式发放的优惠券模板
+    tpls = tpls.exclude(type=CouponTemplate.NEW_YEAR)  # 排除特殊条件的优惠券
+    tpls = tpls.filter(release_start_time__lte=now, release_end_time__gte=now)  # 在发放时间内的模板
+
     for tpl in tpls:
         # 在允许发送情况下　准备发放优惠券
         # 获取该用户的该模板的优惠券
@@ -204,8 +204,9 @@ def release_Coupon_Buy_Way(sender, obj, **kwargs):
             trade_id = obj.id  # 交易id
             buyer_id = obj.buyer_id  # 用户
             kwargs = {"trade_id": trade_id, "buyer_id": buyer_id, "template_id": tpl.id}
-            coupon = UserCoupon()
-            coupon.release_by_template(**kwargs)
+            if obj.payment >= tpl.release_fee:  # 消费费用大于模板定义费用则发放
+                coupon = UserCoupon()
+                coupon.release_by_template(**kwargs)
         except Exception, exc:
             logger.error(exc.message, exc_info=True)
 
@@ -215,9 +216,10 @@ signal_saletrade_pay_confirm.connect(release_Coupon_Buy_Way, sender=SaleTrade)
 
 def freeze_coupon_by_refund(sender, obj, **kwargs):
     # 退款信号
-    coup = UserCoupon.objects.filter(customer=obj.buyer_id, sale_trade=obj.trade_id)
-    # 存在则将优惠券状态 该为 冻结
-    coup.update(status=UserCoupon.FREEZE)
+    if obj.trade_id:
+        coup = UserCoupon.objects.filter(sale_trade=obj.trade_id)
+        # 存在则将优惠券状态 该为 冻结
+        coup.update(status=UserCoupon.FREEZE)
 
 
 signal_saletrade_refund_post.connect(freeze_coupon_by_refund, sender=SaleRefund)

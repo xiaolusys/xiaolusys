@@ -374,6 +374,15 @@ def category_trade_stat(sender, obj, **kwargs):
 signal_saletrade_pay_confirm.connect(category_trade_stat, sender=SaleTrade)
 
 
+def release_mamalink_coupon(sender, obj, **kwargs):
+    from flashsale.pay.tasks import task_ReleaseMamaLinkCoupon
+
+    task_ReleaseMamaLinkCoupon.s(obj)()
+
+
+signal_saletrade_pay_confirm.connect(release_mamalink_coupon, sender=SaleTrade)
+
+
 class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
     class Meta:
