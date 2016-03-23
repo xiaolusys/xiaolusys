@@ -24,7 +24,7 @@ from core.weixin.mixins import WeixinAuthMixin
 
 from flashsale.pay.options import get_user_unionid, valid_openid
 from flashsale.pay.mixins import PayInfoMethodMixin
-from flashsale.pay.models import Customer, SaleTrade, SaleOrder
+from flashsale.pay.models import Customer, SaleTrade, SaleOrder, Register
 from shopback.items.models import ProductSku
 from flashsale.xiaolumm.models import XiaoluMama
 from shopapp.weixin.models import WeiXinUser
@@ -33,28 +33,85 @@ from shopback.items.models import Product
 import logging
 
 logger = logging.getLogger('django.request')
+from flashsale.restpro.v2.views_verifycode_login import validate_mobile, \
+    get_register, check_day_limit, should_resend_code, validate_code
+from shopapp.smsmgr.tasks import task_register_code
+
+
+class SendCode(APIView):
+    """ 邀请的页面发送验证码 """
+    def post(self, request):
+        content = request.REQUEST
+        mobile = content.get('mobile')
+        if not validate_mobile(mobile):
+            return Response({"code": 1, "message": u"手机号码有误！"})
+        reg, created = get_register(mobile)
+        if not created:
+            if check_day_limit(reg):
+                return Response({"code": 2, "message": u"当日验证次数超过限制!"})
+            if should_resend_code(reg):
+                return Response({"code": 3, "message": u"验证码刚发过咯，请等待下哦！"})
+        user = request.user
+        customer = 0
+        if user and user.is_authenticated():
+            customer = Customer.objects.get(user=user)
+        reg.cus_uid = customer.id if customer else 0
+        reg.verify_code = reg.genValidCode()
+        reg.code_time = datetime.datetime.now()
+        reg.save()
+        task_register_code.s(mobile, "3")()
+        return Response({"code": 0, "message": u"验证码已发送！"})
+
+
+class VerifyCode(APIView):
+    def post(self, request):
+        """
+        邀请代理时候验证码校验
+        注意：测试时候默认已经注册了unionid的Customer
+        """
+        content = request.REQUEST
+        mobile = content.get("mobile", '')
+        unionid = content.get('unionid', '')
+        sms_code = content.get('sms_code', '')
+
+        if not valid_openid(unionid):
+            return Response({"code": 1, "message": u"请在微信打开此页面！"})
+        if not validate_mobile(mobile):
+            return Response({"code": 2, "message": u"手机号码有误！"})
+        if not validate_code(mobile, sms_code):
+            return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})
+        return Response({'code': 0, 'message': u'验证成功！'})
 
 
 class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
     """ 小鹿妈妈申请成为代理 """
-    #     authentication_classes = (authentication.TokenAuthentication,)
-    #     permission_classes = (permissions.IsAuthenticated,)
-    renderer_classes = (renderers.TemplateHTMLRenderer,)
-    template_name = "apply/mama_profile.html"
+    authentication_classes = (authentication.SessionAuthentication, )
+    # permission_classes = (permissions.IsAuthenticated, )
+    renderer_classes = (renderers.TemplateHTMLRenderer, )
+    template_name = "apply/step-1.html"
 
     def get(self, request, mama_id):
+        """
+        mama_id: 推荐人的专属id
+        """
+        # 加上装饰器之后已经登陆并注册状态（customer unionid）
+        # 必须注册之后才可以成为小鹿代理　　这里使用特卖公众账号授权
+        self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
+        # 获取 openid 和 unionid
         openid, unionid = self.get_openid_and_unionid(request)
         if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
-        wx_user, state = WeiXinUser.objects.get_or_create(openid=openid)
+        customer = Customer.objects.get(user=request.user)
+        customer_mobile = customer.mobile
+
         try:
             xiaolumm = XiaoluMama.objects.get(openid=unionid)
         except XiaoluMama.DoesNotExist:
             response = Response({
                 'openid': openid,
                 'unionid': unionid,
-                'wxuser': wx_user,
+                'xiaolumm': None
             })
             self.set_cookie_openid_and_unionid(response, openid, unionid)
             return response
@@ -67,7 +124,8 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
             response = Response({
                 'openid': openid,
                 'unionid': unionid,
-                'wxuser': wx_user,
+                'xiaolumm': xiaolumm,
+                'customer_mobile': customer_mobile
             })
             self.set_cookie_openid_and_unionid(response, openid, unionid)
             return response
@@ -78,25 +136,30 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         else:  # 如果申请了并且交付的代理押金则直接跳转到代理的主页
             return redirect(reverse('mama_homepage'))
 
-
     def post(self, request, mama_id):
+        # 验证码通过才可以进入本函数
         content = request.REQUEST
-        openid = content.get('openid')
-        unionid = content.get('unionid')
-        #         nickname  = content.get('nickname')
+        mobile = content.get('mobile')
+        user = request.user
+        customers = Customer.objects.filter(user=user)
 
-        wx_user = get_object_or_404(WeiXinUser, openid=openid)
-        if not wx_user.isValid() or not valid_openid(unionid):  #or not nickname
+        if not customers.exists():  # 这个不可能存在
             return redirect('./')
+        customer = customers[0]
+        customer.mobile = mobile  # 保存用户的手机号码
+        customer.save()
 
-        xlmm, state = XiaoluMama.objects.get_or_create(openid=unionid)
-        parent_mobile = xlmm.referal_from
-        if int(mama_id) > 0 and not parent_mobile:
-            parent_xlmm = get_object_or_404(XiaoluMama, id=mama_id)
-            parent_mobile = parent_xlmm.mobile
+        xlmm, state = XiaoluMama.objects.get_or_create(openid=customer.unionid)
+        parent_mobile = xlmm.referal_from  # 取出当前代理的推荐人
+        if int(mama_id) > 0 and not parent_mobile:  # 如果推荐人存在并且当前的代理没有推荐人则把推荐人字段写到当前代理的推荐人字段
+            parent_xlmm = XiaoluMama.objects.filter(id=mama_id)
+            if parent_xlmm.exists():
+                parent = parent_xlmm[0]
+                parent_mobile = parent.mobile
 
         xlmm.progress = XiaoluMama.PROFILE
-        #         xlmm.referal_from = parent_mobile
+        xlmm.referal_from = parent_mobile
+        xlmm.mobile = mobile
         xlmm.save()
 
         return redirect(reverse('mama_deposite', kwargs={'mama_id': mama_id}))
@@ -107,7 +170,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
     #     authentication_classes = (authentication.TokenAuthentication,)
     #     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.JSONRenderer, renderers.TemplateHTMLRenderer)
-    template_name = 'apply/mama_deposit.html'
+    template_name = 'apply/step-2.html'
 
     def get_deposite_product(self):
         return Product.objects.get(id=2731)
