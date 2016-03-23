@@ -1,3 +1,6 @@
+######## 2016-03-23 ########
+alter table flashsale_activity_entry add share_icon varchar(128) NOT NULL;
+alter table flashsale_activity_entry add share_link varchar(256) NOT NULL;
 ######## 2016-03-22 ########
 alter table supplychain_supply_supplier add column ware_by smallint default 1;
 alter table flashsale_activity_entry add act_type varchar(8) NOT NULL;
