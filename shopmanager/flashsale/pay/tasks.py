@@ -384,77 +384,23 @@ def task_Update_CouponPoll_Status():
     cous.update(status=CouponsPool.PAST)  # 更新为过期优惠券
 
 
-from flashsale.clickrebeta.models import StatisticsShopping
-
-
-@task
-def task_Release_Coupon_For_Mmlink():
+@task()
+def task_ReleaseMamaLinkCoupon(saletrade):
     """
-    执行检查代理专属链接　是否有购买　有　则发放该类型的优惠券
+    发放优惠券
+    规则：　当代理的专属链接有用户下单后则给该代理发放优惠券
     """
-    from flashsale.xiaolumm.models import XiaoluMama
-    from flashsale.pay.models import SaleTrade
-    today = datetime.date.today()
-    yes_from = datetime.datetime(today.year, today.month, today.day, 0, 0, 0) - datetime.timedelta(days=1)
-    yes_to = datetime.datetime(today.year, today.month, today.day, 0, 0, 0)
-    yes_shops = StatisticsShopping.objects.filter(shoptime__gte=yes_from, shoptime__lte=yes_to).exclude(
-        status=StatisticsShopping.REFUNDED).only('linkid', 'wxorderid')  # 昨天的购买订单 排除已经取消的
-    # 发放优惠券
-    d24 = datetime.date(2015, 12, 24)   # 优惠券开始时间
-    tpl = CouponTemplate.objects.get(way_type=CouponTemplate.XMM_LINK, valid=True, type=CouponTemplate.USUAL)
-    if not tpl:
+    extras_info = saletrade.extras_info
+    mama_id = extras_info.get('mm_linkid')
+    if not mama_id:
         return
-    for shop in yes_shops:
-        try:
-            strade = SaleTrade.objects.get(tid=shop.wxorderid)  # 交易 包含链接是0的交易
-            cus = Customer.objects.get(id=strade.buyer_id)  # 用户
-            try:
-                xlmm = XiaoluMama.objects.get(openid=cus.unionid)   # 如果用户又是代理
-            except:
-                # 用户不是代理则　找专属链接发放优惠券
-                xlmm = XiaoluMama.objects.get(id=shop.linkid)  # 根据统计购买找到代理
-                cus = Customer.objects.get(unionid=xlmm.openid)  # 根据代理找到用户
-            sorders = strade.sale_orders.all()
-            order_counts = sorders.count()
-            kill_count = 0
-            for order in sorders:
-                if order.second_kill_title():
-                    kill_count += 1
-            if kill_count == order_counts:
-                continue  # 如果都是秒杀产品则查看下一笔交易
-            # 计算用户领取的开单优惠券张数
-            uscops = UserCoupon.objects.filter(cp_id__template__id=tpl.id, customer=cus.id)
-            coup_counts = uscops.count()
-            # 执行日期
-            exc_date = datetime.date.today()
-            minus_days = (exc_date - d24).days  # 差值　比如２５号执行减去２４号　　为１天　
-
-            time_from = datetime.datetime(2015, 12, 24, 0, 0, 0)
-            now = datetime.datetime.now()
-            strade = SaleTrade.objects.filter(buyer_id=cus.id,  # 代理自己的
-                                              pay_time__gte=time_from, pay_time__lte=now,  # 24 号到现在
-                                              status__in=(  # 状态正常的
-                                                            SaleTrade.WAIT_SELLER_SEND_GOODS,
-                                                            SaleTrade.WAIT_BUYER_CONFIRM_GOODS,
-                                                            SaleTrade.TRADE_BUYER_SIGNED,
-                                                            SaleTrade.TRADE_FINISHED)
-                                              ).only("pay_time").dates("pay_time", "day",
-                                                                       order='DESC')  # 交易数量按照日期去重
-            shops = StatisticsShopping.objects.filter(linkid=xlmm.id,
-                                                      shoptime__gte=time_from, shoptime__lte=now
-                                                      ).exclude(status=StatisticsShopping.REFUNDED).only(
-                "shoptime").dates("shoptime", "day", order='DESC')
-            # 专属链接的交易数量　与　用户的交易数量的最大值　发放
-            while coup_counts < min(max(len(strade), len(shops)), minus_days):
-                # 如果已经发放的优惠券大于发放天数差值
-                if tpl:
-                    buyer_id = cus.id  # 代理的用户id
-                    kwargs = {"buyer_id": buyer_id, "template_id": tpl.id}
-                    coupon = UserCoupon()
-                    coupon.release_by_template(**kwargs)
-                    coup_counts += 1  # 发放成功则数量加１
-        except:
-            continue  # 有异常则查看下一笔交易
+    now = datetime.datetime.now()
+    tpls = CouponTemplate.objects.filter(valid=True, way_type=CouponTemplate.XMM_LINK)
+    tpls = tpls.filter(release_start_time__lte=now, release_end_time__gte=now)
+    for tpl in tpls:
+        if saletrade.payment >= tpl.release_fee:  # 订单满足发放费用发放
+            coupon = UserCoupon()
+            coupon.release_for_mama(mama_id=mama_id, template_id=tpl.id, trade_id=saletrade.id)
 
 
 from django.db.models import Q

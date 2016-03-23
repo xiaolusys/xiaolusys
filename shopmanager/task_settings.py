@@ -272,6 +272,10 @@ CELERY_ROUTES = {
             'queue': 'async',
             'routing_key': 'async.task_send_message',
         },  # 缺货短信任务
+        'flashsale.pay.tasks.task_ReleaseMamaLinkCoupon': {
+            'queue': 'async',
+            'routing_key': 'async.task_ReleaseMamaLinkCoupon',
+        },  # 代理专属有订单则发送优惠券(对应类型)
 }
 
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
@@ -641,12 +645,6 @@ SHOP_APP_SCHEDULE = {
     u'定时下架库存商品任务': {
         'task': 'shopback.items.tasks.task_Auto_Download_Shelf',
         'schedule': crontab(minute="0", hour="14"),
-        'args': (),
-        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
-    },
-    u'定时发放有购买代理优惠券任务': {
-        'task': 'flashsale.pay.tasks.task_Release_Coupon_For_Mmlink',
-        'schedule': crontab(minute="0", hour="3"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },

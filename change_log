@@ -1,6 +1,18 @@
+
+######## 2016-03-24 #########
+alter table pay_coupon_template add column release_start_time datetime;
+alter table pay_coupon_template add column release_end_time datetime;
+alter table pay_coupon_template add column start_use_time datetime;
+alter table pay_coupon_template add column use_pro_category varchar(256);
+alter table pay_coupon_template add column release_fee double default 0.0;
+alter table pay_coupon_template drop column preset_days;
+alter table pay_coupon_template drop column active_days;
+
 ######## 2016-03-23 ########
+
 alter table flashsale_activity_entry add share_icon varchar(128) NOT NULL;
 alter table flashsale_activity_entry add share_link varchar(256) NOT NULL;
+
 ######## 2016-03-22 ########
 alter table supplychain_supply_supplier add column ware_by smallint default 1;
 alter table flashsale_activity_entry add act_type varchar(8) NOT NULL;
