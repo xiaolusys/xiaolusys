@@ -179,13 +179,13 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     @detail_route(methods=['get'])
     def get_share_params(self, request, *args, **kwargs):
         """ 获取活动分享参数 """
-        content = request.REQUEST
         active_obj = self.get_object()
         
         params = {}
         if active_obj.login_required:
-            customer = get_object_or_404(Customer, user=request.user)
-            params.update({'customer': customer})
+            if request.user and request.user.is_authenticated():
+                customer = get_object_or_404(Customer, user=request.user.id)
+                params.update({'customer': customer})
         
         share_params = active_obj.get_shareparams(**params)
         share_params.update(qrcode_link=self.get_qrcode_page_link())

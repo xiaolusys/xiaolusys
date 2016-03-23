@@ -101,13 +101,13 @@ class UserCouponsViewSet(viewsets.ModelViewSet):
                     uc = UserCoupon()
                     cus = {"buyer_id": customer.id, "template_id": template_id}
                     release_res = uc.release_by_template(**cus)
-                return Response({"res": release_res})
+                return Response({"code":0, "res": release_res})
         except Customer.DoesNotExist:
-            return Response({"res": "cu_not_fund"})
+            return Response({"code":2, "res": "需登陆后领取"})
         except TypeError:
-            return Response({"res": "not_release"})
+            return Response({"code":1, "res": "优惠券不存在"})
         else:
-            return Response({"res": "not_release"})
+            return Response({"code":1, "res": "优惠券不存在"})
 
     def check_by_coupon(self, coupon, product_ids=None, use_fee=None):
         coupon_message = ''
