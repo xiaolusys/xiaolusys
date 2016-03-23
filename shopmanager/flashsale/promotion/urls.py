@@ -23,6 +23,6 @@ urlpatterns = patterns('',
                                 views.XlSampleOrderView.as_view()
                             ), name="xlsampleorder_view"),
     url(r'^receive_award/$', views.ReceiveAwardView.as_view(), name="sample_award"),
-    url(r'^ercode/$', views.QrCodeView.as_view(), name="qr_code_view"),
+    url(r'^ercode/$', views.QrCodeView.as_view(), name="qrcode_view"),
     url(r'^activity/$', views_activity.ActivityView.as_view(), name="daily_activity"),
 )

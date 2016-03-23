@@ -95,11 +95,16 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay}
         elif type_ == 2:
-            q = Refund.objects.exclude(status__in=[pcfg.REFUND_CLOSED, pcfg.REFUND_SUCCESS])
+            q = Refund.objects.filter(has_good_return=True).exclude(status__in=[pcfg.REFUND_CLOSED, pcfg.REFUND_SUCCESS])
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay}
         elif type_ == 3:
+            q = Refund.objects.filter(has_good_return=False).exclude(status__in=[pcfg.REFUND_CLOSED, pcfg.REFUND_SUCCESS])
+            n_total = q.only('id').count()
+            n_delay = q.filter(created__lte=threshold).only('id').count()
+            data = {'n_total': n_total, 'n_delay': n_delay}
+        elif type_ == 4:
             q = OrderList.objects.exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI])
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold.date()).only('id').count()

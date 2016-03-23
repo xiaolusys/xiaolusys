@@ -122,7 +122,7 @@ class XLSampleOrderViewSet(viewsets.ModelViewSet):
         return link.format(**params)
     
     def get_qrcode_page_link(self):
-        return urlparse.urljoin(settings.M_SITE_URL,reverse('qr_code_view'))
+        return urlparse.urljoin(settings.M_SITE_URL,reverse('qrcode_view'))
         
     def gen_customer_share_qrcode_pic(self, customer_id, ufrom):
         

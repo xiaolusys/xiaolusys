@@ -49,7 +49,7 @@ class SendCode(APIView):
         if not created:
             if check_day_limit(reg):
                 return Response({"code": 2, "message": u"当日验证次数超过限制!"})
-            if should_resend_code(reg):
+            if not should_resend_code(reg):
                 return Response({"code": 3, "message": u"验证码刚发过咯，请等待下哦！"})
         user = request.user
         customer = 0

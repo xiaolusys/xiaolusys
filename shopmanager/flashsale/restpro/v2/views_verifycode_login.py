@@ -71,7 +71,7 @@ def validate_code(mobile, verify_code):
     reg.submit_count += 1     #提交次数加一    
     reg.save()
 
-    if reg.code > earliest_send_time and reg.verify_code == verify_code:
+    if reg.code_time > earliest_send_time and reg.verify_code == verify_code:
         return True
 
     return False
@@ -131,8 +131,8 @@ def should_resend_code(reg):
     current_time = datetime.datetime.now()
     earliest_send_time = current_time - datetime.timedelta(seconds=RESEND_TIME_LIMIT)
     if reg.code_time and reg.code_time > earliest_send_time:
-        return True
-    return False
+        return False
+    return True
 
 
     
@@ -172,7 +172,7 @@ class SendCodeView(views.APIView):
             # day limit and resend condition.
             if check_day_limit(reg):
                 return Response({"rcode": 4, "msg": u"当日验证次数超过限制!"})
-            if should_resend_code(reg):
+            if not should_resend_code(reg):
                 return Response({"rcode": 5, "msg": u"验证码刚发过咯，请等待下哦！"})
         
         reg.verify_code = reg.genValidCode()

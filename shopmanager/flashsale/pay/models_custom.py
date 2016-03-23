@@ -207,22 +207,21 @@ class ActivityEntry(PayBaseModel):
     
     ACT_COUPON = 'coupon'
     ACT_WEBVIEW = 'webview'
-    ACT_BRAND  = 'brand'
     
     ACT_CHOICES = (
         (ACT_COUPON,u'优惠券活动'),
-        (ACT_WEBVIEW,u'活动专属页'),
-        (ACT_BRAND,u'品牌专场')
+        (ACT_WEBVIEW,u'商城活动页')
     )
-    
     
     title = models.CharField(max_length=32,db_index=True,blank=True, verbose_name=u'活动名称')
     
     act_desc = models.TextField(max_length=512, blank=True, verbose_name=u'活动描述')
-    act_img  = models.CharField(max_length=256, blank=True, verbose_name=u'活动图片')
-    act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动网页链接')
-    mask_link   = models.CharField(max_length=256, blank=True, verbose_name=u'APP提示图')
-    act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议')
+    act_img  = models.CharField(max_length=256, blank=True, verbose_name=u'活动入口图片')
+    act_link = models.CharField(max_length=256, blank=True, verbose_name=u'活动链接')
+    mask_link   = models.CharField(max_length=256, blank=True, verbose_name=u'活动弹窗提示图')
+    act_applink = models.CharField(max_length=256, blank=True, verbose_name=u'活动APP协议链接')
+    share_icon  =  models.CharField(max_length=128, blank=True, verbose_name=u'活动分享图片')
+    share_link  =  models.CharField(max_length=256, blank=True, verbose_name=u'活动分享链接')
     act_type = models.CharField(max_length=8, choices=ACT_CHOICES, 
                                 db_index=True, verbose_name=u'活动类型')
     
@@ -231,8 +230,8 @@ class ActivityEntry(PayBaseModel):
     end_time    = models.DateTimeField(blank=True, null=True, verbose_name=u'结束时间')
     
     order_val   = models.IntegerField(default=0, verbose_name=u'排序值')
-    
-    extras      = JSONCharMyField(max_length=5120, default={}, verbose_name=u'活动数据')
+
+    extras      = JSONCharMyField(max_length=5120, default={}, blank=True, verbose_name=u'活动数据')
     is_active   = models.BooleanField(default=True,verbose_name=u'上线')
 
     class Meta:
@@ -245,7 +244,19 @@ class ActivityEntry(PayBaseModel):
 
     @classmethod
     def get_default_activity(cls):
-        acts = cls.objects.filter(is_active=True).order_by('-modified')
+        acts = cls.objects.filter(is_active=True).order_by('-order_val','-modified')
         if acts.exists():
             return acts[0]
         return None
+    
+    def get_shareparams(self,**params):
+        return {
+            'id':self.id,
+            'title':self.title.format(**params),
+            'share_type':'link',
+            'share_icon':self.share_icon,
+            'share_link':self.share_link.format(**params),
+            'active_dec':self.act_desc.format(**params),
+        }
+        
+    

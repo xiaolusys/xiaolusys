@@ -556,7 +556,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 last_pay_date = '暂无销售'
             else:
                 last_pay_date = last_pay_time.strftime('%Y-%m-%d')
-            pay_times.add((last_pay_time, last_pay_date))
+            pay_times.add((last_pay_time.date(), last_pay_date))
             supplier['last_pay_date'] = last_pay_date
             new_suppliers.append(supplier)
 
