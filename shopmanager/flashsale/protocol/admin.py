@@ -1,7 +1,8 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 from django.contrib import admin
 from .models import APPFullPushMessge
 import logging
+from flashsale.xiaolumm import util_emoji
 
 logger = logging.getLogger('django.request')
 
@@ -38,6 +39,9 @@ class APPFullPushMessgeAdmin(admin.ModelAdmin):
             from flashsale.protocol import get_target_url
             resp = {}
             params =  {'target_url': get_target_url(obj.target_url,obj.params)}
+            
+            obj.desc = util_emoji.match_emoji(obj.desc)
+
             if obj.platform == APPFullPushMessge.PL_IOS:
                 resp = mipush.mipush_of_ios.push_to_all(params,description=obj.desc)
             else:
