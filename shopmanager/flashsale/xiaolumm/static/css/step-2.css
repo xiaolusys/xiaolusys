@@ -24,7 +24,7 @@ body {
   height: 200px;
   color: #D1B578;
   font-size: 16px;
-  background: url("../images/zigzag.png") repeat-x center center;
+  background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/zigzag.png") repeat-x center center;
   background-size: contain;
   border-bottom: 1px solid #D1B578;
   border-top: 1px solid #D1B578;
@@ -50,7 +50,7 @@ body {
   -webkit-margin-before: 0em;
   -webkit-margin-after: 0em;
   top: -12px;
-  background: url("../images/zigzag.png") repeat-x center center;
+  background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/zigzag.png") repeat-x center center;
 }
 
 .m-printed-paper > .m-printed-content > h1 {
