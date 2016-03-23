@@ -390,12 +390,17 @@ def get_xiaolumm(sale_trade, customer):
         
     return None
 
+end_time = datetime.datetime(2016,3,23,23,59,59)
+
 def tongji_saleorder(sender, obj, **kwargs):
     """ 统计特卖订单提成 """
     #如果订单试用钱包付款，或是押金订单则不处理
     if obj.is_Deposite_Order():
         return 
     
+    if obj.pay_time > end_time:
+        return
+
     today = datetime.date.today()
     target_time = obj.pay_time.date()
     if target_time > today:

@@ -304,7 +304,7 @@ class UserCoupon(BaseModel):
                 user_level = CouponTemplate.ALL_USER
             if user_level != tpl.target_user:
                 # 如果用户领取的优惠券和用户身份不一致则不予领取
-                return "not_release"
+                return "不能领取该优惠券"
             uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
             if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
                 return "limit"
@@ -320,4 +320,4 @@ class UserCoupon(BaseModel):
                 self.save()
                 cou.status = CouponsPool.RELEASE  # 发放后，将状态改为已经发放
                 cou.save()
-                return "success"
+                return "领取成功"
