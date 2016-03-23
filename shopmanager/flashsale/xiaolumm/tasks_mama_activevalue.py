@@ -98,9 +98,11 @@ def confirm_twodays_ago_activevalue(mama_id, today_date_field):
     date_field = today_date_field - datetime.timedelta(days=2)
     active_values = ActiveValue.objects.filter(mama_id=mama_id, date_field=date_field)
     if active_values.count() > 0:
+        active_value = active_values[0]
         value_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
-        active_values[0].value_num = value_num
-        active_values[0].save()
+        active_value.value_num = value_num
+        active_value.status = 2 # confirm
+        active_value.save()
         
 
 @task()
