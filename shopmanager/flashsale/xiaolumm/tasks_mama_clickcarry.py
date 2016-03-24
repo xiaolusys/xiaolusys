@@ -50,33 +50,34 @@ def get_cur_info():
     return f.f_code.co_name
 
 
-def confirm_twodays_ago_zero_order_clickcarry(mama_id, today_date_field):
+@task()
+def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_days):
     """
     This is how a zero order clickcarry gets confirmed:
     everytime a new clickcarry gets created, we confirm
-    two-days-ago clickcarry, if and only if the 
-    clickcarry doesnt have an order related to it. 
+    any clickcarry generated in previous 7 days, if and 
+    only if the clickcarry doesnt have an order related to it. 
     e.g init_order_num == 0
     """
-    date_field = today_date_field - datetime.timedelta(days=2)
-    click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field=date_field)
+    end_date_field = today_date_field - datetime.timedelta(days=num_days)
+    start_date_field = end_date_field - datetime.timedelta(days=7)
+
+    click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field__gt=start_date_field, date_field__lte=end_date_field, status=1, init_order_num=0)
     if click_carrys.count() <= 0:
         return
     
-    click_carry = click_carrys[0]
-    if click_carry.init_order_num > 0:
-        return
-
-    click_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
-    click_carry.click_num = click_num
-    price = click_carry.init_click_price
-    limit = click_carry.init_click_limit
-    if click_num > limit:
-        click_num = limit
-    total_value = click_num * price
-    click_carry.total_value = total_value
-    click_carry.status = 2 #confirm
-    click_carry.save()
+    for click_carry in click_carrys:
+        date_field = click_carry.date_field
+        click_num = UniqueVisitor.objects.filter(mama_id=mama_id,date_field=date_field).count()
+        click_carry.click_num = click_num
+        price = click_carry.init_click_price
+        limit = click_carry.init_click_limit
+        if click_num > limit:
+            click_num = limit
+        total_value = click_num * price
+        click_carry.total_value = total_value
+        click_carry.status = 2 #confirm
+        click_carry.save()
 
     
 
@@ -193,7 +194,7 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
     
     if click_carrys.count() <= 0:
         create_clickcarry_upon_click(mama_id, date_field)
-        confirm_twodays_ago_zero_order_clickcarry(mama_id, date_field)
+        task_confirm_previous_zero_order_clickcarry.s(mama_id, date_field, 2)()
     else:
         click_carry = click_carrys[0]
         price = click_carry.init_click_price

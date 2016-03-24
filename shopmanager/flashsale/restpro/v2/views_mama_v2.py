@@ -38,21 +38,26 @@ def get_mama_id(user):
         xlmm = customer.getXiaolumm()
         if xlmm:
             mama_id = xlmm.id
-    #mama_id = 5 # debug test
+    mama_id = 5 # debug test
     return mama_id
 
 
-def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field):
-    query_set = queryset.filter(mama_id=mama_id, date_field__gte=from_date,
-                                date_field__lte=end_date).values('date_field').annotate(today_carry=Sum(sum_field))
+def get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field, exclude_statuses=None):
+    qset = queryset.filter(mama_id=mama_id,date_field__gte=from_date,date_field__lte=end_date)
+
+    if exclude_statuses:
+        for ex in exclude_statuses:
+            qset = qset.exclude(status=ex)
+    
+    qset = qset.values('date_field').annotate(today_carry=Sum(sum_field))
     sum_dict = {}
-    for entry in query_set:
+    for entry in qset:
         key = entry["date_field"]
         sum_dict[key] = entry["today_carry"]
     return sum_dict
 
 
-def add_day_carry(datalist, queryset, sum_field, scale=0.01):
+def add_day_carry(datalist, queryset, sum_field, scale=0.01, exclude_statuses=None):
     """
     计算求和字段按
     照日期分组
@@ -62,11 +67,12 @@ def add_day_carry(datalist, queryset, sum_field, scale=0.01):
     end_date = datalist[0].date_field
     from_date = datalist[-1].date_field
     ### search database to group dates and get carry_num for each group
-    sum_dict = get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field)
+    sum_dict = get_recent_days_carrysum(queryset, mama_id, from_date, end_date, sum_field, exclude_statuses=exclude_statuses)
+    
     for entry in datalist:
         key = entry.date_field
         if key in sum_dict:
-            entry.today_carry = sum_dict[key] * scale
+            entry.today_carry = float('%.2f' % (sum_dict[key] * scale))
 
 
 class MamaFortuneViewSet(viewsets.ModelViewSet):
@@ -112,17 +118,26 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    def get_owner_queryset(self, request):
+    def get_owner_queryset(self, request, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
+        qset = self.queryset.filter(mama_id=mama_id)
+
         # we dont return canceled record
-        return self.queryset.filter(mama_id=mama_id).exclude(status=3).order_by('-date_field', '-created')
+        if exclude_statuses:
+            for ex in exclude_statuses:
+               qset = qset.exclude(status=ex)
+               
+        return qset.order_by('-date_field', '-created')
+
 
     def list(self, request, *args, **kwargs):
-        datalist = self.get_owner_queryset(request)
+        exclude_statuses = [3,]
+        datalist = self.get_owner_queryset(request, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
         sum_field = 'carry_num'
+
         if len(datalist) > 0:
-            add_day_carry(datalist, self.queryset, sum_field)
+            add_day_carry(datalist, self.queryset, sum_field, exclude_statuses=exclude_statuses)
         serializer = serializers.CarryRecordSerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -142,23 +157,32 @@ class OrderCarryViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    def get_owner_queryset(self, request):
+    def get_owner_queryset(self, request, carry_type, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
-        carry_type = request.REQUEST.get("carry_type", "all")
         if carry_type == "direct":
             return self.queryset.filter(mama_id=mama_id).order_by('-date_field', '-created')
-        # we dont return upaid/canceled order
-        return self.queryset.filter(mama_id=mama_id).exclude(status=0).exclude(status=3).order_by('-date_field', '-created')
+        
+        qset = self.queryset.filter(mama_id=mama_id)
+        if exclude_statuses:
+            for ex in exclude_statuses:
+                qset = qset.exclude(status=ex)
+        return qset.order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
-        datalist = self.get_owner_queryset(request)
+        exclude_statuses = [0, 3] # not show unpaid/canceled orders
+
+        carry_type = request.REQUEST.get("carry_type", "all")
+        if carry_type == "direct":
+            exclude_statuses = None # show all orders excpet indirect ones
+            
+        datalist = self.get_owner_queryset(request, carry_type, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
 
         ### find from_date and end_date in datalist
         mama_id, from_date, end_date = None, 0, 0
         if len(datalist) > 0:
             sum_field = 'carry_num'
-            add_day_carry(datalist, self.queryset, sum_field)
+            add_day_carry(datalist, self.queryset, sum_field, exclude_statuses=exclude_statuses)
         serializer = serializers.OrderCarrySerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)
 

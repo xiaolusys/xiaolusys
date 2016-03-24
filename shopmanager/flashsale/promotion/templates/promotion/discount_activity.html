@@ -63,6 +63,7 @@
 <div>
   <img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_3.21%20%E6%B4%BB%E5%8A%A8.png?imageMogr2/thumbnail/640/format/jpg/quality/90">
 </div>
+<div id="buttons"></div>
 <div class="page-content">
 	<!-- 优惠券 -->
 	<div class="coupon" template_id="35,37" onclick="Action_release(this)">
@@ -72,7 +73,7 @@
 	  <ul>
 	  {% for product in product_list %}
 	    <li>
-	        <a href="http://m.xiaolumeimei.com/pages/{% if product.model_product %}tongkuan.html?id={{product.model_product.id}}{% else %}shangpinxq.html?id={{product.id}}{% endif %}">
+	        <a class="item" href="javascript:void(0)">
 	        <div class="fullfill"></div>
 	        </a>
 	    </li>
@@ -134,6 +135,66 @@ function Action_release(ele) {
         }
     }
 };
+var OSTest = function () {// 客户端平台检测　返回
+    var u = navigator.userAgent;
+    var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端
+    var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+    if (isAndroid == true) {
+        return 'Android';
+    }
+    else if (isiOS == true) {
+        return 'iOS';
+    }
+    else {
+        return 'web'
+    }
+};
+function setupWebViewJavascriptBridge(callback) {
+    if (window.WebViewJavascriptBridge) { return callback(WebViewJavascriptBridge); }
+    if (window.WVJBCallbacks) { return window.WVJBCallbacks.push(callback); }
+    window.WVJBCallbacks = [callback];
+    var WVJBIframe = document.createElement('iframe');
+    WVJBIframe.style.display = 'none';
+    WVJBIframe.src = 'wvjbscheme://__BRIDGE_LOADED__';
+    document.documentElement.appendChild(WVJBIframe);
+    setTimeout(function() { document.documentElement.removeChild(WVJBIframe) }, 0)
+}
+
+function callBridge(){
+    setupWebViewJavascriptBridge(function(bridge) {
+        var data = {'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'};
+        bridge.callHandler('jumpToJsLocation', data, function(response) {
+            console.log("jumpToJsLocation called with:", data);
+        });
+    })
+}
+
+$(document).ready(function(){
+    alert('document ready');
+    //给WebViewJavascriptBridgeReady事件注册一个Listener
+    var os = OSTest();
+    console.log('os:',os)
+    if (os == 'iOS'){
+	    $('.item').click(function(){
+            console.log('click');
+            setupWebViewJavascriptBridge(function(bridge) {
+		        var data = {'share_to':'wxapp','active_id': '1'};
+		        bridge.callHandler('callNativeShareFunc', data, function(response) {
+		            console.log("callNativeShareFunc called with:", data);
+		        });
+		    })
+        });
+	}else{
+		$('.item').click(function(){
+		    console.log('click');
+		    if (window.AndroidBridge) {
+	            var data = "{'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'}";
+	            alert('call:'+data);
+	            window.AndroidBridge.jumpToNativeLocation(data);
+	        }
+		});
+	}
+});
 </script>
 
 {% endblock %}
