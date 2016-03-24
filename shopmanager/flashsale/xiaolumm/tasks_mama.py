@@ -226,7 +226,7 @@ from flashsale.xiaolumm.tasks_mama_relationship_visitor import task_update_refer
 
 
 def get_self_mama(unionid):
-    records = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, progress=XiaoluMama.PASS)
+    records = XiaoluMama.objects.filter(openid=unionid, status=XiaoluMama.EFFECT, charge_status=XiaoluMama.CHARGED)
     if records.count() > 0:
         return records[0]
     return None

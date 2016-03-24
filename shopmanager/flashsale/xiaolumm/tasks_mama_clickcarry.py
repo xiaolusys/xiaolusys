@@ -60,9 +60,8 @@ def task_confirm_previous_zero_order_clickcarry(mama_id, today_date_field, num_d
     e.g init_order_num == 0
     """
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
-    start_date_field = end_date_field - datetime.timedelta(days=7)
 
-    click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field__gt=start_date_field, date_field__lte=end_date_field, status=1, init_order_num=0)
+    click_carrys = ClickCarry.objects.filter(mama_id=mama_id, date_field__lte=end_date_field, status=1, init_order_num=0).order_by('-date_field')[:7]
     if click_carrys.count() <= 0:
         return
     

@@ -372,7 +372,7 @@ admin.site.register(CarryRecord, CarryRecordAdmin)
 class OrderCarryAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'order_id', 'order_value', 'carry_num', 'carry_type', 
                     'carry_plan_name', 'carry_description',
-                    'sku_name', 'sku_img', 'contributor_nick', 'contributor_img',
+                    'sku_name', 'sku_img', 'contributor_nick', 
                     'contributor_id', 'date_field', 'status', 'modified', 'created')
     list_filter = ('status', 'carry_type',)
     search_fields = ('mama_id', 'carry_description','contributor_nick',)
