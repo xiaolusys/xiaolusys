@@ -67,7 +67,7 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         from flashsale.dinghuo.models import OrderList
-        from shopback.refunds.models import Refund
+        from flashsale.pay.models_refund import SaleRefund
         from shopback.trades.models import MergeOrder
         from shopback import paramconfig as pcfg
 
@@ -95,12 +95,12 @@ class DailyStatsViewSet(viewsets.GenericViewSet):
             n_delay = q.filter(pay_time__lte=threshold).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay}
         elif type_ == 2:
-            q = Refund.objects.filter(has_good_return=True).exclude(status__in=[pcfg.NO_REFUND, pcfg.REFUND_CLOSED, pcfg.REFUND_SUCCESS, pcfg.REFUND_REFUSE_BUYER])
+            q = SaleRefund.objects.filter(status__in=[SaleRefund.REFUND_WAIT_SELLER_AGREE, SaleRefund.REFUND_WAIT_RETURN_GOODS, SaleRefund.REFUND_CONFIRM_GOODS, SaleRefund.REFUND_APPROVE])
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay}
         elif type_ == 3:
-            q = Refund.objects.filter(has_good_return=False).exclude(status__in=[pcfg.NO_REFUND, pcfg.REFUND_CLOSED, pcfg.REFUND_SUCCESS, pcfg.REFUND_REFUSE_BUYER])
+            q = SaleRefund.objects.filter(status=SaleRefund.REFUND_APPROVE)
             n_total = q.only('id').count()
             n_delay = q.filter(created__lte=threshold).only('id').count()
             data = {'n_total': n_total, 'n_delay': n_delay}
