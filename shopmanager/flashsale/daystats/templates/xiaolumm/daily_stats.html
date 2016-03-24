@@ -7,9 +7,14 @@
 	 body {
 	     margin: 0;
              font-family: STHeiti, sans-serif;
-             font-size: 10px;
+             font-size: 14px;
              color: #320C08;
 	 }
+
+         em.n-s-delay {
+             color: #FF0000;
+             font-size: 500%;
+         }
 
          em.n-delay {
              color: #ffc125;
@@ -54,10 +59,14 @@
     <body>
         <table>
             <tr id="order">
-                <td style="width:30%">
+                <td style="width:25%">
                     <h2>订单</h2>
                 </td>
-                <td style="width:35%">
+                <td style="width:25%;">
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td style="width:25%">
                     <p><em class="n-delay">1</em></p>
                     <p>超过三天未关闭</p>
                 </td>
@@ -69,6 +78,10 @@
             <tr id="refund">
                 <td>
                     <h2>退款/退货单</h2>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
                 </td>
                 <td>
                     <p><em class="n-delay">1</em></p>
@@ -84,6 +97,10 @@
                     <h2>客户等待返款</h2>
                 </td>
                 <td>
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
+                </td>
+                <td>
                     <p><em class="n-delay">1</em></p>
                     <p>超过三天未关闭</p>
                 </td>
@@ -95,6 +112,10 @@
             <tr id="dinghuo">
                 <td>
                     <h2>订货单</h2>
+                </td>
+                <td>
+                    <p><em class="n-s-delay">1</em></p>
+                    <p>超过五天未关闭</p>
                 </td>
                 <td>
                     <p><em class="n-delay">1</em></p>
@@ -117,10 +138,12 @@
                  dataType: 'json',
                  data: {type: statsType},
                  success: function(result){
+                     var elSDelay = $(targetId+' em.n-s-delay').first();
                      var elDelay = $(targetId+' em.n-delay').first();
                      var elTotal = $(targetId+' em.n-total').first();
                      if(result.n_delay != elDelay.html() - 0){
                          elDelay.html(result.n_delay);
+                         elSDelay.html(result.n_s_delay);
                          elDelay.animate({fontSize: '+=6px'}, 1000, function(){
                              elDelay.animate({fontSize: '-=6px'}, 500);
                          });
