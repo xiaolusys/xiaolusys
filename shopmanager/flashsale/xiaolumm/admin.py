@@ -375,7 +375,7 @@ class OrderCarryAdmin(admin.ModelAdmin):
                     'sku_name', 'sku_img', 'contributor_nick', 
                     'contributor_id', 'date_field', 'status', 'modified', 'created')
     list_filter = ('status', 'carry_type',)
-    search_fields = ('mama_id', 'carry_description','contributor_nick',)
+    search_fields = ('mama_id', 'order_id', 'carry_description','contributor_nick',)
 admin.site.register(OrderCarry, OrderCarryAdmin)
 
 
