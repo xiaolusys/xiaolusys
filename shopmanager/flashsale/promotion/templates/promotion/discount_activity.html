@@ -52,6 +52,13 @@
     height:22%;
     margin-bottom:10px;
 }
+.share-btn{
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 100%;
+    margin-left: -50%;
+}
 </style>
 {% endblock %}
 
@@ -63,10 +70,12 @@
 <div>
   <img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_3.21%20%E6%B4%BB%E5%8A%A8.png?imageMogr2/thumbnail/640/format/jpg/quality/90">
 </div>
-<div id="buttons"></div>
+
 <div class="page-content">
+    <div class="share-btn btn btn-default">分享到朋友圈</div>
 	<!-- 优惠券 -->
 	<div class="coupon" template_id="35,37" onclick="Action_release(this)">
+	
 	</div>
 	<!-- 内容图 -->
 	<div class="items">
@@ -170,30 +179,45 @@ function callBridge(){
 }
 
 $(document).ready(function(){
-    alert('document ready');
+    console.log('document ready');
     //给WebViewJavascriptBridgeReady事件注册一个Listener
-    var os = OSTest();
-    console.log('os:',os)
-    if (os == 'iOS'){
-	    $('.item').click(function(){
-            console.log('click');
+
+    $('.item').click(function(){
+        var os = OSTest();
+        console.log('os jump:',os)
+        if (os == 'iOS'){
             setupWebViewJavascriptBridge(function(bridge) {
-		        var data = {'share_to':'wxapp','active_id': '1'};
-		        bridge.callHandler('callNativeShareFunc', data, function(response) {
-		            console.log("callNativeShareFunc called with:", data);
+		        var data = {'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'};
+		        bridge.callHandler('jumpToJsLocation', data, function(response) {
+		            console.log("jumpToJsLocation called with:", data);
 		        });
 		    })
-        });
-	}else{
-		$('.item').click(function(){
-		    console.log('click');
+		}else{
 		    if (window.AndroidBridge) {
-	            var data = "{'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'}";
-	            alert('call:'+data);
-	            window.AndroidBridge.jumpToNativeLocation(data);
-	        }
-		});
-	}
+                var data = "{'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'}";
+                alert('call:'+data);
+                window.AndroidBridge.jumpToNativeLocation(data);
+            }
+        }
+    });
+
+	$('.share-btn').click(function(){
+	    var os = OSTest();
+        console.log('os share:',os)
+        if (os == 'iOS'){
+            setupWebViewJavascriptBridge(function(bridge) {
+                var data = {'share_to':'pyq','active_id': '1'};
+                bridge.callHandler('callNativeShareFunc', data, function(response) {
+                    console.log("callNativeShareFunc called with:", data);
+                });
+            })
+        }else{
+            if (window.AndroidBridge) {
+                var data = {'share_to':'pyq','active_id': '1'};
+                window.AndroidBridge.callNativeShareFunc(data.share_to,data.active_id);
+            }
+        }
+	});
 });
 </script>
 
