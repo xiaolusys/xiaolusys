@@ -285,9 +285,9 @@ class UserCoupon(BaseModel):
                 tpl = CouponTemplate.objects.get(id=template_id, valid=True)  # 获取优惠券模板
                 now = datetime.datetime.now()
                 if not (tpl.release_start_time < now < tpl.release_end_time):
-                    return "not_release"  # 不在模板定义时间
+                    return "没有发放"  # 不在模板定义时间
             except CouponTemplate.DoesNotExist:
-                return "not_release"
+                return "没有发放"
             # 身份判定（判断身份是否和优惠券模板指定用户一致） 注意　这里是硬编码　和　XiaoluMama　代理级别关联
             if tpl.target_user != CouponTemplate.ALL_USER:  # 如果不是所有用户可领取则判定级别
                 from flashsale.xiaolumm.models import XiaoluMama
@@ -304,10 +304,10 @@ class UserCoupon(BaseModel):
                 user_level = CouponTemplate.ALL_USER
             if user_level != tpl.target_user:
                 # 如果用户领取的优惠券和用户身份不一致则不予领取
-                return "不能领取该优惠券"
+                return "用户不一致"
             uc_cs = UserCoupon.objects.filter(customer=buyer_id, cp_id__template__id=template_id)
             if uc_cs.count() >= tpl.limit_num:  # 如果大于定义的限制领取数量
-                return "limit"
+                return "超过领取限制"
             cou = CouponsPool.objects.create(template=tpl)  # 生成券池数据
             if cou.coupon_nums() > tpl.nums:  # 发放数量大于定义的数量　抛出异常
                 cou.delete()  # 删除create 防止产生脏数据
