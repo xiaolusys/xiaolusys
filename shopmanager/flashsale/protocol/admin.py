@@ -40,12 +40,12 @@ class APPFullPushMessgeAdmin(admin.ModelAdmin):
             resp = {}
             params =  {'target_url': get_target_url(obj.target_url,obj.params)}
             
-            obj.desc = util_emoji.match_emoji(obj.desc)
+            desc = util_emoji.match_emoji(obj.desc)
 
             if obj.platform == APPFullPushMessge.PL_IOS:
-                resp = mipush.mipush_of_ios.push_to_all(params,description=obj.desc)
+                resp = mipush.mipush_of_ios.push_to_all(params,description=desc)
             else:
-                resp = mipush.mipush_of_android.push_to_all(params,description=obj.desc)
+                resp = mipush.mipush_of_android.push_to_all(params,description=desc)
         except Exception,exc:
             logger.error(exc.message or 'app push error',exc_info=True)
             resp = {'error':exc.message}
