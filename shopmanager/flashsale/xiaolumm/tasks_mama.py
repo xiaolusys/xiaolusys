@@ -70,15 +70,13 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
 
 
 @task()
-def task_update_ordercarry(mama_id, order_pk, customer_pk, carry_amount, agency_level, carry_plan_name, via_app):
+def task_update_ordercarry(mama_id, order, customer_pk, carry_amount, agency_level, carry_plan_name, via_app):
     """
     Whenever a sku order gets saved, trigger this task to update 
     corresponding order_carry record.
     """
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
 
-    order = SaleOrder.objects.get(id=order_pk)
-    
     status = 0  #unpaid
     if order.is_pending():
         status = 1
@@ -233,11 +231,9 @@ def get_self_mama(unionid):
         
 
 @task()
-def task_order_trigger(saleorder_pk):
-    print "%s, saleorder_pk: %s" % (get_cur_info(), saleorder_pk)
-    
-    sale_order = SaleOrder.objects.get(id=saleorder_pk)
-    
+def task_order_trigger(sale_order):
+    print "%s, saleorder_pk: %s" % (get_cur_info(), sale_order.id)
+
     customer_id = sale_order.sale_trade.buyer_id
     customer = Customer.objects.get(id=customer_id)
 
@@ -285,7 +281,7 @@ def task_order_trigger(saleorder_pk):
     agency_level = mm_linkid_mama.agencylevel
     carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
     
-    task_update_ordercarry.s(mm_linkid_mama.pk, saleorder_pk, customer_id, carry_amount, agency_level, carry_scheme.name, via_app)()
+    task_update_ordercarry.s(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level, carry_scheme.name, via_app)()
 
     
     
