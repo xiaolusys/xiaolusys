@@ -597,7 +597,7 @@ class ExchangeRedToCoupon(APIView):
             user_coupon = UserCoupon()
             kwargs = {"buyer_id": customer, "template_id": 20}
             status_2 = user_coupon.release_by_template(**kwargs)
-        if status_1 == 'success' or status_2 == 'success':
+        if status_1 == '领取成功' or status_2 == '领取成功':
             reds.update(status=ReadPacket.EXCHANGE)  # 更新红包到兑换状态
         coupon_value = coupon_10_count * 10 + coupon_5_count * 5
         return code, coupon_10_count + coupon_5_count, coupon_value
