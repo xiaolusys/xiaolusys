@@ -103,9 +103,8 @@ def task_confirm_previous_activevalue(mama_id, value_type, today_date_field, num
     """
 
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
-    start_date_field = end_date_field - datetime.timedelta(days=7)
 
-    active_values = ActiveValue.objects.filter(mama_id=mama_id, value_type=value_type, date_field__gt=start_date_field, date_field__lte=end_date_field, status=1)
+    active_values = ActiveValue.objects.filter(mama_id=mama_id, value_type=value_type, date_field__lte=end_date_field, status=1).order_by('-date_field')[:7]
     if active_values.count() <= 0:
         return
 
