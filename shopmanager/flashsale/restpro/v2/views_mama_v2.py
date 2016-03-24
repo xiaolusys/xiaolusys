@@ -253,17 +253,25 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    def get_owner_queryset(self, request):
+    def get_owner_queryset(self, request, exclude_statuses=None):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(mama_id=mama_id,status__lt=3).order_by('-date_field', '-created')
+        qset = self.queryset.filter(mama_id=mama_id)
+
+        # we dont return canceled record
+        if exclude_statuses:
+            for ex in exclude_statuses:
+               qset = qset.exclude(status=ex)
+               
+        return qset.order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
-        datalist = self.get_owner_queryset(request)
+        exclude_statuses = [3,]
+        datalist = self.get_owner_queryset(request, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
 
         if len(datalist) > 0:
             sum_field = 'value_num'
-            add_day_carry(datalist, self.queryset, sum_field, scale=1)
+            add_day_carry(datalist, self.queryset, sum_field, scale=1, exclude_statuses=exclude_statuses)
 
         serializer = serializers.ActiveValueSerializer(datalist, many=True)
         return self.get_paginated_response(serializer.data)

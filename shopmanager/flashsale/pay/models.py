@@ -549,8 +549,8 @@ def order_trigger(sender, instance, created, **kwargs):
     SaleOrder save triggers adding carry to OrderCarry.
     """
     from flashsale.xiaolumm import tasks_mama
-    msg = "task_order_trigger, oid:%s, status:%s, refund:%s, is_pending: %s" % (instance.oid, instance.status, instance.refund_status, instance.is_pending())
-    logger.error(msg)
+    #msg = "task_order_trigger, oid:%s, status:%s, refund:%s, is_pending: %s" % (instance.oid, instance.status, instance.refund_status, instance.is_pending())
+    #logger.error(msg)
     tasks_mama.task_order_trigger.s(instance)()
     
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
