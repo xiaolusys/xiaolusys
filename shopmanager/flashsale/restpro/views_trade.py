@@ -320,6 +320,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 coupon_ticket = serializers.UsersCouponSerializer(coupon).data
                 coupon_ticket['receive_date'] = coupon.created
                 coupon_ticket['coupon_id'] = coupon_id
+        
+        discount_fee = min(discount_fee, total_fee)
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -327,6 +329,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                               not has_deposite)
             wallet_cash    = xlmm.cash / 100.0
         
+        if total_payment == 0:
+            weixin_payable = False
+            alipay_payable = False
+            
         budget_payable,budget_cash = self.get_budget_info(customer,total_payment)
         response = {'uuid':genTradeUniqueid(),
                     'total_fee':round(total_fee,2),
@@ -401,7 +407,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 coupon_ticket   = serializers.UsersCouponSerializer(coupon).data
                 coupon_ticket['receive_date'] = coupon.created
                 coupon_ticket['coupon_id'] = coupon_id
-
+        
+        discount_fee = min(discount_fee, total_fee)
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -414,8 +421,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         product_sku_dict['product'] = serializers.ProductSerializer(product,
                                          context={'request': request}).data
                                          
+        if total_payment == 0:
+            weixin_payable = False
+            alipay_payable = False
+            
         budget_payable,budget_cash = self.get_budget_info(customer,total_payment)
-        
         response = {'uuid':genTradeUniqueid(),
                     'total_fee':round(total_fee,2),
                     'post_fee':round(post_fee,2),
@@ -881,6 +891,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 cart_discount    += int(coupon_pool.template.value * 100)
             
             cart_discount += self.calc_extra_discount(pay_extras)
+            cart_discount = min(cart_discount, cart_total_fee)
             if discount_fee > cart_discount:
                 raise exceptions.ParseError(u'优惠金额异常')
             
@@ -956,6 +967,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             bn_discount += int(coupon_pool.template.value * 100)
         
         bn_discount += self.calc_extra_discount(pay_extras)
+        bn_discount = min(bn_discount, bn_totalfee)
         if discount_fee > bn_discount:
             raise exceptions.ParseError(u'优惠金额异常')
         
