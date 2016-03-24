@@ -591,9 +591,22 @@ from models_coupon_new import CouponsPool, UserCoupon, CouponTemplate
 
 
 class CouponTemplateAdmin(admin.ModelAdmin):
-    list_display = ('id', "title", "value", "valid", "nums", "release_start_time", "release_end_time",
-                    "start_use_time", "deadline", "created", "modified")
+    list_display = ('id', "title",  "valid", "nums", "value", 'coupon_stats', "release_start_time", "release_end_time",
+                    "start_use_time", "deadline")
     list_filter = ("valid", "created")
+
+    def coupon_stats(self, obj):
+        """
+        优惠券统计数字
+        发放数量, 使用数量
+        """
+        release_count = CouponsPool.objects.filter(template__id=obj.id).count()
+        used_count = UserCoupon.objects.filter(cp_id__template__id=obj.id, status=UserCoupon.USED).count()
+        baifenbi = ((used_count / float(release_count)) * 100) if release_count > 0 else 0
+        return u'<span>%s / %s = %4.2f ％</span>' % (used_count, release_count, baifenbi)
+    coupon_stats.allow_tags = True
+    coupon_stats.short_description = u"使用数量/发放数量"
+
 
 admin.site.register(CouponTemplate, CouponTemplateAdmin)
 
