@@ -22,11 +22,14 @@ function clickAlipay() {
         $("#channel_value").val('alipay_wap');
     });
 
-    $("#alipay-light").click(function () {//点击亮色支付宝　显示亮色支付宝
+    $("#alipay-light").click(function () {//点击亮色支付宝　显示灰色支付宝
         console.log('click light');
         $("#alipay-light").removeClass('active');
         $("#alipay-grey").addClass('active');
-        $("#channel_value").val('wx_pub');
+        var in_weixin = isWeiXin();
+        if (in_weixin) {
+            $("#channel_value").val('wx_pub');
+        }
     });
 }
 
