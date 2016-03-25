@@ -22,3 +22,6 @@ def gen_activevalue_unikey(value_type, mama_id, date, order_id, contributor_id):
 
 def gen_uniquevisitor_unikey(openid, date_field):
     return "-".join([openid, str(date_field)])
+
+def gen_dailystats_unikey(mama_id, date_field):
+    return "-".join([str(mama_id), str(date_field)])

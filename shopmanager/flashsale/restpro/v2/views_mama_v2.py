@@ -18,7 +18,7 @@ from flashsale.pay.models import Customer
 
 from django.db.models import Sum, Count
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor
+from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
 
 
 def get_customer_id(user):
@@ -446,3 +446,39 @@ class OrderCarryVisitorView(APIView):
         data = match_data(from_date, end_date, visitors, orders)
         return Response(data)
 
+
+class DailyStatsViewSet(viewsets.ModelViewSet):
+    """
+    given from=2 and days=5, we find out all 5 days' data, starting
+    from 2 days ago, backing to 7 days ago.
+    
+    from=x: starts from x days before
+    days=n: needs n days' data
+    """
+    queryset = DailyStats.objects.all()
+    serializer_class = serializers.DailyStatsSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, request, days_from, days_length):
+        mama_id = get_mama_id(request.user)
+
+        today_date = datetime.datetime.now().date()
+        end_date = today_date - datetime.timedelta(days=days_from)
+        return self.queryset.filter(mama_id=mama_id, date_field__lte=end_date).order_by('-date_field','-created')[:days_length]
+
+    def list(self, request, *args, **kwargs):
+        content = request.REQUEST
+        days_from = int(content.get("from",0))
+        days_length   = int(content.get("days",1))
+
+        datalist = self.get_owner_queryset(request, days_from, days_length)
+        datalist = self.paginate_queryset(datalist)
+
+        serializer = serializers.DailyStatsSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+    

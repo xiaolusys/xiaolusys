@@ -1,7 +1,7 @@
 # coding=utf-8
 from rest_framework import serializers
 from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
-    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, UniqueVisitor
+    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, UniqueVisitor, DailyStats
 
 
 class MamaFortuneSerializer(serializers.ModelSerializer):
@@ -13,7 +13,7 @@ class MamaFortuneSerializer(serializers.ModelSerializer):
         fields = ('mama_id', 'mama_name', 'mama_level', 'mama_level_display', 'cash_value', 
                   'fans_num', 'invite_num','order_num', 'carry_value', 'active_value_num', 
                   'carry_pending_display', 'carry_confirmed_display', 'carry_cashout_display',
-                  'history_last_day', 'today_visitor_num', 'modified', 'created')
+                  'mama_event_link', 'history_last_day', 'today_visitor_num', 'modified', 'created')
 
 
 class CarryRecordSerializer(serializers.ModelSerializer):
@@ -113,3 +113,12 @@ class XlmmFansSerializer(serializers.ModelSerializer):
         model = XlmmFans
         fields = ('fans_nick', 'fans_thumbnail', 'fans_description', 'created')
 
+
+class DailyStatsSerializer(serializers.ModelSerializer):
+    order_num = serializers.IntegerField(source='today_order_num', read_only=True)
+    visitor_num = serializers.IntegerField(source='today_visitor_num', read_only=True)
+    carry = serializers.FloatField(source='today_carry_num_display', read_only=True)
+    today_carry_num = serializers.FloatField(source='today_carry_num_display', read_only=True)
+    class Meta:
+        model = DailyStats
+        

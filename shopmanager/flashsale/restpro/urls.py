@@ -136,6 +136,7 @@ v2_router.register(r'referal', views_mama_v2.ReferalRelationshipViewSet)
 v2_router.register(r'group', views_mama_v2.GroupRelationshipViewSet)
 v2_router.register(r'visitor', views_mama_v2.UniqueVisitorViewSet)
 v2_router.register(r'fans', views_mama_v2.XlmmFansViewSet)
+v2_router.register(r'dailystats', views_mama_v2.DailyStatsViewSet)
 
 v2_router_urls = v2_router.urls
 v2_router_urls += ([

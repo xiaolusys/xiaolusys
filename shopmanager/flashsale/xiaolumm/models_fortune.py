@@ -2,6 +2,7 @@
 from django.db import models
 from core.models import BaseModel
 from django.db.models.signals import post_save
+from django.conf import settings
 
 import datetime
 
@@ -98,6 +99,28 @@ class MamaFortune(BaseModel):
     def carry_cashout_display(self):
         return float('%.2f' % (self.carry_cashout * 0.01))
 
+    def mama_event_link(self):
+        return "%s" % settings.M_SITE_URL
+
+class DailyStats(BaseModel):
+    STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), )
+    mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
+    today_visitor_num = models.IntegerField(default=0, verbose_name=u'今日访客数')
+    today_order_num = models.IntegerField(default=0, verbose_name=u'今日订单数')
+    today_carry_num = models.IntegerField(default=0, verbose_name=u'今日收益数')
+    today_active_value = models.IntegerField(default=0, verbose_name=u'今日活跃值')
+    uni_key = models.CharField(max_length=128, blank=True, unique=True, verbose_name=u'唯一ID')
+    date_field = models.DateField(default=datetime.date.today, db_index=True, verbose_name=u'日期')
+    status = models.IntegerField(default=1, choices=STATUS_TYPES, verbose_name=u'状态') #待确定/已确定
+
+    class Meta:
+        db_table = 'flashsale_xlmm_daily_stats'
+        verbose_name = u'V2/每日数据'
+        verbose_name_plural = u'V2/每日数据列表'
+
+    def today_carry_num_display(self):
+        return float('%.2f' % (self.today_carry_num * 0.01))
+
 
 class CarryRecord(BaseModel):
     CARRY_TYPES = ((1, u'返现'),(2, u'佣金'),(3, u'奖金'),)
@@ -158,6 +181,8 @@ def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     tasks_mama_fortune.task_carryrecord_update_mamafortune.s(instance.mama_id)()
 
+    from flashsale.xiaolumm import tasks_mama_dailystats
+    tasks_mama_dailystats.task_carryrecord_update_dailystats.s(instance.mama_id, instance.date_field)()
 
 post_save.connect(carryrecord_update_mamafortune, 
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_mamafortune')
@@ -165,7 +190,7 @@ post_save.connect(carryrecord_update_mamafortune,
 
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'Web直接订单'),(2, u'App粉丝订单'),(3, u'下属订单'),)
-    STATUS_TYPES = ((0, u'未付款'),(1, u'待确定'), (2, u'已确定'), (3, u'取消'),)
+    STATUS_TYPES = ((0, u'未付款'),(1, u'待确定'), (2, u'已确定'), (3, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
@@ -266,6 +291,10 @@ def ordercarry_update_order_number(sender, instance, created, **kwargs):
 
     from flashsale.xiaolumm import tasks_mama_fortune
     tasks_mama_fortune.task_update_mamafortune_order_num.s(mama_id)()
+
+    if created:
+        from flashsale.xiaolumm import tasks_mama_dailystats
+        tasks_mama_dailystats.task_ordercarry_increment_dailystats.s(mama_id, date_field)()
 
 post_save.connect(ordercarry_update_order_number,
                   sender=OrderCarry, dispatch_uid='post_save_order_carry_update_order_number')
@@ -587,9 +616,8 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
     task_visitor_increment_activevalue.s(mama_id, date_field)()
 
+    from flashsale.xiaolumm.tasks_mama_dailystats import task_visitor_increment_dailystats
+    task_visitor_increment_dailystats.s(mama_id, date_field)()
+
 post_save.connect(visitor_update_clickcarry_and_activevalue,
                   sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
-
-
-        
-    
