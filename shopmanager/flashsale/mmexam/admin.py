@@ -37,7 +37,7 @@ class DressProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'age_min','age_max','category','product_id','modified','in_active' )
     search_fields = ['=product_id']
     
-    list_filter = ['in_active','created']
+    list_filter = ['in_active','created','category']
     
 
 admin.site.register(DressProduct,DressProductAdmin)
