@@ -131,7 +131,7 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     ###特卖活动API：
     > ### /{pk}/get_share_params: 获取活动分享参数;
     """
-    queryset = ActivityEntry.objects.filter()
+    queryset = ActivityEntry.objects.all()
     serializer_class = serializers.ActivityEntrySerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     renderer_classes = (renderers.JSONRenderer,renderers.BrowsableAPIRenderer,)
@@ -191,6 +191,15 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         share_params.update(qrcode_link=self.get_qrcode_page_link())
         
         return Response(share_params)
+    
+    @list_route(methods=['get'])
+    def startup_diagrams(self, request, *args, **kwargs):
+        """ app首页启动图 """
+        
+        return Response({
+            'picture':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E8%83%8C%E6%99%AF%E8%89%B2%E5%80%BC.png',
+            'created':datetime.datetime.now(),
+        })
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
