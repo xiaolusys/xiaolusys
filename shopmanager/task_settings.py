@@ -10,6 +10,7 @@ CELERY_IMPORTS = (
     'flashsale.xiaolumm.tasks_mama_relationship_visitor',
     'flashsale.xiaolumm.tasks_mama_carryrecord',
     'flashsale.xiaolumm.tasks_mama_clickcarry',
+    'flashsale.xiaolumm.tasks_mama_dailystats',
 )
 #CELERY_RESULT_BACKEND = 'database'
 # BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
@@ -61,6 +62,26 @@ CELERY_DEFAULT_EXCHANGE = 'default'
 CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
 
+DAILY_STATS_ROUTES = {
+        'flashsale.xiaolumm.tasks_mama_dailystats.task_confirm_previous_dailystats': {
+            'queue': 'activevalue',
+            'routing_key': 'activevalue.task_confirm_previous_dailystats',
+        },
+        'flashsale.xiaolumm.tasks_mama_dailystats.task_visitor_increment_dailystats': {
+            'queue': 'activevalue',
+            'routing_key': 'activevalue.task_visitor_increment_dailystats',
+        },
+        'flashsale.xiaolumm.tasks_mama_dailystats.task_carryrecord_update_dailystats': {
+            'queue': 'activevalue',
+            'routing_key': 'activevalue.task_carryrecord_update_dailystats',
+        },
+        'flashsale.xiaolumm.tasks_mama_dailystats.task_ordercarry_increment_dailystats': {
+            'queue': 'activevalue',
+            'routing_key': 'activevalue.task_ordercarry_increment_dailystats',
+        }
+}
+
+
 ACTIVE_VALUE_ROUTES = {
         'flashsale.xiaolumm.tasks_mama_activevalue.task_confirm_previous_activevalue': {
             'queue': 'activevalue',
@@ -83,6 +104,7 @@ ACTIVE_VALUE_ROUTES = {
             'routing_key': 'activevalue.task_visitor_increment_activevalue',
         }
 }
+
 
 MAMA_FORTUNE_ROUTES = {
         'flashsale.xiaolumm.tasks_mama_fortune.task_xiaolumama_update_mamafortune': {
@@ -285,7 +307,7 @@ CELERY_ROUTES = {
             'routing_key': 'async.task_ReleaseMamaLinkCoupon',
         },  # 代理专属有订单则发送优惠券(对应类型)
 }
-
+CELERY_ROUTES.update(DAILY_STATS_ROUTES)
 CELERY_ROUTES.update(ACTIVE_VALUE_ROUTES)
 CELERY_ROUTES.update(MAMA_FORTUNE_ROUTES)
 CELERY_ROUTES.update(MAMA_RELATIONSHIP_ROUTES)

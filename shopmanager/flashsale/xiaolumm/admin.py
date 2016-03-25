@@ -350,7 +350,8 @@ admin.site.register(FansNumberRecord, FansNumberRecordAdmin)
 
 
 from models_fortune import MamaFortune, CarryRecord, OrderCarry, AwardCarry, \
-    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, UniqueVisitor
+    ClickCarry, ActiveValue, ReferalRelationship, GroupRelationship, ClickPlan, \
+    UniqueVisitor, DailyStats
     
 
 
@@ -424,3 +425,11 @@ class UniqueVisitorAdmin(admin.ModelAdmin):
                     'modified', 'created')
 admin.site.register(UniqueVisitor,UniqueVisitorAdmin)
     
+
+class DailyStatsAdmin(admin.ModelAdmin):
+    list_display = ('mama_id', 'today_visitor_num', 'today_order_num', 'today_carry_num',
+                    'today_active_value', 'date_field', 'modified', 'created')
+    search_fields = ('mama_id', )
+
+admin.site.register(DailyStats, DailyStatsAdmin)
+
