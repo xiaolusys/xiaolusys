@@ -447,6 +447,27 @@ class OrderCarryVisitorView(APIView):
         return Response(data)
 
 
+
+def fill_data(data, days_from, days_length):
+    today_date = datetime.datetime.now().date()
+    end_date   = today_date - datetime.timedelta(days=days_from)
+    from_date  = end_date - datetime.timedelta(days=days_length-1)
+    
+    res = []
+    i, maxi = 0, len(data)
+    while from_date <= end_date:
+        visitor_num, order_num, carry = 0,0,0
+        if i < maxi and data[i]["date_field"] == str(from_date):
+            visitor_num, order_num, carry = data[i]["today_visitor_num"], data[i]["today_order_num"], data[i]["today_carry_num"]
+            i += 1
+        entry = {"date_field":from_date, "visitor_num":visitor_num, "order_num": order_num, "carry":carry}
+        res.append(entry)
+        from_date += datetime.timedelta(1)
+    
+    return res
+
+
+
 class DailyStatsViewSet(viewsets.ModelViewSet):
     """
     given from=2 and days=5, we find out all 5 days' data, starting
@@ -477,7 +498,9 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
         datalist = self.paginate_queryset(datalist)
 
         serializer = serializers.DailyStatsSerializer(datalist, many=True)
-        return self.get_paginated_response(serializer.data)
+        res = fill_data(serializer.data, days_from, days_length)
+        
+        return self.get_paginated_response(res)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
