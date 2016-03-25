@@ -149,7 +149,34 @@ class MamaDressResult(BaseModel):
             user_coupon = UserCoupon()
             user_coupon.release_by_template(buyer_id=customer.id,template_id=34)
             
-        #TODO send envelop
-         
-         
-         
+class DressProduct(BaseModel):
+    """ 穿衣测试推荐商品 """
+    
+    age_min  = models.IntegerField(db_index=True, verbose_name=u"年龄大等于")
+    age_max  = models.IntegerField(verbose_name=u"年龄小等于")
+    category = models.IntegerField(verbose_name=u'分类ID')
+    product_id = models.BigIntegerField(verbose_name=u'推荐商品ID')
+    in_active = models.BooleanField(verbose_name=u'生效')
+        
+    class Meta:
+        db_table = 'flashsale_mmexam_dressproduct'
+        app_label = 'promotion'
+        verbose_name = u'推广/穿衣测试推荐商品'
+        verbose_name_plural = u'推广/穿衣测试推荐商品列表'
+
+    def __unicode__(self):
+        return '%d'%self.id
+    
+    @classmethod
+    def filter_by_many(cls, category=None, lnum=1, max_age=100, min_age=1,**kwargs):
+        print max_age,min_age,category,kwargs
+        qs = cls.objects.filter(in_active=True).order_by('-modified')
+        if category:
+            qs = qs.filter(category=category)
+        if max_age is not None:
+            qs = qs.filter(age_max__gte=max_age)
+        if min_age is not None:
+            qs = qs.filter(age_min__lte=min_age)
+        
+        return [p.product_id for p in qs[:lnum]]
+            

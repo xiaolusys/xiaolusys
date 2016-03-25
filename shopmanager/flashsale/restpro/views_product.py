@@ -27,6 +27,7 @@ from flashsale.pay.models import GoodShelf,ModelProduct
 from flashsale.pay.models_custom import Productdetail,ActivityEntry
 from flashsale.pay.models import Customer
 from flashsale.xiaolumm.models import XiaoluMama
+from flashsale.mmexam.models import DressProduct
 
 from . import permissions as perms
 from . import serializers
@@ -688,18 +689,30 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({"shop_info": shop_info, "products": serializer.data})
     
     @list_route(methods=['get'])
+    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
     def promotion_ads(self, request):
         """ 推荐展示商品信息 """
-        content = request.GET
-        category = content.get('cat')
+        content = request.REQUEST
+        category = content.get('category')
         list_num = int(content.get('lnum','1'))
-        filters  = content.get('filters')
-        product_qs = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
-        product_qs = self.order_queryset(request, product_qs)
-        if category and category.isdigit():
-            product_qs = product_qs.filter(category=category)
         
-        product_list  = product_qs[0:list_num]
+        product_list = []
+        dress_pids = DressProduct.filter_by_many(**content)
+        dress_products = self.get_queryset().filter(id__in=dress_pids, shelf_status=Product.UP_SHELF)
+        for product in dress_products:
+            product_list.append(product)
+        
+        delta_num = list_num - len(product_list)
+        if delta_num > 0:
+            product_qs = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
+            product_qs = self.order_queryset(request, product_qs)
+            
+            
+            if category and category.isdigit():
+                product_qs = product_qs.filter(category=category)
+            
+            product_list.extend(product_qs[0:delta_num])
+            
         serializer = serializers.SimpleProductSerializer(product_list,many=True)
         return Response(serializer.data)
 
