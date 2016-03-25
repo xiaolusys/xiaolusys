@@ -972,7 +972,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError(u'优惠金额异常')
         
         bn_payment      = bn_totalfee + post_fee - bn_discount
-        if (post_fee < 0 or payment <= 0 or abs(payment - bn_payment) > 10 
+        if (post_fee < 0 or payment < 0 or abs(payment - bn_payment) > 10 
             or abs(total_fee - bn_totalfee) > 10):
             raise exceptions.ParseError(u'付款金额异常')
         
