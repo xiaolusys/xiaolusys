@@ -37,7 +37,9 @@ def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
         carrys = CarryRecord.objects.filter(mama_id=mama_id, date_field=date_field).exclude(status=3).values('date_field').annotate(carry=Sum('carry_num'))
         today_carry_num = 0
         if len(carrys) > 0:
-            today_carry_num = carrys[0][date_field]
+            if carrys[0]["date_field"] == date_field:
+                today_carry_num = carrys[0]["carry"] 
+
     
         stats.today_carry_num = today_carry_num
         stats.status = 2 #confirm
