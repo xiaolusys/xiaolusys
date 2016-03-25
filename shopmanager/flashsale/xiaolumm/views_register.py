@@ -99,11 +99,13 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         # 必须注册之后才可以成为小鹿代理　　这里使用特卖公众账号授权
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
         # 获取 openid 和 unionid
-        openid, unionid = self.get_openid_and_unionid(request)
+        # openid, unionid = self.get_openid_and_unionid(request)
+        customer = Customer.objects.get(user=request.user)
+        openid = customer.openid
+        unionid = customer.unionid
         if not valid_openid(openid) or not valid_openid(unionid):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
-        customer = Customer.objects.get(user=request.user)
         customer_mobile = customer.mobile
 
         try:
