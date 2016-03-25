@@ -18,6 +18,8 @@ logger = logging.getLogger('celery.handler')
 
 CLICK_ACTIVE_START_TIME = datetime.datetime(2015,6,15,10)
 CLICK_MAX_LIMIT_DATE  = datetime.date(2015,6,5)
+#切换小鹿妈妈点击提成到新小鹿妈妈结算体系日期
+SWITCH_CLICKREBETA_DATE = datetime.datetime(2016,2,24) 
 
 @task()
 def task_Create_Click_Record(xlmmid,openid,unionid,click_time,app_key):
@@ -186,12 +188,13 @@ def task_Record_User_Click(pre_day=1):
             clickcount.valid_num = valid_num
             clickcount.save()
     
-    #update xlmm click rebeta
-    task_Push_ClickCount_To_MamaCash(pre_date)
-    #delete ximm click some days ago
-    pre_delete_date = (datetime.datetime.today() - 
-                       datetime.timedelta(days=constants.CLICK_RECORDS_REMAIN_DAYS))
-    task_Delete_Mamalink_Clicks(pre_delete_date)
+    if pre_date < SWITCH_CLICKREBETA_DATE:
+        #update xlmm click rebeta
+        task_Push_ClickCount_To_MamaCash(pre_date)
+        #delete ximm click some days ago
+        pre_delete_date = (datetime.datetime.today() - 
+                           datetime.timedelta(days=constants.CLICK_RECORDS_REMAIN_DAYS))
+        task_Delete_Mamalink_Clicks(pre_delete_date)
 
 from flashsale.clickrebeta.models import StatisticsShoppingByDay
 

@@ -29,7 +29,7 @@ def update_wallet_order(target_date):
         try:
             confirmTradeChargeTask(st.id,charge_time=datetime.datetime.now())
         except:
-            pass
+            print 'exc:',exc.message
         print 'update trade:',st.id,st.tid
 
 
