@@ -23,6 +23,23 @@
 .submit-row{
     padding-top:15%;
 }
+.age-select{
+    position:absolute;
+    top:0;
+    left:50%;
+    width:80%;
+    height:100%;
+    margin-left:-40%;
+    padding:0 30%;
+    font-size:24px;
+    line-heihgt:24px;
+    font-weight:bold;
+    text-align:center;
+}
+.age-select option{
+    text-align:center;
+    display:table;
+}
 </style>
 {% endblock %}
 
@@ -43,12 +60,15 @@
     {%csrf_token%}
     <input type="hidden" name="user_unionid" value="{{mama_dress.user_unionid}}"/>
     <div class="row ">
-      <div class="col-xs-8 col-sm-4 div-center">
-      <select name="mama_age" class="form-control " style=>
-      {% for age in age_range %}
-        <option val="{{age}}" {% if age == 1988 %}selected{% endif %}>{{age}}</option>
-      {% endfor %}
-      </select>
+      <div class="col-xs-8 div-center">
+      <div style="position: relative;">
+        <img class="img-responsive" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E6%82%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF-%E5%B9%B4%E9%BE%84%E8%BE%93%E5%85%A5%E6%A1%86.png">
+		<select name="mama_age" class="age-select transparent" >
+		{% for age in age_range %}
+		  <option val="{{age}}" class="text-center" {% if age == 1988 %}selected{% endif %}>{{age}}</option>
+		{% endfor %}
+		</select>
+      </div>
       </div>
     </div>
     <div class="row submit-row">

@@ -506,7 +506,7 @@ def task_calc_stock_top(start_time_str, end_time_str, limit=100):
 
     sale_list = sorted(sale_top.items(), key=lambda d: d[1]['collect_num'], reverse=True)
     
-    DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=result_list)
+    DaystatCalcResult.objects.create(calc_key=calc_key,calc_result=sale_list)
     return sale_list[0:limit]
 
 def get_new_user(user_data, old_user):
