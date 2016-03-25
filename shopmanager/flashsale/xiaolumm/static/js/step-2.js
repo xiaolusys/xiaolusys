@@ -19,20 +19,19 @@ function clickAlipay() {
         $("#weichatpay-icon-light").removeClass('active');
         $("#weichatpay-icon-grey").addClass('active');
 
-        $("#optionsRadios2").attr("checked", true);// 设置支付宝的时候关闭微信
-        $("#optionsRadios1").attr("checked", false);// 关闭微信
+        $("#channel_value").val('alipay_wap');
     });
 
     $("#alipay-light").click(function () {//点击亮色支付宝　显示亮色支付宝
         console.log('click light');
         $("#alipay-light").removeClass('active');
         $("#alipay-grey").addClass('active');
-        $("#optionsRadios2").attr("checked", false);
+        $("#channel_value").val('wx_pub');
     });
 }
 
 function clickWeiXinPay() {
-    $("#weichatpay-icon-grey").click(function () {//点击灰色支付宝　显示亮色支付宝
+    $("#weichatpay-icon-grey").click(function () {//点击灰色微信　显示亮色微信
         console.log('click grey');
         $("#weichatpay-icon-grey").removeClass('active');
         $("#weichatpay-icon-light").addClass('active');
@@ -41,15 +40,13 @@ function clickWeiXinPay() {
         $("#alipay-light").removeClass('active');
         $("#alipay-grey").addClass('active');
 
-
-        $("#optionsRadios1").attr("checked", true);// 设置微信的时候
-        $("#optionsRadios2").attr("checked", false);// 关闭支付宝
+        $("#channel_value").val('wx_pub');
     });
-    $("#weichatpay-icon-light").click(function () {//点击亮色支付宝　显示亮色支付宝
+    $("#weichatpay-icon-light").click(function () {//点击亮色微信　显示灰色微信
         console.log('click light');
         $("#weichatpay-icon-light").removeClass('active');
         $("#weichatpay-icon-grey").addClass('active');
-        $("#optionsRadios1").attr("checked", false);
+        $("#channel_value").val('alipay_wap');
 
     });
 }
@@ -58,7 +55,6 @@ $(document).ready(function () {
     console.log('rungning');
 
     var in_weixin = isWeiXin();// 微信里面支持支付宝和微信支付两种形式
-    in_weixin = true;
     if (in_weixin == true) {
         clickAlipay();
         clickWeiXinPay();
@@ -126,4 +122,4 @@ function Confirm_charge() {
             }
         }
     });
-};
+}

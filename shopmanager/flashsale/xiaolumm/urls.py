@@ -21,8 +21,8 @@ urlpatterns = patterns('',
 
     url(r'^register/(?P<mama_id>\d+)/$', weixin_authlogin_required(redirecto='/pages/denglu.html')(views_register.MamaRegisterView.as_view()), name="mama_register"),
     # url(r'^register/(?P<mama_id>\d+)/$', (views_register.MamaRegisterView.as_view()), name="mama_register"),
-    url(r'^register/sendcode/$', views_register.SendCode.as_view(), name="mama_register_sendcode"),
-    url(r'^register/verifycode/$', views_register.VerifyCode.as_view(), name="mama_register_sendcode"),
+    # url(r'^register/sendcode/$', views_register.SendCode.as_view(), name="mama_register_sendcode"),
+    # url(r'^register/verifycode/$', views_register.VerifyCode.as_view(), name="mama_register_sendcode"),
 
 
     url(r'^register/deposite/(?P<mama_id>\d+)/$',

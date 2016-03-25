@@ -33,54 +33,55 @@ from shopback.items.models import Product
 import logging
 
 logger = logging.getLogger('django.request')
-from flashsale.restpro.v2.views_verifycode_login import validate_mobile, \
-    get_register, check_day_limit, should_resend_code, validate_code
-from shopapp.smsmgr.tasks import task_register_code
 
-
-class SendCode(APIView):
-    """ 邀请的页面发送验证码 """
-    def post(self, request):
-        content = request.REQUEST
-        mobile = content.get('mobile')
-        if not validate_mobile(mobile):
-            return Response({"code": 1, "message": u"手机号码有误！"})
-        reg, created = get_register(mobile)
-        if not created:
-            if check_day_limit(reg):
-                return Response({"code": 2, "message": u"当日验证次数超过限制!"})
-            if not should_resend_code(reg):
-                return Response({"code": 3, "message": u"验证码刚发过咯，请等待下哦！"})
-        user = request.user
-        customer = 0
-        if user and user.is_authenticated():
-            customer = Customer.objects.get(user=user)
-        reg.cus_uid = customer.id if customer else 0
-        reg.verify_code = reg.genValidCode()
-        reg.code_time = datetime.datetime.now()
-        reg.save()
-        task_register_code.s(mobile, "3")()
-        return Response({"code": 0, "message": u"验证码已发送！"})
-
-
-class VerifyCode(APIView):
-    def post(self, request):
-        """
-        邀请代理时候验证码校验
-        注意：测试时候默认已经注册了unionid的Customer
-        """
-        content = request.REQUEST
-        mobile = content.get("mobile", '')
-        unionid = content.get('unionid', '')
-        sms_code = content.get('sms_code', '')
-
-        if not valid_openid(unionid):
-            return Response({"code": 1, "message": u"请在微信打开此页面！"})
-        if not validate_mobile(mobile):
-            return Response({"code": 2, "message": u"手机号码有误！"})
-        if not validate_code(mobile, sms_code):
-            return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})
-        return Response({'code': 0, 'message': u'验证成功！'})
+# from flashsale.restpro.v2.views_verifycode_login import validate_mobile, \
+#     get_register, check_day_limit, should_resend_code, validate_code
+# from shopapp.smsmgr.tasks import task_register_code
+#
+#
+# class SendCode(APIView):
+#     """ 邀请的页面发送验证码 """
+#     def post(self, request):
+#         content = request.REQUEST
+#         mobile = content.get('mobile')
+#         if not validate_mobile(mobile):
+#             return Response({"code": 1, "message": u"手机号码有误！"})
+#         reg, created = get_register(mobile)
+#         if not created:
+#             if check_day_limit(reg):
+#                 return Response({"code": 2, "message": u"当日验证次数超过限制!"})
+#             if not should_resend_code(reg):
+#                 return Response({"code": 3, "message": u"验证码刚发过咯，请等待下哦！"})
+#         user = request.user
+#         customer = 0
+#         if user and user.is_authenticated():
+#             customer = Customer.objects.get(user=user)
+#         reg.cus_uid = customer.id if customer else 0
+#         reg.verify_code = reg.genValidCode()
+#         reg.code_time = datetime.datetime.now()
+#         reg.save()
+#         task_register_code.s(mobile, "3")()
+#         return Response({"code": 0, "message": u"验证码已发送！"})
+#
+#
+# class VerifyCode(APIView):
+#     def post(self, request):
+#         """
+#         邀请代理时候验证码校验
+#         注意：测试时候默认已经注册了unionid的Customer
+#         """
+#         content = request.REQUEST
+#         mobile = content.get("mobile", '')
+#         unionid = content.get('unionid', '')
+#         sms_code = content.get('sms_code', '')
+#
+#         if not valid_openid(unionid):
+#             return Response({"code": 1, "message": u"请在微信打开此页面！"})
+#         if not validate_mobile(mobile):
+#             return Response({"code": 2, "message": u"手机号码有误！"})
+#         if not validate_code(mobile, sms_code):
+#             return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})
+#         return Response({'code': 0, 'message': u'验证成功！'})
 
 
 class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
