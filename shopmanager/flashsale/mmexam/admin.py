@@ -1,5 +1,5 @@
 from django.contrib import admin
-from flashsale.mmexam.models import Question,Choice,Result,MamaDressResult
+from flashsale.mmexam.models import Question,Choice,Result,MamaDressResult,DressProduct
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
@@ -24,10 +24,20 @@ admin.site.register(Question,Qestiondmin)
 admin.site.register(Choice,Choicedmin)
 admin.site.register(Result,Resultdmin)
 
-class MamaDressResultdmin(admin.ModelAdmin):
+class MamaDressResultAdmin(admin.ModelAdmin):
     
     list_display = ('user_unionid', 'mama_nick','exam_score','exam_date','exam_state' )
     search_fields = ['=user_unionid','=referal_from']
     
 
-admin.site.register(MamaDressResult,MamaDressResultdmin)
+admin.site.register(MamaDressResult,MamaDressResultAdmin)
+
+class DressProductAdmin(admin.ModelAdmin):
+    
+    list_display = ('id', 'age_min','age_max','category','product_id','modified','in_active' )
+    search_fields = ['=product_id']
+    
+    list_filter = ['in_active','created']
+    
+
+admin.site.register(DressProduct,DressProductAdmin)
