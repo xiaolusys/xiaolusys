@@ -130,6 +130,7 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ###特卖活动API：
     > ### /{pk}/get_share_params: 获取活动分享参数;
+    > ### /startup_diagrams :获取启动图片；
     """
     queryset = ActivityEntry.objects.all()
     serializer_class = serializers.ActivityEntrySerializer
