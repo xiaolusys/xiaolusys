@@ -48,17 +48,17 @@ function requestcode() {
     global_timer = window.setInterval(updateTime, 1000);
 
     var openid = $("#id_openid").val();
-    var url = "/m/register/sendcode/"; // 获取验证码
-    var data = {"mobile": mobile, "action": 'register'};
+    var url = "/rest/v2/send_code"; // 获取验证码
+    var data = {"mobile": mobile, "action": 'bind'};
 
     var callback = function (res) {
         console.log('res:', res);
-        if (res.code != 0) {
+        if (res.rcode != 0) {
             btn.attr("status", "0");
             window.clearInterval(global_timer);
         }
-        $("#id_verify_msg")[0].innerHTML = res.message;
-        console.log("res.code:", res.code);
+        $("#id_verify_msg")[0].innerHTML = res.msg;
+        console.log("res.rcode:", res.rcode);
     };
     $.ajax({url: url, type: "post", data: data, success: callback});
 }
@@ -68,21 +68,21 @@ function verifycode() {
     if (sms_code.length == 6) {
         var mobile = $("#id_mobile_input").val();
         var unionid = $("#id_unionid").val();
-        var url = '/m/register/verifycode/';
-        var data = {"mobile": mobile, "sms_code": sms_code, "unionid": unionid};
+        var url = '/rest/v2/verify_code';
+        var data = {"mobile": mobile, "verify_code": sms_code, "unionid": unionid, "action": "bind"};
 
         $.ajax({url: url, type: "post", data: data, success: callback});
 
         function callback(res) {
             console.log('res', res);
-            $("#id_verify_msg")[0].innerHTML = res.message;
-            if(res.code==0){
+            $("#id_verify_msg")[0].innerHTML = res.msg;
+            if (res.rcode == 0) {
                 $("#next_step").attr("disabled", false);
             }
         }
     }
-    else{
-        console.log("sms_code.length: ",sms_code.length);
+    else {
+        console.log("sms_code.length: ", sms_code.length);
     }
 }
 
