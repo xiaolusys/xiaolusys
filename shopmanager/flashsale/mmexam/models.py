@@ -168,15 +168,15 @@ class DressProduct(BaseModel):
         return '%d'%self.id
     
     @classmethod
-    def filter_by_many(cls, category=None, lnum=1, max_age=100, min_age=1,**kwags):
+    def filter_by_many(cls, category=None, lnum=1, max_age=100, min_age=1,**kwargs):
+        print max_age,min_age,category,kwargs
         qs = cls.objects.filter(in_active=True).order_by('-modified')
         if category:
             qs = qs.filter(category=category)
         if max_age is not None:
-            qs = qs.filter(age_max__lte=max_age)
+            qs = qs.filter(age_max__gte=max_age)
         if min_age is not None:
             qs = qs.filter(age_min__lte=min_age)
-        if min_age is not None:
-            qs = qs.filter(age_min__lte=min_age)
+        
         return [p.product_id for p in qs[:lnum]]
             
