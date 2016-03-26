@@ -63,21 +63,21 @@ class WeixinPubBackend(object):
     create_unknown_user = True
     supports_inactive_user = False
     supports_object_permissions = False
-    
+
     def get_unoinid(self, openid, appkey):
         try:
             return WeixinUnionID.objects.get(openid=openid,app_key=appkey).unionid
         except WeixinUnionID.DoesNotExist:
             return ''
-        
-    def authenticate(self, request, **kwargs):
-        
+
+    def authenticate(self, request, authen_keys=[], **kwargs):
+
         content = request.REQUEST
-        if (not request.path.startswith(("/mm/","/rest/","/sale/")) 
-            or kwargs.get('username') 
+        if (not request.path.startswith(("/mm/","/rest/","/sale/","/m/"))
+            or kwargs.get('username')
             or content.get('unionid')):
             return None
-        
+
         code = content.get('code')
         userinfo = options.get_auth_userinfo(code,
                                              appid=settings.WXPAY_APPID,
@@ -86,20 +86,20 @@ class WeixinPubBackend(object):
         openid, unionid = userinfo.get('openid'), userinfo.get('unionid')
         if not openid or not unionid:
             openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
-            
+
         if openid and not unionid:
             logger.warn('weixin unionid not return:openid=%s'%openid)
             unionid = self.get_unoinid(openid,settings.WXPAY_APPID)
-        
+
         if not valid_openid(unionid):
             return AnonymousUser()
-            
+
         try:
             profile = Customer.objects.get(unionid=unionid,status=Customer.NORMAL)
             #如果openid有误，则重新更新openid
             if unionid :
                 task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
-                
+
             if profile.user:
                 if not profile.user.is_active:
                     profile.user.is_active = True
@@ -109,17 +109,17 @@ class WeixinPubBackend(object):
                 user,state = User.objects.get_or_create(username=unionid,is_active=True)
                 profile.user = user
                 profile.save()
-            
+
         except Customer.DoesNotExist:
             if not self.create_unknown_user or not unionid:
                 return AnonymousUser()
-            
+
             user,state = User.objects.get_or_create(username=unionid,is_active=True)
             profile,state = Customer.objects.get_or_create(unionid=unionid,openid=openid,user=user)
             task_Refresh_Sale_Customer.s(userinfo, app_key=settings.WXPAY_APPID)()
-            
+
         return user
-    
+
     def get_user(self, user_id):
         try:
             return User.objects.get(pk=user_id)

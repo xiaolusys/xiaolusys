@@ -11,7 +11,7 @@ from django.contrib.auth import authenticate, login as auth_login, SESSION_KEY
 from django.conf import settings
 
 from core.weixin import options
-from shopapp.weixin.options import get_unionid_by_openid
+from core.weixin import constants as wxcon
 from . import constants
 
 def sale_buyer_required(view_func):
@@ -38,7 +38,7 @@ def sale_buyer_required(view_func):
                 return HttpResponseRedirect(redirect_url)
             
             else :
-                user = authenticate(request=request)
+                user = authenticate(request=request, handle_backends=[wxcon.WEIXIN_AUTHENTICATE_KEY])
                 if not user or user.is_anonymous():
                     return HttpResponseRedirect(reverse('flashsale_login'))
                     
@@ -88,7 +88,7 @@ def weixin_xlmm_auth(redirecto=None):
                     redirect_url = options.gen_weixin_redirect_url(params)
                     return redirect(redirect_url)
                 
-            user = authenticate(request=request)
+            user = authenticate(request=request, handle_backends=[wxcon.WEIXIN_AUTHENTICATE_KEY])
             if not user or user.is_anonymous():
                 return HttpResponseRedirect(redirecto)
             
@@ -130,7 +130,7 @@ def weixin_test_auth(redirecto=None):
                 return HttpResponseRedirect(redirect_url)
              
             else :
-                user = authenticate(request=request)
+                user = authenticate(request=request, handle_backends=[wxcon.WEIXIN_AUTHENTICATE_KEY])
                 if not user or user.is_anonymous():
                     return HttpResponseRedirect(redirecto)
                 auth_login(request, user)
