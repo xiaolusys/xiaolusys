@@ -230,7 +230,7 @@ class DressResultView(WeixinAuthMixin, APIView):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
-        mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
+        mama_dress = get_object_or_404(MamaDressResult,user_unionid=unionid)
         if not mama_dress.is_finished():
             return redirect(reverse('dress_home'))
         
@@ -282,7 +282,7 @@ class DressAgeView(WeixinAuthMixin, APIView):
             redirect_url = self.get_snsuserinfo_redirct_url(request)
             return redirect(redirect_url)
         
-        mama_dress,state = MamaDressResult.objects.get_or_create(user_unionid=unionid)
+        mama_dress = get_object_or_404(MamaDressResult,user_unionid=unionid)
         if not mama_dress.is_finished():
             return redirect(reverse('dress_home'))
         
@@ -296,7 +296,7 @@ class DressAgeView(WeixinAuthMixin, APIView):
     def post(self, request, *args, **kwargs):
         user_unionid = request.POST['user_unionid']
         mama_age = request.POST['mama_age']
-        mm_dress,state = MamaDressResult.objects.get_or_create(user_unionid=user_unionid)
+        mm_dress = MamaDressResult.objects.get(user_unionid=user_unionid)
         mm_dress.mama_age = mama_age
         mm_dress.save()
         return redirect(reverse('dress_result'))
@@ -320,7 +320,7 @@ class DressShareView(WeixinAuthMixin, APIView):
     
     def get(self, request, dress_id, *args, **kwargs):
         
-        mama_dress,state = MamaDressResult.objects.get_or_create(id=dress_id)
+        mama_dress = get_object_or_404(MamaDressResult,id=dress_id)
         dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
         
         response = Response({
@@ -331,6 +331,7 @@ class DressShareView(WeixinAuthMixin, APIView):
         return response
     
     def post(self, request, dress_id, *args, **kwargs):
+        
         share_type = request.POST.get('share_type')
         first_sendenvelop = False
         mama_dress= MamaDressResult.objects.get(id=dress_id)
