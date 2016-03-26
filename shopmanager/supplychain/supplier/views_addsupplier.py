@@ -154,7 +154,7 @@ class ScheduleManageView(generics.ListCreateAPIView):
                 temp_date, category)
             sale_product_ids = []
             for item in one_data:
-                sale_product_ids.append(item.sale_product_id)
+                sale_product_ids.append(item.get('sale_product_id'))
 
             lowest_prices = {}
             n_total, n_50, n_50_150, n_150 = (0,) * 4
