@@ -42,6 +42,7 @@ class AgencyOrderRebetaScheme(models.Model):
             return qs[0]
         return None
     
+    
     def get_scheme_rebeta(self, **kwargs):
         """ 根据订单支付金额，商品价格，小鹿妈妈等级，获取返利金额 """
         agency_level = '%d'%kwargs.get('agencylevel',0)
@@ -57,5 +58,21 @@ class AgencyOrderRebetaScheme(models.Model):
             raise Exception('返利金额超过实际支付')
         
         return rebeta_amount
+    
+    
+    def calculate_carry(self, agencylevel, payment):
+        carry_rules = self.price_rebetas.get(str(agencylevel))
+        payment = int(round(payment*0.1)*10)
+        
+        MAX_PAYMENT = 200
+        if payment > MAX_PAYMENT:
+            payment = MAX_PAYMENT
+
+        key = str(payment)
+        carry = carry_rules[key]
+        
+        return carry
+
+        
         
         

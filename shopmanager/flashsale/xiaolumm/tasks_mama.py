@@ -51,6 +51,10 @@ def task_update_second_level_ordercarry(referal_relationship, order_carry):
     contributor_img = referal_relationship.referal_to_mama_img
     contributor_id = referal_relationship.referal_to_mama_id
 
+    if mama_id == contributor_id:
+        # parent cant be myself; stop recursive invoking
+        return
+    
     agency_level = order_carry.agency_level
     carry_plan_name = order_carry.carry_plan_name
 

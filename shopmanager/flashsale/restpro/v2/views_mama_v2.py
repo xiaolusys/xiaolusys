@@ -454,12 +454,13 @@ def fill_data(data, days_from, days_length):
     from_date  = end_date - datetime.timedelta(days=days_length-1)
     
     res = []
-    i, maxi = 0, len(data)
+    i = len(data)-1
+
     while from_date <= end_date:
         visitor_num, order_num, carry = 0,0,0
-        if i < maxi and data[i]["date_field"] == str(from_date):
+        if i>=0 and data[i]["date_field"] == str(from_date):
             visitor_num, order_num, carry = data[i]["today_visitor_num"], data[i]["today_order_num"], data[i]["today_carry_num"]
-            i += 1
+            i = i-1
         entry = {"date_field":from_date, "visitor_num":visitor_num, "order_num": order_num, "carry":carry}
         res.append(entry)
         from_date += datetime.timedelta(1)
