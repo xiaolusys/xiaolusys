@@ -728,7 +728,7 @@ from .models_shops import CuShopPros, CustomerShops
 
 
 class CuShopProsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'shop', 'product', 'pro_status', 'created')
+    list_display = ('id', 'shop', 'product', 'pro_status', 'position', 'created')
     list_display_links = ('shop',)
     list_filter = ('created', 'pro_status')
     search_fields = ['=id', 'shop', 'product']
