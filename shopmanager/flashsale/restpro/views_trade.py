@@ -625,7 +625,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     @rest_exception(errmsg='')
     def wallet_charge(self, sale_trade):
-        """ 小鹿钱包支付实现 """
+        """ 妈妈钱包支付实现 """
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = int(sale_trade.payment * 100) 
@@ -656,9 +656,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = int(sale_trade.payment * 100) 
-        buyer_unionid = buyer.unionid
         strade_id     = sale_trade.id
-        buyer_nick    = sale_trade.buyer_nick
         channel       = sale_trade.channel
         
         urows = UserBudget.objects.filter(
