@@ -259,7 +259,7 @@ class DressResultView(WeixinAuthMixin, APIView):
             'referal_age':referal_age,
             'referal_star':referal_star,
             'age_tag':age_tag,
-            'mm_linkid':xiaolumm.id,
+            'mm_linkid':xiaolumm and xiaolumm.id or '',
         }
         resp_params.update({'share_params':self.render_share_params(request,**resp_params)})
         response = Response(resp_params)
