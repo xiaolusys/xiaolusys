@@ -52,12 +52,18 @@
     height:22%;
     margin-bottom:10px;
 }
-.share-btn{
+.share-btn,.share-origin,.share-sn{
     position: absolute;
     top: 0;
     left: 50%;
     width: 100%;
     margin-left: -50%;
+}
+.share-origin{
+    top:2%;
+}
+.share-sn{
+    top:4%;
 }
 </style>
 {% endblock %}
@@ -72,7 +78,15 @@
 </div>
 
 <div class="page-content">
-    <div class="share-btn btn btn-default">分享到朋友圈</div>
+    <div class="row" style="display:block;width:100%;">
+    <div class="share-btn btn btn-default ">分享到朋友圈</div>
+    </div >
+    <div class="row" style="display:block;width:100%;">
+    <div class="share-origin btn btn-success ">调用原生分享控件</div>
+    </div>
+    <div class="row" style="display:block;width:100%;">
+    <div class="share-sn btn btn-info row">获取原生设备SN码</div>
+    </div>
 	<!-- 优惠券 -->
 	<div class="coupon" template_id="35,37" onclick="Action_release(this)">
 	
@@ -218,6 +232,41 @@ $(document).ready(function(){
             }
         }
 	});
+	
+	$('.share-origin').click(function(){
+        var os = OSTest();
+        console.log('os share:',os)
+        if (os == 'iOS'){
+            setupWebViewJavascriptBridge(function(bridge) {
+                var data = {'share_to':'','active_id': '1'};
+                bridge.callHandler('callNativeShareFunc', data, function(response) {
+                    console.log("callNativeShareFunc called with:", data);
+                });
+            })
+        }else{
+            if (window.AndroidBridge) {
+                var data = {'share_to':'','active_id': '1'};
+                window.AndroidBridge.callNativeShareFunc(data.share_to,data.active_id);
+            }
+        }
+    });
+    
+    $('.share-sn').click(function(){
+        var os = OSTest();
+        console.log('os share:',os)
+        if (os == 'iOS'){
+            setupWebViewJavascriptBridge(function(bridge) {
+                bridge.callHandler('getNativeMobileSNCode', {}, function(response) {
+                    alert('sn code:' + response);
+                });
+            })
+        }else{
+            if (window.AndroidBridge) {
+                var data = window.AndroidBridge.getNativeMobileSNCode();
+                alert('sn code:' + data);
+            }
+        }
+    });
 });
 </script>
 
