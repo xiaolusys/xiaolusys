@@ -256,26 +256,26 @@ var shareParams = {
     share_link:'{{share_params.share_link}}',
     share_desc:'{{share_params.share_desc}}',
 };
-
-listenWeixinShareEvent(
-    shareParams,
+//微信分享，并回调处理函数
+listenWeixinShareEvent(shareParams,
     function(shareParam, shareType){
         var callbackUrl = shareParam.callback_url;
         $.post(callbackUrl, 
-           { share_type: shareType }, 
+           { share_type: shareType },
            function(res) {
-                console.log('share resp:',res);
-                if (res.is_sendenvelop == true){
-                   $('#envelop img').attr('src','http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BA%A2%E5%8C%85-%E9%A2%86%E5%8F%96%E5%90%8E%E7%8A%B6%E6%80%81.png');
-                   var offset = $('#envelop').offset();
-                   $('html body').animate({
-                        scrollTop: offset.top,
-                        scrollLeft: offset.left
-                    });
-                }
-            },
+             console.log('share resp:',res);
+             hidetips();
+             if (res.is_sendenvelop == true){
+               $('#envelop img').attr('src','http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BA%A2%E5%8C%85-%E9%A2%86%E5%8F%96%E5%90%8E%E7%8A%B6%E6%80%81.png');
+             }
+             var offset = $('#envelop').offset();
+             $('html body').animate({
+               scrollTop: offset.top,
+               scrollLeft: offset.left
+             });
+           },
         'json');
-});
+    });
 $(document).ready(function(){
     // 加载推荐商品
     var promotion_url = '/rest/v1/products/promotion_ads?category={{dress_star.category_id}}&lnum=1&max_age={{dress_age}}';
