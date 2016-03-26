@@ -1,11 +1,11 @@
 
-function listenWeixinShareEvent(configParams,shareCallback) {
-    var imgUrl      = configParams.share_img;
-    var lineLink    = configParams.share_link;
-    var descContent = configParams.share_desc;
-    var shareTitle  = configParams.share_title;
-    var user_openid = configParams.openid;
-    var signkey     = configParams.wx_singkey;
+function listenWeixinShareEvent(shareParam,shareCallback) {
+    var imgUrl      = shareParam.share_img;
+    var lineLink    = shareParam.share_link;
+    var descContent = shareParam.share_desc;
+    var shareTitle  = shareParam.share_title;
+    var user_openid = shareParam.openid;
+    var signkey     = shareParam.wx_singkey;
     wx.config({
         debug: false,
         // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
@@ -34,7 +34,7 @@ function listenWeixinShareEvent(configParams,shareCallback) {
             dataUrl: '',
             // 如果type是music或video，则要提供数据链接，默认为空
             success: function() {
-                shareCallback(shareSigns,'wxapp');
+                shareCallback(shareParam,'wxapp');
             },
             cancel: function() {
                 console.log("取消分享");
@@ -49,7 +49,7 @@ function listenWeixinShareEvent(configParams,shareCallback) {
             // 分享图标
             type: 'link',
             success: function() {
-                shareCallback(shareSigns,'pyq');
+                shareCallback(shareParam,'pyq');
             },
             cancel: function() {
                 console.log("取消分享");
@@ -69,7 +69,7 @@ function listenWeixinShareEvent(configParams,shareCallback) {
             // 分享图标
             type: 'link',
             success: function() {
-                shareCallback(shareSigns,'qq');
+                shareCallback(shareParam,'qq');
             },
             cancel: function() {
                 console.log("取消分享");
@@ -89,7 +89,7 @@ function listenWeixinShareEvent(configParams,shareCallback) {
             // 分享图标
             type: 'link',
             success: function() {
-                shareCallback(shareSigns,'txwb');
+                shareCallback(shareParam,'txwb');
             },
             cancel: function() {
                 // 用户取消分享后执行的回调函数

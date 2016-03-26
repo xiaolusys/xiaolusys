@@ -259,10 +259,10 @@ var shareParams = {
 
 listenWeixinShareEvent(
     shareParams,
-    function(shareSign, shareType){
-        var callbackUrl = shareSign.callback_url;
+    function(shareParam, shareType){
+        var callbackUrl = shareParam.callback_url;
         $.post(callbackUrl, 
-           { share_type: shareType,}, 
+           { share_type: shareType }, 
            function(res) {
                 console.log('share resp:',res);
                 if (res.is_sendenvelop == true){
