@@ -169,7 +169,7 @@ class DressProduct(BaseModel):
     
     @classmethod
     def filter_by_many(cls, category=None, lnum=1, max_age=100, min_age=1,**kwargs):
-        print max_age,min_age,category,kwargs
+        
         qs = cls.objects.filter(in_active=True).order_by('-modified')
         if category:
             qs = qs.filter(category=category)
