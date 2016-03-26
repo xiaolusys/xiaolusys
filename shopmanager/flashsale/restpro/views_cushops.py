@@ -7,7 +7,6 @@ from rest_framework import exceptions
 from . import serializers
 from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
-from django.forms import model_to_dict
 from rest_framework.decorators import detail_route, list_route
 
 from shopback.items.models import Product
@@ -16,6 +15,7 @@ from flashsale.xiaolumm.models_rebeta import AgencyOrderRebetaScheme
 from flashsale.xiaolumm.models import XiaoluMama
 from flashsale.pay.models import Customer
 from flashsale.pay.models_shops import CustomerShops, CuShopPros
+from django.db.models import F
 
 
 class CustomerShopsViewSet(viewsets.ModelViewSet):
@@ -76,6 +76,44 @@ class CustomerShopsViewSet(viewsets.ModelViewSet):
         return Response({"shop_info": shop_info})
 
 
+def save_pro_info(product, user):
+    """ 保存商品信息到店铺商品中 """
+    customer = get_object_or_404(Customer, user=user)
+    xlmm = customer.getXiaolumm()
+    rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
+    pro = get_object_or_404(Product, id=int(product))
+    shop, shop_state = CustomerShops.objects.get_or_create(customer=customer.id)
+    shop_pro, pro_state = CuShopPros.objects.get_or_create(shop=shop.id, product=pro.id)
+    kwargs = {'agencylevel': xlmm.agencylevel,
+              'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+    rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+    # 保存信息
+    shop_pro.name = pro.name
+    shop_pro.pic_path = pro.pic_path
+    shop_pro.std_sale_price = pro.std_sale_price
+    shop_pro.agent_price = pro.agent_price
+    shop_pro.remain_num = pro.remain_num
+    shop_pro.carry_amount = rebet_amount
+    shop_pro.carry_scheme = rebt.id
+    shop_pro.save()
+    return shop_pro, pro_state
+
+
+def prods_position_handler():
+    """ 初始化店铺产品的位置信息 """
+    shops = CustomerShops.objects.all()
+    for shop in shops:
+        shop_pros = CuShopPros.objects.filter(shop=shop.id).order_by('-created')  # 指定店铺的所有产品按照时间逆序
+        pros_count = shop_pros.count()  # 计算该店铺产品的数量
+        for pro in shop_pros:
+            pro.position = pros_count  # 初始化商品的位置号
+            pro.save()
+            pros_count = pros_count - 1
+            shop = pro.get_customer()
+            customer = shop.get_customer()
+            save_pro_info(product=pro.product, user=customer.user)
+
+
 class CuShopProsViewSet(viewsets.ModelViewSet):
     """
     ### 特卖用户店铺产品接口  
@@ -103,13 +141,17 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
         """ 用户个人店铺产品信息 """
         customer = get_object_or_404(Customer, user=request.user)
         shop = get_object_or_404(CustomerShops, customer=customer.id)  # 获取店铺
-        shop_pros = self.queryset.filter(shop=shop.id)
+        shop_pros = self.queryset.filter(shop=shop.id).order_by("-position")
         return shop_pros
 
+    def get_owner_up_pros(self, request):
+        """ 获取用户上架商品"""
+        return self.get_owner_shop_pros(request).filter(pro_status=CuShopPros.UP_SHELF)
+
     def list(self, request, *args, **kwargs):
-        shop_pros = self.get_owner_shop_pros(request).filter(pro_status=CuShopPros.UP_SHELF)
+        shop_pros = self.get_owner_up_pros(request)
         data = []
-        rebt = AgencyOrderRebetaScheme.objects.get(id=1)
+        rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
         customer = get_object_or_404(Customer, user=request.user)
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
@@ -117,17 +159,35 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
             xlmm = False
         for shop_pro in shop_pros:
             pro = Product.objects.get(id=shop_pro.product)  # 产品信息
-            pro_dic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price',
-                                                 'remain_num'])
-            # 修改销量为0　bug 预留数量
-            pro_dic['sale_num'] = pro_dic['remain_num'] * 8
-            kwargs = {'agencylevel': xlmm.agencylevel,
-                      'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
-            rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
-            pro_dic['status'] = shop_pro.pro_status
-            pro_dic['rebet_amount'] = rebet_amount
-            data.append(pro_dic)
+            if pro.status == Product.NORMAL and pro.shelf_status == Product.UP_SHELF:  # 正常使用状态和上架状态的产品
+                pro_dic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price',
+                                                     'remain_num'])
+                # 修改销量为0　bug 预留数量
+                sale_num = pro_dic['remain_num'] * 19 + random.choice(xrange(19))
+                pro_dic['sale_num'] = sale_num
+                pro_dic['product'] = pro_dic['id']
+                kwargs = {'agencylevel': xlmm.agencylevel,
+                          'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+                rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+                pro_dic['status'] = shop_pro.pro_status
+                pro_dic['rebet_amount'] = rebet_amount
+                data.append(pro_dic)
+            else:
+                # 保存为下架（如果重新上架需要用户从选品上架点击加入店铺才会修改该状态为上架状态）
+                shop_pro.pro_status = CuShopPros.DOWN_SHELF
+                shop_pro.save()
         return Response(data)
+
+    @list_route(methods=['get'])
+    def shop_product(self, request):
+        """ 用户商店产品信息 """
+        shop_pros = self.get_owner_up_pros(request)
+        page = self.paginate_queryset(shop_pros)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(page, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('method no allowed')
@@ -138,14 +198,15 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
         product = content.get('product', None)
         if product is None:
             return Response({"code": 1})  # 参数缺失
-        customer = get_object_or_404(Customer, user=request.user)
-        pro = get_object_or_404(Product, id=int(product))
-        shop, shop_state = CustomerShops.objects.get_or_create(customer=customer.id)
-        shop_pros, pro_state = CuShopPros.objects.get_or_create(shop=shop.id, product=pro.id)
+        user = request.user
+        shop_pro, pro_state = save_pro_info(product, user)
         if pro_state:  # 新建成功
-            return Response({"code": 0})
-        shop_pros.up_shelf_pro()
-        return Response({"code": 0})
+            position = self.get_owner_shop_pros(request).count()
+            shop_pro.position = position + 1
+            shop_pro.save()
+            return Response({"code": 0, "message": "添加成功"})
+        shop_pro.up_shelf_pro()  # 如果不是创建的修改为上架状态
+        return Response({"code": 0, "message": "已经添加"})
 
     @list_route(methods=['post'])
     def remove_pro_from_shop(self, request):
@@ -156,6 +217,56 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
         down_pro = self.get_owner_shop_pros(request).filter(product=product, pro_status=CuShopPros.UP_SHELF)
         down_pro.update(pro_status=CuShopPros.DOWN_SHELF)  # 更新我的店铺产品状态到下架
         return Response({"code": 0})
+
+    @list_route(methods=['post'])
+    def change_pro_position(self, request):
+        """
+        更换商品位置
+        参数：需要换的产品 change_pro　更换到哪个位置的产品 target_pro
+        注意：默认是放到目标位置的上面, position 排序
+        """
+        content = request.REQUEST
+        change_id = content.get("change_id", None)
+        target_id = content.get("target_id", None)
+        target_position, change_position = 0, 0
+        if not (change_id and target_id):
+            return Response({"code": 1, "message": "参数缺失"})
+        change_pros = self.get_owner_up_pros(request).filter(id=change_id)
+        if change_pros.exists():
+            change_pro = change_pros[0]
+            change_position = change_pro.position
+
+        target_pros = self.get_owner_up_pros(request).filter(id=target_id)
+        if target_pros:
+            target_pro = target_pros[0]
+            target_position = target_pro.position
+
+        if not (target_position and change_position):
+            return Response({"code": 2, "message": "参数缺失"})
+
+        if change_position > target_position:  # 表示从上面向下拉
+            # 两个产品之间的产品的位置号都加１
+            pros = self.get_owner_up_pros(request).filter(position__gt=target_position, position__lt=change_position)
+            for pro in pros:
+                pro.position = F('position') + 1
+                pro.save()
+            change_pros = self.get_owner_up_pros(request).filter(id=change_id)
+            if change_pros.exists():
+                change_pro = change_pros[0]
+                change_pro.position = target_position + 1
+                change_pro.save()
+
+        elif change_position < target_position:  # 表示从下面向上拉
+            pros = self.get_owner_up_pros(request).filter(position__gt=change_position, position__lte=target_position)
+            for pro in pros:
+                pro.position = F('position') - 1
+                pro.save()
+            change_pros = self.get_owner_up_pros(request).filter(id=change_id)
+            if change_pros.exists():
+                ch_pro = change_pros[0]
+                ch_pro.position = target_position
+                ch_pro.save()
+        return Response({"code": 0, "message": "更换成功"})
 
     def update(self, request, *args, **kwargs):
         raise exceptions.APIException('method not allowed')

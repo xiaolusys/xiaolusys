@@ -103,9 +103,10 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         customer = Customer.objects.get(user=request.user)
         openid = customer.openid
         unionid = customer.unionid
-        if not valid_openid(openid) or not valid_openid(unionid):
-            redirect_url = self.get_snsuserinfo_redirct_url(request)
-            return redirect(redirect_url)
+        logger.info('mama register：%s,%s,%s'%(customer,openid,unionid))
+        # if not valid_openid(openid) or not valid_openid(unionid):
+        #     redirect_url = self.get_snsuserinfo_redirct_url(request)
+        #     return redirect(redirect_url)
         customer_mobile = customer.mobile
 
         try:

@@ -618,7 +618,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     def choice_query_2_dict(self, queryset, customer, request):
         pros = []
-        rebt = AgencyOrderRebetaScheme.objects.get(id=1)
+        rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
         content = request.REQUEST
         sort_field = content.get('sort_field', 'id')  # 排序字段
         try:
