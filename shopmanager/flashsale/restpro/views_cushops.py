@@ -84,10 +84,9 @@ def save_pro_info(product, user):
     pro = get_object_or_404(Product, id=int(product))
     shop, shop_state = CustomerShops.objects.get_or_create(customer=customer.id)
     shop_pro, pro_state = CuShopPros.objects.get_or_create(shop=shop.id, product=pro.id)
-    if xlmm:
-        rebet_amount = rebt.calculate_carry(xlmm.agencylevel, float(pro.agent_price))  # 计算佣金
-    else:
-        rebet_amount = 0
+    kwargs = {'agencylevel': xlmm.agencylevel,
+              'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
+    rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
     # 保存信息
     shop_pro.name = pro.name
     shop_pro.pic_path = pro.pic_path
@@ -193,7 +192,7 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('method no allowed')
 
-    @list_route(methods=['get'])
+    @list_route(methods=['post'])
     def add_pro_to_shop(self, request, *args, **kwargs):
         content = request.REQUEST
         product = content.get('product', None)

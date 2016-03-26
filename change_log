@@ -1,3 +1,19 @@
+########2016-03-25##################################
+alter table flashsale_cushops_detail add column name varchar(64);
+CREATE INDEX `flashsale_cushops_detail_52094d6e` ON `flashsale_cushops_detail` (`name`);
+
+alter table flashsale_cushops_detail add column pic_path varchar(256);
+
+alter table flashsale_cushops_detail add column std_sale_price double default 0.0;
+alter table flashsale_cushops_detail add column agent_price double default 0.0;
+alter table flashsale_cushops_detail add column remain_num int(11) default 0;
+
+alter table flashsale_cushops_detail add column carry_amount double default 0.0;
+alter table flashsale_cushops_detail add column carry_scheme int(11) default 0;
+alter table flashsale_cushops_detail add column position int(11) default 0;
+
+CREATE INDEX `flashsale_cushops_detail_b2fabe42` ON `flashsale_cushops_detail` (`position`);
+CREATE INDEX `flashsale_cushops_detail_3d1f4a2e` ON `flashsale_cushops_detail` (`carry_scheme`);
 
 ######## 2016-03-24 #########
 alter table pay_coupon_template add column release_start_time datetime;

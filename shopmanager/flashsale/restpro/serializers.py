@@ -489,8 +489,12 @@ class CustomerShopsSerialize(serializers.ModelSerializer):
 
 
 class CuShopProsSerialize(serializers.ModelSerializer):
+    sale_num = serializers.IntegerField(source='sale_num_salt', read_only=True)
+
     class Meta:
         model = CuShopPros
+        fields = ('id', "product", "pro_status", "name", "pic_path", 'std_sale_price', 'agent_price',
+                  "carry_amount", 'position', 'sale_num')
 
 
 from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode

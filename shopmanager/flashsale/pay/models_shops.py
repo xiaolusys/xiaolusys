@@ -2,6 +2,7 @@
 
 from django.db import models
 from .base import PayBaseModel
+import random
 
 
 class CustomerShops(PayBaseModel):
@@ -78,3 +79,7 @@ class CuShopPros(PayBaseModel):
         """ 获取店铺商品的添加用户 """
         shop = CustomerShops.objects.get(id=self.shop)
         return shop
+
+    def sale_num_salt(self):
+        """ 销量盐 """
+        return self.remain_num * 19 + random.choice(xrange(19))
