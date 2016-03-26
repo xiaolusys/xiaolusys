@@ -448,14 +448,10 @@ class OrderCarryVisitorView(APIView):
 
 
 
-def fill_data(data, days_from, days_length):
-    today_date = datetime.datetime.now().date()
-    end_date   = today_date - datetime.timedelta(days=days_from)
-    from_date  = end_date - datetime.timedelta(days=days_length-1)
-    
+def fill_data(data, from_date, end_date):
     res = []
     i = len(data)-1
-
+    
     while from_date <= end_date:
         visitor_num, order_num, carry = 0,0,0
         if i>=0 and data[i]["date_field"] == str(from_date):
@@ -483,23 +479,25 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 
-    def get_owner_queryset(self, request, days_from, days_length):
+    def get_owner_queryset(self, request, from_date, end_date):
         mama_id = get_mama_id(request.user)
 
-        today_date = datetime.datetime.now().date()
-        end_date = today_date - datetime.timedelta(days=days_from)
-        return self.queryset.filter(mama_id=mama_id, date_field__lte=end_date).order_by('-date_field','-created')[:days_length]
+        return self.queryset.filter(mama_id=mama_id, date_field__gte=from_date,date_field__lte=end_date).order_by('-date_field','-created')
 
     def list(self, request, *args, **kwargs):
         content = request.REQUEST
         days_from = int(content.get("from",0))
         days_length   = int(content.get("days",1))
 
-        datalist = self.get_owner_queryset(request, days_from, days_length)
+        today_date = datetime.datetime.now().date()
+        end_date = today_date - datetime.timedelta(days=days_from)
+        from_date = end_date - datetime.timedelta(days=days_length-1)
+        
+        datalist = self.get_owner_queryset(request, from_date, end_date)
         datalist = self.paginate_queryset(datalist)
 
         serializer = serializers.DailyStatsSerializer(datalist, many=True)
-        res = fill_data(serializer.data, days_from, days_length)
+        res = fill_data(serializer.data, from_date, end_date)
         
         return self.get_paginated_response(res)
 
