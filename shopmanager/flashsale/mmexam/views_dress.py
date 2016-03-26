@@ -248,7 +248,6 @@ class DressResultView(WeixinAuthMixin, APIView):
             
         xiaolumms = XiaoluMama.objects.filter(openid=unionid)
         xiaolumm  = None
-        print 'debug xlmm:',unionid,xiaolumms
         if xiaolumms.exists():
             xiaolumm = xiaolumms[0]
         
