@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import F, Q
+from django.forms import model_to_dict
 
 from flashsale.pay.models_custom import Productdetail
 from shopback.base import log_action, ADDITION, CHANGE
@@ -125,7 +126,10 @@ def get_target_date_detail(target_date, category):
             all_detail = target_sch[0].child_detail
         else:
             all_detail = target_sch[0].normal_detail
-        return all_detail, wem_posters, chd_posters, target_sch[0]
+        detail_list = []
+        for detail in all_detail:
+            detail_list.append(model_to_dict(detail))
+        return detail_list, wem_posters, chd_posters, target_sch[0]
     else:
         return "", wem_posters, chd_posters, []
 
