@@ -30,22 +30,16 @@
     width:80%;
     height:100%;
     margin-left:-40%;
+    padding-left:20px;
     font-size:24px;
     line-heihgt:24px;
     font-weight:bold;
     text-align:center;
+    -webkit-appearance: none;
 }
-.age-input{
-    height:100%;
-    width:100%;
-}
-.age-ul, .dropdown-menu li{
-    width:100%;
+.age-select option{
     text-align:center;
-    font-size:24px;
-    line-heihgt:24px;
-    font-weight:bold;
-    text-align:center;
+    display:table;
 }
 </style>
 {% endblock %}
@@ -67,18 +61,14 @@
     {%csrf_token%}
     <input type="hidden" name="user_unionid" value="{{mama_dress.user_unionid}}"/>
     <div class="row ">
-      <div class="col-xs-8 div-center">
+      <div class="div-center">
       <div style="position: relative;">
         <img class="img-responsive" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E5%B9%B4%E9%BE%84%E8%BE%93%E5%85%A5%E6%A1%862.png">
-        <div class="dropdown age-select transparent text-center">
-		  <input type="text" name="mama_age" value="1988"  id="dropdownMenu2" class="age-input transparent text-center" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"/>
-		  <ul class="dropdown-menu text-center age-ul" aria-labelledby="dropdownMenu1">
-	        {% for age in age_range %}
-	          <li class="age-select-item" onclick="select_age(this)">{{age}}</li> 
-	        {% endfor %}
-	      </ul>
-		</div>
-        
+		<select name="mama_age" class="text-center age-select transparent" >
+		{% for age in age_range %}
+		  <option val="{{age}}" class="" {% if age == 1988 %}selected{% endif %}>{{age}}</option>
+		{% endfor %}
+		</select>
       </div>
       </div>
     </div>
@@ -91,14 +81,6 @@
   </form>
 </div>
 
-{% endblock %}
-
-{% block tail_script %}
-<script>
-function select_age(ele){
-    $('input[name=mama_age]').val($(ele).html());
-}
-</script>
 {% endblock %}
 
 {% block container-foot %}
