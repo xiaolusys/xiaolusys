@@ -33,8 +33,8 @@ logger = logging.getLogger('django.request')
 
 class SaleOrderInline(admin.TabularInline):
     model = SaleOrder
-    fields = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 
-              'num','discount_fee', 'refund_fee', 'refund_status', 'status','item_id')
+    fields = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
+              'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'item_id')
 
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '16'})},
@@ -44,15 +44,15 @@ class SaleOrderInline(admin.TabularInline):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = set(self.readonly_fields + ('oid',))
         if not request.user.is_superuser:
-            readonly_fields.update(('outer_id', 'outer_sku_id','item_id'))
+            readonly_fields.update(('outer_id', 'outer_sku_id', 'item_id'))
         return tuple(readonly_fields)
 
 
 class SaleOrderAdmin(admin.ModelAdmin):
-    list_display = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment', 
-                    'num','discount_fee', 'refund_fee', 'refund_status', 'status','item_id')
+    list_display = ('oid', 'outer_id', 'title', 'outer_sku_id', 'sku_name', 'payment',
+                    'num', 'discount_fee', 'refund_fee', 'refund_status', 'status', 'item_id')
     list_display_links = ('oid',)
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = ('status', 'refund_status', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
     search_fields = ['=oid', '=sale_trade__tid', '=outer_id']
@@ -62,33 +62,35 @@ admin.site.register(SaleOrder, SaleOrderAdmin)
 
 
 class SaleTradeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'tid', 'buyer_nick', 'channel','order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
+    list_display = (
+    'id', 'tid', 'buyer_nick', 'channel', 'order_type', 'payment', 'pay_time', 'created', 'status', 'buyer_id')
     list_display_links = ('id', 'tid', 'buyer_id')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
-    list_filter = ('status', 'channel','order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
-    search_fields = ['=tid', '=id', '=receiver_mobile','=buyer_id']
+    list_filter = (
+    'status', 'channel', 'order_type', ('pay_time', DateFieldListFilter), ('created', DateFieldListFilter))
+    search_fields = ['=tid', '=id', '=receiver_mobile', '=buyer_id']
 
     inlines = [SaleOrderInline]
 
     #-------------- 页面布局 --------------
     fieldsets = ((u'订单基本信息:', {
-                'classes': ('expand',),
-                'fields': (('tid', 'buyer_nick', 'channel', 'status')
-                           , ('trade_type','order_type',)
-                           ,( 'total_fee', 'payment', 'post_fee','discount_fee')
-                           , ('pay_time', 'consign_time', 'charge')
-                           , ('buyer_id', 'openid','extras_info')
-                           , ('buyer_message', 'seller_memo',)
-                           )
-                 }),
+        'classes': ('expand',),
+        'fields': (('tid', 'buyer_nick', 'channel', 'status')
+                   , ('trade_type', 'order_type',)
+                   , ( 'total_fee', 'payment', 'post_fee', 'discount_fee')
+                   , ('pay_time', 'consign_time', 'charge')
+                   , ('buyer_id', 'openid', 'extras_info')
+                   , ('buyer_message', 'seller_memo',)
+                   )
+    }),
                  (u'收货人及物流信息:', {
                      'classes': ('expand',),
                      'fields': (('receiver_name', 'receiver_state', 'receiver_city', 'receiver_district')
                                 , ('receiver_address', 'receiver_zip', 'receiver_mobile', 'receiver_phone')
                                 , ('logistics_company', 'out_sid'))
                  }),
-    )
+                 )
 
     #--------定制控件属性----------------
     formfield_overrides = {
@@ -124,7 +126,7 @@ admin.site.register(SaleTrade, SaleTradeAdmin)
 
 
 class TradeChargeAdmin(admin.ModelAdmin):
-    list_display = ('order_no', 'charge', 'channel', 'amount', 'time_paid', 'paid','created', 'refunded')
+    list_display = ('order_no', 'charge', 'channel', 'amount', 'time_paid', 'paid', 'created', 'refunded')
     list_display_links = ('order_no', 'charge',)
 
     list_filter = (('time_paid', DateFieldListFilter), 'paid', 'refunded')
@@ -137,7 +139,7 @@ admin.site.register(TradeCharge, TradeChargeAdmin)
 class RegisterAdmin(admin.ModelAdmin):
     list_display = ('id', 'cus_uid', 'vmobile', 'created', 'modified')
     list_display_links = ('id', 'cus_uid')
-    #list_editable = ('update_time','task_type' ,'is_success','status')
+    # list_editable = ('update_time','task_type' ,'is_success','status')
 
     list_filter = (('code_time', DateFieldListFilter), ('created', DateFieldListFilter), 'initialize_pwd')
     search_fields = ['id', 'cus_uid', 'vmobile', 'vemail']
@@ -147,12 +149,12 @@ admin.site.register(Register, RegisterAdmin)
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'nick', 'mobile', 'phone', 'created', 'unionid','status')
+    list_display = ('id', 'user', 'nick', 'mobile', 'phone', 'created', 'unionid', 'status')
     list_display_links = ('id', 'nick',)
-    
+
     list_filter = ('status',)
     search_fields = ['=id', '=mobile', '=openid', '=unionid']
-    
+
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + ('user',)
 
@@ -182,7 +184,6 @@ admin.site.register(UserAddress, UserAddressAdmin)
 
 
 class SaleRefundChangeList(ChangeList):
-    
     def get_query_set(self, request):
         search_q = request.GET.get('q', '').strip()
         if search_q:
@@ -204,8 +205,9 @@ class SaleRefundChangeList(ChangeList):
             else:
                 return super(SaleRefundChangeList, self).get_query_set(request)
             return refunds
-        
+
         return super(SaleRefundChangeList, self).get_query_set(request)
+
 
 import pingpp
 
@@ -213,13 +215,15 @@ from flashsale.xiaolumm.models import XiaoluMama, CarryLog
 from .filters import Filte_By_Reason
 from .tasks import notifyTradeRefundTask
 
+
 class SaleRefundAdmin(admin.ModelAdmin):
     list_display = ('refund_no', 'order_no', 'channel', 'title', 'refund_fee',
-                    'has_good_return', 'has_good_change', 'created','success_time', 'order_status', 'status')
+                    'has_good_return', 'has_good_change', 'created', 'success_time', 'order_status', 'status')
 
-    list_filter = ('status', 'good_status','channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
+    list_filter = (
+    'status', 'good_status', 'channel', 'has_good_return', 'has_good_change', Filte_By_Reason, "created", "modified")
 
-    search_fields = ['=refund_no','=trade_id', '=order_id', '=refund_id', '=mobile']
+    search_fields = ['=refund_no', '=trade_id', '=order_id', '=refund_id', '=mobile']
     list_per_page = 20
 
     def order_no(self, obj):
@@ -229,7 +233,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
 
     order_no.allow_tags = True
     order_no.short_description = "交易编号"
-    
+
     def order_status(self, obj):
         sorder = SaleOrder.objects.get(id=obj.order_id)
         return sorder.get_status_display()
@@ -237,16 +241,16 @@ class SaleRefundAdmin(admin.ModelAdmin):
     order_status.allow_tags = True
     order_status.short_description = "订单状态"
 
-    #-------------- 页面布局 --------------
+    # -------------- 页面布局 --------------
     fieldsets = (('基本信息:', {
-                    'classes': ('expand',),
-                    'fields': (('refund_no', 'trade_id', 'order_id')
-                               , ('buyer_id', 'title', 'sku_name',)
-                               , ('payment', 'total_fee',)
-                               , ('company_name', 'sid')
-                               , ('reason', 'desc', 'proof_pic')
-                               )
-                 }),
+        'classes': ('expand',),
+        'fields': (('refund_no', 'trade_id', 'order_id')
+                   , ('buyer_id', 'title', 'sku_name',)
+                   , ('payment', 'total_fee',)
+                   , ('company_name', 'sid')
+                   , ('reason', 'desc', 'proof_pic')
+                   )
+    }),
                  ('内部信息:', {
                      'classes': ('collapse',),
                      'fields': (('buyer_nick', 'mobile', 'phone',),
@@ -306,7 +310,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                             raise Exception(u'妈妈unoind:%s' % customer.unionid)
                         xlmm = xlmm_queryset[0]
                         clogs = CarryLog.objects.filter(xlmm=xlmm.id,
-                                                        order_num=obj.order_id, # 以子订单为准
+                                                        order_num=obj.order_id,  # 以子订单为准
                                                         log_type=CarryLog.REFUND_RETURN)
                         if clogs.exists():
                             total_refund = clogs[0].value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
@@ -324,7 +328,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                                 obj.save()
                                 log_action(request.user.id, obj, CHANGE, u'二次退款审核通过:%s' % obj.refund_id)
                         # assert clogs.count() == 0, u'订单已经退款！'
-                        else:   # 钱包中不存在该笔子订单的历史退款记录　则创建记录
+                        else:  # 钱包中不存在该笔子订单的历史退款记录　则创建记录
                             if payment > int(sorder.payment * 100):
                                 raise Exception(u'超过订单实际支付金额!')
                             CarryLog.objects.create(xlmm=xlmm.id,
@@ -349,7 +353,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                         obj.refund_id = re.id
                         obj.status = SaleRefund.REFUND_APPROVE
                         obj.save()
-                        
+
                     log_action(request.user.id, obj, CHANGE, '退款审核通过:%s' % obj.refund_id)
                     self.message_user(request, '退款单审核通过')
                 else:
@@ -375,25 +379,25 @@ class SaleRefundAdmin(admin.ModelAdmin):
                 logger.error(exc.message, exc_info=True)
                 self.message_user(request, '系统出错:%s' % exc.message)
             return HttpResponseRedirect("../%s/" % pk_value)
-        
+
         elif request.POST.has_key("_refund_invoke"):
             try:
                 strade = SaleTrade.objects.get(id=obj.trade_id)
                 sorder = SaleOrder.objects.get(id=obj.order_id)
-                if (obj.status == SaleRefund.REFUND_APPROVE and 
-                    strade.channel != SaleTrade.WALLET and
-                    obj.refund_id.strip()):
+                if (obj.status == SaleRefund.REFUND_APPROVE and
+                            strade.channel != SaleTrade.WALLET and
+                        obj.refund_id.strip()):
                     pingpp.api_key = settings.PINGPP_APPKEY
                     ch = pingpp.Charge.retrieve(strade.charge)
                     rf = ch.refunds.retrieve(obj.refund_id)
                     if rf.status == 'failed':
-                        rf = ch.refunds.create(description=obj.refund_desc(), 
+                        rf = ch.refunds.create(description=obj.refund_desc(),
                                                amount=int(obj.refund_fee * 100))
                         obj.refund_id = rf.id
                         obj.save()
                     else:
                         notifyTradeRefundTask(rf)
-                    log_action(request.user.id, obj, CHANGE, '重新退款:refund=%s'%rf.id)
+                    log_action(request.user.id, obj, CHANGE, '重新退款:refund=%s' % rf.id)
                     self.message_user(request, '退款申请成功，等待返款。')
                 else:
                     self.message_user(request, '订单退款状态异常')
@@ -402,7 +406,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
                 self.message_user(request, '系统出错:%s' % exc.message)
 
             return HttpResponseRedirect("../%s/" % pk_value)
-        
+
         elif request.POST.has_key("_refund_complete"):
             try:
                 if obj.status == SaleRefund.REFUND_APPROVE:
@@ -438,12 +442,14 @@ class SaleRefundAdmin(admin.ModelAdmin):
         tmpfile.close()
         response['Content-Disposition'] = 'attachment; filename=sale_refund-info-%s.csv' % str(int(time.time()))
         return response
+
     export_Refund_Product_Action.short_description = u"导出订单信息"
     actions = ['export_Refund_Product_Action', ]
 
     class Media:
         css = {"all": ()}
         js = ("script/slaerefund_poppage.js", "layer-v1.9.2/layer/layer.js")
+
 
 admin.site.register(SaleRefund, SaleRefundAdmin)
 
@@ -456,7 +462,7 @@ from .forms import EnvelopForm, CustomShareForm
 class EnvelopAdmin(admin.ModelAdmin):
     list_display = ('id', 'receiver', 'get_amount_display', 'platform', 'subject',
                     'send_time', 'created', 'send_status', 'status')
-    
+
     list_filter = ('status', 'send_status', 'platform', 'subject', 'livemode', ('created', DateFieldListFilter))
     search_fields = ['=receiver', '=envelop_id', '=recipient']
     list_per_page = 50
@@ -511,46 +517,47 @@ from flashsale.pay.models_custom import ModelProduct
 
 
 class ModelProductAdmin(admin.ModelAdmin):
-
     list_display = ('id', 'name', 'buy_limit', 'per_limit', 'sale_time', 'status')
 
     list_filter = (('sale_time', DateFieldListFilter), 'status',
                    ('created', DateFieldListFilter))
-    #-------------- 页面布局 --------------
+    # -------------- 页面布局 --------------
     fieldsets = (('基本信息:', {'classes': ('expand',),
-                    'fields': (('name',), ('head_imgs', 'content_imgs')
-                               , ('buy_limit', 'per_limit', 'sale_time', 'status'))}),)
+                            'fields': (('name',), ('head_imgs', 'content_imgs')
+                                       , ('buy_limit', 'per_limit', 'sale_time', 'status'))}),)
     search_fields = ['name', '=id']
     list_per_page = 50
 
+
 admin.site.register(ModelProduct, ModelProductAdmin)
 
-from flashsale.pay.models_custom import GoodShelf,ActivityEntry
+from flashsale.pay.models_custom import GoodShelf, ActivityEntry
+
 
 class GoodShelfAdmin(admin.ModelAdmin):
-    
-    list_display = ('id','title','is_active','active_time','created','preview_link')
-    
-    list_filter = ('is_active',('active_time',DateFieldListFilter),('created',DateFieldListFilter))
+    list_display = ('id', 'title', 'is_active', 'active_time', 'created', 'preview_link')
+
+    list_filter = ('is_active', ('active_time', DateFieldListFilter), ('created', DateFieldListFilter))
     search_fields = ['title']
     list_per_page = 25
-   
+
     def preview_link(self, obj):
         if obj.active_time:
             pre_days = (obj.active_time.date() - datetime.date.today()).days
-            return u'<a href="http://m.xiaolumeimei.com/preview.html?days=%s">预览一下</a>'%pre_days
-        return u'' 
-        
+            return u'<a href="http://m.xiaolumeimei.com/preview.html?days=%s">预览一下</a>' % pre_days
+        return u''
+
     preview_link.allow_tags = True
     preview_link.short_description = u"预览"
 
+
 admin.site.register(GoodShelf, GoodShelfAdmin)
 
+
 class ActivityEntryAdmin(admin.ModelAdmin):
-    
-    list_display = ('id','title','start_time','end_time','created','is_active')
-    
-    list_filter = ('is_active',('start_time',DateFieldListFilter),('created',DateFieldListFilter))
+    list_display = ('id', 'title', 'start_time', 'end_time', 'created', 'is_active')
+
+    list_filter = ('is_active', ('start_time', DateFieldListFilter), ('created', DateFieldListFilter))
     search_fields = ['title']
     list_per_page = 25
 
@@ -558,9 +565,9 @@ class ActivityEntryAdmin(admin.ModelAdmin):
         models.CharField: {'widget': TextInput(attrs={'size': 128})},
         models.TextField: {'widget': Textarea(attrs={'rows': 6, 'cols': 128})},
     }
-    
-admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
+
+admin.site.register(ActivityEntry, ActivityEntryAdmin)
 
 from models_coupon import Integral, IntegralLog
 
@@ -579,8 +586,9 @@ class IntegralLogAdmin(admin.ModelAdmin):
     list_display = (
         'integral_user', 'order_id', 'mobile', 'log_value', 'log_status', 'log_type', 'in_out', 'created', 'modified')
     list_filter = ('created', 'log_status', 'log_type', 'in_out', )
-    search_fields = ['=integral_user', '=mobile' ]
+    search_fields = ['=integral_user', '=mobile']
     list_per_page = 50
+
 
 admin.site.register(IntegralLog, IntegralLogAdmin)
 
@@ -591,7 +599,7 @@ from models_coupon_new import CouponsPool, UserCoupon, CouponTemplate
 
 
 class CouponTemplateAdmin(admin.ModelAdmin):
-    list_display = ('id', "title",  "valid", "nums", "value", 'coupon_stats', "release_start_time", "release_end_time",
+    list_display = ('id', "title", "valid", "nums", "value", 'coupon_stats', "release_start_time", "release_end_time",
                     "start_use_time", "deadline")
     list_filter = ("valid", "created")
 
@@ -604,6 +612,7 @@ class CouponTemplateAdmin(admin.ModelAdmin):
         used_count = UserCoupon.objects.filter(cp_id__template__id=obj.id, status=UserCoupon.USED).count()
         baifenbi = ((used_count / float(release_count)) * 100) if release_count > 0 else 0
         return u'<span>%s / %s = %4.2f ％</span>' % (used_count, release_count, baifenbi)
+
     coupon_stats.allow_tags = True
     coupon_stats.short_description = u"使用数量/发放数量"
 
@@ -614,6 +623,7 @@ admin.site.register(CouponTemplate, CouponTemplateAdmin)
 class CouponPoolAdmin(admin.ModelAdmin):
     list_display = ("id", "template", "coupon_no", "status", "created", "modified")
     list_filter = ("template", "status", "created")
+
 
 admin.site.register(CouponsPool, CouponPoolAdmin)
 
@@ -626,11 +636,11 @@ def add_coupon_for_user(action_user=None, coup_type=None, customer=None):
                                                sale_trade__buyer_id=customer,
                                                sale_trade__status=SaleTrade.WAIT_SELLER_SEND_GOODS)
         if sale_orders.exists():
-            trade_id = sale_orders[0].sale_trade    # 绑定交易到优惠券
+            trade_id = sale_orders[0].sale_trade  # 绑定交易到优惠券
             buyer_id = customer
             kwargs = {"trade_id": trade_id, "buyer_id": buyer_id}
             us = UserCoupon()
-            us.release_deposit_coupon(**kwargs)     # 发放代理优惠券
+            us.release_deposit_coupon(**kwargs)  # 发放代理优惠券
             mess = "添加成功！　请及时修改该订单的状态到　交易成功　！"
             # 写操作日志
             log_action(action_user, us, ADDITION, u'用户优惠券search中，添加专属优惠券！')
@@ -638,6 +648,7 @@ def add_coupon_for_user(action_user=None, coup_type=None, customer=None):
         else:
             return "没有找到押金订单 或者订单状态不正确"
     return "没有找到类型"
+
 
 from django.contrib import messages
 
@@ -700,38 +711,58 @@ admin.site.register(UserCoupon, UserCouponAdmin)
 
 from flashsale.pay.models import ShoppingCart
 
+
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('id','buyer_id', 'buyer_nick', 'item_id',
+    list_display = ('id', 'buyer_id', 'buyer_nick', 'item_id',
                     'title', 'price', 'sku_id', 'num',
                     'total_fee', 'sku_name',
                     'created', 'remain_time', 'status')
     list_filter = ('created', 'status')
     search_fields = ['=item_id', '=buyer_id', ]
-    
+
+
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
 
 ########################################################################
 
 from .models import CustomShare
 
+
 class CustomShareAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title','share_type', 'share_img', 'status', 'active_at', 'created')
+    list_display = ('id', 'title', 'share_type', 'share_img', 'status', 'active_at', 'created')
     list_display_links = ('id', 'title',)
-    
-    list_filter = ('status','share_type')
+
+    list_filter = ('status', 'share_type')
     search_fields = ['=id', 'title']
     form = CustomShareForm
-    
+
+
 admin.site.register(CustomShare, CustomShareAdmin)
 
 from .models_shops import CuShopPros, CustomerShops
-
+from .filters import CushopProCategoryFiler
+import constants
 
 class CuShopProsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'shop', 'product', 'pro_status', 'position', 'created')
+    list_display = ('id', 'shop', 'pro_category_dec', 'product', 'pro_status', 'position', 'created')
     list_display_links = ('shop',)
-    list_filter = ('created', 'pro_status')
+    list_filter = ('created', 'pro_status', CushopProCategoryFiler)
     search_fields = ['=id', 'shop', 'product']
+
+    def pro_category_dec(self, obj):
+        """
+        优惠券统计数字
+        发放数量, 使用数量
+        """
+        if obj.pro_category in constants.CHILD_CID_LIST:
+            return u'<span>童装</span>'
+        elif obj.pro_category in constants.FEMALE_CID_LIST:
+            return u'<span>女装</span>'
+        else:
+            return u''
+
+    pro_category_dec.allow_tags = True
+    pro_category_dec.short_description = u"分类"
 
 
 admin.site.register(CuShopPros, CuShopProsAdmin)
@@ -750,10 +781,10 @@ admin.site.register(CustomerShops, CustomShopadmin)
 class UserBudgetAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'amount', 'total_redenvelope', 'total_consumption', 'total_refund')
     list_display_links = ('id', )
-    
-#     list_filter = ('status',)
+
+    # list_filter = ('status',)
     search_fields = ['=id', '=user__mobile', '=user__id']
-    
+
     def get_readonly_fields(self, request, obj=None):
         return self.readonly_fields + ('user',)
 
@@ -764,12 +795,12 @@ admin.site.register(UserBudget, UserBudgetAdmin)
 class BudgetLogAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'status')
     list_display_links = ('id', )
-    
-    list_filter = ('budget_type','budget_log_type','status',)
+
+    list_filter = ('budget_type', 'budget_log_type', 'status',)
     search_fields = ['=id', '=customer_id']
-    
+
     # def get_readonly_fields(self, request, obj=None):
-    #     return self.readonly_fields + ('user',)
+    # return self.readonly_fields + ('user',)
 
 
 admin.site.register(BudgetLog, BudgetLogAdmin)

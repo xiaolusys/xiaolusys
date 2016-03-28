@@ -27,3 +27,6 @@ ENVELOP_CASHOUT_DESC = u"用户编号:{0},提现前:{1}"
 
 IS_USERBUDGET_COULD_CASHOUT = 1  # 等于１的时候允许提现
 
+CHILD_CID_LIST = [12, 13, 14, 15, 16, 17, 23, 25, 26]
+FEMALE_CID_LIST = [18, 19, 20, 21, 22, 24, 27]
+

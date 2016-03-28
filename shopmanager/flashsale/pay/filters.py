@@ -27,3 +27,29 @@ class Filte_By_Reason(SimpleListFilter):
         else:
             qs = queryset.filter(reason__contains=self.r_lit[int(categry)][1])
             return qs
+
+import constants
+
+
+class CushopProCategoryFiler(SimpleListFilter):
+    title = u'类别'
+    parameter_name = 'categry'
+    r_list = [('t', u'童装'), ('n', u'女装')]
+
+    def lookups(self, request, model_admin):
+        return tuple(self.r_list)
+
+    def queryset(self, request, queryset):
+        categry = self.value()
+        if not categry:
+            return queryset
+        else:
+            if categry == 't':
+                fenlei = constants.CHILD_CID_LIST
+            elif categry == 'n':
+                fenlei = constants.FEMALE_CID_LIST
+            else:
+                return queryset
+            qs = queryset.filter(pro_category__in=fenlei)
+            return qs
+
