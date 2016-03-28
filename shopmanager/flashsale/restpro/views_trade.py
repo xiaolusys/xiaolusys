@@ -1058,6 +1058,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if instance.channel == SaleTrade.WALLET:
             #小鹿钱包支付
             response_charge = self.wallet_charge(instance)
+        elif instance.channel == SaleTrade.BUDGET:
+            #小鹿钱包
+            response_charge = self.budget_charge(instance)
         else:
             #pingpp 支付
             response_charge = self.pingpp_charge(instance)
