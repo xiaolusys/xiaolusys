@@ -125,4 +125,5 @@ function Confirm_charge() {
             }
         }
     });
+    return false;
 }
