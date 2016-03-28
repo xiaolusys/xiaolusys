@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 from django.db.models import F, Sum
+from django.db import IntegrityError
 from celery.task import task
 
 import logging
@@ -10,6 +11,7 @@ logger = logging.getLogger('celery.handler')
 from flashsale.xiaolumm.models_fortune import MamaFortune, ActiveValue, OrderCarry, ReferalRelationship, CarryRecord, GroupRelationship, MAMA_FORTUNE_HISTORY_LAST_DAY
 from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.models_fans import XlmmFans
+
 
 import sys, datetime
 
@@ -24,6 +26,15 @@ def get_cur_info():
     return f.f_code.co_name
 
 
+def create_mamafortune_with_integrity(mama_id, **kwargs):
+    try:
+        fortune = MamaFortune(mama_id=mama_id, **kwargs)
+        fortune.save()
+    except IntegrityError as e:
+        logger.error(e.message)
+        MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
+        
+
 @task()
 def task_xiaolumama_update_mamafortune(mama_id, cash):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
@@ -34,8 +45,9 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
         fortune.history_confirmed = cash
         fortune.save()
     else:
-        fortune = MamaFortune(mama_id=mama_id,history_confirmed=cash)
-        fortune.save()
+        create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
+        #fortune = MamaFortune(mama_id=mama_id,history_confirmed=cash)
+        #fortune.save()
         
 
 @task()
@@ -60,11 +72,10 @@ def task_cashout_update_mamafortune(mama_id):
             fortune.carry_cashout = cashout_confirmed
             fortune.save()
     else:
-        fortune = MamaFortune(mama_id=mama_id,carry_cashout=cashout_confirmed)
-        fortune.save()
+        create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
+        #fortune = MamaFortune(mama_id=mama_id,carry_cashout=cashout_confirmed)
+        #fortune.save()
     
-
-
 
 @task()
 def task_carryrecord_update_mamafortune(mama_id):
@@ -86,10 +97,11 @@ def task_carryrecord_update_mamafortune(mama_id):
             fortune.carry_confirmed = carry_confirmed
             fortune.save()
     else:
-        fortune = MamaFortune(mama_id=mama_id,carry_pending=carry_pending,
-                              carry_confirmed=carry_confirmed)
-        fortune.save()
-        
+        create_mamafortune_with_integrity(mama_id,carry_pending=carry_pending,carry_confirmed=carry_confirmed)
+        #fortune = MamaFortune(mama_id=mama_id,carry_pending=carry_pending,
+        #                      carry_confirmed=carry_confirmed)
+        #fortune.save()
+
 
 @task()
 def task_activevalue_update_mamafortune(mama_id):
@@ -111,10 +123,11 @@ def task_activevalue_update_mamafortune(mama_id):
     if mama_fortunes.count() > 0:
         mama_fortunes.update(active_value_num=value_num)
     else:
-        mama_fortune = MamaFortune(mama_id=mama_id, active_value_num=value_num)
-        mama_fortune.save()
+        create_mamafortune_with_integrity(mama_id,active_value_num=value_num)
+        #mama_fortune = MamaFortune(mama_id=mama_id, active_value_num=value_num)
+        #mama_fortune.save()
 
-
+            
 @task()
 def task_update_mamafortune_invite_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)    
@@ -129,9 +142,10 @@ def task_update_mamafortune_invite_num(mama_id):
             mama.invite_num=invite_num
             mama.save()
     else:
-        mama = MamaFortune(mama_id=mama_id,invite_num=invite_num)
-        mama.save()
-
+        create_mamafortune_with_integrity(mama_id,invite_num=invite_num)
+        #mama = MamaFortune(mama_id=mama_id,invite_num=invite_num)
+        #mama.save()
+            
 
 @task()
 def task_update_mamafortune_mama_level(mama_id):
@@ -162,10 +176,11 @@ def task_update_mamafortune_mama_level(mama_id):
             mama.mama_level = level
             mama.save()
     else:
-        mama = MamaFortune(mama_id=mama_id,mama_level=level)
-        mama.save()
-
-
+        create_mamafortune_with_integrity(mama_id,mama_level=level)
+        #mama = MamaFortune(mama_id=mama_id,mama_level=level)
+        #mama.save()
+                    
+            
 @task()
 def task_update_mamafortune_fans_num(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)    
@@ -177,8 +192,9 @@ def task_update_mamafortune_fans_num(mama_id):
     if mamas.count() > 0:
         mamas.update(fans_num=fans_num)
     else:
-        mama = MamaFortune(mama_id=mama_id,fans_num=fans_num)
-        mama.save()
+        create_mamafortune_with_integrity(mama_id,fans_num=fans_num)
+        #mama = MamaFortune(mama_id=mama_id,fans_num=fans_num)
+        #mama.save()
     
         
 @task()
@@ -191,6 +207,7 @@ def task_update_mamafortune_order_num(mama_id):
     if mamas.count() > 0:
         mamas.update(order_num=order_num)
     else:
-        mama = MamaFortune(mama_id=mama_id,order_num=order_num)
-        mama.save()
+        create_mamafortune_with_integrity(mama_id,order_num=order_num)
+        #mama = MamaFortune(mama_id=mama_id,order_num=order_num)
+        #mama.save()
                        
