@@ -178,7 +178,7 @@ QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
 LOGGER_HANDLERS = [
     ('shopback','sentry'),
     ('shopapp','sentry'),
-    ('flashsale','sentry,'),
+    ('flashsale','sentry'),
     ('core','sentry'),
     ('auth','sentry'),
     ('supplychain','sentry'),

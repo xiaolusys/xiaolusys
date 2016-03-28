@@ -251,9 +251,15 @@ class UserBudget(PayBaseModel):
     def __unicode__(self):
         return u'<%s,%s>'%(self.user, self.amount)
     
+    @property
+    def budget_cash(self):
+        return self.amount / 100.0
+    
     def get_amount_display(self):
         """ 返回金额　"""
-        return self.amount / 100.0
+        return self.budget_cash
+    
+    
     
     def charge_pending(self, strade_id, payment):
         """ 提交支付 """

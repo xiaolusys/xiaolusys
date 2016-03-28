@@ -5,7 +5,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
-
+from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework import authentication
 from rest_framework import permissions
@@ -23,12 +23,25 @@ logger = logging.getLogger('django.reqeust')
 
 class DressView(WeixinAuthMixin, APIView):
     
-    authentication_classes = ()
+    authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,renderers.JSONRenderer)
     template_name = "mmdress/dress_entry.html"
+    
+    def get_customer(self, request):
+        auth_user = request.user
+        if auth_user and auth_user.is_authenticated():
+            return get_object_or_404(Customer, user=auth_user.id)
+        return None
         
     def get(self, request, *args, **kwargs):
+        
+        customer = self.get_customer(request)
+        if customer:
+            mama_dresses = MamaDressResult.objects.filter(user_unionid=customer.unionid)
+            if mama_dresses.exists() and mama_dresses[0].is_finished():
+                return redirect(reverse('dress_result'))
+        
         return Response({'active_id':1})
     
         
@@ -64,11 +77,12 @@ class DressQuestionView(WeixinAuthMixin, APIView):
                 return x + int(y[1])
         return reduce(tsum ,score_list)
     
-        
+    
     def get(self, request, active_id, *args, **kwargs):
         
         customer = get_object_or_404(Customer, user=request.user.id)
         unionid  = customer.unionid
+        
         self.set_appid_and_secret(settings.WXPAY_APPID,settings.WXPAY_SECRET)
         if not unionid:
             user_infos = self.get_auth_userinfo(request)
@@ -199,7 +213,6 @@ class DressResultView(WeixinAuthMixin, APIView):
         except Exception,exc:
             logger.error(exc.message,exc_info=True)
             return {'err':exc.message}
-
     
     def get_referal_url(self, request):
         referer_url  = request.build_absolute_uri().split('#')[0]
@@ -303,7 +316,7 @@ class DressAgeView(WeixinAuthMixin, APIView):
 
 class DressShareView(WeixinAuthMixin, APIView):
     
-    authentication_classes = ()
+    authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/dress_share.html"
@@ -318,7 +331,19 @@ class DressShareView(WeixinAuthMixin, APIView):
     def calc_score(self,mama_dress):
         return (100 - mama_dress.exam_score) / 10
     
+    def get_customer(self, request):
+        auth_user = request.user
+        if auth_user and auth_user.is_authenticated():
+            return get_object_or_404(Customer, user=auth_user.id)
+        return None
+    
     def get(self, request, dress_id, *args, **kwargs):
+        
+        customer = self.get_customer(request)
+        if customer:
+            mama_dresses = MamaDressResult.objects.filter(user_unionid=customer.unionid)
+            if mama_dresses.exists() and mama_dresses[0].is_finished():
+                return redirect(reverse('dress_result'))
         
         mama_dress = get_object_or_404(MamaDressResult,id=dress_id)
         dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
