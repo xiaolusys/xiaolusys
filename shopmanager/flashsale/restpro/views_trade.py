@@ -876,7 +876,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 购物车订单支付接口 """
         CONTENT  = request.POST
         tuuid    = CONTENT.get('uuid')
-        coupon_id, coupon= CONTENT.get('coupon_id',''), None
+        coupon_id, coupon = CONTENT.get('coupon_id',''), None
         customer = get_object_or_404(Customer,user=request.user)
         try:
             SaleTrade.objects.get(tid=tuuid,buyer_id=customer.id)
