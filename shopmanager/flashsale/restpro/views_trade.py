@@ -39,7 +39,7 @@ from shopback.items.models import Product, ProductSku
 from shopback.base import log_action, ADDITION, CHANGE
 from shopapp.weixin import options
 from common.utils import update_model_fields
-from .constants import PAY_EXTRAS
+from . import constants as CONS
 import logging
 import decimal
 
@@ -268,7 +268,19 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
             user_budget = user_budgets[0]
             return user_budget.amount >= payment ,user_budget.amount
         return False,0
+    
+    def get_payextras(self, request, resp):
         
+        extras = []
+        extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
+        
+        if resp['budget_cash'] > 0 and resp['total_payment'] > 0:
+            budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
+            budgets.update(value=min(resp['budget_cash'],resp['total_payment']))
+            extras.append(budgets)
+            
+        return extras
+    
     @list_route(methods=['get','post'])
     def carts_payinfo(self, request, format=None, *args, **kwargs):
         """ 根据购物车ID列表获取支付信息 """
@@ -350,9 +362,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'cart_ids':','.join([str(c) for c in cart_ids]),
                     'cart_list':serializer.data,
                     'coupon_message': coupon_message,
-                    'pay_extras':PAY_EXTRAS.values()
                     }
-        
+        response.update({'pay_extras':self.get_payextras(request, response)})
         return Response(response)
     
     @list_route(methods=['get'])
@@ -408,7 +419,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                 coupon_ticket['receive_date'] = coupon.created
                 coupon_ticket['coupon_id'] = coupon_id
         
-        discount_fee = min(discount_fee, total_fee)
+        discount_fee  = min(discount_fee, total_fee)
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
@@ -441,9 +452,8 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
                     'coupon_ticket':coupon_ticket,
                     'sku':product_sku_dict,
                     'coupon_message': coupon_message,
-                    'pay_extras':PAY_EXTRAS.values()
                     }
-        
+        response.update({'pay_extras':self.get_payextras(request, response)})
         return Response(response)
 
 
@@ -626,7 +636,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @rest_exception(errmsg='')
     def wallet_charge(self, sale_trade):
         """ 妈妈钱包支付实现 """
-        
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = int(sale_trade.payment * 100) 
         buyer_unionid = buyer.unionid
@@ -638,6 +647,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         urows = XiaoluMama.objects.filter(
             openid=buyer_unionid,
             cash__gte=payment).update(cash=models.F('cash')-payment)
+        logger.info('wallet charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
         if urows == 0 :
             return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'妈妈钱包余额不足'}
         CarryLog.objects.create(xlmm=xlmm.id,
@@ -662,7 +672,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         urows = UserBudget.objects.filter(
                 user=buyer,
                 amount__gte=payment
-            ).update(amount=models.F('amount')-payment)
+            ).update(amount=models.F('amount') - payment)
         if urows == 0 :
             return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'小鹿钱包余额不足'}
         BudgetLog.objects.create(customer_id=buyer.id,
@@ -678,23 +688,29 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
-        payment       = int(sale_trade.payment * 100)
+        payment       = int(sale_trade.get_cash_payment() * 100)
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
         payback_url = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('payback_url','/pages/zhifucg.html'))
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
+        if sale_trade.has_budget_paid:
+            ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
+            budget_charge_create = ubudget.charge_pending(sale_trade.id,sale_trade.budget_payment)
+            if not budget_charge_create:
+                raise Exception('用户余额不足')
+        
         extra = {}
         if channel == SaleTrade.WX_PUB:
             extra = {'open_id':buyer_openid,'trade_type':'JSAPI'}
-            
+        
         elif channel == SaleTrade.ALIPAY_WAP:
             extra = {"success_url":payback_url,
                      "cancel_url":cancel_url}
-
+        
         elif channel == SaleTrade.UPMP_WAP:
             extra = {"result_url":payback_url}
-
+        
         params ={ 'order_no':'%s'%order_no,
                   'app':dict(id=settings.PINGPP_APPID),
                   'channel':channel,
@@ -734,11 +750,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if state:
             buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)
             buyer_openid = buyer_openid or customer.openid
-            pay_extras   = self.parse_entry_params(form.get('pay_extras'))
+            payment      = float(form.get('payment'))
+            pay_extras   = form.get('pay_extras','')
+            budget_payment = self.calc_extra_budget(pay_extras) / 100
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
-                'payment':float(form.get('payment')),
+                'payment':payment,
+                'pay_cash':payment - budget_payment,
+                'has_budget_paid':budget_payment > 0,
                 'total_fee':float(form.get('total_fee')),
                 'post_fee':float(form.get('post_fee')),
                 'discount_fee':float(form.get('discount_fee')),
@@ -836,9 +856,20 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         discount_fee = 0
         for param in pay_extra_dict.values():
             pid = param['pid']
-            if pid in PAY_EXTRAS and PAY_EXTRAS[pid].get('type') == 0:
-                discount_fee += PAY_EXTRAS[pid]['value'] * 100
+            if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
+                discount_fee += CONS.PAY_EXTRAS[pid]['value'] * 100
         return discount_fee
+    
+    def calc_extra_budget(self, pay_extras):
+        """　支付余额(分) """
+        pay_extra_list = self.parse_entry_params(pay_extras)
+        pay_extra_dict = dict([(p['pid'],p) for p in pay_extra_list if p.has_key('pid')])
+        budget_amount = 0
+        for param in pay_extra_dict.values():
+            pid = param['pid']
+            if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.BUDGET:
+                budget_amount += int(float(param['budget']) * 100)
+        return budget_amount
             
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
@@ -897,7 +928,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if (post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10 
                 or abs(total_fee - cart_total_fee) > 10):
                 raise exceptions.ParseError(u'付款金额异常')
-        
+            
         addr_id  = CONTENT.get('addr_id')
         address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
         
@@ -1016,7 +1047,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         _errmsg = {SaleTrade.WAIT_SELLER_SEND_GOODS:u'订单无需重复付款',
                    SaleTrade.TRADE_CLOSED_BY_SYS:u'订单已关闭或超时',
                    'default':u'订单不在可支付状态'}
-         
+        
         instance = self.get_object()
         if instance.status != SaleTrade.WAIT_BUYER_PAY:
             raise exceptions.APIException(_errmsg.get(instance.status,_errmsg.get('default')))

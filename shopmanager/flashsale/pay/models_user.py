@@ -250,15 +250,61 @@ class UserBudget(PayBaseModel):
     
     def __unicode__(self):
         return u'<%s,%s>'%(self.user, self.amount)
-
+    
     def get_amount_display(self):
         """ 返回金额　"""
         return self.amount / 100.0
-
+    
+    def charge_pending(self, strade_id, payment):
+        """ 提交支付 """
+        try:
+            BudgetLog.objects.get(customer_id=self.user.id,
+                                  referal_id=strade_id,
+                                  budget_log_type=BudgetLog.BG_CONSUM,)
+        except BudgetLog.DoesNotExist:
+            urows = UserBudget.objects.filter(
+                    user=self.user,
+                    amount__gte=payment
+                ).update(amount=models.F('amount') - payment)
+            if urows == 0 :
+                return False
+            BudgetLog.objects.create(customer_id=self.user.id,
+                                    referal_id=strade_id,
+                                    flow_amount=payment,
+                                    budget_log_type=BudgetLog.BG_CONSUM,
+                                    budget_type=BudgetLog.BUDGET_OUT,
+                                    status=BudgetLog.PENDING)
+            return True
+        return True
+    
+    def charge_confirm(self, strade_id, payment):
+        """ 确认支付 """
+        budget = BudgetLog.objects.get(customer_id=self.user.id,
+                                referal_id=strade_id,
+                                budget_log_type=BudgetLog.BG_CONSUM)
+        
+        return budget.push_pending_to_confirm()
+    
+    def charge_cancel(self, strade_id, payment):
+        """ 支付取消 """
+        urows = UserBudget.objects.filter(
+                user=self.user,
+                amount__gte=payment
+            ).update(amount=models.F('amount') - payment)
+        if urows == 0 :
+            return False
+        BudgetLog.objects.create(customer_id=self.user.id,
+                                referal_id=strade_id,
+                                flow_amount=payment,
+                                budget_log_type=BudgetLog.BG_CONSUM,
+                                budget_type=BudgetLog.BUDGET_OUT,
+                                status=BudgetLog.PENDING)
+        return True
+        
     def is_could_cashout(self):
         """ 设置普通用户钱包是否可以提现控制字段 """
         return constants.IS_USERBUDGET_COULD_CASHOUT
-
+    
     def action_budget_cashout(self, cash_out_amount):
         """
         用户钱包提现
@@ -309,7 +355,7 @@ class UserBudget(PayBaseModel):
                                    referal_id=budgelog.id)
             log_action(self.user.user.id, self, CHANGE, u'用户提现')
         return 0, '提现成功'
-
+    
     
 class BudgetLog(PayBaseModel):
     """ 特卖用户钱包记录 """
@@ -340,8 +386,10 @@ class BudgetLog(PayBaseModel):
     
     CONFIRMED = 0
     CANCELED  = 1
+    PENDING   = 2
 
     STATUS_CHOICES = (
+        (PENDING,u'待确定'),
         (CONFIRMED,u'已确定'),
         (CANCELED,u'已取消'),
     )
@@ -360,7 +408,15 @@ class BudgetLog(PayBaseModel):
     def get_flow_amount_display(self):
         """ 返回金额　"""
         return self.flow_amount / 100.0
-
+    
+    def push_pending_to_confirm(self):
+        """ 确认待确认 """
+        if self.status == BudgetLog.PENDING:
+            self.status = BudgetLog.CONFIRMED
+            self.save()
+            return True
+        return False
+        
     def log_desc(self):
         """ 预留记录的描述字段 """
         return '您通过{0}{1}{2}元.'.format(self.get_budget_log_type_display(),
@@ -368,13 +424,14 @@ class BudgetLog(PayBaseModel):
                                           self.flow_amount * 0.01)
     
     def cancel_and_return(self):
-        if self.status != self.CONFIRMED:
+        """ 将待确认或已确认的支出取消并返还小鹿账户 """
+        if self.status not in (self.CONFIRMED,self.PENDING):
             return False
-        
-        self.status = self.CANCELED
-        self.save()
-        
-        user_budgets = UserBudget.objects.filter(user=self.customer_id)
-        user_budgets.update(amount=models.F('amount') + self.flow_amount)
-        return True
+        if self.budget_type == self.BUDGET_OUT:
+            self.status = self.CANCELED
+            self.save()
+            
+            user_budgets = UserBudget.objects.filter(user=self.customer_id)
+            user_budgets.update(amount=models.F('amount') + self.flow_amount)
+            return True
         

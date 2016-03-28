@@ -4,8 +4,18 @@
 key: 表示支付类型；
 type:0,表示折扣优惠;1,表示虚拟支付,如余额;2,表示实际支付；
 """
+ETS_APPCUT = '1'
+ETS_COUPON = '2'
+ETS_BUDGET = '3'
+
+DISCOUNT = 0
+BUDGET   = 1
+REALPAY  = 2
+
 PAY_EXTRAS = {
-    '1':{'pid':1,'type':0,'value':2,'name':'APP支付减2元'},
+    ETS_APPCUT:{'pid':1,'type':DISCOUNT,'value':2,'name':'APP支付减2元'},
+    ETS_COUPON:{'pid':2,'type':DISCOUNT,'value':0,'name':'优惠券'},
+    ETS_BUDGET:{'pid':3,'type':BUDGET,'value':0,'name':'余额支付'},
 } 
 
 

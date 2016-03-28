@@ -75,7 +75,7 @@ class SaleTradeAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单基本信息:', {
                 'classes': ('expand',),
                 'fields': (('tid', 'buyer_nick', 'channel', 'status')
-                           , ('trade_type','order_type',)
+                           , ('trade_type','order_type','pay_cash','has_budget_paid')
                            ,( 'total_fee', 'payment', 'post_fee','discount_fee')
                            , ('pay_time', 'consign_time', 'charge')
                            , ('buyer_id', 'openid','extras_info')
