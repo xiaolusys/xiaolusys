@@ -266,7 +266,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         user_budgets = UserBudget.objects.filter(user=customer)
         if user_budgets.exists():
             user_budget = user_budgets[0]
-            return user_budget.amount >= payment ,user_budget.amount
+            return user_budget.budget_cash >= payment ,user_budget.budget_cash
         return False,0
     
     def get_payextras(self, request, resp):
@@ -757,7 +757,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
                 'payment':payment,
-                'pay_cash':payment - budget_payment,
+                'pay_cash':max(0, payment - budget_payment),
                 'has_budget_paid':budget_payment > 0,
                 'total_fee':float(form.get('total_fee')),
                 'post_fee':float(form.get('post_fee')),

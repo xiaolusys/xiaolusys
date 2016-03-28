@@ -26,8 +26,8 @@ def weixin_authlogin_required(redirecto=None):
             
             code   = request.GET.get('code')
             user_agent = request.META.get('HTTP_USER_AGENT')
-            # if not user_agent or user_agent.lower().find('micromessenger') < 0:
-            #     return HttpResponseRedirect(redirecto)
+            if not user_agent or user_agent.lower().find('micromessenger') < 0:
+                return HttpResponseRedirect(redirecto)
             
             if not code:
                 openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
@@ -38,7 +38,7 @@ def weixin_authlogin_required(redirecto=None):
                       'scope':'snsapi_userinfo',
                       'state':'135'}
                     redirect_url = options.gen_weixin_redirect_url(params)
-                    logger.info('weixin redirect:%s,%s'%(openid,unionid))
+                    logger.info('weixin redirect:redirect_url=%s'%(redirect_url))
                     return redirect(redirect_url)
             logger.info('weixin authenticate:%s,%s'%(code,user_agent))
             user = authenticate(request=request, handle_backends=[constants.WEIXIN_AUTHENTICATE_KEY])
