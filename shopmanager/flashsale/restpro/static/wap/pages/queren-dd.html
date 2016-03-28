@@ -86,6 +86,7 @@ var NTKF_PARAM = {
 	<input type="hidden" name="discount_fee" value="{{ discount_fee }}" />
 	<input type="hidden" name="total_fee" value="{{ total_fee }}" />
   	<input type="hidden" name="buyer_message" value="{{ buyer_message }}" />
+  	<input type="hidden" name="pay_extras" value="pid:2:couponid:66:value:20" />
   </form>
 </script>
 <div class="coupons">
@@ -166,7 +167,9 @@ function change_paytype(){
     $(this).removeClass('normal').addClass('active');
 };
 function Confirm_charge(){
-    Ctrl_sure_charge(GLConfig.get_trade_charge_url);
+    //GLConfig.get_trade_charge_url
+    var cartpayUrl = '/rest/v2/trades/shoppingcart_create.json';
+    Ctrl_sure_charge(cartpayUrl);
 };
 </script>
 </body>

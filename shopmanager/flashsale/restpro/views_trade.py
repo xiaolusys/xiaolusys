@@ -43,7 +43,7 @@ from . import constants as CONS
 import logging
 import decimal
 
-logger = logging.getLogger('restapi.errors')
+logger = logging.getLogger(__name__)
 
 import re
 UUID_RE = re.compile('^[a-z]{2}[0-9]{6}[a-z0-9-]{10,14}$')
@@ -272,7 +272,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def get_payextras(self, request, resp):
         
         extras = []
+        #APP减两元
         extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
+        #优惠券
+        extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_COUPON))
         
         if resp['budget_cash'] > 0 and resp['total_payment'] > 0:
             budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
