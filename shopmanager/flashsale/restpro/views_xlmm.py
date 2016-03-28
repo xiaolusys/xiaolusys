@@ -480,7 +480,7 @@ class CashOutViewSet(viewsets.ModelViewSet):
         
         if self.queryset.filter(status=CashOut.PENDING,xlmm=xlmm.id).count() > 0:  # 如果有待审核提现记录则不予再次创建记录
             return Response({"code": 3})
-        if could_cash_out < value:  # 如果可以提现金额不足
+        if could_cash_out < value * 0.01:  # 如果可以提现金额不足
             return Response({"code": 2})
         # 满足提现请求　创建提现记录
         cashout = CashOut.objects.create(xlmm=xlmm.id, value=value)
