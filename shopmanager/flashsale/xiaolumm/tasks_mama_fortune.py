@@ -31,7 +31,7 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
         fortune = MamaFortune(mama_id=mama_id, **kwargs)
         fortune.save()
     except IntegrityError as e:
-        logger.error(e.message)
+        logger.error("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
         MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
