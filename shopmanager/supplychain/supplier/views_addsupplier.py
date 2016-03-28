@@ -128,7 +128,9 @@ def get_target_date_detail(target_date, category):
             all_detail = target_sch[0].normal_detail
         detail_list = []
         for detail in all_detail:
-            detail_list.append(model_to_dict(detail))
+            detail_dict = model_to_dict(detail)
+            detail_dict['sale_memo'] = detail.sale_memo
+            detail_list.append(detail_dict)
         return detail_list, wem_posters, chd_posters, target_sch[0]
     else:
         return "", wem_posters, chd_posters, []
