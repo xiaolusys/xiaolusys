@@ -16,7 +16,7 @@
 </head>
 
 <body>
-<div class="container">
+<div class="container" id="post-data-debug">
     <div class="row">
         <div class="m-printer col-sm-6 col-xs-10 col-sm-offset-3 col-xs-offset-1"></div>
     </div>
@@ -73,7 +73,7 @@
 
     <div class="row">
 
-        <form id="deposite-form" action="#" method="POST">
+        <form id="deposite-form" action="#" method="POST" onsubmit="return Confirm_charge()" >
             <input type="hidden" name="format" value="json">
             <input type="hidden" name="item_id" value="{{ product.id }}">
             <input type="hidden" name="sku_id"
@@ -89,10 +89,10 @@
             <input type="hidden" name="num" value="1">
             <input type="hidden" name="addr_id" value="">
 
-            <input type="text" name="channel" id="channel_value" value="alipay_wap" hidden="hidden">
+            <input type="hidden" name="channel" id="channel_value" value="alipay_wap">
 
             <input class="js-pay-btn col-sm-6 col-sm-offset-3 col-xs-10 col-xs-offset-1 btn btn-red"
-                    type="submit" id="btn-pay" onclick="Confirm_charge()" disabled value="支付押金">
+                    type="submit" id="btn-pay" disabled="disabled" value="支付押金">
 
         </form>
     </div>
