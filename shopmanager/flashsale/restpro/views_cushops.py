@@ -88,6 +88,7 @@ def save_pro_info(product, user):
               'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
     rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
     # 保存信息
+    shop_pro.customer = customer.id
     shop_pro.name = pro.name
     shop_pro.pic_path = pro.pic_path
     shop_pro.std_sale_price = pro.std_sale_price
@@ -143,22 +144,19 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     def get_owner_shop_pros(self, request):
         """ 用户个人店铺产品信息 """
         customer = get_object_or_404(Customer, user=request.user)
-        shop = get_object_or_404(CustomerShops, customer=customer.id)  # 获取店铺
-        shop_pros = self.queryset.filter(shop=shop.id).order_by("-position")
+        shop_pros = self.queryset.filter(customer=customer.id).order_by("-position")
         return shop_pros
 
     def get_owner_child_pros(self, request):
         """ 用户个人店铺产品信息 """
         customer = get_object_or_404(Customer, user=request.user)
-        shop = get_object_or_404(CustomerShops, customer=customer.id)  # 获取店铺童装产品　已经在manager 中排序了
-        shop_pros = self.child_queryset.filter(shop=shop.id)
+        shop_pros = self.child_queryset.filter(customer=customer.id)
         return shop_pros
 
     def get_owner_female_pros(self, request):
         """ 用户个人店铺产品信息 """
         customer = get_object_or_404(Customer, user=request.user)
-        shop = get_object_or_404(CustomerShops, customer=customer.id)  # 获取店铺女装产品　已经在manager 中排序了
-        shop_pros = self.female_queryset.filter(shop=shop.id)
+        shop_pros = self.female_queryset.filter(customer=customer.id)
         return shop_pros
 
     def get_owner_up_pros(self, request):

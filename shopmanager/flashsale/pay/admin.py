@@ -744,7 +744,7 @@ from .filters import CushopProCategoryFiler
 import constants
 
 class CuShopProsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'shop', 'pro_category_dec', 'product', 'pro_status', 'position', 'created')
+    list_display = ('id', 'shop', 'customer', 'pro_category_dec', 'product', 'pro_status', 'position', 'created')
     list_display_links = ('shop',)
     list_filter = ('created', 'pro_status', CushopProCategoryFiler)
     search_fields = ['=id', 'shop', 'product']

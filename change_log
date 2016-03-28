@@ -1,5 +1,10 @@
 ########2016-03-28###################################
 alter table flashsale_cushops_detail add column pro_category int(11) default 0;
+CREATE INDEX `flashsale_cushops_detail_3f48b25d` ON `flashsale_cushops_detail` (`pro_category`);
+
+alter table flashsale_cushops_detail add column customer int(11);
+CREATE INDEX `flashsale_cushops_detail_8b2d9fbd` ON `flashsale_cushops_detail` (`customer`);
+
 ########2016-03-25##################################
 alter table flashsale_cushops_detail add column name varchar(64);
 CREATE INDEX `flashsale_cushops_detail_52094d6e` ON `flashsale_cushops_detail` (`name`);
