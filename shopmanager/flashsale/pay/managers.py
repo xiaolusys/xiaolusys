@@ -23,7 +23,20 @@ class NormalUserAddressManager(models.Manager):
         
     
     get_queryset = get_query_set
-    
-    
+import constants
 
-    
+
+class ShopProductCategoryManager(models.Manager):
+    def get_query_set(self):
+        queryset = super(ShopProductCategoryManager, self).get_query_set()
+        return queryset
+
+    def child_query(self):
+        """ 童装产品 """
+        pro_category = constants.CHILD_CID_LIST
+        return self.get_query_set().filter(pro_category__in=pro_category).order_by("-position")
+
+    def female_query(self):
+        """ 女装产品 """
+        pro_category = constants.FEMALE_CID_LIST
+        return self.get_query_set().filter(pro_category__in=pro_category).order_by("-position")
