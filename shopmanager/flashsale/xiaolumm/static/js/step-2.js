@@ -75,9 +75,20 @@ $(document).ready(function () {
         clickAlipay()
     }
 
-
+    debug_test();
 });
+var debug_click_time = 0;
 
+function debug_test() {
+    $("#post-data-debug").click(function () {
+        console.log(debug_click_time);
+        if (debug_click_time >= 8) {
+            var params = $('#deposite-form').serialize();
+            alert(params);
+        }
+        debug_click_time += 1;
+    });
+}
 
 function Submit_enable(ele) {
     if (ele.checked) {
