@@ -117,8 +117,8 @@ var click_paybtn = click_paybtn || false;
 
 function Ctrl_sure_charge(pay_url){
     //确认支付
-    var WALLET_PAY = 'wallet';    
-    var CHARGE_URL  = pay_url; //GLConfig.baseApiUrl + pay_url;
+    var WALLET_PAY = 'wallet';
+    var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
     var channel     = $('.pay-type .pay-list li.active i').attr('id');
     if (isNone(channel)){
         drawToast('请选择正确的支付方式');
