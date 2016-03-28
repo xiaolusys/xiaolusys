@@ -497,6 +497,11 @@ class ReferalRelationship(BaseModel):
         verbose_name = u'V2/妈妈推荐关系'
         verbose_name_plural = u'V2/妈妈推荐关系列表'
 
+    def referal_to_mama_nick_display(self):
+        if self.referal_to_mama_nick == "":
+            return u"匿名用户"
+        return self.referal_to_mama_nick
+
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
     if not created:

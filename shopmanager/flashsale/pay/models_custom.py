@@ -258,5 +258,10 @@ class ActivityEntry(PayBaseModel):
             'share_link':self.share_link.format(**params),
             'active_dec':self.act_desc.format(**params),
         }
-        
+    
+    def total_member_num(self):
+        return 2000
+
+    def friend_member_num(self):
+        return 16
     

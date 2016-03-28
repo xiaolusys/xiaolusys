@@ -116,12 +116,13 @@ class ModelProductSerializer(serializers.ModelSerializer):
         
         
 class ActivityEntrySerializer(serializers.ModelSerializer):
-    
     extras = JSONParseField(read_only=True,required=False)
+
     class Meta:
         model = ActivityEntry
         fields = ( 'id','title', 'login_required', 'act_desc', 'act_img', 'mask_link', 'act_link', 
-                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras')
+                   'act_type', 'act_applink', 'start_time', 'end_time', 'order_val', 'extras', 
+                   'total_member_num', 'friend_member_num', 'is_active')
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
 
