@@ -39,7 +39,7 @@ def get_choice_name(choices, val):
 
 
 # The time to switch to xiaolumama v2.0
-MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016,03,23)
+MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016,03,24)
 
 
 class MamaFortune(BaseModel):
@@ -190,7 +190,7 @@ post_save.connect(carryrecord_update_mamafortune,
 
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'Web直接订单'),(2, u'App粉丝订单'),(3, u'下属订单'),)
-    STATUS_TYPES = ((0, u'未付款'),(1, u'待确定'), (2, u'已确定'), (3, u'买家取消'),)
+    STATUS_TYPES = ((0, u'待付款'),(1, u'待确定'), (2, u'已确定'), (3, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
