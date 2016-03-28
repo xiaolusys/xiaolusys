@@ -88,6 +88,7 @@ def save_pro_info(product, user):
               'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
     rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
     # 保存信息
+    shop_pro.customer = customer.id
     shop_pro.name = pro.name
     shop_pro.pic_path = pro.pic_path
     shop_pro.std_sale_price = pro.std_sale_price
@@ -95,6 +96,7 @@ def save_pro_info(product, user):
     shop_pro.remain_num = pro.remain_num
     shop_pro.carry_amount = rebet_amount
     shop_pro.carry_scheme = rebt.id
+    shop_pro.pro_category = pro.category.cid
     shop_pro.save()
     return shop_pro, pro_state
 
@@ -132,6 +134,8 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
                 1 参数缺失  
     """
     queryset = CuShopPros.objects.all()
+    child_queryset = CuShopPros.objects.child_query()
+    female_queryset = CuShopPros.objects.female_query()
     serializer_class = serializers.CuShopProsSerialize
     authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
     permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
@@ -140,13 +144,46 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     def get_owner_shop_pros(self, request):
         """ 用户个人店铺产品信息 """
         customer = get_object_or_404(Customer, user=request.user)
-        shop = get_object_or_404(CustomerShops, customer=customer.id)  # 获取店铺
-        shop_pros = self.queryset.filter(shop=shop.id).order_by("-position")
+        shop_pros = self.queryset.filter(customer=customer.id).order_by("-position")
+        return shop_pros
+
+    def get_owner_child_pros(self, request):
+        """ 用户个人店铺产品信息 """
+        customer = get_object_or_404(Customer, user=request.user)
+        shop_pros = self.child_queryset.filter(customer=customer.id)
+        return shop_pros
+
+    def get_owner_female_pros(self, request):
+        """ 用户个人店铺产品信息 """
+        customer = get_object_or_404(Customer, user=request.user)
+        shop_pros = self.female_queryset.filter(customer=customer.id)
+        return shop_pros
+
+    def get_owner_child_pros(self, request):
+        """ 用户个人店铺产品信息 """
+        customer = get_object_or_404(Customer, user=request.user)
+        shop = get_object_or_404(CustomerShops, customer=customer.id)  # 获取店铺童装产品　已经在manager 中排序了
+        shop_pros = self.child_queryset.filter(shop=shop.id)
+        return shop_pros
+
+    def get_owner_female_pros(self, request):
+        """ 用户个人店铺产品信息 """
+        customer = get_object_or_404(Customer, user=request.user)
+        shop = get_object_or_404(CustomerShops, customer=customer.id)  # 获取店铺女装产品　已经在manager 中排序了
+        shop_pros = self.female_queryset.filter(shop=shop.id)
         return shop_pros
 
     def get_owner_up_pros(self, request):
         """ 获取用户上架商品"""
         return self.get_owner_shop_pros(request).filter(pro_status=CuShopPros.UP_SHELF)
+
+    def get_owner_child_up_pros(self, request):
+        """ 获取用户上架商品"""
+        return self.get_owner_child_pros(request).filter(pro_status=CuShopPros.UP_SHELF)
+
+    def get_owner_female_up_pros(self, request):
+        """ 获取用户上架商品"""
+        return self.get_owner_female_pros(request).filter(pro_status=CuShopPros.UP_SHELF)
 
     def list(self, request, *args, **kwargs):
         shop_pros = self.get_owner_up_pros(request)
@@ -182,6 +219,28 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
     def shop_product(self, request):
         """ 用户商店产品信息 """
         shop_pros = self.get_owner_up_pros(request)
+        page = self.paginate_queryset(shop_pros)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(page, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def shop_child_product(self, request):
+        """ 用户商店童装产品信息 """
+        shop_pros = self.get_owner_child_up_pros(request)
+        page = self.paginate_queryset(shop_pros)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(page, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def shop_female_product(self, request):
+        """ 用户商店女装产品信息 """
+        shop_pros = self.get_owner_female_up_pros(request)
         page = self.paginate_queryset(shop_pros)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

@@ -73,7 +73,7 @@
 
     <div class="row">
 
-        <form id="deposite-form" action="#" method="POST" onsubmit="return Confirm_charge()" >
+        <form id="deposite-form" action="#" method="POST" onsubmit="return Confirm_charge()">
             <input type="hidden" name="format" value="json">
             <input type="hidden" name="item_id" value="{{ product.id }}">
             <input type="hidden" name="sku_id"
@@ -92,7 +92,7 @@
             <input type="hidden" name="channel" id="channel_value" value="alipay_wap">
 
             <input class="js-pay-btn col-sm-6 col-sm-offset-3 col-xs-10 col-xs-offset-1 btn btn-red"
-                    type="submit" id="btn-pay" disabled="disabled" value="支付押金">
+                   type="submit" id="btn-pay" disabled="disabled" value="支付押金">
 
         </form>
     </div>
@@ -100,5 +100,47 @@
 <script src="{{ STATIC_URL }}js/step-2.js"></script>
 <script src="{{ STATIC_URL }}js/pingpp_pay.js"></script>
 <script src="{{ STATIC_URL }}js/pingpp_ap.js"></script>
+<script>
+    function Confirm_charge() {
+        var CHARGE_URL = window.location.href;
+        var params = $('#deposite-form').serialize();
+        console.log('pay info:', params);
+        var callBack = function (data) {
+            console.log('charge resp:', data);
+            var redirect_url = './';
+            pingpp.createPayment(data, function (result, err) {
+
+                if (result == "success") {
+                    redirect_url = '{{success_url}}?out_trade_no=' + params['uuid'];
+                } else if (result == "fail") {
+                    redirect_url = '{{cancel_url}}?mama_id={{referal_mamaid}}';
+                } else if (result == "cancel") {
+                    redirect_url = '{{cancel_url}}?mama_id={{referal_mamaid}}';
+                }
+                window.location.href = redirect_url;
+            });
+        };
+        // 调用接口
+        $.ajax({
+            type: 'post',
+            url: CHARGE_URL,
+            data: params,
+            dataType: 'json',
+            success: callBack,
+            error: function (err) {
+                alert("ajax error ");
+                click_paybtn = false;
+                console.log("err is here ", err);
+                var resp = JSON.parse(err.responseText);
+                if (!isNone(resp.detail)) {
+                    alert(resp.detail);
+                } else {
+                    alert('支付异常!');
+                }
+            }
+        });
+        return false;
+    }
+</script>
 </body>
 </html>

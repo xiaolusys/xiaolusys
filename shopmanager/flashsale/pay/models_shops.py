@@ -3,6 +3,7 @@
 from django.db import models
 from .base import PayBaseModel
 import random
+from . managers import ShopProductCategoryManager
 
 
 class CustomerShops(PayBaseModel):
@@ -40,6 +41,7 @@ class CuShopPros(PayBaseModel):
     PRO_STATUS = ((UP_SHELF, u'上架'), (DOWN_SHELF, u'下架'))
 
     shop = models.IntegerField(db_index=True, verbose_name=u'店铺ID')
+    customer = models.IntegerField(db_index=True, verbose_name=u'用户id')
     product = models.BigIntegerField(db_index=True, verbose_name=u'店铺产品')
     pro_status = models.IntegerField(choices=PRO_STATUS, default=1, verbose_name=u'商品状态')
 
@@ -52,6 +54,9 @@ class CuShopPros(PayBaseModel):
     carry_scheme = models.IntegerField(db_index=True, verbose_name=u'返利模式')
     carry_amount = models.FloatField(default=0, verbose_name=u'返利金额')
     position = models.IntegerField(db_index=True, default=0, verbose_name=u'排序位置')
+
+    pro_category = models.IntegerField(db_index=True, default=0, verbose_name=u'产品类别')
+    objects = ShopProductCategoryManager()
 
     class Meta:
         db_table = 'flashsale_cushops_detail'
