@@ -125,10 +125,12 @@ class SaleTrade(BaseModel):
     channel     = models.CharField(max_length=16,db_index=True,
                                    choices=CHANNEL_CHOICES,blank=True,verbose_name=u'付款方式')
     
-    payment    =   models.FloatField(default=0.0,verbose_name=u'实付款')
+    payment    =   models.FloatField(default=0.0,verbose_name=u'付款金额')
+    pay_cash   =   models.FloatField(default=0.0,verbose_name=u'实付现金')
     post_fee   =   models.FloatField(default=0.0,verbose_name=u'物流费用')
     discount_fee  =   models.FloatField(default=0.0,verbose_name=u'优惠折扣')
     total_fee  =   models.FloatField(default=0.0,verbose_name=u'总费用')
+    has_budget_paid =   models.BooleanField(default=False,verbose_name=u'使用余额')
     
     buyer_message = models.TextField(max_length=1000,blank=True,verbose_name=u'买家留言')
     seller_memo   = models.TextField(max_length=1000,blank=True,verbose_name=u'卖家备注')
@@ -198,6 +200,12 @@ class SaleTrade(BaseModel):
         return ''
     
     @property
+    def budget_payment(self):
+        if self.has_budget_paid:
+            return self.payment - self.pay_cash
+        return 0
+    
+    @property
     def status_name(self):
         return self.get_status_display()
     
@@ -211,6 +219,16 @@ class SaleTrade(BaseModel):
     @property
     def order_buyer(self):
         return Customer.objects.get(id=self.buyer_id)
+    
+    def get_cash_payment(self):
+        """ 实际需支付金额 """
+        if not self.has_budget_paid:
+            return self.payment
+        
+        if self.pay_cash > 0:
+            return self.pay_cash
+        
+        return self.payment
     
     def get_buyer_openid(self):
         """ 获取订单用户openid """

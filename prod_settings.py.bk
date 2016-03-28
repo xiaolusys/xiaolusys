@@ -176,6 +176,12 @@ QINIU_PUBLIC_BUCKET = 'xiaolumama' #七牛公开空间,保存分享二维码,及
 QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
 
 LOGGER_HANDLERS = [
+    ('shopback','sentry'),
+    ('shopapp','sentry'),
+    ('flashsale','sentry,'),
+    ('core','sentry'),
+    ('auth','sentry'),
+    ('supplychain','sentry'),
     ('models','sentry'),
     ('queryset','sentry'),
     ('django.request','sentry,file'),
