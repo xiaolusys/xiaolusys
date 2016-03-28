@@ -28,7 +28,7 @@ from core.options import log_action, ADDITION, CHANGE
 from common.utils import update_model_fields
 import logging
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger(__name__)
 
 FLASH_SELLER_ID  = 'flashsale'
 AGENCY_DIPOSITE_CODE = DIPOSITE_CODE_PREFIX
@@ -260,8 +260,7 @@ class SaleTrade(BaseModel):
         return self.status == self.TRADE_CLOSED
     
     def is_Deposite_Order(self):
-        
-        
+    
         for order in self.sale_orders.all():
             if order.outer_id.startswith(AGENCY_DIPOSITE_CODE):
                 return True
@@ -276,7 +275,6 @@ class SaleTrade(BaseModel):
                 product_sku = ProductSku.objects.get(id=order.sku_id)
                 Product.objects.releaseLockQuantity(product_sku, order.num)
         except Exception,exc:
-            logger = logging.getLogger('django.request')
             logger.error(exc.message,exc_info=True)
     
     def increase_lock_skunum(self):
@@ -285,7 +283,6 @@ class SaleTrade(BaseModel):
                 product_sku = ProductSku.objects.get(id=order.sku_id)
                 Product.objects.lockQuantity(product_sku, order.num)
         except Exception,exc:
-            logger = logging.getLogger('django.request')
             logger.error(exc.message,exc_info=True)
     
     def confirm_payment(self):
@@ -699,7 +696,6 @@ def off_the_shelf_func(sender, product_list, *args, **kwargs):
                 trade.close_trade()
                 log_action(djuser.id, trade, CHANGE, u'系统更新待付款状态到交易关闭')
             except Exception, exc:
-                logger = logging.getLogger('django.request')
                 logger.error(exc.message, exc_info=True)
 
 signals.signal_product_downshelf.connect(off_the_shelf_func, sender=Product)

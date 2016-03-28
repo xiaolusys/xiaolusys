@@ -1,4 +1,5 @@
 # coding:utf-8
+import re
 import json
 import pingpp
 import urlparse
@@ -42,8 +43,10 @@ from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask
 
 import logging
-
 logger = logging.getLogger(__name__)
+
+
+UUID_RE = re.compile('^[a-z]{2}[0-9]{6}[a-z0-9-]{10,14}$')
 
 class SaleTradeViewSet(viewsets.ModelViewSet):
     """
@@ -364,18 +367,34 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             extra_list.append(pdict)
         return extra_list
     
-    def calc_extra_discount(self, pay_extras):
+    def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment,**kwargs):
+        """ payment（单位分）按原始支付金额计算优惠信息 """
+        coupon       = get_object_or_404(UserCoupon, 
+                                         id=coupon_id, 
+                                         customer=str(buyer_id),
+                                         status=UserCoupon.UNUSED)
+        try:  # 优惠券条件检查
+            coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
+            coupon_pool = coupon.cp_id
+        except Exception, exc:
+            raise exceptions.APIException(exc.message)
+        return int(coupon_pool.template.value * 100)
+    
+    def calc_extra_discount(self, pay_extras, **kwargs):
         """　优惠信息(分) """
         pay_extra_list = self.parse_entry_params(pay_extras)
         pay_extra_dict = dict([(p['pid'],p) for p in pay_extra_list if p.has_key('pid')])
         discount_fee = 0
         for param in pay_extra_dict.values():
             pid = param['pid']
-            if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
+            if pid == CONS.ETS_COUPON and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
+                coupon_id  = int(param['couponid'])
+                discount_fee += self.calc_counpon_discount(coupon_id,**kwargs)
+            if pid == CONS.ETS_APPCUT and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
                 discount_fee += CONS.PAY_EXTRAS[pid]['value'] * 100
         return discount_fee
     
-    def calc_extra_budget(self, pay_extras):
+    def calc_extra_budget(self, pay_extras, **kwargs):
         """　支付余额(分) """
         pay_extra_list = self.parse_entry_params(pay_extras)
         pay_extra_dict = dict([(p['pid'],p) for p in pay_extra_list if p.has_key('pid')])
@@ -391,7 +410,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 购物车订单支付接口 """
         CONTENT  = request.POST
         tuuid    = CONTENT.get('uuid')
-        coupon_id, coupon = CONTENT.get('coupon_id',''), None
         customer = get_object_or_404(Customer,user=request.user)
         try:
             SaleTrade.objects.get(tid=tuuid,buyer_id=customer.id)
@@ -416,25 +434,20 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             item_ids = []
             for cart in cart_qs:
                 if not cart.is_good_enough():
-                    return Response({'code':2, 'info':u'下手太慢商品已被抢光了'})
+                    return Response({'code':2, 'info':u'商品已被抢光了'})
                 cart_total_fee += cart.price * cart.num * 100
                 cart_discount  += cart.calc_discount_fee(xlmm=xlmm) * cart.num * 100
                 item_ids.append(cart.item_id)
-
-            if coupon_id:
-                # 对应用户的未使用的优惠券
-                coupon       = get_object_or_404(UserCoupon, id=coupon_id, customer=str(customer.id),
-                                                 status=UserCoupon.UNUSED)
-                try:  # 优惠券条件检查
-                    check_use_fee = (cart_total_fee - cart_discount) / 100.0
-                    coupon.check_usercoupon(product_ids=item_ids, use_fee=check_use_fee)
-                    # coupon.cp_id.template.usefee_check((cart_total_fee - cart_discount) / 100.0)  # 检查消费金额是否满足
-                    coupon_pool = coupon.cp_id
-                except Exception, exc:
-                    raise exceptions.APIException(exc.message)
-                cart_discount    += int(coupon_pool.template.value * 100)
+                
+            extra_params = {'item_ids':','.join(item_ids),
+                            'buyer_id':customer.id,
+                            'payment':cart_total_fee - cart_discount}
+            logger.debug('cart payment:extra_params=%s'%extra_params)
+            try:
+                cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
+            except Exception, exc:
+                return Response({'code':6,'info':exc.message})
             
-            cart_discount += self.calc_extra_discount(pay_extras)
             cart_discount = min(cart_discount, cart_total_fee)
             if discount_fee > cart_discount:
                 return Response({'code':3, 'info':u'优惠金额异常'})
@@ -454,11 +467,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         sale_trade,state = self.create_Saletrade(CONTENT, address, customer)
         if state:
             self.create_Saleorder_By_Shopcart(sale_trade, cart_qs)
-        #使用优惠券，并修改状态
-        if coupon_id and coupon:
-            coupon.status = UserCoupon.USED
-            coupon.sale_trade = sale_trade.id
-            coupon.save()
+        
         try:
             if channel == SaleTrade.WALLET:
                 #妈妈钱包支付
