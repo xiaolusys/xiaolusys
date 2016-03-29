@@ -272,7 +272,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             buyer_openid = buyer_openid or customer.openid
             payment      = float(form.get('payment'))
             pay_extras   = form.get('pay_extras','')
-            budget_payment = self.calc_extra_budget(pay_extras) / 100
+            budget_payment = self.calc_extra_budget(pay_extras) / 100.0
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -329,8 +329,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             )
         
         #关闭购物车
-#         for cart in cart_qs:
-#             cart.close_cart(release_locknum=False)
+        for cart in cart_qs:
+            cart.close_cart(release_locknum=False)
             
     @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
@@ -359,7 +359,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ pid:1:value:2;pid:2:value:3:conponid:2 """
         if not pay_extras:
             return []
-        pay_list = [e for e in pay_extras.split(';') if e.strip()]
+        pay_list = [e for e in re.split(',|;',pay_extras) if e.strip()]
         extra_list = []
         for k in pay_list:
             pdict = {}
@@ -418,6 +418,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         try:
             SaleTrade.objects.get(tid=tuuid,buyer_id=customer.id)
         except SaleTrade.DoesNotExist:
+            logger.debug('debug cartparams:%s'%request.REQUEST)
             cart_ids = [i for i in CONTENT.get('cart_ids','').split(',')]
             cart_qs = ShoppingCart.objects.filter(
                 id__in=[i for i in cart_ids if i.isdigit()], 
@@ -425,7 +426,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             )
             #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
             if cart_qs.count() != len(cart_ids):
-                return Response({'code':1, 'info':u'购物车已结算待支付'})
+                return Response({'code':1, 'info':u'购物车已结算'})
             xlmm            = self.get_xlmm(request)
             total_fee       = int(float(CONTENT.get('total_fee','0')) * 100)
             payment         = int(float(CONTENT.get('payment','0')) * 100)
@@ -484,9 +485,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
             logger.warn('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message))
-            return Response({'code':5, 'info':exc.message})
+            return Response({'code':5, 'info':exc.message or '未知支付异常'})
 
-        return Response({'code':0, 'info':u'success', 'channel':channel, 'charge':response_charge})
+        return Response({'code':0, 'info':u'支付成功', 'channel':channel, 'charge':response_charge})
             
         
     @list_route(methods=['get','post'])

@@ -173,7 +173,7 @@
   </div>
   <!-- 查看答案 -->
   <div class="row mg-btm-15" >
-    <a href="#score-age"><img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%9F%A5%E7%9C%8B%E7%AD%94%E6%A1%88.png" /></a>
+    <a href="#envelop"><img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E7%BB%93%E6%9E%9C-%E6%9F%A5%E7%9C%8B%E7%AD%94%E6%A1%88.png" /></a>
   </div>
   <!-- 红包 -->
   <div id="envelop" class="row mg-btm-15">
@@ -277,7 +277,7 @@ listenWeixinShareEvent(shareParams,
     });
 $(document).ready(function(){
     // 加载推荐商品
-    var promotion_url = '/rest/v1/products/promotion_ads?lnum=1&max_age={{dress_age}}&min_age={{dress_age}}';
+    var promotion_url = '/rest/v1/products/promotion_ads?category={{dress_star.category_id}}&lnum=1&max_age={{dress_age}}&min_age={{dress_age}}';
     $.get(
         promotion_url,
         function(resp){

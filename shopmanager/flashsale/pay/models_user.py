@@ -416,7 +416,7 @@ class BudgetLog(PayBaseModel):
         return self.flow_amount / 100.0
     
     def push_pending_to_confirm(self):
-        """ 确认待确认 """
+        """ 确认待确认钱包收支记录 """
         if self.status == BudgetLog.PENDING:
             self.status = BudgetLog.CONFIRMED
             self.save()

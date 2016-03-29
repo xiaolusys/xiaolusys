@@ -143,6 +143,7 @@ class RefundConfirm(APIView):
 
 from shopback.base import log_action, User, ADDITION, CHANGE
 from flashsale.xiaolumm.models import XiaoluMama, CarryLog
+from flashsale.pay.models_user import UserBudget,BudgetLog
 from django.db import models
 from shopback.trades.models import MergeOrder, MergeTrade
 from shopback import paramconfig as pcfg
@@ -212,8 +213,6 @@ class RefundPopPageView(APIView):
                     if strade.channel == SaleTrade.WALLET:
                         payment = int(obj.refund_fee * 100)
                         xlmm_queryset = XiaoluMama.objects.filter(openid=customer.unionid)
-                        if xlmm_queryset.count() == 0:
-                            raise Exception(u'妈妈unoind:%s' % customer.unionid)
                         xlmm = xlmm_queryset[0]
                         clogs = CarryLog.objects.filter(xlmm=xlmm.id,
                                                         order_num=obj.order_id, # 以子订单为准
@@ -248,9 +247,46 @@ class RefundPopPageView(APIView):
                             obj.status = SaleRefund.REFUND_SUCCESS
                             obj.save()
                             log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)
-
                         obj.refund_Confirm()
-
+                        
+                    elif strade.channel == SaleTrade.BUDGET:
+                        payment = int(obj.refund_fee * 100)
+                        user_budget = UserBudget.objects.get(user=customer)
+                        clogs = BudgetLog.objects.filter(customer_id=customer.id,
+                                                        referal_id=obj.order_id, # 以子订单为准
+                                                        log_type=CarryLog.REFUND_RETURN)
+                        if clogs.exists():
+                            total_refund = clogs[0].value + payment  # 总的退款金额　等于已经退的金额　加上　现在要退的金额
+                            if total_refund > int(sorder.payment * 100):
+                                # 如果钱包总的退款记录数值大于子订单的实际支付额　抛出异常
+                                raise Exception(u'超过订单实际支付金额!')
+                            else:  # 如果退款总额不大于该笔子订单的实际支付金额　则予以退款操作
+                                cl = clogs[0]
+                                cl.value = total_refund
+                                cl.save()
+                                log_action(request.user.id, clogs[0], CHANGE, u'二次退款,退款返现:%s' % clogs[0].id)
+                                # 操作记录
+                                xlmm_queryset.update(cash=models.F('cash') + payment)
+                                obj.status = SaleRefund.REFUND_SUCCESS
+                                obj.save()
+                                log_action(request.user.id, obj, CHANGE, u'二次退款审核通过:%s' % obj.refund_id)
+                        # assert clogs.count() == 0, u'订单已经退款！'
+                        else:   # 钱包中不存在该笔子订单的历史退款记录　则创建记录
+                            if payment > int(sorder.payment * 100):
+                                raise Exception(u'超过订单实际支付金额!')
+                            CarryLog.objects.create(xlmm=xlmm.id,
+                                                    order_num=obj.order_id,
+                                                    buyer_nick=strade.buyer_nick,
+                                                    value=payment,
+                                                    log_type=CarryLog.REFUND_RETURN,
+                                                    carry_type=CarryLog.CARRY_IN,
+                                                    status=CarryLog.CONFIRMED)
+                            xlmm_queryset.update(cash=models.F('cash') + payment)
+                            obj.status = SaleRefund.REFUND_SUCCESS
+                            obj.save()
+                            log_action(request.user.id, obj, CHANGE, u'首次退款审核通过:%s' % obj.refund_id)
+                        obj.refund_Confirm()
+                    
                     elif obj.refund_fee > 0 and obj.charge:  # 有支付编号
                         import pingpp
                         pingpp.api_key = settings.PINGPP_APPKEY
