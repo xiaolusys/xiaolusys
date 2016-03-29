@@ -18,7 +18,10 @@ from flashsale.pay.models import Customer
 
 from django.db.models import Sum, Count
 
-from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
+from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveValue, OrderCarry, ClickCarry, \
+    AwardCarry,ReferalRelationship,GroupRelationship, UniqueVisitor, DailyStats
+
+from flashsale.pay.models_custom import ModelProduct
 
 
 def get_customer_id(user):
@@ -501,6 +504,51 @@ class DailyStatsViewSet(viewsets.ModelViewSet):
         
         return self.get_paginated_response(res)
 
+    def create(self, request, *args, **kwargs):
+        raise exceptions.APIException('METHOD NOT ALLOWED')
+
+
+
+
+from flashsale.pay.serializes import ModelProductSerializer
+
+class ModelProductViewSet(viewsets.ModelViewSet):
+    """
+    1) /rest/v2/mama/modelproducts
+       returns all model_products 
+    2) /rest/v2/mama/modelproducts?category=1
+       returns all model_products with category=1
+    """
+    queryset = ModelProduct.objects.all()
+    serializer_class = ModelProductSerializer
+    authentication_classes = (authentication.SessionAuthentication, authentication.BasicAuthentication)
+    permission_classes = (permissions.IsAuthenticated, perms.IsOwnerOnly)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
+
+    def get_owner_queryset(self, category):
+        today_date = datetime.datetime.now().date()
+        last_date = today_date - datetime.timedelta(days=1)
+        queryset = self.queryset.filter(sale_time__gte=last_date,sale_time__lte=today_date)
+
+        category = int(category)
+        print category
+        if category > 0:
+            queryset = queryset.filter(category=category)
+
+        return queryset.order_by('-sale_time')
+
+
+    def list(self, request, *args, **kwargs):
+        content = request.REQUEST
+        category = content.get("category", "0")
+
+        datalist = self.get_owner_queryset(category)
+        datalist = self.paginate_queryset(datalist)
+
+        serializer = ModelProductSerializer(datalist, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    
     def create(self, request, *args, **kwargs):
         raise exceptions.APIException('METHOD NOT ALLOWED')
     

@@ -62,17 +62,40 @@ class AgencyOrderRebetaScheme(models.Model):
     
     def calculate_carry(self, agencylevel, payment):
         carry_rules = self.price_rebetas.get(str(agencylevel))
-        payment = int(round(payment*0.1)*10)
+        payment = int(round(int(payment)*0.1)*10)
         
         MAX_PAYMENT = 200
         if payment > MAX_PAYMENT:
             payment = MAX_PAYMENT
 
         key = str(payment)
-        carry = carry_rules[key]
+        if key in carry_rules:
+            carry = carry_rules[key]
+            return carry
         
-        return carry
+        return 0
 
         
-        
+def calculate_price_carry(agencylevel, payment_yuan, policy):
+    """
+    payment_yuan: payment in YUAN
+    policy: whole carry policy (a dict)
+
+    return carry in YUAN.
+    """
+    
+    carry_rules = policy.get(str(agencylevel))
+    payment = round(int(payment_yuan)*0.1)*10
+    
+    MAX_PAYMENT = 200 # YUAN
+    if payment > MAX_PAYMENT:
+        payment = MAX_PAYMENT
+
+    key = str(payment)
+    if key in carry_rules:
+        carry = carry_rules[key]
+        return carry
+    
+    return 0
+    
         

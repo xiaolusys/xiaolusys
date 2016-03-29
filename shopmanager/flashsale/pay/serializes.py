@@ -1,10 +1,12 @@
-#-*- encoding:utf8 -*-
+#-*- encoding:utf-8 -*-
 from django.forms import model_to_dict
 from rest_framework import serializers
 
 from shopback.items.models import Product,ProductSku
-from .models import SaleTrade,District,UserAddress
-        
+from .models import SaleTrade,District,UserAddress,ModelProduct
+
+
+
 class DetailInfoField(serializers.Field):
     
     def to_representation(self, obj):
@@ -157,3 +159,9 @@ class UserCouponPoolSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'coupon_no', 'deadline', 'coupon_type', 'coupon_value', 'created', 'modified', 'coupon_status')
 
+
+        
+class ModelProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelProduct
+        fields = ('id', 'name', 'head_imgs', 'content_imgs', 'sale_time')#, 'std_sale_price', 'agent_price', 'shelf_status', 'status')

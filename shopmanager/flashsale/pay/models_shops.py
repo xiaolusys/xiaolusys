@@ -15,8 +15,8 @@ class CustomerShops(PayBaseModel):
 
     class Meta:
         db_table = 'flashsale_customer_shop'
-        verbose_name = u'特卖用户店铺'
-        verbose_name_plural = u'特卖用户/店铺列表'
+        verbose_name = u'v2/特卖用户店铺'
+        verbose_name_plural = u'v2/特卖用户/店铺列表'
 
     def __unicode__(self):
         return u'%s-%s' % (self.id, self.customer)
@@ -60,8 +60,8 @@ class CuShopPros(PayBaseModel):
 
     class Meta:
         db_table = 'flashsale_cushops_detail'
-        verbose_name = u'特卖用户店铺产品表'
-        verbose_name_plural = u'特卖用户/店铺产品明细列表'
+        verbose_name = u'v2/特卖用户店铺产品表'
+        verbose_name_plural = u'v2/特卖用户/店铺产品明细列表'
 
     def __unicode__(self):
         return u'%s-%s' % (self.id, self.shop)
