@@ -647,9 +647,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         except AgencyOrderRebetaScheme.DoesNotExist:
             pass
         
-        #customer_shop = CustomerShops.objects.get(customer=customer.id) # customer_shop might not exist
-        customer_shop = CustomerShops.objects.get(customer=19) #debug
-        shop_products = CuShopPros.objects.filter(shop=customer_shop.id,pro_status=CuShopPros.UP_SHELF).values("product")
+        shop_products = CuShopPros.objects.filter(customer=customer.id,pro_status=CuShopPros.UP_SHELF).values("product")
+        #shop_products = CuShopPros.objects.filter(customer=19,pro_status=CuShopPros.UP_SHELF).values("product")
         product_ids = set()
         for item in shop_products:
             product_ids.add(item["product"])
