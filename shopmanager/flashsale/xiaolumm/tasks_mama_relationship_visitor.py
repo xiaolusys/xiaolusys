@@ -79,10 +79,14 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
     
     date_field = click_time.date()
     uni_key = gen_uniquevisitor_unikey(openid, date_field)
-    
-    visitor = UniqueVisitor(mama_id=mama_id,visitor_unionid=unionid,visitor_nick=nick,
-                            visitor_img=img,uni_key=uni_key,date_field=date_field)
-    visitor.save()
+
+    try:
+        visitor = UniqueVisitor(mama_id=mama_id,visitor_unionid=unionid,visitor_nick=nick,
+                                visitor_img=img,uni_key=uni_key,date_field=date_field)
+        visitor.save()
+    except IntegrityError:
+        pass
+        # visitor already visited a mama's link, ignoring.
 
     
         

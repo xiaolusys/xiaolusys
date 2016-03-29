@@ -18,6 +18,15 @@ def get_cur_info():
     return f.f_code.co_name
 
 
+def create_dailystats_with_integrity(mama_id, date_field, uni_key, **kwargs):
+    try:
+        stats = DailyStats(mama_id=mama_id, date_field=date_field, uni_key=uni_key, **kwargs)
+        stats.save()
+    except IntegrityError as e:
+        logger.error("IntegrityError - DailyStats | mama_id: %s, params: %s" % (mama_id, kwargs))
+        DailyStats.objects.filter(mama_id=mama_id, date_field=date_field, uni_key=uni_key).update(**kwargs)
+
+
 @task()
 def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
@@ -53,9 +62,8 @@ def task_visitor_increment_dailystats(mama_id, date_field):
     records = DailyStats.objects.filter(uni_key=uni_key)
     
     if records.count() <= 0:
-        stats = DailyStats(mama_id=mama_id,date_field=date_field,
-                           uni_key=uni_key,today_visitor_num=1)
-        stats.save()
+        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=1)
+        
         task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
     else:
         records.update(today_visitor_num=F('today_visitor_num')+1)
@@ -75,9 +83,7 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
             today_carry_num = carrys[0]["carry"] 
 
     if records.count() <= 0:
-        stats = DailyStats(mama_id=mama_id,date_field=date_field,
-                           uni_key=uni_key,today_carry_num=today_carry_num)
-        stats.save()
+        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
         task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
     else:
         stats = records[0]
@@ -94,9 +100,7 @@ def task_ordercarry_increment_dailystats(mama_id, date_field):
     #today_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field).count()
     
     if records.count() <= 0:
-        stats = DailyStats(mama_id=mama_id,date_field=date_field,
-                           uni_key=uni_key,today_order_num=1)
-        stats.save()
+        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_order_num=1)
         task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
     else:
         records.update(today_order_num=F('today_order_num')+1)
