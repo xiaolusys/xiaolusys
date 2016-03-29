@@ -277,7 +277,7 @@ listenWeixinShareEvent(shareParams,
     });
 $(document).ready(function(){
     // 加载推荐商品
-    var promotion_url = '/rest/v1/products/promotion_ads?category={{dress_star.category_id}}&lnum=1&max_age={{dress_age}}';
+    var promotion_url = '/rest/v1/products/promotion_ads?lnum=1&max_age={{dress_age}}&min_age={{dress_age}}';
     $.get(
         promotion_url,
         function(resp){

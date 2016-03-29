@@ -242,7 +242,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     def calc_items_cache_key(self, view_instance, view_method,
                             request, args, kwargs):
-        key_vals = ['order_by','id','model_id','days','page','page_size']
+        key_vals = ['order_by','id','pk', 'model_id','days','page','page_size']
         key_maps = kwargs or {}
         for k,v in request.GET.copy().iteritems():
             if k in key_vals and v.strip():
@@ -724,7 +724,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     @list_route(methods=['get'])
     @cache_response(timeout=30,key_func='calc_items_cache_key')
-    def promotion_ads(self, request):
+    def promotion_ads(self, request, *args, **kwargs):
         """ 推荐展示商品信息 """
         content = request.REQUEST
         category = content.get('category')
