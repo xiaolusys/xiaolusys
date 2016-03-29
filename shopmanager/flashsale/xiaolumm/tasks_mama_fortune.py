@@ -46,8 +46,6 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
         fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
-        #fortune = MamaFortune(mama_id=mama_id,history_confirmed=cash)
-        #fortune.save()
         
 
 @task()
@@ -73,8 +71,6 @@ def task_cashout_update_mamafortune(mama_id):
             fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
-        #fortune = MamaFortune(mama_id=mama_id,carry_cashout=cashout_confirmed)
-        #fortune.save()
     
 
 @task()
@@ -98,9 +94,6 @@ def task_carryrecord_update_mamafortune(mama_id):
             fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id,carry_pending=carry_pending,carry_confirmed=carry_confirmed)
-        #fortune = MamaFortune(mama_id=mama_id,carry_pending=carry_pending,
-        #                      carry_confirmed=carry_confirmed)
-        #fortune.save()
 
 
 @task()
@@ -124,8 +117,6 @@ def task_activevalue_update_mamafortune(mama_id):
         mama_fortunes.update(active_value_num=value_num)
     else:
         create_mamafortune_with_integrity(mama_id,active_value_num=value_num)
-        #mama_fortune = MamaFortune(mama_id=mama_id, active_value_num=value_num)
-        #mama_fortune.save()
 
             
 @task()
@@ -143,8 +134,6 @@ def task_update_mamafortune_invite_num(mama_id):
             mama.save()
     else:
         create_mamafortune_with_integrity(mama_id,invite_num=invite_num)
-        #mama = MamaFortune(mama_id=mama_id,invite_num=invite_num)
-        #mama.save()
             
 
 @task()
@@ -177,8 +166,6 @@ def task_update_mamafortune_mama_level(mama_id):
             mama.save()
     else:
         create_mamafortune_with_integrity(mama_id,mama_level=level)
-        #mama = MamaFortune(mama_id=mama_id,mama_level=level)
-        #mama.save()
                     
             
 @task()
@@ -193,8 +180,6 @@ def task_update_mamafortune_fans_num(mama_id):
         mamas.update(fans_num=fans_num)
     else:
         create_mamafortune_with_integrity(mama_id,fans_num=fans_num)
-        #mama = MamaFortune(mama_id=mama_id,fans_num=fans_num)
-        #mama.save()
     
         
 @task()
@@ -208,6 +193,4 @@ def task_update_mamafortune_order_num(mama_id):
         mamas.update(order_num=order_num)
     else:
         create_mamafortune_with_integrity(mama_id,order_num=order_num)
-        #mama = MamaFortune(mama_id=mama_id,order_num=order_num)
-        #mama.save()
                        
