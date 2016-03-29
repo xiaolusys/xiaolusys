@@ -225,7 +225,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     > ### /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
     > ### /my_choice_pro: 获取'我的选品列表'产品数据
            params: category=[1,2]
-           sort_field=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
+           sort_field= ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']
            page=n (n >= 1)
            page_size=n (n >= 1)
     """
@@ -613,12 +613,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         
         agencylevel = 1
-        #agencylevel = 2 #debug
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
             agencylevel = xlmm.agencylevel
         except XiaoluMama.DoesNotExist:
             pass
+        #agencylevel = 2 #debug
 
         queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
 
@@ -676,7 +676,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             
             prodic['rebet_amount'] = rebet_amount
             prodic['sale_num_des'] = '{0}人在卖'.format(sale_num)
-            prodic['rebet_amount_des'] = '佣 ￥{0}'.format(rebet_amount)
+            prodic['rebet_amount_des'] = '佣 ￥{0}.00'.format(rebet_amount)
 
             products.append(prodic)
 
