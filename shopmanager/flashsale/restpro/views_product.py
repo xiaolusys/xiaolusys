@@ -224,6 +224,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     > ### /{pk}/details[.format]: 商品详情;
     > ### /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
     > ### /my_choice_pro: 获取'我的选品列表'产品数据
+           params: category=[1,2]
+           sort_field=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
+           page=n (n >= 1)
+           page_size=n (n >= 1)
     """
     queryset = Product.objects.all()
     serializer_class = serializers.ProductSerializer
