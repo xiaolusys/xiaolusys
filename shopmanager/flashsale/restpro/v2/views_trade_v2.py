@@ -167,7 +167,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             cash__gte=payment).update(cash=models.F('cash')-payment)
         logger.info('wallet charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
         if urows == 0 :
-            return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'妈妈钱包余额不足'}
+            raise Exception(u'妈妈钱包余额不足')
         CarryLog.objects.create(xlmm=xlmm.id,
                                 order_num=strade_id,
                                 buyer_nick=buyer_nick,
@@ -191,8 +191,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 user=buyer,
                 amount__gte=payment
             ).update(amount=models.F('amount') - payment)
+        logger.info('budget charge:saletrade=%s, updaterows=%d'%(sale_trade, urows))
         if urows == 0 :
-            return {'channel':channel,'success':False,'id':sale_trade.id,'info':u'小鹿钱包余额不足'}
+            raise Exception(u'小鹿钱包余额不足')
+        
         BudgetLog.objects.create(customer_id=buyer.id,
                                 referal_id=strade_id,
                                 flow_amount=payment,
@@ -327,8 +329,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             )
         
         #关闭购物车
-        for cart in cart_qs:
-            cart.close_cart(release_locknum=False)
+#         for cart in cart_qs:
+#             cart.close_cart(release_locknum=False)
             
     @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
@@ -388,6 +390,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for param in pay_extra_dict.values():
             pid = param['pid']
             if pid == CONS.ETS_COUPON and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
+                if not param.has_key('couponid') or not param['couponid'].isdigit():
+                    raise Exception('请传入合法的couponid')
                 coupon_id  = int(param['couponid'])
                 discount_fee += self.calc_counpon_discount(coupon_id,**kwargs)
             if pid == CONS.ETS_APPCUT and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
@@ -442,7 +446,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             extra_params = {'item_ids':','.join(item_ids),
                             'buyer_id':customer.id,
                             'payment':cart_total_fee - cart_discount}
-            logger.debug('cart payment:extra_params=%s'%extra_params)
+            logger.debug('cart payment:uuid=%s,extra_params=%s'%(tuuid,extra_params))
             try:
                 cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
             except Exception, exc:
@@ -479,9 +483,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
+            logger.warn('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message))
             return Response({'code':5, 'info':exc.message})
-        
-        return Response({'code':0, 'info':u'success', 'charge':response_charge})
+
+        return Response({'code':0, 'info':u'success', 'channel':channel, 'charge':response_charge})
             
         
     @list_route(methods=['get','post'])
@@ -603,3 +608,5 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－取消订单')
         return Response(data={"ok": True})
+    
+    

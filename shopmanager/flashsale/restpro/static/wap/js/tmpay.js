@@ -117,8 +117,8 @@ var click_paybtn = click_paybtn || false;
 
 function Ctrl_sure_charge(pay_url){
     //确认支付
-    var WALLET_PAY = 'wallet';    
-    var CHARGE_URL  = pay_url; //GLConfig.baseApiUrl + pay_url;
+    var WALLET_PAY = 'wallet';
+    var CHARGE_URL  = GLConfig.baseApiUrl + pay_url;
     var channel     = $('.pay-type .pay-list li.active i').attr('id');
     if (isNone(channel)){
         drawToast('请选择正确的支付方式');
@@ -158,10 +158,10 @@ function Ctrl_sure_charge(pay_url){
     var callBack = function(data){
         click_paybtn = false;
         var redirect_url = '/index.html';
-          if (data.channel == WALLET_PAY){//使用钱包支付
-              redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
-              window.location.href = adjustPageLink(redirect_url);
-          }else{
+        if (data.channel == WALLET_PAY){//使用钱包支付
+          redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
+          window.location.href = adjustPageLink(redirect_url);
+        }else{
           pingpp.createPayment(data, function(result, err) {
               if (result == "success") {
                 redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];

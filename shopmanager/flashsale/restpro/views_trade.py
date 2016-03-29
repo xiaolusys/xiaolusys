@@ -272,11 +272,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def get_payextras(self, request, resp):
         
         extras = []
-        #APP减两元
-        extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
         #优惠券
         extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_COUPON))
-        
+        #APP减两元
+        extras.append(CONS.PAY_EXTRAS.get(CONS.ETS_APPCUT))
+        #余额
         if resp['budget_cash'] > 0 and resp['total_payment'] > 0:
             budgets = CONS.PAY_EXTRAS.get(CONS.ETS_BUDGET)
             budgets.update(value=min(resp['budget_cash'],resp['total_payment']))
