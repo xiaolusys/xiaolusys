@@ -225,7 +225,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     > ### /{pk}/snapshot.html: 获取特卖商品快照（需登录）;
     > ### /my_choice_pro: 获取'我的选品列表'产品数据
            params: category=[1,2]
-           sort_field=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
+           sort_field= ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']
            page=n (n >= 1)
            page_size=n (n >= 1)
     """
