@@ -676,7 +676,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             
             prodic['rebet_amount'] = rebet_amount
             prodic['sale_num_des'] = '{0}人在卖'.format(sale_num)
-            prodic['rebet_amount_des'] = '佣 ￥{0}'.format(rebet_amount)
+            prodic['rebet_amount_des'] = '佣 ￥{0}.00'.format(rebet_amount)
 
             products.append(prodic)
 
