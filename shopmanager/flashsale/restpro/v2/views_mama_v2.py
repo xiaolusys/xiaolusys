@@ -291,7 +291,7 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(referal_from_mama_id=mama_id).order_by('-date_field', '-created')
+        return self.queryset.filter(referal_from_mama_id=mama_id).order_by('-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)
@@ -315,7 +315,7 @@ class GroupRelationshipViewSet(viewsets.ModelViewSet):
 
     def get_owner_queryset(self, request):
         mama_id = get_mama_id(request.user)
-        return self.queryset.filter(leader_mama_id=mama_id).order_by('-date_field', '-created')
+        return self.queryset.filter(leader_mama_id=mama_id).order_by('-created')
 
     def list(self, request, *args, **kwargs):
         datalist = self.get_owner_queryset(request)

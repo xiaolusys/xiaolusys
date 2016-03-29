@@ -39,7 +39,7 @@ def get_choice_name(choices, val):
 
 
 # The time to switch to xiaolumama v2.0
-MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016,03,23)
+MAMA_FORTUNE_HISTORY_LAST_DAY = datetime.date(2016,03,24)
 
 
 class MamaFortune(BaseModel):
@@ -190,7 +190,7 @@ post_save.connect(carryrecord_update_mamafortune,
 
 class OrderCarry(BaseModel):
     CARRY_TYPES = ((1, u'Web直接订单'),(2, u'App粉丝订单'),(3, u'下属订单'),)
-    STATUS_TYPES = ((0, u'未付款'),(1, u'待确定'), (2, u'已确定'), (3, u'买家取消'),)
+    STATUS_TYPES = ((0, u'待付款'),(1, u'待确定'), (2, u'已确定'), (3, u'买家取消'),)
 
     mama_id = models.BigIntegerField(default=0, db_index=True, verbose_name=u'小鹿妈妈id')
     order_id = models.CharField(max_length=64, blank=True, verbose_name=u'订单ID')
@@ -496,6 +496,11 @@ class ReferalRelationship(BaseModel):
         db_table = 'flashsale_xlmm_referal_relationship'
         verbose_name = u'V2/妈妈推荐关系'
         verbose_name_plural = u'V2/妈妈推荐关系列表'
+
+    def referal_to_mama_nick_display(self):
+        if self.referal_to_mama_nick == "":
+            return u"匿名用户"
+        return self.referal_to_mama_nick
 
 
 def update_mamafortune_invite_num(sender, instance, created, **kwargs):
