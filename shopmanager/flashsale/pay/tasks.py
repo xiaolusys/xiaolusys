@@ -143,14 +143,11 @@ def task_Push_SaleTrade_Finished(pre_days=10):
 @task(max_retry=3,default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id,charge_time=None):
     
-    try:
-        strade = SaleTrade.objects.get(id=sale_trade_id)
-        strade.charge_confirm(charge_time=charge_time)
-        saleservice = FlashSaleService(strade)
-        saleservice.payTrade()
-    except Exception,exc:
-        raise confirmTradeChargeTask.retry(exc=exc)
-            
+    strade = SaleTrade.objects.get(id=sale_trade_id)
+    strade.charge_confirm(charge_time=charge_time)
+    saleservice = FlashSaleService(strade)
+    saleservice.payTrade()
+    
 
 @task(max_retry=3,default_retry_delay=60)
 @transaction.commit_on_success

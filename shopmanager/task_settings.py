@@ -230,7 +230,7 @@ CELERY_ROUTES = {
         },#小鹿特卖平台订单退款更新到仓库订单
         'flashsale.pay.tasks.confirmTradeChargeTask': {
             'queue': 'notify',
-            'routing_key': 'noitfy.confirm_trade_charge',
+            'routing_key': 'notify.confirm_trade_charge',
         },#小鹿订单确认支付
          #######################################################
         'flashsale.clickcount.tasks.task_Create_Click_Record': {
