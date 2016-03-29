@@ -84,10 +84,11 @@ class ActiveValueSerializer(serializers.ModelSerializer):
 
 
 class ReferalRelationshipSerializer(serializers.ModelSerializer):
+    referal_to_mama_nick = serializers.CharField(source='referal_to_mama_nick_display', read_only=True)
     class Meta:
         model = ReferalRelationship
-        fields = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 'referal_to_mama_img',
-                  'modified', 'created')
+        fields = ('referal_from_mama_id', 'referal_to_mama_id', 'referal_to_mama_nick', 
+                  'referal_to_mama_img', 'modified', 'created')
 
 
 class GroupRelationshipSerializer(serializers.ModelSerializer):
