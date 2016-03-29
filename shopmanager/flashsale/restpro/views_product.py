@@ -723,7 +723,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({"shop_info": shop_info, "products": serializer.data})
     
     @list_route(methods=['get'])
-    @cache_response(timeout=15*60,key_func='calc_items_cache_key')
+    @cache_response(timeout=30,key_func='calc_items_cache_key')
     def promotion_ads(self, request):
         """ 推荐展示商品信息 """
         content = request.REQUEST
@@ -740,7 +740,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         if delta_num > 0:
             product_qs = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
             product_qs = self.order_queryset(request, product_qs)
-            
             
             if category and category.isdigit():
                 product_qs = product_qs.filter(category=category)
