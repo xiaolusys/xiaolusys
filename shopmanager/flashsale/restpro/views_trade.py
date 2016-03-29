@@ -859,7 +859,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         discount_fee = 0
         for param in pay_extra_dict.values():
             pid = param['pid']
-            if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
+            if pid == CONS.ETS_COUPON and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
                 discount_fee += CONS.PAY_EXTRAS[pid]['value'] * 100
         return discount_fee
     
