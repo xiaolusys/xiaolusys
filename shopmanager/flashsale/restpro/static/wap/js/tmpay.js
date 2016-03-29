@@ -158,10 +158,10 @@ function Ctrl_sure_charge(pay_url){
     var callBack = function(data){
         click_paybtn = false;
         var redirect_url = '/index.html';
-          if (data.channel == WALLET_PAY){//使用钱包支付
-              redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
-              window.location.href = adjustPageLink(redirect_url);
-          }else{
+        if (data.channel == WALLET_PAY){//使用钱包支付
+          redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];
+          window.location.href = adjustPageLink(redirect_url);
+        }else{
           pingpp.createPayment(data, function(result, err) {
               if (result == "success") {
                 redirect_url = GLConfig.zhifucg_url+'?out_trade_no='+params['uuid'];

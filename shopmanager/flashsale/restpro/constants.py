@@ -14,7 +14,7 @@ REALPAY  = 2
 
 PAY_EXTRAS = {
     ETS_APPCUT:{'pid':1,'type':DISCOUNT,'value':2,'name':'APP支付减2元'},
-    ETS_COUPON:{'pid':2,'type':DISCOUNT,'value':1,'name':'优惠券'}, #1,能使用优惠券,0,不能使用
+    ETS_COUPON:{'pid':2,'type':DISCOUNT,'use_coupon_allowed':1,'name':'优惠券'}, #1,能使用优惠券,0,不能使用
     ETS_BUDGET:{'pid':3,'type':BUDGET,'value':0,'name':'余额支付'},
 } 
 
