@@ -547,3 +547,4 @@ from flashsale.pay.models_faqs import SaleFaqs
 class SaleFaqsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleFaqs
+        fields = ('question', 'answer')
