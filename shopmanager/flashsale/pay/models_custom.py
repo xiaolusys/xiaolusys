@@ -87,6 +87,12 @@ class ModelProduct(PayBaseModel):
     STATUS_CHOICES = ((NORMAL,u'正常'),
                       (DELETE,u'作废'))
 
+    #UP_SHELF = 1
+    #DOWN_SHELF = 0
+
+    #SHELF_CHOICES = ((UP_SHELF,u'已上架'),
+    #                 (DOWN_SHELF,u'未上架'))
+
     name       = models.CharField(max_length=64,db_index=True,verbose_name=u'款式名称')
 
     head_imgs  = models.TextField(blank=True,verbose_name=u'题头照(多张请换行)')
@@ -97,6 +103,15 @@ class ModelProduct(PayBaseModel):
     per_limit    = models.IntegerField(default=5,verbose_name=u'限购数量')
 
     sale_time    = models.DateField(null=True,blank=True,db_index=True,verbose_name=u'上架日期')
+
+    # Newly added 5 fields for XiaoluMama selection site. --zifei 03-28
+    #uni_key = models.CharField(max_length=64, blank=True, unique=True, verbose_name=u'唯一ID')
+    #std_sale_price = models.FloatField(default=0,verbose_name=u'吊牌价')
+    #agent_price    = models.FloatField(default=0,verbose_name=u'出售价')
+    #category       = models.IntegerField(default=0,verbose_name=u'内部分类')
+    #shelf_status   = models.IntegerField(choices=Product.SHELF_CHOICES,db_index=True,
+    #                                     default=Product.DOWN_SHELF,verbose_name=u'上架状态')
+
 
     status       = models.CharField(max_length=16,db_index=True,
                                     choices=STATUS_CHOICES,

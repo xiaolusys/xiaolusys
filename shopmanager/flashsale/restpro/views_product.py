@@ -235,7 +235,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     paginate_by_param = 'page_size'
     max_paginate_by = 100
     INDEX_ORDER_BY = 'main'
-
+    
     def calc_items_cache_key(self, view_instance, view_method,
                             request, args, kwargs):
         key_vals = ['order_by','id','model_id','days','page','page_size']
@@ -604,51 +604,82 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """
         content = request.REQUEST
         category = int(content.get('category', 0))  # 1童装2女装
-        customer = get_object_or_404(Customer, user=request.user)
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(shelf_status=Product.UP_SHELF)
-
-        queryset = self.get_child_qs(queryset) if category == 1 else queryset
-        queryset = self.get_female_qs(queryset) if category == 2 else queryset
-
-        extra_str = 'remain_num - lock_num > 0 AND NOT name REGEXP "^秒杀"'
-        queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的
-        pros = self.choice_query_2_dict(queryset, customer, request)
-        return Response(pros)
-
-    def choice_query_2_dict(self, queryset, customer, request):
-        pros = []
-        rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
-        content = request.REQUEST
         sort_field = content.get('sort_field', 'id')  # 排序字段
+        
+        customer = get_object_or_404(Customer, user=request.user)
+        
+        agencylevel = 1
+        #agencylevel = 2 #debug
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
+            agencylevel = xlmm.agencylevel
         except XiaoluMama.DoesNotExist:
-            xlmm = False
-        model_ids = []
+            pass
+
+        queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
+
+        if category == 1:
+            queryset = self.get_child_qs(queryset)
+        elif category == 2:
+            queryset = self.get_female_qs(queryset)
+        else:
+            queryset = self.get_custom_qs(queryset)
+            
+        extra_str = 'remain_num - lock_num > 0'
+        queryset = queryset.extra(where={extra_str})  # 没有卖光的 不是秒杀产品的
+        
+        queryset = self.paginate_queryset(queryset)
+        
+        pros = self.choice_query_2_dict(queryset, customer, agencylevel)
+        
+
+        if sort_field in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:
+            pros = sorted(pros, key=lambda k: k[sort_field], reverse=True)
+
+        return self.get_paginated_response(pros)
+
+    
+    def choice_query_2_dict(self, queryset, customer, agencylevel):
+        carry_policy = {}
+        try:
+            rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
+            carry_policy = rebt.price_rebetas
+        except AgencyOrderRebetaScheme.DoesNotExist:
+            pass
+        
+        #customer_shop = CustomerShops.objects.get(customer=customer.id) # customer_shop might not exist
+        customer_shop = CustomerShops.objects.get(customer=19) #debug
+        shop_products = CuShopPros.objects.filter(shop=customer_shop.id,pro_status=CuShopPros.UP_SHELF).values("product")
+        product_ids = set()
+        for item in shop_products:
+            product_ids.add(item["product"])
+
+        shop_product_num = len(product_ids)
+
+        from flashsale.xiaolumm.models_rebeta import calculate_price_carry
+        products = []
         for pro in queryset:
-            if pro.model_id in model_ids:
-                continue
-            kwargs = {'agencylevel': xlmm.agencylevel,
-                      'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
-            rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
-            prodic = model_to_dict(pro,
-                                   fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
+            rebet_amount = calculate_price_carry(agencylevel, pro.agent_price, carry_policy)
+            prodic = model_to_dict(pro, fields=['id', 'pic_path', 'name', 'std_sale_price', 'agent_price', 'remain_num'])
+            
             # 预留数 * 97(质数)+(97内的随机数) = (模拟)销量　
             sale_num = prodic['remain_num'] * 19 + random.choice(xrange(19))
             prodic['sale_num'] = sale_num
-            prodic['in_customer_shop'] = pro.in_customer_shop(customer.id)
+
+            prodic['in_customer_shop'] = 0
+            if pro.id in product_ids:
+                prodic['in_customer_shop'] = 1
+            prodic['shop_product_num'] = shop_product_num
+            
             prodic['rebet_amount'] = rebet_amount
             prodic['sale_num_des'] = '{0}人在卖'.format(sale_num)
             prodic['rebet_amount_des'] = '佣 ￥{0}'.format(rebet_amount)
-            pros.append(prodic)
-            model_ids.append(pro.model_id)
-        if sort_field not in ['id', 'sale_num', 'rebet_amount', 'std_sale_price', 'agent_price']:
-            return {"code": 2}
-        if sort_field:
-            pros = sorted(pros, key=lambda k: k[sort_field], reverse=True)
-        return pros
 
+            products.append(prodic)
+
+        return products
+
+    
     @list_route(methods=['get'])
     def get_mama_shop(self, request):
         """
