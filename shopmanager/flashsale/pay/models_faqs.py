@@ -17,8 +17,14 @@ class SaleFaqs(BaseModel):
     SALES_RETURN = 2
     SALES_REFUND = 3
 
-    DETAIL_TYPE = ((LOGISTICS, u'物流问题'), (AFTER_SALE, u'售后问题'), (SALES_RETURN, u'退货问题'),
-                   (SALES_REFUND, u'退款问题'))
+    MAMA_JOIN = 4
+    MAMA_OUT = 5
+    CARRY_Q = 6
+    ACTIVE_Q = 7
+
+    DETAIL_TYPE = ((LOGISTICS, u'物流问题'), (AFTER_SALE, u'售后问题'), (SALES_RETURN, u'退货问题'), (SALES_REFUND, u'退款问题'),
+
+                   (MAMA_JOIN, u'招募问题'), (MAMA_OUT, u'退出问题'), (CARRY_Q, u'佣金问题'), (ACTIVE_Q, u'活动问题'))
 
     question_type = models.IntegerField(choices=QUESTION_TYPE, default=0, db_index=True, verbose_name=u'主分类')
     detail_type = models.IntegerField(choices=DETAIL_TYPE, default=0, db_index=True, verbose_name=u'详细分类')

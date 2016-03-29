@@ -27,6 +27,7 @@ from . import views_wuliu_new
 from . import views_cushops
 from . import views_promotion
 from . import views_login_v2
+from . import views_faqs
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -55,6 +56,7 @@ router.register(r'hotproduct', views_praise.HotProductViewSet)
 router.register(r'prorefrcd', views_pro_ref.ProRefRcdViewSet)
 router.register(r'calcuprorefrcd', views_pro_ref.CalcuProRefRcd)
 router.register(r'download', views.AppDownloadLinkViewSet)
+router.register(r'faqs', views_faqs.SaleFaqsViewSet)
 
 
 #  推广接口注册
