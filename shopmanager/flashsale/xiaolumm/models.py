@@ -603,8 +603,7 @@ class CashOut(models.Model):
 
 def cashout_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    if instance.is_confirmed():
-        tasks_mama_fortune.task_cashout_update_mamafortune.s(instance.xlmm)()
+    tasks_mama_fortune.task_cashout_update_mamafortune.s(instance.xlmm)()
 
 post_save.connect(cashout_update_mamafortune, 
                   sender=CashOut, dispatch_uid='post_save_cashout_update_mamafortune')
