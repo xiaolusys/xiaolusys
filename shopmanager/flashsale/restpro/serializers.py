@@ -495,7 +495,7 @@ class CuShopProsSerialize(serializers.ModelSerializer):
     class Meta:
         model = CuShopPros
         fields = ('id', "product", "pro_status", "name", "pic_path", 'std_sale_price', 'agent_price',
-                  "carry_amount", 'position', 'sale_num')
+                  "carry_amount", 'position', 'sale_num', 'modified', 'created')
 
 
 from flashsale.promotion.models import XLSampleSku, XLSampleApply, XLFreeSample, XLSampleOrder, XLInviteCode

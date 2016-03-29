@@ -682,7 +682,6 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
         return products
 
-    
     @list_route(methods=['get'])
     def get_mama_shop(self, request):
         """
@@ -700,26 +699,21 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             shop = CustomerShops.objects.get(customer=customer_id)
             shop_info = model_to_dict(shop, fields=['name'])
             shop_info['thumbnail'] = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg'
-            shop_pros = CuShopPros.objects.filter(shop=shop.id, pro_status=CuShopPros.UP_SHELF)
+            shop_pros = CuShopPros.objects.filter(shop=shop.id, pro_status=CuShopPros.UP_SHELF).order_by()
         except:
             return Response({"shop_info": None, "products": None})
-        shop_proids = shop_pros.values('product')
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.filter(shelf_status=Product.UP_SHELF)
+        from flashsale.pay.constants import FEMALE_CID_LIST, CHILD_CID_LIST
         if category == 'child':
-            queryset = self.get_child_qs(queryset)
+            queryset = shop_pros.filter(pro_category__in=CHILD_CID_LIST)
         elif category == 'female':
-            queryset = self.get_female_qs(queryset)
-        pros = queryset.filter(id__in=shop_proids)
-
-        page = self.paginate_queryset(pros)
-
+            queryset = shop_pros.filter(pro_category__in=FEMALE_CID_LIST)
+        else:
+            queryset = shop_pros
+        page = self.paginate_queryset(queryset)
         if page is not None:
-            object_list = self.objets_from_cache(page)
-            serializer = self.get_serializer(object_list, many=True)
+            serializer = serializers.CuShopProsSerialize(page, many=True)
             return self.get_paginated_response({"shop_info": shop_info, "products": serializer.data})
-        object_list = self.objets_from_cache(pros, value_keys=['pk', 'is_saleout'])
-        serializer = self.get_serializer(object_list, many=True)
+        serializer = serializers.CuShopProsSerialize(queryset, many=True)
         return Response({"shop_info": shop_info, "products": serializer.data})
     
     @list_route(methods=['get'])
