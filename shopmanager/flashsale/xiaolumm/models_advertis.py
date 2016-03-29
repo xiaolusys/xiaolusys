@@ -51,7 +51,20 @@ class TweetAdvertorial(models.Model):
 class NinePicAdver(models.Model):
     """ 9张图 """
     Nine_PIC = 9
-    CATEGORY_CHOICE = ((Nine_PIC, u"九张图类型"),)
+    EIGHT_PIC = 8
+    SEVEN_PIC = 7
+    SIX_PIC = 6
+    FIVE_PIC = 5
+    FOUR_PIC = 4
+    THIRE_PIC = 3
+    TWO_PIC = 2
+    ONE_PIC = 1
+
+    CATEGORY_CHOICE = (
+        (Nine_PIC, u"9张图类型"), (EIGHT_PIC, u"8张图类型"), (SEVEN_PIC, u"7张图类型"), (SIX_PIC, u"6张图类型"),
+        (FIVE_PIC, u"5张图类型"),
+        (FOUR_PIC, u"4张图类型"), (THIRE_PIC, u"3张图类型"), (TWO_PIC, u"2张图类型"), (ONE_PIC, u"1张图类型"))
+
     auther = models.CharField(max_length=32, blank=True, null=True, verbose_name=u'作者')
     title = models.CharField(max_length=512, db_index=True, verbose_name=u'标题')
     description = models.TextField(max_length=1024, blank=True, null=True, verbose_name=u'文案描述')
@@ -81,13 +94,13 @@ class NinePicAdver(models.Model):
         return self.description.replace('\r\n', '\r')
 
 
-
 from flashsale.xiaolumm import util_emoji
+
 
 def gen_emoji(sender, instance, created, **kwargs):
     desc = util_emoji.gen_emoji(instance.description)
     NinePicAdver.objects.filter(id=instance.id).update(description=desc)
-        
+
 
 post_save.connect(gen_emoji,
                   sender=NinePicAdver, dispatch_uid='post_save_ninpicadver_gen_emoji')

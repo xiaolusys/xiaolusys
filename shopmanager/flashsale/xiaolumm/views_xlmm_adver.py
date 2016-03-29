@@ -49,5 +49,5 @@ class NinepicView(APIView):
         ninepic = NinePicAdver.objects.create(title=title, start_time=start_time, pic_arry=pic_arry,
                                               turns_num=turns_num, cate_gory=cate_gory, description=description,
                                               auther=auther)
-        log_action(request.user.id, ninepic, ADDITION, "添加九张图")
+        log_action(request.user.id, ninepic, ADDITION, "添加" + cate_gory + "张图")
         return Response({"code": 1})
