@@ -85,6 +85,7 @@ def task_update_unique_visitor(mama_id, openid, appkey, click_time):
                                 visitor_img=img,uni_key=uni_key,date_field=date_field)
         visitor.save()
     except IntegrityError:
+        logger.error("IntegrityError - UniqueVisitor | mama_id: %s, uni_key: %s" % (mama_id, uni_key))
         pass
         # visitor already visited a mama's link, ignoring.
 
