@@ -199,7 +199,7 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         """ app首页启动图 """
         
         return Response({
-            'picture':'http://7xogkj.com2.z0.glb.qiniucdn.com/dress_%E8%83%8C%E6%99%AF%E8%89%B2%E5%80%BC.png',
+            'picture':'http://7xogkj.com2.z0.glb.qiniucdn.com/startup_ios8_retina_HD5.5.png',
             'created':datetime.datetime.now(),
         })
 
