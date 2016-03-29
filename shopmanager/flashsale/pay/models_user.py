@@ -259,8 +259,6 @@ class UserBudget(PayBaseModel):
         """ 返回金额　"""
         return self.budget_cash
     
-    
-    
     def charge_pending(self, strade_id, payment):
         """ 提交支付 """
         try:

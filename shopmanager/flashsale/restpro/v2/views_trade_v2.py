@@ -216,7 +216,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
         if sale_trade.has_budget_paid:
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
-            budget_charge_create = ubudget.charge_pending(sale_trade.id,sale_trade.budget_payment)
+            budget_charge_create = ubudget.charge_pending(sale_trade.id,sale_trade.budget_payment * 100)
             if not budget_charge_create:
                 raise Exception('用户余额不足')
         
