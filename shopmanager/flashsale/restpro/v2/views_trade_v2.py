@@ -329,8 +329,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             )
         
         #关闭购物车
-#         for cart in cart_qs:
-#             cart.close_cart(release_locknum=False)
+        for cart in cart_qs:
+            cart.close_cart(release_locknum=False)
             
     @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
@@ -485,9 +485,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
             logger.warn('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message))
-            return Response({'code':5, 'info':exc.message})
+            return Response({'code':5, 'info':exc.message or '未知支付异常'})
 
-        return Response({'code':0, 'info':u'success', 'channel':channel, 'charge':response_charge})
+        return Response({'code':0, 'info':u'支付成功', 'channel':channel, 'charge':response_charge})
             
         
     @list_route(methods=['get','post'])
