@@ -455,11 +455,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             
             cart_discount = min(cart_discount, cart_total_fee)
             if discount_fee > cart_discount:
+                logger.warn('cart discount err:params=%s'%(request.REQUEST))
                 return Response({'code':4, 'info':u'优惠金额异常'})
             
             cart_payment = cart_total_fee + post_fee - cart_discount
             if (post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10 
                 or abs(total_fee - cart_total_fee) > 10):
+                logger.warn('cart payment err:params=%s'%(request.REQUEST))
                 return Response({'code':4, 'info':u'付款金额异常'})
             
         addr_id  = CONTENT.get('addr_id')
