@@ -281,29 +281,22 @@ class UserBudget(PayBaseModel):
             return True
         return True
     
-    def charge_confirm(self, strade_id, payment):
+    def charge_confirm(self, strade_id):
         """ 确认支付 """
-        budget = BudgetLog.objects.get(customer_id=self.user.id,
+        blog = BudgetLog.objects.get(customer_id=self.user.id,
                                 referal_id=strade_id,
                                 budget_log_type=BudgetLog.BG_CONSUM)
         
-        return budget.push_pending_to_confirm()
+        return blog.push_pending_to_confirm()
     
-    def charge_cancel(self, strade_id, payment):
+    def charge_cancel(self, strade_id):
         """ 支付取消 """
-        urows = UserBudget.objects.filter(
-                user=self.user,
-                amount__gte=payment
-            ).update(amount=models.F('amount') - payment)
-        if urows == 0 :
-            return False
-        BudgetLog.objects.create(customer_id=self.user.id,
+        blog = BudgetLog.objects.get(customer_id=self.user.id,
                                 referal_id=strade_id,
-                                flow_amount=payment,
-                                budget_log_type=BudgetLog.BG_CONSUM,
-                                budget_type=BudgetLog.BUDGET_OUT,
-                                status=BudgetLog.PENDING)
-        return True
+                                budget_log_type=BudgetLog.BG_CONSUM)
+
+        return blog.cancel_and_return()
+        
         
     def is_could_cashout(self):
         """ 设置普通用户钱包是否可以提现控制字段 """

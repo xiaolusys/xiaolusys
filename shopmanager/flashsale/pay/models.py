@@ -319,6 +319,10 @@ class SaleTrade(BaseModel):
         
         for order in self.normal_orders:
             order.close_order()
+            
+        if self.has_budget_paid:
+            ubudget = UserBudget.objects.get(user=self.buyer_id)
+            ubudget.charge_cancel(self.id)
         #释放被当前订单使用的优惠券
         self.release_coupon()
         
