@@ -89,8 +89,8 @@ def calculate_price_carry(agencylevel, payment_yuan, policy):
     if not carry_rules:
         return 0
     
-    payment = round(int(payment_yuan)*0.1)*10
-    
+    payment = int(round(int(payment_yuan)*0.1)*10)
+
     MAX_PAYMENT = 200 # YUAN
     if payment > MAX_PAYMENT:
         payment = MAX_PAYMENT

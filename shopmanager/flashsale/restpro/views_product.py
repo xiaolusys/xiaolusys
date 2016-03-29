@@ -613,12 +613,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         
         agencylevel = 1
-        #agencylevel = 2 #debug
         try:
             xlmm = XiaoluMama.objects.get(openid=customer.unionid)
             agencylevel = xlmm.agencylevel
         except XiaoluMama.DoesNotExist:
             pass
+        #agencylevel = 2 #debug
 
         queryset = self.get_queryset().filter(shelf_status=Product.UP_SHELF)
 
