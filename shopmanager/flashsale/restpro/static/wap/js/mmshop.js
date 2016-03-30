@@ -16,7 +16,7 @@ function createShopHhead(obj) {
 var nextShopPage = GLConfig.baseApiUrl + GLConfig.mama_shop;
 var mm_linkid_for_shop = getUrlParam('mm_linkid');
 var mmshopHeadFlag = false;
-var mmshopCategory = 'female';
+var mmshopCategory = '';
 var shopSaleTimeFlag = false;
 
 $(document).ready(function () {
@@ -104,7 +104,8 @@ function get_mama_shop_info() {
         $.each(res.results.products, function (i, val) { //默认对象
             var item_dom = createProductDom(val);
             $('.shop-body').append(item_dom);
-            var offshelf_time = new Date(val.offshelf_time.replace("T", " "));
+            console.log("val:", val);
+            var offshelf_time = new Date(val.created.replace("T", " "));
             var ts = (new Date(
                     offshelf_time.getFullYear(),
                     offshelf_time.getMonth(),

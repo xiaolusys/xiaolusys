@@ -792,22 +792,28 @@ signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash,sen
 from flashsale.pay.signals import signal_saletrade_pay_confirm
 from flashsale.pay.models import SaleTrade, SaleOrder
 
-def update_Xlmm_Agency_Progress(obj,*args,**kwargs):
-    
-    if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS 
-        and obj.is_Deposite_Order()):
-        order_buyer = obj.order_buyer 
-        mm_linkid   = obj.extras_info.get('mm_linkid') or None
+
+def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
+    if (obj.status == SaleTrade.WAIT_SELLER_SEND_GOODS and obj.is_Deposite_Order()):
+        # 是待发货状态并且是押金交易
+        order_buyer = obj.order_buyer
+        mm_linkid = obj.extras_info.get('mm_linkid') or None
         xlmms = XiaoluMama.objects.filter(openid=order_buyer.unionid)
         if xlmms.exists():
-            xlmm  = xlmms[0]
+            xlmm = xlmms[0]
             referal_mms = XiaoluMama.objects.filter(id=mm_linkid)
             if referal_mms.exists():
                 xlmm.referal_from = referal_mms[0].mobile
             xlmm.progress = XiaoluMama.PAY
-            update_model_fields(xlmm,update_fields=['progress','referal_from'])
-            
-signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress,sender=SaleTrade)
+            xlmm.charge_status = XiaoluMama.CHARGED  # 接管状态
+            xlmm.agencylevel = XiaoluMama.A_LEVEL
+            update_model_fields(xlmm, update_fields=['progress', 'referal_from', 'charge_status', 'agencylevel'])
+            # 保存订单状态到确定状态
+            obj.status = SaleTrade.TRADE_FINISHED
+            update_model_fields(obj, update_fields=['status'])
+            obj.sale_orders.update(status=SaleOrder.TRADE_FINISHED)
+
+signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)
 
 # 首单红包，10单红包
 
