@@ -2,6 +2,7 @@
 
 from celery.task import task
 from django.db.models import F, Sum
+from django.db import IntegrityError
 from flashsale.xiaolumm.models_fortune import DailyStats, UniqueVisitor, OrderCarry, CarryRecord
 from flashsale.xiaolumm import util_unikey
 import datetime
