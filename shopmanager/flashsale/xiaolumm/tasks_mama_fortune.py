@@ -37,8 +37,7 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
 
 @task()
 def task_xiaolumama_update_mamafortune(mama_id, cash):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    
+    logger.error("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))    
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortunes.update(history_confirmed=cash)
