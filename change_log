@@ -1,3 +1,7 @@
+########2016-03-30####################################
+alter table flashsale_cushops_detail add column offshelf_time datetime;
+CREATE INDEX `flashsale_cushops_detail_3229bd6f` ON `flashsale_cushops_detail` (`offshelf_time`);
+
 ########2016-03-28###################################
 alter table flashsale_cushops_detail add column pro_category int(11) default 0;
 CREATE INDEX `flashsale_cushops_detail_3f48b25d` ON `flashsale_cushops_detail` (`pro_category`);

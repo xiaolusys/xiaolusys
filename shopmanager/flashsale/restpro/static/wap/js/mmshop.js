@@ -15,6 +15,8 @@ function createShopHhead(obj) {
 
 var nextShopPage = GLConfig.baseApiUrl + GLConfig.mama_shop;
 var mm_linkid_for_shop = getUrlParam('mm_linkid');
+var link_ufrom = getUrlParam('ufrom');
+
 var mmshopHeadFlag = false;
 var mmshopCategory = '';
 var shopSaleTimeFlag = false;
@@ -23,7 +25,7 @@ $(document).ready(function () {
     console.log('link', mm_linkid_for_shop);
     if (mm_linkid_for_shop == null) {
         drawToast('店铺信息有误建议去逛逛首页吧～');
-        window.location = 'http://m.xiaolumeimei.com/index.html?mm_linkid=44&ufrom=web';
+        window.location = 'http://m.xiaolumeimei.com/index.html';
         return
     }
     get_mama_shop_info();
@@ -33,28 +35,32 @@ $(document).ready(function () {
 
     $('.female-zone').click(function () {
         mmshopCategory = 'female';
-        nextShopPage = GLConfig.baseApiUrl + GLConfig.mama_shop;//第一页初始化
-        $(".active-bar").animate({left: '0%'});// 选中条动画
+        // 2016.3.30更换为跳转到商城页面
+        location.href = 'http://m.xiaolumeimei.com/nvzhuang.html?mm_linkid' + mm_linkid_for_shop + '&ufrom=' + link_ufrom;
 
-        $('.products-div').remove();
-
-        get_mama_shop_info();
-        $(window).scroll(function () {
-            loadData(get_mama_shop_info);// 更具页面下拉情况来加载数据
-        });
+        //nextShopPage = GLConfig.baseApiUrl + GLConfig.mama_shop;//第一页初始化
+        //$(".active-bar").animate({left: '0%'});// 选中条动画
+        //
+        //$('.products-div').remove();
+        //
+        //get_mama_shop_info();
+        //$(window).scroll(function () {
+        //    loadData(get_mama_shop_info);// 更具页面下拉情况来加载数据
+        //});
     });
 
     $('.child-zone').click(function () {
         mmshopCategory = 'child';
-        nextShopPage = GLConfig.baseApiUrl + GLConfig.mama_shop;//第一页初始化
-        $(".active-bar").animate({left: '196%'});// 选中条动画
-
-        $('.products-div').remove();
-
-        get_mama_shop_info();
-        $(window).scroll(function () {
-            loadData(get_mama_shop_info);// 更具页面下拉情况来加载数据
-        });
+        location.href = 'http://m.xiaolumeimei.com/chaotong.html?mm_linkid' + mm_linkid_for_shop + '&ufrom=' + link_ufrom;
+        //nextShopPage = GLConfig.baseApiUrl + GLConfig.mama_shop;//第一页初始化
+        //$(".active-bar").animate({left: '196%'});// 选中条动画
+        //
+        //$('.products-div').remove();
+        //
+        //get_mama_shop_info();
+        //$(window).scroll(function () {
+        //    loadData(get_mama_shop_info);// 更具页面下拉情况来加载数据
+        //});
     });
 
     $('.go-back').click(function () {// 返回页是到商城主页
@@ -104,8 +110,8 @@ function get_mama_shop_info() {
         $.each(res.results.products, function (i, val) { //默认对象
             var item_dom = createProductDom(val);
             $('.shop-body').append(item_dom);
-            console.log("val:", val);
-            var offshelf_time = new Date(val.created.replace("T", " "));
+            console.log("val.offshelf_time:", val.offshelf_time);
+            var offshelf_time = new Date(val.offshelf_time.replace("T", " "));
             var ts = (new Date(
                     offshelf_time.getFullYear(),
                     offshelf_time.getMonth(),

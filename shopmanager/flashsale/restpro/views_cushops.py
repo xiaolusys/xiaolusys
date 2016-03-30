@@ -83,6 +83,9 @@ def save_pro_info(product, user):
     rebt = AgencyOrderRebetaScheme.objects.get(status=AgencyOrderRebetaScheme.NORMAL, is_default=True)
     pro = get_object_or_404(Product, id=int(product))
     shop, shop_state = CustomerShops.objects.get_or_create(customer=customer.id)
+    if not shop.name:
+        shop.name = customer.nick  # 保存店铺名称
+        shop.save()
     shop_pro, pro_state = CuShopPros.objects.get_or_create(shop=shop.id, product=pro.id)
     kwargs = {'agencylevel': xlmm.agencylevel,
               'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
@@ -92,6 +95,7 @@ def save_pro_info(product, user):
         shop_pro.pro_status = CuShopPros.DOWN_SHELF  # 则保存下架状态
     shop_pro.customer = customer.id
     shop_pro.name = pro.name
+    shop_pro.offshelf_time = pro.offshelf_time
     shop_pro.pic_path = pro.pic_path
     shop_pro.std_sale_price = pro.std_sale_price
     shop_pro.agent_price = pro.agent_price

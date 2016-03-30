@@ -91,10 +91,13 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
     renderer_classes = (renderers.TemplateHTMLRenderer, )
     template_name = "apply/step-1.html"
 
-    def get(self, request, mama_id):
+    def get(self, request):
         """
         mama_id: 推荐人的专属id
         """
+        content = request.REQUEST
+        mama_id = content.get('mama_id', 1)
+        deposite_url = "/m/register/deposite/?mama_id={0}".format(mama_id)
         # 加上装饰器之后已经登陆并注册状态（customer unionid）
         # 必须注册之后才可以成为小鹿代理　　这里使用特卖公众账号授权
         self.set_appid_and_secret(settings.WXPAY_APPID, settings.WXPAY_SECRET)
@@ -115,7 +118,8 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
             response = Response({
                 'openid': openid,
                 'unionid': unionid,
-                'xiaolumm': None
+                'xiaolumm': None,
+                "mama_id": mama_id
             })
             self.set_cookie_openid_and_unionid(response, openid, unionid)
             return response
@@ -129,23 +133,25 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
                 'openid': openid,
                 'unionid': unionid,
                 'xiaolumm': xiaolumm,
-                'customer_mobile': customer_mobile
+                'customer_mobile': customer_mobile,
+                "mama_id": mama_id
             })
             self.set_cookie_openid_and_unionid(response, openid, unionid)
             return response
 
         elif xiaolumm.need_pay_deposite():  # 如果没有已经申请没有支付押金的跳转到支付押金页面
-            return redirect(reverse('mama_deposite', kwargs={'mama_id': mama_id}))
+            return redirect(deposite_url)
 
         else:  # 如果申请了并且交付的代理押金则直接跳转到代理的主页
             return redirect(reverse('mama_homepage'))
 
-    def post(self, request, mama_id):
+    def post(self, request):
         # 验证码通过才可以进入本函数
         content = request.REQUEST
         mobile = content.get('mobile')
         user = request.user
         customers = Customer.objects.filter(user=user)
+        mama_id = content.get('mama_id', 1)
 
         if not customers.exists():  # 这个不可能存在
             return redirect('./')
@@ -165,8 +171,8 @@ class MamaRegisterView(WeixinAuthMixin, PayInfoMethodMixin, APIView):
         xlmm.referal_from = parent_mobile
         xlmm.mobile = mobile
         xlmm.save()
-
-        return redirect(reverse('mama_deposite', kwargs={'mama_id': mama_id}))
+        deposite_url = "/m/register/deposite/?mama_id={0}".format(mama_id)
+        return redirect(deposite_url)
 
 
 class PayDepositeView(PayInfoMethodMixin, APIView):
@@ -182,10 +188,13 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
     def get_full_link(self, link):
         return urlparse.urljoin(settings.M_SITE_URL, link)
 
-    def get(self, request, mama_id):
+    def get(self, request):
+        content = request.REQUEST
+        mama_id = content.get('mama_id', 1)
         xlmm = self.get_xiaolumm(request)
+        deposite_url = "/m/register/?mama_id={0}".format(mama_id)
         if not xlmm:
-            return redirect(reverse('mama_register', kwargs={'mama_id': mama_id}))
+            return redirect(deposite_url)
 
         if mama_id == xlmm.id or not xlmm.need_pay_deposite():
             return redirect(reverse('mama_homepage'))

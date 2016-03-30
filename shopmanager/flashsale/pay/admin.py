@@ -809,7 +809,7 @@ from .models_faqs import SaleFaqs
 
 
 class SaleFaqsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'get_question_type_display', 'get_detail_type_display', 'question')
+    list_display = ('id', 'question_type', "detail_type", 'question')
     list_display_links = ('question', 'id')
 
     list_filter = ('question_type', 'detail_type')
