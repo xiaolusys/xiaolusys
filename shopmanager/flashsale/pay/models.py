@@ -202,8 +202,9 @@ class SaleTrade(BaseModel):
     
     @property
     def budget_payment(self):
+        """ 余额支付（分） """
         if self.has_budget_paid:
-            return self.payment - self.pay_cash
+            return int((self.payment - self.pay_cash) * 100)
         return 0
     
     @property
@@ -328,9 +329,10 @@ class SaleTrade(BaseModel):
         
     def release_coupon(self):
         """ 释放订单对应的优惠券 """
-        UserCoupon.objects.filter(sale_trade=self.id, 
-                                  status=UserCoupon.USED
-                                  ).update(status=UserCoupon.UNUSED)
+        UserCoupon.objects.filter(
+            sale_trade=self.id, 
+            status=UserCoupon.USED
+        ).update(status=UserCoupon.UNUSED)
     
     @property
     def unsign_orders(self):
@@ -368,11 +370,29 @@ def record_supplier_args(sender, obj, **kwargs):
     except Exception,exc:
         logger.error('record_supplier_args error:%s'%exc.message, exc_info=True)
 
-
 signal_saletrade_pay_confirm.connect(record_supplier_args, sender=SaleTrade)
 
-from shopback.categorys.models import CategorySaleStat
 
+def trade_payment_used_coupon(sender, obj, **kwargs):
+    """ 交易支付后修改优惠券状态为使用 """
+    try:
+        coupon_id = obj.pay_extras.get('coupon')
+        if coupon_id:
+            coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(obj.buyer_id))
+            if coupon.status == UserCoupon.UNUSED:
+                coupon.sale_trade = obj.id
+                coupon.status = UserCoupon.USED
+                coupon.save()
+            else:
+                logger.warn('trade_payment_used_coupon repeat:%s,%s'%(obj,coupon))
+    except Exception,exc:
+        logger.error('trade_payment_used_coupon error:%s'%exc.message, exc_info=True)
+
+
+signal_saletrade_pay_confirm.connect(trade_payment_used_coupon, sender=SaleTrade)
+
+
+from shopback.categorys.models import CategorySaleStat
 
 def category_trade_stat(sender, obj, **kwargs):
     """
