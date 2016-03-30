@@ -376,7 +376,7 @@ signal_saletrade_pay_confirm.connect(record_supplier_args, sender=SaleTrade)
 def trade_payment_used_coupon(sender, obj, **kwargs):
     """ 交易支付后修改优惠券状态为使用 """
     try:
-        coupon_id = obj.pay_extras.get('coupon')
+        coupon_id = obj.extras_info.get('coupon')
         if coupon_id:
             coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(obj.buyer_id))
             if coupon.status == UserCoupon.UNUSED:

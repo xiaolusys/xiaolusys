@@ -282,7 +282,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             payment      = float(form.get('payment'))
             pay_extras   = form.get('pay_extras','')
             budget_payment = self.calc_extra_budget(pay_extras)
-            coupon_id = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras).get('couponid','')
+            coupon_id  = form.get('coupon_id','')
+            couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
+            if couponids:
+                coupon_id = couponids.get('couponid','')
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
@@ -297,7 +300,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'openid':buyer_openid,
                 'extras_info':{'mm_linkid':form.get('mm_linkid','0'),
                                'ufrom':form.get('ufrom',''),
-                               'coupon':form.get('coupon_id','') or coupon_id,
+                               'coupon': coupon_id,
                                'pay_extras':pay_extras}
                 })
         for k,v in params.iteritems():
