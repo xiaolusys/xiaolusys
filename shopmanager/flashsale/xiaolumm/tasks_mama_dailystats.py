@@ -24,7 +24,7 @@ def create_dailystats_with_integrity(mama_id, date_field, uni_key, **kwargs):
         stats = DailyStats(mama_id=mama_id, date_field=date_field, uni_key=uni_key, **kwargs)
         stats.save()
     except IntegrityError as e:
-        logger.error("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, params: %s" % (mama_id, uni_key, kwargs))
+        logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, params: %s" % (mama_id, uni_key, kwargs))
         DailyStats.objects.filter(mama_id=mama_id, date_field=date_field, uni_key=uni_key).update(**kwargs)
 
 
