@@ -63,7 +63,8 @@ def task_cashout_update_mamafortune(mama_id):
     for entry in cashouts:
         if entry["status"] == CashOut.APPROVED: # confirmed
             cashout_confirmed = entry["total"]
-    
+
+    logger.error("%s - mama_id: %s, cashout_confirmed: %s" % (get_cur_info(), mama_id, cashout_confirmed))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
