@@ -31,13 +31,13 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
         fortune = MamaFortune(mama_id=mama_id, **kwargs)
         fortune.save()
     except IntegrityError as e:
-        logger.error("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
+        logger.warn("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
         MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
 @task()
 def task_xiaolumama_update_mamafortune(mama_id, cash):
-    logger.error("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))    
+    logger.warn("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))    
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortunes.update(history_confirmed=cash)
@@ -63,7 +63,7 @@ def task_cashout_update_mamafortune(mama_id):
         if entry["status"] == CashOut.APPROVED: # confirmed
             cashout_confirmed = entry["total"]
 
-    logger.error("%s - mama_id: %s, cashout_confirmed: %s" % (get_cur_info(), mama_id, cashout_confirmed))
+    logger.warn("%s - mama_id: %s, cashout_confirmed: %s" % (get_cur_info(), mama_id, cashout_confirmed))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]
