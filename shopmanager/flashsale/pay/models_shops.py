@@ -56,6 +56,7 @@ class CuShopPros(PayBaseModel):
     position = models.IntegerField(db_index=True, default=0, verbose_name=u'排序位置')
 
     pro_category = models.IntegerField(db_index=True, default=0, verbose_name=u'产品类别')
+    offshelf_time = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=u'下架时间')
     objects = ShopProductCategoryManager()
 
     class Meta:

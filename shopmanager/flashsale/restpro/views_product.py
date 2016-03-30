@@ -691,7 +691,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         mm_linkid = content.get('mm_linkid', None)
         category = content.get('category', None)
         self.permission_classes = ()
-        self.paginate_by = 10
+        self.paginate_by = 1
         try:
             xlmm = XiaoluMama.objects.get(pk=mm_linkid)
             customer = Customer.objects.get(unionid=xlmm.openid, status=Customer.NORMAL)
