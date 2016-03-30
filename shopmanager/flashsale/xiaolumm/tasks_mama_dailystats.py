@@ -86,9 +86,10 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
         create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
         task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
     else:
-        stats = records[0]
-        stats.today_carry_num = today_carry_num
-        stats.save()
+        records.update(today_carry_num=today_carry_num)
+        #stats = records[0]
+        #stats.today_carry_num = today_carry_num
+        #stats.save()
     
 
 

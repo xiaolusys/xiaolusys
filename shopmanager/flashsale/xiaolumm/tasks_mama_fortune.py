@@ -41,9 +41,10 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
     
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
-        fortune = fortunes[0]
-        fortune.history_confirmed = cash
-        fortune.save()
+        fortunes.update(history_confirmed=cash)
+        #fortune = fortunes[0]
+        #fortune.history_confirmed = cash
+        #fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
         
@@ -67,8 +68,9 @@ def task_cashout_update_mamafortune(mama_id):
     if fortunes.count() > 0:
         fortune = fortunes[0]
         if fortune.carry_cashout != cashout_confirmed:
-            fortune.carry_cashout = cashout_confirmed
-            fortune.save()
+            fortunes.update(carry_cashout=cashout_confirmed)
+            #fortune.carry_cashout = cashout_confirmed
+            #fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
     
@@ -89,9 +91,10 @@ def task_carryrecord_update_mamafortune(mama_id):
     if fortunes.count() > 0:
         fortune = fortunes[0]
         if fortune.carry_pending != carry_pending or fortune.carry_confirmed != carry_confirmed:
-            fortune.carry_pending   = carry_pending
-            fortune.carry_confirmed = carry_confirmed
-            fortune.save()
+            fortunes.update(carry_pending=carry_pending,carry_confirmed=carry_confirmed)
+            #fortune.carry_pending   = carry_pending
+            #fortune.carry_confirmed = carry_confirmed
+            #fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id,carry_pending=carry_pending,carry_confirmed=carry_confirmed)
 
@@ -130,8 +133,9 @@ def task_update_mamafortune_invite_num(mama_id):
     if mamas.count() > 0:
         mama = mamas[0]
         if mama.invite_num != invite_num:
-            mama.invite_num=invite_num
-            mama.save()
+            mamas.update(invite_num=invite_num)
+            #mama.invite_num=invite_num
+            #mama.save()
     else:
         create_mamafortune_with_integrity(mama_id,invite_num=invite_num)
             
@@ -162,8 +166,9 @@ def task_update_mamafortune_mama_level(mama_id):
     if mamas.count() > 0:
         mama = mamas[0]
         if mama.mama_level != level:
-            mama.mama_level = level
-            mama.save()
+            mamas.update(mama_level=level)
+            #mama.mama_level = level
+            #mama.save()
     else:
         create_mamafortune_with_integrity(mama_id,mama_level=level)
                     
