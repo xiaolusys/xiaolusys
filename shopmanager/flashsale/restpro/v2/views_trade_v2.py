@@ -153,7 +153,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def check_before_charge(self, sale_trade):
         """ 支付前参数检查,如优惠券状态检查 """
-        coupon_id = sale_trade.pay_extras.get('coupon')
+        coupon_id = sale_trade.extras_info.get('coupon')
         if coupon_id:
             coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(sale_trade.buyer_id))
             if coupon.status != UserCoupon.UNUSED:
