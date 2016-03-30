@@ -41,13 +41,12 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
     
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
-        fortune = fortunes[0]
-        fortune.history_confirmed = cash
-        fortune.save()
+        fortunes.update(history_confirmed=cash)
+        #fortune = fortunes[0]
+        #fortune.history_confirmed = cash
+        #fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
-        #fortune = MamaFortune(mama_id=mama_id,history_confirmed=cash)
-        #fortune.save()
         
 
 @task()
@@ -69,12 +68,11 @@ def task_cashout_update_mamafortune(mama_id):
     if fortunes.count() > 0:
         fortune = fortunes[0]
         if fortune.carry_cashout != cashout_confirmed:
-            fortune.carry_cashout = cashout_confirmed
-            fortune.save()
+            fortunes.update(carry_cashout=cashout_confirmed)
+            #fortune.carry_cashout = cashout_confirmed
+            #fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id, carry_cashout=cashout_confirmed)
-        #fortune = MamaFortune(mama_id=mama_id,carry_cashout=cashout_confirmed)
-        #fortune.save()
     
 
 @task()
@@ -93,14 +91,12 @@ def task_carryrecord_update_mamafortune(mama_id):
     if fortunes.count() > 0:
         fortune = fortunes[0]
         if fortune.carry_pending != carry_pending or fortune.carry_confirmed != carry_confirmed:
-            fortune.carry_pending   = carry_pending
-            fortune.carry_confirmed = carry_confirmed
-            fortune.save()
+            fortunes.update(carry_pending=carry_pending,carry_confirmed=carry_confirmed)
+            #fortune.carry_pending   = carry_pending
+            #fortune.carry_confirmed = carry_confirmed
+            #fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id,carry_pending=carry_pending,carry_confirmed=carry_confirmed)
-        #fortune = MamaFortune(mama_id=mama_id,carry_pending=carry_pending,
-        #                      carry_confirmed=carry_confirmed)
-        #fortune.save()
 
 
 @task()
@@ -124,8 +120,6 @@ def task_activevalue_update_mamafortune(mama_id):
         mama_fortunes.update(active_value_num=value_num)
     else:
         create_mamafortune_with_integrity(mama_id,active_value_num=value_num)
-        #mama_fortune = MamaFortune(mama_id=mama_id, active_value_num=value_num)
-        #mama_fortune.save()
 
             
 @task()
@@ -139,12 +133,11 @@ def task_update_mamafortune_invite_num(mama_id):
     if mamas.count() > 0:
         mama = mamas[0]
         if mama.invite_num != invite_num:
-            mama.invite_num=invite_num
-            mama.save()
+            mamas.update(invite_num=invite_num)
+            #mama.invite_num=invite_num
+            #mama.save()
     else:
         create_mamafortune_with_integrity(mama_id,invite_num=invite_num)
-        #mama = MamaFortune(mama_id=mama_id,invite_num=invite_num)
-        #mama.save()
             
 
 @task()
@@ -173,12 +166,11 @@ def task_update_mamafortune_mama_level(mama_id):
     if mamas.count() > 0:
         mama = mamas[0]
         if mama.mama_level != level:
-            mama.mama_level = level
-            mama.save()
+            mamas.update(mama_level=level)
+            #mama.mama_level = level
+            #mama.save()
     else:
         create_mamafortune_with_integrity(mama_id,mama_level=level)
-        #mama = MamaFortune(mama_id=mama_id,mama_level=level)
-        #mama.save()
                     
             
 @task()
@@ -193,8 +185,6 @@ def task_update_mamafortune_fans_num(mama_id):
         mamas.update(fans_num=fans_num)
     else:
         create_mamafortune_with_integrity(mama_id,fans_num=fans_num)
-        #mama = MamaFortune(mama_id=mama_id,fans_num=fans_num)
-        #mama.save()
     
         
 @task()
@@ -208,6 +198,4 @@ def task_update_mamafortune_order_num(mama_id):
         mamas.update(order_num=order_num)
     else:
         create_mamafortune_with_integrity(mama_id,order_num=order_num)
-        #mama = MamaFortune(mama_id=mama_id,order_num=order_num)
-        #mama.save()
                        
