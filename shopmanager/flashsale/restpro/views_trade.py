@@ -340,7 +340,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         total_payment = total_fee + post_fee - discount_fee
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
-                              xlmm.cash >= int(total_payment * 100) and
+                              xlmm.cash >= round(total_payment * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash / 100.0
         
@@ -427,7 +427,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if xlmm:
             wallet_payable = (xlmm.cash > 0 and 
                               total_payment >= 0 and
-                              xlmm.cash >= int(total_payment * 100) and
+                              xlmm.cash >= round(total_payment * 100) and
                               not has_deposite)
             wallet_cash    = xlmm.cash_money
             
@@ -640,7 +640,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def wallet_charge(self, sale_trade):
         """ 妈妈钱包支付实现 """
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment       = int(sale_trade.payment * 100) 
+        payment       = round(sale_trade.payment * 100) 
         buyer_unionid = buyer.unionid
         strade_id     = sale_trade.id
         buyer_nick    = sale_trade.buyer_nick
@@ -668,7 +668,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ 小鹿钱包支付实现 """
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment       = int(sale_trade.payment * 100) 
+        payment       = round(sale_trade.payment * 100) 
         strade_id     = sale_trade.id
         channel       = sale_trade.channel
         
@@ -691,7 +691,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
-        payment       = int(sale_trade.get_cash_payment() * 100)
+        payment       = round(sale_trade.get_cash_payment() * 100)
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
@@ -872,7 +872,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for param in pay_extra_dict.values():
             pid = param['pid']
             if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.BUDGET:
-                budget_amount += int(float(param['budget']) * 100)
+                budget_amount += round(float(param['budget']) * 100)
         return budget_amount
             
     @list_route(methods=['post'])
@@ -894,10 +894,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if cart_qs.count() != len(cart_ids):
                 raise exceptions.ParseError(u'购物车已结算待支付')
             xlmm            = self.get_xlmm(request)
-            total_fee       = int(float(CONTENT.get('total_fee','0')) * 100)
-            payment         = int(float(CONTENT.get('payment','0')) * 100)
-            post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
-            discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
+            total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
+            payment         = round(float(CONTENT.get('payment','0')) * 100)
+            post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
+            discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
             pay_extras      = CONTENT.get('pay_extras')
             cart_total_fee  = 0
             cart_discount   = 0
@@ -921,7 +921,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                     coupon_pool = coupon.cp_id
                 except Exception, exc:
                     raise exceptions.APIException(exc.message)
-                cart_discount    += int(coupon_pool.template.value * 100)
+                cart_discount    += round(coupon_pool.template.value * 100)
             
             cart_discount += self.calc_extra_discount(pay_extras)
             cart_discount = min(cart_discount, cart_total_fee)
@@ -973,11 +973,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         customer        = get_object_or_404(Customer,user=request.user)
         product         = get_object_or_404(Product,id=item_id)
         product_sku     = get_object_or_404(ProductSku,id=sku_id)
-        total_fee       = int(float(CONTENT.get('total_fee','0')) * 100)
-        payment         = int(float(CONTENT.get('payment','0')) * 100)
-        post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
-        discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
-        bn_totalfee     = int(product_sku.agent_price * sku_num * 100)
+        total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
+        payment         = round(float(CONTENT.get('payment','0')) * 100)
+        post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
+        discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
+        bn_totalfee     = round(product_sku.agent_price * sku_num * 100)
         
         xlmm            = self.get_xlmm(request)
         bn_discount     = product_sku.calc_discount_fee(xlmm) * sku_num
@@ -997,7 +997,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 coupon_pool = coupon.cp_id
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
-            bn_discount += int(coupon_pool.template.value * 100)
+            bn_discount += round(coupon_pool.template.value * 100)
         
         bn_discount += self.calc_extra_discount(pay_extras)
         bn_discount = min(bn_discount, bn_totalfee)

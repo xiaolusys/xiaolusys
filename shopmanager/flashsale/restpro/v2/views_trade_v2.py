@@ -153,7 +153,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     
     def check_before_charge(self, sale_trade):
         """ 支付前参数检查,如优惠券状态检查 """
-        coupon_id = sale_trade.pay_extras.get('coupon')
+        coupon_id = sale_trade.extras_info.get('coupon')
         if coupon_id:
             coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(sale_trade.buyer_id))
             if coupon.status != UserCoupon.UNUSED:
@@ -164,7 +164,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         self.check_before_charge(sale_trade)
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment       = int(sale_trade.payment * 100) 
+        payment       = round(sale_trade.payment * 100) 
         buyer_unionid = buyer.unionid
         strade_id     = sale_trade.id
         buyer_nick    = sale_trade.buyer_nick
@@ -192,7 +192,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         self.check_before_charge(sale_trade)
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
-        payment       = int(sale_trade.payment * 100) 
+        payment       = round(sale_trade.payment * 100) 
         strade_id     = sale_trade.id
         channel       = sale_trade.channel
         
@@ -218,7 +218,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         """ pingpp支付实现 """
         self.check_before_charge(sale_trade)
         
-        payment       = int(sale_trade.get_cash_payment() * 100)
+        payment       = round(sale_trade.get_cash_payment() * 100)
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
         channel       = sale_trade.channel
@@ -285,12 +285,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             coupon_id  = form.get('coupon_id','')
             couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
             if couponids:
-                coupon_id = couponids.get('couponid','')
+                coupon_id = couponids.groupdict().get('couponid','')
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
                 'payment':payment,
-                'pay_cash':max(0, int(payment * 100 - budget_payment) / 100.0),
+                'pay_cash':max(0, round(payment * 100 - budget_payment) / 100.0),
                 'has_budget_paid':budget_payment > 0,
                 'total_fee':float(form.get('total_fee')),
                 'post_fee':float(form.get('post_fee')),
@@ -390,7 +390,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
         coupon_pool = coupon.cp_id
         
-        return int(coupon_pool.template.value * 100)
+        return round(coupon_pool.template.value * 100)
     
     def calc_extra_discount(self, pay_extras, **kwargs):
         """　优惠信息(分) """
@@ -416,7 +416,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         for param in pay_extra_dict.values():
             pid = param['pid']
             if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.BUDGET:
-                budget_amount += int(float(param['budget']) * 100)
+                budget_amount += round(float(param['budget']) * 100)
         return budget_amount
             
     @list_route(methods=['post'])
@@ -438,10 +438,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if cart_qs.count() != len(cart_ids):
                 return Response({'code':1, 'info':u'购物车已结算'})
             xlmm            = self.get_xlmm(request)
-            total_fee       = int(float(CONTENT.get('total_fee','0')) * 100)
-            payment         = int(float(CONTENT.get('payment','0')) * 100)
-            post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
-            discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
+            total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
+            payment         = round(float(CONTENT.get('payment','0')) * 100)
+            post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
+            discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
             pay_extras      = CONTENT.get('pay_extras')
             cart_total_fee  = 0
             cart_discount   = 0
@@ -514,11 +514,11 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         customer        = get_object_or_404(Customer,user=request.user)
         product         = get_object_or_404(Product,id=item_id)
         product_sku     = get_object_or_404(ProductSku,id=sku_id)
-        total_fee       = int(float(CONTENT.get('total_fee','0')) * 100)
-        payment         = int(float(CONTENT.get('payment','0')) * 100)
-        post_fee        = int(float(CONTENT.get('post_fee','0')) * 100)
-        discount_fee    = int(float(CONTENT.get('discount_fee','0')) * 100)
-        bn_totalfee     = int(product_sku.agent_price * sku_num * 100)
+        total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
+        payment         = round(float(CONTENT.get('payment','0')) * 100)
+        post_fee        = round(float(CONTENT.get('post_fee','0')) * 100)
+        discount_fee    = round(float(CONTENT.get('discount_fee','0')) * 100)
+        bn_totalfee     = round(product_sku.agent_price * sku_num * 100)
         
         xlmm            = self.get_xlmm(request)
         bn_discount     = product_sku.calc_discount_fee(xlmm) * sku_num
@@ -538,7 +538,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 coupon_pool = coupon.cp_id
             except Exception, exc:
                 raise exceptions.APIException(exc.message)
-            bn_discount += int(coupon_pool.template.value * 100)
+            bn_discount += round(coupon_pool.template.value * 100)
         
         bn_discount += self.calc_extra_discount(pay_extras)
         bn_discount = min(bn_discount, bn_totalfee)
