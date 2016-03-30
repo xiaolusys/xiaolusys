@@ -151,9 +151,18 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    @rest_exception(errmsg='')
+    def check_before_charge(self, sale_trade):
+        """ 支付前参数检查,如优惠券状态检查 """
+        coupon_id = sale_trade.pay_extras.get('coupon')
+        if coupon_id:
+            coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(sale_trade.buyer_id))
+            if coupon.status != UserCoupon.UNUSED:
+                raise Exception('绑定的优惠券不可用')
+
     def wallet_charge(self, sale_trade):
         """ 妈妈钱包支付实现 """
+        self.check_before_charge(sale_trade)
+        
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = int(sale_trade.payment * 100) 
         buyer_unionid = buyer.unionid
@@ -178,9 +187,9 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         confirmTradeChargeTask.s(strade_id)()
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
-    @rest_exception(errmsg='')
     def budget_charge(self, sale_trade):
         """ 小鹿钱包支付实现 """
+        self.check_before_charge(sale_trade)
         
         buyer         = Customer.objects.get(pk=sale_trade.buyer_id)
         payment       = int(sale_trade.payment * 100) 
@@ -205,9 +214,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         confirmTradeChargeTask.s(strade_id)()
         return {'channel':channel,'success':True,'id':sale_trade.id,'info':'订单支付成功'}
     
-    @rest_exception(errmsg=u'订单支付异常')
     def pingpp_charge(self, sale_trade, **kwargs):
         """ pingpp支付实现 """
+        self.check_before_charge(sale_trade)
+        
         payment       = int(sale_trade.get_cash_payment() * 100)
         order_no      = sale_trade.tid
         buyer_openid  = sale_trade.openid
@@ -216,7 +226,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
         if sale_trade.has_budget_paid:
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
-            budget_charge_create = ubudget.charge_pending(sale_trade.id,sale_trade.budget_payment * 100)
+            budget_charge_create = ubudget.charge_pending(sale_trade.id, sale_trade.budget_payment)
             if not budget_charge_create:
                 raise Exception('用户余额不足')
         
@@ -246,7 +256,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         update_model_fields(sale_trade,update_fields=['charge'])
         return charge
     
-    @rest_exception(errmsg=u'特卖订单创建异常')
     @transaction.commit_on_success
     def create_Saletrade(self,form,address,customer):
         """ 创建特卖订单方法 """
@@ -272,12 +281,13 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             buyer_openid = buyer_openid or customer.openid
             payment      = float(form.get('payment'))
             pay_extras   = form.get('pay_extras','')
-            budget_payment = self.calc_extra_budget(pay_extras) / 100.0
+            budget_payment = self.calc_extra_budget(pay_extras)
+            coupon_id = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras).get('couponid','')
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
                 'payment':payment,
-                'pay_cash':max(0, payment - budget_payment),
+                'pay_cash':max(0, int(payment * 100 - budget_payment) / 100.0),
                 'has_budget_paid':budget_payment > 0,
                 'total_fee':float(form.get('total_fee')),
                 'post_fee':float(form.get('post_fee')),
@@ -287,7 +297,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 'openid':buyer_openid,
                 'extras_info':{'mm_linkid':form.get('mm_linkid','0'),
                                'ufrom':form.get('ufrom',''),
-                               'coupon':form.get('coupon_id',''),
+                               'coupon':form.get('coupon_id','') or coupon_id,
                                'pay_extras':pay_extras}
                 })
         for k,v in params.iteritems():
@@ -299,7 +309,6 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             statsd.incr('xiaolumm.prepay_amount',sale_trade.payment)
         return sale_trade,state
     
-    @rest_exception(errmsg=u'特卖订单明细创建异常')
     def create_Saleorder_By_Shopcart(self,saletrade,cart_qs):
         """ 根据购物车创建订单明细方法 """
         total_fee = saletrade.total_fee
@@ -331,8 +340,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         #关闭购物车
         for cart in cart_qs:
             cart.close_cart(release_locknum=False)
-            
-    @rest_exception(errmsg=u'特卖订单明细创建异常')
+    
     def create_SaleOrder_By_Productsku(self,saletrade,product,sku,num):
         """ 根据商品明细创建订单明细方法 """
         total_fee = saletrade.total_fee
@@ -375,11 +383,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                                          id=coupon_id, 
                                          customer=str(buyer_id),
                                          status=UserCoupon.UNUSED)
-        try:  # 优惠券条件检查
-            coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
-            coupon_pool = coupon.cp_id
-        except Exception, exc:
-            raise exceptions.APIException(exc.message)
+        
+        coupon.check_usercoupon(product_ids=item_ids, use_fee=payment / 100.0)
+        coupon_pool = coupon.cp_id
+        
         return int(coupon_pool.template.value * 100)
     
     def calc_extra_discount(self, pay_extras, **kwargs):
@@ -492,7 +499,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         return Response({'code':0, 'info':u'支付成功', 'channel':channel, 'charge':response_charge})
             
         
-    @list_route(methods=['get','post'])
+    @list_route(methods=['post'])
     def buynow_create(self, request, *args, **kwargs):
         """ 立即购买订单支付接口 """
         CONTENT  = request.REQUEST

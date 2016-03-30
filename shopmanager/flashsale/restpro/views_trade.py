@@ -755,12 +755,12 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             buyer_openid = buyer_openid or customer.openid
             payment      = float(form.get('payment'))
             pay_extras   = form.get('pay_extras','')
-            budget_payment = self.calc_extra_budget(pay_extras) / 100
+            budget_payment = self.calc_extra_budget(pay_extras)
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
                 'payment':payment,
-                'pay_cash':max(0, payment - budget_payment),
+                'pay_cash':max(0, (payment * 100 - budget_payment) / 100.0),
                 'has_budget_paid':budget_payment > 0,
                 'total_fee':float(form.get('total_fee')),
                 'post_fee':float(form.get('post_fee')),

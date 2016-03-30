@@ -779,10 +779,10 @@ admin.site.register(CustomerShops, CustomShopadmin)
 
 
 class UserBudgetAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'amount', 'total_redenvelope', 'total_consumption', 'total_refund')
+    list_display = ('id', 'user', 'amount', 'total_redenvelope', 'total_consumption', 'total_refund', 'created')
     list_display_links = ('id', )
 
-    # list_filter = ('status',)
+#     list_filter = ('status',)
     search_fields = ['=id', '=user__mobile', '=user__id']
 
     def get_readonly_fields(self, request, obj=None):
@@ -793,10 +793,10 @@ admin.site.register(UserBudget, UserBudgetAdmin)
 
 
 class BudgetLogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'status')
+    list_display = ('id', 'customer_id', 'flow_amount', 'budget_type', 'budget_log_type', 'referal_id', 'created', 'status')
     list_display_links = ('id', )
 
-    list_filter = ('budget_type', 'budget_log_type', 'status',)
+    list_filter = ('budget_type', 'budget_log_type', 'status','modified')
     search_fields = ['=id', '=customer_id']
 
     # def get_readonly_fields(self, request, obj=None):

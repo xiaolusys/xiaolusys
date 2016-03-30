@@ -74,7 +74,7 @@ class DressShareMixin(object):
             'referer_url':self.get_referal_url(request),
             'wx_singkey':self.gen_wxshare_signs(request)
         }
-        print 'debug:', resp
+        logger.info('dress share params:%s'%resp)
         return resp
 
 class DressView(WeixinAuthMixin, DressShareMixin, APIView):
