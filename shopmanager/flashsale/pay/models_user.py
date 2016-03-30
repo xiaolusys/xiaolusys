@@ -291,11 +291,11 @@ class UserBudget(PayBaseModel):
     
     def charge_cancel(self, strade_id):
         """ 支付取消 """
-        blog = BudgetLog.objects.get(customer_id=self.user.id,
+        blogs = BudgetLog.objects.filter(customer_id=self.user.id,
                                 referal_id=strade_id,
                                 budget_log_type=BudgetLog.BG_CONSUM)
-
-        return blog.cancel_and_return()
+        if blogs.exists():
+            return blogs[0].cancel_and_return()
         
         
     def is_could_cashout(self):

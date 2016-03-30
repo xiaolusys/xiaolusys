@@ -285,7 +285,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             coupon_id  = form.get('coupon_id','')
             couponids  = re.compile('.*couponid:(?P<couponid>\d+):').match(pay_extras)
             if couponids:
-                coupon_id = couponids.get('couponid','')
+                coupon_id = couponids.groupdict().get('couponid','')
             params.update({
                 'buyer_nick':customer.nick,
                 'buyer_message':form.get('buyer_message',''),
