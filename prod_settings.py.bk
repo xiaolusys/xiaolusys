@@ -226,7 +226,7 @@ LOGGING = {
             'formatter': 'simple'
         },
         'sentry': {
-            'level': 'ERROR',
+            'level': 'WARN',
             'class': 'raven.contrib.django.handlers.SentryHandler'
         },
         'console':{

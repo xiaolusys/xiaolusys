@@ -216,7 +216,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         cancel_url  = urlparse.urljoin(settings.M_SITE_URL,kwargs.get('cancel_url','/pages/daizhifu-dd.html'))
         if sale_trade.has_budget_paid:
             ubudget = UserBudget.objects.get(user=sale_trade.buyer_id)
-            budget_charge_create = ubudget.charge_pending(sale_trade.id,sale_trade.budget_payment)
+            budget_charge_create = ubudget.charge_pending(sale_trade.id,sale_trade.budget_payment * 100)
             if not budget_charge_create:
                 raise Exception('用户余额不足')
         
@@ -447,27 +447,29 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             extra_params = {'item_ids':','.join(item_ids),
                             'buyer_id':customer.id,
                             'payment':cart_total_fee - cart_discount}
-            logger.debug('cart payment:uuid=%s,extra_params=%s'%(tuuid,extra_params))
             try:
                 cart_discount += self.calc_extra_discount(pay_extras,**extra_params)
             except Exception, exc:
-                return Response({'code':6,'info':exc.message})
+                logger.warn('cart payment:uuid=%s,extra_params=%s'%(tuuid,extra_params),exc_info=True)
+                return Response({'code':3,'info':exc.message})
             
             cart_discount = min(cart_discount, cart_total_fee)
             if discount_fee > cart_discount:
-                return Response({'code':3, 'info':u'优惠金额异常'})
+                logger.warn('cart discount err:params=%s'%(request.REQUEST))
+                return Response({'code':4, 'info':u'优惠金额异常'})
             
             cart_payment = cart_total_fee + post_fee - cart_discount
             if (post_fee < 0 or payment < 0  or abs(payment - cart_payment) > 10 
                 or abs(total_fee - cart_total_fee) > 10):
-                return Response({'code':3, 'info':u'付款金额异常'})
+                logger.warn('cart payment err:params=%s'%(request.REQUEST))
+                return Response({'code':4, 'info':u'付款金额异常'})
             
         addr_id  = CONTENT.get('addr_id')
         address  = get_object_or_404(UserAddress,id=addr_id,cus_uid=customer.id)
         
         channel  = CONTENT.get('channel')
         if channel not in dict(SaleTrade.CHANNEL_CHOICES):
-            return Response({'code':4, 'info':u'付款方式有误'})
+            return Response({'code':5, 'info':u'付款方式有误'})
         
         sale_trade,state = self.create_Saletrade(CONTENT, address, customer)
         if state:
@@ -484,8 +486,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 #pingpp 支付
                 response_charge = self.pingpp_charge(sale_trade)
         except Exception,exc:
-            logger.warn('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message))
-            return Response({'code':5, 'info':exc.message or '未知支付异常'})
+            logger.warn('cart charge:uuid=%s,channel=%s,err=%s'%(tuuid,channel,exc.message),exc_info=True)
+            return Response({'code':6, 'info':exc.message or '未知支付异常'})
 
         return Response({'code':0, 'info':u'支付成功', 'channel':channel, 'charge':response_charge})
             
