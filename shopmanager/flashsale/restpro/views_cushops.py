@@ -90,12 +90,14 @@ def save_pro_info(product, user):
     kwargs = {'agencylevel': xlmm.agencylevel,
               'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
     rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+
+    offshelf_time = pro.sale_time + datetime.timedelta(days=2)
     # 保存信息
     if pro.shelf_status == Product.DOWN_SHELF:  # 如果没有上架
         shop_pro.pro_status = CuShopPros.DOWN_SHELF  # 则保存下架状态
     shop_pro.customer = customer.id
     shop_pro.name = pro.name
-    shop_pro.offshelf_time = pro.offshelf_time
+    shop_pro.offshelf_time = pro.offshelf_time if pro.offshelf_time else offshelf_time
     shop_pro.pic_path = pro.pic_path
     shop_pro.std_sale_price = pro.std_sale_price
     shop_pro.agent_price = pro.agent_price
