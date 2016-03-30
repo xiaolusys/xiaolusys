@@ -1,0 +1,38 @@
+{% extends "mmdress/base_dress.html" %}
+
+{% block tail_script %}
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script src="{{STATIC_URL}}js/dress-share.js"></script>
+<script>
+var shareParams = {
+    wx_singkey:{ 
+          timestamp:{% if share_params.wx_singkey.timestamp %}{{share_params.wx_singkey.timestamp}}{% else %}0{% endif %},
+          app_id:'{{share_params.wx_singkey.app_id}}',
+          signature:'{{share_params.wx_singkey.signature}}',
+          noncestr:'{{share_params.wx_singkey.noncestr}}',
+     },
+    referal_url:'{{share_params.referal_url}}',
+    share_title:'{{share_params.share_title}}',
+    openid:'{{share_params.openid}}',
+    share_img:'{{share_params.share_img}}',
+    callback_url:'{{share_params.callback_url}}',
+    share_link:'{{share_params.share_link}}',
+    share_desc:'{{share_params.share_desc}}',
+};
+//微信分享，并回调处理函数
+listenWeixinShareEvent(shareParams,
+    function(shareParam, shareType){
+        var callbackUrl = shareParam.callback_url;
+        $.post(callbackUrl, 
+           { share_type: shareType },
+           function(res) {
+             console.log('share resp:',res);
+           },
+        'json');
+    });
+</script>
+
+{% block tail_inner_script %}
+{% endblock %}
+
+{% endblock %}

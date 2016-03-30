@@ -21,7 +21,63 @@ from . import constants
 import logging
 logger = logging.getLogger('django.reqeust')
 
-class DressView(WeixinAuthMixin, APIView):
+class DressShareMixin(object):
+    
+    def calc_mama_score(self,mama_dress):
+        return (100 - mama_dress.exam_score) / 10
+    
+    def get_dress_age_and_star(self, mama_dress):
+        if not mama_dress:
+            return None,None
+        dress_score = self.calc_mama_score(mama_dress)
+        for ages in constants.SCORE_AGES:
+            if dress_score == ages[0]:
+                return ages[1],constants.DRESS_STARS[ages[2]-1]
+        return None,None
+    
+    def gen_wxshare_signs(self, request):
+        """ 生成微信分享参数 """
+        try:
+            from shopapp.weixin.weixin_apis import WeiXinAPI
+            wx_api     = WeiXinAPI()
+            referal_url = self.get_referal_url(request)
+            wx_api.setAccountId(appKey=settings.WXPAY_APPID)
+            return wx_api.getShareSignParams(referal_url)
+        except Exception,exc:
+            logger.error(exc.message,exc_info=True)
+            return {'err':exc.message}
+    
+    def get_referal_url(self, request):
+        referer_url  = request.build_absolute_uri().split('#')[0]
+        return referer_url
+    
+    def render_share_params(self, request, **kwargs):
+        active     =  constants.ACITVES[0]
+        mama_dress = kwargs.get('mama_dress')
+        
+        if mama_dress:
+            share_url  = urlparse.urljoin(settings.M_SITE_URL,
+                                     reverse('dress_share',kwargs={'dress_id':mama_dress.id}))
+            share_desc = active['share_desc'].format(**kwargs)
+            callbackUrl = share_url
+        else:
+            share_url = reverse('dress_home')
+            share_desc = active['origin_desc']
+            callbackUrl = ''
+        resp = {
+            'share_link':share_url,
+            'share_title':active['share_title'],
+            'share_desc':share_desc,
+            'share_img':active['share_img'],
+            'callback_url':callbackUrl,
+            'openid':kwargs.get('openid',''),
+            'referer_url':self.get_referal_url(request),
+            'wx_singkey':self.gen_wxshare_signs(request)
+        }
+        print 'debug:', resp
+        return resp
+
+class DressView(WeixinAuthMixin, DressShareMixin, APIView):
     
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = ()
@@ -36,17 +92,28 @@ class DressView(WeixinAuthMixin, APIView):
         
     def get(self, request, *args, **kwargs):
         
-        customer = self.get_customer(request)
+        customer   = self.get_customer(request)
+        mama_dress = None
         if customer:
             mama_dresses = MamaDressResult.objects.filter(user_unionid=customer.unionid)
-            if mama_dresses.exists() and mama_dresses[0].is_finished():
-                return redirect(reverse('dress_result'))
-        
-        return Response({'active_id':1})
+            if mama_dresses.exists() :
+                mama_dress = mama_dresses[0]
+                if mama_dress.is_finished():
+                    return redirect(reverse('dress_result'))
+                
+        dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
+        return Response({'active_id':1,
+                         'share_params':self.render_share_params(
+                                 request, 
+                                 mama_dress=mama_dress,
+                                 dress_age=dress_age,
+                                 dress_star=dress_star
+                             ),
+                         })
     
         
 
-class DressQuestionView(WeixinAuthMixin, APIView):
+class DressQuestionView(WeixinAuthMixin, DressShareMixin, APIView):
     
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = ()
@@ -128,6 +195,7 @@ class DressQuestionView(WeixinAuthMixin, APIView):
         question = self.get_question(question_id)
         self.template_name = self.template_name.format(active_id)
         
+        dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
         response = Response({
             'dress_id':mama_dress.id,
             'active_id':active_id,
@@ -135,7 +203,13 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             'question':question,
             'pre_question_id':question_id,
             'post_question_id':question_id + 1,
-            'score_string':''
+            'score_string':'',
+            'share_params':self.render_share_params(
+                                 request, 
+                                 mama_dress=mama_dress,
+                                 dress_age=dress_age,
+                                 dress_star=dress_star
+                             ),
         })
 
         self.set_cookie_openid_and_unionid(response,openid,unionid)
@@ -174,22 +248,13 @@ class DressQuestionView(WeixinAuthMixin, APIView):
             'score_string':self.serializer_scores(score_choices)
         })
 
-class DressResultView(WeixinAuthMixin, APIView):
+class DressResultView(WeixinAuthMixin, DressShareMixin, APIView):
     
     authentication_classes = ()
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/dress_result.html"
     
-    def calc_score(self,mama_dress):
-        return (100 - mama_dress.exam_score) / 10
-    
-    def get_dress_age_and_star(self, mama_dress):
-        dress_score = self.calc_score(mama_dress)
-        for ages in constants.SCORE_AGES:
-            if dress_score == ages[0]:
-                return ages[1],constants.DRESS_STARS[ages[2]-1]
-        return 
     
     def get_age_tag(self,differ_age):
         
@@ -201,39 +266,6 @@ class DressResultView(WeixinAuthMixin, APIView):
         if differ_age > max_age:
             differ_age = min_age
         return (differ_age ,age_tags_dict.get(differ_age))
-    
-    def gen_wxshare_signs(self, request):
-        """ 生成微信分享参数 """
-        try:
-            from shopapp.weixin.weixin_apis import WeiXinAPI
-            wx_api     = WeiXinAPI()
-            referal_url = self.get_referal_url(request)
-            wx_api.setAccountId(appKey=settings.WXPAY_APPID)
-            return wx_api.getShareSignParams(referal_url)
-        except Exception,exc:
-            logger.error(exc.message,exc_info=True)
-            return {'err':exc.message}
-    
-    def get_referal_url(self, request):
-        referer_url  = request.build_absolute_uri().split('#')[0]
-        return referer_url
-    
-    def render_share_params(self, request, **kwargs):
-        active =  constants.ACITVES[0]
-        mama_dress = kwargs.get('mama_dress')
-        share_url = urlparse.urljoin(settings.M_SITE_URL,
-                                     reverse('dress_share',kwargs={'dress_id':mama_dress.id}))
-        resp = {
-            'share_link':share_url,
-            'share_title':active['share_title'].format(**kwargs),
-            'share_desc':active['share_desc'].format(**kwargs),
-            'share_img':active['share_img'],
-            'callback_url':share_url,
-            'openid':mama_dress.openid,
-            'referer_url':self.get_referal_url(request),
-            'wx_singkey':self.gen_wxshare_signs(request)
-        }
-        return resp
     
     def get(self, request, *args, **kwargs):
         
@@ -280,7 +312,7 @@ class DressResultView(WeixinAuthMixin, APIView):
         return response
     
     
-class DressAgeView(WeixinAuthMixin, APIView):
+class DressAgeView(WeixinAuthMixin, DressShareMixin, APIView):
     
     authentication_classes = ()
     permission_classes = ()
@@ -299,9 +331,16 @@ class DressAgeView(WeixinAuthMixin, APIView):
         if not mama_dress.is_finished():
             return redirect(reverse('dress_home'))
         
+        dress_age, dress_star = self.get_dress_age_and_star(mama_dress)
         response = Response({
                     'mama_dress':mama_dress,
-                    'age_range':range(1976,2001)
+                    'age_range':range(1976,2001),
+                    'share_params':self.render_share_params(
+                                 request, 
+                                 mama_dress=mama_dress,
+                                 dress_age=dress_age,
+                                 dress_star=dress_star
+                             ),
                 })
         self.set_cookie_openid_and_unionid(response,openid,unionid)
         return response
@@ -314,22 +353,12 @@ class DressAgeView(WeixinAuthMixin, APIView):
         mm_dress.save()
         return redirect(reverse('dress_result'))
 
-class DressShareView(WeixinAuthMixin, APIView):
+class DressShareView(WeixinAuthMixin, DressShareMixin, APIView):
     
     authentication_classes = (authentication.SessionAuthentication,)
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,)
     template_name = "mmdress/dress_share.html"
-    
-    def get_dress_age_and_star(self, mama_dress):
-        dress_score = self.calc_score(mama_dress)
-        for ages in constants.SCORE_AGES:
-            if dress_score == ages[0]:
-                return ages[1],constants.DRESS_STARS[ages[2]-1]
-        return 
-    
-    def calc_score(self,mama_dress):
-        return (100 - mama_dress.exam_score) / 10
     
     def get_customer(self, request):
         auth_user = request.user
@@ -351,7 +380,13 @@ class DressShareView(WeixinAuthMixin, APIView):
         response = Response({
                     'referal_dress':mama_dress,
                     'dress_age':dress_age,
-                    'dress_star':dress_star
+                    'dress_star':dress_star,
+                    'share_params':self.render_share_params(
+                                 request, 
+                                 mama_dress=mama_dress,
+                                 dress_age=dress_age,
+                                 dress_star=dress_star
+                             ),
                 })
         return response
     
