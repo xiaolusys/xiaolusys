@@ -201,14 +201,14 @@ $(document).ready(function(){
         console.log('os jump:',os)
         if (os == 'iOS'){
             setupWebViewJavascriptBridge(function(bridge) {
-		        var data = {'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'};
-		        bridge.callHandler('jumpToJsLocation', data, function(response) {
+		        var data = {'target_url': 'com.jimei.xlmm://app/v1/products?product_id=1'};
+		        bridge.callHandler('jumpToNativeLocation', data, function(response) {
 		            console.log("jumpToJsLocation called with:", data);
 		        });
 		    })
 		}else{
 		    if (window.AndroidBridge) {
-                var data = "{'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'}";
+                var data = "{'target_url': 'com.jimei.xlmm://app/v1/products?product_id=1'}";
                 alert('call:'+data);
                 window.AndroidBridge.jumpToNativeLocation(data);
             }
