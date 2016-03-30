@@ -32,7 +32,16 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
         fortune.save()
     except IntegrityError as e:
         logger.error("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
-        MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
+        fortunes = MamaFortune.objects.filter(mama_id=mama_id)
+        if fortunes.count() <= 0:
+            logger.error("IntegrityError - Wrong | mama_id: %s, params: %s" % (mama_id, kwargs))
+            return
+        fortune = fortunes[0]
+        for k,v in kwargs.iteritems():
+            if hasattr(fortune, k):
+                setattr(fortune, k, v)
+        fortune.save()
+        #MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
 @task()
@@ -114,7 +123,9 @@ def task_activevalue_update_mamafortune(mama_id):
     
     mama_fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if mama_fortunes.count() > 0:
-        mama_fortunes.update(active_value_num=value_num)
+        fortune = fortunes[0]
+        fortune.active_value_num = value_num
+        fortune.save()
     else:
         create_mamafortune_with_integrity(mama_id,active_value_num=value_num)
 
@@ -190,7 +201,9 @@ def task_update_mamafortune_order_num(mama_id):
     
     mamas = MamaFortune.objects.filter(mama_id=mama_id)
     if mamas.count() > 0:
-        mamas.update(order_num=order_num)
+        mama = mamas[0]
+        mama.order_num = order_num
+        mama.save()
     else:
         create_mamafortune_with_integrity(mama_id,order_num=order_num)
                        
