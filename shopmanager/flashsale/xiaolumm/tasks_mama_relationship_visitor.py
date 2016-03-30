@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 from django.db.models import F
+from django.db import IntegrityError
 from celery.task import task
 from flashsale.xiaolumm import util_description
 
