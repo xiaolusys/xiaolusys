@@ -7,6 +7,10 @@ from flashsale.xiaolumm.models_fortune import DailyStats, UniqueVisitor, OrderCa
 from flashsale.xiaolumm import util_unikey
 import datetime
 
+import logging
+
+logger = logging.getLogger('celery.handler')
+
 import sys
 
 def get_cur_info():
