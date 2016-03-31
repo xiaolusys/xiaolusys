@@ -432,6 +432,7 @@ function submit_data() {
                         $('#new-product').bind("click", submit_data);
                         swal("Tips", "请先登录一下(^_^)", "warning");
                     } else {
+                        $('#new-product').bind("click", submit_data);
                         swal("Tips", "有错误，请联系技术人员(^_^)", "warning");
                     }
                 }
