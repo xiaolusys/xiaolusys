@@ -126,7 +126,7 @@ def confirm_previous_dailystats(sender, instance, created, **kwargs):
     if created:
         mama_id = instance.mama_id
         date_field = instance.date_field
-        tasks_mama_dailystats.task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        tasks_mama_dailystats.task_confirm_previous_dailystats.delay(mama_id, date_field, 2)
 
 
 post_save.connect(confirm_previous_dailystats,
@@ -191,7 +191,7 @@ class CarryRecord(BaseModel):
 
 def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_carryrecord_update_mamafortune.s(instance.mama_id)()
+    tasks_mama_fortune.task_carryrecord_update_mamafortune.delay(instance.mama_id)
 
     from flashsale.xiaolumm import tasks_mama_dailystats
     tasks_mama_dailystats.task_carryrecord_update_dailystats.s(instance.mama_id, instance.date_field)()
@@ -302,7 +302,7 @@ def ordercarry_update_order_number(sender, instance, created, **kwargs):
     tasks_mama_clickcarry.task_update_clickcarry_order_number.s(mama_id, date_field)()
 
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_update_mamafortune_order_num.s(mama_id)()
+    tasks_mama_fortune.task_update_mamafortune_order_num.delay(mama_id)
 
     if created:
         from flashsale.xiaolumm import tasks_mama_dailystats
@@ -450,7 +450,7 @@ def confirm_previous_clickcarry(sender, instance, created, **kwargs):
     if created:
         mama_id = instance.mama_id
         date_field = instance.date_field
-        tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry.s(mama_id, date_field, 2)()
+        tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry.delay(mama_id, date_field, 2)
 
 
 post_save.connect(confirm_previous_clickcarry,
@@ -498,7 +498,7 @@ class ActiveValue(BaseModel):
 def activevalue_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.mama_id
-    tasks_mama_fortune.task_activevalue_update_mamafortune.s(mama_id)()
+    tasks_mama_fortune.task_activevalue_update_mamafortune.delay(mama_id)
 
 post_save.connect(activevalue_update_mamafortune,
                   sender=ActiveValue, dispatch_uid='post_save_activevalue_update_mamafortune')
@@ -510,7 +510,7 @@ def confirm_previous_activevalue(sender, instance, created, **kwargs):
         mama_id = instance.mama_id
         value_type = instance.value_type
         date_field = instance.date_field
-        task_mama_activevalue.task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
+        tasks_mama_activevalue.task_confirm_previous_activevalue.delay(mama_id, value_type, date_field, 2)
 
 post_save.connect(confirm_previous_activevalue,
                   sender=ActiveValue, dispatch_uid='post_save_confirm_previous_activevalue')
@@ -542,8 +542,8 @@ def update_mamafortune_invite_num(sender, instance, created, **kwargs):
         return
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.referal_from_mama_id
-    tasks_mama_fortune.task_update_mamafortune_invite_num.s(mama_id)()
-    tasks_mama_fortune.task_update_mamafortune_mama_level.s(mama_id)()
+    tasks_mama_fortune.task_update_mamafortune_invite_num.delay(mama_id)
+    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(mama_id)
     
 post_save.connect(update_mamafortune_invite_num,
                   sender=ReferalRelationship, dispatch_uid='post_save_update_mamafortune_invite_num')
@@ -614,7 +614,7 @@ def group_update_awardcarry(sender, instance, created, **kwargs):
     tasks_mama.task_group_update_awardcarry.s(instance)()
     
     from flashsale.xiaolumm import tasks_mama_fortune 
-    tasks_mama_fortune.task_update_mamafortune_mama_level.s(instance.leader_mama_id)()
+    tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance.leader_mama_id)
 
 post_save.connect(group_update_awardcarry,
                   sender=GroupRelationship, dispatch_uid='post_save_group_update_awardcarry')
