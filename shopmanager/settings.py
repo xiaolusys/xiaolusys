@@ -305,7 +305,7 @@ if not DEBUG:
     TEMPLATE_DEBUG = DEBUG
     ORMCACHE_ENABLE = False
     SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
-    SESSION_COOKIE_AGE = 48*60*60             
+    SESSION_COOKIE_AGE = 24*15*60*60             
     
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
     STATICFILES_DIRS = (
@@ -443,19 +443,27 @@ if not DEBUG:
     QINIU_SECRET_KEY = "8MkzPO_X7KhYQjINrnxsJ2eq5bsxKU1XmE8oMi4x"
     QINIU_PRIVATE_BUCKET = 'invoiceroom' 
     QINIU_PRIVATE_DOMAIN = '7xrpt3.com2.z0.glb.qiniucdn.com'
+    QINIU_PUBLIC_BUCKET = 'xiaolumama'
+    QINIU_PUBLIC_DOMAIN = '7xrst8.com2.z0.glb.qiniucdn.com'
     
     LOGGER_HANDLERS = [
-        'models',
-        'queryset',
-        'django.request',
-        'sentry.errors',
-        'celery.handler',
-        'notifyserver.handler',
-        'yunda.handler',
-        'mail.handler',
-        'xhtml2pdf',
-        'restapi.errors',
-        'weixin.proxy',
+        ('shopback','sentry'),
+        ('shopapp','sentry'),
+        ('flashsale','sentry'),
+        ('core','sentry'),
+        ('auth','sentry'),
+        ('supplychain','sentry'),
+        ('models','sentry'),
+        ('queryset','sentry'),
+        ('django.request','sentry,file'),
+        ('sentry.errors','sentry'),
+        ('celery.handler','sentry'),
+        ('notifyserver.handler','sentry'),
+        ('yunda.handler','sentry'),
+        ('mail.handler','sentry'),
+        ('xhtml2pdf','sentry'),
+        ('restapi.errors','sentry'),
+        ('weixin.proxy','sentry'),
     ]
     
     LOGGER_TEMPLATE = {
@@ -463,6 +471,12 @@ if not DEBUG:
         'level': 'DEBUG',
         'propagate': True,
     }
+    
+    def comb_logger(log_tuple,temp):
+        if isinstance(log_tuple,(list,tuple)) and len(log_tuple) == 2:
+            temp.update(handlers=log_tuple[1].split(','))
+            return log_tuple[0],temp
+        return log_tuple[0],temp
     
     LOGGING = {
         'version': 1,
@@ -472,7 +486,7 @@ if not DEBUG:
                 'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
             },
             'simple': {
-                'format': '%(levelname)s %(message)s'
+                'format': '%(levelname)s %(asctime)s %(message)s'
             },
         },
         'handlers': {
@@ -483,7 +497,7 @@ if not DEBUG:
                 'formatter': 'simple'
             },
             'sentry': {
-                'level': 'ERROR',
+                'level': 'WARN',
                 'class': 'raven.contrib.django.handlers.SentryHandler'
             },
             'console':{
@@ -497,7 +511,7 @@ if not DEBUG:
                 'include_html': True,
             }
         },
-        'loggers': dict([(handler,LOGGER_TEMPLATE) for handler in LOGGER_HANDLERS]),
+        'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
     }
 
 try:
