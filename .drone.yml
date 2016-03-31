@@ -35,7 +35,9 @@ deploy:
       - docker rm -f gunicorn-staging
       - docker run --name=gunicorn-staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys blueware-admin run-program gunicorn_django -k gevent -c staging_gunicorn_conf.py
   ssh:
-    host: sale.xiaolumm.com
+    host:
+      - sale.xiaolumm.com
+      - sale2.xiaolumm.com
     user: root
     when:
       branch: master
