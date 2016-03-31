@@ -131,8 +131,7 @@ def task_visitor_increment_activevalue(mama_id, date_field):
                                    uni_key=uni_key, value_description=description,
                                    date_field=date_field,status=status)
         active_value.save()
-
-        task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
+        #task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
         
     else:
         active_values.update(value_num=F('value_num')+1)

@@ -192,8 +192,8 @@ def task_visitor_increment_clickcarry(mama_id, date_field):
     click_carrys = ClickCarry.objects.filter(uni_key=uni_key)
     
     if click_carrys.count() <= 0:
+        #task_confirm_previous_zero_order_clickcarry.s(mama_id, date_field, 2)()
         create_clickcarry_upon_click(mama_id, date_field)
-        task_confirm_previous_zero_order_clickcarry.s(mama_id, date_field, 2)()
     else:
         click_carry = click_carrys[0]
         price = click_carry.init_click_price
