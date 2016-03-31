@@ -279,61 +279,6 @@ body {
     }
 }
 
-/* nexus 4 weixin Portrait */
-@media only screen and (min-device-width: 360px) and (max-device-width: 567px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
-    .invitation-class-gold {
-        height: 9.9%;
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
-        margin-top: 20.2%;
-        margin-left: 39.3%;
-        background-size: contain;
-    }
-
-    .invitation-class-gold.active {
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-active.png') center center no-repeat;
-        background-size: contain;
-    }
-
-    .invitation-class-diamond {
-        height: 9.9%;
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-normal.png') center center no-repeat;
-        margin-top: 2.7%;
-        margin-left: -20.5%;
-        background-size: contain;
-    }
-
-    .invitation-class-diamond.active {
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-active.png') center center no-repeat;
-        background-size: contain;
-    }
-
-    .invitation-class-crown {
-        height: 9.9%;
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-normal.png') center center no-repeat;
-        margin-top: 2.6%;
-        margin-left: 32.3%;
-        background-size: contain;
-    }
-
-    .invitation-class-crown.active {
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-active.png') center center no-repeat;
-        background-size: contain;
-    }
-
-    .invitation-class-gold-crown {
-        height: 9.9%;
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-normal.png') center center no-repeat;
-        margin-top: 4%;
-        margin-left: 8.2%;
-        background-size: contain;
-    }
-
-    .invitation-class-gold-crown.active {
-        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-active.png') center center no-repeat;
-        background-size: contain;
-    }
-}
-
 /* nexus 5  Portrait */
 @media only screen and (min-device-width: 360px) and (max-device-width: 567px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
     .invitation-class-gold {
@@ -389,8 +334,8 @@ body {
     }
 }
 
-/* nexus 6  Portrait */
-@media only screen and (min-device-width: 360px) and (max-device-width: 567px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
+ /*nexus 6  Portrait*/
+@media only screen and (min-device-width: 412px) and (max-device-width: 659px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
     .invitation-class-gold {
         height: 9.9%;
         background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
