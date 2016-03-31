@@ -11,14 +11,13 @@
     <meta name="format-detection" content="email=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="../css/featuredEvent.css">
-    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"> -->
     <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
     <script src="../js/common.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-
-            var activityUrl = GLConfig.baseApiUrl + GLConfig.activitys_url;
             (function requestActivitys() {
+                var activityUrl = GLConfig.baseApiUrl + GLConfig.activitys_url;
                 $.ajax({
                     type: 'GET',
                     url: activityUrl,
@@ -37,14 +36,19 @@
                 var h = [];
                 h.push('<li class="m-fe-li">');
                 h.push('<img  src="' + activity.act_img + '">');
-                h.push('<div');
-                h.push('<div >');
-                h.push('<p>0412拼图活动&nbsp;&nbsp;邀请好友赢取红包拼图...</p>');
-                h.push('<p><span>' + activity.total_member_num + '人参加&nbsp;&nbsp;</span><span>' + activity.friend_member_num + '位好友</span></p>');
-                h.push('</div>');
+                h.push('<div class="m-content">');
                 h.push('<div>');
-                h.push('<p>分享好友</p>');
-                h.push('</div></div></li>');
+                h.push('<p class="m-p1">0412拼图活动&nbsp;邀请好友赢取红包拼图...</p>');
+                h.push('<p class="m-p2"><span>' + activity.total_member_num + '人参加&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span>' + activity.friend_member_num + '位好友</span></p>');
+                h.push('</div>');
+                h.push('<div class="m-btn">');
+                if (activity.is_active) {
+                    h.push('<a href="' + activity.act_link + '">');
+                    h.push('<img src="./static/img/share-t.png">')
+                } else {
+                    h.push('<img src="./static/img/share-f.png">')
+                }
+                h.push('</a></div></div></li>');
                 return h.join('');
             }
         });
