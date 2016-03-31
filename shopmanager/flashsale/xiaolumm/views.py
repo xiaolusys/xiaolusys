@@ -526,6 +526,7 @@ class ClickLogView(WeixinAuthMixin, View):
         else:
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='wx')
         if next_page:
+            next_page = urllib.unquote(next_page)
             share_url = '{site_url}{next}&ufrom={ufrom}'.format(site_url=settings.M_SITE_URL,
                                                                 next=next_page,
                                                                 ufrom='wx')
