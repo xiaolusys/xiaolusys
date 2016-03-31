@@ -166,6 +166,8 @@ class Product(models.Model):
     def save(self,*args,**kwargs):
         #设置商品下架时间，默认时两天后下架
         if not self.offshelf_time and self.sale_time:
+            if not isinstance(self.sale_time, datetime):
+                self.sale_time = datetime.datetime.strptime(self.sale_time,'%Y-%m-%d')
             self.offshelf_time = self.sale_time + datetime.timedelta(days=2)
         return super(Product, self).save(*args,**kwargs)
 
