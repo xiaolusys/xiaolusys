@@ -9,7 +9,7 @@ publish:
     file: Dockerfile
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
     when:
-      branch: staging
+      branch: admin
 deploy:
   ssh:
     host: staging.xiaolumm.com
