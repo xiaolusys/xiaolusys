@@ -425,15 +425,25 @@ class ClickCarry(BaseModel):
         return None
 
             
-        
-
 def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
     tasks_mama_carryrecord.task_clickcarry_update_carryrecord.s(instance)()
 
-
 post_save.connect(clickcarry_update_carryrecord,
                   sender=ClickCarry, dispatch_uid='post_save_clickcarry_update_carryrecord')
+
+
+def confirm_previous_clickcarry(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_clickcarry
+    if created:
+        mama_id = instance.mama_id
+        date_field = instance.date_field
+        tasks_mama_clickcarry.task_confirm_previous_zero_order_clickcarry.s(mama_id, date_field, 2)()
+
+
+post_save.connect(confirm_previous_clickcarry,
+                  sender=ClickCarry, dispatch_uid='post_save_confirm_previous_clickcarry')
+
 
 
 class ActiveValue(BaseModel):
@@ -480,6 +490,18 @@ def activevalue_update_mamafortune(sender, instance, created, **kwargs):
 
 post_save.connect(activevalue_update_mamafortune,
                   sender=ActiveValue, dispatch_uid='post_save_activevalue_update_mamafortune')
+
+
+def confirm_previous_activevalue(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_activevalue
+    if created:
+        mama_id = instance.mama_id
+        value_type = instance.value_type
+        date_field = instance.date_field
+        task_mama_activevalue.task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
+
+post_save.connect(confirm_previous_activevalue,
+                  sender=ActiveValue, dispatch_uid='post_save_confirm_previous_activevalue')
 
 
 class ReferalRelationship(BaseModel):
