@@ -1,0 +1,12 @@
+ul .m-fe-li {
+	margin: 5px;
+	list-style-type: none;
+	border-bottom: 2px solid blue;
+	padding-right: 0 0 0 0;
+}
+.m-fe-t {
+	font-size: 20px;
+	line-height: 25px;
+	text-align: center;
+	color: #ff3333;
+}

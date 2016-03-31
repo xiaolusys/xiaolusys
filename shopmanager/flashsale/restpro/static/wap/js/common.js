@@ -120,7 +120,8 @@ var GLConfig = {
     hot_product: "/hotproduct",   //获取特卖选品列表
     change_hot_pro_hot_val: "/hotproduct/{{ id }}/change_hot_val",   //添加热度值
     app_download: "/download/get_app_download_link",   //添加热度值
-    mama_shop: "/products/get_mama_shop" // 获取代理用户店铺基础信息
+    mama_shop: "/products/get_mama_shop", // 获取代理用户店铺基础信息
+    activitys_url: "/activitys"
 
 };
 
