@@ -691,7 +691,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         mm_linkid = content.get('mm_linkid', None)
         category = content.get('category', None)
         self.permission_classes = ()
-        self.paginate_by = 1
+        self.paginate_by = 10
         try:
             xlmm = XiaoluMama.objects.get(pk=mm_linkid)
             customer = Customer.objects.get(unionid=xlmm.openid, status=Customer.NORMAL)
@@ -699,7 +699,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             shop = CustomerShops.objects.get(customer=customer_id)
             shop_info = model_to_dict(shop, fields=['name'])
             shop_info['thumbnail'] = customer.thumbnail or 'http://7xogkj.com2.z0.glb.qiniucdn.com/1181123466.jpg'
-            shop_pros = CuShopPros.objects.filter(shop=shop.id, pro_status=CuShopPros.UP_SHELF).order_by()
+            shop_pros = CuShopPros.objects.filter(shop=shop.id, pro_status=CuShopPros.UP_SHELF).order_by('-position')
         except:
             return Response({"shop_info": None, "products": None})
         from flashsale.pay.constants import FEMALE_CID_LIST, CHILD_CID_LIST
