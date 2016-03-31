@@ -52,12 +52,12 @@ class AddItemView(generics.ListCreateAPIView):
         wash_instroduce = content.get("wash_instroduce", "")
         header_img = content.get("header_img", "")
         ware_by = content.get("ware_by", "")
-        supplier = content.get("supplier", "")
         saleproduct = content.get("saleproduct", "")
-        sale_product = SaleProduct.objects.filter(id=saleproduct)
-        if sale_product.count() == 0 or str(sale_product[
-                0].sale_supplier.id) != supplier:
+        sale_products = SaleProduct.objects.filter(id=saleproduct)
+        if sale_products.count() == 0:
             return Response({"result": "选品ID错误"})
+        supplier = str(sale_products[0].sale_supplier.id)
+        
         if product_name == "" or category == "" or wash_instroduce == "" \
                 or shelf_time == "" or material == "" or supplier == "" \
                 or header_img == "" or ware_by == "":
