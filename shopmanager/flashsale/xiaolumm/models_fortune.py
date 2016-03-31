@@ -510,7 +510,7 @@ def confirm_previous_activevalue(sender, instance, created, **kwargs):
         mama_id = instance.mama_id
         value_type = instance.value_type
         date_field = instance.date_field
-        task_mama_activevalue.task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
+        tasks_mama_activevalue.task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
 
 post_save.connect(confirm_previous_activevalue,
                   sender=ActiveValue, dispatch_uid='post_save_confirm_previous_activevalue')
