@@ -75,76 +75,74 @@ class AddItemView(generics.ListCreateAPIView):
             outer_id = "100" + "%05d" % int(supplier)
         else:
             return Response({"result": "类别错误"})
-        try:
-            count = 1
-            while True:
-                inner_outer_id = outer_id + "%03d" % count
-                test_pros = Product.objects.filter(outer_id__startswith=inner_outer_id)
-                if test_pros.count() == 0 or count > 998:
-                    break
-                count += 1
-            if len(inner_outer_id) > 12:
-                return Response({"result": "编码生成错误"})
-            model_pro = ModelProduct(name=product_name, head_imgs=header_img, sale_time=shelf_time)
-            model_pro.save()
-            log_action(user.id, model_pro, ADDITION, u'新建一个modelproduct new')
-            all_colors = content.get("all_colors", "").split(",")
-            all_sku = content.get("all_sku", "").split(",")
-            chi_ma_str = content.get("all_chima", "")
-            all_chi_ma = [] if content.get("all_chima", "") == "" else chi_ma_str.split(",")
-            chi_ma_result = {}
-            for sku in all_sku:
-                for chi_ma in all_chi_ma:
-                    temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
-                    chi_ma_content = content.get(sku + "_" + chi_ma + "_size")
-                    if chi_ma_content and len(chi_ma_content) > 0 and chi_ma_content != "0":
-                        if sku in chi_ma_result:
-                            chi_ma_result[sku][temp_chi_ma.id] = chi_ma_content
-                        else:
-                            chi_ma_result[sku] = {temp_chi_ma.id: chi_ma_content}
-            pro_count = 1
-            for color in all_colors:
-                total_remain_num = 0
-                for sku in all_sku:
-                    remain_num = content.get(color + "_" + sku + "_remainnum", "")
-                    cost = content.get(color + "_" + sku + "_cost", "")
-                    price = content.get(color + "_" + sku + "_pricestd", "")
-                    agentprice = content.get(color + "_" + sku + "_agentprice", "")
-                    total_remain_num += int(remain_num)
-                # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
-                if (pro_count % 10) == 1 and pro_count > 1:
-                    pro_count += 1
 
-                one_product = Product(name=product_name + "/" + color, outer_id=inner_outer_id + str(pro_count),
-                                      model_id=model_pro.id, sale_charger=user.username,
-                                      category=category_item, remain_num=total_remain_num, cost=cost,
-                                      agent_price=agentprice, std_sale_price=price, ware_by=int(ware_by),
-                                      sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct)
-                one_product.save()
-                log_action(user.id, one_product, ADDITION, u'新建一个product_new')
+        count = 1
+        while True:
+            inner_outer_id = outer_id + "%03d" % count
+            test_pros = Product.objects.filter(outer_id__startswith=inner_outer_id)
+            if test_pros.count() == 0 or count > 998:
+                break
+            count += 1
+        if len(inner_outer_id) > 12:
+            return Response({"result": "编码生成错误"})
+        model_pro = ModelProduct(name=product_name, head_imgs=header_img, sale_time=shelf_time)
+        model_pro.save()
+        log_action(user.id, model_pro, ADDITION, u'新建一个modelproduct new')
+        all_colors = content.get("all_colors", "").split(",")
+        all_sku = content.get("all_sku", "").split(",")
+        chi_ma_str = content.get("all_chima", "")
+        all_chi_ma = [] if content.get("all_chima", "") == "" else chi_ma_str.split(",")
+        chi_ma_result = {}
+        for sku in all_sku:
+            for chi_ma in all_chi_ma:
+                temp_chi_ma = ContrastContent.objects.get(name=chi_ma)
+                chi_ma_content = content.get(sku + "_" + chi_ma + "_size")
+                if chi_ma_content and len(chi_ma_content) > 0 and chi_ma_content != "0":
+                    if sku in chi_ma_result:
+                        chi_ma_result[sku][temp_chi_ma.id] = chi_ma_content
+                    else:
+                        chi_ma_result[sku] = {temp_chi_ma.id: chi_ma_content}
+        pro_count = 1
+        for color in all_colors:
+            total_remain_num = 0
+            for sku in all_sku:
+                remain_num = content.get(color + "_" + sku + "_remainnum", "")
+                cost = content.get(color + "_" + sku + "_cost", "")
+                price = content.get(color + "_" + sku + "_pricestd", "")
+                agentprice = content.get(color + "_" + sku + "_agentprice", "")
+                total_remain_num += int(remain_num)
+            # product除第一个颜色外, 其余的颜色的outer_id末尾不能为1
+            if (pro_count % 10) == 1 and pro_count > 1:
                 pro_count += 1
-                one_product_detail = Productdetail(product=one_product, material=material,
-                                                   color=content.get("all_colors", ""),
-                                                   wash_instructions=wash_instroduce, note=note)
-                one_product_detail.save()
-                chima_model = ProductSkuContrast(product=one_product, contrast_detail=chi_ma_result)
-                chima_model.save()
-                count = 1
-                for sku in all_sku:
-                    barcode = one_product.outer_id + str(count)
-                    outer_id = content.get(color + "_" + sku + "_outerid", "") or count
-                    remain_num = content.get(color + "_" + sku + "_remainnum", "")
-                    cost = content.get(color + "_" + sku + "_cost", "")
-                    price = content.get(color + "_" + sku + "_pricestd", "")
-                    agentprice = content.get(color + "_" + sku + "_agentprice", "")
-                    one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num, cost=cost,
-                                         std_sale_price=price, agent_price=agentprice,
-                                         properties_name=sku, properties_alias=sku, barcode=barcode)
-                    one_sku.save()
-                    log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
-                    count += 1
-        except Exception, exc:
-            return Response({"result": exc.message})
+
+            one_product = Product(name=product_name + "/" + color, outer_id=inner_outer_id + str(pro_count),
+                                  model_id=model_pro.id, sale_charger=user.username,
+                                  category=category_item, remain_num=total_remain_num, cost=cost,
+                                  agent_price=agentprice, std_sale_price=price, ware_by=int(ware_by),
+                                  sale_time=shelf_time, pic_path=header_img, sale_product=saleproduct)
+            one_product.save()
+            log_action(user.id, one_product, ADDITION, u'新建一个product_new')
+            pro_count += 1
+            one_product_detail = Productdetail(product=one_product, material=material,
+                                               color=content.get("all_colors", ""),
+                                               wash_instructions=wash_instroduce, note=note)
+            one_product_detail.save()
+            chima_model = ProductSkuContrast(product=one_product, contrast_detail=chi_ma_result)
+            chima_model.save()
+            count = 1
+            for sku in all_sku:
+                barcode = one_product.outer_id + str(count)
+                outer_id = content.get(color + "_" + sku + "_outerid", "") or count
+                remain_num = content.get(color + "_" + sku + "_remainnum", "")
+                cost = content.get(color + "_" + sku + "_cost", "")
+                price = content.get(color + "_" + sku + "_pricestd", "")
+                agentprice = content.get(color + "_" + sku + "_agentprice", "")
+                one_sku = ProductSku(outer_id=outer_id, product=one_product, remain_num=remain_num, cost=cost,
+                                     std_sale_price=price, agent_price=agentprice,
+                                     properties_name=sku, properties_alias=sku, barcode=barcode)
+                one_sku.save()
+                log_action(user.id, one_sku, ADDITION, u'新建一个sku_new')
+                count += 1
         # 发送　添加供应商总选款的字段　的信号
         signal_record_supplier_models.send(sender=ModelProduct, obj=model_pro)
         return Response({"result": "OK", "outer_id": inner_outer_id})
