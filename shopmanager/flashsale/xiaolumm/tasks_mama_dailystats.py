@@ -68,8 +68,7 @@ def task_visitor_increment_dailystats(mama_id, date_field):
     
     if records.count() <= 0:
         create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=1)
-        
-        task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        #task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
     else:
         records.update(today_visitor_num=F('today_visitor_num')+1)
 

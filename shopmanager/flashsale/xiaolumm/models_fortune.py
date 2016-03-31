@@ -121,6 +121,18 @@ class DailyStats(BaseModel):
     def today_carry_num_display(self):
         return float('%.2f' % (self.today_carry_num * 0.01))
 
+def confirm_previous_dailystats(sender, instance, created, **kwargs):
+    from flashsale.xiaolumm import tasks_mama_dailystats
+    if created:
+        mama_id = instance.mama_id
+        date_field = instance.date_field
+        tasks_mama_dailystats.task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+
+
+post_save.connect(confirm_previous_dailystats,
+                  sender=DailyStats, dispatch_uid='post_save_confirm_previous_dailystats')
+
+    
 
 class CarryRecord(BaseModel):
     CARRY_TYPES = ((1, u'返现'),(2, u'佣金'),(3, u'奖金'),)
