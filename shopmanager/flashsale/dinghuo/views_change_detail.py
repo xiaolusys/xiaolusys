@@ -298,7 +298,7 @@ class ChangeDetailExportView(View):
             products[product.id] = {
                 'sale_product_id': product.sale_product,
                 'pic_path':
-                ('%s?imageMogr2/thumbnail/560/crop/560x480' %
+                ('%s?imageMogr2/thumbnail/560/crop/560x480/format/jpg' %
                  common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
                 if product.pic_path else ''
             }
