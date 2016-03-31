@@ -50,6 +50,7 @@ function logout() {
         if (res && res.result == "logout") {
             window.location = "denglu.html";
         }
+        delCookie(PROFILE_COOKIE_NAME);
     };
     // 发送请求
     $.ajax({
@@ -63,6 +64,7 @@ function logout() {
             if (data.status == 403) {
                 window.location = "denglu.html";
             }
+            delCookie(PROFILE_COOKIE_NAME);
         }
     });
     delCookie(PROFILE_COOKIE_NAME);
