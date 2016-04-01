@@ -683,7 +683,7 @@ def cash_modify(request, data):
         
         fortune = MamaFortune.objects.get(mama_id=mama_id)
         pre_cash = fortune.cash_num_display()
-        xiaolumama = XiaoluMama.object.get(id=mama_id)
+        xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
         
         if xiaolumama.is_cashoutable() and pre_cash * 100 >= cashout.value and cashout.status == 'pending':
             cashout.status = 'approved'
@@ -699,7 +699,7 @@ def cash_modify(request, data):
                                          carry_type=CarryLog.CARRY_OUT,
                                          status=CarryLog.CONFIRMED)
 
-            xiaolumama = XiaoluMama.object.get(id=mama_id)
+            xiaolumama = XiaoluMama.objects.get(id=mama_id)
             wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID,unionid=xiaolumama.openid)
             
             mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
