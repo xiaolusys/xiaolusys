@@ -13,7 +13,7 @@ from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.models_fans import XlmmFans
 
 
-import sys, datetime
+import sys, datetime, time
 
 
 def get_cur_info():
@@ -32,6 +32,10 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
         fortune.save()
     except IntegrityError as e:
         logger.warn("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
+        # The following will very likely cause deadlock, since another
+        # thread is creating this record. We can sleep 3 seconds and do
+        # this update operation.
+        time.sleep(3)
         MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
