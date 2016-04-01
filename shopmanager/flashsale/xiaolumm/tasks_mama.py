@@ -249,7 +249,7 @@ def task_order_trigger(sale_order):
     if sale_order.is_deposit():
         if sale_order.is_confirmed():
             if mm_linkid_mama:
-                task_update_referal_relationship.s(mm_linkid_mama.pk, self_mama.pk, customer_id)()
+                task_update_referal_relationship.delay(mm_linkid_mama.pk, self_mama.pk, customer_id)
         return
 
 
@@ -286,7 +286,7 @@ def task_order_trigger(sale_order):
     agency_level = mm_linkid_mama.agencylevel
     carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
     
-    task_update_ordercarry.s(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level, carry_scheme.name, via_app)()
+    task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level, carry_scheme.name, via_app)
 
     
     

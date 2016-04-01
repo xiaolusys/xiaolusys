@@ -57,7 +57,7 @@ def update_activevalue(sender, instance, created, **kwargs):
     mama_id = instance.xlmm
     fans_customer_id = instance.fans_cusid
     date_field = instance.created.date()
-    tasks_mama_activevalue.task_fans_update_activevalue.s(mama_id, fans_customer_id, date_field)()
+    tasks_mama_activevalue.task_fans_update_activevalue.delay(mama_id, fans_customer_id, date_field)
 
 
 post_save.connect(update_activevalue,
@@ -68,7 +68,7 @@ def update_mamafortune_fans_num(sender, instance, created, **kwargs):
         return
     from flashsale.xiaolumm import tasks_mama_fortune
     mama_id = instance.xlmm
-    tasks_mama_fortune.task_update_mamafortune_fans_num.s(mama_id)()
+    tasks_mama_fortune.task_update_mamafortune_fans_num.delay(mama_id)
 
 post_save.connect(update_mamafortune_fans_num,
                   sender=XlmmFans, dispatch_uid='post_save_update_mamafortune_fans_num')
