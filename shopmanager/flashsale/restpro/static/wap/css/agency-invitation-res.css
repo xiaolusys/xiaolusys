@@ -1,0 +1,468 @@
+body {
+    background-color: #FFD609;
+}
+
+.invitation-bg {
+    background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-bg.png') no-repeat;
+    background-size: contain;
+    height: 731px;
+}
+
+.invitation-count {
+    margin: 20% 10% 0% 10%;
+}
+
+.invitation-count > span {
+    text-align: center;
+    font-size: 28px;
+    color: #fff;
+    background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/count-bg.png') center center no-repeat;
+    background-size: contain;
+}
+
+.invite-btn {
+    margin-top: 20%;
+}
+
+.invited-friends-head {
+    margin-top: 20%;
+}
+
+.invited-friends-list {
+    list-style-type: none;
+    margin-top: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.invited-friends-list > .item {
+    margin-top: -24px;
+    padding: 24px 0px;
+    height: 125px;
+    background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/item-bg.png') center center no-repeat;
+    background-size: contain;
+}
+
+.red-packet {
+    background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/red-packet.png') center center no-repeat;
+    background-size: contain;
+}
+
+.m-pull-right {
+    float: right;
+}
+
+.m-pull-left {
+    float: left;
+}
+
+/* iPhone 5 and 5S Portrait */
+
+@media only screen and (min-device-width: 320px) and (max-device-width: 568px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait) {
+    .invitation-class-gold {
+        height: 7.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
+        margin-top: 17.4%;
+        margin-left: 39.8%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond {
+        height: 7.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-normal.png') center center no-repeat;
+        margin-top: 2.6%;
+        margin-left: -21.5%;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-crown {
+        height: 7.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-normal.png') center center no-repeat;
+        margin-top: 2.1%;
+        margin-left: 32.6%;
+        background-size: contain;
+    }
+
+    .invitation-class-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown {
+        height: 7.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-normal.png') center center no-repeat;
+        margin-top: 3%;
+        margin-left: 8%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+}
+
+/* iPhone 6 Portrait */
+
+@media only screen and (min-device-width: 375px) and (max-device-width: 667px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait) {
+    .invitation-class-gold {
+        height: 9.1%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
+        margin-top: 19%;
+        margin-left: 39.4%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond {
+        height: 9.1%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-normal.png') center center no-repeat;
+        margin-top: 2.7%;
+        margin-left: -20.5%;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-crown {
+        height: 9.1%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-normal.png') center center no-repeat;
+        margin-top: 2.6%;
+        margin-left: 32%;
+        background-size: contain;
+    }
+
+    .invitation-class-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown {
+        height: 9.1%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-normal.png') center center no-repeat;
+        margin-top: 3%;
+        margin-left: 8%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+}
+
+/* iPhone 6 plus Portrait */
+
+@media only screen and (min-device-width: 414px) and (max-device-width: 736px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
+    .invitation-class-gold {
+        height: 10%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
+        margin-top: 20%;
+        margin-left: 39.4%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond {
+        height: 10%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-normal.png') center center no-repeat;
+        margin-top: 2.7%;
+        margin-left: -20.5%;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-crown {
+        height: 10%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-normal.png') center center no-repeat;
+        margin-top: 2.6%;
+        margin-left: 32%;
+        background-size: contain;
+    }
+
+    .invitation-class-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown {
+        height: 10%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-normal.png') center center no-repeat;
+        margin-top: 3%;
+        margin-left: 8%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+}
+
+/* nexus 4  Portrait */
+@media only screen and (min-device-width: 384px) and (max-device-width: 567px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait) {
+    .invitation-class-gold {
+        height: 9.2%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
+        margin-top: 19.6%;
+        margin-left: 39.5%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond {
+        height: 9.2%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-normal.png') center center no-repeat;
+        margin-top: 2.7%;
+        margin-left: -20.5%;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-crown {
+        height: 9.25%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-normal.png') center center no-repeat;
+        margin-top: 2.6%;
+        margin-left: 32.3%;
+        background-size: contain;
+    }
+
+    .invitation-class-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown {
+        height: 9.2%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-normal.png') center center no-repeat;
+        margin-top: 4%;
+        margin-left: 8.2%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+}
+
+/* nexus 5  Portrait */
+@media only screen and (min-device-width: 360px) and (max-device-width: 567px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
+    .invitation-class-gold {
+        height: 8.6%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
+        margin-top: 19.2%;
+        margin-left: 39.6%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond {
+        height: 8.6%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-normal.png') center center no-repeat;
+        margin-top: 2.7%;
+        margin-left: -20.5%;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-crown {
+        height: 8.6%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-normal.png') center center no-repeat;
+        margin-top: 2.6%;
+        margin-left: 32.3%;
+        background-size: contain;
+    }
+
+    .invitation-class-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown {
+        height: 8.6%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-normal.png') center center no-repeat;
+        margin-top: 4%;
+        margin-left: 8.2%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+}
+
+/*nexus 6  Portrait*/
+@media only screen and (min-device-width: 412px) and (max-device-width: 659px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
+    .invitation-class-gold {
+        height: 9.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-normal.png') center center no-repeat;
+        margin-top: 20.2%;
+        margin-left: 39.3%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond {
+        height: 9.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-normal.png') center center no-repeat;
+        margin-top: 2.7%;
+        margin-left: -20.5%;
+        background-size: contain;
+    }
+
+    .invitation-class-diamond.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/diamond-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-crown {
+        height: 9.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-normal.png') center center no-repeat;
+        margin-top: 2.6%;
+        margin-left: 32.3%;
+        background-size: contain;
+    }
+
+    .invitation-class-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown {
+        height: 9.9%;
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-normal.png') center center no-repeat;
+        margin-top: 4%;
+        margin-left: 8.2%;
+        background-size: contain;
+    }
+
+    .invitation-class-gold-crown.active {
+        background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/gold-crown-active.png') center center no-repeat;
+        background-size: contain;
+    }
+}
+
+.my-invitation-friends {
+    margin-top: 70px;
+    height: 50px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/my-invitation-mm-icon.png") no-repeat;
+    background-size: 100% 100%;
+}
+
+.friends-info-icon {
+    width: 100%;
+    height: 81px;
+    margin: 0 auto;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/friends-info.png") no-repeat;
+    background-size: 100% 100%;
+    /*text-align: center;*/
+    margin-bottom: 5px;
+}
+
+.friends-info-icon .detail-info {
+    position: relative;
+    margin: 0 auto;
+    width: 87%;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.friend-head {
+    position: absolute;
+    display: inline-block;
+    float: left;
+    width: 40px;
+    height: 40px;
+    left: 10%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+    /*background: url("") no-repeat;*/
+    background-size: 100% 100%;
+    /*border: solid 2px #000000;*/
+}
+
+.friends-info-icon .detail-info .friend-desc {
+    display: inline-block;
+    width: 65%;
+    height: 75%;
+    margin-left: 3%;
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.friends-info-icon .detail-info .friend-desc .join-mama {
+    font-size: 13px;
+}
+
+.friends-info-icon .detail-info .friend-desc em {
+    font-style: normal;
+    color: #00b0d9;
+}
+
+.friends-info-icon .detail-info .red-packet {
+    position: absolute;
+    float: right;
+    top: 47%;
+    transform: translate(-50%, -50%);
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    bottom: 0;
+    left: 90%;
+    background: url("http://7xogkj.com2.z0.glb.qiniucdn.com/red-packer-30.png") no-repeat;
+    background-size: 100% 100%;
+}
