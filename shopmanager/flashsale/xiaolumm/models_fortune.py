@@ -4,7 +4,7 @@ from core.models import BaseModel
 from django.db.models.signals import post_save
 from django.conf import settings
 
-import datetime
+import datetime, urlparse
 
 
 def get_choice_name(choices, val):
@@ -100,7 +100,9 @@ class MamaFortune(BaseModel):
         return float('%.2f' % (self.carry_cashout * 0.01))
 
     def mama_event_link(self):
-        return "%s" % settings.M_SITE_URL
+        """ 活动页面链接 """
+        activity_link = '/pages/featuredEvent.html'
+        return urlparse.urljoin(settings.M_SITE_URL, activity_link)
 
 class DailyStats(BaseModel):
     STATUS_TYPES = ((1, u'待确定'), (2, u'已确定'), )

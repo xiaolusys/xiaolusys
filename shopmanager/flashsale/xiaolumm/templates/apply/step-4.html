@@ -24,29 +24,43 @@
         <span class="col-xs-3">位</span>
     </p>
 
-    <div class="col-xs-10 invitation-class-gold active"></div>
-    <div class="col-xs-10 invitation-class-diamond"></div>
-    <div class="col-xs-10 invitation-class-crown"></div>
-    <div class="col-xs-10 invitation-class-gold-crown"></div>
+    <div class="col-xs-10 invitation-class-gold  {% if agencylevel == 4 %} active {% endif %}"></div>
+    <div class="col-xs-10 invitation-class-diamond  {% if agencylevel == 3 %} active {% endif %}"></div>
+    <div class="col-xs-10 invitation-class-crown  {% if agencylevel == 2 %} active {% endif %}"></div>
+    <div class="col-xs-10 invitation-class-gold-crown {% if agencylevel == 1 %} active {% endif %}"></div>
+
+
     <img class="js-invite col-xs-12 invite-btn" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invite-btn.png" alt="">
-    <img class="col-xs-12 invited-friends-head" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invited-friends-head.png"
-         alt="">
-    <ul class="col-xs-12 invited-friends-list">
+    <img class="col-xs-12 invited-friends-head" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invited-friends-head.png">
+
+    <div class="col-xs-12 invited-friends-list" style="margin-top: 1px">
         {% for referal in referals %}
-            <li class="item">
-                <img class="col-xs-2" src="" alt="">
-
-                <div class="col-xs-8">
-                    <p><span>2016-3-30</span><span> 18:00:00</span></p>
-
-                    <p><span>s大王通过您的邀请加入小鹿妈妈</span><span></span></p>
+            <div class="friends-info-icon">
+                <div class="detail-info ">
+                    <div class="friend-head">
+                        <img class="carousel-inner img-responsive img-circle"
+                             src="http://wx.qlogo.cn/mmopen/JcDicrZBlREgDGy8k7zQJPDMkxdFFdtkx7bNGv8icdpYkj4KjSPE6o8VWceDot3NIp9RQbCXBoP6CgahmWjjkcxzTcyEjKlibIa/0"/>
+                    </div>
+                    <div class="friend-desc ">
+                        <span>{{ referal.created }}</span><br/>
+                        <em>{{ referal.referal_to_mama_nick|slice:":5" }}</em><span class="join-mama"> 通过邀请加入小鹿</span>
+                    </div>
+                    <div class="red-packet"></div>
                 </div>
-                <div class="col-xs-2 red-packet">
-                </div>
-            </li>
+            </div>
         {% endfor %}
-    </ul>
+    </div>
+
 </div>
+<script>
+    var a = window.screen.height;
+    var b = window.screen.width;
+    //alert(window.devicePixelRatio);
+   // alert(a);
+   // alert(b);
+
+
+</script>
 </body>
 
 </html>
