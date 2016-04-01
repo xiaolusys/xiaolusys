@@ -31,7 +31,7 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
         #fortune = MamaFortune(mama_id=mama_id, **kwargs)
         fortune = MamaFortune(mama_id=mama_id)
         for k,v in kwargs.iteritems():
-            if hasattr(fortune, k, v):
+            if hasattr(fortune, k):
                 setattr(fortune, k, v)
         fortune.save()
     except IntegrityError as e:
