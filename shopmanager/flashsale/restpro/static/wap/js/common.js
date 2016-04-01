@@ -431,7 +431,7 @@ function loadNTalker(params,callback){
         oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
     }
     window.onload = function () {
-        window.event.cacenlBubble=false;
+        //window.event.cacenlBubble=false;
         if(document.addEventListener){
 	        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
 	        document.body.addEventListener('click',function(e){
