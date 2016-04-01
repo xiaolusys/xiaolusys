@@ -398,8 +398,16 @@
             {% for order in orderdetails %}
                 <tr id="orderdetail_{{ forloop.counter }}">
                     <td><a href="/admin/items/product/?q={{ order.outer_id|slice:":9" }}" target="_blank">{{ order.outer_id }}</a></td>
-                    <td><a href="/admin/items/productsku/{{order.chichu_id}}/" target="_blank">{{ order.supplier_outer_id }}</a></td>
-                    <td><a href="/admin/dinghuo/orderdetail/?q={{ order.outer_id }}" target="_blank">{{ order.product_name }}</a></td>
+                    <td>
+                        <a href="/admin/trades/mergeorder/?outer_id={{order.outer_id}}&sku_properties_name={{order.product_chicun}}&order_pending_status=2" target="_blank">
+                            {{ order.supplier_outer_id }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/admin/dinghuo/orderdetail/?q={{order.chichu_id}}&orderlist_status=待处理" target="_blank">
+                        {{ order.product_name }}
+                        </a>
+                    </td>
                     <td>
                         <a href="{{ order.product_link|default:'#' }}" target="_blank">
                             <img src="{{ order.pic_path }}?imageView2/0/w/60/format/jpg" title="{{ order.product_name }}" width="60px" height="60px" class="img-circle">
@@ -440,7 +448,9 @@
                             </a>
                         {% endif %}
                     </td>
-                    <td width="70px">{{ order.wait_post_num }}</td>
+                    <td width="70px">
+                        {{ order.wait_post_num }}
+                    </td>
                     <td width="90px">
                         <input type="number" class="form-control" min="0" value="0" name="arrived_num"
                                id="arrived_num_{{ order.id }}">
