@@ -1,10 +1,14 @@
 # -*- coding:utf-8 -*-
 from django.db import models
+from django.contrib.auth.models import User
+
 from shopback.base.fields import BigIntegerAutoField, BigIntegerForeignKey
+from shopback.items.models import ProductSku, Product
+from shopback.refunds.models import Refund
+from supplychain.supplier.models import SaleSupplier
+
 from .models_user import MyUser, MyGroup
 from .models_stats import SupplyChainDataStats
-from shopback.items.models import ProductSku, Product
-
 
 class OrderList(models.Model):
 
@@ -32,6 +36,9 @@ class OrderList(models.Model):
     TTKDEX = u'TTKDEX'
     QFKD = u'QFKD'
     DBKD = u'DBKD'
+
+    CREATED_BY_PERSON = 1
+    CREATED_BY_MACHINE = 2
 
     ORDER_PRODUCT_STATUS = (
         (SUBMITTING, u'草稿'),
@@ -63,10 +70,12 @@ class OrderList(models.Model):
         (DBKD, u'德邦快递'),
     )
     id = BigIntegerAutoField(primary_key=True)
+    buyer = models.ForeignKey(User, null=True, related_name='dinghuo_orderlists', verbose_name=u'负责人')
     buyer_name = models.CharField(default="", max_length=32, verbose_name=u'买手')
     order_amount = models.FloatField(default=0, verbose_name=u'金额')
     supplier_name = models.CharField(default="", blank=True, max_length=128, verbose_name=u'商品链接')
     supplier_shop = models.CharField(default="", blank=True, max_length=32, verbose_name=u'供应商店铺名')
+    supplier = models.ForeignKey(SaleSupplier, null=True, blank=True, related_name='dinghuo_orderlist', verbose_name=u'供应商')
 
     express_company = models.CharField(choices=EXPRESS_CONPANYS, blank=True, max_length=32, verbose_name=u'快递公司')
     express_no = models.CharField(default="", blank=True, max_length=32, verbose_name=u'快递单号')
@@ -80,6 +89,9 @@ class OrderList(models.Model):
     created = models.DateField(auto_now_add=True, db_index=True, verbose_name=u'订货日期')
     updated = models.DateTimeField(auto_now=True, verbose_name=u'更新日期')
     note = models.TextField(default="", blank=True, verbose_name=u'备注信息')
+    created_by = models.SmallIntegerField(choices=((CREATED_BY_PERSON, '人工'), (CREATED_BY_MACHINE, '自动')),
+                                          default=CREATED_BY_PERSON, verbose_name=u'创建方式')
+    last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
@@ -285,3 +297,97 @@ class SaleInventoryStat(models.Model):
 
     def __unicode__(self):
         return u'<%s>' % self.stat_date
+
+
+class InBound(models.Model):
+    DRAFT = 0
+    NORMAL = 1
+    PENDING = 2
+
+    SUPPLIER = 1
+    REFUND = 2
+
+    STATUS_CHOICES = (
+        (NORMAL, u'正常'),
+        (PENDING, u'待处理')
+    )
+    supplier = models.ForeignKey(SaleSupplier, null=True, blank=True,
+                                 related_name='inbounds', verbose_name=u'供应商')
+    express_no = models.CharField(max_length=32, blank=True, verbose_name=u'快递单号')
+    orderlists = models.ManyToManyField(OrderList, through='OrderListInBound', verbose_name=u'关联订货单集合')
+    sent_from = models.SmallIntegerField(default=SUPPLIER,
+                                         choices=((SUPPLIER, u'供应商'), (REFUND, u'退货')), verbose_name=u'包裹类型')
+    refund = models.ForeignKey(Refund, null=True, blank=True,
+                               related_name='inbounds', verbose_name=u'退货单')
+    creator = models.ForeignKey(User, related_name='inbounds', verbose_name=u'创建人')
+    memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
+    status = models.SmallIntegerField(default=NORMAL, choices=STATUS_CHOICES, verbose_name=u'状态')
+
+    class Meta:
+        db_table = 'flashsale_dinghuo_inbound'
+        verbose_name = u'入仓单'
+        verbose_name_plural = u'入仓单列表'
+
+class InBoundImage(models.Model):
+    inbound = models.ForeignKey(InBound, related_name=u'images', verbose_name=u'入库照片')
+    pic_path = models.CharField(max_length=256, verbose_name=u'图片地址')
+    memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
+
+    class Meta:
+        db_table = 'flashsale_dinghuo_inboundimage'
+        verbose_name = u'入仓单图片'
+        verbose_name_plural = u'入仓单图片列表'
+
+
+class InBoundDetail(models.Model):
+    NORMAL = 1
+    PROBLEM = 2
+
+    inbound = models.ForeignKey(InBound, related_name='details', verbose_name=u'入库单')
+    product = models.ForeignKey(Product, null=True, blank=True,
+                                related_name='inbound_details', verbose_name=u'入库颜色')
+    sku = models.ForeignKey(ProductSku, null=True, blank=True,
+                            related_name='inbound_details', verbose_name=u'入库规格')
+
+    product_name = models.CharField(max_length=128, verbose_name=u'产品名称')
+    outer_id = models.CharField(max_length=32, blank=True, verbose_name=u'颜色编码')
+    properties_name = models.CharField(max_length=128, blank=True, verbose_name=u'规格')
+    arrival_quantity = models.IntegerField(default=0, verbose_name=u'已到数量')
+    inferior_quantity = models.IntegerField(default=0, verbose_name=u'次品数量')
+
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
+    modified = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
+    memo = models.TextField(max_length=1024, blank=True, verbose_name=u'备注')
+    status = models.SmallIntegerField(default=NORMAL, choices=((NORMAL, u'正常'), (PROBLEM, u'疑难')), verbose_name=u'状态')
+
+    class Meta:
+        db_table = 'flashsale_dinghuo_inbounddetail'
+        verbose_name = u'入仓单明细'
+        verbose_name_plural = u'入仓单明细列表'
+
+
+class OrderListInBound(models.Model):
+    orderlist = models.ForeignKey(OrderList, related_name='records', verbose_name=u'订货单')
+    inbound = models.ForeignKey(InBound, related_name='records', verbose_name=u'入仓单')
+    express_no = models.CharField(max_length=32, blank=True, verbose_name=u'快递单号')
+
+    class Meta:
+        db_table = 'flashsale_dinghuo_orderlistinbound'
+
+
+class OrderDetailInBoundDetail(models.Model):
+    INVALID = 0
+    NORMAL = 1
+
+    orderdetail = models.ForeignKey(OrderDetail, related_name='records', verbose_name=u'订货明细')
+    inbounddetail = models.ForeignKey(InBoundDetail, related_name='records', verbose_name=u'入仓明细')
+    arrival_quantity = models.IntegerField(default=0, blank=True, verbose_name=u'正品数')
+    inferior_quantity = models.IntegerField(default=0, blank=True, verbose_name=u'次品数')
+    status = models.SmallIntegerField(default=NORMAL,
+                                      choices=((NORMAL, u'正常'), (INVALID, u'无效')), verbose_name=u'状态')
+    created = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
+
+    class Meta:
+        db_table = 'dinghuo_orderdetailinbounddetail'

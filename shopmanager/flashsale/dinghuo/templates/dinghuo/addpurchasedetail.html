@@ -47,7 +47,7 @@
                                     <tr>
                                         <td>
                                             <div>
-                                                <label>{{ guige.properties_name }}</label>
+                                                <label>{{ guige.properties_name|default:guige.properties_alias }}</label>
                                             </div>
                                         </td>
                                         <td>

@@ -252,22 +252,28 @@
             <div class="alert alert-success" role="alert">
                 <strong>填写地址:</strong>
                 {% ifequal orderlist.p_district "3" %}
-                    广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼_{{ orderlist.id }}室<br>小鹿美美收15023333762
+                <p>广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼</p>
+                <p>小鹿美美{{ orderlist.id }}号工作人员</p>
+                <p>15023333762</p>
                 {% else %}
-                    上海市佘山镇吉业路245号5号楼_{{ orderlist.id }}室
+                <p>上海市佘山镇吉业路245号5号楼</p>
+                <p>小鹿美美{{ orderlist.id }}号工作人员</p>
+                <p>021-37698479, 15026869609</p>
                 {% endifequal %}
-
             </div>
         </div>
 
         <div class="col-lg-2">
             <div class="alert alert-success" role="alert">
-                <strong>大货负责人:</strong>{{ orderlist.receiver }}
+                <strong>大货负责人:</strong>{{ buyer_name }}
             </div>
         </div>
         <div class="col-lg-6">
             <div class="alert alert-success" role="alert">
-                <strong>商品链接:</strong>{{ orderlist.supplier_name }}
+                <strong>供应商:</strong>
+                {% if orderlist.supplier %}
+                <a href="/admin/supplier/salesupplier/?id={{ orderlist.supplier.id }}" target="_blank">{{ orderlist.supplier.supplier_name }}</a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -366,7 +372,6 @@
         </div>
     {% endif %}
     <div class="row">
-
         <legend>
             <h4 class="head-title">详细列表</h4>
         </legend>
@@ -393,8 +398,16 @@
             {% for order in orderdetails %}
                 <tr id="orderdetail_{{ forloop.counter }}">
                     <td><a href="/admin/items/product/?q={{ order.outer_id|slice:":9" }}" target="_blank">{{ order.outer_id }}</a></td>
-                    <td><a href="/admin/items/productsku/{{order.chichu_id}}/" target="_blank">{{ order.supplier_outer_id }}</a></td>
-                    <td><a href="/admin/dinghuo/orderdetail/?q={{ order.outer_id }}" target="_blank">{{ order.product_name }}</a></td>
+                    <td>
+                        <a href="/admin/trades/mergeorder/?outer_id={{order.outer_id}}&sku_properties_name={{order.product_chicun}}&order_pending_status=2" target="_blank">
+                            {{ order.supplier_outer_id }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/admin/dinghuo/orderdetail/?q={{order.chichu_id}}&orderlist_status=待处理" target="_blank">
+                        {{ order.product_name }}
+                        </a>
+                    </td>
                     <td>
                         <a href="{{ order.product_link|default:'#' }}" target="_blank">
                             <img src="{{ order.pic_path }}?imageView2/0/w/60/format/jpg" title="{{ order.product_name }}" width="60px" height="60px" class="img-circle">
@@ -435,7 +448,9 @@
                             </a>
                         {% endif %}
                     </td>
-                    <td width="70px">{{ order.wait_post_num }}</td>
+                    <td width="70px">
+                        {{ order.wait_post_num }}
+                    </td>
                     <td width="90px">
                         <input type="number" class="form-control" min="0" value="0" name="arrived_num"
                                id="arrived_num_{{ order.id }}">
