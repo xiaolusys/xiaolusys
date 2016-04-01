@@ -28,14 +28,18 @@ def get_cur_info():
 
 def create_mamafortune_with_integrity(mama_id, **kwargs):
     try:
-        fortune = MamaFortune(mama_id=mama_id, **kwargs)
+        #fortune = MamaFortune(mama_id=mama_id, **kwargs)
+        fortune = MamaFortune(mama_id=mama_id)
+        for k,v in kwargs.iteritems():
+            if hasattr(fortune, k, v):
+                setattr(fortune, k, v)
         fortune.save()
     except IntegrityError as e:
         logger.warn("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
         # The following will very likely cause deadlock, since another
         # thread is creating this record. We can sleep 3 seconds and do
         # this update operation.
-        time.sleep(3)
+        # time.sleep(3)
         MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
