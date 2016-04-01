@@ -4,6 +4,9 @@ alter table suplychain_flashsale_orderlist add column buyer_id int(11) default 0
 alter table suplychain_flashsale_orderlist add column created_by smallint default 1;
 alter table suplychain_flashsale_orderlist add column last_pay_date date default null;
 
+update suplychain_flashsale_orderlist set buyer_id = null;
+alter table suplychain_flashsale_orderlist modify buyer_id int(11) default null;
+
 ########2016-03-30####################################
 alter table flashsale_cushops_detail add column offshelf_time datetime;
 CREATE INDEX `flashsale_cushops_detail_3229bd6f` ON `flashsale_cushops_detail` (`offshelf_time`);
