@@ -1,3 +1,9 @@
+######## 2016-04-01 ########
+alter table suplychain_flashsale_orderlist add column supplier_id int(11) default null references supplychain_supply_supplier(id);
+alter table suplychain_flashsale_orderlist add column buyer_id int(11) default 0 references auth_user(id);
+alter table suplychain_flashsale_orderlist add column created_by smallint default 1;
+alter table suplychain_flashsale_orderlist add column last_pay_date date default null;
+
 ########2016-03-30####################################
 alter table flashsale_cushops_detail add column offshelf_time datetime;
 CREATE INDEX `flashsale_cushops_detail_3229bd6f` ON `flashsale_cushops_detail` (`offshelf_time`);
@@ -42,9 +48,9 @@ alter table pay_coupon_template drop column preset_days;
 alter table pay_coupon_template drop column active_days;
 
 ######## 2016-03-23 ########
-
 alter table flashsale_activity_entry add share_icon varchar(128) NOT NULL;
 alter table flashsale_activity_entry add share_link varchar(256) NOT NULL;
+
 
 ######## 2016-03-22 ########
 alter table supplychain_supply_supplier add column ware_by smallint default 1;

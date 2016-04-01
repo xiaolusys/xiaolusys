@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.contrib import admin
+from django.contrib.auth.models import User
 from flashsale.dinghuo.models import OrderList, OrderDetail, orderdraft, ProductSkuDetail, ReturnGoods, RGDetail
 from django.http import HttpResponseRedirect
 from flashsale.dinghuo import log_action, CHANGE
@@ -7,7 +8,7 @@ from flashsale.dinghuo.filters import DateFieldListFilter
 from flashsale.dinghuo.models_user import MyUser, MyGroup
 from flashsale.dinghuo.models_stats import SupplyChainDataStats, SupplyChainStatsOrder, DailySupplyChainStatsOrder, PayToPackStats
 import time
-from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2
+from .filters import GroupNameFilter, OrderListStatusFilter, OrderListStatusFilter2, BuyerNameFilter
 from flashsale.dinghuo import permissions as perms
 from django.contrib.admin.views.main import ChangeList
 from django.db import models
@@ -31,17 +32,16 @@ class orderdetailInline(admin.TabularInline):
 class ordelistAdmin(admin.ModelAdmin):
     fieldsets = ((u'订单信息:', {
         'classes': ('expand',),
-        'fields': ('supplier_name', 'supplier_shop', 'express_company', 'express_no'
-                   , 'receiver', 'status', 'order_amount', 'note', 'p_district')
+        'fields': ('express_company', 'express_no', 'status', 'order_amount', 'note', 'p_district')
     }),)
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_name', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'receiver', 'display_pic', 'created', 'shenhe', 'pay_status',
-        'changedetail', 'note_name', 'supply_chain', 'p_district', 'reach_standard', 'updated'
+        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'express_no', 'created', 'shenhe', 'pay_status',
+        'changedetail', 'note_name', 'supplier', 'p_district', 'reach_standard', 'updated', 'last_pay_date', 'created_by'
     )
-    list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'pay_status', 'buyer_name')
-    search_fields = ['id', '=supplier_name', 'supplier_shop', 'express_no', 'note']
+    list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
+    search_fields = ['id', '=supplier', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
     def queryset(self, request):
@@ -50,6 +50,25 @@ class ordelistAdmin(admin.ModelAdmin):
             return qs
         else:
             return qs.exclude(status='作废')
+
+    def buyer_select(self, obj):
+        part = ['<select class="buyer-select" orderlist-id="%d" onchange="buyer_select(this)">' % obj.id]
+        part.append('<option value="0">-------------</option>')
+
+        for user in User.objects.filter(is_staff=True,
+                                        groups__name__in=(u'小鹿买手资料员', u'小鹿采购管理员', u'小鹿采购员', u'管理员', u'小鹿管理员')). \
+                                        distinct().order_by('id'):
+            username = '%s%s' % (user.last_name, user.first_name)
+            username = username or user.username
+            if user.id == obj.buyer_id:
+                part.append('<option value="%d" selected>%s</option>' % (user.id, username))
+            else:
+                part.append('<option value="%d">%s</option>' % (user.id, username))
+        part.append('</select>')
+        return ''.join(part)
+
+    buyer_select.allow_tags = True
+    buyer_select.short_description = '负责人'
 
     def calcu_item_sum_amount(self, obj):
         amount = 0
@@ -184,10 +203,11 @@ class ordelistAdmin(admin.ModelAdmin):
     def get_changelist(self, request, **kwargs):
         return OrderListChangeList
 
+
     class Media:
         css = {"all": ("css/admin_css.css", "https://cdn.bootcss.com/lightbox2/2.7.1/css/lightbox.css")}
         js = ("https://cdn.bootcss.com/lightbox2/2.7.1/js/lightbox.js",
-              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js", "js/admin_js.js")
+              "layer-v1.9.2/layer/layer.js", "layer-v1.9.2/layer/extend/layer.ext.js", "js/admin_js.js", "js/dinghuo_orderlist.js")
 
 
 class OrderListChangeList(ChangeList):

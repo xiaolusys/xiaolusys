@@ -81,13 +81,17 @@ class ChangeDetailView(View):
             flag_of_question = True
         if order_list.status == u'7':
             flag_of_sample = True
+        buyer_name = ''
+        if order_list.buyer:
+            buyer_name = '%s%s' % (order_list.buyer.last_name, order_list.buyer.first_name)
+            buyer_name = buyer_name or order_list.buyer.username
         return render_to_response("dinghuo/changedetail.html",
                                   {"orderlist": order_list,
                                    "flagofstatus": flag_of_status,
                                    "flagofquestion": flag_of_question,
                                    "flag_of_sample": flag_of_sample,
                                    "orderdetails": order_list_list,
-                                   'product_link': product_link},
+                                   'product_link': product_link, 'buyer_name': buyer_name},
                                   context_instance=RequestContext(request))
 
     @staticmethod

@@ -252,22 +252,28 @@
             <div class="alert alert-success" role="alert">
                 <strong>填写地址:</strong>
                 {% ifequal orderlist.p_district "3" %}
-                    广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼_{{ orderlist.id }}室<br>小鹿美美收15023333762
+                <p>广州市白云区太和镇永兴村龙归路口悦博大酒店对面龙门公寓3楼</p>
+                <p>小鹿美美{{ orderlist.id }}号工作人员</p>
+                <p>15023333762</p>
                 {% else %}
-                    上海市佘山镇吉业路245号5号楼_{{ orderlist.id }}室
+                <p>上海市佘山镇吉业路245号5号楼</p>
+                <p>小鹿美美{{ orderlist.id }}号工作人员</p>
+                <p>021-37698479, 15026869609</p>
                 {% endifequal %}
-
             </div>
         </div>
 
         <div class="col-lg-2">
             <div class="alert alert-success" role="alert">
-                <strong>大货负责人:</strong>{{ orderlist.receiver }}
+                <strong>大货负责人:</strong>{{ buyer_name }}
             </div>
         </div>
         <div class="col-lg-6">
             <div class="alert alert-success" role="alert">
-                <strong>商品链接:</strong>{{ orderlist.supplier_name }}
+                <strong>供应商:</strong>
+                {% if orderlist.supplier %}
+                <a href="/admin/supplier/salesupplier/?id={{ orderlist.supplier.id }}" target="_blank">{{ orderlist.supplier.supplier_name }}</a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -366,7 +372,6 @@
         </div>
     {% endif %}
     <div class="row">
-
         <legend>
             <h4 class="head-title">详细列表</h4>
         </legend>

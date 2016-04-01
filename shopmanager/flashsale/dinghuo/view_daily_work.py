@@ -407,6 +407,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
     def list(self, request):
         show_ab = int(request.GET.get('show_ab') or 0)
 
+        min_datetime = datetime.datetime(1900, 1, 1)
         sale_stats = MergeOrder.objects.select_related('merge_trade').filter(
             merge_trade__type__in=[pcfg.SALE_TYPE, pcfg.DIRECT_TYPE,
                                    pcfg.REISSUE_TYPE, pcfg.EXCHANGE_TYPE],
@@ -435,7 +436,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                 skus = products.setdefault(sku.product.id, {})
                 sku_dict = {
                     'sale_quantity': 0,
-                    'last_pay_time': datetime.datetime.min,
+                    'last_pay_time': min_datetime,
                     'buy_quantity': 0,
                     'arrival_quantity': 0,
                     'inferior_quantity': 0
@@ -452,7 +453,7 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             product_id, sku_id = map(int, (s['product_id'], s['chichu_id']))
             sku_ids.add(sku_id)
             skus = products.setdefault(product_id, {})
-            sku = skus.setdefault(sku_id, {'sale_quantity': 0, 'last_pay_time': datetime.datetime.min})
+            sku = skus.setdefault(sku_id, {'sale_quantity': 0, 'last_pay_time': min_datetime})
             sku.update({
                 'buy_quantity': s['buy_quantity'],
                 'arrival_quantity': s['arrival_quantity'],
@@ -519,10 +520,10 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
                     continue
                 sku['effect_quantity'] = effect_quantity
                 new_skus.append(sku)
-            if show_ab and not new_skus:
+            if not new_skus:
                 continue
             new_product.update({
-                'last_pay_time': max(filter(None, map(lambda x: x['last_pay_time'], new_skus)) or [datetime.datetime.min]),
+                'last_pay_time': max(filter(None, map(lambda x: x['last_pay_time'], new_skus)) or [min_datetime]),
                 'skus': new_skus
             })
             sale_product_id = new_product['sale_product_id']
@@ -546,23 +547,23 @@ class InstantDingHuoViewSet(viewsets.GenericViewSet):
             supplier['products'].append(new_product)
 
         new_suppliers = []
-        pay_times = set()
+        pay_times = {}
         for k in sorted(suppliers.keys()):
             supplier = suppliers[k]
             if not supplier.get('products'):
                 continue
             last_pay_time = max(map(lambda x: x['last_pay_time'], supplier['products']))
-            if last_pay_time == datetime.datetime.min:
+            if last_pay_time <= min_datetime:
                 last_pay_date = '暂无销售'
             else:
                 last_pay_date = last_pay_time.strftime('%Y-%m-%d')
-            pay_times.add((last_pay_time.date(), last_pay_date))
+            pay_times[int(last_pay_time.date().strftime('%Y%m%d'))] = last_pay_date
             supplier['last_pay_date'] = last_pay_date
             new_suppliers.append(supplier)
 
         last_pay_dates = []
-        for _, d in sorted(pay_times, key=lambda x: x[0], reverse=True):
-            last_pay_dates.append(d)
+        for k in sorted(pay_times.keys(), reverse=True):
+            last_pay_dates.append(pay_times[k])
 
         new_buyers = []
         for k in sorted(buyers):
