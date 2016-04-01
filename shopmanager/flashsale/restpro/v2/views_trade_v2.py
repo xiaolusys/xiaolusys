@@ -157,7 +157,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
         if coupon_id:
             coupon  = UserCoupon.objects.get(id=coupon_id, customer=str(sale_trade.buyer_id))
             if coupon.status != UserCoupon.UNUSED:
-                raise Exception('绑定的优惠券不可用')
+                raise Exception('选择的优惠券不可用')
 
     def wallet_charge(self, sale_trade):
         """ 妈妈钱包支付实现 """
@@ -372,12 +372,15 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             return []
         pay_list = [e for e in re.split(',|;',pay_extras) if e.strip()]
         extra_list = []
+        already_exists_pids   = []
         for k in pay_list:
             pdict = {}
             keys = k.split(':')
             for i in range(0,len(keys) / 2):
                 pdict.update({keys[2*i]:keys[2*i+1]})
-            extra_list.append(pdict)
+            if pdict.has_key('pid') and pdict['pid'] not in already_exists_pids:
+                extra_list.append(pdict)
+                already_exists_pids.append(pdict['pid'])
         return extra_list
     
     def calc_counpon_discount(self, coupon_id, item_ids, buyer_id, payment,**kwargs):
@@ -395,9 +398,8 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     def calc_extra_discount(self, pay_extras, **kwargs):
         """　优惠信息(分) """
         pay_extra_list = self.parse_entry_params(pay_extras)
-        pay_extra_dict = dict([(p['pid'],p) for p in pay_extra_list if p.has_key('pid')])
         discount_fee = 0
-        for param in pay_extra_dict.values():
+        for param in pay_extra_list:
             pid = param['pid']
             if pid == CONS.ETS_COUPON and CONS.PAY_EXTRAS[pid].get('type') == CONS.DISCOUNT:
                 if not param.has_key('couponid') or not param['couponid'].isdigit():

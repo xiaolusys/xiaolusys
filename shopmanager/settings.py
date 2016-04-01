@@ -84,7 +84,8 @@ MIDDLEWARE_CLASSES = (
     'middleware.middleware.SecureRequiredMiddleware',
     'middleware.middleware.DisableDRFCSRFCheck',
     'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    #'django.contrib.sessions.middleware.SessionMiddleware',
+    'middleware.middleware.XSessionMiddleware', 
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -97,6 +98,17 @@ ROOT_URLCONF = 'shopmanager.urls'
 
 TEMPLATE_DIRS = (
        os.path.join(PROJECT_ROOT, "templates"),
+)
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.tz',
+#    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
+    'middleware.context_processors.session',
 )
 
 INSTALLED_APPS = (
@@ -325,18 +337,6 @@ if not DEBUG:
     #WAP DNS
     M_SITE_URL = 'http://m.xiaolumeimei.com'  
     
-    MIDDLEWARE_CLASSES = (
-        'raven.contrib.django.middleware.SentryResponseErrorIdMiddleware',
-        'middleware.middleware.SecureRequiredMiddleware',
-        'middleware.middleware.DisableDRFCSRFCheck',
-        'django.middleware.common.CommonMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.middleware.locale.LocaleMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.auth.middleware.RemoteUserMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-    )
     ########################### ONEAPM Statsd ##############################
     STATSD_HOST = '192.168.0.1'
     STATSD_PORT = 8251

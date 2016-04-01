@@ -17,14 +17,13 @@ from core.weixin.mixins import WeixinAuthMixin
 from flashsale.pay.models_user import Customer
 from shopback.items.models import Product
 
-from . import constants
 
 import logging
 logger = logging.getLogger('django.reqeust')
 
 class ActivityView(WeixinAuthMixin, APIView):
     
-    authentication_classes = ()
+    authentication_classes = (authentication.SessionAuthentication, )
     permission_classes = ()
     renderer_classes = (renderers.TemplateHTMLRenderer,renderers.JSONRenderer)
     template_name = "promotion/discount_activity.html"
@@ -43,5 +42,4 @@ class ActivityView(WeixinAuthMixin, APIView):
     def get(self, request, *args, **kwargs):
         
         product_list = self.get_product_list()
-        
         return Response({'product_list':product_list})
