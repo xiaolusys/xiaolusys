@@ -208,7 +208,8 @@ class ProfileMiddleware(object):
                "</pre>"
 
     def process_response(self, request, response):
-        if (settings.DEBUG or request.user.is_superuser) and ('prof' in request.GET or getattr(settings, 'PROFILING', False)):
+        if (settings.DEBUG or (request.user and request.user.is_superuser)) \
+            and ('prof' in request.GET or getattr(settings, 'PROFILING', False)):
             self.prof.close()
             
             if 'prof' in request.GET:
