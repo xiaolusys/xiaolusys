@@ -1,4 +1,7 @@
 ######## 2016-04-01 ########
+ALTER TABLE `flashsale_address` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
+ALTER TABLE `flashsale_address` ADD UNIQUE INDEX `uq` (`cus_uid`, `receiver_name`, `receiver_state`, `receiver_city`, `receiver_district`, `receiver_address`, `receiver_mobile`,`receiver_phone`) USING HASH ;
+
 alter table suplychain_flashsale_orderlist add column supplier_id int(11) default null references supplychain_supply_supplier(id);
 alter table suplychain_flashsale_orderlist add column buyer_id int(11) default 0 references auth_user(id);
 alter table suplychain_flashsale_orderlist add column created_by smallint default 1;
