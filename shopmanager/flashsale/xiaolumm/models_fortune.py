@@ -196,7 +196,7 @@ def carryrecord_update_mamafortune(sender, instance, created, **kwargs):
     tasks_mama_fortune.task_carryrecord_update_mamafortune.delay(instance.mama_id)
 
     from flashsale.xiaolumm import tasks_mama_dailystats
-    tasks_mama_dailystats.task_carryrecord_update_dailystats.s(instance.mama_id, instance.date_field)()
+    tasks_mama_dailystats.task_carryrecord_update_dailystats.delay(instance.mama_id, instance.date_field)
 
 post_save.connect(carryrecord_update_mamafortune, 
                   sender=CarryRecord, dispatch_uid='post_save_carryrecord_update_mamafortune')
@@ -269,7 +269,7 @@ class OrderCarry(BaseModel):
 
 def ordercarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.s(instance)()
+    tasks_mama_carryrecord.task_ordercarry_update_carryrecord.delay(instance)
 
 post_save.connect(ordercarry_update_carryrecord,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_carryrecord')
@@ -282,7 +282,7 @@ def ordercarry_update_ordercarry(sender, instance, created, **kwargs):
         if referal_relationships.count() > 0:
             from flashsale.xiaolumm import tasks_mama
             referal_relationship = referal_relationships[0]
-            tasks_mama.task_update_second_level_ordercarry.s(referal_relationship, instance)()
+            tasks_mama.task_update_second_level_ordercarry.delay(referal_relationship, instance)
         
 post_save.connect(ordercarry_update_ordercarry,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_ordercarry')
@@ -290,7 +290,7 @@ post_save.connect(ordercarry_update_ordercarry,
 
 def ordercarry_update_activevalue(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_activevalue
-    tasks_mama_activevalue.task_ordercarry_update_activevalue.s(instance.uni_key)()
+    tasks_mama_activevalue.task_ordercarry_update_activevalue.delay(instance.uni_key)
 
 post_save.connect(ordercarry_update_activevalue,
                   sender=OrderCarry, dispatch_uid='post_save_ordercarry_update_activevalue')
@@ -301,14 +301,14 @@ def ordercarry_update_order_number(sender, instance, created, **kwargs):
     date_field = instance.date_field
 
     from flashsale.xiaolumm import tasks_mama_clickcarry
-    tasks_mama_clickcarry.task_update_clickcarry_order_number.s(mama_id, date_field)()
+    tasks_mama_clickcarry.task_update_clickcarry_order_number.delay(mama_id, date_field)
 
     from flashsale.xiaolumm import tasks_mama_fortune
     tasks_mama_fortune.task_update_mamafortune_order_num.delay(mama_id)
 
     if created:
         from flashsale.xiaolumm import tasks_mama_dailystats
-        tasks_mama_dailystats.task_ordercarry_increment_dailystats.s(mama_id, date_field)()
+        tasks_mama_dailystats.task_ordercarry_increment_dailystats.delay(mama_id, date_field)
 
 post_save.connect(ordercarry_update_order_number,
                   sender=OrderCarry, dispatch_uid='post_save_order_carry_update_order_number')
@@ -365,7 +365,7 @@ class AwardCarry(BaseModel):
 
 def awardcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_awardcarry_update_carryrecord.s(instance)()
+    tasks_mama_carryrecord.task_awardcarry_update_carryrecord.delay(instance)
 
 
 post_save.connect(awardcarry_update_carryrecord,
@@ -441,7 +441,7 @@ class ClickCarry(BaseModel):
             
 def clickcarry_update_carryrecord(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_carryrecord
-    tasks_mama_carryrecord.task_clickcarry_update_carryrecord.s(instance)()
+    tasks_mama_carryrecord.task_clickcarry_update_carryrecord.delay(instance)
 
 post_save.connect(clickcarry_update_carryrecord,
                   sender=ClickCarry, dispatch_uid='post_save_clickcarry_update_carryrecord')
@@ -560,7 +560,7 @@ def update_group_relationship(sender, instance, created, **kwargs):
     records = ReferalRelationship.objects.filter(referal_to_mama_id=instance.referal_from_mama_id)
     if records.count() > 0:
         record = records[0]
-        task_update_group_relationship.s(record.referal_from_mama_id,instance)()
+        task_update_group_relationship.delay(record.referal_from_mama_id,instance)
 
 
 post_save.connect(update_group_relationship,
@@ -574,7 +574,7 @@ def referal_update_activevalue(sender, instance, created, **kwargs):
     mama_id = instance.referal_from_mama_id
     date_field = instance.created.date()
     contributor_id = instance.referal_to_mama_id
-    task_referal_update_activevalue.s(mama_id, date_field, contributor_id)()
+    task_referal_update_activevalue.delay(mama_id, date_field, contributor_id)
 
 post_save.connect(referal_update_activevalue,
                   sender=ReferalRelationship, dispatch_uid='post_save_referal_update_activevalue')
@@ -585,7 +585,7 @@ def referal_update_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm.tasks_mama import task_referal_update_awardcarry
-    task_referal_update_awardcarry.s(instance)()
+    task_referal_update_awardcarry.delay(instance)
 
 
 post_save.connect(referal_update_awardcarry,
@@ -613,7 +613,7 @@ def group_update_awardcarry(sender, instance, created, **kwargs):
     if not created:
         return
     from flashsale.xiaolumm import tasks_mama
-    tasks_mama.task_group_update_awardcarry.s(instance)()
+    tasks_mama.task_group_update_awardcarry.delay(instance)
     
     from flashsale.xiaolumm import tasks_mama_fortune 
     tasks_mama_fortune.task_update_mamafortune_mama_level.delay(instance.leader_mama_id)
@@ -652,13 +652,13 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     date_field = instance.date_field
     
     from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
-    task_visitor_increment_clickcarry.s(mama_id, date_field)()
+    task_visitor_increment_clickcarry.delay(mama_id, date_field)
 
     from flashsale.xiaolumm.tasks_mama_activevalue import task_visitor_increment_activevalue
-    task_visitor_increment_activevalue.s(mama_id, date_field)()
+    task_visitor_increment_activevalue.delay(mama_id, date_field)
 
     from flashsale.xiaolumm.tasks_mama_dailystats import task_visitor_increment_dailystats
-    task_visitor_increment_dailystats.s(mama_id, date_field)()
+    task_visitor_increment_dailystats.delay(mama_id, date_field)
 
 post_save.connect(visitor_update_clickcarry_and_activevalue,
                   sender=UniqueVisitor, dispatch_uid='post_save_visitor_update_clickcarry_and_activevalue')
