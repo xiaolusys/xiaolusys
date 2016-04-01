@@ -9,7 +9,7 @@ import posixpath
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -250,15 +250,6 @@ REST_FRAMEWORK_EXTENSIONS = {
     'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15,
     'DEFAULT_CACHE_KEY_FUNC':'rest_framework_extensions.utils.default_cache_key_func'
 }
-
-if DEBUG:
-    BROKER_URL = 'amqp://usera:passwda@192.168.1.101:5672/vhosta'
-    MIDDLEWARE_CLASSES = (
-        'middleware.middleware.ProfileMiddleware',
-        'middleware.middleware.QueryCountDebugMiddleware',
-    ) + MIDDLEWARE_CLASSES
-
-
 
 if os.environ.get('TARGET') == 'staging':
     DEBUG = False
