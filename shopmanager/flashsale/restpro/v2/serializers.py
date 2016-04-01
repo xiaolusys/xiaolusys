@@ -53,7 +53,7 @@ class AwardCarrySerializer(serializers.ModelSerializer):
         extra_kwargs = {'today_carry': {'read_only': True}}
         fields = ('mama_id', 'carry_value', 'carry_num',  'carry_type', 'carry_type_name', 'contributor_nick', 
                   "carry_description",'contributor_img','contributor_mama_id', 'carry_plan_name', 
-                  'status','status_display', 'today_carry', 'modified', 'created')
+                  'status','status_display', 'today_carry', 'date_field', 'modified', 'created')
 
 
 class ClickCarrySerializer(serializers.ModelSerializer):

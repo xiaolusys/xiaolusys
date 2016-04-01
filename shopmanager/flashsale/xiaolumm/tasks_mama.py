@@ -179,6 +179,7 @@ def task_referal_update_awardcarry(relationship):
         status = 2 # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
         award_carry = AwardCarry(mama_id=from_mama_id,carry_num=carry_num,carry_type=carry_type,
+                                 carry_description=carry_description,
                                  contributor_nick=relationship.referal_to_mama_nick,
                                  contributor_img=relationship.referal_to_mama_img,
                                  contributor_mama_id=relationship.referal_to_mama_id,
