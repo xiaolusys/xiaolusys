@@ -247,7 +247,7 @@ def task_order_trigger(sale_order):
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
 
     if sale_order.is_deposit():
-        logger.warn("%s | is_deposit: %s, is_confirmed: %s, mama_id: %s" % (get_cur_info(), sale_order.is_desposit(), sale_order.is_confirmed(), mm_linkid_mama.id))
+        logger.warn("%s | is_deposit: %s, is_confirmed: %s, mama_id: %s" % (get_cur_info(), sale_order.is_deposit(), sale_order.is_confirmed(), mm_linkid_mama.id))
         if sale_order.is_confirmed():
             if mm_linkid_mama:
                 task_update_referal_relationship.delay(mm_linkid_mama.pk, self_mama.pk, customer_id)
