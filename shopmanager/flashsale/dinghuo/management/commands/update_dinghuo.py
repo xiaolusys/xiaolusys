@@ -38,7 +38,7 @@ class Command(BaseCommand):
         user_mapping = {}
         for user in User.objects.filter(is_staff=True):
             user_mapping[user.username] = user.id
-        for orderlist in OrderList.objects.filter(buyer__isnull=True):
+        for orderlist in OrderList.objects.filter():
             user_id = user_mapping.get(orderlist.buyer_name)
             if not user_id:
                 continue
@@ -48,9 +48,7 @@ class Command(BaseCommand):
     @classmethod
     def update_supplier(cls):
         orderlist_ids = []
-        for orderlist in OrderList.objects \
-          .exclude(status__in=[OrderList.COMPLETED, OrderList.ZUOFEI]) \
-          .filter(supplier__isnull=True):
+        for orderlist in OrderList.objects.exclude(status__in=[OrderList.ZUOFEI]):
             orderlist_ids.append(orderlist.id)
 
         orderlists = {}
