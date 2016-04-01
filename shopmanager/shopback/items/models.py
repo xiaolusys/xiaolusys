@@ -162,13 +162,15 @@ class Product(models.Model):
         for field in self._meta.fields:
             if isinstance(field, (models.CharField, models.TextField)):
                 setattr(self, field.name, getattr(self, field.name).strip())
-    
+
     def save(self,*args,**kwargs):
         #设置商品下架时间，默认时两天后下架
         if not self.offshelf_time and self.sale_time:
-            if not isinstance(self.sale_time, datetime.date):
-                self.sale_time = datetime.datetime.strftime(self.sale_time, '%Y-%m-%d')
-            self.offshelf_time = self.sale_time + datetime.timedelta(days=2)
+            if isinstance(self.sale_time, basestring):
+                sale_time = datetime.datetime.strptime(self.sale_time, '%Y-%m-%d')
+            else:
+                sale_time = datetime.datetime.combine(self.sale_time, datetime.time.min)
+            self.offshelf_time = sale_time + datetime.timedelta(days=2)
         return super(Product, self).save(*args,**kwargs)
 
     def get_product_model(self):
@@ -272,7 +274,7 @@ class Product(models.Model):
         if not self.is_watermark:
             return ''
         return image_watermark_cache.latest_qs or ''
-    
+
     def head_img(self):
         """ 获取商品款式 """
         if self.model_id == 0:
@@ -463,7 +465,7 @@ class Product(models.Model):
         for sku in skus:
             prcs.append(sku.agent_price)
         return min(prcs) if prcs else 0
-    
+
     def calc_discount_fee(self,xlmm=None):
         """ 优惠折扣 """
         if not xlmm or xlmm.agencylevel < 2:
@@ -479,7 +481,7 @@ class Product(models.Model):
             return float('%.2f'%((100 - discount) / 100.0 * float(self.agent_price)))
         except:
             return 0
-    
+
     def same_model_pros(self):
         """ 同款产品　"""
         if self.model_id == 0 or self.model_id is None:
@@ -1073,9 +1075,9 @@ class ProductLocation(models.Model):
     district     = models.ForeignKey(DepositeDistrict,
                                      related_name='product_locations',
                                      verbose_name='关联库位')
-    
-    
-    
+
+
+
     class Meta:
         db_table = 'shop_items_productlocation'
         unique_together = ("product_id", "sku_id", "district")
@@ -1205,7 +1207,7 @@ class ProductSkuContrast(models.Model):
     contrast_detail = JSONCharMyField(max_length=10240, blank=True, default=SKU_DEFAULT, verbose_name=u'对照表详情')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
-    
+
     cache_enabled = True
     objects = managers.CacheManager()
     class Meta:
@@ -1242,7 +1244,7 @@ class ContrastContent(models.Model):
                               db_index=True, default=NORMAL, verbose_name=u'状态')
     created = models.DateTimeField(null=True, auto_now_add=True, blank=True, verbose_name=u'生成日期')
     modified = models.DateTimeField(null=True, auto_now=True, verbose_name=u'修改日期')
-    
+
     cache_enabled = True
     objects = managers.CacheManager()
     class Meta:
@@ -1264,7 +1266,7 @@ class ImageWaterMark(models.Model):
     remark = models.TextField(blank=True, default='', verbose_name=u'备注')
     update_time = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     status = models.SmallIntegerField(choices=STATUSES, verbose_name=u'状态')
-    
+
     cache_enabled = True
     objects = managers.CacheManager()
     class Meta:
@@ -1287,7 +1289,7 @@ class ProductSchedule(AdminModel):
         (0, u'无效'),
         (1, u'有效')
     ]
-    
+
     product = models.ForeignKey('Product', related_name='schedules', verbose_name=u'关联商品')
     onshelf_datetime = models.DateTimeField(verbose_name=u'上架时间')
     onshelf_date = models.DateField(verbose_name=u'上架日期')
@@ -1298,7 +1300,7 @@ class ProductSchedule(AdminModel):
     schedule_type = models.SmallIntegerField(choices=SCHEDULE_TYPE_CHOICES, default=1, verbose_name=u'排期类型')
     status = models.SmallIntegerField(choices=STATUS_CHOICES, default=1, verbose_name=u'状态')
     sale_type = models.SmallIntegerField(choices=constants.SALE_TYPES, default=1, verbose_name=u'促销类型')
-    
+
     cache_enabled = True
     objects = managers.CacheManager()
     class Meta:
