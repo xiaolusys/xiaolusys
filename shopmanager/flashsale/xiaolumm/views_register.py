@@ -190,7 +190,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
 
     def get(self, request):
         content = request.REQUEST
-        mama_id = content.get('mama_id', 1)
+        mama_id = content.get('mama_id', '1')
         xlmm = self.get_xiaolumm(request)
         deposite_url = "/m/register/?mama_id={0}".format(mama_id)
         if not xlmm:
