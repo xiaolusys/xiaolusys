@@ -82,7 +82,7 @@ class ChangeDetailView(View):
         if order_list.status == u'7':
             flag_of_sample = True
         buyer_name = ''
-        if order_list.buyer:
+        if order_list.buyer_id:
             buyer_name = '%s%s' % (order_list.buyer.last_name, order_list.buyer.first_name)
             buyer_name = buyer_name or order_list.buyer.username
         return render_to_response("dinghuo/changedetail.html",

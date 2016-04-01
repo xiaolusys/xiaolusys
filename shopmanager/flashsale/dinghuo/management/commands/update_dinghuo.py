@@ -87,3 +87,4 @@ class Command(BaseCommand):
         for orderlist_id, supplier_dict in new_orderlists.iteritems():
             supplier_id, _ = max(supplier_dict.items(), key=itemgetter(1))
             OrderList.objects.filter(id=orderlist_id).update(supplier=supplier_id)
+            print orderlist_id, supplier_id
