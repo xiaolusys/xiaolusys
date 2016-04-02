@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 
-import sys, time, random
+import sys
 
 def get_cur_info():
     """Return the frame object for the caller's stack frame."""
@@ -22,22 +22,6 @@ def get_cur_info():
     #return (f.f_code.co_name, f.f_lineno)
     return f.f_code.co_name
 
-
-def introduce_randomness():
-    """
-    To avoid deadlock, we introduce random sleep time (0-3s), so that
-    even the same event triggering multiple updates, those updates
-    will be executed at different time. 
-    
-    Note: we only apply this to those tasks that are triggered by the
-    same events, for example: carryrecord and ordercarry both get upadted
-    by the same order event, and to avoid carryrecord and ordercarry write
-    to the same dailystats record, we introduce randomeness to the task
-    invoking by carryrecord.
-    """
-    
-    time.sleep(random.random()*3)
-    
 
 def create_dailystats_with_integrity(mama_id, date_field, uni_key, **kwargs):
     try:
@@ -79,7 +63,7 @@ def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
         stats.save()
 
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_visitor_increment_dailystats(mama_id, date_field):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     
@@ -87,17 +71,19 @@ def task_visitor_increment_dailystats(mama_id, date_field):
     records = DailyStats.objects.filter(uni_key=uni_key)
     
     if records.count() <= 0:
-        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=1)
-        #task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        try:
+            create_dailystats_with_integrity(mama_id, date_field, uni_key, today_visitor_num=1)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_visitor_num=1" % (mama_id, uni_key))
+            raise self.retry(exc=exc)
     else:
         records.update(today_visitor_num=F('today_visitor_num')+1)
 
 
     
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_carryrecord_update_dailystats(mama_id, date_field):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    introduce_randomness()
     
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
     records = DailyStats.objects.filter(uni_key=uni_key)
@@ -109,27 +95,28 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
             today_carry_num = carrys[0]["carry"] 
 
     if records.count() <= 0:
-        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
-        #task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        try:
+            create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_carry_num=%s" % (mama_id, uni_key, today_carry_num))
+            raise self.retry(exc=exc)
     else:
         records.update(today_carry_num=today_carry_num)
-        #stats = records[0]
-        #stats.today_carry_num = today_carry_num
-        #stats.save()
-    
 
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_ordercarry_increment_dailystats(mama_id, date_field):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
     
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
     records = DailyStats.objects.filter(uni_key=uni_key)
-    #today_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field).count()
     
     if records.count() <= 0:
-        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_order_num=1)
-        #task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        try:
+            create_dailystats_with_integrity(mama_id, date_field, uni_key, today_order_num=1)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_order_num=1" % (mama_id, uni_key))
+            raise self.retry(exc=exc)
     else:
         records.update(today_order_num=F('today_order_num')+1)
 
