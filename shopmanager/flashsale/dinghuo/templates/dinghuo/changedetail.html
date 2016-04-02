@@ -269,12 +269,16 @@
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="alert alert-success" role="alert">
+            <p class="alert alert-success" role="alert">
                 <strong>供应商:</strong>
                 {% if orderlist.supplier %}
                 <a href="/admin/supplier/salesupplier/?id={{ orderlist.supplier.id }}" target="_blank">{{ orderlist.supplier.supplier_name }}</a>
                 {% endif %}
-            </div>
+            </p>
+            <p class="alert alert-success" role="alert">
+                <strong>商品链接:</strong>
+                <a href="{{ orderlist.supplier_name }}" target="_blank">{{ orderlist.supplier_name }}</a>
+            </p>
         </div>
     </div>
     <div class="row">
