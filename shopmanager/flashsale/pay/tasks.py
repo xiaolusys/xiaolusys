@@ -142,12 +142,14 @@ def task_Push_SaleTrade_Finished(pre_days=10):
 
 @task(max_retry=3,default_retry_delay=60)
 def confirmTradeChargeTask(sale_trade_id,charge_time=None):
-    
+    from shopback.items.models import ProductSku
     strade = SaleTrade.objects.get(id=sale_trade_id)
     strade.charge_confirm(charge_time=charge_time)
     saleservice = FlashSaleService(strade)
     saleservice.payTrade()
-    
+    for sale_order in strade.sale_orders.all():
+        ProductSku.objects.get(id=sale_order.sku_id).assign_packages()
+
 
 @task(max_retry=3,default_retry_delay=60)
 @transaction.commit_on_success
@@ -252,7 +254,7 @@ def pushTradeRefundTask(refund_id):
         else:
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
-        
+        sorder.cancel_assign()
     except Exception,exc:
         raise pushTradeRefundTask.retry(exc=exc)
 

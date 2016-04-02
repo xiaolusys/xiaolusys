@@ -25,7 +25,7 @@ from shopback.logistics.models import LogisticsCompany
 from shopapp.memorule import ruleMatchSplit
 from shopback.refunds.models import REFUND_STATUS, Refund
 from shopback.signals import rule_signal, change_addr_signal
-from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder,
+from shopback.trades.models import (MergeTrade, MergeOrder, DirtyMergeOrder,PackageOrder,
                                     ReplayPostTrade, GIFT_TYPE,
                                     SYS_TRADE_STATUS, TAOBAO_TRADE_STATUS,
                                     SHIPPING_TYPE_CHOICE, TAOBAO_ORDER_STATUS)
@@ -2107,7 +2107,9 @@ class PackageScanCheckView(APIView):
         mt.sys_status = pcfg.WAIT_SCAN_WEIGHT_STATUS
         mt.scanner = request.user.username
         mt.save()
-
+        package = mt.get_pacakge()
+        if package:
+            package.set_out_sid(mt.out_sid, mt.logistics_company_id)
         log_action(mt.user.user.id, mt, CHANGE, u'扫描验货')
 
         return Response({'isSuccess': True})
@@ -2172,7 +2174,7 @@ class PackageScanWeightView(APIView):
                          'receiver_address': mt.receiver_address})
 
     def post(self, request, *args, **kwargs):
-
+        from flashsale.pay.models import SaleOrder
         content = request.REQUEST
         package_no = content.get('package_no', '').strip()
         package_weight = content.get('package_weight', '').strip()
@@ -2193,6 +2195,11 @@ class PackageScanWeightView(APIView):
                 reason_code='',
                 sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
                                 pcfg.WAIT_CHECK_BARCODE_STATUS))
+            if mt.type == pcfg.pcfg.SALE_TYPE:
+                package = mt.get_pacakge()
+                mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+                package.finish(mt)
+                package.sync_merge_order(mt)
         except MergeTrade.DoesNotExist:
             return Response(u'运单号未找到订单')
         except MergeTrade.MultipleObjectsReturned:

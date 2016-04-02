@@ -21,6 +21,7 @@ from shopback import signals
 from common.utils import (parse_datetime ,
                           get_yesterday_interval_time ,
                           update_model_fields)
+from flashsale.pay.models import SaleTrade
 import logging
 
 
@@ -101,6 +102,7 @@ COD_STATUS = (
     (pcfg.COD_WAITING_TO_BE_SENT,u'订单等待发送给物流公司'),
     (pcfg.COD_CANCELED,u'用户取消物流订单'),
 )
+
 
 SHIPPING_TYPE_CHOICE = (
     (pcfg.EXPRESS_SHIPPING_TYPE,u'快递'),
@@ -383,6 +385,41 @@ class MergeTrade(models.Model):
     def isSplit(self):
         """ 是否分拆过后的订单 """
         return self.is_part_consign
+
+    def get_sale_trade(self):
+        if self.type == pcfg.SALE_TYPE:
+            return SaleTrade.objects.get(tid=self.tid)
+        return None
+
+    def get_sale_orders(self):
+        from flashsale.pay.models import SaleOrder, SaleRefund
+        if self.type == pcfg.SALE_TYPE:
+            sale_trade_ids = [s.id for s in SaleTrade.objects.filter(tid=self.tid)]
+            if self.has_merge:
+                merge_ids = [m.sub_sid for m in MergeBuyerTrade.objects.filter(main_tid=self.id)]
+                sale_trade_ids.extend(merge_ids)
+            return SaleOrder.objects.filter(sale_trade_id__in=sale_trade_ids, refund_status=SaleRefund.NO_REFUND)
+        return None
+
+    def get_package(self):
+        if self.status == pcfg.ON_THE_FLY_STATUS:
+            return None
+        else:
+            if self.out_sid:
+                try:
+                    return PackageOrder.objects.get(out_sid=self.out_sid)
+                except:
+                    pass
+            try:
+                sale_trade = self.get_sale_trade()
+                if sale_trade and self.ware_by:
+                    return PackageOrder.objects.get(buyer_id=sale_trade.buyer_id, user_address_id=sale_trade.user_address_id, ware_by=self.ware_by, status=PackageOrder.PKG_NOT_CONFIRM)
+                elif sale_trade:
+                    return PackageOrder.objects.filter(buyer_id=sale_trade.buyer_id, user_address_id=sale_trade.user_address_id, status=PackageOrder.PKG_NOT_CONFIRM)[0]
+                else:
+                    return None
+            except:
+                return None
 
     def get_trade_assign_ware(self):
         """ 获取订单关联仓库 """
@@ -721,6 +758,7 @@ class MergeOrder(models.Model):
                                   blank=True,
                                   default='',
                                   verbose_name=u'系统状态')
+
 
     class Meta:
         db_table = 'shop_trades_mergeorder'
@@ -1134,3 +1172,169 @@ class TradeWuliu(models.Model):
 
 
 from .models_dirty import DirtyMergeTrade, DirtyMergeOrder
+
+
+class PackageOrder(models.Model):
+    WARE_SH    = 1
+    WARE_GZ    = 2
+    WARE_CHOICES = ((WARE_SH,u'上海仓'),
+                    (WARE_GZ,u'广州仓'))
+    PKG_CONFIRM = 'PKG_CONFIRM'
+    PKG_NOT_CONFIRM = 'PKG_NOT_CONFIRM'
+    PACKAGE_CONFIRM_STATUS = ((PKG_NOT_CONFIRM, u'未确定'),
+                            (PKG_CONFIRM, u'已确定'))
+
+    id = models.CharField(max_length=100, verbose_name=u'包裹ID', primary_key=True)
+    ware_by = models.IntegerField(default=WARE_SH,choices=WARE_CHOICES,verbose_name=u'所属仓库')
+    status = models.CharField(max_length=32,db_index=True,
+                                       choices=PACKAGE_CONFIRM_STATUS,blank=True,
+                                       default=PKG_NOT_CONFIRM,verbose_name=u'系统状态')#合单状态：未确定；已确定；
+
+    PKG_NEW_CREATED = 'PKG_NEW_CREATED'
+    WAIT_PREPARE_SEND_STATUS = 'WAIT_PREPARE_SEND_STATUS'
+    WAIT_CHECK_BARCODE_STATUS = 'WAIT_CHECK_BARCODE_STATUS'
+    WAIT_SCAN_WEIGHT_STATUS = 'WAIT_SCAN_WEIGHT_STATUS'
+    WAIT_CUSTOMER_RECEIVE = 'WAIT_CUSTOMER_RECEIVE'
+    FINISHED_STATUS = 'FINISHED_STATUS'
+    DELETE = 'DELETE'
+    PACKAGE_STATUS = (
+        (PKG_NEW_CREATED,u'初始状态'),
+        (WAIT_PREPARE_SEND_STATUS,u'待发货准备'),
+        (WAIT_CHECK_BARCODE_STATUS,u'待扫描验货'),
+        (WAIT_SCAN_WEIGHT_STATUS,u'待扫描称重'),
+        (WAIT_CUSTOMER_RECEIVE,u'待收货'),
+        (FINISHED_STATUS,u'已到货'),
+        (DELETE,u'已作废')
+    )
+
+    sys_status     =  models.CharField(max_length=32,db_index=True,
+                                       choices=PACKAGE_STATUS,blank=True,
+                                       default=PKG_NEW_CREATED,verbose_name=u'系统状态')
+
+    #收货信息
+    receiver_name    =  models.CharField(max_length=25,
+                                         blank=True,verbose_name=u'收货人姓名')
+    receiver_state   =  models.CharField(max_length=16,blank=True,verbose_name=u'省')
+    receiver_city    =  models.CharField(max_length=16,blank=True,verbose_name=u'市')
+    receiver_district  =  models.CharField(max_length=16,blank=True,verbose_name=u'区')
+
+    receiver_address   =  models.CharField(max_length=128,blank=True,verbose_name=u'详细地址')
+    receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name=u'邮编')
+    receiver_mobile    =  models.CharField(max_length=24,db_index=True,
+                                           blank=True,verbose_name=u'手机')
+    receiver_phone     =  models.CharField(max_length=20,db_index=True,
+                                           blank=True,verbose_name=u'电话')
+
+    #物流信息
+    buyer_id    = models.BigIntegerField(db_index=True,verbose_name=u'买家ID')
+    user_address_id = models.BigIntegerField(null=False,db_index=True,verbose_name=u'地址ID')
+    post_cost     = models.FloatField(default=0.0,verbose_name=u'物流成本')
+    is_lgtype      = models.BooleanField(default=False,verbose_name=u'速递')
+    lg_aging       = models.DateTimeField(null=True,blank=True,verbose_name=u'速递送达时间')
+    lg_aging_type  = models.CharField(max_length=20,blank=True,verbose_name=u'速递类型')
+
+    out_sid         = models.CharField(max_length=64,db_index=True,
+                                       blank=True,verbose_name=u'物流编号')
+    logistics_company  = models.ForeignKey(LogisticsCompany,null=True,
+                                           blank=True,verbose_name=u'物流公司')
+    #仓库信息
+    weight        = models.CharField(max_length=10,blank=True,verbose_name=u'包裹重量')
+    is_qrcode        = models.BooleanField(default=False,verbose_name=u'热敏订单')
+    qrcode_msg       = models.CharField(max_length=32,blank=True,verbose_name=u'打印信息')
+    can_review       = models.BooleanField(default=False,verbose_name=u'复审')
+    priority       =  models.IntegerField(default=0,
+                                          choices=PRIORITY_TYPE,verbose_name=u'优先级')
+    operator       =  models.CharField(max_length=32,blank=True,verbose_name=u'打单员')
+    scanner        =  models.CharField(max_length=64,blank=True,verbose_name=u'扫描员')
+    weighter       =  models.CharField(max_length=64,blank=True,verbose_name=u'称重员')
+    is_locked      =  models.BooleanField(default=False,verbose_name=u'锁定')
+    is_charged     =  models.BooleanField(default=False,verbose_name=u'揽件')
+
+    created      = models.DateTimeField(null=True,blank=True,auto_now_add=True,verbose_name=u'生成日期')
+    merged     = models.DateTimeField(null=True,blank=True,verbose_name=u'合并日期')
+    send_time    = models.DateTimeField(null=True,blank=True,verbose_name=u'发货日期')
+    weight_time  = models.DateTimeField(db_index=True,null=True,blank=True,verbose_name=u'称重日期')
+    charge_time  = models.DateTimeField(null=True,blank=True,verbose_name=u'揽件日期')
+    remind_time      = models.DateTimeField(null=True,blank=True,verbose_name=u'提醒日期')
+    reason_code = models.CharField(max_length=100,blank=True,verbose_name=u'问题编号')  #1,2,3 问题单原因编码集合
+    redo_sign = models.BooleanField(default=False,verbose_name=u'重做标志') #重做标志，表示该单要进行了一次废弃的打单验货
+    merge_trade_id = models.BigIntegerField(null=True,blank=True,verbose_name='对应的merge_trade')
+    class Meta:
+        db_table = 'flashsale_package'
+        verbose_name=u'包裹单'
+        verbose_name_plural = u'包裹列表'
+
+    def copy_order_info(self, sale_trade):
+        """从package_order或者sale_trade复制信息"""
+        attrs = ['receiver_name','receiver_state','receiver_city','receiver_district','receiver_address','receiver_zip','receiver_mobile','receiver_phone']
+        for attr in attrs:
+            v = getattr(sale_trade, attr)
+            setattr(self, attr, v)
+
+    def set_out_sid(self, out_sid, logistics_company_id):
+        if not self.out_sid:
+            self.out_sid = out_sid
+            self.logistics_company_id = logistics_company_id
+            self.save()
+
+    def copy_order_info_from_merge_trade(self, merge_trade):
+        attrs = ['weight', 'can_review', 'priority', 'operator', 'scanner', 'weighter']
+        for attr in attrs:
+            val = getattr(merge_trade, attr)
+            setattr(self, attr, val)
+
+    def finish(self, mt):
+        self.sys_status = PackageOrder.WAIT_CUSTOMER_RECEIVE
+        self.status = PackageOrder.PKG_CONFIRM
+        self.copy_order_info_from_merge_trade(mt)
+        self.save()
+
+    @property
+    def pstat_id(self):
+        return str(self.buyer_id) + '-' + str(self.user_address_id) + '-' + str(self.ware_by)
+
+    def sync_merge_trade(self, merge_trade):
+        """出库时同步实际数据于理论数据，如果需要就产生新包裹"""
+        # TODO@hy 在本次代码上线而自动拆单未完成时生效
+        from flashsale.pay.models import SaleOrder
+        for sale_order in SaleOrder.objects.filter(package_order_id=self.id):
+            if sale_order.status == SaleOrder.WAIT_BUYER_CONFIRM_GOODS:
+                sale_order.assign_status = SaleOrder.FINISHED
+                sale_order.save()
+        pstat = PackageStat.objects.get(id=self.pstat_id)
+        pstat.num += 1
+        pstat.save()
+        now_num = pstat.num + 1
+        new_id = str(pstat.id) + '-' + str(now_num)
+        if SaleOrder.objects.filter(package_order_id=self.id).exclude(assign_status=SaleOrder.FINISHED).exists():
+            package_order = PackageOrder.objects.create(id=new_id,
+                                          ware_by=self.ware_by,
+                                          buyer_id=self.buyer_id,
+                                          user_address_id=self.user_address_id)
+            package_order.copy_order_info(self)
+            package_order.save()
+            for sale_order in SaleOrder.objects.filter(package_order_id=self.id).exclude(assign_status=SaleOrder.FINISHED):
+                sale_order.package_order_id = new_id
+                sale_order.save()
+        self.merge_trade_id = merge_trade.id
+        self.save()
+
+    @staticmethod
+    def gen_new_package_id(buyer_id, address_id, ware_by_id):
+        id = str(buyer_id) + '-' + str(address_id) + '-' + str(ware_by_id)
+        pstat = PackageStat.objects.get_or_create(id=id)[0]
+        now_num = pstat.num + 1
+        return id + '-' + str(now_num)
+
+
+class PackageStat(models.Model):
+    id = models.CharField(max_length=95, verbose_name=u'收货处', primary_key=True)
+    num = models.IntegerField(default=0, verbose_name=u'已发数')
+    class Meta:
+        db_table = 'flashsale_package_stat'
+        verbose_name=u'包裹发送计数'
+        verbose_name_plural = u'包裹发送计数列表'
+
+# class PackageSkuItem(models.Model):
+#     sku_id = models.CharField(max_length=20,blank=True,verbose_name=u'规格ID')
+#     num = models.IntegerField(null=True,default=0,verbose_name=u'商品数量')
