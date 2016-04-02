@@ -1278,7 +1278,7 @@ class PackageOrder(models.Model):
             self.save()
 
     def copy_order_info_from_merge_trade(self, merge_trade):
-        attrs = ['weight', 'can_review', 'priority', 'operator', 'scanner', 'weighter']
+        attrs = ['weight', 'can_review', 'priority', 'operator', 'scanner', 'weighter', 'weight_time']
         for attr in attrs:
             val = getattr(merge_trade, attr)
             setattr(self, attr, val)

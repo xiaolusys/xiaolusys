@@ -583,7 +583,7 @@ class SaleOrder(PayBaseModel):
             self.assign_status = SaleOrder.NOT_ASSIGNED
             self.package_order_id = None
             self.save()
-            psku = ProductSku.objects.get(sku_id=self.sku_id)
+            psku = ProductSku.objects.get(id=self.sku_id)
             psku.assign_num -= self.num
             psku.save()
             psku.assign_packages()

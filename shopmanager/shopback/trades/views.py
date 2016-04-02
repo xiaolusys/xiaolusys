@@ -2195,16 +2195,16 @@ class PackageScanWeightView(APIView):
                 reason_code='',
                 sys_status__in=(pcfg.WAIT_SCAN_WEIGHT_STATUS,
                                 pcfg.WAIT_CHECK_BARCODE_STATUS))
-            if mt.type == pcfg.pcfg.SALE_TYPE:
-                package = mt.get_pacakge()
-                mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
-                package.finish(mt)
-                package.sync_merge_order(mt)
+
         except MergeTrade.DoesNotExist:
             return Response(u'运单号未找到订单')
         except MergeTrade.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
-
+        if mt.type == pcfg.SALE_TYPE:
+            package = mt.get_pacakge()
+            mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+            package.finish(mt)
+            package.sync_merge_order(mt)
         MergeTrade.objects.updateProductStockByTrade(mt)
 
         mt.weight = package_weight

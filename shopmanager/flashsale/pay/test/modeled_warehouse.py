@@ -35,12 +35,25 @@ def scan_check(trade):
     package.save()
     return
 
+# MergeTrade.objects.updateProductStockByTrade(mt)
+#
+# mt.weight = package_weight
+# mt.sys_status = pcfg.FINISHED_STATUS
+# mt.weight_time = datetime.datetime.now()
+# mt.weighter = request.user.username
+# mt.save()
+# if mt.type == pcfg.SALE_TYPE:
+#     package = mt.get_pacakge()
+#     mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+#     package.finish(mt)
+#     package.sync_merge_order(mt)
 
 def scan_weight(trade):
     """称重"""
     trade.sys_status = pcfg.FINISHED_STATUS
     trade.weighter_id = 42
     trade.save()
+    MergeTrade.objects.updateProductStockByTrade(trade)
     package = trade.get_package()
     package.sys_status = trade.sys_status
     package.status = PackageOrder.PKG_CONFIRM
@@ -52,7 +65,7 @@ def scan_weight(trade):
 
 
 if __name__ == '__main__':
-    s = SaleTrade.objects.get(id=314062)
+    s = SaleTrade.objects.get(id=314049)
     m = MergeTrade.objects.get(tid=s.tid)#1199799
     #put_order(m)
     #scan_check(m)

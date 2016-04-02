@@ -254,7 +254,6 @@ def pushTradeRefundTask(refund_id):
         else:
             refund.status = Refund.REFUND_WAIT_SELLER_AGREE
         refund.save()
-        sorder.cancel_assign()
     except Exception,exc:
         raise pushTradeRefundTask.retry(exc=exc)
 
