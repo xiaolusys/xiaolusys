@@ -78,7 +78,7 @@ def task_visitor_increment_dailystats(mama_id, date_field):
             create_dailystats_with_integrity(mama_id, date_field, uni_key, today_visitor_num=1)
         except IntegrityError as exc:
             logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_visitor_num=1" % (mama_id, uni_key))
-            raise self.retry(exc=exc)
+            raise task_visitor_increment_dailystats.retry(exc=exc)
     else:
         records.update(today_visitor_num=F('today_visitor_num')+1)
 
@@ -102,7 +102,7 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
             create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
         except IntegrityError as exc:
             logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_carry_num=%s" % (mama_id, uni_key, today_carry_num))
-            raise self.retry(exc=exc)
+            raise task_carryrecord_update_dailystats.retry(exc=exc)
     else:
         records.update(today_carry_num=today_carry_num)
 
@@ -119,7 +119,7 @@ def task_ordercarry_increment_dailystats(mama_id, date_field):
             create_dailystats_with_integrity(mama_id, date_field, uni_key, today_order_num=1)
         except IntegrityError as exc:
             logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_order_num=1" % (mama_id, uni_key))
-            raise self.retry(exc=exc)
+            raise task_ordercarry_increment_dailystats.retry(exc=exc)
     else:
         records.update(today_order_num=F('today_order_num')+1)
 

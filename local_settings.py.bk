@@ -50,13 +50,17 @@ if DEBUG:
     MIDDLEWARE_CLASSES = ('middleware.middleware.ProfileMiddleware',
                           'middleware.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
-
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': '192.168.1.102:6379',
+        'OPTIONS':{
+            'DB': 1
+        }
     }
 }
+BROKER_URL = 'redis://:192.168.1.102:6379/2'
+
 ORMCACHE_ENABLE = True
 
 RAVEN_CONFIG = {
@@ -262,7 +266,3 @@ LOGGING = {
     },
     'loggers': dict([comb_logger(handler,LOGGER_TEMPLATE.copy()) for handler in LOGGER_HANDLERS]),
 }
-
-# for disable urllib3 ssl warning
-import logging
-logging.captureWarnings(True)
