@@ -263,7 +263,7 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
         # we dont return canceled record
         if exclude_statuses:
             for ex in exclude_statuses:
-               qset = qset.exclude(status=ex)
+                qset = qset.exclude(status=ex)
                
         return qset.order_by('-date_field', '-created')
 
