@@ -63,7 +63,6 @@
                      $('#id-sale-time-{{ record.id }}').datepicker({dateFormat: "yy-mm-dd 00:00:00"});
                      $('.fetched input[id|="id-buy-price"]').change(function(){
                          var v = $(this).val();
-                         console.log(v);
                          var result = undefined;
                          if(!isNaN(v)){
                              var onSalePrice = Math.round(parseFloat(v) / .65 + 8);
@@ -75,6 +74,10 @@
                                  result = Math.floor(onSalePrice / 10) * 10 + 9.9;
                          }
                          if(result){
+                             if(result == 19.9 || result == 29.9)
+                                 result = 39.9
+                             if(result == 109.9)
+                                 result = 99.9
                              $('.fetched input[id|="id-sale-price"]').val(result);
                          }
                      });
@@ -146,6 +149,10 @@
                                  result = Math.floor(onSalePrice / 10) * 10 + 9.9;
                          }
                          if(result){
+                             if(result == 19.9 || result == 29.9)
+                                 result = 39.9
+                             if(result == 109.9)
+                                 result = 99.9
                              $('#fetch-form input[name=on_sale_price]').val(result);
                          }
                      });
