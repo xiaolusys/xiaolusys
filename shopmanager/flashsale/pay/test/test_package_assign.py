@@ -57,8 +57,7 @@ def print_out_sku(sku_id):
     for productSku in ProductSku.objects.filter(assign_num__gt=0):
         product_sku_res[str(productSku.id)] = productSku.assign_num
     res = {}
-    for s in SaleOrder.objects.filter(sku_id=sku_id, status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS])\
-            .exclude(refund_status=SaleRefund.NO_REFUND):
+    for s in SaleOrder.objects.filter(sku_id=sku_id, status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS],refund_status=SaleRefund.NO_REFUND):
         res[s.sku_id] = res.get(s.sku_id, 0) + s.num
     print product_sku_res
     print res
