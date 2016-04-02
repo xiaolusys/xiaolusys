@@ -27,7 +27,13 @@ def introduce_randomness():
     """
     To avoid deadlock, we introduce random sleep time (0-3s), so that
     even the same event triggering multiple updates, those updates
-    will be executed at different time.
+    will be executed at different time. 
+    
+    Note: we only apply this to those tasks that are triggered by the
+    same events, for example: carryrecord and ordercarry both get upadted
+    by the same order event, and to avoid carryrecord and ordercarry write
+    to the same dailystats record, we introduce randomeness to the task
+    invoking by carryrecord.
     """
     
     time.sleep(random.random()*3)
@@ -47,7 +53,6 @@ def create_dailystats_with_integrity(mama_id, date_field, uni_key, **kwargs):
 @task()
 def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    introduce_randomness()
     
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
     records = DailyStats.objects.filter(mama_id=mama_id, date_field__lte=end_date_field, status=1).order_by('-date_field')[:7]
@@ -77,7 +82,6 @@ def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
 @task()
 def task_visitor_increment_dailystats(mama_id, date_field):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    introduce_randomness()
     
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
     records = DailyStats.objects.filter(uni_key=uni_key)
@@ -118,7 +122,6 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
 @task()
 def task_ordercarry_increment_dailystats(mama_id, date_field):
     #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    introduce_randomness()
     
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
     records = DailyStats.objects.filter(uni_key=uni_key)
