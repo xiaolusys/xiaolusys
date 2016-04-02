@@ -353,10 +353,17 @@ class WeixinUserService():
             )
         
         return True
+
+    def sendFaqsList(self, wx_user):
+        # send the faqs list 
+        faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message='FAQS')
+        if faq_responses.count() > 0:
+            faq = faq_responses[0]
+            return faq.respNews()
+        return MessageException(u'服务器正在忙碌哦！\n 请稍后访问哦')
     
     
     def handleEvent(self, eventKey, openId, eventType=WeiXinAutoResponse.WX_EVENT_CLICK):
-        
         if self._wx_user.isNone():
             raise MessageException(u'用户信息获取异常')
         
@@ -385,6 +392,9 @@ class WeixinUserService():
         elif eventKey == 'N':
             raise MessageException(u'[OK]期待下次为您服务[愉快]')
         
+        elif eventKey == 'FAQS':
+            return self.sendFaqsList(self._wx_user)
+
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
             return WeiXinAutoResponse.respDefault()
