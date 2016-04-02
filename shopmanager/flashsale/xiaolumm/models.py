@@ -451,7 +451,7 @@ class XiaoluMama(models.Model):
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_xiaolumama_update_mamafortune.s(instance.pk, instance.cash)()
+    tasks_mama_fortune.task_xiaolumama_update_mamafortune.delay(instance.pk, instance.cash)
 
 post_save.connect(xiaolumama_update_mamafortune, 
                   sender=XiaoluMama, dispatch_uid='post_save_xiaolumama_update_mamafortune')
@@ -603,7 +603,7 @@ class CashOut(models.Model):
 
 def cashout_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_cashout_update_mamafortune.s(instance.xlmm)()
+    tasks_mama_fortune.task_cashout_update_mamafortune.delay(instance.xlmm)
 
 post_save.connect(cashout_update_mamafortune, 
                   sender=CashOut, dispatch_uid='post_save_cashout_update_mamafortune')
