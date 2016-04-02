@@ -74,7 +74,7 @@ class Command(BaseCommand):
             orderlist.save()
             log_action(ADMIN_ID, orderlist, ADDITION, '自动生成订货单')
 
-
+            amount = .0
             for product in supplier['products']:
                 for sku in product['skus']:
                     orderdetail = OrderDetail(
@@ -87,7 +87,10 @@ class Command(BaseCommand):
                         buy_quantity=abs(sku['effect_quantity']),
                         buy_unitprice=sku['cost'],
                         total_price=abs(sku['effect_quantity'] * sku['cost']))
+                    amount += float(orderdetail.buy_unitprice) * orderdetail.buy_quantity
                     orderdetail.save()
+            orderlist.order_amount = amount
+            orderlist.save()
 
         def _merge(supplier, old_orderlist):
             old_orderdetails = {}
