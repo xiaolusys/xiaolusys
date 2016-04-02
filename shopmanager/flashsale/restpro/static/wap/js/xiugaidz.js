@@ -152,10 +152,8 @@ function xugaifuzi(up_id) {
         //alert(receiver_state);
        // document.getElementById("s_province")
         var selectid1 = document.getElementById("s_province");
-        console.log(receiver_state);
         //$("#s_province option[text="+receiver_state+"]").attr("selected", true);
 selectid1[0] = new Option(receiver_state, 0);
-selectid1[0].selected=true;
 
         var selectid2 = document.getElementById("s_city");
 selectid2[0] = new Option(receiver_city, 0);
