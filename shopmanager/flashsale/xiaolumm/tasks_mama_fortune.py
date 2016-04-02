@@ -37,10 +37,8 @@ def create_mamafortune_with_integrity(mama_id, **kwargs):
     except IntegrityError as e:
         logger.warn("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
         # The following will very likely cause deadlock, since another
-        # thread is creating this record. We can sleep 3 seconds and do
-        # this update operation.
-        # time.sleep(3)
-        MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
+        # thread is creating this record. we decide to just fail it.
+        #MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
 @task()

@@ -38,15 +38,15 @@
                 h.push('<img  src="' + activity.act_img + '">');
                 h.push('<div class="m-content">');
                 h.push('<div>');
-                h.push('<p class="m-p1">0412拼图活动&nbsp;邀请好友赢取红包拼图...</p>');
+                h.push('<p class="m-p1">' + activity.title + '</p>');
                 h.push('<p class="m-p2"><span>' + activity.total_member_num + '人参加&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span>' + activity.friend_member_num + '位好友</span></p>');
                 h.push('</div>');
                 h.push('<div class="m-btn">');
                 if (activity.is_active) {
                     h.push('<a href="' + activity.act_link + '">');
-                    h.push('<img src="./static/img/share-t.png">')
+                    h.push('<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/0407-share-t.png">')
                 } else {
-                    h.push('<img src="./static/img/share-f.png">')
+                    h.push('<img src="http://7xogkj.com2.z0.glb.qiniucdn.com/0407-share-f.png">')
                 }
                 h.push('</a></div></div></li>');
                 return h.join('');
