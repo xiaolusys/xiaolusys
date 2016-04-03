@@ -69,9 +69,9 @@ def print_out_sku(sku_id):
         print 'error'
     return
 
-
+skus = []
 def assign_all():
-    for s in SaleOrder.objects.values('sku_id').filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS]):
+    for s in SaleOrder.objects.values('sku_id').filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS]).distinct():
         print s.values()[0]
         ProductSku.objects.get(id=s.values()[0]).assign_packages()
 

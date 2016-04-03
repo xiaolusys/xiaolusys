@@ -36,33 +36,32 @@ def clear_duplicate_address():
 
 
 def set_all_sale_trade_user_address_id():
-    # 为所有未发货未关闭的SaleTrade设置地址表中的id
-    # 如果存在这个地址，则直接设置，如果不存在这个地址，则设置未该用户的第一个地址。
     print SaleTrade.objects.filter(status__in=[SaleTrade.TRADE_NO_CREATE_PAY,SaleTrade.WAIT_BUYER_PAY,
                                     SaleTrade.WAIT_SELLER_SEND_GOODS,SaleTrade.WAIT_BUYER_CONFIRM_GOODS]).count()
     res = {}
     for ua in UserAddress.objects.order_by('-id'):
-        key = '-'.join([str(ua.cus_uid) , ua.receiver_name , ua.receiver_phone , ua.receiver_mobile, ua.receiver_state , ua.receiver_city , ua.receiver_district , ua.receiver_address])
+        key = '-'.join([str(ua.cus_uid) , str(ua.receiver_name).strip() ,
+                        str(ua.receiver_mobile).strip(), str(ua.receiver_state).strip(), str(ua.receiver_city).strip(),
+                        str(ua.receiver_district).strip(), str(ua.receiver_address).strip()])
         if key not in res:
             res[key] = ua
-    for sale_trade in SaleTrade.objects.filter(status__in=[SaleTrade.TRADE_NO_CREATE_PAY,SaleTrade.WAIT_BUYER_PAY,
-                                                           SaleTrade.WAIT_SELLER_SEND_GOODS,SaleTrade.WAIT_BUYER_CONFIRM_GOODS]):
+    for sale_trade in SaleTrade.objects.filter(status__in=[SaleTrade.TRADE_NO_CREATE_PAY,SaleTrade.WAIT_BUYER_PAY,SaleTrade.WAIT_SELLER_SEND_GOODS,SaleTrade.WAIT_BUYER_CONFIRM_GOODS]):
         ua = sale_trade
-        key = '-'.join([str(ua.buyer_id), ua.receiver_name.strip(), ua.receiver_phone.strip(),
-                        ua.receiver_mobile.strip(), ua.receiver_state.strip(),
-                        ua.receiver_city.strip(), ua.receiver_district.strip(), ua.receiver_address.strip()])
+        key = '-'.join([str(ua.buyer_id), str(ua.receiver_name).strip(),str(ua.receiver_mobile).strip(), str(ua.receiver_state).strip(),
+                        str(ua.receiver_city).strip(), str(ua.receiver_district).strip(), str(ua.receiver_address).strip()])
+        print sale_trade.id
         if key in res:
             sale_trade.user_address_id = res[key].id
-            print '可设定'
+            print 'aaa'
             sale_trade.save()
         else:
             if UserAddress.objects.filter(cus_uid=sale_trade.buyer_id).exists():
                 tmp_user_address = UserAddress.objects.filter(cus_uid=sale_trade.buyer_id).order_by('-id')[0]
                 sale_trade.user_address_id = tmp_user_address.id
-                print '猜的'
+                print 'bbb'
                 sale_trade.save()
             else:
-                print '不存在于地址表'
+                print 'ccc'
 
 if __name__ == '__main__':
     set_all_sale_trade_user_address_id()
