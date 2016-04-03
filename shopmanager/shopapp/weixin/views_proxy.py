@@ -55,8 +55,8 @@ class WXMessageHttpProxy(HttpProxy):
         print "after running", ret_params
         if ret_params:
             print "return here "
-            return ret_params
-        # response = service.formatParam2XML(ret_params)
+            response = service.formatParam2XML(ret_params)
+            return HttpResponse(response,mimetype="text/xml")
 
         request_url = self.get_full_url(self.url)
         request_body = request.body
