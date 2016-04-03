@@ -198,7 +198,6 @@ INSTALLED_APPS = (
     'flashsale.restpro',
     'flashsale.kefu',
     'flashsale.push',
-    'mathfilters',
     'flashsale.promotion',
     'flashsale.apprelease',
     'flashsale.protocol',
