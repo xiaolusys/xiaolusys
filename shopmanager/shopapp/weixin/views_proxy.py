@@ -50,11 +50,8 @@ class WXMessageHttpProxy(HttpProxy):
         
         content  = request.body
         params   = service.parseXML2Param(content)
-        print "before running"
         ret_params = service.handleWeiXinMenuRequest(params)
-        print "after running", ret_params
         if ret_params:
-            print "return here "
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response,mimetype="text/xml")
 

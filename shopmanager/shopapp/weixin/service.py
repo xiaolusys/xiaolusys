@@ -120,24 +120,19 @@ def formatParam2XML(params):
 
 def handleWeiXinMenuRequest(params):
     """ 2016-4-3 微信公众号常见问题请求处理 """
-    print "params:", params
     ret_params = {'ToUserName': params['FromUserName'],
                   'FromUserName': params['ToUserName'],
                   'CreateTime': int(time.time())}
     msgtype = params['MsgType']
-    print "msgtype:", msgtype
     try:
         eventKey = params.get('EventKey', '')
-        print "eventKey:", eventKey
         if msgtype == WeiXinAutoResponse.WX_EVENT and eventKey:
             eventKey = eventKey.upper()
             if eventKey == 'FAQS':
                 faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message=eventKey)
-                print 'faq_response:', faq_responses
                 if faq_responses.count() > 0:
                     faq = faq_responses[0]
                     ret_params.update(faq.respNews())
-                    print 'ret_params:', ret_params
                     return ret_params
     except Exception, exc:
         logger.error(u'微信请求异常:%s' % exc.message , exc_info=True)
