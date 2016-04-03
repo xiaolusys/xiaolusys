@@ -107,7 +107,7 @@ class RefundApply(APIView):
         sale_order.refund_fee = sale_refund.refund_fee
         sale_order.refund_status  = sale_refund.status
         sale_order.save()
-
+        sale_order.cancel_assign()
         if settings.DEBUG:
             tasks.pushTradeRefundTask(sale_refund.id)
         else:

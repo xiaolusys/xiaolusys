@@ -749,6 +749,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_zip':address.receiver_zip,
             'receiver_phone':address.receiver_phone,
             'receiver_mobile':address.receiver_mobile,
+            'user_address_id':address.id
             }
         if state:
             buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)

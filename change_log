@@ -1,4 +1,67 @@
-######## 2016-04-01 ########
+######## 2016-04-02 ########
+DROP TABLE IF EXISTS `flashsale_package`;
+CREATE TABLE `flashsale_package` (
+  `id` varchar(100) NOT NULL,
+  `ware_by` int(11) NOT NULL,
+  `status` varchar(32) NOT NULL,
+  `sys_status` varchar(32) NOT NULL,
+  `receiver_name` varchar(25) NOT NULL,
+  `receiver_state` varchar(16) NOT NULL,
+  `receiver_city` varchar(16) NOT NULL,
+  `receiver_district` varchar(16) NOT NULL,
+  `receiver_address` varchar(128) NOT NULL,
+  `receiver_zip` varchar(10) NOT NULL,
+  `receiver_mobile` varchar(24) NOT NULL,
+  `receiver_phone` varchar(20) NOT NULL,
+  `buyer_id` bigint(20) NOT NULL,
+  `user_address_id` bigint(20) DEFAULT NULL,
+  `post_cost` double NOT NULL,
+  `is_lgtype` tinyint(1) NOT NULL,
+  `lg_aging` datetime DEFAULT NULL,
+  `lg_aging_type` varchar(20) NOT NULL,
+  `out_sid` varchar(64) NOT NULL,
+  `logistics_company_id` bigint(20) DEFAULT NULL,
+  `weight` varchar(10) NOT NULL,
+  `is_qrcode` tinyint(1) NOT NULL,
+  `qrcode_msg` varchar(32) NOT NULL,
+  `can_review` tinyint(1) NOT NULL,
+  `priority` int(11) NOT NULL,
+  `operator` varchar(32) NOT NULL,
+  `scanner` varchar(64) NOT NULL,
+  `weighter` varchar(64) NOT NULL,
+  `is_locked` tinyint(1) NOT NULL,
+  `is_charged` tinyint(1) NOT NULL,
+  `created` datetime DEFAULT NULL,
+  `merged` datetime DEFAULT NULL,
+  `send_time` datetime DEFAULT NULL,
+  `weight_time` datetime DEFAULT NULL,
+  `charge_time` datetime DEFAULT NULL,
+  `remind_time` datetime DEFAULT NULL,
+  `reason_code` varchar(100) NOT NULL,
+  `redo_sign` tinyint(1) NOT NULL,
+  `modified` datetime DEFAULT NULL,
+  `merge_trade_id` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `flashsale_package_stat`;
+CREATE TABLE `flashsale_package_stat` (
+  `id` varchar(95) NOT NULL,
+  `num` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+alter table flashsale_trade add column user_address_id bigint(20) default NULL after receiver_phone;
+alter table flashsale_order add column assign_status int(3) default 0 NOT NULL after sign_time;
+alter table flashsale_order add column package_order_id varchar(100) default NULL after assign_status;
+ALTER TABLE `flashsale_order` ADD INDEX `package_order_id` (`package_order_id`) USING BTREE ;
+alter table shop_items_productsku add column assign_num int(11) default 0 after lock_num;
+
+########2016-03-31####################################
+ALTER TABLE `flashsale_address` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
+ALTER TABLE `shopmgr`.`flashsale_address` CHANGE COLUMN `receiver_name` `receiver_name` varchar(25) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, CHANGE COLUMN `receiver_state` `receiver_state` varchar(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, CHANGE COLUMN `receiver_city` `receiver_city` varchar(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, CHANGE COLUMN `receiver_district` `receiver_district` varchar(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, CHANGE COLUMN `receiver_address` `receiver_address` varchar(128) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, CHANGE COLUMN `receiver_mobile` `receiver_mobile` varchar(11) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, CHANGE COLUMN `receiver_phone` `receiver_phone` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
+ALTER TABLE `flashsale_address` ADD UNIQUE INDEX `uq` (`cus_uid`, `receiver_name`, `receiver_state`, `receiver_city`, `receiver_district`, `receiver_address`, `receiver_mobile`,`receiver_phone`) USING HASH ;
+
 alter table suplychain_flashsale_orderlist add column supplier_id int(11) default null references supplychain_supply_supplier(id);
 alter table suplychain_flashsale_orderlist add column buyer_id int(11) default 0 references auth_user(id);
 alter table suplychain_flashsale_orderlist add column created_by smallint default 1;

@@ -72,11 +72,12 @@ class UserAddress(BaseModel):
     
     status          = models.CharField(max_length=8,blank=True,db_index=True,default=NORMAL,
                                        choices=STATUS_CHOICES,verbose_name=u'状态')
-    
+
     objects = models.Manager()
     normal_objects = managers.NormalUserAddressManager()
     class Meta:
-        db_table = 'flashsale_address' 
+        #db_table = 'flashsale_address'
+        db_table = 'flashsale_address'
         verbose_name = u'特卖用户/地址'
         verbose_name_plural = u'特卖用户/地址列表'
         
@@ -92,3 +93,11 @@ class UserAddress(BaseModel):
         self.save()  # 保存当前的为默认地址
         return True
 
+    def clean_strip(self):
+        changed = False
+        for attr in ['receiver_name', 'receiver_phone', 'receiver_state', 'receiver_city', 'receiver_district', 'receiver_address']:
+            val = getattr(self, attr)
+            if val.strip() != val:
+                changed = True
+                setattr(self, attr, val.strip())
+        return changed

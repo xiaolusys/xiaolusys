@@ -167,29 +167,30 @@ class UserAddressViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def update(self, request, pk, *args, **kwargs):
-        result = {}
         customer = get_object_or_404(Customer,user=request.user)
         content = request.REQUEST
-        receiver_state = content.get('receiver_state',None)
-        receiver_city = content.get('receiver_city',None)
-        receiver_district = content.get('receiver_district',None)
-        receiver_address= content.get('receiver_address',None)
-        receiver_name=content.get('receiver_name',None)
-        receiver_mobile=content.get('receiver_mobile',None)
-
-        urows = UserAddress.objects.filter(pk=pk).update(
-            cus_uid=customer.id,
-            receiver_name=receiver_name,
-            receiver_state=receiver_state,
-            receiver_city=receiver_city,
-            receiver_district=receiver_district,
-            receiver_address=receiver_address,
-            receiver_mobile=receiver_mobile
-        )
-        if urows > 0:
+        receiver_state = content.get('receiver_state', '').strip()
+        receiver_city = content.get('receiver_city', '').strip()
+        receiver_district = content.get('receiver_district', '').strip()
+        receiver_address = content.get('receiver_address', '').strip()
+        receiver_name = content.get('receiver_name', '').strip()
+        receiver_mobile = content.get('receiver_mobile', '').strip()
+        try:
+            UserAddress.objects.filter(pk=pk).update(status=UserAddress.DELETE)
+            new_address, state = UserAddress.objects.get_or_create(
+                cus_uid=customer.id,
+                receiver_name=receiver_name,
+                receiver_state=receiver_state,
+                receiver_city=receiver_city,
+                receiver_district=receiver_district,
+                receiver_address=receiver_address,
+                receiver_mobile=receiver_mobile
+            )
+            if state:
+                new_address.default = UserAddress.objects.get(pk=pk).default
             return Response({'ret':True,'code':0, 'info':'更新成功'})
-        
-        return Response({'ret':False,'code':1, 'info':'更新失败'})
+        except:
+            return Response({'ret':False,'code':1, 'info':'更新失败'})
 
     @detail_route(methods=["post"])
     def delete_address(self, request, pk=None):
@@ -220,14 +221,14 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         customer = get_object_or_404(Customer, user=request.user)
         customer_id = customer.id  # 获取用户id
         content = request.REQUEST
-        receiver_state = content.get('receiver_state', None)
-        receiver_city = content.get('receiver_city', None)
-        receiver_district = content.get('receiver_district', None)
-        receiver_address = content.get('receiver_address', None)
-        receiver_name = content.get('receiver_name', None)
-        receiver_mobile = content.get('receiver_mobile', None)
+        receiver_state = content.get('receiver_state', '').strip()
+        receiver_city = content.get('receiver_city', '').strip()
+        receiver_district = content.get('receiver_district', '').strip()
+        receiver_address = content.get('receiver_address', '').strip()
+        receiver_name = content.get('receiver_name', '').strip()
+        receiver_mobile = content.get('receiver_mobile', '').strip()
         try:
-            UserAddress.objects.create(cus_uid=customer_id, receiver_name=receiver_name,
+            UserAddress.objects.get_or_create(cus_uid=customer_id, receiver_name=receiver_name,
                                        receiver_state=receiver_state, default=False,
                                        receiver_city=receiver_city, receiver_district=receiver_district,
                                        receiver_address=receiver_address, receiver_mobile=receiver_mobile)
