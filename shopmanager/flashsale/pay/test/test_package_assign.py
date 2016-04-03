@@ -54,10 +54,10 @@ def get_all_buyer():
 
 def print_out_sku(sku_id):
     product_sku_res = {}
-    for productSku in ProductSku.objects.filter(assign_num__gt=0):
+    for productSku in ProductSku.objects.filter(id=sku_id, assign_num__gt=0):
         product_sku_res[str(productSku.id)] = productSku.assign_num
     res = {}
-    for s in SaleOrder.objects.filter(sku_id=sku_id, status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS],refund_status=SaleRefund.NO_REFUND):
+    for s in SaleOrder.objects.filter(sku_id=sku_id, assign_status=1, status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS],refund_status=SaleRefund.NO_REFUND):
         res[s.sku_id] = res.get(s.sku_id, 0) + s.num
     print product_sku_res
     print res
@@ -65,7 +65,23 @@ def print_out_sku(sku_id):
     for s in SaleOrder.objects.filter(sku_id=sku_id, assign_status=1):
         res2[s.sku_id] = res2.get(s.sku_id, 0) + s.num
     print res2
+    if product_sku_res != res2:
+        print 'error'
     return
+
+
+def assign_all():
+    for s in SaleOrder.objects.values('sku_id').filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS]):
+        print s.values()[0]
+        ProductSku.objects.get(id=s.values()[0]).assign_packages()
+
+
+def print_out_all_sku():
+    skus = [s.values()[0] for s in SaleOrder.objects.values('sku_id').filter(status__in=[SaleOrder.WAIT_SELLER_SEND_GOODS])]
+    skus = list(set(skus))
+    for sku_id in skus:
+        print '=============================' + sku_id + '======================================'
+        print_out_sku(sku_id)
 
 
 if __name__ == '__main__':
