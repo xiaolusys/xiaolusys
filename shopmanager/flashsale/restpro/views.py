@@ -177,7 +177,7 @@ class UserAddressViewSet(viewsets.ModelViewSet):
         receiver_mobile = content.get('receiver_mobile', '').strip()
         try:
             UserAddress.objects.filter(pk=pk).update(status=UserAddress.DELETE)
-            UserAddress.objects.get_or_create(
+            new_address, state = UserAddress.objects.get_or_create(
                 cus_uid=customer.id,
                 receiver_name=receiver_name,
                 receiver_state=receiver_state,
@@ -186,6 +186,8 @@ class UserAddressViewSet(viewsets.ModelViewSet):
                 receiver_address=receiver_address,
                 receiver_mobile=receiver_mobile
             )
+            if state:
+                new_address.default = UserAddress.objects.get(pk=pk).default
             return Response({'ret':True,'code':0, 'info':'更新成功'})
         except:
             return Response({'ret':False,'code':1, 'info':'更新失败'})

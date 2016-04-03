@@ -76,7 +76,8 @@ class UserAddress(BaseModel):
     objects = models.Manager()
     normal_objects = managers.NormalUserAddressManager()
     class Meta:
-        db_table = 'flashsale_address' 
+        #db_table = 'flashsale_address'
+        db_table = 'flashsale_address_v2'
         verbose_name = u'特卖用户/地址'
         verbose_name_plural = u'特卖用户/地址列表'
         

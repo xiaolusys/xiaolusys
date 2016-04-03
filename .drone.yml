@@ -53,7 +53,7 @@ deploy:
     commands:
       - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:django18
       - docker rm -f gunicorn-django18
-      - docker run --name=gunicorn-django18 -e TARGET=staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18 blueware-admin run-program gunicorn_django -k gevent -c staging_gunicorn_conf.py
+      - docker run --name=gunicorn-django18 -e TARGET=production -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18 blueware-admin run-program gunicorn_django -k gevent -c staging_gunicorn_conf.py
   ssh:
     host:
       - sale.xiaolumm.com
