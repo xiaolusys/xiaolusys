@@ -649,6 +649,14 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     
     mama_id = instance.mama_id
     date_field = instance.date_field
+
+    try:
+        from flashsale.xiaolumm.models import XiaoluMama
+        mama = XiaoluMama.objects.get(id=mama_id)
+        if not mama.is_cashoutable():
+            return
+    except XiaoluMama.DoesNotExist:
+        return
     
     from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
     task_visitor_increment_clickcarry.delay(mama_id, date_field)
