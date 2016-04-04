@@ -508,11 +508,10 @@ post_save.connect(activevalue_update_mamafortune,
 
 def confirm_previous_activevalue(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_activevalue
-    if created:
+    if created and instance.value_type == 1:
         mama_id = instance.mama_id
-        value_type = instance.value_type
         date_field = instance.date_field
-        tasks_mama_activevalue.task_confirm_previous_activevalue.delay(mama_id, value_type, date_field, 2)
+        tasks_mama_activevalue.task_confirm_previous_activevalue.delay(mama_id, date_field, 2)
 
 post_save.connect(confirm_previous_activevalue,
                   sender=ActiveValue, dispatch_uid='post_save_confirm_previous_activevalue')
