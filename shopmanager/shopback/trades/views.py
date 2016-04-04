@@ -2203,8 +2203,12 @@ class PackageScanWeightView(APIView):
         if mt.type == pcfg.SALE_TYPE:
             package = mt.get_package()
             mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
-            package.finish(mt)
-            package.sync_merge_order(mt)
+            if package:
+                try:
+                    package.finish(mt)
+                    package.sync_merge_order(mt)
+                except Exception,exc:
+                    logger.error(exc.message,exc_info=True)
         MergeTrade.objects.updateProductStockByTrade(mt)
 
         mt.weight = package_weight
