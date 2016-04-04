@@ -396,7 +396,7 @@ class MergeTrade(models.Model):
         if self.type == pcfg.SALE_TYPE:
             sale_trade_ids = [s.id for s in SaleTrade.objects.filter(tid=self.tid)]
             if self.has_merge:
-                merge_ids = [m.sub_sid for m in MergeBuyerTrade.objects.filter(main_tid=self.id)]
+                merge_ids = [m.sub_tid for m in MergeBuyerTrade.objects.filter(main_tid=self.id)]
                 sale_trade_ids.extend(merge_ids)
             return SaleOrder.objects.filter(sale_trade_id__in=sale_trade_ids, refund_status=SaleRefund.NO_REFUND)
         return None
