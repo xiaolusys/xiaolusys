@@ -2107,7 +2107,7 @@ class PackageScanCheckView(APIView):
         mt.sys_status = pcfg.WAIT_SCAN_WEIGHT_STATUS
         mt.scanner = request.user.username
         mt.save()
-        package = mt.get_pacakge()
+        package = mt.get_package()
         if package:
             package.set_out_sid(mt.out_sid, mt.logistics_company_id)
         log_action(mt.user.user.id, mt, CHANGE, u'扫描验货')
@@ -2201,7 +2201,7 @@ class PackageScanWeightView(APIView):
         except MergeTrade.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
         if mt.type == pcfg.SALE_TYPE:
-            package = mt.get_pacakge()
+            package = mt.get_package()
             mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
             package.finish(mt)
             package.sync_merge_order(mt)
