@@ -77,9 +77,9 @@ def weixin_xlmm_auth(redirecto=None):
             path = request.get_full_path()
             redirect_url = redirecto
             if redirect_url.find('?') > 0:
-                redirect_url += path[path.index('?') + 1:]
+                redirect_url += path.find('?') > 0 and path[path.find('?') + 1:] or ''
             else:
-                redirect_url += path[path.index('?'):]
+                redirect_url += path.find('?') > 0 and path[path.find('?'):] or ''
             if not user_agent or user_agent.find('MicroMessenger') < 0:
                 return HttpResponseRedirect(redirect_url)
 
