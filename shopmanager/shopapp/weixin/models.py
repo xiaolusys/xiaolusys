@@ -342,6 +342,7 @@ class WeiXinAutoResponse(models.Model):
     WX_EVENT_KF_CLOSE_SESSION   = 'kf_close_session'
     WX_EVENT_KF_CREATE_SESSION  = 'kf_create_session'
     WX_EVENT_LOCATION_SELECT   = 'location_select'
+    WX_EVENT_FAQS  = 'faqs'
     
     WX_TYPE  = (
         (WX_TEXT ,u'文本'),

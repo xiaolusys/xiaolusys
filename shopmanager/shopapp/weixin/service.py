@@ -118,6 +118,29 @@ def formatParam2XML(params):
     return x[len(initStr):]
 
 
+def handleWeiXinMenuRequest(params):
+    """ 2016-4-3 微信公众号常见问题请求处理 """
+    ret_params = {'ToUserName': params['FromUserName'],
+                  'FromUserName': params['ToUserName'],
+                  'CreateTime': int(time.time())}
+    msgtype = params['MsgType']
+    try:
+        eventKey = params.get('EventKey', '')
+        if msgtype == WeiXinAutoResponse.WX_EVENT and eventKey:
+            eventKey = eventKey.upper()
+            if eventKey == 'FAQS':
+                faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message=eventKey)
+                if faq_responses.count() > 0:
+                    faq = faq_responses[0]
+                    ret_params.update(faq.respNews())
+                    return ret_params
+    except Exception, exc:
+        logger.error(u'微信请求异常:%s' % exc.message , exc_info=True)
+        text = u'不好了，小优尼闹情绪不想干活了！[撇嘴]'
+        te = {'MsgType': WeiXinAutoResponse.WX_TEXT,
+              'Content': text}
+        ret_params.update(te)
+
 
 class WeixinUserService():
     
@@ -353,10 +376,17 @@ class WeixinUserService():
             )
         
         return True
+
+    def sendFaqsList(self, wx_user):
+        # send the faqs list 
+        faq_responses = WeiXinAutoResponse.objects.filter(rtype=WeiXinAutoResponse.WX_NEWS, message='FAQS')
+        if faq_responses.count() > 0:
+            faq = faq_responses[0]
+            return faq.respNews()
+        return MessageException(u'服务器正在忙碌哦！\n 请稍后访问哦')
     
     
     def handleEvent(self, eventKey, openId, eventType=WeiXinAutoResponse.WX_EVENT_CLICK):
-        
         if self._wx_user.isNone():
             raise MessageException(u'用户信息获取异常')
         
@@ -385,6 +415,9 @@ class WeixinUserService():
         elif eventKey == 'N':
             raise MessageException(u'[OK]期待下次为您服务[愉快]')
         
+        elif eventKey == 'FAQS':
+            return self.sendFaqsList(self._wx_user)
+
         if eventType == WeiXinAutoResponse.WX_EVENT_SUBSCRIBE :
             self._wx_user.doSubscribe(eventKey.rfind('_') > -1 and eventKey.split('_')[1] or '')
             return WeiXinAutoResponse.respDefault()
