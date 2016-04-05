@@ -4,7 +4,8 @@
 import json
 from django.conf import settings
 from django.http import Http404, HttpResponse
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render_to_response
+from django.template import RequestContext
 from django.core.urlresolvers import reverse
 
 from rest_framework.views import APIView
@@ -15,11 +16,15 @@ from rest_framework.response import Response
 
 from core.weixin.mixins import WeixinAuthMixin
 from flashsale.pay.models_user import Customer
+from flashsale.pay.models_custom import ActivityEntry
+
 from shopback.items.models import Product
+
+from .models_freesample import XLSampleApply, XLSampleOrder
 
 
 import logging
-logger = logging.getLogger('django.reqeust')
+logger = logging.getLogger('django.request')
 
 class ActivityView(WeixinAuthMixin, APIView):
     
@@ -43,3 +48,256 @@ class ActivityView(WeixinAuthMixin, APIView):
         
         product_list = self.get_product_list()
         return Response({'product_list':product_list})
+
+
+
+class JoinView(WeixinAuthMixin, APIView):
+    authentication_classes = (authentication.SessionAuthentication, )
+    permission_classes = ()
+    renderer_classes = (renderers.JSONRenderer,)
+
+    def get(self, request, event_id, *args, **kwargs):
+        content = request.REQUEST
+        ufrom = content.get("ufrom", "")
+        from_customer = content.get("from_customer", "")
+        
+        if self.is_from_weixin(request) or ufrom == "wxapp" or ufrom == "pyq":
+            response = redirect(reverse('weixin_baseauth_join_activity', args=(event_id,)))
+        elif ufrom == "app":
+            response = redirect(reverse('app_join_activity', args=(event_id,)))
+        else:
+            response = redirect(reverse('web_join_activity', args=(event_id,)))
+
+        response.set_cookie("event_id", event_id)
+        response.set_cookie("from_customer", from_customer)
+        response.set_cookie("ufrom", ufrom)
+        return response
+
+
+class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        # 1. check whether event_id is valid
+        activity_entrys = ActivityEntry.objects.filter(id=event_id)
+        if activity_entrys.count() <= 0:
+            return Response({"error": "wrong event id"})    
+        activity_entry = activity_entrys[0]
+        
+        # 2. get openid from cookie
+        openid, unionid = self.get_cookie_openid_and_unoinid(request)
+
+        if not self.valid_openid(openid):
+            # 3. get openid from 'debug' or from using 'code' (if code exists)
+            wxprofile = self.get_auth_userinfo(request)
+            unionid = wxprofile.get("unionid")
+
+            if not self.valid_openid(openid):
+                # 4. if we still dont have openid, we have to do oauth
+                redirect_url = self.get_wxauth_redirct_url(request)
+                return redirect(redirect_url)
+            logger.warn("wxprofile: %s" % wxprofile)
+            
+        # now we already have openid, we check whether application exists.
+        application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        if application_count <= 0:
+            key = 'apply'
+        else:
+            key = 'download'
+        
+        html = activity_entry.get_html(key)
+        response = redirect(html)
+        
+        if key == 'apply':
+            self.set_cookie_openid_and_unionid(response, openid, unionid)
+            
+        return response
+        
+
+
+class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        # 1. check whether event_id is valid
+        activity_entrys = ActivityEntry.objects.filter(id=event_id)
+        if activity_entrys.count() <= 0:
+            return Response({"error": "wrong event id"})    
+        activity_entry = activity_entrys[0]
+        
+        # 2. get openid from cookie
+        openid, unionid = self.get_cookie_openid_and_unoinid(request)
+
+        if not self.valid_openid(openid):
+            # 3. get openid from 'debug' or from using 'code' (if code exists)
+            wxprofile = self.get_auth_userinfo(request)
+            unionid = wxprofile.get("unionid")
+            openid = wxprofile.get("openid")
+            
+            if not self.valid_openid(unionid):
+                # 4. if we still dont have openid, we have to do oauth
+                redirect_url = self.get_snsuserinfo_redirct_url(request)
+                return redirect(redirect_url)
+
+        # now we already have openid, we check whether application exists.
+        application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        if application_count <= 0:
+            key = 'apply'
+        else:
+            key = 'download'
+        
+        html = activity_entry.get_html(key)
+        response = redirect(html)
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
+            
+        return response
+
+
+class AppJoinView(WeixinAuthMixin, APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        # 1. check whether event_id is valid 
+        activity_entrys = ActivityEntry.objects.filter(id=event_id)
+        if activity_entrys.count() <= 0:
+            return Response({"error": "wrong event id"})
+        activity_entry = activity_entrys[0]
+
+        # 2. check whether user is login
+        if not request.user or request.user.is_anonymous():
+            return Response({"login": False})
+
+        # 3. check whether user has mobile binded
+        customer = Customer.objects.get(user=request.user)
+        if not customer.mobile:
+            return Response({"bind": False})
+        
+        unionid, openid = customer.openid, customer.unionid
+        application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        if application_count <= 0:
+            key = 'apply'
+        else:
+            key = 'mainpage'
+
+        html = activity_entry.get_html(key)
+        response = redirect(html)
+        self.set_cookie_openid_and_unionid(response, openid, unionid)
+        
+        return response
+        
+
+class WebJoinView(APIView):
+    def get(self, request, event_id, *args, **kwargs):
+         # 1. check whether event_id is valid 
+        activity_entrys = ActivityEntry.objects.filter(id=event_id)
+        if activity_entrys.count() <= 0:
+            return Response({"error": "wrong event id"})    
+        activity_entry = activity_entrys[0]
+        
+        # 2. get mobile from cookie
+        mobile = request.COOKIES.get("mobile", "")
+        
+        key = 'apply'
+        if mobile:
+            application_count = XLSampleApply.objects.filter(mobile=mobile).count()
+            if application_count > 0:
+                key = 'download'
+
+        html = activity_entry.get_html(key)
+        return redirect(html)
+
+
+class ApplicationView(WeixinAuthMixin, APIView):
+    def get(self, request, event_id,  *args, **kwargs):
+        content = request.REQUEST
+        from_customer = request.COOKIES.get("from_customer","")
+        mobile = request.COOKIES.get("mobile")
+        openid,unionid = self.get_cookie_openid_and_unoinid(request)
+        
+        print "cookie ---- ", mobile, openid, event_id, from_customer
+
+        # 1. check whether event_id is valid 
+        activity_entrys = ActivityEntry.objects.filter(id=event_id)
+        if activity_entrys.count() <= 0:
+            return Response({"rcode": 1, "msg": "wrong event id"})    
+        activity_entry = activity_entrys[0]
+
+        applied = False
+        application_count = 0
+        if openid:
+            application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        elif mobile:
+            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile).count()
+        if application_count > 0:
+            applied = True
+
+        mobile_required = True
+        if mobile or openid:
+            mobile_required = False
+        
+        img, nick = "", ""
+        if from_customer:
+            try:
+                customer = Customer.objects.get(id=from_customer)
+                img = customer.thumbnail
+                nick = customer.nick
+            except Customer.DoesNotExist:
+                pass
+
+        end_time = str(activity_entry.end_time).replace('T','')
+        
+        res_data = {"applied": applied, "img":img, "nick":nick, "end_time": end_time, "mobile_required": mobile_required}
+        response = Response(res_data)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+    
+
+    def post(self, request, event_id, *args, **kwargs):
+        content = request.REQUEST
+        ufrom = request.COOKIES.get("ufrom", None)
+        mobile = content.get("mobile", None)
+        from_customer = request.COOKIES.get("from_customer",None)
+
+        openid,unionid = self.get_cookie_openid_and_unoinid(request)
+        
+        # if mobile is not provided as parameter, get mobile from cookie.
+        if not mobile:
+            mobile = request.COOKIES.get("mobile", None)
+            
+        if not (mobile or openid):
+            response = Response({"rcode": 1, "msg": "openid or moible must be provided one"})
+            response["Access-Control-Allow-Origin"] = "*"
+            return response
+        
+        applied = False
+        application_count = 0
+        if openid:
+            application_count = XLSampleApply.objects.filter(user_openid=openid).count()
+        elif mobile:
+            from flashsale.restpro.v2.views_verifycode_login import validate_mobile
+            if not validate_mobile(mobile):
+                response = Response({"rcode": 2, "msg": "mobile number wrong"})
+                response["Access-Control-Allow-Origin"] = "*"
+                return response
+            applicaiton_count = XLSampleApply.objects.filter(mobile=mobile).count()
+
+        params = {}
+        if from_customer:
+            params.update({"from_customer":from_customer})
+        if ufrom:
+            params.update({"ufrom":ufrom})
+        if openid:
+            params.update({"user_openid":openid})
+        if mobile:
+            params.update({"mobile":mobile})
+        print "debug ====", params
+        
+        if application_count <= 0:
+            application = XLSampleApply(event_id=event_id, **params)
+            application.save()
+
+        next_page = "download"
+        if ufrom == 'wxapp' or ufrom == 'pyq':
+            next_page = "snsauth"
+        if ufrom == "app":
+            next_page = "mainpage"
+        
+        response =  Response({"rcode": 0, "msg": "application submitted", "next": next_page})
+        response.set_cookie("mobile", mobile)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+

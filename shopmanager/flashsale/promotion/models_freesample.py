@@ -1,4 +1,4 @@
-#-*- coding:utf8 -*-
+#-*- coding:utf-8 -*-
 from django.db import models
 from core.models import BaseModel,CacheModel
 from django.contrib.auth.models import User
@@ -67,6 +67,7 @@ class XLSampleApply(CacheModel):
 
     outer_id = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'商品编码')
     sku_code = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'SKU编码')
+    event_id = models.IntegerField(null=True, blank=True, verbose_name=u'活动ID')
     from_customer = models.BigIntegerField(null=True, blank=True, verbose_name=u'分享人用户ID')
     ufrom    = models.CharField(max_length=8,choices=FROM_CHOICES,blank=True,verbose_name=u'来自平台')
     user_openid  = models.CharField(max_length=28,db_index=True,blank=True,null=True,verbose_name=u'用户openid')

@@ -413,6 +413,7 @@ admin.site.register(ReferalRelationship,ReferalRelationshipAdmin)
 
 class GroupRelationshipAdmin(admin.ModelAdmin):
     list_display = ('leader_mama_id', 'referal_from_mama_id', 'member_mama_id', 'member_mama_nick', 'modified', 'created')
+    search_fields = ('referal_from_mama_id', 'member_mama_id')
 admin.site.register(GroupRelationship,GroupRelationshipAdmin)
 
 
@@ -423,6 +424,7 @@ admin.site.register(ClickPlan,ClickPlanAdmin)
 class UniqueVisitorAdmin(admin.ModelAdmin):
     list_display = ('mama_id', 'visitor_nick', 'visitor_img', 'uni_key', 'date_field',
                     'modified', 'created')
+    search_fields = ('mama_id', 'visitor_nick')
 admin.site.register(UniqueVisitor,UniqueVisitorAdmin)
     
 
