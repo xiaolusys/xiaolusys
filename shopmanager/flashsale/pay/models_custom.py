@@ -274,6 +274,12 @@ class ActivityEntry(PayBaseModel):
             'active_dec':self.act_desc.format(**params),
         }
     
+    def get_html(self, key):
+        htmls = self.extras["html"]
+        if key in htmls:
+            return htmls[key]
+        return None
+    
     def total_member_num(self):
         return 2000
 

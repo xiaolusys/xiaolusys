@@ -1,4 +1,4 @@
-# -*- coding:utf8 -*-
+# -*- coding:utf-8 -*-
 import random, string
 import datetime
 from django.db import models
@@ -83,7 +83,7 @@ post_save.connect(sampleorder_create_and_update_count, sender=XLSampleOrder)
 from django.db.models.signals import post_save
 def sampleapply_create_and_update_count(sender,instance,created,*args,**kwargs):
     """ 试用订单更新邀请数 """
-    if not created:
+    if not created or not instance.from_customer:
         return
     inv_count,state = XLInviteCount.objects.get_or_create(customer_id=instance.from_customer)
     inv_count.apply_count = models.F('apply_count') + 1
