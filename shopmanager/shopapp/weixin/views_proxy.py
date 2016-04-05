@@ -48,15 +48,14 @@ class WXMessageHttpProxy(HttpProxy):
             logger.debug('sign fail:{0}'.format(content))
             return HttpResponse(u'非法请求')
         
-        content  = request.body
-        params   = service.parseXML2Param(content)
+        request_body = request.body
+        params   = service.parseXML2Param(request_body)
         ret_params = service.handleWeiXinMenuRequest(params)
         if ret_params:
             response = service.formatParam2XML(ret_params)
             return HttpResponse(response,mimetype="text/xml")
 
         request_url = self.get_full_url(self.url)
-        request_body = request.body
         request_header = {'Content-type': request.META.get('CONTENT_TYPE'),
                           'Content-length': request.META.get('CONTENT_LENGTH')}
         request = self.create_request(request_url,body=request.body,headers=request_header)
