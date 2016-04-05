@@ -76,6 +76,9 @@ class NinePicAdverViewSet(viewsets.ModelViewSet):
             return ''
 
     def list(self, request, *args, **kwargs):
+        from django_statsd.clients import statsd
+        statsd.incr('xiaolumm.ninepic_count')
+
         advers = []
         now = datetime.datetime.now()
 
