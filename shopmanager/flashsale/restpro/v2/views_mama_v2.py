@@ -23,6 +23,8 @@ from flashsale.xiaolumm.models_fortune import MamaFortune, CarryRecord, ActiveVa
 
 from flashsale.pay.models_custom import ModelProduct
 
+from django_statsd.clients import statsd
+
 
 def get_customer_id(user):
     customers = Customer.objects.filter(user=user)
@@ -92,6 +94,9 @@ class MamaFortuneViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id)
 
     def list(self, request, *args, **kwargs):
+
+        statsd.incr('xiaolumm.mamafortune_count')
+
         fortunes = self.get_owner_queryset(request)
         fortunes = self.paginate_queryset(fortunes)
         serializer = serializers.MamaFortuneSerializer(fortunes, many=True)
@@ -134,6 +139,8 @@ class CarryRecordViewSet(viewsets.ModelViewSet):
 
 
     def list(self, request, *args, **kwargs):
+        statsd.incr('xiaolumm.mama_carryrecord_count')
+
         exclude_statuses = [3,]
         datalist = self.get_owner_queryset(request, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
@@ -268,6 +275,8 @@ class ActiveValueViewSet(viewsets.ModelViewSet):
         return qset.order_by('-date_field', '-created')
 
     def list(self, request, *args, **kwargs):
+        statsd.incr('xiaolumm.mama_active_count')
+
         exclude_statuses = [3,]
         datalist = self.get_owner_queryset(request, exclude_statuses=exclude_statuses)
         datalist = self.paginate_queryset(datalist)
@@ -297,6 +306,8 @@ class ReferalRelationshipViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(referal_from_mama_id=mama_id).order_by('-created')
 
     def list(self, request, *args, **kwargs):
+        statsd.incr('xiaolumm.mama_referalrelationship_count')
+
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
 
@@ -356,6 +367,8 @@ class UniqueVisitorViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(mama_id=mama_id,date_field=date_field).order_by('-created')
 
     def list(self, request, *args, **kwargs):
+        statsd.incr('xiaolumm.mama_uniquevisitor_count')
+
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
 
@@ -383,6 +396,9 @@ class XlmmFansViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(xlmm_cusid=customer_id).order_by('-created')
 
     def list(self, request, *args, **kwargs):
+        statsd.incr('xiaolumm.mama_fans_count')
+
+
         datalist = self.get_owner_queryset(request)
         datalist = self.paginate_queryset(datalist)
 
@@ -539,6 +555,8 @@ class ModelProductViewSet(viewsets.ModelViewSet):
 
 
     def list(self, request, *args, **kwargs):
+        statsd.incr('xiaolumm.mama_productselection_count')
+
         content = request.REQUEST
         category = content.get("category", "0")
 
