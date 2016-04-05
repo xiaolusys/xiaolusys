@@ -53,12 +53,14 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
     contributor_id = order_carry.contributor_id
 
     uni_key = util_unikey.gen_activevalue_unikey(value_type, mama_id, date_field, order_id, contributor_id)
-    
+    value_num = ActiveValue.VALUE_MAP[str(value_type)]
+        
     active_values = ActiveValue.objects.filter(uni_key=uni_key)
     if active_values.count() > 0:
         active_value = active_values[0]
         if active_value.status != order_carry.status:
             active_value.status = order_carry.status
+            active_value.value_num = value_num
             if order_carry.status == 0:
                 active_value.status = 3 # canceled
                 
@@ -69,7 +71,6 @@ def task_ordercarry_update_activevalue(order_carry_unikey):
         # dont create ActiveValue record if order status is "unpaid"
         return
     
-    value_num = ActiveValue.VALUE_MAP[str(value_type)]
     status = order_carry.status
     description = util_description.gen_activevalue_description(value_type)
     active_value = ActiveValue(mama_id=mama_id, value_num=value_num, value_type=value_type,
@@ -95,7 +96,7 @@ def task_referal_update_activevalue(mama_id, date_field, contributor_id):
 
 
 @task()
-def task_confirm_previous_activevalue(mama_id, value_type, today_date_field, num_days):
+def task_confirm_previous_activevalue(mama_id, today_date_field, num_days):
     """
     This is how a click-type activevalue gets confirmed:
     everytime a new activevalue gets created, we confirm
@@ -104,6 +105,7 @@ def task_confirm_previous_activevalue(mama_id, value_type, today_date_field, num
 
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
 
+    value_type = 1 # click-type
     active_values = ActiveValue.objects.filter(mama_id=mama_id, value_type=value_type, date_field__lte=end_date_field, status=1).order_by('-date_field')[:7]
     if active_values.count() <= 0:
         return
@@ -131,8 +133,7 @@ def task_visitor_increment_activevalue(mama_id, date_field):
                                    uni_key=uni_key, value_description=description,
                                    date_field=date_field,status=status)
         active_value.save()
-
-        task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
+        #task_confirm_previous_activevalue.s(mama_id, value_type, date_field, 2)()
         
     else:
         active_values.update(value_num=F('value_num')+1)

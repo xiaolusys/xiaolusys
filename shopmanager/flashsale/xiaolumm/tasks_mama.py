@@ -179,6 +179,7 @@ def task_referal_update_awardcarry(relationship):
         status = 2 # confirmed
         carry_description = util_description.get_awardcarry_description(carry_type)
         award_carry = AwardCarry(mama_id=from_mama_id,carry_num=carry_num,carry_type=carry_type,
+                                 carry_description=carry_description,
                                  contributor_nick=relationship.referal_to_mama_nick,
                                  contributor_img=relationship.referal_to_mama_img,
                                  contributor_mama_id=relationship.referal_to_mama_id,
@@ -244,11 +245,12 @@ def task_order_trigger(sale_order):
     self_mama = get_self_mama(customer.unionid)
 
     mm_linkid_mama = XiaoluMama.objects.get_by_saletrade(sale_order.sale_trade)
-    
+
     if sale_order.is_deposit():
+        logger.warn("%s | is_deposit: %s, is_confirmed: %s, mama_id: %s" % (get_cur_info(), sale_order.is_deposit(), sale_order.is_confirmed(), mm_linkid_mama.id))
         if sale_order.is_confirmed():
             if mm_linkid_mama:
-                task_update_referal_relationship.s(mm_linkid_mama.pk, self_mama.pk, customer_id)()
+                task_update_referal_relationship.delay(mm_linkid_mama.pk, self_mama.pk, customer_id)
         return
 
 
@@ -285,7 +287,7 @@ def task_order_trigger(sale_order):
     agency_level = mm_linkid_mama.agencylevel
     carry_amount = carry_scheme.get_scheme_rebeta(agencylevel=agency_level,payment=payment)
     
-    task_update_ordercarry.s(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level, carry_scheme.name, via_app)()
+    task_update_ordercarry.delay(mm_linkid_mama.pk, sale_order, customer_id, carry_amount, agency_level, carry_scheme.name, via_app)
 
     
     

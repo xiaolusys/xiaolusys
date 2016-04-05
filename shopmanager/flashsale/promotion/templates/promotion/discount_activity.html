@@ -69,9 +69,11 @@
 {% endblock %}
 
 {% block content1 %}
+{% load core_tags %}
 <div class="row">
 <div class="page-panel">
 {% csrf_token %}
+{% session_token %}
 <!-- 头图区域 -->
 <div>
   <img class="head-img" src="http://7xogkj.com2.z0.glb.qiniucdn.com/dress_3.21%20%E6%B4%BB%E5%8A%A8.png?imageMogr2/thumbnail/640/format/jpg/quality/90">
@@ -116,7 +118,9 @@ function Action_release(ele) {
     //点击领取优惠券
     var url  = '/rest/v1/usercoupons.json';
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken")[0].value;
-    var data = {'template_id': $(ele).attr('template_id'),"csrfmiddlewaretoken": csrf_token};
+    var session = document.getElementsByName("sessionid");
+    var sessionid = session.length>0?session[0].value:'';
+    var data = {'template_id': $(ele).attr('template_id'),"csrfmiddlewaretoken": csrf_token,"sessionid":sessionid};
     $.ajax({
         "url": url,
         "data": data,
@@ -137,25 +141,7 @@ function Action_release(ele) {
         }
     });
     function callback(res) {
-        if (res.res == "success") {
-            alert("领取成功 赶紧去挑选商品吧 ！");
-            //等待3秒跳转到优惠券页面
-        }
-        if (res.res == "already") {
-            alert("您已经领取优惠券啦 赶紧去挑选商品吧 ！");
-        }
-        if (res.res == "no_type") {
-            alert("还没有开放该优惠券敬请期待！");
-        }
-        if (res.res == "not_release") {
-            alert("还没有开放该优惠券哦 敬请期待！");
-        }
-        if (res.res == "cu_not_fund") {
-            alert("用户未找到！尝试重新登陆");
-        }
-        if (res.res == "limit") {
-            alert("您已经领取过了哦~");
-        }
+        alert(res.res);
     }
 };
 var OSTest = function () {// 客户端平台检测　返回
@@ -201,14 +187,14 @@ $(document).ready(function(){
         console.log('os jump:',os)
         if (os == 'iOS'){
             setupWebViewJavascriptBridge(function(bridge) {
-		        var data = {'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'};
-		        bridge.callHandler('jumpToJsLocation', data, function(response) {
+		        var data = {'target_url': 'com.jimei.xlmm://app/v1/products?product_id=1'};
+		        bridge.callHandler('jumpToNativeLocation', data, function(response) {
 		            console.log("jumpToJsLocation called with:", data);
 		        });
 		    })
 		}else{
 		    if (window.AndroidBridge) {
-                var data = "{'target_url': 'com.jimei.xlmm://app/v1/products?product_id=36572'}";
+                var data = "{'target_url': 'com.jimei.xlmm://app/v1/products?product_id=1'}";
                 alert('call:'+data);
                 window.AndroidBridge.jumpToNativeLocation(data);
             }

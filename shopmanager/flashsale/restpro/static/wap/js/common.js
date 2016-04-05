@@ -120,7 +120,10 @@ var GLConfig = {
     hot_product: "/hotproduct",   //获取特卖选品列表
     change_hot_pro_hot_val: "/hotproduct/{{ id }}/change_hot_val",   //添加热度值
     app_download: "/download/get_app_download_link",   //添加热度值
-    mama_shop: "/products/get_mama_shop" // 获取代理用户店铺基础信息
+    mama_shop: "/products/get_mama_shop", // 获取代理用户店铺基础信息
+    activitys_url: "/activitys",// 活动页面h5入口
+    agency_invitation_res:'/rest/v2/referal',//代理邀请结果(我的邀请页面)
+    get_mama_fortune:'/rest/v2/fortune'//代理财富
 
 };
 
@@ -428,7 +431,7 @@ function loadNTalker(params,callback){
         oViewport.setAttribute('content', 'width=640, user-scalable=no, target-densitydpi=device-dpi');
     }
     window.onload = function () {
-        window.event.cacenlBubble=false;
+        //window.event.cacenlBubble=false;
         if(document.addEventListener){
 	        if (window.navigator.standalone) jQuery.ajaxSetup({isLocal:true});
 	        document.body.addEventListener('click',function(e){

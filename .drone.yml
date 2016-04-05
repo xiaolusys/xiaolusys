@@ -10,6 +10,17 @@ publish:
     mirror: https://n5fb0zgg.mirror.aliyuncs.com
     when:
       branch: staging
+  docker:
+    username: $$DOCKER_USERNAME
+    password: $$DOCKER_PASSWORD
+    email: $$DOCKER_EMAIL
+    registry: registry.aliyuncs.com
+    repo: xiaolu-img/xiaolusys
+    tag: django18
+    file: Dockerfile
+    mirror: https://n5fb0zgg.mirror.aliyuncs.com
+    when:
+      branch: django18
 deploy:
   ssh:
     host: staging.xiaolumm.com
@@ -17,32 +28,51 @@ deploy:
     when:
       branch: admin
     commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys
-      - docker run --rm --volumes-from=static registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py collectstatic --noinput
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker run --rm --volumes-from=static -e TARGET=production registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput
       - docker rm -f gunicorn 
-      - docker run --name=gunicorn -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys blueware-admin run-program gunicorn_django -k gevent -c taobao_gunicorn_conf.py
+      - docker run --name=gunicorn -e TARGET=production -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn_django -k gevent -c taobao_gunicorn_conf.py
       - docker rm -f celery 
-      - docker run --name=celery --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys blueware-admin run-program python manage.py celery worker --loglevel=ERROR -c 8 -Q default,peroid,async,notify
+      - docker run --name=celery -e TARGET=production --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program python manage.py celery worker --loglevel=ERROR -c 8 -Q default,peroid,async,notify
       - docker rm -f celerybeat 
-      - docker run --name=celerybeat -d registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py celery beat --loglevel=ERROR
+      - docker run --name=celerybeat -e TARGET=production -d registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py celery beat --loglevel=ERROR
   ssh:
     host: staging.xiaolumm.com
     user: root
     when:
       branch: staging
     commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn-staging
-      - docker run --name=gunicorn-staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys blueware-admin run-program gunicorn_django -k gevent -c staging_gunicorn_conf.py
+      - docker run --name=gunicorn-staging -e TARGET=staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9001:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn_django -k gevent -c staging_gunicorn_conf.py
   ssh:
-    host: sale.xiaolumm.com
+    host: staging.xiaolumm.com
+    user: root
+    when:
+      branch: django18
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:django18
+      - docker rm -f gunicorn-django18
+      - docker run --name=gunicorn-django18 -e TARGET=staging -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9002:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:django18 blueware-admin run-program gunicorn_django -k gevent -c staging_gunicorn_conf.py
+  ssh:
+    host:
+      - sale.xiaolumm.com
     user: root
     when:
       branch: master
     commands:
-      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys
-      - docker run --rm --volumes-from=static registry.aliyuncs.com/xiaolu-img/xiaolusys python manage.py collectstatic --noinput
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
+      - docker run --rm --volumes-from=static -e TARGET=production registry.aliyuncs.com/xiaolu-img/xiaolusys:latest python manage.py collectstatic --noinput
+  ssh:
+    host:
+      - sale.xiaolumm.com
+      - sale2.xiaolumm.com
+    user: root
+    when:
+      branch: master
+    commands:
+      - docker pull registry.aliyuncs.com/xiaolu-img/xiaolusys:latest
       - docker rm -f gunicorn 
-      - docker run --name=gunicorn -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys blueware-admin run-program gunicorn_django -k gevent -c taobao_gunicorn_conf.py
+      - docker run --name=gunicorn -e TARGET=production -d -p `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`:9000:9000 -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program gunicorn_django -k gevent -c taobao_gunicorn_conf.py
       - docker rm -f celery 
-      - docker run --name=celery --volumes-from=static -d -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys blueware-admin run-program python manage.py celery worker --loglevel=ERROR -Q notify,frency,mama,activevalue,mamafortune,relationship,carryrecord
+      - docker run --name=celery -e TARGET=production -d -e BLUEWARE_CONFIG_FILE=blueware.ini registry.aliyuncs.com/xiaolu-img/xiaolusys:latest blueware-admin run-program python manage.py celery worker --loglevel=ERROR -Q notify,frency,mama,activevalue,mamafortune,relationship,carryrecord

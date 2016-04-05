@@ -406,10 +406,10 @@ class XiaoluMama(models.Model):
         return self.get_Mama_Deposite_Amount()
     
     def is_cashoutable(self):
-        if self.agencylevel not in(self.A_LEVEL, self.VIP_LEVEL) \
-            or self.charge_status != self.CHARGED:
-            return False
-        return True
+        if self.agencylevel in (self.A_LEVEL, self.VIP_LEVEL) and \
+           self.charge_status == self.CHARGED and self.status == self.EFFECT :
+            return True
+        return False
         
     def get_cash_iters(self):
         if not self.is_cashoutable():
@@ -451,7 +451,7 @@ class XiaoluMama(models.Model):
 
 def xiaolumama_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_xiaolumama_update_mamafortune.s(instance.pk, instance.cash)()
+    tasks_mama_fortune.task_xiaolumama_update_mamafortune.delay(instance.pk, instance.cash)
 
 post_save.connect(xiaolumama_update_mamafortune, 
                   sender=XiaoluMama, dispatch_uid='post_save_xiaolumama_update_mamafortune')
@@ -603,7 +603,7 @@ class CashOut(models.Model):
 
 def cashout_update_mamafortune(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_fortune
-    tasks_mama_fortune.task_cashout_update_mamafortune.s(instance.xlmm)()
+    tasks_mama_fortune.task_cashout_update_mamafortune.delay(instance.xlmm)
 
 post_save.connect(cashout_update_mamafortune, 
                   sender=CashOut, dispatch_uid='post_save_cashout_update_mamafortune')
@@ -790,7 +790,7 @@ signals.signal_push_pending_carry_to_cash.connect(push_Pending_Carry_To_Cash,sen
 
 
 from flashsale.pay.signals import signal_saletrade_pay_confirm
-from flashsale.pay.models import SaleTrade, SaleOrder
+from flashsale.pay.models import SaleTrade, SaleOrder, UserCoupon
 
 
 def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
@@ -811,7 +811,15 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
             # 保存订单状态到确定状态
             obj.status = SaleTrade.TRADE_FINISHED
             update_model_fields(obj, update_fields=['status'])
-            obj.sale_orders.update(status=SaleOrder.TRADE_FINISHED)
+            if obj.sale_orders.all():
+                sale_order = obj.sale_orders.all()[0]
+                sale_order.status = SaleOrder.TRADE_FINISHED
+                sale_order.save()
+            # obj.sale_orders.update(status=SaleOrder.TRADE_FINISHED)
+            # 发放30元优惠券
+            coupon = UserCoupon()
+            res = coupon.release_by_template(buyer_id=obj.buyer_id, template_id=1)
+
 
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)
 

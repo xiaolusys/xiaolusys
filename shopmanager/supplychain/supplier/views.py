@@ -490,6 +490,8 @@ class FetchAndCreateProduct(APIView):
             if k == 'sale_time' and not v:
                 continue
             hasattr(sproduct, k) and setattr(sproduct, k, v)
+        if supplier_sku:
+            sproduct.supplier_sku = supplier_sku.strip()
         sproduct.status = sproduct.status or SaleProduct.SELECTED
         sproduct.save()
 

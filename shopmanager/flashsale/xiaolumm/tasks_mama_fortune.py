@@ -13,7 +13,7 @@ from flashsale.xiaolumm.models import CashOut
 from flashsale.xiaolumm.models_fans import XlmmFans
 
 
-import sys, datetime
+import sys, datetime, time
 
 
 def get_cur_info():
@@ -28,16 +28,22 @@ def get_cur_info():
 
 def create_mamafortune_with_integrity(mama_id, **kwargs):
     try:
-        fortune = MamaFortune(mama_id=mama_id, **kwargs)
+        #fortune = MamaFortune(mama_id=mama_id, **kwargs)
+        fortune = MamaFortune(mama_id=mama_id)
+        for k,v in kwargs.iteritems():
+            if hasattr(fortune, k):
+                setattr(fortune, k, v)
         fortune.save()
     except IntegrityError as e:
-        logger.error("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
-        MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
+        logger.warn("IntegrityError - mama_id: %s, params: %s" % (mama_id, kwargs))
+        # The following will very likely cause deadlock, since another
+        # thread is creating this record. we decide to just fail it.
+        #MamaFortune.objects.filter(mama_id=mama_id).update(**kwargs)
         
 
 @task()
 def task_xiaolumama_update_mamafortune(mama_id, cash):
-    logger.error("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))    
+    logger.warn("%s - mama_id: %s, params: %s" % (get_cur_info(), mama_id, cash))    
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortunes.update(history_confirmed=cash)
@@ -48,22 +54,20 @@ def task_xiaolumama_update_mamafortune(mama_id, cash):
         create_mamafortune_with_integrity(mama_id, history_confirmed=cash)
         
 
+CASHOUT_HISTORY_LAST_DAY_TIME = datetime.datetime(2016,3,30,23,59,59)
+
 @task()
 def task_cashout_update_mamafortune(mama_id):
     print "%s, mama_id: %s" % (get_cur_info(), mama_id)
-    year = MAMA_FORTUNE_HISTORY_LAST_DAY.year
-    month = MAMA_FORTUNE_HISTORY_LAST_DAY.month
-    day = MAMA_FORTUNE_HISTORY_LAST_DAY.day
-    
-    history_time = datetime.datetime(year,month,day,23,59,59)
-    cashouts = CashOut.objects.filter(xlmm=mama_id, status=CashOut.APPROVED, created__gt=history_time).values('status').annotate(total=Sum('value'))
+
+    cashouts = CashOut.objects.filter(xlmm=mama_id, status=CashOut.APPROVED, approve_time__gt=CASHOUT_HISTORY_LAST_DAY_TIME).values('status').annotate(total=Sum('value'))
     
     cashout_confirmed = 0
     for entry in cashouts:
         if entry["status"] == CashOut.APPROVED: # confirmed
             cashout_confirmed = entry["total"]
 
-    logger.error("%s - mama_id: %s, cashout_confirmed: %s" % (get_cur_info(), mama_id, cashout_confirmed))
+    logger.warn("%s - mama_id: %s, cashout_confirmed: %s" % (get_cur_info(), mama_id, cashout_confirmed))
     fortunes = MamaFortune.objects.filter(mama_id=mama_id)
     if fortunes.count() > 0:
         fortune = fortunes[0]

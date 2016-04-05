@@ -74,9 +74,15 @@ def weixin_xlmm_auth(redirecto=None):
             
             code   = request.GET.get('code')
             user_agent = request.META.get('HTTP_USER_AGENT')
+            path = request.get_full_path()
+            redirect_url = redirecto
+            if redirect_url.find('?') > 0:
+                redirect_url += path.find('?') > 0 and path[path.find('?') + 1:] or ''
+            else:
+                redirect_url += path.find('?') > 0 and path[path.find('?'):] or ''
             if not user_agent or user_agent.find('MicroMessenger') < 0:
-                return HttpResponseRedirect(redirecto)
-            
+                return HttpResponseRedirect(redirect_url)
+
             if not code :
                 openid, unionid = options.get_cookie_openid(request.COOKIES, settings.WXPAY_APPID)
                 if not options.valid_openid(unionid):
@@ -90,7 +96,7 @@ def weixin_xlmm_auth(redirecto=None):
                 
             user = authenticate(request=request, handle_backends=[wxcon.WEIXIN_AUTHENTICATE_KEY])
             if not user or user.is_anonymous():
-                return HttpResponseRedirect(redirecto)
+                return HttpResponseRedirect(redirect_url)
             
             auth_login(request, user)
             return view_func(request, *args, **kwargs)

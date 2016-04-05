@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>邀请结果</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="address=no">
+    <meta name="format-detection" content="email=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/step-4.css">
+</head>
+
+<body>
+
+<div class="col-xs-12 invitation-bg">
+    <p class="col-xs-10 invitation-count">
+        <span class="col-xs-3">{{ num_handred }}</span>
+        <span class="col-xs-3">{{ num_ten }}</span>
+        <span class="col-xs-3">{{ num_unit }}</span>
+        <span class="col-xs-3">位</span>
+    </p>
+
+    <div class="col-xs-10 invitation-class-gold  {% if agencylevel == 4 %} active {% endif %}"></div>
+    <div class="col-xs-10 invitation-class-diamond  {% if agencylevel == 3 %} active {% endif %}"></div>
+    <div class="col-xs-10 invitation-class-crown  {% if agencylevel == 2 %} active {% endif %}"></div>
+    <div class="col-xs-10 invitation-class-gold-crown {% if agencylevel == 1 %} active {% endif %}"></div>
+
+
+    <img class="js-invite col-xs-12 invite-btn" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invite-btn.png" alt="">
+    <img class="col-xs-12 invited-friends-head" src="http://7xogkj.com2.z0.glb.qiniucdn.com/invited-friends-head.png">
+
+    <div class="col-xs-12 invited-friends-list" style="margin-top: 1px">
+        {% for referal in referals %}
+            <div class="friends-info-icon">
+                <div class="detail-info ">
+                    <div class="friend-head">
+                        <img class="carousel-inner img-responsive img-circle"
+                             src="http://wx.qlogo.cn/mmopen/JcDicrZBlREgDGy8k7zQJPDMkxdFFdtkx7bNGv8icdpYkj4KjSPE6o8VWceDot3NIp9RQbCXBoP6CgahmWjjkcxzTcyEjKlibIa/0"/>
+                    </div>
+                    <div class="friend-desc ">
+                        <span>{{ referal.created }}</span><br/>
+                        <em>{{ referal.referal_to_mama_nick|slice:":5" }}</em><span class="join-mama"> 通过邀请加入小鹿</span>
+                    </div>
+                    <div class="red-packet"></div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+<script>
+    var a = window.screen.height;
+    var b = window.screen.width;
+    //alert(window.devicePixelRatio);
+   // alert(a);
+   // alert(b);
+
+
+</script>
+</body>
+
+</html>

@@ -190,7 +190,7 @@ class PayDepositeView(PayInfoMethodMixin, APIView):
 
     def get(self, request):
         content = request.REQUEST
-        mama_id = content.get('mama_id', 1)
+        mama_id = content.get('mama_id', '1')
         xlmm = self.get_xiaolumm(request)
         deposite_url = "/m/register/?mama_id={0}".format(mama_id)
         if not xlmm:
@@ -288,7 +288,7 @@ class MamaInvitationRes(APIView):
     """
     permission_classes = (permissions.IsAuthenticated,)
     renderer_classes = (renderers.TemplateHTMLRenderer,)
-    template_name = "apply/mama_invitation_res.html"
+    template_name = "apply/step-4.html"
 
     def get(self, request):
         """ app内展示 """
@@ -308,8 +308,8 @@ class MamaInvitationRes(APIView):
         num_handred = referal_count/100
         num_ten = referal_count % 100 / 10
         num_unit = referal_count % 10
-
+        agencylevel = xlmm.agencylevel
         response = Response(
-            {"num_handred": num_handred, "num_ten": num_ten,
+            {"num_handred": num_handred, "num_ten": num_ten, "agencylevel": agencylevel,
              'num_unit': num_unit, 'referals': referals, 'xlmm': xlmm})
         return response

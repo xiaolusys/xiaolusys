@@ -1,7 +1,11 @@
+import time
 from django.http import HttpResponsePermanentRedirect
 from django.db import connection
+from django.utils.cache import patch_vary_headers
+from django.utils.http import cookie_date
+from django.utils.importlib import import_module
 from django.utils.log import getLogger
-
+from django.contrib.sessions.middleware import SessionMiddleware
 logger = getLogger(__name__)
 
 from django.conf import settings
@@ -12,7 +16,6 @@ class SecureRequiredMiddleware(object):
         self.enabled = self.paths and getattr(settings, 'HTTPS_SUPPORT')
 
     def process_request(self, request):
-
         if self.enabled and not request.is_secure():
             for path in self.paths:
                 if request.get_full_path().startswith(path):
@@ -24,6 +27,58 @@ class SecureRequiredMiddleware(object):
 class DisableDRFCSRFCheck(object):
     def process_request(self, request):
         setattr(request, '_dont_enforce_csrf_checks', True)
+
+
+class XSessionMiddleware(SessionMiddleware):
+    
+    
+    def process_request(self, request):
+        engine = import_module(settings.SESSION_ENGINE)
+        session_key = request.COOKIES.get(settings.SESSION_COOKIE_NAME, None)
+        if not session_key:
+            session_key = request.REQUEST.get(settings.SESSION_COOKIE_NAME,None)
+        request.session = engine.SessionStore(session_key)
+
+    def process_response(self, request, response):
+        """
+        If request.session was modified, or if the configuration is to save the
+        session every time, save the changes and set a session cookie or delete
+        the session cookie if the session has been emptied.
+        """
+        try:
+            accessed = request.session.accessed
+            modified = request.session.modified
+            empty = request.session.is_empty()
+        except AttributeError:
+            pass
+        else:
+            # First check if we need to delete this cookie.
+            # The session should be deleted only if the session is entirely empty
+            if settings.SESSION_COOKIE_NAME in request.COOKIES and empty:
+                response.delete_cookie(settings.SESSION_COOKIE_NAME,
+                    domain=settings.SESSION_COOKIE_DOMAIN)
+            else:
+                if accessed:
+                    patch_vary_headers(response, ('Cookie',))
+                if (modified or settings.SESSION_SAVE_EVERY_REQUEST) and not empty:
+                    if request.session.get_expire_at_browser_close():
+                        max_age = None
+                        expires = None
+                    else:
+                        max_age = request.session.get_expiry_age()
+                        expires_time = time.time() + max_age
+                        expires = cookie_date(expires_time)
+                    # Save the session data and refresh the client cookie.
+                    request.session.save()
+                    response.set_cookie(settings.SESSION_COOKIE_NAME,
+                            request.session.session_key, max_age=max_age,
+                            expires=expires, domain=settings.SESSION_COOKIE_DOMAIN,
+                            path=settings.SESSION_COOKIE_PATH,
+                            secure=settings.SESSION_COOKIE_SECURE or None,
+                            httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+        return response
+
+
 
 class QueryCountDebugMiddleware(object):
     """
@@ -153,7 +208,8 @@ class ProfileMiddleware(object):
                "</pre>"
 
     def process_response(self, request, response):
-        if (settings.DEBUG or request.user.is_superuser) and ('prof' in request.GET or getattr(settings, 'PROFILING', False)):
+        if (settings.DEBUG or (request.user and request.user.is_superuser)) \
+            and ('prof' in request.GET or getattr(settings, 'PROFILING', False)):
             self.prof.close()
             
             if 'prof' in request.GET:
@@ -176,3 +232,4 @@ class ProfileMiddleware(object):
                 response.content += self.summary_for_files(stats_str)
 
         return response
+    

@@ -526,6 +526,7 @@ class ClickLogView(WeixinAuthMixin, View):
         else:
             share_url = WEB_SHARE_URL.format(site_url=settings.M_SITE_URL, mm_linkid=linkid, ufrom='wx')
         if next_page:
+            next_page = urllib.unquote(next_page)
             share_url = '{site_url}{next}&ufrom={ufrom}'.format(site_url=settings.M_SITE_URL,
                                                                 next=next_page,
                                                                 ufrom='wx')
@@ -671,36 +672,34 @@ from django.db.models import F
 from django.conf import settings
 from flashsale.pay.models import Envelop
 from shopapp.weixin.models import WeixinUnionID
+from flashsale.xiaolumm.models_fortune import MamaFortune
 
 @transaction.commit_on_success
 def cash_modify(request, data):
     cash_id = int(data)
     if cash_id:
         cashout = CashOut.objects.get(pk=cash_id)
-        xiaolumama = XiaoluMama.objects.get(pk=cashout.xlmm)
-        cash_iters = get_xlmm_cash_iters(xiaolumama, cash_outable=True)
+        mama_id = cashout.xlmm
         
-        if cash_iters[2] * 100 >= cashout.value and cashout.status == 'pending':
-            today_dt = datetime.date.today()
-            
-            pre_cash = xiaolumama.cash
-            # 改变金额
-            urows = XiaoluMama.objects.filter(pk=cashout.xlmm,cash__gte=cashout.value).update(cash=F('cash')-cashout.value)
-            if urows == 0:
-                return HttpResponse('reject')
-            # 改变状态
+        fortune = MamaFortune.objects.get(mama_id=mama_id)
+        pre_cash = fortune.cash_num_display()
+        xiaolumama = XiaoluMama.objects.get(id=mama_id)  # object.get(id=mama_id)
+        
+        if xiaolumama.is_cashoutable() and pre_cash * 100 >= cashout.value and cashout.status == 'pending':
             cashout.status = 'approved'
             cashout.approve_time = datetime.datetime.now()
             cashout.save()
             
-            CarryLog.objects.get_or_create(xlmm=xiaolumama.id,
+            today_dt = datetime.date.today()
+            CarryLog.objects.get_or_create(xlmm=mama_id,
                                          order_num=cash_id,
                                          log_type=CarryLog.CASH_OUT,
                                          value=cashout.value,
                                          carry_date=today_dt,
                                          carry_type=CarryLog.CARRY_OUT,
                                          status=CarryLog.CONFIRMED)
-            
+
+            xiaolumama = XiaoluMama.objects.get(id=mama_id)
             wx_union = WeixinUnionID.objects.get(app_key=settings.WXPAY_APPID,unionid=xiaolumama.openid)
             
             mama_memo = u"小鹿妈妈编号:{0},提现前:{1}"
@@ -710,9 +709,9 @@ def cash_modify(request, data):
                                           platform=Envelop.WXPUB,
                                           subject=Envelop.CASHOUT,
                                           status=Envelop.WAIT_SEND,
-                                          receiver=xiaolumama.id,
+                                          receiver=mama_id,
                                           body=u'一份耕耘，一份收获，谢谢你的努力！',
-                                          description=mama_memo.format(str(xiaolumama.id),pre_cash))
+                                          description=mama_memo.format(str(mama_id),pre_cash))
             
             log_action(request.user.id,cashout,CHANGE,u'提现审核通过')
             return HttpResponse('ok')

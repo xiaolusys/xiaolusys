@@ -290,9 +290,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         content = request.GET
         cartid_list =  content.get('cart_ids','')
         cart_ids = [int(i) for i in cartid_list.split(',') if i.isdigit()]
-        if len(cart_ids) == 0:
-            raise exceptions.APIException(u'购物车ID不能为空')
         queryset = self.get_owner_queryset(request).filter(id__in=cart_ids)
+        if len(cart_ids) != queryset.count():
+            raise exceptions.APIException(u'购物车已失效请重新加入')
         serializer = self.get_serializer(queryset, many=True)
         total_fee = 0
         discount_fee = 0
@@ -525,11 +525,9 @@ class SaleOrderViewSet(viewsets.ModelViewSet):
         log_action(request.user.id, instance, CHANGE, u'通过接口程序－确认签收')
         return Response({"ok": True})
 
-import json
 import pingpp
 import urlparse
 from django.db import models
-from django.core.urlresolvers import reverse
 from flashsale.xiaolumm.models import XiaoluMama,CarryLog
 from flashsale.pay.tasks import confirmTradeChargeTask
 
@@ -749,6 +747,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             'receiver_zip':address.receiver_zip,
             'receiver_phone':address.receiver_phone,
             'receiver_mobile':address.receiver_mobile,
+            'user_address_id':address.id
             }
         if state:
             buyer_openid = options.get_openid_by_unionid(customer.unionid,settings.WXPAY_APPID)

@@ -314,11 +314,13 @@ class MergeTradeManager(models.Manager):
                                               outer_id=outer_sku_id)
                 psku.update_quantity(order_num,dec_update=True)
                 psku.update_wait_post_num(order_num,dec_update=True)
-                
+                psku.update_assign_num(order_num,dec_update=True)
+
             else:
                 prod = Product.objects.get(outer_id=outer_id)
                 prod.update_collect_num(order_num,dec_update=True)
                 prod.update_wait_post_num(order_num,dec_update=True)
+
 #更新退换货商品更新商品库存                
 #         for order in trade.return_orders:
 #             

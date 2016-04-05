@@ -47,9 +47,11 @@ function logout() {
     var requestUrl = GLConfig.baseApiUrl + GLConfig.user_logout;
     //请求成功回调函数
     var requestCallBack = function (res) {
+        delCookie(PROFILE_COOKIE_NAME);
         if (res && res.result == "logout") {
             window.location = "denglu.html";
         }
+        delCookie(PROFILE_COOKIE_NAME);
     };
     // 发送请求
     $.ajax({
@@ -60,9 +62,11 @@ function logout() {
         success: requestCallBack,
         error: function (data) {
             console.log('debug profile:',data)
+            delCookie(PROFILE_COOKIE_NAME);
             if (data.status == 403) {
                 window.location = "denglu.html";
             }
+            delCookie(PROFILE_COOKIE_NAME);
         }
     });
     delCookie(PROFILE_COOKIE_NAME);

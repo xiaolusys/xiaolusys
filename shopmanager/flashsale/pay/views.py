@@ -50,6 +50,7 @@ class PINGPPChargeView(View):
                                  receiver_zip=form.get('receiver_zip'),
                                  receiver_phone=form.get('receiver_phone',''),
                                  receiver_mobile=form.get('receiver_mobile'),
+                                 user_address_id=form.get('user_address_id'),
                                  buyer_message=form.get('buyer_message',''),
                                  payment=float(form.get('payment')),
                                  total_fee=total_fee,

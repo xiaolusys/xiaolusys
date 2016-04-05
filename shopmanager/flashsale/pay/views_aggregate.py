@@ -11,6 +11,9 @@ from shopback.items.models import Product
 from django.db import transaction
 from shopback.base import log_action, ADDITION, CHANGE
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class AggregateProductView(View):
     @staticmethod
@@ -167,7 +170,8 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
                 model_product.head_imgs = pic_link
                 model_product.save()
                 log_action(request.user.id, model_product, CHANGE, u'上传头图')
-            except:
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
                 return Response({"result": u"error"})
         elif type == "3":
             try:
@@ -178,7 +182,8 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
                 product.pic_path = pic_link
                 product.save()
                 log_action(request.user.id, product, CHANGE, u'上传图片')
-            except:
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
                 return Response({"result": u"error"})
         elif type == "2":
             try:
@@ -190,9 +195,11 @@ class ChuanTuAPIView(generics.ListCreateAPIView):
                 model_product.save()
                 #同步同款所有的商品detail
                 log_action(request.user.id, model_product, CHANGE, u'上传内容图')
-            except:
+            except Exception, exc:
+                logger.error(exc.message, exc_info=True)
                 return Response({"result": u"error"})
         else:
+            logger.error('不在参数范围', exc_info=True)
             return Response({"result": u"error"})
         return Response({"result": u"success"})
 

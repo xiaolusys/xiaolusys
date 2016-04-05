@@ -34,7 +34,7 @@
 
     <div class="row text-center">
         <div class="checkbox">
-            <label><input type="checkbox" onchange="Submit_enable(this);"> 同意<a href="#">小鹿美美代理服务条款</a></label>
+            <label><input type="checkbox" id="aggree-items"> 同意<a href="#">小鹿美美代理服务条款</a></label>
         </div>
     </div>
 
@@ -92,7 +92,7 @@
             <input type="hidden" name="channel" id="channel_value" value="alipay_wap">
 
             <input class="js-pay-btn col-sm-6 col-sm-offset-3 col-xs-10 col-xs-offset-1 btn btn-red"
-                   type="submit" id="btn-pay" disabled="disabled" value="支付押金">
+                   type="submit" id="btn-pay" value="支付押金">
 
         </form>
     </div>
@@ -102,6 +102,10 @@
 <script src="{{ STATIC_URL }}js/pingpp_ap.js"></script>
 <script>
     function Confirm_charge() {
+        var aggree_item = $('#aggree-items');
+        if (aggree_item.prop('checked')==false){
+            return false
+        }
         var CHARGE_URL = window.location.href;
         var params = $('#deposite-form').serialize();
         console.log('pay info:', params);

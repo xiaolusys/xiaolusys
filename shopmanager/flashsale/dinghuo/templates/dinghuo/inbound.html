@@ -1,0 +1,443 @@
+{% load custom_filter %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <title>小鹿美美 - 入库后台</title>
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap3.2.0.min.css" rel="stylesheet">
+        <link href="{{ STATIC_URL }}animate.css" rel="stylesheet">
+        <style>
+         body > div.container {
+             width: 98%;
+             margin-top: 10px;
+         }
+
+         .typeahead,
+         .tt-query,
+         .tt-hint {
+             height: 40px;
+             padding: 8px 12px;
+             font-size: 24px;
+             line-height: 30px;
+             border: 2px solid #ccc;
+             -webkit-border-radius: 8px;
+             -moz-border-radius: 8px;
+             border-radius: 8px;
+             outline: none;
+         }
+
+         .typeahead:focus {
+             border: 2px solid #0097cf;
+         }
+
+         .tt-query {
+             -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+             -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+             box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+         }
+
+         .tt-hint {
+             color: #999
+         }
+
+         .tt-menu {
+             margin: 12px 0;
+             padding: 8px 0;
+             background-color: #fff;
+             border: 1px solid #ccc;
+             border: 1px solid rgba(0, 0, 0, 0.2);
+             -webkit-border-radius: 8px;
+             -moz-border-radius: 8px;
+             border-radius: 8px;
+             -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+             -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+             box-shadow: 0 5px 10px rgba(0,0,0,.2);
+         }
+
+         .tt-suggestion {
+             padding: 3px 20px;
+             font-size: 18px;
+             line-height: 24px;
+         }
+
+         .tt-suggestion:hover {
+             cursor: pointer;
+             color: #fff;
+             background-color: #0097cf;
+         }
+
+         .tt-suggestion.tt-cursor {
+             color: #fff;
+             background-color: #0097cf;
+         }
+
+         .tt-suggestion p {
+             margin: 0;
+         }
+
+         .gist {
+             font-size: 14px;
+         }
+
+         label.control-label {
+             font-size: 24px;
+         }
+
+         #form-1 .btn {
+             font-size: 20px;
+         }
+
+         .panel {
+             margin: 20px auto;
+             width: 98.5%;
+         }
+
+         .portfolio-box img {
+             width: 100px;
+             box-shadow: 2px 2px 5px rgba(187, 187, 187, 0.5);
+             -webkit-transition: -webkit-transform 0.2s ease-out;
+             -moz-transition: -moz-transform 0.2s ease-out;
+             -o-transition: -o-transform 0.2s ease-out;
+             transition: transform 0.2s ease-out;
+         }
+
+         .portfolio-box img:hover {
+             -webkit-transform: scale(1) rotate(20deg);
+             -moz-transform: scale(1) rotate(20deg);
+             -o-transform: scale(1) rotate(20deg);
+             -ms-transform: scale(1) rotate(20deg);
+             transform: scale(1) rotate(20deg);
+         }
+
+         #form-2, #form-2 .btn {
+             font-size: 20px;
+         }
+
+         #form-2 input {
+             text-align: center;
+             height: 40px;
+         }
+
+        #tips {
+            margin: 20px auto 0;
+         }
+         #tips .noty_message {
+             font-size: 20px !important;
+             line-height: 20px !important;
+             height: 50px;
+             padding: 20px 0 35px !important;
+         }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+
+            <form id="form-1">
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label class="control-label">快递单号</label>
+                        <input class="form-control typeahead" id="express-no"
+                               name="express_no" placeholder="输入..." value="{{ express_no|default:'' }}">
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label class="control-label">供应商</label>
+                        <input class="form-control typeahead" id="supplier"
+                               name="supplier" placeholder="输入..." value="{{ supplier|default:'' }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <a class="btn btn-default btn-block reset" href="javascript:;">重置</a>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-primary btn-block submit">确定</button>
+                    </div>
+                </div>
+                <input type="hidden" id="target-id" name="target_id" value="{{ target_id|default:0 }}">
+                <input type="hidden" id="sent-from" name="sent_from" value="{{ sent_from|default:1 }}">
+                <input type="hidden" id="inbound-id" name="inbound_id" value="{{ inbound_id|default:0 }}">
+            </form>
+            {% if data %}
+            <form id="form-2">
+                <div class="row" id="tips">
+                </div>
+                <div class="row">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h2 style="text-align:center;margin-bottom:30px">
+                                {% if sent_from == 1 %}
+                                供应商入库
+                                {% else %}
+                                退货入仓
+                                {% endif %}
+                            </h2>
+                            <table class="table table-striped" style="width:70%;margin:0 auto">
+                                <tr>
+                                    <th>商品名</th>
+                                    <th>商品ID</th>
+                                    <th>编码</th>
+                                    <th width="120px">图片</th>
+                                    <th>规格ID</th>
+                                    <th>尺寸</th>
+                                    <th>待入库数</th>
+                                    <th width="100px">正品</th>
+                                    <th width="100px">次品</th>
+                                </tr>
+                                {% for product in data %}
+                                {% for sku in product.skus %}
+                                <tr class="sku" data-product-id="{{ product.id }}" data-sku-id="{{ sku.id }}">
+                                    {% if forloop.first %}
+                                    <td rowspan="{{ product.skus|length }}">{{ product.name }}</td>
+                                    <td rowspan="{{ product.skus|length }}">{{ product.id }}</td>
+                                    <td rowspan="{{ product.skus|length }}">{{ product.outer_id }}</td>
+                                    <td rowspan="{{ product.skus|length }}">
+                                        <div class="portfolio-box">
+                                            <img src="{{ product.pic_path }}" class="img-circle">
+                                        </div>
+                                    </td>
+                                    {% endif %}
+                                    <td>{{ sku.id }}</td>
+                                    <td>{{ sku.properties_name }}</td>
+                                    <td class="plan-quantity">
+                                        <p class="n">{{ sku.plan_quantity }}</p>
+                                        <p><small class="error"></small></p>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="arrival-quantity"
+                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="inferior-quantity"
+                                               style="width:100px" min="0" max="{{ sku.plan_quantity }}">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="javascript:;" class="btn btn-default btn-block reset">重置</a>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-success btn-block submit">创建</button>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+        <script src="{{ STATIC_URL }}jquery/jquery-1.8.13.min.js"></script>
+        <script src="{{ STATIC_URL }}jquery.noty.packaged.js"></script>
+        <script src="{{ STATIC_URL }}underscore/underscore-min.js"></script>
+        <script src="{{ STATIC_URL }}bootstrap/js/bootstrap-3.2.0.min.js"></script>
+        <script src="{{ STATIC_URL }}list.js"></script>
+        <script src="{{ STATIC_URL }}typeahead.bundle.min.js"></script>
+        <script>
+         var SENT_FROM_SUPPLIER = 1;
+         var SENT_FROM_REFUND = 2;
+         var SKU_TR_TPL = _.template('tr[data-sku-id="<%= sku_id %>"]');
+         var CREATE_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/create_supplier_inbound';
+         var EDIT_SUPPLIER_INBOUND_URL = '/sale/dinghuo/dinghuo_orderlist/edit_supplier_inbound';
+
+         var CREATE_REFUND_INBOUND_URL = '';
+         var EDIT_REFUND_INBOUND_URL = '';
+
+         var suppliers = {{ suppliers|jsonify }};
+         var expressNos = {{ express_nos|jsonify }};
+
+         $.noty.defaults = $.extend($.noty.defaults, {
+             animation: {
+                 open: 'animated bounceInLeft',
+                 close: 'animated bounceOutRight',
+                 easing: 'swing',
+                 speed: 500
+             }
+         });
+
+         function getFormData(){
+             var skus, sku_id;
+             var arrival_quantity, inferior_quantity;
+             var formData = {};
+
+             skus = {};
+             $('tr', $('#form-2')).each(function(index, el){
+                 sku_id = $(this).attr('data-sku-id') - 0;
+                 arrival_quantity = parseInt($(this).find('input.arrival-quantity').val());
+                 inferior_quantity = parseInt($(this).find('input.inferior-quantity').val());
+                 if(!_.isNaN(arrival_quantity) && _.isNumber(arrival_quantity) ||
+                    !_.isNaN(inferior_quantity) && _.isNumber(inferior_quantity)){
+                     skus[sku_id] = {
+                         sku_id: sku_id,
+                         arrival_quantity: arrival_quantity || 0,
+                         inferior_quantity: inferior_quantity || 0
+                     }
+                 }
+             });
+
+             _.each($('#form-1').serializeArray(), function(el){
+                 formData[el.name] = el.value;
+             });
+
+             formData.skus = JSON.stringify(skus);
+             formData.inbound_id = $('#inbound-id').val() - 0 || 0;
+             return formData;
+         }
+
+         function getRequestUrl(formData){
+             var requestUrl;
+             if(formData.sent_from==SENT_FROM_SUPPLIER){
+                 if(formData.inbound_id)
+                     requestUrl = EDIT_SUPPLIER_INBOUND_URL;
+                 else
+                     requestUrl = CREATE_SUPPLIER_INBOUND_URL;
+             }
+             else if(formData.sent_from==SENT_FROM_REFUND){
+                 if(formData.inbound_id)
+                     requestUrl = EDIT_REFUND_INBOUND_URL;
+                 else
+                     requestUrl = CREATE_REFUND_INBOUND_URL;
+             }
+             return requestUrl;
+         }
+
+         function initUI(formData){
+             if(formData.inbound_id){
+                 $('#form-2 .reset').hide();
+                 $('#form-2 .submit').html('修改');
+             }
+         }
+
+         $(function(){
+             var formData = getFormData();
+             initUI(formData);
+
+             var matcher = function(items){
+                 return function findMatches(q, cb){
+                     var matches, subStrRegex;
+                     matches = [];
+                     subStrRegex = new RegExp(q, 'i');
+                     $.each(items, function(i, item){
+                         if(subStrRegex.test(item.text))
+                             matches.push(item.text);
+                     });
+                     cb(matches);
+                 };
+             };
+
+             $('#supplier').typeahead({
+                 hint: true,
+                 highlight: true,
+                 minLength: 1
+             }, {
+                 name: 'suppliers',
+                 source: matcher(suppliers)
+             }).bind('typeahead:select', function(e, suggestion){
+                 var i, id;
+                 for(i=0; i < suppliers.length; ++i){
+                     if(suppliers[i].text == suggestion){
+                         id = suppliers[i].id;
+                         break;
+                     }
+                 }
+                 if(id){
+                     $('#sent-from').val(SENT_FROM_SUPPLIER);
+                     $('#target-id').val(id);
+                 }
+             });
+
+             $('#express-no').typeahead({
+                 hint: true,
+                 highlight: true,
+                 minLength: 1
+             }, {
+                 name: 'expressNos',
+                 source: matcher(expressNos)
+             }).bind('typeahead:select', function(e, suggestion){
+                 var i, id, sentFrom;
+                 for(i=0; i < expressNos.length; ++i){
+                     if(expressNos[i].text == suggestion){
+                         id = expressNos[i].id;
+                         sentFrom = expressNos[i].sent_from;
+                         break;
+                     }
+                 }
+                 if(id && sentFrom){
+                     $('#sent-from').val(sentFrom);
+                     $('#target-id').val(id);
+                 }
+             });
+             $('span.twitter-typeahead:has(.typeahead)').css('display', 'block');
+
+             $('#form-2').submit(function(){
+                 $('td.plan-quantity').find('small.error').html('');
+
+                 var formData = getFormData();
+                 var requestUrl = getRequestUrl(formData);
+
+                 if(!requestUrl){
+                     $('#tips').noty({
+                         text: '未能找到请求URL',
+                         type: 'error',
+                         theme: 'bootstrapTheme',
+                         closeWith: ['button', 'click'],
+                         maxVisible: 20,
+                         modal: false
+                     });
+                     return;
+                 }
+
+                 $.ajax({
+                     url: requestUrl,
+                     type: 'post',
+                     dataType: 'json',
+                     data: formData,
+                     success: function(result){
+                         if(result.error){
+                             $('#tips').noty({
+                                 text: result.error,
+                                 type: 'error',
+                                 theme: 'bootstrapTheme',
+                                 closeWith: ['button', 'click'],
+                                 maxVisible: 20,
+                                 modal: false
+                             });
+
+                             if(result.error_skus){
+                                 _.each(result.error_skus, function(v, k){
+                                     var el = $(SKU_TR_TPL({sku_id: k}));
+                                     el.find('.plan-quantity p.n').html(v.plan_quantity);
+                                     el.find('.plan-quantity small.error').html(v.error);
+                                 });
+                             }
+                         }
+                         else{
+                             if(result.inbound_id && (result.inbound_id - 0)){
+                                 $('#inbound-id').val(result.inbound_id);
+                                 $('#form-2 .reset').hide();
+                                 $('#form-2 .submit').html('修改');
+                             }
+                             if(result.msg){
+                                 $('#tips').noty({
+                                     text: result.msg,
+                                     type: 'information',
+                                     theme: 'bootstrapTheme',
+                                     closeWith: ['button', 'click'],
+                                     maxVisible: 20,
+                                     modal: false
+                                 });
+                             }
+                         }
+                     }
+                 });
+                 return false;
+             });
+             $('#form-1 .reset, #form-2 .reset').click(function(){
+                 $(this).closest('form').find('input').val('');
+             });
+         });
+        </script>
+    </body>
+</html>

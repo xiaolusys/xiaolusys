@@ -22,7 +22,7 @@ from common.utils import CSVUnicodeWriter
 from flashsale.dinghuo import log_action, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList, orderdraft
 import functions
-from shopback.items.models import Product, ProductSku
+from shopback.items.models import Product, ProductSku, ProductStock
 from supplychain.supplier.models import SaleProduct, SaleSupplier
 
 
@@ -81,13 +81,17 @@ class ChangeDetailView(View):
             flag_of_question = True
         if order_list.status == u'7':
             flag_of_sample = True
+        buyer_name = ''
+        if order_list.buyer_id:
+            buyer_name = '%s%s' % (order_list.buyer.last_name, order_list.buyer.first_name)
+            buyer_name = buyer_name or order_list.buyer.username
         return render_to_response("dinghuo/changedetail.html",
                                   {"orderlist": order_list,
                                    "flagofstatus": flag_of_status,
                                    "flagofquestion": flag_of_question,
                                    "flag_of_sample": flag_of_sample,
                                    "orderdetails": order_list_list,
-                                   'product_link': product_link},
+                                   'product_link': product_link, 'buyer_name': buyer_name},
                                   context_instance=RequestContext(request))
 
     @staticmethod
@@ -173,10 +177,7 @@ def change_inferior_num(request):
                 'inferior_quantity'))
         OrderDetail.objects.filter(id=order_detail_id).update(
             arrival_quantity=F('arrival_quantity') + 1)
-        Product.objects.filter(id=order_detail.product_id).update(
-            collect_num=F('collect_num') + 1)
-        ProductSku.objects.filter(id=order_detail.chichu_id).update(
-            quantity=F('quantity') + 1)
+        ProductStock.add_order_detail(order_detail, 1)
         log_action(request.user.id, order_list, CHANGE, u'订货单{0}{1}{2}'.format(
             (u'次品减一件'), order_detail.product_name, order_detail.product_chicun))
         log_action(request.user.id, order_detail, CHANGE, u'%s' % (u'次品减一'))
@@ -189,10 +190,7 @@ def change_inferior_num(request):
                 'inferior_quantity'))
         OrderDetail.objects.filter(id=order_detail_id).update(
             arrival_quantity=F('arrival_quantity') - 1)
-        Product.objects.filter(id=order_detail.product_id).update(
-            collect_num=F('collect_num') - 1)
-        ProductSku.objects.filter(id=order_detail.chichu_id).update(
-            quantity=F('quantity') - 1)
+        ProductStock.add_order_detail(order_detail, -1)
         log_action(request.user.id, order_list, CHANGE, u'订货单{0}{1}{2}'.format(
             (u'次品加一件'), order_detail.product_name, order_detail.product_chicun))
         log_action(request.user.id, order_detail, CHANGE, u'%s' % (u'次品加一'))
@@ -298,7 +296,7 @@ class ChangeDetailExportView(View):
             products[product.id] = {
                 'sale_product_id': product.sale_product,
                 'pic_path':
-                ('%s?imageMogr2/thumbnail/560/crop/560x480' %
+                ('%s?imageMogr2/thumbnail/560/crop/560x480/format/jpg' %
                  common.utils.url_utf8_quote(product.pic_path.encode('utf-8')))
                 if product.pic_path else ''
             }

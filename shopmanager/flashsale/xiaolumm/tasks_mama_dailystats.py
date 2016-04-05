@@ -7,6 +7,10 @@ from flashsale.xiaolumm.models_fortune import DailyStats, UniqueVisitor, OrderCa
 from flashsale.xiaolumm import util_unikey
 import datetime
 
+import logging
+
+logger = logging.getLogger('celery.handler')
+
 import sys
 
 def get_cur_info():
@@ -20,17 +24,23 @@ def get_cur_info():
 
 
 def create_dailystats_with_integrity(mama_id, date_field, uni_key, **kwargs):
-    try:
-        stats = DailyStats(mama_id=mama_id, date_field=date_field, uni_key=uni_key, **kwargs)
-        stats.save()
-    except IntegrityError as e:
-        logger.error("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, params: %s" % (mama_id, uni_key, kwargs))
-        DailyStats.objects.filter(mama_id=mama_id, date_field=date_field, uni_key=uni_key).update(**kwargs)
+    stats = DailyStats(mama_id=mama_id, date_field=date_field, uni_key=uni_key, **kwargs)
+    stats.save()
+
+    #try:
+    #    stats = DailyStats(mama_id=mama_id, date_field=date_field, uni_key=uni_key, **kwargs)
+    #    stats.save()
+    #except IntegrityError as e:
+    #    logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, params: %s" % (mama_id, uni_key, kwargs))
+        # The following will very likely cause deadlock, since another
+        # thread is creating this record. we decide to just fail it.
+        #DailyStats.objects.filter(mama_id=mama_id, date_field=date_field, uni_key=uni_key).update(**kwargs)
 
 
 @task()
 def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    
     end_date_field = today_date_field - datetime.timedelta(days=num_days)
     records = DailyStats.objects.filter(mama_id=mama_id, date_field__lte=end_date_field, status=1).order_by('-date_field')[:7]
     if records.count() <= 0:
@@ -56,24 +66,28 @@ def task_confirm_previous_dailystats(mama_id, today_date_field, num_days):
         stats.save()
 
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_visitor_increment_dailystats(mama_id, date_field):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
     records = DailyStats.objects.filter(uni_key=uni_key)
     
     if records.count() <= 0:
-        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=1)
-        
-        task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        try:
+            create_dailystats_with_integrity(mama_id, date_field, uni_key, today_visitor_num=1)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_visitor_num=1" % (mama_id, uni_key))
+            raise task_visitor_increment_dailystats.retry(exc=exc)
     else:
         records.update(today_visitor_num=F('today_visitor_num')+1)
 
 
     
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_carryrecord_update_dailystats(mama_id, date_field):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
     records = DailyStats.objects.filter(uni_key=uni_key)
     carrys = CarryRecord.objects.filter(mama_id=mama_id, date_field=date_field).exclude(status=3).values('date_field').annotate(carry=Sum('carry_num'))
@@ -84,26 +98,28 @@ def task_carryrecord_update_dailystats(mama_id, date_field):
             today_carry_num = carrys[0]["carry"] 
 
     if records.count() <= 0:
-        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
-        task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        try:
+            create_dailystats_with_integrity(mama_id, date_field, uni_key, today_carry_num=today_carry_num)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_carry_num=%s" % (mama_id, uni_key, today_carry_num))
+            raise task_carryrecord_update_dailystats.retry(exc=exc)
     else:
         records.update(today_carry_num=today_carry_num)
-        #stats = records[0]
-        #stats.today_carry_num = today_carry_num
-        #stats.save()
-    
 
 
-@task()
+@task(max_retry=2, default_retry_delay=6)
 def task_ordercarry_increment_dailystats(mama_id, date_field):
-    print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    #print "%s, mama_id: %s" % (get_cur_info(), mama_id)
+    
     uni_key = util_unikey.gen_dailystats_unikey(mama_id, date_field)
     records = DailyStats.objects.filter(uni_key=uni_key)
-    #today_order_num = OrderCarry.objects.filter(mama_id=mama_id, date_field=date_field).count()
     
     if records.count() <= 0:
-        create_dailystats_with_integrity(mama_id, date_field, uni_key, today_order_num=1)
-        task_confirm_previous_dailystats.s(mama_id, date_field, 2)()
+        try:
+            create_dailystats_with_integrity(mama_id, date_field, uni_key, today_order_num=1)
+        except IntegrityError as exc:
+            logger.warn("IntegrityError - DailyStats | mama_id: %s, uni_key: %s, today_order_num=1" % (mama_id, uni_key))
+            raise task_ordercarry_increment_dailystats.retry(exc=exc)
     else:
         records.update(today_order_num=F('today_order_num')+1)
 

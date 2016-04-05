@@ -159,7 +159,6 @@ class SaleRefund(PayBaseModel):
         if strade.normal_orders.count() == 0:
             strade.status = SaleTrade.TRADE_CLOSED
             strade.save()
-        
         signal_saletrade_refund_confirm.send(sender=SaleRefund,obj=self)
 
     def pic_path(self):

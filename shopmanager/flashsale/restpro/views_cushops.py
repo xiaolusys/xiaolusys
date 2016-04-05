@@ -90,12 +90,19 @@ def save_pro_info(product, user):
     kwargs = {'agencylevel': xlmm.agencylevel,
               'payment': float(pro.agent_price)} if xlmm and pro.agent_price else {}
     rebet_amount = rebt.get_scheme_rebeta(**kwargs) if kwargs else 0  # 计算佣金
+
+    if isinstance(pro.sale_time, datetime.date):
+        offshelf_time = pro.sale_time + datetime.timedelta(days=2)
+    else:
+        return False, False
+    if not pro.category:
+        return False, False
     # 保存信息
     if pro.shelf_status == Product.DOWN_SHELF:  # 如果没有上架
         shop_pro.pro_status = CuShopPros.DOWN_SHELF  # 则保存下架状态
     shop_pro.customer = customer.id
     shop_pro.name = pro.name
-    shop_pro.offshelf_time = pro.offshelf_time
+    shop_pro.offshelf_time = pro.offshelf_time if pro.offshelf_time else offshelf_time
     shop_pro.pic_path = pro.pic_path
     shop_pro.std_sale_price = pro.std_sale_price
     shop_pro.agent_price = pro.agent_price
@@ -255,9 +262,11 @@ class CuShopProsViewSet(viewsets.ModelViewSet):
         content = request.REQUEST
         product = content.get('product', None)
         if product is None:
-            return Response({"code": 1})  # 参数缺失
+            return Response({"code": 1, 'message': '缺少参数'})  # 参数缺失
         user = request.user
         shop_pro, pro_state = save_pro_info(product, user)
+        if not shop_pro:
+            return Response({"code": 2, "message": "商品信息出错"})
         if pro_state:  # 新建成功
             position = self.get_owner_shop_pros(request).count()
             shop_pro.position = position + 1

@@ -155,6 +155,7 @@ class SaleTrade(BaseModel):
     receiver_zip       =  models.CharField(max_length=10,blank=True,verbose_name=u'邮编')
     receiver_mobile    =  models.CharField(max_length=11,db_index=True,blank=True,verbose_name=u'手机')
     receiver_phone     =  models.CharField(max_length=20,blank=True,verbose_name=u'电话')
+    user_address_id = models.BigIntegerField(blank=True, null=True, verbose_name=u'地址id')
 
     openid  = models.CharField(max_length=40,blank=True,verbose_name=u'微信OpenID')
     charge  = models.CharField(max_length=28,verbose_name=u'支付编号')
@@ -269,7 +270,7 @@ class SaleTrade(BaseModel):
     
     def is_wallet_paid(self):
         return self.channel == self.WALLET
-    
+
     def release_lock_skunum(self):
         try:
             for order in self.normal_orders:
@@ -383,8 +384,9 @@ def trade_payment_used_coupon(sender, obj, **kwargs):
                 coupon.sale_trade = obj.id
                 coupon.status = UserCoupon.USED
                 coupon.save()
+                logger.warn('trade_payment_used_coupon invoke:saletrade=%s,coupon=%s' % (obj, coupon))
             else:
-                logger.warn('trade_payment_used_coupon repeat:%s,%s'%(obj,coupon))
+                logger.warn('trade_payment_used_coupon repeat:saletrade=%s,coupon=%s'%(obj,coupon))
     except Exception,exc:
         logger.error('trade_payment_used_coupon error:%s'%exc.message, exc_info=True)
 
@@ -494,10 +496,21 @@ class SaleOrder(PayBaseModel):
                                        default=SaleRefund.NO_REFUND,
                                        blank=True,verbose_name='退款状态')
     
-    status = models.IntegerField(choices=ORDER_STATUS,default=TRADE_NO_CREATE_PAY,
-                              db_index=True,blank=True,verbose_name=u'订单状态')
+    status = models.IntegerField(choices=ORDER_STATUS, default=TRADE_NO_CREATE_PAY,
+                              db_index=True,blank=True, verbose_name=u'订单状态')
     
-        
+    package_order_id = models.CharField(max_length=100, verbose_name=u'所属包裹订单',null=True)
+    NOT_ASSIGNED = 0
+    ASSIGNED = 1
+    FINISHED = 2
+    ASSIGN_STATUS = (
+        (NOT_ASSIGNED, u'未分配'),
+        (ASSIGNED, u'已分配'),
+        (FINISHED, u'已出货')
+    )
+
+    assign_status = models.IntegerField(default=NOT_ASSIGNED, choices=ASSIGN_STATUS, verbose_name=u'库存分派状态')
+
     def __unicode__(self):
         return '<%s>'%(self.id)
 
@@ -506,6 +519,16 @@ class SaleOrder(PayBaseModel):
         try:
             refund = SaleRefund.objects.get(trade_id=self.sale_trade.id,order_id=self.id)
             return refund
+        except:
+            return None
+
+    @property
+    def package_order(self):
+        if not self.package_order_id:
+            return None
+        try:
+            from shopback.items.models import PackageOrder
+            return PackageOrder.objects.get(id=self.package_order_id)
         except:
             return None
         
@@ -555,11 +578,23 @@ class SaleOrder(PayBaseModel):
         if sign_orders.count() == normal_orders.count():
             sale_trade.status = SaleTrade.TRADE_BUYER_SIGNED
             update_model_fields(sale_trade,update_fields=['status'])
-    
+
+    def cancel_assign(self):
+        if self.assign_status == SaleOrder.ASSIGNED:
+            self.assign_status = SaleOrder.NOT_ASSIGNED
+            self.package_order_id = None
+            self.save()
+            psku = ProductSku.objects.get(id=self.sku_id)
+            psku.assign_num -= self.num
+            psku.save()
+            psku.assign_packages()
+            return True
+        return False
+
     def second_kill_title(self):
         """ 判断是否秒杀标题　"""
         return True if self.title.startswith(u'秒杀') else False
-    
+
     def is_pending(self):
         return self.status < SaleOrder.TRADE_FINISHED and \
             self.status >= SaleOrder.WAIT_SELLER_SEND_GOODS and \
@@ -591,7 +626,7 @@ def order_trigger(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama
     #msg = "task_order_trigger, oid:%s, status:%s, refund:%s, is_pending: %s" % (instance.oid, instance.status, instance.refund_status, instance.is_pending())
     #logger.error(msg)
-    tasks_mama.task_order_trigger.s(instance)()
+    tasks_mama.task_order_trigger.delay(instance)
     
 post_save.connect(order_trigger, sender=SaleOrder, dispatch_uid='post_save_order_trigger')
 
