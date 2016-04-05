@@ -6,6 +6,9 @@ from django.db import models
 from .base import PayBaseModel
 import pingpp
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Envelop(PayBaseModel):
     
@@ -99,6 +102,7 @@ class Envelop(PayBaseModel):
             
         elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL
+            logger.warn('envelopd warn:%s'%envelopd)
         self.save()
         
     def send_envelop(self):
