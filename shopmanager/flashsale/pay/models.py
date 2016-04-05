@@ -384,6 +384,7 @@ def trade_payment_used_coupon(sender, obj, **kwargs):
                 coupon.sale_trade = obj.id
                 coupon.status = UserCoupon.USED
                 coupon.save()
+                logger.warn('trade_payment_used_coupon invoke:saletrade=%s,coupon=%s' % (obj, coupon))
             else:
                 logger.warn('trade_payment_used_coupon repeat:saletrade=%s,coupon=%s'%(obj,coupon))
     except Exception,exc:
