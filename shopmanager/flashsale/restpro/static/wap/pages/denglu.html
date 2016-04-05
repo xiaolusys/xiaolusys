@@ -53,7 +53,7 @@ function login(e){
 	if (isNone(next)){
 		window.location = redirect_url;
 	}else{
-		window.location = redirect_url + (redirect_url.indexOf('?')>0?'&next=':'?next=') + next;
+		window.location = redirect_url + (redirect_url.indexOf('?')>0?'&next=':'?next=') + encodeURIComponent(next);
 	}
 }
 </script>

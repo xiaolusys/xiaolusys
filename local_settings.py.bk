@@ -59,7 +59,7 @@ CACHES = {
         }
     }
 }
-BROKER_URL = 'redis://:192.168.1.102:6379/2'
+BROKER_URL = 'redis://192.168.1.102:6379/2'
 
 ORMCACHE_ENABLE = True
 
