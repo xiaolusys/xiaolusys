@@ -2200,15 +2200,7 @@ class PackageScanWeightView(APIView):
             return Response(u'运单号未找到订单')
         except MergeTrade.MultipleObjectsReturned:
             return Response(u'结果返回多个订单')
-        if mt.type == pcfg.SALE_TYPE:
-            package = mt.get_package()
-            mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
-            if package:
-                try:
-                    package.finish(mt)
-                    package.sync_merge_order(mt)
-                except Exception,exc:
-                    logger.error(exc.message,exc_info=True)
+
         MergeTrade.objects.updateProductStockByTrade(mt)
 
         mt.weight = package_weight
@@ -2228,6 +2220,15 @@ class PackageScanWeightView(APIView):
 
             task_stats_paytopack.s(pay_date, sku_num, total_days)()
 
+        if mt.type == pcfg.SALE_TYPE:
+            package = mt.get_package()
+            mt.get_sale_orders().update(status=SaleOrder.WAIT_BUYER_CONFIRM_GOODS)
+            if package:
+                try:
+                    package.finish(mt)
+                    package.sync_merge_trade(mt)
+                except Exception, exc:
+                    logger.error(exc.message, exc_info=True)
         return Response({'isSuccess': True})
 
 
