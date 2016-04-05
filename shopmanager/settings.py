@@ -201,7 +201,7 @@ INSTALLED_APPS = (
     'flashsale.promotion',
     'flashsale.apprelease',
     'flashsale.protocol',
-
+    'extrafunc.renewremind',
     #'test.celery',
     #'shopapp.notify',
 )
