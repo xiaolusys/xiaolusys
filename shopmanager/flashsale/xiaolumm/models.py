@@ -406,10 +406,10 @@ class XiaoluMama(models.Model):
         return self.get_Mama_Deposite_Amount()
     
     def is_cashoutable(self):
-        if self.agencylevel not in(self.A_LEVEL, self.VIP_LEVEL) \
-            or self.charge_status != self.CHARGED:
-            return False
-        return True
+        if self.agencylevel in (self.A_LEVEL, self.VIP_LEVEL) and \
+           self.charge_status == self.CHARGED and self.status == self.EFFECT :
+            return True
+        return False
         
     def get_cash_iters(self):
         if not self.is_cashoutable():

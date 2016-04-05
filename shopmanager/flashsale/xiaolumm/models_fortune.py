@@ -508,11 +508,10 @@ post_save.connect(activevalue_update_mamafortune,
 
 def confirm_previous_activevalue(sender, instance, created, **kwargs):
     from flashsale.xiaolumm import tasks_mama_activevalue
-    if created:
+    if created and instance.value_type == 1:
         mama_id = instance.mama_id
-        value_type = instance.value_type
         date_field = instance.date_field
-        tasks_mama_activevalue.task_confirm_previous_activevalue.delay(mama_id, value_type, date_field, 2)
+        tasks_mama_activevalue.task_confirm_previous_activevalue.delay(mama_id, date_field, 2)
 
 post_save.connect(confirm_previous_activevalue,
                   sender=ActiveValue, dispatch_uid='post_save_confirm_previous_activevalue')
@@ -650,6 +649,14 @@ def visitor_update_clickcarry_and_activevalue(sender, instance, created, **kwarg
     
     mama_id = instance.mama_id
     date_field = instance.date_field
+
+    try:
+        from flashsale.xiaolumm.models import XiaoluMama
+        mama = XiaoluMama.objects.get(id=mama_id)
+        if not mama.is_cashoutable():
+            return
+    except XiaoluMama.DoesNotExist:
+        return
     
     from flashsale.xiaolumm.tasks_mama_clickcarry import task_visitor_increment_clickcarry
     task_visitor_increment_clickcarry.delay(mama_id, date_field)
