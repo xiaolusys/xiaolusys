@@ -688,6 +688,12 @@ SHOP_APP_SCHEDULE = {
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
+    u'定时提醒管理员需要续费的后台服务': {
+        'task': 'extrafunc.renewremind.tasks.trace_renew_remind_send_msm',
+        'schedule': crontab(minute="10", hour="8", day_of_week='mon'),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
 
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
