@@ -92,6 +92,7 @@ class OrderList(models.Model):
     created_by = models.SmallIntegerField(choices=((CREATED_BY_PERSON, '人工'), (CREATED_BY_MACHINE, '自动')),
                                           default=CREATED_BY_PERSON, verbose_name=u'创建方式')
     last_pay_date = models.DateField(null=True, blank=True, verbose_name=u'最后下单日期')
+    is_postpay = models.BooleanField(default=False, verbose_name=u'是否后付款')
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
