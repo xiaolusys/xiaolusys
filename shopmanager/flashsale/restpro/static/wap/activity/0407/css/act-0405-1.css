@@ -1,0 +1,117 @@
+body {
+	-webkit-margin-before: 0;
+	-webkit-margin-after: 0;
+	-webkit-padding-start: 0;
+	background-color: #ffebf4;
+	width: 100%;
+	margin: 0;
+}
+.act-0405-top img {
+	width: 100%;
+}
+.act-0405-time {
+	width: 70%;
+	height: 70px;
+	margin-left: 16%;
+	margin-bottom: 10%;
+	background-image: URL(../img/act-0405-6.png);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	display: -webkit-box;
+}
+.act-0405-beInvited {
+	display: -webkit-box;
+    -webkit-box-orient: horizontal;
+    width: 70%;
+    margin-left: 15%;
+    padding: 3% 1%;
+}
+.act-0405-beInvited img {
+	width: 60%;
+}
+.act-0405-beInvited div {
+	font-size: 12px;
+	color: #EC5BA8;
+	-webkit-box-flex: 1;
+	text-align: left;
+}
+#day_show, #hour_show, #minute_show, #second_show {
+	color: #fff;
+	line-height: 48px;
+	font-size: 20px;
+	font-family: Arial;
+	text-align: center;
+	display: -webkit-box;
+	-webkit-box-flex: 1;
+	margin-top: 8%;
+	padding-left: 8%;
+}
+.act-0405-celNumber {
+	width: 82%;
+	height: 50px;
+	margin-left: 9%;
+	background-image: URL(../img/act-0405-3.png);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+.act-0405-hide {
+	display: none;
+}
+.act-0405-celNumber input {
+	width: 75%;
+	height: 44px;
+	background: #F5BCD5;
+	color: white;
+	margin-left: 20%;
+	margin-top: 2px;
+	border: none;
+	font-size: 16px;
+	text-align: right;
+	outline: none;
+	letter-spacing: 3px;
+}
+input::-webkit-input-placeholder {
+	color: white;
+	margin-right: 20px;
+}
+.act-0405-add {
+	width: 82%;
+	height: 50px;
+	margin-left: 9%;
+	margin-top: 3%;
+	background-image: URL(../img/act-0405-1.png);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+.act-0405-add-img {
+	width: 16%;
+	height: 41px;
+	margin-top: 4px;
+	margin-left: 1%;
+}
+.act-0405-added-img {
+	width: 16%;
+	height: 41px;
+	margin-top: 4px;
+	margin-left: 69%;
+}
+.act-0405-rules {
+	width: 82%;
+	margin-left: 9%;
+}
+.act-0405-add {
+	margin-bottom: 40px;
+}
+p {
+	line-height: 28px;
+	font-size: 14px;
+}
+.act-0405-celInput {
+	width: 77%;
+	height: 86%;
+	margin-left: 51px;
+	background-color: #ffebf4;
+}

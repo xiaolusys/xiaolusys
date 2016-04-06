@@ -1,0 +1,56 @@
+body {
+	-webkit-margin-before: 0;
+	-webkit-margin-after: 0;
+	-webkit-padding-start: 0;
+	background-color: #ffebf4;
+	width: 100%;
+	margin: 0;
+}
+.act-0405-4-top {
+	width: 100%;
+	background-image: URL(../img/act-0405-19.png);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+.act-0405-4-top .act-0405-4-end {
+	width: 72%;
+	margin-left: 14%;
+	margin-top: 16%;
+}
+.act-0405-4-top .act-0405-4-puzzle {
+	width: 62%;
+	margin-left: 19%;
+}
+.act-0405-4-top .act-0405-4-logistics{
+	width: 32%;
+	margin-left: 34%;
+}
+.act-0405-4-acknowledge img, .act-0405-4-share img {
+	width: 82%;
+	margin-left: 9%;
+}
+.act-0405-4-packet {
+	width: 82%;
+	height: 65px;
+	background-image: URL(../img/act-0405-31.png);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	margin: 5% 9%;
+}
+.act-0405-4-packet p {
+	width: 40%;
+	margin-left: 30%;
+	line-height: 65px;
+	text-align: center;
+	font-size: 20px;
+}
+}
+.act-0405-4-text {
+	margin-top: 15%;
+}
+p {
+	text-align: center;
+	font-size: 12px;
+}

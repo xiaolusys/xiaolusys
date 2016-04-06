@@ -1,0 +1,284 @@
+{% extends "apply/apply_base.html" %}
+
+{% block title %} 小鹿妈妈-支付押金 {% endblock %}
+
+{% block head_script %}
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/invitation-deposit.css">
+{% endblock %}
+<!--
+{% block head_apply_script %}
+    <style>
+        .thumbnail img {
+            width: 100%;
+        }
+
+        .label-text {
+            color: red;
+        }
+
+        .address span {
+            font-size: 24px;
+        }
+    </style>
+{% endblock %}
+-->
+
+{% block container-body %}
+    <!--
+<div class="wrapper">
+    <ul class="flow-steps">
+        <li class="col-xs-4 "><a href="#" class="btn btn-default">填写资料 &gt;</a></li>
+        <li class="col-xs-4 on"><a href="#" class="btn ">支付押金 &gt;</a></li>
+        <li class="col-xs-4 "><a href="#" class="btn btn-default">加入小鹿 &gt;</a></li>
+    </ul>
+    <div class="arr"></div>
+</div>
+-->
+
+    <div class="page-panel">
+        <div class="head-title">
+            <h1>押金支付</h1>
+        </div>
+        <div class="deposit-container">
+
+            <div class="about-deposit"><span>．．．．．．．<em>关于押金</em>．．．．．．．</span></div>
+
+            <div class="about-detail">
+                <p>
+                    为了保障小鹿妈妈质量和活跃度<br/>
+                    需支付鹿妈押金188元<br/>
+                    在一年内，我们将返您365元<br/>
+                    根据您的活跃度,每天返回1元到您的小鹿账户<br/>
+                </p>
+            </div>
+
+            <div class="choose-pay" style="margin-bottom: 10px;"><span>．．．．．．．<em>支付方式</em>．．．．．．．</span></div>
+            <div class="pay-channel">
+
+                <div class="pay-div">
+                    <img class="pay-ali {% if not payinfos.alipay_payable %}disabled{% endif %}" id='click-zhifubao'
+                         src="http://7xogkj.com2.z0.glb.qiniucdn.com/ali-pay.png"/>
+                    <img class="pay-weixin {% if not payinfos.weixin_payable %}disabled{% endif %}" id="click-weixin"
+                         src="http://7xogkj.com2.z0.glb.qiniucdn.com/weixin-pay.png"/>
+                </div>
+
+                <div class="tag-div">
+                    <span class="zhifubao-tag">支付宝</span>
+                    <span class="weixin-tag">微信支付</span>
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <!--　2016-3-14 更换样式（上） --><!--
+
+    <div class="panel panel-default" style="margin-top: 1000px">
+        <div class="panel-body">
+            <!-- 押金商品信息填写区域 --><!--
+            <div class="thumbnail">
+                <img src="{{ product.pic_path }}" alt="{{ product.name }}">
+
+                <div class="caption">
+                    <h3>{{ product.name }}</h3>
+                    <ul>
+                        {% for sku in product.normal_skus %}
+                            <li class="{% if forloop.first %}active{% endif %}" sku_id="{{ sku.id }}"
+                                id="skusize_{{ sku.id }}" sku_price="{{ sku.agent_price }}">{{ sku.name }}<i></i></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div>
+
+                <!-- 押金订单地址填写区域 -->
+    <!--<div class="well well-lg row address">
+        {% if user_addr %}
+        <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self">
+        <div >
+        <div class="pull-left glyphicon glyphicon-map-marker" ></div>
+        <div class="col-xs-9">
+            <div><label>收货人:</label><span>{{ user_addr.receiver_name }}</span><span class="pull-right">
+                    {{ user_addr.receiver_mobile }}</span></div>
+            <div class="address-detail"><label>收货地址:</label><span>{{ user_addr.receiver_state }}&nbsp;
+                    {{ user_addr.receiver_city }}
+            &nbsp;{{ user_addr.receiver_district }}&nbsp;{{ user_addr.receiver_address }}</span></div>
+        </div>
+        <div class="glyphicon glyphicon-chevron-right" target="_self"></div>
+        </div>
+        </a>
+        {% else %}
+        <a href="/mm/addr/list/?origin_url={{ origin_url }}" target="_self"><div class="col-xs-offset-1 col-xs-9 "><span>您还没有添加收货地址，点击添加</span></div></a>
+        {% endif %}
+    </div>-->
+
+
+    <!-- 押金订单提交表单 --><!--
+                <form id="deposite-form" action="#" class="form-horizontal" method="POST">
+                    <input type="hidden" name="format" value="json">
+                    <input type="hidden" name="item_id" value="{{ product.id }}">
+                    <input type="hidden" name="sku_id"
+                           value="{% if product.normal_skus|length == 1 %}{{ product.normal_skus.0.id }}{% endif %}">
+                    <input type="hidden" name="uuid" value="{{ uuid }}">
+                    <input type="hidden" name="mm_linkid" value="{{ referal_mamaid }}">
+                    <input type="hidden" name="success_url" value="{{ success_url }}">
+                    <input type="hidden" name="cancel_url" value="{{ cancel_url }}">
+                    <input type="hidden" name="payment" value="{{ payinfos.total_payment }}">
+                    <input type="hidden" name="total_fee" value="{{ payinfos.total_fee }}">
+                    <input type="hidden" name="post_fee" value="{{ payinfos.post_fee }}">
+                    <input type="hidden" name="discount_fee" value="{{ payinfos.discount_fee }}">
+                    <input type="hidden" name="num" value="1">
+                    <input type="hidden" name="addr_id" value="">
+
+                    <div class="form-group　well well-sm">
+                        <div class="radio {% if not payinfos.weixin_payable %}disabled{% endif %}">
+                            <label>
+                                <input type="radio" name="channel" id="optionsRadios1" value="wx_pub"
+                                       {% if not payinfos.alipay_payable and payinfos.weixin_payable %}checked{% else %}
+    disabled{% endif %}>
+                                微信支付
+                            </label>
+                        </div>
+                        <div class="radio {% if not payinfos.alipay_payable %}disabled{% endif %}">
+                            <label>
+                                <input type="radio" name="channel" id="optionsRadios2" value="alipay_wap"
+                                       {% if not payinfos.weixin_payable %}checked{% endif %}>
+                                支付宝
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-offset-4 col-xs-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" onchange="Submit_enable(this);"> 同意小鹿妈妈条款<a
+                                        href="{{ STATIC_URL }}tiaokuan.html"><span class="label-text">点击查看</span></a>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-4 col-sm-10">
+                            <a id="btn-pay" class="btn btn-primary" href="javascript:void(0);"
+                               onclick="Confirm_charge()" disabled>确认支付押金</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>-->
+{% endblock %}
+{% block container-foot %}
+    <div class="pay-deposit-btn">
+        <div class="mama-item">
+            <input type="checkbox" onchange="Submit_enable(this);"/>
+            <span>注册即视为同意 <a href="{{ STATIC_URL }}tiaokuan.html">小鹿美美代理服务条款</a></span>
+        </div>
+        <form id="deposite-form" action="#" method="POST">
+
+            <input type="hidden" name="format" value="json">
+            <input type="hidden" name="item_id" value="{{ product.id }}">
+            <input type="hidden" name="sku_id"
+                   value="{% if product.normal_skus|length == 1 %}{{ product.normal_skus.0.id }}{% endif %}">
+            <input type="hidden" name="uuid" value="{{ uuid }}">
+            <input type="hidden" name="mm_linkid" value="{{ referal_mamaid }}">
+            <input type="hidden" name="success_url" value="{{ success_url }}">
+            <input type="hidden" name="cancel_url" value="{{ cancel_url }}">
+            <input type="hidden" name="payment" value="{{ payinfos.total_payment }}">
+            <input type="hidden" name="total_fee" value="{{ payinfos.total_fee }}">
+            <input type="hidden" name="post_fee" value="{{ payinfos.post_fee }}">
+            <input type="hidden" name="discount_fee" value="{{ payinfos.discount_fee }}">
+            <input type="hidden" name="num" value="1">
+            <input type="hidden" name="addr_id" value="">
+
+            <!--  保存支付方式  -->
+            <input type="radio" name="channel" id="optionsRadios1" value="wx_pub" hidden="hidden"
+                   {% if not payinfos.alipay_payable and payinfos.weixin_payable %}checked{% else %}disabled{% endif %}>
+
+            <input type="radio" name="channel" id="optionsRadios2" value="alipay_wap" hidden="hidden"
+                   {% if not payinfos.weixin_payable %}checked{% endif %}>
+
+            <button class="confirm-pay" type="submit" id="btn-pay" onclick="Confirm_charge()" disabled>
+                支付押金
+            </button>
+        </form>
+    </div>
+{% endblock %}
+
+
+{% block tail_script %}
+    <script src="{{ STATIC_URL }}js/pingpp_pay.js"></script>
+    <script src="{{ STATIC_URL }}js/pingpp_ap.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            console.log('rungning');
+            $("#click-zhifubao").click(function () {
+
+                if ($("#click-zhifubao").hasClass('disabled')) {
+                    return
+                }
+                console.log("zhifubao");
+            });
+
+            $("#click-weixin").click(function () {
+
+                if ($("#click-weixin").hasClass('disabled')) {
+                    return
+                }
+                console.log("click-weixin");
+            });
+        });
+
+
+        function Submit_enable(ele) {
+            if (ele.checked) {
+                $('#btn-pay').removeAttr('disabled');
+            } else {
+                $('#btn-pay').attr('disabled', 'disabled');
+            }
+        }
+        function Confirm_charge() {
+            var CHARGE_URL = window.location.href;
+            var params = $('#deposite-form').serialize();
+            console.log('pay info:', params)
+            var callBack = function (data) {
+                console.log('charge resp:', data);
+                var redirect_url = './';
+                pingpp.createPayment(data, function (result, err) {
+                    alert('err:' + err);
+                    console.log(err);
+                    if (result == "success") {
+                        redirect_url = '{{success_url}}?out_trade_no=' + params['uuid'];
+                    } else if (result == "fail") {
+                        redirect_url = '{{cancel_url}}?mama_id={{referal_mamaid}}';
+                    } else if (result == "cancel") {
+                        redirect_url = '{{cancel_url}}?mama_id={{referal_mamaid}}';
+                    }
+                    //window.location.href = redirect_url;
+                });
+            }
+            // 调用接口
+            $.ajax({
+                type: 'post',
+                url: CHARGE_URL,
+                data: params,
+                dataType: 'json',
+                success: callBack,
+                error: function (err) {
+                    click_paybtn = false;
+                    console.log("err is here ", err);
+                    var resp = JSON.parse(err.responseText);
+                    if (!isNone(resp.detail)) {
+                        alert(resp.detail);
+                    } else {
+                        alert('支付异常!');
+                    }
+                }
+            });
+        }
+        ;
+    </script>
+{% endblock %}

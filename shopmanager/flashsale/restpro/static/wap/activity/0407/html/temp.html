@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible"content="IE=edge">
+<title>拼图活动起始页</title>
+<meta name="viewport"content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
+<meta name="format-detection"content="telephone=no">
+<meta name="format-detection"content="address=no">
+<meta name="format-detection"content="email=no">
+<meta name="apple-mobile-web-app-capable"content="yes">
+<link rel="stylesheet"href="../css/temp.css">
+<script src="../js/jquery-2.2.2.min.js"></script>
+<script type="text/javascript">
+var intDiff = parseInt(386600);
+
+//倒计时总秒数量
+function timer(intDiff) {
+	window.setInterval(function() {
+		var day=0, hour=0, minute=0, second=0;
+
+		//时间默认值		
+		if(intDiff > 0) {
+			day = Math.floor(intDiff / (60 * 60 * 24));
+			hour = Math.floor(intDiff / (60 * 60)) - (day * 24);
+			minute = Math.floor(intDiff / 60) - (day * 24 * 60) - (hour * 60);
+			second = Math.floor(intDiff) - (day * 24 * 60 * 60) - (hour * 60 * 60) - (minute * 60);
+		}
+		if (minute <= 9) minute ='0'+ minute;
+		if (second <= 9) second ='0'+ second;
+		$('#day_show').html(day+"天");
+		$('#hour_show').html('<s id="h"></s>'+hour+'时');
+		$('#minute_show').html('<s></s>'+minute+'分');
+		$('#second_show').html('<s></s>'+second+'秒');
+		intDiff--;
+	}
+	, 1000);
+}
+$(function() {
+	timer(intDiff);
+}
+);
+</script>
+</head>
+
+<body>
+	<h1>网页上的倒计时</h1>
+	<div class="time-item">
+		<span id="day_show">0天</span>
+		<strong id="hour_show">0时</strong>
+		<strong id="minute_show">0分</strong>
+		<strong id="second_show">0秒</strong>
+	</div>
+</body>
+</html>

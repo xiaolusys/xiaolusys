@@ -1,0 +1,39 @@
+body, ul {
+	-webkit-margin-before: 0;
+	-webkit-margin-after: 0;
+	-webkit-padding-start: 0;
+}
+ul li {
+	list-style: none;
+	margin: 20px 5px;
+}
+p {
+	padding: 45px 0 10px 0;
+	font-size: 20px;
+}
+li>div {
+	height: 100px;
+	text-align: center;
+	background-color: #adadad;
+}
+li .row-col {
+	background-color: #d8d8d8;
+}
+li .display-hide {
+	display: none;
+}
+.row-col {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	height: 72px;
+}
+.row {
+	display: -webkit-box;
+	-webkit-box-orient: horizontal;
+	-webkit-box-flex: 1;
+}
+.col {
+	-webkit-box-flex: 1;
+	background-color: #d8d8d8;
+	padding: 10px 0 10px 0;
+}

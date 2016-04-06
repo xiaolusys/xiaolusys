@@ -1,0 +1,45 @@
+.btn {
+  height: 36px;
+  color: #FFF;
+}
+
+.btn-yellow {
+  background-color: #FDCB0E;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.m-col-100 {
+  width: 100%;
+}
+
+.m-invitation-footer {
+  background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-footer-bg.png') center center repeat;
+  height: 256px;
+}
+
+.form-red {
+  background: url('http://7xogkj.com2.z0.glb.qiniucdn.com/invitation-footer-bg.png') center center repeat;
+  border: 0px;
+  color: #fff;
+  border-bottom: 1px solid #D0021B;
+}
+
+.m-input-lable {
+  color: #fff;
+  font-size: 16px;
+}
+
+.m-top-sm {
+  margin-top: 16px;
+}
+
+.m-pull-right {
+  float: right;
+}
+
+.m-pull-left {
+  float: left;
+}

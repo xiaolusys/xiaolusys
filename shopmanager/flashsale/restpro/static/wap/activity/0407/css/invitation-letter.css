@@ -1,0 +1,175 @@
+
+.border-show-r {
+    border: solid 1px orchid;
+}
+
+.border-show-g {
+    border: solid 1px #008000;
+}
+
+.border-show-b {
+    border: solid 1px #0000ff;
+}
+
+.page-panel .head-img {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.page-panel .content-img {
+    position: absolute;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    z-index: 101;
+    top: 16%;
+}
+
+/* 第三层显示，名称邀请人　等信息！　*/
+.page-panel .dear {
+    position: absolute;
+    width: 30%;
+    z-index: 101;
+    top: 12%;
+    left: 10%;
+    line-height: 12px;
+    text-align: left;
+}
+
+.page-panel .dear-name {
+}
+
+.inviter {
+    position: absolute;
+    top: 75%;
+    height: 13%;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-size: 15px;
+}
+
+.invitation-post {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.invitation-post .join-phone {
+    position: relative;
+    height: 50%;
+    width: 100%;
+}
+
+.invitation-post .join-phone .phone-tag {
+    position: relative;
+    display: inline-block;
+    float: left;
+    width: 25%;
+    top: 30%;
+}
+
+.invitation-post .join-phone .phone-value {
+    position: relative;
+    display: inline-block;
+    float: left;
+    width: 40%;
+    top: 30%;
+    outline: none;
+    border-bottom: solid 1px #000000;
+    text-align: center;
+}
+
+.invitation-post .join-phone .request-verify {
+        position: relative;
+    display: inline-block;
+    top: 27%;
+    float: left;
+    width: 30%;
+    border: 1px solid white;
+    border-radius: 10px;
+
+}
+
+
+.invitation-post .check-code {
+    position: relative;
+    display: inline-block;
+    height: 50%;
+    width: 100%;
+}
+
+.invitation-post .check-code .verify-tag {
+    position: relative;
+    display: inline-block;
+    top: 25%;
+    float: left;
+    width: 25%;
+
+}
+
+.invitation-post .check-code .verify-code {
+    position: relative;
+    display: inline-block;
+    top: 25%;
+    float: left;
+    width: 40%;
+    outline: none;
+    border-bottom: solid 1px #000000;
+    text-align: center;
+
+}
+
+
+.invitation-post .check-code .verify-mobile {
+    position: relative;
+    display: inline-block;
+    top: 20%;
+    float: left;
+    width: 30%;
+    border: 1px solid white;
+    border-radius: 10px;
+
+}
+
+/* 立即申请的按钮样式 */
+.invitation-post .apply-now {
+    position: relative;
+    display: inline-block;
+    height: 40%;
+    width: 90%;
+    background: #FDCB0E;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.invitation-post .apply-now .apply-now-tag {
+    position: relative;
+    display: inline-block;
+    top: 20%;
+    width: 70%;
+    background: #FDCB0E;
+    outline: none;
+    border: none;
+}
+
+.apply-now {
+    position: relative;
+    display: inline-block;
+    height: 40%;
+    width: 90%;
+    background: #FDCB0E;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.apply-now .apply-now-tag {
+    position: relative;
+    display: inline-block;
+    top: 20%;
+    width: 70%;
+    background: #FDCB0E;
+    outline: none;
+    border: none;
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" onclick='onBackClick'>
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <title>精选活动</title>
+	    <meta name="viewport"content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
+	    <meta name="format-detection" content="telephone=no">
+	    <meta name="format-detection" content="address=no">
+	    <meta name="format-detection" content="email=no"> 
+	    <meta name="apple-mobile-web-app-capable" content="yes">
+	    <link rel="stylesheet" href="../css/featuredEvent.css">
+	    <!-- <link href="./static/css/bootstrap.css" rel="stylesheet"> -->
+	    <script src="../js/jquery-2.2.2.min.js"></script>
+	    <script type="text/javascript">
+		    $(document).ready(function(){
+			  	(function requestActivitys() {
+			  		$.ajax({
+			  			type:'GET',
+			  			url:'http://192.168.1.80:8000/rest/v1/activitys',
+			  			success:function(result){
+			  				//TODO
+			  				var ul = $('ul');
+			  				var h =[];  
+			  				result.forEach(function(value){
+			  					h.push(createLi(value));
+			  				});	
+			  				ul.append(h.join(''));
+			  			}
+			  		});
+			  	})();
+			  	var createLi = function (activity) {
+					var h =[];
+					h.push('<li class="m-fe-li">');
+					h.push('<a href="'+activity.act_link+'">');
+					h.push('<img  src="'+activity.act_img+'">');
+					h.push('</a>');
+					h.push('<div class="m-content">');
+					h.push('<div>');
+					h.push('<p class="m-p1">0412拼图活动&nbsp;邀请好友赢取红包拼图...</p>');
+					h.push('<p class="m-p2"><span>'+activity.total_member_num+'人参加&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span>'+activity.friend_member_num+'位好友</span></p>');
+					h.push('</div>');
+					h.push('<div class="m-btn">');
+					if(activity.is_active){
+						h.push('<a href="'+activity.act_link+'">');
+						h.push('<img src="../img/share-t.png">')
+					}else{
+						h.push('<img src="../img/share-f.png">')
+					}
+					h.push('</a></div></div></li>');
+					return h.join('');
+				}	     
+			}); 
+	    </script>
+</head>
+<body>
+	<ul>
+		
+	</ul>
+</body>
+</html>
