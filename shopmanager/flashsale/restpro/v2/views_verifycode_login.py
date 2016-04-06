@@ -349,7 +349,7 @@ class WeixinAppLoginView(views.APIView):
     User login with Weixin authorization via APP.
     
     """
-    def get(self, request):
+    def post(self, request):
         """
         app客户端微信授权登陆
         """
