@@ -25,7 +25,7 @@ class CouponTemplate(BaseModel):
     USUAL = 9
     NEW_YEAR = 10
     PROMMOTION_TYPE = 11
-    COUPON_TYPE = ((RMB118, u"二期代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
+    COUPON_TYPE = ((RMB118, u"代理优惠券"), (POST_FEE_5, u"5元退货补邮费"),
                    (POST_FEE_10, u"10元退货补邮费"), (POST_FEE_15, u"15元退货补邮费"), (POST_FEE_20, u"20元退货补邮费"),
                    (C150_10, u"满150减10"), (C259_20, u"满259减20"), (DOUBLE_11, u"双11专用"), (DOUBLE_12, u"双12专用"),
                    (USUAL, u"普通"), (NEW_YEAR, u"元旦专用"), (PROMMOTION_TYPE, u"活动类型"))

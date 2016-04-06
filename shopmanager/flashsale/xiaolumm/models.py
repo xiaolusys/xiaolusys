@@ -818,7 +818,7 @@ def update_Xlmm_Agency_Progress(obj, *args, **kwargs):
             # obj.sale_orders.update(status=SaleOrder.TRADE_FINISHED)
             # 发放30元优惠券
             coupon = UserCoupon()
-            res = coupon.release_by_template(buyer_id=obj.buyer_id, template_id=1)
+            res = coupon.release_by_template(buyer_id=obj.buyer_id, template_id=39)
 
 
 signal_saletrade_pay_confirm.connect(update_Xlmm_Agency_Progress, sender=SaleTrade)
