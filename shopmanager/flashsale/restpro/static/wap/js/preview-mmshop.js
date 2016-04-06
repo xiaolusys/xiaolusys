@@ -8,6 +8,11 @@ function createProductDom(obj) {
     return hereDoc(product).template(obj)
 }
 
+function createModelDom(obj) {
+    var product = $("#model_dom").html();
+    return hereDoc(product).template(obj)
+}
+
 function createShopHhead(obj) {
     var head = $("#shop-head").html();
     return hereDoc(head).template(obj)
@@ -69,8 +74,17 @@ function get_mama_shop_info() {
         }
 
         $.each(res.results.products, function (i, val) { //默认对象
-            var item_dom = createProductDom(val);
-            $('.shop-body').append(item_dom);
+            console.log("model:", val.model);
+            if (val.model > 0) {
+                var model_dom = createModelDom(val);
+                $('.shop-body').append(model_dom);
+            }
+            else {
+                var item_dom = createProductDom(val);
+                $('.shop-body').append(item_dom);
+            }
+
+
             console.log("val.offshelf_time:", val.offshelf_time);
             var offshelf_time = new Date(val.offshelf_time.replace("T", " "));
             var ts = (new Date(

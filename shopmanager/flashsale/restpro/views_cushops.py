@@ -110,30 +110,9 @@ def save_pro_info(product, user):
     shop_pro.carry_amount = rebet_amount
     shop_pro.carry_scheme = rebt.id
     shop_pro.pro_category = pro.category.cid
+    shop_pro.model = pro.model_id   # save model info
     shop_pro.save()
     return shop_pro, pro_state
-
-
-def prods_position_handler():
-    """ 初始化店铺产品的位置信息 """
-    shops = CustomerShops.objects.all()
-    for shop in shops:
-        shop_pros = CuShopPros.objects.filter(shop=shop.id).order_by('-created')  # 指定店铺的所有产品按照时间逆序
-        pros_count = shop_pros.count()  # 计算该店铺产品的数量
-        print "shop :", shop.id, "count:", pros_count
-        for pro in shop_pros:
-            pro.position = pros_count  # 初始化商品的位置号
-            pro.save()
-            pros_count = pros_count - 1
-            shop = pro.get_customer()
-            customer = shop.get_customer()
-            save_pro_info(product=pro.product, user=customer.user)
-    print "准备同步状态"
-    up_pro_ids = Product.objects.filter(status=Product.NORMAL, shelf_status=Product.UP_SHELF).values('id')
-    cu_pros = CuShopPros.objects.all().exclude(id__in=up_pro_ids)
-    cu_pros_count = cu_pros.count()
-    print "更新%s条" % cu_pros_count
-    cu_pros.update(pro_status=CuShopPros.DOWN_SHELF)
 
 
 class CuShopProsViewSet(viewsets.ModelViewSet):

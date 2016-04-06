@@ -744,10 +744,11 @@ from .filters import CushopProCategoryFiler
 import constants
 
 class CuShopProsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'shop', 'customer', 'pro_category_dec', 'product', 'pro_status', 'position', 'created')
+    list_display = ('id', 'shop', 'customer', 'pro_category_dec', 'product',
+                    'model', 'pro_status', 'position', 'created')
     list_display_links = ('shop',)
     list_filter = ('created', 'pro_status', CushopProCategoryFiler)
-    search_fields = ['=id', 'shop', 'product']
+    search_fields = ['=id', 'model', 'shop', 'product']
 
     def pro_category_dec(self, obj):
         """
@@ -760,6 +761,15 @@ class CuShopProsAdmin(admin.ModelAdmin):
             return u'<span>女装</span>'
         else:
             return u''
+
+    def upload_products(self, request, queryset):
+        queryset.update(pro_status=CuShopPros.UP_SHELF)
+        count = queryset.count()
+        return self.message_user(request, '成功上架%s个产品!'%count)
+
+    upload_products.short_description = u'上架选中商品'
+
+    actions = ['upload_products', ]
 
     pro_category_dec.allow_tags = True
     pro_category_dec.short_description = u"分类"

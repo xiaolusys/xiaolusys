@@ -695,6 +695,14 @@ SHOP_APP_SCHEDULE = {
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
 
+    u'一次执行妈妈店铺商品添加信息': {
+        'task': 'flashsale.restpro.tasks.prods_position_handler',
+        'schedule': crontab(minute="10", hour="6"),
+        'args': (),
+        'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
+    },
+
+
 #    'runs-every-10-minutes-update-seller-flag':{
 #        'task':'shopapp.memorule.tasks.updateTradeSellerFlagTask',
 #        'schedule':crontab(minute="*/10"),
