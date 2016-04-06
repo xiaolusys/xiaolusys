@@ -37,10 +37,10 @@ class ordelistAdmin(admin.ModelAdmin):
     inlines = [orderdetailInline]
 
     list_display = (
-        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'express_no', 'created', 'shenhe', 'pay_status',
+        'id', 'buyer_select', 'order_amount', 'calcu_item_sum_amount', 'quantity', 'calcu_model_num', 'express_no', 'created', 'shenhe', 'is_postpay', 'pay_status',
         'changedetail', 'note_name', 'supplier', 'p_district', 'reach_standard', 'updated', 'last_pay_date', 'created_by'
     )
-    list_filter = (('created', DateFieldListFilter), GroupNameFilter, OrderListStatusFilter, 'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
+    list_filter = (('created', DateFieldListFilter), 'is_postpay', OrderListStatusFilter, 'pay_status', BuyerNameFilter, 'last_pay_date', 'created_by')
     search_fields = ['id', 'supplier__supplier_name', 'supplier_shop', 'express_no', 'note']
     date_hierarchy = 'created'
 
@@ -160,7 +160,19 @@ class ordelistAdmin(admin.ModelAdmin):
 
         return HttpResponseRedirect(request.get_full_path())
 
-    test_order_action.short_description = u"审核（批量 ）"
+    test_order_action.short_description = u"审核(已付款)"
+
+    def verify_order_action(self, request, queryset):
+        for p in queryset:
+            if p.status != '审核':
+                p.status = '审核'
+                p.is_postpay = True
+                p.save()
+                log_action(request.user.id, p, CHANGE, u'审核订货单')
+                self.message_user(request, u'已成功审核!')
+        return HttpResponseRedirect(request.get_full_path())
+
+    verify_order_action.short_description = u'审核(后付款)'
 
 
     # 批量验货完成
@@ -187,7 +199,7 @@ class ordelistAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(request.get_full_path())
     action_receive_money.short_description = u'收款（批量）'
 
-    actions = ['test_order_action', 'action_quick_complete', 'action_receive_money']
+    actions = ['test_order_action', 'verify_order_action', 'action_quick_complete', 'action_receive_money']
 
     def get_actions(self, request):
 
