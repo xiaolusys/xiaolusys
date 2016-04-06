@@ -147,11 +147,12 @@ class Envelop(PayBaseModel):
                 blog.cancel_and_return()
             else:
                 from flashsale.xiaolumm.models import CarryLog,CashOut
-                clog = CarryLog.objects.get(order_num=self.referal_id,log_type=CarryLog.CASH_OUT)
-                clog.cancel_and_return()
+                # clog = CarryLog.objects.get(order_num=self.referal_id,log_type=CarryLog.CASH_OUT)
+                # clog.cancel_and_return()
                 #取消
-                cashout = CashOut.objects.get(id=self.referal_id)
-                cashout.fail_and_return()
+                cashouts = CashOut.objects.filter(id=self.referal_id)
+                if cashouts.exists():
+                    cashouts[0].fail_and_return()
             return True
         
         return False
