@@ -123,6 +123,27 @@
 
 </script>
 
+<script type="text/html" id="model_dom">
+
+
+    <div class="products-div">
+        <a href="../tongkuan.html?id={{ model }}">
+            <div class="product-info"></div>
+            <img class="product-show" src="{{ pic_path }}?imageMogr2/thumbnail/600/format/jpg/quality/100/crop/x600"/>
+        </a>
+
+        <div class="pro-price-div">
+            <span class="sale-price">￥{{ agent_price }}</span>
+            <span class="std-price">/￥{{ std_sale_price }}</span>
+        </div>
+        <div class="pro-name-div">
+            <span class="pro-name">{{ name }}</span>
+        </div>
+    </div>
+
+
+</script>
+
 </body>
 </html>
 

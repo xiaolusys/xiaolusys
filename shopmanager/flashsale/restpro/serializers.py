@@ -494,7 +494,7 @@ class CuShopProsSerialize(serializers.ModelSerializer):
 
     class Meta:
         model = CuShopPros
-        fields = ('id', "product", "pro_status", "name", "pic_path", 'std_sale_price', 'agent_price',
+        fields = ('id', "product", "model", "pro_status", "name", "pic_path", 'std_sale_price', 'agent_price',
                   "carry_amount", 'position', 'sale_num', 'modified', 'created', 'offshelf_time')
 
 

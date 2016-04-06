@@ -43,6 +43,7 @@ class CuShopPros(PayBaseModel):
     shop = models.IntegerField(db_index=True, verbose_name=u'店铺ID')
     customer = models.IntegerField(db_index=True, verbose_name=u'用户id')
     product = models.BigIntegerField(db_index=True, verbose_name=u'店铺产品')
+    model = models.IntegerField(db_index=True, default=0, verbose_name=u'款式id')
     pro_status = models.IntegerField(choices=PRO_STATUS, default=1, verbose_name=u'商品状态')
 
     name = models.CharField(max_length=64, db_index=True, blank=True, verbose_name=u'商品名称')

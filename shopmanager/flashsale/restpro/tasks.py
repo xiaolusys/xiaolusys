@@ -134,3 +134,31 @@ def SaveWuliu_only(tid, content):
             TradeWuliu.objects.create(tid=tid, status=content['status'], logistics_company=content['name'],
                                       out_sid=content['order'], errcode=content['errcode'],
                                       content=da['content'], time=da['time'])
+
+
+from flashsale.pay.models_shops import CustomerShops, CuShopPros
+from views_cushops import save_pro_info
+import logging
+logger = logging.getLogger(__name__)
+
+
+@task()
+def prods_position_handler():
+    """ 初始化店铺产品的信息 """
+    shops = CustomerShops.objects.all()
+    for shop in shops:
+        shop_pros = CuShopPros.objects.filter(shop=shop.id).order_by('-created')  # 指定店铺的所有产品按照时间逆序
+        pros_count = shop_pros.count()  # 计算该店铺产品的数量
+        for pro in shop_pros:
+            pro.position = pros_count  # 初始化商品的位置号
+            pro.save()
+            pros_count = pros_count - 1
+            shop = pro.get_customer()
+            customer = shop.get_customer()
+            try:
+                save_pro_info(product=pro.product, user=customer.user)
+            except Exception, exc:
+                logger.error(exc.message)
+    up_pro_ids = Product.objects.filter(status=Product.NORMAL, shelf_status=Product.UP_SHELF).values('id')
+    cu_pros = CuShopPros.objects.all().exclude(id__in=up_pro_ids)
+    cu_pros.update(pro_status=CuShopPros.DOWN_SHELF)
