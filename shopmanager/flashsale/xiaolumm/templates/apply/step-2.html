@@ -103,7 +103,7 @@
 <script>
     function Confirm_charge() {
         var aggree_item = $('#aggree-items');
-        if (aggree_item.prop('checked')==false){
+        if (aggree_item.prop('checked') == false) {
             return false
         }
         var CHARGE_URL = window.location.href;
@@ -133,6 +133,8 @@
             success: callBack,
             error: function (err) {
                 alert("ajax error ");
+                alert(err);
+                alert(err.responseText);
                 click_paybtn = false;
                 console.log("err is here ", err);
                 var resp = JSON.parse(err.responseText);

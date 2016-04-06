@@ -75,7 +75,7 @@ $(document).ready(function () {
         clickAlipay()
     }
 
-    //debug_test();
+    debug_test();
 });
 var debug_click_time = 0;
 
