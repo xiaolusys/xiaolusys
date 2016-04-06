@@ -102,7 +102,7 @@ class Envelop(PayBaseModel):
             
         elif status in (self.SEND_FAILED, self.REFUND):
             self.status = Envelop.FAIL
-            logger.warn('envelopd warn:%s'%envelopd)
+            logger.warn('envelop warn:%s'%envelopd)
         self.save()
         
     def send_envelop(self):
