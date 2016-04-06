@@ -57,7 +57,7 @@ class AddItemView(generics.ListCreateAPIView):
         if sale_products.count() == 0:
             return Response({"result": "选品ID错误"})
         supplier = str(sale_products[0].sale_supplier.id)
-        
+
         if product_name == "" or category == "" or wash_instroduce == "" \
                 or shelf_time == "" or material == "" or supplier == "" \
                 or header_img == "" or ware_by == "":
@@ -302,21 +302,16 @@ class PreviewSkuDetail(generics.ListCreateAPIView):
             return Response({"result": "NOTFOUND"})
         product_bean = Product.objects.filter(Q(outer_id=searchtext) | Q(
             id=searchtext)).filter(status=Product.NORMAL)
-        try:
-            if product_bean.count() > 0:
-                chima_content = product_bean[0].contrast.get_correspond_content
-                chima_content = chima_content.items()
-                chima_content.sort(cmp=custom_sort)
-                return Response({"result": chima_content,
-                                 "product_id": product_bean[0].id,
-                                 "searchtext": searchtext})
-            else:
-                return Response({"result": "NOTFOUND",
-                                 "searchtext": searchtext})
-        except:
-            return Response({"result": "NOTFOUND",
+        if product_bean.count() > 0:
+            chima_content = product_bean[0].contrast.get_correspond_content
+            chima_content = chima_content.items()
+            chima_content.sort(cmp=custom_sort)
+            return Response({"result": chima_content,
                              "product_id": product_bean[0].id,
                              "searchtext": searchtext})
+        else:
+            return Response({"result": "NOTFOUND",
+                                 "searchtext": searchtext})
 
 
 def custom_sort(a, b):
