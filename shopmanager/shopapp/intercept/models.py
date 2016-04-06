@@ -33,6 +33,7 @@ class InterceptTrade(models.Model):
     
     class Meta:
         db_table = 'shop_intercept_trade'
+        app_label = 'memorule'
         verbose_name = u'拦截订单'
         verbose_name_plural = u'拦截订单列表'
     

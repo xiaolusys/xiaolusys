@@ -42,7 +42,8 @@ class TradeAmount(models.Model):
     hour  = models.CharField(max_length=5,blank=True,db_index=True)
     
     class Meta:
-        db_table = 'shop_amounts_tradeamount'
+        db_table  = 'shop_amounts_tradeamount'
+        app_label = 'orders'
         
     def __unicode__(self):
         return str(self.tid)
@@ -121,7 +122,8 @@ class OrderAmount(models.Model):
     
     class Meta:
         db_table = 'shop_amounts_orderamount'
-        
+        app_label = 'orders'
+
     def __unicode__(self):
         return str(self.oid)
         

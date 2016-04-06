@@ -27,6 +27,7 @@ class BabyPhone(models.Model):
     
     class Meta:
         db_table = 'shop_babylist_babyphone'
+        app_label = 'babylist'
         verbose_name = u'新生儿童信息'
         verbose_name_plural = u'新生儿童信息列表'
 

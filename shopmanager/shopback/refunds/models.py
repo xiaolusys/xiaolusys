@@ -121,6 +121,7 @@ class Refund(models.Model):
     class Meta:
         db_table = 'shop_refunds_refund'
         unique_together = ("refund_id","tid")
+        app_label = 'refunds'
         verbose_name = u'退货款单'
         verbose_name_plural = u'退货款单列表'
 
@@ -237,6 +238,7 @@ class RefundProduct(models.Model):
     
     class Meta:
         db_table = 'shop_refunds_product'
+        app_label = 'refunds'
         verbose_name = u'退货商品'
         verbose_name_plural = u'退货商品列表'
 

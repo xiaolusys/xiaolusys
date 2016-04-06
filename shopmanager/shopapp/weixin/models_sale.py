@@ -41,6 +41,7 @@ class WXProduct(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_product'
+        app_label = 'weixin'
         verbose_name=u'微信小店商品'
         verbose_name_plural = u'微信小店商品列表'
 
@@ -56,6 +57,7 @@ class WXSkuProperty(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_skuproperty'
+        app_label = 'weixin'
         verbose_name=u'微信商品属性'
         verbose_name_plural = u'微信商品属性列表'
 
@@ -96,6 +98,7 @@ class WXProductSku(models.Model):
     class Meta:
         db_table = 'shop_weixin_productsku'
         unique_together = ("sku_id","product")
+        app_label = 'weixin'
         verbose_name=u'微信小店规格'
         verbose_name_plural = u'微信小店规格列表'
 
@@ -179,6 +182,7 @@ class WXOrder(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_order'
+        app_label = 'weixin'
         verbose_name=u'微信小店订单'
         verbose_name_plural = u'微信小店订单列表'
     
@@ -239,6 +243,7 @@ class WXLogistic(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_logistic'
+        app_label = 'weixin'
         verbose_name=u'微信小店快递'
         verbose_name_plural = u'微信小店快递列表'
         

@@ -30,6 +30,7 @@ class WeixinBomb(models.Model):
 
     class Meta:
         db_table = 'games_bomb_weixinbomb'
+        app_label = 'bomb'
         verbose_name = u'微信bomb'
         verbose_name_plural = u'微信bomb列表'
 

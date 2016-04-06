@@ -40,6 +40,7 @@ class XLInviteCode(BaseModel):
 
     class Meta:
         db_table = 'flashsale_promotion_invitecode'
+        app_label = 'promotion'
         verbose_name = u'推广/活动邀请码'
         verbose_name_plural = u'推广/活动邀请码列表'
 
@@ -52,6 +53,7 @@ class XLInviteCount(BaseModel):
     
     class Meta:
         db_table = 'flashsale_promotion_invitecount'
+        app_label = 'promotion'
         verbose_name = u'推广/活动邀请结果'
         verbose_name_plural = u'推广/活动邀请结果列表'
         
@@ -64,6 +66,7 @@ class XLReferalRelationship(BaseModel):
 
     class Meta:
         db_table = 'flashsale_promotion_relationship'
+        app_label = 'promotion'
         verbose_name = u'推广/用户邀请关系'
         verbose_name_plural = u'推广/用户邀请关系'
 

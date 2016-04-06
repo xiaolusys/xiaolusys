@@ -29,6 +29,7 @@ class AgencyOrderRebetaScheme(models.Model):
     
     class Meta:
         db_table = 'xiaolumm_productrebeta'
+        app_label = 'xiaolumm'
         verbose_name    = u'妈妈订单返利计划'
         verbose_name_plural = u'妈妈订单返利计划'
 

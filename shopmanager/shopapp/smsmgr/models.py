@@ -55,6 +55,7 @@ class SMSPlatform(models.Model):
     
     class Meta:
         db_table = 'shop_smsmgr_smsplatform'
+        app_label = 'smsmgr'
         verbose_name=u'短信服务商'
         verbose_name_plural = u'短信服务商列表'
         
@@ -92,6 +93,7 @@ class SMSRecord(models.Model):
     
     class Meta:
         db_table = 'shop_smsmgr_smsrecord'
+        app_label = 'smsmgr'
         verbose_name=u'短信记录'
         verbose_name_plural = u'短信记录列表'
         
@@ -108,6 +110,7 @@ class SMSActivity(models.Model):
     
     class Meta:
         db_table = 'shop_smsmgr_activity'
+        app_label = 'smsmgr'
         verbose_name=u'短信模板'
         verbose_name_plural = u'短信模板列表'
         

@@ -224,7 +224,7 @@ LOGOUT_URL = '/accounts/logout/'
 
 TAOBAO_PAGE_SIZE = 50              #the page_size of  per request
   
-from task_settings import *
+# from task_settings import *
 
 REST_FRAMEWORK = {
 #     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),

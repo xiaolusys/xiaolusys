@@ -27,6 +27,7 @@ class Category(models.Model):
 
     class Meta:
         db_table = 'shop_categorys_category'
+        app_label = 'categorys'
         verbose_name = u'淘宝类目'
         verbose_name_plural = u'淘宝类目列表'
 
@@ -66,6 +67,7 @@ class ProductCategory(models.Model):
     objects = CacheManager()
     class Meta:
         db_table = 'shop_categorys_productcategory'
+        app_label = 'categorys'
         verbose_name = u'产品类目'
         verbose_name_plural = u'产品类目列表'
 
@@ -111,6 +113,7 @@ class CategorySaleStat(models.Model):
 
     class Meta:
         db_table = "shop_category_stat"
+        app_label = 'categorys'
         verbose_name = "产品分类统计"
         verbose_name_plural = "产品分类统计列表"
         permissions = [("shop_category_stat", "产品分类统计"), ]

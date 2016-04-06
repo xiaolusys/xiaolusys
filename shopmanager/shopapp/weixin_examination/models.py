@@ -24,6 +24,7 @@ class ExamProblem(models.Model):
     status  = models.IntegerField(choices=STATUS_CHOICES,default=ACTIVE,verbose_name=u"状态")
     class Meta:
         db_table = 'shop_weixin_exam_problem'
+        app_label = 'weixin'
         verbose_name = u'微信考试题库'
         verbose_name_plural = u'微信考试题库列表'
         
@@ -49,6 +50,7 @@ class ExamPaper(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_exam_paper'
+        app_label = 'weixin'
         verbose_name = u'微信考试答卷'
         verbose_name_plural = u'微信考试答卷列表'
         
@@ -74,6 +76,7 @@ class ExamUserPaper(models.Model):
     class Meta:
         db_table = 'shop_weixin_exam_user_paper'
         unique_together = ('user_openid', 'paper_id')
+        app_label = 'weixin'
         verbose_name = u'用户答卷'
         verbose_name_plural = u'用户答卷列表'    
     
@@ -106,6 +109,7 @@ class ExamUserProblem(models.Model):
     class Meta:
         db_table = 'shop_weixin_exam_user_problem'
         unique_together = ('user_openid', 'paper_id', 'problem_id')
+        app_label = 'weixin'
         verbose_name = u'用户答题'
         verbose_name_plural = u'用户答题列表'
     
@@ -120,6 +124,7 @@ class Invitationship(models.Model):
     class Meta:
         db_table = 'shop_weixin_exam_invitationship'
         unique_together = ('from_openid', 'invite_openid')
+        app_label = 'weixin'
         verbose_name = u'答题关系'
         verbose_name_plural = u'答题关系列表'
         

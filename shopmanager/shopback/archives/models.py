@@ -13,6 +13,7 @@ class Deposite(models.Model):
     extra_info   = models.TextField(blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_archives_deposite'
+        app_label = 'archives'
         verbose_name=u'仓库'
         verbose_name_plural = u'仓库列表'
 
@@ -35,6 +36,7 @@ class DepositeDistrict(models.Model):
     class Meta:
         db_table = 'shop_archives_depositedistrict'
         unique_together = ("parent_no","district_no")
+        app_label = 'archives'
         verbose_name=u'仓库货位'
         verbose_name_plural = u'仓库货位列表'
 
@@ -49,6 +51,7 @@ class SupplierType(models.Model):
     
     class Meta:
         db_table = 'shop_archives_suppliertype'
+        app_label = 'archives'
         verbose_name=u'供应商类型'
         verbose_name_plural = u'供应商类型列表'
 
@@ -78,6 +81,7 @@ class Supplier(models.Model):
     extra_info     = models.TextField(blank=True,verbose_name='备注')
     class Meta:
         db_table = 'shop_archives_supplier'
+        app_label = 'archives'
         verbose_name=u'供应商'
         verbose_name_plural = u'供应商列表'
 
@@ -95,6 +99,7 @@ class PurchaseType(models.Model):
     
     class Meta:
         db_table = 'shop_archives_purchasetype'
+        app_label = 'archives'
         verbose_name=u'采购类型'
         verbose_name_plural = u'采购类型列表'
 

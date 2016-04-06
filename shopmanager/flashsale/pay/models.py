@@ -170,6 +170,7 @@ class SaleTrade(BaseModel):
     normal_objects = managers.NormalSaleTradeManager()
     class Meta:
         db_table = 'flashsale_trade'
+        app_label = 'flashsale'
         verbose_name=u'特卖/订单'
         verbose_name_plural = u'特卖/订单列表'
 
@@ -431,6 +432,7 @@ class SaleOrder(PayBaseModel):
     """ 特卖订单明细 """
     class Meta:
         db_table = 'flashsale_order'
+        app_label = 'flashsale'
         verbose_name=u'特卖/订单明细'
         verbose_name_plural = u'特卖/订单明细列表'
     
@@ -660,6 +662,7 @@ class TradeCharge(PayBaseModel):
     class Meta:
         db_table = 'flashsale_trade_charge'
         unique_together = ("order_no","charge")
+        app_label = 'flashsale'
         verbose_name=u'特卖支付/交易'
         verbose_name_plural = u'特卖交易/支付列表'
         
@@ -700,6 +703,7 @@ class ShoppingCart(BaseModel):
     
     class Meta:
         db_table = 'flashsale_shoppingcart'
+        app_label = 'flashsale'
         verbose_name=u'特卖/购物车'
         verbose_name_plural = u'特卖/购物车'
         

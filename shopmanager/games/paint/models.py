@@ -27,6 +27,7 @@ class PaintAccount(models.Model):
     
     class Meta:
         db_table = 'games_paint_paintaccount'
+        app_label = 'paint'
         verbose_name= u'Paint帐号'
         verbose_name_plural = u'Paint帐号列表'
 

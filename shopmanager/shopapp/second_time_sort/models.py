@@ -12,6 +12,7 @@ class BatchNumberGroup(models.Model):
     
     class Meta:
         db_table = 'batch_number_group'
+        app_label = 'secondsort'
         verbose_name = u'批号/组'
         verbose_name_plural = u'批号/组列表'
         
@@ -34,6 +35,7 @@ class BatchNumberOid(models.Model):
     
     class Meta:
         db_table = 'batch_number_oid'
+        app_label = 'secondsort'
         verbose_name = u'批号/物流单号'
         verbose_name_plural = u'批号/物流单号'
         
@@ -51,5 +53,6 @@ class out_list_sku(models.Model):
     
     class Meta:
         db_table = 'batch_number_oid'
+        app_label = 'secondsort'
         verbose_name = u'批号/物流单号'
         verbose_name_plural = u'批号/物流单号'

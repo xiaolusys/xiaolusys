@@ -40,6 +40,7 @@ class WeixinUserPicture(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_user_picture'
+        app_label = 'weixin'
         verbose_name=u'微信用户图片'
         verbose_name_plural = u'微信用户图片列表'
     
@@ -69,6 +70,7 @@ class WeixinUserAward(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_user_award'
+        app_label = 'weixin'
         verbose_name = u'微信邀请奖励'
         verbose_name_plural = u'微信邀请奖励列表'
     
@@ -133,6 +135,7 @@ class WeixinLinkClicks(models.Model):
     class Meta:
         db_table = 'shop_weixin_sale_linkclicks'
         unique_together = ("user_openid","link_url","link_type")
+        app_label = 'weixin'
         verbose_name = u'微信分享点击'
         verbose_name_plural = u'微信分享点击列表'
     
@@ -175,6 +178,7 @@ class WeixinLinkClickRecord(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_sale_clickrecord'
+        app_label = 'weixin'
         verbose_name = u'微信点击记录'
         verbose_name_plural = u'微信点击记录列表'
 
@@ -205,6 +209,7 @@ class WeixinLinkShare(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_sale_linkshare'
+        app_label = 'weixin'
         verbose_name = u'微信分享链接'
         verbose_name_plural = u'微信分享链接列表'
     

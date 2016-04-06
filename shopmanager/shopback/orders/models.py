@@ -111,6 +111,7 @@ class Trade(models.Model):
 
     class Meta:
         db_table = 'shop_orders_trade'
+        app_label = 'orders'
         verbose_name=u'淘宝订单'
         verbose_name_plural = u'淘宝订单列表'
 
@@ -237,6 +238,7 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'shop_orders_order'
+        app_label = 'orders'
         verbose_name=u'淘宝订单商品'
         verbose_name_plural = u'淘宝订单商品列表'
         

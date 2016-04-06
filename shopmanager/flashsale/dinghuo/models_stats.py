@@ -18,6 +18,7 @@ class SupplyChainDataStats(models.Model):
     class Meta:
         db_table = 'supply_chain_data_stats'
         unique_together = ('stats_time', 'group')
+        app_label = 'dinghuo'
         verbose_name = u'每日组别统计'
         verbose_name_plural = u'每日组别统计'
 
@@ -46,6 +47,7 @@ class SupplyChainStatsOrder(models.Model):
     class Meta:
         db_table = 'supply_chain_stats_order'
         unique_together = ('product_id', 'outer_sku_id', 'sale_time')
+        app_label = 'dinghuo'
         verbose_name = u'数据原始统计表'
         verbose_name_plural = u'数据原始统计表'
 
@@ -74,6 +76,7 @@ class DailySupplyChainStatsOrder(models.Model):
     class Meta:
         db_table = 'supply_chain_stats_daily'
         unique_together = ('product_id', 'sale_time')
+        app_label = 'dinghuo'
         verbose_name = u'供应链数据统计表'
         verbose_name_plural = u'供应链数据统计表'
 
@@ -100,6 +103,7 @@ class RecordGroupPoint(models.Model):
     class Meta:
         db_table = 'record_group_point_detail'
         unique_together = ('point_type', 'point_content')
+        app_label = 'dinghuo'
         verbose_name = u'积分表'
         verbose_name_plural = u'积分表'
 
@@ -122,6 +126,7 @@ class DailyStatsPreview(models.Model):
     class Meta:
         db_table = 'supply_chain_daily_summary'
         unique_together = ('sale_time',)
+        app_label = 'dinghuo'
         verbose_name = u'日汇'
         verbose_name_plural = u'供应链数据日汇表'
 
@@ -161,6 +166,7 @@ class PayToPackStats(models.Model):
     
     class Meta:
         db_table = 'supply_chain_paytopack'
+        app_label = 'dinghuo'
         verbose_name = u'发货速度日汇'
         verbose_name_plural = u'发货速度日汇表'
 

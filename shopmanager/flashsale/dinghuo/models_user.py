@@ -9,6 +9,7 @@ class MyGroup(models.Model):
 
     class Meta:
         db_table = 'suplychain_flashsale_mygroup'
+        app_label = 'dinghuo'
         verbose_name = u'订货用户分组表'
         verbose_name_plural = u'订货用户分组表'
 
@@ -23,6 +24,7 @@ class MyUser(models.Model):
 
     class Meta:
         db_table = 'suplychain_flashsale_myuser'
+        app_label = 'dinghuo'
         verbose_name = u'订货用户表'
         verbose_name_plural = u'订货用户表'
 

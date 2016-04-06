@@ -72,6 +72,7 @@ class WeiXinAccount(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_account'
+        app_label = 'weixin'
         verbose_name=u'微信服务帐号'
         verbose_name_plural = u'微信服务帐号列表'
         
@@ -126,6 +127,7 @@ class UserGroup(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_group'
+        app_label = 'weixin'
         verbose_name=u'用户分组'
         verbose_name_plural = u'用户分组列表'
     
@@ -219,6 +221,7 @@ class WeiXinUser(CacheModel):
     
     class Meta:
         db_table = 'shop_weixin_user'
+        app_label = 'weixin'
         verbose_name=u'微信用户'
         verbose_name_plural = u'微信用户列表'
     
@@ -291,6 +294,7 @@ class WXUserCharge(models.Model):
     class Meta:
         db_table = 'shop_weixin_user_charge'
         unique_together = ( "wxuser_id","employee")
+        app_label = 'weixin'
         verbose_name=u'微信用户接管'
         verbose_name_plural = u'微信用户接管列表'
         
@@ -373,6 +377,7 @@ class WeiXinAutoResponse(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_response'
+        app_label = 'weixin'
         verbose_name=u'微信回复'
         verbose_name_plural = u'微信回复列表'
         
@@ -463,6 +468,7 @@ class ReferalRelationship(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_referal_relationship'
+        app_label = 'weixin'
 
 
 class ReferalBonusRecord(models.Model):
@@ -476,6 +482,7 @@ class ReferalBonusRecord(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_referal_bonus_record'
+        app_label = 'weixin'
         verbose_name = u'大使返利'
         verbose_name_plural = u'大使返利列表'
 
@@ -487,6 +494,7 @@ class BonusCashoutRecord(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_bonus_cashout_record'
+        app_label = 'weixin'
 
 
 class ReferalSummary(models.Model):
@@ -500,6 +508,7 @@ class ReferalSummary(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_referal_summary'
+        app_label = 'weixin'
 
 
 class Refund(models.Model):
@@ -552,6 +561,7 @@ class Refund(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_refund'
+        app_label = 'weixin'
         verbose_name=u'返现订单'
         verbose_name_plural = u'返现订单列表'
         permissions = [
@@ -571,6 +581,7 @@ class FreeSample(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_free_sample'
+        app_label = 'weixin'
         verbose_name = u'试用商品'
         verbose_name_plural = u'试用商品列表'
 
@@ -584,6 +595,7 @@ class SampleSku(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_sample_sku'
+        app_label = 'weixin'
         verbose_name = u'试用商品SKU'
         verbose_name_plural = u'试用商品SKU列表'
 
@@ -603,6 +615,7 @@ class SampleOrder(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_sample_order'
+        app_label = 'weixin'
         verbose_name = u'试用申请'
         verbose_name_plural = u'试用申请列表'
 
@@ -631,6 +644,7 @@ class VipCode(models.Model):
     objects = VipCodeManager()
     class Meta:
         db_table = 'shop_weixin_vipcode'
+        app_label = 'weixin'
         verbose_name = u'VIP邀请码'
         verbose_name_plural = u'VIP邀请码列表'
 
@@ -644,6 +658,7 @@ class Coupon(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_coupon'
+        app_label = 'weixin'
         verbose_name = u'优惠券'
         verbose_name_plural = u'优惠券列表'
 
@@ -656,6 +671,7 @@ class CouponClick(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_coupon_click'
+        app_label = 'weixin'
         verbose_name = u'优惠券点击'
         verbose_name_plural = u'优惠券点击列表'
 
@@ -677,6 +693,7 @@ class Survey(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_survey'
+        app_label = 'weixin'
         verbose_name = u'用户调研'
         verbose_name_plural = u'用户调研列表'
         
@@ -696,6 +713,7 @@ class SampleChoose(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_sample_choose'
+        app_label = 'weixin'
         verbose_name = u'试用商品选择'
         verbose_name_plural = u'试用商品选择列表'
         
@@ -713,6 +731,7 @@ class TradeScoreRelevance(models.Model):
     created    = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
     class Meta:
         db_table = 'shop_weixin_trade_score_relate'
+        app_label = 'weixin'
         verbose_name = u'交易积分关联'
         verbose_name_plural = u'交易积分关联列表'
 
@@ -730,6 +749,7 @@ class WeixinUserScore(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_user_score'
+        app_label = 'weixin'
         verbose_name = u'用户积分'
         verbose_name_plural = u'用户积分列表'
         
@@ -767,6 +787,7 @@ class WeixinScoreItem(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_score_item'
+        app_label = 'weixin'
         verbose_name = u'用户积分明细'
         verbose_name_plural = u'用户积分明细列表'
 
@@ -783,6 +804,7 @@ class WeixinScoreBuy(models.Model):
     
     class Meta:
         db_table = 'shop_weixin_scorebuy'
+        app_label = 'weixin'
         verbose_name = u'积分换购名单'
         verbose_name_plural = u'积分换购名单列表'   
         
@@ -796,6 +818,7 @@ class WeixinClickScore(models.Model):
 
     class Meta:
         db_table = 'shop_weixin_click_score'
+        app_label = 'weixin'
         verbose_name = u'积分链接'
         verbose_name_plural = u'积分链接列表'
     
@@ -807,9 +830,9 @@ class WeixinClickScoreRecord(models.Model):
     created = models.DateTimeField(auto_now_add=True,null=True,verbose_name=u'创建时间')
 
     class Meta:
-        unique_together = ('user_openid', 'click_score_id') 
-        
         db_table = 'shop_weixin_click_score_item'
+        unique_together = ('user_openid', 'click_score_id')
+        app_label = 'weixin'
         verbose_name = u'积分链接点击'
         verbose_name_plural = u'积分链接点击列表'
         

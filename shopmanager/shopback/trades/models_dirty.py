@@ -253,6 +253,7 @@ class DirtyMergeTrade(models.Model):
 
     class Meta:
         db_table = 'shop_trades_dirtymergetrade'
+        app_label = 'trades'
         verbose_name = u'脏订单'
         verbose_name_plural = u'脏订单列表'
 
@@ -361,5 +362,6 @@ class DirtyMergeOrder(models.Model):
 
     class Meta:
         db_table = 'shop_trades_dirtymergeorder'
+        app_label = 'trades'
         verbose_name = u'脏订单明细'
         verbose_name_plural = u'脏订单明细列表'

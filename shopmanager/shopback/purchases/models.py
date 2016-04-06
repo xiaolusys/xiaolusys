@@ -96,6 +96,7 @@ class Purchase(models.Model):
     attach_files = models.FileField(blank=True,upload_to=os.path.join(settings.DOWNLOAD_ROOT,'purchase'))
     class Meta:
         db_table = 'shop_purchases_purchase'
+        app_label = 'purchases'
         verbose_name = u'采购单'
         verbose_name_plural = u'采购单列表'
         permissions = [
@@ -301,6 +302,7 @@ class PurchaseItem(models.Model):
     class Meta:
         db_table = 'shop_purchases_item'
         unique_together = ("purchase","product_id", "sku_id")
+        app_label = 'purchases'
         verbose_name = u'采购项目'
         verbose_name_plural = u'采购项目列表'
         permissions = [
@@ -414,6 +416,7 @@ class PurchaseStorage(models.Model):
     attach_files = models.FileField(blank=True,upload_to=os.path.join(settings.DOWNLOAD_ROOT,'storage'))
     class Meta:
         db_table     = 'shop_purchases_storage'
+        app_label    = 'purchases'
         verbose_name = u'入库单'
         verbose_name_plural = u'入库单列表'
 
@@ -644,6 +647,7 @@ class PurchaseStorageItem(models.Model):
     class Meta:
         db_table = 'shop_purchases_storageitem'
         unique_together = ("purchase_storage","product_id", "sku_id")
+        app_label = 'purchases'
         verbose_name = u'入库项目'
         verbose_name_plural = u'入库项目列表'
     
@@ -715,6 +719,7 @@ class PurchaseStorageRelationship(models.Model):
     class Meta:
         db_table = 'shop_purchases_relationship'
         unique_together = (("purchase_id","purchase_item_id","storage_id","storage_item_id"),)
+        app_label = 'purchases'
         verbose_name = u'采购入库关联'
         verbose_name_plural = u'采购入库关联'
     
@@ -817,6 +822,7 @@ class PurchasePayment(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_payment'
+        app_label = 'purchases'
         verbose_name=u'采购付款单'
         verbose_name_plural = u'采购付款单列表'
         permissions = [
@@ -1082,6 +1088,7 @@ class PurchasePaymentItem(models.Model):
     
     class Meta:
         db_table = 'shop_purchases_paymentitem'
+        app_label = 'purchases'
         verbose_name = u'付款项目'
         verbose_name_plural = u'付款项目列表'
     

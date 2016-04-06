@@ -24,6 +24,7 @@ class SystemConfig(models.Model):
     
     class Meta:
         db_table = 'shop_monitor_systemconfig'
+        app_label = 'monitor'
         verbose_name=u'系统设置'
         verbose_name_plural = u'系统设置'
     
@@ -49,6 +50,7 @@ class DayMonitorStatus(models.Model):
     class Meta:
         db_table = 'shop_monitor_daymonitortatus'
         unique_together = ("user_id","year","month","day")
+        app_label = 'monitor'
         verbose_name=u'店铺更新状态'
         verbose_name_plural = u'店铺更新状态列表'
 
@@ -64,6 +66,7 @@ class TradeExtraInfo(models.Model):
 
     class Meta:
         db_table = 'shop_monitor_tradeextrainfo'
+        app_label = 'monitor'
         verbose_name=u'交易更新状态'
         verbose_name_plural = u'交易更新状态'
 
@@ -77,6 +80,7 @@ class Reason(models.Model):
     
     class Meta:
         db_table = 'shop_monitor_reason'
+        app_label = 'monitor'
         verbose_name=u'订单问题'
         verbose_name_plural = u'订单问题列表'
   

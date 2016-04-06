@@ -35,6 +35,7 @@ class HotProduct(models.Model):
 
     class Meta:
         db_table = 'supplychain_hot_product'
+        app_label = 'supplychain'
         verbose_name = u'特卖/爆款表'
         verbose_name_plural = u'特卖/爆款列表'
 

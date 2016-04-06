@@ -24,6 +24,6 @@ class MonthTradeReportStatus(models.Model):
     class Meta:
         db_table = 'shop_report_monthreportstatus'
         unique_together = ("seller_id","year","month")
-        
+        app_label = 'report'
         
 

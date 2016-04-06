@@ -46,7 +46,7 @@ class TradeRule(models.Model):
                                          db_table='shop_memorule_itemrulemap')
     class Meta:
         db_table = 'shop_memorule_traderule'
-        
+        app_label = 'memorule'
 
 
 FIELD_TYPE_CHOICE = (
@@ -64,6 +64,7 @@ class RuleFieldType(models.Model):
 
     class Meta:
         db_table = 'shop_memorule_rulefieldtype'
+        app_label = 'memorule'
     
     def __unicode__(self):
         return self.field_name+self.field_type
@@ -79,6 +80,7 @@ class ProductRuleField(models.Model):
 
     class Meta:
         db_table = 'shop_memorule_productrulefield'
+        app_label = 'memorule'
         verbose_name = u'待审核规则'
         
     @property
@@ -109,6 +111,7 @@ class RuleMemo(models.Model):
     
     class Meta:
         db_table = 'shop_memorule_rulememo'
+        app_label = 'memorule'
 
     def __unicode__(self):
         return str(self.tid)    
@@ -150,9 +153,11 @@ class ComposeRule(models.Model):
     
     class Meta:
         db_table = 'shop_memorule_composerule'
+        unique_together = ("outer_id", "outer_sku_id", "type")
+        app_label = 'memorule'
         verbose_name=u'匹配规则'
         verbose_name_plural = u'拆分规则列表'
-        unique_together = ("outer_id","outer_sku_id","type")
+
         
     def __unicode__(self):
         return str(self.id)
@@ -183,6 +188,7 @@ class ComposeItem(models.Model):
     modified = models.DateTimeField(null=True,blank=True,auto_now=True)
     class Meta:
         db_table = 'shop_memorule_composeitem'
+        app_label = 'memorule'
         verbose_name=u'拆分规则商品'
         verbose_name_plural = u'拆分规则商品列表'
         

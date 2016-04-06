@@ -17,6 +17,7 @@ class PinPaiTuan(models.Model):
     
     class Meta:
         db_table = 'shop_juhuasuan_pinpaituan'
+        app_label = 'orders'
         verbose_name='品牌团入仓商品'
     
     def __unicode__(self):

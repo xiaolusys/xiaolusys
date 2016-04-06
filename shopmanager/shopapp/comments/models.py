@@ -48,6 +48,7 @@ class Comment(models.Model):
     class Meta:
         db_table = 'shop_comments_comment'
         unique_together = ('num_iid', 'tid', 'oid', 'role')
+        app_label = 'comments'
         verbose_name = u'交易评论'
         verbose_name_plural = u'交易评论列表'
         
@@ -85,6 +86,7 @@ class CommentItem(models.Model):
     
     class Meta:
         db_table = 'shop_comments_commentitem'
+        app_label = 'comments'
         verbose_name = u'评价商品'
         verbose_name_plural = u'评价商品列表'
         
@@ -116,6 +118,7 @@ class CommentGrade(models.Model):
     class Meta:
         db_table = 'shop_comments_grade'
         unique_together = ('num_iid', 'tid', 'oid')
+        app_label = 'comments'
         verbose_name = u'评论打分'
         verbose_name_plural = u'评论打分列表'
         

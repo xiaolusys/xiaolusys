@@ -113,6 +113,7 @@ class XiaoluMama(models.Model):
     
     class Meta:
         db_table = 'xiaolumm_xiaolumama'
+        app_label = 'xiaolumm'
         verbose_name=u'小鹿妈妈'
         verbose_name_plural = u'小鹿妈妈列表'
         
@@ -470,6 +471,7 @@ class AgencyLevel(models.Model):
 
     class Meta:
         db_table = 'xiaolumm_agencylevel'
+        app_label = 'xiaolumm'
         verbose_name=u'代理类别'
         verbose_name_plural = u'代理类别列表'
         
@@ -546,6 +548,7 @@ class CashOut(models.Model):
 
     class Meta:
         db_table = 'xiaolumm_cashout'
+        app_label = 'xiaolumm'
         verbose_name = u'提现记录'
         verbose_name_plural = u'提现记录列表'
         permissions = [('xiaolumm_cashout_bat_handler', u'提现批量审核')]
@@ -685,6 +688,7 @@ class CarryLog(models.Model):
     
     class Meta:
         db_table = 'xiaolumm_carrylog'
+        app_label = 'xiaolumm'
         verbose_name=u'妈妈钱包/收支记录'
         verbose_name_plural = u'妈妈钱包/收支记录列表'
         
@@ -835,6 +839,7 @@ class OrderRedPacket(models.Model):
 
     class Meta:
         db_table = 'xiaolumm_order_red_packet'
+        app_label = 'xiaolumm'
         verbose_name = u'妈妈订单红包表'
         verbose_name_plural = u'妈妈订单红包列表'
 

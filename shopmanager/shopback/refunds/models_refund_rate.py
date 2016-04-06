@@ -24,6 +24,7 @@ class PayRefundRate(models.Model):
 
     class Meta:
         db_table = 'flashsale_pay_refundrate'
+        app_label = 'refunds'
         verbose_name = u'特卖/退款率表'
         verbose_name_plural = u'特卖/退款率列表'
 
@@ -47,6 +48,7 @@ class PayRefNumRcord(models.Model):
 
     class Meta:
         db_table = 'flashsale_pay_refund_num_record'
+        app_label = 'refunds'
         verbose_name = u'特卖/退款数记录表'
         verbose_name_plural = u'特卖/退款数记录表'
 
@@ -73,6 +75,7 @@ class ProRefunRcord(models.Model):
 
     class Meta:
         db_table = 'flashsale_pay_product_refund_record'
+        app_label = 'refunds'
         verbose_name = u'特卖/产品退款数记录表'
         verbose_name_plural = u'特卖/产品退款数记录表'
         permissions = [('browser_all_pro_duct_ref_lis', u'浏览买手所有产品的退货状况记录')]

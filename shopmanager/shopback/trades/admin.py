@@ -1050,14 +1050,8 @@ class MergeOrderChangeList(ChangeList):
 
         return super(MergeOrderChangeList,self).get_query_set(request)
 
-<<<<<<< HEAD
-
 class MergeOrderAdmin(ApproxAdmin):
 
-=======
-    
-class MergeOrderAdmin(ApproxAdmin):
->>>>>>> [django]change django version to 1.8.10
     list_display = ('id','oid','merge_trade_link','outer_id','outer_sku_id','sku_properties_name','price','num',
                     'payment','gift_type','pay_time','refund_status','trade_status_link','sys_status')
     list_display_links = ('oid','id')

@@ -85,6 +85,7 @@ class ZTOOrderList(models.Model):
 
     class Meta:
         db_table = 'ztoorderlist'
+        app_label = 'zhongtong'
         verbose_name = u'订单列表'
         verbose_name_plural = u'中通订单列表'
 
@@ -117,6 +118,7 @@ class PrintRecord(models.Model):
 
     class Meta:
         db_table = 'ztoprintrecord'
+        app_label = 'zhongtong'
         verbose_name = u'打印记录'
         verbose_name_plural = u'打印记录表'
 

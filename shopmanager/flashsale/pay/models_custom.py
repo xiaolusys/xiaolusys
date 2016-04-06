@@ -58,6 +58,7 @@ class Productdetail(PayBaseModel):
 
     class Meta:
         db_table = 'flashsale_productdetail'
+        app_label = 'flashsale'
         verbose_name=u'特卖商品/详情'
         verbose_name_plural = u'特卖商品/详情列表'
 
@@ -119,6 +120,7 @@ class ModelProduct(PayBaseModel):
     class Meta:
         db_table = 'flashsale_modelproduct'
         unique_together = ("id", "name")
+        app_label = 'flashsale'
         verbose_name=u'特卖商品/款式'
         verbose_name_plural = u'特卖商品/款式列表'
         permissions = [
@@ -209,6 +211,7 @@ class GoodShelf(PayBaseModel):
 
     class Meta:
         db_table = 'flashsale_goodshelf'
+        app_label = 'flashsale'
         verbose_name=u'特卖商品/海报'
         verbose_name_plural = u'特卖商品/海报列表'
 
@@ -253,6 +256,7 @@ class ActivityEntry(PayBaseModel):
 
     class Meta:
         db_table = 'flashsale_activity_entry'
+        app_label = 'flashsale'
         verbose_name=u'特卖/商城活动入口'
         verbose_name_plural = u'特卖/商城活动入口'
 

@@ -61,8 +61,8 @@ class TradeHandler(object):
         
         
 def getTradeHandler(config_handlers_path=[]):
-    
-    from django.utils.importlib import import_module
+
+    from importlib import import_module
     
     trade_handler =  TradeHandler()
     config_handlers_path = config_handlers_path or getattr(settings,'TRADE_HANDLERS_PATH',[])

@@ -27,6 +27,7 @@ class XlmmAdvertis(models.Model):
 
     class Meta:
         db_table = 'flashsale_xlmm_advertis'
+        app_label = 'xiaolumm'
         verbose_name = u'代理广告表'
         verbose_name_plural = u'代理广告表列表'
 
@@ -42,6 +43,7 @@ class TweetAdvertorial(models.Model):
 
     class Meta:
         db_table = 'flashsale_xlmm_tweet'
+        app_label = 'xiaolumm'
         verbose_name = u'分享推文表'
         verbose_name_plural = u'分享推文列表'
 
@@ -76,6 +78,7 @@ class NinePicAdver(models.Model):
 
     class Meta:
         db_table = 'flashsale_xlmm_nine_pic'
+        app_label = 'xiaolumm'
         verbose_name = u'图片推广表'
         verbose_name_plural = u'图片推广列表'
 

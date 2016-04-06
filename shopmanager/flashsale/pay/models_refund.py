@@ -119,6 +119,7 @@ class SaleRefund(PayBaseModel):
     class Meta:
         db_table = 'flashsale_refund'
         unique_together = ("trade_id","order_id")
+        app_label = 'flashsale'
         verbose_name=u'特卖/退款单'
         verbose_name_plural = u'特卖/退款单列表'
         permissions = [("sale_refund_manage", u"特卖订单退款管理"),]

@@ -31,6 +31,7 @@ class SampleProduct(models.Model):
 
     class Meta:
         db_table = 'sample_product'
+        app_label = 'sampleproduct'
         verbose_name = u'样品'
         verbose_name_plural = u'样品信息表'
         
@@ -62,6 +63,7 @@ class SampleProductSku(models.Model):
 
     class Meta:
         db_table = 'sample_product_sku'
+        app_label = 'sampleproduct'
         verbose_name = u'样品规格'
         
     def __unicode__(self):
@@ -86,6 +88,7 @@ class ScanLinShi(models.Model):
 
     class Meta:
         db_table = 'scan_linshi'
+        app_label = 'sampleproduct'
         verbose_name = u'临时表'
         verbose_name_plural = u'扫描临时表'
 
@@ -124,6 +127,7 @@ class SampleScan(models.Model):
 
     class Meta:
         db_table = 'sample_scan'
+        app_label = 'sampleproduct'
         verbose_name = u'（出）入库表'
         verbose_name_plural = u'样品（出）入库记录表'
         

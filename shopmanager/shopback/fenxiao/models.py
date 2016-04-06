@@ -117,6 +117,7 @@ class FenxiaoProduct(models.Model):
     status            = models.CharField(max_length=10,choices=STATUS_CHOICES,blank=True)
     class Meta:
         db_table = 'shop_fenxiao_product'
+        app_label = 'fenxiao'
         verbose_name=u'分销商品'
         verbose_name_plural = u'分销商品列表'
 
@@ -193,6 +194,7 @@ class PurchaseOrder(models.Model):
 
     class Meta:
         db_table = 'shop_fenxiao_purchaseorder'
+        app_label = 'fenxiao'
         verbose_name=u'分销订单'
         verbose_name_plural = u'分销订单列表'
 
@@ -276,6 +278,7 @@ class SubPurchaseOrder(models.Model):
     
     class Meta:
         db_table = 'shop_fenxiao_subpurchaseorder'
+        app_label = 'fenxiao'
         verbose_name=u'分销订单商品'
         verbose_name_plural = u'分销订单商品列表'
         

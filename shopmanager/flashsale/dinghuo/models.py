@@ -97,6 +97,7 @@ class OrderList(models.Model):
 
     class Meta:
         db_table = 'suplychain_flashsale_orderlist'
+        app_label = 'dinghuo'
         verbose_name = u'订货表'
         verbose_name_plural = u'订货表'
         permissions = [("change_order_list_inline", u"修改后台订货信息"),]
@@ -132,6 +133,7 @@ class OrderDetail(models.Model):
 
     class Meta:
         db_table = 'suplychain_flashsale_orderdetail'
+        app_label = 'dinghuo'
         verbose_name = u'订货明细表'
         verbose_name_plural = u'订货明细表'
 
@@ -152,6 +154,7 @@ class orderdraft(models.Model):
 
     class Meta:
         db_table = 'suplychain_flashsale_orderdraft'
+        app_label = 'dinghuo'
         verbose_name = u'草稿表'
         verbose_name_plural = u'草稿表'
 
@@ -169,6 +172,7 @@ class ProductSkuDetail(models.Model):
 
     class Meta:
         db_table = 'flash_sale_product_sku_detail'
+        app_label = 'dinghuo'
         verbose_name = u'特卖商品库存'
         verbose_name_plural = u'特卖商品库存列表'
 
@@ -228,6 +232,7 @@ class ReturnGoods(models.Model):
 
     class Meta:
         db_table = 'flashsale_dinghuo_returngoods'
+        app_label = 'dinghuo'
         verbose_name = u'商品库存退货表'
         verbose_name_plural = u'商品库存退货列表'
 
@@ -247,6 +252,7 @@ class RGDetail(models.Model):
 
     class Meta:
         db_table = 'flashsale_dinghuo_rg_detail'
+        app_label = 'dinghuo'
         verbose_name = u'商品库存退货明细表'
         verbose_name_plural = u'商品库存退货明细列表'
 
@@ -294,6 +300,7 @@ class SaleInventoryStat(models.Model):
 
     class Meta:
         db_table = 'flashsale_inventory_stat'
+        app_label = 'dinghuo'
         verbose_name = u'特卖入库及库存每日统计'
         verbose_name_plural = u'特卖入库及库存每日统计列表'
 
@@ -329,6 +336,7 @@ class InBound(models.Model):
 
     class Meta:
         db_table = 'flashsale_dinghuo_inbound'
+        app_label = 'dinghuo'
         verbose_name = u'入仓单'
         verbose_name_plural = u'入仓单列表'
 
@@ -339,6 +347,7 @@ class InBoundImage(models.Model):
 
     class Meta:
         db_table = 'flashsale_dinghuo_inboundimage'
+        app_label = 'dinghuo'
         verbose_name = u'入仓单图片'
         verbose_name_plural = u'入仓单图片列表'
 
@@ -366,6 +375,7 @@ class InBoundDetail(models.Model):
 
     class Meta:
         db_table = 'flashsale_dinghuo_inbounddetail'
+        app_label = 'dinghuo'
         verbose_name = u'入仓单明细'
         verbose_name_plural = u'入仓单明细列表'
 
@@ -377,6 +387,7 @@ class OrderListInBound(models.Model):
 
     class Meta:
         db_table = 'flashsale_dinghuo_orderlistinbound'
+        app_label = 'dinghuo'
 
 
 class OrderDetailInBoundDetail(models.Model):
@@ -393,3 +404,4 @@ class OrderDetailInBoundDetail(models.Model):
 
     class Meta:
         db_table = 'dinghuo_orderdetailinbounddetail'
+        app_label = 'dinghuo'

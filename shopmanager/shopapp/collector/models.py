@@ -23,7 +23,7 @@ class ProductPageRank(models.Model):
 
     class Meta:
         db_table = 'shop_collector_pagerank'
-
+        app_label = 'collector'
 
 
 class ProductTrade(models.Model):
@@ -48,3 +48,4 @@ class ProductTrade(models.Model):
 
     class Meta:
         db_table = 'shop_collector_producttrade'
+        app_label = 'collector'

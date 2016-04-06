@@ -68,6 +68,7 @@ class CouponTemplate(BaseModel):
 
     class Meta:
         db_table = "pay_coupon_template"
+        app_label = 'flashsale'
         verbose_name = u"特卖/优惠券/模板/NEW"
         verbose_name_plural = u"优惠券/模板/NEW"
 
@@ -152,6 +153,7 @@ class CouponsPool(BaseModel):
 
     class Meta:
         db_table = "pay_coupon_pool"
+        app_label = 'flashsale'
         verbose_name = u"特卖/优惠券/券池/NEW"
         verbose_name_plural = u"优惠券/券池/NEW"
 
@@ -191,6 +193,7 @@ class UserCoupon(BaseModel):
     class Meta:
         unique_together = ('cp_id', 'customer')
         db_table = "pay_user_coupon"
+        app_label = 'flashsale'
         verbose_name = u"特卖/优惠券/用户优惠券/NEW"
         verbose_name_plural = u"优惠券/用户优惠券/NEW"
 

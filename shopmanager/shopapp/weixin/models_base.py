@@ -11,7 +11,8 @@ class WeixinUnionID(CacheModel):
 
     class Meta:
         db_table = 'shop_weixin_unionid'
-        unique_together = ('openid', 'app_key') 
+        unique_together = ('openid', 'app_key')
+        app_label = 'weixin'
         verbose_name=u'微信用户授权ID'
         verbose_name_plural = u'微信用户授权ID列表'
     

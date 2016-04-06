@@ -36,6 +36,7 @@ class Area(models.Model):
     
     class Meta:
         db_table = 'shop_logistics_area'
+        app_label = 'logistics'
         verbose_name=u'地理区划'
         verbose_name_plural = u'地理区划列表'
 
@@ -53,6 +54,7 @@ class DestCompany(models.Model):
     
     class Meta:
         db_table = 'shop_logistics_destcompany'
+        app_label = 'logistics'
         verbose_name=u'区域快递分配'
         verbose_name_plural = u'区域快递分配'
 
@@ -104,6 +106,7 @@ class LogisticsCompany(models.Model):
     
     class Meta:
         db_table = 'shop_logistics_company'
+        app_label = 'logistics'
         verbose_name=u'物流公司'
         verbose_name_plural = u'物流公司列表'
 
@@ -206,6 +209,7 @@ class Logistics(models.Model):
 
     class Meta:
         db_table = 'shop_logistics_logistic'
+        app_label = 'logistics'
         verbose_name=u'订单物流'
         verbose_name_plural = u'订单物流列表'
 

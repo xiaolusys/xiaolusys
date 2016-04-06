@@ -35,6 +35,7 @@ class StaffEvent(models.Model):
     
     class Meta:
         db_table = 'shop_calendar_staffevent'
+        app_label = 'calendar'
         verbose_name = u'事件'
         verbose_name_plural = u'事件列表'
 

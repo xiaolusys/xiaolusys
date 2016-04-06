@@ -70,6 +70,7 @@ class Product(models.Model):
 
     class Meta:
         db_table = 'shop_items_product'
+        app_label = 'items'
         verbose_name = u'库存商品'
         verbose_name_plural = u'库存商品列表'
         permissions = [
@@ -572,6 +573,7 @@ class ProductSku(models.Model):
     class Meta:
         db_table = 'shop_items_productsku'
         unique_together = ("outer_id", "product")
+        app_label = 'items'
         verbose_name=u'库存商品规格'
         verbose_name_plural = u'库存商品规格列表'
 
@@ -1051,6 +1053,7 @@ class Item(models.Model):
     status = models.BooleanField(default=True,verbose_name='使用')
     class Meta:
         db_table = 'shop_items_item'
+        app_label = 'items'
         verbose_name = u'线上商品'
         verbose_name_plural = u'线上商品列表'
 
@@ -1145,6 +1148,7 @@ class SkuProperty(models.Model):
     class Meta:
         db_table = 'shop_items_skuproperty'
         unique_together = ("num_iid", "sku_id")
+        app_label = 'items'
         verbose_name = u'线上商品规格'
         verbose_name_plural = u'线上商品规格列表'
 
@@ -1185,6 +1189,7 @@ class ProductLocation(models.Model):
     class Meta:
         db_table = 'shop_items_productlocation'
         unique_together = ("product_id", "sku_id", "district")
+        app_label = 'items'
         verbose_name = u'商品库位'
         verbose_name_plural = u'商品库位列表'
 
@@ -1204,6 +1209,7 @@ class ItemNumTaskLog(models.Model):
 
     class Meta:
         db_table = 'shop_items_itemnumtasklog'
+        app_label = 'items'
         verbose_name=u'库存同步日志'
         verbose_name_plural = u'库存同步日志'
 
@@ -1235,6 +1241,7 @@ class ProductDaySale(models.Model):
     class Meta:
         db_table = 'shop_items_daysale'
         unique_together = ("day_date","user_id","product_id","sku_id")
+        app_label = 'items'
         verbose_name    = u'商品销量统计'
         verbose_name_plural = u'商品销量统计'
 
@@ -1276,6 +1283,7 @@ class ProductScanStorage(models.Model):
     class Meta:
         db_table = 'shop_items_scan'
         unique_together = ("wave_no","product_id","sku_id")
+        app_label = 'items'
         verbose_name    = u'扫描入库商品'
         verbose_name_plural = u'扫描入库商品列表'
 
@@ -1313,6 +1321,7 @@ class ProductSkuContrast(models.Model):
     objects = managers.CacheManager()
     class Meta:
         db_table = 'shop_items_productskucontrast'
+        app_label = 'items'
         verbose_name = u'对照内容表'
         verbose_name_plural = u'对照内容表'
 
@@ -1351,6 +1360,7 @@ class ContrastContent(models.Model):
     class Meta:
         db_table = 'shop_items_contrastcontent'
         unique_together = ("cid", "name")
+        app_label = 'items'
         verbose_name = u'对照内容字典'
         verbose_name_plural = u'对照内容字典'
 
@@ -1372,6 +1382,7 @@ class ImageWaterMark(models.Model):
     objects = managers.CacheManager()
     class Meta:
         db_table = u'image_watermark'
+        app_label = 'items'
         verbose_name = u'图片水印'
         verbose_name_plural = u'图片水印'
 
@@ -1406,5 +1417,6 @@ class ProductSchedule(AdminModel):
     objects = managers.CacheManager()
     class Meta:
         db_table = 'shop_items_schedule'
+        app_label = 'items'
         verbose_name = u'商品上下架排期管理'
         verbose_name_plural = u'商品上下架排期管理列表'

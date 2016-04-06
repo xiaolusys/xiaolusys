@@ -148,6 +148,7 @@ class User(models.Model):
     
     class Meta:
         db_table = 'shop_users_user'
+        app_label = 'users'
         verbose_name= u'店铺'
         verbose_name_plural = u'店铺列表'
         permissions = [
@@ -314,6 +315,7 @@ class Customer(models.Model):
     class Meta:
         db_table = 'shop_users_customer'
         unique_together = ("nick","mobile","phone")
+        app_label = 'users'
         verbose_name= u'会员'
         verbose_name_plural = u'会员列表'
 

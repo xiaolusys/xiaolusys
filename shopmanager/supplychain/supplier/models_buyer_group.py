@@ -13,6 +13,7 @@ class BuyerGroup(models.Model):
 
     class Meta:
         db_table = 'supply_chain_buyer_group'
+        app_label = 'supplychain'
         verbose_name = u'买手分组'
         verbose_name_plural = u'买手分组列表'
         app_label = 'users'

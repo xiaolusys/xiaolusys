@@ -65,6 +65,7 @@ class MamaFortune(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_fortune'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈财富表'
         verbose_name_plural = u'V2/妈妈财富列表'
 
@@ -117,6 +118,7 @@ class DailyStats(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_daily_stats'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/每日数据'
         verbose_name_plural = u'V2/每日数据列表'
 
@@ -150,6 +152,7 @@ class CarryRecord(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_carry_record'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈收入记录'
         verbose_name_plural = u'V2/妈妈收入记录列表'
 
@@ -225,6 +228,7 @@ class OrderCarry(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_order_carry'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/订单提成'
         verbose_name_plural = u'V2/订单提成列表'
 
@@ -335,6 +339,7 @@ class AwardCarry(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_award_carry'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈邀请奖励'
         verbose_name_plural = u'V2/妈妈邀请奖励列表'
 
@@ -385,6 +390,7 @@ class ClickPlan(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_click_plan'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/点击计划'
         verbose_name_plural = u'V2/点击计划列表'
 
@@ -411,6 +417,7 @@ class ClickCarry(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_click_carry'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈点击返现'
         verbose_name_plural = u'V2/妈妈点击返现列表'
 
@@ -475,6 +482,7 @@ class ActiveValue(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_active_value_record'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈活跃值'
         verbose_name_plural = u'V2/妈妈活跃值列表'
 
@@ -529,6 +537,7 @@ class ReferalRelationship(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_referal_relationship'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈推荐关系'
         verbose_name_plural = u'V2/妈妈推荐关系列表'
 
@@ -604,6 +613,7 @@ class GroupRelationship(BaseModel):
 
     class Meta:
         db_table = 'flashsale_xlmm_group_relationship'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/妈妈团队关系'
         verbose_name_plural = u'V2/妈妈团队关系列表'
 
@@ -631,6 +641,7 @@ class UniqueVisitor(BaseModel):
     
     class Meta:
         db_table = 'flashsale_xlmm_unique_visitor'
+        app_label = 'xiaolumm'
         verbose_name = u'V2/独立访客'
         verbose_name_plural = u'V2/独立访客列表'
 

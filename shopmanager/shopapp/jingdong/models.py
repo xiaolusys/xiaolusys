@@ -29,6 +29,7 @@ class JDShop(models.Model):
     
     class Meta:
         db_table = 'shop_jingdong_shop'
+        app_label = 'jingdong'
         verbose_name=u'京东商铺'
         verbose_name_plural = u'京东商铺列表'
         
@@ -56,6 +57,7 @@ class JDLogistic(models.Model):
     
     class Meta:
         db_table = 'shop_jingdong_logistic'
+        app_label = 'jingdong'
         verbose_name=u'京东物流'
         verbose_name_plural = u'京东物流列表'
         
@@ -153,6 +155,7 @@ class JDOrder(models.Model):
     
     class Meta:
         db_table = 'shop_jingdong_order'
+        app_label = 'jingdong'
         verbose_name=u'京东订单'
         verbose_name_plural = u'京东订单列表'
         
@@ -256,6 +259,7 @@ class JDProduct(models.Model):
     
     class Meta:
         db_table = 'shop_jingdong_product'
+        app_label = 'jingdong'
         verbose_name=u'京东商品'
         verbose_name_plural = u'京东商品列表'
             

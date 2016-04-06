@@ -18,6 +18,7 @@ class XlmmFans(BaseModel):
     class Meta:
         unique_together = ('xlmm', 'fans_cusid')
         db_table = 'flashsale_xlmm_fans'
+        app_label = 'xiaolumm'
         verbose_name = u'代理/粉丝表'
         verbose_name_plural = u'代理/粉丝列表'
 
@@ -82,6 +83,7 @@ class FansNumberRecord(BaseModel):
     class Meta:
         unique_together = ('xlmm', 'xlmm_cusid')
         db_table = 'flashsale_xlmm_fans_nums'
+        app_label = 'xiaolumm'
         verbose_name = u'代理/粉丝数量表'
         verbose_name_plural = u'代理/粉丝数量列表'
 

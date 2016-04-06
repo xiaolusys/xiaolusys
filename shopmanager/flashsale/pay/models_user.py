@@ -39,6 +39,7 @@ class Register(PayBaseModel):
     
     class Meta:
         db_table = 'flashsale_register'
+        app_label = 'flashsale'
         verbose_name=u'特卖用户/注册'
         verbose_name_plural = u'特卖用户/注册列表'
         
@@ -92,6 +93,7 @@ class Customer(BaseModel):
     
     class Meta:
         db_table = 'flashsale_customer'
+        app_label = 'flashsale'
         verbose_name=u'特卖用户/客户'
         verbose_name_plural = u'特卖用户/客户列表'
     
@@ -238,6 +240,7 @@ class UserBudget(PayBaseModel):
     """ 特卖用户钱包 """
     class Meta:
         db_table = 'flashsale_userbudget'
+        app_label = 'flashsale'
         verbose_name=u'特卖/用户钱包'
         verbose_name_plural = u'特卖/用户钱包列表'
     
@@ -358,6 +361,7 @@ class BudgetLog(PayBaseModel):
     """ 特卖用户钱包记录 """
     class Meta:
         db_table = 'flashsale_userbudgetlog'
+        app_label = 'flashsale'
         verbose_name=u'特卖/用户钱包收支记录'
         verbose_name_plural = u'特卖/用户钱包收支记录'
     

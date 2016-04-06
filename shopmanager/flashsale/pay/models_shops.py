@@ -15,6 +15,7 @@ class CustomerShops(PayBaseModel):
 
     class Meta:
         db_table = 'flashsale_customer_shop'
+        app_label = 'flashsale'
         verbose_name = u'v2/特卖用户店铺'
         verbose_name_plural = u'v2/特卖用户/店铺列表'
 
@@ -62,6 +63,7 @@ class CuShopPros(PayBaseModel):
 
     class Meta:
         db_table = 'flashsale_cushops_detail'
+        app_label = 'flashsale'
         verbose_name = u'v2/特卖用户店铺产品表'
         verbose_name_plural = u'v2/特卖用户/店铺产品明细列表'
 

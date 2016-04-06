@@ -38,6 +38,7 @@ class TaobaoAsyncTaskModel(models.Model):
     
     class Meta:
         db_table = 'shop_asynctask_taobao'
+        app_label = 'asynctask'
         verbose_name = u'淘宝异步任务'
         verbose_name_plural = u'淘宝异步任务列表'
 
@@ -75,6 +76,7 @@ class PrintAsyncTaskModel(models.Model):
     
     class Meta:
         db_table = 'shop_asynctask_print'
+        app_label = 'asynctask'
         verbose_name = u'异步打印任务'
         verbose_name_plural = u'异步打印任务列表'
         

@@ -30,6 +30,7 @@ class BranchZone(models.Model):
     
     class Meta:
         db_table = 'shop_yunda_branch'
+        app_label = 'yunda'
         verbose_name=u'韵达分拨网点'
         verbose_name_plural = u'韵达分拨网点'
    
@@ -48,6 +49,7 @@ class ClassifyZone(models.Model):
     
     class Meta:
         db_table = 'shop_yunda_zone'
+        app_label = 'yunda'
         verbose_name=u'韵达分拨地址'
         verbose_name_plural = u'韵达分拨地址'
    
@@ -113,6 +115,7 @@ class YundaCustomer(models.Model):
     class Meta:
         db_table = 'shop_yunda_customer'
         unique_together = ("code","ware_by")
+        app_label = 'yunda'
         verbose_name=u'韵达客户'
         verbose_name_plural = u'韵达客户列表'
    
@@ -166,6 +169,7 @@ class LogisticOrder(models.Model):
     wave_no    =  models.CharField(max_length=32,db_index=True,blank=True,verbose_name=u'批次')
     class Meta:
         db_table = 'shop_yunda_order'
+        app_label = 'yunda'
         verbose_name=u'韵达订单'
         verbose_name_plural = u'韵达订单列表'
    
@@ -192,6 +196,7 @@ class ParentPackageWeight(models.Model):
 
     class Meta:
         db_table = 'shop_yunda_ppw'
+        app_label = 'yunda'
         verbose_name=u'韵达大包重量记录'
         verbose_name_plural = u'韵达大包重量记录'
    
@@ -210,6 +215,7 @@ class TodaySmallPackageWeight(models.Model):
 
     class Meta:
         db_table = 'shop_yunda_tspw'
+        app_label = 'yunda'
         verbose_name=u'韵达当日小包重量'
         verbose_name_plural = u'韵达当日小包重量'
    
@@ -227,6 +233,7 @@ class TodayParentPackageWeight(models.Model):
 
     class Meta:
         db_table = 'shop_yunda_tppw'
+        app_label = 'yunda'
         verbose_name=u'韵达当日大包重量'
         verbose_name_plural = u'韵达当日大包重量'
    

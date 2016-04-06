@@ -24,6 +24,7 @@ class SampleFrozenScore(models.Model):
     status     = models.IntegerField(choices=STATUS_CHOICES,default=FROZEN,verbose_name=u"状态")    
     class Meta:
         db_table = 'shop_weixin_score_frozen'
+        app_label = 'weixin'
         verbose_name = u'试用冻结积分'
         verbose_name_plural = u'使用冻结积分列表'
     

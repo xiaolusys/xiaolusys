@@ -28,6 +28,7 @@ class ItemNotify(models.Model):
     class Meta:
         db_table = 'shop_notify_item'
         unique_together = ("user_id","num_iid","sku_id","status")
+        app_label = 'notify'
         
     def __unicode__(self):
         return '<%d,%d,%s,%s>'%(self.user_id,self.num_iid,str(self.sku_id),self.status)
@@ -74,7 +75,8 @@ class TradeNotify(models.Model):
     class Meta:
         db_table = 'shop_notify_trade'
         unique_together = ("user_id","tid","oid","status")
-        
+        app_label = 'notify'
+
     def __unicode__(self):
         return '<%d,%d,%d,%s>'%(self.user_id,self.tid,self.oid,self.status)
     
@@ -115,7 +117,8 @@ class RefundNotify(models.Model):
     class Meta:
         db_table = 'shop_notify_refund'
         unique_together = ("user_id","tid","oid","rid","status")
-        
+        app_label = 'notify'
+
     def __unicode__(self):
         return '<%d,%d,%d,%d,%s>'%(self.user_id,self.tid,self.oid,self.rid,self.status)
    

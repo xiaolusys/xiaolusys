@@ -23,6 +23,7 @@ class KefuPerformance(models.Model):
 
     class Meta:
         db_table = 'flashsale_kefu_record'
+        app_label = 'trades'
         verbose_name = u'客服操作记录'
         verbose_name_plural = u'客服操作记录表'
 

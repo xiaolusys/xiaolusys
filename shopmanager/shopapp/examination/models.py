@@ -12,6 +12,7 @@ class ExamUser(models.Model):
     
     class Meta:
         db_table = 'shop_examination_user'
+        app_label = 'examination'
         verbose_name = u'考试用户信息'
         verbose_name_plural = u'考试用户信息列表'
 
@@ -28,6 +29,7 @@ class ExamProblemSelect(models.Model):
     
     class Meta:
         db_table = 'shop_examination_problem_select'
+        app_label = 'examination'
         verbose_name = u'考试题库'
         verbose_name_plural = u'考试题库列表'
         
@@ -55,6 +57,7 @@ class ExamSelectProblemPaper(models.Model):
     class Meta:
         db_table = 'shop_examination_paper_select_problem'
         unique_together = ('user', 'problem_id', 'paper_id')
+        app_label = 'examination'
         verbose_name = u'考试卷信息'
         verbose_name_plural = u'考试卷信息列表'
     
@@ -67,6 +70,7 @@ class ExmaEssayQuestion(models.Model):
     
     class Meta:
         db_table = 'shop_examination_essay_question'
+        app_label = 'examination'
         verbose_name = u'考试wenda题库'
         verbose_name_plural = u'考试wenda题库列表'
         
@@ -83,5 +87,6 @@ class ExamEssayQuestionPaper(models.Model):
     class Meta:
         db_table = 'shop_examination_paper_essay_question'
         unique_together = ('user', 'problem_id', 'paper_id')
+        app_label = 'examination'
         verbose_name = u'考试wenda卷信息'
         verbose_name_plural = u'考试wenda卷信息列表'

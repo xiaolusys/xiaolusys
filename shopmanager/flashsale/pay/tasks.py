@@ -405,7 +405,7 @@ from django.db.models import Q
 from flashsale.xiaolumm.models_fans import XlmmFans
 from flashsale.promotion.models_freesample import AppDownloadRecord
 from shopapp.weixin.models import WeixinUnionID
-import settings
+from django.conf import settings
 
 
 @task

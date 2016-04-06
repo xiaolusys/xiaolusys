@@ -18,6 +18,7 @@ class XLFreeSample(CacheModel):
 
     class Meta:
         db_table = 'flashsale_promotion_freesample'
+        app_label = 'promotion'
         verbose_name = u'推广/试用商品'
         verbose_name_plural = u'推广/试用商品列表'
 
@@ -33,6 +34,7 @@ class XLSampleSku(CacheModel):
 
     class Meta:
         db_table = 'flashsale_promotion_samplesku'
+        app_label = 'promotion'
         verbose_name = u'推广/试用商品SKU'
         verbose_name_plural = u'推广/试用商品SKU列表'
 
@@ -79,6 +81,7 @@ class XLSampleApply(CacheModel):
     nick = models.CharField(max_length=32,null=False,blank=True,verbose_name=u'昵称')
     class Meta:
         db_table = 'flashsale_promotion_sampleapply'
+        app_label = 'promotion'
         verbose_name = u'推广/试用申请'
         verbose_name_plural = u'推广/试用申请列表'
 
@@ -97,6 +100,7 @@ class XLSampleOrder(CacheModel):
 
     class Meta:
         db_table = 'flashsale_promotion_sampleorder'
+        app_label = 'promotion'
         verbose_name = u'推广/试用订单'
         verbose_name_plural = u'推广/试用订单列表'
 
@@ -131,6 +135,7 @@ class ReadPacket(CacheModel):
 
     class Meta:
         db_table = 'flashsale_promotion_red_packet'
+        app_label = 'promotion'
         verbose_name = u'推广/活动红包表'
         verbose_name_plural = u'推广/活动红包列表'
 
@@ -154,6 +159,7 @@ class AppDownloadRecord(BaseModel):
 
     class Meta:
         db_table = 'flashsale_promotion_download_record'
+        app_label = 'promotion'
         verbose_name = u'推广/下载记录表'
         verbose_name_plural = u'推广/下载记录表'
 

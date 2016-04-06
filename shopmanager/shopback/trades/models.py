@@ -301,6 +301,7 @@ class MergeTrade(models.Model):
     class Meta:
         db_table = 'shop_trades_mergetrade'
         unique_together = ("tid","user")
+        app_label = 'trades'
         ordering = []
         verbose_name=u'订单'
         verbose_name_plural = u'订单列表'
@@ -763,6 +764,7 @@ class MergeOrder(models.Model):
     class Meta:
         db_table = 'shop_trades_mergeorder'
         unique_together = ("oid","merge_trade")
+        app_label = 'trades'
         verbose_name=u'订单明细'
         verbose_name_plural = u'订单明细列表'
 
@@ -975,6 +977,7 @@ class MergeBuyerTrade(models.Model):
 
     class Meta:
         db_table = 'shop_trades_mergebuyertrade'
+        app_label = 'trades'
         verbose_name = u'合单记录'
         verbose_name_plural = u'合单列表'
 
@@ -1029,6 +1032,7 @@ class MergeTradeDelivery(models.Model):
 
     class Meta:
         db_table = 'shop_trades_delivery'
+        app_label = 'trades'
         verbose_name = u'订单/发货上传'
         verbose_name_plural = u'订单/发货上传列表'
 
@@ -1071,6 +1075,7 @@ class ReplayPostTrade(models.Model):
 
     class Meta:
         db_table = 'shop_trades_replayposttrade'
+        app_label = 'trades'
         verbose_name = u'已发货清单'
         verbose_name_plural = u'发货清单列表'
 
@@ -1130,6 +1135,7 @@ class SendLaterTrade(models.Model):
 
     class Meta:
         db_table = 'shop_trades_sendlatertrade'
+        app_label = 'trades'
         verbose_name = u'发送超过五天的订单'
         verbose_name_plural = u'发送超过五天的订单'
 
@@ -1164,6 +1170,7 @@ class TradeWuliu(models.Model):
 
     class Meta:
         db_table = 'shop_trades_wuliudetail'
+        app_label = 'trades'
         verbose_name = u'物流跟踪'
         verbose_name_plural = u'物流跟踪列表'
 
@@ -1261,6 +1268,7 @@ class PackageOrder(models.Model):
     merge_trade_id = models.BigIntegerField(null=True,blank=True,verbose_name='对应的merge_trade')
     class Meta:
         db_table = 'flashsale_package'
+        app_label = 'trades'
         verbose_name=u'包裹单'
         verbose_name_plural = u'包裹列表'
 
@@ -1332,6 +1340,7 @@ class PackageStat(models.Model):
     num = models.IntegerField(default=0, verbose_name=u'已发数')
     class Meta:
         db_table = 'flashsale_package_stat'
+        app_label = 'trades'
         verbose_name=u'包裹发送计数'
         verbose_name_plural = u'包裹发送计数列表'
 

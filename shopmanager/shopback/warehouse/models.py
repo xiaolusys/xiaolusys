@@ -15,6 +15,7 @@ class WareHouse(models.Model):
     
     class Meta:
         db_table = 'shop_ware_house'
+        app_label = 'warehouse'
         verbose_name=u'仓库'
         verbose_name_plural = u'仓库列表'
 

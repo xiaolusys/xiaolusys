@@ -13,6 +13,7 @@ class FeeRule(models.Model):
     
     class Meta:
         db_table = 'shop_modifyfee_feerule'
+        app_label = 'modifyfee'
         verbose_name=u'邮费规则'
         verbose_name_plural = u'邮费规则列表'
     
@@ -33,6 +34,7 @@ class ModifyFee(models.Model):
     
     class Meta:
         db_table = 'shop_modifyfee_modifyfee'
+        app_label = 'modifyfee'
         verbose_name=u'邮费修改记录'
         verbose_name_plural = u'邮费修改记录列表'
         
