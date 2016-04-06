@@ -697,7 +697,7 @@ SHOP_APP_SCHEDULE = {
 
     u'一次执行妈妈店铺商品添加信息': {
         'task': 'flashsale.restpro.tasks.prods_position_handler',
-        'schedule': crontab(minute="10", hour="5"),
+        'schedule': crontab(minute="10", hour="6"),
         'args': (),
         'options': {'queue': 'peroid', 'routing_key': 'peroid.task'}
     },
