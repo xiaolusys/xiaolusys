@@ -11,6 +11,7 @@ logger = logging.getLogger('celery.handler')
 
 from flashsale.xiaolumm.models_fortune import ReferalRelationship, GroupRelationship, UniqueVisitor
 from flashsale.pay.models_user import Customer
+from flashsale.xiaolumm.models import XiaoluMama
 
 import sys
 
@@ -27,14 +28,32 @@ def get_cur_info():
 
 
 @task()
-def task_update_referal_relationship(from_mama_id, to_mama_id, customer_id):
-    print "%s, mama_id: %s" % (get_cur_info(), from_mama_id)    
-
-
+def task_update_referal_relationship(sale_order):
+    sale_trade = sale_order.sale_trade
+    customer_id = sale_trade.buyer_id
     customer = Customer.objects.get(pk=customer_id)
+
+    mamas = XiaoluMama.objects.filter(openid=customer.unionid)
+    if mamas.count() <= 0:
+        return
+    
+    # mama status is taken care of by some other logic, so we ignore.
+    #mamas.update(status=XiaoluMama.EFFECT, progress=XiaoluMama.PAY, charge_status=XiaoluMama.CHARGED)
+    to_mama_id = mamas[0].id
+
+    extra = sale_trade.extras_info
+    mm_linkid = 0
+    if 'mm_linkid' in extra:
+        mm_linkid = int(extra['mm_linkid'] or '0')
+
+    if mm_linkid <= 0:
+        return
+
+    logger.warn("%s: mm_linkid=%s, to_mama_id=%s" % (get_cur_info(), mm_linkid, to_mama_id))
+    
     records = ReferalRelationship.objects.filter(referal_to_mama_id=to_mama_id)
     if records.count() <= 0:
-        record = ReferalRelationship(referal_from_mama_id=from_mama_id,
+        record = ReferalRelationship(referal_from_mama_id=mm_linkid,
                                      referal_to_mama_id=to_mama_id,
                                      referal_to_mama_nick=customer.nick,
                                      referal_to_mama_img=customer.thumbnail)
@@ -59,7 +78,7 @@ def task_update_group_relationship(leader_mama_id, referal_relationship):
 
 from flashsale.xiaolumm.util_unikey import gen_uniquevisitor_unikey
 from shopapp.weixin.options import get_unionid_by_openid
-from flashsale.xiaolumm.models import XiaoluMama
+
 
 @task()
 def task_update_unique_visitor(mama_id, openid, appkey, click_time):
