@@ -121,7 +121,10 @@ class XiaoluMamaViewSet(viewsets.ModelViewSet):
         clk_money = xlmm.get_Mama_Click_Price(shop_num) * clk_num
 
         mama_link = os.path.join(settings.M_SITE_URL,"m/{}/".format(xlmm.id))  # 专属链接
-        share_mmcode = xlmm.get_share_qrcode_path()
+        #share_mmcode = xlmm.get_share_qrcode_path()  20160406 wulei 此字段转换为存储妈妈邀请新代理的h5页面url
+        from flashsale.restpro import constants
+        share_mmcode = constants.MAMA_INVITE_AGENTCY_URL.format(**{'site_url': settings.M_SITE_URL})
+
         share_qrcode = xlmm.get_share_qrcode_url()
         # 代理的粉丝数量
         fans = FansNumberRecord.objects.filter(xlmm_cusid=customer.id)
