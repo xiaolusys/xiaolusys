@@ -5,6 +5,7 @@ import datetime
 import json
 import re
 import time
+import urllib
 import urlparse
 import xlsxwriter
 
@@ -370,7 +371,7 @@ class FetchAndCreateProduct(APIView):
     def getItemPic(self, fetch_url, soup):
         pic_path_pattern = re.compile(r'(.+\.jpg)_.+')
         container = soup.findAll(attrs={'class': re.compile(
-            '^(zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
+            '^(deteilpic|zoomPad|SPSX_bian3|goods-detail-pic|container|florid-goods-page-container|m-item-grid)')
                                        })
 
         for c in container:
@@ -433,6 +434,7 @@ class FetchAndCreateProduct(APIView):
         return ''
 
     def get(self, request, pk):
+        import core.upload
 
         fetch_url = request.REQUEST.get('fetch_url', '').strip()
         status = request.REQUEST.get('status', '')
