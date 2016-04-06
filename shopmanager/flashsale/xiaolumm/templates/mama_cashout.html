@@ -86,17 +86,18 @@ var NTKF_PARAM = {
 	  <p style="color:orange">&nbsp;您的待提现金额为￥<span style="font-size:26px">{{ could_cash_out }}</span>。</p>
 	  <p style="color:#428bca">提现将由小鹿美美公众号向当前提交申请的微信号发送<span style="font-size:20px">微信红包</span>方式完成，请确认后再申请。</p>
 	  <div id="id-cashout-area" {% if cashout > 0 %} style="display:none" {% endif %}>
-	    <p>&nbsp;提现需100元或者200元,请选择提现金额：</p>
-	    <div class="input-group" style="margin-top:5px">
-        <ul class="js-goods-size">
-            <li value="100" class="col-xs-5 normal" id="value_100" onclick="select_value100(this)">￥100元</li>
-            <li value="200" class="col-xs-5 normal" id="value_200" onclick="select_value200(this)">￥200元</li>
-        </ul>
-	      {% csrf_token %}
-	      <span class="input-group-btn">
-		<button class="btn btn-warning" type="button" style="margin-left:10px;" id="cashout_confirm">确认提交</button>
-	      </span>
-	    </div>
+      <div class="alert alert-danger">钱包提现需在APP上申请<a href="/sale/promotion/appdownload/">点击下载>></a></div>
+{#	    <p>&nbsp;提现需100元或者200元,请选择提现金额：</p>#}
+{#	    <div class="input-group" style="margin-top:5px">#}
+{#        <ul class="js-goods-size">#}
+{#            <li value="100" class="col-xs-5 normal" id="value_100" onclick="select_value100(this)">￥100元</li>#}
+{#            <li value="200" class="col-xs-5 normal" id="value_200" onclick="select_value200(this)">￥200元</li>#}
+{#        </ul>#}
+{#	      {% csrf_token %}#}
+{#	      <span class="input-group-btn">#}
+{#		    <button class="btn btn-warning" type="button" style="margin-left:10px;" id="cashout_confirm">确认提交</button>#}
+{#	      </span>#}
+{#	    </div>#}
 	    <p id="id-submit-message" style="color:red"></p>
 	  </div>
 	  <ul id="id-cashout-notice" style="color:red;margin-top:6px;{% if cashout < 1 %}display:none{% endif %}" class="list-group">
@@ -271,7 +272,7 @@ var NTKF_PARAM = {
     };
     $.ajax({url:url, success:callback});
   }
-
+  /*
   $('#cashout_confirm').on('click', function(e) {
         e.preventDefault(); // <-- important
         var url = "/m/cashout/";
@@ -305,7 +306,7 @@ var NTKF_PARAM = {
 	    };
         var data = {"v":value, "csrfmiddlewaretoken":csrf_token};
         $.ajax({url:url, data:data, type:"post", success:callback});
-    });
+    });*/
   </script>
 <script>
     function select_value100(v) {

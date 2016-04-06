@@ -126,7 +126,7 @@ admin.site.register(SaleTrade, SaleTradeAdmin)
 
 
 class TradeChargeAdmin(admin.ModelAdmin):
-    list_display = ('order_no', 'charge', 'channel', 'amount', 'time_paid', 'paid', 'created', 'refunded')
+    list_display = ('id', 'order_no', 'charge', 'channel', 'amount', 'time_paid', 'paid', 'created', 'refunded')
     list_display_links = ('order_no', 'charge',)
 
     list_filter = (('time_paid', DateFieldListFilter), 'paid', 'refunded')
