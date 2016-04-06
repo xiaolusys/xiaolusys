@@ -25,3 +25,6 @@ PYQ_TITLES = [
     '哈哈，老公好不好，抢了睡袋就知道！',
     '哈哈，只有1%的人知道，原来这两个我都想要～'
 ]
+
+#妈妈邀请新代理的url地址
+MAMA_INVITE_AGENTCY_URL = '{site_url}static/wap/pages/agency-invitation-res.html'
