@@ -341,6 +341,7 @@
 {% endblock %}
 
 {% block tail_script %}
+<script src="{{ STATIC_URL }}js/supplier_price.js"></script>
 <script type="text/javascript">
     function screen(id, counter) {
         var buyPrice = parseFloat($("#id-buy-price-" + counter).val());
@@ -442,44 +443,14 @@
         $(".datepicker").datepicker({dateFormat: "yy-mm-dd 00:00:00"});
         $("#reserve_time_id").datepicker({dateFormat: "yy-mm-dd 00:00:00"});
         $('input[id|=id-buy-price]').change(function(){
-            var v = $(this).val();
-            var result = undefined;
-            if(!isNaN(v)){
-                var onSalePrice = Math.round(parseFloat(v) / .65 + 8);
-                var onSalePriceStr = String(onSalePrice);
-                var lastDigit = parseInt(onSalePriceStr[onSalePriceStr.length - 1]);
-                if(lastDigit < 5)
-                    result =  Math.max(Math.floor(onSalePrice / 10) - 1, 0) * 10 + 9.9;
-                else
-                    result = Math.floor(onSalePrice / 10) * 10 + 9.9;
-            }
-            if(result){
-                if(result == 19.9 || result == 29.9)
-                    result = 39.9
-                if(result == 109.9)
-                    result = 99.9
-                $(this).closest('div').find('input[id|=id-sale-price]').val(result);
-            }
+            var salePrice = calcSalePrice($(this).val());
+            if(salePrice)
+                $(this).closest('div').find('input[id|=id-sale-price]').val(salePrice);
         });
         $('input[name="sale_price"]', '#product-add-form').change(function(){
-            var v = $(this).val();
-            var result = undefined;
-            if(!isNaN(v)){
-                var onSalePrice = Math.round(parseFloat(v) / .65 + 8);
-                var onSalePriceStr = String(onSalePrice);
-                var lastDigit = parseInt(onSalePriceStr[onSalePriceStr.length - 1]);
-                if(lastDigit < 5)
-                    result =  Math.max(Math.floor(onSalePrice / 10) - 1, 0) * 10 + 9.9;
-                else
-                    result = Math.floor(onSalePrice / 10) * 10 + 9.9;
-            }
-            if(result){
-                if(result == 19.9 || result == 29.9)
-                    result = 39.9
-                if(result == 109.9)
-                    result = 99.9
-                $('input[name="on_sale_price"]', '#product-add-form').val(result);
-            }
+            var salePrice = calcSalePrice($(this).val());
+            if(salePrice)
+                $('input[name="on_sale_price"]', '#product-add-form').val(salePrice);
         });
     });
 </script>
