@@ -4,6 +4,8 @@ import re
 import urllib
 import time
 import datetime
+import settings
+from flashsale.restpro import options
 
 from rest_framework import views
 from rest_framework.response import Response
@@ -192,8 +194,9 @@ class VerifyCodeView(views.APIView):
     action: one of 5 actions (register，sms_login, find_pwd, change_pwd, bind)
     """
 
-    def post(self, request): 
-        content = request.REQUEST
+    def post(self, request):
+        content = request.POST
+
         mobile = content.get("mobile", "0")
         action = content.get("action", "")
         verify_code = content.get("verify_code", "")
@@ -211,7 +214,7 @@ class VerifyCodeView(views.APIView):
         else:
             if action == 'find_pwd' or action == 'change_pwd' or action == 'bind':
                 return Response({"rcode": 3, "msg": u"该用户还不存在呢！"})
-    
+
         if not validate_code(mobile, verify_code):
             return Response({"rcode": 4, "msg": u"验证码不对或过期啦！"})  # 验证码过期或者不对
         
@@ -224,8 +227,11 @@ class VerifyCodeView(views.APIView):
     
         if action == 'register' or action == 'msm_login':
             # force to use SMSLoginBackend for authentication
-            content['sms_code'] = verify_code 
-            
+            # content['sms_code'] = verify_code (ERROR)
+            request.POST._mutable = True  # 开启可变
+            content.update({'sms_code': verify_code})
+            request.POST._mutable = False  # 关闭可变
+
             user = authenticate(request=request, **content)
             if not user or user.is_anonymous():
                 return Response({"code": 5, "message": u'登录异常！'})
@@ -280,13 +286,13 @@ class PasswordLoginView(views.APIView):
     User login with username and password. She can login either via APP or H5 Web.
     
     """
-    def get(self, request):
+    def post(self, request):
         content = request.POST
         username = content.get('username','0')
         password = content.get('password', '')
         next_url = content.get('next', '/index.html')
         if not username or not password:
-            return Response({"code": 1, "message": u"用户名和密码不全呢！", 'next': ''})
+            return Response({"rcode": 1, "msg": u"用户名和密码不全呢！", 'next': ''})
 
         customers = Customer.objects.filter(mobile=username)
         if customers.count() == 1:
@@ -295,10 +301,10 @@ class PasswordLoginView(views.APIView):
 
         user = authenticate(username=username, password=password)
         if not user or user.is_anonymous():
-            return Response({"code": 2, "message": u"用户名或密码错误呢！", 'next': ''})
+            return Response({"rcode": 2, "msg": u"用户名或密码错误呢！", 'next': ''})
         login(request, user)
         
-        return Response({"code": 0, "message": u"登录成功", "next": next_url})
+        return Response({"rcode": 0, "msg": u"登录成功", "next": next_url})
 
 
 def check_sign(request):
@@ -348,12 +354,12 @@ class WeixinAppLoginView(views.APIView):
         app客户端微信授权登陆
         """
         if not check_sign(request):
-            return Response({"code": 1, "message": u'登录失败'})
+            return Response({"rcode": 1, "msg": u'登录失败'})
 
         params = request.POST
         user = authenticate(request=request, **params)
         if not user or user.is_anonymous():
-            return Response({"code": 2, "message": u'登录异常'})
+            return Response({"rcode": 2, "msg": u'登录异常'})
 
         login(request, user)
-        return Response({"code": 0, "message": u'登录成功'})
+        return Response({"rcode": 0, "msg": u'登录成功'})
