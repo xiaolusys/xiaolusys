@@ -10,7 +10,7 @@ import urllib2
 from django.db import connection
 from django.db.models import Max, Sum
 
-from flashsale.dinghuo import log_action, ADDITION, CHANGE
+from core.options import log_action, ADDITION, CHANGE
 from flashsale.dinghuo.models import OrderDetail, OrderList
 from flashsale.dinghuo.models_stats import SupplyChainDataStats,PayToPackStats
 from shopback import paramconfig as pcfg
