@@ -149,6 +149,7 @@ def task_userinfo_update_customer(userinfo):
     headimgurl = userinfo.get("headimgurl")
     unionid = userinfo.get("unionid")
     customers = Customer.objects.filter(unionid=unionid)
+
     if customers.count() > 0:
         customer = customers[0]
         update = False
@@ -182,4 +183,3 @@ def task_decide_award_winner(envelope):
                          customer_nick=customer.nick,event_id=event_id,
                          uni_key=uni_key,invite_num=invite_num)
     winner.save()
-
