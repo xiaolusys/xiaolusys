@@ -236,5 +236,5 @@ class ProfileMiddleware(object):
 
 class AttachContentTypeMiddleware(object):
     def process_request(self, request):
-        if request.method == 'POST' and (request.META.get('CONTENT_TYPE', '') == '' or request.META.get('CONTENT_TYPE', '') == 'text/plain'):
+        if request.method == 'POST' and (not request.META.get('CONTENT_TYPE', '') or request.META.get('CONTENT_TYPE', '').startswith('application/json')):
             request.META['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
