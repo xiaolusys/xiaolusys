@@ -873,7 +873,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
             if pid in CONS.PAY_EXTRAS and CONS.PAY_EXTRAS[pid].get('type') == CONS.BUDGET:
                 budget_amount += round(float(param['budget']) * 100)
         return budget_amount
-            
+
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
@@ -889,9 +889,10 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 id__in=[i for i in cart_ids if i.isdigit()], 
                 buyer_id=customer.id
             )
+
             #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
-            logger.warn('debug cart v1:params=%s,cart_qs=%s' % (request.REQUEST, cart_qs.count()))
             if cart_qs.count() != len(cart_ids):
+                logger.warn('debug cart v1:header=%s,params=%s,cart_qs=%s' % (request.META.get('header'),request.REQUEST, cart_qs.count()))
                 raise exceptions.ParseError(u'购物车已结算待支付')
             xlmm            = self.get_xlmm(request)
             total_fee       = round(float(CONTENT.get('total_fee','0')) * 100)
