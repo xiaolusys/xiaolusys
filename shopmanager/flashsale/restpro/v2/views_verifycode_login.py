@@ -224,8 +224,7 @@ class VerifyCodeView(views.APIView):
     
         customer.mobile = mobile
         customer.save()
-    
-        if action == 'register' or action == 'msm_login':
+        if action == 'register' or action == 'sms_login':
             # force to use SMSLoginBackend for authentication
             # content['sms_code'] = verify_code (ERROR)
             request.POST._mutable = True  # 开启可变
@@ -234,7 +233,7 @@ class VerifyCodeView(views.APIView):
 
             user = authenticate(request=request, **content)
             if not user or user.is_anonymous():
-                return Response({"code": 5, "message": u'登录异常！'})
+                return Response({"rcode": 5, "msg": u'登录异常！'})
 
             login(request, user)
             return Response({"rcode": 0, "msg": u"登录成功！"})  
