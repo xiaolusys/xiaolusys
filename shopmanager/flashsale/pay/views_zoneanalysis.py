@@ -39,7 +39,7 @@ def by_zone_Province(request):
     weixin_raw = weixin_trade(sql2)
 
     raw = province_raw_handler(pay_raw=pay_raw, weixin_raw=weixin_raw)
-    return HttpResponse(json.dumps(raw, cls=DjangoJSONEncoder), mimetype="application/json")
+    return HttpResponse(json.dumps(raw, cls=DjangoJSONEncoder), content_type="application/json")
 
 
 @csrf_exempt
@@ -55,7 +55,7 @@ def by_zone_City(request):
     weixin_raw = weixin_trade(sql2)
 
     raw = city_raw_handler(pay_raw=pay_raw, weixin_raw=weixin_raw)
-    return HttpResponse(json.dumps(raw, cls=DjangoJSONEncoder), mimetype="application/json")
+    return HttpResponse(json.dumps(raw, cls=DjangoJSONEncoder), content_type="application/json")
 
 
 def show_Zone_Page(request):

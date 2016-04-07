@@ -40,7 +40,7 @@ def by_Linkid_Analysis(request):
     inner_raw = order_num(sql2)
     mm_raw = order_num(sql3)
     result_list = raw_handler(outer_raw=outer_raw, mm_raw=mm_raw, inner_raw=inner_raw)
-    return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), mimetype="application/json")
+    return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), content_type="application/json")
 
 
 def show_Orderlink_Page(request):
@@ -130,7 +130,7 @@ def xlmm_Carry_Log(request):
 
     raw = order_num(sql1)
     result_list = carry_Raw_Hander(raw=raw)
-    return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), mimetype="application/json")
+    return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), content_type="application/json")
 
 
 def carry_Raw_Hander(raw=None):

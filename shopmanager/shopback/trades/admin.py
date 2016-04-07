@@ -673,7 +673,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                    'merge_status':is_merge_success,
                                    'fail_reason':fail_reason},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     merge_order_action.short_description = "合并订单".decode('utf8')
 
@@ -733,7 +733,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                   {'success_trades':success_trades,
                                    'fail_trades':fail_trades},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     pull_order_action.short_description = "重新下单".decode('utf8')
 
@@ -763,7 +763,7 @@ class MergeTradeAdmin(ApproxAdmin):
         return render_to_response('trades/send_trade_reponse.html',
                                   response_dict,
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     push_trade_to_scan.short_description = "同步发货".decode('utf8')
 
@@ -793,7 +793,7 @@ class MergeTradeAdmin(ApproxAdmin):
                                   {'success_trades':success_trades,
                                    'fail_trades':fail_trades},
                                    context_instance=RequestContext(request),
-                                   mimetype="text/html")
+                                   content_type="text/html")
 
     unlock_trade_action.short_description = "订单解锁".decode('utf8')
 
@@ -827,7 +827,7 @@ class MergeTradeAdmin(ApproxAdmin):
         writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(lg_tuple)
 
-        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(myfile.getvalue(), content_type='application/octet-stream')
         myfile.close()
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
         return response
@@ -853,7 +853,7 @@ class MergeTradeAdmin(ApproxAdmin):
         writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(lg_tuple)
 
-        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(myfile.getvalue(), content_type='application/octet-stream')
         myfile.close()
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
 
@@ -877,7 +877,7 @@ class MergeTradeAdmin(ApproxAdmin):
         writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(buyer_tuple)
 
-        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(myfile.getvalue(), content_type='application/octet-stream')
         myfile.close()
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
         return response
@@ -919,7 +919,7 @@ class MergeTradeAdmin(ApproxAdmin):
         writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(yunda_tuple)
 
-        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(myfile.getvalue(), content_type='application/octet-stream')
         myfile.close()
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
         return response
@@ -967,7 +967,7 @@ class MergeTradeAdmin(ApproxAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
 
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment;filename=orderdetail-%s.csv'%str(int(time.time()))
 
@@ -1146,7 +1146,7 @@ class MergeTradeDeliveryAdmin(admin.ModelAdmin):
         return render_to_response('trades/delivery_trade_reponse.html',
                                   response_dict,
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     delivery_trade.short_description = "订单发货单号上传".decode('utf8')
 
@@ -1178,7 +1178,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
             reponse_result['post_no'] = reponse_result.get('post_no',None) or replay_trade.id
 
         return render_to_response('trades/trade_post_success.html',reponse_result,
-                                  context_instance=RequestContext(request),mimetype="text/html")
+                                  context_instance=RequestContext(request),content_type="text/html")
 
     replay_post.short_description = "重现发货清单".decode('utf8')
 
@@ -1201,7 +1201,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
 
         return render_to_response('trades/trade_accept_check.html',
                                   {'trades':wait_scan_trades,'is_success':is_success},
-                                  context_instance=RequestContext(request),mimetype="text/html")
+                                  context_instance=RequestContext(request),content_type="text/html")
 
     check_post.short_description = "验证是否完成".decode('utf8')
 
@@ -1219,7 +1219,7 @@ class ReplayPostTradeAdmin(admin.ModelAdmin):
         reponse_result['post_no'] = reponse_result.get('post_no',None) or replaypost.id
 
         return render_to_response('trades/trade_post_success.html',reponse_result,
-                                  context_instance=RequestContext(request),mimetype="text/html")
+                                  context_instance=RequestContext(request),content_type="text/html")
 
 
     merge_post_result.short_description = "合并发货批次".decode('utf8')

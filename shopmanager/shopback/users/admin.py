@@ -101,7 +101,7 @@ class UserAdmin(admin.ModelAdmin):
         return render_to_response('users/pull_wait_post_trade.html',
                                   {'users':pull_users},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")     
+                                  content_type="text/html")
         
     pull_user_unpost_trades.short_description = "下载待发货订单".decode('utf8')
     
@@ -137,7 +137,7 @@ class UserAdmin(admin.ModelAdmin):
             pull_users.append(pull_dict)
         
         return render_to_response('users/pull_online_items.html',{'users':pull_users},
-                                  context_instance=RequestContext(request),mimetype="text/html")
+                                  context_instance=RequestContext(request),content_type="text/html")
 
     pull_user_items.short_description = "下载线上商品信息".decode('utf8')
     
@@ -170,7 +170,7 @@ class UserAdmin(admin.ModelAdmin):
         else:
             ret_params = {'success':True}
         return render_to_response('users/sync_online_prodnum_template.html',ret_params,
-                                  context_instance=RequestContext(request),mimetype="text/html")     
+                                  context_instance=RequestContext(request),content_type="text/html")
     
     sync_online_prodnum_to_offline.short_description = "线上库存覆盖系统库存".decode('utf8')
     
@@ -197,7 +197,7 @@ class UserAdmin(admin.ModelAdmin):
             pull_users.append(pull_dict)
         
         return render_to_response('users/async_lastest_trades.html',{'users':pull_users},
-                                  context_instance=RequestContext(request),mimetype="text/html")
+                                  context_instance=RequestContext(request),content_type="text/html")
 
     async_pull_lastest_trades.short_description = "异步下载近三个月订单".decode('utf8')
        
@@ -235,7 +235,7 @@ class CustomerAdmin(admin.ModelAdmin):
         writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(mobile_tuple)
         
-        response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(myfile.getvalue(), content_type='application/octet-stream')
         myfile.close()
         response['Content-Disposition'] = 'attachment; filename=%s'%file_name
        

@@ -1148,7 +1148,7 @@ class ScheduleExportView(APIView):
 
         response = HttpResponse(
             buff.getvalue(),
-            mimetype=
+            content_type=
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment;filename=%s' % filename
         return response

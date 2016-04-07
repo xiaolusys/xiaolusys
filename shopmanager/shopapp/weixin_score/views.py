@@ -61,7 +61,7 @@ class FrozenScoreView(View):
             response = {"code":"good", 
                         "frozen_score":frozen_score}
         
-        response = HttpResponse(json.dumps(response),mimetype='application/json')
+        response = HttpResponse(json.dumps(response),content_type='application/json')
         if commited:
             transaction.commit()
         else:

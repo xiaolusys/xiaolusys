@@ -53,7 +53,7 @@ def delete_staff_event(request,id):
     else:
         ret = {'code':1,'response_error':'fail'}
         
-    return HttpResponse(json.dumps(ret),mimetype="application/json")
+    return HttpResponse(json.dumps(ret),content_type="application/json")
 
 
 def complete_staff_event(request,id):
@@ -82,7 +82,7 @@ def complete_staff_event(request,id):
         log_action(request.user.id,event,CHANGE,u'完成事件')
 
         
-    return HttpResponse(json.dumps(ret),mimetype="application/json")
+    return HttpResponse(json.dumps(ret),content_type="application/json")
     
     
 class MainEventPageView(APIView):

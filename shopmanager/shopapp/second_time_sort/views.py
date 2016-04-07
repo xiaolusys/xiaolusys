@@ -27,7 +27,7 @@ def batch_number(request):
 #    batch_number = BatchNumberGroup.objects.get(group=group,created=created).batch_number
 #    print "batch_number1111111111",batch_number
     
-    return  HttpResponse(json.dumps({'bid':batch_object.pk,"batch_number":batch_object.batch_number}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'bid':batch_object.pk,"batch_number":batch_object.batch_number}),content_type="application/json")
  
 
                               
@@ -41,13 +41,13 @@ def out_sid_batch(request):
 
     out_batch_object = BatchNumberOid.objects.create(out_sid=out_sid,batch_number=batch_number,group=group,number=number,status=BatchNumberOid.ACTIVE)
     
-    return  HttpResponse(json.dumps({'bid':out_batch_object.pk}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'bid':out_batch_object.pk}),content_type="application/json")
     
 def drop_out_batch(request):
     content = request.GET
     out_sid = content.get('out_sid')
     BatchNumberOid.objects.get(out_sid=out_sid).delete()
-    return  HttpResponse(json.dumps({'out_sid':out_sid}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'out_sid':out_sid}),content_type="application/json")
     
 @csrf_exempt   
 def merger_out_sid(request):

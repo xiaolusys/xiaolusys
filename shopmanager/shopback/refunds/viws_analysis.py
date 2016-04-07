@@ -43,7 +43,7 @@ class RefundRateView(APIView):
             data.append(rate_dic)
 
         return HttpResponse(json.dumps(data, cls=DjangoJSONEncoder),
-                            mimetype="application/json")
+                            content_type="application/json")
 
 
 class RefundRecord(APIView):
@@ -75,4 +75,4 @@ class RefundRecord(APIView):
             rate_dic['pay_num'] = pay_num
             data.append(rate_dic)
         return HttpResponse(json.dumps(data, cls=DjangoJSONEncoder),
-                            mimetype="application/json")
+                            content_type="application/json")

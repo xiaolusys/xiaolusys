@@ -230,7 +230,7 @@ class ChangeDetailExportView(View):
                                   encoding=is_windows and 'gbk' or 'utf-8')
         writer.writerows(items)
         response = HttpResponse(buff.getvalue(),
-                                mimetype='application/octet-stream')
+                                content_type='application/octet-stream')
         response[
             'Content-Disposition'] = 'attachment;filename=dinghuodetail-%s.csv' % order_detail_id
         return response
@@ -387,7 +387,7 @@ class ChangeDetailExportView(View):
         filename = '%s-%d.xlsx' % (order_list.created.strftime('%Y%m%d'), order_detail_id)
         response = HttpResponse(
             buff.getvalue(),
-            mimetype=
+            content_type=
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment;filename=%s' % filename
         return response

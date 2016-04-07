@@ -607,7 +607,7 @@ class XiaoluMamaModelView(View):
                      model_to_dict(xlmm, fields=['id','user_group','charge_status'])}
         
         return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
-                            mimetype="application/json")
+                            content_type="application/json")
 
 
 from django.views.decorators.csrf import csrf_exempt

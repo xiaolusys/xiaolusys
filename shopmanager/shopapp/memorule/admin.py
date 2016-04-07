@@ -136,7 +136,7 @@ class ComposeRuleAdmin(admin.ModelAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
             
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment; filename=compose-rule-%s.csv'%str(int(time.time()))
         

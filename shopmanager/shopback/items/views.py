@@ -70,7 +70,7 @@ def update_user_items(request):
 
     response = {'update_nums':update_nums}
 
-    return HttpResponse(json.dumps(response),mimetype='application/json')
+    return HttpResponse(json.dumps(response),content_type='application/json')
 
 
 @csrf_exempt
@@ -89,7 +89,7 @@ def update_product_stock(request):
 
     if not num :
         return HttpResponse(json.dumps({'code':1,'response_error':u'库存数量不能为空'})
-                            ,mimetype='application/json')
+                            ,content_type='application/json')
 
     prod     = None
     prod_sku = None
@@ -122,13 +122,13 @@ def update_product_stock(request):
             update_model_fields(prod_sku or prod,update_fields=['remain_num'])
     except Product.DoesNotExist:
         response = {'code':1,'response_error':u'商品未找到'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
     except ProductSku.DoesNotExist:
         response = {'code':1,'response_error':u'商品规格未找到'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
     except Exception,exc:
         response = {'code':1,'response_error':exc.message}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
 
     log_action(request.user.id,prod,CHANGE,u'更新商品库存,%s，编码%s-%s,库存数%d,预留数%s,预减数%d'%
                (mode and u'全量' or u'增量',prod.outer_id,prod_sku and prod_sku.outer_id or sku_id,num,remain_num or '-',reduce_num))
@@ -152,7 +152,7 @@ def update_product_stock(request):
                         'is_warning':prod_sku.is_warning,
                         }
     response = {'code':0,'response_content':response}
-    return HttpResponse(json.dumps(response),mimetype='application/json')
+    return HttpResponse(json.dumps(response),content_type='application/json')
 
 #######################################################################################33
 @staff_requried(login_url=settings.LOGIN_URL)
@@ -663,7 +663,7 @@ def delete_product_district(request):
     m  = r.match(district)
     if not m:
         ret = {'code':1,'error_response':u'标签不合规则'}
-        return HttpResponse(json.dumps(ret),mimetype="application/json")
+        return HttpResponse(json.dumps(ret),content_type="application/json")
 
     tag_dict = m.groupdict()
     pno = tag_dict.get('pno')
@@ -682,13 +682,13 @@ def delete_product_district(request):
     except Exception,exc:
         logger.error(exc.message,exc_info=True)
         ret = {'code':1,'error_response':u'未找到删除项'}
-        return HttpResponse(json.dumps(ret),mimetype="application/json")
+        return HttpResponse(json.dumps(ret),content_type="application/json")
 
     log_action(request.user.id,Product.objects.get(outer_id=outer_id),CHANGE,
                u'删除商品库位:(%s-%s,%s)'%(outer_id or '',outer_sku_id or '',district))
 
     ret = {'code':0,'response_content':'success'}
-    return HttpResponse(json.dumps(ret),mimetype="application/json")
+    return HttpResponse(json.dumps(ret),content_type="application/json")
 
 
 @csrf_exempt
@@ -699,13 +699,13 @@ def deposite_district_query(request):
     q       = content.get('term')
     if not q:
         ret = {'code':1,'error_response':u'查询内容不能为空'}
-        return HttpResponse(json.dumps(ret),mimetype="application/json")
+        return HttpResponse(json.dumps(ret),content_type="application/json")
 
     districts = DepositeDistrict.objects.filter(parent_no__istartswith=q)
 
     ret = [{'id':str(d),'value':str(d)} for d in districts]
 
-    return HttpResponse(json.dumps(ret),mimetype="application/json")
+    return HttpResponse(json.dumps(ret),content_type="application/json")
 
 
 ##################################### 警告库存商品规格管理 ##################################

@@ -165,7 +165,7 @@ class PurchaseAdmin(admin.ModelAdmin):
         
         return render_to_response('purchases/purchase_addon_template.html',
                         {'purchases':approval_purchases},
-                        context_instance=RequestContext(request),mimetype="text/html") 
+                        context_instance=RequestContext(request),content_type="text/html")
 
     addon_cost_action.short_description = u"更新成本价"
     
@@ -223,7 +223,7 @@ class PurchaseAdmin(admin.ModelAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
             
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment; filename=purchases-simple-%s.csv'%str(int(time.time()))
         
@@ -344,7 +344,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         
         return render_to_response('purchases/storage_addon_template.html',
                         {'addon_storages':addon_storages,'unaddon_storages':unaddon_storages},
-                        context_instance=RequestContext(request),mimetype="text/html") 
+                        context_instance=RequestContext(request),content_type="text/html")
 
     addon_stock_action.short_description = u"更新库存数"
     
@@ -398,7 +398,7 @@ class PurchaseStorageAdmin(admin.ModelAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
             
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment;filename=storages-simple-%s.csv'%str(int(time.time()))
         
@@ -524,7 +524,7 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
             
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment; filename=payment-simple-%s.csv'%str(int(time.time()))
         

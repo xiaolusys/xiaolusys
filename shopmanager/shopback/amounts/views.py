@@ -19,4 +19,4 @@ def update_finish_trade_amount(request,dt_f,dt_t):
 
     ret_params = {'task_id':order_amount_task.task_id}
 
-    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
+    return HttpResponse(json.dumps(ret_params),content_type='application/json')

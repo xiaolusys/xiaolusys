@@ -126,7 +126,7 @@ def write_paper_l(user,problem_l,paper_id):
         e_exam_selected.exam_problem_score = exam_problem_score
         e_exam_selected.save()
     
-    return  HttpResponse(json.dumps({'response_content':'success'}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'response_content':'success'}),content_type="application/json")
 
 
 #开始考试
@@ -245,7 +245,7 @@ def write_select_paper(request):
         
     e_exam_selected.save()
     
-    return  HttpResponse(json.dumps({'response_content':'success'}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'response_content':'success'}),content_type="application/json")
     
     
 def exam_grade(paper_id,user):

@@ -102,7 +102,7 @@ class CreateAccountView(View):
             return redirect('/games/paint/createaccount/')
         except:
             res = {"status":"failed"}
-            return HttpResponse(json.dumps(res), mimetype='application/json')
+            return HttpResponse(json.dumps(res), content_type='application/json')
         
         
 

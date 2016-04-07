@@ -145,7 +145,7 @@ class WaveDetailView(View):
             errmsg = u"单号重复"
             
         retparams   = {'isSuccess':isSuccess,'out_sid':out_sid,'serial_no':serial_no,'errmsg':errmsg}
-        return HttpResponse(json.dumps(retparams),mimetype='application/json')
+        return HttpResponse(json.dumps(retparams),content_type='application/json')
     
     
 from django.db.models import Max
@@ -229,7 +229,7 @@ class AllocateView(View):
         ppublish.save()
         
         resparams = {'barcode':barcode,'identity':identity}
-        return HttpResponse(json.dumps(resparams),mimetype='application/json')
+        return HttpResponse(json.dumps(resparams),content_type='application/json')
         
         
 class PublishView(View):

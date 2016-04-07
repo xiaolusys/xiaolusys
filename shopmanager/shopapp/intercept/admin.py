@@ -84,7 +84,7 @@ class InterceptTradeAdmin(admin.ModelAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
             
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment;filename=intercept-tradeinfo-%s.csv'%str(int(time.time()))
         
@@ -120,7 +120,7 @@ class InterceptTradeAdmin(admin.ModelAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding = is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
             
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment;filename=intercept-tradedetail-%s.csv'%str(int(time.time()))
         

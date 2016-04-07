@@ -185,7 +185,7 @@ class WeixinAcceptView(View):
         params   = parseXML2Param(content)
         ret_params = wx_service.handleRequest(params)
         response = formatParam2XML(ret_params)
-        return HttpResponse(response,mimetype="text/xml")
+        return HttpResponse(response,content_type="text/xml")
 
 
 def chargeWXUser(request,pk):
@@ -223,7 +223,7 @@ class WeixinUserModelView(View):
                                 fields=['id','nickname','user_group','charge_status'])}
         
         return HttpResponse(json.dumps(user_dict,cls=DjangoJSONEncoder),
-                            mimetype="application/json")
+                            content_type="application/json")
     
 
 from django.shortcuts import render_to_response
@@ -237,30 +237,30 @@ class RequestCodeView(View):
         openid = content.get('openid',None)
         if len(mobile) != 11:
             response = {"code":"bad", "message":"wrong phone number"}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
+            return HttpResponse(json.dumps(response),content_type='application/json')
         
         wx_users = WeiXinUser.objects.filter(mobile=mobile,isvalid=True)
         if wx_users.count() > 0:
             response = {"code":"dup", "message":"duplication phone"}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
+            return HttpResponse(json.dumps(response),content_type='application/json')
         
         wx_user_service = WeixinUserService(settings.WEIXIN_APPID,openId=openid)
         if wx_user_service._wx_user.isNone():
             response = {"code":"anony", "message":"anonymous user"}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
+            return HttpResponse(json.dumps(response),content_type='application/json')
 
         code = wx_user_service.genValidCode()
         wx_user = wx_user_service._wx_user
         
         if wx_user.valid_count > 3:
             response = {"code":"locked", "message":"limit reached, please contact us"}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
+            return HttpResponse(json.dumps(response),content_type='application/json')
         
         if wx_user.valid_count > 0:
             diff_time = datetime.datetime.now() - wx_user.code_time
             if diff_time.seconds < 180:
                 response = {"code":"wait", "message":"wait 180s before requesting new code"}
-                return HttpResponse(json.dumps(response),mimetype='application/json')
+                return HttpResponse(json.dumps(response),content_type='application/json')
                 
         wx_user_service.sendValidCode(mobile, code)
         wx_user.validcode = code
@@ -272,7 +272,7 @@ class RequestCodeView(View):
         wx_user.save()
         
         response = {"code":"good", "verifycode":code}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
 
 
 class VerifyCodeView(View):
@@ -282,7 +282,7 @@ class VerifyCodeView(View):
         openid = content.get('openid',None)
         if len(verifycode) not in (6, 7):
             response = {"code":"bad", "message":"wrong verification code"}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
+            return HttpResponse(json.dumps(response),content_type='application/json')
 
         wx_user = get_object_or_404(WeiXinUser,openid=openid)
         if not wx_user.validcode or wx_user.validcode != verifycode:
@@ -298,7 +298,7 @@ class VerifyCodeView(View):
             
             response = {"code":"good", "message":"code has been verified"}
             
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
         
     
 class OrderInfoView(View):
@@ -486,7 +486,7 @@ class BabyInfoView(View):
                     "province":wx_user.province,"city":wx_user.city,
                     "streetaddr":wx_user.address, "code":"ok", "message":"saved"}
 
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
 
 from django.db.models import F
 
@@ -503,7 +503,7 @@ class WeixinAddReferalView(View):
         if WeiXinUser.objects.filter(mobile=referal_to_mobile).count() > 0 or \
                 ReferalRelationship.objects.filter(referal_to_mobile=referal_to_mobile).count() > 0:
             response = {"code":"dup", "message":"referal already exists"}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
+            return HttpResponse(json.dumps(response),content_type='application/json')
             
         ## add to referal relationship database
         ReferalRelationship.objects.create(referal_from_openid=referal_from_openid,referal_to_mobile=referal_to_mobile)
@@ -520,7 +520,7 @@ class WeixinAddReferalView(View):
             ReferalSummary.objects.filter(user_openid=parent_openid).update(indirect_referal_count=F('indirect_referal_count')+1)
 
         response = {"code":"ok", "message":"referal added successfully"}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
 
     def get(self, request):
         return self.post(request)
@@ -672,7 +672,7 @@ class RefundReviewView(View):
             
             if not action in (2,3) or refund.refund_status in (2,3):
                 response = {"code":"bad", "message":"wrong action"}
-                return HttpResponse(json.dumps(response),mimetype='application/json')
+                return HttpResponse(json.dumps(response),content_type='application/json')
             
             dt = datetime.datetime.now()
             
@@ -688,7 +688,7 @@ class RefundReviewView(View):
             
             if not action in (1,2) or refund.refund_status in (1,2):
                 response = {"code":"bad", "message":"wrong action"}
-                return HttpResponse(json.dumps(response),mimetype='application/json')
+                return HttpResponse(json.dumps(response),content_type='application/json')
             
             refunds = Refund.objects.filter(pk=refund_id)
             refunds.update(pay_type=pay_type,pay_amount=pay_amount,review_note=review_note,refund_status=action)
@@ -835,7 +835,7 @@ class VipCodeVerifyView(View):
         if vipcodes.count() > 0:
             response = {"code":"good"}
         
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
 
         
 
@@ -1279,10 +1279,10 @@ class RequestCouponView(View):
             if cc.count() < 1:
                 CouponClick.objects.create(coupon=coupon,wx_user=wx_user,vipcode=vipcode_obj.code)
             response = {"code":"ok"}
-            return HttpResponse(json.dumps(response),mimetype='application/json')
+            return HttpResponse(json.dumps(response),content_type='application/json')
 
         response = {"code":"bad"}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
 
 
 class SurveyView(View):
@@ -1332,10 +1332,10 @@ class SurveyView(View):
                 weixin_surveyconfirm_signal.send(sender=Survey,survey_id=survey.id)
 
                 response = {"code":"ok"}
-                return HttpResponse(json.dumps(response),mimetype='application/json')
+                return HttpResponse(json.dumps(response),content_type='application/json')
 
         response = {"code":"bad"}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
 
 
 class SampleChooseView(View):
@@ -1364,12 +1364,12 @@ class SampleChooseView(View):
         sample_orders  = SampleOrder.objects.filter(user_openid=user_openid,
                                                     sample_product__outer_id='102011')
         if sample_orders.count() == 0:
-            return HttpResponse(json.dumps({"code":"bad", "msg":"no sample order"}),mimetype='application/json') 
+            return HttpResponse(json.dumps({"code":"bad", "msg":"no sample order"}),content_type='application/json')
         
         vipcodes  = VipCode.objects.filter(owner_openid__openid=user_openid,
                                            usage_count__gt=9)
         if vipcodes.count() == 0:
-            return HttpResponse(json.dumps({"code":"bad", "msg":"no vipcode"}),mimetype='application/json') 
+            return HttpResponse(json.dumps({"code":"bad", "msg":"no vipcode"}),content_type='application/json')
         
         wx_user = WeiXinUser.objects.get(openid=user_openid)
         sample_chooses = SampleChoose.objects.filter(user_openid=user_openid)

@@ -20,7 +20,7 @@ def gen_report_form_file(request):
 
     ret_params = {'task_id':update_month_trade_task.task_id}
 
-    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
+    return HttpResponse(json.dumps(ret_params),content_type='application/json')
 
 
 

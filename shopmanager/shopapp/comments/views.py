@@ -22,7 +22,7 @@ def comment_not_need_explain(request,id):
     
     rows =  Comment.objects.filter(id = id).update(ignored = True)
     
-    return  HttpResponse(json.dumps({'code':(1,0)[rows]}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'code':(1,0)[rows]}),content_type="application/json")
 
 
 @csrf_exempt
@@ -41,11 +41,11 @@ def explain_for_comment(request):
         logger.debug(u'评价异常:%s'%exc.message)
         return HttpResponse(json.dumps({'code':1,
                                         'error_response':exc.message}),
-                            mimetype="application/json")
+                            content_type="application/json")
     
     return  HttpResponse(json.dumps({'code':0,
                                      'response_content':'success'}),
-                         mimetype="application/json")
+                         content_type="application/json")
     
     
 def filter_calcCommentCountJson(fdt,tdt):
@@ -275,7 +275,7 @@ def write_grade(request):
 
     c_grade.save()
     
-    return  HttpResponse(json.dumps({'response_content':'success'}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'response_content':'success'}),content_type="application/json")
     
 
 

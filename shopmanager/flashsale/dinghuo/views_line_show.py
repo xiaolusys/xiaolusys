@@ -46,4 +46,4 @@ class InventoryDataLineShow(APIView):
                                       "inventory", "stat_date", "category"])
             data.append(x)
         return HttpResponse(json.dumps(data, cls=DjangoJSONEncoder),
-                            mimetype="application/json")
+                            content_type="application/json")

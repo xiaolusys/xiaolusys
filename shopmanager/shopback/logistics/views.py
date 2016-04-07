@@ -19,7 +19,7 @@ def update_logistics_company(request):
     for company in logistics_company:
         LogisticsCompany.save_logistics_company_through_dict(profile.visitor_id,company)
 
-    return HttpResponse(json.dumps({'code':0,'response':'ok'}),mimetype='application/json')
+    return HttpResponse(json.dumps({'code':0,'response':'ok'}),content_type='application/json')
 
 
 
@@ -34,4 +34,4 @@ def update_interval_logistics(request,dt_f,dt_t):
 
     ret_params = {'task_id':logistics_task.task_id}
 
-    return HttpResponse(json.dumps(ret_params),mimetype='application/json')
+    return HttpResponse(json.dumps(ret_params),content_type='application/json')

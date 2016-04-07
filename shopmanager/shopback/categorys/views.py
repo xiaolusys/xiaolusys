@@ -69,7 +69,7 @@ def getCategoryTree(request):
     cats_json=serializer.data
     #print  cats_json,55566666666666
     #return JSONResponse(serializer.data)
-    return HttpResponse(json.dumps(cats_json),mimetype='application/json')
-   # return HttpResponse(json.dumps(cats_json),mimetype='application/json')
+    return HttpResponse(json.dumps(cats_json),content_type='application/json')
+   # return HttpResponse(json.dumps(cats_json),content_type='application/json')
 
 

@@ -383,7 +383,7 @@ class StatisticMergeOrderView(APIView):
         writer.writerows(pcsv)
 
         response = HttpResponse(tmpfile.getvalue(),
-                                mimetype='application/octet-stream')
+                                content_type='application/octet-stream')
         tmpfile.close()
 
         dt = datetime.datetime.now()
@@ -787,7 +787,7 @@ class OrderPlusView(APIView):
             return HttpResponse(
                 json.dumps({'code': 1,
                             "response_error": "订单不能修改！"}),
-                mimetype="application/json")
+                content_type="application/json")
 
         is_reverse_order = False
         if merge_trade.can_reverse_order:
@@ -825,7 +825,7 @@ def change_trade_addr(request):
         return HttpResponse(
             json.dumps({'code': 1,
                         "response_error": "订单不存在！"}),
-            mimetype="application/json")
+            content_type="application/json")
 
     for (key, val) in CONTENT.items():
         setattr(trade, key, val.strip())
@@ -866,7 +866,7 @@ def change_trade_addr(request):
 
     ret_params = {'code': 0, 'success': True}
 
-    return HttpResponse(json.dumps(ret_params), mimetype="application/json")
+    return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
 
 def change_trade_order(request, id):
@@ -881,7 +881,7 @@ def change_trade_order(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         "response_error": "订单不存在！"}),
-            mimetype="application/json")
+            content_type="application/json")
 
     try:
         prod = Product.objects.get(outer_id=order.outer_id)
@@ -889,7 +889,7 @@ def change_trade_order(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         "response_error": "商品不存在！"}),
-            mimetype="application/json")
+            content_type="application/json")
 
     try:
         prod_sku = ProductSku.objects.get(product__outer_id=order.outer_id,
@@ -898,7 +898,7 @@ def change_trade_order(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         "response_error": "商品规格不存在！"}),
-            mimetype="application/json")
+            content_type="application/json")
 
     merge_trade = order.merge_trade
 
@@ -906,7 +906,7 @@ def change_trade_order(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         "response_error": "商品规格不能修改！"}),
-            mimetype="application/json")
+            content_type="application/json")
 
     old_sku_id = order.outer_sku_id
     order.outer_sku_id = prod_sku.outer_id
@@ -946,7 +946,7 @@ def change_trade_order(request, id):
                       'gift_type': order.gift_type,
                   }}
 
-    return HttpResponse(json.dumps(ret_params), mimetype="application/json")
+    return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
 
 def delete_trade_order(request, id):
@@ -994,7 +994,7 @@ def delete_trade_order(request, id):
     else:
         ret_params = {'code': 0, 'response_content': {'success': True}}
 
-    return HttpResponse(json.dumps(ret_params), mimetype="application/json")
+    return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
 
 ############################### 订单复审 #################################
@@ -1068,21 +1068,21 @@ def review_order(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'该订单不存在'}),
-            mimetype="application/json")
+            content_type="application/json")
 
     if not merge_trade.can_review and merge_trade.sys_status \
         not in (pcfg.WAIT_CHECK_BARCODE_STATUS,pcfg.WAIT_SCAN_WEIGHT_STATUS):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'该订单不能复审'}),
-            mimetype="application/json")
+            content_type="application/json")
     MergeTrade.objects.filter(id=id).update(reason_code='')
 
     log_action(user_id, merge_trade, CHANGE, u'复审通过')
     return HttpResponse(
         json.dumps({'code': 0,
                     'response_content': {'success': True}}),
-        mimetype="application/json")
+        content_type="application/json")
 
 
 def change_order_stock_status(request, id):
@@ -1097,7 +1097,7 @@ def change_order_stock_status(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'该订单不存在'}),
-            mimetype="application/json")
+            content_type="application/json")
 
     merge_trade = merge_order.merge_trade
     if merge_trade.sys_status not in (pcfg.WAIT_CHECK_BARCODE_STATUS,
@@ -1106,7 +1106,7 @@ def change_order_stock_status(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'该订单不能修改缺货状态'}),
-            mimetype="application/json")
+            content_type="application/json")
 
     merge_order.out_stock = out_stock == '1' and True or False
     merge_order.save()
@@ -1119,7 +1119,7 @@ def change_order_stock_status(request, id):
     return HttpResponse(
         json.dumps({'code': 0,
                     'response_content': {'out_stock': merge_order.out_stock}}),
-        mimetype="application/json")
+        content_type="application/json")
 
 
 def change_logistic_and_outsid(request):
@@ -1133,12 +1133,12 @@ def change_logistic_and_outsid(request):
 
     if not trade_id or (not is_qrcode and (not out_sid or not logistic_code)):
         ret_params = {'code': 1, 'response_error': u'请填写快递名称及单号'}
-        return HttpResponse(json.dumps(ret_params), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_params), content_type="application/json")
     try:
         merge_trade = MergeTrade.objects.get(id=trade_id)
     except:
         ret_params = {'code': 1, 'response_error': u'未找到该订单'}
-        return HttpResponse(json.dumps(ret_params), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
     origin_logistic_code = merge_trade.logistics_company and merge_trade.logistics_company.code
     origin_out_sid = merge_trade.out_sid
@@ -1201,13 +1201,13 @@ def change_logistic_and_outsid(request):
 
     except Exception, exc:
         ret_params = {'code': 1, 'response_error': exc.message}
-        return HttpResponse(json.dumps(ret_params), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
     ret_params = {'code': 0,
                   'response_content': {'logistic_company_name': logistic.name,
                                        'logistic_company_code': logistic.code,
                                        'out_sid': out_sid}}
-    return HttpResponse(json.dumps(ret_params), mimetype="application/json")
+    return HttpResponse(json.dumps(ret_params), content_type="application/json")
 
 
 ############################### 退换货订单 #################################
@@ -1443,7 +1443,7 @@ def update_sys_memo(request):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'订单未找到'}),
-            mimetype="application/json")
+            content_type="application/json")
     else:
         merge_trade.append_reason_code(pcfg.NEW_MEMO_CODE)
         merge_trade.sys_memo = sys_memo
@@ -1454,7 +1454,7 @@ def update_sys_memo(request):
         return HttpResponse(
             json.dumps({'code': 0,
                         'response_content': {'success': True}}),
-            mimetype="application/json")
+            content_type="application/json")
 
 
 def regular_trade(request, id):
@@ -1464,7 +1464,7 @@ def regular_trade(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'定时时间不合法'}),
-            mimetype="application/json")
+            content_type="application/json")
 
     regular_days = int(regular_days)
     user_id = request.user.id
@@ -1475,7 +1475,7 @@ def regular_trade(request, id):
         return HttpResponse(
             json.dumps({'code': 1,
                         'response_error': u'订单不在问题单'}),
-            mimetype="application/json")
+            content_type="application/json")
     else:
         dt = datetime.datetime.now() + datetime.timedelta(regular_days, 0, 0)
         merge_trade.sys_status = pcfg.REGULAR_REMAIN_STATUS
@@ -1490,7 +1490,7 @@ def regular_trade(request, id):
         return HttpResponse(
             json.dumps({'code': 0,
                         'response_content': {'success': True}}),
-            mimetype="application/json")
+            content_type="application/json")
 
 
 def replay_trade_send_result(request, id):
@@ -1513,7 +1513,7 @@ def replay_trade_send_result(request, id):
         return render_to_response('trades/trade_post_success.html',
                                   reponse_result,
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
 
 class TradeSearchView(APIView):
@@ -2426,7 +2426,7 @@ class SaleMergeOrderListView(APIView):
         writer.writerows(pcsv)
 
         response = HttpResponse(tmpfile.getvalue(),
-                                mimetype='application/octet-stream')
+                                content_type='application/octet-stream')
         tmpfile.close()
 
         dt = datetime.datetime.now()

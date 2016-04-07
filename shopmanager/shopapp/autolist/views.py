@@ -34,12 +34,12 @@ def invalid_list_task(request,num_iid):
 
     if not num_iid.isdigit():
         response = {'code':1,'response_error':u'商品编号不合规则'}
-        return HttpResponse(json.dumps(response),mimetype='application/json')
+        return HttpResponse(json.dumps(response),content_type='application/json')
     
     ItemListTask.objects.get(num_iid=num_iid).update(status=DELETE)
     response = {'code':0,'response_content':'success'}
     
-    return HttpResponse(json.dumps(response),mimetype='application/json')
+    return HttpResponse(json.dumps(response),content_type='application/json')
 
 
 @login_required(login_url=settings.LOGIN_URL)
@@ -306,7 +306,7 @@ def get_timeslots_json(request):
 
     time_slots = TimeSlots.objects.all()
     slot_list = [ '%02d:%02d'%(s.hour,s.minute) for s in time_slots]
-    return HttpResponse(json.dumps(slot_list),mimetype='application/json')
+    return HttpResponse(json.dumps(slot_list),content_type='application/json')
 
 def show_logs(request):
     logs = Logs.objects.all().order_by('execute_time')
@@ -352,7 +352,7 @@ def change_list_time(request):
     o.save()
 
     return HttpResponse(json.dumps({'list_weekday':target_time.strftime("%Y-%m-%d"),
-                                    'list_time':target_time.strftime("%H:%M")}),mimetype='application/json')
+                                    'list_time':target_time.strftime("%H:%M")}),content_type='application/json')
 
 
 ################################ List View ##############################

@@ -496,7 +496,7 @@ class ProductAdmin(ApproxAdmin):
                                   {'prods': sync_items,
                                    'action_name': u'更新线上库存'},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     sync_items_stock.short_description = u"同步淘宝线上库存"
 
@@ -530,7 +530,7 @@ class ProductAdmin(ApproxAdmin):
                                    'products': queryset,
                                    'origin_url': origin_url},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     invalid_product_action.short_description = u"作废库存商品（批量）"
 
@@ -569,7 +569,7 @@ class ProductAdmin(ApproxAdmin):
                                   {'prods': sync_items,
                                    'action_name': u'更新分销线上库存'},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     sync_purchase_items_stock.short_description = u"同步分销商品库存"
 
@@ -625,7 +625,7 @@ class ProductAdmin(ApproxAdmin):
                                   {'prods': sync_items,
                                    'action_name': u'取消商品对应订单缺货状态'},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     cancle_orders_out_stock.short_description = u"取消订单商品缺货"
 
@@ -836,7 +836,7 @@ class ProductAdmin(ApproxAdmin):
         writer.writerows(pcsv)
 
         response = HttpResponse(tmpfile.getvalue(),
-                                mimetype='application/octet-stream')
+                                content_type='application/octet-stream')
         tmpfile.close()
         response[
             'Content-Disposition'] = 'attachment; filename=product-sku-info-%s.csv' % str(
@@ -961,7 +961,7 @@ class ProductSkuAdmin(admin.ModelAdmin):
                                   {'prods': sync_items,
                                    'action_name': u'取消规格对应订单缺货状态'},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     cancle_items_out_stock.short_description = u"取消规格订单缺货"
 
@@ -1175,7 +1175,7 @@ class ProductScanStorageAdmin(admin.ModelAdmin):
         writer.writerows(pcsv)
 
         response = HttpResponse(tmpfile.getvalue(),
-                                mimetype='application/octet-stream')
+                                content_type='application/octet-stream')
         tmpfile.close()
         response[
             'Content-Disposition'] = 'attachment; filename=product-scan-%s.csv' % str(

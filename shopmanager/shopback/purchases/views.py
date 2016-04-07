@@ -290,7 +290,7 @@ def delete_purchase_item(request):
         and not perm.has_check_purchase_permission(request.user):
         return HttpResponse(
                             json.dumps({'code':1,'response_error':u'你没有权限删除'}),
-                            mimetype='application/json')
+                            content_type='application/json')
     
     purchase_item = PurchaseItem.objects.get(id=purchase_item_id,purchase=purchase)
     purchase_item.status = pcfg.DELETE
@@ -300,7 +300,7 @@ def delete_purchase_item(request):
                (purchase_item.id,purchase_item.product_id,purchase_item.sku_id,
                 purchase_item.outer_id,purchase_item.outer_sku_id))
     
-    return HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype='application/json')
+    return HttpResponse(json.dumps({'code':0,'response_content':'success'}),content_type='application/json')
     
 
 @staff_requried    
@@ -318,7 +318,7 @@ def download_purchase_file(request,id):
     writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
     writer.writerows(pcsv)
         
-    response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+    response = HttpResponse(myfile.getvalue(), content_type='application/octet-stream')
     myfile.close()
     response['Content-Disposition'] = 'attachment; filename=%s'%file_name
     #response['Content-Length'] = str(os.stat(file_path).st_size)
@@ -351,7 +351,7 @@ def upload_purchase_file(request,id):
         
     ret = {'code':0,'response_content':{'filename':file_name}} 
         
-    return HttpResponse(json.dumps(ret),mimetype='application/json')
+    return HttpResponse(json.dumps(ret),content_type='application/json')
     
     
 #################################### 采购入库单 #################################
@@ -628,7 +628,7 @@ def delete_purchasestorage_item(request):
     if purchase.status!=pcfg.PURCHASE_DRAFT and not perm.has_confirm_storage_permission(request.user):
         return HttpResponse(
                             json.dumps({'code':1,'response_error':u'你没有权限删除'}),
-                            mimetype='application/json')
+                            content_type='application/json')
         
     storage_item = PurchaseStorageItem.objects.get(id=purchase_item_id,purchase_storage=purchase)
     storage_item.status = pcfg.DELETE
@@ -636,7 +636,7 @@ def delete_purchasestorage_item(request):
     
     log_action(request.user.id,purchase,CHANGE,u'入库项作废')
     
-    return HttpResponse(json.dumps({'code':0,'response_content':'success'}),mimetype='application/json')
+    return HttpResponse(json.dumps({'code':0,'response_content':'success'}),content_type='application/json')
     
 
 @staff_requried    
@@ -654,7 +654,7 @@ def download_purchasestorage_file(request,id):
     writer = CSVUnicodeWriter(myfile,encoding= is_windows and "gbk" or 'utf8')
     writer.writerows(pcsv)
         
-    response = HttpResponse(myfile.getvalue(), mimetype='application/octet-stream')
+    response = HttpResponse(myfile.getvalue(), content_type='application/octet-stream')
     myfile.close()
     response['Content-Disposition'] = 'attachment; filename=%s'%file_name
     #response['Content-Length'] = str(os.stat(file_path).st_size)
@@ -687,7 +687,7 @@ def upload_purchase_storage_file(request,id):
         
     ret = {'code':0,'response_content':{'filename':file_name}} 
         
-    return HttpResponse(json.dumps(ret),mimetype='application/json')
+    return HttpResponse(json.dumps(ret),content_type='application/json')
 
 
 #################################### 采购付款项 #################################

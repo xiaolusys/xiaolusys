@@ -26,7 +26,7 @@ def picture_review(request):
     rows    =  WeixinUserPicture.objects.filter(id = content.get('pid'))\
                 .update(status=WeixinUserPicture.COMPLETE)
     
-    return  HttpResponse(json.dumps({'code':(1,0)[rows]}),mimetype="application/json")
+    return  HttpResponse(json.dumps({'code':(1,0)[rows]}),content_type="application/json")
 
 
 class AwardView(View):
@@ -60,7 +60,7 @@ class AwardView(View):
         except:
             rep_json = {'success':False,'err_msg':u'系统错误，请联系管理员'}
             
-        return HttpResponse(json.dumps(rep_json),mimetype="application/json") 
+        return HttpResponse(json.dumps(rep_json),content_type="application/json")
     
     
 class AwardNotifyView(View):
@@ -104,7 +104,7 @@ class AwardNotifyView(View):
         except:
             rep_json = {'success':False,'notify_num':0}
             
-            return  HttpResponse(json.dumps(rep_json),mimetype="application/json")  
+            return  HttpResponse(json.dumps(rep_json),content_type="application/json")
     
     
 class AwardRemindView(View):
@@ -125,7 +125,7 @@ class AwardRemindView(View):
         except:
             rep_json = {'success':False}
             
-        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")   
+        return  HttpResponse(json.dumps(rep_json),content_type="application/json")
 
 
 class AwardShareView(View):
@@ -191,7 +191,7 @@ class AwardApplyView(View):
                 return redirect(redirect_url)
 
         rep_json = {'code':'error', "try this F code": "866988"}
-        return  HttpResponse(json.dumps(rep_json),mimetype="application/json")
+        return  HttpResponse(json.dumps(rep_json),content_type="application/json")
     
     
 class LinkShareView(View):
@@ -207,7 +207,7 @@ class LinkShareView(View):
                                               link_url=share_link,
                                               link_type=share_type)
         
-        return  HttpResponse(json.dumps({"success":"ok"}),mimetype="application/json")
+        return  HttpResponse(json.dumps({"success":"ok"}),content_type="application/json")
     
     get = post
 

@@ -438,7 +438,7 @@ class SaleRefundAdmin(admin.ModelAdmin):
         tmpfile = StringIO.StringIO()
         writer = CSVUnicodeWriter(tmpfile, encoding=is_windows and "gbk" or 'utf8')
         writer.writerows(pcsv)
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment; filename=sale_refund-info-%s.csv' % str(int(time.time()))
         return response
@@ -484,7 +484,7 @@ class EnvelopAdmin(admin.ModelAdmin):
                                    'total_amount': total_amount / 100.0,
                                    'envelop_count': envelop_count},
                                   context_instance=RequestContext(request),
-                                  mimetype="text/html")
+                                  content_type="text/html")
 
     send_envelop_action.short_description = u"发送微信红包"
 

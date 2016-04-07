@@ -13,13 +13,13 @@ def get_usernames_by_segstr(request):
     q       = content.get('term')
     if not q:
         ret = {'code':1,'error_response':u'查询内容不能为空'}
-        return HttpResponse(json.dumps(ret),mimetype="application/json")
+        return HttpResponse(json.dumps(ret),content_type="application/json")
     
     valuelist = DjangoUser.objects.filter(username__icontains=q).values_list('username')
     usernames = [{'id':'everyone','label':'everyone','value':'everyone'}]
     if valuelist:
         for vl in valuelist:
             usernames.append({'id':vl[0],'label':vl[0],'value':vl[0]})
-    return HttpResponse(json.dumps(usernames),mimetype="application/json")
+    return HttpResponse(json.dumps(usernames),content_type="application/json")
     
     

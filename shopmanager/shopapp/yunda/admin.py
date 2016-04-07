@@ -63,7 +63,7 @@ class BranchZoneAdmin(admin.ModelAdmin):
         writer  = CSVUnicodeWriter(tmpfile,encoding= is_windows and "gbk" or 'utf8')
         writer.writerows(bz_tuple)
             
-        response = HttpResponse(tmpfile.getvalue(), mimetype='application/octet-stream')
+        response = HttpResponse(tmpfile.getvalue(), content_type='application/octet-stream')
         tmpfile.close()
         response['Content-Disposition'] = 'attachment; filename=branch-zone-%s.csv'%str(int(time.time()))
         

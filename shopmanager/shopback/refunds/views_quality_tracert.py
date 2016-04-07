@@ -32,7 +32,7 @@ def tracert_Data_Collect(request):
            " between '{0}' and '{1}' group by outer_id;".format(time_from, time_to, reason)
     raw = raw_db(sql=sql1)
     result_list = refund_Raw_Handler(raw=raw)
-    return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), mimetype="application/json")
+    return HttpResponse(json.dumps(result_list, cls=DjangoJSONEncoder), content_type="application/json")
 
 
 def raw_db(sql=None):
