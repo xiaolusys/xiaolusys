@@ -424,7 +424,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
-        CONTENT  = request.POST
+        CONTENT  = request.REQUEST
         tuuid    = CONTENT.get('uuid')
         customer = get_object_or_404(Customer,user=request.user)
         try:
