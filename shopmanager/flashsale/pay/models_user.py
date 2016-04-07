@@ -11,6 +11,7 @@ from .base import PayBaseModel
 from flashsale.pay.models_envelope import Envelop
 import constants
 from shopback.base import log_action, CHANGE
+from django.db.models.signals import post_save
 
 
 class Register(PayBaseModel):
@@ -222,14 +223,10 @@ class Customer(BaseModel):
                                                                                SaleRefund.NO_REFUND)).count()
 
 
-from django.db.models.signals import post_save
-
-
 def triger_record_xlmm_fans(sender, instance, created, **kwargs):
     """ 记录粉丝妈妈粉丝信息 """
     from flashsale.pay.tasks import task_Record_Mama_Fans
     task_Record_Mama_Fans.s(instance, created)()
-
 
 post_save.connect(triger_record_xlmm_fans, dispatch_uid='triger_record_xlmm_fans', sender=Customer)
 
@@ -431,4 +428,10 @@ class BudgetLog(PayBaseModel):
             user_budgets = UserBudget.objects.filter(user=self.customer_id)
             user_budgets.update(amount=models.F('amount') + self.flow_amount)
             return True
-        
+
+
+def budgetlog_update_userbudget(sender, instance, created, **kwargs):
+    from flashsale.pay.tasks import task_budgetlog_update_userbudget
+    task_budgetlog_update_userbudget.delay(instance)
+
+post_save.connect(budgetlog_update_userbudget, sender=BudgetLog)

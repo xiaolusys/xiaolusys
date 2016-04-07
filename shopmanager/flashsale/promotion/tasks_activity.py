@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger('celery.handler')
 
-from flashsale.pay.models_user import Customer
+from flashsale.pay.models_user import Customer, BudgetLog, UserBudget
 from flashsale.promotion.models_freesample import RedEnvelope
 import sys, random
 
@@ -91,4 +91,15 @@ def task_activate_application(event_id, customer):
         task_generate_red_envelope.delay(event_id, from_customer_id, customer)
 
     
+@task()
+def task_envelope_update_budgetlog(envelope):
+    if not envelope.is_cashable():
+        return
 
+    budget_type = BudgetLog.BUDGET_IN
+    budget_log_type = BudgetLog.BG_ENVELOPE
+    budget_date = datetime.datetime.now().date()
+    budget_log = BudgetLog(customer_id=envelope.customer_id, flow_amount=envelope.value, budget_type=budget_type,
+                           budget_log_type=budget_log_type, budget_date=budget_date,referal_id=envelope.uni_key)
+    budget_log.save()
+    
