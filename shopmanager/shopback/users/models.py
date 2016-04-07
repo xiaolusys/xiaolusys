@@ -19,7 +19,7 @@ class EffectUserManager(models.Manager):
     
     def get_query_set(self):
         return (super(EffectUserManager, self).
-                get_query_set().filter(status=self.model.NORMAL))
+                get_queryset().filter(status=self.model.NORMAL))
     
     @property
     def TAOBAO(self):

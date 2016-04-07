@@ -5,6 +5,8 @@ from rest_framework import viewsets, permissions, authentication, renderers, vie
 from rest_framework.response import Response
 from rest_framework import exceptions
 from . import serializers
+
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.forms import model_to_dict
 from rest_framework.decorators import detail_route, list_route
