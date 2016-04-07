@@ -7,7 +7,7 @@ sys.setdefaultencoding('utf-8')
 import os.path
 import posixpath
 
-PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -335,8 +335,7 @@ if not DEBUG:
     ORMCACHE_ENABLE = False
     SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
     SESSION_COOKIE_AGE = 24*15*60*60             
-    
-    PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+
     STATICFILES_DIRS = (
        os.path.join(PROJECT_ROOT,"site_media","static"),
     )
