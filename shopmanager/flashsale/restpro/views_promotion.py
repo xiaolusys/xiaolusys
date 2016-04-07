@@ -1,7 +1,8 @@
 # coding=utf-8
-import os, settings, urlparse
+import os, urlparse
 import datetime
 
+from django.conf import settings
 from django.forms import model_to_dict
 from django.db.models import Sum, Count
 from django.shortcuts import get_object_or_404

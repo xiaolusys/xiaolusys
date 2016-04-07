@@ -4,7 +4,7 @@ import re
 import urllib
 import time
 import datetime
-import settings
+from django.conf import settings
 from flashsale.restpro import options
 
 from rest_framework import views
