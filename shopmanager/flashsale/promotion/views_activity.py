@@ -7,6 +7,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
+from django.db.models import Sum
 
 from rest_framework.views import APIView
 from rest_framework import authentication
@@ -356,12 +357,18 @@ class MainView(APIView):
         
         cards = {"1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0}
         for item in envelope_serializer.data:
+            print item
             if item['type'] == 'card':
-                key = item['value']
+                key = str(item['value'])
                 cards[key] = 1
-        
+
+        inactive_applications = XLSampleApply.objects.filter(event_id=event_id,from_customer=customer_id,status=XLSampleApply.INACTIVE).order_by('-created')
+        inactives = []
+        for item in inactive_applications:
+            inactives.append({"headimgurl":item.headimgurl, "nick":item.nick})
+            
         data = {"cards":cards, "envelopes":envelope_serializer.data, "num_of_envelope": len(envelope_serializer.data),
-                "award_list": winner_serializer.data, "award_left": award_left}
+                "award_list": winner_serializer.data, "award_left": award_left, "inactives":inactives}
         
         response = Response(data)
         response["Access-Control-Allow-Origin"] = "*"
@@ -389,5 +396,21 @@ class OpenEnvelopeView(APIView):
         response = Response(serializer.data)
         response["Access-Control-Allow-Origin"] = "*"
         return response
+
+    
+class StatsView(APIView):
+    def get(self, request, event_id, *args, **kwargs):
+        #customer = Customer.objects.get(user=request.user)
+        #customer_id = customer.id
+        customer_id = 1 #debug
+        envelopes = RedEnvelope.objects.filter(customer_id=customer_id, event_id=event_id)
+        invite_num = envelopes.count()
         
+        res = envelopes.filter(type=0).values('type').annotate(total=Sum('value'))
+        total = 0
+        if res:
+            total = float("%.2f" % (res[0]["total"] * 0.01))
+        
+        return Response({"invite_num":invite_num, "total":total})
+
         

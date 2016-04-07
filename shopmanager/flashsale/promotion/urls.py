@@ -34,4 +34,5 @@ urlpatterns = patterns('',
     url(r'^activate/(?P<event_id>\d+)/$', views_activity.ActivateView.as_view(), name="activate_activity"),
     url(r'^main/(?P<event_id>\d+)/$', views_activity.MainView.as_view(), name="mainpage_activity"),
     url(r'^open_envelope/(?P<envelope_id>\d+)/$', views_activity.OpenEnvelopeView.as_view(), name="open_envelope_activity"),
+    url(r'^stats/(?P<event_id>\d+)/$', views_activity.StatsView.as_view(), name="stats_activity"),
 )
