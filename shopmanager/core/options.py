@@ -12,7 +12,7 @@ def get_systemoa_user():
 SYSTEMOA_USER = get_systemoa_user()
     
 def log_action(user_id,obj,action,msg):
-    if not isinstance(user_id,int):
+    if not isinstance(user_id,(int,long)):
         user_id = user_id.id
     try:
         LogEntry.objects.log_action(
