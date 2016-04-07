@@ -88,14 +88,14 @@ class WeixinBaseAuthJoinView(WeixinAuthMixin, APIView):
 
         if not self.valid_openid(openid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
-            wxprofile = self.get_auth_userinfo(request)
-            openid = wxprofile.get("openid")
+            userinfo = self.get_auth_userinfo(request)
+            openid = userinfo.get("openid")
 
             if not self.valid_openid(openid):
                 # 4. if we still dont have openid, we have to do oauth
                 redirect_url = self.get_wxauth_redirct_url(request)
                 return redirect(redirect_url)
-            logger.warn("wxprofile: %s" % wxprofile)
+            logger.warn("baseauth: %s" % userinfo)
             
         # now we already have openid, we check whether application exists.
         application_count = XLSampleApply.objects.filter(user_openid=openid).count()
@@ -125,17 +125,23 @@ class WeixinSNSAuthJoinView(WeixinAuthMixin, APIView):
         # 2. get openid from cookie
         openid, unionid = self.get_cookie_openid_and_unoinid(request)
 
-        if not self.valid_openid(openid):
+        if not self.valid_openid(unionid):
             # 3. get openid from 'debug' or from using 'code' (if code exists)
-            wxprofile = self.get_auth_userinfo(request)
-            unionid = wxprofile.get("unionid")
-            openid = wxprofile.get("openid")
+            userinfo = self.get_auth_userinfo(request)
+            unionid = userinfo.get("unionid")
+            openid = userinfo.get("openid")
             
             if not self.valid_openid(unionid):
                 # 4. if we still dont have openid, we have to do oauth
                 redirect_url = self.get_snsuserinfo_redirct_url(request)
                 return redirect(redirect_url)
 
+            # now we have userinfo
+            logger.warn("snsauth: %s" % userinfo)
+            from tasks_activity import task_userinfo_update_application, task_userinfo_update_customer
+            task_userinfo_update_application.delay(userinfo)
+            task_userinfo_update_customer.delay(userinfo)
+            
         # now we already have openid, we check whether application exists.
         application_count = XLSampleApply.objects.filter(user_openid=openid).count()
         if application_count <= 0:
@@ -325,8 +331,9 @@ class ActivateView(APIView):
 
         # 2. activate application
         customer = get_customer(request)
+        from tasks_activity import task_activate_application
         task_activate_application.delay(event_id, customer)
-
+        
         # 3. redirect to mainpage
         key = 'mainpage'
         html = activity_entry.get_html(key)
