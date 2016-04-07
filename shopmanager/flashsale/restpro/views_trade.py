@@ -877,7 +877,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post'])
     def shoppingcart_create(self, request, *args, **kwargs):
         """ 购物车订单支付接口 """
-        CONTENT  = request.POST
+        CONTENT  = request.REQUEST
         tuuid    = CONTENT.get('uuid')
         coupon_id, coupon = CONTENT.get('coupon_id',''), None
         customer = get_object_or_404(Customer,user=request.user)
@@ -890,6 +890,7 @@ class SaleTradeViewSet(viewsets.ModelViewSet):
                 buyer_id=customer.id
             )
             #这里不对购物车状态进行过滤，防止订单创建过程中购物车状态发生变化
+            logger.warn('debug cart v1:params=%s,cart_qs=%s' % (request.REQUEST, cart_qs.count()))
             if cart_qs.count() != len(cart_ids):
                 raise exceptions.ParseError(u'购物车已结算待支付')
             xlmm            = self.get_xlmm(request)
