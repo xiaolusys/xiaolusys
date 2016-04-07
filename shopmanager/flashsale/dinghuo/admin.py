@@ -173,7 +173,7 @@ class ordelistAdmin(admin.ModelAdmin):
                 self.message_user(request, u'已成功审核!')
         return HttpResponseRedirect(request.get_full_path())
 
-    verify_order_action.short_description = u'审核(后付款)'
+    verify_order_action.short_description = u'审核(待支付)'
 
 
     # 批量验货完成
