@@ -216,8 +216,6 @@ class ApplicationView(WeixinAuthMixin, APIView):
         mobile = request.COOKIES.get("mobile")
         openid,unionid = self.get_cookie_openid_and_unoinid(request)
         
-        print "cookie ---- ", mobile, openid, event_id, from_customer
-
         # 1. check whether event_id is valid 
         activity_entrys = ActivityEntry.objects.filter(id=event_id)
         if activity_entrys.count() <= 0:
@@ -357,7 +355,6 @@ class MainView(APIView):
         
         cards = {"1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0}
         for item in envelope_serializer.data:
-            print item
             if item['type'] == 'card':
                 key = str(item['value'])
                 cards[key] = 1
